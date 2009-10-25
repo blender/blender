@@ -81,8 +81,7 @@ extern "C" void smoke_step(FLUID_3D *fluid, size_t framenr)
 
 extern "C" void smoke_turbulence_step(WTURBULENCE *wt, FLUID_3D *fluid)
 {
-	if(wt) 
-		wt->stepTurbulenceFull(fluid->_dt/fluid->_dx, fluid->_xVelocity, fluid->_yVelocity, fluid->_zVelocity, fluid->_obstacles); 
+	wt->stepTurbulenceFull(fluid->_dt/fluid->_dx, fluid->_xVelocity, fluid->_yVelocity, fluid->_zVelocity, fluid->_obstacles); 
 }
 
 extern "C" void smoke_initBlenderRNA(FLUID_3D *fluid, float *alpha, float *beta)
@@ -137,7 +136,7 @@ extern "C" void smoke_dissolve(FLUID_3D *fluid, int speed, int log)
 	}
 }
 
-extern "C" void smoke_turbulence_dissolve(WTURBULENCE *wt, int speed, int log)
+extern "C" void smoke_dissolve_wavelet(WTURBULENCE *wt, int speed, int log)
 {
 	float *density = wt->getDensityBig();
 	Vec3Int r = wt->getResBig();
@@ -172,7 +171,7 @@ extern "C" void smoke_turbulence_dissolve(WTURBULENCE *wt, int speed, int log)
 	}
 }
 
-extern "C" void smoke_turbulence_initBlenderRNA(WTURBULENCE *wt, float *strength)
+extern "C" void smoke_initWaveletBlenderRNA(WTURBULENCE *wt, float *strength)
 {
 	wt->initBlenderRNA(strength);
 }
@@ -236,18 +235,34 @@ extern "C" float *smoke_get_velocity_z(FLUID_3D *fluid)
 	return fluid->_zVelocity;
 }
 
+extern "C" float *smoke_get_force_x(FLUID_3D *fluid)
+{
+	return fluid->_xForce;
+}
+
+extern "C" float *smoke_get_force_y(FLUID_3D *fluid)
+{
+	return fluid->_yForce;
+}
+
+extern "C" float *smoke_get_force_z(FLUID_3D *fluid)
+{
+	return fluid->_zForce;
+}
+
 extern "C" float *smoke_turbulence_get_density(WTURBULENCE *wt)
 {
 	return wt ? wt->getDensityBig() : NULL;
 }
 
-extern "C" void smoke_turbulence_get_res(WTURBULENCE *wt, unsigned int *res)
+extern "C" void smoke_turbulence_get_res(WTURBULENCE *wt, int *res)
 {
 	if(wt)
 	{
-		res[0] = wt->_resBig[0];
-		res[1] = wt->_resBig[1];
-		res[2] = wt->_resBig[2];
+		Vec3Int r = wt->getResBig();
+		res[0] = r[0];
+		res[1] = r[1];
+		res[2] = r[2];
 	}
 }
 

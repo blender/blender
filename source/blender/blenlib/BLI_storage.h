@@ -66,6 +66,9 @@ int    BLI_exist(char *name);
 	 * @param name The name of the file to read.
 	 * @retval A list of strings representing the file lines.
 	 */
+
+int BLI_is_dir(char *file);
+
 struct LinkNode *BLI_read_file_as_lines(char *name);
 
 	/**

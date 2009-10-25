@@ -185,12 +185,12 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "Sequencer", SPACE_SEQ, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -219,6 +219,10 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_SEQUENCER)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -241,6 +245,18 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SCENE:
+		switch(wmn->data) {
+			case ND_FRAME:
+			case ND_SEQUENCER:
+				ED_region_tag_redraw(ar);
+				break;
+		}
+		break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_SEQUENCER)
+				ED_region_tag_redraw(ar);
+			break;
 		
 	}
 }
@@ -293,6 +309,7 @@ void ED_spacetype_sequencer(void)
 	
 	art->init= sequencer_header_area_init;
 	art->draw= sequencer_header_area_draw;
+	art->listener= sequencer_main_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

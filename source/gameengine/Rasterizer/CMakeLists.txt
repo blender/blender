@@ -27,15 +27,15 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  .
-  ../../../source/kernel/gen_system
-  ../../../source/blender/makesdna
-  ../../../source/gameengine/SceneGraph
-  ../../../intern/string
-  ../../../intern/moto/include
-  ../../../extern/glew/include
-  ../Expressions
-  ${PYTHON_INC}
+	.
+	../../../source/kernel/gen_system
+	../../../source/blender/makesdna
+	../../../source/gameengine/SceneGraph
+	../../../intern/string
+	../../../intern/moto/include
+	../../../extern/glew/include
+	../Expressions
+	${PYTHON_INC}
 )
 
 BLENDERLIB(bf_rasterizer "${SRC}" "${INC}")

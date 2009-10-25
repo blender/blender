@@ -37,14 +37,22 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_controller_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_text.h"
-#include "BKE_library.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
+#include "BKE_text.h"
+#include "BKE_utildefines.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -122,8 +130,10 @@ undo position
 static void txt_pop_first(Text *text);
 static void txt_pop_last(Text *text);
 static void txt_undo_add_op(Text *text, int op);
-static void txt_undo_add_block(Text *text, int op, char *buf);
+static void txt_undo_add_block(Text *text, int op, const char *buf);
 static void txt_delete_line(Text *text, TextLine *line);
+static void txt_delete_sel (Text *text);
+static void txt_make_dirty (Text *text);
 
 /***/
 
@@ -451,6 +461,109 @@ Text *copy_text(Text *ta)
 	return tan;
 }
 
+void unlink_text(Main *bmain, Text *text)
+{
+	bScreen *scr;
+	ScrArea *area;
+	SpaceLink *sl;
+	Scene *scene;
+	Object *ob;
+	bController *cont;
+	bConstraint *con;
+	short update;
+
+	/* dome */
+	for(scene=bmain->scene.first; scene; scene=scene->id.next)
+		if(scene->r.dometext == text)
+			scene->r.dometext = NULL;
+	
+	for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		/* game controllers */
+		for(cont=ob->controllers.first; cont; cont=cont->next) {
+			if(cont->type==CONT_PYTHON) {
+				bPythonCont *pc;
+				
+				pc= cont->data;
+				if(pc->text==text) pc->text= NULL;
+			}
+		}
+
+		/* pyconstraints */
+		update = 0;
+
+		if(ob->type==OB_ARMATURE && ob->pose) {
+			bPoseChannel *pchan;
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				for(con = pchan->constraints.first; con; con=con->next) {
+					if(con->type==CONSTRAINT_TYPE_PYTHON) {
+						bPythonConstraint *data = con->data;
+						if (data->text==text) data->text = NULL;
+						update = 1;
+						
+					}
+				}
+			}
+		}
+
+		for(con = ob->constraints.first; con; con=con->next) {
+			if(con->type==CONSTRAINT_TYPE_PYTHON) {
+				bPythonConstraint *data = con->data;
+				if (data->text==text) data->text = NULL;
+				update = 1;
+			}
+		}
+		
+		if(update)
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	}
+
+	/* pynodes */
+	// XXX nodeDynamicUnlinkText(&text->id);
+	
+	/* text space */
+	for(scr= bmain->screen.first; scr; scr= scr->id.next) {
+		for(area= scr->areabase.first; area; area= area->next) {
+			for(sl= area->spacedata.first; sl; sl= sl->next) {
+				if(sl->spacetype==SPACE_TEXT) {
+					SpaceText *st= (SpaceText*) sl;
+					
+					if(st->text==text) {
+						st->text= NULL;
+						st->top= 0;
+					}
+				}
+			}
+		}
+	}
+
+	text->id.us= 0;
+}
+
+void clear_text(Text *text) /* called directly from rna */
+{
+	int oldstate;
+
+	oldstate = txt_get_undostate(  );
+	txt_set_undostate( 1 );
+	txt_sel_all( text );
+	txt_delete_sel(text);
+	txt_set_undostate( oldstate );
+
+	txt_make_dirty(text);
+}
+
+void write_text(Text *text, char *str) /* called directly from rna */
+{
+	int oldstate;
+
+	oldstate = txt_get_undostate(  );
+	txt_insert_buf( text, str );
+	txt_move_eof( text, 0 );
+	txt_set_undostate( oldstate );
+
+	txt_make_dirty(text);
+}
+
 /*****************************/
 /* Editing utility functions */
 /*****************************/
@@ -483,17 +596,15 @@ static TextLine *txt_new_line(char *str)
 	return tmp;
 }
 
-static TextLine *txt_new_linen(char *str, int n)
+static TextLine *txt_new_linen(const char *str, int n)
 {
 	TextLine *tmp;
 
-	if(!str) str= "";
-	
 	tmp= (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= MEM_mallocN(n+1, "textline_string");
 	tmp->format= NULL;
 	
-	BLI_strncpy(tmp->line, str, n+1);
+	BLI_strncpy(tmp->line, (str)? str: "", n+1);
 	
 	tmp->len= strlen(tmp->line);
 	tmp->next= tmp->prev= NULL;
@@ -1228,7 +1339,7 @@ char *txt_sel_to_buf (Text *text)
 	return buf;
 }
 
-void txt_insert_buf(Text *text, char *in_buffer)
+void txt_insert_buf(Text *text, const char *in_buffer)
 {
 	int i=0, l=0, j, u, len;
 	TextLine *add;
@@ -1457,7 +1568,7 @@ static void txt_undo_add_op(Text *text, int op)
 	text->undo_buf[text->undo_pos+1]= 0;
 }
 
-static void txt_undo_add_block(Text *text, int op, char *buf)
+static void txt_undo_add_block(Text *text, int op, const char *buf)
 {
 	int length;
 	
@@ -2720,4 +2831,61 @@ TextMarker *txt_next_marker(Text *text, TextMarker *marker) {
 			return tmp;
 	}
 	return NULL; /* Only if marker==NULL */
+}
+
+
+/*******************************/
+/* Character utility functions */
+/*******************************/
+
+int text_check_bracket(char ch)
+{
+	int a;
+	char opens[] = "([{";
+	char close[] = ")]}";
+
+	for(a=0; a<(sizeof(opens)-1); a++) {
+		if(ch==opens[a])
+			return a+1;
+		else if(ch==close[a])
+			return -(a+1);
+	}
+	return 0;
+}
+
+int text_check_delim(char ch)
+{
+	int a;
+	char delims[] = "():\"\' ~!%^&*-+=[]{};/<>|.#\t,";
+
+	for(a=0; a<(sizeof(delims)-1); a++) {
+		if(ch==delims[a])
+			return 1;
+	}
+	return 0;
+}
+
+int text_check_digit(char ch)
+{
+	if(ch < '0') return 0;
+	if(ch <= '9') return 1;
+	return 0;
+}
+
+int text_check_identifier(char ch)
+{
+	if(ch < '0') return 0;
+	if(ch <= '9') return 1;
+	if(ch < 'A') return 0;
+	if(ch <= 'Z' || ch == '_') return 1;
+	if(ch < 'a') return 0;
+	if(ch <= 'z') return 1;
+	return 0;
+}
+
+int text_check_whitespace(char ch)
+{
+	if(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
+		return 1;
+	return 0;
 }

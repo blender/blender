@@ -40,14 +40,15 @@
 #include "ListValue.h"
 #include "SCA_LogicManager.h"
 #include "SCA_TimeEventManager.h"
-#include "SCA_AlwaysEventManager.h"
-#include "SCA_RandomEventManager.h"
-#include "KX_RayEventManager.h"
+//#include "SCA_AlwaysEventManager.h"
+//#include "SCA_RandomEventManager.h"
+//#include "KX_RayEventManager.h"
 #include "KX_TouchEventManager.h"
 #include "SCA_KeyboardManager.h"
 #include "SCA_MouseManager.h"
-#include "SCA_PropertyEventManager.h"
+//#include "SCA_PropertyEventManager.h"
 #include "SCA_ActuatorEventManager.h"
+#include "SCA_BasicEventManager.h"
 #include "KX_Camera.h"
 #include "SCA_JoystickManager.h"
 
@@ -92,6 +93,8 @@
 #endif
 
 #include "KX_Light.h"
+
+#include <stdio.h>
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
@@ -168,25 +171,27 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_keyboardmgr = new SCA_KeyboardManager(m_logicmgr,keyboarddevice);
 	m_mousemgr = new SCA_MouseManager(m_logicmgr,mousedevice);
 	
-	SCA_AlwaysEventManager* alwaysmgr = new SCA_AlwaysEventManager(m_logicmgr);
-	SCA_PropertyEventManager* propmgr = new SCA_PropertyEventManager(m_logicmgr);
+	//SCA_AlwaysEventManager* alwaysmgr = new SCA_AlwaysEventManager(m_logicmgr);
+	//SCA_PropertyEventManager* propmgr = new SCA_PropertyEventManager(m_logicmgr);
 	SCA_ActuatorEventManager* actmgr = new SCA_ActuatorEventManager(m_logicmgr);
-	SCA_RandomEventManager* rndmgr = new SCA_RandomEventManager(m_logicmgr);
-	KX_RayEventManager* raymgr = new KX_RayEventManager(m_logicmgr);
+	//SCA_RandomEventManager* rndmgr = new SCA_RandomEventManager(m_logicmgr);
+	SCA_BasicEventManager* basicmgr = new SCA_BasicEventManager(m_logicmgr);
+	//KX_RayEventManager* raymgr = new KX_RayEventManager(m_logicmgr);
 
 	KX_NetworkEventManager* netmgr = new KX_NetworkEventManager(m_logicmgr, ndi);
 	
 	
 
-	m_logicmgr->RegisterEventManager(alwaysmgr);
-	m_logicmgr->RegisterEventManager(propmgr);
+	//m_logicmgr->RegisterEventManager(alwaysmgr);
+	//m_logicmgr->RegisterEventManager(propmgr);
 	m_logicmgr->RegisterEventManager(actmgr);
 	m_logicmgr->RegisterEventManager(m_keyboardmgr);
 	m_logicmgr->RegisterEventManager(m_mousemgr);
 	m_logicmgr->RegisterEventManager(m_timemgr);
-	m_logicmgr->RegisterEventManager(rndmgr);
-	m_logicmgr->RegisterEventManager(raymgr);
+	//m_logicmgr->RegisterEventManager(rndmgr);
+	//m_logicmgr->RegisterEventManager(raymgr);
 	m_logicmgr->RegisterEventManager(netmgr);
+	m_logicmgr->RegisterEventManager(basicmgr);
 
 
 	SYS_SystemHandle hSystem = SYS_GetSystem();
@@ -204,7 +209,9 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_bucketmanager=new RAS_BucketManager();
 	
+#ifndef DISABLE_PYTHON
 	m_attr_dict = PyDict_New(); /* new ref */
+#endif
 }
 
 
@@ -253,8 +260,11 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
+
+#ifndef DISABLE_PYTHON
 	PyDict_Clear(m_attr_dict);
 	Py_DECREF(m_attr_dict);
+#endif
 }
 
 RAS_BucketManager* KX_Scene::GetBucketManager()
@@ -467,7 +477,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 
 	// this is the list of object that are send to the graphics pipeline
 	m_objectlist->Add(newobj->AddRef());
-	if (newobj->IsLight())
+	if (newobj->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		m_lightlist->Add(newobj->AddRef());
 	newobj->AddMeshUser();
 
@@ -743,7 +753,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// add the object in the layer of the parent
 		(*git)->SetLayer(groupobj->GetLayer());
 		// If the object was a light, we need to update it's RAS_LightObject as well
-		if ((*git)->IsLight())
+		if ((*git)->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		{
 			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
 			lightobj->GetLightData()->m_layer = groupobj->GetLayer();
@@ -851,7 +861,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// add the object in the layer of the parent
 		(*git)->SetLayer(parentobj->GetLayer());
 		// If the object was a light, we need to update it's RAS_LightObject as well
-		if ((*git)->IsLight())
+		if ((*git)->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		{
 			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
 			lightobj->GetLightData()->m_layer = parentobj->GetLayer();
@@ -972,7 +982,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	
 	newobj->RemoveMeshes();
 	ret = 1;
-	if (newobj->IsLight() && m_lightlist->RemoveValue(newobj))
+	if (newobj->GetGameObjectType()==SCA_IObject::OBJ_LIGHT && m_lightlist->RemoveValue(newobj))
 		ret = newobj->Release();
 	if (m_objectlist->RemoveValue(newobj))
 		ret = newobj->Release();
@@ -1601,6 +1611,8 @@ double KX_Scene::getSuspendedDelta()
 	return m_suspendeddelta;
 }
 
+#ifndef DISABLE_PYTHON
+
 //----------------------------------------------------------------------------
 //Python
 
@@ -1864,3 +1876,5 @@ KX_PYMETHODDEF_DOC(KX_Scene, get, "")
 	Py_INCREF(def);
 	return def;
 }
+
+#endif // DISABLE_PYTHON

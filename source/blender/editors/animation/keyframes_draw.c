@@ -54,10 +54,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
@@ -316,7 +317,7 @@ static void set_touched_actkeyblock (ActKeyBlock *ab)
 /* *************************** Keyframe Drawing *************************** */
 
 /* helper function - find actkeycolumn that occurs on cframe */
-static ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
+ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
 {
 	/* sanity checks */
 	if (ak == NULL)
@@ -329,6 +330,29 @@ static ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
 		return cfra_find_actkeycolumn(ak->right, cframe);
 	else
 		return ak; /* match */
+}
+
+/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
+// FIXME: this is buggy... next() is ignored completely...
+ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
+{
+	ActKeyColumn *akn= NULL;
+	
+	/* sanity checks */
+	if (ak == NULL)
+		return NULL;
+	
+	/* check if this is a match, or whether it is in some subtree */
+	if (cframe < ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->left, cframe, next);
+	else if (cframe > ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->right, cframe, next);
+		
+	/* if no match found (or found match), just use the current one */
+	if (akn == NULL)
+		return ak;
+	else
+		return akn;
 }
 
 /* -------- */
@@ -393,6 +417,13 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 			{
 				if (sel) glColor3f(0.33f, 0.75f, 0.93f);
 				else glColor3f(0.70f, 0.86f, 0.91f);
+			}
+				break;
+				
+			case BEZT_KEYTYPE_EXTREME: /* redish frames for now */
+			{
+				if (sel) glColor3f(95.0f, 0.5f, 0.5f);
+				else glColor3f(0.91f, 0.70f, 0.80f);
 			}
 				break;
 				
@@ -483,6 +514,24 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 }
 
 /* *************************** Channel Drawing Funcs *************************** */
+
+void draw_summary_channel(View2D *v2d, bAnimContext *ac, float ypos)
+{
+	DLRBT_Tree keys, blocks;
+	
+	BLI_dlrbTree_init(&keys);
+	BLI_dlrbTree_init(&blocks);
+	
+		summary_to_keylist(ac, &keys, &blocks);
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	BLI_dlrbTree_linkedlist_sync(&blocks);
+	
+		draw_keylist(v2d, &keys, &blocks, ypos);
+	
+	BLI_dlrbTree_free(&keys);
+	BLI_dlrbTree_free(&blocks);
+}
 
 void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos)
 {
@@ -591,6 +640,25 @@ void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos)
 
 /* *************************** Keyframe List Conversions *************************** */
 
+void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
+{
+	if (ac) {
+		ListBase anim_data = {NULL, NULL};
+		bAnimListElem *ale;
+		int filter;
+		
+		/* get F-Curves to take keyframes from */
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+		
+		/* loop through each F-Curve, grabbing the keyframes */
+		for (ale= anim_data.first; ale; ale= ale->next)
+			fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
+		
+		BLI_freelistN(&anim_data);
+	}
+}
+
 void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	if (sce) {
@@ -626,25 +694,90 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	Key *key= ob_get_key(ob);
-
-	if (ob) {
-		int filterflag;
+	int filterflag= (ads)? ads->filterflag : 0;
+	
+	/* sanity check */
+	if (ob == NULL)
+		return;
 		
-		/* get filterflag */
-		if (ads)
-			filterflag= ads->filterflag;
-		else
-			filterflag= 0;
+	/* Add action keyframes */
+	if (ob->adt && ob->adt->action)
+		action_to_keylist(ob->adt, ob->adt->action, keys, blocks);
+	
+	/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
+	if ((key && key->adt && key->adt->action) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
+		action_to_keylist(key->adt, key->adt->action, keys, blocks);
+	
+	/* Add material keyframes */
+	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
+		int a;
 		
-		/* Add action keyframes */
-		if (ob->adt && ob->adt->action)
-			action_to_keylist(ob->adt, ob->adt->action, keys, blocks);
-		
-		/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
-		if ((key && key->adt && key->adt->action) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
-			action_to_keylist(key->adt, key->adt->action, keys, blocks);
+		for (a=0; a < ob->totcol; a++) {
+			Material *ma= give_current_material(ob, a);
 			
-		// TODO: restore materials, and object data, etc.
+			/* there might not be a material */
+			if (ELEM(NULL, ma, ma->adt)) 
+				continue;
+			
+			/* add material's data */
+			action_to_keylist(ma->adt, ma->adt->action, keys, blocks);
+		}
+	}
+	
+	/* Add object data keyframes */
+	switch (ob->type) {
+		case OB_CAMERA: /* ------- Camera ------------ */
+		{
+			Camera *ca= (Camera *)ob->data;
+			
+			if ((ca->adt) && !(filterflag & ADS_FILTER_NOCAM)) 
+				action_to_keylist(ca->adt, ca->adt->action, keys, blocks);
+		}
+			break;
+		case OB_LAMP: /* ---------- Lamp ----------- */
+		{
+			Lamp *la= (Lamp *)ob->data;
+			
+			if ((la->adt) && !(filterflag & ADS_FILTER_NOLAM)) 
+				action_to_keylist(la->adt, la->adt->action, keys, blocks);
+		}
+			break;
+		case OB_CURVE: /* ------- Curve ---------- */
+		{
+			Curve *cu= (Curve *)ob->data;
+			
+			if ((cu->adt) && !(filterflag & ADS_FILTER_NOCUR)) 
+				action_to_keylist(cu->adt, cu->adt->action, keys, blocks);
+		}
+			break;
+		case OB_MBALL: /* ------- MetaBall ---------- */
+		{
+			MetaBall *mb= (MetaBall *)ob->data;
+			
+			if ((mb->adt) && !(filterflag & ADS_FILTER_NOMBA)) 
+				action_to_keylist(mb->adt, mb->adt->action, keys, blocks);
+		}
+			break;
+		case OB_ARMATURE: /* ------- Armature ---------- */
+		{
+			bArmature *arm= (bArmature *)ob->data;
+			
+			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) 
+				action_to_keylist(arm->adt, arm->adt->action, keys, blocks);
+		}
+			break;
+	}
+	
+	/* Add Particle System Keyframes */
+	if ((ob->particlesystem.first) && !(filterflag & ADS_FILTER_NOPART)) {
+		ParticleSystem *psys = ob->particlesystem.first;
+		
+		for(; psys; psys=psys->next) {
+			if (ELEM(NULL, psys->part, psys->part->adt))
+				continue;
+			else
+				action_to_keylist(psys->part->adt, psys->part->adt->action, keys, blocks);
+		}
 	}
 }
 

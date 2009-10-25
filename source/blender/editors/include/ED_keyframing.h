@@ -97,26 +97,6 @@ short insert_keyframe(struct ID *id, struct bAction *act, const char group[], co
  */
 short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag);
 
-/* -------- */
-
-/* Main Keyframe Management operators: 
- *	These handle keyframes management from various spaces. They only make use of
- * 	Keying Sets.
- */
-void ANIM_OT_insert_keyframe(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
-
-/* Main Keyframe Management operators: 
- *	These handle keyframes management from various spaces. They will handle the menus 
- * 	required for each space.
- */
-void ANIM_OT_insert_keyframe_menu(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe_v3d(struct wmOperatorType *ot);
-
-/* Keyframe managment operators for UI buttons. */
-void ANIM_OT_insert_keyframe_button(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe_button(struct wmOperatorType *ot);
-
 /* ************ Keying Sets ********************** */
 
 /* temporary struct to gather data combos to keyframe
@@ -142,7 +122,7 @@ typedef enum eModifyKey_Modes {
 } eModifyKey_Modes;
 
 /* Keyframing Helper Call - use the provided Keying Set to Add/Remove Keyframes */
-int modify_keyframes(struct bContext *C, struct ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
+int modify_keyframes(struct Scene *scene, struct ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
 
 /* -------- */
 
@@ -155,13 +135,16 @@ struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, cha
 /* Initialise builtin KeyingSets on startup */
 void init_builtin_keyingsets(void);
 
+
 /* -------- */
 
-/* KeyingSet managment operators for UI buttons. */
-void ANIM_OT_add_keyingset_button(struct wmOperatorType *ot);
-void ANIM_OT_remove_keyingset_button(struct wmOperatorType *ot);
+/* Get the active KeyingSet for the given scene */
+struct KeyingSet *ANIM_scene_get_active_keyingset(struct Scene *scene);
 
 /* ************ Drivers ********************** */
+
+/* Returns whether there is a driver in the copy/paste buffer to paste */
+short ANIM_driver_can_paste(void);
 
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
@@ -171,11 +154,18 @@ short ANIM_add_driver (struct ID *id, const char rna_path[], int array_index, sh
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)
  */
-short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag);
+short ANIM_remove_driver(struct ID *id, const char rna_path[], int array_index, short flag);
 
-/* Driver management operators for UI buttons */
-void ANIM_OT_add_driver_button(struct wmOperatorType *ot);
-void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
+/* Main Driver Management API calls:
+ * 	Make a copy of the driver for the specified property on the given ID block
+ */
+short ANIM_copy_driver(struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* Main Driver Management API calls:
+ * 	Add a new driver for the specified property on the given ID block or replace an existing one
+ *	with the driver + driver-curve data from the buffer 
+ */
+short ANIM_paste_driver(struct ID *id, const char rna_path[], int array_index, short flag);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

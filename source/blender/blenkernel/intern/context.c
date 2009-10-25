@@ -441,7 +441,7 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result))
+	if(C && ctx_data_get((bContext*)C, member, &result))
 		return result.ptr.data;
 
 	return NULL;

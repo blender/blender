@@ -44,7 +44,6 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
@@ -61,8 +60,6 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
-
-#include "PIL_time.h"			/* sleep				*/
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -278,29 +275,7 @@ void poselib_validate_act (bAction *act)
 /* ************************************************************* */
 
 /* Pointers to the builtin KeyingSets that we want to use */
-static KeyingSet *poselib_ks_locrotscale = NULL;		/* quaternion rotations */
-static KeyingSet *poselib_ks_locrotscale2 = NULL;		/* euler rotations */		// XXX FIXME...
-static short poselib_ks_need_init= 1;					/* have the above been obtained yet? */
-
-/* Make sure the builtin KeyingSets are initialised properly 
- * (only gets called on first run of  poselib_add_current_pose).
- */
-static void poselib_get_builtin_keyingsets (void)
-{
-	/* only if we haven't got these yet */
-	// FIXME: this assumes that we will always get the builtin sets... 
-	if (poselib_ks_need_init) {
-		/* LocRotScale (quaternions) */
-		poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-		
-		/* LocRotScale (euler) */
-		//ks_locrotscale2= ANIM_builtin_keyingset_get_named(ks_locrotscale, "LocRotScale");
-		poselib_ks_locrotscale2= poselib_ks_locrotscale; // FIXME: for now, just use the same one...
-		
-		/* clear flag requesting init */
-		poselib_ks_need_init= 0;
-	}
-}
+static KeyingSet *poselib_ks_locrotscale = NULL;		/* the only keyingset we'll need */
 
 /* ----- */
 
@@ -309,6 +284,9 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 	Object *ob= CTX_data_active_object(C);
 	bAction *act= ob->poselib;
 	TimeMarker *marker;
+	
+	/* set the operator execution context correctly */
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add each marker to this menu */
 	for (marker= act->markers.first; marker; marker= marker->next)
@@ -354,6 +332,7 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int poselib_add_exec (bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bAction *act = poselib_validate(ob);
 	bArmature *arm= (ob) ? ob->data : NULL;
@@ -395,9 +374,6 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	/* validate name */
 	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), 64);
 	
-	/* make sure we've got KeyingSets to use */
-	poselib_get_builtin_keyingsets();
-	
 	/* init common-key-source for use by KeyingSets */
 	memset(&cks, 0, sizeof(bCommonKeySrc));
 	cks.id= &ob->id;
@@ -410,11 +386,10 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 				/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
 				cks.pchan= pchan;
 				
-				/* KeyingSet to use depends on rotation mode  */
-				if (pchan->rotmode)
-					modify_keyframes(C, &dsources, act, poselib_ks_locrotscale2, MODIFYKEY_MODE_INSERT, (float)frame);
-				else
-					modify_keyframes(C, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
+				/* KeyingSet to use depends on rotation mode (but that's handled by the templates code)  */
+				if (poselib_ks_locrotscale == NULL)
+					poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+				modify_keyframes(scene, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
 			}
 		}
 	}
@@ -425,7 +400,6 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	/* done */
 	return OPERATOR_FINISHED;
 }
-
 
 void POSELIB_OT_pose_add (wmOperatorType *ot)
 {
@@ -449,35 +423,33 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 
 /* ----- */
 
-static int poselib_stored_pose_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Object *ob= CTX_data_active_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i;
+	EnumPropertyItem *item= NULL, item_tmp;
+	int totitem= 0;
+	int i= 0;
+
+	memset(&item_tmp, 0, sizeof(item_tmp));
 	
-	/* sanity check */
-	if (ELEM(NULL, ob, act)) 
-		return OPERATOR_CANCELLED;
-	
-	/* start building */
-	pup= uiPupMenuBegin(C, op->type->name, 0);
-	layout= uiPupMenuLayout(pup);
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	
-	/* add each marker to this menu */
-	for (marker=act->markers.first, i=0; marker; marker= marker->next, i++)
-		uiItemIntO(layout, marker->name, ICON_ARMATURE_DATA, op->idname, "index", i);
-	
-	uiPupMenuEnd(C, pup);
-	
-	/* this operator is only for a menu, not used further */
-	return OPERATOR_CANCELLED;
+	/* check that the action exists */
+	if (act) {
+		/* add each marker to the list */
+		for (marker=act->markers.first, i=0; marker; marker= marker->next, i++) {
+			item_tmp.identifier= item_tmp.name= marker->name;
+			item_tmp.icon= ICON_ARMATURE_DATA;
+			item_tmp.value= i;
+			RNA_enum_item_add(&item, &totitem, &item_tmp);
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
 }
-
-
 
 static int poselib_remove_exec (bContext *C, wmOperator *op)
 {
@@ -493,9 +465,10 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* get index (and pointer) of pose to remove */
-	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
+	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* remove relevant keyframes */
@@ -526,13 +499,18 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 
 void POSELIB_OT_pose_remove (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_poses_dummy_types[] = {
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	/* identifiers */
 	ot->name= "PoseLib Remove Pose";
 	ot->idname= "POSELIB_OT_pose_remove";
 	ot->description= "Remove nth pose from the active Pose Library";
 	
 	/* api callbacks */
-	ot->invoke= poselib_stored_pose_menu_invoke;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= poselib_remove_exec;
 	ot->poll= ED_operator_posemode;
 	
@@ -540,10 +518,37 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The index of the pose to remove", 0, INT_MAX);
+	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to remove");
+		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 }
 
-
+static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	Object *ob= CTX_data_active_object(C);
+	bAction *act= (ob) ? ob->poselib : NULL;
+	TimeMarker *marker;
+	
+	/* check if valid poselib */
+	if (act == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Object doesn't have PoseLib data");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* get index (and pointer) of pose to remove */
+	marker= BLI_findlink(&act->markers, act->active_marker-1);
+	if (marker == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		/* use the existing name of the marker as the name, and use the active marker as the one to rename */
+		RNA_enum_set(op->ptr, "pose", act->active_marker-1);
+		RNA_string_set(op->ptr, "name", marker->name);
+	}
+	
+	/* part to sync with other similar operators... */
+	return WM_operator_props_popup(C, op, evt);
+}
 
 static int poselib_rename_exec (bContext *C, wmOperator *op)
 {
@@ -559,9 +564,10 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* get index (and pointer) of pose to remove */
-	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
+	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* get new name */
@@ -577,13 +583,18 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 
 void POSELIB_OT_pose_rename (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_poses_dummy_types[] = {
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	/* identifiers */
 	ot->name= "PoseLib Rename Pose";
 	ot->idname= "POSELIB_OT_pose_rename";
 	ot->description= "Rename nth pose from the active Pose Library";
 	
 	/* api callbacks */
-	ot->invoke= poselib_stored_pose_menu_invoke;
+	ot->invoke= poselib_rename_invoke;
 	ot->exec= poselib_rename_exec;
 	ot->poll= ED_operator_posemode;
 	
@@ -591,7 +602,8 @@ void POSELIB_OT_pose_rename (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The index of the pose to remove", 0, INT_MAX);
+	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to rename");
+		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 	RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
 }
 
@@ -764,12 +776,19 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 }
 
 /* Auto-keys/tags bones affected by the pose used from the poselib */
-static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
+static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData *pld)
 {
 	bPose *pose= pld->pose;
 	bPoseChannel *pchan;
 	bAction *act= pld->act;
 	bActionGroup *agrp;
+	
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &pld->ob->id;
 	
 	/* start tagging/keying */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
@@ -778,28 +797,21 @@ static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
 			pchan= get_pose_channel(pose, agrp->name);
 			
 			if (pchan) {
-#if 0 // XXX old animation system	
 				// TODO: use a standard autokeying function in future (to allow autokeying-editkeys to work)
-				if (IS_AUTOKEY_MODE(NORMAL)) {
-					ID *id= &pld->ob->id;
+				if (IS_AUTOKEY_MODE(scene, NORMAL)) {
+					/* Set keys on pose
+					 *	- KeyingSet to use depends on rotation mode 
+					 *	(but that's handled by the templates code)  
+					 */
+					// TODO: for getting the KeyingSet used, we should really check which channels were affected
+					if (poselib_ks_locrotscale == NULL)
+						poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
-					/* Set keys on pose */
-					if (pchan->flag & POSE_ROT) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					}
-					if (pchan->flag & POSE_SIZE) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
-					}
-					if (pchan->flag & POSE_LOC) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-					}
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					
+					/* now insert the keyframe */
+					modify_keyframes(scene, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
 					if (pchan->bone)
@@ -810,11 +822,12 @@ static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
 					if (pchan->bone)
 						pchan->bone->flag |= BONE_UNKEYED;
 				}
-#endif // XXX old animation system	
-		
 			}
 		}
 	}
+	
+	/* send notifiers for this */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 }
 
 /* Apply the relevant changes to the pose */
@@ -843,7 +856,7 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 		 */
 		// FIXME: shouldn't this use the builtin stuff?
 		if ((pld->arm->flag & ARM_DELAYDEFORM)==0)
-			DAG_object_flush_update(pld->scene, pld->ob, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_id_flush_update(&pld->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
 			where_is_pose(pld->scene, pld->ob);
 	}
@@ -1346,21 +1359,21 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		 *	- note: code copied from transform_generics.c -> recalcData()
 		 */
 		if ((arm->flag & ARM_DELAYDEFORM)==0)
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
 			where_is_pose(scene, ob);
 		
 	}
 	else if (pld->state == PL_PREVIEW_CONFIRM) {
 		/* tag poses as appropriate */
-		poselib_keytag_pose(scene, pld);
+		poselib_keytag_pose(C, scene, pld);
 		
 		/* change active pose setting */
 		act->active_marker= BLI_findindex(&act->markers, marker) + 1;
 		action_set_activemarker(act, marker, 0);
 		
 		/* Update event for pose and deformation children */
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		
 		/* updates */
 		if (IS_AUTOKEY_MODE(scene, NORMAL)) {
@@ -1442,7 +1455,7 @@ static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	poselib_preview_apply(C, op);
 	
 	/* add temp handler if we're running as a modal operator */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

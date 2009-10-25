@@ -27,21 +27,26 @@
 FILE(GLOB SRC *.cpp Joystick/*.cpp)
 
 SET(INC
-  . 
-  ../../../source/kernel/gen_system 
-  ../../../intern/string
-  ../../../source/gameengine/Expressions 
-  ../../../source/gameengine/SceneGraph
-  ../../../intern/moto/include
-  ../../../source/gameengine/Rasterizer
-  ${PYTHON_INC}
+	. 
+	../../../source/kernel/gen_system 
+	../../../intern/string
+	../../../source/gameengine/Expressions 
+	../../../source/gameengine/SceneGraph
+	../../../intern/moto/include
+	../../../source/gameengine/Rasterizer
 )
 
 IF(WITH_SDL)
-  SET(INC ${INC} ${SDL_INCLUDE_DIR})
+	SET(INC ${INC} ${SDL_INCLUDE_DIR})
 ELSE(WITH_SDL)
-  ADD_DEFINITIONS(-DDISABLE_SDL)
+	ADD_DEFINITIONS(-DDISABLE_SDL)
 ENDIF(WITH_SDL)
+
+IF(WITH_PYTHON)
+	SET(INC ${INC} ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_logic "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_logic', sources, Split(incs), [], libtype=['game','player'], priority=[30, 110] )

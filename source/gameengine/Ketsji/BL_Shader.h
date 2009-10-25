@@ -222,6 +222,7 @@ public:
 	void SetUniform(int uniform, const int val);
 
 	// Python interface
+#ifndef DISABLE_PYTHON
 	virtual PyObject* py_repr(void) { return PyUnicode_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
 
 	// -----------------------------------
@@ -249,6 +250,7 @@ public:
 	KX_PYMETHOD_DOC( BL_Shader, setUniformDef );
 	KX_PYMETHOD_DOC( BL_Shader, setAttrib );
 	KX_PYMETHOD_DOC( BL_Shader, setSampler);
+#endif
 };
 
 #endif//__BL_SHADER_H__

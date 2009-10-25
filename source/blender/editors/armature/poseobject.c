@@ -125,9 +125,8 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	
 	switch (ob->type){
 		case OB_ARMATURE:
-			
+			ob->restore_mode = ob->mode;
 			ob->mode |= OB_MODE_POSE;
-			base->flag= ob->flag;
 			
 			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_POSE, NULL);
 			
@@ -136,7 +135,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			return;
 	}
 
-	ED_object_toggle_modes(C, ob->mode);
+	//ED_object_toggle_modes(C, ob->mode);
 }
 
 void ED_armature_exit_posemode(bContext *C, Base *base)
@@ -144,8 +143,8 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 	if(base) {
 		Object *ob= base->object;
 		
+		ob->restore_mode = ob->mode;
 		ob->mode &= ~OB_MODE_POSE;
-		base->flag= ob->flag;
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}	
@@ -544,7 +543,7 @@ void pose_select_constraint_target(Scene *scene)
 						for (ct= targets.first; ct; ct= ct->next) {
 							if ((ct->tar == ob) && (ct->subtarget[0])) {
 								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-								if(pchanc)
+								if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE))
 									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 							}
 						}
@@ -583,7 +582,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *op)
 						for (ct= targets.first; ct; ct= ct->next) {
 							if ((ct->tar == ob) && (ct->subtarget[0])) {
 								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-								if(pchanc) {
+								if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
 									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 									found= 1;
 								}
@@ -635,7 +634,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		curbone= pchan->bone;
 		
-		if (arm->layer & curbone->layer) {
+		if ((arm->layer & curbone->layer) && (curbone->flag & BONE_UNSELECTABLE)==0) {
 			if (curbone->flag & (BONE_ACTIVE)) {
 				if (direction == BONE_SELECT_PARENT) {
 				
@@ -647,7 +646,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						curbone->flag &= ~BONE_ACTIVE;
 						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED);
-
+						
 						found= 1;
 						break;
 					}
@@ -661,7 +660,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						curbone->flag &= ~BONE_ACTIVE;
 						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED);
-
+						
 						found= 1;
 						break;
 					}
@@ -799,6 +798,8 @@ void pose_copy_menu(Scene *scene)
 						VECCOPY(pchan->limitmax, pchanact->limitmax);
 						VECCOPY(pchan->stiffness, pchanact->stiffness);
 						pchan->ikstretch= pchanact->ikstretch;
+						pchan->ikrotweight= pchanact->ikrotweight;
+						pchan->iklinweight= pchanact->iklinweight;
 					}
 						break;
 					case 8: /* Custom Bone Shape */
@@ -813,10 +814,17 @@ void pose_copy_menu(Scene *scene)
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
 						
-						if (pchan->rotmode > 0) 
-							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
-						else
+						if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+							float tmp_quat[4];
+							
+							/* need to convert to quat first (in temp var)... */
+							Mat4ToQuat(delta_mat, tmp_quat);
+							QuatToAxisAngle(tmp_quat, pchan->rotAxis, &pchan->rotAngle);
+						}
+						else if (pchan->rotmode == ROT_MODE_QUAT)
 							Mat4ToQuat(delta_mat, pchan->quat);
+						else
+							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -893,7 +901,7 @@ void pose_copy_menu(Scene *scene)
 			ob->pose->flag |= POSE_RECALC;
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);	// and all its relations
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);	// and all its relations
 	
 	BIF_undo_push("Copy Pose Attributes");
 	
@@ -955,6 +963,11 @@ void POSE_OT_copy (wmOperatorType *ot)
 
 /* ---- */
 
+/* Pointers to the builtin KeyingSets that we want to use */
+static KeyingSet *posePaste_ks_locrotscale = NULL;		/* the only keyingset we'll need */
+
+/* ---- */
+
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -962,6 +975,13 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	bPoseChannel *chan, *pchan;
 	char name[32];
 	int flip= RNA_boolean_get(op->ptr, "flipped");
+	
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* sanity checks */
 	if ELEM(NULL, ob, ob->pose)
@@ -1002,12 +1022,25 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				else if (pchan->rotmode > 0) {
-					/* quat to euler */
-					QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
+					/* quat/axis-angle to euler */
+					if (chan->rotmode == ROT_MODE_AXISANGLE)
+						AxisAngleToEulO(chan->rotAxis, chan->rotAngle, pchan->eul, pchan->rotmode);
+					else
+						QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
+				}
+				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+					/* quat/euler to axis angle */
+					if (chan->rotmode > 0)
+						EulOToAxisAngle(chan->eul, chan->rotmode, pchan->rotAxis, &pchan->rotAngle);
+					else	
+						QuatToAxisAngle(chan->quat, pchan->rotAxis, &pchan->rotAngle);
 				}
 				else {
-					/* euler to quat */
-					EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
+					/* euler/axis-angle to quat */
+					if (chan->rotmode > 0)
+						EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
+					else
+						AxisAngleToQuat(pchan->quat, chan->rotAxis, pchan->rotAngle);
 				}
 				
 				/* paste flipped pose? */
@@ -1019,6 +1052,21 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 						pchan->eul[1] *= -1;
 						pchan->eul[2] *= -1;
 					}
+					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+						float eul[3];
+						
+						AxisAngleToEulO(pchan->rotAxis, pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
+						eul[1]*= -1;
+						eul[2]*= -1;
+						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, &pchan->rotAngle);
+						
+						// experimental method (uncomment to test):
+#if 0
+						/* experimental method: just flip the orientation of the axis on x/y axes */
+						pchan->quat[1] *= -1;
+						pchan->quat[2] *= -1;
+#endif
+					}
 					else {
 						float eul[3];
 						
@@ -1029,28 +1077,19 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				
-#if 0 // XXX old animation system
-				if (autokeyframe_cfra_can_key(ob)) {
-					ID *id= &ob->id;
+				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+					/* Set keys on pose
+					 *	- KeyingSet to use depends on rotation mode 
+					 *	(but that's handled by the templates code)  
+					 */
+					// TODO: for getting the KeyingSet used, we should really check which channels were affected
+					if (posePaste_ks_locrotscale == NULL)
+						posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
-					/* Set keys on pose */
-					// TODO: make these use keyingsets....
-					if (chan->flag & POSE_ROT) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					}
-					if (chan->flag & POSE_SIZE) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
-					}
-					if (chan->flag & POSE_LOC) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-					}
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					
+					modify_keyframes(scene, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
 					if (chan->bone)
@@ -1061,13 +1100,12 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					if (chan->bone)
 						chan->bone->flag |= BONE_UNKEYED;
 				}
-#endif // XXX old animation system
 			}
 		}
 	}
 
 	/* Update event for pose and deformation children */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	
 	if (IS_AUTOKEY_ON(scene)) {
 // XXX		remake_action_ipos(ob->action);
@@ -1080,6 +1118,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL); // XXX not really needed, but here for completeness...
 
 	return OPERATOR_FINISHED;
 }
@@ -1115,7 +1154,7 @@ void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
 		return;
 	}
 
-// XXX	add_verts_to_dgroups(meshobj, poseobj, heatweights, (Gwp.flag & VP_MIRROR_X));
+// XXX	add_verts_to_dgroups(meshobj, poseobj, heatweights, ((Mesh *)(meshobj->data))->editflag & ME_EDIT_MIRROR_X);
 
 	if(heatweights)
 		BIF_undo_push("Apply Bone Heat Weights to Vertex Groups");
@@ -1124,7 +1163,7 @@ void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
 
 	
 	// and all its relations
-	DAG_object_flush_update(scene, meshobj, OB_RECALC_DATA);
+	DAG_id_flush_update(&meshobj->id, OB_RECALC_DATA);
 }
 
 /* ********************************************** */
@@ -1540,7 +1579,6 @@ void pose_select_grouped_menu (Scene *scene)
 
 static int pose_flip_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -1560,7 +1598,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1587,7 +1625,6 @@ void POSE_OT_flip_names (wmOperatorType *ot)
 
 static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -1608,7 +1645,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1676,8 +1713,8 @@ void pose_activate_flipped_bone(Scene *scene)
 			
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-					vertexgroup_select_by_name(OBACT, name);
-					DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+					ED_vgroup_select_by_name(OBACT, name);
+					DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 				}
 				
 				// XXX notifiers need to be sent to other editors to update
@@ -1689,31 +1726,6 @@ void pose_activate_flipped_bone(Scene *scene)
 
 
 /* ********************************************** */
-
-/* Present a popup to get the layers that should be used */
-// TODO: move to wm?
-static uiBlock *wm_layers_select_create_menu(bContext *C, ARegion *ar, void *arg_op)
-{
-	wmOperator *op= arg_op;
-	uiBlock *block;
-	uiLayout *layout;
-	uiStyle *style= U.uistyles.first;
-	
-	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
-	
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 150, 20, style);
-		uiItemL(layout, op->type->name, 0);
-		uiTemplateLayers(layout, op->ptr, "layers"); /* must have a property named layers setup */
-		
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
-/* ------------------- */
 
 /* Present a popup to get the layers that should be used */
 static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
@@ -1732,10 +1744,8 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	RNA_boolean_get_array(&ptr, "layer", layers);
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
-		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	/* part to sync with other similar operators... */
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -1776,7 +1786,7 @@ void POSE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers to make visible.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
 }
 
 void ARMATURE_OT_armature_layers (wmOperatorType *ot)
@@ -1795,7 +1805,7 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers to make visible.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
 }
 
 /* ------------------- */
@@ -1824,9 +1834,7 @@ static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -1871,7 +1879,7 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers that bone belongs to.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ------------------- */
@@ -1900,15 +1908,13 @@ static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
 static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
 	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
@@ -1921,7 +1927,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_EditBone, ebone, &ptr);
-		RNA_boolean_set_array(&ptr, "layers", layers);
+		RNA_boolean_set_array(&ptr, "layer", layers);
 	}
 	CTX_DATA_END;
 	
@@ -1947,178 +1953,10 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers that bone belongs to.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
-
-#if 0
-// XXX old sys
-/* for use with pose_relax only */
-static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float *frame_prev, float *frame_next)
-{
-	if (!icu) {
-		return 0;
-	} 
-	else {
-		BezTriple *bezt = icu->bezt;
-		
-		BezTriple *bezt_prev=NULL, *bezt_next=NULL;
-		float w1, w2, wtot;
-		int i;
-		
-		for (i=0; i < icu->totvert; i++, bezt++) {
-			if (bezt->vec[1][0] < framef - 0.5) {
-				bezt_prev = bezt;
-			} else {
-				break;
-			}
-		}
-		
-		if (bezt_prev==NULL) return 0;
-		
-		/* advance to the next, dont need to advance i */
-		bezt = bezt_prev+1;
-		
-		for (; i < icu->totvert; i++, bezt++) {
-			if (bezt->vec[1][0] > framef + 0.5) {
-				bezt_next = bezt;
-						break;
-			}
-		}
-		
-		if (bezt_next==NULL) return 0;
-	
-		if (val) {
-			w1 = framef - bezt_prev->vec[1][0];
-			w2 = bezt_next->vec[1][0] - framef;
-			wtot = w1 + w2;
-			w1=w1/wtot;
-			w2=w2/wtot;
-#if 0
-			val = (bezt_prev->vec[1][1] * w2) + (bezt_next->vec[1][1] * w1);
-#else
-			/* apply the value with a hard coded 6th */
-			*val = (((bezt_prev->vec[1][1] * w2) + (bezt_next->vec[1][1] * w1)) + (*val * 5.0f)) / 6.0f;
-#endif
-		}
-		
-		if (frame_prev)	*frame_prev = bezt_prev->vec[1][0];
-		if (frame_next)	*frame_next = bezt_next->vec[1][0];
-		
-		return 1;
-	}
-}
-#endif
-
-void pose_relax(Scene *scene)
-{
-	Object *ob = OBACT;
-	bPose *pose;
-	bAction *act;
-	bArmature *arm;
-	
-//	IpoCurve *icu_w, *icu_x, *icu_y, *icu_z;
-	
-	bPoseChannel *pchan;
-//	bActionChannel *achan;
-//	float framef = F_CFRA;
-//	float frame_prev, frame_next;
-//	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
-	
-	int do_scale = 0;
-	int do_loc = 0;
-	int do_quat = 0;
-	int flag = 0;
-//	int do_x, do_y, do_z;
-	
-	if (!ob) return;
-	
-	pose = ob->pose;
-	act = ob->action;
-	arm = (bArmature *)ob->data;
-	
-	if (!pose || !act || !arm) return;
-	
-	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next) {
-		
-		pchan->bone->flag &= ~BONE_TRANSFORM;
-		
-		if (pchan->bone->layer & arm->layer) {
-			if (pchan->bone->flag & BONE_SELECTED) {
-				/* do we have an ipo curve? */
-#if 0 // XXX old animation system
-				achan= get_action_channel(act, pchan->name);
-				
-				if (achan && achan->ipo) {
-					/*calc_ipo(achan->ipo, ctime);*/
-					
-					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_X), framef, &pchan->loc[0], NULL, NULL);
-					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Y), framef, &pchan->loc[1], NULL, NULL);
-					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Z), framef, &pchan->loc[2], NULL, NULL);
-					do_loc += do_x + do_y + do_z;
-					
-					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_X), framef, &pchan->size[0], NULL, NULL);
-					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Y), framef, &pchan->size[1], NULL, NULL);
-					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Z), framef, &pchan->size[2], NULL, NULL);
-					do_scale += do_x + do_y + do_z;
-						
-					if(	((icu_w = find_ipocurve(achan->ipo, AC_QUAT_W))) &&
-						((icu_x = find_ipocurve(achan->ipo, AC_QUAT_X))) &&
-						((icu_y = find_ipocurve(achan->ipo, AC_QUAT_Y))) &&
-						((icu_z = find_ipocurve(achan->ipo, AC_QUAT_Z))) )
-					{
-						/* use the quatw keyframe as a basis for others */
-						if (pose_relax_icu(icu_w, framef, NULL, &frame_prev, &frame_next)) {
-							/* get 2 quats */
-							quat_prev[0] = eval_icu(icu_w, frame_prev);
-							quat_prev[1] = eval_icu(icu_x, frame_prev);
-							quat_prev[2] = eval_icu(icu_y, frame_prev);
-							quat_prev[3] = eval_icu(icu_z, frame_prev);
-							
-							quat_next[0] = eval_icu(icu_w, frame_next);
-							quat_next[1] = eval_icu(icu_x, frame_next);
-							quat_next[2] = eval_icu(icu_y, frame_next);
-							quat_next[3] = eval_icu(icu_z, frame_next);
-							
-#if 0
-							/* apply the setting, completely smooth */
-							QuatInterpol(pchan->quat, quat_prev, quat_next, (framef-frame_prev) / (frame_next-frame_prev) );
-#else
-							/* tricky interpolation */
-							QuatInterpol(quat_interp, quat_prev, quat_next, (framef-frame_prev) / (frame_next-frame_prev) );
-							QUATCOPY(quat_orig, pchan->quat);
-							QuatInterpol(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
-							/* done */
-#endif
-							do_quat++;
-						}
-					}
-					
-					/* apply BONE_TRANSFORM tag so that autokeying will pick it up */
-					pchan->bone->flag |= BONE_TRANSFORM;
-				}
-				
-#endif // XXX old animation system
-			}
-		}
-	}
-	
-	ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-	
-	/* do auto-keying */
-	if (do_loc)		flag |= TFM_TRANSLATION;
-	if (do_scale)	flag |= TFM_RESIZE;
-	if (do_quat)	flag |= TFM_ROTATION;
-	autokeyframe_pose_cb_func(ob, flag, 0);
-	 
-	/* clear BONE_TRANSFORM flags */
-	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next)
-		pchan->bone->flag &= ~ BONE_TRANSFORM;
-	
-	/* do depsgraph flush */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	BIF_undo_push("Relax Pose");
-}
+/* ********************************************** */
 
 /* for use in insertkey, ensure rotation goes other way around */
 void pose_flipquats(Scene *scene)
@@ -2211,7 +2049,7 @@ void pose_clear_user_transforms(Scene *scene, Object *ob)
 		rest_pose(ob->pose);
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Clear User Transform");
 }
 

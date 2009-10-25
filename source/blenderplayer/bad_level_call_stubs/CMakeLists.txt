@@ -27,14 +27,14 @@
 FILE(GLOB SRC stubs.c)
 
 SET(INC 
-  .
-  .. 
-  ../../../source/blender/makesdna
-  ../../../source/blender/makesrna  
+	.
+	.. 
+	../../../source/blender/makesdna
+	../../../source/blender/makesrna  
 )
 
 IF(WITH_INTERNATIONAL)
-  ADD_DEFINITIONS(-DWITH_FREETYPE2)
+	ADD_DEFINITIONS(-DWITH_FREETYPE2)
 ENDIF(WITH_INTERNATIONAL)
 
 BLENDERLIB_NOLIST(blenkernel_blc "${SRC}" "${INC}")

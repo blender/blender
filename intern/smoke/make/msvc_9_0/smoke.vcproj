@@ -42,6 +42,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\..\build\msvc_9\intern\guardedalloc\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"

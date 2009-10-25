@@ -158,6 +158,10 @@ public:
 	 * @return	The visibility state of the cursor.
 	 */
 	inline virtual bool getCursorVisibility() const;
+	inline virtual GHOST_TGrabCursorMode getCursorGrabMode() const;
+	inline virtual void getCursorGrabInitPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
+	inline virtual void getCursorGrabAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
+	inline virtual void setCursorGrabAccum(GHOST_TInt32 x, GHOST_TInt32 y);
 
 	/**
 	 * Shows or hides the cursor.
@@ -168,11 +172,30 @@ public:
 
 	/**
 	 * Sets the cursor grab.
-	 * @param	grab The new grab state of the cursor.
+	 * @param	mode The new grab state of the cursor.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(bool grab);
+	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds);
 
+	/**
+	 * Gets the cursor grab region, if unset the window is used.
+	 * reset when grab is disabled.
+	 */
+	virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect& bounds);
+
+	/**
+	 * Sets the window "modified" status, indicating unsaved changes
+	 * @param isUnsavedChanges Unsaved changes or not
+	 * @return Indication of success.
+	 */
+	virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges);
+	
+	/**
+	 * Gets the window "modified" status, indicating unsaved changes
+	 * @return True if there are unsaved changes
+	 */
+	virtual bool getModifiedState();
+	
 	/**
 	 * Returns the type of drawing context used in this window.
 	 * @return The current type of drawing context.
@@ -230,7 +253,7 @@ protected:
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCursorGrab(bool grab) { return GHOST_kSuccess; };
+	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) { return GHOST_kSuccess; };
 	
 	/**
 	 * Sets the cursor shape on the window using
@@ -257,11 +280,23 @@ protected:
 	bool m_cursorVisible;
 
 	/** The current grabbed state of the cursor */
-	bool m_cursorGrabbed;
-	
+	GHOST_TGrabCursorMode m_cursorGrab;
+
+	/** Initial grab location. */
+	GHOST_TInt32 m_cursorGrabInitPos[2];
+
+	/** Accumulated offset from m_cursorGrabInitPos. */
+	GHOST_TInt32 m_cursorGrabAccumPos[2];
+
+	/** Wrap the cursor within this region. */
+	GHOST_Rect m_cursorGrabBounds;
+
 	/** The current shape of the cursor */
 	GHOST_TStandardCursor m_cursorShape;
     
+	/** Modified state : are there unsaved changes */
+	bool m_isUnsavedChanges;
+	
 	/** Stores wether this is a full screen window. */
 	bool m_fullScreen;
 
@@ -286,6 +321,29 @@ inline GHOST_TDrawingContextType GHOST_Window::getDrawingContextType()
 inline bool GHOST_Window::getCursorVisibility() const
 {
 	return m_cursorVisible;
+}
+
+inline GHOST_TGrabCursorMode GHOST_Window::getCursorGrabMode() const
+{
+	return m_cursorGrab;
+}
+
+inline void GHOST_Window::getCursorGrabInitPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+{
+	x = m_cursorGrabInitPos[0];
+	y = m_cursorGrabInitPos[1];
+}
+
+inline void GHOST_Window::getCursorGrabAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+{
+	x= m_cursorGrabAccumPos[0];
+	y= m_cursorGrabAccumPos[1];
+}
+
+inline void GHOST_Window::setCursorGrabAccum(GHOST_TInt32 x, GHOST_TInt32 y)
+{
+	m_cursorGrabAccumPos[0]= x;
+	m_cursorGrabAccumPos[1]= y;
 }
 
 inline GHOST_TStandardCursor GHOST_Window::getCursorShape() const

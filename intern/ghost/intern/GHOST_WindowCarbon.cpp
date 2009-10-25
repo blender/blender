@@ -183,7 +183,7 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
         updateDrawingContext();
         activateDrawingContext();        
 
-	m_tablet.Active = 0;
+	m_tablet.Active = GHOST_kTabletModeNone;
     }
 }
 

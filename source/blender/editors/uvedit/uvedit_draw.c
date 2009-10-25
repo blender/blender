@@ -251,17 +251,17 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 					if(efa->v4) {
 						
 #if 0						/* Simple but slow, better reuse normalized vectors */
-						uvang1 = VecAngle3_2D(tf_uv[3], tf_uv[0], tf_uv[1]);
-						ang1 = VecAngle3(efa->v4->co, efa->v1->co, efa->v2->co);
+						uvang1 = RAD2DEG(Vec2Angle3(tf_uv[3], tf_uv[0], tf_uv[1]));
+						ang1 = RAD2DEG(VecAngle3(efa->v4->co, efa->v1->co, efa->v2->co));
 						
-						uvang2 = VecAngle3_2D(tf_uv[0], tf_uv[1], tf_uv[2]);
-						ang2 = VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co);
+						uvang2 = RAD2DEG(Vec2Angle3(tf_uv[0], tf_uv[1], tf_uv[2]));
+						ang2 = RAD2DEG(VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co));
 						
-						uvang3 = VecAngle3_2D(tf_uv[1], tf_uv[2], tf_uv[3]);
-						ang3 = VecAngle3(efa->v2->co, efa->v3->co, efa->v4->co);
+						uvang3 = RAD2DEG(Vec2Angle3(tf_uv[1], tf_uv[2], tf_uv[3]));
+						ang3 = RAD2DEG(VecAngle3(efa->v2->co, efa->v3->co, efa->v4->co));
 						
-						uvang4 = VecAngle3_2D(tf_uv[2], tf_uv[3], tf_uv[0]);
-						ang4 = VecAngle3(efa->v3->co, efa->v4->co, efa->v1->co);
+						uvang4 = RAD2DEG(Vec2Angle3(tf_uv[2], tf_uv[3], tf_uv[0]));
+						ang4 = RAD2DEG(VecAngle3(efa->v3->co, efa->v4->co, efa->v1->co));
 #endif
 						
 						/* uv angles */
@@ -315,14 +315,14 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 					}
 					else {
 #if 0						/* Simple but slow, better reuse normalized vectors */
-						uvang1 = VecAngle3_2D(tf_uv[2], tf_uv[0], tf_uv[1]);
-						ang1 = VecAngle3(efa->v3->co, efa->v1->co, efa->v2->co);
+						uvang1 = RAD2DEG(Vec2Angle3(tf_uv[2], tf_uv[0], tf_uv[1]));
+						ang1 = RAD2DEG(VecAngle3(efa->v3->co, efa->v1->co, efa->v2->co));
 						
-						uvang2 = VecAngle3_2D(tf_uv[0], tf_uv[1], tf_uv[2]);
-						ang2 = VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co);
+						uvang2 = RAD2DEG(Vec2Angle3(tf_uv[0], tf_uv[1], tf_uv[2]));
+						ang2 = RAD2DEG(VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co));
 						
-						uvang3 = 180-(uvang1+uvang2);
-						ang3 = 180-(ang1+ang2);
+						uvang3 = M_PI-(uvang1+uvang2);
+						ang3 = M_PI-(ang1+ang2);
 #endif						
 						
 						/* uv angles */

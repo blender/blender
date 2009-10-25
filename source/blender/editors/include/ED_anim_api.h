@@ -34,7 +34,7 @@ struct ListBase;
 struct AnimData;
 
 struct bContext;
-struct wmWindowManager;
+struct wmKeyConfig;
 struct ScrArea;
 struct ARegion;
 struct View2D;
@@ -42,11 +42,14 @@ struct View2D;
 struct Scene;
 struct Object;
 
+struct bDopeSheet;
+
 struct bActionGroup;
 struct FCurve;
 struct FModifier;
 
 struct uiBlock;
+struct uiLayout;
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -96,7 +99,7 @@ typedef struct bAnimListElem {
 	void 	*data;			/* source data this elem represents */
 	int 	type;			/* one of the ANIMTYPE_* values */
 	int		flag;			/* copy of elem's flags for quick access */
-	int 	index;			/* copy of adrcode where applicable */
+	int 	index;			/* for un-named data, the index of the data in it's collection */
 	
 	void	*key_data;		/* motion data - mostly F-Curves, but can be other types too */
 	short	datatype;		/* type of motion data to expect */
@@ -119,6 +122,8 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_ANIMDATA,
 	ANIMTYPE_SPECIALDATA,
 	
+	ANIMTYPE_SUMMARY,
+	
 	ANIMTYPE_SCENE,
 	ANIMTYPE_OBJECT,
 	ANIMTYPE_GROUP,
@@ -137,8 +142,9 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSWOR,
 	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
+	ANIMTYPE_DSARM,
 	
-	ANIMTYPE_SHAPEKEY,		// XXX probably can become depreceated???
+	ANIMTYPE_SHAPEKEY,
 	
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
@@ -157,6 +163,7 @@ typedef enum eAnim_KeyType {
 	ALE_GPFRAME,		/* Grease Pencil Frames */
 	ALE_NLASTRIP,		/* NLA Strips */
 	
+	ALE_ALL,			/* All channels summary */
 	ALE_SCE,			/* Scene summary */
 	ALE_OB,				/* Object summary */
 	ALE_ACT,			/* Action summary */
@@ -180,6 +187,9 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
 	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
 	ANIMFILTER_SELEDIT		= (1<<11),	/* link editability with selected status */
+	
+	/* all filters - the power inside the bracket must be the last power for left-shifts + 1 */
+	ANIMFILTER_ALLFILTERS	= ((1<<12) - 1)
 } eAnimFilter_Flags;
 
 
@@ -199,13 +209,14 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_MAT_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWMATS))
 #define FILTER_PART_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWPARTS))
 	/* 'Sub-object' channels (flags stored in Data block) */
-#define FILTER_SKE_OBJD(key) ((key->flag & KEYBLOCK_DS_EXPAND))
+#define FILTER_SKE_OBJD(key) ((key->flag & KEY_DS_EXPAND))
 #define FILTER_MAT_OBJD(ma) ((ma->flag & MA_DS_EXPAND))
 #define FILTER_LAM_OBJD(la) ((la->flag & LA_DS_EXPAND))
 #define FILTER_CAM_OBJD(ca) ((ca->flag & CAM_DS_EXPAND))
 #define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
 #define FILTER_PART_OBJD(part) ((part->flag & PART_DS_EXPAND))
 #define FILTER_MBALL_OBJD(mb) ((mb->flag2 & MB_DS_EXPAND))
+#define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)
@@ -220,6 +231,10 @@ typedef enum eAnimFilter_Flags {
 	/* F-Curve Channels */
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED)==0)
 #define SEL_FCU(fcu) (fcu->flag & (FCURVE_ACTIVE|FCURVE_SELECTED))
+
+/* ShapeKey mode only */
+#define EDITABLE_SHAPEKEY(kb) ((kb->flag & KEYBLOCK_LOCKED)==0)
+#define SEL_SHAPEKEY(kb) (kb->flag & KEYBLOCK_SEL)
 
 /* Grease Pencil only */
 	/* Grease Pencil datablock settings */
@@ -392,10 +407,13 @@ void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 /* main call to draw preview range curtains */
 void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 
+/* ------------- Preview Range Drawing -------------- */
+
+/* standard header buttons for Animation Editors */
+short ANIM_headerUI_standard_buttons(const struct bContext *C, struct bDopeSheet *ads, struct uiBlock *block, short xco, short yco);
+
 /* ************************************************* */
 /* F-MODIFIER TOOLS */
-
-struct uiLayout;
 
 /* draw a given F-Modifier for some layout/UI-Block */
 void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
@@ -432,9 +450,6 @@ void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, sho
 void ED_nla_postop_refresh(bAnimContext *ac);
 
 /* ------------- Utility macros ----------------------- */
-
-/* checks if the given BezTriple is selected */
-#define BEZSELECTED(bezt) (((bezt)->f2 & SELECT) || ((bezt)->f1 & SELECT) || ((bezt)->f3 & SELECT))
 
 /* provide access to Keyframe Type info in BezTriple
  * NOTE: this is so that we can change it from being stored in 'hide'
@@ -482,11 +497,11 @@ void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);
 	
 	/* generic animation channels */
 void ED_operatortypes_animchannels(void);
-void ED_keymap_animchannels(struct wmWindowManager *wm);
+void ED_keymap_animchannels(struct wmKeyConfig *keyconf);
 
 	/* generic time editing */
 void ED_operatortypes_anim(void);
-void ED_keymap_anim(struct wmWindowManager *wm);
+void ED_keymap_anim(struct wmKeyConfig *keyconf);
 
 /* ************************************************ */
 

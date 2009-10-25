@@ -40,6 +40,13 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		col = layout.column(align=True)
 		col.itemO("anim.insert_keyframe_menu", text="Insert")
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_mesh ****************
 
@@ -83,6 +90,13 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col.itemO("uv.mapping_menu", text="Unwrap")
 		col.itemO("mesh.uvs_rotate")
 		col.itemO("mesh.uvs_mirror")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_curve ****************
 
@@ -107,12 +121,20 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 		col.itemO("curve.delete")
 		col.itemO("curve.cyclic_toggle")
 		col.itemO("curve.switch_direction")
+		col.itemO("curve.spline_type_set")
 		
 		layout.itemL(text="Modeling:")
 
 		col = layout.column(align=True)
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_surface ****************
 
@@ -143,6 +165,13 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 		col = layout.column(align=True)
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_text ****************
 
@@ -152,14 +181,26 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
-
+		
+		layout.itemL(text="Text Edit:")
+		
 		col = layout.column(align=True)
 		col.itemO("font.text_copy", text="Copy")
+		col.itemO("font.text_cut", text="Cut")
 		col.itemO("font.text_paste", text="Paste")
 		
-		col = layout.column()
+		layout.itemL(text="Style:")
+		
+		col = layout.column(align=True)
 		col.itemO("font.case_set")
 		col.itemO("font.style_toggle")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_armature ****************
 
@@ -186,6 +227,13 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		
 		layout.itemL(text="Modeling:")
 		layout.itemO("armature.extrude")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_mball ****************
 
@@ -202,6 +250,13 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_lattice ****************
 
@@ -218,6 +273,13 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for posemode ****************
 
@@ -258,6 +320,13 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col = layout.column(align=True)
 		col.itemO("poselib.pose_add", text="Add")
 		col.itemO("poselib.pose_remove", text="Remove")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for paint modes ****************
 
@@ -333,17 +402,14 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size_pressure", toggle=True, text="")
 			
 			if brush.sculpt_tool != 'GRAB':
 				row = col.row(align=True)
 				row.itemR(brush, "strength", slider=True)
-				row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+				row.itemR(brush, "strength_pressure", text="")
 			
 				col = layout.column()
-
-				if brush.sculpt_tool != 'LAYER':
-					col.itemR(brush, "anchored")
 
 				if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
 					col.itemR(brush, "flip_direction")
@@ -351,8 +417,6 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				if brush.sculpt_tool == 'LAYER':
 					col.itemR(brush, "persistent")
 					col.itemO("sculpt.set_persistent_base")
-
-				col.itemR(brush, "rake")
 
 			col.itemR(brush, "sculpt_tool")
 				
@@ -362,21 +426,19 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			col = layout.column(align=True)
 			col.item_enumR(settings, "tool", 'DRAW')
 			col.item_enumR(settings, "tool", 'SOFTEN')
-			if settings.use_projection:
-				col.item_enumR(settings, "tool", 'CLONE')
-			else:
-				col.item_enumR(settings, "tool", 'SMEAR')
+			col.item_enumR(settings, "tool", 'CLONE')
+			col.item_enumR(settings, "tool", 'SMEAR')
 				
 			col = layout.column()
 			col.itemR(brush, "color", text="")
 
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "strength_pressure", toggle=True, text="")
 			
 			col.itemR(brush, "blend")
 		
@@ -388,11 +450,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			col = layout.column()
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "strength_pressure", toggle=True, text="")
 		
 		# Vertex Paint Mode #
 		
@@ -402,11 +464,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "strength_pressure", toggle=True, text="")
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 	__label__ = "Stroke"
@@ -426,24 +488,29 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 		brush = settings.brush
 		texture_paint = context.texture_paint_object
 
+		if context.sculpt_object:
+			if brush.sculpt_tool != 'LAYER':
+				layout.itemR(brush, "anchored")
+			layout.itemR(brush, "rake")
+
+		layout.itemR(brush, "airbrush")
+		col = layout.column()
+		col.active = brush.airbrush
+		col.itemR(brush, "rate", slider=True)
+
 		if not texture_paint:
 			layout.itemR(brush, "smooth_stroke")
 			col = layout.column()
-			col.itemR(brush, "airbrush")
-			col.itemR(brush, "anchored")
-			col.itemR(brush, "rake")
+			col.active = brush.smooth_stroke
+			col.itemR(brush, "smooth_stroke_radius", text="Radius", slider=True)
+			col.itemR(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
 		layout.itemR(brush, "space")
 		row = layout.row(align=True)
 		row.active = brush.space
 		row.itemR(brush, "spacing", text="Distance", slider=True)
 		if texture_paint:
-			row.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-
-		layout.itemR(brush, "airbrush")
-		col = layout.column()
-		col.active = brush.airbrush
-		col.itemR(brush, "rate", slider=True)
+			row.itemR(brush, "spacing_pressure", toggle=True, text="")	
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
@@ -546,9 +613,17 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
 
 # ********** default tools for texturepaint ****************
 
-class VIEW3D_PT_tools_texturepaint(View3DPanel):
-	__context__ = "texturepaint"
-	__label__ = "Options"
+class VIEW3D_PT_tools_projectpaint(View3DPanel):
+	__context__ = "projectpaint"
+	__label__ = "Project Paint"
+
+	def poll(self, context): 	 
+		return context.tool_settings.image_paint.tool != 'SMEAR' 	 
+
+	def draw_header(self, context): 	 
+		layout = self.layout 	 
+		ipaint = context.tool_settings.image_paint 	 
+		layout.itemR(ipaint, "use_projection", text="")
 
 	def draw(self, context):
 		layout = self.layout
@@ -558,7 +633,6 @@ class VIEW3D_PT_tools_texturepaint(View3DPanel):
 		use_projection= ipaint.use_projection
 		
 		col = layout.column()
-		col.itemR(ipaint, "use_projection")
 		sub = col.column()
 		sub.active = use_projection
 		sub.itemR(ipaint, "use_occlude")
@@ -573,8 +647,7 @@ class VIEW3D_PT_tools_texturepaint(View3DPanel):
 		col = split.column()
 		col.active = (ipaint.use_normal_falloff and use_projection)
 		col.itemR(ipaint, "normal_angle", text="")
-		
-		
+
 		split = layout.split(percentage=0.7)
 		
 		col = split.column(align=False)
@@ -584,8 +657,7 @@ class VIEW3D_PT_tools_texturepaint(View3DPanel):
 		col = split.column(align=False)
 		col.active = (use_projection and ipaint.use_stencil_layer)
 		col.itemR(ipaint, "invert_stencil", text="Inv")
-		
-		
+
 		col = layout.column()
 		sub = col.column()
 		sub.active = (settings.tool == 'CLONE')
@@ -672,5 +744,5 @@ bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
 bpy.types.register(VIEW3D_PT_tools_vertexpaint)
 bpy.types.register(VIEW3D_PT_tools_weightpaint)
-bpy.types.register(VIEW3D_PT_tools_texturepaint)
+bpy.types.register(VIEW3D_PT_tools_projectpaint)
 bpy.types.register(VIEW3D_PT_tools_particlemode)

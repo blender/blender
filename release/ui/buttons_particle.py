@@ -151,6 +151,13 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 					row = split.row()
 					row.enabled = particle_panel_enabled(psys)
 					row.itemR(part, "hair_step")
+					if psys.edited==True:
+						if psys.global_hair:
+							layout.itemO("particle.connect_hair")
+							layout.itemL(text="Hair is disconnected.")
+						else:
+							layout.itemO("particle.disconnect_hair")
+							layout.itemL(text="")
 				elif part.type=='REACTOR':
 					split.enabled = particle_panel_enabled(psys)
 					split.itemR(psys, "reactor_target_object")
@@ -207,6 +214,53 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 			elif part.distribution=='GRID':
 				row.itemR(part, "grid_resolution")
 
+class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
+	__label__ = "Hair dynamics"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		psys = context.particle_system
+		if psys==None:	return False
+		if psys.settings==None:  return False
+		return psys.settings.type == 'HAIR'
+		
+	def draw_header(self, context):
+		#cloth = context.cloth.collision_settings
+		
+		#self.layout.active = cloth_panel_enabled(context.cloth)
+		#self.layout.itemR(cloth, "enable_collision", text="")
+		psys = context.particle_system
+		self.layout.itemR(psys, "hair_dynamics", text="")
+		
+	def draw(self, context):
+		layout = self.layout
+
+		psys = context.particle_system
+		part = psys.settings
+		cloth = psys.cloth.settings
+		
+		layout.enabled = psys.hair_dynamics
+		
+		split = layout.split()
+			
+		col = split.column()
+		col.itemL(text="Quality:")
+		col.itemR(cloth, "quality", text="Steps",slider=True)
+		col.itemL(text="Gravity:")
+		col.itemR(cloth, "gravity", text="")
+		
+		col = split.column()
+		col.itemL(text="Material:")
+		sub = col.column(align=True)
+		sub.itemR(cloth, "pin_stiffness", text="Stiffness")
+		sub.itemR(cloth, "mass")
+		col.itemL(text="Damping:")
+		sub = col.column(align=True)
+		sub.itemR(cloth, "spring_damping", text="Spring")
+		sub.itemR(cloth, "air_damping", text="Air")
+		
+		layout.itemR(cloth, "internal_friction", slider="True")
+				
 class PARTICLE_PT_cache(ParticleButtonsPanel):
 	__label__ = "Cache"
 	__default_closed__ = True
@@ -218,14 +272,14 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		phystype = psys.settings.physics_type
 		if phystype == 'NO' or phystype == 'KEYED':
 			return False
-		return psys.settings.type in ('EMITTER', 'REACTOR')
+		return psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)
 
 	def draw(self, context):
 		layout = self.layout
 
 		psys = context.particle_system
 		
-		point_cache_ui(self, psys.point_cache, particle_panel_enabled(psys), 1, 0)
+		point_cache_ui(self, psys.point_cache, particle_panel_enabled(psys), not psys.hair_dynamics, 0)
 
 class PARTICLE_PT_initial(ParticleButtonsPanel):
 	__label__ = "Velocity"
@@ -396,7 +450,6 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 		if part.physics_type=='NEWTON':
 			sub.itemR(part, "size_deflect")
 			sub.itemR(part, "die_on_collision")
-			sub.itemR(part, "sticky")
 		elif part.physics_type=='KEYED' or part.physics_type=='BOIDS':
 			if part.physics_type=='BOIDS':
 				layout.itemL(text="Relations:")
@@ -893,6 +946,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
 		#row.itemR(psys, "vertex_group_field_negate", text="")
 		
 bpy.types.register(PARTICLE_PT_particles)
+bpy.types.register(PARTICLE_PT_hair_dynamics)
 bpy.types.register(PARTICLE_PT_cache)
 bpy.types.register(PARTICLE_PT_emission)
 bpy.types.register(PARTICLE_PT_initial)

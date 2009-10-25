@@ -178,7 +178,7 @@ float power_of_2(float val);
  */
 
 /* Defines for rotation orders 
- * WARNING: must match the ePchan_RotMode in DNA_action_types.h
+ * WARNING: must match the eRotationModes in DNA_action_types.h
  *		   order matters - types are saved to file!
  */
 typedef enum eEulerRotationOrders {
@@ -299,7 +299,7 @@ void Mat3MulMat3(float *m1, float *m3, float *m2);
 #endif
 void Mat4MulMat34(float (*m1)[4], float (*m3)[3], float (*m2)[4]);
 void Mat4CpyMat4(float m1[][4], float m2[][4]);
-void Mat4SwapMat4(float *m1, float *m2);
+void Mat4SwapMat4(float m1[][4], float m2[][4]);
 void Mat3CpyMat3(float m1[][3], float m2[][3]);
 
 void Mat3MulSerie(float answ[][3],
@@ -319,6 +319,9 @@ void Mat3Clr(float *m);
 	
 void Mat3One(float m[][3]);
 void Mat4One(float m[][4]);
+
+void Mat3Scale(float m[][3], float scale);
+void Mat4Scale(float m[][4], float scale);
 
 void Mat3Ortho(float mat[][3]);
 void Mat4Ortho(float mat[][4]);
@@ -342,12 +345,10 @@ void Mat4AddMat4(float m1[][4], float m2[][4], float m3[][4]);
 
 void VecUpMat3old(float *vec, float mat[][3], short axis);
 void VecUpMat3(float *vec, float mat[][3], short axis);
-void VecRotToMat3(float *vec, float phi, float mat[][3]);
-void VecRotToMat4(float *vec, float phi, float mat[][4]);
 
 void VecCopyf(float *v1, float *v2);
 int VecLen(int *v1, int *v2);
-float VecLenf(float *v1, float *v2);
+float VecLenf(float v1[3], float v2[3]);
 float VecLength(float *v);
 void VecMulf(float *v1, float f);
 void VecNegf(float *v1);
@@ -363,7 +364,8 @@ void printvec4f(char *str, float v[4]);
 void VecAddf(float *v, float *v1, float *v2);
 void VecSubf(float *v, float *v1, float *v2);
 void VecMulVecf(float *v, float *v1, float *v2);
-void VecLerpf(float *target, float *a, float *b, float t);
+void VecLerpf(float *target, const float *a, const float *b, const float t);
+void VecLerp3f(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]);
 void VecMidf(float *v, float *v1, float *v2);
 
 void VecOrthoBasisf(float *v, float *v1, float *v2);
@@ -374,17 +376,34 @@ void Vec2Mulf(float *v1, float f);
 void Vec2Addf(float *v, float *v1, float *v2);
 void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
-void Vec2Lerpf(float *target, float *a, float *b, float t);
+void Vec2Lerpf(float *target, const float *a, const float *b, const float t);
+void Vec2Lerp3f(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3]);
 
-void AxisAngleToQuat(float *q, float *axis, float angle);
+void AxisAngleToQuat(float q[4], float axis[3], float angle);
+void QuatToAxisAngle(float q[4], float axis[3], float *angle);
+void AxisAngleToEulO(float axis[3], float angle, float eul[3], short order);
+void EulOToAxisAngle(float eul[3], short order, float axis[3], float *angle);
+void AxisAngleToMat3(float axis[3], float angle, float mat[3][3]);
+void AxisAngleToMat4(float axis[3], float angle, float mat[4][4]);
+void Mat3ToAxisAngle(float mat[3][3], float axis[3], float *angle);
+void Mat4ToAxisAngle(float mat[4][4], float axis[3], float *angle);
+
+void Mat3ToVecRot(float mat[3][3], float axis[3], float *angle);
+void Mat4ToVecRot(float mat[4][4], float axis[3], float *angle);
+void VecRotToMat3(float *vec, float phi, float mat[][3]);
+void VecRotToMat4(float *vec, float phi, float mat[][4]);
+
 void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3]);
 void vectoquat(float *vec, short axis, short upflag, float *q);
+void Mat3ToQuat_is_ok(float wmat[][3], float *q);
 
+void VecReflect(float *out, float *v1, float *v2);
+void VecBisect3(float *v, float *v1, float *v2, float *v3);
 float VecAngle2(float *v1, float *v2);
 float VecAngle3(float *v1, float *v2, float *v3);
 float NormalizedVecAngle2(float *v1, float *v2);
 
-float VecAngle3_2D(float *v1, float *v2, float *v3);
+float Vec2Angle3(float *v1, float *v2, float *v3);
 float NormalizedVecAngle2_2D(float *v1, float *v2);
 	
 void NormalShortToFloat(float *out, short *in);
@@ -393,7 +412,7 @@ void NormalFloatToShort(short *out, float *in);
 float DistVL2Dfl(float *v1, float *v2, float *v3);
 float PdistVL2Dfl(float *v1, float *v2, float *v3);
 float PdistVL3Dfl(float *v1, float *v2, float *v3);
-void PclosestVL3Dfl(float *closest, float *v1, float *v2, float *v3);
+void PclosestVL3Dfl(float *closest, float v1[3], float v2[3], float v3[3]);
 float AreaF2Dfl(float *v1, float *v2, float *v3);
 float AreaQ3Dfl(float *v1, float *v2, float *v3, float *v4);
 float AreaT3Dfl(float *v1, float *v2, float *v3);
@@ -437,6 +456,9 @@ void i_window(
 #define BLI_CS_REC709	1
 #define BLI_CS_CIE		2
 
+#define RAD2DEG(_rad) ((_rad)*(180.0/M_PI))
+#define DEG2RAD(_deg) ((_deg)*(M_PI/180.0))
+
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv);
@@ -456,8 +478,6 @@ void MinMaxRGB(short c[]);
 void VecStar(float mat[][3],float *vec);
 
 short EenheidsMat(float mat[][3]);
-
-void Mat3ToQuat_is_ok(float wmat[][3], float *q);
 
 void i_ortho(float left, float right, float bottom, float top, float nearClip, float farClip, float matrix[][4]);
 void i_polarview(float dist, float azimuth, float incidence, float twist, float Vm[][4]);
@@ -509,6 +529,8 @@ int IsPointInTri2DInts(int x1, int y1, int x2, int y2, int a, int b);
 int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3]);
 
 float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3]);
+
+float AngleToLength(const float angle);
 
 typedef struct DualQuat {
 	float quat[4];

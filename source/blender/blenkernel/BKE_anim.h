@@ -39,19 +39,12 @@ struct PartEff;
 struct Scene;
 struct ListBase;
 
-typedef struct DupliObject {
-	struct DupliObject *next, *prev;
-	struct Object *ob;
-	unsigned int origlay;
-	int index, no_draw, type, animated;
-	float mat[4][4], omat[4][4];
-	float orco[3], uv[2];
-} DupliObject;
+#include "DNA_object_types.h"
 
 void free_path(struct Path *path);
 void calc_curvepath(struct Object *ob);
 int interval_test(int min, int max, int p1, int cycl);
-int where_on_path(struct Object *ob, float ctime, float *vec, float *dir);
+int where_on_path(struct Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius);
 
 struct ListBase *object_duplilist(struct Scene *sce, struct Object *ob);
 void free_object_duplilist(struct ListBase *lb);

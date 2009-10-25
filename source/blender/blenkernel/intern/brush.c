@@ -44,6 +44,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_rand.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -78,7 +79,7 @@ Brush *add_brush(const char *name)
 	brush->smooth_stroke_radius= 75;
 	brush->smooth_stroke_factor= 0.9;
 	brush->rate= 0.1f;
-	brush->innerradius= 0.5f;
+	brush->jitter= 0.0f;
 	brush->clone.alpha= 0.5;
 	brush->sculpt_tool = SCULPT_TOOL_DRAW;
 
@@ -379,36 +380,6 @@ void brush_check_exists(Brush **brush, const char *name)
 }
 
 /* Brush Sampling */
-
-/*static float taylor_approx_cos(float f)
-{
-	f = f*f;
-	f = 1.0f - f/2.0f + f*f/24.0f;
-	return f;
-}*/
-
-float brush_sample_falloff(Brush *brush, float dist)
-{
-	float a, outer, inner;
-
-	outer = brush->size >> 1;
-	inner = outer*brush->innerradius;
-
-	if (dist <= inner) {
-		return brush->alpha;
-	}
-	else if ((dist < outer) && (inner < outer)) {
-		a = sqrt((dist - inner)/(outer - inner));
-		return (1 - a)*brush->alpha;
-
-		/* formula used by sculpt, with taylor approx 
-		a = 0.5f*(taylor_approx_cos(3.0f*(dist - inner)/(outer - inner)) + 1.0f);
-		return a*brush->alpha; */
-	}
-	else 
-		return 0.0f;
-}
-
 void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 {
 	MTex *mtex= brush->mtex[brush->texact];
@@ -446,6 +417,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 	ImBuf *ibuf;
 	float xy[2], dist, rgba[4], *dstf;
 	int x, y, rowbytes, xoff, yoff, imbflag;
+	int maxsize = brush->size >> 1;
 	char *dst, crgb[3];
 
 	imbflag= (flt)? IB_rectfloat: IB_rect;
@@ -470,7 +442,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
 					VECCOPY(dstf, brush->rgb);
-					dstf[3]= brush_sample_falloff(brush, dist);
+					dstf[3]= brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize);
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, dstf);
@@ -483,7 +455,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dstf[0] = rgba[0]*brush->rgb[0];
 					dstf[1] = rgba[1]*brush->rgb[1];
 					dstf[2] = rgba[2]*brush->rgb[2];
-					dstf[3] = rgba[3]*brush_sample_falloff(brush, dist);
+					dstf[3] = rgba[3]*brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize);
 				}
 			}
 		}
@@ -506,7 +478,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dst[0]= crgb[0];
 					dst[1]= crgb[1];
 					dst[2]= crgb[2];
-					dst[3]= FTOCHAR(brush_sample_falloff(brush, dist));
+					dst[3]= FTOCHAR(brush->alpha*brush_curve_strength(brush, dist, maxsize));
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, rgba);
@@ -522,7 +494,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dst[0] = FTOCHAR(rgba[0]*brush->rgb[0]);
 					dst[1] = FTOCHAR(rgba[1]*brush->rgb[1]);
 					dst[2] = FTOCHAR(rgba[2]*brush->rgb[2]);
-					dst[3] = FTOCHAR(rgba[3]*brush_sample_falloff(brush, dist));
+					dst[3] = FTOCHAR(rgba[3]*brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize));
 				}
 			}
 		}
@@ -542,7 +514,7 @@ typedef struct BrushPainterCache {
 
 	int lastsize;
 	float lastalpha;
-	float lastinnerradius;
+	float lastjitter;
 
 	ImBuf *ibuf;
 	ImBuf *texibuf;
@@ -567,7 +539,7 @@ struct BrushPainter {
 
 	float startsize;
 	float startalpha;
-	float startinnerradius;
+	float startjitter;
 	float startspacing;
 
 	BrushPainterCache cache;
@@ -583,7 +555,7 @@ BrushPainter *brush_painter_new(Brush *brush)
 
 	painter->startsize = brush->size;
 	painter->startalpha = brush->alpha;
-	painter->startinnerradius = brush->innerradius;
+	painter->startjitter = brush->jitter;
 	painter->startspacing = brush->spacing;
 
 	return painter;
@@ -617,7 +589,7 @@ void brush_painter_free(BrushPainter *painter)
 
 	brush->size = painter->startsize;
 	brush->alpha = painter->startalpha;
-	brush->innerradius = painter->startinnerradius;
+	brush->jitter = painter->startjitter;
 	brush->spacing = painter->startspacing;
 
 	if (painter->cache.ibuf) IMB_freeImBuf(painter->cache.ibuf);
@@ -711,7 +683,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 	}
 }
 
-void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float *pos)
+static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float *pos)
 {
 	Brush *brush= painter->brush;
 	BrushPainterCache *cache= &painter->cache;
@@ -773,7 +745,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 	short flt;
 
 	if ((brush->size != cache->lastsize) || (brush->alpha != cache->lastalpha)
-	    || (brush->innerradius != cache->lastinnerradius)) {
+	    || (brush->jitter != cache->lastjitter)) {
 		if (cache->ibuf) {
 			IMB_freeImBuf(cache->ibuf);
 			cache->ibuf= NULL;
@@ -798,7 +770,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 
 		cache->lastsize= brush->size;
 		cache->lastalpha= brush->alpha;
-		cache->lastinnerradius= brush->innerradius;
+		cache->lastjitter= brush->jitter;
 	}
 	else if ((brush->flag & BRUSH_FIXED_TEX) && mtex && mtex->tex) {
 		int dx = (int)painter->lastpaintpos[0] - (int)pos[0];
@@ -820,10 +792,21 @@ static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pres
 		brush->alpha = MAX2(0.0, painter->startalpha*pressure);
 	if (brush->flag & BRUSH_SIZE_PRESSURE)
 		brush->size = MAX2(1.0, painter->startsize*pressure);
-	if (brush->flag & BRUSH_RAD_PRESSURE)
-		brush->innerradius = MAX2(0.0, painter->startinnerradius*pressure);
+	if (brush->flag & BRUSH_JITTER_PRESSURE)
+		brush->jitter = MAX2(0.0, painter->startjitter*pressure);
 	if (brush->flag & BRUSH_SPACING_PRESSURE)
 		brush->spacing = MAX2(1.0, painter->startspacing*(1.5f-pressure));
+}
+
+static void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
+{
+	if(brush->jitter){
+		jitterpos[0] = pos[0] + ((BLI_frand()-0.5f) * brush->size * brush->jitter * 2);
+		jitterpos[1] = pos[1] + ((BLI_frand()-0.5f) * brush->size * brush->jitter * 2);
+	}
+	else {
+		VECCOPY2D(jitterpos, pos);
+	}
 }
 
 int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user)
@@ -831,9 +814,12 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 	Brush *brush= painter->brush;
 	int totpaintops= 0;
 
-	if (pressure == 0.0f)
-		pressure = 1.0f;	/* zero pressure == not using tablet */
-
+	if (pressure == 0.0f) {
+		if(painter->lastpressure) // XXX - hack, operator misses
+			pressure= painter->lastpressure;
+		else
+			pressure = 1.0f;	/* zero pressure == not using tablet */
+	}
 	if (painter->firsttouch) {
 		/* paint exactly once on first touch */
 		painter->startpaintpos[0]= pos[0];
@@ -884,7 +870,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 	}
 #endif
 	else {
-		float startdistance, spacing, step, paintpos[2], dmousepos[2];
+		float startdistance, spacing, step, paintpos[2], dmousepos[2], finalpos[2];
 		float t, len, press;
 
 		/* compute brush spacing adapted to brush size, spacing may depend
@@ -909,11 +895,13 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 			brush_apply_pressure(painter, brush, press);
 			spacing= MAX2(1.0f, brush->size)*brush->spacing*0.01f;
 
+			brush_jitter_pos(brush, paintpos, finalpos);
+
 			if (painter->cache.enabled)
-				brush_painter_refresh_cache(painter, paintpos);
+				brush_painter_refresh_cache(painter, finalpos);
 
 			totpaintops +=
-				func(user, painter->cache.ibuf, painter->lastpaintpos, paintpos);
+				func(user, painter->cache.ibuf, painter->lastpaintpos, finalpos);
 
 			painter->lastpaintpos[0]= paintpos[0];
 			painter->lastpaintpos[1]= paintpos[1];
@@ -936,10 +924,14 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 
 			while (painter->accumtime >= brush->rate) {
 				brush_apply_pressure(painter, brush, pressure);
+
+				brush_jitter_pos(brush, pos, finalpos);
+
 				if (painter->cache.enabled)
-					brush_painter_refresh_cache(painter, paintpos);
+					brush_painter_refresh_cache(painter, finalpos);
+
 				totpaintops +=
-					func(user, painter->cache.ibuf, painter->lastmousepos, pos);
+					func(user, painter->cache.ibuf, painter->lastmousepos, finalpos);
 				painter->accumtime -= brush->rate;
 			}
 
@@ -953,17 +945,30 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 
 	brush->alpha = painter->startalpha;
 	brush->size = painter->startsize;
-	brush->innerradius = painter->startinnerradius;
+	brush->jitter = painter->startjitter;
 	brush->spacing = painter->startspacing;
 
 	return totpaintops;
 }
 
 /* Uses the brush curve control to find a strength value between 0 and 1 */
+float brush_curve_strength_clamp(Brush *br, float p, const float len)
+{
+	if(p >= len)	p= 1.0f;
+	else			p= p/len;
+
+	p= curvemapping_evaluateF(br->curve, 0, p);
+	if(p < 0.0)			p= 0.0f;
+	else if(p > 1.0f)	p= 1.0f;
+	return p;
+}
+/* same as above but can return negative values if the curve enables
+ * used for sculpt only */
 float brush_curve_strength(Brush *br, float p, const float len)
 {
-	if(p > len) p= len;
-	return curvemapping_evaluateF(br->curve, 0, p/len);
+	if(p >= len)	p= 1.0f;
+	else			p= p/len;
+	return curvemapping_evaluateF(br->curve, 0, p);
 }
 
 /* TODO: should probably be unified with BrushPainter stuff? */
@@ -1030,7 +1035,7 @@ static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 	for(i=0; i<side; ++i) {
 		for(j=0; j<side; ++j) {
 			float magn= sqrt(pow(i - half, 2) + pow(j - half, 2));
-			im->rect_float[i*side + j]= brush_curve_strength(br, magn, half);
+			im->rect_float[i*side + j]= brush_curve_strength_clamp(br, magn, half);
 		}
 	}
 

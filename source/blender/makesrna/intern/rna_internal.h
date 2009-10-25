@@ -157,6 +157,7 @@ void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_sequence(struct BlenderRNA *brna);
 void RNA_def_smoke(struct BlenderRNA *brna);
 void RNA_def_space(struct BlenderRNA *brna);
+void RNA_def_test(struct BlenderRNA *brna);
 void RNA_def_text(struct BlenderRNA *brna);
 void RNA_def_texture(struct BlenderRNA *brna);
 void RNA_def_timeline_marker(struct BlenderRNA *brna);
@@ -172,7 +173,7 @@ void RNA_def_world(struct BlenderRNA *brna);
 void rna_def_animdata_common(struct StructRNA *srna);
 
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
-void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname);
+void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *update);
 void rna_def_render_layer_common(struct StructRNA *srna, int scene);
 
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
@@ -195,14 +196,22 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 
 void rna_Object_update(struct bContext *C, struct PointerRNA *ptr);
 void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
+void rna_Mesh_update_draw(struct bContext *C, struct PointerRNA *ptr);
+void rna_TextureSlot_update(struct bContext *C, struct PointerRNA *ptr);
 
 /* API functions */
 
+void RNA_api_action(StructRNA *srna);
+void RNA_api_image(struct StructRNA *srna);
+void RNA_api_keyconfig(struct StructRNA *srna);
 void RNA_api_keyingset(struct StructRNA *srna);
+void RNA_api_keymap(struct StructRNA *srna);
 void RNA_api_main(struct StructRNA *srna);
+void RNA_api_material(StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
-void RNA_api_scene(struct StructRNA *srna);
+void RNA_api_scene(struct StructRNA *srna); 
+void RNA_api_text(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
 

@@ -159,9 +159,9 @@ void init_material(Material *ma)
 	ma->sss_radius[0]= 1.0f;
 	ma->sss_radius[1]= 1.0f;
 	ma->sss_radius[2]= 1.0f;
-	ma->sss_col[0]= 0.8f;
-	ma->sss_col[1]= 0.8f;
-	ma->sss_col[2]= 0.8f;
+	ma->sss_col[0]= 1.0f;
+	ma->sss_col[1]= 1.0f;
+	ma->sss_col[2]= 1.0f;
 	ma->sss_error= 0.05f;
 	ma->sss_scale= 0.1f;
 	ma->sss_ior= 1.3f;
@@ -172,16 +172,16 @@ void init_material(Material *ma)
 
 	ma->vol.density = 1.0f;
 	ma->vol.emission = 0.0f;
-	ma->vol.absorption = 1.0f;
 	ma->vol.scattering = 1.0f;
+	ma->vol.reflection = 1.0f;
+	ma->vol.transmission_col[0] = ma->vol.transmission_col[1] = ma->vol.transmission_col[2] = 1.0f;
+	ma->vol.reflection_col[0] = ma->vol.reflection_col[1] = ma->vol.reflection_col[2] = 1.0f;
 	ma->vol.emission_col[0] = ma->vol.emission_col[1] = ma->vol.emission_col[2] = 1.0f;
-	ma->vol.absorption_col[0] = ma->vol.absorption_col[1] = ma->vol.absorption_col[2] = 0.0f;
 	ma->vol.density_scale = 1.0f;
 	ma->vol.depth_cutoff = 0.01f;
 	ma->vol.stepsize_type = MA_VOL_STEP_RANDOMIZED;
 	ma->vol.stepsize = 0.2f;
-	ma->vol.shade_stepsize = 0.2f;
-	ma->vol.shade_type = MA_VOL_SHADE_SINGLE;
+	ma->vol.shade_type = MA_VOL_SHADE_SHADED;
 	ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
 	ma->vol.precache_resolution = 50;
 	
@@ -485,6 +485,18 @@ ID *material_from(Object *ob, int act)
 	else return ob->data;
 }
 
+Material *give_node_material(Material *ma)
+{
+	if(ma && ma->use_nodes && ma->nodetree) {
+		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);
+
+		if(node)
+			return (Material *)node->id;
+	}
+
+	return NULL;
+}
+
 /* GS reads the memory pointed at in a specific ordering. There are,
  * however two definitions for it. I have jotted them down here, both,
  * but I think the first one is actually used. The thing is that
@@ -625,6 +637,24 @@ void assign_material(Object *ob, Material *ma, int act)
 	test_object_materials(ob->data);
 }
 
+/* XXX - this calls many more update calls per object then are needed, could be optimized */
+void assign_matarar(struct Object *ob, struct Material ***matar, int totcol)
+{
+	int i, actcol_orig= ob->actcol;
+
+	while(object_remove_material_slot(ob)) {};
+
+	/* now we have the right number of slots */
+	for(i=0; i<totcol; i++)
+		assign_material(ob, (*matar)[i], i+1);
+
+	if(actcol_orig > ob->totcol)
+		actcol_orig= ob->totcol;
+
+	ob->actcol= actcol_orig;
+}
+
+
 int find_material_index(Object *ob, Material *ma)
 {
 	Material ***matarar;
@@ -645,17 +675,18 @@ int find_material_index(Object *ob, Material *ma)
 	return 0;	   
 }
 
-void object_add_material_slot(Object *ob)
+int object_add_material_slot(Object *ob)
 {
 	Material *ma;
 	
-	if(ob==0) return;
-	if(ob->totcol>=MAXMAT) return;
+	if(ob==0) return FALSE;
+	if(ob->totcol>=MAXMAT) return FALSE;
 	
 	ma= give_current_material(ob, ob->actcol);
 
 	assign_material(ob, ma, ob->totcol+1);
 	ob->actcol= ob->totcol;
+	return TRUE;
 }
 
 static void do_init_render_material(Material *ma, int r_mode, float *amb)
@@ -870,7 +901,7 @@ void automatname(Material *ma)
 }
 
 
-void object_remove_material_slot(Object *ob)
+int object_remove_material_slot(Object *ob)
 {
 	Material *mao, ***matarar;
 	Object *obt;
@@ -879,7 +910,7 @@ void object_remove_material_slot(Object *ob)
 	short *totcolp;
 	int a, actcol;
 	
-	if(ob==NULL || ob->totcol==0) return;
+	if(ob==NULL || ob->totcol==0) return FALSE;
 	
 	/* take a mesh/curve/mball as starting point, remove 1 index,
 	 * AND with all objects that share the ob->data
@@ -889,6 +920,8 @@ void object_remove_material_slot(Object *ob)
 	
 	totcolp= give_totcolp(ob);
 	matarar= give_matarar(ob);
+
+	if(*matarar==NULL) return FALSE;
 
 	/* we delete the actcol */
 	if(ob->totcol) {
@@ -952,6 +985,8 @@ void object_remove_material_slot(Object *ob)
 		}
 		freedisplist(&ob->disp);
 	}
+
+	return TRUE;
 }
 
 
@@ -959,7 +994,7 @@ void object_remove_material_slot(Object *ob)
 /* if g==NULL, it only does r channel */
 void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 {
-	float tmp, facm= 1.0-fac;
+	float tmp, facm= 1.0f-fac;
 	
 	switch (type) {
 		case MA_RAMP_BLEND:
@@ -984,26 +1019,26 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			}
 				break;
 		case MA_RAMP_SCREEN:
-			*r = 1.0 - (facm + fac*(1.0 - col[0])) * (1.0 - *r);
+			*r = 1.0f - (facm + fac*(1.0f - col[0])) * (1.0f - *r);
 			if(g) {
-				*g = 1.0 - (facm + fac*(1.0 - col[1])) * (1.0 - *g);
-				*b = 1.0 - (facm + fac*(1.0 - col[2])) * (1.0 - *b);
+				*g = 1.0f - (facm + fac*(1.0f - col[1])) * (1.0f - *g);
+				*b = 1.0f - (facm + fac*(1.0f - col[2])) * (1.0f - *b);
 			}
 				break;
 		case MA_RAMP_OVERLAY:
 			if(*r < 0.5f)
 				*r *= (facm + 2.0f*fac*col[0]);
 			else
-				*r = 1.0 - (facm + 2.0f*fac*(1.0 - col[0])) * (1.0 - *r);
+				*r = 1.0f - (facm + 2.0f*fac*(1.0f - col[0])) * (1.0f - *r);
 			if(g) {
 				if(*g < 0.5f)
 					*g *= (facm + 2.0f*fac*col[1]);
 				else
-					*g = 1.0 - (facm + 2.0f*fac*(1.0 - col[1])) * (1.0 - *g);
+					*g = 1.0f - (facm + 2.0f*fac*(1.0f - col[1])) * (1.0f - *g);
 				if(*b < 0.5f)
 					*b *= (facm + 2.0f*fac*col[2]);
 				else
-					*b = 1.0 - (facm + 2.0f*fac*(1.0 - col[2])) * (1.0 - *b);
+					*b = 1.0f - (facm + 2.0f*fac*(1.0f - col[2])) * (1.0f - *b);
 			}
 				break;
 		case MA_RAMP_SUB:
@@ -1014,12 +1049,12 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			}
 				break;
 		case MA_RAMP_DIV:
-			if(col[0]!=0.0)
+			if(col[0]!=0.0f)
 				*r = facm*(*r) + fac*(*r)/col[0];
 			if(g) {
-				if(col[1]!=0.0)
+				if(col[1]!=0.0f)
 					*g = facm*(*g) + fac*(*g)/col[1];
-				if(col[2]!=0.0)
+				if(col[2]!=0.0f)
 					*b = facm*(*b) + fac*(*b)/col[2];
 			}
 				break;
@@ -1031,15 +1066,15 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			}
 				break;
 		case MA_RAMP_DARK:
-			tmp= fac*col[0];
-			if(tmp < *r) *r= tmp; 
-				if(g) {
-					tmp= fac*col[1];
-					if(tmp < *g) *g= tmp; 
-					tmp= fac*col[2];
-					if(tmp < *b) *b= tmp; 
-				}
-					break;
+            tmp=col[0]+((1-col[0])*facm); 
+            if(tmp < *r) *r= tmp; 
+            if(g) { 
+                tmp=col[1]+((1-col[1])*facm); 
+                if(tmp < *g) *g= tmp; 
+                tmp=col[2]+((1-col[2])*facm); 
+                if(tmp < *b) *b= tmp; 
+            } 
+                break; 
 		case MA_RAMP_LIGHT:
 			tmp= fac*col[0];
 			if(tmp > *r) *r= tmp; 
@@ -1053,31 +1088,31 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 		case MA_RAMP_DODGE:			
 			
 				
-			if(*r !=0.0){
-				tmp = 1.0 - fac*col[0];
-				if(tmp <= 0.0)
-					*r = 1.0;
-				else if ((tmp = (*r) / tmp)> 1.0)
-					*r = 1.0;
+			if(*r !=0.0f){
+				tmp = 1.0f - fac*col[0];
+				if(tmp <= 0.0f)
+					*r = 1.0f;
+				else if ((tmp = (*r) / tmp)> 1.0f)
+					*r = 1.0f;
 				else 
 					*r = tmp;
 			}
 			if(g) {
-				if(*g !=0.0){
-					tmp = 1.0 - fac*col[1];
-					if(tmp <= 0.0 )
-						*g = 1.0;
-					else if ((tmp = (*g) / tmp) > 1.0 )
-						*g = 1.0;
+				if(*g !=0.0f){
+					tmp = 1.0f - fac*col[1];
+					if(tmp <= 0.0f )
+						*g = 1.0f;
+					else if ((tmp = (*g) / tmp) > 1.0f )
+						*g = 1.0f;
 					else
 						*g = tmp;
 				}
-				if(*b !=0.0){
-					tmp = 1.0 - fac*col[2];
-					if(tmp <= 0.0)
-						*b = 1.0;
-					else if ((tmp = (*b) / tmp) > 1.0 )
-						*b = 1.0;
+				if(*b !=0.0f){
+					tmp = 1.0f - fac*col[2];
+					if(tmp <= 0.0f)
+						*b = 1.0f;
+					else if ((tmp = (*b) / tmp) > 1.0f )
+						*b = 1.0f;
 					else
 						*b = tmp;
 				}
@@ -1088,33 +1123,33 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			
 			tmp = facm + fac*col[0];
 			
-			if(tmp <= 0.0)
-				*r = 0.0;
-			else if (( tmp = (1.0 - (1.0 - (*r)) / tmp )) < 0.0)
-			        *r = 0.0;
-			else if (tmp > 1.0)
-				*r=1.0;
+			if(tmp <= 0.0f)
+				*r = 0.0f;
+			else if (( tmp = (1.0f - (1.0f - (*r)) / tmp )) < 0.0f)
+			        *r = 0.0f;
+			else if (tmp > 1.0f)
+				*r=1.0f;
 			else 
 				*r = tmp; 
 
 			if(g) {
 				tmp = facm + fac*col[1];
-				if(tmp <= 0.0)
-					*g = 0.0;
-				else if (( tmp = (1.0 - (1.0 - (*g)) / tmp )) < 0.0 )
-			        	*g = 0.0;
-				else if(tmp >1.0)
-					*g=1.0;
+				if(tmp <= 0.0f)
+					*g = 0.0f;
+				else if (( tmp = (1.0f - (1.0f - (*g)) / tmp )) < 0.0f )
+			        	*g = 0.0f;
+				else if(tmp >1.0f)
+					*g=1.0f;
 				else
 					*g = tmp;
 			        	
 			        tmp = facm + fac*col[2];
-			        if(tmp <= 0.0)
-					*b = 0.0;
-				else if (( tmp = (1.0 - (1.0 - (*b)) / tmp )) < 0.0  )
-			        	*b = 0.0;
-				else if(tmp >1.0)
-					*b= 1.0;
+			        if(tmp <= 0.0f)
+					*b = 0.0f;
+				else if (( tmp = (1.0f - (1.0f - (*b)) / tmp )) < 0.0f  )
+			        	*b = 0.0f;
+				else if(tmp >1.0f)
+					*b= 1.0f;
 				else
 					*b = tmp;
 			}
@@ -1169,8 +1204,37 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 				}
 			}
 				break;
-	}
-	
+        case MA_RAMP_SOFT: 
+            if (g){ 
+                float scr, scg, scb; 
+                 
+                /* first calculate non-fac based Screen mix */ 
+                scr = 1.0f - (1.0f - col[0]) * (1.0f - *r); 
+                scg = 1.0f - (1.0f - col[1]) * (1.0f - *g); 
+                scb = 1.0f - (1.0f - col[2]) * (1.0f - *b); 
+                 
+                *r = facm*(*r) + fac*(((1.0f - *r) * col[0] * (*r)) + (*r * scr)); 
+                *g = facm*(*g) + fac*(((1.0f - *g) * col[1] * (*g)) + (*g * scg)); 
+                *b = facm*(*b) + fac*(((1.0f - *b) * col[2] * (*b)) + (*b * scb)); 
+            } 
+                break; 
+        case MA_RAMP_LINEAR: 
+            if (col[0] > 0.5f)  
+                *r = *r + fac*(2.0f*(col[0]-0.5f)); 
+            else  
+                *r = *r + fac*(2.0f*(col[0]) - 1.0f); 
+            if (g){ 
+                if (col[1] > 0.5f)  
+                    *g = *g + fac*(2.0f*(col[1]-0.5f)); 
+                else  
+                    *g = *g + fac*(2.0f*(col[1]) -1.0f); 
+                if (col[2] > 0.5f)  
+                    *b = *b + fac*(2.0f*(col[2]-0.5f)); 
+                else  
+                    *b = *b + fac*(2.0f*(col[2]) - 1.0f); 
+            } 
+                break; 
+	}	
 }
 
 

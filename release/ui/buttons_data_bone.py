@@ -58,6 +58,10 @@ class BONE_PT_transform(BoneButtonsPanel):
 			col = row.column()
 			if pchan.rotation_mode == 'QUATERNION':
 				col.itemR(pchan, "rotation", text="Rotation")
+			elif pchan.rotation_mode == 'AXIS_ANGLE':
+				col.itemL(text="Rotation")
+				col.itemR(pchan, "rotation_angle", text="Angle")
+				col.itemR(pchan, "rotation_axis", text="Axis")
 			else:
 				col.itemR(pchan, "euler_rotation", text="Rotation")
 
@@ -67,6 +71,35 @@ class BONE_PT_transform(BoneButtonsPanel):
 				col = layout.column(align=True)
 				col.itemL(text="Euler:")
 				col.row().itemR(pchan, "euler_rotation", text="")
+				
+class BONE_PT_transform_locks(BoneButtonsPanel):
+	__label__ = "Transform Locks"
+	
+	def poll(self, context):
+		return context.bone
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		bone = context.bone
+		pchan = ob.pose.pose_channels[context.bone.name]
+		
+		row = layout.row()
+		col = row.column()
+		col.itemR(pchan, "lock_location")
+		col.active = not (bone.parent and bone.connected)
+		
+		col = row.column()
+		if pchan.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
+			col.itemR(pchan, "lock_rotations_4d", text="Lock Rotation")
+			if pchan.lock_rotations_4d:
+				col.itemR(pchan, "lock_rotation_w", text="W")
+			col.itemR(pchan, "lock_rotation", text="")
+		else:
+			col.itemR(pchan, "lock_rotation", text="Rotation")
+		
+		row.column().itemR(pchan, "lock_scale")
 
 class BONE_PT_bone(BoneButtonsPanel):
 	__label__ = "Bone"
@@ -98,7 +131,7 @@ class BONE_PT_bone(BoneButtonsPanel):
 		row.itemR(bone, "connected")
 		
 		col.itemL(text="Layers:")
-		col.template_layers(bone, "layer")
+		col.itemR(bone, "layer", text="")
 		
 		col = split.column()
 		col.itemL(text="Inherit:")
@@ -239,6 +272,7 @@ class BONE_PT_deform(BoneButtonsPanel):
 
 bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)
+bpy.types.register(BONE_PT_transform_locks)
 bpy.types.register(BONE_PT_bone)
 bpy.types.register(BONE_PT_deform)
 bpy.types.register(BONE_PT_inverse_kinematics)

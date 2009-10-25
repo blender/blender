@@ -32,6 +32,10 @@
 #ifndef BLI_GHASH_H
 #define BLI_GHASH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct GHash;
 typedef struct GHash GHash;
 
@@ -124,6 +128,10 @@ int				BLI_ghashutil_strcmp	(void *a, void *b);
 
 unsigned int	BLI_ghashutil_inthash	(void *ptr);
 int				BLI_ghashutil_intcmp(void *a, void *b);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

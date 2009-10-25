@@ -72,7 +72,7 @@ static void sequencer_panel_view_properties(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_sequencer_panel_events, NULL);
 	
 }
@@ -82,7 +82,7 @@ static void sequencer_panel_properties(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 	
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_sequencer_panel_events, NULL);
 
 }	
@@ -112,13 +112,9 @@ static int sequencer_properties(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= sequencer_has_buttons_region(sa);
 	
-	if(ar) {
-		ar->flag ^= RGN_FLAG_HIDDEN;
-		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
-		
-		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-		ED_area_tag_redraw(sa);
-	}
+	if(ar)
+		ED_region_toggle_hidden(C, ar);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -126,6 +122,7 @@ void SEQUENCER_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
 	ot->idname= "SEQUENCER_OT_properties";
+	ot->description= "Open sequencer properties panel.";
 	
 	ot->exec= sequencer_properties;
 	ot->poll= ED_operator_sequencer_active;

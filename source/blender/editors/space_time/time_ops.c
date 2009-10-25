@@ -84,6 +84,7 @@ void TIME_OT_start_frame_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Start Frame";
 	ot->idname= "TIME_OT_start_frame_set";
+	ot->description="Set the start frame.";
 	
 	/* api callbacks */
 	ot->exec= time_set_sfra_exec;
@@ -122,6 +123,7 @@ void TIME_OT_end_frame_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set End Frame";
 	ot->idname= "TIME_OT_end_frame_set";
+	ot->description="Set the end frame.";
 	
 	/* api callbacks */
 	ot->exec= time_set_efra_exec;
@@ -138,9 +140,9 @@ void time_operatortypes(void)
 	WM_operatortype_append(TIME_OT_end_frame_set);
 }
 
-void time_keymap(wmWindowManager *wm)
+void time_keymap(wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "TimeLine", SPACE_TIME, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "TimeLine", SPACE_TIME, 0);
 	
 	WM_keymap_add_item(keymap, "TIME_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);

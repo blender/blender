@@ -64,8 +64,14 @@ typedef enum
  * the pen's angle in 3D space vertically downwards on to the XY plane
  * --Matt
  */
+typedef enum {
+	GHOST_kTabletModeNone = 0,
+	GHOST_kTabletModeStylus,
+	GHOST_kTabletModeEraser
+} GHOST_TTabletMode;
+
 typedef struct GHOST_TabletData {
-	char Active; /* 0=None, 1=Stylus, 2=Eraser */
+	GHOST_TTabletMode Active; /* 0=None, 1=Stylus, 2=Eraser */
 	float Pressure;	/* range 0.0 (not touching) to 1.0 (full pressure) */
 	float Xtilt;	/* range 0.0 (upright) to 1.0 (tilted fully against the tablet surface) */
 	float Ytilt;	/* as above */
@@ -110,6 +116,12 @@ typedef enum {
 } GHOST_TWindowState;
 
 
+/** Constants for the answer to the blender exit request */
+typedef enum {
+	GHOST_kExitCancel = 0,
+	GHOST_kExitNow
+} GHOST_TExitRequestResponse;
+
 typedef enum {
 	GHOST_kWindowOrderTop = 0,
 	GHOST_kWindowOrderBottom
@@ -126,6 +138,8 @@ typedef enum {
 	GHOST_kButtonMaskLeft = 0,
 	GHOST_kButtonMaskMiddle,
 	GHOST_kButtonMaskRight,
+	GHOST_kButtonMaskButton4,
+	GHOST_kButtonMaskButton5,
 	GHOST_kButtonNumMasks
 } GHOST_TButtonMask;
 
@@ -327,6 +341,12 @@ typedef enum {
 	GHOST_kKeyF24
 } GHOST_TKey;
 
+typedef enum {
+	GHOST_kGrabDisable = 0,	/* grab not set */
+	GHOST_kGrabNormal,	/* no cursor adjustments */
+	GHOST_kGrabWrap,		/* wrap the mouse location to prevent limiting screen bounds */
+	GHOST_kGrabHide,		/* hide the mouse while grabbing and restore the original location on release (numbuts) */
+} GHOST_TGrabCursorMode;
 
 typedef void* GHOST_TEventDataPtr;
 

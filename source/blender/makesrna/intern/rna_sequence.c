@@ -85,7 +85,7 @@ static void rna_SequenceEditor_length_set(PointerRNA *ptr, int value)
 static int rna_SequenceEditor_length_get(PointerRNA *ptr)
 {
 	Sequence *seq= (Sequence*)ptr->data;
-	return seq_tx_get_final_right(seq, 1)-seq_tx_get_final_left(seq, 1);
+	return seq_tx_get_final_right(seq, 0)-seq_tx_get_final_left(seq, 0);
 }
 
 static void rna_SequenceEditor_channel_set(PointerRNA *ptr, int value)
@@ -221,12 +221,59 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 	}
 }
 
+static char *rna_Sequence_path(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	
+	/* sequencer data comes from scene... 
+	 * TODO: would be nice to make SequenceEditor data a datablock of its own (for shorter paths)
+	 */
+	if (seq->name+2)
+		return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+	else {
+		/* compromise for the frequent sitation when strips don't have names... */
+		Scene *sce= (Scene*)ptr->id.data;
+		Editing *ed= seq_give_editing(sce, FALSE);
+		
+		return BLI_sprintfN("sequence_editor.sequences[%d]", BLI_findindex(&ed->seqbase, seq));
+	}
+}
+
 static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 	MetaStack *ms= (MetaStack*)internal->link;
 
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, ms->parseq);
+}
+
+static void rna_MovieSequence_filename_set(PointerRNA *ptr, const char *value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	char dir[FILE_MAX], name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, dir, name);
+	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
+	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
+}
+
+static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	char dir[FILE_MAX], name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, dir, name);
+	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
+	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
+}
+
+static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
+{
+	StripElem *elem= (StripElem*)(ptr->data);
+	char name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, NULL, name);
+	BLI_strncpy(elem->name, name, sizeof(elem->name));
 }
 
 #else
@@ -243,6 +290,7 @@ static void rna_def_strip_element(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SequenceElement_filename_set");
 }
 
 static void rna_def_strip_crop(BlenderRNA *brna)
@@ -393,6 +441,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor.");
 	RNA_def_struct_refine_func(srna, "rna_Sequence_refine");
+	RNA_def_struct_path_func(srna, "rna_Sequence_path");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_Sequence_name_get", "rna_Sequence_name_length", "rna_Sequence_name_set");
@@ -479,6 +528,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "machine");
+	RNA_def_property_range(prop, 0, MAXSEQ-1);
 	RNA_def_property_ui_text(prop, "Channel", "Y position of the sequence strip.");
 	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_channel_set",NULL); // overlap test
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
@@ -498,12 +548,12 @@ static void rna_def_sequence(BlenderRNA *brna)
 	/* functions */
 	func= RNA_def_function(srna, "getStripElem", "give_stripelem");
 	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None.");
-	prop= RNA_def_int(func, "frame", 0, INT_MIN, INT_MAX, "Frame", "The frame to get the strip element from", INT_MIN, INT_MAX);
+	prop= RNA_def_int(func, "frame", 0, -MAXFRAME, MAXFRAME, "Frame", "The frame to get the strip element from", -MAXFRAME, MAXFRAME);
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
 }
 
-void rna_def_editor(BlenderRNA *brna)
+static void rna_def_editor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -725,6 +775,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MovieSequence_filename_set");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");
@@ -751,6 +802,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoundSequence_filename_set");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");

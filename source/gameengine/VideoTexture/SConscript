@@ -15,16 +15,17 @@ incs += ' #source/blender/gpu #source/kernel/gen_system #intern/string #intern/m
 incs += ' #intern/guardedalloc #extern/glew/include'
 
 defs = [] 
-if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc','win32-mingw'):
 	if env['BF_DEBUG']:
 		defs.append('_DEBUG')
 
-incs += ' ' + env['BF_PYTHON_INC']
-#incs += ' ' + env['BF_OPENGL_INC']
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC'] + ' ' + env['BF_PTHREADS_INC']
-    defs.append('__STDC_CONSTANT_MACROS')
 
-env.BlenderLib ( 'bf_videotex', sources, Split(incs), defs, libtype=['core'], priority=[300], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'bf_videotex', sources, Split(incs), defs, libtype=['core','player'], priority=[300,205], cxx_compileflags=env['BGE_CXXFLAGS'])

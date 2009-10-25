@@ -63,6 +63,14 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 
+#ifdef _WIN32
+#define open _open
+#define close _close
+#define read _read
+#define write _write
+#endif
+
+
 int seekPackedFile(PackedFile *pf, int offset, int whence)
 {
 	int oldseek = -1, seek = 0;
@@ -168,6 +176,11 @@ PackedFile *newPackedFile(ReportList *reports, char *filename)
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	void *data;
 	
+	/* render result has no filename and can be ignored
+	 * any other files with no name can be ignored too */
+	if(filename[0]=='\0')
+		return NULL;
+
 	//XXX waitcursor(1);
 	
 	// convert relative filenames to absolute filenames
@@ -180,7 +193,7 @@ PackedFile *newPackedFile(ReportList *reports, char *filename)
 
 	file= open(name, O_BINARY|O_RDONLY);
 	if (file <= 0) {
-		BKE_reportf(reports, RPT_ERROR, "Can't open file: %s", name);
+		BKE_reportf(reports, RPT_ERROR, "Can't open file: \"%s\"", name);
 	} else {
 		filelen = BLI_filesize(file);
 
@@ -228,7 +241,7 @@ void packAll(Main *bmain, ReportList *reports)
 // attempt to create a function that generates an unique filename
 // this will work when all funtions in fileops.c understand relative filenames...
 
-char *find_new_name(char *name)
+static char *find_new_name(char *name)
 {
 	char tempname[FILE_MAXDIR + FILE_MAXFILE];
 	char *newname;

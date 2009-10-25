@@ -42,6 +42,7 @@
 #include "KX_Python.h"
 #include "PyObjectPlus.h"
 
+#ifndef DISABLE_PYTHON
 #ifdef USE_MATHUTILS
 extern "C" {
 #include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
@@ -157,7 +158,7 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		
 		return true;
 	}
-	else if (PyObject_TypeCheck(pyval, &PyObjectPlus::Type))
+	else if (PyObject_TypeCheck(pyval, (PyTypeObject *)&PyObjectPlus::Type))
 	{	/* note, include this check because PySequence_Check does too much introspection
 		 * on the PyObject (like getting its __class__, on a BGE type this means searching up
 		 * the parent list each time only to discover its not a sequence.
@@ -237,3 +238,5 @@ PyObject* PyObjectFrom(const MT_Quaternion &qrot);
 PyObject* PyObjectFrom(const MT_Tuple4 &pos);
 
 #endif
+
+#endif // DISABLE_PYTHON

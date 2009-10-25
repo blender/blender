@@ -43,7 +43,7 @@
 /* ------------------------------------------------------------------------- */
 
 SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,SCA_IObject* sourceObj,const STR_String& propname,const STR_String& expr,int acttype)
-   :	SCA_IActuator(gameobj),
+   :	SCA_IActuator(gameobj, KX_ACT_PROPERTY),
 	m_type(acttype),
 	m_propname(propname),
 	m_exprtxt(expr),
@@ -221,6 +221,7 @@ void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 	}
 }
 
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -259,5 +260,7 @@ PyAttributeDef SCA_PropertyActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_PROP_NODEF+1, KX_ACT_PROP_MAX-1, false, SCA_PropertyActuator, m_type), /* ATTR_TODO add constents to game logic dict */
 	{ NULL }	//Sentinel
 };
+
+#endif
 
 /* eof */

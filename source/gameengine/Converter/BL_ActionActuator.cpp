@@ -432,6 +432,8 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	return keepgoing;
 };
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -526,12 +528,11 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		mat.setValue((const float *)matrix);
 		
 		BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
-		obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 		
 		if (!m_userpose) {
 			if(!m_pose)
 				obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
-			game_copy_pose(&m_userpose, m_pose);
+			game_copy_pose(&m_userpose, m_pose, 0);
 		}
 		// pchan= verify_pose_channel(m_userpose, string); // adds the channel if its not there.
 		pchan= get_pose_channel(m_userpose, string); // adds the channel if its not there.
@@ -554,7 +555,7 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		if (!m_userpose) {
 			if(!m_pose)
 				obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
-			game_copy_pose(&m_userpose, m_pose);
+			game_copy_pose(&m_userpose, m_pose, 0);
 		}
 		// pchan= verify_pose_channel(m_userpose, string);
 		pchan= get_pose_channel(m_userpose, string); // adds the channel if its not there.
@@ -572,7 +573,6 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		return NULL;
 	}
 	
-	pchan->flag |= POSE_ROT|POSE_LOC|POSE_SIZE;
 	Py_RETURN_NONE;
 }
 
@@ -677,3 +677,5 @@ PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 	
 	return ret;
 }
+
+#endif // DISABLE_PYTHON

@@ -39,7 +39,16 @@ static bNodeSocketType outputs[]= {
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	tex_do_preview(node, in[0], data);
+	TexCallData *cdata = (TexCallData *)data;
+
+	if(cdata->do_preview) {
+		TexParams params;
+		float col[4];
+		params_from_cdata(&params, cdata);
+
+		tex_input_rgba(col, in[0], &params, cdata->thread);
+		tex_do_preview(node, params.coord, col);
+	}
 }
 
 bNodeType tex_node_viewer = {

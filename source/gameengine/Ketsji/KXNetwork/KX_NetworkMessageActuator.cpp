@@ -42,7 +42,7 @@ KX_NetworkMessageActuator::KX_NetworkMessageActuator(
 	const STR_String &subject,
 	int bodyType,
 	const STR_String &body) :
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_MESSAGE),
 	m_networkscene(networkscene),
 	m_toPropName(toPropName),
 	m_subject(subject),
@@ -95,6 +95,8 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 	return replica;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* -------------------------------------------------------------------- */
 /* Python interface --------------------------------------------------- */
 /* -------------------------------------------------------------------- */
@@ -133,3 +135,5 @@ PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("body", 0, 16384, false, KX_NetworkMessageActuator, m_body),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

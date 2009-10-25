@@ -53,6 +53,8 @@ struct VlakTableNode;
 struct GHash;
 struct RenderBuckets;
 struct ObjectInstanceRen;
+struct RayObject;
+struct RayFace;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -121,6 +123,10 @@ struct Render
 	RenderResult *pushedresult;
 	/* a list of RenderResults, for fullsample */
 	ListBase fullresult;	
+	/* read/write mutex, all internal code that writes to re->result must use a
+	   write lock, all external code must use a read lock. internal code is assumed
+	   to not conflict with writes, so no lock used for that */
+	ThreadRWMutex resultmutex;
 	
 	/* window size, display rect, viewplane */
 	int winx, winy;
@@ -168,7 +174,10 @@ struct Render
 	ListBase parts;
 	
 	/* octree tables and variables for raytrace */
-	void *raytree;
+	struct RayObject *raytree;
+	struct RayFace *rayfaces;
+	struct VlakPrimitive *rayprimitives;
+	float maxdist; /* needed for keeping an incorrect behaviour of SUN and HEMI lights (avoid breaking old scenes) */
 
 	/* occlusion tree */
 	void *occlusiontree;
@@ -236,10 +245,17 @@ struct Render
 
 struct ISBData;
 
+typedef struct DeepSample {
+	int z;
+	float v;
+} DeepSample;
+ 
 typedef struct ShadSampleBuf {
 	struct ShadSampleBuf *next, *prev;
 	intptr_t *zbuf;
 	char *cbuf;
+	DeepSample **deepbuf;
+	int *totbuf;
 } ShadSampleBuf;
 
 typedef struct ShadBuf {
@@ -249,7 +265,7 @@ typedef struct ShadBuf {
 	float viewmat[4][4];
 	float winmat[4][4];
 	float *jit, *weight;
-	float d, clipend, pixsize, soft;
+	float d, clipend, pixsize, soft, compressthresh;
 	int co[3];
 	int size, bias;
 	ListBase buffers;
@@ -281,6 +297,13 @@ typedef struct ObjectRen {
 	int  actmtface, actmcol, bakemtface;
 
 	float obmat[4][4];	/* only used in convertblender.c, for instancing */
+
+	/* used on makeraytree */
+	struct RayObject *raytree;
+	struct RayFace *rayfaces;
+	struct VlakPrimitive *rayprimitives;
+	struct ObjectInstanceRen *rayobi;
+	
 } ObjectRen;
 
 typedef struct ObjectInstanceRen {
@@ -300,6 +323,11 @@ typedef struct ObjectInstanceRen {
 	
 	float *vectors;
 	int totvector;
+	
+	/* used on makeraytree */
+	struct RayObject *raytree;
+	int transform_primitives;
+
 } ObjectInstanceRen;
 
 /* ------------------------------------------------------------------------- */
@@ -425,7 +453,7 @@ typedef struct MatInside {
 typedef struct VolPrecachePart
 {
 	struct VolPrecachePart *next, *prev;
-	struct RayTree *tree;
+	struct RayObject *tree;
 	struct ShadeInput *shi;
 	struct ObjectInstanceRen *obi;
 	int num;
@@ -506,6 +534,8 @@ typedef struct LampRen {
 	float clipend;
 	/** A small depth offset to prevent self-shadowing. */
 	float bias;
+	/* Compression threshold for deep shadow maps */
+	float compressthresh;
 	
 	short ray_samp, ray_sampy, ray_sampz, ray_samp_method, ray_samp_type, area_shape, ray_totsamp;
 	short xold[BLENDER_MAX_THREADS], yold[BLENDER_MAX_THREADS];	/* last jitter table for area lights */
@@ -536,8 +566,7 @@ typedef struct LampRen {
 	short YF_glowtype;
 	
 	/* ray optim */
-	VlakRen *vlr_last[BLENDER_MAX_THREADS];
-	ObjectInstanceRen *obi_last[BLENDER_MAX_THREADS];
+	struct RayObject *last_hit[BLENDER_MAX_THREADS];
 	
 	struct MTex *mtex[MAX_MTEX];
 

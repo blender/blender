@@ -34,7 +34,7 @@ DIRS = windowmanager editors blenloader readblenfile
 DIRS += avi imbuf render blenlib blenkernel blenpluginapi
 DIRS += makesdna makesrna
 DIRS += python nodes gpu
-DIRS += blenfont
+DIRS += blenfont ikplugin
 
 ifeq ($(WITH_QUICKTIME), true)
 	DIRS += quicktime

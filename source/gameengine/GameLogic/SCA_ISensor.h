@@ -171,6 +171,7 @@ public:
 	bool IsNoLink() const 
 		{ return !m_links; }
 
+#ifndef DISABLE_PYTHON
 	/* Python functions: */
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,reset);
 	
@@ -178,6 +179,7 @@ public:
 	static PyObject*	pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int          pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int          pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+#endif // DISABLE_PYTHON
 };
 
 #endif //__SCA_ISENSOR

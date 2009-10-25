@@ -35,6 +35,8 @@ struct DriverTarget;
 
 struct BezTriple;
 
+#include "DNA_curve_types.h"
+
 /* ************** Keyframe Tools ***************** */
 
 // XXX this stuff is defined in BKE_ipo.h too, so maybe skip for now?
@@ -152,6 +154,11 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
+
+/* Binary search algorithm for finding where to 'insert' BezTriple with given frame number.
+ * Returns the index to insert at (data already at that index will be offset if replace is 0)
+ */
+int binarysearch_bezt_index(struct BezTriple array[], float frame, int arraylen, short *replace);
 
 /* get the time extents for F-Curve */
 void calc_fcurve_range(struct FCurve *fcu, float *min, float *max);

@@ -688,17 +688,35 @@ static const char *check_memlist(MemHead *memh)
 
 uintptr_t MEM_get_memory_in_use(void)
 {
-	return mem_in_use;
+	uintptr_t _mem_in_use;
+
+	mem_lock_thread();
+	_mem_in_use= mem_in_use;
+	mem_unlock_thread();
+
+	return _mem_in_use;
 }
 
 uintptr_t MEM_get_mapped_memory_in_use(void)
 {
-	return mmap_in_use;
+	uintptr_t _mmap_in_use;
+
+	mem_lock_thread();
+	_mmap_in_use= mmap_in_use;
+	mem_unlock_thread();
+
+	return _mmap_in_use;
 }
 
 int MEM_get_memory_blocks_in_use(void)
 {
-	return totblock;
+	int _totblock;
+
+	mem_lock_thread();
+	_totblock= totblock;
+	mem_unlock_thread();
+
+	return _totblock;
 }
 
 /* eof */

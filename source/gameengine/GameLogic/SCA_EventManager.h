@@ -38,6 +38,8 @@
 class SCA_EventManager
 {
 protected:
+	class SCA_LogicManager* m_logicmgr; /* all event manager subclasses use this (other then TimeEventManager) */
+
 	// use a set to speed-up insertion/removal
 	//std::set <class SCA_ISensor*>				m_sensors;
 	SG_DList		m_sensors;
@@ -52,13 +54,13 @@ public:
 		TIME_EVENTMGR,
 		RANDOM_EVENTMGR,
 		RAY_EVENTMGR,
-		RADAR_EVENTMGR,
 		NETWORK_EVENTMGR,
 		JOY_EVENTMGR,
-		ACTUATOR_EVENTMGR
+		ACTUATOR_EVENTMGR,
+		BASIC_EVENTMGR
 	};
 
-	SCA_EventManager(EVENT_MANAGER_TYPE mgrtype);
+	SCA_EventManager(SCA_LogicManager* logicmgr, EVENT_MANAGER_TYPE mgrtype);
 	virtual ~SCA_EventManager();
 	
 	virtual void	RemoveSensor(class SCA_ISensor* sensor);

@@ -219,7 +219,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter;
+	int filter, filterflag;
 	
 	BeztEditData bed;
 	BeztEditFunc ok_cb, select_cb;
@@ -234,6 +234,14 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* get filtering flag for dopesheet data (if applicable) */
+	if (ac->datatype == ANIMCONT_DOPESHEET) {
+		bDopeSheet *ads= (bDopeSheet *)ac->data;
+		filterflag= ads->filterflag;
+	}
+	else
+		filterflag= 0;
 	
 	/* get beztriple editing/validation funcs  */
 	select_cb= ANIM_editkeyframes_select(selectmode);
@@ -271,20 +279,10 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 			!((ymax < rectf.ymin) || (ymin > rectf.ymax)) )
 		{
 			/* loop over data selecting */
-			if (ale->key_data) {
-				if (ale->datatype == ALE_FCURVE)
-					ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			}
-			else if (ale->type == ANIMTYPE_GROUP) {
-				bActionGroup *agrp= ale->data;
-				FCurve *fcu;
-				
-				for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next) 
-					ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
-			}
-			//else if (ale->type == ANIMTYPE_GPLAYER) {
+			//if (ale->type == ANIMTYPE_GPLAYER)
 			//	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
-			//}
+			//else
+				ANIM_animchannel_keys_bezier_loop(&bed, ale, ok_cb, select_cb, NULL, filterflag);
 		}
 		
 		/* set minimum extent to be the maximum of the next channel */
@@ -792,6 +790,12 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		
 		if (ale->key_data) {
 			switch (ale->datatype) {
+				case ALE_SCE:
+				{
+					Scene *scene= (Scene *)ale->key_data;
+					scene_to_keylist(ads, scene, &anim_keys, NULL);
+				}
+					break;
 				case ALE_OB:
 				{
 					Object *ob= (Object *)ale->key_data;
@@ -811,6 +815,10 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 				}
 					break;
 			}
+		}
+		else if (ale->type == ANIMTYPE_SUMMARY) {
+			/* dopesheet summary covers everything */
+			summary_to_keylist(ac, &anim_keys, NULL);
 		}
 		else if (ale->type == ANIMTYPE_GROUP) {
 			bActionGroup *agrp= (bActionGroup *)ale->data;

@@ -40,6 +40,7 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -71,7 +72,7 @@ static short id_has_animdata (ID *id)
 	switch (GS(id->name)) {
 			/* has AnimData */
 		case ID_OB:
-		case ID_MB: case ID_CU:
+		case ID_MB: case ID_CU: case ID_AR:
 		case ID_KE:
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
@@ -186,8 +187,6 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	dadt= MEM_dupallocN(adt);
 	
 	/* make a copy of action - at worst, user has to delete copies... */
-	// XXX review this... it might not be optimal behaviour yet...
-	//id_us_plus((ID *)dadt->action);
 	dadt->action= copy_action(adt->action);
 	dadt->tmpact= copy_action(adt->tmpact);
 	
@@ -203,6 +202,119 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	/* return */
 	return dadt;
 }
+
+/* Make Local -------------------------------------------- */
+
+static void make_local_strips(ListBase *strips)
+{
+	NlaStrip *strip;
+
+	for (strip=strips->first; strip; strip=strip->next) {
+		if (strip->act) make_local_action(strip->act);
+		if (strip->remap && strip->remap->target) make_local_action(strip->remap->target);
+		
+		make_local_strips(&strip->strips);
+	}
+}
+
+/* Use local copy instead of linked copy of various ID-blocks */
+void BKE_animdata_make_local(AnimData *adt)
+{
+	NlaTrack *nlt;
+	
+	/* Actions - Active and Temp */
+	if (adt->action) make_local_action(adt->action);
+	if (adt->tmpact) make_local_action(adt->tmpact);
+	/* Remaps */
+	if (adt->remap && adt->remap->target) make_local_action(adt->remap->target);
+	
+	/* Drivers */
+	// TODO: need to remap the ID-targets too?
+	
+	/* NLA Data */
+	for (nlt=adt->nla_tracks.first; nlt; nlt=nlt->next) 
+		make_local_strips(&nlt->strips);
+}
+
+/* Path Validation -------------------------------------------- */
+
+#if 0
+/* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate */
+static char *rna_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *newName, char *oldpath)
+{
+	
+	
+	return oldpath; // FIXME!!!
+}
+
+/* Check RNA-Paths for a list of F-Curves */
+static void fcurves_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *newName, ListBase *curves)
+{
+	FCurve *fcu;
+	
+	/* we need to check every curve... */
+	for (fcu= curves->first; fcu; fcu= fcu->next) {
+		/* firstly, handle the F-Curve's own path */
+		fcu->rna_path= rna_path_rename_fix(owner_id, modPtr, newName, fcu->rna_path);
+		
+		/* driver? */
+		if (fcu->driver) {
+			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
+			
+			/* driver targets */
+			for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
+				dtat->rna_path= rna_path_rename_fix(dtar->id, modPtr, newName, dtar->rna_path);
+			}
+		}
+	}
+}
+
+/* Fix all RNA-Paths for Actions linked to NLA Strips */
+static void nlastrips_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *newName, ListBase *strips)
+{
+	NlaStrip *strip;
+	
+	/* recursively check strips, fixing only actions... */
+	for (strip= strips->first; strip; strip= strip->next) {
+		/* fix strip's action */
+		if (strip->act)
+			fcurves_path_rename_fix(owner_id, modPtr, newName, &strip->act->curves);
+		/* ignore own F-Curves, since those are local...  */
+		
+		/* check sub-strips (if metas) */
+		nlastrips_path_rename_fix(owner_id, modPtr, newName, &strip->strips);
+	}
+}
+
+/* Fix all RNA-Paths in the AnimData block used by the given ID block
+ * 	- the pointer of interest must not have had its new name assigned already, otherwise
+ *	  path matching for this will never work
+ */
+void BKE_animdata_fix_paths_rename (ID *owner_id, PointerRNA *modPtr, char *newName)
+{
+	AnimData *adt= BKE_animdata_from_id(owner_id);
+	NlaTrack *nlt;
+	
+	/* if no AnimData, no need to proceed */
+	if (ELEM4(NULL, owner_id, adt, modPtr, newName))
+		return;
+	
+	/* Active action and temp action */
+	if (adt->action)
+		fcurves_path_rename_fix(owner_id, modPtr, newName, &adt->action->curves);
+	if (adt->tmpact)
+		fcurves_path_rename_fix(owner_id, modPtr, newName, &adt->tmpact->curves);
+		
+	/* Drivers - Drivers are really F-Curves */
+	fcurves_path_rename_fix(owner_id, modPtr, newName, &adt->drivers);
+	
+	/* NLA Data - Animation Data for Strips */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		
+	}
+}
+#endif
 
 /* *********************************** */ 
 /* KeyingSet API */
@@ -412,7 +524,7 @@ void BKE_keyingsets_free (ListBase *list)
  *	- path: original path string (as stored in F-Curve data)
  *	- dst: destination string to write data to
  */
-short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
+static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
 	//if (remap) {
@@ -1352,7 +1464,11 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt, float ct
  *
  * Unresolved things:
  *	- Handling of multi-user settings (i.e. time-offset, group-instancing) -> big cache grids or nodal system? but stored where?
- *	- Multiple-block dependencies (i.e. drivers for settings are in both local and higher levels) -> split into separate lists?  
+ *	- Multiple-block dependencies (i.e. drivers for settings are in both local and higher levels) -> split into separate lists? 
+ *
+ * Current Status:
+ *	- Currently (as of September 2009), overrides we haven't needed to (fully) implement overrides. 
+ * 	  However, the code fo this is relatively harmless, so is left in the code for now.
  */
 
 /* Evaluation loop for evaluation animation data 
@@ -1424,7 +1540,6 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-// FIXME?: we currently go over entire 'main' database...
 void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
@@ -1448,8 +1563,11 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
 	 * which should ultimately be empty, since it is not possible for now to have any animation 
 	 * without some actions, and drivers wouldn't get affected by any state changes
+	 *
+	 * however, if there are some curves, we will need to make sure that their 'ctime' property gets
+	 * set correctly, so this optimisation must be skipped in that case...
 	 */
-	if (main->action.first == NULL) {
+	if ((main->action.first == NULL) && (main->curve.first == NULL)) {
 		if (G.f & G_DEBUG)
 			printf("\tNo Actions, so no animation needs to be evaluated...\n");
 			
@@ -1457,7 +1575,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	}
 	
 	/* nodes */
-	// TODO...
+	EVAL_ANIM_IDS(main->nodetree.first, ADT_RECALC_ANIM);
 	
 	/* textures */
 	EVAL_ANIM_IDS(main->tex.first, ADT_RECALC_ANIM);
@@ -1483,14 +1601,21 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 		 * value of the curve gets set in case there's no animation for that
 		 *	- it needs to be set before animation is evaluated just so that 
 		 *	  animation can successfully override...
+		 *	- it shouldn't get set when calculating drivers...
 		 */
 	for (id= main->curve.first; id; id= id->next) {
 		AnimData *adt= BKE_animdata_from_id(id);
 		Curve *cu= (Curve *)id;
 		
+		/* set ctime variable for curve */
 		cu->ctime= ctime;
+		
+		/* now execute animation data on top of this as per normal */
 		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
 	}
+	
+	/* armatures */
+	EVAL_ANIM_IDS(main->armature.first, ADT_RECALC_ANIM);
 	
 	/* meshes */
 	// TODO...
@@ -1500,15 +1625,28 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
-		 * this tagged by Depsgraph on framechange 
+		 * this tagged by Depsgraph on framechange. This optimisation means that objects
+		 * linked from other (not-visible) scenes will not need their data calculated.
 		 */
-	EVAL_ANIM_IDS(main->object.first, /*ADT_RECALC_ANIM*/0); 
+	EVAL_ANIM_IDS(main->object.first, 0); 
 	
 	/* worlds */
 	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);
 	
 	/* scenes */
-	EVAL_ANIM_IDS(main->scene.first, ADT_RECALC_ANIM);
+	for (id= main->scene.first; id; id= id->next) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		Scene *scene= (Scene *)id;
+		
+		/* do compositing nodes first (since these aren't included in main tree) */
+		if (scene->nodetree) {
+			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
+			BKE_animsys_evaluate_animdata((ID *)scene->nodetree, adt2, ctime, ADT_RECALC_ANIM);
+		}
+		
+		/* now execute scene animation data as per normal */
+		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
+	}
 }
 
 /* ***************************************** */ 

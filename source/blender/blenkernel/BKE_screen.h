@@ -44,6 +44,7 @@ struct SpaceType;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
+struct wmKeyConfig;
 struct uiLayout;
 struct uiMenuItem;
 
@@ -81,7 +82,7 @@ typedef struct SpaceType {
 	/* register operator types on startup */
 	void		(*operatortypes)(void);
 	/* add default items to WM keymap */
-	void		(*keymap)(struct wmWindowManager *);
+	void		(*keymap)(struct wmKeyConfig *);
 
 	/* return context data */
 	int			(*context)(const struct bContext *, const char*, struct bContextDataResult *);
@@ -122,7 +123,7 @@ typedef struct ARegionType {
 	/* register operator types on startup */
 	void		(*operatortypes)(void);
 	/* add own items to keymap */
-	void		(*keymap)(struct wmWindowManager *);
+	void		(*keymap)(struct wmKeyConfig *);
 	/* allows default cursor per region */
 	void		(*cursor)(struct wmWindow *, struct ScrArea *, struct ARegion *ar);
 
@@ -137,9 +138,6 @@ typedef struct ARegionType {
 
 	/* header type definitions */
 	ListBase headertypes;
-
-	/* menu type definitions */
-	ListBase menutypes;
 	
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
@@ -199,7 +197,6 @@ typedef struct MenuType {
 
 	char		idname[BKE_ST_MAXNAME];	/* unique name */
 	char		label[BKE_ST_MAXNAME];	/* for button text */
-	int 		space_type;
 
 	/* verify if the menu should draw or not */
 	int			(*poll)(const struct bContext *, struct MenuType *);
@@ -222,6 +219,8 @@ const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
 void BKE_spacetypes_free(void);	/* only for quitting blender */
 
+// MenuType *BKE_spacemenu_find(const char *idname, int spacetype);
+
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
@@ -230,11 +229,11 @@ void BKE_spacedata_copyfirst(ListBase *lb1, ListBase *lb2);
 /* area/regions */
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
 void	BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
+void	BKE_screen_area_free(struct ScrArea *sa);
 
-void BKE_screen_area_free(struct ScrArea *sa);
-
+/* screen */
 void free_screen(struct bScreen *sc); 
-
+unsigned int BKE_screen_visible_layers(struct bScreen *screen);
 
 #endif
 

@@ -202,9 +202,9 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_properties);
 }
 
-void image_keymap(struct wmWindowManager *wm)
+void image_keymap(struct wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
@@ -212,7 +212,7 @@ void image_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
-	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
@@ -232,9 +232,9 @@ void image_keymap(struct wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 
-	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", SELECTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
@@ -295,10 +295,14 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_IMAGE:	
 			ED_area_tag_redraw(sa);
 			break;
-		case NC_OBJECT:
+		case NC_SPACE:	
+			if(wmn->data == ND_SPACE_IMAGE)
+				ED_area_tag_redraw(sa);
+			break;
+		case NC_GEOM:
 			switch(wmn->data) {
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
+				case ND_DATA:
+				case ND_SELECT:
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -324,7 +328,7 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 /************************** main region ***************************/
 
 /* sets up the fields of the View2D from zoom and offset */
-static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *scene)
+static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 {
 	Image *ima= ED_space_image(sima);
 	float x1, y1, w, h;
@@ -332,24 +336,9 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	
 #if 0
 	if(image_preview_active(curarea, &width, &height));
-#endif
-	if(sima->image) {
-		ImBuf *ibuf= ED_space_image_buffer(sima);
-		
-		if(ibuf) {
-			width= ibuf->x;
-			height= ibuf->y;
-		}
-		else if(sima->image->type==IMA_TYPE_R_RESULT) {
-			/* not very important, just nice */
-			width= (scene->r.xsch*scene->r.size)/100;
-			height= (scene->r.ysch*scene->r.size)/100;
-		}
-		else
-			ED_space_image_size(sima, &width, &height);
-	}
 	else
-		ED_space_image_size(sima, &width, &height);
+#endif
+	ED_space_image_size(sima, &width, &height);
 
 	w= width;
 	h= height;
@@ -370,8 +359,8 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	ar->v2d.mask.ymax= winy;
 
 	/* which part of the image space do we see? */
-	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2;
-	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2;
+	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2.0f;
+	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2.0f;
 
 	x1-= sima->zoom*sima->xof;
 	y1-= sima->zoom*sima->yof;
@@ -394,23 +383,22 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 /* add handlers, stuff you only do once or on area/region changes */
 static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	// image space manages own v2d
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* image paint polls for mode */
-	keymap= WM_keymap_listbase(wm, "ImagePaint", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	/* XXX need context here?
-	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);*/
+	keymap= WM_keymap_find(wm->defaultconf, "UVEdit", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* own keymaps */
-	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -428,20 +416,25 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
+	/* put scene context variable in iuser */
+	sima->iuser.scene= scene;
+
 	/* we set view2d from own zoom and offset each time */
-	image_main_area_set_view2d(sima, ar, scene);
+	image_main_area_set_view2d(sima, ar);
 	
 	/* we draw image in pixelspace */
 	draw_image_main(sima, ar, scene);
 
 	/* and uvs in 0.0-1.0 space */
 	UI_view2d_view_ortho(C, v2d);
-		draw_uvedit_main(sima, ar, scene, obedit);
-		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
+	draw_uvedit_main(sima, ar, scene, obedit);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
 		
-		/* Grease Pencil too (in addition to UV's) */
-		draw_image_grease_pencil((bContext *)C, 1); 
+	/* Grease Pencil too (in addition to UV's) */
+	draw_image_grease_pencil((bContext *)C, 1); 
+
 	UI_view2d_view_restore(C);
 	
 	/* draw Grease Pencil - screen space only */
@@ -453,29 +446,11 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);*/
 }
 
-static void image_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
-{
-	ListBase *keymap;
-	
-	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
-
-	if(stype==NS_EDITMODE_MESH)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-}
-
 static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		case NC_SCENE:
-			switch(wmn->data) {
-				case ND_MODE:
-					image_modal_keymaps(wmn->wm, ar, wmn->subtype);
-					break;
-			}
-			break;
+		/* nothing yet */
 	}
 }
 
@@ -484,11 +459,11 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -501,7 +476,10 @@ static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		
+		case NC_BRUSH:
+			if(wmn->action==NA_EDITED)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -625,23 +603,23 @@ void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obe
 
 	if(C) {
 		if(obedit)
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 		ED_area_tag_redraw(CTX_wm_area(C));
 	}
 }
 
-ImBuf *ED_space_image_buffer(SpaceImage *sima)
+ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
 {
 	ImBuf *ibuf;
 
-	if(sima->image) {
+	if(sima && sima->image) {
 #if 0
 		if(sima->image->type==IMA_TYPE_R_RESULT && BIF_show_render_spare())
 			return BIF_render_spare_imbuf();
 		else
 #endif
-			ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+			ibuf= BKE_image_acquire_ibuf(sima->image, &sima->iuser, lock_r);
 
 		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
@@ -650,11 +628,32 @@ ImBuf *ED_space_image_buffer(SpaceImage *sima)
 	return NULL;
 }
 
-void ED_image_size(Image *ima, int *width, int *height)
+void ED_space_image_release_buffer(SpaceImage *sima, void *lock)
+{
+	if(sima && sima->image)
+		BKE_image_release_ibuf(sima->image, lock);
+}
+
+int ED_space_image_has_buffer(SpaceImage *sima)
 {
 	ImBuf *ibuf;
+	void *lock;
+	int has_buffer;
 
-	ibuf= (ima)? BKE_image_get_ibuf(ima, NULL): NULL;
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	has_buffer= (ibuf != NULL);
+	ED_space_image_release_buffer(sima, lock);
+
+	return has_buffer;
+}
+
+void ED_image_size(Image *ima, int *width, int *height)
+{
+	ImBuf *ibuf= NULL;
+	void *lock;
+
+	if(ima)
+		ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		*width= ibuf->x;
@@ -664,17 +663,27 @@ void ED_image_size(Image *ima, int *width, int *height)
 		*width= 256;
 		*height= 256;
 	}
+
+	if(ima)
+		BKE_image_release_ibuf(ima, lock);
 }
 
 void ED_space_image_size(SpaceImage *sima, int *width, int *height)
 {
+	Scene *scene= sima->iuser.scene;
 	ImBuf *ibuf;
+	void *lock;
 
-	ibuf= ED_space_image_buffer(sima);
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 
 	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		*width= ibuf->x;
 		*height= ibuf->y;
+	}
+	else if(sima->image && sima->image->type==IMA_TYPE_R_RESULT && scene) {
+		/* not very important, just nice */
+		*width= (scene->r.xsch*scene->r.size)/100;
+		*height= (scene->r.ysch*scene->r.size)/100;
 	}
 	/* I know a bit weak... but preview uses not actual image size */
 	// XXX else if(image_preview_active(sima, width, height));
@@ -682,6 +691,8 @@ void ED_space_image_size(SpaceImage *sima, int *width, int *height)
 		*width= 256;
 		*height= 256;
 	}
+
+	ED_space_image_release_buffer(sima, lock);
 }
 
 void ED_image_aspect(Image *ima, float *aspx, float *aspy)

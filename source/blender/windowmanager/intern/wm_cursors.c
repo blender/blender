@@ -163,10 +163,26 @@ void WM_cursor_wait(int val)
 	}
 }
 
-void WM_cursor_grab(wmWindow *win, int val)
+void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 {
-	if(win)
-		GHOST_SetCursorGrab(win->ghostwin, val);
+	/* Only grab cursor when not running debug.
+	 * It helps not to get a stuck WM when hitting a breakpoint  
+	 * */
+	GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
+
+	if(hide)		mode = GHOST_kGrabHide;
+	else if(wrap)	mode = GHOST_kGrabWrap;
+
+	if ((G.f & G_DEBUG) == 0)
+		if(win)
+			GHOST_SetCursorGrab(win->ghostwin, mode, bounds);
+}
+
+void WM_cursor_ungrab(wmWindow *win)
+{
+	if ((G.f & G_DEBUG) == 0)
+		if(win)
+			GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL);
 }
 
 /* afer this you can call restore too */

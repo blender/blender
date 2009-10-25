@@ -29,24 +29,24 @@ MESSAGE(STATUS "Configuring blenderplayer")
 SETUP_LIBDIRS()
 
 IF(WITH_QUICKTIME)
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-  ADD_DEFINITIONS(-DWITH_BINRELOC)
-  INCLUDE_DIRECTORIES(${BINRELOC_INC})
+	ADD_DEFINITIONS(-DWITH_BINRELOC)
+	INCLUDE_DIRECTORIES(${BINRELOC_INC})
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 ADD_CUSTOM_COMMAND(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
-  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
-  DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
+	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
+	DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna
 )
 
 IF(WIN32)
-  ADD_EXECUTABLE(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../source/icons/winblender.rc)
+	ADD_EXECUTABLE(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../icons/winblender.rc)
 ELSE(WIN32)
-  ADD_EXECUTABLE(blenderplayer ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
+	ADD_EXECUTABLE(blenderplayer ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
 ENDIF(WIN32)
 
 ADD_DEPENDENCIES(blenderplayer makesdna)
@@ -56,89 +56,89 @@ FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} gp_common gp_ghost blenkernel_blc)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-  SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
+	SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 IF(UNIX)
-  # Sort libraries
-  SET(BLENDER_SORTED_LIBS
-    gp_ghost 
-    gp_common 
-    bf_string 
-    bf_ghost 
-    bf_rna
-    bf_blenkernel
-    bf_blenloader 
-    bf_blenpluginapi 
-    bf_blroutines 
-    bf_converter 
-    bf_ketsji 
-    bf_bullet 
-    bf_common 
-    bf_dummy 
-    bf_logic 
-    bf_rasterizer 
-    bf_oglrasterizer 
-    bf_expressions 
-    bf_scenegraph 
-    bf_IK
-    bf_moto 
-    bf_kernel 
-    bf_nodes
-    bf_gpu
-    bf_imbuf
-    bf_avi 
-    kx_network 
-    bf_ngnetwork 
-    bf_loopbacknetwork 
-    extern_bullet 
-    bf_guardedalloc 
-    bf_memutil 
-    bf_python
-    bf_gen_python
-    bf_blenlib 
-    bf_cineon 
-    bf_openexr 
-    extern_libopenjpeg 
-    bf_dds
-    bf_readblenfile 
-    bf_dna
-    bf_videotex
-    bf_blenfont
-    bf_audaspace
-    blenkernel_blc
-    extern_binreloc
-    extern_glew
-  )
+	# Sort libraries
+	SET(BLENDER_SORTED_LIBS
+		gp_ghost 
+		gp_common 
+		bf_string 
+		bf_ghost 
+		bf_rna
+		bf_blenkernel
+		bf_blenloader 
+		bf_blenpluginapi 
+		bf_blroutines 
+		bf_converter 
+		bf_ketsji 
+		bf_bullet 
+		bf_common 
+		bf_dummy 
+		bf_logic 
+		bf_rasterizer 
+		bf_oglrasterizer 
+		bf_expressions 
+		bf_scenegraph 
+		bf_IK
+		bf_moto 
+		bf_kernel 
+		bf_nodes
+		bf_gpu
+		bf_imbuf
+		bf_avi 
+		kx_network 
+		bf_ngnetwork 
+		bf_loopbacknetwork 
+		extern_bullet 
+		bf_guardedalloc 
+		bf_memutil 
+		bf_python
+		bf_gen_python
+		bf_blenlib 
+		bf_cineon 
+		bf_openexr 
+		extern_libopenjpeg 
+		bf_dds
+		bf_readblenfile 
+		bf_dna
+		bf_videotex
+		bf_blenfont
+		bf_audaspace
+		blenkernel_blc
+		extern_binreloc
+		extern_glew
+	)
   
-  IF(WITH_QUICKTIME)
-    SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} quicktime)
-  ENDIF(WITH_QUICKTIME)
+	IF(WITH_QUICKTIME)
+		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} quicktime)
+	ENDIF(WITH_QUICKTIME)
 
-  IF(WITH_CXX_GUARDEDALLOC)
-    SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_guardedalloc_cpp)
-  ENDIF(WITH_CXX_GUARDEDALLOC)
+	IF(WITH_CXX_GUARDEDALLOC)
+		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_guardedalloc_cpp)
+	ENDIF(WITH_CXX_GUARDEDALLOC)
 
-  FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
-    SET(REMLIB ${SORTLIB})
-    FOREACH(SEARCHLIB ${BLENDER_LINK_LIBS})
-      IF(${SEARCHLIB} STREQUAL ${SORTLIB})
-        SET(REMLIB "")
-      ENDIF(${SEARCHLIB} STREQUAL ${SORTLIB})
-    ENDFOREACH(SEARCHLIB)
-    IF(REMLIB)
-      MESSAGE(STATUS "Removing library ${REMLIB} from blenderplayer linking because: not configured")
-      LIST(REMOVE_ITEM BLENDER_SORTED_LIBS ${REMLIB})
-    ENDIF(REMLIB)
-  ENDFOREACH(SORTLIB)
+	FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
+		SET(REMLIB ${SORTLIB})
+		FOREACH(SEARCHLIB ${BLENDER_LINK_LIBS})
+			IF(${SEARCHLIB} STREQUAL ${SORTLIB})
+				SET(REMLIB "")
+			ENDIF(${SEARCHLIB} STREQUAL ${SORTLIB})
+		ENDFOREACH(SEARCHLIB)
+		IF(REMLIB)
+			MESSAGE(STATUS "Removing library ${REMLIB} from blenderplayer linking because: not configured")
+			LIST(REMOVE_ITEM BLENDER_SORTED_LIBS ${REMLIB})
+		ENDIF(REMLIB)
+	ENDFOREACH(SORTLIB)
 
-  TARGET_LINK_LIBRARIES(blenderplayer ${BLENDER_SORTED_LIBS})
+	TARGET_LINK_LIBRARIES(blenderplayer ${BLENDER_SORTED_LIBS})
 ELSE(UNIX)
-  TARGET_LINK_LIBRARIES(blenderplayer ${BLENDER_LINK_LIBS})
+	TARGET_LINK_LIBRARIES(blenderplayer ${BLENDER_LINK_LIBS})
 ENDIF(UNIX)
 
 IF(WITH_PLAYER)
-  ADD_SUBDIRECTORY(bad_level_call_stubs)
+	ADD_SUBDIRECTORY(bad_level_call_stubs)
 ENDIF(WITH_PLAYER)
 
 SETUP_LIBLINKS(blenderplayer)

@@ -36,7 +36,7 @@ void script_header_buttons(const bContext *C, ARegion *ar);
 
 /* script_ops.c */
 void script_operatortypes(void);
-void script_keymap(struct wmWindowManager *wm);
+void script_keymap(struct wmKeyConfig *keyconf);
 
 /* script_edit.c */
 void SCRIPT_OT_python_file_run(struct wmOperatorType *ot);

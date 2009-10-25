@@ -1,6 +1,5 @@
 
 
-#include <Python.h>
 #include "PyObjectPlus.h"
 
 #include "KX_VehicleWrapper.h"
@@ -34,6 +33,7 @@ KX_VehicleWrapper::~KX_VehicleWrapper()
 	m_motionStates.clear();
 }
 
+#ifndef DISABLE_PYTHON
 
 PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* args)
 {
@@ -322,3 +322,5 @@ PyMethodDef KX_VehicleWrapper::Methods[] = {
 PyAttributeDef KX_VehicleWrapper::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

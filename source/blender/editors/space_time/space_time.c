@@ -202,12 +202,12 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 /* add handlers, stuff you only do once or on area/region changes */
 static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "TimeLine", SPACE_TIME, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "TimeLine", SPACE_TIME, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -260,6 +260,11 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_TIME)
+				ED_region_tag_redraw(ar);
+			break;
+
 		case NC_ANIMATION:
 			ED_region_tag_redraw(ar);
 			break;
@@ -293,6 +298,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data==ND_ANIMPLAY)
 				ED_region_tag_redraw(ar);
 			break;
+
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_FRAME:
@@ -300,6 +306,11 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 				break;
 			}
+
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_TIME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 

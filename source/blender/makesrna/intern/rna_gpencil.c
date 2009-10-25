@@ -48,7 +48,7 @@ static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr)
 		return 1;
 }
 
-void rna_GPencilLayer_active_set(PointerRNA *ptr, int value)
+static void rna_GPencilLayer_active_set(PointerRNA *ptr, int value)
 {
 	bGPdata *gpd= ptr->id.data;
 	bGPDlayer *gpl= ptr->data;
@@ -68,7 +68,7 @@ void rna_GPencilLayer_active_set(PointerRNA *ptr, int value)
 
 #else
 
-void rna_def_gpencil_stroke_point(BlenderRNA *brna)
+static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -88,7 +88,7 @@ void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pressure", "Pressure of tablet at point when drawing it.");
 }
 
-void rna_def_gpencil_stroke(BlenderRNA *brna)
+static void rna_def_gpencil_stroke(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -107,7 +107,7 @@ void rna_def_gpencil_stroke(BlenderRNA *brna)
 	// TODO...
 }
 
-void rna_def_gpencil_frame(BlenderRNA *brna)
+static void rna_def_gpencil_frame(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -138,7 +138,7 @@ void rna_def_gpencil_frame(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Selected", "Frame is selected for editing in the DopeSheet.");
 }
 
-void rna_def_gpencil_layer(BlenderRNA *brna)
+static void rna_def_gpencil_layer(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -215,7 +215,7 @@ void rna_def_gpencil_layer(BlenderRNA *brna)
 	
 }
 
-void rna_def_gpencil_data(BlenderRNA *brna)
+static void rna_def_gpencil_data(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -223,7 +223,7 @@ void rna_def_gpencil_data(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "GreasePencil", "ID");
 	RNA_def_struct_sdna(srna, "bGPdata");
 	RNA_def_struct_ui_text(srna, "Grease Pencil", "Freehand annotation sketchbook.");
-	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA); // XXX: ICON_GPENCIL!!!
+	RNA_def_struct_ui_icon(srna, ICON_GREASEPENCIL);
 	
 	/* Layers */
 	prop= RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
@@ -233,7 +233,7 @@ void rna_def_gpencil_data(BlenderRNA *brna)
 	
 	/* Flags */
 	prop= RNA_def_property(srna, "view_space_draw", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_VIEWALIGN);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_DATA_VIEWALIGN);
 	RNA_def_property_ui_text(prop, "Stick to View", "Newly drawn strokes get added in view space (i.e. sketches stick to data when view is manipulated).");
 }
 

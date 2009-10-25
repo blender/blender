@@ -60,17 +60,14 @@ char global_messagepath[1024];
 char global_language[32];
 char global_encoding_name[32];
 
-
-void BLF_lang_init(void)
+#if defined(__APPLE__)
+void BLF_lang_init(void) /* Apple Only, todo - use BLI_gethome_folder  */
 {
-#ifdef __APPLE__
 	char *bundlepath;
-#endif
 
 	strcpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT);
 
 	/* set messagepath directory */
-
 #ifndef LOCALEDIR
 #define LOCALEDIR "/usr/share/locale"
 #endif
@@ -81,44 +78,52 @@ void BLF_lang_init(void)
 		BLI_make_file_string("/", global_messagepath, BLI_gethome(), ".blender/locale");
 
 		if (!BLI_exist(global_messagepath)) { /* locale not in home dir */
-#ifdef WIN32 
-			BLI_make_file_string("/", global_messagepath, BLI_gethome(), "/locale");
-			if (!BLI_exist(global_messagepath)) {
-#endif
-#ifdef __APPLE__
 			/* message catalogs are stored inside the application bundle */
 			bundlepath= BLI_getbundle();
 			strcpy(global_messagepath, bundlepath);
 			strcat(global_messagepath, "/Contents/Resources/locale");
 			if (!BLI_exist(global_messagepath)) { /* locale not in bundle (now that's odd..) */
-#endif
 				strcpy(global_messagepath, LOCALEDIR);
 
 				if (!BLI_exist(global_messagepath)) { /* locale not in LOCALEDIR */
 					strcpy(global_messagepath, "message"); /* old compatibility as last */
 				}
-#ifdef WIN32
 			}
-#endif
-#ifdef __APPLE__
-			}
-#endif
 		}
 	}
 }
+#elif defined(_WIN32)
+void BLF_lang_init(void) /* Windows Only, todo - use BLI_gethome_folder  */
+{
+	strcpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT);
+	
+	strcpy(global_messagepath, ".blender/locale");
+
+	if (!BLI_exist(global_messagepath)) { /* locale not in current dir */
+		BLI_make_file_string("/", global_messagepath, BLI_gethome(), ".blender/locale");
+
+		if (!BLI_exist(global_messagepath)) { /* locale not in home dir */
+			BLI_make_file_string("/", global_messagepath, BLI_gethome(), "/locale");
+		}
+	}
+}
+#else
+void BLF_lang_init(void)  /* not win or mac */
+{
+	char *messagepath= BLI_gethome_folder("locale", BLI_GETHOME_ALL);
+	
+	if(messagepath)
+		strncpy(global_messagepath, messagepath, sizeof(global_messagepath));
+	else
+		global_messagepath[0]= '\0';
+
+}
+#endif
 
 void BLF_lang_set(const char *str)
 {
 #if defined (_WIN32) || defined(__APPLE__)
-	char envstr[12];
-
-	sprintf(envstr, "LANG=%s", str);
-	envstr[strlen(envstr)]= '\0';
-#ifdef _WIN32
-	gettext_putenv(envstr);
-#else
-	putenv(envstr);
-#endif
+	BLI_setenv("LANG", str);
 #else
 	char *locreturn= setlocale(LC_ALL, str);
 	if (locreturn == NULL) {

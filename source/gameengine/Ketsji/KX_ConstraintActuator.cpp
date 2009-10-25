@@ -38,6 +38,8 @@
 #include "KX_RayCast.h"
 #include "KX_PythonInit.h" // KX_GetActiveScene
 
+#include <stdio.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -56,7 +58,7 @@ KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 											 int time,
 											 int option,
 											 char *property) :
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_CONSTRAINT),
 	m_refDirVector(refDir),
 	m_currentTime(0)
 {
@@ -559,6 +561,8 @@ bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE
 	return res;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -617,5 +621,7 @@ int KX_ConstraintActuator::pyattr_check_direction(void *self, const struct KX_PY
 	act->m_refDirVector = dir/len;
 	return 0;	
 }
+
+#endif
 
 /* eof */

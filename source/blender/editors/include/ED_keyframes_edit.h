@@ -73,6 +73,7 @@ typedef enum eEditKeyframes_Snap {
 	SNAP_KEYS_NEARSEC,
 	SNAP_KEYS_NEARMARKER,
 	SNAP_KEYS_HORIZONTAL,
+	SNAP_KEYS_VALUE,
 } eEditKeyframes_Snap;
 
 /* mirroring tools */

@@ -27,9 +27,9 @@
 #include <zlib.h>
 
 // boundary conditions of the fluid domain
-#define DOMAIN_BC_FRONT  1
-#define DOMAIN_BC_TOP    0
-#define DOMAIN_BC_LEFT   1
+#define DOMAIN_BC_FRONT  0 // z
+#define DOMAIN_BC_TOP    1 // y
+#define DOMAIN_BC_LEFT   1 // x
 #define DOMAIN_BC_BACK   DOMAIN_BC_FRONT
 #define DOMAIN_BC_BOTTOM DOMAIN_BC_TOP
 #define DOMAIN_BC_RIGHT  DOMAIN_BC_LEFT
@@ -111,47 +111,42 @@ FLUID_3D::FLUID_3D(int *res, float *p0, float dt) :
 	}
 
 	// set side obstacles
-  size_t index;
-  for (int y = 0; y < _yRes; y++) // z
-    for (int x = 0; x < _xRes; x++)
-    {
-      // front slab
-      index = x + y * _xRes;
-      if(DOMAIN_BC_BOTTOM==1) _obstacles[index] = 1;
+	int index;
+	for (int y = 0; y < _yRes; y++)
+	for (int x = 0; x < _xRes; x++)
+	{
+		// front slab
+		index = x + y * _xRes;
+		if(DOMAIN_BC_FRONT==1) _obstacles[index] = 1;
 
-      // back slab
-      index += _totalCells - _slabSize;
-      if(DOMAIN_BC_TOP==1) _obstacles[index] = 1;
-    }
-  for (int z = 0; z < _zRes; z++) // y
-    for (int x = 0; x < _xRes; x++)
-    {
-      // bottom slab
-      index = x + z * _slabSize;
-      if(DOMAIN_BC_FRONT==1) _obstacles[index] = 1;
+		// back slab
+		index += _totalCells - _slabSize;
+		if(DOMAIN_BC_BACK==1) _obstacles[index] = 1;
+	}
 
-      // top slab
-      index += _slabSize - _xRes;
-      if(DOMAIN_BC_BACK==1) _obstacles[index] = 1;
-    }
-  for (int z = 0; z < _zRes; z++) // x
-    for (int y = 0; y < _yRes; y++)
-    {
-      // left slab
-      index = y * _xRes + z * _slabSize;
-      if(DOMAIN_BC_LEFT==1) _obstacles[index] = 1;
+	for (int z = 0; z < _zRes; z++)
+	for (int x = 0; x < _xRes; x++)
+	{
+		// bottom slab
+		index = x + z * _slabSize;
+		if(DOMAIN_BC_BOTTOM==1) _obstacles[index] = 1;
 
-      // right slab
-      index += _xRes - 1;
-      if(DOMAIN_BC_RIGHT==1) _obstacles[index] = 1;
-    }
+		// top slab
+		index += _slabSize - _xRes;
+		if(DOMAIN_BC_TOP==1) _obstacles[index] = 1;
+	}
 
-	/*
-	SPHERE *obsSphere = NULL;
-	obsSphere = new SPHERE(0.375,0.5,0.375, 0.1); // for 4 to 3 domain
-	addObstacle(obsSphere);
-	delete obsSphere;
-	*/
+	for (int z = 0; z < _zRes; z++)
+	for (int y = 0; y < _yRes; y++)
+	{
+		// left slab
+		index = y * _xRes + z * _slabSize;
+		if(DOMAIN_BC_LEFT==1) _obstacles[index] = 1;
+
+		// right slab
+		index += _xRes - 1;
+		if(DOMAIN_BC_RIGHT==1) _obstacles[index] = 1;
+	}
 }
 
 FLUID_3D::~FLUID_3D()
@@ -187,12 +182,8 @@ void FLUID_3D::initBlenderRNA(float *alpha, float *beta)
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::step()
 {
-	// wipe forces
-	for (int i = 0; i < _totalCells; i++)
-	{
-		_xForce[i] = _yForce[i] = _zForce[i] = 0.0f;
-		_obstacles[i] &= ~2;
-	}
+	// addSmokeTestCase(_density, _res);
+	// addSmokeTestCase(_heat, _res);
 
 	wipeBoundaries();
 
@@ -232,7 +223,15 @@ void FLUID_3D::step()
 	_totalTime += _dt;
 	_totalSteps++;	
 
-	memset(_obstacles, 0, sizeof(unsigned char)*_xRes*_yRes*_zRes);
+	// todo xxx dg: only clear obstacles, not boundaries
+	// memset(_obstacles, 0, sizeof(unsigned char)*_xRes*_yRes*_zRes);
+
+	// wipe forces
+	// for external forces we can't do it at the beginning of this function but at the end
+	for (int i = 0; i < _totalCells; i++)
+	{
+		_xForce[i] = _yForce[i] = _zForce[i] = 0.0f;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -270,7 +269,7 @@ void FLUID_3D::artificialDamping(float* field) {
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::copyBorderAll(float* field)
 {
-	size_t index;
+	int index;
 	for (int y = 0; y < _yRes; y++)
 		for (int x = 0; x < _xRes; x++)
 		{
@@ -350,13 +349,13 @@ void FLUID_3D::project()
 
 	// copy out the boundaries
 	if(DOMAIN_BC_LEFT == 0)  setNeumannX(_xVelocity, _res);
-	else setZeroX(_xVelocity, _res);
+	else setZeroX(_xVelocity, _res); 
 
-	if(DOMAIN_BC_TOP == 0)   setNeumannZ(_zVelocity, _res);
+	if(DOMAIN_BC_TOP == 0)   setNeumannY(_yVelocity, _res);
+	else setZeroY(_yVelocity, _res); 
+
+	if(DOMAIN_BC_FRONT == 0) setNeumannZ(_zVelocity, _res);
 	else setZeroZ(_zVelocity, _res);
-
-	if(DOMAIN_BC_FRONT == 0) setNeumannY(_yVelocity, _res);
-	else setZeroY(_yVelocity, _res);
 
 	// calculate divergence
 	index = _slabSize + _xRes + 1;
@@ -494,22 +493,14 @@ void FLUID_3D::setObstaclePressure(float *_pressure)
 				if (top && !bottom) {
 					_pressure[index] += _pressure[index - _slabSize];
 					pcnt += 1.;
-					// _zVelocity[index] +=  - _zVelocity[index - _slabSize];
-					// vp += 1.0;
 				}
 				if (!top && bottom) {
 					_pressure[index] += _pressure[index + _slabSize];
 					pcnt += 1.;
-					// _zVelocity[index] +=  - _zVelocity[index + _slabSize];
-					// vp += 1.0;
 				}
 				
 				if(pcnt > 0.000001f)
 				 	_pressure[index] /= pcnt;
-
-				// test - dg
-				// if(vp > 0.000001f)
-				//  	_zVelocity[index] /= vp;
 
 				// TODO? set correct velocity bc's
 				// velocities are only set to zero right now
@@ -669,13 +660,13 @@ void FLUID_3D::advectMacCormack()
 	Vec3Int res = Vec3Int(_xRes,_yRes,_zRes);
 
 	if(DOMAIN_BC_LEFT == 0) copyBorderX(_xVelocity, res);
-	else setZeroX(_xVelocity, res);
+	else setZeroX(_xVelocity, res); 
 
-	if(DOMAIN_BC_TOP == 0) copyBorderZ(_zVelocity, res);
+	if(DOMAIN_BC_TOP == 0) copyBorderY(_yVelocity, res);
+	else setZeroY(_yVelocity, res); 
+
+	if(DOMAIN_BC_FRONT == 0) copyBorderZ(_zVelocity, res);
 	else setZeroZ(_zVelocity, res);
-
-	if(DOMAIN_BC_FRONT == 0) copyBorderY(_yVelocity, res);
-	else setZeroY(_yVelocity, res);
 
 	SWAP_POINTERS(_xVelocity, _xVelocityOld);
 	SWAP_POINTERS(_yVelocity, _yVelocityOld);
@@ -698,13 +689,13 @@ void FLUID_3D::advectMacCormack()
 	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _zVelocityOld, _zVelocity, t1,t2, res, _obstacles);
 
 	if(DOMAIN_BC_LEFT == 0) copyBorderX(_xVelocity, res);
-	else setZeroX(_xVelocity, res);
+	else setZeroX(_xVelocity, res); 
 
-	if(DOMAIN_BC_TOP == 0) copyBorderZ(_zVelocity, res);
+	if(DOMAIN_BC_TOP == 0) copyBorderY(_yVelocity, res);
+	else setZeroY(_yVelocity, res); 
+
+	if(DOMAIN_BC_FRONT == 0) copyBorderZ(_zVelocity, res);
 	else setZeroZ(_zVelocity, res);
-
-	if(DOMAIN_BC_FRONT == 0) copyBorderY(_yVelocity, res);
-	else setZeroY(_yVelocity, res);
 
 	setZeroBorder(_density, res);
 	setZeroBorder(_heat, res);

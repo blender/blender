@@ -70,7 +70,9 @@ private:
 	class RAS_IRenderTools*				m_rendertools;
 	class KX_ISceneConverter*			m_sceneconverter;
 	class NG_NetworkDeviceInterface*		m_networkdevice;
+#ifndef DISABLE_PYTHON
 	PyObject*					m_pythondictionary;
+#endif
 	class SCA_IInputDevice*				m_keyboarddevice;
 	class SCA_IInputDevice*				m_mousedevice;
 	class KX_Dome*						m_dome; // dome stereo mode
@@ -201,7 +203,10 @@ public:
 	void			SetCanvas(RAS_ICanvas* canvas);
 	void			SetRenderTools(RAS_IRenderTools* rendertools);
 	void			SetRasterizer(RAS_IRasterizer* rasterizer);
-	void			SetPythonDictionary(PyObject* pythondictionary);
+#ifndef DISABLE_PYTHON
+	void			SetPyNamespace(PyObject* pythondictionary);
+	PyObject*		GetPyNamespace(){return m_pythondictionary;};
+#endif
 	void			SetSceneConverter(KX_ISceneConverter* sceneconverter);
 	void			SetGame2IpoMode(bool game2ipo,int startFrame);
 
@@ -269,6 +274,10 @@ public:
 	 * Returns current render frame clock time
 	 */
 	double GetClockTime(void) const;
+	/**
+	 * Returns current logic frame clock time
+	 */
+	double GetFrameTime(void) const;
 
 	double GetRealTime(void) const;
 	/**

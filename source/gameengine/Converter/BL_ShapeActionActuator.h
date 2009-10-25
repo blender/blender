@@ -51,7 +51,7 @@ public:
 						short	blendin,
 						short	priority,
 						float	stride) 
-		: SCA_IActuator(gameobj),
+		: SCA_IActuator(gameobj, KX_ACT_SHAPEACTION),
 		
 		m_lastpos(0, 0, 0),
 		m_blendframe(0),
@@ -81,6 +81,8 @@ public:
 	
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
+
+#ifndef DISABLE_PYTHON
 
 	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
@@ -122,6 +124,8 @@ public:
 		}
 
 	}
+
+#endif // DISABLE_PYTHON
 
 protected:
 

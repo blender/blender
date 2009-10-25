@@ -89,7 +89,6 @@ public:
 	 */
 	virtual void	ConvertScene(
 						class KX_Scene* destinationscene,
-						PyObject* dictobj,
 						class RAS_IRenderTools* rendertools,
 						class RAS_ICanvas* canvas
 					);
@@ -143,6 +142,9 @@ public:
 
 	struct Main* GetMain() { return m_maggie; };
 
+#ifndef DISABLE_PYTHON
+	PyObject *GetPyNamespace();
+#endif
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

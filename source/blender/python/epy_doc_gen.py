@@ -225,7 +225,7 @@ def write_func(rna, ident, out, func_type):
 			elif rna_prop_type=='float':
 				if length==0:
 					val_str= '%g' % val
-					if '.' not in val_str:
+					if '.' not in val_str and '-' not in val_str: # value could be 1e-05
 						val_str += '.0'
 				else:
 					# array

@@ -604,9 +604,13 @@ static CompBuf *generate_procedural_preview(CompBuf *cbuf, int newx, int newy)
 	return outbuf;
 }
 
-void generate_preview(bNode *node, CompBuf *stackbuf)
+void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 {
+	RenderData *rd= data;
 	bNodePreview *preview= node->preview;
+	int xsize, ysize;
+	int color_manage= rd->color_mgt_flag & R_COLOR_MANAGEMENT;
+	unsigned char *rect;
 	
 	if(preview && stackbuf) {
 		CompBuf *cbuf, *stackbuf_use;
@@ -614,28 +618,42 @@ void generate_preview(bNode *node, CompBuf *stackbuf)
 		if(stackbuf->rect==NULL && stackbuf->rect_procedural==NULL) return;
 		
 		stackbuf_use= typecheck_compbuf(stackbuf, CB_RGBA);
-		
+
 		if(stackbuf->x > stackbuf->y) {
-			preview->xsize= 140;
-			preview->ysize= (140*stackbuf->y)/stackbuf->x;
+			xsize= 140;
+			ysize= (140*stackbuf->y)/stackbuf->x;
 		}
 		else {
-			preview->ysize= 140;
-			preview->xsize= (140*stackbuf->x)/stackbuf->y;
+			ysize= 140;
+			xsize= (140*stackbuf->x)/stackbuf->y;
 		}
 		
 		if(stackbuf_use->rect_procedural)
-			cbuf= generate_procedural_preview(stackbuf_use, preview->xsize, preview->ysize);
+			cbuf= generate_procedural_preview(stackbuf_use, xsize, ysize);
 		else
-			cbuf= scalefast_compbuf(stackbuf_use, preview->xsize, preview->ysize);
-		
-		/* this ensures free-compbuf does the right stuff */
-		SWAP(float *, cbuf->rect, node->preview->rect);
+			cbuf= scalefast_compbuf(stackbuf_use, xsize, ysize);
+
+		/* convert to byte for preview */
+		rect= MEM_callocN(sizeof(unsigned char)*4*xsize*ysize, "bNodePreview.rect");
+
+		if(color_manage)
+			floatbuf_to_srgb_byte(cbuf->rect, rect, 0, xsize, 0, ysize, xsize);
+		else
+			floatbuf_to_byte(cbuf->rect, rect, 0, xsize, 0, ysize, xsize);
 		
 		free_compbuf(cbuf);
 		if(stackbuf_use!=stackbuf)
 			free_compbuf(stackbuf_use);
 
+		BLI_lock_thread(LOCK_PREVIEW);
+
+		if(preview->rect)
+			MEM_freeN(preview->rect);
+		preview->xsize= xsize;
+		preview->ysize= ysize;
+		preview->rect= rect;
+
+		BLI_unlock_thread(LOCK_PREVIEW);
 	}
 }
 
@@ -1104,9 +1122,23 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 {
 	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		col[0] = bc[0], col[1] = bc[1], col[2] = bc[2];
+		switch(src->type){
+			/* these fallthrough to get all the channels */
+			case CB_RGBA: col[3]=bc[3]; 
+			case CB_VEC3: col[2]=bc[2];
+			case CB_VEC2: col[1]=bc[1];
+			case CB_VAL: col[0]=bc[0];
+		}
 	}
-	else col[0] = col[1] = col[2] = 0.f;
+	else {
+		switch(src->type){
+			/* these fallthrough to get all the channels */
+			case CB_RGBA: col[3]=0.0; 
+			case CB_VEC3: col[2]=0.0; 
+			case CB_VEC2: col[1]=0.0; 
+			case CB_VAL: col[0]=0.0; 
+		}
+	}
 }
 
 // sets pixel (x, y) to color col
@@ -1114,7 +1146,13 @@ void qd_setPixel(CompBuf* src, int x, int y, float* col)
 {
 	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		bc[0] = col[0], bc[1] = col[1], bc[2] = col[2];
+		switch(src->type){
+			/* these fallthrough to get all the channels */
+			case CB_RGBA: bc[3]=col[3]; 
+			case CB_VEC3: bc[2]=col[2];
+			case CB_VEC2: bc[1]=col[1];
+			case CB_VAL: bc[0]=col[0];
+		}
 	}
 }
 

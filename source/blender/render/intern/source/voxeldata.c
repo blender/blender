@@ -167,12 +167,10 @@ void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 		
 		if(smd->domain && smd->domain->fluid) {
-			//int big = (smd->domain->flags & MOD_SMOKE_HIGHRES);
-			int big=0;
 			
-			if (big) {
-				//smoke_turbulence_get_res(smd->domain->wt, vd->resol);
-				//vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
+			if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
+				smoke_turbulence_get_res(smd->domain->wt, vd->resol);
+				vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
 			} else {
 				VECCOPY(vd->resol, smd->domain->res);
 				vd->dataset = smoke_get_density(smd->domain->fluid);
@@ -228,9 +226,6 @@ void make_voxeldata(struct Render *re)
 {
     Tex *tex;
 	
-	if(re->scene->r.scemode & R_PREVIEWBUTS)
-		return;
-	
 	re->i.infostr= "Loading voxel datasets";
 	re->stats_draw(re->sdh, &re->i);
 	
@@ -260,9 +255,6 @@ static void free_voxeldata_one(Render *re, Tex *tex)
 void free_voxeldata(Render *re)
 {
 	Tex *tex;
-	
-	if(re->scene->r.scemode & R_PREVIEWBUTS)
-		return;
 	
 	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
 		if(tex->id.us && tex->type==TEX_VOXELDATA) {

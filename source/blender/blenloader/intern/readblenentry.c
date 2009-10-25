@@ -67,6 +67,10 @@
 
 #include "BLO_sys_types.h" // needed for intptr_t
 
+#ifdef _WIN32
+#include "BLI_winstuff.h"
+#endif
+
 	/**
 	 * IDType stuff, I plan to move this
 	 * out into its own file + prefix, and
@@ -95,7 +99,6 @@ static IDType idtypes[]= {
 	{ ID_IP,		"Ipo",		IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_KE,		"Key",		0}, 
 	{ ID_LA,		"Lamp",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_LF,		"Life",		0}, 
 	{ ID_LI,		"Library",	0}, 
 	{ ID_LT,		"Lattice",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_MA,		"Material", IDTYPE_FLAGS_ISLINKABLE}, 
@@ -106,7 +109,6 @@ static IDType idtypes[]= {
 	{ ID_SCE,		"Scene",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_SCR,		"Screen",	0}, 
 	{ ID_SEQ,		"Sequence",	0}, 
-	{ ID_SE,		"Sector",	0}, 
 	{ ID_SO,		"Sound",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_TE,		"Texture",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_TXT,		"Text",		IDTYPE_FLAGS_ISLINKABLE}, 

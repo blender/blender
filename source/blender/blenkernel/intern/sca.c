@@ -52,30 +52,6 @@
 #include "BKE_blender.h"
 #include "BKE_sca.h"
 
-//#include "wm_event_types.h"
-
-void free_text_controllers(Text *txt)
-{
-	Object *ob;
-	bController *cont;
-	
-	ob= G.main->object.first;
-	while(ob) {
-		cont= ob->controllers.first;
-		while(cont) {
-			if(cont->type==CONT_PYTHON) {
-				bPythonCont *pc;
-				
-				pc= cont->data;
-				if(pc->text==txt) pc->text= NULL;
-			}
-			cont= cont->next;
-		}
-		ob= ob->id.next;
-	}
-}
-
-
 /* ******************* SENSORS ************************ */
 
 void free_sensor(bSensor *sens)
@@ -151,6 +127,9 @@ void init_sensor(bSensor *sens)
 		break;
 	case SENS_PROPERTY:
 		sens->data= MEM_callocN(sizeof(bPropertySensor), "propsens");
+		break;
+	case SENS_ARMATURE:
+		sens->data= MEM_callocN(sizeof(bArmatureSensor), "armsens");
 		break;
 	case SENS_ACTUATOR:
 		sens->data= MEM_callocN(sizeof(bActuatorSensor), "actsens");
@@ -479,6 +458,9 @@ void init_actuator(bActuator *act)
 	case ACT_STATE:
         act->data = MEM_callocN(sizeof( bStateActuator ), "state act");
         break;
+	case ACT_ARMATURE:
+        act->data = MEM_callocN(sizeof( bArmatureActuator ), "armature act");
+        break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */
@@ -620,6 +602,8 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 	bEditObjectActuator *eoa;
 	bPropertyActuator *pa;
 	bMessageActuator *ma;
+	bParentActuator *para;
+	bArmatureActuator *aa;
 
 	sens= obt->sensors.first;
 	while(sens) {
@@ -658,7 +642,15 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 			ma= act->data;
 			if(ma->toObject==ob) ma->toObject= NULL;
 			break;
-
+		case ACT_PARENT:
+			para = act->data;
+			if (para->ob==ob) para->ob = NULL;
+			break;
+		case ACT_ARMATURE:
+			aa = act->data;
+			if (aa->target == ob) aa->target = NULL;
+			if (aa->subtarget == ob) aa->subtarget = NULL;
+			break;
 		}
 		act= act->next;
 	}	

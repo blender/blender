@@ -176,85 +176,6 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 
 /* -------------- BezTriple Insertion -------------------- */
 
-/* threshold for inserting keyframes - threshold here should be good enough for now, but should become userpref */
-#define BEZT_INSERT_THRESH 	0.00001f
-
-/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
- * Returns the index to insert at (data already at that index will be offset if replace is 0)
- */
-static int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short *replace)
-{
-	int start=0, end=arraylen;
-	int loopbreaker= 0, maxloop= arraylen * 2;
-	
-	/* initialise replace-flag first */
-	*replace= 0;
-	
-	/* sneaky optimisations (don't go through searching process if...):
-	 *	- keyframe to be added is to be added out of current bounds
-	 *	- keyframe to be added would replace one of the existing ones on bounds
-	 */
-	if ((arraylen <= 0) || (array == NULL)) {
-		printf("Warning: binarysearch_bezt_index() encountered invalid array \n");
-		return 0;
-	}
-	else {
-		/* check whether to add before/after/on */
-		float framenum;
-		
-		/* 'First' Keyframe (when only one keyframe, this case is used) */
-		framenum= array[0].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
-			*replace = 1;
-			return 0;
-		}
-		else if (frame < framenum)
-			return 0;
-			
-		/* 'Last' Keyframe */
-		framenum= array[(arraylen-1)].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
-			*replace= 1;
-			return (arraylen - 1);
-		}
-		else if (frame > framenum)
-			return arraylen;
-	}
-	
-	
-	/* most of the time, this loop is just to find where to put it
-	 * 'loopbreaker' is just here to prevent infinite loops 
-	 */
-	for (loopbreaker=0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
-		/* compute and get midpoint */
-		int mid = start + ((end - start) / 2);	/* we calculate the midpoint this way to avoid int overflows... */
-		float midfra= array[mid].vec[1][0];
-		
-		/* check if exactly equal to midpoint */
-		if (IS_EQT(frame, midfra, BEZT_INSERT_THRESH)) {
-			*replace = 1;
-			return mid;
-		}
-		
-		/* repeat in upper/lower half */
-		if (frame > midfra)
-			start= mid + 1;
-		else if (frame < midfra)
-			end= mid - 1;
-	}
-	
-	/* print error if loop-limit exceeded */
-	if (loopbreaker == (maxloop-1)) {
-		printf("Error: binarysearch_bezt_index() was taking too long \n");
-		
-		// include debug info 
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
-	}
-	
-	/* not found, so return where to place it */
-	return start;
-}
-
 /* This function adds a given BezTriple to an F-Curve. It will allocate 
  * memory for the array if needed, and will insert the BezTriple into a
  * suitable place in chronological order.
@@ -286,20 +207,19 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 					// TODO: perform some other operations?
 				}
 				else {
+					char oldKeyType= BEZKEYTYPE(fcu->bezt + i);
+					
 					/* just brutally replace the values */
 					*(fcu->bezt + i) = *bezt;
+					
+					/* special exception for keyframe type - copy value back so that this info isn't lost */
+					BEZKEYTYPE(fcu->bezt + i)= oldKeyType;
 				}
 			}
 		}
 		else if ((flag & INSERTKEY_REPLACE) == 0) {
-			/* add new - if we're not restricted to replacing keyframes only */
-			BezTriple *newb;
-			
-			/* allocate a new array only if we have to */
-			if ((flag & INSERTKEY_FASTR) == 0)
-				newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
-			else
-				newb= fcu->bezt;
+			/* insert new - if we're not restricted to replacing keyframes only */
+			BezTriple *newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
 			
 			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
 			if (i > 0)
@@ -313,11 +233,9 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 				memcpy(newb+i+1, fcu->bezt+i, (fcu->totvert-i)*sizeof(BezTriple));
 			
 			/* replace (+ free) old with new, only if necessary to do so */
-			if ((flag & INSERTKEY_FASTR) == 0) {
-				MEM_freeN(fcu->bezt);
-				fcu->bezt= newb;
-			}
-			
+			MEM_freeN(fcu->bezt);
+			fcu->bezt= newb;
+				
 			fcu->totvert++;
 		}
 	}
@@ -725,14 +643,14 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			else if (pchan->bone->parent == NULL)
 				return tmat[3][array_index];
 		}
-		else if (strstr(identifier, "euler_rotation")) {
+		else if (strstr(identifier, "rotation_euler")) {
 			float eul[3];
 			
 			/* euler-rotation test before standard rotation, as standard rotation does quats */
 			Mat4ToEulO(tmat, eul, pchan->rotmode);
 			return eul[array_index];
 		}
-		else if (strstr(identifier, "rotation")) {
+		else if (strstr(identifier, "rotation_quaternion")) {
 			float trimat[3][3], quat[4];
 			
 			Mat3CpyMat4(trimat, tmat);
@@ -740,6 +658,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			
 			return quat[array_index];
 		}
+		// TODO: axis-angle...
 	}
 	
 	/* as the function hasn't returned yet, read value from system in the default way */
@@ -1062,12 +981,15 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
-	printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+	if (G.f & G_DEBUG)
+		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
 	if (success == 0)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
+	else
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	/* free temp context-data if available */
 	if (dsources.first) {
@@ -1076,10 +998,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* send updates */
-	ED_anim_dag_flush_update(C);	
-	
-	/* for now, only send ND_KEYS for KeyingSets */
-	WM_event_add_notifier(C, ND_KEYS, NULL);
+	ED_anim_dag_flush_update(C);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1213,12 +1132,15 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
-	printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
+	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
+	if (G.f & G_DEBUG)
+		printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
 	if (success == 0)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
+	else
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	/* free temp context-data if available */
 	if (dsources.first) {
@@ -1228,9 +1150,6 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
-	
-	/* for now, only send ND_KEYS for KeyingSets */
-	WM_event_add_notifier(C, ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1511,7 +1430,7 @@ int autokeyframe_cfra_can_key(Scene *scene, ID *id)
 short fcurve_frame_has_keyframe (FCurve *fcu, float frame, short filter)
 {
 	/* quick sanity check */
-	if (fcu == NULL)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return 0;
 	
 	/* we either include all regardless of muting, or only non-muted  */

@@ -33,8 +33,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -55,7 +57,6 @@ static void spacetype_free(SpaceType *st)
 	ARegionType *art;
 	PanelType *pt;
 	HeaderType *ht;
-	MenuType *mt;
 	
 	for(art= st->regiontypes.first; art; art= art->next) {
 		BLI_freelistN(&art->drawcalls);
@@ -68,13 +69,8 @@ static void spacetype_free(SpaceType *st)
 			if(ht->ext.free)
 				ht->ext.free(ht->ext.data);
 
-		for(mt= art->menutypes.first; mt; mt= mt->next)
-			if(mt->ext.free)
-				mt->ext.free(mt->ext.data);
-
 		BLI_freelistN(&art->paneltypes);
 		BLI_freelistN(&art->headertypes);
-		BLI_freelistN(&art->menutypes);
 	}
 	
 	BLI_freelistN(&st->regiontypes);
@@ -321,4 +317,23 @@ void free_screen(bScreen *sc)
 	BLI_freelistN(&sc->areabase);
 }
 
+/* for depsgraph */
+unsigned int BKE_screen_visible_layers(bScreen *screen)
+{
+	ScrArea *sa;
+	unsigned int layer= 0;
+
+	if(!screen)
+		return layer;
+
+	/* get all used view3d layers */
+	for(sa= screen->areabase.first; sa; sa= sa->next)
+		if(sa->spacetype==SPACE_VIEW3D)
+			layer |= ((View3D *)sa->spacedata.first)->lay;
+
+	if(!layer)
+		return screen->scene->lay;
+
+	return layer;
+}
 

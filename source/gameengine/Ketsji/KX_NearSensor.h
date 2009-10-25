@@ -68,6 +68,7 @@ public:
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
+	virtual void SetPhysCtrlRadius();
 	virtual bool Evaluate();
 
 	virtual void ReParent(SCA_IObject* parent);
@@ -76,6 +77,8 @@ public:
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2);
 	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2) { return false; };
 	virtual sensortype GetSensorType() { return ST_NEAR; }
+
+#ifndef DISABLE_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -91,8 +94,12 @@ public:
 		if (sensor->m_Margin > sensor->m_ResetMargin)
 			sensor->m_ResetMargin = sensor->m_Margin;
 
+		sensor->SetPhysCtrlRadius();
+			
 		return 0;
 	}
+
+#endif // DISABLE_PYTHON
 
 };
 

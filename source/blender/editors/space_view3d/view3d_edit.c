@@ -239,9 +239,10 @@ typedef struct ViewOpsData {
 	float ofs[3], obofs[3];
 	float reverse, dist0;
 	float grid, far;
+	short axis_snap; /* view rotate only */
 
 	int origx, origy, oldx, oldy;
-	int origkey;
+	int origkey; /* the key that triggered the operator */
 
 } ViewOpsData;
 
@@ -276,6 +277,7 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 
 static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 {
+	static float lastofs[3] = {0,0,0};
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d;
 	ViewOpsData *vod= MEM_callocN(sizeof(ViewOpsData), "viewops data");
@@ -289,7 +291,16 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 	QUATCOPY(vod->oldquat, rv3d->viewquat);
 	vod->origx= vod->oldx= event->x;
 	vod->origy= vod->oldy= event->y;
-	vod->origkey= event->type;
+	vod->origkey= event->type; /* the key that triggered the operator.  */
+	
+	if (U.uiflag & USER_ORBIT_SELECTION)
+	{
+		VECCOPY(vod->ofs, rv3d->ofs);
+		/* If there's no selection, lastofs is unmodified and last value since static */
+		calculateTransformCenter(C, event, V3D_CENTROID, lastofs);
+		VECCOPY(vod->obofs, lastofs);
+		VecMulf(vod->obofs, -1.0f);
+	}
 
 	/* lookup, we dont pass on v3d to prevent confusement */
 	vod->grid= v3d->grid;
@@ -357,11 +368,52 @@ static float snapquats[39][6] = {
 {0.0, 0.0, 0.0, 1.0, 0, 0}
 };
 
+enum {
+	VIEW_PASS= 0,
+	VIEW_APPLY,
+	VIEW_CONFIRM
+};
 
-static void viewrotate_apply(ViewOpsData *vod, int x, int y, int ctrl)
+/* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
+#define VIEW_MODAL_CONFIRM				1 /* used for all view operations */
+#define VIEWROT_MODAL_AXIS_SNAP_ENABLE	2
+#define VIEWROT_MODAL_AXIS_SNAP_DISABLE	3
+
+
+/* called in transform_ops.c, on each regeneration of keymaps  */
+void viewrotate_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Cancel", ""},
+
+	{VIEWROT_MODAL_AXIS_SNAP_ENABLE,	"AXIS_SNAP_ENABLE", 0, "Enable Axis Snap", ""},
+	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, "Enable Axis Snap", ""},
+
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Rotate Modal");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "View3D Rotate Modal", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_ENABLE);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_DISABLE);
+
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_rotate");
+
+}
+
+static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 {
 	RegionView3D *rv3d= vod->rv3d;
-	int use_sel= 0;	/* XXX */
+	int use_sel= U.uiflag & USER_ORBIT_SELECTION;
 
 	rv3d->view= 0; /* need to reset everytime because of view snapping */
 
@@ -462,7 +514,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y, int ctrl)
 	}
 
 	/* check for view snap */
-	if (ctrl){
+	if (vod->axis_snap){
 		int i;
 		float viewmat[3][3];
 
@@ -496,23 +548,41 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y, int ctrl)
 static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewOpsData *vod= op->customdata;
+	short event_code= VIEW_PASS;
 
 	/* execute the events */
-	switch(event->type) {
-		case MOUSEMOVE:
-			viewrotate_apply(vod, event->x, event->y, event->ctrl);
-			break;
+	if(event->type==MOUSEMOVE) {
+		event_code= VIEW_APPLY;
+	}
+	else if(event->type==EVT_MODAL_MAP) {
+		switch (event->val) {
+			case VIEW_MODAL_CONFIRM:
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_AXIS_SNAP_ENABLE:
+				vod->axis_snap= TRUE;
+				event_code= VIEW_APPLY;
+				break;
+			case VIEWROT_MODAL_AXIS_SNAP_DISABLE:
+				vod->axis_snap= FALSE;
+				event_code= VIEW_APPLY;
+				break;
+		}
+	}
+	else if(event->type==vod->origkey && event->val==KM_RELEASE) {
+		event_code= VIEW_CONFIRM;
+	}
 
-		default:
-			/* origkey may be zero when invoked from a button */
-			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==0)) {
-				request_depth_update(CTX_wm_region_view3d(C));
+	if(event_code==VIEW_APPLY) {
+		viewrotate_apply(vod, event->x, event->y);
+	}
+	else if (event_code==VIEW_CONFIRM) {
+		request_depth_update(CTX_wm_region_view3d(C));
 
-				MEM_freeN(vod);
-				op->customdata= NULL;
+		MEM_freeN(vod);
+		op->customdata= NULL;
 
-				return OPERATOR_FINISHED;
-			}
+		return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -541,19 +611,19 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
 
-void VIEW3D_OT_viewrotate(wmOperatorType *ot)
+void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Rotate view";
 	ot->description = "Rotate the view.";
-	ot->idname= "VIEW3D_OT_viewrotate";
+	ot->idname= "VIEW3D_OT_rotate";
 
 	/* api callbacks */
 	ot->invoke= viewrotate_invoke;
@@ -561,10 +631,37 @@ void VIEW3D_OT_viewrotate(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 /* ************************ viewmove ******************************** */
+
+
+/* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
+
+/* called in transform_ops.c, on each regeneration of keymaps  */
+void viewmove_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Move Modal");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "View3D Move Modal", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_move");
+}
+
 
 static void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
@@ -596,24 +693,35 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 
 static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+
 	ViewOpsData *vod= op->customdata;
+	short event_code= VIEW_PASS;
 
 	/* execute the events */
-	switch(event->type) {
-		case MOUSEMOVE:
-			viewmove_apply(vod, event->x, event->y);
-			break;
+	if(event->type==MOUSEMOVE) {
+		event_code= VIEW_APPLY;
+	}
+	else if(event->type==EVT_MODAL_MAP) {
+		switch (event->val) {
+			case VIEW_MODAL_CONFIRM:
+				event_code= VIEW_CONFIRM;
+				break;
+		}
+	}
+	else if(event->type==vod->origkey && event->val==KM_RELEASE) {
+		event_code= VIEW_CONFIRM;
+	}
 
-		default:
-			/* origkey may be zero when invoked from a button */
-			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==0)) {
-				request_depth_update(CTX_wm_region_view3d(C));
+	if(event_code==VIEW_APPLY) {
+		viewmove_apply(vod, event->x, event->y);
+	}
+	else if (event_code==VIEW_CONFIRM) {
+		request_depth_update(CTX_wm_region_view3d(C));
 
-				MEM_freeN(vod);
-				op->customdata= NULL;
+		MEM_freeN(vod);
+		op->customdata= NULL;
 
-				return OPERATOR_FINISHED;
-			}
+		return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -625,19 +733,19 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	viewops_data(C, op, event);
 
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
 
-void VIEW3D_OT_viewmove(wmOperatorType *ot)
+void VIEW3D_OT_move(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Move view";
 	ot->description = "Move the view.";
-	ot->idname= "VIEW3D_OT_viewmove";
+	ot->idname= "VIEW3D_OT_move";
 
 	/* api callbacks */
 	ot->invoke= viewmove_invoke;
@@ -645,10 +753,33 @@ void VIEW3D_OT_viewmove(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 /* ************************ viewzoom ******************************** */
+
+/* called in transform_ops.c, on each regeneration of keymaps  */
+void viewzoom_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Zoom Modal");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "View3D Zoom Modal", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom");
+}
 
 static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 {
@@ -758,23 +889,33 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewOpsData *vod= op->customdata;
+	short event_code= VIEW_PASS;
 
 	/* execute the events */
-	switch(event->type) {
-		case MOUSEMOVE:
-			viewzoom_apply(vod, event->x, event->y);
-			break;
+	if(event->type==MOUSEMOVE) {
+		event_code= VIEW_APPLY;
+	}
+	else if(event->type==EVT_MODAL_MAP) {
+		switch (event->val) {
+			case VIEW_MODAL_CONFIRM:
+				event_code= VIEW_CONFIRM;
+				break;
+		}
+	}
+	else if(event->type==vod->origkey && event->val==KM_RELEASE) {
+		event_code= VIEW_CONFIRM;
+	}
 
-		default:
-			/* origkey may be zero when invoked from a button */
-			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==0)) {
-				request_depth_update(CTX_wm_region_view3d(C));
+	if(event_code==VIEW_APPLY) {
+		viewzoom_apply(vod, event->x, event->y);
+	}
+	else if (event_code==VIEW_CONFIRM) {
+		request_depth_update(CTX_wm_region_view3d(C));
 
-				MEM_freeN(vod);
-				op->customdata= NULL;
+		MEM_freeN(vod);
+		op->customdata= NULL;
 
-				return OPERATOR_FINISHED;
-			}
+		return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -785,6 +926,8 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	int delta= RNA_int_get(op->ptr, "delta");
+	int mx = RNA_int_get(op->ptr, "mx");
+	int my = RNA_int_get(op->ptr, "my");
 
 	if(delta < 0) {
 		/* this min and max is also in viewmove() */
@@ -792,14 +935,18 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 			rv3d->camzoom-= 10;
 			if(rv3d->camzoom<-30) rv3d->camzoom= -30;
 		}
-		else if(rv3d->dist<10.0*v3d->far) rv3d->dist*=1.2f;
+		else if(rv3d->dist<10.0*v3d->far) {
+			view_zoom_mouseloc(CTX_wm_region(C), 1.2f, mx, my);
+		}
 	}
 	else {
 		if(rv3d->persp==V3D_CAMOB) {
 			rv3d->camzoom+= 10;
 			if(rv3d->camzoom>300) rv3d->camzoom= 300;
 		}
-		else if(rv3d->dist> 0.001*v3d->grid) rv3d->dist*=.83333f;
+		else if(rv3d->dist> 0.001*v3d->grid) {
+			view_zoom_mouseloc(CTX_wm_region(C), .83333f, mx, my);
+		}
 	}
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
@@ -814,6 +961,13 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int delta= RNA_int_get(op->ptr, "delta");
+	
+	/* if one or the other zoom position aren't set, set from event */
+	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
+	{
+		RNA_int_set(op->ptr, "mx", event->x);
+		RNA_int_set(op->ptr, "my", event->y);
+	}
 
 	if(delta) {
 		viewzoom_exec(C, op);
@@ -823,7 +977,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		viewops_data(C, op, event);
 
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -845,9 +999,11 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
 }
 
 static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
@@ -925,7 +1081,7 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View home";
+	ot->name= "View All";
 	ot->description = "View all objects in scene.";
 	ot->idname= "VIEW3D_OT_view_all";
 
@@ -1064,7 +1220,7 @@ void VIEW3D_OT_view_center(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "View center";
+	ot->name= "View Selected";
 	ot->description = "Move the view to the selection center.";
 	ot->idname= "VIEW3D_OT_view_center";
 
@@ -1628,7 +1784,7 @@ static int viewpersportho_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View persp/ortho";
+	ot->name= "View Persp/Ortho";
 	ot->description = "Switch the current view from perspective/orthographic.";
 	ot->idname= "VIEW3D_OT_view_persportho";
 
@@ -1748,57 +1904,6 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
-/* ********************* draw type operator ****************** */
-
-static int view3d_drawtype_exec(bContext *C, wmOperator *op)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	int dt, dt_alt;
-
-	dt  = RNA_int_get(op->ptr, "draw_type");
-	dt_alt = RNA_int_get(op->ptr, "draw_type_alternate");
-
-	if (dt_alt != -1) {
-		if (v3d->drawtype == dt)
-			v3d->drawtype = dt_alt;
-		else
-			v3d->drawtype = dt;
-	}
-	else
-		v3d->drawtype = dt;
-
-	ED_area_tag_redraw(CTX_wm_area(C));
-
-	return OPERATOR_FINISHED;
-}
-
-static int view3d_drawtype_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	return view3d_drawtype_exec(C, op);
-}
-
-/* toggles */
-void VIEW3D_OT_drawtype(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Change draw type";
-	ot->description = "Change the draw type of the view.";
-	ot->idname= "VIEW3D_OT_drawtype";
-
-	/* api callbacks */
-	ot->invoke= view3d_drawtype_invoke;
-	ot->exec= view3d_drawtype_exec;
-
-	ot->poll= ED_operator_view3d_active;
-
-	/* flags */
-	ot->flag= 0;
-
-	/* rna XXX should become enum */
-	RNA_def_int(ot->srna, "draw_type", 0, INT_MIN, INT_MAX, "Draw Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "draw_type_alternate", -1, INT_MIN, INT_MAX, "Draw Type Alternate", "", INT_MIN, INT_MAX);
-}
-
 /* ***************** 3d cursor cursor op ******************* */
 
 /* mx my in region coords */
@@ -1850,8 +1955,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	// XXX notifier for scene */
 	ED_area_tag_redraw(CTX_wm_area(C));
 
-	/* prevent other mouse ops to fail */
-	return OPERATOR_PASS_THROUGH;
+	return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)
@@ -1895,7 +1999,7 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "3D Manipulator";
-	ot->description = "";
+	ot->description = "Manipulate selected item by axis.";
 	ot->idname= "VIEW3D_OT_manipulator";
 
 	/* api callbacks */
@@ -2339,7 +2443,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 
     if (use_sel) {
         QuatConj(q1); /* conj == inv for unit quat */
-        VecSubf(v3d->ofs, v3d->ofs, obofs);
+        VecSubf(rv3d->ofs, rv3d->ofs, obofs);
         QuatMulVecf(q1, rv3d->ofs);
         VecAddf(rv3d->ofs, rv3d->ofs, obofs);
     }

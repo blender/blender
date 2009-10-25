@@ -47,6 +47,8 @@
 #include "BKE_nla.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -112,6 +114,7 @@ static SpaceLink *nla_new(const bContext *C)
 	
 	/* allocate DopeSheet data for NLA Editor */
 	snla->ads= MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
+	snla->ads->source= (ID *)scene;
 	
 	/* set auto-snapping settings */
 	snla->autosnap = SACTSNAP_FRAME;
@@ -189,8 +192,10 @@ static void nla_init(struct wmWindowManager *wm, ScrArea *sa)
 	SpaceNla *snla= (SpaceNla *)sa->spacedata.first;
 	
 	/* init dopesheet data if non-existant (i.e. for old files) */
-	if (snla->ads == NULL)
+	if (snla->ads == NULL) {
 		snla->ads= MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
+		snla->ads->source= (ID *)G.main->scene.first; // XXX this is bad, but we need this to be set correct
+	}
 
 	ED_area_tag_refresh(sa);
 }
@@ -208,15 +213,15 @@ static SpaceLink *nla_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
 	// TODO: cannot use generic copy, need special NLA version
-	keymap= WM_keymap_listbase(wm, "NLA Channels", SPACE_NLA, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -254,14 +259,14 @@ static void nla_channel_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "NLA Data", SPACE_NLA, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Data", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -354,11 +359,11 @@ static void nla_header_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -409,6 +414,7 @@ static void nla_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCENE:
 			switch(wmn->data) {
+				case ND_RENDER_OPTIONS:
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
 				case ND_MARKERS:
@@ -487,6 +493,10 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}*/
 			ED_area_tag_refresh(sa);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_NLA)
+				ED_area_tag_redraw(sa);
 			break;
 	}
 }

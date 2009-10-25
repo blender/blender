@@ -72,6 +72,7 @@ typedef enum {
 	
 	/* menus */
 	UI_WTYPE_MENU_RADIO,
+	UI_WTYPE_MENU_ICON_RADIO,
 	UI_WTYPE_MENU_POINTER_LINK,
 	
 	UI_WTYPE_PULLDOWN,
@@ -263,6 +264,9 @@ struct uiBlock {
 	void *func_arg1;
 	void *func_arg2;
 
+	uiButHandleNFunc funcN;
+	void *func_argN;
+
 	uiMenuHandleFunc butm_func;
 	void *butm_func_arg;
 
@@ -447,8 +451,8 @@ void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int i
 void uiStyleInit(void);
 
 /* interface_icons.c */
-void ui_id_icon_render(struct Scene *scene, struct ID *id);
-int ui_id_icon_get(struct Scene *scene, struct ID *id);
+void ui_id_icon_render(struct bContext *C, struct ID *id);
+int ui_id_icon_get(struct bContext *C, struct ID *id);
 
 /* resources.c */
 void init_userdef_do_versions(void);
@@ -467,6 +471,8 @@ void ui_but_anim_insert_keyframe(struct bContext *C);
 void ui_but_anim_delete_keyframe(struct bContext *C);
 void ui_but_anim_add_driver(struct bContext *C);
 void ui_but_anim_remove_driver(struct bContext *C);
+void ui_but_anim_copy_driver(struct bContext *C);
+void ui_but_anim_paste_driver(struct bContext *C);
 void ui_but_anim_add_keyingset(struct bContext *C);
 void ui_but_anim_remove_keyingset(struct bContext *C);
 void ui_but_anim_menu(struct bContext *C, uiBut *but);

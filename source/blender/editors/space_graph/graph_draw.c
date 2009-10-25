@@ -91,6 +91,26 @@
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 
 /* *************************** */
+/* Utility Drawing Defines */
+
+/* determine the alpha value that should be used when 
+ * drawing components for some F-Curve (fcu)
+ *	- selected F-Curves should be more visible than partially visible ones
+ */
+#define drawFCurveFade(fcu) ( ((fcu)->flag & FCURVE_SELECTED)? 1.0f : 0.5f )
+
+/* set the colour for some point from some value given packed into an int 
+ *	- intV: integer value containing color info packed into an int
+ *	- alpha: float value describing the 
+ */
+#define cpackA(intVC, alpha) \
+	{ \
+		float _cpackCol[3]; \
+		cpack_to_rgb(intVC, &_cpackCol[0], &_cpackCol[1], &_cpackCol[2]); \
+		glColor4f(_cpackCol[0], _cpackCol[1], _cpackCol[2], alpha); \
+	}
+
+/* *************************** */
 /* F-Curve Modifier Drawing */
 
 /* Envelope -------------- */
@@ -135,7 +155,7 @@ static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm,
 			glVertex2f(fed->time, fed->max);
 		}
 	}
-	bglEnd();
+	bglEnd(); // GL_POINTS
 	
 	glPointSize(1.0f);
 }
@@ -178,7 +198,7 @@ static void draw_fcurve_vertices_keyframes (FCurve *fcu, View2D *v2d, short edit
 		}
 	}
 	
-	bglEnd();
+	bglEnd(); // GL_POINTS
 }
 
 
@@ -258,22 +278,20 @@ static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel)
 /* helper func - set color to draw F-Curve data with */
 static void set_fcurve_vertex_color (SpaceIpo *sipo, FCurve *fcu, short sel)
 {
-#if 0
-		if (sipo->showkey) {
-			if (sel) UI_ThemeColor(TH_TEXT_HI);
-			else UI_ThemeColor(TH_TEXT);
-		} 
-#endif
-		if ((fcu->flag & FCURVE_PROTECTED)==0) {
-			/* Curve's points are being edited */
-			if (sel) UI_ThemeColor(TH_VERTEX_SELECT); 
-			else UI_ThemeColor(TH_VERTEX);
-		} 
-		else {
-			/* Curve's points cannot be edited */
-			if (sel) UI_ThemeColor(TH_TEXT_HI);
-			else UI_ThemeColor(TH_TEXT);
-		}
+	/* Fade the 'intensity' of the vertices based on the selection of the curves too */
+	int alphaOffset= (int)((drawFCurveFade(fcu) - 1.0f) * 255);
+	
+	/* Set color of curve vertex based on state of curve (i.e. 'Edit' Mode) */
+	if ((fcu->flag & FCURVE_PROTECTED)==0) {
+		/* Curve's points ARE BEING edited */
+		if (sel) UI_ThemeColorShadeAlpha(TH_VERTEX_SELECT, 0, alphaOffset); 
+		else UI_ThemeColorShadeAlpha(TH_VERTEX, 0, alphaOffset);
+	} 
+	else {
+		/* Curve's points CANNOT BE edited */
+		if (sel) UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, alphaOffset);
+		else UI_ThemeColorShadeAlpha(TH_TEXT, 0, alphaOffset);
+	}
 }
 
 
@@ -315,21 +333,24 @@ void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
 	extern unsigned int nurbcol[];
-	unsigned int *col;
 	int sel, b;
 	
 	/* don't draw handle lines if handles are not shown */
 	if ((sipo->flag & SIPO_NOHANDLES) || (fcu->flag & FCURVE_PROTECTED) || (fcu->flag & FCURVE_INT_VALUES))
 		return;
 	
-	/* slightly hacky, but we want to draw unselected points before selected ones*/
+	/* a single call to GL_LINES here around these calls should be sufficient to still
+	 * get separate line segments, but which aren't wrapped with GL_LINE_STRIP everytime we
+	 * want a single line
+	 */
+	glBegin(GL_LINES);
+	
+	/* slightly hacky, but we want to draw unselected points before selected ones */
 	for (sel= 0; sel < 2; sel++) {
 		BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
+		unsigned int *col= (sel)? (nurbcol+4) : (nurbcol);
 		float *fp;
 		
-		if (sel) col= nurbcol+4;
-		else col= nurbcol;
-			
 		for (b= 0; b < fcu->totvert; b++, prevbezt=bezt, bezt++) {
 			if ((bezt->f2 & SELECT)==sel) {
 				fp= bezt->vec[0];
@@ -337,20 +358,16 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 				/* only draw first handle if previous segment had handles */
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
 				{
-					cpack(col[(unsigned char)bezt->h1]);
-					glBegin(GL_LINE_STRIP); 
-						glVertex2fv(fp); glVertex2fv(fp+3); 
-					glEnd();
+					cpackA(col[(unsigned char)bezt->h1], drawFCurveFade(fcu));
 					
+					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 				
 				/* only draw second handle if this segment is bezier */
 				if (bezt->ipo == BEZT_IPO_BEZ) 
 				{
-					cpack(col[(unsigned char)bezt->h2]);
-					glBegin(GL_LINE_STRIP); 
-						glVertex2fv(fp+3); glVertex2fv(fp+6); 
-					glEnd();
+					cpackA(col[(unsigned char)bezt->h2], drawFCurveFade(fcu));
+					glVertex2fv(fp+3); glVertex2fv(fp+6); 
 				}
 			}
 			else {
@@ -359,11 +376,9 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 					 ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) ) 
 				{
 					fp= bezt->vec[0];
-					cpack(col[(unsigned char)bezt->h1]);
+					cpackA(col[(unsigned char)bezt->h1], drawFCurveFade(fcu));
 					
-					glBegin(GL_LINE_STRIP); 
-						glVertex2fv(fp); glVertex2fv(fp+3); 
-					glEnd();
+					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 				
 				/* only draw second handle if this segment is bezier, and selection is ok */
@@ -371,15 +386,15 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 					 (bezt->ipo == BEZT_IPO_BEZ) )
 				{
 					fp= bezt->vec[1];
-					cpack(col[(unsigned char)bezt->h2]);
+					cpackA(col[(unsigned char)bezt->h2], drawFCurveFade(fcu));
 					
-					glBegin(GL_LINE_STRIP); 
-						glVertex2fv(fp); glVertex2fv(fp+3); 
-					glEnd();
+					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 			}
 		}
 	}
+	
+	glEnd(); // GL_LINES
 }
 
 /* Samples ---------------- */
@@ -410,7 +425,6 @@ static void draw_fcurve_sample_control (float x, float y, float xscale, float ys
 	glScalef(1.0f/xscale*hsize, 1.0f/yscale*hsize, 1.0f);
 	
 	/* anti-aliased lines for more consistent appearance */
-		// XXX needed here?
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 	
@@ -506,7 +520,6 @@ static void draw_fcurve_curve (FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DG
 }
 
 /* helper func - draw a samples-based F-Curve */
-// TODO: add offset stuff...
 static void draw_fcurve_curve_samples (FCurve *fcu, View2D *v2d)
 {
 	FPoint *prevfpt= fcu->fpt;
@@ -647,7 +660,7 @@ static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
 			 */
 			
 			/* resol not depending on horizontal resolution anymore, drivers for example... */
-			// XXX need to take into account the scale
+			// TODO: would be nice to make this depend on the scale of the graph too...
 			if (fcu->driver) 
 				resol= 32;
 			else 
@@ -675,8 +688,8 @@ static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
 				
 				correct_bezpart(v1, v2, v3, v4);
 				
-				forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, 3);
-				forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data+1, resol, 3);
+				forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float)*3);
+				forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data+1, resol, sizeof(float)*3);
 				
 				for (fp= data; resol; resol--, fp+= 3)
 					glVertex2fv(fp);
@@ -809,7 +822,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				/* set whatever color the curve has set 
 				 *	- unselected curves draw less opaque to help distinguish the selected ones
 				 */
-				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], ((sel) ? 1.0f : 0.5f));
+				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], drawFCurveFade(fcu));
 			}
 			
 			/* anti-aliased lines for less jagged appearance */
@@ -855,7 +868,10 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 				if (fcu->bezt) {
 					/* only draw handles/vertices on keyframes */
-					draw_fcurve_handles(sipo, ar, fcu);
+					glEnable(GL_BLEND);
+						draw_fcurve_handles(sipo, ar, fcu);
+					glDisable(GL_BLEND);
+					
 					draw_fcurve_vertices(sipo, ar, fcu);
 				}
 				else {

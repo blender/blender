@@ -46,8 +46,8 @@
 #include "ED_markers.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
-#include "ED_particle.h"
 #include "ED_physics.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
@@ -92,54 +92,59 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_sculpt();
 	ED_operatortypes_uvedit();
 	ED_operatortypes_paint();
-	ED_operatortypes_particle();
+	ED_operatortypes_physics();
 	ED_operatortypes_curve();
 	ED_operatortypes_armature();
 	ED_operatortypes_marker();
-	ED_operatortypes_pointcache();
-	ED_operatortypes_fluid();
 	ED_operatortypes_metaball();
-	ED_operatortypes_boids();
 	ED_operatortypes_sound();
+	ED_operatortypes_render();
 	
 	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
 	for(type=spacetypes->first; type; type=type->next)
 		type->operatortypes();
+
+
+	/* Macros's must go last since they reference other operators
+	 * maybe we'll need to have them go after python operators too? */
+	ED_operatormacros_mesh();
+	ED_operatormacros_object();
 }
 
 /* called in wm.c */
 /* keymap definitions are registered only once per WM initialize, usually on file read,
    using the keymap the actual areas/regions add the handlers */
-void ED_spacetypes_keymap(wmWindowManager *wm)
+void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 {
 	const ListBase *spacetypes;
 	SpaceType *stype;
 	ARegionType *atype;
 
-	ED_keymap_screen(wm);
-	ED_keymap_anim(wm);
-	ED_keymap_animchannels(wm);
-	ED_keymap_gpencil(wm);
-	ED_keymap_object(wm);
-	ED_keymap_mesh(wm);
-	ED_keymap_uvedit(wm);
-	ED_keymap_curve(wm);
-	ED_keymap_armature(wm);
-	ED_keymap_particle(wm);
-	ED_keymap_metaball(wm);
-	ED_marker_keymap(wm);
+	ED_keymap_screen(keyconf);
+	ED_keymap_anim(keyconf);
+	ED_keymap_animchannels(keyconf);
+	ED_keymap_gpencil(keyconf);
+	ED_keymap_object(keyconf);
+	ED_keymap_mesh(keyconf);
+	ED_keymap_uvedit(keyconf);
+	ED_keymap_curve(keyconf);
+	ED_keymap_armature(keyconf);
+	ED_keymap_physics(keyconf);
+	ED_keymap_metaball(keyconf);
+	ED_keymap_paint(keyconf);
+	ED_marker_keymap(keyconf);
 
-	UI_view2d_keymap(wm);
+	UI_view2d_keymap(keyconf);
 
 	spacetypes = BKE_spacetypes_list();
 	for(stype=spacetypes->first; stype; stype=stype->next) {
 		if(stype->keymap)
-			stype->keymap(wm);
+			stype->keymap(keyconf);
 		for(atype=stype->regiontypes.first; atype; atype=atype->next) {
 			if(atype->keymap)
-				atype->keymap(wm);
+				atype->keymap(keyconf);
 		}
 	}
 }
@@ -235,7 +240,7 @@ static void xxx_operatortypes(void)
 	/* register operator types for this space */
 }
 
-static void xxx_keymap(wmWindowManager *wm)
+static void xxx_keymap(wmKeyConfig *keyconf)
 {
 	/* add default items to keymap */
 }

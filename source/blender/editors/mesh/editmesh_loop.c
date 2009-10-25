@@ -60,6 +60,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #include "PIL_time.h"
@@ -199,6 +200,7 @@ static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int prev
 		}
 	}
 }
+
 void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 {
 	ViewContext vc; // XXX
@@ -389,7 +391,7 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 		EM_selectmode_set(em);
 	}	
 	
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	return;
 }
 
@@ -624,7 +626,6 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	ARegion *ar= CTX_wm_region(C);
@@ -636,6 +637,10 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	float  *scr, co[4];
 	int len=0;
 	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
+	
+	/* edit-object needed for matrix, and ar->regiondata for projections to work */
+	if (ELEM3(NULL, obedit, ar, ar->regiondata))
+		return OPERATOR_CANCELLED;
 	
 	if (EM_nvertices_selected(em) < 2) {
 		error("No edges are selected to operate on");
@@ -705,8 +710,8 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }

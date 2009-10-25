@@ -24,6 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #ifdef WITH_FFMPEG
 extern "C" {
+#undef __cplusplus
 #include <pthread.h>
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
@@ -32,6 +33,7 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"
+#define __cplusplus
 }
 
 

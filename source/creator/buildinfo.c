@@ -32,7 +32,7 @@
 #endif
 
 #ifdef BUILD_DATE
-#ifndef WIN32
+#if (!defined(WIN32) || defined(_WIN64))
 const char * build_date=BUILD_DATE;
 const char * build_time=BUILD_TIME;
 const char * build_rev=BUILD_REV;

@@ -126,9 +126,9 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.item_enumO("tfm.transform", "mode", 'TRANSLATION')
-		layout.item_enumO("tfm.transform", "mode", 'ROTATION')
-		layout.item_enumO("tfm.transform", "mode", 'RESIZE')
+		layout.itemO("tfm.translate")
+		layout.itemO("tfm.rotate")
+		layout.itemO("tfm.resize")
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 	__space_type__ = 'IMAGE_EDITOR'
@@ -136,9 +136,13 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		layout.operator_context = "EXEC_REGION_WIN"
 
-		layout.item_enumO("uv.mirror", "axis", 'MIRROR_X') # "X Axis", M, 
-		layout.item_enumO("uv.mirror", "axis", 'MIRROR_Y') # "Y Axis", M, 
+		props= layout.itemO("tfm.mirror", text="X Axis", properties=True)
+		props.constraint_axis[0]= True
+
+		props= layout.itemO("tfm.mirror", text="Y Axis", properties=True)
+		props.constraint_axis[1]= True
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 	__space_type__ = 'IMAGE_EDITOR'
@@ -233,14 +237,14 @@ class IMAGE_HT_header(bpy.types.Header):
 		if show_uvedit:
 			uvedit = sima.uv_editor
 
-			layout.itemR(uvedit, "pivot", text="")
+			layout.itemR(uvedit, "pivot", text="", icon_only=True)
 			layout.itemR(settings, "uv_sync_selection", text="")
 
 			if settings.uv_sync_selection:
 				layout.itemR(settings, "mesh_selection_mode", text="", expand=True)
 			else:
 				layout.itemR(settings, "uv_selection_mode", text="", expand=True)
-				layout.itemR(uvedit, "sticky_selection_mode", text="")
+				layout.itemR(uvedit, "sticky_selection_mode", text="", icon_only=True)
 			pass
 
 			row = layout.row(align=True)

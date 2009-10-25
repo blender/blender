@@ -63,15 +63,36 @@
 
 void ED_operatortypes_object(void)
 {
-	wmOperatorType *ot;
+	WM_operatortype_append(OBJECT_OT_location_clear);
+	WM_operatortype_append(OBJECT_OT_rotation_clear);
+	WM_operatortype_append(OBJECT_OT_scale_clear);
+	WM_operatortype_append(OBJECT_OT_origin_clear);
+	WM_operatortype_append(OBJECT_OT_visual_transform_apply);
+	WM_operatortype_append(OBJECT_OT_location_apply);
+	WM_operatortype_append(OBJECT_OT_scale_apply);
+	WM_operatortype_append(OBJECT_OT_rotation_apply);
+	WM_operatortype_append(OBJECT_OT_center_set);
 	
 	WM_operatortype_append(OBJECT_OT_mode_set);
 	WM_operatortype_append(OBJECT_OT_editmode_toggle);
 	WM_operatortype_append(OBJECT_OT_posemode_toggle);
+	WM_operatortype_append(OBJECT_OT_proxy_make);
+	WM_operatortype_append(OBJECT_OT_restrictview_clear);
+	WM_operatortype_append(OBJECT_OT_restrictview_set);
+	WM_operatortype_append(OBJECT_OT_shade_smooth);
+	WM_operatortype_append(OBJECT_OT_shade_flat);
+
 	WM_operatortype_append(OBJECT_OT_parent_set);
 	WM_operatortype_append(OBJECT_OT_parent_clear);
+	WM_operatortype_append(OBJECT_OT_vertex_parent_set);
 	WM_operatortype_append(OBJECT_OT_track_set);
 	WM_operatortype_append(OBJECT_OT_track_clear);
+	WM_operatortype_append(OBJECT_OT_slow_parent_set);
+	WM_operatortype_append(OBJECT_OT_slow_parent_clear);
+	WM_operatortype_append(OBJECT_OT_make_local);
+	WM_operatortype_append(OBJECT_OT_make_single_user);
+	WM_operatortype_append(OBJECT_OT_move_to_layer);
+
 	WM_operatortype_append(OBJECT_OT_select_inverse);
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_select_all_toggle);
@@ -80,36 +101,27 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_select_linked);
 	WM_operatortype_append(OBJECT_OT_select_grouped);
 	WM_operatortype_append(OBJECT_OT_select_mirror);
-	WM_operatortype_append(OBJECT_OT_location_clear);
-	WM_operatortype_append(OBJECT_OT_rotation_clear);
-	WM_operatortype_append(OBJECT_OT_scale_clear);
-	WM_operatortype_append(OBJECT_OT_origin_clear);
-	WM_operatortype_append(OBJECT_OT_restrictview_clear);
-	WM_operatortype_append(OBJECT_OT_restrictview_set);
-	WM_operatortype_append(OBJECT_OT_slowparent_set);
-	WM_operatortype_append(OBJECT_OT_slowparent_clear);
-	WM_operatortype_append(OBJECT_OT_center_set);
-	WM_operatortype_append(OBJECT_OT_duplicates_make_real);
-	WM_operatortype_append(OBJECT_OT_duplicate);
-	WM_operatortype_append(OBJECT_OT_join);
-	WM_operatortype_append(OBJECT_OT_proxy_make);
-	WM_operatortype_append(OBJECT_OT_shade_smooth);
-	WM_operatortype_append(OBJECT_OT_shade_flat);
+	WM_operatortype_append(OBJECT_OT_select_name); /* XXX - weak, not compat with linked objects */
+
 	WM_operatortype_append(GROUP_OT_group_create);
 	WM_operatortype_append(GROUP_OT_objects_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
 
 	WM_operatortype_append(OBJECT_OT_delete);
-	WM_operatortype_append(OBJECT_OT_mesh_add);
 	WM_operatortype_append(OBJECT_OT_curve_add);
 	WM_operatortype_append(OBJECT_OT_text_add);
 	WM_operatortype_append(OBJECT_OT_surface_add);
 	WM_operatortype_append(OBJECT_OT_armature_add);
-	WM_operatortype_append(OBJECT_OT_object_add);
-	WM_operatortype_append(OBJECT_OT_primitive_add);
-	WM_operatortype_append(OBJECT_OT_mesh_add);
+	WM_operatortype_append(OBJECT_OT_lamp_add);
+	WM_operatortype_append(OBJECT_OT_add);
+	WM_operatortype_append(OBJECT_OT_effector_add);
+	WM_operatortype_append(OBJECT_OT_group_instance_add);
 	WM_operatortype_append(OBJECT_OT_metaball_add);
+	WM_operatortype_append(OBJECT_OT_duplicates_make_real);
+	WM_operatortype_append(OBJECT_OT_duplicate);
+	WM_operatortype_append(OBJECT_OT_join);
+	WM_operatortype_append(OBJECT_OT_convert);
 
 	WM_operatortype_append(OBJECT_OT_modifier_add);
 	WM_operatortype_append(OBJECT_OT_modifier_remove);
@@ -151,28 +163,47 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_deselect);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_linked);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
+	WM_operatortype_append(OBJECT_OT_vertex_group_menu);
+	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);
 	WM_operatortype_append(OBJECT_OT_game_property_remove);
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
 	WM_operatortype_append(OBJECT_OT_shape_key_remove);
+	WM_operatortype_append(OBJECT_OT_shape_key_clear);
+	WM_operatortype_append(OBJECT_OT_shape_key_mirror);
 
 	WM_operatortype_append(LATTICE_OT_select_all_toggle);
 	WM_operatortype_append(LATTICE_OT_make_regular);
+
+	WM_operatortype_append(OBJECT_OT_group_add);
+	WM_operatortype_append(OBJECT_OT_group_remove);
+}
+
+void ED_operatormacros_object(void)
+{
+	wmOperatorType *ot;
 	
-	/* macros */
-	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		WM_operatortype_macro_define(ot, "TFM_OT_translate");
 	}
 }
 
-void ED_keymap_object(wmWindowManager *wm)
+static int object_mode_poll(bContext *C)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
-	wmKeymapItem *kmi;
+	Object *ob= CTX_data_active_object(C);
+	return (!ob || ob->mode == OB_MODE_OBJECT);
+}
+
+void ED_keymap_object(wmKeyConfig *keyconf)
+{
+	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
+	
+	keymap= WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
@@ -188,7 +219,8 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */
-	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Object Mode", 0, 0);
+	keymap->poll= object_mode_poll;
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
@@ -212,14 +244,29 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_clear", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
+
+	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_verify_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "name", "INFO_MT_add");
+
+	WM_keymap_add_item(keymap, "OBJECT_OT_duplicates_make_real", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_object_apply");
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_single_user");
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0)->ptr, "linked", 1);
 	WM_keymap_add_item(keymap, "OBJECT_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_convert", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	
+	WM_keymap_add_item(keymap, "OBJECT_OT_make_local", LKEY, KM_PRESS, 0, 0);
+
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
@@ -230,8 +277,32 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
 	/* Lattice */
-	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);
+	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+}
+
+void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet)
+{
+	wmKeyMapItem *km;
+
+	/* used by mesh, curve & lattice only */
+	if(do_pet) {
+		/* context ops */
+		km = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
+		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing_falloff");
+
+		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
+		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing");
+		RNA_string_set(km->ptr, "value_1", "DISABLED");
+		RNA_string_set(km->ptr, "value_2", "ENABLED");
+
+		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, KM_ALT, 0);
+		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing");
+		RNA_string_set(km->ptr, "value_1", "DISABLED");
+		RNA_string_set(km->ptr, "value_2", "CONNECTED");
+	}
+
 }
 

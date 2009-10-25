@@ -115,7 +115,7 @@ void userpref_operatortypes(void)
 {
 }
 
-void userpref_keymap(struct wmWindowManager *wm)
+void userpref_keymap(struct wmKeyConfig *keyconf)
 {
 	
 }
@@ -167,7 +167,7 @@ void ED_spacetype_userpref(void)
 	art->init= userpref_main_area_init;
 	art->draw= userpref_main_area_draw;
 	art->listener= userpref_main_area_listener;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI;
 
 	BLI_addhead(&st->regiontypes, art);
 	

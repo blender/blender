@@ -41,7 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 
-#include "MTC_matrixops.h"
+
 
 #include "DNA_camera_types.h"
 #include "DNA_group_types.h"

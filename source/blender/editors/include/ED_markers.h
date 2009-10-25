@@ -28,7 +28,7 @@
 #ifndef ED_MARKERS_H
 #define ED_MARKERS_H
 
-struct wmWindowManager;
+struct wmKeyConfig;
 struct bContext;
 struct TimeMarker;
 
@@ -56,7 +56,7 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short sel);
 /* called in screen_ops.c:ED_operatortypes_screen() */
 void ED_operatortypes_marker(void); 
 /* called in screen_ops.c:ED_keymap_screen() */
-void ED_marker_keymap(struct wmWindowManager *wm);
+void ED_marker_keymap(struct wmKeyConfig *keyconf);
 
 
 #endif /* ED_MARKERS_H */

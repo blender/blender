@@ -258,7 +258,7 @@ static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm
 	
 	/* add the settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemR(col, "", 0, &ptr, "type", 0);
+		uiItemR(col, "", 0, &ptr, "function_type", 0);
 		uiItemR(col, NULL, 0, &ptr, "additive", UI_ITEM_R_TOGGLE);
 	
 	col= uiLayoutColumn(layout, 0); // no grouping for now

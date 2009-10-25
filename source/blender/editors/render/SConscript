@@ -1,0 +1,19 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
+incs += ' #/intern/guardedalloc ../../gpu'
+incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
+incs += ' ../../blenloader'
+
+if env['OURPLATFORM'] == 'linux2':
+    cflags='-pthread'
+    incs += ' ../../../extern/binreloc/include'
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs += ' ' + env['BF_PTHREADS_INC']
+
+env.BlenderLib ( 'bf_editors_render', sources, Split(incs), [], libtype=['core'], priority=[45] )

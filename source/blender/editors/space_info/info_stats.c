@@ -184,7 +184,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 			stats->totvert+=2;
 		}
 	}
-	else if ELEM3(obedit->type, OB_CURVE, OB_SURF, OB_FONT) {
+	else if ELEM(obedit->type, OB_CURVE, OB_SURF) { /* OB_FONT has no cu->editnurb */
 		/* Curve Edit */
 		Curve *cu= obedit->data;
 		Nurb *nu;
@@ -193,7 +193,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		int a;
 
 		for(nu=cu->editnurb->first; nu; nu=nu->next) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {

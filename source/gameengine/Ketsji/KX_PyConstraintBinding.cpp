@@ -41,6 +41,8 @@
 #include <config.h>
 #endif
 
+#ifndef DISABLE_PYTHON
+
 // nasty glob variable to connect scripting language
 // if there is a better way (without global), please do so!
 static PHY_IPhysicsEnvironment* g_CurrentActivePhysicsEnvironment = NULL;
@@ -660,4 +662,6 @@ PHY_IPhysicsEnvironment*	PHY_GetActiveEnvironment()
 {
 	return g_CurrentActivePhysicsEnvironment;
 }
+
+#endif // DISABLE_PYTHON
 

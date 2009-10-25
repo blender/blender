@@ -250,12 +250,12 @@ void sound_free(struct bSound* sound)
 
 void sound_unlink(struct bContext *C, struct bSound* sound)
 {
-	bSound *snd;
 	Scene *scene;
 	SoundHandle *handle;
 
 // XXX unused currently
 #if 0
+	bSound *snd;
 	for(snd = CTX_data_main(C)->sound.first; snd; snd = snd->id.next)
 	{
 		if(snd->child_sound == sound)
@@ -340,7 +340,7 @@ void sound_update_playing(struct bContext *C)
 
 	for(handle = scene->sound_handles.first; handle; handle = handle->next)
 	{
-		if(cfra < handle->startframe || cfra >= handle->endframe || handle->mute)
+		if(cfra < handle->startframe || cfra >= handle->endframe || handle->mute || (scene->audio.flag & AUDIO_MUTE))
 		{
 			if(handle->state == AUD_STATUS_PLAYING)
 			{
@@ -421,7 +421,7 @@ void sound_scrub(struct bContext *C)
 	int cfra = CFRA;
 	float fps = FPS;
 
-	if(scene->r.audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
+	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
 	{
 		AUD_lock();
 
@@ -443,7 +443,7 @@ void sound_scrub(struct bContext *C)
 	}
 }
 
-AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int end)
+AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int end, float volume)
 {
 	AUD_Device* mixdown = AUD_openReadDevice(specs);
 	SoundHandle *handle;
@@ -452,6 +452,8 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 	int frameskip, s, e;
 
 	end++;
+
+	AUD_setDeviceVolume(mixdown, volume);
 
 	for(handle = scene->sound_handles.first; handle; handle = handle->next)
 	{

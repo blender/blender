@@ -33,6 +33,7 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
+struct bContext;
 struct Brush;
 struct Mesh;
 struct Object;
@@ -52,6 +53,8 @@ struct Brush *sculptmode_brush(void);
 
 char sculpt_modifiers_active(struct Object *ob);
 void sculpt(Sculpt *sd);
+
+int sculpt_poll(struct bContext *C);
 
 /* Stroke */
 struct SculptStroke *sculpt_stroke_new(const int max);

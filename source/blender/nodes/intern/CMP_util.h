@@ -141,7 +141,7 @@ void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 									  int src1_type, int fac1_type, int src2_type, int fac2_type);
 
 CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel);
-void generate_preview(bNode *node, CompBuf *stackbuf);
+void generate_preview(void *data, bNode *node, CompBuf *stackbuf);
 
 void do_copy_rgba(bNode *node, float *out, float *in);
 void do_copy_rgb(bNode *node, float *out, float *in);
@@ -168,7 +168,7 @@ typedef float fRGB[4];
 /* clear color */
 #define fRGB_clear(c) { c[0]=c[1]=c[2]=0.f; }
 /* copy c2 to c1 */
-#define fRGB_copy(c1, c2) { c1[0]=c2[0];  c1[1]=c2[1];  c1[2]=c2[2]; }
+#define fRGB_copy(c1, c2) { c1[0]=c2[0];  c1[1]=c2[1];  c1[2]=c2[2]; c1[3]=c2[3]; }
 /* add c2 to c1 */
 #define fRGB_add(c1, c2) { c1[0]+=c2[0];  c1[1]+=c2[1];  c1[2]+=c2[2]; }
 /* subtract c2 from c1 */
@@ -186,7 +186,8 @@ typedef float fRGB[4];
 /* swap colors c1 & c2 */
 #define fRGB_swap(c1, c2) { float _t=c1[0];  c1[0]=c2[0];  c2[0]=_t;\
                                   _t=c1[1];  c1[1]=c2[1];  c2[1]=_t;\
-                                  _t=c1[2];  c1[2]=c2[2];  c2[2]=_t; }
+                                  _t=c1[2];  c1[2]=c2[2];  c2[2]=_t;\
+								  _t=c1[3];  c1[3]=c2[3];  c3[3]=_t;}
 
 void qd_getPixel(CompBuf* src, int x, int y, float* col);
 void qd_setPixel(CompBuf* src, int x, int y, float* col);

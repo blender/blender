@@ -43,7 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "MTC_matrixops.h"
+
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -119,7 +119,7 @@ int vertex_paint_mode_poll(bContext *C)
 	return ob && ob->mode == OB_MODE_VERTEX_PAINT;
 }
 
-static int vp_poll(bContext *C)
+int vertex_paint_poll(bContext *C)
 {
 	if(vertex_paint_mode_poll(C) && 
 	   paint_brush(&CTX_data_tool_settings(C)->vpaint->paint)) {
@@ -133,7 +133,7 @@ static int vp_poll(bContext *C)
 	return 0;
 }
 
-static int wp_poll(bContext *C)
+int weight_paint_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
@@ -295,7 +295,7 @@ void make_vertexcol(Scene *scene, int shade)	/* single ob */
 	else
 		memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	
 }
 
@@ -358,7 +358,7 @@ void clear_vpaint(Scene *scene, int selected)
 		}
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
 
@@ -394,7 +394,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 	
 	/* directly copied from weight_paint, should probaby split into a seperate function */
 	/* if mirror painting, find the other group */		
-	if(wp->flag & VP_MIRROR_X) {
+	if(me->editflag & ME_EDIT_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
 		if(defgroup) {
 			bDeformGroup *curdef;
@@ -408,8 +408,8 @@ void clear_wpaint_selectedfaces(Scene *scene)
 				if (!strcmp(curdef->name, name))
 					break;
 			if(curdef==NULL) {
-				int olddef= ob->actdef;	/* tsk, add_defgroup sets the active defgroup */
-				curdef= add_defgroup_name (ob, name);
+				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
+				curdef= ED_vgroup_add_name (ob, name);
 				ob->actdef= olddef;
 			}
 			
@@ -431,22 +431,22 @@ void clear_wpaint_selectedfaces(Scene *scene)
 			faceverts[3]= mface->v4;
 			for (i=0; i<3 || faceverts[i]; i++) {
 				if(!((me->dvert+faceverts[i])->flag)) {
-					dw= verify_defweight(me->dvert+faceverts[i], vgroup);
+					dw= ED_vgroup_weight_verify(me->dvert+faceverts[i], vgroup);
 					if(dw) {
-						uw= verify_defweight(wp->wpaint_prev+faceverts[i], vgroup);
+						uw= ED_vgroup_weight_verify(wp->wpaint_prev+faceverts[i], vgroup);
 						uw->weight= dw->weight; /* set the undo weight */
 						dw->weight= paintweight;
 						
-						if(wp->flag & VP_MIRROR_X) {	/* x mirror painting */
+						if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 							int j= mesh_get_x_mirror_vert(ob, faceverts[i]);
 							if(j>=0) {
 								/* copy, not paint again */
 								if(vgroup_mirror != -1) {
-									dw= verify_defweight(me->dvert+j, vgroup_mirror);
-									uw= verify_defweight(wp->wpaint_prev+j, vgroup_mirror);
+									dw= ED_vgroup_weight_verify(me->dvert+j, vgroup_mirror);
+									uw= ED_vgroup_weight_verify(wp->wpaint_prev+j, vgroup_mirror);
 								} else {
-									dw= verify_defweight(me->dvert+j, vgroup);
-									uw= verify_defweight(wp->wpaint_prev+j, vgroup);
+									dw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
+									uw= ED_vgroup_weight_verify(wp->wpaint_prev+j, vgroup);
 								}
 								uw->weight= dw->weight; /* set the undo weight */
 								dw->weight= paintweight;
@@ -468,7 +468,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 	MEM_freeN(indexar);
 	copy_wpaint_prev(wp, NULL, 0);
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
 
@@ -710,7 +710,9 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	
 	if(totface+4>=MAXINDEX) return 0;
 	
-	if(size>64.0) size= 64.0;
+	/* brecht: disabled this because it obviously failes for
+	   brushes with size > 64, why is this here? */
+	/*if(size>64.0) size= 64.0;*/
 	
 	ibuf= view3d_read_backbuf(vc, x-size, y-size, x+size, y+size);
 	if(ibuf) {
@@ -923,7 +925,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 					val= 0; // XXX pupmenu(str);
 					if(val>=0) {
 						ob->actdef= val+1;
-						DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+						DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 					}
 					MEM_freeN(str);
 				}
@@ -963,20 +965,20 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
-					dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
+					dw= ED_vgroup_weight_get(me->dvert+mface->v1, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w2==fac) {
-					dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
+					dw= ED_vgroup_weight_get(me->dvert+mface->v2, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w3==fac) {
-					dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
+					dw= ED_vgroup_weight_get(me->dvert+mface->v3, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
-						dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
+						dw= ED_vgroup_weight_get(me->dvert+mface->v4, ob->actdef-1);
 						if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 					}
 				}
@@ -995,26 +997,26 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 	int vgroup= ob->actdef-1;
 	
 	if(wp->flag & VP_ONLYVGROUP) {
-		dw= get_defweight(me->dvert+index, vgroup);
-		uw= get_defweight(wp->wpaint_prev+index, vgroup);
+		dw= ED_vgroup_weight_get(me->dvert+index, vgroup);
+		uw= ED_vgroup_weight_get(wp->wpaint_prev+index, vgroup);
 	}
 	else {
-		dw= verify_defweight(me->dvert+index, vgroup);
-		uw= verify_defweight(wp->wpaint_prev+index, vgroup);
+		dw= ED_vgroup_weight_verify(me->dvert+index, vgroup);
+		uw= ED_vgroup_weight_verify(wp->wpaint_prev+index, vgroup);
 	}
 	if(dw==NULL || uw==NULL)
 		return;
 	
 	wpaint_blend(wp, dw, uw, (float)alpha/255.0, paintweight);
 	
-	if(wp->flag & VP_MIRROR_X) {	/* x mirror painting */
+	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
 			/* copy, not paint again */
 			if(vgroup_mirror != -1)
-				uw= verify_defweight(me->dvert+j, vgroup_mirror);
+				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup_mirror);
 			else
-				uw= verify_defweight(me->dvert+j, vgroup);
+				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
 				
 			uw->weight= dw->weight;
 		}
@@ -1049,7 +1051,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		* exit (exit needs doing regardless because we
 				* should redeform).
 		*/
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	
 	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 		Object *par;
@@ -1058,7 +1060,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
 
 		paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
-		paint_cursor_start(C, wp_poll);
+		paint_cursor_start(C, weight_paint_poll);
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
 		
@@ -1070,7 +1072,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 				if(pchan->bone->flag & BONE_ACTIVE)
 					break;
 				if(pchan)
-					vertexgroup_select_by_name(ob, pchan->name);
+					ED_vgroup_select_by_name(ob, pchan->name);
 		}
 	}
 	else {
@@ -1127,14 +1129,18 @@ static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		paint_cursor_start(C, vp_poll);
+		paint_cursor_start(C, vertex_paint_poll);
 	return ret;
 }
 
 static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->vpaint->paint);
-	return brush_radial_control_exec(op, brush, 1);
+	int ret = brush_radial_control_exec(op, brush, 1);
+	
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+	
+	return ret;
 }
 
 static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1152,14 +1158,18 @@ static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		paint_cursor_start(C, wp_poll);
+		paint_cursor_start(C, weight_paint_poll);
 	return ret;
 }
 
 static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->wpaint->paint);
-	return brush_radial_control_exec(op, brush, 1);
+	int ret = brush_radial_control_exec(op, brush, 1);
+	
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+	
+	return ret;
 }
 
 void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
@@ -1172,7 +1182,7 @@ void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
 	ot->invoke= wpaint_radial_control_invoke;
 	ot->modal= wpaint_radial_control_modal;
 	ot->exec= wpaint_radial_control_exec;
-	ot->poll= wp_poll;
+	ot->poll= weight_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1188,7 +1198,7 @@ void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
 	ot->invoke= vpaint_radial_control_invoke;
 	ot->modal= vpaint_radial_control_modal;
 	ot->exec= vpaint_radial_control_exec;
-	ot->poll= vp_poll;
+	ot->poll= vertex_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1222,7 +1232,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert)
-		create_dverts(&me->id);
+		ED_vgroup_data_create(&me->id);
 	
 	/* make mode data storage */
 	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
@@ -1256,14 +1266,14 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 			if(pchan) {
 				bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
 				if(dg==NULL)
-					dg= add_defgroup_name(ob, pchan->name);	/* sets actdef */
+					dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
 				else
 					ob->actdef= get_defgroup_num(ob, dg);
 			}
 		}
 	}
 	if(ob->defbase.first==NULL) {
-		add_defgroup(ob);
+		ED_vgroup_add(ob);
 	}	
 	
 	//	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
@@ -1274,7 +1284,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	Mat3CpyMat4(wpd->wpimat, imat);
 	
 	/* if mirror painting, find the other group */
-	if(wp->flag & VP_MIRROR_X) {
+	if(me->editflag & ME_EDIT_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
 		if(defgroup) {
 			bDeformGroup *curdef;
@@ -1288,8 +1298,8 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 				if (!strcmp(curdef->name, name))
 					break;
 			if(curdef==NULL) {
-				int olddef= ob->actdef;	/* tsk, add_defgroup sets the active defgroup */
-				curdef= add_defgroup_name (ob, name);
+				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
+				curdef= ED_vgroup_add_name (ob, name);
 				ob->actdef= olddef;
 			}
 			
@@ -1327,7 +1337,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;
 			
-	MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
+	Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
 			
 	/* which faces are involved */
 	if(wp->flag & VP_AREA) {
@@ -1381,10 +1391,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
 			if(wp->mode==VP_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = ED_vgroup_weight_verify;
 						
 				if(wp->flag & VP_ONLYVGROUP)
-					dw_func= get_defweight;
+					dw_func= ED_vgroup_weight_get;
 						
 				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
 				if(dw) {paintweight+= dw->weight; totw++;}
@@ -1444,9 +1454,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 			
-	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+	Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
-	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 	ED_region_tag_redraw(vc->ar);
 }
 
@@ -1478,7 +1488,7 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 		}
 	}
 	
-	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 	
 	MEM_freeN(wpd);
 }
@@ -1492,7 +1502,7 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					  wpaint_stroke_done);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	op->type->modal(C, op, event);
 	
@@ -1510,7 +1520,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	ot->invoke= wpaint_invoke;
 	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
-	ot->poll= wp_poll;
+	ot->poll= weight_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1557,14 +1567,14 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(vp==NULL)
 			vp= scene->toolsettings->vpaint= new_vpaint(0);
 		
-		paint_cursor_start(C, vp_poll);
+		paint_cursor_start(C, vertex_paint_poll);
 
 		paint_init(&vp->paint, PAINT_CURSOR_VERTEX_PAINT);
 	}
 	
 	if (me)
 		/* update modifier stack for mapping requirements */
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);
 	
@@ -1724,18 +1734,22 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		else totindex= 0;
 	}
 			
-	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+	Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 	for(index=0; index<totindex; index++) {				
 		if(indexar[index] && indexar[index]<=me->totface)
 			vpaint_paint_face(vp, vpd, ob, indexar[index]-1, mval);
 	}
 						
-	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+	Mat4SwapMat4(vc->rv3d->persmat, mat);
+
+	/* was disabled because it is slow, but necessary for blur */
+	if(vp->mode == VP_BLUR)
+		do_shared_vertexcol(me);
 			
 	ED_region_tag_redraw(vc->ar);
 			
-	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 }
 
 static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
@@ -1761,7 +1775,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					  vpaint_stroke_done);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	op->type->modal(C, op, event);
 	
@@ -1778,7 +1792,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	ot->invoke= vpaint_invoke;
 	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
-	ot->poll= vp_poll;
+	ot->poll= vertex_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

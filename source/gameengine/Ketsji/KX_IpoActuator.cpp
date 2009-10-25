@@ -71,7 +71,7 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   bool ipo_as_force,
 							   bool ipo_add,
 							   bool ipo_local)
-	: SCA_IActuator(gameobj),
+	: SCA_IActuator(gameobj, KX_ACT_IPO),
 	m_bNegativeEvent(false),
 	m_startframe (starttime),
 	m_endframe(endtime),
@@ -404,10 +404,11 @@ int KX_IpoActuator::string2mode(char* modename) {
 	return res;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
-
 
 
 /* Integration hooks ------------------------------------------------------- */
@@ -450,5 +451,7 @@ PyAttributeDef KX_IpoActuator::Attributes[] = {
 	
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

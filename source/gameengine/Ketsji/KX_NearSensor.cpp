@@ -142,6 +142,22 @@ KX_NearSensor::~KX_NearSensor()
 		delete m_client_info;
 }
 
+void KX_NearSensor::SetPhysCtrlRadius()
+{
+	if (m_bTriggered)
+	{
+		if (m_physCtrl)
+		{
+			m_physCtrl->SetRadius(m_ResetMargin);
+		}
+	} else
+	{
+		if (m_physCtrl)
+		{
+			m_physCtrl->SetRadius(m_Margin);
+		}
+	}
+}
 
 bool KX_NearSensor::Evaluate()
 {
@@ -151,20 +167,9 @@ bool KX_NearSensor::Evaluate()
 	if (m_bTriggered != m_bLastTriggered)
 	{
 		m_bLastTriggered = m_bTriggered;
-		if (m_bTriggered)
-		{
-			if (m_physCtrl)
-			{
-				m_physCtrl->SetRadius(m_ResetMargin);
-			}
-		} else
-		{
-			if (m_physCtrl)
-			{
-				m_physCtrl->SetRadius(m_Margin);
-			}
-
-		}
+		
+		SetPhysCtrlRadius();
+		
 		result = true;
 	}
 
@@ -240,12 +245,11 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 	return false; // was DT_CONTINUE; but this was defined in Sumo as false
 }
 
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python Functions															 */
 /* ------------------------------------------------------------------------- */
-
-//No methods
 
 /* ------------------------------------------------------------------------- */
 /* Python Integration Hooks                                                  */
@@ -283,3 +287,5 @@ PyAttributeDef KX_NearSensor::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("resetDistance", 0, 100, KX_NearSensor, m_ResetMargin, CheckResetDistance),
 	{NULL} //Sentinel
 };
+
+#endif // DISABLE_PYTHON

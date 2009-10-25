@@ -230,7 +230,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 				rect_float[2]= (float)(image->comps[2].data[index] + signed_offsets[2]) / float_divs[2];
 				
 				if (image->numcomps >= 4)
-					rect_float[3]= (float)(image->comps[2].data[index] + signed_offsets[3]) / float_divs[3];
+					rect_float[3]= (float)(image->comps[3].data[index] + signed_offsets[3]) / float_divs[3];
 				else
 					rect_float[3]= 1.0f;
 			}
@@ -260,7 +260,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 				rect[2]= image->comps[2].data[index] + signed_offsets[2];
 				
 				if (image->numcomps >= 4)
-					rect[3]= image->comps[2].data[index] + signed_offsets[3];
+					rect[3]= image->comps[3].data[index] + signed_offsets[3];
 				else
 					rect[3]= 255;
 			}

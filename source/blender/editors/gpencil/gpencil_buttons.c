@@ -215,7 +215,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		/* onion-skinning */
 		subcol= uiLayoutColumn(col, 1);
 			uiItemR(subcol, "Onion Skinning", 0, &ptr, "use_onion_skinning", 0);
-			uiItemR(subcol, "GStep", 0, &ptr, "max_ghost_range", 0); // XXX shorter name here? (i.e. GStep)
+			uiItemR(subcol, "Frames", 0, &ptr, "max_ghost_range", 0); // XXX shorter name here? (i.e. GStep)
 		
 		/* additional options... */
 		subcol= uiLayoutColumn(col, 1);
@@ -238,7 +238,7 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 	col= uiLayoutColumn(layout, 0);
 		/* current Grease Pencil block */
 		// TODO: show some info about who owns this?
-		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", "GPENCIL_OT_data_unlink"); 
+		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", NULL, "GPENCIL_OT_data_unlink"); 
 		
 		/* add new layer button - can be used even when no data, since it can add a new block too */
 		uiItemO(col, NULL, 0, "GPENCIL_OT_layer_add");

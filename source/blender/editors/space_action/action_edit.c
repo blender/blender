@@ -86,7 +86,58 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
+
 #include "action_intern.h"
+
+/* ************************************************************************** */
+/* ACTION MANAGEMENT */
+
+/* ******************** New Action Operator *********************** */
+
+static int act_new_exec(bContext *C, wmOperator *op)
+{
+	bAction *action;
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
+
+	// XXX need to restore behaviour to copy old actions...
+	action= add_empty_action("Action");
+
+	/* hook into UI */
+	uiIDContextProperty(C, &ptr, &prop);
+
+	if(prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		action->id.us--;
+
+		RNA_id_pointer_create(&action->id, &idptr);
+		RNA_property_pointer_set(&ptr, prop, idptr);
+		RNA_property_update(C, &ptr, prop);
+	}
+
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_new (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New";
+	ot->idname= "ACT_OT_new";
+	ot->description= "Create new action.";
+	
+	/* api callbacks */
+	ot->exec= act_new_exec;
+		// NOTE: this is used in the NLA too...
+	//ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* ************************************************************************** */
 /* KEYFRAME-RANGE STUFF */

@@ -26,8 +26,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+struct bContext;
+struct Object;
+struct wmKeyConfig;
+
 void ED_operatortypes_metaball(void);
-void ED_keymap_metaball(struct wmWindowManager *wm);
+void ED_keymap_metaball(struct wmKeyConfig *keyconf);
 
 struct MetaElem *add_metaball_primitive(struct bContext *C, int type, int newname);
 
@@ -36,4 +40,6 @@ void mouse_mball(struct bContext *C, short mval[2], int extend);
 void free_editMball(struct Object *obedit);
 void make_editMball(struct Object *obedit);
 void load_editMball(struct Object *obedit);
+
+void undo_push_mball(struct bContext *C, char *name);
 

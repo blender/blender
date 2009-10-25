@@ -31,9 +31,15 @@
 struct Material;
 struct Scene;
 struct Tex;
+struct bContext;
+struct bNode;
+struct ID;
 
 /* drawnode.c */
 void ED_init_node_butfuncs(void);
+
+/* node_draw.c */
+void ED_node_changed_update(struct ID *id, struct bNode *node);
 
 /* node_edit.c */
 void ED_node_shader_default(struct Material *ma);

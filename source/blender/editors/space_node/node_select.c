@@ -38,6 +38,7 @@
 #include "BKE_context.h"
 #include "BKE_node.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_rect.h"
 
@@ -55,7 +56,7 @@
  
 #include "node_intern.h"
  
-static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
+static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
 {
 	bNode *node;
 	float mx, my;
@@ -83,7 +84,7 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 	}
 	if(node) {
 		if((extend & KM_SHIFT)==0)
-			node_deselectall(snode, 0);
+			node_deselectall(snode);
 		
 		if(extend & KM_SHIFT) {
 			if(node->flag & SELECT)
@@ -101,7 +102,10 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 			;//	node_link_viewer(snode, node);
 		
 		//std_rmouse_transform(node_transform_ext);	/* does undo push for select */
+
 	}
+
+	return node;
 }
 
 static int node_select_exec(bContext *C, wmOperator *op)
@@ -112,6 +116,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	int select_type;
 	short mval[2];
 	short extend;
+	bNode *node= NULL;
 
 	select_type = RNA_enum_get(op->ptr, "select_type");
 	
@@ -120,12 +125,20 @@ static int node_select_exec(bContext *C, wmOperator *op)
 			mval[0] = RNA_int_get(op->ptr, "mouse_x");
 			mval[1] = RNA_int_get(op->ptr, "mouse_y");
 			extend = RNA_boolean_get(op->ptr, "extend");
-			node_mouse_select(snode, ar, mval, extend);
+			node= node_mouse_select(snode, ar, mval, extend);
 			break;
 	}
 
 	/* need refresh/a notifier vs compo notifier */
 	// XXX WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+
+	/* WATCH THIS, there are a few other ways to change the active material */
+	if(node) {
+		if (node->id && GS(node->id->name)== ID_MA) {
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, node->id);
+		}
+	}
+
 	ED_region_tag_redraw(ar);
 	
 	/* allow tweak event to work too */
@@ -140,7 +153,7 @@ static int node_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			printf("%d %d\n", event->x, event->y);
 			break;
 		case SELECTMOUSE:
-			//if (event->val==0) {
+			//if (event->val==KM_RELEASE) {
 				/* calculate overall delta mouse-movement for redo */
 				printf("done translating\n");
 				//WM_cursor_restore(CTX_wm_window(C));
@@ -224,12 +237,6 @@ void NODE_OT_select(wmOperatorType *ot)
 
 /* ****** Border Select ****** */
 
-static EnumPropertyItem prop_select_types[] = {
-	{NODE_EXCLUSIVE, "EXCLUSIVE", 0, "Exclusive", ""}, /* right mouse */
-	{NODE_EXTEND, "EXTEND", 0, "Extend", ""}, /* left mouse */
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int node_borderselect_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
@@ -288,6 +295,122 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-
-	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
+
+/* ****** Select/Deselect All ****** */
+
+static int node_select_all_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNode *first = snode->edittree->nodes.first;
+	bNode *node;
+	int count= 0;
+
+	for(node=first; node; node=node->next)
+		if(node->flag & NODE_SELECT)
+			count++;
+
+	if(count) {
+		for(node=first; node; node=node->next)
+			node->flag &= ~NODE_SELECT;
+	}
+	else {
+		for(node=first; node; node=node->next)
+			node->flag |= NODE_SELECT;
+	}
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select/Deselect All";
+	ot->description = "(De)select all nodes.";
+	ot->idname = "NODE_OT_select_all";
+	
+	/* api callbacks */
+	ot->exec = node_select_all_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****** Select Linked To ****** */
+
+static int node_select_linked_to_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeLink *link;
+	bNode *node;
+	
+	for (node=snode->edittree->nodes.first; node; node=node->next)
+		node->flag &= ~NODE_TEST;
+
+	for (link=snode->edittree->links.first; link; link=link->next)
+		if (link->fromnode->flag & NODE_SELECT)
+			link->tonode->flag |= NODE_TEST;
+	
+	for (node=snode->edittree->nodes.first; node; node=node->next)
+		if (node->flag & NODE_TEST)
+			node->flag |= NODE_SELECT;
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_linked_to(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Linked To";
+	ot->description = "Select nodes linked to the selected ones.";
+	ot->idname = "NODE_OT_select_linked_to";
+	
+	/* api callbacks */
+	ot->exec = node_select_linked_to_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****** Select Linked From ****** */
+
+static int node_select_linked_from_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeLink *link;
+	bNode *node;
+	
+	for(node=snode->edittree->nodes.first; node; node=node->next)
+		node->flag &= ~NODE_TEST;
+
+	for(link=snode->edittree->links.first; link; link=link->next)
+		if(link->tonode->flag & NODE_SELECT)
+			link->fromnode->flag |= NODE_TEST;
+	
+	for(node=snode->edittree->nodes.first; node; node=node->next)
+		if(node->flag & NODE_TEST)
+			node->flag |= NODE_SELECT;
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_linked_from(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Linked From";
+	ot->description = "Select nodes linked from the selected ones.";
+	ot->idname = "NODE_OT_select_linked_from";
+	
+	/* api callbacks */
+	ot->exec = node_select_linked_from_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+

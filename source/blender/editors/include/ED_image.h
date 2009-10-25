@@ -38,7 +38,10 @@ struct uiBlock;
 struct Image *ED_space_image(struct SpaceImage *sima);
 void ED_space_image_set(struct bContext *C, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
 
-struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima);
+struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r);
+void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock);
+int ED_space_image_has_buffer(struct SpaceImage *sima);
+
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height);
 void ED_space_image_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 void ED_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy);
@@ -52,9 +55,6 @@ int ED_space_image_show_render(struct SpaceImage *sima);
 int ED_space_image_show_paint(struct SpaceImage *sima);
 int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
 int ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit);
-
-void ED_image_uiblock_panel(const struct bContext *C, struct uiBlock *block, struct Image **ima_pp, 
-							struct ImageUser *iuser, short redraw, short imagechanged);
 
 /* image_render.c, export for screen_ops.c, render operator */
 void ED_space_image_output(struct bContext *C);

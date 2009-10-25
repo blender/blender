@@ -26,9 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-float vol_get_stepsize(struct ShadeInput *shi, int context);
 float vol_get_density(struct ShadeInput *shi, float *co);
-void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co, float stepsize, float density);
+void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co_);
 
 void shade_volume_outside(ShadeInput *shi, ShadeResult *shr);
 void shade_volume_inside(ShadeInput *shi, ShadeResult *shr);

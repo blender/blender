@@ -50,7 +50,7 @@ static void time_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in,
 
 static void time_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	tex_output(node, in, out[0], &time_colorfn);
+	tex_output(node, in, out[0], &time_colorfn, data);
 }
 
 
@@ -100,7 +100,7 @@ static void rgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, 
 
 static void rgb_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	tex_output(node, in, out[0], &rgb_colorfn);
+	tex_output(node, in, out[0], &rgb_colorfn, data);
 }
 
 static void rgb_init(bNode *node)

@@ -83,7 +83,7 @@ int multiresModifier_switch_level(Object *ob, const int distance)
 		mmd->lvl += distance;
 		if(mmd->lvl < 1) mmd->lvl = 1;
 		else if(mmd->lvl > mmd->totlvl) mmd->lvl = mmd->totlvl;
-		/* XXX: DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+		/* XXX: DAG_id_flush_update(&ob->id, OB_RECALC_DATA); 
 		   object_handle_update(ob);*/
 		return 1;
 	}
@@ -142,6 +142,7 @@ void multiresModifier_join(Object *ob)
 				
 				mmd = (MultiresModifierData*)modifier_new(eModifierType_Multires);
 				BLI_insertlinkbefore(&base->object->modifiers, md, mmd);
+				modifier_unique_name(&base->object->modifiers, mmd);
 			}
 
 			if(mmd)
@@ -596,7 +597,7 @@ static void find_displacer_edges(MultiresDisplacer *d, DerivedMesh *dm, Displace
 }
 
 /* Returns in out the corners [0-3] that use v1 and v2 */
-void find_face_corners(MFace *f, int v1, int v2, int out[2])
+static void find_face_corners(MFace *f, int v1, int v2, int out[2])
 {
 	int i, end = f->v4 ? 4 : 3;
 
@@ -1259,7 +1260,7 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, i
 ***************************/
 
 /* Does not actually free lvl itself */
-void multires_free_level(MultiresLevel *lvl)
+static void multires_free_level(MultiresLevel *lvl)
 {
 	if(lvl) {
 		if(lvl->faces) MEM_freeN(lvl->faces);

@@ -61,12 +61,6 @@ extern struct EditEdge *addedgelist(EditMesh *em, struct EditVert *v1, struct Ed
 extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
 extern struct EditEdge *findedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2);
 
-EditVert *editedge_getOtherVert(EditEdge *eed, EditVert *eve);
-EditVert *editedge_getSharedVert(EditEdge *eed, EditEdge *eed2);
-int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
-int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
-int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
-
 void em_setup_viewcontext(struct bContext *C, ViewContext *vc);
 
 void MESH_OT_separate(struct wmOperatorType *ot);
@@ -164,7 +158,6 @@ void MESH_OT_edges_select_sharp(struct wmOperatorType *ot);
 void MESH_OT_select_shortest_path(struct wmOperatorType *ot);
 void MESH_OT_select_similar(struct wmOperatorType *ot);
 void MESH_OT_select_random(struct wmOperatorType *ot);
-void MESH_OT_vertices_transform_to_sphere(struct wmOperatorType *ot);
 void MESH_OT_selection_type(struct wmOperatorType *ot);
 void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
@@ -173,7 +166,7 @@ void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
-extern void EM_automerge(int update);
+extern void EM_automerge(Scene *scene, Object *obedit, int update);
 void editmesh_select_by_material(EditMesh *em, int index);
 void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);
@@ -233,6 +226,8 @@ void MESH_OT_colors_mirror(struct wmOperatorType *ot);
 void MESH_OT_delete(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 
+void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
+
 /* ******************* mesh_layers.c */
 
 void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
@@ -241,6 +236,9 @@ void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
 void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
 void MESH_OT_sticky_add(struct wmOperatorType *ot);
 void MESH_OT_sticky_remove(struct wmOperatorType *ot);
+
+void MESH_OT_edgering_select(struct wmOperatorType *ot);
+void MESH_OT_loopcut(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

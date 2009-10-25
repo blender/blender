@@ -103,6 +103,7 @@ public:
 	virtual bool IsPositiveTrigger();
 	bool	TriggerOnAllKeys();
 
+#ifndef DISABLE_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -113,6 +114,7 @@ public:
 	KX_PYMETHOD_DOC_O(SCA_KeyboardSensor,getKeyStatus);
 	
 	static PyObject*	pyattr_get_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+#endif
 };
 
 

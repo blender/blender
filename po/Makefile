@@ -50,9 +50,11 @@ LINGUAS_DEST= $(foreach LINGUA, $(LINGUAS),$(DIR)$(LINGUA)/LC_MESSAGES/blender.m
 $(DIR)%/LC_MESSAGES/blender.mo: %.po
 	mkdir -p $(@D)
 	msgfmt -o $@ $<
+ifeq ($(BF_VERIFY_MO_FILES), true)
 	@cmp $@ $(NANBLENDERHOME)/bin/.blender/locale/$(basename $<)/LC_MESSAGES/blender.mo \
           || ( echo Mismatch between generated and commited $(basename $<).mo catalog && \
                rm -f $@ && false )
+endif
 
 all debug:: $(LINGUAS_DEST)
 #	Just trigger the deps

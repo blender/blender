@@ -42,8 +42,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\ghost\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\blenkey\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\..\build\msvc_9\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\editors\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\windowmanager;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\ghost\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\blenkey\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\..\build\msvc_9\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\editors\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\windowmanager;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern;..\..\..\source\blender\ikplugin"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CONSOLE;GAMEBLENDER=1;WITH_QUICKTIME;INTERNATIONAL;WITH_FREETYPE2;WITH_INTERNATIONAL;WITH_OPENEXR;WITH_DDS;WITH_BULLET=1;WITH_FFMPEG"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -118,7 +119,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\ghost\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\blenkey\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\..\build\msvc_9\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\editors\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\windowmanager;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\ghost\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\blenkey\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\..\build\msvc_9\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\editors\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\windowmanager;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern;..\..\..\source\blender\ikplugin"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CONSOLE;GAMEBLENDER=1;WITH_QUICKTIME;INTERNATIONAL;WITH_BF_INTERNATIONAL;WITH_FREETYPE2;WITH_OPENEXR;WITH_DDS;WITH_BULLET = 1;WITH_FFMPEG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -270,7 +271,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\include\ED_previewrender.h"
+				RelativePath="..\..\..\source\blender\editors\include\ED_render.h"
 				>
 			</File>
 			<File
@@ -379,7 +380,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\datafiles\splash.jpg.c"
+				RelativePath="..\..\..\source\blender\editors\datafiles\splash.png.c"
 				>
 			</File>
 		</Filter>
@@ -1075,19 +1076,11 @@
 			Name="object"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\editconstraint.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_add.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\editgroup.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\object\editkey.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\object\editlattice.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_constraint.c"
 				>
 			</File>
 			<File
@@ -1095,7 +1088,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_group.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_hook.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_lattice.c"
 				>
 			</File>
 			<File
@@ -1104,6 +1109,22 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_relations.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_select.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_shapekey.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_transform.c"
 				>
 			</File>
 			<File
@@ -1195,11 +1216,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\mesh_intern.h"
+				RelativePath="..\..\..\source\blender\editors\mesh\loopcut.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\mesh_layers.c"
+				RelativePath="..\..\..\source\blender\editors\mesh\mesh_data.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\mesh_intern.h"
 				>
 			</File>
 			<File
@@ -1260,6 +1285,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\armature\poseobject.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\poseSlide.c"
 				>
 			</File>
 			<File
@@ -1392,38 +1421,34 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="preview"
-			>
-			<File
-				RelativePath="..\..\..\source\blender\editors\preview\previewrender.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\preview\previewrender_intern.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="physics"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\physics\ed_fluidsim.c"
+				RelativePath="..\..\..\source\blender\editors\physics\particle_boids.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\physics\ed_pointcache.c"
+				RelativePath="..\..\..\source\blender\editors\physics\particle_edit.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\physics\editparticle.c"
+				RelativePath="..\..\..\source\blender\editors\physics\particle_object.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\physics\physics_boids.c"
+				RelativePath="..\..\..\source\blender\editors\physics\physics_fluid.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\physics\physics_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\physics\physics_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\physics\physics_pointcache.c"
 				>
 			</File>
 		</Filter>
@@ -1479,7 +1504,7 @@
 			Name="metaball"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\metaball\editmball.c"
+				RelativePath="..\..\..\source\blender\editors\metaball\mball_edit.c"
 				>
 			</File>
 			<File
@@ -1516,6 +1541,26 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\sound\sound_ops.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="render"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_preview.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_shading.c"
 				>
 			</File>
 		</Filter>

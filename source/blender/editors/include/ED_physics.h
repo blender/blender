@@ -30,12 +30,11 @@
 #ifndef ED_PHYSICS_H
 #define ED_PHYSICS_H
 
-/* operators */
+struct wmKeyConfig;
 
-void ED_operatortypes_boids(void);
-void ED_operatortypes_pointcache(void);
-void ED_operatortypes_fluid(void);
-//void ED_keymap_pointcache(struct wmWindowManager *wm);
+/* operators */
+void ED_operatortypes_physics(void);
+void ED_keymap_physics(struct wmKeyConfig *keyconf);
 
 #endif /* ED_PHYSICS_H */
 

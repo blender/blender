@@ -51,7 +51,7 @@ KX_ParentActuator::KX_ParentActuator(SCA_IObject *gameobj,
 									 bool addToCompound,
 									 bool ghost,
 									 SCA_IObject *ob)
-	: SCA_IActuator(gameobj),
+	: SCA_IActuator(gameobj, KX_ACT_PARENT),
 	  m_mode(mode),
 	  m_addToCompound(addToCompound),
 	  m_ghost(ghost),
@@ -134,6 +134,8 @@ bool KX_ParentActuator::Update()
 	return false;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -200,5 +202,7 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 		
 	return PY_SET_ATTR_SUCCESS;
 }
+
+#endif // DISABLE_PYTHON
 
 /* eof */

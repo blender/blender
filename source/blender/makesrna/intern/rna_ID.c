@@ -33,6 +33,38 @@
 
 #include "rna_internal.h"
 
+/* enum of ID-block types 
+ * NOTE: need to keep this in line with the other defines for these
+ */
+EnumPropertyItem id_type_items[] = {
+	{ID_AC, "ACTION", ICON_ACTION, "Action", ""},
+	{ID_AR, "ARMATURE", ICON_ARMATURE_DATA, "Armature", ""},
+	{ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
+	{ID_CA, "CAMERA", ICON_CAMERA_DATA, "Camera", ""},
+	{ID_CU, "CURVE", ICON_CURVE_DATA, "Curve", ""},
+	{ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
+	{ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
+	{ID_GR, "GROUP", ICON_GROUP, "Group", ""},
+	{ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
+	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
+	{ID_LA, "LAMP", ICON_LAMP_DATA, "Lamp", ""},
+	{ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, "Library", ""},
+	{ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
+	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
+	{ID_MB, "META", ICON_META_DATA, "MetaBall", ""},
+	{ID_ME, "MESH", ICON_MESH_DATA, "Mesh", ""},
+	{ID_NT, "NODETREE", ICON_NODE, "NodeTree", ""},
+	{ID_OB, "OBJECT", ICON_OBJECT_DATA, "Object", ""},
+	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
+	{ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
+	{ID_SCR, "SCREEN", ICON_SPLITSCREEN, "Screen", ""},
+	{ID_SO, "SOUND", ICON_PLAY_AUDIO, "Sound", ""},
+	{ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
+	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
+	{ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},
+	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, "Window Manager", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_idprop.h"
@@ -178,6 +210,18 @@ StructRNA* rna_IDPropertyGroup_refine(PointerRNA *ptr)
 	return ptr->type;
 }
 
+ID *rna_ID_copy(ID *id)
+{
+	ID *newid;
+
+	if(id_copy(id, &newid, 0)) {
+		if(newid) newid->us--;
+		return newid;
+	}
+	
+	return NULL;
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -243,7 +287,8 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 static void rna_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
+	FunctionRNA *func;
+	PropertyRNA *prop, *parm;
 
 	srna= RNA_def_struct(brna, "ID", NULL);
 	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection.");
@@ -271,6 +316,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from.");
+
+	/* functions */
+	func= RNA_def_function(srna, "copy", "rna_ID_copy");
+	RNA_def_function_ui_description(func, "Create a copy of this datablock (not supported for all datablocks).");
+	parm= RNA_def_pointer(func, "id", "ID", "", "New copy of the ID.");
+	RNA_def_function_return(func, parm);
 }
 
 static void rna_def_library(BlenderRNA *brna)

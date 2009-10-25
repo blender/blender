@@ -205,9 +205,9 @@ CValue* CBoolValue::GetReplica()
 	return replica;
 }
 
-
-
+#ifndef DISABLE_PYTHON
 PyObject* CBoolValue::ConvertValueToPython()
 {
 	return PyBool_FromLong(m_bool != 0);
 }
+#endif // DISABLE_PYTHON

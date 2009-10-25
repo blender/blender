@@ -51,6 +51,9 @@ void node_operatortypes(void)
 {
 	WM_operatortype_append(NODE_OT_select);
 	WM_operatortype_append(NODE_OT_select_extend);
+	WM_operatortype_append(NODE_OT_select_all);
+	WM_operatortype_append(NODE_OT_select_linked_to);
+	WM_operatortype_append(NODE_OT_select_linked_from);
 	WM_operatortype_append(NODE_OT_visibility_toggle);
 	WM_operatortype_append(NODE_OT_view_all);
 	WM_operatortype_append(NODE_OT_select_border);
@@ -59,12 +62,15 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_resize);
 	WM_operatortype_append(NODE_OT_links_cut);
 	WM_operatortype_append(NODE_OT_duplicate);
-	
+	WM_operatortype_append(NODE_OT_group_make);
+	WM_operatortype_append(NODE_OT_group_ungroup);
+	WM_operatortype_append(NODE_OT_group_edit);
 }
 
-void node_keymap(struct wmWindowManager *wm)
+void node_keymap(struct wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Node", SPACE_NODE, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Node", SPACE_NODE, 0);
+	wmKeyMapItem *kmi;
 	
 	/* mouse select in nodes used to be both keys, it's UI elements... */
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
@@ -82,6 +88,18 @@ void node_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "NODE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "NODE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_select_linked_to", LKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_select_linked_from", LKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "NODE_OT_group_make", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
 	
-	transform_keymap_for_space(wm, keymap, SPACE_NODE);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "name", "NODE_MT_add");
+
+	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);
 }

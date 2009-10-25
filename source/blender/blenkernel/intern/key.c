@@ -35,6 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -57,7 +59,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_blenlib.h"
+#include "RNA_access.h"
 
 
 #ifdef HAVE_CONFIG_H
@@ -266,66 +268,91 @@ void sort_keys(Key *key)
 
 /**************** do the key ****************/
 
-
-void set_four_ipo(float d, float *data, int type)
+void key_curve_position_weights(float t, float *data, int type)
 {
-	float d2, d3, fc;
+	float t2, t3, fc;
 	
 	if(type==KEY_LINEAR) {
-		data[0]= 0.0f;
-		data[1]= 1.0f-d;
-		data[2]= d;
-		data[3]= 0.0f;
+		data[0]=		  0.0f;
+		data[1]= -t		+ 1.0f;
+		data[2]= t;
+		data[3]= 		  0.0f;
 	}
-	else {
-		d2= d*d;
-		d3= d2*d;
+	else if(type==KEY_CARDINAL) {
+		t2= t*t;
+		t3= t2*t;
+		fc= 0.71f;
 		
-		if(type==KEY_CARDINAL) {
+		data[0]= -fc*t3			+ 2.0f*fc*t2		- fc*t;
+		data[1]= (2.0f-fc)*t3	+ (fc-3.0f)*t2					+ 1.0f;
+		data[2]= (fc-2.0f)*t3	+ (3.0f-2.0f*fc)*t2	+ fc*t;
+		data[3]= fc*t3			- fc*t2;
+	}
+	else if(type==KEY_BSPLINE) {
+		t2= t*t;
+		t3= t2*t;
 
-			fc= 0.71f;
-			
-			data[0]= -fc*d3		+2.0f*fc*d2		-fc*d;
-			data[1]= (2.0f-fc)*d3	+(fc-3.0f)*d2				+1.0f;
-			data[2]= (fc-2.0f)*d3	+(3.0f-2.0f*fc)*d2 +fc*d;
-			data[3]= fc*d3			-fc*d2;
-		}
-		else if(type==KEY_BSPLINE) {
-
-			data[0]= -0.16666666f*d3	+0.5f*d2	-0.5f*d	+0.16666666f;
-			data[1]= 0.5f*d3		-d2				+0.6666666f;
-			data[2]= -0.5f*d3		+0.5f*d2	+0.5f*d	+0.16666666f;
-			data[3]= 0.16666666f*d3			;
-		}
+		data[0]= -0.16666666f*t3	+ 0.5f*t2	- 0.5f*t	+ 0.16666666f;
+		data[1]= 0.5f*t3			- t2					+ 0.6666666f;
+		data[2]= -0.5f*t3			+ 0.5f*t2	+ 0.5f*t	+ 0.16666666f;
+		data[3]= 0.16666666f*t3;
 	}
 }
 
-void set_afgeleide_four_ipo(float d, float *data, int type)
+/* first derivative */
+void key_curve_tangent_weights(float t, float *data, int type)
 {
-	float d2, fc;
+	float t2, fc;
 	
 	if(type==KEY_LINEAR) {
-
+		data[0]= 0.0f;
+		data[1]= -1.0f;
+		data[2]= 1.0f;
+		data[3]= 0.0f;
 	}
-	else {
-		d2= d*d;
+	else if(type==KEY_CARDINAL) {
+		t2= t*t;
+		fc= 0.71f;
 		
-		if(type==KEY_CARDINAL) {
+		data[0]= -3.0f*fc*t2		+4.0f*fc*t				- fc;
+		data[1]= 3.0f*(2.0f-fc)*t2	+2.0f*(fc-3.0f)*t;
+		data[2]= 3.0f*(fc-2.0f)*t2	+2.0f*(3.0f-2.0f*fc)*t	+ fc;
+		data[3]= 3.0f*fc*t2			-2.0f*fc*t;
+	}
+	else if(type==KEY_BSPLINE) {
+		t2= t*t;
 
-			fc= 0.71f;
-			
-			data[0]= -3.0f*fc*d2		+4.0f*fc*d		-fc;
-			data[1]= 3.0f*(2.0f-fc)*d2	+2.0f*(fc-3.0f)*d;
-			data[2]= 3.0f*(fc-2.0f)*d2	+2.0f*(3.0f-2.0f*fc)*d +fc;
-			data[3]= 3.0f*fc*d2			-2.0f*fc*d;
-		}
-		else if(type==KEY_BSPLINE) {
+		data[0]= -0.5f*t2	+ t			- 0.5f;
+		data[1]= 1.5f*t2	- 2.0f*t;
+		data[2]= -1.5f*t2	+ t			+ 0.5f;
+		data[3]= 0.5f*t2;
+	}
+}
 
-			data[0]= -0.16666666f*3.0f*d2	+d	-0.5f;
-			data[1]= 1.5f*d2		-2.0f*d;
-			data[2]= -1.5f*d2		+d	+0.5f;
-			data[3]= 0.16666666f*3.0f*d2			;
-		}
+/* second derivative */
+void key_curve_normal_weights(float t, float *data, int type)
+{
+	float fc;
+	
+	if(type==KEY_LINEAR) {
+		data[0]= 0.0f;
+		data[1]= 0.0f;
+		data[2]= 0.0f;
+		data[3]= 0.0f;
+	}
+	else if(type==KEY_CARDINAL) {
+		fc= 0.71f;
+		
+		data[0]= -6.0f*fc*t			+ 4.0f*fc;
+		data[1]= 6.0f*(2.0f-fc)*t	+ 2.0f*(fc-3.0f);
+		data[2]= 6.0f*(fc-2.0f)*t	+ 2.0f*(3.0f-2.0f*fc);
+		data[3]= 6.0f*fc*t			- 2.0f*fc;
+	}
+	else if(type==KEY_BSPLINE) {
+		data[0]= -1.0f*t	+ 1.0f;
+		data[1]= 3.0f*t		- 2.0f;
+		data[2]= -3.0f*t	+ 1.0f;
+		data[3]= 1.0f*t;
 	}
 }
 
@@ -436,10 +463,10 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 
 	/* interpolation */
 	
-	set_four_ipo(d, t, k[1]->type);
+	key_curve_position_weights(d, t, k[1]->type);
 
 	if(k[1]->type != k[2]->type) {
-		set_four_ipo(d, fval, k[2]->type);
+		key_curve_position_weights(d, fval, k[2]->type);
 		
 		temp= 1.0f-d;
 		t[0]= temp*t[0]+ d*fval[0];
@@ -1343,7 +1370,7 @@ int do_ob_key(Scene *scene, Object *ob)
 	if(key==NULL)
 		return 0;
 		
-	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
+	if(ob->shapeflag & OB_SHAPE_LOCK) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 		
 		if (G.f & G_DEBUG) printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
@@ -1463,4 +1490,25 @@ KeyBlock *key_get_named_keyblock(Key *key, const char name[])
 	}
 	
 	return NULL;
+}
+
+/* Get RNA-Path for 'value' setting of the given ShapeKey 
+ * NOTE: the user needs to free the returned string once they're finishe with it
+ */
+char *key_get_curValue_rnaPath(Key *key, KeyBlock *kb)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	
+	/* sanity checks */
+	if ELEM(NULL, key, kb)
+		return NULL;
+	
+	/* create the RNA pointer */
+	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &ptr);
+	/* get pointer to the property too */
+	prop= RNA_struct_find_property(&ptr, "value");
+	
+	/* return the path */
+	return RNA_path_from_ID_to_property(&ptr, prop);
 }

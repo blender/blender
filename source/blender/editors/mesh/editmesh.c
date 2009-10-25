@@ -787,7 +787,6 @@ void make_editMesh(Scene *scene, Object *ob)
 		undo_editmode_clear();
 	}
 
-	
 	/* make editverts */
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;
@@ -797,10 +796,14 @@ void make_editMesh(Scene *scene, Object *ob)
 		
 		co= mvert->co;
 
+		/* edit the shape key coordinate if available */
+		if(actkey && a < actkey->totelem)
+			co= (float*)actkey->data + 3*a;
+
 		eve= addvertlist(em, co, NULL);
 		evlist[a]= eve;
 		
-		// face select sets selection in next loop
+		/* face select sets selection in next loop */
 		if(!paint_facesel_test(ob))
 			eve->f |= (mvert->flag & 1);
 		
@@ -985,6 +988,8 @@ void load_editMesh(Scene *scene, Object *ob)
 	CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
 	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
 	mesh_update_customdata_pointers(me);
+
+	em->mat_nr= ob->actcol-1;
 
 	/* the vertices, use ->tmp.l as counter */
 	eve= em->verts.first;
@@ -1280,7 +1285,7 @@ void load_editMesh(Scene *scene, Object *ob)
 void remake_editMesh(Scene *scene, Object *ob)
 {
 	make_editMesh(scene, ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
 
@@ -1340,10 +1345,14 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	ED_base_object_select(basenew, BA_DESELECT);
 	
 	/* 2 */
-	basenew->object->data= menew= add_mesh(me->id.name);	/* empty */
+	basenew->object->data= menew= add_mesh(me->id.name+2);	/* empty */
+	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 	me->id.us--;
 	make_editMesh(scene, basenew->object);
 	emnew= menew->edit_mesh;
+	CustomData_copy(&em->vdata, &emnew->vdata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
+	CustomData_copy(&em->edata, &emnew->edata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
+	CustomData_copy(&em->fdata, &emnew->fdata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
 	
 	/* 3 */
 	/* SPLIT: first make duplicate */
@@ -1386,12 +1395,14 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	/* 5 */
 	load_editMesh(scene, basenew->object);
 	free_editMesh(emnew);
+	MEM_freeN(menew->edit_mesh);
+	menew->edit_mesh= NULL;
 	
 	/* hashedges are invalid now, make new! */
 	editMesh_set_hash(em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-	DAG_object_flush_update(scene, basenew->object, OB_RECALC_DATA);	
+	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);	
+	DAG_id_flush_update(&basenew->object->id, OB_RECALC_DATA);	
 
 	BKE_mesh_end_editmesh(me, em);
 
@@ -1469,7 +1480,7 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 		retval= mesh_separate_loose(scene, base);
 	   
 	if(retval) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, base->object);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_CANCELLED;

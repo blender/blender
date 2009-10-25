@@ -33,6 +33,7 @@
 #define DNA_PARTICLE_TYPES_H
 
 #include "DNA_ID.h"
+#include "DNA_boid_types.h"
 
 struct AnimData;
 
@@ -52,13 +53,21 @@ typedef struct ParticleKey {	/* when changed update size of struct to copy_parti
 	float time;		/* when this key happens */
 } ParticleKey;
 
+typedef struct BoidParticle {
+	struct Object *ground;
+	struct BoidData data;
+	float gravity[3];
+	float wander[3];
+	float rt;
+} BoidParticle;
+
 /* Child particles are created around or between parent particles */
 typedef struct ChildParticle {
 	int num, parent;	/* num is face index on the final derived mesh */
 	int pa[4];			/* nearest particles to the child, used for the interpolation */
 	float w[4];			/* interpolation weights for the above particles */
 	float fuv[4], foffset; /* face vertex weights and offset */
-	float rand[3];
+	float rt;
 } ChildParticle;
 
 typedef struct ParticleTarget {
@@ -69,42 +78,41 @@ typedef struct ParticleTarget {
 	float time, duration;
 } ParticleTarget;
 
-/* Everything that's non dynamic for a particle:			*/
-typedef struct ParticleData {
-	struct Object *stick_ob;/* object that particle sticks to when dead */
+typedef struct ParticleDupliWeight {
+	struct ParticleDupliWeight *next, *prev;
+	struct Object *ob;
+	short count;
+	short flag, rt[2];
+} ParticleDupliWeight;
 
-	ParticleKey state;		/* normally current global coordinates or	*/
-							/* in sticky object space if dead & sticky	*/
+typedef struct ParticleData {
+	ParticleKey state;		/* current global coordinates */
 
 	ParticleKey prev_state; /* previous state */
-
+	
 	HairKey *hair;			/* hair vertices */
 
-	ParticleKey *keys;		/* keyed states */
+	ParticleKey *keys;		/* keyed keys */
 
-	struct BoidData *boid;	/* boids data */
+	BoidParticle *boid;		/* boids data */
 
-	float r_rot[4];			/* random values */
-	float r_ave[3],r_ve[3];
-
-	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
-							/* face normal for volume emission						*/
+	int totkey;				/* amount of hair or keyed keys*/
 
 	float time, lifetime;	/* dietime is not nescessarily time+lifetime as	*/
 	float dietime;			/* particles can die unnaturally (collision)	*/
 
-	float size, sizemul;	/* size and multiplier so that we can update size when ever */
-
 	int num;				/* index to vert/edge/face */
 	int num_dmcache;		/* index to derived mesh data (face) to avoid slow lookups */
 
-	int totkey;
-	int bpi;				/* softbody body point start index */
+	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
+							/* face normal for volume emission						*/
+
+	float size;				/* size and multiplier so that we can update size when ever */
 
 	short flag;
-	short alive;				/* the life state of a particle */
+	short alive;			/* the life state of a particle */
 	short loop;				/* how many times particle life has looped */
-	short rt2;
+	short hair_index;
 } ParticleData;
 
 typedef struct ParticleSettings {
@@ -112,6 +120,8 @@ typedef struct ParticleSettings {
 	struct AnimData *adt;
 
 	struct BoidSettings *boids;
+
+	struct EffectorWeights *effector_weights;
 
 	int flag;
 	short type, from, distr;
@@ -145,6 +155,7 @@ typedef struct ParticleSettings {
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
+	float ob_vel[3], rt;
 	float avefac, phasefac, randrotfac, randphasefac;
 	/* physical properties */
 	float mass, size, randsize, reactshape;
@@ -175,10 +186,9 @@ typedef struct ParticleSettings {
 	/* keyed particles */
 	int keyed_loops;
 
-	float effector_weight[10];
-
 	struct Group *dup_group;
-	struct Group *eff_group;
+	struct ListBase dupliweights;
+	struct Group *eff_group;		// deprecated
 	struct Object *dup_ob;
 	struct Object *bb_ob;
 	struct Ipo *ipo;				// xxx depreceated... old animation system
@@ -201,13 +211,12 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct ParticleCacheKey **childcache;	/* child cache (runtime) */
 	ListBase pathcachebufs, childcachebufs;	/* buffers for the above */
 
-	struct SoftBody *soft;					/* hair softbody */
+	struct ClothModifierData *clmd;					/* cloth simulation for hair */
+	struct DerivedMesh *hair_in_dm, *hair_out_dm;	/* input/output for cloth simulation */
 
 	struct Object *target_ob;
 	struct Object *lattice;
 	struct Object *parent;					/* particles from global space -> parent space */
-
-	struct ListBase effectors, reactevents;	/* runtime */
 
 	struct ListBase targets;				/* used for keyed and boid physics */
 
@@ -215,9 +224,9 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	
 	float imat[4][4];	/* used for duplicators */
 	float cfra, tree_frame;
-	int seed;
+	int seed, rt;
 	int flag, totpart, totchild, totcached, totchildcache;
-	short recalc, target_psys, totkeyed, softflag, bakespace, rt2;
+	short recalc, target_psys, totkeyed, bakespace;
 
 	char bb_uvname[3][32];					/* billboard uv name */
 
@@ -231,14 +240,20 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct PointCache *pointcache;
 	struct ListBase ptcaches;
 
+	struct ListBase *effectors;
+
 	struct KDTree *tree;					/* used for interactions with self and other systems */
+
+	struct ParticleDrawData *pdd;
+
+	float *frand;							/* array of 1024 random floats for fast lookups */
 }ParticleSystem;
 
 /* part->type */
 /* hair is allways baked static in object/geometry space */
 /* other types (normal particles) are in global space and not static baked */
 #define PART_EMITTER		0
-#define PART_REACTOR		1
+//#define PART_REACTOR		1
 #define PART_HAIR			2
 #define PART_FLUID			3
 
@@ -258,13 +273,13 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_TRAND			128	
 #define PART_EDISTR			256	/* particle/face from face areas */
 
-#define PART_STICKY			512	/*collided particles can stick to collider*/
+//#define PART_STICKY			512	/*collided particles can stick to collider*/
 #define PART_DIE_ON_COL		(1<<12)
 #define PART_SIZE_DEFL		(1<<13) /* swept sphere deflections */
 #define PART_ROT_DYN		(1<<14)	/* dynamic rotation */
 #define PART_SIZEMASS		(1<<16)
 
-//#define PART_KEYED_TIMING	(1<<15)
+//#define PART_HAIR_GRAVITY	(1<<15)
 
 //#define PART_ABS_TIME		(1<<17)
 //#define PART_GLOB_TIME		(1<<18)
@@ -318,12 +333,12 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 /* part->draw */
 #define PART_DRAW_VEL		1
-//#define PART_DRAW_PATH_LEN	2
+#define PART_DRAW_GLOBAL_OB	2
 #define PART_DRAW_SIZE		4
 #define PART_DRAW_EMITTER	8	/* render emitter also */
 #define PART_DRAW_HEALTH	16
 #define PART_ABS_PATH_TIME  32
-//#define PART_DRAW_TRAIL		64
+#define PART_DRAW_COUNT_GR	64
 #define PART_DRAW_BB_LOCK	128
 #define PART_DRAW_PARENT	256
 #define PART_DRAW_NUM		512
@@ -401,40 +416,45 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_CHILD_FACES		2
 
 /* psys->recalc */
-#define PSYS_RECALC_REDO	1	/* only do pathcache etc */
-#define PSYS_RECALC_RESET	2	/* reset everything including pointcache */
-#define PSYS_RECALC_TYPE	4	/* handle system type change */
-#define PSYS_RECALC_CHILD	16	/* only child settings changed */
-#define PSYS_RECALC_PHYS	32	/* physics type changed */
+/* starts from 8 so that the first bits can be ob->recalc */
+#define PSYS_RECALC_REDO	8	/* only do pathcache etc */
+#define PSYS_RECALC_RESET	16	/* reset everything including pointcache */
+#define PSYS_RECALC_TYPE	32	/* handle system type change */
+#define PSYS_RECALC_CHILD	64	/* only child settings changed */
+#define PSYS_RECALC_PHYS	128	/* physics type changed */
+#define PSYS_RECALC			248
 
 /* psys->flag */
 #define PSYS_CURRENT		1
-//#define PSYS_BAKING			2
-//#define PSYS_BAKE_UI		4
+#define PSYS_GLOBAL_HAIR	2
+#define PSYS_HAIR_DYNAMICS	4
 #define	PSYS_KEYED_TIMING	8
 #define PSYS_ENABLED		16	/* deprecated */
-//#define PSYS_FIRST_KEYED	32
+#define PSYS_HAIR_UPDATED	32  /* signal for updating hair particle mode */
 #define PSYS_DRAWING		64
 //#define PSYS_SOFT_BAKE		128
 #define PSYS_DELETE			256	/* remove particlesystem as soon as possible */
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024
-//#define PSYS_EDITED			2048
-//#define PSYS_PROTECT_CACHE	4096
+#define PSYS_EDITED			2048
+//#define PSYS_PROTECT_CACHE	4096 /* deprecated */
 #define PSYS_DISABLED		8192
 
 /* pars->flag */
 #define PARS_UNEXIST		1
 #define PARS_NO_DISP		2
-#define PARS_STICKY			4
+//#define PARS_STICKY			4 /* deprecated */
 #define PARS_REKEY			8
 
 /* pars->alive */
-#define PARS_KILLED			0
+//#define PARS_KILLED			0 /* deprecated */
 #define PARS_DEAD			1
 #define PARS_UNBORN			2
 #define PARS_ALIVE			3
 #define PARS_DYING			4
+
+/* ParticleDupliWeight->flag */
+#define PART_DUPLIW_CURRENT	1
 
 /* psys->vg */
 #define PSYS_TOT_VG			12

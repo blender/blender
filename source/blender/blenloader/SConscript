@@ -11,4 +11,4 @@ incs += ' ' + env['BF_ZLIB_INC']
 
 defs = []
 
-env.BlenderLib ( 'bf_blenloader', sources, Split(incs), defs, libtype=['core'], priority = [135] )
+env.BlenderLib ( 'bf_blenloader', sources, Split(incs), defs, libtype=['core','player'], priority = [167,30] )

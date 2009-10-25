@@ -83,6 +83,7 @@ GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
+GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender_raytrace.a
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -98,7 +99,11 @@ COMLIB += $(OCGDIR)/blender/nodes_tex/$(DEBUG_DIR)libnodes_tex.a
 COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+COMLIB += $(OCGDIR)/blender/ikplugin/$(DEBUG_DIR)libikplugin.a
 COMLIB += $(NAN_IKSOLVER)/lib/$(DEBUG_DIR)libiksolver.a
+COMLIB += $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc.a
+COMLIB += $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc_kdl.a
+COMLIB += $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc_kdl_util.a
 COMLIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
 COMLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a
 COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
@@ -113,7 +118,6 @@ COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sdl.a
 COMLIB += $(NAN_SAMPLERATE)/lib/$(DEBUG_DIR)libsamplerate.a
 COMLIB += $(NAN_LZO)/lib/$(DEBUG_DIR)libminilzo.a
 COMLIB += $(NAN_LZMA)/lib/$(DEBUG_DIR)liblzma.a
-COMLIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)/libsmoke.a 
 
 ifeq ($(WITH_FFMPEG),true)
     COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
@@ -246,7 +250,7 @@ PULIB += $(OCGDIR)/blender/ed_graph/$(DEBUG_DIR)libed_graph.a
 PULIB += $(OCGDIR)/blender/ed_node/$(DEBUG_DIR)libed_node.a
 PULIB += $(OCGDIR)/blender/ed_outliner/$(DEBUG_DIR)libed_outliner.a
 PULIB += $(OCGDIR)/blender/ed_time/$(DEBUG_DIR)libed_time.a
-PULIB += $(OCGDIR)/blender/ed_preview/$(DEBUG_DIR)libed_preview.a
+PULIB += $(OCGDIR)/blender/ed_render/$(DEBUG_DIR)libed_render.a
 PULIB += $(OCGDIR)/blender/ed_view3d/$(DEBUG_DIR)libed_view3d.a
 PULIB += $(OCGDIR)/blender/ed_interface/$(DEBUG_DIR)libed_interface.a
 PULIB += $(OCGDIR)/blender/ed_object/$(DEBUG_DIR)libed_object.a

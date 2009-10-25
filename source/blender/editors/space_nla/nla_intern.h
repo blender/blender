@@ -130,7 +130,7 @@ short nlaedit_is_tweakmode_on(bAnimContext *ac);
 /* --- */
 
 void nla_operatortypes(void);
-void nla_keymap(wmWindowManager *wm);
+void nla_keymap(wmKeyConfig *keyconf);
 
 #endif /* ED_NLA_INTERN_H */
 

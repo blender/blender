@@ -38,6 +38,7 @@
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
 #include "BoolValue.h"
+#include "FloatValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -190,6 +191,22 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 					m_checkpropval.Upper();
 				}
 				result = (testprop == m_checkpropval);
+				
+				/* Patch: floating point values cant use strings usefully since you can have "0.0" == "0.0000"
+				 * this could be made into a generic Value class function for comparing values with a string.
+				 */
+				if(result==false && dynamic_cast<CFloatValue *>(orgprop) != NULL) {
+					float f;
+					
+					if(EOF == sscanf(m_checkpropval.ReadPtr(), "%f", &f))
+					{
+						//error
+					} 
+					else {
+						result = (f == ((CFloatValue *)orgprop)->GetFloat());
+					}
+				}
+				/* end patch */
 			}
 			orgprop->Release();
 
@@ -290,15 +307,17 @@ CValue* SCA_PropertySensor::FindIdentifier(const STR_String& identifiername)
 	return  GetParent()->FindIdentifier(identifiername);
 }
 
+#ifndef DISABLE_PYTHON
+
+/* ------------------------------------------------------------------------- */
+/* Python functions                                                          */
+/* ------------------------------------------------------------------------- */
+
 int SCA_PropertySensor::validValueForProperty(void *self, const PyAttributeDef*)
 {
 	/*  There is no type checking at this moment, unfortunately...           */
 	return 0;
 }
-
-/* ------------------------------------------------------------------------- */
-/* Python functions                                                          */
-/* ------------------------------------------------------------------------- */
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_PropertySensor::Type = {
@@ -333,5 +352,7 @@ PyAttributeDef SCA_PropertySensor::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW_CHECK("value",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForProperty),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

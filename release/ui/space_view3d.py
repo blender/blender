@@ -186,6 +186,7 @@ class VIEW3D_MT_select_POSE(bpy.types.Menu):
 		layout.itemO("pose.select_all_toggle", text="Select/Deselect All")
 		layout.itemO("pose.select_inverse", text="Inverse")
 		layout.itemO("pose.select_constraint_target", text="Constraint Target")
+		layout.itemO("pose.select_linked", text="Linked")
 		
 		layout.itemS()
 		
@@ -409,7 +410,7 @@ class VIEW3D_MT_OBJECT(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.itemO("object.duplicate")
+		layout.itemO("object.duplicate_move")
 		layout.item_booleanO("object.duplicate", "linked", True, text="Duplicate Linked")
 		layout.itemO("object.delete", text="Delete...")
 		layout.itemO("object.proxy_make", text="Make Proxy...")
@@ -1208,12 +1209,35 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
 		col.itemL(text="Normals:")
 		col.itemR(mesh, "draw_normals", text="Face")
 		col.itemR(mesh, "draw_vertex_normals", text="Vertex")
+		col.itemR(context.scene.tool_settings, "normal_size", text="Normal Size")
 		
 		col.itemS()
 		col.itemL(text="Numerics:")
 		col.itemR(mesh, "draw_edge_lenght")
 		col.itemR(mesh, "draw_edge_angle")
 		col.itemR(mesh, "draw_face_area")
+
+
+class VIEW3D_PT_3dview_curvedisplay(bpy.types.Panel):
+	__space_type__ = 'VIEW_3D'
+	__region_type__ = 'UI'
+	__label__ = "Curve Display"
+
+	def poll(self, context):
+		editmesh = context.mode == 'EDIT_CURVE'
+		return (editmesh)
+
+	def draw(self, context):
+		layout = self.layout
+
+		curve = context.active_object.data
+		
+		col = layout.column()
+		col.itemL(text="Overlays:")
+		col.itemR(curve, "draw_handles", text="Handles")
+		col.itemR(curve, "draw_normals", text="Normals")
+		col.itemR(context.scene.tool_settings, "normal_size", text="Normal Size")
+		
 	
 class VIEW3D_PT_background_image(bpy.types.Panel):
 	__space_type__ = 'VIEW_3D'
@@ -1325,4 +1349,5 @@ bpy.types.register(VIEW3D_MT_edit_ARMATURE_roll)
 bpy.types.register(VIEW3D_PT_3dview_properties) # Panels
 bpy.types.register(VIEW3D_PT_3dview_display)
 bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
+bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
 bpy.types.register(VIEW3D_PT_background_image)

@@ -685,9 +685,19 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 		ct->flag= CONSTRAINT_TAR_TEMP; \
 		 \
 		if (ct->tar) { \
-			if ((ct->tar->type==OB_ARMATURE) && (ct->subtarget[0])) ct->type = CONSTRAINT_OBTYPE_BONE; \
-			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) ct->type = CONSTRAINT_OBTYPE_VERT; \
-			else ct->type = CONSTRAINT_OBTYPE_OBJECT; \
+			if ((ct->tar->type==OB_ARMATURE) && (ct->subtarget[0])) { \
+				bPoseChannel *pchan= get_pose_channel(ct->tar->pose, ct->subtarget); \
+				ct->type = CONSTRAINT_OBTYPE_BONE; \
+				ct->rotOrder= (pchan) ? (pchan->rotmode) : EULER_ORDER_DEFAULT; \
+			}\
+			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) { \
+				ct->type = CONSTRAINT_OBTYPE_VERT; \
+				ct->rotOrder = EULER_ORDER_DEFAULT; \
+			} \
+			else {\
+				ct->type = CONSTRAINT_OBTYPE_OBJECT; \
+				ct->rotOrder= ct->tar->rotmode; \
+			} \
 		} \
 		 \
 		BLI_addtail(list, ct); \
@@ -1045,6 +1055,7 @@ static void kinematic_new_data (void *cdata)
 	data->weight= (float)1.0;
 	data->orientweight= (float)1.0;
 	data->iterations = 500;
+	data->dist= (float)1.0;
 	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_STRETCH|CONSTRAINT_IK_POS;
 }
 
@@ -1162,7 +1173,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
-		float q[4], vec[4], dir[3], quat[4], x1;
+		float q[4], vec[4], dir[3], quat[4], radius, x1;
 		float totmat[4][4];
 		float curvetime;
 		
@@ -1174,21 +1185,33 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path==NULL || cu->path->data==NULL) 
+		if (cu->path==NULL || cu->path->data==NULL)
 			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 		
 		if (cu->path && cu->path->data) {
-			curvetime= bsystem_time(cob->scene, ct->tar, (float)ctime, 0.0) - data->offset;
-			
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
-				curvetime /= cu->pathlen;
+			if ((data->followflag & FOLLOWPATH_STATIC) == 0) { 
+				/* animated position along curve depending on time */
+				if (cob->scene)
+					curvetime= bsystem_time(cob->scene, ct->tar, ctime, 0.0) - data->offset;
+				else	
+					curvetime= ctime - data->offset;
+				
+				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
+				 * but this will only work if it actually is animated... 
+				 *
+				 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
+				 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+				 */
+				curvetime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
 				CLAMP(curvetime, 0.0, 1.0);
 			}
-#endif // XXX old animation system
+			else {
+				/* fixed position along curve */
+				curvetime= data->offset; // XXX might need a more sensible value
+			}
 			
-			if ( where_on_path(ct->tar, curvetime, vec, dir) ) {
-				if (data->followflag) {
+			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius) ) {
+				if (data->followflag & FOLLOWPATH_FOLLOW) {
 					vectoquat(dir, (short) data->trackflag, (short) data->upflag, quat);
 					
 					Normalize(dir);
@@ -1201,6 +1224,14 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					
 					QuatToMat4(quat, totmat);
 				}
+
+				if (data->followflag & FOLLOWPATH_RADIUS) {
+					float tmat[4][4], rmat[4][4];
+					Mat4Scale(tmat, radius);
+					Mat4MulMat4(rmat, totmat, tmat);
+					Mat4CpyMat4(totmat, rmat);
+				}
+
 				VECCOPY(totmat[3], vec);
 				
 				Mat4MulSerie(ct->matrix, ct->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1218,7 +1249,8 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 	/* only evaluate if there is a target */
 	if (VALID_CONS_TARGET(ct)) {
 		float obmat[4][4];
-		float size[3], obsize[3];
+		float size[3];
+		bFollowPathConstraint *data= con->data;
 		
 		/* get Object local transform (loc/rot/size) to determine transformation from path */
 		//object_to_mat4(ob, obmat);
@@ -1231,13 +1263,17 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		Mat4MulSerie(cob->matrix, ct->matrix, obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 		
 		/* un-apply scaling caused by path */
-		Mat4ToSize(cob->matrix, obsize);
-		if (obsize[0])
-			VecMulf(cob->matrix[0], size[0] / obsize[0]);
-		if (obsize[1])
-			VecMulf(cob->matrix[1], size[1] / obsize[1]);
-		if (obsize[2])
-			VecMulf(cob->matrix[2], size[2] / obsize[2]);
+		if ((data->followflag & FOLLOWPATH_RADIUS)==0) { /* XXX - assume that scale correction means that radius will have some scale error in it - Campbell */
+			float obsize[3];
+
+			Mat4ToSize(cob->matrix, obsize);
+			if (obsize[0])
+				VecMulf(cob->matrix[0], size[0] / obsize[0]);
+			if (obsize[1])
+				VecMulf(cob->matrix[1], size[1] / obsize[1]);
+			if (obsize[2])
+				VecMulf(cob->matrix[2], size[2] / obsize[2]);
+		}
 	}
 }
 
@@ -1558,8 +1594,8 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		VECCOPY(loc, cob->matrix[3]);
 		Mat4ToSize(cob->matrix, size);
 		
-		//Mat4ToEulO(ct->matrix, eul, ct->rotOrder);
-		Mat4ToEul(ct->matrix, eul); // the version we should be using causes errors...
+		/* to allow compatible rotations, must get both rotations in the order of the owner... */
+		Mat4ToEulO(ct->matrix, eul, cob->rotOrder);
 		Mat4ToEulO(cob->matrix, obeul, cob->rotOrder);
 		
 		if ((data->flag & ROTLIKE_X)==0)
@@ -2856,7 +2892,7 @@ static void clampto_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path==NULL || cu->path->data==NULL) 
+		if (cu->path==NULL || cu->path->data==NULL)
 			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 	}
 	
@@ -2967,7 +3003,7 @@ static void clampto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			}
 			
 			/* 3. position on curve */
-			if (where_on_path(ct->tar, curvetime, vec, dir) ) {
+			if (where_on_path(ct->tar, curvetime, vec, dir, NULL, NULL) ) {
 				Mat4One(totmat);
 				VECCOPY(totmat[3], vec);
 				
@@ -3517,7 +3553,7 @@ short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
  * None of the actual calculations of the matricies should be done here! Also, this function is 
  * not to be used by any new constraints, particularly any that have multiple targets.
  */
-void get_constraint_target_matrix (bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
+void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
 {
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
@@ -3528,6 +3564,7 @@ void get_constraint_target_matrix (bConstraint *con, int n, short ownertype, voi
 		/* make 'constraint-ob' */
 		cob= MEM_callocN(sizeof(bConstraintOb), "tempConstraintOb");
 		cob->type= ownertype;
+		cob->scene = scene;
 		switch (ownertype) {
 			case CONSTRAINT_OBTYPE_OBJECT: /* it is usually this case */
 			{
@@ -3610,7 +3647,7 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		
 		/* these we can skip completely (invalid constraints...) */
 		if (cti == NULL) continue;
-		if (con->flag & CONSTRAINT_DISABLE) continue;
+		if (con->flag & (CONSTRAINT_DISABLE|CONSTRAINT_OFF)) continue;
 		/* these constraints can't be evaluated anyway */
 		if (cti->evaluate_constraint == NULL) continue;
 		/* influence == 0 should be ignored */

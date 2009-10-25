@@ -53,6 +53,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
+#include "BLI_linklist.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -458,7 +459,10 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	data.pass = 0;
 
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
@@ -549,13 +553,15 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
-
+	struct { ViewContext vc; short (*mcords)[2]; short moves; short select; } *data = userData;
+	
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
-			if (G.f & G_HIDDENHANDLES) {
+			Curve *cu= data->vc.obedit->data;
+			
+			if (cu->drawflag & CU_HIDE_HANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
@@ -573,13 +579,15 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp
 
 static void do_lasso_select_curve(ViewContext *vc, short mcords[][2], short moves, short select)
 {
-	struct { short (*mcords)[2]; short moves; short select; } data;
+	struct { ViewContext vc; short (*mcords)[2]; short moves; short select; } data;
 
 	/* set vc->editnurb */
+	data.vc = *vc;
 	data.mcords = mcords;
 	data.moves = moves;
 	data.select = select;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data);
 }
 
@@ -600,6 +608,7 @@ static void do_lasso_select_lattice(ViewContext *vc, short mcords[][2], short mo
 	data.moves = moves;
 	data.select = select;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	lattice_foreachScreenVert(vc, do_lasso_select_lattice__doSelect, &data);
 }
 
@@ -756,6 +765,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 {
 	ot->name= "Lasso Select";
+	ot->description= "Select items using lasso selection.";
 	ot->idname= "VIEW3D_OT_select_lasso";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
@@ -841,56 +851,87 @@ static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b
 	}
 }
 
-static Base *mouse_select_menu(ViewContext *vc, unsigned int *buffer, int hits, short *mval)
+static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffer, int hits, short *mval, short extend)
 {
-	Scene *scene= vc->scene;
-	View3D *v3d= vc->v3d;
-	Base *baseList[SEL_MENU_SIZE]={NULL}; /*baseList is used to store all possible bases to bring up a menu */
-	Base *base;
 	short baseCount = 0;
-	char menuText[20 + SEL_MENU_SIZE*32] = "Select Object%t";	/* max ob name = 22 */
-	char str[32];
+	short ok;
+	LinkNode *linklist= NULL;
 	
-	for(base=FIRSTBASE; base; base= base->next) {
-		if (BASE_SELECTABLE(v3d, base)) {
-			baseList[baseCount] = NULL;
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		ok= FALSE;
+
+		/* two selection methods, the CTRL select uses max dist of 15 */
+		if(buffer) {
+			int a;
+			for(a=0; a<hits; a++) {
+				/* index was converted */
+				if(base->selcol==buffer[ (4 * a) + 3 ])
+					ok= TRUE;
+			}
+		}
+		else {
+			int temp, dist=15;
+
+			project_short(vc->ar, base->object->obmat[3], &base->sx);
 			
-			/* two selection methods, the CTRL select uses max dist of 15 */
-			if(buffer) {
-				int a;
-				for(a=0; a<hits; a++) {
-					/* index was converted */
-					if(base->selcol==buffer[ (4 * a) + 3 ]) baseList[baseCount] = base;
-				}
-			}
-			else {
-				int temp, dist=15;
-				
-				project_short(vc->ar, base->object->obmat[3], &base->sx);
-				
-				temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
-				if(temp<dist ) baseList[baseCount] = base;
-			}
-			
-			if(baseList[baseCount]) {
-				if (baseCount < SEL_MENU_SIZE) {
-					baseList[baseCount] = base;
-					sprintf(str, "|%s %%x%d", base->object->id.name+2, baseCount+1);	/* max ob name == 22 */
-							strcat(menuText, str);
-							baseCount++;
-				}
-			}
+			temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
+			if(temp < dist)
+				ok= TRUE;
+		}
+
+		if(ok) {
+			baseCount++;
+			BLI_linklist_prepend(&linklist, base);
+
+			if (baseCount==SEL_MENU_SIZE)
+				break;
 		}
 	}
+	CTX_DATA_END;
 
-	if(baseCount<=1) return baseList[0];
+	if(baseCount)
+
+
+	if(baseCount==0) {
+		return NULL;
+	}
+	if(baseCount == 1) {
+		Base *base= (Base *)linklist->link;
+		BLI_linklist_free(linklist, NULL);
+		return base;
+	}
 	else {
-		baseCount = -1; // XXX = pupmenu(menuText);
-		
-		if (baseCount != -1) { /* If nothing is selected then dont do anything */
-			return baseList[baseCount-1];
+		/* UI */
+		uiPopupMenu *pup= uiPupMenuBegin(C, "Select Object", 0);
+		uiLayout *layout= uiPupMenuLayout(pup);
+		uiLayout *split= uiLayoutSplit(layout, 0);
+		uiLayout *column= uiLayoutColumn(split, 0);
+		LinkNode *node;
+
+		node= linklist;
+		while(node) {
+			Base *base=node->link;
+			Object *ob= base->object;
+			char *name= ob->id.name+2;
+			/* annoying!, since we need to set 2 props cant use this. */
+			/* uiItemStringO(column, name, 0, "OBJECT_OT_select_name", "name", name); */
+
+			{
+				PointerRNA ptr;
+
+				WM_operator_properties_create(&ptr, "OBJECT_OT_select_name");
+				RNA_string_set(&ptr, "name", name);
+				RNA_boolean_set(&ptr, "extend", extend);
+				uiItemFullO(column, name, uiIconFromID((ID *)ob), "OBJECT_OT_select_name", ptr.data, WM_OP_EXEC_DEFAULT, 0);
+			}
+
+			node= node->next;
 		}
-		else return NULL;
+
+		uiPupMenuEnd(C, pup);
+
+		BLI_linklist_free(linklist, NULL);
+		return NULL;
 	}
 }
 
@@ -954,14 +995,13 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 
 
 /* mval is region coords */
-static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
+static void mouse_select(bContext *C, short *mval, short extend, short obcenter, short enumerate)
 {
 	ViewContext vc;
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
-	unsigned int buffer[4*MAXPICKBUF];
 	int temp, a, dist=100;
 	short hits;
 	
@@ -977,10 +1017,9 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 	if(vc.obedit==NULL && obcenter) {
 		
 		/* note; shift+alt goes to group-flush-selecting */
-		/* XXX solve */
-		if(0) 
-			basact= mouse_select_menu(&vc, NULL, 0, mval);
-		else {
+		if(enumerate) {
+			basact= mouse_select_menu(C, &vc, NULL, 0, mval, extend);
+		} else {
 			base= startbase;
 			while(base) {
 				if (BASE_SELECTABLE(v3d, base)) {
@@ -1002,6 +1041,8 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 		}
 	}
 	else {
+		unsigned int buffer[4*MAXPICKBUF];
+
 		/* if objects have posemode set, the bones are in the same selection buffer */
 		
 		hits= mixed_bones_object_selectbuffer(&vc, buffer, mval);
@@ -1012,9 +1053,9 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 			for(a=0; a<hits; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones= 1;
 
 			/* note; shift+alt goes to group-flush-selecting */
-			if(has_bones==0 && 0) 
-				basact= mouse_select_menu(&vc, buffer, hits, mval);
-			else {
+			if(has_bones==0 && enumerate) {
+				basact= mouse_select_menu(C, &vc, buffer, hits, mval, extend);
+			} else {
 				static short lastmval[2]={-100, -100};
 				int donearest= 0;
 				
@@ -1112,7 +1153,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
 					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
-					if(basact->object->mode & OB_MODE_WEIGHT_PAINT) {
+					if(BASACT && BASACT->object->mode & OB_MODE_WEIGHT_PAINT) {
 						/* prevent activating */
 						basact= NULL;
 					}
@@ -1195,7 +1236,9 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
-			if (G.f & G_HIDDENHANDLES) {
+			Curve *cu= data->vc.obedit->data;
+			
+			if (cu->drawflag & CU_HIDE_HANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
@@ -1214,10 +1257,11 @@ static void do_nurbs_box_select(ViewContext *vc, rcti *rect, int select)
 {
 	struct { ViewContext vc; rcti *rect; int select; } data;
 	
-	data.vc= *vc;
+	data.vc = *vc;
 	data.rect = rect;
 	data.select = select;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_nurbs_box_select__doSelect, &data);
 }
 
@@ -1237,6 +1281,7 @@ static void do_lattice_box_select(ViewContext *vc, rcti *rect, int select)
 	data.rect = rect;
 	data.select = select;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	lattice_foreachScreenVert(vc, do_lattice_box_select__doSelect, &data);
 }
 
@@ -1286,6 +1331,7 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 	data.done = 0;
 
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
@@ -1359,7 +1405,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			vc.em= me->edit_mesh;
 			do_mesh_box_select(&vc, &rect, (val==LEFTMOUSE));
 //			if (EM_texFaceCheck())
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			
 		}
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
@@ -1534,6 +1580,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
+	ot->description= "Select items using border selection.";
 	ot->idname= "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
@@ -1553,7 +1600,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everyting first.");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 /* ****** Mouse Select ****** */
@@ -1564,6 +1611,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Object *obedit= CTX_data_edit_object(C);
 	Object *obact= CTX_data_active_object(C);
 	short extend= RNA_boolean_get(op->ptr, "extend");
+	short center= RNA_boolean_get(op->ptr, "center");
+	short enumerate= RNA_boolean_get(op->ptr, "enumerate");
 
 	view3d_operator_needs_opengl(C);
 	
@@ -1583,7 +1632,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 		PE_mouse_particles(C, event->mval, extend);
 	else 
-		mouse_select(C, event->mval, extend, 0);
+		mouse_select(C, event->mval, extend, center, enumerate);
 
 	/* allowing tweaks */
 	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
@@ -1593,6 +1642,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select";
+	ot->description= "Activate/select item(s).";
 	ot->idname= "VIEW3D_OT_select";
 	
 	/* api callbacks */
@@ -1603,7 +1653,9 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everyting first.");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting (object mode only).");
+	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only).");
 }
 
 
@@ -1661,6 +1713,8 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 		
 		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+
 		vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
 
 		data.select = selecting;
@@ -1729,6 +1783,7 @@ static void nurbscurve_circle_select(ViewContext *vc, int selecting, short *mval
 	data.mval[1] = mval[1];
 	data.radius = rad;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, nurbscurve_circle_doSelect, &data);
 }
 
@@ -1754,6 +1809,7 @@ static void lattice_circle_select(ViewContext *vc, int selecting, short *mval, f
 	data.mval[1] = mval[1];
 	data.radius = rad;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	lattice_foreachScreenVert(vc, latticecurve_circle_doSelect, &data);
 }
 
@@ -1802,7 +1858,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 		if(CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obact);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 		}
 		else
 			return PE_circle_select(C, selecting, mval, (float)radius);
@@ -1831,6 +1887,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
 	ot->name= "Circle Select";
+	ot->description= "Select items using circle selection.";
 	ot->idname= "VIEW3D_OT_select_circle";
 	
 	ot->invoke= WM_gesture_circle_invoke;

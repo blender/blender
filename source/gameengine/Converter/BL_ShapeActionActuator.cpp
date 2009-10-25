@@ -412,6 +412,8 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	return keepgoing;
 };
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -492,3 +494,5 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 	return PY_SET_ATTR_SUCCESS;
 
 }
+
+#endif // DISABLE_PYTHON

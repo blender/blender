@@ -200,6 +200,85 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	return NULL;
 }
 
+/* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
+#define BEZT_BINARYSEARCH_THRESH 	0.00001f
+
+/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_fcurve)
+ * Returns the index to insert at (data already at that index will be offset if replace is 0)
+ */
+int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short *replace)
+{
+	int start=0, end=arraylen;
+	int loopbreaker= 0, maxloop= arraylen * 2;
+	
+	/* initialise replace-flag first */
+	*replace= 0;
+	
+	/* sneaky optimisations (don't go through searching process if...):
+	 *	- keyframe to be added is to be added out of current bounds
+	 *	- keyframe to be added would replace one of the existing ones on bounds
+	 */
+	if ((arraylen <= 0) || (array == NULL)) {
+		printf("Warning: binarysearch_bezt_index() encountered invalid array \n");
+		return 0;
+	}
+	else {
+		/* check whether to add before/after/on */
+		float framenum;
+		
+		/* 'First' Keyframe (when only one keyframe, this case is used) */
+		framenum= array[0].vec[1][0];
+		if (IS_EQT(frame, framenum, BEZT_BINARYSEARCH_THRESH)) {
+			*replace = 1;
+			return 0;
+		}
+		else if (frame < framenum)
+			return 0;
+			
+		/* 'Last' Keyframe */
+		framenum= array[(arraylen-1)].vec[1][0];
+		if (IS_EQT(frame, framenum, BEZT_BINARYSEARCH_THRESH)) {
+			*replace= 1;
+			return (arraylen - 1);
+		}
+		else if (frame > framenum)
+			return arraylen;
+	}
+	
+	
+	/* most of the time, this loop is just to find where to put it
+	 * 'loopbreaker' is just here to prevent infinite loops 
+	 */
+	for (loopbreaker=0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
+		/* compute and get midpoint */
+		int mid = start + ((end - start) / 2);	/* we calculate the midpoint this way to avoid int overflows... */
+		float midfra= array[mid].vec[1][0];
+		
+		/* check if exactly equal to midpoint */
+		if (IS_EQT(frame, midfra, BEZT_BINARYSEARCH_THRESH)) {
+			*replace = 1;
+			return mid;
+		}
+		
+		/* repeat in upper/lower half */
+		if (frame > midfra)
+			start= mid + 1;
+		else if (frame < midfra)
+			end= mid - 1;
+	}
+	
+	/* print error if loop-limit exceeded */
+	if (loopbreaker == (maxloop-1)) {
+		printf("Error: binarysearch_bezt_index() was taking too long \n");
+		
+		// include debug info 
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+	}
+	
+	/* not found, so return where to place it */
+	return start;
+}
+
 /* Calculate the extents of F-Curve's data */
 void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax)
 {
@@ -916,7 +995,7 @@ void correct_bezpart (float *v1, float *v2, float *v3, float *v4)
 }
 
 /* find root ('zero') */
-int findzero (float x, float q0, float q1, float q2, float q3, float *o)
+static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 {
 	double c0, c1, c2, c3, a, b, c, p, q, d, t, phi;
 	int nr= 0;
@@ -1010,7 +1089,7 @@ int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 	}
 }
 
-void berekeny (float f1, float f2, float f3, float f4, float *o, int b)
+static void berekeny (float f1, float f2, float f3, float f4, float *o, int b)
 {
 	float t, c0, c1, c2, c3;
 	int a;
@@ -1026,7 +1105,8 @@ void berekeny (float f1, float f2, float f3, float f4, float *o, int b)
 	}
 }
 
-void berekenx (float *f, float *o, int b)
+#if 0
+static void berekenx (float *f, float *o, int b)
 {
 	float t, c0, c1, c2, c3;
 	int a;
@@ -1041,6 +1121,7 @@ void berekenx (float *f, float *o, int b)
 		o[a]= c0 + t*c1 + t*t*c2 + t*t*t*c3;
 	}
 }
+#endif
 
 
 /* -------------------------- */

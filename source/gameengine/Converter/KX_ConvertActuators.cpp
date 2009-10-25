@@ -88,6 +88,7 @@
 #include "DNA_packedFile_types.h"
 #include "BL_ActionActuator.h"
 #include "BL_ShapeActionActuator.h"
+#include "BL_ArmatureActuator.h"
 /* end of blender include block */
 
 #include "BL_BlenderDataConversion.h"
@@ -1021,6 +1022,15 @@ void BL_ConvertActuators(char* maggiename,
 				break;
 			}
 		
+		case ACT_ARMATURE:
+			{
+				bArmatureActuator* armAct = (bArmatureActuator*) bact->data;
+				KX_GameObject *tmpgob = converter->FindGameObject(armAct->target);
+				KX_GameObject *subgob = converter->FindGameObject(armAct->subtarget);
+				BL_ArmatureActuator* tmparmact = new BL_ArmatureActuator(gameobj, armAct->type, armAct->posechannel, armAct->constraint, tmpgob, subgob, armAct->weight);
+				baseact = tmparmact;
+				break;
+			}
 		default:
 			; /* generate some error */
 		}

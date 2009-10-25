@@ -29,14 +29,15 @@
  * $Id$
  */
 
-#ifdef WIN32
-#include <io.h>
-#endif
 #include "BLI_blenlib.h"
 #include "imbuf.h"
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_iff.h"
+#ifdef WIN32
+#include <io.h>
+#include "BLI_winstuff.h"
+#endif
 
 unsigned short imb_start_iff(struct ImBuf *ibuf, int file)
 {

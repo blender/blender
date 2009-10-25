@@ -3,11 +3,6 @@ import bpy
 
 from buttons_particle import point_cache_ui
 
-def smoke_panel_enabled_low(smd):
-	if smd.smoke_type == 'TYPE_DOMAIN':
-		return smd.domain.point_cache.baked==False
-	return True
-
 class PhysicButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
@@ -45,8 +40,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 			split.itemL()
 
 		if md:
-		
-			# layout.enabled = smoke_panel_enabled(md)
 			layout.itemR(md, "smoke_type", expand=True)
 		
 			if md.smoke_type == 'TYPE_DOMAIN':
@@ -66,7 +59,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				col.itemR(domain, "dissolve_smoke", text="Dissolve")
 				sub = col.column()
 				sub.active = domain.dissolve_smoke
-				sub.itemR(domain, "dissolve_speed", text="Speed")
+				sub.itemR(domain, "dissolve_speed", text="Time")
 				sub.itemR(domain, "dissolve_smoke_log", text="Slow")
 				
 			elif md.smoke_type == 'TYPE_FLOW':
@@ -90,14 +83,17 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 					
 			#elif md.smoke_type == 'TYPE_COLL':
 			#	layout.itemS()
-					
+
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
 	__label__ = "Smoke Groups"
 	__default_closed__ = True
 	
 	def poll(self, context):
 		md = context.smoke
-		return md and (md.smoke_type == 'TYPE_DOMAIN')
+		if md:
+				return (md.smoke_type == 'TYPE_DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -116,7 +112,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
 		col = split.column()
 		col.itemL(text="Collision Group:")
 		col.itemR(group, "coll_group", text="")
-		
+
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
 	__label__ = "Smoke Cache"
 	__default_closed__ = True
@@ -129,7 +125,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
 		layout = self.layout
 
 		md = context.smoke.domain_settings
-		cache = md.point_cache
+		cache = md.point_cache_low
 			
 		point_cache_ui(self, cache, cache.baked==False, 0, 1)
 					
@@ -161,66 +157,26 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
 		col.itemL(text="Noise Method:")
 		col.row().itemR(md, "noise_type", text="")
 		col.itemR(md, "strength")
-		col.itemR(md, "show_highres")
+		col.itemR(md, "viewhighres")
 		
 class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
-	__label__ = "Smoke Cache"
+	__label__ = "Smoke High Resolution Cache"
 	__default_closed__ = True
 
 	def poll(self, context):
-		return (context.smoke)
+		md = context.smoke
+		return md and (md.smoke_type == 'TYPE_DOMAIN') and md.domain_settings.highres
 
 	def draw(self, context):
 		layout = self.layout
 
-		md = context.smoke
-
-		cache = md.point_cache
+		md = context.smoke.domain_settings
+		cache = md.point_cache_high
 			
-		layout.set_context_pointer("PointCache", cache)
-			
-		row = layout.row()
-		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index")
-		col = row.column(align=True)
-		col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
-		col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
-			
-		row = layout.row()
-		row.itemR(cache, "name")
-			
-		row = layout.row()
-		row.itemR(cache, "start_frame")
-		row.itemR(cache, "end_frame")
-			
-		row = layout.row()
-			
-		if cache.baked == True:
-			row.itemO("ptcache.free_bake", text="Free Bake")
-		else:
-			row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
-			
-		subrow = row.row()
-		subrow.enabled = cache.frames_skipped or cache.outdated
-		subrow.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
-				
-		row = layout.row()
-		#row.enabled = smoke_panel_enabled(psys)
-		row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
-		
-		row = layout.row()
-		#row.enabled = smoke_panel_enabled(psys)
-			
-		layout.itemL(text=cache.info)
-			
-		layout.itemS()
-			
-		row = layout.row()
-		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
-		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-		layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
-
+		point_cache_ui(self, cache, cache.baked==False, 0, 1)
+					
 bpy.types.register(PHYSICS_PT_smoke)
 bpy.types.register(PHYSICS_PT_smoke_cache)
+bpy.types.register(PHYSICS_PT_smoke_highres)
 bpy.types.register(PHYSICS_PT_smoke_groups)
-#bpy.types.register(PHYSICS_PT_smoke_highres)
-#bpy.types.register(PHYSICS_PT_smoke_cache_highres)
+bpy.types.register(PHYSICS_PT_smoke_cache_highres)

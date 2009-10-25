@@ -49,10 +49,10 @@ class WTURBULENCE
 		void stepTurbulenceFull(float dt, float* xvel, float* yvel, float* zvel, unsigned char *obstacles);
 	
 		// texcoord functions
-		void advectTextureCoordinates (float dtOrg, float* xvel, float* yvel, float* zvel, float *_tempBig1, float *_tempBig2);
-		void resetTextureCoordinates();
+		void advectTextureCoordinates(float dtOrg, float* xvel, float* yvel, float* zvel, float *tempBig1, float *tempBig2);
+		void resetTextureCoordinates(float *_eigMin, float *_eigMax);
 
-		void computeEnergy(float* xvel, float* yvel, float* zvel, unsigned char *obstacles);
+		void computeEnergy(float *energy, float* xvel, float* yvel, float* zvel, unsigned char *obstacles);
 
 		// evaluate wavelet noise function
 		Vec3 WVelocity(Vec3 p);
@@ -63,8 +63,6 @@ class WTURBULENCE
 		inline float* getArrayTcU() { return _tcU; }
 		inline float* getArrayTcV() { return _tcV; }
 		inline float* getArrayTcW() { return _tcW; }
-		inline float* getArrayEigMin() { return _eigMin; }
-		inline float* getArrayEigMax() { return _eigMax; }
 
 		inline Vec3Int getResSm() { return _resSm; } // small resolution
 		inline Vec3Int getResBig() { return _resBig; }
@@ -81,15 +79,15 @@ class WTURBULENCE
 		
 		// noise settings
 		float _cullingThreshold;
-		float _noiseStrength;
-		float _noiseSizeScale;
-		bool _uvwAdvection;
-		bool _uvwReset;
-		float _noiseTimeanimSpeed;
-		int _dumpInterval;
-		int _noiseControlType;
+		// float _noiseStrength;
+		// float _noiseSizeScale;
+		// bool _uvwAdvection;
+		// bool _uvwReset;
+		// float _noiseTimeanimSpeed;
+		// int _dumpInterval;
+		// nt _noiseControlType;
 		// debug, scale density for projections output images
-		float _outputScale;
+		// float _outputScale;
 
 		// noise resolution
 		int _xResBig;
@@ -117,24 +115,15 @@ class WTURBULENCE
 		float* _tcW;
 		float* _tcTemp;
 
-		float* _eigMin; // no save -dg
-		float* _eigMax; // no save -dg
-
-		// wavelet decomposition of velocity energies
-		float* _energy; // no save -dg
-
 		// noise data
 		float* _noiseTile;
 		//float* _noiseTileExt;
 
 		// step counter
 		int _totalStepsBig;
-
-		// highest frequency component of wavelet decomposition
-		float* _highFreqEnergy; // no save -dg
 		
-		void computeEigenvalues();
-		void decomposeEnergy();
+		void computeEigenvalues(float *_eigMin, float *_eigMax);
+		void decomposeEnergy(float *energy, float *_highFreqEnergy);
 };
 
 #endif // WTURBULENCE_H

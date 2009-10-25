@@ -458,7 +458,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		mm->event_type= evt->type;
 		
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 		
 		/* reset frs delta */
 		RNA_int_set(op->ptr, "frames", 0);
@@ -990,9 +990,9 @@ void ED_operatortypes_marker(void)
 }
 
 /* called in screen_ops.c:ED_keymap_screen() */
-void ED_marker_keymap(wmWindowManager *wm)
+void ED_marker_keymap(wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Markers", 0, 0);
 	
 	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_S, KM_ANY, 0, 0);
@@ -1002,6 +1002,7 @@ void ED_marker_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
 	

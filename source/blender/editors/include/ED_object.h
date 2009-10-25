@@ -28,7 +28,8 @@
 #ifndef ED_OBJECT_H
 #define ED_OBJECT_H
 
-struct wmWindowManager;
+struct wmKeyConfig;
+struct wmKeyMap;
 struct Scene;
 struct Object;
 struct bContext;
@@ -44,8 +45,12 @@ struct ModifierData;
 
 /* object_edit.c */
 void ED_operatortypes_object(void);
-void ED_keymap_object(struct wmWindowManager *wm);
+void ED_operatormacros_object(void);
+void ED_keymap_object(struct wmKeyConfig *keyconf);
 struct Object *ED_object_add_type(struct bContext *C, int type);
+
+/* generic editmode keys like pet */
+void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet);
 
 	/* send your own notifier for select! */
 void ED_base_object_select(struct Base *base, short mode);
@@ -71,6 +76,7 @@ void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 
 void ED_object_base_init_from_view(struct bContext *C, struct Base *base);
+struct Object *ED_object_add_type(struct bContext *C, int type);
 
 void ED_object_single_users(struct Scene *scene, int full);
 
@@ -89,15 +95,14 @@ void object_test_constraints(struct Object *ob);
 
 void ED_object_constraint_rename(struct Object *ob, struct bConstraint *con, char *oldname);
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
+void ED_object_constraint_update(struct Object *ob);
+void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob);
 
-/* editlattice.c */
+/* object_lattice.c */
 void mouse_lattice(struct bContext *C, short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, char *name);
 
-/* editmball.c */
-void undo_push_mball(struct bContext *C, char *name);
-
-/* editkey.c */
+/* object_shapekey.c */
 void insert_shapekey(struct Scene *scene, struct Object *ob);
 void delete_key(struct Scene *scene, struct Object *ob);
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);

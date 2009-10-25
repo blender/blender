@@ -124,6 +124,8 @@ bool SCA_DelaySensor::Evaluate()
 	return trigger;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -161,5 +163,7 @@ PyAttributeDef SCA_DelaySensor::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("repeat",SCA_DelaySensor,m_repeat),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

@@ -14,6 +14,8 @@
  *
  */
 
+#include <stdio.h>
+
 #include "ListValue.h"
 #include "StringValue.h"
 #include "VoidValue.h"
@@ -26,9 +28,255 @@
 #include <config.h>
 #endif
 
-#if  ((PY_MAJOR_VERSION == 2) &&(PY_MINOR_VERSION < 5))
-#define Py_ssize_t int
-#endif
+
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
+
+CListValue::CListValue()
+: CPropValue()
+{
+	m_bReleaseContents=true;
+}
+
+
+
+CListValue::~CListValue()
+{
+
+	if (m_bReleaseContents) {
+		for (unsigned int i=0;i<m_pValueArray.size();i++) {
+			m_pValueArray[i]->Release();
+		}
+	}
+}
+
+
+static STR_String gstrListRep=STR_String("List");
+
+const STR_String & CListValue::GetText()
+{
+	gstrListRep = "[";
+	STR_String commastr = "";
+
+	for (int i=0;i<GetCount();i++)
+	{
+		gstrListRep += commastr;
+		gstrListRep += GetValue(i)->GetText();
+		commastr = ",";
+	}
+	gstrListRep += "]";
+
+	return gstrListRep;
+}
+
+
+
+CValue* CListValue::GetReplica() {
+	CListValue* replica = new CListValue(*this);
+
+	replica->ProcessReplica();
+
+	replica->m_bReleaseContents=true; // for copy, complete array is copied for now...
+	// copy all values
+	int numelements = m_pValueArray.size();
+	unsigned int i=0;
+	replica->m_pValueArray.resize(numelements);
+	for (i=0;i<m_pValueArray.size();i++)
+		replica->m_pValueArray[i] = m_pValueArray[i]->GetReplica();
+
+
+	return replica;
+};
+
+
+
+void CListValue::SetValue(int i, CValue *val)
+{
+	assertd(i < m_pValueArray.size());
+	m_pValueArray[i]=val;
+}
+
+
+
+void CListValue::Resize(int num)
+{
+	m_pValueArray.resize(num);
+}
+
+
+
+void CListValue::Remove(int i)
+{
+	assertd(i<m_pValueArray.size());
+	m_pValueArray.erase(m_pValueArray.begin()+i);
+}
+
+
+
+void CListValue::ReleaseAndRemoveAll()
+{
+	for (unsigned int i=0;i<m_pValueArray.size();i++)
+		m_pValueArray[i]->Release();
+	m_pValueArray.clear();//.Clear();
+}
+
+
+
+CValue* CListValue::FindValue(const STR_String & name)
+{
+	for (int i=0; i < GetCount(); i++)
+		if (GetValue(i)->GetName() == name)
+			return GetValue(i);
+
+	return NULL;
+}
+
+CValue* CListValue::FindValue(const char * name)
+{
+	for (int i=0; i < GetCount(); i++)
+		if (GetValue(i)->GetName() == name)
+			return GetValue(i);
+
+	return NULL;
+}
+
+bool CListValue::SearchValue(CValue *val)
+{
+	for (int i=0;i<GetCount();i++)
+		if (val == GetValue(i))
+			return true;
+	return false;
+}
+
+
+
+void CListValue::SetReleaseOnDestruct(bool bReleaseContents)
+{
+	m_bReleaseContents = bReleaseContents;
+}
+
+
+
+bool CListValue::RemoveValue(CValue *val)
+{
+	bool result=false;
+
+	for (int i=GetCount()-1;i>=0;i--)
+		if (val == GetValue(i))
+		{
+			Remove(i);
+			result=true;
+		}
+	return result;
+}
+
+
+
+void CListValue::MergeList(CListValue *otherlist)
+{
+
+	int numelements = this->GetCount();
+	int numotherelements = otherlist->GetCount();
+
+
+	Resize(numelements+numotherelements);
+
+	for (int i=0;i<numotherelements;i++)
+	{
+		SetValue(i+numelements,otherlist->GetValue(i)->AddRef());
+	}
+}
+
+bool CListValue::CheckEqual(CValue* first,CValue* second)
+{
+	bool result = false;
+
+	CValue* eqval =  ((CValue*)first)->Calc(VALUE_EQL_OPERATOR,(CValue*)second);
+
+	if (eqval==NULL)
+		return false;
+	const STR_String& text = eqval->GetText();
+	if (&text==&CBoolValue::sTrueString)
+	{
+		result = true;
+	}
+	eqval->Release();
+	return result;
+
+}
+
+
+/* ---------------------------------------------------------------------
+ * Some stuff taken from the header
+ * --------------------------------------------------------------------- */
+CValue* CListValue::Calc(VALUE_OPERATOR op,CValue *val)
+{
+	//assert(false); // todo: implement me!
+	static int error_printed =  0;
+	if (error_printed==0) {
+		fprintf(stderr, "CValueList::Calc not yet implimented\n");
+		error_printed = 1;
+	}
+	return NULL;
+}
+
+CValue* CListValue::CalcFinal(VALUE_DATA_TYPE dtype,
+							  VALUE_OPERATOR op,
+							  CValue* val)
+{
+	//assert(false); // todo: implement me!
+	static int error_printed =  0;
+	if (error_printed==0) {
+		fprintf(stderr, "CValueList::CalcFinal not yet implimented\n");
+		error_printed = 1;
+	}
+	return NULL;
+}
+
+
+
+void CListValue::Add(CValue* value)
+{
+	m_pValueArray.push_back(value);
+}
+
+
+
+double CListValue::GetNumber()
+{
+	return -1;
+}
+
+
+
+void CListValue::SetModified(bool bModified)
+{
+	CValue::SetModified(bModified);
+	int numels = GetCount();
+
+	for (int i=0;i<numels;i++)
+		GetValue(i)->SetModified(bModified);
+}
+
+
+
+bool CListValue::IsModified()
+{
+	bool bmod = CValue::IsModified(); //normal own flag
+	int numels = GetCount();
+
+	for (int i=0;i<numels;i++)
+		bmod = bmod || GetValue(i)->IsModified();
+
+	return bmod;
+}
+
+#ifndef DISABLE_PYTHON
+
+/* --------------------------------------------------------------------- */
+/* Python interface ---------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
 Py_ssize_t listvalue_bufferlen(PyObject* self)
 {
@@ -297,13 +545,13 @@ PyMethodDef CListValue::Methods[] = {
 	{"reverse", (PyCFunction)CListValue::sPyreverse,METH_NOARGS},
 	{"index", (PyCFunction)CListValue::sPyindex,METH_O},
 	{"count", (PyCFunction)CListValue::sPycount,METH_O},
-	
+
 	/* Dict style access */
 	{"get", (PyCFunction)CListValue::sPyget,METH_VARARGS},
-	
+
 	/* Own cvalue funcs */
 	{"from_id", (PyCFunction)CListValue::sPyfrom_id,METH_O},
-	
+
 	{NULL,NULL} //Sentinel
 };
 
@@ -311,212 +559,28 @@ PyAttributeDef CListValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
-CListValue::CListValue()
-: CPropValue()
-{
-	m_bReleaseContents=true;	
-}
-
-
-
-CListValue::~CListValue()
-{
-
-	if (m_bReleaseContents) {
-		for (unsigned int i=0;i<m_pValueArray.size();i++) {
-			m_pValueArray[i]->Release();
-		}
-	}
-}
-
-
-static STR_String gstrListRep=STR_String("List");
-
-const STR_String & CListValue::GetText()
-{
-	gstrListRep = "[";
-	STR_String commastr = "";
-
-	for (int i=0;i<GetCount();i++)
-	{
-		gstrListRep += commastr;
-		gstrListRep += GetValue(i)->GetText();
-		commastr = ",";
-	}
-	gstrListRep += "]";
-
-	return gstrListRep;
-}
-
-
-
-CValue* CListValue::GetReplica() { 
-	CListValue* replica = new CListValue(*this);
-
-	replica->ProcessReplica();
-
-	replica->m_bReleaseContents=true; // for copy, complete array is copied for now...
-	// copy all values
-	int numelements = m_pValueArray.size();
-	unsigned int i=0;
-	replica->m_pValueArray.resize(numelements);
-	for (i=0;i<m_pValueArray.size();i++)
-		replica->m_pValueArray[i] = m_pValueArray[i]->GetReplica();
-
-
-	return replica;
-};
-
-
-
-void CListValue::SetValue(int i, CValue *val)
-{
-	assertd(i < m_pValueArray.size());
-	m_pValueArray[i]=val;
-}
-
-
-
-void CListValue::Resize(int num)
-{
-	m_pValueArray.resize(num);
-}
-
-
-
-void CListValue::Remove(int i)
-{
-	assertd(i<m_pValueArray.size());
-	m_pValueArray.erase(m_pValueArray.begin()+i);
-}
-
-
-
-void CListValue::ReleaseAndRemoveAll()
-{
-	for (unsigned int i=0;i<m_pValueArray.size();i++)
-		m_pValueArray[i]->Release();
-	m_pValueArray.clear();//.Clear();
-}
-
-
-
-CValue* CListValue::FindValue(const STR_String & name)
-{
-	for (int i=0; i < GetCount(); i++)
-		if (GetValue(i)->GetName() == name)
-			return GetValue(i);
-	
-	return NULL;
-}
-
-CValue* CListValue::FindValue(const char * name)
-{
-	for (int i=0; i < GetCount(); i++)
-		if (GetValue(i)->GetName() == name)
-			return GetValue(i);
-	
-	return NULL;
-}
-
-bool CListValue::SearchValue(CValue *val)
-{
-	for (int i=0;i<GetCount();i++)
-		if (val == GetValue(i))
-			return true;
-	return false;
-}
-
-
-
-void CListValue::SetReleaseOnDestruct(bool bReleaseContents)
-{
-	m_bReleaseContents = bReleaseContents;
-}
-
-
-
-bool CListValue::RemoveValue(CValue *val)
-{
-	bool result=false;
-
-	for (int i=GetCount()-1;i>=0;i--)
-		if (val == GetValue(i))
-		{
-			Remove(i);
-			result=true;
-		}
-	return result;
-}
-
-
-
-void CListValue::MergeList(CListValue *otherlist)
-{
-
-	int numelements = this->GetCount();
-	int numotherelements = otherlist->GetCount();
-
-
-	Resize(numelements+numotherelements);
-
-	for (int i=0;i<numotherelements;i++)
-	{
-		SetValue(i+numelements,otherlist->GetValue(i)->AddRef());
-	}
-}
-
-
 PyObject* CListValue::Pyappend(PyObject* value)
 {
 	CValue* objval = ConvertPythonToValue(value, "CList.append(i): CValueList, ");
 
 	if (!objval) /* ConvertPythonToValue sets the error */
 		return NULL;
-	
+
 	if (!BGE_PROXY_PYOWNS(m_proxy)) {
 		PyErr_SetString(PyExc_TypeError, "CList.append(i): this CValueList is used internally for the game engine and can't be modified");
 		return NULL;
 	}
-	
+
 	Add(objval);
-	
+
 	Py_RETURN_NONE;
 }
-
-
 
 PyObject* CListValue::Pyreverse()
 {
 	std::reverse(m_pValueArray.begin(),m_pValueArray.end());
 	Py_RETURN_NONE;
 }
-
-
-
-bool CListValue::CheckEqual(CValue* first,CValue* second)
-{
-	bool result = false;
-	
-	CValue* eqval =  ((CValue*)first)->Calc(VALUE_EQL_OPERATOR,(CValue*)second);
-	
-	if (eqval==NULL)
-		return false;
-	const STR_String& text = eqval->GetText();
-	if (&text==&CBoolValue::sTrueString)
-	{
-		result = true;
-	}
-	eqval->Release();
-	return result;
-
-}
-
-
 
 PyObject* CListValue::Pyindex(PyObject *value)
 {
@@ -542,7 +606,7 @@ PyObject* CListValue::Pyindex(PyObject *value)
 		PyErr_SetString(PyExc_ValueError, "CList.index(x): x not in CListValue");
 	}
 	return result;
-	
+
 }
 
 
@@ -552,7 +616,7 @@ PyObject* CListValue::Pycount(PyObject* value)
 	int numfound = 0;
 
 	CValue* checkobj = ConvertPythonToValue(value, ""); /* error ignored */
-	
+
 	if (checkobj==NULL) { /* in this case just return that there are no items in the list */
 		PyErr_Clear();
 		return PyLong_FromSsize_t(0);
@@ -580,9 +644,9 @@ PyObject* CListValue::Pyget(PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
 		return NULL;
-	
+
 	CValue *item = FindValue((const char *)key);
-	if (item) {	
+	if (item) {
 		PyObject* pyobj = item->ConvertValueToPython();
 		if (pyobj)
 			return pyobj;
@@ -597,7 +661,7 @@ PyObject* CListValue::Pyget(PyObject *args)
 PyObject* CListValue::Pyfrom_id(PyObject* value)
 {
 	uintptr_t id= (uintptr_t)PyLong_AsVoidPtr(value);
-	
+
 	if (PyErr_Occurred())
 		return NULL;
 
@@ -608,72 +672,8 @@ PyObject* CListValue::Pyfrom_id(PyObject* value)
 			return GetValue(i)->GetProxy();
 	}
 	PyErr_SetString(PyExc_IndexError, "from_id(#): id not found in CValueList");
-	return NULL;	
-
-}
-
-
-/* --------------------------------------------------------------------- 
- * Some stuff taken from the header
- * --------------------------------------------------------------------- */
-CValue* CListValue::Calc(VALUE_OPERATOR op,CValue *val) 
-{
-	//assert(false); // todo: implement me!
-	static int error_printed =  0;
-	if (error_printed==0) {
-		fprintf(stderr, "CValueList::Calc not yet implimented\n");
-		error_printed = 1;
-	}
 	return NULL;
+
 }
 
-CValue* CListValue::CalcFinal(VALUE_DATA_TYPE dtype,
-							  VALUE_OPERATOR op, 
-							  CValue* val) 
-{
-	//assert(false); // todo: implement me!
-	static int error_printed =  0;
-	if (error_printed==0) {
-		fprintf(stderr, "CValueList::CalcFinal not yet implimented\n");
-		error_printed = 1;
-	}
-	return NULL;
-}
-
-
-
-void CListValue::Add(CValue* value)
-{
-	m_pValueArray.push_back(value);
-}
-
-
-
-double CListValue::GetNumber()
-{
-	return -1;
-}
-
-
-
-void CListValue::SetModified(bool bModified)
-{	
-	CValue::SetModified(bModified);
-	int numels = GetCount();
-
-	for (int i=0;i<numels;i++)
-		GetValue(i)->SetModified(bModified);
-}
-
-
-
-bool CListValue::IsModified()
-{
-	bool bmod = CValue::IsModified(); //normal own flag
-	int numels = GetCount();
-
-	for (int i=0;i<numels;i++)
-		bmod = bmod || GetValue(i)->IsModified();
-
-	return bmod;
-}
+#endif // DISABLE_PYTHON

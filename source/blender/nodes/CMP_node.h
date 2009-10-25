@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -49,6 +49,7 @@ extern bNodeType cmp_node_composite;
 extern bNodeType cmp_node_viewer;
 extern bNodeType cmp_node_splitviewer;
 extern bNodeType cmp_node_output_file;
+extern bNodeType cmp_node_view_levels;
 
 extern bNodeType cmp_node_curve_rgb;
 extern bNodeType cmp_node_mix_rgb;
@@ -88,7 +89,9 @@ extern bNodeType cmp_node_combycca;
 extern bNodeType cmp_node_premulkey;
 
 extern bNodeType cmp_node_diff_matte;
-extern bNodeType cmp_node_chroma;
+extern bNodeType cmp_node_distance_matte;
+extern bNodeType cmp_node_chroma_matte;
+extern bNodeType cmp_node_color_matte;
 extern bNodeType cmp_node_channel_matte;
 extern bNodeType cmp_node_color_spill;
 extern bNodeType cmp_node_luma_matte; 

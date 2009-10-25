@@ -27,41 +27,47 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  .
-  ../../../source/kernel/gen_system
-  ../../../intern/string
-  ../../../intern/guardedalloc
-  ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-  ../../../intern/audaspace/intern
-  ../../../source/gameengine/Converter
-  ../../../source/gameengine/BlenderRoutines
-  ../../../source/blender/imbuf
-  ../../../intern/moto/include
-  ../../../source/gameengine/Ketsji
-  ../../../source/gameengine/Ketsji/KXNetwork
-  ../../../source/blender/blenlib
-  ../../../source/blender/blenkernel
-  ../../../source/blender/windowmanager
-  ../../../source/blender
-  ../../../source/blender/include
-  ../../../source/blender/makesdna
-  ../../../source/blender/makesrna
-  ../../../source/gameengine/Rasterizer
-  ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-  ../../../source/gameengine/GameLogic
-  ../../../source/gameengine/Expressions
-  ../../../source/gameengine/Network
-  ../../../source/gameengine/SceneGraph
-  ../../../source/gameengine/Physics/common
-  ../../../source/gameengine/Physics/Bullet
-  ../../../source/gameengine/Physics/Dummy
-  ../../../source/gameengine/Network/LoopBackNetwork
-  ../../../source/blender/misc
-  ../../../source/blender/blenloader
-  ../../../source/blender/gpu
-  ../../../extern/bullet2/src
-  ${PYTHON_INC}
+	.
+	../../../source/kernel/gen_system
+	../../../intern/string
+	../../../intern/guardedalloc
+	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
+	../../../intern/audaspace/intern
+	../../../source/gameengine/Converter
+	../../../source/gameengine/BlenderRoutines
+	../../../source/blender/imbuf
+	../../../intern/moto/include
+	../../../source/gameengine/Ketsji
+	../../../source/gameengine/Ketsji/KXNetwork
+	../../../source/blender/blenlib
+	../../../source/blender/blenkernel
+	../../../source/blender/windowmanager
+	../../../source/blender
+	../../../source/blender/include
+	../../../source/blender/makesdna
+	../../../source/blender/makesrna
+	../../../source/gameengine/Rasterizer
+	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
+	../../../source/gameengine/GameLogic
+	../../../source/gameengine/Expressions
+	../../../source/gameengine/Network
+	../../../source/gameengine/SceneGraph
+	../../../source/gameengine/Physics/common
+	../../../source/gameengine/Physics/Bullet
+	../../../source/gameengine/Physics/Dummy
+	../../../source/gameengine/Network/LoopBackNetwork
+	../../../source/blender/misc
+	../../../source/blender/blenloader
+	../../../source/blender/gpu
+	../../../source/blender/ikplugin
+	../../../extern/bullet2/src
 )
+
+IF(WITH_PYTHON)
+	SET(INC ${INC} ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_converter "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_converter', sources, Split(incs), [], libtype=['game','player'], priority=[5,70] )

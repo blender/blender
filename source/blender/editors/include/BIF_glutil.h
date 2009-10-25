@@ -197,6 +197,7 @@ void gla2DSetMap(gla2DDrawInfo *di, struct rctf *rect);
 /* use this for platform hacks. glPointSize is solved here */
 void bglBegin(int mode);
 void bglEnd(void);
+int bglPointHack();
 void bglVertex3fv(float *vec);
 void bglVertex3f(float x, float y, float z);
 void bglVertex2fv(float *vec);

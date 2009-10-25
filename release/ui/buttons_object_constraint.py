@@ -121,9 +121,17 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 	def FOLLOW_PATH(self, layout, con):
 		self.target_template(layout, con)
 		
-		row = layout.row()
-		row.itemR(con, "curve_follow")
-		row.itemR(con, "offset")
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(con, "curve_follow")
+		
+		col = split.column()
+		col.itemR(con, "fixed_position")
+		if con.fixed_position:
+			col.itemR(con, "offset_percentage", text="Offset")
+		else:
+			col.itemR(con, "offset")
 		
 		row = layout.row()
 		row.itemL(text="Forward:")

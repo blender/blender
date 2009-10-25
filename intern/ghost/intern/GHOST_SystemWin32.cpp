@@ -39,7 +39,6 @@
 #endif
 
 #include "GHOST_SystemWin32.h"
-//#include <stdio.h> //for printf()
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
@@ -61,6 +60,23 @@
 #define WHEEL_DELTA 120	/* Value for rolling one detent, (old convention! MS changed it) */
 #endif // WHEEL_DELTA
 
+/* 
+ * Defines for mouse buttons 4 and 5 aka xbutton1 and xbutton2.
+ * MSDN: Declared in Winuser.h, include Windows.h 
+ * This does not seem to work with MinGW so we define our own here.
+ */
+#ifndef XBUTTON1
+#define XBUTTON1 0x0001
+#endif // XBUTTON1
+#ifndef XBUTTON2
+#define XBUTTON2 0x0002
+#endif // XBUTTON2
+#ifndef WM_XBUTTONUP
+#define WM_XBUTTONUP 524
+#endif // WM_XBUTTONUP
+#ifndef WM_XBUTTONDOWN
+#define WM_XBUTTONDOWN 523
+#endif // WM_XBUTTONDOWN
 
 #include "GHOST_Debug.h"
 #include "GHOST_DisplayManagerWin32.h"
@@ -672,6 +688,14 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					window->registerMouseClickEvent(true);
 					event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight);
 					break;
+				case WM_XBUTTONDOWN:
+					window->registerMouseClickEvent(true);
+					if ((short) HIWORD(wParam) == XBUTTON1){
+						event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
+					}else if((short) HIWORD(wParam) == XBUTTON2){
+						event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton5);
+					}
+					break;
 				case WM_LBUTTONUP:
 					window->registerMouseClickEvent(false);
 					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
@@ -683,6 +707,14 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				case WM_RBUTTONUP:
 					window->registerMouseClickEvent(false);
 					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight);
+					break;
+				case WM_XBUTTONUP:
+					window->registerMouseClickEvent(false);
+					if ((short) HIWORD(wParam) == XBUTTON1){
+						event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
+					}else if((short) HIWORD(wParam) == XBUTTON2){
+						event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton5);
+					}
 					break;
 				case WM_MOUSEMOVE:
 					event = processCursorEvent(GHOST_kEventCursorMove, window);

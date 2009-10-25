@@ -364,7 +364,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		u= (vec[0]-lt->fu)/lt->du;
 		ui= (int)floor(u);
 		u -= ui;
-		set_four_ipo(u, tu, lt->typeu);
+		key_curve_position_weights(u, tu, lt->typeu);
 	}
 	else {
 		tu[0]= tu[2]= tu[3]= 0.0; tu[1]= 1.0;
@@ -375,7 +375,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		v= (vec[1]-lt->fv)/lt->dv;
 		vi= (int)floor(v);
 		v -= vi;
-		set_four_ipo(v, tv, lt->typev);
+		key_curve_position_weights(v, tv, lt->typev);
 	}
 	else {
 		tv[0]= tv[2]= tv[3]= 0.0; tv[1]= 1.0;
@@ -386,7 +386,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		w= (vec[2]-lt->fw)/lt->dw;
 		wi= (int)floor(w);
 		w -= wi;
-		set_four_ipo(w, tw, lt->typew);
+		key_curve_position_weights(w, tw, lt->typew);
 	}
 	else {
 		tw[0]= tw[2]= tw[3]= 0.0; tw[1]= 1.0;
@@ -472,7 +472,7 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd, int dloc
 }
 
 /* this makes sure we can extend for non-cyclic. *vec needs 4 items! */
-static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)	/* returns OK */
+static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
 {
 	Curve *cu= ob->data;
 	BevList *bl;
@@ -490,21 +490,25 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 	else ctime1= ctime;
 	
 	/* vec needs 4 items */
-	if(where_on_path(ob, ctime1, vec, dir)) {
+	if(where_on_path(ob, ctime1, vec, dir, quat, radius)) {
 		
 		if(cycl==0) {
 			Path *path= cu->path;
 			float dvec[3];
 			
 			if(ctime < 0.0) {
-				VecSubf(dvec, path->data+4, path->data);
+				VecSubf(dvec, path->data[1].vec, path->data[0].vec);
 				VecMulf(dvec, ctime*(float)path->len);
 				VECADD(vec, vec, dvec);
+				if(quat) QUATCOPY(quat, path->data[0].quat);
+				if(radius) *radius= path->data[0].radius;
 			}
 			else if(ctime > 1.0) {
-				VecSubf(dvec, path->data+4*path->len-4, path->data+4*path->len-8);
+				VecSubf(dvec, path->data[path->len-1].vec, path->data[path->len-2].vec);
 				VecMulf(dvec, (ctime-1.0)*(float)path->len);
 				VECADD(vec, vec, dvec);
+				if(quat) QUATCOPY(quat, path->data[path->len-1].quat);
+				if(radius) *radius= path->data[path->len-1].radius;
 			}
 		}
 		return 1;
@@ -520,30 +524,13 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, CurveDeform *cd, float *quatp)
 {
 	Curve *cu= par->data;
-	float fac, loc[4], dir[3], cent[3];
-	short upflag, index;
-	
-	if(axis==MOD_CURVE_POSX || axis==MOD_CURVE_NEGX) {
-		upflag= OB_POSZ;
-		cent[0]= 0.0;
-		cent[1]= co[1];
-		cent[2]= co[2];
-		index= 0;
-	}
-	else if(axis==MOD_CURVE_POSY || axis==MOD_CURVE_NEGY) {
-		upflag= OB_POSZ;
-		cent[0]= co[0];
-		cent[1]= 0.0;
-		cent[2]= co[2];
-		index= 1;
-	}
-	else {
-		upflag= OB_POSY;
-		cent[0]= co[0];
-		cent[1]= co[1];
-		cent[2]= 0.0;
-		index= 2;
-	}
+	float fac, loc[4], dir[3], new_quat[4], radius;
+	short /*upflag, */ index;
+
+	index= axis-1;
+	if(index>2)
+		index -= 3; /* negative  */
+
 	/* to be sure, mostly after file load */
 	if(cu->path==NULL) {
 		makeDispListCurveTypes(scene, par, 0);
@@ -551,7 +538,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 	}
 	
 	/* options */
-	if(ELEM3(axis, OB_NEGX, OB_NEGY, OB_NEGZ)) {
+	if(ELEM3(axis, OB_NEGX+1, OB_NEGY+1, OB_NEGZ+1)) { /* OB_NEG# 0-5, MOD_CURVE_POS# 1-6 */
 		if(cu->flag & CU_STRETCH)
 			fac= (-co[index]-cd->dmax[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
@@ -575,9 +562,10 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 	}
 #endif // XXX old animation system
 	
-	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
-		float q[4], mat[3][3], quat[4];
-		
+	if( where_on_path_deform(par, fac, loc, dir, new_quat, &radius)) {	/* returns OK */
+		float quat[4], cent[3];
+
+#if 0	// XXX - 2.4x Z-Up, Now use bevel tilt.
 		if(cd->no_rot_axis)	/* set by caller */
 			dir[cd->no_rot_axis-1]= 0.0f;
 		
@@ -593,15 +581,104 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 			q[2]= -fac*dir[1];
 			q[3]= -fac*dir[2];
 			QuatMul(quat, q, quat);
-		}		
-		QuatToMat3(quat, mat);
-	
-		/* local rotation */
-		Mat3MulVecfl(mat, cent);
+		}
+#endif
+
+
+		static float q_x90d[4] = {0.70710676908493, 0.70710676908493, 0.0, 0.0};	// float rot_axis[3]= {1,0,0}; AxisAngleToQuat(q, rot_axis, 90 * (M_PI / 180));
+		static float q_y90d[4] = {0.70710676908493, 0.0, 0.70710676908493, 0.0};	// float rot_axis[3]= {0,1,0}; AxisAngleToQuat(q, rot_axis, 90 * (M_PI / 180));
+		static float q_z90d[4] = {0.70710676908493, 0.0, 0.0, 0.70710676908493};	// float rot_axis[3]= {0,0,2}; AxisAngleToQuat(q, rot_axis, 90 * (M_PI / 180));
+
+		static float q_nx90d[4] = {0.70710676908493, -0.70710676908493, 0.0, 0.0};	// float rot_axis[3]= {1,0,0}; AxisAngleToQuat(q, rot_axis, -90 * (M_PI / 180));
+		static float q_ny90d[4] = {0.70710676908493, 0.0, -0.70710676908493, 0.0};	// float rot_axis[3]= {0,1,0}; AxisAngleToQuat(q, rot_axis, -90 * (M_PI / 180));
+		static float q_nz90d[4] = {0.70710676908493, 0.0, 0.0, -0.70710676908493};	// float rot_axis[3]= {0,0,2}; AxisAngleToQuat(q, rot_axis, -90 * (M_PI / 180));
+
+
+		if(cd->no_rot_axis) {	/* set by caller */
+
+			/* this is not exactly the same as 2.4x, since the axis is having rotation removed rather then
+			 * changing the axis before calculating the tilt but serves much the same purpose */
+			float dir_flat[3]={0,0,0}, q[4];
+			VECCOPY(dir_flat, dir);
+			dir_flat[cd->no_rot_axis-1]= 0.0f;
+
+			Normalize(dir);
+			Normalize(dir_flat);
+
+			RotationBetweenVectorsToQuat(q, dir, dir_flat); /* Could this be done faster? */
+
+			QuatMul(new_quat, q, new_quat);
+		}
+
+
+		/* Logic for 'cent' orientation *
+		 *
+		 * The way 'co' is copied to 'cent' may seem to have no meaning, but it does.
+		 *
+		 * Use a curve modifier to stretch a cube out, color each side RGB, positive side light, negative dark.
+		 * view with X up (default), from the angle that you can see 3 faces RGB colors (light), anti-clockwise
+		 * Notice X,Y,Z Up all have light colors and each ordered CCW.
+		 *
+		 * Now for Neg Up XYZ, the colors are all dark, and ordered clockwise - Campbell
+		 * */
+
+		switch(axis) {
+		case MOD_CURVE_POSX:
+			QuatMul(quat, new_quat, q_y90d);
+
+			cent[0]=  0.0;
+			cent[1]=  co[2];
+			cent[2]=  co[1];
+			break;
+		case MOD_CURVE_NEGX:
+			QuatMul(quat, new_quat, q_ny90d);
+
+			cent[0]=  0.0;
+			cent[1]= -co[1];
+			cent[2]=  co[2];
+
+			break;
+		case MOD_CURVE_POSY:
+			QuatMul(quat, new_quat, q_x90d);
+
+			cent[0]=  co[2];
+			cent[1]=  0.0;
+			cent[2]= -co[0];
+			break;
+		case MOD_CURVE_NEGY:
+			QuatMul(quat, new_quat, q_nx90d);
+
+			cent[0]= -co[0];
+			cent[1]=  0.0;
+			cent[2]= -co[2];
+			break;
+		case MOD_CURVE_POSZ:
+			QuatMul(quat, new_quat, q_z90d);
+
+			cent[0]=  co[1];
+			cent[1]= -co[0];
+			cent[2]=  0.0;
+			break;
+		case MOD_CURVE_NEGZ:
+			QuatMul(quat, new_quat, q_nz90d);
+
+			cent[0]=  co[0];
+			cent[1]= -co[1];
+			cent[2]=  0.0;
+			break;
+		}
+
+		/* scale if enabled */
+		if(cu->flag & CU_PATH_RADIUS)
+			VecMulf(cent, radius);
 		
+		/* local rotation */
+		NormalQuat(quat);
+		QuatMulVecf(quat, cent);
+
 		/* translation */
 		VECADD(co, cent, loc);
-		
+
 		if(quatp)
 			QUATCOPY(quatp, quat);
 		

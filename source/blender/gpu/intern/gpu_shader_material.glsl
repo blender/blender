@@ -563,6 +563,38 @@ void mix_color(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	}
 }
 
+void mix_soft(float fac, vec4 col1, vec4 col2, out vec4 outcol)
+{
+	fac = clamp(fac, 0.0, 1.0);
+	float facm = 1.0 - fac;
+
+	vec4 one= vec4(1.0);
+	vec4 scr= one - (one - col2)*(one - col1);
+	outcol = facm*col1 + fac*((one - col1)*col2*col1 + col1*scr);
+}
+
+void mix_linear(float fac, vec4 col1, vec4 col2, out vec4 outcol)
+{
+	fac = clamp(fac, 0.0, 1.0);
+
+	outcol = col1;
+
+	if(col2.r > 0.5)
+		outcol.r= col1.r + fac*(2.0*(col2.r - 0.5));
+	else
+		outcol.r= col1.r + fac*(2.0*(col2.r) - 1.0);
+
+	if(col2.g > 0.5)
+		outcol.g= col1.g + fac*(2.0*(col2.g - 0.5));
+	else
+		outcol.g= col1.g + fac*(2.0*(col2.g) - 1.0);
+
+	if(col2.b > 0.5)
+		outcol.b= col1.b + fac*(2.0*(col2.b - 0.5));
+	else
+		outcol.b= col1.b + fac*(2.0*(col2.b) - 1.0);
+}
+
 void valtorgb(float fac, sampler1D colormap, out vec4 outcol, out float outalpha)
 {
 	outcol = texture1D(colormap, fac);
@@ -847,66 +879,66 @@ void mtex_rgb_color(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 i
 	incol.rgb = col.rgb;
 }
 
-void mtex_value_vars(inout float fact, float facg, out float facm, float flip)
+void mtex_value_vars(inout float fact, float facg, out float facm)
 {
-	fact *= facg;
+	fact *= abs(facg);
 	facm = 1.0-fact;
 
-	if(flip != 0.0) {
+	if(facg < 0.0) {
 		float tmp = fact;
 		fact = facm;
 		facm = tmp;
 	}
 }
 
-void mtex_value_blend(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_blend(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	incol = fact*texcol + facm*outcol;
 }
 
-void mtex_value_mul(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_mul(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	facm = 1.0 - facg;
 	incol = (facm + fact*texcol)*outcol;
 }
 
-void mtex_value_screen(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_screen(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	facm = 1.0 - facg;
 	incol = 1.0 - (facm + fact*(1.0 - texcol))*(1.0 - outcol);
 }
 
-void mtex_value_sub(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_sub(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	fact = -fact;
 	incol = fact*texcol + outcol;
 }
 
-void mtex_value_add(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_add(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	fact = fact;
 	incol = fact*texcol + outcol;
 }
 
-void mtex_value_div(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_div(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	if(texcol != 0.0)
 		incol = facm*outcol + fact*outcol/texcol;
@@ -914,27 +946,27 @@ void mtex_value_div(float outcol, float texcol, float fact, float facg, float fl
 		incol = 0.0;
 }
 
-void mtex_value_diff(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_diff(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	incol = facm*outcol + fact*abs(texcol - outcol);
 }
 
-void mtex_value_dark(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_dark(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	float col = fact*texcol;
 	if(col < outcol) incol = col; else incol = outcol;
 }
 
-void mtex_value_light(float outcol, float texcol, float fact, float facg, float flip, out float incol)
+void mtex_value_light(float outcol, float texcol, float fact, float facg, out float incol)
 {
 	float facm;
-	mtex_value_vars(fact, facg, facm, flip);
+	mtex_value_vars(fact, facg, facm);
 
 	float col = fact*texcol;
 	if(col > outcol) incol = col; else incol = outcol;

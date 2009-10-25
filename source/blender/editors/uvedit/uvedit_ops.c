@@ -56,6 +56,7 @@
 
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -77,7 +78,7 @@ int ED_uvedit_test(Object *obedit)
 	EditMesh *em;
 	int ret;
 
-	if(obedit->type != OB_MESH)
+	if(!obedit || obedit->type != OB_MESH)
 		return 0;
 
 	em = BKE_mesh_get_editmesh(obedit->data);
@@ -139,7 +140,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 
 	/* and update depdency graph */
 	if(update)
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
@@ -169,8 +170,8 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 			tf->tile= curtile; /* set tile index */
 	}
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
 
@@ -180,7 +181,13 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 {
 	int width, height;
 
-	ED_space_image_size(sima, &width, &height);
+	if(sima) {
+		ED_space_image_size(sima, &width, &height);
+	}
+	else {
+		width= 256;
+		height= 256;
+	}
 
 	dist[0]= pixeldist/width;
 	dist[1]= pixeldist/height;
@@ -942,50 +949,6 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 	EM_free_uv_vert_map(vmap);
 }
 
-/* ******************** mirror operator **************** */
-
-static int mirror_exec(bContext *C, wmOperator *op)
-{
-	float mat[3][3];
-	int axis;
-	
-	Mat3One(mat);
-	axis= RNA_enum_get(op->ptr, "axis");
-
-	if(axis == 'x') {
-		/* XXX initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-		BIF_setSingleAxisConstraint(mat[0], " on X axis");
-		Transform(); */
-	}
-	else {
-		/* XXX initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-		BIF_setSingleAxisConstraint(mat[1], " on Y axis");
-		Transform(); */
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-void UV_OT_mirror(wmOperatorType *ot)
-{
-	static EnumPropertyItem axis_items[] = {
-		{'x', "MIRROR_X", 0, "Mirror X", "Mirror UVs over X axis."},
-		{'y', "MIRROR_Y", 0, "Mirror Y", "Mirror UVs over Y axis."},
-		{0, NULL, 0, NULL, NULL}};
-
-	/* identifiers */
-	ot->name= "Mirror";
-	ot->idname= "UV_OT_mirror";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* api callbacks */
-	ot->exec= mirror_exec;
-	ot->poll= ED_operator_uvedit;
-
-	/* properties */
-	RNA_def_enum(ot->srna, "axis", axis_items, 'x', "Axis", "Axis to mirror UV locations over.");
-}
-
 /* ******************** align operator **************** */
 
 static void weld_align_uv(bContext *C, int tool)
@@ -1058,8 +1021,8 @@ static void weld_align_uv(bContext *C, int tool)
 		}
 	}
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
@@ -1141,11 +1104,11 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "use_limit")) {
 		UvVertMap *vmap;
 		UvMapVert *vlist, *iterv;
-		float newuv[2], limit[2], pixels;
+		float newuv[2], limit[2];
 		int a, vtot;
 
-		pixels= RNA_float_get(op->ptr, "limit");
-		uvedit_pixel_to_float(sima, limit, pixels);
+		limit[0]= RNA_float_get(op->ptr, "limit");
+		limit[1]= limit[0];
 
 		EM_init_index_arrays(em, 0, 0, 1);
 		vmap= EM_make_uv_vert_map(em, 1, 0, limit);
@@ -1279,8 +1242,8 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		MEM_freeN(uv_average);
 	}
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1299,7 +1262,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "use_limit", 1, "Use Limit", "Stitch UVs within a specified limit distance.");
-	RNA_def_float(ot->srna, "limit", 20.0, 0.0f, FLT_MAX, "Limit", "Limit distance in image pixels.", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, "Limit", "Limit distance in normalized coordinates.", -FLT_MAX, FLT_MAX);
 }
 
 /* ******************** (de)select all operator **************** */
@@ -1336,7 +1299,7 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1406,7 +1369,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1483,7 +1446,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	else {
 		sync= 0;
 		selectmode= ts->uv_selectmode;
-		sticky= sima->sticky;
+		sticky= (sima)? sima->sticky: 1;
 	}
 
 	/* find nearest element */
@@ -1710,8 +1673,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		}
 	}
 	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
@@ -1834,8 +1797,8 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	uvedit_pixel_to_float(sima, limit, 0.05f);
 	select_linked(scene, ima, em, limit, NULL, extend);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1890,8 +1853,8 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2167,7 +2130,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 		
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
@@ -2262,7 +2225,7 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	if(select) EM_select_flush(em);
 	else EM_deselect_flush(em);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2515,13 +2478,18 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 {
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
-	Image *ima= sima->image;
+	Image *ima;
 	EditFace *efa;
 	MTFace *tface;
 	int width= 0, height= 0;
 	float w, h;
 	short change = 0;
 
+	if(!sima)
+		return 0;
+	
+	ima= sima->image;
+	
 	ED_space_image_size(sima, &width, &height);
 	w = (float)width;
 	h = (float)height;
@@ -2567,8 +2535,8 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 	if(!change)
 		return OPERATOR_CANCELLED;
 	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -2627,7 +2595,7 @@ static int pin_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2672,7 +2640,7 @@ static int select_pinned_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2701,10 +2669,11 @@ static int hide_exec(bContext *C, wmOperator *op)
 	EditFace *efa;
 	MTFace *tf;
 	int swap= RNA_boolean_get(op->ptr, "unselected");
+	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EM_hide_mesh(em, swap);
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
@@ -2714,7 +2683,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->f & SELECT) {
 				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if(sima->flag & SI_SELACTFACE) {
+				if(facemode) {
 					/* Pretend face mode */
 					if((	(efa->v4==NULL && 
 							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
@@ -2759,7 +2728,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 			if(efa->f & SELECT) {
 				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-				if(sima->flag & SI_SELACTFACE) {
+				if(facemode) {
 					if(	(efa->v4==NULL && 
 							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
 							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) ==	(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)	) {
@@ -2812,7 +2781,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	}
 	
 	EM_validate_selections(em);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2843,17 +2812,19 @@ static int reveal_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
+	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
+	int stickymode= sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
 	
 	/* call the mesh function if we are in mesh sync sel */
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EM_reveal_mesh(em);
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
 	
-	if(sima->flag & SI_SELACTFACE) {
+	if(facemode) {
 		if(em->selectmode == SCE_SELECT_FACE) {
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(!(efa->h) && !(efa->f & SELECT)) {
@@ -2865,7 +2836,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			/* enable adjacent faces to have disconnected UV selections if sticky is disabled */
-			if(sima->sticky == SI_STICKY_DISABLE) {
+			if(!stickymode) {
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if(!(efa->h) && !(efa->f & SELECT)) {
 						/* All verts must be unselected for the face to be selected in the UV view */
@@ -2943,7 +2914,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 				EM_select_face(efa, 1);
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -3092,7 +3063,6 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_snap_selection);
 
 	WM_operatortype_append(UV_OT_align);
-	WM_operatortype_append(UV_OT_mirror);
 	WM_operatortype_append(UV_OT_stitch);
 	WM_operatortype_append(UV_OT_weld);
 	WM_operatortype_append(UV_OT_pin);
@@ -3115,9 +3085,12 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_tile_set);
 }
 
-void ED_keymap_uvedit(wmWindowManager *wm)
+void ED_keymap_uvedit(wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
+	wmKeyMap *keymap;
+	
+	keymap= WM_keymap_find(keyconf, "UVEdit", 0, 0);
+	keymap->poll= ED_operator_uvedit;
 	
 	/* pick selection */
 	WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
@@ -3157,6 +3130,8 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_tile_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 
-	transform_keymap_for_space(wm, keymap, SPACE_IMAGE);
+	ED_object_generic_keymap(keyconf, keymap, TRUE);
+
+	transform_keymap_for_space(keyconf, keymap, SPACE_IMAGE);
 }
 

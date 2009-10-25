@@ -124,6 +124,8 @@ bool SCA_RandomSensor::Evaluate()
 	return evaluateResult;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -177,5 +179,7 @@ int SCA_RandomSensor::pyattr_set_seed(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	self->m_basegenerator->SetSeed(PyLong_AsSsize_t(value));
 	return PY_SET_ATTR_SUCCESS;
 }
+
+#endif // DISABLE_PYTHON
 
 /* eof */

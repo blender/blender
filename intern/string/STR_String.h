@@ -54,6 +54,10 @@ using namespace std;
 #include "MEM_guardedalloc.h"
 #endif
 
+#ifdef _WIN32
+#define stricmp _stricmp
+#endif
+
 class STR_String;
 
 typedef  unsigned long dword;

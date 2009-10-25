@@ -36,7 +36,9 @@ public:
 	virtual CValue* GetReplica();
 	virtual CValue* Calc(VALUE_OPERATOR op, CValue *val);
 	virtual CValue* CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
+#ifndef DISABLE_PYTHON
 	virtual PyObject*	ConvertValueToPython();
+#endif
 
 protected:
 	float m_float;

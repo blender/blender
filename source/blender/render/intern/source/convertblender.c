@@ -31,7 +31,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "MTC_matrixops.h"
+
 
 #include "MEM_guardedalloc.h"
 
@@ -191,8 +191,8 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	if (re) re->flag |= R_HALO;
 	else stargrid *= 1.0;				/* then it draws fewer */
 	
-	if(re) MTC_Mat4Invert(mat, re->viewmat);
-	else MTC_Mat4One(mat);
+	if(re) Mat4Invert(mat, re->viewmat);
+	else Mat4One(mat);
 	
 	/* BOUNDING BOX CALCULATION
 		* bbox goes from z = loc_near_var | loc_far_var,
@@ -240,7 +240,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 					done++;
 				}
 				else {
-					MTC_Mat4MulVecfl(re->viewmat, vec);
+					Mat4MulVecfl(re->viewmat, vec);
 					
 					/* in vec are global coordinates
 					* calculate distance to camera
@@ -829,7 +829,7 @@ static void autosmooth(Render *re, ObjectRen *obr, float mat[][4], int degr)
 	/* rotate vertices and calculate normal of faces */
 	for(a=0; a<obr->totvert; a++) {
 		ver= RE_findOrAddVert(obr, a);
-		MTC_Mat4MulVecfl(mat, ver->co);
+		Mat4MulVecfl(mat, ver->co);
 	}
 	for(a=0; a<obr->totvlak; a++) {
 		vlr= RE_findOrAddVlak(obr, a);
@@ -889,6 +889,28 @@ static void free_mesh_orco_hash(Render *re)
 	}
 }
 
+static void check_material_mapto(Material *ma)
+{
+	int a;
+	ma->mapto_textured = 0;
+	
+	/* cache which inputs are actually textured.
+	 * this can avoid a bit of time spent iterating through all the texture slots, map inputs and map tos
+	 * every time a property which may or may not be textured is accessed */
+	
+	for(a=0; a<MAX_MTEX; a++) {
+		if(ma->mtex[a] && ma->mtex[a]->tex) {
+			/* currently used only in volume render, so we'll check for those flags */
+			if(ma->mtex[a]->mapto & MAP_DENSITY) ma->mapto_textured |= MAP_DENSITY;
+			if(ma->mtex[a]->mapto & MAP_EMISSION) ma->mapto_textured |= MAP_EMISSION;
+			if(ma->mtex[a]->mapto & MAP_EMISSION_COL) ma->mapto_textured |= MAP_EMISSION_COL;
+			if(ma->mtex[a]->mapto & MAP_SCATTERING) ma->mapto_textured |= MAP_SCATTERING;
+			if(ma->mtex[a]->mapto & MAP_TRANSMISSION_COL) ma->mapto_textured |= MAP_TRANSMISSION_COL;
+			if(ma->mtex[a]->mapto & MAP_REFLECTION) ma->mapto_textured |= MAP_REFLECTION;
+			if(ma->mtex[a]->mapto & MAP_REFLECTION_COL) ma->mapto_textured |= MAP_REFLECTION_COL;
+		}
+	}
+}
 static void flag_render_node_material(Render *re, bNodeTree *ntree)
 {
 	bNode *node;
@@ -920,7 +942,10 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	
 	if(re->r.mode & R_SPEED) ma->texco |= NEED_UV;
 	
-	if(ma->material_type == MA_TYPE_VOLUME) ma->mode |= MA_TRANSP;
+	if(ma->material_type == MA_TYPE_VOLUME) {
+		ma->mode |= MA_TRANSP;
+		ma->mode &= ~MA_SHADBUF;
+	}
 	if((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		re->flag |= R_ZTRA;
 	
@@ -929,6 +954,8 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 
 	if(ma->nodetree && ma->use_nodes)
 		flag_render_node_material(re, ma->nodetree);
+	
+	check_material_mapto(ma);
 	
 	return ma;
 }
@@ -1280,19 +1307,19 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 
 	VECADD(vlr->v1->co, bb_center, xvec);
 	VECADD(vlr->v1->co, vlr->v1->co, yvec);
-	MTC_Mat4MulVecfl(re->viewmat, vlr->v1->co);
+	Mat4MulVecfl(re->viewmat, vlr->v1->co);
 
 	VECSUB(vlr->v2->co, bb_center, xvec);
 	VECADD(vlr->v2->co, vlr->v2->co, yvec);
-	MTC_Mat4MulVecfl(re->viewmat, vlr->v2->co);
+	Mat4MulVecfl(re->viewmat, vlr->v2->co);
 
 	VECSUB(vlr->v3->co, bb_center, xvec);
 	VECSUB(vlr->v3->co, vlr->v3->co, yvec);
-	MTC_Mat4MulVecfl(re->viewmat, vlr->v3->co);
+	Mat4MulVecfl(re->viewmat, vlr->v3->co);
 
 	VECADD(vlr->v4->co, bb_center, xvec);
 	VECSUB(vlr->v4->co, vlr->v4->co, yvec);
-	MTC_Mat4MulVecfl(re->viewmat, vlr->v4->co);
+	Mat4MulVecfl(re->viewmat, vlr->v4->co);
 
 	CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 	VECCOPY(vlr->v1->n,vlr->n);
@@ -1392,7 +1419,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 	VECCOPY(loc, state->co);
 
 	if(ren_as != PART_DRAW_BB)
-		MTC_Mat4MulVecfl(re->viewmat, loc);
+		Mat4MulVecfl(re->viewmat, loc);
 
 	switch(ren_as) {
 		case PART_DRAW_LINE:
@@ -1401,7 +1428,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 			sd->size = hasize;
 
 			VECCOPY(vel, state->vel);
-			MTC_Mat4Mul3Vecfl(re->viewmat, vel);
+			Mat4Mul3Vecfl(re->viewmat, vel);
 			Normalize(vel);
 
 			if(part->draw & PART_DRAW_VEL_LENGTH)
@@ -1474,7 +1501,7 @@ static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int 
 static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys, int timeoffset)
 {
 	Object *ob= obr->ob;
-	Object *tob=0;
+//	Object *tob=0;
 	Material *ma=0;
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *tpsys=0;
@@ -1484,6 +1511,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	ParticleKey state;
 	ParticleCacheKey *cache=0;
 	ParticleBillboardData bb;
+	ParticleSimulationData sim = {re->scene, ob, psys, NULL};
 	ParticleStrandData sd;
 	StrandBuffer *strandbuf=0;
 	StrandVert *svert=0;
@@ -1517,13 +1545,15 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		return 1;
 
 /* 2. start initialising things */
-	if(part->phystype==PART_PHYS_KEYED)
-		psys_count_keyed_targets(ob,psys);
 
 	/* last possibility to bail out! */
-	psmd= psys_get_modifier(ob,psys);
+	sim.psmd = psmd = psys_get_modifier(ob,psys);
 	if(!(psmd->modifier.mode & eModifierMode_Render))
 		return 0;
+
+	if(part->phystype==PART_PHYS_KEYED)
+		psys_count_keyed_targets(&sim);
+
 
 	if(G.rendering == 0) { /* preview render */
 		totchild = (int)((float)totchild * (float)part->disp / 100.0f);
@@ -1611,18 +1641,18 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 #endif // XXX old animation system
 	cfra = bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
 
-/* 2.4 setup reactors */
-	if(part->type == PART_REACTOR){
-		psys_get_reactor_target(ob, psys, &tob, &tpsys);
-		if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
-			psmd = psys_get_modifier(tob,tpsys);
-			tpart = tpsys->part;
-		}
-	}
+///* 2.4 setup reactors */
+//	if(part->type == PART_REACTOR){
+//		psys_get_reactor_target(ob, psys, &tob, &tpsys);
+//		if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
+//			psmd = psys_get_modifier(tob,tpsys);
+//			tpart = tpsys->part;
+//		}
+//	}
 	
 /* 2.5 setup matrices */
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
+	Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
 	Mat3CpyMat4(nmat, ob->imat);
 	Mat3Transp(nmat);
 
@@ -1695,7 +1725,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 
 	if(path_nbr == 0)
-		psys->lattice = psys_get_lattice(re->scene, ob, psys);
+		psys->lattice = psys_get_lattice(&sim);
 
 /* 3. start creating renderable things */
 	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
@@ -1743,8 +1773,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			pa_size = pa->size;
 
-			r_tilt = 1.0f + pa->r_ave[0];
-			r_length = 0.5f * (1.0f + pa->r_ave[1]);
+			BLI_srandom(psys->seed+a);
+
+			r_tilt = 2.0f*(BLI_frand() - 0.5f);
+			r_length = BLI_frand();
 
 			if(path_nbr) {
 				cache = psys->pathcache[a];
@@ -1784,8 +1816,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			pa_size = psys_get_child_size(psys, cpa, cfra, &pa_time);
 
-			r_tilt = 2.0f * cpa->rand[2];
-			r_length = cpa->rand[1];
+			r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
+			r_length = PSYS_FRAND(a + 22);
 
 			num = cpa->num;
 
@@ -1902,7 +1934,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				time= curlen/strandlen;
 
 				VECCOPY(loc,state.co);
-				MTC_Mat4MulVecfl(re->viewmat,loc);
+				Mat4MulVecfl(re->viewmat,loc);
 
 				if(strandbuf) {
 					VECCOPY(svert->co, loc);
@@ -1950,7 +1982,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						continue;
 
 					state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : ct;
-					psys_get_particle_on_path(re->scene,ob,psys,a,&state,1);
+					psys_get_particle_on_path(&sim,a,&state,1);
 
 					if(psys->parent)
 						Mat4MulVecfl(psys->parent->obmat, state.co);
@@ -1969,7 +2001,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			else {
 				time=0.0f;
 				state.time=cfra;
-				if(psys_get_particle_state(re->scene,ob,psys,a,&state,0)==0)
+				if(psys_get_particle_state(&sim,a,&state,0)==0)
 					continue;
 
 				if(psys->parent)
@@ -2044,8 +2076,8 @@ static void make_render_halos(Render *re, ObjectRen *obr, Mesh *me, int totvert,
 	float vec[3], hasize, mat[4][4], imat[3][3];
 	int a, ok, seed= ma->seed1;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat3CpyMat4(imat, ob->imat);
+	Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	Mat3CpyMat4(imat, ob->imat);
 
 	re->flag |= R_HALO;
 
@@ -2056,7 +2088,7 @@ static void make_render_halos(Render *re, ObjectRen *obr, Mesh *me, int totvert,
 			hasize= ma->hasize;
 
 			VECCOPY(vec, mvert->co);
-			MTC_Mat4MulVecfl(mat, vec);
+			Mat4MulVecfl(mat, vec);
 
 			if(ma->mode & MA_HALOPUNO) {
 				xn= mvert->no[0];
@@ -2189,7 +2221,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	}
 	if (texco & TEXCO_GLOB) {
 		VECCOPY(shi->gl, shi->co);
-		MTC_Mat4MulVecfl(re->viewinv, shi->gl);
+		Mat4MulVecfl(re->viewinv, shi->gl);
 	}
 	if (texco & TEXCO_NORM) {
 		VECCOPY(shi->orn, shi->vn);
@@ -2330,9 +2362,9 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	if (ob!=find_basis_mball(re->scene, ob))
 		return;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);
-	MTC_Mat3CpyMat4(imat, ob->imat);
+	Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	Mat4Invert(ob->imat, mat);
+	Mat3CpyMat4(imat, ob->imat);
 
 	ma= give_render_material(re, ob, 1);
 
@@ -2353,7 +2385,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 
 		ver= RE_findOrAddVert(obr, obr->totvert++);
 		VECCOPY(ver->co, data);
-		MTC_Mat4MulVecfl(mat, ver->co);
+		Mat4MulVecfl(mat, ver->co);
 
 		/* render normals are inverted */
 		xn= -nors[0];
@@ -2437,7 +2469,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 		if(orco) {
 			v1->orco= orco; orco+= 3; orcoret++;
 		}	
-		MTC_Mat4MulVecfl(mat, v1->co);
+		Mat4MulVecfl(mat, v1->co);
 		
 		for (v = 1; v < sizev; v++) {
 			ver= RE_findOrAddVert(obr, obr->totvert++);
@@ -2445,7 +2477,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			if(orco) {
 				ver->orco= orco; orco+= 3; orcoret++;
 			}	
-			MTC_Mat4MulVecfl(mat, ver->co);
+			Mat4MulVecfl(mat, ver->co);
 		}
 		/* if V-cyclic, add extra vertices at end of the row */
 		if (dl->flag & DL_CYCL_U) {
@@ -2595,8 +2627,8 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	nu= cu->nurb.first;
 	if(nu==0) return;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);
+	Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	Mat4Invert(ob->imat, mat);
 
 	/* material array */
 	totmat= ob->totcol+1;
@@ -2656,8 +2688,8 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	dl= cu->disp.first;
 	if(cu->disp.first==NULL) return;
 	
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);
+	Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	Mat4Invert(ob->imat, mat);
 
 	/* material array */
 	totmat= ob->totcol+1;
@@ -2699,7 +2731,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					ver->flag = 0;
 				}
 
-				MTC_Mat4MulVecfl(mat, ver->co);
+				Mat4MulVecfl(mat, ver->co);
 				
 				if (orco) {
 					ver->orco = orco;
@@ -2751,7 +2783,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					ver= RE_findOrAddVert(obr, obr->totvert++);
 						
 					VECCOPY(ver->co, fp);
-					MTC_Mat4MulVecfl(mat, ver->co);
+					Mat4MulVecfl(mat, ver->co);
 					fp+= 3;
 
 					if (orco) {
@@ -2994,7 +3026,7 @@ static void init_camera_inside_volumes(Render *re)
 	for(vo= re->volumes.first; vo; vo= vo->next) {
 		for(obi= re->instancetable.first; obi; obi= obi->next) {
 			if (obi->obr == vo->obr) {
-				if (point_inside_volume_objectinstance(obi, co)) {
+				if (point_inside_volume_objectinstance(re, obi, co)) {
 					MatInside *mi;
 					
 					mi = MEM_mallocN(sizeof(MatInside), "camera inside material");
@@ -3048,9 +3080,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 	me= ob->data;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);
-	MTC_Mat3CpyMat4(imat, ob->imat);
+	Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	Mat4Invert(ob->imat, mat);
+	Mat3CpyMat4(imat, ob->imat);
 
 	if(me->totvert==0)
 		return;
@@ -3076,9 +3108,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				}
 				need_nmap_tangent= 1;
 			}
-			
-			if (ma->material_type == MA_TYPE_VOLUME)
-				add_volume(re, obr, ma);
 		}
 	}
 
@@ -3134,7 +3163,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			ver= RE_findOrAddVert(obr, obr->totvert++);
 			VECCOPY(ver->co, mvert->co);
 			if(do_autosmooth==0)	/* autosmooth on original unrotated data to prevent differences between frames */
-				MTC_Mat4MulVecfl(mat, ver->co);
+				Mat4MulVecfl(mat, ver->co);
   
 			if(orco) {
 				ver->orco= orco;
@@ -3355,13 +3384,13 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	shb->soft= lar->soft;
 	shb->shadhalostep= lar->shadhalostep;
 	
-	MTC_Mat4Ortho(mat);
-	MTC_Mat4Invert(shb->winmat, mat);	/* winmat is temp */
+	Mat4Ortho(mat);
+	Mat4Invert(shb->winmat, mat);	/* winmat is temp */
 	
 	/* matrix: combination of inverse view and lampmat */
 	/* calculate again: the ortho-render has no correct viewinv */
-	MTC_Mat4Invert(viewinv, re->viewmat);
-	MTC_Mat4MulMat4(shb->viewmat, viewinv, shb->winmat);
+	Mat4Invert(viewinv, re->viewmat);
+	Mat4MulMat4(shb->viewmat, viewinv, shb->winmat);
 	
 	/* projection */
 	shb->d= lar->clipsta;
@@ -3373,9 +3402,10 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	shb->bias= shb->bias*(100/re->r.size);
 	
 	/* halfway method (average of first and 2nd z) reduces bias issues */
-	if(lar->buftype==LA_SHADBUF_HALFWAY)
+	if(ELEM(lar->buftype, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP))
 		shb->bias= 0.1f*shb->bias;
 	
+	shb->compressthresh= lar->compressthresh;
 }
 
 static void area_lamp_vectors(LampRen *lar)
@@ -3439,11 +3469,11 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	BLI_addtail(&re->lampren, lar);
 	go->lampren= lar;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);
+	Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	Mat4Invert(ob->imat, mat);
 
-	MTC_Mat3CpyMat4(lar->mat, mat);
-	MTC_Mat3CpyMat4(lar->imat, ob->imat);
+	Mat3CpyMat4(lar->mat, mat);
+	Mat3CpyMat4(lar->imat, ob->imat);
 
 	lar->bufsize = la->bufsize;
 	lar->samp = la->samp;
@@ -3457,6 +3487,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->clipend = la->clipend;
 	
 	lar->bias = la->bias;
+	lar->compressthresh = la->compressthresh;
 
 	lar->type= la->type;
 	lar->mode= la->mode;
@@ -3599,7 +3630,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			lar->sh_invcampos[0]= -lar->co[0];
 			lar->sh_invcampos[1]= -lar->co[1];
 			lar->sh_invcampos[2]= -lar->co[2];
-			MTC_Mat3MulVecfl(lar->imat, lar->sh_invcampos);
+			Mat3MulVecfl(lar->imat, lar->sh_invcampos);
 
 			/* z factor, for a normalized volume */
 			angle= saacos(lar->spotsi);
@@ -4223,7 +4254,7 @@ static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *d
 
 		obi->duplitexmat= BLI_memarena_alloc(re->memArena, sizeof(float)*4*4);
 		Mat4Invert(imat, dob->mat);
-		MTC_Mat4MulSerie(obi->duplitexmat, re->viewmat, dob->omat, imat, re->viewinv, 0, 0, 0, 0);
+		Mat4MulSerie(obi->duplitexmat, re->viewmat, dob->omat, imat, re->viewinv, 0, 0, 0, 0);
 	}
 }
 
@@ -4271,7 +4302,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
 	ParticleSystem *psys;
-	int show_emitter, allow_render= 1, index, psysindex;
+	int show_emitter, allow_render= 1, index, psysindex, i;
 
 	index= (dob)? dob->index: 0;
 
@@ -4307,6 +4338,12 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 		}
 		else
 			find_dupli_instances(re, obr);
+			
+		for (i=1; i<=ob->totcol; i++) {
+			Material* ma = give_render_material(re, ob, i);
+			if (ma && ma->material_type == MA_TYPE_VOLUME)
+				add_volume(re, obr, ma);
+		}
 	}
 
 	/* and one render object per particle system */
@@ -4347,8 +4384,8 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 	else if(render_object_type(ob->type))
 		add_render_object(re, ob, par, dob, timeoffset, vectorlay);
 	else {
-		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-		MTC_Mat4Invert(ob->imat, mat);
+		Mat4MulMat4(mat, ob->obmat, re->viewmat);
+		Mat4Invert(ob->imat, mat);
 	}
 	
 	time= PIL_check_seconds_timer();
@@ -4598,8 +4635,8 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
-		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-		MTC_Mat4Invert(ob->imat, mat);
+		Mat4MulMat4(mat, ob->obmat, re->viewmat);
+		Mat4Invert(ob->imat, mat);
 		/* each object should only be rendered once */
 		ob->flag &= ~OB_DONE;
 		ob->transflag &= ~OB_RENDER_DUPLI;
@@ -4745,8 +4782,8 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	if(redoimat) {
 		for(SETLOOPER(re->scene, base)) {
 			ob= base->object;
-			MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-			MTC_Mat4Invert(ob->imat, mat);
+			Mat4MulMat4(mat, ob->obmat, re->viewmat);
+			Mat4Invert(ob->imat, mat);
 		}
 	}
 
@@ -4815,8 +4852,6 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	/* MAKE RENDER DATA */
 	database_init_objects(re, lay, 0, 0, 0, 0);
 	
-	init_camera_inside_volumes(re);
-
 	if(!re->test_break(re->tbh)) {
 		int tothalo;
 
@@ -4840,6 +4875,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			if(re->wrld.mode & WO_STARS)
 				RE_make_stars(re, NULL, NULL, NULL, NULL);
 		sort_halos(re, tothalo);
+		
+		init_camera_inside_volumes(re);
 		
 		re->i.infostr= "Creating Shadowbuffers";
 		re->stats_draw(re->sdh, &re->i);
@@ -5172,7 +5209,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		return 0;
 	
 	Mat4CpyMat4(mat, re->viewmat);
-	MTC_Mat4Invert(imat, mat);
+	Mat4Invert(imat, mat);
 
 	/* set first vertex OK */
 	if(!fss->meshSurfNormals) return 0;

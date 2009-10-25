@@ -50,6 +50,10 @@ float *smoke_get_velocity_x(struct FLUID_3D *fluid);
 float *smoke_get_velocity_y(struct FLUID_3D *fluid);
 float *smoke_get_velocity_z(struct FLUID_3D *fluid);
 
+float *smoke_get_force_x(struct FLUID_3D *fluid);
+float *smoke_get_force_y(struct FLUID_3D *fluid);
+float *smoke_get_force_z(struct FLUID_3D *fluid);
+
 unsigned char *smoke_get_obstacle(struct FLUID_3D *fluid);
 
 size_t smoke_get_index(int x, int max_x, int y, int max_y, int z);
@@ -63,11 +67,11 @@ void smoke_turbulence_free(struct WTURBULENCE *wt);
 void smoke_turbulence_step(struct WTURBULENCE *wt, struct FLUID_3D *fluid);
 
 float *smoke_turbulence_get_density(struct WTURBULENCE *wt);
-void smoke_turbulence_get_res(struct WTURBULENCE *wt, unsigned int *res);
+void smoke_turbulence_get_res(struct WTURBULENCE *wt, int *res);
 void smoke_turbulence_set_noise(struct WTURBULENCE *wt, int type);
-void smoke_turbulence_initBlenderRNA(struct WTURBULENCE *wt, float *strength);
+void smoke_initWaveletBlenderRNA(struct WTURBULENCE *wt, float *strength);
 
-void smoke_turbulence_dissolve(struct WTURBULENCE *wt, int speed, int log);
+void smoke_dissolve_wavelet(struct WTURBULENCE *wt, int speed, int log);
 
 // export
 void smoke_turbulence_export(struct WTURBULENCE *wt, float **dens, float **densold, float **tcu, float **tcv, float **tcw);

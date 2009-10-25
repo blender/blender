@@ -61,6 +61,7 @@ extern "C"
 #include "BKE_report.h"	
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 #include "BLO_readfile.h"
 #include "BLO_readblenfile.h"
 #include "IMB_imbuf.h"
@@ -390,6 +391,13 @@ int main(int argc, char** argv)
 		}
 	}
 #endif
+	// XXX add the ability to change this values to the command line parsing.
+	U.mixbufsize = 2048;
+	U.audiodevice = 2;
+	U.audiorate = 44100;
+	U.audioformat = 0x24;
+	U.audiochannels = 2;
+
 	for (i = 1; (i < argc) && !error 
 #ifdef WIN32
 		&& scr_saver_mode == SCREEN_SAVER_MODE_NONE

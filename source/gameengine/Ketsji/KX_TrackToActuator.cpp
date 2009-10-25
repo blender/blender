@@ -60,7 +60,7 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 									   bool allow3D,
 									   int trackflag,
 									   int upflag)
-									   : SCA_IActuator(gameobj)
+									   : SCA_IActuator(gameobj, KX_ACT_TRACKTO)
 {
     m_time = time;
     m_allow3D = allow3D;
@@ -421,13 +421,11 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 	return result;
 }
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
-
-
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_TrackToActuator::Type = {
@@ -491,5 +489,7 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 		
 	return PY_SET_ATTR_SUCCESS;
 }
+
+#endif // DISABLE_PYTHON
 
 /* eof */

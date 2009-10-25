@@ -27,14 +27,20 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  .
-  ../../../source/kernel/gen_system
-  ../../../intern/string
-  ../../../intern/moto/include
-  ../../../source/gameengine/SceneGraph
-  ../../../source/blender/blenloader
-  ${PYTHON_INC}
+	.
+	../../../source/kernel/gen_system
+	../../../intern/string
+	../../../intern/guardedalloc
+	../../../intern/moto/include
+	../../../source/gameengine/SceneGraph
+	../../../source/blender/blenloader
 )
+
+IF(WITH_PYTHON)
+	SET(INC ${INC} ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_expressions "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_expressions', sources, Split(incs), [], libtype=['game','player'], priority = [45,125] )

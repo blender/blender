@@ -52,9 +52,18 @@ struct EditFont;
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
+typedef struct PathPoint {
+	float vec[4]; /* grr, cant get rid of tilt yet */
+	float quat[4];
+	float radius;
+} PathPoint;
+
+/* These two Lines with # tell makesdna this struct can be excluded. */
+#
+#
 typedef struct Path {
 	int len;
-	float *data;
+	struct PathPoint *data;
 	float totdist;
 } Path;
 
@@ -63,16 +72,18 @@ typedef struct Path {
 #
 typedef struct BevList {
 	struct BevList *next, *prev;
-	int nr, flag;
-	short poly, gat;
+	int nr, dupe_nr;
+	short poly, hole;
 } BevList;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
 typedef struct BevPoint {
-	float x, y, z, alfa, radius, sina, cosa, mat[3][3];
-	short f1, f2;
+	float vec[3], alfa, radius;
+	float sina, cosa;				/* 2D Only */
+	float dir[3], tan[3], quat[4];	/* 3D Only */
+	short split_tag, dupe_tag;
 } BevPoint;
 
 /* Keyframes on F-Curves (allows code reuse of Bezier eval code) and 
@@ -145,7 +156,7 @@ typedef struct Curve {
 	
 	struct BoundBox *bb;
 	
-	ListBase nurb;		/* actual data */
+	ListBase nurb;		/* actual data, called splines in rna */
 	ListBase disp;
 	
 	ListBase *editnurb;	/* edited data, not in file, use pointer so we can check for it */
@@ -163,7 +174,10 @@ typedef struct Curve {
 	float size[3];
 	float rot[3];
 
-	int texflag;
+	short texflag, pad1; /* keep a short because of give_obdata_texspace() */
+
+	short drawflag, twist_mode,  pad[2];
+	float twist_smooth, pad2;
 
 	short pathlen, totcol;
 	short flag, bevresol;
@@ -172,7 +186,7 @@ typedef struct Curve {
 	/* default */
 	short resolu, resolv;
 	short resolu_ren, resolv_ren;
-	
+
 	/* edit, index in nurb list */
 	int actnu;
 	/* edit, last selected bpoint */
@@ -211,6 +225,10 @@ typedef struct Curve {
 /* texflag */
 #define CU_AUTOSPACE	1
 
+/* drawflag */
+#define CU_HIDE_HANDLES	(1 << 0)
+#define CU_HIDE_NORMALS	(1 << 1)
+
 /* flag */
 #define CU_3D			1
 #define CU_FRONT		2
@@ -224,6 +242,14 @@ typedef struct Curve {
 #define CU_FAST			512 /* Font: no filling inside editmode */
 #define CU_RETOPO               1024
 #define CU_DS_EXPAND	2048
+#define CU_PATH_RADIUS	4096 /* make use of the path radius if this is enabled (default for new curves) */
+
+/* twist mode */
+#define CU_TWIST_Z_UP			0
+// #define CU_TWIST_Y_UP			1 // not used yet
+// #define CU_TWIST_X_UP			2
+#define CU_TWIST_MINIMUM		3
+#define CU_TWIST_TANGENT		4
 
 /* spacemode */
 #define CU_LEFT			0
@@ -234,6 +260,7 @@ typedef struct Curve {
 
 /* flag (nurb) */
 #define CU_SMOOTH		1
+#define CU_2D			8 /* moved from type since 2.4x */
 
 /* type (nurb) */
 #define CU_POLY			0
@@ -241,9 +268,7 @@ typedef struct Curve {
 #define CU_BSPLINE		2
 #define CU_CARDINAL		3
 #define CU_NURBS		4
-#define CU_TYPE			7
-
-#define CU_2D			8
+#define CU_TYPE			(CU_POLY|CU_BEZIER|CU_BSPLINE|CU_CARDINAL|CU_NURBS)
 
 		/* only for adding */
 #define CU_PRIMITIVE	0xF00
@@ -285,8 +310,13 @@ typedef enum eBezTriple_Interpolation {
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
 typedef enum eBezTriple_KeyframeType {
 	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
+	BEZT_KEYTYPE_EXTREME,		/* 'extreme' keyframe */
 	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
 } eBezTriple_KeyframeType;
+
+/* checks if the given BezTriple is selected */
+#define BEZSELECTED(bezt) (((bezt)->f2 & SELECT) || ((bezt)->f1 & SELECT) || ((bezt)->f3 & SELECT))
+#define BEZSELECTED_HIDDENHANDLES(cu, bezt)   (((cu)->drawflag & CU_HIDE_HANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 
 /* *************** CHARINFO **************** */
 

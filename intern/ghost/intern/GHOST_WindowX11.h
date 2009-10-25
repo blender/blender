@@ -252,11 +252,15 @@ protected:
 	/**
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
+	 * @param warp	Only used when grab is enabled, hides the mouse and allows gragging outside the screen.
 	 */
 		GHOST_TSuccess 
 	setWindowCursorGrab(
-		bool grab
+		GHOST_TGrabCursorMode mode
 	);
+
+		GHOST_TGrabCursorMode
+	getWindowCursorGrab() const;
 
 	/**
 	 * Sets the cursor shape on the window using

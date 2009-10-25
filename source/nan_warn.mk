@@ -34,34 +34,33 @@
 #
 
 # Force the correct redefinition
-LEVEL_1_C_WARNINGS = -FIX_NAN_WARN
-LEVEL_1_CPP_WARNINGS = -FIX_NAN_WARN
-LEVEL_2_C_WARNINGS = -FIX_NAN_WARN
-LEVEL_2_CPP_WARNINGS = -FIX_NAN_WARN
-FIX_STUBS_WARNINGS = -FIX_NAN_WARN
+LEVEL_1_C_WARNINGS = -FIX_NAN_WARN1A
+LEVEL_1_CPP_WARNINGS = -FIX_NAN_WARN1B
+LEVEL_2_C_WARNINGS = -FIX_NAN_WARN2A
+LEVEL_2_CPP_WARNINGS = -FIX_NAN_WARN2B
+FIX_STUBS_WARNINGS = -FIX_NAN_WARN3
 
 ########################################################################
 # Level 1: basic C warnings.
-ifeq ($(CC),gcc)
+ifeq (gcc, $(findstring gcc,$(CC)))
     LEVEL_1_C_WARNINGS = -Wall
     LEVEL_1_C_WARNINGS += -Wno-char-subscripts
 else
-  ifeq ($(CC),cc)
+  ifeq (cc, $(findstring cc,$(CC)))
     ifeq ($(OS),irix)
       # MIPSpro Compilers
       #
       # Irix warning info
       #
-	  # 1001		# the source file does not end w/ a newline
-      # 1110		# unreachable statement
-      # 1201		# trailing comma in enums is nonstandard
-      # 1209		# constant controlling expressions
-      # 1355		# extra semicolon is ignored
-      # 1424		# unreferenced template paramaters
-      # 1681		# virtual function override
-      # 3201		# unreferenced formal paramaters
+      # 1001 # the source file does not end w/ a newline
+      # 1110 # unreachable statement
+      # 1201 # trailing comma in enums is nonstandard
+      # 1209 # constant controlling expressions
+      # 1355 # extra semicolon is ignored
+      # 1424 # unreferenced template paramaters
+      # 1681 # virtual function override
+      # 3201 # unreferenced formal paramaters
       #
-		
       LEVEL_1_C_WARNINGS = -fullwarn -woff 1001,1110,1201,1209,1355,1424,1681,3201
     endif
   endif
@@ -72,14 +71,14 @@ else
 endif
 
 # Level 1: basic CPP warnings.
-ifeq ($(CCC),g++)
+ifeq (g++, $(findstring g++,$(CCC)))
     LEVEL_1_CPP_WARNINGS = -Wall
     LEVEL_1_CPP_WARNINGS += -Wno-reorder
 else
-  ifeq ($(CCC),CC)
+  ifeq (CC, $(findstring CC,$(CCC)))
     ifeq ($(OS),irix)
       # MIPSpro Compilers
-	  #  see warning descriptions above
+      #  see warning descriptions above
       LEVEL_1_CPP_WARNINGS = -woff 1001,1110,1201,1209,1355,1424,1681,3201
     endif
   endif
@@ -92,7 +91,7 @@ endif
 ########################################################################
 # Level 2: paranoia level C warnings.
 # DO NOT REUSE LEVEL_1_ DEFINES.
-ifeq ($(CC),gcc)
+ifeq (gcc, $(findstring gcc,$(CC)))
     LEVEL_2_C_WARNINGS = -Wall
     LEVEL_2_C_WARNINGS += -W
     # deliberately enable char-subscript warnings
@@ -108,10 +107,10 @@ ifeq ($(CC),gcc)
     LEVEL_2_C_WARNINGS += -Wnested-externs
     LEVEL_2_C_WARNINGS += -Wredundant-decls 
 else
-  ifeq ($(CC),cc)
+  ifeq (cc, $(findstring cc,$(CC)))
     ifeq ($(OS),irix)
       # MIPSpro Compilers
-	  #  see warning descriptions above
+      #  see warning descriptions above
       LEVEL_2_C_WARNINGS = -fullwarn -woff 1001,1209,1424,3201
     endif
     ifeq ($(OS),solaris)
@@ -127,7 +126,7 @@ endif
 
 # Level 2: paranoia level CPP warnings.
 # DO NOT REUSE LEVEL_1_ DEFINES.
-ifeq ($(CCC),g++)
+ifeq (g++, $(findstring g++,$(CCC)))
     LEVEL_2_CPP_WARNINGS = -Wall
     LEVEL_2_CPP_WARNINGS += -W
     # deliberately enable char-subscript warnings
@@ -145,10 +144,10 @@ ifeq ($(CCC),g++)
     LEVEL_2_CPP_WARNINGS += -Wsign-promo
     LEVEL_2_CPP_WARNINGS += -Wsynth
 else
-  ifeq ($(CCC),CC)
+  ifeq (CC, $(findstring CC,$(CCC)))
     ifeq ($(OS),irix)
       # MIPSpro Compilers
-	  #  see warning descriptions above
+      #  see warning descriptions above
       LEVEL_2_CPP_WARNINGS = -fullwarn -woff 1209,1424,3201
     endif
   endif
@@ -160,7 +159,7 @@ endif
 
 ########################################################################
 # stubs warning fix
-ifeq ($(CC),gcc)
+ifeq (gcc, $(findstring gcc,$(CC)))
     FIX_STUBS_WARNINGS = -Wno-unused
 else
     FIX_STUBS_WARNINGS =

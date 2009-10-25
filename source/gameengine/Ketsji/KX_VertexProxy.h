@@ -29,6 +29,8 @@
 #ifndef __KX_VERTEXPROXY
 #define __KX_VERTEXPROXY
 
+#ifndef DISABLE_PYTHON
+
 #include "SCA_IObject.h"
 
 class KX_VertexProxy	: public CValue
@@ -68,6 +70,8 @@ public:
 	KX_PYMETHOD_O(KX_VertexProxy,SetNormal);
 
 };
+
+#endif // DISABLE_PYTHON
 
 #endif //__KX_VERTEXPROXY
 

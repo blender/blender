@@ -37,8 +37,8 @@
 #define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
 #endif
 #include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
-#include "BLI_winstuff.h"
 #include <process.h> /* getpid */
+#include "BLI_winstuff.h"
 #else
 #include <unistd.h> /* getpid */
 #endif
@@ -195,6 +195,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 
 			/* ensure making new keymaps and set space types */
 			wm->initialized= 0;
+			wm->winactive= NULL;
 			
 			/* only first wm in list has ghostwins */
 			for(win= wm->windows.first; win; win= win->next) {
@@ -202,6 +203,10 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 					
 					if(oldwin->winid == win->winid ) {
 						win->ghostwin= oldwin->ghostwin;
+						win->active= oldwin->active;
+						if(win->active)
+							wm->winactive= win;
+
 						GHOST_SetWindowUserData(win->ghostwin, win);	/* pointer back */
 						oldwin->ghostwin= NULL;
 						
@@ -281,7 +286,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 
 /* called on startup,  (context entirely filled with NULLs) */
-/* or called for 'Erase All' */
+/* or called for 'New File' */
 /* op can be NULL */
 int WM_read_homefile(bContext *C, wmOperator *op)
 {
@@ -528,7 +533,7 @@ void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
 		packAll(G.main, reports);
 	}
 	
-	ED_object_exit_editmode(C, 0);
+	ED_object_exit_editmode(C, EM_DO_UNDO);
 
 	do_history(di, reports);
 	

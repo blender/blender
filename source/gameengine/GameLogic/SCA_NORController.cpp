@@ -91,7 +91,7 @@ CValue* SCA_NORController::GetReplica()
 	return replica;
 }
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -127,5 +127,7 @@ PyMethodDef SCA_NORController::Methods[] = {
 PyAttributeDef SCA_NORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

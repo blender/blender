@@ -42,6 +42,8 @@
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_fcurve.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -110,6 +112,7 @@ static SpaceLink *graph_new(const bContext *C)
 	
 	/* allocate DopeSheet data for Graph Editor */
 	sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+	sipo->ads->source= (ID *)scene;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for graphedit");
@@ -183,8 +186,10 @@ static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 	SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
 	
 	/* init dopesheet data if non-existant (i.e. for old files) */
-	if (sipo->ads == NULL)
+	if (sipo->ads == NULL) {
 		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+		sipo->ads->source= (ID *)(G.main->scene.first); // FIXME: this is a really nasty hack here for now...
+	}
 
 	ED_area_tag_refresh(sa);
 }
@@ -203,14 +208,14 @@ static SpaceLink *graph_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "GraphEdit Keys", SPACE_IPO, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "GraphEdit Keys", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -281,14 +286,14 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 
 static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Animation_Channels", 0, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "Animation_Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -352,11 +357,11 @@ static void graph_header_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -374,6 +379,7 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCENE:
 			switch(wmn->data) {
+				case ND_RENDER_OPTIONS:
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
 				case ND_MARKERS:
@@ -422,6 +428,10 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}*/
 			ED_area_tag_refresh(sa);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_GRAPH)
+				ED_area_tag_redraw(sa);
 			break;
 		default:
 			if(wmn->data==ND_KEYS)

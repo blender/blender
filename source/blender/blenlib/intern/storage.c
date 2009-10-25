@@ -33,13 +33,6 @@
 #include <stdio.h>
 #include <stdlib.h>	
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#include <sys/types.h>
-#include <io.h>
-#include <direct.h>
-#endif
-
 #ifndef WIN32
 #include <dirent.h>
 #endif
@@ -81,6 +74,14 @@
 #if !defined(__FreeBSD__) && !defined(__APPLE__)
 #include <malloc.h>
 #endif
+
+#ifdef WIN32
+#include <sys/types.h>
+#include <io.h>
+#include <direct.h>
+#include "BLI_winstuff.h"
+#endif
+
 
 /* lib includes */
 #include "MEM_guardedalloc.h"
@@ -465,6 +466,15 @@ int BLI_exist(char *name)
 	if (stat(name,&st)) return(0);	
 #endif
 	return(st.st_mode);
+}
+
+/* would be better in fileops.c except that it needs stat.h so add here */
+int BLI_is_dir(char *file) {
+#ifdef WIN32
+	return 1; /* XXX - TODO */
+#else
+	return S_ISDIR(BLI_exist(file));
+#endif
 }
 
 LinkNode *BLI_read_file_as_lines(char *name)

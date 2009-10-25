@@ -7,9 +7,6 @@ incs = '. #/source/kernel/gen_system #/intern/string'
 incs += ' #/source/gameengine/Expressions #/intern/moto/include'
 incs += ' #/source/gameengine/Rasterizer #/source/gameengine/SceneGraph'
 
-incs += ' ' + env['BF_PYTHON_INC']
-
-
 defs = []
 
 if env['WITH_BF_SDL']:
@@ -17,8 +14,13 @@ if env['WITH_BF_SDL']:
 else:
 	defs.append('DISABLE_SDL')
 
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
+
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 	if env['BF_DEBUG']:
 		defs.append('_DEBUG')
 
-env.BlenderLib ( 'bf_logic', sources, Split(incs), defs, libtype=['core'], priority=[330], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'bf_logic', sources, Split(incs), defs, libtype=['core','player'], priority=[330,65], cxx_compileflags=env['BGE_CXXFLAGS'])

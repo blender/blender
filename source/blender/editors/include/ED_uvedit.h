@@ -34,11 +34,11 @@ struct Object;
 struct MTFace;
 struct EditFace;
 struct Image;
-struct wmWindowManager;
+struct wmKeyConfig;
 
 /* uvedit_ops.c */
 void ED_operatortypes_uvedit(void);
-void ED_keymap_uvedit(struct wmWindowManager *wm);
+void ED_keymap_uvedit(struct wmKeyConfig *keyconf);
 
 void ED_uvedit_assign_image(struct Scene *scene, struct Object *obedit, struct Image *ima, struct Image *previma);
 void ED_uvedit_set_tile(struct bContext *C, struct Scene *scene, struct Object *obedit, struct Image *ima, int curtile, int dotile);

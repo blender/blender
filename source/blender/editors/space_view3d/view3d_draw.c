@@ -732,7 +732,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 	char *name = view3d_get_name(v3d, rv3d);
 	char *printable = NULL;
 	
-	if (v3d->localview) {
+	if (v3d->localvd) {
 		printable = malloc(strlen(name) + strlen(" (Local)_")); /* '_' gives space for '\0' */
 												 strcpy(printable, name);
 												 strcat(printable, " (Local)");
@@ -742,10 +742,10 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (printable) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(10,  ar->winy-20, 0.0f, printable);
+		BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
 	}
 
-	if (v3d->localview) {
+	if (v3d->localvd) {
 		free(printable);
 	}
 }
@@ -1413,15 +1413,13 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 	
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	glDepthMask(0);
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	
-//	glaDefine2DArea(&ar->winrct);
+	/* need to use wm push/pop matrix because ED_region_pixelspace
+	   uses the wm functions too, otherwise gets out of sync */
+	wmPushMatrix();
 	ED_region_pixelspace(ar);
 	
 	glEnable(GL_BLEND);
@@ -1433,12 +1431,11 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	glPixelZoom(1.0, 1.0);
 	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 	
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	wmPopMatrix();
 	
 	glDisable(GL_BLEND);
+
+	glDepthMask(1);
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
@@ -1967,6 +1964,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
+	else
+		v3d->zbuf= FALSE;
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	v3d->gridview= v3d->grid;

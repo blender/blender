@@ -29,7 +29,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "MTC_matrixops.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -44,6 +44,7 @@
 #include "BKE_node.h"
 
 /* local include */
+#include "raycounter.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "renderdatabase.h"
@@ -181,6 +182,9 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	float alpha;
 	
 	/* ------  main shading loop -------- */
+#ifdef RE_RAYCOUNTER
+	memset(&shi->raycounter, 0, sizeof(shi->raycounter));
+#endif
 	
 	if(shi->mat->nodetree && shi->mat->use_nodes) {
 		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
@@ -230,6 +234,18 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	
 	/* add z */
 	shr->z= -shi->co[2];
+	
+	/* RAYHITS */
+/*
+	if(1 || shi->passflag & SCE_PASS_RAYHITS)
+	{
+		shr->rayhits[0] = (float)shi->raycounter.faces.test;
+		shr->rayhits[1] = (float)shi->raycounter.bb.hit;
+		shr->rayhits[2] = 0.0;
+		shr->rayhits[3] = 1.0;
+	}
+ */
+	RE_RC_MERGE(&re_rc_counter[shi->thread], &shi->raycounter);
 }
 
 /* **************************************************************************** */
@@ -458,13 +474,13 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			Mat4MulVecfl(R.viewinv, shi->gl);
 			
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
-				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				Mat3MulVecfl(R.imat, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				Mat3MulVecfl(R.imat, shi->dyco);
 			}
 		}
 
@@ -1021,15 +1037,15 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			Mat4MulVecfl(R.viewinv, shi->gl);
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
 				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
-				//MTC_Mat3MulVecfl(R.imat, shi->dxco);
-				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dxco);
+				//Mat3MulVecfl(R.imat, shi->dxco);
+				Mat4Mul3Vecfl(R.viewinv, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				//MTC_Mat3MulVecfl(R.imat, shi->dyco);
-				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dyco);
+				//Mat3MulVecfl(R.imat, shi->dyco);
+				Mat4Mul3Vecfl(R.viewinv, shi->dyco);
 			}
 		}
 		
@@ -1216,7 +1232,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			s3= RE_vertren_get_sticky(obr, v3, 0);
 			
 			if(s1 && s2 && s3) {
-				float winmat[4][4], ho1[4], ho2[4], ho3[4];
+				float obwinmat[4][4], winmat[4][4], ho1[4], ho2[4], ho3[4];
 				float Zmulx, Zmuly;
 				float hox, hoy, l, dl, u, v;
 				float s00, s01, s10, s11, detsh;
@@ -1224,14 +1240,15 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				/* old globals, localized now */
 				Zmulx=  ((float)R.winx)/2.0f; Zmuly=  ((float)R.winy)/2.0f;
 
+				zbuf_make_winmat(&R, winmat);
 				if(shi->obi->flag & R_TRANSFORMED)
-					zbuf_make_winmat(&R, shi->obi->mat, winmat);
+					Mat4MulMat4(obwinmat, obi->mat, winmat);
 				else
-					zbuf_make_winmat(&R, NULL, winmat);
+					Mat4CpyMat4(obwinmat, winmat);
 
-				zbuf_render_project(winmat, v1->co, ho1);
-				zbuf_render_project(winmat, v2->co, ho2);
-				zbuf_render_project(winmat, v3->co, ho3);
+				zbuf_render_project(obwinmat, v1->co, ho1);
+				zbuf_render_project(obwinmat, v2->co, ho2);
+				zbuf_render_project(obwinmat, v3->co, ho3);
 				
 				s00= ho3[0]/ho3[3] - ho1[0]/ho1[3];
 				s01= ho3[1]/ho3[3] - ho1[1]/ho1[3];
@@ -1290,7 +1307,7 @@ void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, in
 	
 	shi->sample= sample;
 	shi->thread= pa->thread;
-	shi->do_preview= R.r.scemode & R_NODE_PREVIEW;
+	shi->do_preview= (R.r.scemode & R_MATNODE_PREVIEW) != 0;
 	shi->lay= rl->lay;
 	shi->layflag= rl->layflag;
 	shi->passflag= rl->passflag;

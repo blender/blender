@@ -98,6 +98,8 @@ bool SCA_AlwaysSensor::Evaluate()
 	return result;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -132,5 +134,7 @@ PyMethodDef SCA_AlwaysSensor::Methods[] = {
 PyAttributeDef SCA_AlwaysSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+#endif
 
 /* eof */

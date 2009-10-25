@@ -219,6 +219,9 @@ void copy_nladata (ListBase *dst, ListBase *src)
 	if ELEM(NULL, dst, src)
 		return;
 		
+	/* clear out the destination list first for precautions... */
+	dst->first= dst->last= NULL;
+		
 	/* copy each NLA-track, one at a time */
 	for (nlt= src->first; nlt; nlt= nlt->next) {
 		/* make a copy, and add the copy to the destination list */
@@ -1048,7 +1051,7 @@ short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 
 /* Is the given NLA-strip the first one to occur for the given AnimData block */
 // TODO: make this an api method if necesary, but need to add prefix first
-short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
+static short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
 {
 	NlaTrack *nlt;
 	NlaStrip *ns;

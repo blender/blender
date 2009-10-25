@@ -64,10 +64,10 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	
 
-	char filename[512];
-	RNA_string_get(op->ptr, "filename", filename);
+	char path[512];
+	RNA_string_get(op->ptr, "path", path);
 #ifndef DISABLE_PYTHON
-	if(BPY_run_python_script(C, filename, NULL, op->reports)) {
+	if(BPY_run_python_script(C, path, NULL, op->reports)) {
 		ED_region_tag_redraw(ar);
 		return OPERATOR_FINISHED;
 	}
@@ -85,7 +85,7 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 	ot->exec= run_pyfile_exec;
 	ot->poll= ED_operator_areaactive;
 
-	RNA_def_string_file_path(ot->srna, "filename", "", 512, "Filename", "");
+	RNA_def_string_file_path(ot->srna, "path", "", 512, "Path", "");
 }
 
 static int run_ui_scripts_exec(bContext *C, wmOperator *op)

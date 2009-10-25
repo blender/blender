@@ -87,6 +87,8 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 	}
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -121,5 +123,7 @@ PyMethodDef SCA_ORController::Methods[] = {
 PyAttributeDef SCA_ORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

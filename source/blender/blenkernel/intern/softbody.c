@@ -58,7 +58,6 @@ variables on the UI for now
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"	/* here is the softbody struct */
-#include "DNA_particle_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -76,7 +75,6 @@ variables on the UI for now
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
@@ -494,32 +492,21 @@ static void ccd_build_deflector_hash(Scene *scene, Object *vertexowner, GHash *h
 	while (base) {
 		/*Only proceed for mesh object in same layer */
 		if(base->object->type==OB_MESH && (base->lay & vertexowner->lay)) {
-			int particles=0;
 			ob= base->object;
 			if((vertexowner) && (ob == vertexowner)) {
-				if(vertexowner->soft->particles){
-					particles=1;
-				}
-				else {
-					/* if vertexowner is given  we don't want to check collision with owner object */ 
-					base = base->next;
-					continue;				
-				}
+				/* if vertexowner is given  we don't want to check collision with owner object */ 
+				base = base->next;
+				continue;
 			}
 
 			/*+++ only with deflecting set */
 			if(ob->pd && ob->pd->deflect && BLI_ghash_lookup(hash, ob) == 0) {
 				DerivedMesh *dm= NULL;
 
-				if(particles) {
-					dm = psys_get_modifier(ob,psys_get_current(ob))->dm;
-				}
-				else {
-					if(ob->softflag & OB_SB_COLLFINAL) /* so maybe someone wants overkill to collide with subsurfed */
-						dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-					else
-						dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
-				}
+				if(ob->softflag & OB_SB_COLLFINAL) /* so maybe someone wants overkill to collide with subsurfed */
+					dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+				else
+					dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
 				if(dm){
 					ccd_Mesh *ccdmesh = ccd_mesh_make(ob, dm);
@@ -1563,11 +1550,14 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 					float f,windfactor  = 0.25f;   
 					/*see if we have wind*/
 					if(do_effector) {
+						EffectedPoint epoint;
 						float speed[3]={0.0f,0.0f,0.0f};
 						float pos[3];
 						VecMidf(pos, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
 						VecMidf(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
-						pdDoEffectors(scene, do_effector, pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+						pd_point_from_soft(scene, pos, vel, -1, &epoint);
+						pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
+
 						VecMulf(speed,windfactor); 
 						VecAddf(vel,vel,speed);
 					}
@@ -1602,14 +1592,13 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 static void scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow)
 {
   SoftBody *sb = ob->soft;
-  ListBase *do_effector= NULL; 
+  ListBase *do_effector = NULL; 
   
-  do_effector= pdInitEffectors(scene, ob,NULL);
+  do_effector = pdInitEffectors(scene, ob, NULL, sb->effector_weights);
   if (sb){
 	  _scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
   }
-  if(do_effector)
-	  pdEndEffectors(do_effector);
+  pdEndEffectors(&do_effector);
 }
 
 static void *exec_scan_for_ext_spring_forces(void *data)
@@ -1627,7 +1616,7 @@ static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,
 	int i, totthread,left,dec;
 	int lowsprings =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
-	do_effector= pdInitEffectors(scene, ob,NULL);
+	do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
 	if(scene->r.mode & R_FIXED_THREADS)
@@ -1674,9 +1663,8 @@ static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,
 		exec_scan_for_ext_spring_forces(&sb_threads[0]);
     /* clean up */
 	MEM_freeN(sb_threads);
-
-	  if(do_effector)
-  pdEndEffectors(do_effector);
+	
+	pdEndEffectors(&do_effector);
 }
 
 
@@ -2239,19 +2227,22 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			/* done goal stuff */
 			
 			/* gravitation */
-			if (sb){ 
-			float gravity = sb->grav * sb_grav_force_scale(ob);	
-			bp->force[2]-= gravity*bp->mass; /* individual mass of node here */
+			if (sb && scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY){ 
+				float gravity[3];
+				VECCOPY(gravity, scene->physics_settings.gravity);
+				VecMulf(gravity, sb_grav_force_scale(ob)*bp->mass*sb->effector_weights->global_gravity); /* individual mass of node here */
+				VecAddf(bp->force, bp->force, gravity);
 			}
 			
 			/* particle field & vortex */
 			if(do_effector) {
+				EffectedPoint epoint;
 				float kd;
 				float force[3]= {0.0f, 0.0f, 0.0f};
 				float speed[3]= {0.0f, 0.0f, 0.0f};
 				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
-				
-				pdDoEffectors(scene, do_effector, bp->pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
+				pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
 				
 				/* apply forcefield*/
 				VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
@@ -2354,6 +2345,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 	left = totpoint;
 	dec = totpoint/totthread +1;
 	for(i=0; i<totthread; i++) {
+		sb_threads[i].scene = scene;
 		sb_threads[i].ob = ob; 
 		sb_threads[i].forcetime = forcetime; 
 		sb_threads[i].timenow = timenow; 
@@ -2394,7 +2386,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
  */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bproot;
-	ListBase *do_effector;
+	ListBase *do_effector = NULL;
 	float iks, gravity;
 	float fieldfactor = -1.0f, windfactor  = 0.25;   
 	int   do_deflector,do_selfcollision,do_springcollision,do_aero;
@@ -2414,7 +2406,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 	sb_sfesf_threads_run(scene, ob, timenow,sb->totspring,NULL);	
 	
 	/* after spring scan because it uses Effoctors too */
-	do_effector= pdInitEffectors(scene, ob,NULL);
+	do_effector= pdInitEffectors(scene, ob, NULL, sb->effector_weights);
 
 	if (do_deflector) {
 		float defforce[3];
@@ -2427,7 +2419,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 	if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
 	
 	/* finish matrix and solve */
-	if(do_effector) pdEndEffectors(do_effector);
+	pdEndEffectors(&do_effector);
 }
 
 
@@ -2456,8 +2448,8 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		BodyPoint  *bp;
 		BodyPoint *bproot;
 		BodySpring *bs;	
-		ListBase *do_effector;
-		float iks, ks, kd, gravity;
+		ListBase *do_effector = NULL;
+		float iks, ks, kd, gravity[3] = {0.0f,0.0f,0.0f};
 		float fieldfactor = -1.0f, windfactor  = 0.25f;   
 		float tune = sb->ballstiff;
 		int a, b,  do_deflector,do_selfcollision,do_springcollision,do_aero;
@@ -2473,7 +2465,10 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		*/
 
 
-		gravity = sb->grav * sb_grav_force_scale(ob);	
+		if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY){ 
+			VECCOPY(gravity, scene->physics_settings.gravity);
+			VecMulf(gravity, sb_grav_force_scale(ob)*sb->effector_weights->global_gravity);
+		}	
 
 		/* check conditions for various options */
 		do_deflector= query_external_colliders(scene, ob);
@@ -2486,7 +2481,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(scene, ob, timenow);
 		/* after spring scan because it uses Effoctors too */
-		do_effector= pdInitEffectors(scene, ob,NULL);
+		do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights);
 
 		if (do_deflector) {
 			float defforce[3];
@@ -2644,16 +2639,17 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 
 				/* gravitation */
-				bp->force[2]-= gravity*bp->mass; /* individual mass of node here */
+				VECADDFAC(bp->force, bp->force, gravity, bp->mass); /* individual mass of node here */
 
 
 				/* particle field & vortex */
 				if(do_effector) {
+					EffectedPoint epoint;
 					float force[3]= {0.0f, 0.0f, 0.0f};
 					float speed[3]= {0.0f, 0.0f, 0.0f};
 					float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
-
-					pdDoEffectors(scene, do_effector, bp->pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+					pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
+					pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
 
 					/* apply forcefield*/
 					VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
@@ -2832,7 +2828,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		}
 		/* cleanup */
 #endif
-		if(do_effector) pdEndEffectors(do_effector);
+		pdEndEffectors(&do_effector);
 	}
 }
 
@@ -3571,107 +3567,6 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 	}
 }
 
-
-static void springs_from_particles(Object *ob)
-{
-	ParticleSystem *psys;
-	ParticleSystemModifierData *psmd=0;
-	ParticleData *pa=0;
-	HairKey *key=0;
-	SoftBody *sb;
-	BodyPoint *bp;
-	BodySpring *bs;
-	int a,k;
-	float hairmat[4][4];
-
-	if(ob && ob->soft && ob->soft->particles) { 	
-		psys= ob->soft->particles;
-		sb= ob->soft;	
-		psmd = psys_get_modifier(ob, psys);
-
-		bp= sb->bpoint;
-		for(a=0, pa=psys->particles; a<psys->totpart; a++, pa++) {
-			for(k=0, key=pa->hair; k<pa->totkey; k++, bp++, key++) {
-				VECCOPY(bp->origS, key->co);
-
-				psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
-
-				Mat4MulVecfl(hairmat, bp->origS);
-			}
-		}
-
-		for(a=0, bs=sb->bspring; a<sb->totspring; a++, bs++)
-			bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
-	}
-}
-
-static void particles_to_softbody(Scene *scene, Object *ob)
-{
-	SoftBody *sb;
-	BodyPoint *bp;
-	BodySpring *bs;
-	ParticleData *pa;
-	HairKey *key;
-	ParticleSystem *psys= ob->soft->particles;
-	float goalfac;
-	int a, k, curpoint;
-	int totpoint= psys_count_keys(psys);
-	int totedge= totpoint-psys->totpart;
-	
-	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(scene, ob, totpoint, totedge);
-
-	/* find first BodyPoint index for each particle */
-	if(psys->totpart > 0) {
-		psys->particles->bpi = 0;
-		for(a=1, pa=psys->particles+1; a<psys->totpart; a++, pa++)
-			pa->bpi = (pa-1)->bpi + (pa-1)->totkey;
-	}
-
-	/* we always make body points */
-	sb= ob->soft;	
-	bp= sb->bpoint;
-	bs= sb->bspring;
-	goalfac= ABS(sb->maxgoal - sb->mingoal);
-
-	if((ob->softflag & OB_SB_GOAL)) {
-		for(a=0, pa=psys->particles; a<psys->totpart; a++, pa++) {
-			for(k=0, key=pa->hair; k<pa->totkey; k++,bp++,key++) {
-				if(k) {
-					bp->goal= key->weight;
-					bp->goal= sb->mingoal + bp->goal*goalfac;
-					bp->goal= (float)pow(bp->goal, 4.0f);
-				}
-				else{
-					/* hair roots are allways fixed fully to goal */
-					bp->goal= 1.0f;
-				}
-			}
-		}
-	}
-
-	bp= sb->bpoint;
-	curpoint=0;
-	for(a=0, pa=psys->particles; a<psys->totpart; a++, curpoint++, pa++) {
-		for(k=0; k<pa->totkey-1; k++,bs++,curpoint++) {
-			bs->v1=curpoint;
-			bs->v2=curpoint+1;
-			bs->strength= 1.0;
-			bs->order=1;
-		}
-	}
-	
-	build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
-	/* insert *other second order* springs if desired */
-	if(sb->secondspring > 0.0000001f) {
-		add_2nd_order_springs(ob,sb->secondspring*10.0); /* exploits the the first run of build_bps_springlist(ob);*/
-		build_bps_springlist(ob); /* yes we need to do it again*/
-	}
-	springs_from_particles(ob); /* write the 'rest'-lenght of the springs */
-    if(ob->softflag & OB_SB_SELF)
-		calculate_collision_balls(ob);
-}
-
 /* copies softbody result back in object */
 static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, int local)
 {
@@ -3749,6 +3644,9 @@ SoftBody *sbNew(Scene *scene)
 
 	sb->pointcache = BKE_ptcache_add(&sb->ptcaches);
 
+	if(!sb->effector_weights)
+		sb->effector_weights = BKE_add_effector_weights(NULL);
+
 	return sb;
 }
 
@@ -3758,6 +3656,8 @@ void sbFree(SoftBody *sb)
 	free_softbody_intern(sb);
 	BKE_ptcache_free_list(&sb->ptcaches);
 	sb->pointcache = NULL;
+	if(sb->effector_weights)
+		MEM_freeN(sb->effector_weights);
 	MEM_freeN(sb);
 }
 
@@ -3795,44 +3695,19 @@ void sbSetInterruptCallBack(int (*f)(void))
 
 static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCos)[3], int numVerts)
 {
-	ParticleSystemModifierData *psmd= NULL;
-	ParticleData *pa= NULL;
-	HairKey *key= NULL;
 	BodyPoint *bp;
-	float hairmat[4][4];
 	int a;
 
-	/* update the vertex locations */
-	if(sb->particles && sb->particles->totpart>0) {
-		psmd= psys_get_modifier(ob,sb->particles);
-
-		pa= sb->particles->particles;
-		key= pa->hair;
-
-		psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-	}
+	if(!sb || !sb->bpoint)
+		return;
 
 	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
 		/* store where goals are now */ 
 		VECCOPY(bp->origS, bp->origE);
 		/* copy the position of the goals at desired end time */
-		if(sb->particles) {
-			if(key == pa->hair + pa->totkey) {
-				pa++;
-				key = pa->hair;
-
-				psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-			}
-			VECCOPY(bp->origE, key->co);
-			Mat4MulVecfl(hairmat,bp->origE);
-
-			key++;
-		}
-		else{
-			VECCOPY(bp->origE, vertexCos[a]);
-			/* vertexCos came from local world, go global */
-			Mat4MulVecfl(ob->obmat, bp->origE);
-		}
+		VECCOPY(bp->origE, vertexCos[a]);
+		/* vertexCos came from local world, go global */
+		Mat4MulVecfl(ob->obmat, bp->origE);
 		/* just to be save give bp->origT a defined value
 		will be calulated in interpolate_exciter()*/
 		VECCOPY(bp->origT, bp->origE); 
@@ -3841,37 +3716,12 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 
 static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int numVerts)
 {
-	ParticleSystemModifierData *psmd= NULL;
-	HairKey *key= NULL;
-	ParticleData *pa= NULL;
 	BodyPoint *bp;
-	float hairmat[4][4];
 	int a;
 
-	if(sb->particles && sb->particles->totpart>0) {
-		psmd= psys_get_modifier(ob, sb->particles);
-		pa= sb->particles->particles;
-		key= pa->hair;
-
-		psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-	}
-
 	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
-		if(sb->particles) {
-			if(key == pa->hair + pa->totkey) {
-				pa++;
-				key = pa->hair;
-
-				psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-			}
-			VECCOPY(bp->pos, key->co);
-			Mat4MulVecfl(hairmat, bp->pos);
-			key++;
-		}
-		else {
-			VECCOPY(bp->pos, vertexCos[a]);
-			Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
-		}
+		VECCOPY(bp->pos, vertexCos[a]);
+		Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
 		VECCOPY(bp->origS, bp->pos);
 		VECCOPY(bp->origE, bp->pos);
 		VECCOPY(bp->origT, bp->pos);
@@ -3900,20 +3750,18 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 	sb_new_scratch(sb); /* make a new */
 	sb->scratch->needstobuildcollider=1; 
 
-	if((sb->particles)==0) {
-		/* copy some info to scratch */
-		switch(ob->type) {
-		case OB_MESH:
-			if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
-			break;
-		case OB_LATTICE:
-			break;
-		case OB_CURVE:
-		case OB_SURF:
-			break;
-		default:
-			break;
-		}
+	/* copy some info to scratch */
+	switch(ob->type) {
+	case OB_MESH:
+		if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
+		break;
+	case OB_LATTICE:
+		break;
+	case OB_CURVE:
+	case OB_SURF:
+		break;
+	default:
+		break;
 	}
 }
 
@@ -4049,8 +3897,6 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 /* simulates one step. framenr is in frames */
 void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 {
-	ParticleSystemModifierData *psmd=0;
-	ParticleData *pa=0;
 	SoftBody *sb= ob->soft;
 	PointCache *cache;
 	PTCacheID pid;
@@ -4079,7 +3925,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	if(framenr < startframe) {
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
-		cache->last_exact= 0;
+		//cache->last_exact= 0;
 
 		return;
 	}
@@ -4091,25 +3937,20 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	if(sb->bpoint == NULL ||
 	   ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) {
 
-		if(sb->particles){
-			particles_to_softbody(scene, ob);
-		}
-		else {
-			switch(ob->type) {
-				case OB_MESH:
-					mesh_to_softbody(scene, ob);
-					break;
-				case OB_LATTICE:
-					lattice_to_softbody(scene, ob);
-					break;
-				case OB_CURVE:
-				case OB_SURF:
-					curve_surf_to_softbody(scene, ob);
-					break;
-				default:
-					renew_softbody(scene, ob, numVerts, 0);
-					break;
-			}
+		switch(ob->type) {
+			case OB_MESH:
+				mesh_to_softbody(scene, ob);
+				break;
+			case OB_LATTICE:
+				lattice_to_softbody(scene, ob);
+				break;
+			case OB_CURVE:
+			case OB_SURF:
+				curve_surf_to_softbody(scene, ob);
+				break;
+			default:
+				renew_softbody(scene, ob, numVerts, 0);
+				break;
 		}
 
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
@@ -4127,8 +3968,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
 		softbody_step(scene, ob, sb, dtime);
 
-		if(sb->particles==0)
-			softbody_to_object(ob, vertexCos, numVerts, 0);
+		softbody_to_object(ob, vertexCos, numVerts, 0);
 
 		return;
 	}
@@ -4136,25 +3976,33 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	/* still no points? go away */
 	if(sb->totpoint==0) return;
 
-	if(sb->particles){
-		psmd= psys_get_modifier(ob, sb->particles);
-		pa= sb->particles->particles;
+	if(framenr == startframe) {
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+
+		/* first frame, no simulation to do, just set the positions */
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
+
+		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->flag &= ~PTCACHE_REDO_NEEDED;
+		return;
 	}
 
 	/* try to read from cache */
 	cache_result = BKE_ptcache_read_cache(&pid, framenr, scene->r.frs_sec);
 
 	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
+		softbody_to_object(ob, vertexCos, numVerts, sb->local);
 
-		if(sb->particles==0)
-			softbody_to_object(ob, vertexCos, numVerts, sb->local);
+		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+
+		if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+			BKE_ptcache_write_cache(&pid, framenr);
 
 		return;
 	}
 	else if(cache_result==PTCACHE_READ_OLD) {
-		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_FREE);
 		cache->flag |= PTCACHE_SIMULATION_VALID;
 	}
 	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
@@ -4165,41 +4013,23 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		return;
 	}
 
-	if(framenr == startframe) {
-		if(cache->flag & PTCACHE_REDO_NEEDED) {
-			softbody_update_positions(ob, sb, vertexCos, numVerts);
-			softbody_reset(ob, sb, vertexCos, numVerts);
-			cache->flag &= ~PTCACHE_REDO_NEEDED;
-		}
-		/* first frame, no simulation to do, just set the positions */
-		softbody_update_positions(ob, sb, vertexCos, numVerts);
+	/* if on second frame, write cache for first frame */
+	if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
+		BKE_ptcache_write_cache(&pid, startframe);
 
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
+	softbody_update_positions(ob, sb, vertexCos, numVerts);
 
-		/* don't write cache on first frame, but on second frame write
-		 * cache for frame 1 and 2 */
-	}
-	else {
-		/* if on second frame, write cache for first frame */
-		if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
-			BKE_ptcache_write_cache(&pid, startframe);
+	/* checking time: */
+	dtime = framedelta*timescale;
 
-		softbody_update_positions(ob, sb, vertexCos, numVerts);
+	softbody_step(scene, ob, sb, dtime);
 
-		/* do simulation */
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
+	softbody_to_object(ob, vertexCos, numVerts, 0);
 
-		/* checking time: */
-		dtime = framedelta*timescale;
+	/* do simulation */
+	cache->simframe= framenr;
+	cache->flag |= PTCACHE_SIMULATION_VALID;
 
-		softbody_step(scene, ob, sb, dtime);
-
-		if(sb->particles==0)
-			softbody_to_object(ob, vertexCos, numVerts, 0);
-
-		BKE_ptcache_write_cache(&pid, framenr);
-	}
+	BKE_ptcache_write_cache(&pid, framenr);
 }
 

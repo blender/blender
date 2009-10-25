@@ -139,7 +139,7 @@ typedef struct SpaceSeq {
 	View2D v2d; /* deprecated, copied to region */
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb;
+	short mainb;	/* weird name for the sequencer subtype (seq, image, luma... etc) */
 	short render_size;
 	short chanshown;
 	short zebra;
@@ -153,25 +153,25 @@ typedef struct FileSelectParams {
 	char title[24]; /* title, also used for the text of the execute button */
 	char dir[240]; /* directory */
 	char file[80]; /* file */
+	char renamefile[80];
 
-	short flag; /* settings for filter, hiding files and display mode */
+	short type; /* XXXXX for now store type here, should be moved to the operator */
+	short flag; /* settings for filter, hiding dots files,...  */
 	short sort; /* sort order */
 	short display; /* display mode flag */
 	short filter; /* filter when (flags & FILE_FILTER) is true */
 
 	/* XXX - temporary, better move to filelist */
 	short active_bookmark;
-	short pad;
 	int	active_file;
 	int selstate;
 
+	/* short */
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
 	short menu; /* currently selected option in pupmenu */
 	char fp_str[8]; /* string to use for font preview */
-	
 	char *pupmenu; /* allows menu for save options - result stored in menup */
-	
 	/* XXX --- end unused -- */
 } FileSelectParams;
 
@@ -569,18 +569,20 @@ typedef struct SpaceUserPref {
 
 
 /* buts->mainb new */
-#define BCONTEXT_SCENE		0
-#define BCONTEXT_WORLD		1
-#define BCONTEXT_OBJECT		2
-#define BCONTEXT_DATA		3
-#define BCONTEXT_MATERIAL	4
-#define BCONTEXT_TEXTURE	5
-#define BCONTEXT_PARTICLE	6
-#define BCONTEXT_PHYSICS	7
-#define BCONTEXT_BONE		9
-#define BCONTEXT_MODIFIER	10
-#define BCONTEXT_CONSTRAINT 12
-#define BCONTEXT_TOT		13
+#define BCONTEXT_RENDER				0
+#define BCONTEXT_SCENE				1
+#define BCONTEXT_WORLD				2
+#define BCONTEXT_OBJECT				3
+#define BCONTEXT_DATA				4
+#define BCONTEXT_MATERIAL			5
+#define BCONTEXT_TEXTURE			6
+#define BCONTEXT_PARTICLE			7
+#define BCONTEXT_PHYSICS			8
+#define BCONTEXT_BONE				9
+#define BCONTEXT_MODIFIER			10
+#define BCONTEXT_CONSTRAINT			12
+#define BCONTEXT_BONE_CONSTRAINT	13
+#define BCONTEXT_TOT				14
 
 /* sbuts->flag */
 #define SB_PRV_OSA			1
@@ -833,6 +835,7 @@ enum {
 #define TIME_SEQ				32
 #define TIME_ALL_IMAGE_WIN		64
 #define TIME_CONTINUE_PHYSICS	128
+#define TIME_NODES				256
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0

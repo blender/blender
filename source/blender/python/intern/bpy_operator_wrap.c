@@ -47,6 +47,7 @@
 #define PYOP_ATTR_IDNAME_BL		"__idname_bl__"	/* our own name converted into blender syntax, users wont see this */
 #define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
 #define PYOP_ATTR_REGISTER		"__register__"	/* True/False. if this python operator should be registered */
+#define PYOP_ATTR_UNDO			"__undo__"	/* True/False. if this python operator should be undone */
 
 static struct BPY_flag_def pyop_ret_flags[] = {
 	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
@@ -81,9 +82,9 @@ static struct BPY_flag_def pyop_ret_flags[] = {
 	
 extern void BPY_update_modules( void ); //XXX temp solution
 
-static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *event)
+static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperator *op, wmEvent *event)
 {
-	PyObject *py_class = op->type->pyop_data;
+	PyObject *py_class = ot->pyop_data;
 	PyObject *args;
 	PyObject *ret= NULL, *py_class_instance, *item= NULL;
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
@@ -105,7 +106,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		
 		
 		/* Assign instance attributes from operator properties */
-		{
+		if(op) {
 			const char *arg_name;
 
 			RNA_STRUCT_BEGIN(op->ptr, prop) {
@@ -121,10 +122,12 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		}
 
 		/* set operator pointer RNA as instance "__operator__" attribute */
-		RNA_pointer_create(NULL, &RNA_Operator, op, &ptr_operator);
-		py_operator= pyrna_struct_CreatePyObject(&ptr_operator);
-		PyObject_SetAttrString(py_class_instance, "__operator__", py_operator);
-		Py_DECREF(py_operator);
+		if(op) {
+			RNA_pointer_create(NULL, &RNA_Operator, op, &ptr_operator);
+			py_operator= pyrna_struct_CreatePyObject(&ptr_operator);
+			PyObject_SetAttrString(py_class_instance, "__operator__", py_operator);
+			Py_DECREF(py_operator);
+		}
 
 		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
 		
@@ -148,8 +151,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		else if (mode==PYOP_POLL) {
 			item= PyObject_GetAttrString(py_class, "poll");
 			args = PyTuple_New(2);
-			//XXX  Todo - wrap context in a useful way, None for now.
-			PyTuple_SET_ITEM(args, 1, Py_None);
+			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
 		}
 		PyTuple_SET_ITEM(args, 0, py_class_instance);
 	
@@ -160,21 +162,24 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	}
 	
 	if (ret == NULL) { /* covers py_class_instance failing too */
-		BPy_errors_to_report(op->reports);
+		if(op)
+			BPy_errors_to_report(op->reports);
 	}
 	else {
 		if (mode==PYOP_POLL) {
 			if (PyBool_Check(ret) == 0) {
 				PyErr_SetString(PyExc_ValueError, "Python poll function return value ");
-				BPy_errors_to_report(op->reports);
+				if(op)
+					BPy_errors_to_report(op->reports);
 			}
 			else {
 				ret_flag= ret==Py_True ? 1:0;
 			}
 			
 		} else if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
-			 /* the returned value could not be converted into a flag */
-			BPy_errors_to_report(op->reports);
+			/* the returned value could not be converted into a flag */
+			if(op)
+				BPy_errors_to_report(op->reports);
 
 			ret_flag = OPERATOR_CANCELLED;
 		}
@@ -225,19 +230,17 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 
 static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	return PYTHON_OT_generic(PYOP_INVOKE, C, op, event);	
+	return PYTHON_OT_generic(PYOP_INVOKE, C, op->type, op, event);	
 }
 
 static int PYTHON_OT_execute(bContext *C, wmOperator *op)
 {
-	return PYTHON_OT_generic(PYOP_EXEC, C, op, NULL);
+	return PYTHON_OT_generic(PYOP_EXEC, C, op->type, op, NULL);
 }
 
-static int PYTHON_OT_poll(bContext *C)
+static int PYTHON_OT_poll(bContext *C, wmOperatorType *ot)
 {
-	// XXX TODO - no way to get the operator type (and therefor class) from the poll function.
-	//return PYTHON_OT_generic(PYOP_POLL, C, NULL, NULL);
-	return 1;
+	return PYTHON_OT_generic(PYOP_POLL, C, ot, NULL, NULL);
 }
 
 void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
@@ -267,24 +270,38 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	/* api callbacks, detailed checks dont on adding */ 
 	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
+	//else
+	//	ot->invoke= WM_operator_props_popup; /* could have an option for standard invokes */
+
 	if (PyObject_HasAttrString(py_class, "execute"))
 		ot->exec= PYTHON_OT_execute;
 	if (PyObject_HasAttrString(py_class, "poll"))
-		ot->poll= PYTHON_OT_poll;
+		ot->pyop_poll= PYTHON_OT_poll;
 	
 	ot->pyop_data= userdata;
 	
 	/* flags */
+	ot->flag= 0;
+
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_REGISTER);
 	if (item) {
-		ot->flag= PyObject_IsTrue(item)!=0 ? OPTYPE_REGISTER:0;
+		ot->flag |= PyObject_IsTrue(item)!=0 ? OPTYPE_REGISTER:0;
 		Py_DECREF(item);
 	}
 	else {
-		ot->flag= OPTYPE_REGISTER; /* unspesified, leave on for now to help debug */
 		PyErr_Clear();
 	}
-	
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_UNDO);
+	if (item) {
+		ot->flag |= PyObject_IsTrue(item)!=0 ? OPTYPE_UNDO:0;
+		Py_DECREF(item);
+	}
+	else {
+		PyErr_Clear();
+	}
+
+
+
 	props= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
 	
 	if (props) {

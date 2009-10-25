@@ -81,6 +81,8 @@ ifndef CONFIG_GUESS
     endif
 
     export NAN_MOTO ?= $(LCGDIR)/moto
+	export NAN_ITASC ?= $(LCGDIR)/itasc
+	
     export BF_PROFILE ?= false
     export NAN_USE_BULLET ?= true
     export NAN_BULLET2 ?= $(LCGDIR)/bullet2
@@ -138,10 +140,13 @@ ifndef CONFIG_GUESS
   endif
 
   ifeq ($(NAN_USE_FFMPEG_CONFIG), true)
-    export NAN_FFMPEG ?= $(shell ffmpeg-config --prefix)
-    export NAN_FFMPEGLIBS ?= $(shell ffmpeg-config --libs avformat avcodec)
-    export NAN_FFMPEGCFLAGS ?= $(shell ffmpeg-config --cflags)
+    export NAN_FFMPEG = $(shell pkg-config --variable=prefix libavcodec) # Assume they are all in the same prefix
+    export NAN_FFMPEGLIBS = $(shell pkg-config --libs libavcodec libavdevice libavformat libswscale libavutil)
+    export NAN_FFMPEGCFLAGS = $(shell pkg-config --cflags libavcodec libavdevice libavformat libswscale libavutil)
   endif
+
+    # Compare recreated .mo files with committed ones
+    export BF_VERIFY_MO_FILES ?= true
 
   # Platform Dependent settings go below:
   ifeq ($(OS),darwin)
@@ -309,6 +314,9 @@ ifndef CONFIG_GUESS
     # enable l10n
     export INTERNATIONAL ?= true
 
+    # Different endianess will make it fail, rely on other plataforms for checks
+    export BF_VERIFY_MO_FILES = false
+
   else
   ifeq ($(OS),linux)
 
@@ -335,12 +343,6 @@ ifndef CONFIG_GUESS
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
     export NAN_SAMPLERATE ?= /usr
-
-ifneq ($(NAN_USE_FFMPEG_CONFIG), true)
-    export NAN_FFMPEG ?= /usr
-    export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavcodec -lavutil -lswscale -lavdevice -ldts -lz
-    export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
-endif
 
     ifeq ($(WITH_OPENEXR), true)
       export NAN_OPENEXR ?= $(shell pkg-config --variable=prefix OpenEXR )

@@ -300,11 +300,11 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 
 static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
-	char *filename;
+	char *path;
 	
-	filename= RNA_string_get_alloc(op->ptr, "filename", NULL, 0);
-	findMissingFiles(filename);
-	MEM_freeN(filename);
+	path= RNA_string_get_alloc(op->ptr, "path", NULL, 0);
+	findMissingFiles(path);
+	MEM_freeN(path);
 
 	return OPERATOR_FINISHED;
 }
@@ -330,7 +330,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, 0);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL);
 }
 
 #if 0

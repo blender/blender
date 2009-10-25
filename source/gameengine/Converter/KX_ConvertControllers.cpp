@@ -91,8 +91,7 @@ LinkControllerToActuators(
 void BL_ConvertControllers(
 	struct Object* blenderobject,
 	class KX_GameObject* gameobj,
-	SCA_LogicManager* logicmgr, 
-	PyObject* pythondictionary,
+	SCA_LogicManager* logicmgr,
 	int activeLayerBitInfo,
 	bool isInActiveLayer,
 	KX_BlenderSceneConverter* converter
@@ -158,8 +157,9 @@ void BL_ConvertControllers(
 				bPythonCont* pycont = (bPythonCont*) bcontr->data;
 				SCA_PythonController* pyctrl = new SCA_PythonController(gameobj, pycont->mode);
 				gamecontroller = pyctrl;
-				
-				pyctrl->SetDictionary(pythondictionary);
+#ifndef DISABLE_PYTHON
+
+				pyctrl->SetNamespace(converter->GetPyNamespace());
 				
 				if(pycont->mode==SCA_PythonController::SCA_PYEXEC_SCRIPT) {
 					if (pycont->text)
@@ -187,6 +187,8 @@ void BL_ConvertControllers(
 					pyctrl->SetDebug(true);
 				}
 				
+#endif // DISABLE_PYTHON
+
 				break;
 			}
 			default:
@@ -211,7 +213,8 @@ void BL_ConvertControllers(
 			gameobj->AddController(gamecontroller);
 			
 			converter->RegisterGameController(gamecontroller, bcontr);
-			
+
+#ifndef DISABLE_PYTHON
 			if (bcontr->type==CONT_PYTHON) {
 				SCA_PythonController *pyctrl= static_cast<SCA_PythonController*>(gamecontroller);
 				/* not strictly needed but gives syntax errors early on and
@@ -226,7 +229,8 @@ void BL_ConvertControllers(
 					// pyctrl->Import();
 				}
 			}
-			
+#endif // DISABLE_PYTHON
+
 			//done with gamecontroller
 			gamecontroller->Release();
 		}

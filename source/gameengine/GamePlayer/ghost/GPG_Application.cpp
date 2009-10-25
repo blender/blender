@@ -539,7 +539,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
 
-		if(GPU_extensions_minimum_support())
+		if(GPU_glsl_support())
 			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
 		else if(gm->matmode == GAME_MAT_GLSL)
 			m_blendermat = false;
@@ -679,7 +679,7 @@ bool GPG_Application::startEngine(void)
 		
 		// some python things
 		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest, m_maggie, m_argc, m_argv);
-		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
+		m_ketsjiengine->SetPyNamespace(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
 		PyObject *gameLogic = initGameLogic(m_ketsjiengine, startscene);
 		PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
@@ -702,7 +702,6 @@ bool GPG_Application::startEngine(void)
 		
 		m_sceneconverter->ConvertScene(
 			startscene,
-			dictionaryobject,
 			m_rendertools,
 			m_canvas);
 		m_ketsjiengine->AddScene(startscene);

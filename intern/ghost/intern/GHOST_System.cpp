@@ -291,7 +291,7 @@ GHOST_TSuccess GHOST_System::init()
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
 		m_eventPrinter = new GHOST_EventPrinter();
-		//m_eventManager->addConsumer(m_eventPrinter);
+		m_eventManager->addConsumer(m_eventPrinter);
 	}
 #endif // GHOST_DEBUG
 

@@ -254,7 +254,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 			if(out[1]->hasoutput)
 				out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
 
-			generate_preview(node, stackbuf);
+			generate_preview(data, node, stackbuf);
 		}
 	}	
 };
@@ -350,11 +350,12 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
    Scene *sce= (Scene *)node->id;
+   Render *re= (sce)? RE_GetRender(sce->id.name): NULL;
    RenderData *rd= data;
    RenderResult *rr= NULL;
 
-   if(sce)
-	   rr= RE_GetResult(RE_GetRender(sce->id.name));
+   if(re)
+	   rr= RE_AcquireResultRead(re);
 
    if(rr) {
       SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
@@ -385,11 +386,14 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 
                node_composit_rlayers_out(rd, rl, out, rr->rectx, rr->recty);
 
-               generate_preview(node, stackbuf);
+               generate_preview(data, node, stackbuf);
             }
          }
       }
-   }	
+   }
+
+   if(re)
+	   RE_ReleaseResult(re);
 };
 
 

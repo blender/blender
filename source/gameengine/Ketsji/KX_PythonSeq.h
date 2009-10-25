@@ -31,6 +31,8 @@
 #ifndef _adr_py_seq_h_				// only process once,
 #define _adr_py_seq_h_				// even if multiply included
 
+#ifndef DISABLE_PYTHON
+
 #include "PyObjectPlus.h"
 
 // -------------------------
@@ -39,7 +41,9 @@ enum KX_PYGENSEQ_TYPE {
 	KX_PYGENSEQ_CONT_TYPE_ACTUATORS,
 	KX_PYGENSEQ_OB_TYPE_SENSORS,
 	KX_PYGENSEQ_OB_TYPE_CONTROLLERS,
-	KX_PYGENSEQ_OB_TYPE_ACTUATORS
+	KX_PYGENSEQ_OB_TYPE_ACTUATORS,
+	KX_PYGENSEQ_OB_TYPE_CONSTRAINTS,
+	KX_PYGENSEQ_OB_TYPE_CHANNELS,
 };
 
 /* The Main PyType Object defined in Main.c */
@@ -56,5 +60,7 @@ typedef struct {
 } KX_PythonSeq;
 
 PyObject *KX_PythonSeq_CreatePyObject(PyObject *base, short type);
+
+#endif // DISABLE_PYTHON
 
 #endif // _adr_py_seq_h_

@@ -75,7 +75,7 @@ static struct bUnitCollection buDummyCollecton = {buDummyDef, 0, 0, sizeof(buDum
 /* Lengths */
 static struct bUnitDef buMetricLenDef[] = {
 	{"kilometer", "kilometers",		"km", NULL,	"Kilometers", 1000.0, 0.0,		B_UNIT_DEF_NONE},
-	{"hectometer", "hectometers",	"hm", NULL,	"10 Meters", 100.0, 0.0,			B_UNIT_DEF_SUPPRESS},
+	{"hectometer", "hectometers",	"hm", NULL,	"100 Meters", 100.0, 0.0,			B_UNIT_DEF_SUPPRESS},
 	{"dekameter", "dekameters",		"dkm",NULL,	"10 Meters", 10.0, 0.0,			B_UNIT_DEF_SUPPRESS},
 	{"meter", "meters",				"m",  NULL,	"Meters", 1.0, 0.0, 			B_UNIT_DEF_NONE}, /* base unit */
 	{"decimetre", "decimetres",		"dm", NULL,	"10 Centimeters", 0.1, 0.0,			B_UNIT_DEF_SUPPRESS},
@@ -485,7 +485,7 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 		if(unit==NULL)
 			unit= unit_default(usys);
 
-		/* add the unit prefic and re-run, use brackets incase there was an expression given */
+		/* add the unit prefix and re-run, use brackets incase there was an expression given */
 		if(snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
 			strncpy(str, str_tmp, len_max);
 			return bUnit_ReplaceString(str, len_max, NULL, scale_pref, system, type);

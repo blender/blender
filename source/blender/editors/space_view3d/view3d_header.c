@@ -177,13 +177,13 @@ static void handle_view3d_lock(bContext *C)
 	View3D *v3d= CTX_wm_view3d(C);
 	
 	if (v3d != NULL && sa != NULL) {
-		if(v3d->localview==0 && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
-			
+		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
 			/* copy to scene */
 			scene->lay= v3d->lay;
 			scene->camera= v3d->camera;
 			
-			//copy_view3d_lock(REDRAW);
+			/* notifiers for scene update */
+			WM_event_add_notifier(C, NC_SCENE, scene);
 		}
 	}
 }
@@ -195,27 +195,38 @@ static int layers_exec(bContext *C, wmOperator *op)
 	View3D *v3d= sa->spacedata.first;
 	int nr= RNA_int_get(op->ptr, "nr");
 	
-	if(nr<=0)
+	if(nr < 0)
 		return OPERATOR_CANCELLED;
-	nr--;
 	
-	if(RNA_boolean_get(op->ptr, "extend"))
-		v3d->lay |= (1<<nr);
-	else 
-		v3d->lay = (1<<nr);
 	
-	/* set active layer, ensure to always have one */
-	if(v3d->lay & (1<<nr))
-	   v3d->layact= 1<<nr;
-	else if((v3d->lay & v3d->layact)==0) {
-		int bit= 0;
+	if(nr == 0) {
+		/* all layers */
+		v3d->lay |= (1<<20)-1;
+
+		if(!v3d->layact)
+			v3d->layact= 1;
+	}
+	else {
+		nr--;
+
+		if(RNA_boolean_get(op->ptr, "extend"))
+			v3d->lay |= (1<<nr);
+		else
+			v3d->lay = (1<<nr);
 		
-		while(bit<32) {
-			if(v3d->lay & (1<<bit)) {
-				v3d->layact= 1<<bit;
-				break;
+		/* set active layer, ensure to always have one */
+		if(v3d->lay & (1<<nr))
+		   v3d->layact= 1<<nr;
+		else if((v3d->lay & v3d->layact)==0) {
+			int bit= 0;
+
+			while(bit<32) {
+				if(v3d->lay & (1<<bit)) {
+					v3d->layact= 1<<bit;
+					break;
+				}
+				bit++;
 			}
-			bit++;
 		}
 	}
 	
@@ -252,6 +263,7 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Layers";
+	ot->description= "Toggle layer(s) visibility.";
 	ot->idname= "VIEW3D_OT_layers";
 	
 	/* api callbacks */
@@ -262,8 +274,8 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "", 0, 20);
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "The layer number to set, zero for all layers", 0, 20);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Add this layer to the current view layers");
 }
 
 #if 0
@@ -1550,11 +1562,17 @@ static char *view3d_modeselect_pup(Scene *scene)
 	if(ob==NULL) return string;
 	
 	/* if active object is editable */
-	if ( ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE)
+	if ( ((ob->type == OB_MESH)
 		|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
 		|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
 		
 		str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
+	}
+	else if (ob->type == OB_ARMATURE) {
+		if (ob->mode & OB_MODE_POSE)
+			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT|OB_MODE_POSE, ICON_EDITMODE_HLT);
+		else
+			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
 	}
 
 	if (ob->type == OB_MESH) {
@@ -1714,6 +1732,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		WM_operator_properties_create(&props_ptr, "OBJECT_OT_mode_set");
 		RNA_enum_set(&props_ptr, "mode", v3d->modeselect);
 		WM_operator_name_call(C, "OBJECT_OT_mode_set", WM_OP_EXEC_REGION_WIN, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
 		break;		
 	case B_AROUND:
 // XXX		handle_view3d_around(); /* copies to other 3d windows */
@@ -1725,7 +1744,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				em->selectmode= SCE_SELECT_VERTEX;
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Vertex");
 		}
 		break;
@@ -1739,7 +1758,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Edge");
 		}
 		break;
@@ -1753,24 +1772,24 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Face");
 		}
 		break;	
 
 	case B_SEL_PATH:
 		ts->particle.selectmode= SCE_SELECT_PATH;
-		WM_event_add_notifier(C, NC_OBJECT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: Path");
 		break;
 	case B_SEL_POINT:
 		ts->particle.selectmode = SCE_SELECT_POINT;
-		WM_event_add_notifier(C, NC_OBJECT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: Point");
 		break;
 	case B_SEL_END:
 		ts->particle.selectmode = SCE_SELECT_END;
-		WM_event_add_notifier(C, NC_OBJECT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: End point");
 		break;	
 	
@@ -1793,8 +1812,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
         ED_area_tag_redraw(sa);
 		break;
 	case B_NDOF:
+        ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_MODE:
+        ED_area_tag_redraw(sa);
 		break;		
 	case B_VIEW_BUTSEDIT:
 		break;
@@ -1943,7 +1964,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlock *block;
 	int a, xco=0, maxco=0, yco= 0;
 	
-	block= uiLayoutFreeBlock(layout);
+	block= uiLayoutAbsoluteBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) 
@@ -2068,7 +2089,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
  		}
  		
 		/* LAYERS */
-		if(obedit==NULL && v3d->localview==0) {
+		if(obedit==NULL && v3d->localvd==NULL) {
 			int ob_lay = ob ? ob->lay : 0;
 			uiBlockBeginAlign(block);
 			for(a=0; a<5; a++) {
@@ -2107,7 +2128,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 				xco+= XIC+10;
 			}
 			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
+			header_xco_step(ar, &xco, &yco, &maxco, 10);
 		}
 
 		/* Snap */
@@ -2123,10 +2144,14 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
 					xco+= XIC;
 				}
+				if (ts->snap_mode == SCE_SNAP_MODE_FACE) {
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_RETOPO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
+					xco+= XIC;
+				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
-				xco+= XIC;
+				xco+= XIC + 10;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");
-				xco+= XIC+70;
+				xco+= 70;
 			} else {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
 				xco+= XIC;
@@ -2148,10 +2173,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
 			xco+= XIC;
 			uiBlockEndAlign(block);
+			header_xco_step(ar, &xco, &yco, &maxco, 10);
 			if(v3d->drawtype > OB_WIRE) {
 				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
-				xco+= XIC;
 			}
+			xco+= XIC;
 			uiBlockEndAlign(block);
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 
@@ -2178,7 +2204,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
 		if (ob && (ob->mode & OB_MODE_POSE)) {
-			xco+= XIC;
+			PointerRNA *but_ptr;
+			uiBut *but;
+			
+			xco+= XIC*2;
 			uiBlockBeginAlign(block);
 			
 			uiDefIconButO(block, BUT, "POSE_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, NULL);
@@ -2187,8 +2216,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			
 			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, NULL);
 			xco+= XIC;
-				// FIXME: this needs an extra arg...
-			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEFLIPDOWN, xco,yco,XIC,YIC, NULL);
+			but=uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEFLIPDOWN, xco,yco,XIC,YIC, NULL);
+				but_ptr= uiButGetOperatorPtrRNA(but);
+				RNA_boolean_set(but_ptr, "flipped", 1);
 			uiBlockEndAlign(block);
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 

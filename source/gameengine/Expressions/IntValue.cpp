@@ -326,7 +326,7 @@ void CIntValue::SetValue(CValue* newval)
 }
 
 
-
+#ifndef DISABLE_PYTHON
 PyObject* CIntValue::ConvertValueToPython()
 {
 	if((m_int > INT_MIN) && (m_int < INT_MAX))
@@ -334,3 +334,4 @@ PyObject* CIntValue::ConvertValueToPython()
 	else
 		return PyLong_FromLongLong(m_int);
 }
+#endif // DISABLE_PYTHON

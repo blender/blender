@@ -47,7 +47,7 @@ AUD_DoubleReader::AUD_DoubleReader(AUD_IReader* reader1,
 			AUD_THROW(AUD_ERROR_READER);
 	}
 
-	catch(AUD_Exception e)
+	catch(AUD_Exception)
 	{
 		if(reader1)
 		{

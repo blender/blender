@@ -456,7 +456,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
 	SETCOL(btheme->tv3d.active, 255, 140, 25, 255);
-	SETCOL(btheme->tv3d.group,      16, 64, 16, 255);
+	SETCOL(btheme->tv3d.group,      8, 48, 8, 255);
 	SETCOL(btheme->tv3d.group_active, 85, 187, 85, 255);
 	SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
 	SETCOL(btheme->tv3d.vertex, 0, 0, 0, 255);
@@ -517,10 +517,12 @@ void ui_theme_init_userdef(void)
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
-	SETCOL(btheme->tfile.back, 	90, 90, 90, 255);
+	SETCOLF(btheme->tfile.back, 0.3, 0.3, 0.3, 1);
+	SETCOLF(btheme->tfile.panel, 0.3, 0.3, 0.3, 1);
+	SETCOLF(btheme->tfile.list, 0.4, 0.4, 0.4, 1);
 	SETCOL(btheme->tfile.text, 	250, 250, 250, 255);
 	SETCOL(btheme->tfile.text_hi, 15, 15, 15, 255);
-	SETCOL(btheme->tfile.panel, 180, 180, 180, 255);	// bookmark/ui regions
+	SETCOL(btheme->tfile.panel, 145, 145, 145, 255);	// bookmark/ui regions
 	SETCOL(btheme->tfile.active, 130, 130, 130, 255); // selected files
 	SETCOL(btheme->tfile.hilite, 255, 140, 25, 255); // selected files
 	
@@ -604,11 +606,11 @@ void ui_theme_init_userdef(void)
 	/* space node, re-uses syntax color storage */
 	btheme->tnode= btheme->tv3d;
 	SETCOL(btheme->tnode.edge_select, 255, 255, 255, 255);
-	SETCOL(btheme->tnode.syntaxl, 150, 150, 150, 255);	/* TH_NODE, backdrop */
-	SETCOL(btheme->tnode.syntaxn, 129, 131, 144, 255);	/* in/output */
-	SETCOL(btheme->tnode.syntaxb, 127,127,127, 255);	/* operator */
-	SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
-	SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
+	SETCOL(btheme->tnode.syntaxl, 155, 155, 155, 160);	/* TH_NODE, backdrop */
+	SETCOL(btheme->tnode.syntaxn, 100, 100, 100, 255);	/* in/output */
+	SETCOL(btheme->tnode.syntaxb, 108, 105, 111, 255);	/* operator */
+	SETCOL(btheme->tnode.syntaxv, 104, 106, 117, 255);	/* generator */
+	SETCOL(btheme->tnode.syntaxc, 105, 117, 110, 255);	/* group */
 
 	/* space logic */
 	btheme->tlogic= btheme->tv3d;
@@ -1016,7 +1018,7 @@ void init_userdef_do_versions(void)
 			}
 			/* Group theme colors */
 			if(btheme->tv3d.group[3]==0) {
-				SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
+				SETCOL(btheme->tv3d.group, 0x0C, 0x30, 0x0C, 255);
 				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
 			}
 			/* Sequence editor theme*/
@@ -1245,6 +1247,21 @@ void init_userdef_do_versions(void)
 			SETCOLF(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
 		}
 	}
+
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 3)) {
+		/* new audio system */
+		if(U.audiochannels == 0)
+			U.audiochannels = 2;
+		if(U.audiodevice == 0)
+			U.audiodevice = 2;
+		if(U.audioformat == 0)
+			U.audioformat = 0x24;
+		if(U.audiorate == 0)
+			U.audiorate = 44100;
+	}
+
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 5))
+		U.gameflags |= USER_DISABLE_VBO;
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

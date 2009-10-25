@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1198,6 +1198,8 @@ static void node_init_preview(bNode *node, int xsize, int ysize)
 		node->preview->xsize= xsize;
 		node->preview->ysize= ysize;
 	}
+	else
+		memset(node->preview->rect, 0, 4*xsize + xsize*ysize*sizeof(float)*4);
 }
 
 void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)
@@ -1246,9 +1248,12 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y)
 	if(preview) {
 		if(x>=0 && y>=0) {
 			if(x<preview->xsize && y<preview->ysize) {
-				float *tar= preview->rect+ 4*((preview->xsize*y) + x);
+				unsigned char *tar= preview->rect+ 4*((preview->xsize*y) + x);
 				//if(tar[0]==0.0f) {
-				QUATCOPY(tar, col);
+				tar[0]= FTOCHAR(col[0]);
+				tar[1]= FTOCHAR(col[1]);
+				tar[2]= FTOCHAR(col[2]);
+				tar[3]= FTOCHAR(col[3]);
 				//}
 			}
 			//else printf("prv out bound x y %d %d\n", x, y);
@@ -1574,6 +1579,37 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 
 	return node;
 }
+
+int nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
+{
+	bNode *node;
+	int ok= FALSE;
+
+	if(ntree==NULL) return ok;
+
+	/* check for group edit */
+    for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+
+	if(node)
+		ntree= (bNodeTree*)node->id;
+
+	/* now find active node with this id */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->id && GS(node->id->name)==idtype) {
+			if(id && ok==FALSE && node->id==id) {
+				node->flag |= NODE_ACTIVE_ID;
+				ok= TRUE;
+			} else {
+				node->flag &= ~NODE_ACTIVE_ID;
+			}
+		}
+	}
+
+	return ok;
+}
+
 
 /* two active flags, ID nodes have special flag for buttons display */
 void nodeClearActiveID(bNodeTree *ntree, short idtype)
@@ -1953,6 +1989,7 @@ static void composit_end_exec(bNodeTree *ntree, int is_group)
 			if(ns->data) {
 				printf("freed leftover buffer from stack\n");
 				free_compbuf(ns->data);
+				ns->data= NULL;
 			}
 		}
 	}
@@ -2597,7 +2634,7 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 				if(outsocket_exists(lnode->new_node, lsock->new_sock)) {
 					lsock->new_sock->ns.data= lsock->ns.data;
 					lsock->ns.data= NULL;
-					lsock->new_sock= NULL;
+						lsock->new_sock= NULL;
 				}
 			}
 		}
@@ -2932,6 +2969,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_viewer);
 	nodeRegisterType(ntypelist, &cmp_node_splitviewer);
 	nodeRegisterType(ntypelist, &cmp_node_output_file);
+	nodeRegisterType(ntypelist, &cmp_node_view_levels);
 	
 	nodeRegisterType(ntypelist, &cmp_node_curve_rgb);
 	nodeRegisterType(ntypelist, &cmp_node_mix_rgb);
@@ -2971,7 +3009,9 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_premulkey);
 	
 	nodeRegisterType(ntypelist, &cmp_node_diff_matte);
-	nodeRegisterType(ntypelist, &cmp_node_chroma);
+	nodeRegisterType(ntypelist, &cmp_node_distance_matte);
+	nodeRegisterType(ntypelist, &cmp_node_chroma_matte);
+	nodeRegisterType(ntypelist, &cmp_node_color_matte);
 	nodeRegisterType(ntypelist, &cmp_node_channel_matte);
 	nodeRegisterType(ntypelist, &cmp_node_color_spill);
 	nodeRegisterType(ntypelist, &cmp_node_luma_matte);

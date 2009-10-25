@@ -36,9 +36,15 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
@@ -46,6 +52,7 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
+#include "BKE_material.h"
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
@@ -195,14 +202,100 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 		return 0;
 	
 	/* firstly, Object's own AnimData */
-	if (ob->adt) 
-		adt_keys_bezier_loop(bed, ob->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	if (ob->adt) {
+		if (adt_keys_bezier_loop(bed, ob->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
 	
 	/* shapekeys */
-	if ((key && key->adt) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
-		adt_keys_bezier_loop(bed, key->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	if ((key && key->adt) && !(filterflag & ADS_FILTER_NOSHAPEKEYS)) {
+		if (adt_keys_bezier_loop(bed, key->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
 		
-	// FIXME: add materials, etc. (but drawing code doesn't do it yet too! :)
+	/* Add material keyframes */
+	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
+		int a;
+		
+		for (a=0; a < ob->totcol; a++) {
+			Material *ma= give_current_material(ob, a);
+			
+			/* there might not be a material */
+			if (ELEM(NULL, ma, ma->adt)) 
+				continue;
+			
+			/* add material's data */
+			if (adt_keys_bezier_loop(bed, ma->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				return 1;
+		}
+	}
+	
+	/* Add object data keyframes */
+	switch (ob->type) {
+		case OB_CAMERA: /* ------- Camera ------------ */
+		{
+			Camera *ca= (Camera *)ob->data;
+			
+			if ((ca->adt) && !(filterflag & ADS_FILTER_NOCAM)) {
+				if (adt_keys_bezier_loop(bed, ca->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_LAMP: /* ---------- Lamp ----------- */
+		{
+			Lamp *la= (Lamp *)ob->data;
+			
+			if ((la->adt) && !(filterflag & ADS_FILTER_NOLAM)) {
+				if (adt_keys_bezier_loop(bed, la->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_CURVE: /* ------- Curve ---------- */
+		{
+			Curve *cu= (Curve *)ob->data;
+			
+			if ((cu->adt) && !(filterflag & ADS_FILTER_NOCUR)) {
+				if (adt_keys_bezier_loop(bed, cu->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_MBALL: /* ------- MetaBall ---------- */
+		{
+			MetaBall *mb= (MetaBall *)ob->data;
+			
+			if ((mb->adt) && !(filterflag & ADS_FILTER_NOMBA)) {
+				if (adt_keys_bezier_loop(bed, mb->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_ARMATURE: /* ------- Armature ---------- */
+		{
+			bArmature *arm= (bArmature *)ob->data;
+			
+			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) {
+				if (adt_keys_bezier_loop(bed, arm->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+	}
+	
+	/* Add Particle System Keyframes */
+	if ((ob->particlesystem.first) && !(filterflag & ADS_FILTER_NOPART)) {
+		ParticleSystem *psys = ob->particlesystem.first;
+		
+		for(; psys; psys=psys->next) {
+			if (ELEM(NULL, psys->part, psys->part->adt))
+				continue;
+				
+			if (adt_keys_bezier_loop(bed, psys->part->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				return 1;
+		}
+	}
 	
 	return 0;
 }
@@ -217,14 +310,46 @@ static short scene_keys_bezier_loop(BeztEditData *bed, Scene *sce, BeztEditFunc 
 		return 0;
 	
 	/* Scene's own animation */
-	if (sce->adt)
-		adt_keys_bezier_loop(bed, sce->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	if (sce->adt) {
+		if (adt_keys_bezier_loop(bed, sce->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
 	
 	/* World */
-	if (wo && wo->adt)
-		adt_keys_bezier_loop(bed, wo->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	if (wo && wo->adt) {
+		if (adt_keys_bezier_loop(bed, wo->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
 	
 	return 0;
+}
+
+/* This function is used to loop over the keyframe data in a DopeSheet summary */
+static short summary_keys_bezier_loop(BeztEditData *bed, bAnimContext *ac, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, ret_code=0;
+	
+	/* sanity check */
+	if (ac == NULL)
+		return 0;
+	
+	/* get F-Curves to take keyframes from */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through each F-Curve, working on the keyframes until the first curve aborts */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		ret_code= ANIM_fcurve_keys_bezier_loop(bed, ale->data, bezt_ok, bezt_cb, fcu_cb);
+		
+		if (ret_code)
+			break;
+	}
+	
+	BLI_freelistN(&anim_data);
+	
+	return ret_code;
 }
 
 /* --- */
@@ -254,6 +379,8 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 			return ob_keys_bezier_loop(bed, (Object *)ale->key_data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 		case ALE_SCE: /* scene */
 			return scene_keys_bezier_loop(bed, (Scene *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+		case ALE_ALL: /* 'all' (DopeSheet summary) */
+			return summary_keys_bezier_loop(bed, (bAnimContext *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 	}
 	
 	return 0;
@@ -284,6 +411,8 @@ short ANIM_animchanneldata_keys_bezier_loop(BeztEditData *bed, void *data, int k
 			return ob_keys_bezier_loop(bed, (Object *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 		case ALE_SCE: /* scene */
 			return scene_keys_bezier_loop(bed, (Scene *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+		case ALE_ALL: /* 'all' (DopeSheet summary) */
+			return summary_keys_bezier_loop(bed, (bAnimContext *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 	}
 	
 	return 0;
@@ -461,6 +590,13 @@ static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 	return 0;	
 }
 
+static short snap_bezier_value(BeztEditData *bed, BezTriple *bezt)
+{
+	/* value to snap to is stored in the custom data -> first float value slot */
+	if (bezt->f2 & SELECT)
+		bezt->vec[1][1]= bed->f1;
+	return 0;
+}
 
 BeztEditFunc ANIM_editkeyframes_snap(short type)
 {
@@ -476,6 +612,8 @@ BeztEditFunc ANIM_editkeyframes_snap(short type)
 			return snap_bezier_nearestsec;
 		case SNAP_KEYS_HORIZONTAL: /* snap handles to same value */
 			return snap_bezier_horizontal;
+		case SNAP_KEYS_VALUE: /* snap to given value */
+			return snap_bezier_value;
 		default: /* just in case */
 			return snap_bezier_nearest;
 	}
@@ -685,12 +823,22 @@ static short set_keytype_breakdown(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+static short set_keytype_extreme(BeztEditData *bed, BezTriple *bezt) 
+{
+	if (bezt->f2 & SELECT) 
+		BEZKEYTYPE(bezt)= BEZT_KEYTYPE_EXTREME;
+	return 0;
+}
+
 /* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
 BeztEditFunc ANIM_editkeyframes_keytype(short code)
 {
 	switch (code) {
 		case BEZT_KEYTYPE_BREAKDOWN: /* breakdown */
 			return set_keytype_breakdown;
+			
+		case BEZT_KEYTYPE_EXTREME: /* extreme keyframe */
+			return set_keytype_extreme;
 			
 		case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */	
 		default:

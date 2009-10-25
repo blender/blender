@@ -27,8 +27,8 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../blenlib ../blenkernel ../makesdna ../include
-  ../../../extern/glew/include ../../../intern/guardedalloc ../imbuf)
+	. ../blenlib ../blenkernel ../makesdna ../include
+	../../../extern/glew/include ../../../intern/guardedalloc ../../../intern/smoke/extern ../imbuf)
 
 BLENDERLIB(bf_gpu "${SRC}" "${INC}")
 

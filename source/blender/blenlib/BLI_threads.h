@@ -31,14 +31,15 @@
 #ifndef BLI_THREADS_H
 #define BLI_THREADS_H 
 
-/* one custom lock available now. can be extended */
-#define LOCK_IMAGE		0
-#define LOCK_CUSTOM1	1
+#include <pthread.h>
 
 /* for tables, button in UI, etc */
 #define BLENDER_MAX_THREADS		8
 
 struct ListBase;
+
+/* Threading API */
+
 void	BLI_init_threads	(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int		BLI_available_threads(struct ListBase *threadbase);
 int		BLI_available_thread_index(struct ListBase *threadbase);
@@ -48,18 +49,46 @@ void	BLI_remove_thread_index(struct ListBase *threadbase, int index);
 void	BLI_remove_threads(struct ListBase *threadbase);
 void	BLI_end_threads		(struct ListBase *threadbase);
 
-void	BLI_lock_thread		(int type);
-void	BLI_unlock_thread	(int type);
+/* System Information */
 
-int		BLI_system_thread_count( void ); /* gets the number of threads the system can make use of */
+int		BLI_system_thread_count(void); /* gets the number of threads the system can make use of */
 
-		/* exported by preview render, it has to ensure render buffers are not freed while draw */
-void	BLI_lock_malloc_thread(void);
-void	BLI_unlock_malloc_thread(void);
+/* Global Mutex Locks
+ * 
+ * One custom lock available now. can be extended. */
 
-/* ThreadedWorker is a simple tool for dispatching work to a limited number of threads in a transparent
- * fashion from the caller's perspective
- * */
+#define LOCK_IMAGE		0
+#define LOCK_PREVIEW	1
+#define LOCK_CUSTOM1	2
+
+void	BLI_lock_thread(int type);
+void	BLI_unlock_thread(int type);
+
+/* Mutex Lock */
+
+typedef pthread_mutex_t ThreadMutex;
+
+void BLI_mutex_init(ThreadMutex *mutex);
+void BLI_mutex_lock(ThreadMutex *mutex);
+void BLI_mutex_unlock(ThreadMutex *mutex);
+void BLI_mutex_end(ThreadMutex *mutex);
+
+/* Read/Write Mutex Lock */
+
+#define THREAD_LOCK_READ	1
+#define THREAD_LOCK_WRITE	2
+
+typedef pthread_rwlock_t ThreadRWMutex;
+
+void BLI_rw_mutex_init(ThreadRWMutex *mutex);
+void BLI_rw_mutex_lock(ThreadRWMutex *mutex, int mode);
+void BLI_rw_mutex_unlock(ThreadRWMutex *mutex);
+void BLI_rw_mutex_end(ThreadRWMutex *mutex);
+
+/* ThreadedWorker
+ *
+ * A simple tool for dispatching work to a limited number of threads
+ * in a transparent fashion from the caller's perspective. */
 
 struct ThreadedWorker;
 

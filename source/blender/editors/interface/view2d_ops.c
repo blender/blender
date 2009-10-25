@@ -210,7 +210,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		WM_cursor_modal(window, BC_NSEW_SCROLLCURSOR);
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &window->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -237,7 +237,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				/* calculate overall delta mouse-movement for redo */
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
@@ -257,6 +257,7 @@ void VIEW2D_OT_pan(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pan View";
+	ot->description= "Pan the view.";
 	ot->idname= "VIEW2D_OT_pan";
 	
 	/* api callbacks */
@@ -305,6 +306,7 @@ void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Right";
+	ot->description= "Scroll the view right.";
 	ot->idname= "VIEW2D_OT_scroll_right";
 	
 	/* api callbacks */
@@ -351,6 +353,7 @@ void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Left";
+	ot->description= "Scroll the view left.";
 	ot->idname= "VIEW2D_OT_scroll_left";
 	
 	/* api callbacks */
@@ -396,6 +399,7 @@ void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Down";
+	ot->description= "Scroll the view down.";
 	ot->idname= "VIEW2D_OT_scroll_down";
 	
 	/* api callbacks */
@@ -442,6 +446,7 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Up";
+	ot->description= "Scroll the view up.";
 	ot->idname= "VIEW2D_OT_scroll_up";
 	
 	/* api callbacks */
@@ -575,6 +580,7 @@ void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom In";
+	ot->description= "Zoom in the view.";
 	ot->idname= "VIEW2D_OT_zoom_in";
 	
 	/* api callbacks */
@@ -611,6 +617,7 @@ void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom Out";
+	ot->description= "Zoom out the view.";
 	ot->idname= "VIEW2D_OT_zoom_out";
 	
 	/* api callbacks */
@@ -757,7 +764,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		WM_cursor_modal(window, BC_NSEW_SCROLLCURSOR);
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &window->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -829,7 +836,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				/* for redo, store the overall deltas - need to respect zoom-locks here... */
 				if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)
 					RNA_float_set(op->ptr, "deltax", vzd->dx);
@@ -857,6 +864,7 @@ void VIEW2D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom View";
+	ot->description= "Zoom in/out the view.";
 	ot->idname= "VIEW2D_OT_zoom";
 	
 	/* api callbacks */
@@ -958,6 +966,7 @@ void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom to Border";
+	ot->description= "Zoom in the view to the nearest item contained in the border.";
 	ot->idname= "VIEW2D_OT_zoom_border";
 	
 	/* api callbacks */
@@ -1235,7 +1244,7 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				scroller_activate_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -1283,7 +1292,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			v2d->scroll_ui |= V2D_SCROLL_V_ACTIVE;
 		
 		/* still ok, so can add */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
@@ -1297,6 +1306,7 @@ void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroller Activate";
+	ot->description= "Scroll view by mouse click and drag.";
 	ot->idname= "VIEW2D_OT_scroller_activate";
 
 	/* flags */
@@ -1363,6 +1373,7 @@ void VIEW2D_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reset View";
+	ot->description= "Reset the view.";
 	ot->idname= "VIEW2D_OT_reset";
 	
 	/* api callbacks */
@@ -1396,9 +1407,9 @@ void ui_view2d_operatortypes(void)
 	WM_operatortype_append(VIEW2D_OT_reset);
 }
 
-void UI_view2d_keymap(wmWindowManager *wm)
+void UI_view2d_keymap(wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "View2D", 0, 0);
 	
 	/* pan/scroll */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
@@ -1434,7 +1445,7 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	/* Alternative keymap for buttons listview */
-	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	keymap= WM_keymap_find(keyconf, "View2D Buttons List", 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);

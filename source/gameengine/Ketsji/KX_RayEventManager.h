@@ -37,12 +37,9 @@ using namespace std;
 
 class KX_RayEventManager : public SCA_EventManager
 {
-
-	class SCA_LogicManager* m_logicmgr;
 public:
 	KX_RayEventManager(class SCA_LogicManager* logicmgr)
-		: SCA_EventManager(RAY_EVENTMGR),
-		  m_logicmgr(logicmgr)
+		: SCA_EventManager(logicmgr, RAY_EVENTMGR)
 	{}
 	virtual void NextFrame();
 

@@ -274,6 +274,8 @@ ModifierTypeInfo *modifierType_getInfo (ModifierType type);
 struct ModifierData  *modifier_new(int type);
 void          modifier_free(struct ModifierData *md);
 
+void 		  modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
+
 void          modifier_copyData(struct ModifierData *md, struct ModifierData *target);
 int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);

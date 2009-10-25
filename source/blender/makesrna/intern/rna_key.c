@@ -257,17 +257,21 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, type, rna_iterator_array_get(iter));
 }
 
+static char *rna_ShapeKey_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("keys[\"%s\"]", ((KeyBlock*)ptr->data)->name);
+}
+
 static void rna_Key_update_data(bContext *C, PointerRNA *ptr)
 {
 	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
 	Key *key= ptr->id.data;
 	Object *ob;
 
 	for(ob=bmain->object.first; ob; ob= ob->id.next) {
 		if(ob_get_key(ob) == key) {
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 		}
 	}
 }
@@ -344,6 +348,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock.");
 	RNA_def_struct_sdna(srna, "KeyBlock");
+	RNA_def_struct_path_func(srna, "rna_ShapeKey_path");
 	RNA_def_struct_ui_icon(srna, ICON_SHAPEKEY_DATA);
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -358,7 +363,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 	
 	/* for now, this is editable directly, as users can set this even if they're not animating them (to test results) */
-	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "curval");
 	RNA_def_property_float_funcs(prop, NULL, "rna_ShapeKey_value_set", "rna_ShapeKey_value_range");
 	RNA_def_property_ui_text(prop, "Value", "Value of shape key at the current frame.");
@@ -415,7 +420,8 @@ static void rna_def_key(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Key", "Shape keys datablock containing different shapes of geometric datablocks.");
 	RNA_def_struct_ui_icon(srna, ICON_SHAPEKEY_DATA);
 
-	prop= RNA_def_property(srna, "reference_key", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "reference_key", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "refkey");
 	RNA_def_property_ui_text(prop, "Reference Key", "");
@@ -427,7 +433,8 @@ static void rna_def_key(BlenderRNA *brna)
 
 	rna_def_animdata_common(srna);
 
-	prop= RNA_def_property(srna, "user", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "from");
 	RNA_def_property_ui_text(prop, "User", "Datablock using these shape keys.");
 

@@ -141,9 +141,9 @@ void graphedit_operatortypes(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
+static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 {
-	wmKeymapItem *kmi;
+	wmKeyMapItem *kmi;
 	
 	/* view */
 	WM_keymap_add_item(keymap, "GRAPH_OT_handles_view_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
@@ -221,21 +221,21 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	
 		/* F-Modifiers */
-	WM_keymap_add_item(keymap, "GRAPH_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPH_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "only_active", 0);
 	
 	
 	/* transform system */
-	transform_keymap_for_space(wm, keymap, SPACE_IPO);
+	transform_keymap_for_space(keyconf, keymap, SPACE_IPO);
 }
 
 /* --------------- */
 
-void graphedit_keymap(wmWindowManager *wm)
+void graphedit_keymap(wmKeyConfig *keyconf)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	/* keymap for all regions */
-	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(keyconf, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_properties", NKEY, KM_PRESS, 0, 0);
 
 	/* channels */
@@ -245,7 +245,7 @@ void graphedit_keymap(wmWindowManager *wm)
 	 */
 	
 	/* keyframes */
-	keymap= WM_keymap_listbase(wm, "GraphEdit Keys", SPACE_IPO, 0);
-	graphedit_keymap_keyframes(wm, keymap);
+	keymap= WM_keymap_find(keyconf, "GraphEdit Keys", SPACE_IPO, 0);
+	graphedit_keymap_keyframes(keyconf, keymap);
 }
 
