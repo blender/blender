@@ -80,7 +80,7 @@ OPTION(WITH_LZMA          "Enable best LZMA compression, used for pointcache" ON
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
-OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
+OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
 
 IF (APPLE)
 OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)

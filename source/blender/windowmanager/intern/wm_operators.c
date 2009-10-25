@@ -1294,10 +1294,9 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 }
 
 
+/* XXX: move these collada operators to a more appropriate place */
+#ifdef WITH_COLLADA
 
-
-
-/* XXX: move these to a more appropriate place */
 #include "../../collada/collada.h"
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1392,7 +1391,7 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
 }
 
-
+#endif
 
 
 
@@ -2284,9 +2283,12 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_search_menu);
 
+#ifdef WITH_COLLADA
 	/* XXX: move these */
 	WM_operatortype_append(WM_OT_collada_export);
 	WM_operatortype_append(WM_OT_collada_import);
+#endif
+
 	WM_operatortype_append(WM_OT_call_menu);
 }
 
