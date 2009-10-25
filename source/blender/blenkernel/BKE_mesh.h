@@ -92,7 +92,6 @@ void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces,
 	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
 	 * (_numVerts_r_ may be NULL) */
 float (*mesh_getVertexCos(struct Mesh *me, int *numVerts_r))[3];
-float (*mesh_getRefKeyCos(struct Mesh *me, int *numVerts_r))[3];
 
 /* map from uv vertex to face (for select linked, stitch, uv suburf) */
 

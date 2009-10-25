@@ -114,6 +114,8 @@ static int buttons_context_path_scene(ButsContextPath *path)
 	return RNA_struct_is_a(ptr->type, &RNA_Scene);
 }
 
+/* note: this function can return 1 without adding a world to the path
+ * so the buttons stay visible, but be sure to check the ID type if a ID_WO */
 static int buttons_context_path_world(ButsContextPath *path)
 {
 	Scene *scene;
@@ -372,7 +374,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 	else if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
 		wo= path->ptr[path->len-1].data;
 
-		if(wo) {
+		if(wo && GS(wo->id.name)==ID_WO) {
 			tex= give_current_world_texture(wo);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
@@ -622,7 +624,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		PointerRNA *ptr;
 
 		if((ptr=get_pointer_type(path, &RNA_Material))) {
-			Material *ma= ptr->data;
+			Material *ma= ptr->data; /* should this be made a different option? */
+			Material *ma_node= give_node_material(ma);
+			ma= ma_node?ma_node:ma;
 
 			if(ma)
 				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);

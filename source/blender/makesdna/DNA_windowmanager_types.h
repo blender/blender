@@ -124,6 +124,9 @@ typedef struct wmWindowManager {
 	ListBase keyconfigs;				/* known key configurations */
 	struct wmKeyConfig *defaultconf;	/* default configuration, not saved */
 	int defaultactmap, pad2;			/* active keymap from default for editing */
+
+	ListBase timers;					/* active timers */
+	struct wmTimer *autosavetimer;		/* timer for auto save */
 } wmWindowManager;
 
 /* wmWindowManager.initialized */
@@ -159,8 +162,6 @@ typedef struct wmWindow {
 	
 	int drawmethod, drawfail;	/* internal for wm_draw.c only */
 	void *drawdata;				/* internal for wm_draw.c only */
-	
-	ListBase timers;
 	
 	ListBase queue;				/* all events (ghost level events were handled) */
 	ListBase handlers;			/* window+screen handlers, handled last */

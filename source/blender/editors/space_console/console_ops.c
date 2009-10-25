@@ -135,6 +135,7 @@ static char cursor_char_prev(ConsoleLine *cl)
 	return cl->line[cl->cursor-1];
 }
 
+#if 0 // XXX unused 
 static char cursor_char_next(ConsoleLine *cl)
 {
 	/* assume cursor is clamped */
@@ -159,8 +160,10 @@ static void console_history_debug(const bContext *C)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 
+	
 	console_lb_debug__internal(&sc->history);
 }
+#endif
 
 static ConsoleLine *console_lb_add__internal(ListBase *lb, ConsoleLine *from)
 {

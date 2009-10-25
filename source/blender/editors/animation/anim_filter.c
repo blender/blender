@@ -208,8 +208,10 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 static short graphedit_get_context (bAnimContext *ac, SpaceIpo *sipo)
 {
 	/* init dopesheet data if non-existant (i.e. for old files) */
-	if (sipo->ads == NULL)
+	if (sipo->ads == NULL) {
 		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+		sipo->ads->source= (ID *)ac->scene;
+	}
 	
 	/* set settings for Graph Editor - "Selected = Editable" */
 	if (sipo->flag & SIPO_SELCUVERTSONLY)
@@ -371,9 +373,18 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
  *
  * 	- id: ID block which should have an AnimData pointer following it immediately, to use
  *	- adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
- *	- nlaOk: line or block of code to execute for NLA case
+ *	- nlaOk: line or block of code to execute for NLA tracks+strips case
  *	- driversOk: line or block of code to execute for Drivers case
  *	- keysOk: line or block of code for Keyframes case
+ *
+ * The checks for the various cases are as follows:
+ *	0) top level: checks for animdata and also that all the F-Curves for the block will be visible
+ *	1) animdata check: for filtering animdata blocks only
+ *	2A) nla tracks: include animdata block's data as there are NLA tracks+strips there
+ *	2B) actions to convert to nla: include animdata block's data as there is an action that can be 
+ *		converted to a new NLA strip, and the filtering options allow this
+ *	3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
+ *	4) normal keyframes: only when there is an active action
  */
 #define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, keysOk) \
 	{\
@@ -1102,7 +1113,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			}
 			
 			/* add material's animation data */
-			if (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+			if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 				ANIMDATA_FILTER_CASES(ma, 
 					{ /* AnimData blocks - do nothing... */ },
 					items += animdata_filter_nla(anim_data, ads, ma->adt, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);, 
@@ -1162,7 +1173,7 @@ static int animdata_filter_dopesheet_particles (ListBase *anim_data, bDopeSheet 
 				}
 			}
 			
-			if (FILTER_PART_OBJD(psys->part) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+			if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_PART_OBJD(psys->part) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 				ANIMDATA_FILTER_CASES(psys->part,
 					{ /* AnimData blocks - do nothing... */ },
 					items += animdata_filter_nla(anim_data, ads, psys->part->adt, filter_mode, psys->part, ANIMTYPE_DSPART, (ID *)psys->part);, 
@@ -1243,7 +1254,7 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 	}
 	
 	/* add object-data animation channels? */
-	if ((expanded) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+	if (!(filter_mode & ANIMFILTER_VISIBLE) || (expanded) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 		/* filtering for channels - nla, drivers, keyframes */
 		ANIMDATA_FILTER_CASES(iat, 
 			{ /* AnimData blocks - do nothing... */ },
@@ -1281,7 +1292,8 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	}
 	
 	/* if collapsed, don't go any further (unless adding keyframes only) */
-	if ( (EXPANDED_OBJC(ob) == 0) && !(filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) )
+	if ( ((filter_mode & ANIMFILTER_VISIBLE) && EXPANDED_OBJC(ob) == 0) &&
+		 !(filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) )
 		return items;
 	
 	/* Action, Drivers, or NLA */
@@ -1304,7 +1316,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				}
 				
 				/* add F-Curve channels (drivers are F-Curves) */
-				if (EXPANDED_DRVD(adt) || !(filter_mode & ANIMFILTER_CHANNELS)) {
+				if (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_DRVD(adt) || !(filter_mode & ANIMFILTER_CHANNELS)) {
 					// need to make the ownertype normal object here... (maybe type should be a separate one for clarity?)
 					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, ob, ANIMTYPE_OBJECT, filter_mode, (ID *)ob);
 				}
@@ -1320,7 +1332,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				}
 				
 				/* add F-Curve channels? */
-				if (EXPANDED_ACTC(adt->action) || !(filter_mode & ANIMFILTER_CHANNELS)) {
+				if (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_ACTC(adt->action) || !(filter_mode & ANIMFILTER_CHANNELS)) {
 					// need to make the ownertype normal object here... (maybe type should be a separate one for clarity?)
 					items += animdata_filter_action(anim_data, ads, adt->action, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob); 
 				}
@@ -1348,7 +1360,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				}
 				
 				/* add NLA tracks - only if expanded or so */
-				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY))
+				if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY))
 					items += animdata_filter_nla(anim_data, ads, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 			},
 			{ /* drivers */
@@ -1362,7 +1374,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				}
 				
 				/* add channels */
-				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, key, ANIMTYPE_DSSKEY, filter_mode, (ID *)key);
 				}
 			},
@@ -1380,7 +1392,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				}
 				
 				/* add channels */
-				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 					items += animdata_filter_action(anim_data, ads, adt->action, filter_mode, key, ANIMTYPE_DSSKEY, (ID *)key); 
 				}
 			}
@@ -1595,7 +1607,9 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 	
 	/* check that we do indeed have a scene */
 	if ((ads->source == NULL) || (GS(ads->source->name)!=ID_SCE)) {
-		printf("DopeSheet Error: Not scene! \n");
+		printf("DopeSheet Error: Not scene!\n");
+		if (G.f & G_DEBUG)
+			printf("\tPointer = %p, Name = '%s' \n", ads->source, (ads->source)?ads->source->name:NULL);
 		return 0;
 	}
 	

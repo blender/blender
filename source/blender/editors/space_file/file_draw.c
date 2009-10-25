@@ -610,7 +610,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	}
 
 	if (!sfile->loadimage_timer)
-		sfile->loadimage_timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
+		sfile->loadimage_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
 }
 
 

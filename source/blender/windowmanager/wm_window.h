@@ -36,8 +36,8 @@ void		wm_ghost_init			(bContext *C);
 void		wm_ghost_exit(void);
 
 wmWindow	*wm_window_new			(bContext *C);
-void		wm_window_free			(bContext *C, wmWindow *win);
-void		wm_window_close			(bContext *C, wmWindow *win);
+void		wm_window_free			(bContext *C, wmWindowManager *wm, wmWindow *win);
+void		wm_window_close			(bContext *C, wmWindowManager *wm, wmWindow *win);
 
 void		wm_window_title				(wmWindowManager *wm, wmWindow *win);
 void		wm_window_add_ghostwindows	(wmWindowManager *wm);

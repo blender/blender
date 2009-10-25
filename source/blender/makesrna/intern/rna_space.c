@@ -1195,6 +1195,15 @@ static void rna_def_space_graph(BlenderRNA *brna)
 		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curves", ""},
 		{SIPO_MODE_DRIVERS, "DRIVERS", 0, "Drivers", ""},
 		{0, NULL, 0, NULL, NULL}};
+		
+		/* this is basically the same as the one for the 3D-View, but with some entries ommitted */
+	static EnumPropertyItem gpivot_items[] = {
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", 0, "Bounding Box Center", ""},
+		{V3D_CURSOR, "CURSOR", 0, "2D Cursor", ""},
+		{V3D_LOCAL, "INDIVIDUAL_CENTERS", 0, "Individual Centers", ""},
+		//{V3D_CENTROID, "MEDIAN_POINT", 0, "Median Point", ""},
+		//{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	
 	srna= RNA_def_struct(brna, "SpaceGraphEditor", "Space");
@@ -1239,6 +1248,23 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "automerge_keyframes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NOTRANSKEYCULL);
 	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Show handles of Bezier control points.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	/* cursor */
+	prop= RNA_def_property(srna, "show_cursor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NODRAWCURSOR);
+	RNA_def_property_ui_text(prop, "Show Cursor", "Show 2D cursor.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	prop= RNA_def_property(srna, "cursor_value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "cursorVal");
+	RNA_def_property_ui_text(prop, "Cursor Y-Value", "Graph Editor 2D-Value cursor - Y-Value component");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	prop= RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "around");
+	RNA_def_property_enum_items(prop, gpivot_items);
+	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	// TODO... autosnap, dopesheet?
@@ -1613,7 +1639,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "backdrop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);
 	RNA_def_property_ui_text(prop, "Backdrop", "Use active Viewer Node output as backdrop for compositing nodes.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE_VIEW, NULL);
 }
 
 static void rna_def_space_logic(BlenderRNA *brna)

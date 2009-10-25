@@ -38,9 +38,9 @@
 #define BFILE_NORMAL (0)
 /* No supervision, just translate // if needed, RISKY */
 #define BFILE_RAW    (1<<0)
-/* Path is relative to config dirs */
+/* Path is based in env vars specified by "envvars" */
 #define BFILE_CONFIG (1<<1)
-/* Path is for current session temp file */
+/* Path is for current session temp files */
 #define BFILE_TEMP   (1<<2)
 
 /* Config handling, special cases: */
@@ -51,6 +51,17 @@
 #define BFILE_GZIP (1<<5)
 
 /**
+ For the envvars param.
+ */
+typedef enum BEnvVarFamilies {
+	BENV_NONE,
+	BENV_BASE,
+	BENV_DATAFILES,
+	BENV_PYTHON,
+	BENV_PLUGINS
+} BEnvVarFam;
+
+/**
  File descriptor for Blender abstracted file access.
  */
 typedef struct {
@@ -58,22 +69,23 @@ typedef struct {
 	int fd;
 
 	/* Anything below should not be touched directly */
-	int uflags;  /* Special options requested by upper level, copy of bflags */
-	char *fpath; /* Final/requested path name */
-	char *tpath; /* Temp path name if applicable */
-	int type;    /* Own flags, common classification of open and fopen */
-	int error;   /* An op caused an error, unsafe to replace older files */
+	int uflags;       /* Special options requested by upper level, copy of bflags */
+	BEnvVarFam evars; /* What kind of file, describe the env vars to use */
+	char *fpath;      /* Final/requested path name */
+	char *tpath;      /* Temp path name if applicable */
+	int classf;       /* Own flags, common classification of open and fopen */
+	int error;        /* An op caused an error, unsafe to replace older files */
 } BFILE;
 
 /**
  Open a BFILE* with fopen()-like syntax.
  */
-BFILE *BLI_bfile_fopen(const char *path, const char *mode, int bflags);
+BFILE *BLI_bfile_fopen(const char *path, const char *mode, int bflags, BEnvVarFam envvars);
 
 /**
  Open a BFILE* with open()-like syntax.
  */
-BFILE *BLI_bfile_open(const char *pathname, int flags, int bflags);
+BFILE *BLI_bfile_open(const char *pathname, int flags, int bflags, BEnvVarFam envvars);
 
 /**
  Get the FILE* associated with the BFILE*.

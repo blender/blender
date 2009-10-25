@@ -594,7 +594,7 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	ShadeInput shi;
 	ListBase threads;
 	float *bbmin=obi->obr->boundbox[0], *bbmax=obi->obr->boundbox[1];
-	int parts[3], totparts;
+	int parts[3] = {1, 1, 1}, totparts;
 	
 	int caching=1, counter=0;
 	int totthread = re->r.threads;

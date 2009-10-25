@@ -2137,7 +2137,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 			else
 				Mat4CpyMat4(obwinmat, winmat);
 
-			if(clip_render_object(obi->obr->boundbox, bounds, winmat))
+			if(clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 				continue;
 
 			zbuf_project_cache_clear(cache, obr->totvert);
@@ -2555,7 +2555,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 		else
 			Mat4CpyMat4(obwinmat, winmat);
 
-		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
+		if(clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 			continue;
 
 		zbuf_project_cache_clear(cache, obr->totvert);
@@ -3301,7 +3301,7 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 		else
 			Mat4CpyMat4(obwinmat, winmat);
 
-		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
+		if(clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 			continue;
 
 		zbuf_project_cache_clear(cache, obr->totvert);

@@ -1198,6 +1198,8 @@ static void node_init_preview(bNode *node, int xsize, int ysize)
 		node->preview->xsize= xsize;
 		node->preview->ysize= ysize;
 	}
+	else
+		memset(node->preview->rect, 0, 4*xsize + xsize*ysize*sizeof(float)*4);
 }
 
 void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)

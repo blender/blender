@@ -1,5 +1,5 @@
 // This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2008-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
@@ -27,7 +27,17 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-#if defined(__APPLE__) || defined(_WIN64)
+// FreeBSD 6 seems to have 16-byte aligned malloc
+// See http://svn.freebsd.org/viewvc/base/stable/6/lib/libc/stdlib/malloc.c?view=markup
+// FreeBSD 7 seems to have 16-byte aligned malloc except on ARM and MIPS architectures
+// See http://svn.freebsd.org/viewvc/base/stable/7/lib/libc/stdlib/malloc.c?view=markup
+#if defined(__FreeBSD__) && !defined(__arm__) && !defined(__mips__)
+#define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 1
+#else
+#define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 0
+#endif
+
+#if defined(__APPLE__) || defined(_WIN64) || EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0
@@ -65,7 +75,7 @@ inline void ei_handmade_aligned_free(void *ptr)
 }
 
 /** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
-  * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
+  * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
   */
 inline void* ei_aligned_malloc(size_t size)
 {
@@ -96,7 +106,7 @@ inline void* ei_aligned_malloc(size_t size)
 }
 
 /** allocates \a size bytes. If Align is true, then the returned ptr is 16-byte-aligned.
-  * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
+  * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
   */
 template<bool Align> inline void* ei_conditional_aligned_malloc(size_t size)
 {
@@ -116,20 +126,29 @@ template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
   return result;
 }
 
+/** \internal construct the elements of an array.
+  * The \a size parameter tells on how many objects to call the constructor of T.
+  */
+template<typename T> inline T* ei_construct_elements_of_array(T *ptr, size_t size)
+{
+  for (size_t i=0; i < size; ++i) ::new (ptr + i) T;
+  return ptr;
+}
+
 /** allocates \a size objects of type T. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
   * The default constructor of T is called.
   */
 template<typename T> inline T* ei_aligned_new(size_t size)
 {
-  void *void_result = ei_aligned_malloc(sizeof(T)*size);
-  return ::new(void_result) T[size];
+  T *result = reinterpret_cast<T*>(ei_aligned_malloc(sizeof(T)*size));
+  return ei_construct_elements_of_array(result, size);
 }
 
 template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t size)
 {
-  void *void_result = ei_conditional_aligned_malloc<Align>(sizeof(T)*size);
-  return ::new(void_result) T[size];
+  T *result = reinterpret_cast<T*>(ei_conditional_aligned_malloc<Align>(sizeof(T)*size));
+  return ei_construct_elements_of_array(result, size);
 }
 
 /** \internal free memory allocated with ei_aligned_malloc
@@ -163,10 +182,10 @@ template<> inline void ei_conditional_aligned_free<false>(void *ptr)
   free(ptr);
 }
 
-/** \internal delete the elements of an array.
+/** \internal destruct the elements of an array.
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
-template<typename T> inline void ei_delete_elements_of_array(T *ptr, size_t size)
+template<typename T> inline void ei_destruct_elements_of_array(T *ptr, size_t size)
 {
   // always destruct an array starting from the end.
   while(size) ptr[--size].~T();
@@ -177,7 +196,7 @@ template<typename T> inline void ei_delete_elements_of_array(T *ptr, size_t size
   */
 template<typename T> inline void ei_aligned_delete(T *ptr, size_t size)
 {
-  ei_delete_elements_of_array<T>(ptr, size);
+  ei_destruct_elements_of_array<T>(ptr, size);
   ei_aligned_free(ptr);
 }
 
@@ -186,7 +205,7 @@ template<typename T> inline void ei_aligned_delete(T *ptr, size_t size)
   */
 template<typename T, bool Align> inline void ei_conditional_aligned_delete(T *ptr, size_t size)
 {
-  ei_delete_elements_of_array<T>(ptr, size);
+  ei_destruct_elements_of_array<T>(ptr, size);
   ei_conditional_aligned_free<Align>(ptr);
 }
 
@@ -225,8 +244,8 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   #define ei_aligned_stack_free(PTR,SIZE) ei_aligned_free(PTR)
 #endif
 
-#define ei_aligned_stack_new(TYPE,SIZE) ::new(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)) TYPE[SIZE]
-#define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {ei_delete_elements_of_array<TYPE>(PTR, SIZE); \
+#define ei_aligned_stack_new(TYPE,SIZE) ei_construct_elements_of_array(reinterpret_cast<TYPE*>(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)), SIZE)
+#define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {ei_destruct_elements_of_array<TYPE>(PTR, SIZE); \
                                                    ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE);} while(0)
 
 
@@ -244,7 +263,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
         return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
       }
   #endif
-  
+
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
       void *operator new(size_t size) { \
         return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \

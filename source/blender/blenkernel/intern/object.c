@@ -1133,6 +1133,8 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
+	psysn->frand= NULL;
+	psysn->pdd= NULL;
 	
 	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
 	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;

@@ -171,7 +171,9 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 			elif tex.texture_coordinates == 'UV':
 				split = layout.split(percentage=0.3)
 				split.itemL(text="Layer:")
-				split.itemR(tex, "uv_layer", text="")
+				ob = context.object
+				if ob and ob.type == 'MESH': split.item_pointerR(tex, "uv_layer", ob.data, "uv_textures", text="")
+				else: split.itemR(tex, "uv_layer", text="")
 			elif tex.texture_coordinates == 'OBJECT':
 				split = layout.split(percentage=0.3)
 				split.itemL(text="Object:")
@@ -217,8 +219,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 
 class TEXTURE_PT_influence(TextureSlotPanel):
 	__label__ = "Influence"
+	def poll(self, context):
+		return context.texture_slot
+		
 	
 	def draw(self, context):
+		
 		layout = self.layout
 		
 		idblock = context_tex_datablock(context)

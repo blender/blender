@@ -154,51 +154,68 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
 		return ('FINISHED',)
 
 rna_path_prop = bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= "")
+rna_reverse_prop = bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)
+
+class NullPathMember:
+	pass
+
+def context_path_validate(context, path):
+	import sys
+	try:
+		value = eval("context.%s" % path)
+	except AttributeError:
+		if "'NoneType'" in str(sys.exc_info()[1]):
+			# One of the items in the rna path is None, just ignore this
+			value = NullPathMember
+		else:
+			# We have a real error in the rna path, dont ignore that
+			raise
+	
+	return value
+		
+	
+
+def execute_context_assign(self, context):
+	if context_path_validate(context, self.path) == NullPathMember:
+		return ('PASS_THROUGH',)
+	
+	exec("context.%s=self.value" % self.path)
+	return ('FINISHED',)
 
 class WM_OT_context_set_boolean(bpy.types.Operator):
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_boolean"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.BoolProperty(attr="value", name="Value", description="Assignment value", default= True)]
-	def execute(self, context):
-		exec("context.%s=%s" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 
 class WM_OT_context_set_int(bpy.types.Operator): # same as enum
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_int"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.IntProperty(attr="value", name="Value", description="Assignment value", default= 0)]
-	def execute(self, context):
-		exec("context.%s=%d" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 		
 class WM_OT_context_set_float(bpy.types.Operator): # same as enum
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_int"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.FloatProperty(attr="value", name="Value", description="Assignment value", default= 0.0)]
-	def execute(self, context):
-		exec("context.%s=%f" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 
 class WM_OT_context_set_string(bpy.types.Operator): # same as enum
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_string"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.StringProperty(attr="value", name="Value", description="Assignment value", maxlen= 1024, default= "")]
-	def execute(self, context):
-		exec("context.%s='%s'" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 
 class WM_OT_context_set_enum(bpy.types.Operator):
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_enum"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.StringProperty(attr="value", name="Value", description="Assignment value (as a string)", maxlen= 1024, default= "")]
-	def execute(self, context):
-		exec("context.%s='%s'" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 
 class WM_OT_context_toggle(bpy.types.Operator):
 	'''Toggle a context value.'''
@@ -206,6 +223,10 @@ class WM_OT_context_toggle(bpy.types.Operator):
 	__label__ = "Context Toggle"
 	__props__ = [rna_path_prop]
 	def execute(self, context):
+		
+		if context_path_validate(context, self.path) == NullPathMember:
+			return ('PASS_THROUGH',)
+		
 		exec("context.%s=not (context.%s)" % (self.path, self.path)) # security nuts will complain.
 		return ('FINISHED',)
 
@@ -219,16 +240,49 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 		bpy.props.StringProperty(attr="value_2", name="Value", description="Toggle enum", maxlen= 1024, default= "")
 	]
 	def execute(self, context):
+		
+		if context_path_validate(context, self.path) == NullPathMember:
+			return ('PASS_THROUGH',)
+		
 		exec("context.%s = ['%s', '%s'][context.%s!='%s']" % (self.path, self.value_1, self.value_2, self.path, self.value_2)) # security nuts will complain.
+		return ('FINISHED',)
+
+class WM_OT_context_cycle_int(bpy.types.Operator):
+	'''Set a context value. Useful for cycling active material, vertex keys, groups' etc.'''
+	__idname__ = "wm.context_cycle_int"
+	__label__ = "Context Int Cycle"
+	__props__ = [rna_path_prop, rna_reverse_prop]
+	def execute(self, context):
+		
+		value = context_path_validate(context, self.path)
+		if value == NullPathMember:
+			return ('PASS_THROUGH',)
+		
+		self.value = value
+		if self.reverse:	self.value -= 1
+		else:		self.value += 1
+		execute_context_assign(self, context)
+		
+		if self.value != eval("context.%s" % self.path):
+			# relies on rna clamping int's out of the range
+			if self.reverse:	self.value =  (1<<32)
+			else:		self.value = -(1<<32)
+			execute_context_assign(self, context)
+			
 		return ('FINISHED',)
 
 class WM_OT_context_cycle_enum(bpy.types.Operator):
 	'''Toggle a context value.'''
 	__idname__ = "wm.context_cycle_enum"
 	__label__ = "Context Enum Cycle"
-	__props__ = [rna_path_prop, bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)]
+	__props__ = [rna_path_prop, rna_reverse_prop]
 	def execute(self, context):
-		orig_value = eval("context.%s" % self.path) # security nuts will complain.
+		
+		value = context_path_validate(context, self.path)
+		if value == NullPathMember:
+			return ('PASS_THROUGH',)
+		
+		orig_value = value
 		
 		# Have to get rna enum values
 		rna_struct_str, rna_prop_str =  self.path.rsplit('.', 1)
@@ -257,6 +311,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 		exec("context.%s=advance_enum" % self.path)
 		return ('FINISHED',)
 
+
 bpy.ops.add(MESH_OT_delete_edgeloop)
 
 bpy.ops.add(WM_OT_context_set_boolean)
@@ -267,4 +322,5 @@ bpy.ops.add(WM_OT_context_set_enum)
 bpy.ops.add(WM_OT_context_toggle)
 bpy.ops.add(WM_OT_context_toggle_enum)
 bpy.ops.add(WM_OT_context_cycle_enum)
+bpy.ops.add(WM_OT_context_cycle_int)
 

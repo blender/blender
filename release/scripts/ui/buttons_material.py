@@ -150,7 +150,9 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 		col = split.column()
 		col.itemL(text="Shading:")
 		col.itemR(tan, "width_fade")
-		col.itemR(tan, "uv_layer")
+		ob = context.object
+		if ob and ob.type == 'MESH': col.item_pointerR(tan, "uv_layer", ob.data, "uv_textures", text="")
+		else: col.itemR(tan, "uv_layer", text="")
 		col.itemS()
 		sub = col.column()
 		sub.active = (not mat.shadeless)

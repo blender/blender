@@ -1286,7 +1286,7 @@ void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float
  *	- the result should be that the rotations given in the provided pointers have had conversions 
  *	  applied (as appropriate), such that the rotation of the element hasn't 'visually' changed 
  */
-void BKE_rotMode_change_values (float quat[4], float eul[3], float *axis, float angle[3], short oldMode, short newMode)
+void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
 {
 	/* check if any change - if so, need to convert data */
 	if (newMode > 0) { /* to euler */

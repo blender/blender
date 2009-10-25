@@ -147,6 +147,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		layout.operator_context = 'INVOKE_REGION_WIN'
 		
 		st = context.space_data
 		
@@ -163,7 +164,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
-		
+		layout.operator_context = 'INVOKE_REGION_WIN'
 		st = context.space_data
 		
 		layout.column()

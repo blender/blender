@@ -99,6 +99,8 @@ template<typename _Scalar> class AmbiVector
       allocSize = allocSize/sizeof(Scalar) + (allocSize%sizeof(Scalar)>0?1:0);
       Scalar* newBuffer = new Scalar[allocSize];
       memcpy(newBuffer,  m_buffer,  copyElements * sizeof(ListEl));
+      delete[] m_buffer;
+      m_buffer = newBuffer;
     }
 
   protected:
@@ -238,8 +240,11 @@ Scalar& AmbiVector<Scalar>::coeffRef(int i)
       else
       {
         if (m_llSize>=m_allocatedElements)
+        {
           reallocateSparse();
-        ei_internal_assert(m_llSize<m_size && "internal error: overflow in sparse mode");
+          llElements = reinterpret_cast<ListEl*>(m_buffer);
+        }
+        ei_internal_assert(m_llSize<m_allocatedElements && "internal error: overflow in sparse mode");
         // let's insert a new coefficient
         ListEl& el = llElements[m_llSize];
         el.value = Scalar(0);
@@ -365,6 +370,9 @@ class AmbiVector<_Scalar>::Iterator
     int m_cachedIndex;          // current coordinate
     Scalar m_cachedValue;       // current value
     bool m_isDense;             // mode of the vector
+
+  private:
+    Iterator& operator=(const Iterator&);
 };
 
 

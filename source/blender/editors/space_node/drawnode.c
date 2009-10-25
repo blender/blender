@@ -1077,35 +1077,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, PointerRNA *ptr)
 	}
 }
 
-static void node_blur_relative_cb(bContext *C, void *node, void *poin2)
-{
-	bNode *nodev= node;
-	NodeBlurData *nbd= nodev->storage;
-	if(nbd->image_in_width != 0){
-		if(nbd->relative){ /* convert absolute values to relative */
-			nbd->percentx= (float)(nbd->sizex)/nbd->image_in_width;
-			nbd->percenty= (float)(nbd->sizey)/nbd->image_in_height;
-		}else{ /* convert relative values to absolute */
-			nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
-			nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
-		}
-	}
-	// allqueue(REDRAWNODE, 0);
-}
-static void node_blur_update_sizex_cb(bContext *C, void *node, void *poin2)
-{
-	bNode *nodev= node;
-	NodeBlurData *nbd= nodev->storage;
 
-	nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
-}
-static void node_blur_update_sizey_cb(bContext *C, void *node, void *poin2)
-{
-	bNode *nodev= node;
-	NodeBlurData *nbd= nodev->storage;
-
-	nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
-}
 static void node_composit_buts_blur(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *col;

@@ -1659,21 +1659,21 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				int i, defaultfound= 0;
 
 				if(eprop->item) {
-					fprintf(f, "static EnumPropertyItem rna_%s%s_%s_items[%d] = {", srna->identifier, strnest, prop->identifier, eprop->totitem+1);
+					fprintf(f, "static EnumPropertyItem rna_%s%s_%s_items[%d] = {\n\t", srna->identifier, strnest, prop->identifier, eprop->totitem+1);
 
 					for(i=0; i<eprop->totitem; i++) {
 						fprintf(f, "{%d, ", eprop->item[i].value);
 						rna_print_c_string(f, eprop->item[i].identifier); fprintf(f, ", ");
 						fprintf(f, "%d, ", eprop->item[i].icon);
 						rna_print_c_string(f, eprop->item[i].name); fprintf(f, ", ");
-						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "}, ");
+						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "},\n\t");
 
 						if(eprop->item[i].identifier[0])
 							if(eprop->defaultvalue == eprop->item[i].value)
 								defaultfound= 1;
 					}
 
-					fprintf(f, "{0, NULL, 0, NULL, NULL}};\n\n");
+					fprintf(f, "{0, NULL, 0, NULL, NULL}\n};\n\n");
 
 					if(!defaultfound) {
 						fprintf(stderr, "rna_generate_structs: %s%s.%s, enum default is not in items.\n", srna->identifier, errnest, prop->identifier);
@@ -1691,7 +1691,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				unsigned int i;
 
 				if(prop->arraydimension && prop->totarraylength) {
-					fprintf(f, "static int rna_%s%s_%s_default[%d] = {", srna->identifier, strnest, prop->identifier, prop->totarraylength);
+					fprintf(f, "static int rna_%s%s_%s_default[%d] = {\n\t", srna->identifier, strnest, prop->identifier, prop->totarraylength);
 
 					for(i=0; i<prop->totarraylength; i++) {
 						if(bprop->defaultarray)
@@ -1699,10 +1699,10 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 						else
 							fprintf(f, "%d", bprop->defaultvalue);
 						if(i != prop->totarraylength-1)
-							fprintf(f, ", ");
+							fprintf(f, ",\n\t");
 					}
 
-					fprintf(f, "};\n\n");
+					fprintf(f, "\n};\n\n");
 				}
 				break;
 			}
@@ -1711,7 +1711,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				unsigned int i;
 
 				if(prop->arraydimension && prop->totarraylength) {
-					fprintf(f, "static int rna_%s%s_%s_default[%d] = {", srna->identifier, strnest, prop->identifier, prop->totarraylength);
+					fprintf(f, "static int rna_%s%s_%s_default[%d] = {\n\t", srna->identifier, strnest, prop->identifier, prop->totarraylength);
 
 					for(i=0; i<prop->totarraylength; i++) {
 						if(iprop->defaultarray)
@@ -1719,10 +1719,10 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 						else
 							fprintf(f, "%d", iprop->defaultvalue);
 						if(i != prop->totarraylength-1)
-							fprintf(f, ", ");
+							fprintf(f, ",\n\t");
 					}
 
-					fprintf(f, "};\n\n");
+					fprintf(f, "\n};\n\n");
 				}
 				break;
 			}
@@ -1731,7 +1731,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				unsigned int i;
 
 				if(prop->arraydimension && prop->totarraylength) {
-					fprintf(f, "static float rna_%s%s_%s_default[%d] = {", srna->identifier, strnest, prop->identifier, prop->totarraylength);
+					fprintf(f, "static float rna_%s%s_%s_default[%d] = {\n\t", srna->identifier, strnest, prop->identifier, prop->totarraylength);
 
 					for(i=0; i<prop->totarraylength; i++) {
 						if(fprop->defaultarray)
@@ -1739,10 +1739,10 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 						else
 							rna_float_print(f, fprop->defaultvalue);
 						if(i != prop->totarraylength-1)
-							fprintf(f, ", ");
+							fprintf(f, ",\n\t");
 					}
 
-					fprintf(f, "};\n\n");
+					fprintf(f, "\n};\n\n");
 				}
 				break;
 			}
@@ -1922,7 +1922,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	rna_print_c_string(f, srna->name);
 	fprintf(f, ", ");
 	rna_print_c_string(f, srna->description);
-	fprintf(f, ",\n %d,\n", srna->icon);
+	fprintf(f, ",\n\t%d,\n", srna->icon);
 
 	prop= srna->nameproperty;
 	if(prop) {

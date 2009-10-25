@@ -39,7 +39,8 @@ class INFO_HT_header(bpy.types.Header):
 		layout.template_running_jobs()
 
 		layout.itemL(text=scene.statistics())
-
+		
+		layout.itemO("wm.window_fullscreen_toggle", icon='ICON_ARROW_LEFTRIGHT', text="")
 
 class INFO_MT_file(bpy.types.Menu):
 	__label__ = "File"
@@ -53,6 +54,7 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.itemO("wm.open_mainfile", text="Open...", icon='ICON_FILE_FOLDER')
 		layout.item_menu_enumO("wm.open_recentfile", "file", text="Open Recent")
 		layout.itemO("wm.recover_last_session")
+		layout.itemO("wm.recover_auto_save", text="Recover Auto Save...")
 
 		layout.itemS()
 
@@ -133,7 +135,7 @@ class INFO_MT_mesh_add(dynamic_menu.DynMenu):
 		layout.itemO("mesh.primitive_circle_add", icon='ICON_MESH_CIRCLE', text="Circle")
 		layout.itemO("mesh.primitive_uv_sphere_add", icon='ICON_MESH_UVSPHERE', text="UV Sphere")
 		layout.itemO("mesh.primitive_ico_sphere_add", icon='ICON_MESH_ICOSPHERE', text="Icosphere")
-		layout.itemO("mesh.primitive_cylinder_add", icon='ICON_MESH_TUBE', text="Tube")
+		layout.itemO("mesh.primitive_tube_add", icon='ICON_MESH_TUBE', text="Tube")
 		layout.itemO("mesh.primitive_cone_add", icon='ICON_MESH_CONE', text="Cone")
 		layout.itemS()
 		layout.itemO("mesh.primitive_grid_add", icon='ICON_MESH_GRID', text="Grid")
@@ -287,7 +289,7 @@ class HELP_OT_user_community(HelpOperator):
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 	__idname__ = "help.operator_cheat_sheet"
-	__label__ = "Operator Cheet Sheet (new textblock)"
+	__label__ = "Operator Cheat Sheet (new textblock)"
 	def execute(self, context):
 		op_strings = []
 		tot = 0

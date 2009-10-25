@@ -217,6 +217,32 @@ int check_file_chars(char *filename)
 	return 1;
 }
 
+/* Copied from http://sourceware.org/ml/newlib/2005/msg00248.html */
+/* Copyright 2005 Shaun Jackman
+ * Permission to use, copy, modify, and distribute this software
+ * is freely granted, provided that this notice is preserved.
+ */
+#include <string.h>
+char* dirname(char *path)
+{
+       char *p;
+       if( path == NULL || *path == '\0' )
+               return ".";
+       p = path + strlen(path) - 1;
+       while( *p == '/' ) {
+               if( p == path )
+                       return path;
+               *p-- = '\0';
+       }
+       while( p >= path && *p != '/' )
+               p--;
+       return
+               p < path ? "." :
+               p == path ? "/" :
+               (*p = '\0', path);
+}
+/* End of copied part */
+
 #else
 
 /* intentionally empty for UNIX */

@@ -118,7 +118,7 @@ static void unique_name(bNode *node)
 {
 	TexNodeOutput *tno = (TexNodeOutput *)node->storage;
 	char *new_name = 0;
-	int new_len;
+	int new_len = 0;
 	int suffix;
 	bNode *i;
 	char *name = tno->name;

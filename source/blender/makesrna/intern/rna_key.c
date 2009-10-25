@@ -37,15 +37,50 @@
 
 #ifdef RNA_RUNTIME
 
+#include <stddef.h>
+
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_depsgraph.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+static Key *rna_ShapeKey_find_key(ID *id)
+{
+	switch(GS(id->name)) {
+		case ID_CU: return ((Curve*)id)->key;
+		case ID_KE: return (Key*)id;
+		case ID_LT: return ((Lattice*)id)->key;
+		case ID_ME: return ((Mesh*)id)->key;
+		default: return NULL;
+	}
+}
+
+void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
+{
+	KeyBlock *kb= ptr->data;
+	char oldname[32];
+	
+	/* make a copy of the old name first */
+	BLI_strncpy(oldname, kb->name, sizeof(oldname));
+	
+	/* copy the new name into the name slot */
+	BLI_strncpy(kb->name, value, sizeof(kb->name));
+	
+	/* make sure the name is truly unique */
+	if (ptr->id.data) {
+		Key *key= rna_ShapeKey_find_key(ptr->id.data);
+		BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), 32);
+	}
+	
+	/* fix all the animation data which may link to this */
+	BKE_all_animdata_fix_paths_rename("keys", oldname, kb->name);
+}
 
 static void rna_ShapeKey_value_set(PointerRNA *ptr, float value)
 {
@@ -60,17 +95,6 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
 
 	*min= data->slidermin;
 	*max= data->slidermax;
-}
-
-static Key *rna_ShapeKey_find_key(ID *id)
-{
-	switch(GS(id->name)) {
-		case ID_CU: return ((Curve*)id)->key;
-		case ID_KE: return (Key*)id;
-		case ID_LT: return ((Lattice*)id)->key;
-		case ID_ME: return ((Mesh*)id)->key;
-		default: return NULL;
-	}
 }
 
 static PointerRNA rna_ShapeKey_relative_key_get(PointerRNA *ptr)
@@ -353,6 +377,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_ShapeKey_name_set");
 	RNA_def_struct_name_property(srna, prop);
 
 	/* keys need to be sorted to edit this */
@@ -366,6 +391,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "curval");
 	RNA_def_property_float_funcs(prop, NULL, "rna_ShapeKey_value_set", "rna_ShapeKey_value_range");
+	RNA_def_property_ui_range(prop, -10.0f, 10.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Value", "Value of shape key at the current frame.");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 

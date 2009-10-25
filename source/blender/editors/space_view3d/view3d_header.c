@@ -178,12 +178,12 @@ static void handle_view3d_lock(bContext *C)
 	
 	if (v3d != NULL && sa != NULL) {
 		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
-			
 			/* copy to scene */
 			scene->lay= v3d->lay;
 			scene->camera= v3d->camera;
 			
-			//copy_view3d_lock(REDRAW);
+			/* notifiers for scene update */
+			WM_event_add_notifier(C, NC_SCENE, scene);
 		}
 	}
 }
@@ -1818,6 +1818,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
         ED_area_tag_redraw(sa);
 		break;		
 	case B_VIEW_BUTSEDIT:
+		ED_area_tag_redraw(sa);
 		break;
 		
 	default:
@@ -2031,7 +2032,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
  		}
  	} else {
  		if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
- 			uiDefIconButBitI(block, TOG, G_FACESELECT, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
+			Mesh *me= ob->data;
+ 			uiDefIconButBitS(block, TOG, ME_EDIT_PAINT_MASK, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &me->editflag, 0, 0, 0, 0, "Painting Mask (FKey)");
 			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
  		} else {
  			/* Manipulators aren't used in weight paint mode */
@@ -2204,6 +2206,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
 		if (ob && (ob->mode & OB_MODE_POSE)) {
+			PointerRNA *but_ptr;
+			uiBut *but;
+			
 			xco+= XIC*2;
 			uiBlockBeginAlign(block);
 			
@@ -2213,8 +2218,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			
 			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, NULL);
 			xco+= XIC;
-				// FIXME: this needs an extra arg...
-			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEFLIPDOWN, xco,yco,XIC,YIC, NULL);
+			but=uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEFLIPDOWN, xco,yco,XIC,YIC, NULL);
+				but_ptr= uiButGetOperatorPtrRNA(but);
+				RNA_boolean_set(but_ptr, "flipped", 1);
 			uiBlockEndAlign(block);
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 

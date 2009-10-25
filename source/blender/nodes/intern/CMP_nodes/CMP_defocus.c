@@ -253,7 +253,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	
 	// get some required params from the current scene camera
 	// (ton) this is wrong, needs fixed
-	Object* camob = NULL; // XXX G.scene->camera;
+	Scene *scene= (Scene*)node->id;
+	Object* camob = (scene)? scene->camera: NULL;
 	if (camob && camob->type==OB_CAMERA) {
 		Camera* cam = (Camera*)camob->data;
 		cam_lens = cam->lens;

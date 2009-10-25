@@ -343,11 +343,6 @@ void recalcData(TransInfo *t)
 	Scene *scene = t->scene;
 	Base *base = scene->basact;
 
-	if (t->obedit) {
-	}
-	else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
-		flushTransParticles(t);
-	}
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
 	}
@@ -777,6 +772,9 @@ void recalcData(TransInfo *t)
 			else
 				where_is_pose(scene, ob);
 		}
+		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
+			flushTransParticles(t);
+		}
 		else {
 			for(base= FIRSTBASE; base; base= base->next) {
 				Object *ob= base->object;
@@ -954,11 +952,17 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->view = &ar->v2d;
 		t->around = sima->around;
 	}
+	else if(t->spacetype==SPACE_IPO) 
+	{
+		SpaceIpo *sipo= sa->spacedata.first;
+		t->view = &ar->v2d;
+		t->around = sipo->around;
+	}
 	else
 	{
 		// XXX for now, get View2D  from the active region
 		t->view = &ar->v2d;
-		
+		// XXX for now, the center point is the midpoint of the data
 		t->around = V3D_CENTER;
 	}
 	
@@ -1047,11 +1051,20 @@ void postTrans (TransInfo *t)
 {
 	TransData *td;
 	
-	if (t->draw_handle)
-	{
-		ED_region_draw_cb_exit(t->ar->type, t->draw_handle);
-	}
+	if (t->draw_handle_view)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
+	if (t->draw_handle_pixel)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
 	
+
+	if (t->customFree) {
+		/* Can take over freeing t->data and data2d etc... */
+		t->customFree(t);
+	}
+	else if (t->customData) {
+		MEM_freeN(t->customData);
+	}
+
 	/* postTrans can be called when nothing is selected, so data is NULL already */
 	if (t->data) {
 		int a;
@@ -1079,13 +1092,6 @@ void postTrans (TransInfo *t)
 	if (t->mouse.data)
 	{
 		MEM_freeN(t->mouse.data);
-	}
-	
-	if (t->customFree) {
-		t->customFree(t);
-	}
-	else if (t->customData) {
-		MEM_freeN(t->customData);
 	}
 }
 
@@ -1196,6 +1202,18 @@ void calculateCenterCursor2D(TransInfo *t)
 	calculateCenter2D(t);
 }
 
+void calculateCenterCursorGraph2D(TransInfo *t)
+{
+	SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+	Scene *scene= t->scene;
+	
+	/* cursor is combination of current frame, and graph-editor cursor value */
+	t->center[0]= (float)(scene->r.cfra);
+	t->center[1]= sipo->cursorVal;
+	
+	calculateCenter2D(t);
+}
+
 void calculateCenterMedian(TransInfo *t)
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
@@ -1267,6 +1285,8 @@ void calculateCenter(TransInfo *t)
 	case V3D_CURSOR:
 		if(t->spacetype==SPACE_IMAGE)
 			calculateCenterCursor2D(t);
+		else if(t->spacetype==SPACE_IPO)
+			calculateCenterCursorGraph2D(t);
 		else
 			calculateCenterCursor(t);
 		break;

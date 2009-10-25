@@ -28,6 +28,7 @@
 #include "BKE_paint.h"
 
 #include "ED_sculpt.h"
+#include "ED_screen.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -52,7 +53,7 @@ static int brush_add_exec(bContext *C, wmOperator *op)
 
 	if(br)
 		paint_brush_set(paint_get_active(CTX_data_scene(C)), br);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -81,11 +82,12 @@ void BRUSH_OT_add(wmOperatorType *ot)
 
 static int vertex_color_set_exec(bContext *C, wmOperator *op)
 {
-	int selected = RNA_boolean_get(op->ptr, "selected");
 	Scene *scene = CTX_data_scene(C);
-
-	clear_vpaint(scene, selected);
+	Object *obact = CTX_data_active_object(C);
+	unsigned int paintcol = vpaint_get_current_col(scene->toolsettings->vpaint);
+	vpaint_fill(obact, paintcol);
 	
+	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
 	return OPERATOR_FINISHED;
 }
 
@@ -101,8 +103,6 @@ void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_boolean(ot->srna, "selected", 0, "Type", "Only color selected faces.");
 }
 
 /**************************** registration **********************************/
@@ -126,12 +126,18 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_weight_paint_toggle);
 	WM_operatortype_append(PAINT_OT_weight_paint_radial_control);
 	WM_operatortype_append(PAINT_OT_weight_paint);
+	WM_operatortype_append(PAINT_OT_weight_set);
 
 	/* vertex */
 	WM_operatortype_append(PAINT_OT_vertex_paint_radial_control);
 	WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
 	WM_operatortype_append(PAINT_OT_vertex_paint);
 	WM_operatortype_append(PAINT_OT_vertex_color_set);
+
+	/* face-select */
+	WM_operatortype_append(PAINT_OT_face_select_linked);
+	WM_operatortype_append(PAINT_OT_face_select_linked_pick);
+	WM_operatortype_append(PAINT_OT_face_deselect_all);
 }
 
 void ED_keymap_paint(wmKeyConfig *keyconf)
@@ -158,6 +164,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "PAINT_OT_vertex_paint", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
 
+	WM_keymap_add_item(keymap,
+			"PAINT_OT_vertex_color_set",KKEY, KM_PRESS, KM_SHIFT, 0);
+
 	/* Weight Paint mode */
 	keymap= WM_keymap_find(keyconf, "Weight Paint", 0, 0);
 	keymap->poll= weight_paint_poll;
@@ -166,6 +175,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_weight_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_paint", LEFTMOUSE, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap,
+			"PAINT_OT_weight_set", KKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* Image/Texture Paint mode */
 	keymap= WM_keymap_find(keyconf, "Image Paint", 0, 0);
@@ -177,5 +189,13 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_clone_cursor_set", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-}
 
+	/* face-mask mode */
+	keymap= WM_keymap_find(keyconf, "Face Mask", 0, 0);
+	keymap->poll= facemask_paint_poll;
+
+	WM_keymap_add_item(keymap, "PAINT_OT_face_deselect_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+
+}

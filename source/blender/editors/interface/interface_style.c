@@ -184,6 +184,60 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 		BLF_disable(BLF_KERNING_DEFAULT);
 }
 
+/* drawn same as above, but at 90 degree angle */
+void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
+{
+	float height;
+	int xofs, yofs;
+	float angle;
+	rcti txtrect;
+
+	uiStyleFontSet(fs);
+
+	height= BLF_height("2");	/* correct offset is on baseline, the j is below that */
+	/* becomes x-offset when rotated */
+	xofs= floor( 0.5f*(rect->ymax - rect->ymin - height)) + 1;
+
+	/* ignore UI_STYLE, always aligned to top */
+
+	/* rotate counter-clockwise for now (assumes left-to-right language)*/
+	xofs+= height;
+	yofs= BLF_width(str) + 5;
+	angle= 90.0f;
+
+	/* translate rect to vertical */
+	txtrect.xmin= rect->xmin - (rect->ymax - rect->ymin);
+	txtrect.ymin= rect->ymin - (rect->xmax - rect->xmin);
+	txtrect.xmax= rect->xmin;
+	txtrect.ymax= rect->ymin;
+
+	/* clip is very strict, so we give it some space */
+	/* clipping is done without rotation, so make rect big enough to contain both positions */
+	BLF_clipping(txtrect.xmin-1, txtrect.ymin-yofs-xofs-4, rect->xmax+1, rect->ymax+4);
+	BLF_enable(BLF_CLIPPING);
+	BLF_position(txtrect.xmin+xofs, txtrect.ymax-yofs, 0.0f);
+
+	BLF_enable(BLF_ROTATION);
+	BLF_rotation(angle);
+
+	if (fs->shadow) {
+		BLF_enable(BLF_SHADOW);
+		BLF_shadow(fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
+		BLF_shadow_offset(fs->shadx, fs->shady);
+	}
+
+	if (fs->kerning == 1)
+		BLF_enable(BLF_KERNING_DEFAULT);
+
+	BLF_draw(str);
+	BLF_disable(BLF_ROTATION);
+	BLF_disable(BLF_CLIPPING);
+	if (fs->shadow)
+		BLF_disable(BLF_SHADOW);
+	if (fs->kerning == 1)
+		BLF_disable(BLF_KERNING_DEFAULT);
+}
+
 /* ************** helpers ************************ */
 
 /* temporarily, does widget font */

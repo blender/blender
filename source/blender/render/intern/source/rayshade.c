@@ -242,7 +242,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		assert( faces > 0 );
 
 		//Create Ray cast accelaration structure		
-		raytree = obr->raytree = RE_rayobject_create( re,  re->r.raytrace_structure, faces );
+		raytree = RE_rayobject_create( re,  re->r.raytrace_structure, faces );
 		if(  (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 			vlakprimitive = obr->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "ObjectRen primitives");
 		else
@@ -269,13 +269,20 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 			}
 		}
 		RE_rayobject_done( raytree );
+
+		/* in case of cancel during build, raytree is not usable */
+		if(test_break(re))
+			RE_rayobject_free(raytree);
+		else
+			obr->raytree= raytree;
 	}
 
-
-	if((obi->flag & R_TRANSFORMED) && obi->raytree == NULL)
-	{
-		obi->transform_primitives = 0;
-		obi->raytree = RE_rayobject_instance_create( obr->raytree, obi->mat, obi, obi->obr->rayobi );
+	if(obr->raytree) {
+		if((obi->flag & R_TRANSFORMED) && obi->raytree == NULL)
+		{
+			obi->transform_primitives = 0;
+			obi->raytree = RE_rayobject_instance_create( obr->raytree, obi->mat, obi, obi->obr->rayobi );
+		}
 	}
 	
 	if(obi->raytree) return obi->raytree;
@@ -439,6 +446,7 @@ void makeraytree(Render *re)
 	{
 		//Calculate raytree max_size
 		//This is ONLY needed to kept a bogus behaviour of SUN and HEMI lights
+		INIT_MINMAX(min, max);
 		RE_rayobject_merge_bb( re->raytree, min, max );
 		for(i=0; i<3; i++)
 		{

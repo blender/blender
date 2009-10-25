@@ -335,8 +335,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);
 	parm= RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use.");
-	parm= RNA_def_collection(func, "items", 0, "", "Items visible in the list.");
-	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "template_running_jobs", "uiTemplateRunningJobs");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

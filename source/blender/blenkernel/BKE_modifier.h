@@ -293,7 +293,7 @@ void          modifiers_foreachIDLink(struct Object *ob,
 struct ModifierData  *modifiers_findByType(struct Object *ob, ModifierType type);
 void          modifiers_clearErrors(struct Object *ob);
 int           modifiers_getCageIndex(struct Object *ob,
-                                     int *lastPossibleCageIndex_r);
+                                     int *lastPossibleCageIndex_r, int virtual_);
 
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
 int           modifiers_isClothEnabled(struct Object *ob);

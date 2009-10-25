@@ -65,7 +65,7 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, G
 	static char *names[] = {"mix_blend", "mix_add", "mix_mult", "mix_sub",
 		"mix_screen", "mix_div", "mix_diff", "mix_dark", "mix_light",
 		"mix_overlay", "mix_dodge", "mix_burn", "mix_hue", "mix_sat",
-		"mix_val", "mix_color"};
+		"mix_val", "mix_color", "mix_soft", "mix_linear"};
 
 	return GPU_stack_link(mat, names[node->custom1], in, out);
 }

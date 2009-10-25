@@ -102,6 +102,18 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
+		
+class VIEW3D_PT_tools_meshedit_options(View3DPanel):
+	__context__ = "mesh_edit"
+	__label__ = "Mesh Options"
+
+	def draw(self, context):
+		layout = self.layout
+	
+		mesh = context.active_object.data
+		
+		col = layout.column(align=True)
+		col.itemR(mesh, "use_mirror_x")
 
 # ********** default tools for editmode_curve ****************
 
@@ -251,6 +263,9 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
+		
+
+
 
 # ********** default tools for editmode_mball ****************
 
@@ -355,6 +370,19 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
+		
+class VIEW3D_PT_tools_posemode_options(View3DPanel):
+	__context__ = "posemode"
+	__label__ = "Pose Options"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		arm = context.active_object.data
+
+		col = layout.column(align=True)
+		col.itemR(arm, "x_axis_mirror")
+		col.itemR(arm, "auto_ik")
 
 # ********** default tools for paint modes ****************
 
@@ -608,6 +636,22 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 
 class VIEW3D_PT_tools_weightpaint(View3DPanel):
 	__context__ = "weightpaint"
+	__label__ = "Weight Tools"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		wpaint = context.tool_settings.weight_paint
+
+		col = layout.column()
+		# col.itemL(text="Blend:")
+		col.itemO("object.vertex_group_normalize_all", text="Normalize All")
+		col.itemO("object.vertex_group_normalize", text="Normalize")
+		col.itemO("object.vertex_group_invert", text="Invert")
+		col.itemO("object.vertex_group_clean", text="Clean")
+
+class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
+	__context__ = "weightpaint"
 	__label__ = "Options"
 
 	def draw(self, context):
@@ -622,6 +666,11 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
 		col.itemR(wpaint, "normals")
 		col.itemR(wpaint, "spray")
 		col.itemR(wpaint, "vertex_dist", text="Distance")
+		
+		
+		data = context.weight_paint_object.data
+		if type(data) == bpy.types.Mesh:
+			col.itemR(data, "use_mirror_x")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.itemL(text="Gamma:")
@@ -773,8 +822,10 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 		sub.active = pe.fade_time
 		sub.itemR(pe, "fade_frames", slider=True)
 
+bpy.types.register(VIEW3D_PT_tools_weightpaint)
 bpy.types.register(VIEW3D_PT_tools_objectmode)
 bpy.types.register(VIEW3D_PT_tools_meshedit)
+bpy.types.register(VIEW3D_PT_tools_meshedit_options)
 bpy.types.register(VIEW3D_PT_tools_curveedit)
 bpy.types.register(VIEW3D_PT_tools_surfaceedit)
 bpy.types.register(VIEW3D_PT_tools_textedit)
@@ -782,11 +833,12 @@ bpy.types.register(VIEW3D_PT_tools_armatureedit)
 bpy.types.register(VIEW3D_PT_tools_mballedit)
 bpy.types.register(VIEW3D_PT_tools_latticeedit)
 bpy.types.register(VIEW3D_PT_tools_posemode)
+bpy.types.register(VIEW3D_PT_tools_posemode_options)
 bpy.types.register(VIEW3D_PT_tools_brush)
 bpy.types.register(VIEW3D_PT_tools_brush_stroke)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
 bpy.types.register(VIEW3D_PT_tools_vertexpaint)
-bpy.types.register(VIEW3D_PT_tools_weightpaint)
+bpy.types.register(VIEW3D_PT_tools_weightpaint_options)
 bpy.types.register(VIEW3D_PT_tools_projectpaint)
 bpy.types.register(VIEW3D_PT_tools_particlemode)

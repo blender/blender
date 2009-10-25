@@ -583,7 +583,7 @@ void ED_node_texture_default(Tex *tx)
 
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype)
 {
-	bNode *node;
+	bNode *node= NULL;
 	short idtype= GS(id->name);
 
 	if(idtype == ID_MA) {

@@ -50,7 +50,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 	TextLine *tmp;
 	int l, x, y, w, h, i;
 	int tgti, *top;
-	short mval[2];
+	short mval[2] = {0, 0};
 	
 	if(!st || !st->text) return 0;
 	if(!texttool_text_is_active(st->text)) return 0;

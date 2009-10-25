@@ -322,7 +322,7 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	else if(t->spacetype == SPACE_NODE)
 	{
 		//ED_area_tag_redraw(t->sa);
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_NODE, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_NODE_VIEW, NULL);
 	}
 	else if(t->spacetype == SPACE_SEQ)
 	{
@@ -1124,14 +1124,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 
 		projectFloatView(t, vecrot, cent);	// no overflow in extreme cases
 
-		glDisable(GL_DEPTH_TEST);
-
-		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-
-		ED_region_pixelspace(t->ar);
 
 		switch(t->helpline)
 		{
@@ -1238,22 +1231,23 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 				}
 		}
 
-		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-
-		glEnable(GL_DEPTH_TEST);
 	}
 }
 
-void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
+void drawTransformView(const struct bContext *C, struct ARegion *ar, void *arg)
 {
 	TransInfo *t = arg;
 
 	drawConstraint(C, t);
 	drawPropCircle(C, t);
 	drawSnapping(C, t);
+}
+
+void drawTransformPixel(const struct bContext *C, struct ARegion *ar, void *arg)
+{
+	TransInfo *t = arg;
+
 	drawHelpline(C, t);
 }
 
@@ -1373,11 +1367,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		//calc_manipulator_stats(curarea);
 		initTransformOrientation(C, t);
 
-		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
+		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
 		Mat3One(t->spacemtx);
-		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
+		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 	}
 	else
 		Mat3One(t->spacemtx);
@@ -1638,7 +1634,7 @@ static void protectedRotateBits(short protectflag, float *eul, float *oldeul)
 
 /* this function only does the delta rotation */
 /* axis-angle is usually internally stored as quats... */
-static void protectedAxisAngleBits(short protectflag, float *quat, float *oldquat)
+static void protectedAxisAngleBits(short protectflag, float axis[3], float *angle, float oldAxis[3], float oldAngle)
 {
 	/* check that protection flags are set */
 	if ((protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) == 0)
@@ -1647,21 +1643,20 @@ static void protectedAxisAngleBits(short protectflag, float *quat, float *oldqua
 	if (protectflag & OB_LOCK_ROT4D) {
 		/* axis-angle getting limited as 4D entities that they are... */
 		if (protectflag & OB_LOCK_ROTW)
-			quat[0]= oldquat[0];
+			*angle= oldAngle;
 		if (protectflag & OB_LOCK_ROTX)
-			quat[1]= oldquat[1];
+			axis[0]= oldAxis[0];
 		if (protectflag & OB_LOCK_ROTY)
-			quat[2]= oldquat[2];
+			axis[1]= oldAxis[1];
 		if (protectflag & OB_LOCK_ROTZ)
-			quat[3]= oldquat[3];
+			axis[2]= oldAxis[2];
 	}
 	else {
 		/* axis-angle get limited with euler... */
-		float eul[3], oldeul[3], quat1[4];
+		float eul[3], oldeul[3];
 		
-		QUATCOPY(quat1, quat);
-		AxisAngleToEulO(quat+1, quat[0], eul, EULER_ORDER_DEFAULT);
-		AxisAngleToEulO(oldquat+1, oldquat[0], oldeul, EULER_ORDER_DEFAULT);
+		AxisAngleToEulO(axis, *angle, eul, EULER_ORDER_DEFAULT);
+		AxisAngleToEulO(oldAxis, oldAngle, oldeul, EULER_ORDER_DEFAULT);
 		
 		if (protectflag & OB_LOCK_ROTX)
 			eul[0]= oldeul[0];
@@ -1670,12 +1665,12 @@ static void protectedAxisAngleBits(short protectflag, float *quat, float *oldqua
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
 		
-		EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, quat+1, quat);
+		EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, axis, angle);
 		
 		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
-		if (IS_EQ(quat[1], quat[2]) && IS_EQ(quat[2], quat[3])) {
+		if (IS_EQ(axis[0], axis[1]) && IS_EQ(axis[1], axis[2])) {
 			/* for now, rotate around y-axis then (so that it simply becomes the roll) */
-			quat[2]= 1.0f;
+			axis[1]= 1.0f;
 		}
 	}
 }
@@ -2694,22 +2689,18 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			}
 			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
 				/* calculate effect based on quats */
-				float iquat[4];
+				float iquat[4], tquat[4];
 				
-				/* td->ext->(i)quat is in axis-angle form, not quats! */
-				AxisAngleToQuat(iquat, &td->ext->iquat[1], td->ext->iquat[0]);
+				AxisAngleToQuat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
 				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				Mat3ToQuat(fmat, quat);	// Actual transform
+				QuatMul(tquat, quat, iquat);
 				
-				QuatMul(td->ext->quat, quat, iquat);
-				
-				/* make temp copy (since stored in same place) */
-				QUATCOPY(quat, td->ext->quat); // this is just a 4d vector copying macro
-				QuatToAxisAngle(quat, &td->ext->quat[1], &td->ext->quat[0]); 
+				QuatToAxisAngle(tquat, td->ext->rotAxis, td->ext->rotAngle); 
 				
 				/* this function works on end result */
-				protectedAxisAngleBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
 			}
 			else { 
 				float eulmat[3][3];
@@ -2766,22 +2757,18 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			}
 			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
 				/* calculate effect based on quats */
-				float iquat[4];
+				float iquat[4], tquat[4];
 				
-				/* td->ext->(i)quat is in axis-angle form, not quats! */
-				AxisAngleToQuat(iquat, &td->ext->iquat[1], td->ext->iquat[0]);
+				AxisAngleToQuat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
 				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				Mat3ToQuat(fmat, quat);	// Actual transform
+				QuatMul(tquat, quat, iquat);
 				
-				QuatMul(td->ext->quat, quat, iquat);
-				
-				/* make temp copy (since stored in same place) */
-				QUATCOPY(quat, td->ext->quat); // this is just a 4d vector copying macro
-				QuatToAxisAngle(quat, &td->ext->quat[1], &td->ext->quat[0]); 
+				QuatToAxisAngle(quat, td->ext->rotAxis, td->ext->rotAngle); 
 				
 				/* this function works on end result */
-				protectedAxisAngleBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
 			}
 			else {
 				float obmat[3][3];
@@ -3955,10 +3942,8 @@ static int createSlideVerts(TransInfo *t)
 	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
 	GHash *vertgh;
 	TransDataSlideVert *tempsv;
-	float perc = 0, percp = 0,vertdist; // XXX, projectMat[4][4];
-	float shiftlabda= 0.0f,len = 0.0f;
-	int i, j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
-	int wasshift = 0;
+	float vertdist; // XXX, projectMat[4][4];
+	int i, j, numsel, numadded=0, timesthrough = 0, vertsel=0;
 	/* UV correction vars */
 	GHash **uvarray= NULL;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
@@ -3969,8 +3954,7 @@ static int createSlideVerts(TransInfo *t)
 	float projectMat[4][4];
 	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
 	float vec[3];
-	//short mval[2], mvalo[2];
-	float labda = 0.0f, totvec=0.0;
+	float totvec=0.0;
 
 	if (!v3d) {
 		/*ok, let's try to survive this*/
@@ -3978,8 +3962,7 @@ static int createSlideVerts(TransInfo *t)
 	} else {
 		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
 	}
-
-	//mvalo[0] = -1; mvalo[1] = -1;
+	
 	numsel =0;
 
 	// Get number of selected edges and clear some flags
@@ -4481,23 +4464,20 @@ int doEdgeSlide(TransInfo *t, float perc)
 	Mesh *me= t->obedit->data;
 	EditMesh *em = me->edit_mesh;
 	SlideData *sld = t->customData;
-	EditEdge *first=NULL,*last=NULL, *temp = NULL;
 	EditVert *ev, *nearest = sld->nearest;
 	EditVert *centerVert, *upVert, *downVert;
-	LinkNode *edgelist = sld->edgelist, *vertlist=sld->vertlist, *look;
+	LinkNode *vertlist=sld->vertlist, *look;
 	GHash *vertgh = sld->vhash;
 	TransDataSlideVert *tempsv;
-	float shiftlabda= 0.0f,len = 0.0f;
-	int i = 0, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
-	int wasshift = 0;
+	float len = 0.0f;
+	int prop=1, flip=0;
 	/* UV correction vars */
 	GHash **uvarray= sld->uvhash;
 	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
 	int uvlay_idx;
-	TransDataSlideUv *slideuvs=sld->slideuv, *suv=sld->slideuv, *suv_last=NULL;
+	TransDataSlideUv *suv=sld->slideuv;
 	float uv_tmp[2];
 	LinkNode *fuv_link;
-	float labda = 0.0f;
 
 	len = 0.0f;
 
@@ -4592,7 +4572,6 @@ int doEdgeSlide(TransInfo *t, float perc)
 
 int EdgeSlide(TransInfo *t, short mval[2])
 {
-	TransData *td = t->data;
 	char str[50];
 	float final;
 

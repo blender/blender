@@ -1154,7 +1154,7 @@ void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
 		return;
 	}
 
-// XXX	add_verts_to_dgroups(meshobj, poseobj, heatweights, (Gwp.flag & VP_MIRROR_X));
+// XXX	add_verts_to_dgroups(meshobj, poseobj, heatweights, ((Mesh *)(meshobj->data))->editflag & ME_EDIT_MIRROR_X);
 
 	if(heatweights)
 		BIF_undo_push("Apply Bone Heat Weights to Vertex Groups");

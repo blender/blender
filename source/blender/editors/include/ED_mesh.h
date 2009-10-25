@@ -53,6 +53,7 @@ struct UvMapVert;
 struct CustomData;
 struct Material;
 struct Object;
+struct recti;
 
 #define EM_FGON_DRAW	1 // face flag
 #define EM_FGON			2 // edge and face flag both
@@ -147,6 +148,7 @@ void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type)
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
+void		EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em);
 void		mouse_mesh(struct bContext *C, short mval[2], short extend);
 int			EM_check_backbuf(unsigned int index);
 int			EM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
@@ -164,6 +166,10 @@ void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
 
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
+int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
+void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select);
+void deselectall_tface(struct Object *ob);
+void select_linked_tfaces(struct bContext *C, struct Object *ob, short mval[2], int mode);
 
 /* object_vgroup.c */
 
@@ -175,6 +181,7 @@ struct bDeformGroup		*ED_vgroup_add(struct Object *ob);
 struct bDeformGroup		*ED_vgroup_add_name(struct Object *ob, char *name);
 void					ED_vgroup_select_by_name(struct Object *ob, char *name);
 void					ED_vgroup_data_create(struct ID *id);
+int						ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
 
 void		ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
 void		ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);

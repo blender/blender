@@ -166,6 +166,11 @@ void OBJECT_OT_vertex_group_select(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_deselect(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_linked(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_menu(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 
@@ -177,6 +182,7 @@ void OBJECT_OT_shape_key_add(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_remove(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_clear(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_mirror(struct wmOperatorType *ot);
+void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
 
 /* object_group.c */
 void OBJECT_OT_group_add(struct wmOperatorType *ot);

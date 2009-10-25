@@ -110,6 +110,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		
 		layout.itemS()
 		
+		layout.itemO("view3d.localview", text="View Global/Local")
 		layout.itemO("view3d.view_center")
 		layout.itemO("view3d.view_all")
 		
@@ -256,6 +257,8 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
 		layout.itemO("mesh.select_more", text="More")
 
 		layout.itemS()
+		
+		layout.itemO("mesh.select_mirror", text="Mirror")
 
 		layout.itemO("mesh.select_linked", text="Linked")
 		layout.itemO("mesh.select_vertex_path", text="Vertex Path")
@@ -425,6 +428,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 		
 		layout.itemS()
 		
+		layout.itemO("object.move_to_layer", text="Move to Layer...")
 		layout.itemM("VIEW3D_MT_object_showhide")
 		
 		layout.item_menu_enumO("object.convert", "target")
@@ -827,6 +831,8 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 		layout.itemO("mesh.select_vertex_path")
 		
 		layout.itemO("mesh.blend_from_shape")
+		
+		layout.itemO("object.vertex_group_blend")
 		# uiItemO(layout, "Propagate to All Shapes", 0, "mesh.shape_propagate_to_all");
 
 class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
@@ -1233,7 +1239,6 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		view = context.space_data
 		gs = context.scene.game_data
 		ob = context.object
-		mesh = context.active_object.data
 		
 		col = layout.column()
 		col.itemR(view, "display_floor", text="Grid Floor")
@@ -1243,7 +1248,8 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		col.itemR(view, "outline_selected")
 		col.itemR(view, "all_object_centers")
 		col.itemR(view, "relationship_lines")
-		if ob.type =='MESH':
+		if ob and ob.type =='MESH':
+			mesh = context.active_object.data
 			col.itemR(mesh, "all_edges")
 		
 		col = layout.column()
@@ -1379,6 +1385,48 @@ class VIEW3D_PT_transform_orientations(bpy.types.Panel):
 			col.itemR(orientation, "name")
 			col.itemO("tfm.delete_orientation", text="Delete")
 
+class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
+	__space_type__ = 'VIEW_3D'
+	__region_type__ = 'UI'
+	__label__ = "Skeleton Sketching"
+	__default_closed__ = True
+
+	def poll(self, context):
+		scene = context.space_data
+		ob = context.active_object
+		return scene and ob and ob.type == 'ARMATURE' and ob.mode == 'EDIT' 
+
+	def draw_header(self, context):
+		layout = self.layout
+		toolsettings = context.scene.tool_settings
+
+		layout.itemR(toolsettings, "bone_sketching", text="")
+
+	def draw(self, context):
+		layout = self.layout
+		toolsettings = context.scene.tool_settings
+
+		col = layout.column()
+
+		col.itemR(toolsettings, "etch_quick")
+		col.itemR(toolsettings, "etch_overdraw")
+
+		col.itemR(toolsettings, "etch_convert_mode")
+		
+		if toolsettings.etch_convert_mode == "LENGTH":
+			col.itemR(toolsettings, "etch_length_limit")
+		elif toolsettings.etch_convert_mode == "ADAPTIVE":
+			col.itemR(toolsettings, "etch_adaptive_limit")
+		elif toolsettings.etch_convert_mode == "FIXED":
+			col.itemR(toolsettings, "etch_subdivision_number")
+		elif toolsettings.etch_convert_mode == "RETARGET":
+			col.itemR(toolsettings, "etch_template")
+			col.itemR(toolsettings, "etch_roll_mode")
+			col.itemR(toolsettings, "etch_autoname")
+			col.itemR(toolsettings, "etch_number")
+			col.itemR(toolsettings, "etch_side")
+		
+
 # Operators 
 
 class OBJECT_OT_select_pattern(bpy.types.Operator):
@@ -1497,6 +1545,7 @@ bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
 bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
 bpy.types.register(VIEW3D_PT_background_image)
 bpy.types.register(VIEW3D_PT_transform_orientations)
+bpy.types.register(VIEW3D_PT_etch_a_ton)
 
 bpy.ops.add(OBJECT_OT_select_pattern)
 

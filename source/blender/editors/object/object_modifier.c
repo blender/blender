@@ -349,10 +349,10 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	
 		mesh_pmv_off(ob, me);
 
-               /* Multires: ensure that recent sculpting is applied */
-               if(md->type == eModifierType_Multires)
-                       multires_force_update(ob);
-	
+	   /* Multires: ensure that recent sculpting is applied */
+	   if(md->type == eModifierType_Multires)
+			   multires_force_update(ob);
+
 		dm = mesh_create_derived_for_modifier(scene, ob, md);
 		if (!dm) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");

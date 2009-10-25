@@ -67,9 +67,9 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
-void		WM_write_file		(struct bContext *C, char *target, int compress, struct ReportList *reports);
+void		WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
-void		WM_write_autosave	(struct bContext *C);
+void		WM_autosave_init	(struct bContext *C);
 
 			/* mouse cursors */
 void		WM_cursor_set		(struct wmWindow *win, int curs);
@@ -141,9 +141,9 @@ void		WM_main_add_notifier(unsigned int type, void *reference);
 void		wm_event_add		(struct wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 
 			/* at maximum, every timestep seconds it triggers event_type events */
-struct wmTimer *WM_event_add_window_timer(struct wmWindow *win, int event_type, double timestep);
-void		WM_event_remove_window_timer(struct wmWindow *win, struct wmTimer *timer);
-void		WM_event_window_timer_sleep(struct wmWindow *win, struct wmTimer *timer, int dosleep);
+struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep);
+void		WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer);
+void		WM_event_timer_sleep(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer, int dosleep);
 
 		/* operator api, default callbacks */
 			/* invoke callback, uses enum property named "type" */

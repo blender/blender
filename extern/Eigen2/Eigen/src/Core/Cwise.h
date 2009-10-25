@@ -178,6 +178,9 @@ template<typename ExpressionType> class Cwise
 
   protected:
     ExpressionTypeNested m_matrix;
+
+  private:
+    Cwise& operator=(const Cwise&);
 };
 
 /** \returns a Cwise wrapper of *this providing additional coefficient-wise operations

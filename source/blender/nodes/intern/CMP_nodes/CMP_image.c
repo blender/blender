@@ -67,11 +67,15 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	
 	if (rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
 		if (ibuf->profile == IB_PROFILE_NONE) {
-			if (ibuf->rect_float != NULL) {
+			/* if float buffer already exists = already linear */
+			/* else ... */
+			if (ibuf->rect_float == NULL) {
 				imb_freerectfloatImBuf(ibuf);
+				ibuf->profile = IB_PROFILE_SRGB;
+				IMB_float_from_rect(ibuf);
+			} else {
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			}
-			ibuf->profile = IB_PROFILE_SRGB;
-			IMB_float_from_rect(ibuf);
 		}
 	} else {
 		if (ibuf->profile == IB_PROFILE_SRGB) {

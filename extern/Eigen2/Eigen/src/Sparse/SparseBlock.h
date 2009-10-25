@@ -53,6 +53,9 @@ class SparseInnerVectorSet : ei_no_assignment_operator,
         inline InnerIterator(const SparseInnerVectorSet& xpr, int outer)
           : MatrixType::InnerIterator(xpr.m_matrix, xpr.m_outerStart + outer)
         {}
+
+      private:
+        InnerIterator& operator=(const InnerIterator&);
     };
 
     inline SparseInnerVectorSet(const MatrixType& matrix, int outerStart, int outerSize)
@@ -110,6 +113,8 @@ class SparseInnerVectorSet<DynamicSparseMatrix<_Scalar, _Options>, Size>
         inline InnerIterator(const SparseInnerVectorSet& xpr, int outer)
           : MatrixType::InnerIterator(xpr.m_matrix, xpr.m_outerStart + outer)
         {}
+      private:
+        InnerIterator& operator=(const InnerIterator&);
     };
 
     inline SparseInnerVectorSet(const MatrixType& matrix, int outerStart, int outerSize)

@@ -130,37 +130,39 @@ static void wm_ghostwindow_destroy(wmWindow *win)
 
 /* including window itself, C can be NULL. 
    ED_screen_exit should have been called */
-void wm_window_free(bContext *C, wmWindow *win)
+void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
 	wmTimer *wt, *wtnext;
 	
 	/* update context */
 	if(C) {
-		wmWindowManager *wm= CTX_wm_manager(C);
-
-		if(wm->windrawable==win)
-			wm->windrawable= NULL;
-		if(wm->winactive==win)
-			wm->winactive= NULL;
-		if(CTX_wm_window(C)==win)
-			CTX_wm_window_set(C, NULL);
-		
 		WM_event_remove_handlers(C, &win->handlers);
 		WM_event_remove_handlers(C, &win->modalhandlers);
 
-		/* end running jobs, a job end also removes its timer */
-		for(wt= win->timers.first; wt; wt= wtnext) {
-			wtnext= wt->next;
-			if(wt->event_type==TIMERJOBS)
-				wm_jobs_timer_ended(wm, wt);
-		}
+		if(CTX_wm_window(C)==win)
+			CTX_wm_window_set(C, NULL);
 	}	
-	
-	if(win->eventstate) MEM_freeN(win->eventstate);
+
+	if(wm->windrawable==win)
+		wm->windrawable= NULL;
+	if(wm->winactive==win)
+		wm->winactive= NULL;
+
+	/* end running jobs, a job end also removes its timer */
+	for(wt= wm->timers.first; wt; wt= wtnext) {
+		wtnext= wt->next;
+		if(wt->win==win && wt->event_type==TIMERJOBS)
+			wm_jobs_timer_ended(wm, wt);
+	}
 	
 	/* timer removing, need to call this api function */
-	while((wt= win->timers.first))
-		WM_event_remove_window_timer(win, wt);
+	for(wt= wm->timers.first; wt; wt=wtnext) {
+		wtnext= wt->next;
+		if(wt->win==win)
+			WM_event_remove_timer(wm, win, wt);
+	}
+
+	if(win->eventstate) MEM_freeN(win->eventstate);
 	
 	wm_event_free_all(win);
 	wm_subwindows_free(win);
@@ -223,14 +225,13 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 }
 
 /* this is event from ghost, or exit-blender op */
-void wm_window_close(bContext *C, wmWindow *win)
+void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
 	BLI_remlink(&wm->windows, win);
 	
 	wm_draw_window_clear(win);
 	ED_screen_exit(C, win, win->screen);
-	wm_window_free(C, win);
+	wm_window_free(C, wm, win);
 	
 	/* check remaining windows */
 	if(wm->windows.first) {
@@ -544,6 +545,7 @@ void wm_window_make_drawable(bContext *C, wmWindow *win)
 static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) 
 {
 	bContext *C= private;
+	wmWindowManager *wm= CTX_wm_manager(C);
 	GHOST_TEventType type= GHOST_GetEventType(evt);
 	
 	if (type == GHOST_kEventQuit) {
@@ -576,7 +578,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				GHOST_TEventKeyData kdata;
 				int cx, cy, wx, wy;
 				
-				CTX_wm_manager(C)->winactive= win; /* no context change! c->wm->windrawable is drawable, or for area queues */
+				wm->winactive= win; /* no context change! c->wm->windrawable is drawable, or for area queues */
 				
 				win->active= 1;
 //				window_handle(win, INPUTCHANGE, win->active);
@@ -619,7 +621,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				break;
 			}
 			case GHOST_kEventWindowClose: {
-				wm_window_close(C, win);
+				wm_window_close(C, wm, win);
 				break;
 			}
 			case GHOST_kEventWindowUpdate: {
@@ -719,21 +721,28 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 static int wm_window_timer(const bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
+	wmTimer *wt, *wtnext;
 	wmWindow *win;
 	double time= PIL_check_seconds_timer();
 	int retval= 0;
 	
-	for(win= wm->windows.first; win; win= win->next) {
-		wmTimer *wt;
-		for(wt= win->timers.first; wt; wt= wt->next) {
-			if(wt->sleep==0) {
-				if(time > wt->ntime) {
+	for(wt= wm->timers.first; wt; wt= wtnext) {
+		wtnext= wt->next; /* in case timer gets removed */
+		win= wt->win;
+
+		if(wt->sleep==0) {
+			if(time > wt->ntime) {
+				wt->delta= time - wt->ltime;
+				wt->duration += wt->delta;
+				wt->ltime= time;
+				wt->ntime= wt->stime + wt->timestep*ceil(wt->duration/wt->timestep);
+
+				if(wt->event_type == TIMERJOBS)
+					wm_jobs_timer(C, wm, wt);
+				else if(wt->event_type == TIMERAUTOSAVE)
+					wm_autosave_timer(C, wm, wt);
+				else if(win) {
 					wmEvent event= *(win->eventstate);
-					
-					wt->delta= time - wt->ltime;
-					wt->duration += wt->delta;
-					wt->ltime= time;
-					wt->ntime= wt->stime + wt->timestep*ceil(wt->duration/wt->timestep);
 					
 					event.type= wt->event_type;
 					event.custom= EVT_DATA_TIMER;
@@ -810,19 +819,19 @@ void wm_ghost_exit(void)
 /* **************** timer ********************** */
 
 /* to (de)activate running timers temporary */
-void WM_event_window_timer_sleep(wmWindow *win, wmTimer *timer, int dosleep)
+void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *win, wmTimer *timer, int dosleep)
 {
 	wmTimer *wt;
 	
-	for(wt= win->timers.first; wt; wt= wt->next)
+	for(wt= wm->timers.first; wt; wt= wt->next)
 		if(wt==timer)
 			break;
-	if(wt) {
+
+	if(wt)
 		wt->sleep= dosleep;
-	}		
 }
 
-wmTimer *WM_event_add_window_timer(wmWindow *win, int event_type, double timestep)
+wmTimer *WM_event_add_timer(wmWindowManager *wm, wmWindow *win, int event_type, double timestep)
 {
 	wmTimer *wt= MEM_callocN(sizeof(wmTimer), "window timer");
 	
@@ -831,23 +840,24 @@ wmTimer *WM_event_add_window_timer(wmWindow *win, int event_type, double timeste
 	wt->ntime= wt->ltime + timestep;
 	wt->stime= wt->ltime;
 	wt->timestep= timestep;
+	wt->win= win;
 	
-	BLI_addtail(&win->timers, wt);
+	BLI_addtail(&wm->timers, wt);
 	
 	return wt;
 }
 
-void WM_event_remove_window_timer(wmWindow *win, wmTimer *timer)
+void WM_event_remove_timer(wmWindowManager *wm, wmWindow *win, wmTimer *timer)
 {
 	wmTimer *wt;
 	
 	/* extra security check */
-	for(wt= win->timers.first; wt; wt= wt->next)
+	for(wt= wm->timers.first; wt; wt= wt->next)
 		if(wt==timer)
 			break;
 	if(wt) {
 		
-		BLI_remlink(&win->timers, wt);
+		BLI_remlink(&wm->timers, wt);
 		if(wt->customdata)
 			MEM_freeN(wt->customdata);
 		MEM_freeN(wt);

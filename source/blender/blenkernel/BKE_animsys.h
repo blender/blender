@@ -67,6 +67,7 @@ struct KeyingSet *BKE_keyingset_add(struct ListBase *list, const char name[], sh
 /* Add a destination to a KeyingSet */
 void BKE_keyingset_add_destination(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode);
 
+/* Find the destination matching the criteria given */
 struct KS_Path *BKE_keyingset_find_destination(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode);
 
 /* Copy all KeyingSets in the given list */
@@ -77,6 +78,15 @@ void BKE_keyingset_free(struct KeyingSet *ks);
 
 /* Free all the KeyingSets in the given list */
 void BKE_keyingsets_free(struct ListBase *list);
+
+/* ************************************* */
+/* Path Fixing API */
+
+/* Fix all the paths for the given ID+AnimData */
+void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, char *prefix, char *oldName, char *newName);
+
+/* Fix all the paths for the entire database... */
+void BKE_all_animdata_fix_paths_rename(char *prefix, char *oldName, char *newName);
 
 /* ************************************* */
 // TODO: overrides, remapping, and path-finding api's

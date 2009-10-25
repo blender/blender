@@ -85,7 +85,7 @@ static void rna_SequenceEditor_length_set(PointerRNA *ptr, int value)
 static int rna_SequenceEditor_length_get(PointerRNA *ptr)
 {
 	Sequence *seq= (Sequence*)ptr->data;
-	return seq_tx_get_final_right(seq, 1)-seq_tx_get_final_left(seq, 1);
+	return seq_tx_get_final_right(seq, 0)-seq_tx_get_final_left(seq, 0);
 }
 
 static void rna_SequenceEditor_channel_set(PointerRNA *ptr, int value)

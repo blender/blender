@@ -38,6 +38,8 @@
 #endif   
 #include "MEM_guardedalloc.h"
 
+#include "GPU_extensions.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
@@ -489,7 +491,7 @@ static void init_internal_icons()
 		}
 
 		/* we only use a texture for cards with non-power of two */
-		if(GLEW_ARB_texture_non_power_of_two) {
+		if(GPU_non_power_of_two_support()) {
 			glGenTextures(1, &icongltex.id);
 
 			if(icongltex.id) {

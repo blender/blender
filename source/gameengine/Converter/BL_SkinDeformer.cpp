@@ -172,7 +172,7 @@ void BL_SkinDeformer::ProcessReplica()
 
 //void where_is_pose (Object *ob);
 //void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag); 
-bool BL_SkinDeformer::Update(void)
+bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 {
 	/* See if the armature has been updated for this frame */
 	if (PoseUpdated()){	
@@ -182,12 +182,14 @@ bool BL_SkinDeformer::Update(void)
 		/* but it requires the blender object pointer... */
 		Object* par_arma = m_armobj->GetArmatureObject();
 
-		/* store verts locally */
-		VerifyStorage();
-	
-		/* duplicate */
-		for (int v =0; v<m_bmesh->totvert; v++)
-			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
+		if(!shape_applied) {
+			/* store verts locally */
+			VerifyStorage();
+		
+			/* duplicate */
+			for (int v =0; v<m_bmesh->totvert; v++)
+				VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
+		}
 
 		m_armobj->ApplyPose();
 
@@ -217,6 +219,11 @@ bool BL_SkinDeformer::Update(void)
 	}
 
 	return false;
+}
+
+bool BL_SkinDeformer::Update(void)
+{
+	return UpdateInternal(false);
 }
 
 /* XXX note: I propose to drop this function */

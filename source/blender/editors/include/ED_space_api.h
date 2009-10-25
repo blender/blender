@@ -60,8 +60,8 @@ void ED_spacetype_userpref(void);
 void ED_file_init(void);
 void ED_file_exit(void);
 
-#define REGION_DRAW_PRE		1
-#define REGION_DRAW_POST	0
+#define REGION_DRAW_POST_VIEW	0
+#define REGION_DRAW_POST_PIXEL	1
 
 void *ED_region_draw_cb_activate(struct ARegionType *, 
 								 void	(*draw)(const struct bContext *, struct ARegion *, void *),
