@@ -2982,7 +2982,7 @@ static int set_2d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void UV_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set 3D Cursor";//Should this be 2d?
+	ot->name= "Set 2D Cursor";
 	ot->description= "Set 2D cursor location.";
 	ot->idname= "UV_OT_cursor_set";
 	
