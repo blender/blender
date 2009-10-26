@@ -134,6 +134,16 @@ static std::string get_geometry_id(Object *ob)
 	return id_name(ob) + "-mesh";
 }
 
+static std::string get_light_id(Object *ob)
+{
+	return id_name(ob) + "-light";
+}
+
+static std::string get_camera_id(Object *ob)
+{
+	return id_name(ob) + "-camera";
+}
+
 static void replace_chars(char *str, char chars[], char with)
 {
 	char *ch, *p;
@@ -1180,8 +1190,6 @@ public:
 		node.setNodeId(id_name(ob));
 		node.setType(COLLADASW::Node::NODE);
 
-		std::string ob_name(id_name(ob));
-
 		node.start();
 
 		bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
@@ -1221,13 +1229,13 @@ public:
 		
 		// <instance_camera>
 		else if (ob->type == OB_CAMERA) {
-			COLLADASW::InstanceCamera instCam(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
+			COLLADASW::InstanceCamera instCam(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_camera_id(ob)));
 			instCam.add();
 		}
 		
 		// <instance_light>
 		else if (ob->type == OB_LAMP) {
-			COLLADASW::InstanceLight instLa(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
+			COLLADASW::InstanceLight instLa(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_light_id(ob)));
 			instLa.add();
 		}
 
@@ -1574,7 +1582,8 @@ public:
 	{
 		// XXX add other params later
 		Camera *cam = (Camera*)ob->data;
-		std::string cam_id(id_name(ob));
+		std::string cam_id(get_camera_id(ob));
+		std::string cam_name(id_name(cam));
 		
 		if (cam->type == CAM_PERSP) {
 			COLLADASW::PerspectiveOptic persp(mSW);
@@ -1582,7 +1591,7 @@ public:
 			persp.setAspectRatio(0.1);
 			persp.setZFar(cam->clipend);
 			persp.setZNear(cam->clipsta);
-			COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_id);
+			COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
 			addCamera(ccam);
 		}
 		else {
@@ -1591,7 +1600,7 @@ public:
 			ortho.setAspectRatio(0.1);
 			ortho.setZFar(cam->clipend);
 			ortho.setZNear(cam->clipsta);
-			COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_id);
+			COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
 			addCamera(ccam);
 		}
 	}	
@@ -1612,25 +1621,26 @@ public:
 	void operator()(Object *ob)
 	{
 		Lamp *la = (Lamp*)ob->data;
-		std::string la_id(id_name(ob));
+		std::string la_id(get_light_id(ob));
+		std::string la_name(id_name(la));
 		COLLADASW::Color col(la->r, la->g, la->b);
 		float e = la->energy;
 		
 		// sun
 		if (la->type == LA_SUN) {
-			COLLADASW::DirectionalLight cla(mSW, la_id, la_id, e);
+			COLLADASW::DirectionalLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// hemi
 		else if (la->type == LA_HEMI) {
-			COLLADASW::AmbientLight cla(mSW, la_id, la_id, e);
+			COLLADASW::AmbientLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// spot
 		else if (la->type == LA_SPOT) {
-			COLLADASW::SpotLight cla(mSW, la_id, la_id, e);
+			COLLADASW::SpotLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
 			cla.setFallOffAngle(la->spotsize);
 			cla.setFallOffExponent(la->spotblend);
@@ -1640,7 +1650,7 @@ public:
 		}
 		// lamp
 		else if (la->type == LA_LOCAL) {
-			COLLADASW::PointLight cla(mSW, la_id, la_id, e);
+			COLLADASW::PointLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
 			cla.setLinearAttenuation(la->att1);
 			cla.setQuadraticAttenuation(la->att2);
@@ -1649,7 +1659,7 @@ public:
 		// area lamp is not supported
 		// it will be exported as a local lamp
 		else {
-			COLLADASW::PointLight cla(mSW, la_id, la_id, e);
+			COLLADASW::PointLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
 			cla.setLinearAttenuation(la->att1);
 			cla.setQuadraticAttenuation(la->att2);
