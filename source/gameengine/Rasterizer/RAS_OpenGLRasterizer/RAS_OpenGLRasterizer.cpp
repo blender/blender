@@ -386,6 +386,7 @@ void RAS_OpenGLRasterizer::EndFrame()
 
 void RAS_OpenGLRasterizer::SetRenderArea()
 {
+	RAS_Rect area;
 	// only above/below stereo method needs viewport adjustment
 	switch (m_stereomode)
 	{
@@ -394,19 +395,21 @@ void RAS_OpenGLRasterizer::SetRenderArea()
 			{
 				case RAS_STEREO_LEFTEYE:
 					// upper half of window
-					m_2DCanvas->GetDisplayArea().SetLeft(0);
-					m_2DCanvas->GetDisplayArea().SetBottom(m_2DCanvas->GetHeight() -
+					area.SetLeft(0);
+					area.SetBottom(m_2DCanvas->GetHeight() -
 						int(m_2DCanvas->GetHeight() - m_noOfScanlines) / 2);
 	
-					m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
-					m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight()));
+					area.SetRight(int(m_2DCanvas->GetWidth()));
+					area.SetTop(int(m_2DCanvas->GetHeight()));
+					m_2DCanvas->SetDisplayArea(&area);
 					break;
 				case RAS_STEREO_RIGHTEYE:
 					// lower half of window
-					m_2DCanvas->GetDisplayArea().SetLeft(0);
-					m_2DCanvas->GetDisplayArea().SetBottom(0);
-					m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
-					m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight() - m_noOfScanlines) / 2);
+					area.SetLeft(0);
+					area.SetBottom(0);
+					area.SetRight(int(m_2DCanvas->GetWidth()));
+					area.SetTop(int(m_2DCanvas->GetHeight() - m_noOfScanlines) / 2);
+					m_2DCanvas->SetDisplayArea(&area);
 					break;
 			}
 			break;
@@ -415,26 +418,29 @@ void RAS_OpenGLRasterizer::SetRenderArea()
 			{
 				case RAS_STEREO_LEFTEYE:
 					// Left half of window
-					m_2DCanvas->GetDisplayArea().SetLeft(0);
-					m_2DCanvas->GetDisplayArea().SetBottom(0);
-					m_2DCanvas->GetDisplayArea().SetRight(m_2DCanvas->GetWidth()/2);
-					m_2DCanvas->GetDisplayArea().SetTop(m_2DCanvas->GetHeight());
+					area.SetLeft(0);
+					area.SetBottom(0);
+					area.SetRight(m_2DCanvas->GetWidth()/2);
+					area.SetTop(m_2DCanvas->GetHeight());
+					m_2DCanvas->SetDisplayArea(&area);
 					break;
 				case RAS_STEREO_RIGHTEYE:
 					// Right half of window
-					m_2DCanvas->GetDisplayArea().SetLeft(m_2DCanvas->GetWidth()/2);
-					m_2DCanvas->GetDisplayArea().SetBottom(0);
-					m_2DCanvas->GetDisplayArea().SetRight(m_2DCanvas->GetWidth());
-					m_2DCanvas->GetDisplayArea().SetTop(m_2DCanvas->GetHeight());
+					area.SetLeft(m_2DCanvas->GetWidth()/2);
+					area.SetBottom(0);
+					area.SetRight(m_2DCanvas->GetWidth());
+					area.SetTop(m_2DCanvas->GetHeight());
+					m_2DCanvas->SetDisplayArea(&area);
 					break;
 			}
 			break;
 		default:
 			// every available pixel
-			m_2DCanvas->GetDisplayArea().SetLeft(0);
-			m_2DCanvas->GetDisplayArea().SetBottom(0);
-			m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
-			m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight()));
+			area.SetLeft(0);
+			area.SetBottom(0);
+			area.SetRight(int(m_2DCanvas->GetWidth()));
+			area.SetTop(int(m_2DCanvas->GetHeight()));
+			m_2DCanvas->SetDisplayArea(&area);
 			break;
 	}
 }
