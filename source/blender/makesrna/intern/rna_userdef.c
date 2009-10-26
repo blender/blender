@@ -2247,12 +2247,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
 	StructRNA *srna;
-	
-	srna= RNA_def_struct(brna, "UserPreferencesInput", NULL);
-	RNA_def_struct_sdna(srna, "UserDef");
-	RNA_def_struct_nested(brna, srna, "UserPreferences");
-	RNA_def_struct_ui_text(srna, "Input", "Settings for input devices.");
-	
+
 	static EnumPropertyItem select_mouse_items[] = {
 		{USER_LMOUSESELECT, "LEFT", 0, "Left", "Use left Mouse Button for selection."},
 		{0, "RIGHT", 0, "Right", "Use Right Mouse Button for selection."},
@@ -2273,6 +2268,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zooms in and out based on vertical mouse movement."},
 		{USER_ZOOM_SCALE, "SCALE", 0, "Scale", "Zooms in and out like scaling the view, mouse movements relative to center."},
 		{0, NULL, 0, NULL, NULL}};
+		
+	srna= RNA_def_struct(brna, "UserPreferencesInput", NULL);
+	RNA_def_struct_sdna(srna, "UserDef");
+	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_ui_text(srna, "Input", "Settings for input devices.");
 
 	prop= RNA_def_property(srna, "middle_mouse", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
