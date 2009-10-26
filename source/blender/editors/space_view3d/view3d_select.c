@@ -146,10 +146,6 @@ void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
 
 /* ********************** view3d_select: selection manipulations ********************* */
 
-/* XXX to solve *************** */
-static void BIF_undo_push() {}
-/* XXX end ********************* */
-
 /* local prototypes */
 
 void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
@@ -461,8 +457,6 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
@@ -723,9 +717,8 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 		do_lasso_select_lattice(vc, mcords, moves, select);
 	else if(vc->obedit->type==OB_ARMATURE)
 		do_lasso_select_armature(vc, mcords, moves, select);
-
-	BIF_undo_push("Lasso select");
 	
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc->obedit->data);
 }
 
 
