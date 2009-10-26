@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -153,6 +154,47 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 			WM_event_add_notifier(C, NC_BRUSH, id);
 			break;
 	}
+}
+
+char *rna_TextureSlot_path(PointerRNA *ptr)
+{
+	MTex *mtex= ptr->data;
+	
+	/* if there is ID-data, resolve the path using the index instead of by name,
+	 * since the name used is the name of the texture assigned, but the texture
+	 * may be used multiple times in the same stack
+	 */
+	if (ptr->id.data) {
+		PointerRNA id_ptr;
+		PropertyRNA *prop;
+		
+		/* find the 'textures' property of the ID-struct */
+		RNA_id_pointer_create(ptr->id.data, &id_ptr);
+		prop= RNA_struct_find_property(&id_ptr, "textures");
+		
+		/* get an iterator for this property, and try to find the relevant index */
+		if (prop) {
+			CollectionPropertyIterator iter;
+			int index= 0;
+			
+			RNA_property_collection_begin(ptr, prop, &iter);
+			for(index=0; iter.valid; RNA_property_collection_next(&iter), index++) {
+				if (iter.ptr.data == ptr->id.data)
+					break;
+			}
+			RNA_property_collection_end(&iter);
+			
+			/* did we find it? */
+			if (iter.valid)
+				return BLI_sprintfN("textures[%d]", index);
+		}
+	}
+	
+	/* this is a compromise for the remaining cases... */
+	if (mtex->tex)
+		return BLI_sprintfN("textures[\"%s\"]", mtex->tex->id.name+2);
+	else
+		return BLI_strdup("textures[0]");
 }
 
 static int rna_TextureSlot_name_length(PointerRNA *ptr)
@@ -414,6 +456,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "TextureSlot", NULL);
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Texture Slot", "Texture slot defining the mapping and influence of a texture.");
+	RNA_def_struct_path_func(srna, "rna_TextureSlot_path");
 	RNA_def_struct_ui_icon(srna, ICON_TEXTURE_DATA);
 
 	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
