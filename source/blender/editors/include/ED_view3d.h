@@ -43,6 +43,7 @@ struct EditFace;
 struct ImBuf;
 struct Scene;
 struct bContext;
+struct Main;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
@@ -135,6 +136,8 @@ int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, in
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
 
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
+
+void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene);
 
 #endif /* ED_VIEW3D_H */
 

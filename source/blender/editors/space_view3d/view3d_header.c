@@ -134,7 +134,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 #define B_VIEWBUT	104
 #define B_PERSP		105
 #define B_VIEWRENDER	106
-#define B_STARTGAME	107
 #define B_MODESELECT 108
 #define B_AROUND	109
 #define B_SEL_VERT	110
@@ -169,9 +168,50 @@ static RegionView3D *wm_region_view3d(const bContext *C)
 	return NULL;
 }
 
+static void copy_view3d_lock_space(View3D *vd, Scene *scene)
+{
+	int bit;
+
+	if(vd->scenelock && vd->localvd==NULL) {
+		vd->lay= scene->lay;
+		vd->camera= scene->camera;
+		
+		if(vd->camera==0 && vd->persp==V3D_CAMOB)
+			vd->persp= V3D_PERSP;
+		
+		if((vd->lay & vd->layact) == 0) {
+			for(bit= 0; bit<32; bit++) {
+				if(vd->lay & (1<<bit)) {
+					vd->layact= 1<<bit;
+					break;
+				}
+			}
+		}
+	}
+}
+
+void ED_view3d_scene_layers_update(Main *bmain, Scene *scene)
+{
+	bScreen *sc;
+	ScrArea *sa;
+	SpaceLink *sl;
+	
+	/* from scene copy to the other views */
+	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
+		if(sc->scene!=scene)
+			continue;
+
+		for(sa=sc->areabase.first; sa; sa=sa->next)
+			for(sl=sa->spacedata.first; sl; sl=sl->next)
+				if(sl->spacetype==SPACE_VIEW3D)
+					copy_view3d_lock_space((View3D*)sl, scene);
+	}
+}
+
 // XXX quickly ported across
 static void handle_view3d_lock(bContext *C) 
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -181,9 +221,13 @@ static void handle_view3d_lock(bContext *C)
 			/* copy to scene */
 			scene->lay= v3d->lay;
 			scene->camera= v3d->camera;
+
+			/* not through notifiery, listener don't have context
+			   and non-open screens or spaces need to be updated too */
+			ED_view3d_scene_layers_update(bmain, scene);
 			
 			/* notifiers for scene update */
-			WM_event_add_notifier(C, NC_SCENE, scene);
+			WM_event_add_notifier(C, NC_SCENE|ND_LAYER, scene);
 		}
 	}
 }
@@ -1713,20 +1757,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		}
 		break;
 		
-	case B_VIEWBUT:
-	
-
-	case B_PERSP:
-	
-		
-		break;
 	case B_VIEWRENDER:
 		if (sa->spacetype==SPACE_VIEW3D) {
 // XXX			BIF_do_ogl_render(v3d, shift);
 		}
-		break;
-	case B_STARTGAME:
-// XXX		start_game();
 		break;
 	case B_MODESELECT:
 		WM_operator_properties_create(&props_ptr, "OBJECT_OT_mode_set");

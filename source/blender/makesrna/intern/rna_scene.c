@@ -76,14 +76,16 @@ EnumPropertyItem proportional_editing_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_scene.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 
 #include "BLI_threads.h"
 
 #include "ED_info.h"
 #include "ED_node.h"
+#include "ED_view3d.h"
 
 #include "RE_pipeline.h"
 
@@ -158,6 +160,14 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 	Scene *scene= (Scene*)ptr->data;
 
 	scene->lay= layer_set(scene->lay, values);
+}
+
+static void rna_Scene_layer_update(bContext *C, PointerRNA *ptr)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= (Scene*)ptr->data;
+
+	ED_view3d_scene_layers_update(bmain, scene);
 }
 
 static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
@@ -2219,9 +2229,9 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
-	
+	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
+	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_layer_update");
 	
 	/* Frame Range Stuff */
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_TIME);

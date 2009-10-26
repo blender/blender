@@ -445,6 +445,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
+				case ND_LAYER:
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_MODE:
@@ -551,6 +552,7 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_MODE:
+				case ND_LAYER:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -598,6 +600,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_MODE:
+				case ND_LAYER:
 					ED_region_tag_redraw(ar);
 					break;
 			}
