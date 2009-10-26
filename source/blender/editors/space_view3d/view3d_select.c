@@ -699,7 +699,7 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if(vc->obedit==NULL) {
+	if(vc->obedit==NULL) { /* Object Mode */
 		if(paint_facesel_test(ob))
 			do_lasso_select_facemode(vc, mcords, moves, select);
 		else if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))
@@ -709,16 +709,18 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
 	}
-	else if(vc->obedit->type==OB_MESH) {
-		do_lasso_select_mesh(vc, mcords, moves, select);
-	} else if(vc->obedit->type==OB_CURVE || vc->obedit->type==OB_SURF) 
-		do_lasso_select_curve(vc, mcords, moves, select);
-	else if(vc->obedit->type==OB_LATTICE) 
-		do_lasso_select_lattice(vc, mcords, moves, select);
-	else if(vc->obedit->type==OB_ARMATURE)
-		do_lasso_select_armature(vc, mcords, moves, select);
+	else { /* Edit Mode */
+		if(vc->obedit->type==OB_MESH)
+			do_lasso_select_mesh(vc, mcords, moves, select);
+		else if(vc->obedit->type==OB_CURVE || vc->obedit->type==OB_SURF) 
+			do_lasso_select_curve(vc, mcords, moves, select);
+		else if(vc->obedit->type==OB_LATTICE) 
+			do_lasso_select_lattice(vc, mcords, moves, select);
+		else if(vc->obedit->type==OB_ARMATURE)
+			do_lasso_select_armature(vc, mcords, moves, select);
 	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc->obedit->data);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc->obedit->data);
+	}
 }
 
 
