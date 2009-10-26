@@ -72,16 +72,9 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 	int status = BPY_run_python_script(_context, fn, NULL, reports);
 #else
 	int status;
-	FILE *fp = fopen(fn, "r");
-	if (fp) {
-		struct Text *text = add_empty_text("tmp_freestyle.txt");
-		char buf[256];
-		while (fgets(buf, sizeof(buf), fp) != NULL)
-			txt_insert_buf(text, buf);
-		fclose(fp);
-
+	Text *text = add_text(fn, G.sce);
+	if (text) {
 		status = BPY_run_python_script(_context, NULL, text, reports);
-
 		unlink_text(G.main, text);
 		free_libblock(&G.main->text, text);
 	} else {
