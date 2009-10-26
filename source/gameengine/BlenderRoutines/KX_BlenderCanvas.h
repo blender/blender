@@ -64,7 +64,7 @@ public:
 	 * 
 	 * @param area The Blender ARegion to run the game within.
 	 */
-	KX_BlenderCanvas(struct wmWindow* win, struct ARegion* ar);
+	KX_BlenderCanvas(struct wmWindow* win, struct RAS_Rect &rect);
 	~KX_BlenderCanvas();
 
 		void 
@@ -167,8 +167,8 @@ public:
 
 private:
 	/** Blender area the game engine is running within */
-	struct ARegion* m_ar;
 	struct wmWindow* m_win;
+	RAS_Rect	m_frame_rect;
 	RAS_Rect 	m_area_rect;
 
 

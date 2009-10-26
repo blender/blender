@@ -127,7 +127,13 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 	struct Scene *scene= CTX_data_scene(C);
 	struct Main* maggie1= CTX_data_main(C);
 	
-	
+
+	RAS_Rect area_rect;
+	area_rect.SetLeft(ar->winrct.xmin);
+	area_rect.SetBottom(ar->winrct.ymin);
+	area_rect.SetRight(ar->winrct.xmax);
+	area_rect.SetTop(ar->winrct.ymax);
+
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 	Main* blenderdata = maggie1;
 
@@ -167,7 +173,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -589,6 +595,12 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 
 	Main* blenderdata = maggie;
 
+	RAS_Rect area_rect;
+	area_rect.SetLeft(ar->winrct.xmin);
+	area_rect.SetBottom(ar->winrct.ymin);
+	area_rect.SetRight(ar->winrct.xmax);
+	area_rect.SetTop(ar->winrct.ymax);
+
 	char* startscenename = scenename;
 	char pathname[FILE_MAXDIR+FILE_MAXFILE];
 	STR_String exitstring = "";
@@ -619,7 +631,7 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 		bool usemat = false;
 
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect);
 		//canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
