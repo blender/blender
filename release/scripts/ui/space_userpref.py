@@ -83,38 +83,30 @@ class USERPREF_PT_interface(bpy.types.Panel):
 		sub1.itemR(view, "zoom_to_mouse")
 		sub1.itemR(view, "rotate_around_selection")
 		sub1.itemS()
-		sub1.itemL(text="Zoom Style:")
-		sub1.row().itemR(view, "viewport_zoom_style", expand=True)
-		sub1.itemL(text="Orbit Style:")
-		sub1.row().itemR(view, "view_rotation", expand=True)
-		sub1.itemR(view, "perspective_orthographic_switch")
+		
+		
+		sub1.itemR(view, "auto_perspective")
 		sub1.itemR(view, "smooth_view")
 		sub1.itemR(view, "rotation_angle")
 		
+		
+		
+
+					
+		
 		col = split.column()
 		sub = col.split(percentage=0.85)
-		
 		sub1 = sub.column()
-		sub1.itemL(text="Menus:")
-		sub1.itemR(view, "open_mouse_over")
-		sub1.itemL(text="Menu Open Delay:")
-		sub1.itemR(view, "open_toplevel_delay", text="Top Level")
-		sub1.itemR(view, "open_sublevel_delay", text="Sub Level")
-
-		sub1.itemS()
-		sub1.itemS()
-		sub1.itemS()			
-
-		sub1.itemL(text="Toolbox:")
-		sub1.itemR(view, "use_column_layout")
-		sub1.itemL(text="Open Toolbox Delay:")
-		sub1.itemR(view, "open_left_mouse_delay", text="Hold LMB")
-		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
-
-		col = split.column()
-		sub = col.split(percentage=0.85)
 		
-		sub1 = sub.column()
+#Toolbox doesn't exist yet
+#		sub1.itemL(text="Toolbox:")
+#		sub1.itemR(view, "use_column_layout")
+#		sub1.itemL(text="Open Toolbox Delay:")
+#		sub1.itemR(view, "open_left_mouse_delay", text="Hold LMB")
+#		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
+		
+		
+		
 		#manipulator
 		sub1.itemR(view, "use_manipulator")
 		sub2 = sub1.column()
@@ -122,6 +114,16 @@ class USERPREF_PT_interface(bpy.types.Panel):
 		sub2.itemR(view, "manipulator_size", text="Size")
 		sub2.itemR(view, "manipulator_handle_size", text="Handle Size")
 		sub2.itemR(view, "manipulator_hotspot", text="Hotspot")	
+		
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		
+		sub1.itemL(text="Menus:")
+		sub1.itemR(view, "open_mouse_over")
+		sub1.itemL(text="Menu Open Delay:")
+		sub1.itemR(view, "open_toplevel_delay", text="Top Level")
+		sub1.itemR(view, "open_sublevel_delay", text="Sub Level")
 
 class USERPREF_PT_edit(bpy.types.Panel):
 	__space_type__ = 'USER_PREFERENCES'
@@ -137,7 +139,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		
 		userpref = context.user_preferences
 		edit = userpref.edit
-		view = userpref.view
 		
 		split = layout.split()
 		
@@ -157,8 +158,13 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub1.itemS()
 		sub1.itemS()
 		sub1.itemS()
-		sub1.itemL(text="Transform:")
-		sub1.itemR(edit, "drag_immediately")
+		
+		sub1.itemL(text="Undo:")
+		sub1.itemR(edit, "global_undo")
+		sub1.itemR(edit, "undo_steps", text="Steps")
+		sub1.itemR(edit, "undo_memory_limit", text="Memory Limit")
+		
+
 
 		col = split.column()
 		sub = col.split(percentage=0.85)
@@ -199,10 +205,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub1.itemS()
 		sub1.itemS()
 		
-		sub1.itemL(text="Undo:")
-		sub1.itemR(edit, "global_undo")
-		sub1.itemR(edit, "undo_steps", text="Steps")
-		sub1.itemR(edit, "undo_memory_limit", text="Memory Limit")
+		sub1.itemL(text="Transform:")
+		sub1.itemR(edit, "drag_immediately")
 		
 		sub1.itemS()
 		sub1.itemS()
@@ -399,7 +403,7 @@ class USERPREF_PT_input(bpy.types.Panel):
 		wm = context.manager
 		#input = userpref.input
 		input = userpref
-		view = userpref.view
+		inputs = userpref.inputs
 
 		split = layout.split(percentage=0.25)
 
@@ -416,15 +420,26 @@ class USERPREF_PT_input(bpy.types.Panel):
 		sub = col.column()
 		sub.itemL(text="Mouse:")
 		sub1 = sub.column()
-		sub1.enabled = (view.select_mouse == 'RIGHT')
-		sub1.itemR(view, "emulate_3_button_mouse")
-		sub.itemR(view, "continuous_mouse")
+		sub1.enabled = (inputs.select_mouse == 'RIGHT')
+		sub1.itemR(inputs, "emulate_3_button_mouse")
+		sub.itemR(inputs, "continuous_mouse")
 
 		sub.itemL(text="Select With:")
-		sub.row().itemR(view, "select_mouse", expand=True)
-		#sub.itemL(text="Middle Mouse:")
-		#sub.row().itemR(view, "middle_mouse", expand=True)
-		#sub.itemR(view, "use_middle_mouse_paste")
+		sub.row().itemR(inputs, "select_mouse", expand=True)
+		sub.itemL(text="Middle Mouse:")
+		sub.row().itemR(inputs, "middle_mouse", expand=True)
+		
+		sub.itemS()
+		sub.itemS()
+		sub.itemS()
+		
+		sub.itemL(text="Orbit Style:")
+		sub.row().itemR(inputs, "view_rotation", expand=True)
+		
+		sub.itemL(text="Zoom Style:")
+		sub.row().itemR(inputs, "viewport_zoom_style", expand=True)
+		
+		#sub.itemR(inputs, "use_middle_mouse_paste")
 
 		#col.itemS()
 
@@ -437,8 +452,8 @@ class USERPREF_PT_input(bpy.types.Panel):
 
 		sub = col.column()
 		sub.itemL(text="NDOF Device:")
-		sub.itemR(view, "ndof_pan_speed", text="Pan Speed")
-		sub.itemR(view, "ndof_rotate_speed", text="Orbit Speed")
+		sub.itemR(inputs, "ndof_pan_speed", text="Pan Speed")
+		sub.itemR(inputs, "ndof_rotate_speed", text="Orbit Speed")
 
 		row.itemS()
 
