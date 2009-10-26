@@ -44,6 +44,9 @@ class TEXT_HT_header(bpy.types.Header):
 					row.itemL(text="Text: External")
 				else:
 					row.itemL(text="Text: Internal")
+		
+		row = layout.row()
+		row.itemO("text.run_script")
 
 class TEXT_PT_properties(bpy.types.Panel):
 	__space_type__ = 'TEXT_EDITOR'
