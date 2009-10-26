@@ -83,6 +83,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_shade_flat);
 
 	WM_operatortype_append(OBJECT_OT_parent_set);
+	WM_operatortype_append(OBJECT_OT_parent_no_inverse_set);
 	WM_operatortype_append(OBJECT_OT_parent_clear);
 	WM_operatortype_append(OBJECT_OT_vertex_parent_set);
 	WM_operatortype_append(OBJECT_OT_track_set);
@@ -244,6 +245,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_mirror", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_no_inverse_set", PKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_track_set", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_track_clear", TKEY, KM_PRESS, KM_ALT, 0);

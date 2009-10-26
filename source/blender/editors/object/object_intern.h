@@ -51,6 +51,7 @@ void OBJECT_OT_center_set(struct wmOperatorType *ot);
 
 /* object_relations.c */
 void OBJECT_OT_parent_set(struct wmOperatorType *ot);
+void OBJECT_OT_parent_no_inverse_set(struct wmOperatorType *ot);
 void OBJECT_OT_parent_clear(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_parent_set(struct wmOperatorType *ot);
 void OBJECT_OT_track_set(struct wmOperatorType *ot);

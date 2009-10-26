@@ -638,7 +638,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					what_does_parent(scene, ob, &workob);
 					
 					ob->partype= PARSKEL;
-
+					
 					Mat4Invert(ob->parentinv, workob.obmat);
 				}
 				else {
@@ -718,6 +718,60 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
+}
+
+/* ************ Make Parent Without Inverse Operator ******************* */
+
+static int parent_noinv_set_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *par= CTX_data_active_object(C);
+	
+	par->recalc |= OB_RECALC_OB;
+	
+	/* context itterator */
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		if (ob != par) {
+			if (test_parent_loop(par, ob)) {
+				BKE_report(op->reports, RPT_ERROR, "Loop in parents");
+			}
+			else {
+				/* clear inverse matrix and also the object location */
+				Mat4One(ob->parentinv);
+				memset(ob->loc, 0, 3*sizeof(float));
+				
+				/* set recalc flags */
+				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+				
+				/* set parenting type for object - object only... */
+				ob->parent= par;
+				ob->partype= PAROBJECT;	/* note, dna define, not operator property */
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_anim_dag_flush_update(C);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Parent without Inverse";
+	ot->description = "Set the object's parenting without setting the inverse parent correction.";
+	ot->idname= "OBJECT_OT_parent_no_inverse_set";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= parent_noinv_set_exec;
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ Clear Slow Parent Operator *********************/
