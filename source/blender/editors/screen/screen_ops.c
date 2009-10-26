@@ -1577,7 +1577,7 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int screen_full_area_exec(bContext *C, wmOperator *op)
 {
-	ed_screen_fullarea(C, CTX_wm_area(C));
+	ed_screen_fullarea(C, CTX_wm_window(C), CTX_wm_area(C));
 	return OPERATOR_FINISHED;
 }
 
@@ -2576,6 +2576,7 @@ static ScrArea *find_empty_image_area(bContext *C)
 /* new window uses x,y to set position */
 static void screen_set_image_output(bContext *C, int mx, int my)
 {
+	wmWindow *win= CTX_wm_window(C);
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= NULL;
 	SpaceImage *sima;
@@ -2592,8 +2593,8 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 		if(sizey < 256) sizey= 256;
 		
 		/* XXX some magic to calculate postition */
-		rect.xmin= mx + CTX_wm_window(C)->posx - sizex/2;
-		rect.ymin= my + CTX_wm_window(C)->posy - sizey/2;
+		rect.xmin= mx + win->posx - sizex/2;
+		rect.ymin= my + win->posy - sizey/2;
 		rect.xmax= rect.xmin + sizex;
 		rect.ymax= rect.ymin + sizey;
 		
@@ -2645,7 +2646,7 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 		if(sa->full) {
 			sima->flag |= SI_FULLWINDOW|SI_PREVSPACE;
 			
-//			ed_screen_fullarea(C, sa);
+//			ed_screen_fullarea(C, win, sa);
 		}
 //	}
 	
@@ -3015,6 +3016,7 @@ static void SCREEN_OT_render(wmOperatorType *ot)
 
 static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 {
+	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceImage *sima= sa->spacedata.first;
 	
@@ -3038,7 +3040,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 	}
 	else if(sima->flag & SI_FULLWINDOW) {
 		sima->flag &= ~SI_FULLWINDOW;
-		ed_screen_fullarea(C, sa);
+		ed_screen_fullarea(C, win, sa);
 		return OPERATOR_FINISHED;
 	}
 
