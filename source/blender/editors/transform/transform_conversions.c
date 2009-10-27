@@ -4092,7 +4092,8 @@ static void freeSeqData(TransInfo *t)
 					for(a=0; a<t->total; a++, td++) {
 						seq= ((TransDataSeq *)td->extra)->seq;
 						if ((seq != seq_prev)) {
-							seq->tmp= 1; // XXX what's the intention here? this currently gives a compiler warning
+							/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
+							seq->tmp= (void*)1;
 						}
 					}
 
