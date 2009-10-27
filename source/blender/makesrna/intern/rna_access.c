@@ -2435,14 +2435,14 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 			/* if type has a path to some ID, use it */
 			ptrpath= ptr->type->path(ptr);
 		}
-		else if(ptr->type->nested) {
+		else if(ptr->type->nested && RNA_struct_is_ID(ptr->type->nested)) {
 			PointerRNA parentptr;
 			PropertyRNA *userprop;
 			
 			/* find the property in the struct we're nested in that references this struct, and 
 			 * use its identifier as the first part of the path used...
 			 */
-			RNA_pointer_create(ptr->id.data, ptr->type->nested, ptr->data, &parentptr);
+			RNA_id_pointer_create(ptr->id.data, &parentptr);
 			userprop= RNA_struct_find_nested(&parentptr, ptr->type); 
 			
 			if(userprop)
