@@ -22,7 +22,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		
 		col = layout.column(align=True)
 		col.itemL(text="Object:")
-		col.itemO("object.duplicate")
+		col.itemO("object.duplicate_move")
 		col.itemO("object.delete")
 		
 		active_object= context.active_object
@@ -263,6 +263,18 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
+		
+class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
+	__context__ = "armature_edit"
+	__label__ = "Armature Options"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		arm = context.active_object.data
+
+		col = layout.column(align=True)
+		col.itemR(arm, "x_axis_mirror")
 		
 
 
@@ -830,6 +842,7 @@ bpy.types.register(VIEW3D_PT_tools_curveedit)
 bpy.types.register(VIEW3D_PT_tools_surfaceedit)
 bpy.types.register(VIEW3D_PT_tools_textedit)
 bpy.types.register(VIEW3D_PT_tools_armatureedit)
+bpy.types.register(VIEW3D_PT_tools_armatureedit_options)
 bpy.types.register(VIEW3D_PT_tools_mballedit)
 bpy.types.register(VIEW3D_PT_tools_latticeedit)
 bpy.types.register(VIEW3D_PT_tools_posemode)
