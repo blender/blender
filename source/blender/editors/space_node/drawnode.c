@@ -1457,6 +1457,7 @@ static void node_composit_buts_id_mask(uiLayout *layout, PointerRNA *ptr)
 }
 
 /* allocate sufficient! */
+/*
 static void node_imagetype_string(char *str)
 {
 	str += sprintf(str, "Save Image as: %%t|");
@@ -1471,67 +1472,37 @@ static void node_imagetype_string(char *str)
 	str += sprintf(str, "DPX %%x%d|", R_DPX);
 	str += sprintf(str, "OpenEXR %%x%d", R_OPENEXR);
 }
+*/
 
-static void node_set_image_cb(bContext *C, void *ntree_v, void *node_v)
+/*static void node_set_image_cb(bContext *C, void *ntree_v, void *node_v)
 {
 	bNodeTree *ntree= ntree_v;
 	bNode *node= node_v;
 	
 	nodeSetActive(ntree, node);
 }
+*/
 
 static void node_composit_buts_file_output(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	bNodeTree *ntree= ptr->id.data;
-	rctf *butr= &node->butr;
-	NodeImageFile *nif= node->storage;
-	uiBut *bt;
-	short x= (short)butr->xmin;
-	short y= (short)butr->ymin;
-	short w= (short)butr->xmax-butr->xmin;
-	char str[320];
-	
-	node_imagetype_string(str);
-	
-	uiBlockBeginAlign(block);
-	
-	bt = uiDefIconBut(block, BUT, B_NODE_SETIMAGE, ICON_FILESEL,
-			  x, y+60, 20, 20,
-			  0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
-	uiButSetFunc(bt, node_set_image_cb, ntree, node);
-	
-	uiDefBut(block, TEX, B_NOP, "",
-			  20+x, y+60, w-20, 20, 
-			  nif->name, 0.0f, 240.0f, 0, 0, "");
-	
-	uiDefButS(block, MENU, B_NOP, str,
-			  x, y+40, w, 20, 
-			  &nif->imtype, 0.0f, 1.0f, 0, 0, "");
-	
-	if(nif->imtype==R_OPENEXR) {
-		uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_REDR, "Half",	
-					x, y+20, w/2, 20, 
-					&nif->subimtype, 0, 0, 0, 0, "");
+	uiLayout *col, *row;
 
-		uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
-					x+w/2, y+20, w/2, 20, 
-					&nif->codec, 0, 0, 0, 0, "");
+	col= uiLayoutColumn(layout, 0);
+	uiItemR(col, "", 0, ptr, "filename", 0);
+	uiItemR(col, "", 0, ptr, "image_type", 0);
+	
+	row= uiLayoutRow(layout, 0);
+	if (RNA_enum_get(ptr, "image_type")== R_OPENEXR) {
+		uiItemR(row, NULL, 0, ptr, "exr_half", 0);
+		uiItemR(row, "", 0, ptr, "exr_codec", 0);
 	}
 	else {
-		uiDefButS(block, NUM, B_NOP, "Quality: ",
-			  x, y+20, w, 20, 
-			  &nif->quality, 10.0f, 100.0f, 10, 0, "");
+		uiItemR(row, NULL, 0, ptr, "quality", 0);
 	}
 	
-	/* start frame, end frame */
-	uiDefButI(block, NUM, B_NODE_EXEC, "SFra: ", 
-			  x, y, w/2, 20, 
-			  &nif->sfra, 1, MAXFRAMEF, 10, 0, "");
-	uiDefButI(block, NUM, B_NODE_EXEC, "EFra: ", 
-			  x+w/2, y, w/2, 20, 
-			  &nif->efra, 1, MAXFRAMEF, 10, 0, "");
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, "Start", 0, ptr, "start_frame", 0);
+	uiItemR(row, "End", 0, ptr, "end_frame", 0);
 }
 
 static void node_scale_cb(bContext *C, void *node_v, void *unused_v)

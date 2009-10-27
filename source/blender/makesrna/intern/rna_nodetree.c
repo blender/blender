@@ -882,8 +882,7 @@ static void def_cmp_output_file(StructRNA *srna)
 		{R_CINEON,  "CINEON",       0, "Cineon",       ""},
 		{R_DPX,     "DPX",          0, "DPX",          ""},
 		{R_OPENEXR, "OPENEXR",      0, "OpenEXR",      ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem openexr_codec_items[] = {
 		{0, "NONE",  0, "None",           ""},
@@ -891,12 +890,11 @@ static void def_cmp_output_file(StructRNA *srna)
 		{2, "ZIP",   0, "ZIP (lossless)", ""},
 		{3, "PIZ",   0, "PIX (lossless)", ""},
 		{4, "RLE",   0, "RLE (lossless)", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	RNA_def_struct_sdna_from(srna, "NodeImageFile", "storage");
 	
-	prop = RNA_def_property(srna, "filename", PROP_STRING, PROP_NONE);
+	prop = RNA_def_property(srna, "filename", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "");
 	
@@ -905,32 +903,26 @@ static void def_cmp_output_file(StructRNA *srna)
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_ui_text(prop, "Image Type", "");
 	
-	/* TODO: openexr only { */
-	
-	prop = RNA_def_property(srna, "half", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "exr_half", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_OPENEXR_HALF);
 	RNA_def_property_ui_text(prop, "Half", "");
 	
-	prop = RNA_def_property(srna, "codec", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "exr_codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "codec");
 	RNA_def_property_enum_items(prop, openexr_codec_items);
 	RNA_def_property_ui_text(prop, "Codec", "");
-	
-	/* } else { */
 	
 	prop = RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_ui_text(prop, "Quality", "");
 	
-	/* } */
-	
-	prop = RNA_def_property(srna, "start", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
 	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 	
-	prop = RNA_def_property(srna, "end", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "efra");
 	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "End Frame", "");
