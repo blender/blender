@@ -224,6 +224,8 @@ class INFO_MT_help(bpy.types.Menu):
 		layout.itemO("help.developer_community", icon='ICON_URL')
 		layout.itemO("help.user_community", icon='ICON_URL')
 		layout.itemS()
+		layout.itemO("help.report_bug", icon='ICON_URL')
+		layout.itemS()
 		layout.itemO("help.operator_cheat_sheet")
 
 bpy.types.register(INFO_HT_header)
@@ -280,6 +282,12 @@ class HELP_OT_user_community(HelpOperator):
 	__idname__ = "help.user_community"
 	__label__ = "User Community"
 	__URL__ = 'http://www.blender.org/community/user-community/'
+	
+class HELP_OT_report_bug(HelpOperator):
+	'''Report a bug in the Blender bug tracker'''
+	__idname__ = "help.report_bug"
+	__label__ = "Report a Bug"
+	__URL__ = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 	__idname__ = "help.operator_cheat_sheet"
@@ -312,4 +320,5 @@ bpy.ops.add(HELP_OT_blender_website)
 bpy.ops.add(HELP_OT_blender_eshop)
 bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
+bpy.ops.add(HELP_OT_report_bug)
 bpy.ops.add(HELP_OT_operator_cheat_sheet)
