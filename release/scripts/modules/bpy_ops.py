@@ -21,21 +21,24 @@ context_dict = {
 class bpy_ops(object):
 	'''
 	Fake module like class.
-	
+
 	 bpy.ops
 	'''
+
+	def __getattr__(self, module):
+		'''
+		gets a bpy.ops submodule
+		'''
+		if module.startswith('__'):
+			raise AttributeError(module)
+		return bpy_ops_submodule(module)
+		
 	def add(self, pyop):
 		op_add(pyop)
 	
 	def remove(self, pyop):
 		op_remove(pyop)
 	
-	def __getattr__(self, module):
-		'''
-		gets a bpy.ops submodule
-		'''
-		return bpy_ops_submodule(module)
-		
 	def __dir__(self):
 		
 		submodules = set()
