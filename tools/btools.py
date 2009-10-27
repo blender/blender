@@ -63,6 +63,7 @@ def validate_arguments(args, bc):
 			'WITHOUT_BF_INSTALL',
 			'WITHOUT_BF_PYTHON_INSTALL',
 			'WITH_BF_OPENMP',
+			'WITH_GHOST_COCOA',
 			'BF_FANCY', 'BF_QUIET',
 			'BF_X264_CONFIG',
 			'BF_XVIDCORE_CONFIG',
@@ -84,7 +85,7 @@ def validate_arguments(args, bc):
 			'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
 			'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
 			'C_WARN', 'CC_WARN', 'CXX_WARN',
-			'LLIBS', 'PLATFORM_LINKFLAGS',
+			'LLIBS', 'PLATFORM_LINKFLAGS','MACOSX_ARCHITECTURE',
 	]
 	
 	
@@ -311,6 +312,7 @@ def read_opts(cfg, args):
 		('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
 
 		(BoolVariable('WITH_BF_OPENMP', 'Use OpenMP if true', False)),
+		(BoolVariable('WITH_GHOST_COCOA', 'Use Cocoa-framework if true', False)),
 
 		(BoolVariable('WITH_BF_QUICKTIME', 'Use QuickTime if true', False)),
 		('BF_QUICKTIME', 'QuickTime base path', ''),
@@ -350,6 +352,7 @@ def read_opts(cfg, args):
 
 		('LLIBS', 'Platform libs', ''),
 		('PLATFORM_LINKFLAGS', 'Platform linkflags', ''),
+		('MACOSX_ARCHITECTURE', 'python_arch.zip select', ''),
 
 		(BoolVariable('BF_PROFILE', 'Add profiling information if true', False)),
 		('BF_PROFILE_CFLAGS', 'C only profiling flags', ''),

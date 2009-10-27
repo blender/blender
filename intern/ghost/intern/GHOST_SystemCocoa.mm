@@ -700,7 +700,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 	//Quartz Display Services uses the old coordinates (top left origin)
 	yf = screenRect.size.height -yf;
 
-	CGDisplayMoveCursorToPoint([[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
+	CGDisplayMoveCursorToPoint((CGDirectDisplayID)[[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
 
     return GHOST_kSuccess;
 }

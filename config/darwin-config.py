@@ -1,7 +1,22 @@
+#
+# Note : if you want to alter this file
+# copy it as a whole in the upper folder
+# as user-config.py
+# dont create a new file with only some
+# vars changed.
+
 import commands
 
 # IMPORTANT NOTE : OFFICIAL BUILDS SHOULD BE DONE WITH SDKs
 USE_SDK=True
+
+#############################################################################
+###################     Cocoa & architecture settings      ##################
+#############################################################################
+
+WITH_GHOST_COCOA=True
+MACOSX_ARCHITECTURE = 'i386' # valid archs: ppc, i386, ppc64, x86_64
+
 
 cmd = 'uname -p'
 MAC_PROC=commands.getoutput(cmd) 
@@ -11,28 +26,42 @@ if cmd_res[0]=='7':
 	MAC_CUR_VER='10.3'
 elif cmd_res[0]=='8':
 	MAC_CUR_VER='10.4'
-else:
+elif cmd_res[0]=='9':
 	MAC_CUR_VER='10.5'
+elif cmd_res[0]=='10':
+	MAC_CUR_VER='10.6'
 
 if MAC_PROC == 'powerpc':
 	LCGDIR = '#../lib/darwin-6.1-powerpc'
 else :
-	LCGDIR = '#../lib/darwin-8.x.i386'
+	LCGDIR = '#../lib/darwin-9.x.universal'
 LIBDIR = '${LCGDIR}'
 
 BF_PYTHON_VERSION = '3.1'
 
-if MAC_PROC== 'powerpc' and BF_PYTHON_VERSION == '2.3':
+if MAC_PROC == 'powerpc' and BF_PYTHON_VERSION == '2.3':
 	MAC_MIN_VERS = '10.3'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-else:
+	CC = 'gcc'
+	CXX = 'g++'
+elif MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'ppc':
 	MAC_MIN_VERS = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
+	CC = 'gcc-4.0'
+	CXX = 'g++-4.0'
+else :
+	MAC_MIN_VERS = '10.5'
+	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
+	CC = 'gcc-4.2'
+	CXX = 'g++-4.2'
 
+#############################################################################
+###################          Dependency settings           ##################
+#############################################################################
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-FFMPEG_PRECOMPILED = False
+FFMPEG_PRECOMPILED = True
 if FFMPEG_PRECOMPILED:
 	# use precompiled ffmpeg in /lib
 	BF_FFMPEG = LIBDIR + '/ffmpeg'
@@ -45,8 +74,8 @@ else:
 	BF_FFMPEG_INC = '${BF_FFMPEG}'
 	if USE_SDK==True:
 		BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
-	BF_XVIDCORE_CONFIG = '--disable-assembly'	# currently causes errors, even with yasm installed
-	BF_X264_CONFIG = '--disable-pthread'
+	BF_XVIDCORE_CONFIG = '--disable-assembly --disable-mmx'	# currently causes errors, even with yasm installed
+	BF_X264_CONFIG = '--disable-pthread --disable-asm'
 
 if BF_PYTHON_VERSION=='3.1':
 	# python 3.1 uses precompiled libraries in bf svn /lib by default
@@ -75,10 +104,11 @@ else:
 	BF_PYTHON_LINKFLAGS = ['-u','_PyMac_Error','-framework','System','-framework','Python']
 	if MAC_CUR_VER=='10.3' or  MAC_CUR_VER=='10.4':
 		BF_PYTHON_LINKFLAGS = ['-u', '__dummy']+BF_PYTHON_LINKFLAGS
-	
-BF_QUIET = '1'
-WITH_BF_OPENMP = '0'
 
+	
+WITH_BF_OPENMP = '0'  # multithreading for fluids, cloth and smoke ( only works with ICC atm )
+
+WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc
 # for gcc 3.3
 #BF_OPENAL = LIBDIR + '/openal'
@@ -89,11 +119,11 @@ else :
 	BF_OPENAL = LIBDIR + '/openal'
 
 WITH_BF_STATICOPENAL = False
-BF_OPENAL_INC = '${BF_OPENAL}/include'
-BF_OPENAL_LIB = 'openal'
-BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
+BF_OPENAL_INC = '${BF_OPENAL}/include' # only headers from libdir needed for proper use of framework !!!!
+#BF_OPENAL_LIB = 'openal'
+#BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 # Warning, this static lib configuration is untested! users of this OS please confirm.
-BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
+#BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_CXX = '/usr'
@@ -199,10 +229,13 @@ BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = True # -DWITH_QUICKTIME
+if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
+	WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME ( disable for 64bit atm )
+else:
+	WITH_BF_QUICKTIME = True
 
 WITH_BF_ICONV = True
-BF_ICONV = LIBDIR + "/iconv"
+BF_ICONV = '/usr'
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 #BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
@@ -213,12 +246,30 @@ BF_OPENGL_LIB = 'GL GLU'
 BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
-CFLAGS = ['-pipe','-fPIC','-funsigned-char']
+#############################################################################
+###################  various compile settings and flags    ##################
+#############################################################################
 
-CPPFLAGS = ['-fpascal-strings']
-CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fpascal-strings']
-CXXFLAGS = [ '-pipe','-fPIC','-funsigned-char', '-fpascal-strings']
-PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','QuickTime']
+BF_QUIET = '1' # suppress verbose output
+
+if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
+	ARCH_FLAGS = ['-m64']
+else:
+	ARCH_FLAGS = ['-m32']
+
+CFLAGS = ['-pipe','-funsigned-char']+ARCH_FLAGS
+
+CPPFLAGS = ['-fpascal-strings']+ARCH_FLAGS
+CCFLAGS = ['-pipe','-funsigned-char','-fpascal-strings']+ARCH_FLAGS
+CXXFLAGS = ['-pipe','-funsigned-char', '-fpascal-strings']+ARCH_FLAGS
+
+if WITH_GHOST_COCOA==True:
+	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
+else:
+	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
+
+if WITH_BF_QUICKTIME == True:
+	PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 LLIBS = ['stdc++', 'SystemStubs']
@@ -232,21 +283,24 @@ if MAC_MIN_VERS == '10.3':
 	
 if USE_SDK==True:
 	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS]	
-	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS, '-Wl,-syslibroot,' + MACOSX_SDK]+PLATFORM_LINKFLAGS
+	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-syslibroot '+MACOSX_SDK]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
 	
-# you can add -mssse3 if gcc >= 4.2
-if MAC_PROC == 'i386':
+if MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'x86_64':
 	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
 	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
 else:
 	CFLAGS = CFLAGS+['-fno-strict-aliasing']
 	CCFLAGS =  CCFLAGS+['-fno-strict-aliasing']
 	CXXFLAGS = CXXFLAGS+['-fno-strict-aliasing']
-	
 	REL_CFLAGS = ['-O2']
 	REL_CCFLAGS = ['-O2']
+
+# add -mssse3 for intel 64bit archs
+if MACOSX_ARCHITECTURE == 'x86_64':
+	REL_CFLAGS = REL_CFLAGS+['-mssse3']
+	REL_CCFLAGS = REL_CCFLAGS+['-mssse3']
 
 ##BF_DEPEND = True
 ##
@@ -254,11 +308,9 @@ else:
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-CC = 'gcc'
-CXX = 'g++'
-C_WARN = ['-Wdeclaration-after-statement']
+#C_WARN = ['-Wdeclaration-after-statement']
 
-CC_WARN = ['-Wall', '-Wno-long-double']
+CC_WARN = ['-Wall']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
@@ -271,6 +323,10 @@ BF_PROFILE = False
 
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS = ['-g']
+
+#############################################################################
+###################           Output directories           ##################
+#############################################################################
 
 BF_BUILDDIR='../build/darwin'
 BF_INSTALLDIR='../install/darwin'
