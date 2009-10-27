@@ -2197,7 +2197,22 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 
 }
 
+/* ************************** memory statistics for testing ***************** */
 
+static int memory_statistics_exec(bContext *C, wmOperator *op)
+{
+	MEM_printmemlist_stats();
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_memory_statistics(wmOperatorType *ot)
+{
+	ot->name= "Memory Statistics";
+	ot->idname= "WM_OT_memory_statistics";
+	ot->description= "Print memory statistics to the console.";
+	
+	ot->exec= memory_statistics_exec;
+}
 
 /* ******************************************************* */
  
@@ -2229,6 +2244,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_redraw_timer);
+	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
