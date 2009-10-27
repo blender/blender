@@ -724,7 +724,6 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 
 static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *par= CTX_data_active_object(C);
 	
 	par->recalc |= OB_RECALC_OB;

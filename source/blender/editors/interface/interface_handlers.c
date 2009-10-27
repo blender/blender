@@ -3391,7 +3391,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 
 	if(but->rnaprop)
-		name= RNA_property_ui_name(but->rnaprop);
+		name= (char*)RNA_property_ui_name(but->rnaprop);
 	else if (but->optype)
 		name= but->optype->name;
 	else

@@ -145,6 +145,7 @@ void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
 	if(fcu && !driven) {
 		id= but->rnapoin.id.data;
 		
+		// TODO: this should probably respect the keyingset only option for anim
 		if(autokeyframe_cfra_can_key(scene, id)) {
 			short flag = 0;
 			
@@ -232,91 +233,3 @@ void ui_but_anim_remove_keyingset(bContext *C)
 	/* this operator calls uiAnimContextProperty above */
 	WM_operator_name_call(C, "ANIM_OT_remove_keyingset_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
-
-void ui_but_anim_menu(bContext *C, uiBut *but)
-{
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int length;
-
-	if(but->rnapoin.data && but->rnaprop) {
-
-		length= RNA_property_array_length(&but->rnapoin, but->rnaprop);
-
-		if(but->flag & UI_BUT_ANIMATED_KEY) {
-			if(length) {
-				uiItemBooleanO(layout, "Replace Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
-				uiItemBooleanO(layout, "Replace Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
-				uiItemBooleanO(layout, "Delete Keyframes", 0, "ANIM_OT_delete_keyframe_button", "all", 1);
-				uiItemBooleanO(layout, "Delete Single Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
-			}
-			else {
-				uiItemBooleanO(layout, "Replace Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
-				uiItemBooleanO(layout, "Delete Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
-			}
-		}
-		else if(but->flag & UI_BUT_DRIVEN);
-		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
-			if(length) {
-				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
-				uiItemBooleanO(layout, "Insert Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
-			}
-			else
-				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
-		}
-
-		if(but->flag & UI_BUT_DRIVEN) {
-			uiItemS(layout);
-
-			if(length) {
-				uiItemBooleanO(layout, "Delete Drivers", 0, "ANIM_OT_remove_driver_button", "all", 1);
-				uiItemBooleanO(layout, "Delete Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
-			}
-			else
-				uiItemBooleanO(layout, "Delete Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
-
-			uiItemO(layout, "Copy Driver", 0, "ANIM_OT_copy_driver_button");
-			if (ANIM_driver_can_paste())
-				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
-		}
-		else if(but->flag & UI_BUT_ANIMATED_KEY);
-		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
-			uiItemS(layout);
-
-			if(length) {
-				uiItemBooleanO(layout, "Add Drivers", 0, "ANIM_OT_add_driver_button", "all", 1);
-				uiItemBooleanO(layout, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
-			}
-			else
-				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
-
-			if (ANIM_driver_can_paste())
-				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
-		}
-
-		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
-			uiItemS(layout);
-
-			if(length) {
-				uiItemBooleanO(layout, "Add All to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 1);
-				uiItemBooleanO(layout, "Add Single to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
-				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
-			}
-			else {
-				uiItemBooleanO(layout, "Add to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
-				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
-			}
-		}
-
-		uiItemS(layout);
-
-		uiItemO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button");
-
-		uiItemS(layout);
-
-		//ui_but_doc_menu(layout, &but->rnapoin, but->rnaprop);
-
-		uiPupMenuEnd(C, pup);
-	}
-}
-
