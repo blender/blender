@@ -481,6 +481,45 @@ void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
 }
 /* ********************************** */
 
+void view3d_calculate_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rcti *rect)
+{
+	double xs, ys, p[3];
+	short val;
+
+	/* near zero floating point values can give issues with gluUnProject
+		in side view on some implementations */
+	if(fabs(mats->modelview[0]) < 1e-6) mats->modelview[0]= 0.0;
+	if(fabs(mats->modelview[5]) < 1e-6) mats->modelview[5]= 0.0;
+
+	/* Set up viewport so that gluUnProject will give correct values */
+	mats->viewport[0] = 0;
+	mats->viewport[1] = 0;
+
+	/* four clipping planes and bounding volume */
+	/* first do the bounding volume */
+	for(val=0; val<4; val++) {
+		xs= (val==0||val==3)?rect->xmin:rect->xmax;
+		ys= (val==0||val==1)?rect->ymin:rect->ymax;
+
+		gluUnProject(xs, ys, 0.0, mats->modelview, mats->projection, mats->viewport, &p[0], &p[1], &p[2]);
+		VECCOPY(bb->vec[val], p);
+
+		gluUnProject(xs, ys, 1.0, mats->modelview, mats->projection, mats->viewport, &p[0], &p[1], &p[2]);
+		VECCOPY(bb->vec[4+val], p);
+	}
+
+	/* then plane equations */
+	for(val=0; val<4; val++) {
+
+		CalcNormFloat(bb->vec[val], bb->vec[val==3?0:val+1], bb->vec[val+4],
+			      planes[val]);
+
+		planes[val][3]= - planes[val][0]*bb->vec[val][0]
+			- planes[val][1]*bb->vec[val][1]
+			- planes[val][2]*bb->vec[val][2];
+	}
+}
+
 /* create intersection coordinates in view Z direction at mouse coordinates */
 void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float ray_end[3])
 {

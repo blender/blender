@@ -718,6 +718,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	MultiresModifierData *mmd= ptr.data;
 
 	multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;

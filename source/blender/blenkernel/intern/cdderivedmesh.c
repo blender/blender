@@ -49,7 +49,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
-#include "BLI_ghash.h"
+#include "BLI_pbvh.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -360,7 +360,68 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 	}
 }
 
-static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *attribs))
+static int nodes_drawn = 0;
+static int is_partial = 0;
+/* XXX: Just a temporary replacement for the real drawing code */
+static void draw_partial_cb(const int *face_indices,
+			    const int *vert_indices,
+			    int totface, int totvert, void *data_v)
+{
+	/* XXX: Just some quick code to show leaf nodes in different colors */
+	/*float col[3]; int i;
+	if(is_partial) {
+		col[0] = (rand() / (float)RAND_MAX); col[1] = col[2] = 0.6;
+	}
+	else {
+		srand((long long)data_v);
+		for(i = 0; i < 3; ++i)
+			col[i] = (rand() / (float)RAND_MAX) * 0.3 + 0.7;
+	}
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, col);
+
+	glColor3f(1, 0, 0);*/
+	GPU_draw_buffers(data_v);
+	++nodes_drawn;
+}
+
+int find_all(float bb_min[3], float bb_max[3], void *data)
+{
+	return 1;
+}
+
+/* Adapted from:
+   http://www.gamedev.net/community/forums/topic.asp?topic_id=512123
+   Returns true if the AABB is at least partially within the frustum
+   (ok, not a real frustum), false otherwise.
+*/
+int planes_contain_AABB(float bb_min[3], float bb_max[3], void *data)
+{
+	float (*planes)[4] = data;
+	int i, axis;
+	float vmin[3], vmax[3];
+
+	for(i = 0; i < 4; ++i) { 
+		for(axis = 0; axis < 3; ++axis) {
+			if(planes[i][axis] > 0) { 
+				vmin[axis] = bb_min[axis];
+				vmax[axis] = bb_max[axis];
+			}
+			else {
+				vmin[axis] = bb_max[axis];
+				vmax[axis] = bb_min[axis];
+			}
+		}
+		
+		if(Inpf(planes[i], vmin) + planes[i][3] > 0)
+			return 0;
+	} 
+
+	return 1;
+}
+
+static void cdDM_drawFacesSolid(DerivedMesh *dm, void *tree,
+				float (*partial_redraw_planes)[4],
+				int (*setMaterial)(int, void *attribs))
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mvert = cddm->mvert;
@@ -375,6 +436,32 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *a
 	}											\
 	glVertex3fv(mvert[index].co);	\
 }
+
+	if(tree) {
+		BLI_pbvh_search(tree, BLI_pbvh_update_search_cb,
+				PBVH_NodeData, NULL, NULL,
+				PBVH_SEARCH_UPDATE);
+
+		if(partial_redraw_planes) {
+			BLI_pbvh_search(tree, planes_contain_AABB,
+					partial_redraw_planes,
+					draw_partial_cb, PBVH_DrawData,
+					PBVH_SEARCH_MODIFIED);
+		}
+		else {
+			BLI_pbvh_search(tree, find_all, NULL,
+					draw_partial_cb, PBVH_DrawData,
+					PBVH_SEARCH_NORMAL);
+
+		}
+
+		is_partial = !!partial_redraw_planes;
+
+		//printf("nodes drawn=%d\n", nodes_drawn);
+		nodes_drawn = 0;
+
+		return;
+	}
 
 	if( GPU_buffer_legacy(dm) ) {
 		DEBUG_VBO( "Using legacy code. cdDM_drawFacesSolid\n" );

@@ -28,11 +28,18 @@
 #ifndef ED_SCULPT_H
 #define ED_SCULPT_H
 
+struct ARegion;
 struct bContext;
+struct Object;
+struct RegionView3D;
 struct wmKeyConfig;
+struct wmWindowManager;
 
 /* sculpt.c */
 void ED_operatortypes_sculpt(void);
+void sculpt_get_redraw_planes(float planes[4][4], struct ARegion *ar,
+ 			      struct RegionView3D *rv3d, struct Object *ob);
+
 
 /* paint_ops.c */
 void ED_operatortypes_paint(void);

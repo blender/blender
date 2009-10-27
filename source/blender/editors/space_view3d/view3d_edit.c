@@ -1802,12 +1802,9 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 static int view3d_clipping_exec(bContext *C, wmOperator *op)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ViewContext vc;
+	bglMats mats;
 	rcti rect;
-	double mvmatrix[16];
-	double projmatrix[16];
-	double xs, ys, p[3];
-	GLint viewport[4];
-	short val;
 
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
@@ -1820,44 +1817,10 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	/* note; otherwise opengl won't work */
 	view3d_operator_needs_opengl(C);
 
-	/* Get the matrices needed for gluUnProject */
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+	view3d_set_viewcontext(C, &vc);
+	view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
+	view3d_calculate_clipping(rv3d->clipbb, rv3d->clip, &mats, &rect);
 
-	/* near zero floating point values can give issues with gluUnProject
-		in side view on some implementations */
-	if(fabs(mvmatrix[0]) < 1e-6) mvmatrix[0]= 0.0;
-	if(fabs(mvmatrix[5]) < 1e-6) mvmatrix[5]= 0.0;
-
-	/* Set up viewport so that gluUnProject will give correct values */
-	viewport[0] = 0;
-	viewport[1] = 0;
-
-	/* four clipping planes and bounding volume */
-	/* first do the bounding volume */
-	for(val=0; val<4; val++) {
-
-		xs= (val==0||val==3)?rect.xmin:rect.xmax;
-		ys= (val==0||val==1)?rect.ymin:rect.ymax;
-
-		gluUnProject(xs, ys, 0.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
-		VECCOPY(rv3d->clipbb->vec[val], p);
-
-		gluUnProject(xs, ys, 1.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
-		VECCOPY(rv3d->clipbb->vec[4+val], p);
-	}
-
-	/* then plane equations */
-	for(val=0; val<4; val++) {
-
-		CalcNormFloat(rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4],
-					  rv3d->clip[val]);
-
-		rv3d->clip[val][3]= - rv3d->clip[val][0]*rv3d->clipbb->vec[val][0]
-			- rv3d->clip[val][1]*rv3d->clipbb->vec[val][1]
-			- rv3d->clip[val][2]*rv3d->clipbb->vec[val][2];
-	}
 	return OPERATOR_FINISHED;
 }
 

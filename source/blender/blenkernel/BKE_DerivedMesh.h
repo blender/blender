@@ -204,7 +204,7 @@ struct DerivedMesh {
 	 *
 	 * Also called for *final* editmode DerivedMeshes
 	 */
-	void (*drawFacesSolid)(DerivedMesh *dm,
+	void (*drawFacesSolid)(DerivedMesh *dm, void *tree, float (*partial_redraw_planes)[4],
 	                       int (*setMaterial)(int, void *attribs));
 
 	/* Draw all faces

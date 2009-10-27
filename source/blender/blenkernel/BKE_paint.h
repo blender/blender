@@ -34,6 +34,7 @@ struct MultireModifierData;
 struct MVert;
 struct Object;
 struct Paint;
+struct PBVH;
 struct Scene;
 struct StrokeCache;
 
@@ -76,8 +77,10 @@ typedef struct SculptSession {
 
 	/* Used temporarily per-stroke */
 	float *vertexcosnos;
-	ListBase damaged_rects;
-	ListBase damaged_verts;
+
+	/* Partial redraw */
+	struct PBVH *tree;
+	int partial_redraw;
 	
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_side, *texcache, texcache_actual;

@@ -37,6 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_arithb.h"
+#include "BLI_ghash.h"
 
 #include "DNA_meshdata_types.h"
 
@@ -374,6 +375,156 @@ void GPU_drawobject_free( DerivedMesh *dm )
 
 	MEM_freeN(object);
 	dm->drawObject = 0;
+}
+
+/* Convenience struct for building the VBO.
+   TODO: check that (lack-of) padding is OK,
+   also check performance of short vs float for normals */
+typedef struct {
+	float co[3];
+	short no[3];
+	
+	char pad[14];
+} VertexBufferFormat;
+
+typedef struct {
+	unsigned int vert_buf, tri_buf;
+	unsigned short tot_tri;
+} GPU_Buffers;
+
+void GPU_update_buffers2(void *buffers_v, MVert *mvert,
+			int *vert_indices, int totvert)
+{
+	GPU_Buffers *buffers = buffers_v;
+	VertexBufferFormat *vert_data;
+	int i;
+
+	vert_data = MEM_callocN(sizeof(VertexBufferFormat) * totvert, "bad");
+
+	for(i = 0; i < totvert; ++i) {
+		MVert *v = mvert + vert_indices[i];
+		VertexBufferFormat *out = vert_data + i;
+
+		VecCopyf(out->co, v->co);
+		memcpy(out->no, v->no, sizeof(short) * 3);
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, buffers->vert_buf);
+	glBufferData(GL_ARRAY_BUFFER,
+		     sizeof(VertexBufferFormat) * totvert,
+		     vert_data, GL_STATIC_DRAW);
+
+	MEM_freeN(vert_data);
+}
+
+void GPU_update_buffers(void *buffers_v, MVert *mvert,
+			int *vert_indices, int totvert)
+{
+	GPU_Buffers *buffers = buffers_v;
+	VertexBufferFormat *vert_data;
+	int i;
+
+	/* Build VBO */
+	glBindBuffer(GL_ARRAY_BUFFER, buffers->vert_buf);
+	glBufferData(GL_ARRAY_BUFFER,
+		     sizeof(VertexBufferFormat) * totvert,
+		     NULL, GL_STATIC_DRAW);
+	vert_data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+	for(i = 0; i < totvert; ++i) {
+		MVert *v = mvert + vert_indices[i];
+		VertexBufferFormat *out = vert_data + i;
+
+		VecCopyf(out->co, v->co);
+		memcpy(out->no, v->no, sizeof(short) * 3);
+	}
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+
+	//printf("node updated %p\n", buffers_v);
+}
+
+void *GPU_build_buffers(GHash *map, MVert *mvert, MFace *mface,
+			int *face_indices, int totface,
+			int *vert_indices, int tot_uniq_verts,
+			int totvert)
+{
+	GPU_Buffers *buffers;
+	unsigned short *tri_data;
+	int i, j, k, tottri;
+
+	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
+
+	/* Count the number of triangles */
+	for(i = 0, tottri = 0; i < totface; ++i)
+		tottri += mface[face_indices[i]].v4 ? 2 : 1;
+
+	/* Generate index buffer object */
+	glGenBuffers(1, &buffers->tri_buf);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers->tri_buf);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		     sizeof(unsigned short) * tottri * 3, NULL, GL_STATIC_DRAW);
+
+	/* Fill the triangle buffer */
+	tri_data = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	for(i = 0; i < totface; ++i) {
+		MFace *f = mface + face_indices[i];
+		int v[3] = {f->v1, f->v2, f->v3};
+
+		for(j = 0; j < (f->v4 ? 2 : 1); ++j) {
+			for(k = 0; k < 3; ++k) {
+				void *value, *key = SET_INT_IN_POINTER(v[k]);
+				int vbo_index;
+
+				value = BLI_ghash_lookup(map, key);
+				vbo_index = GET_INT_FROM_POINTER(value);
+
+				if(vbo_index < 0) {
+					vbo_index = -vbo_index +
+						tot_uniq_verts - 1;
+				}
+
+				*tri_data = vbo_index;
+				++tri_data;
+			}
+			v[0] = f->v4;
+			v[1] = f->v1;
+			v[2] = f->v3;
+		}
+	}
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+	/* Build VBO */
+	glGenBuffers(1, &buffers->vert_buf);
+	GPU_update_buffers(buffers, mvert, vert_indices, totvert);
+
+	buffers->tot_tri = tottri;
+
+	return buffers;
+}
+
+void GPU_draw_buffers(void *buffers_v)
+{
+	GPU_Buffers *buffers = buffers_v;
+
+	glBindBuffer(GL_ARRAY_BUFFER, buffers->vert_buf);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers->tri_buf);
+
+	glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat), 0);
+	glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat), (void*)12);
+
+	glDrawElements(GL_TRIANGLES, buffers->tot_tri * 3, GL_UNSIGNED_SHORT, 0);
+}
+
+void GPU_free_buffers(void *buffers_v)
+{
+	if(buffers_v) {
+		GPU_Buffers *buffers = buffers_v;
+		
+		glDeleteBuffers(1, &buffers->vert_buf);
+		glDeleteBuffers(1, &buffers->tri_buf);
+
+		MEM_freeN(buffers);
+	}
 }
 
 GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, GLenum target, void *user, void (*copy_f)(DerivedMesh *, float *, int *, int *, void *) )

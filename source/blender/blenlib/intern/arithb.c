@@ -4324,7 +4324,7 @@ int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], flo
 	
 	Crossf(p, d, e2);
 	a = Inpf(e1, p);
-	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	if ((a > -FLT_EPSILON) && (a < FLT_EPSILON)) return 0;
 	f = 1.0f/a;
 	
 	VecSubf(s, p1, v0);

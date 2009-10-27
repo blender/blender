@@ -43,11 +43,13 @@ struct ARegion;
 struct VPaint;
 
 /* paint_stroke.c */
+typedef int (*StrokeGetLocation)(struct bContext *C, struct PaintStroke *stroke, float location[3], float mouse[2]);
 typedef int (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke, struct PointerRNA *itemptr);
 typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
 
-struct PaintStroke *paint_stroke_new(struct bContext *C, StrokeTestStart test_start,
+struct PaintStroke *paint_stroke_new(struct bContext *C,
+				     StrokeGetLocation get_location, StrokeTestStart test_start,
 				     StrokeUpdateStep update_step, StrokeDone done);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
