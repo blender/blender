@@ -2713,17 +2713,6 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int armature_duplicate_selected_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int retv= armature_duplicate_selected_exec(C, op);
-
-	if (retv == OPERATOR_FINISHED) {
-		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-	}
-
-	return retv;
-}
 
 void ARMATURE_OT_duplicate(wmOperatorType *ot)
 {
@@ -2732,15 +2721,11 @@ void ARMATURE_OT_duplicate(wmOperatorType *ot)
 	ot->idname= "ARMATURE_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke = armature_duplicate_selected_invoke;
 	ot->exec = armature_duplicate_selected_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
 
@@ -3385,17 +3370,6 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int armature_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	if (OPERATOR_CANCELLED == armature_extrude_exec(C, op))
-		return OPERATOR_CANCELLED;
-
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-	return OPERATOR_FINISHED;
-}
-
 void ARMATURE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3403,7 +3377,6 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	ot->idname= "ARMATURE_OT_extrude";
 	
 	/* api callbacks */
-	ot->invoke= armature_extrude_invoke;
 	ot->exec= armature_extrude_exec;
 	ot->poll= ED_operator_editarmature;
 	
@@ -3412,8 +3385,6 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 /* ********************** Bone Add ********************/
 

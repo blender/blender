@@ -67,12 +67,12 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		
 		col = layout.column(align=True)
 		col.itemL(text="Mesh:")
-		col.itemO("mesh.duplicate")
+		col.itemO("mesh.duplicate_move")
 		col.itemO("mesh.delete")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Modeling:")
-		col.itemO("mesh.extrude")
+		col.itemO("mesh.extrude_move")
 		col.itemO("mesh.subdivide")
 		col.itemO("mesh.loopcut")
 		col.itemO("mesh.spin")
@@ -245,12 +245,12 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		col = layout.column(align=True)
 		col.itemL(text="Bones:")
 		col.itemO("armature.bone_primitive_add", text="Add")
-		col.itemO("armature.duplicate", text="Duplicate")
+		col.itemO("armature.duplicate_move", text="Duplicate")
 		col.itemO("armature.delete", text="Delete")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Modeling:")
-		col.itemO("armature.extrude")
+		col.itemO("armature.extrude_move")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Grease Pencil:")

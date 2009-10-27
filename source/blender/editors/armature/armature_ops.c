@@ -59,50 +59,6 @@
 
 #include "armature_intern.h"
 
-/* ************************** quick tests **********************************/
-
-/*  XXX This is a quick test operator to print names of all EditBones in context
- *  		that should be removed once tool coding starts...
- */
-
-static int armature_test_exec (bContext *C, wmOperator *op)
-{
-	printf("EditMode Armature Test: \n");
-	
-	printf("\tSelected Bones \n");
-	CTX_DATA_BEGIN(C, EditBone*, ebone, selected_bones)
-	{
-		printf("\t\tEditBone '%s' \n", ebone->name);
-	}
-	CTX_DATA_END;
-	
-	printf("\tEditable Bones \n");
-	CTX_DATA_BEGIN(C, EditBone*, ebone, selected_editable_bones) 
-	{
-		printf("\t\tEditBone '%s' \n", ebone->name);
-	}
-	CTX_DATA_END;
-	
-	printf("\tActive Bone \n");
-	{
-		EditBone *ebone= CTX_data_active_bone(C);
-		if (ebone) printf("\t\tEditBone '%s' \n", ebone->name);
-		else printf("\t\t<None> \n");
-	}
-	
-	return OPERATOR_FINISHED;
-}
-
-void ARMATURE_OT_test(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Test Context";
-	ot->idname= "ARMATURE_OT_test";
-	
-	/* api callbacks */
-	ot->exec= armature_test_exec;
-}
-
 /* ************************** registration **********************************/
 
 /* Both operators ARMATURE_OT_xxx and POSE_OT_xxx here */
@@ -200,9 +156,23 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_push);
 	WM_operatortype_append(POSE_OT_relax);
 	WM_operatortype_append(POSE_OT_breakdown);
+}
+
+void ED_operatormacros_armature(void)
+{
+	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
 	
-	/* TESTS */
-	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
+	ot= WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "ARMATURE_OT_duplicate");
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+
+	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
+	otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
+	RNA_enum_set(otmacro->ptr, "forked", 0);
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
 }
 
 void ED_keymap_armature(wmKeyConfig *keyconf)
@@ -247,8 +217,6 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
-
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
@@ -266,9 +234,9 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude", EKEY, KM_PRESS, 0, 0);
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_extrude", EKEY, KM_PRESS, KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "forked", 1);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_move", EKEY, KM_PRESS, KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "forked", 1); // XXX this doesn't work ok for macros it seems...
 	WM_keymap_add_item(keymap, "ARMATURE_OT_click_extrude", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_fill", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);

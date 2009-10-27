@@ -92,6 +92,7 @@ typedef struct EditBone
 
 /* armature_ops.c */
 void ED_operatortypes_armature(void);
+void ED_operatormacros_armature(void);
 void ED_keymap_armature(struct wmKeyConfig *keyconf);
 
 /* editarmature.c */

@@ -109,6 +109,7 @@ void ED_spacetypes_init(void)
 
 	/* Macros's must go last since they reference other operators
 	 * maybe we'll need to have them go after python operators too? */
+	ED_operatormacros_armature();
 	ED_operatormacros_mesh();
 	ED_operatormacros_object();
 }

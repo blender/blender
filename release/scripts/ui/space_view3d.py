@@ -765,8 +765,8 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.itemO("mesh.extrude")
-		layout.itemO("mesh.duplicate")
+		layout.itemO("mesh.extrude_move")
+		layout.itemO("mesh.duplicate_move")
 		layout.itemO("mesh.delete", text="Delete...")
 		
 		layout.itemS()
@@ -1129,12 +1129,12 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 				
 		layout.itemS()
 		
-		layout.itemO("armature.extrude")
+		layout.itemO("armature.extrude_move")
 		
 		if arm.x_axis_mirror:
-			layout.item_booleanO("armature.extrude", "forked", True, text="Extrude Forked")
+			layout.item_booleanO("armature.extrude_move", "forked", True, text="Extrude Forked")
 		
-		layout.itemO("armature.duplicate")
+		layout.itemO("armature.duplicate_move")
 		layout.itemO("armature.merge")
 		layout.itemO("armature.fill")
 		layout.itemO("armature.delete")
