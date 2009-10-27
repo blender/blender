@@ -1362,7 +1362,6 @@ static void node_composit_buts_color_spill(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_chroma_matte(uiLayout *layout, PointerRNA *ptr)
 {
-
 	uiLayout *col;
 	
 	col= uiLayoutColumn(layout, 0);
@@ -1373,26 +1372,6 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(col, NULL, 0, ptr, "lift", UI_ITEM_R_SLIDER);
 	uiItemR(col, NULL, 0, ptr, "gain", UI_ITEM_R_SLIDER);
 	uiItemR(col, NULL, 0, ptr, "shadow_adjust", UI_ITEM_R_SLIDER);
-
-//	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-//	bNode *node= ptr->data;
-//	rctf *butr= &node->butr;
-//	short dx=(butr->xmax-butr->xmin)/2;
-//	NodeChroma *c= node->storage;
-
-//	uiBlockBeginAlign(block);
-//
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Acceptance ", butr->xmin, butr->ymin+60, butr->xmax-butr->xmin, 20, &c->t1, 1.0f, 80.0f, 100, 0, "Tolerance for colors to be considered a keying color");
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Cutoff ", butr->xmin, butr->ymin+40, butr->xmax-butr->xmin, 20, &c->t2, 0.0f, 30.0f, 100, 0, "Colors below this will be considered as exact matches for keying color");
-//
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Lift ", butr->xmin, butr->ymin+20, dx, 20, &c->fsize, 0.0f, 1.0f, 100, 0, "Alpha Lift");
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Gain ", butr->xmin+dx, butr->ymin+20, dx, 20, &c->fstrength, 0.0f, 1.0f, 100, 0, "Alpha Gain");
-//
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Shadow Adjust ", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &c->t3, 0.0f, 1.0f, 100, 0, "Adjusts the brightness of any shadows captured");
-//	uiBlockEndAlign(block);
-//
-//	if(c->t2 > c->t1)
-//		c->t2=c->t1;
 }
 
 static void node_composit_buts_color_matte(uiLayout *layout, PointerRNA *ptr)
@@ -1406,7 +1385,9 @@ static void node_composit_buts_color_matte(uiLayout *layout, PointerRNA *ptr)
 }
 
 static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
-{
+{	
+	uiLayout *col, *row;
+	
 	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
@@ -1415,16 +1396,9 @@ static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
 	NodeChroma *c=node->storage;
 	char *c1, *c2, *c3;
 
-	/*color space selectors*/
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_NODE_EXEC,"RGB",
-		butr->xmin,butr->ymin+60,sx,20,&node->custom1,1,1, 0, 0, "RGB Color Space");
-	uiDefButS(block, ROW,B_NODE_EXEC,"HSV",
-		butr->xmin+sx,butr->ymin+60,sx,20,&node->custom1,1,2, 0, 0, "HSV Color Space");
-	uiDefButS(block, ROW,B_NODE_EXEC,"YUV",
-		butr->xmin+2*sx,butr->ymin+60,sx,20,&node->custom1,1,3, 0, 0, "YUV Color Space");
-	uiDefButS(block, ROW,B_NODE_EXEC,"YCC",
-		butr->xmin+3*sx,butr->ymin+60,sx,20,&node->custom1,1,4, 0, 0, "YCbCr Color Space");
+	/*color space selector*/
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, NULL, 0, ptr, "color_space", UI_ITEM_R_EXPAND);
 
 	if (node->custom1==1) {
 		c1="R"; c2="G"; c3="B";
@@ -1440,48 +1414,30 @@ static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
 	}
 
 	/*channel selector */
+	row= uiLayoutRow(layout, 0);
+	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_NODE_EXEC, c1,
 		butr->xmin,butr->ymin+40,cx,20,&node->custom2,1, 1, 0, 0, "Channel 1");
 	uiDefButS(block, ROW, B_NODE_EXEC, c2,
 		butr->xmin+cx,butr->ymin+40,cx,20,&node->custom2,1, 2, 0, 0, "Channel 2");
 	uiDefButS(block, ROW, B_NODE_EXEC, c3,
 		butr->xmin+cx+cx,butr->ymin+40,cx,20,&node->custom2, 1, 3, 0, 0, "Channel 3");
-
-	/*tolerance sliders */
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "High ", 
-		butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-		&c->t1, 0.0f, 1.0f, 100, 0, "Values higher than this setting are 100% opaque");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Low ", 
-		butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-		&c->t2, 0.0f, 1.0f, 100, 0, "Values lower than this setting are 100% keyed");
 	uiBlockEndAlign(block);
 
-	/*keep t2 (low) less than t1 (high) */
-	if(c->t2 > c->t1) {
-		c->t2=c->t1;
-	}
+	/*tolerance sliders */
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "high", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "low", UI_ITEM_R_SLIDER);
+
 }
 
 static void node_composit_buts_luma_matte(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeChroma *c=node->storage;
-
-	/*tolerance sliders */
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "High ", 
-		butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-		&c->t1, 0.0f, 1.0f, 100, 0, "Values higher than this setting are 100% opaque");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Low ", 
-		butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-		&c->t2, 0.0f, 1.0f, 100, 0, "Values lower than this setting are 100% keyed");
-	uiBlockEndAlign(block);
-
-	/*keep t2 (low) less than t1 (high) */
-	if(c->t2 > c->t1) {
-		c->t2=c->t1;
-	}
+	uiLayout *col;
+	
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "high", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "low", UI_ITEM_R_SLIDER);
 }
 
 static void node_composit_buts_map_uv(uiLayout *layout, PointerRNA *ptr)
