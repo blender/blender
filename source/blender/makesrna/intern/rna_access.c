@@ -1660,6 +1660,25 @@ void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)
 		IDP_ResizeIDPArray(idprop, 0);
 }
 
+int RNA_property_collection_lookup_index(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *t_ptr)
+{
+	CollectionPropertyIterator iter;
+	int index= 0;
+	
+	RNA_property_collection_begin(ptr, prop, &iter);
+	for(index=0; iter.valid; RNA_property_collection_next(&iter), index++) {
+		if (iter.ptr.data == t_ptr->data)
+			break;
+	}
+	RNA_property_collection_end(&iter);
+	
+	/* did we find it? */
+	if (iter.valid)
+		return index;
+	else
+		return -1;
+}
+
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr)
 {
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;

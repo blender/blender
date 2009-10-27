@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -51,6 +50,10 @@ static EnumPropertyItem texture_filter_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
+
+#include "MEM_guardedalloc.h"
+
+#include "RNA_access.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_texture.h"
@@ -174,18 +177,9 @@ char *rna_TextureSlot_path(PointerRNA *ptr)
 		
 		/* get an iterator for this property, and try to find the relevant index */
 		if (prop) {
-			CollectionPropertyIterator iter;
-			int index= 0;
+			int index= RNA_property_collection_lookup_index(&id_ptr, prop, ptr);
 			
-			RNA_property_collection_begin(ptr, prop, &iter);
-			for(index=0; iter.valid; RNA_property_collection_next(&iter), index++) {
-				if (iter.ptr.data == ptr->id.data)
-					break;
-			}
-			RNA_property_collection_end(&iter);
-			
-			/* did we find it? */
-			if (iter.valid)
+			if (index >= 0)
 				return BLI_sprintfN("textures[%d]", index);
 		}
 	}
@@ -327,15 +321,110 @@ static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *
 	return item;
 }
 
+static char *rna_ColorRamp_path(PointerRNA *ptr)
+{
+	/* handle the cases where a single datablock may have 2 ramp types */
+	if (ptr->id.data) {
+		ID *id= ptr->id.data;
+		
+		switch (GS(id->name)) {
+			case ID_MA:	/* material has 2 cases - diffuse and specular */ 
+			{
+				Material *ma= (Material*)id;
+				
+				if (ptr->data == ma->ramp_col) 
+					return BLI_strdup("diffuse_ramp");
+				else if (ptr->data == ma->ramp_spec)
+					return BLI_strdup("specular_ramp");
+			}
+				break;
+		}
+	}
+	
+	/* everything else just uses 'color_ramp' */
+	return BLI_strdup("color_ramp");
+}
+
+static char *rna_ColorRampElement_path(PointerRNA *ptr)
+{
+	PointerRNA ramp_ptr;
+	PropertyRNA *prop;
+	char *path = NULL;
+	int index;
+	
+	/* helper macro for use here to try and get the path 
+	 *	- this calls the standard code for getting a path to a texture...
+	 */
+#define COLRAMP_GETPATH \
+	{ \
+		prop= RNA_struct_find_property(&ramp_ptr, "elements"); \
+		if (prop) { \
+			index= RNA_property_collection_lookup_index(&ramp_ptr, prop, ptr); \
+			if (index >= 0) { \
+				char *texture_path= rna_ColorRamp_path(&ramp_ptr); \
+				path= BLI_sprintfN("%s.elements[%d]", texture_path, index); \
+				MEM_freeN(texture_path); \
+			} \
+		} \
+	}
+	
+	/* determine the path from the ID-block to the ramp */
+	// FIXME: this is a very slow way to do it, but it will have to suffice...
+	if (ptr->id.data) {
+		ID *id= ptr->id.data;
+		
+		switch (GS(id->name)) {
+			case ID_MA: /* 2 cases for material - diffuse and spec */
+			{
+				Material *ma= (Material *)id;
+				
+				/* try diffuse first */
+				if (ma->ramp_col) {
+					RNA_pointer_create(id, &RNA_ColorRamp, ma->ramp_col, &ramp_ptr);
+					COLRAMP_GETPATH;
+				}
+				/* try specular if not diffuse */
+				if (!path && ma->ramp_spec) {
+					RNA_pointer_create(id, &RNA_ColorRamp, ma->ramp_spec, &ramp_ptr);
+					COLRAMP_GETPATH;
+				}
+			}
+				break;
+			
+			// TODO: node trees need special attention
+			case ID_NT: 
+			{
+				// FIXME: we'll probably have to loop over nodes until we find one that uses the color ramp
+			}
+				break;
+			
+			default: /* everything else should have a "color_ramp" property */
+			{
+				/* create pointer to the ID block, and try to resolve "color_ramp" pointer */
+				RNA_id_pointer_create(id, &ramp_ptr);
+				if (RNA_path_resolve(&ramp_ptr, "color_ramp", &ramp_ptr, &prop)) {
+					COLRAMP_GETPATH;
+				}
+			}
+		}
+	}
+	
+	/* cleanup the macro we defined */
+#undef COLRAMP_GETPATH
+	
+	return path;
+}
+
 #else
 
 static void rna_def_color_ramp_element(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
+	
 	srna= RNA_def_struct(brna, "ColorRampElement", NULL);
 	RNA_def_struct_sdna(srna, "CBData");
+	RNA_def_struct_path_func(srna, "rna_ColorRampElement_path");
 	RNA_def_struct_ui_text(srna, "Color Ramp Element", "Element defining a color at a position in the color ramp.");
 
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
@@ -366,6 +455,7 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ColorRamp", NULL);
 	RNA_def_struct_sdna(srna, "ColorBand");
+	RNA_def_struct_path_func(srna, "rna_ColorRamp_path");
 	RNA_def_struct_ui_text(srna, "Color Ramp", "Color ramp mapping a scalar value to a color.");
 
 	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_COLOR);
