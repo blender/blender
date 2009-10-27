@@ -1550,7 +1550,7 @@ void game_set_commmandline_options(GameData *gm)
 }
 
 /* maybe we need this defined somewhere else */
-extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_use_expand_framing);
+extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_frame, int always_use_expand_framing);
 
 #endif // GAMEBLENDER == 1
 
@@ -1566,6 +1566,7 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa, *prevsa= CTX_wm_area(C);
 	ARegion *ar, *prevar= CTX_wm_region(C);
+	rcti cam_frame;
 
 	sa= prevsa;
 	if(sa->spacetype != SPACE_VIEW3D) {
@@ -1592,8 +1593,25 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	
 	game_set_commmandline_options(&startscene->gm);
 
+	if(startscene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
+		rctf cam_framef;
+		calc_viewborder(startscene, ar, CTX_wm_view3d(C), &cam_framef);
+		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
+		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
+		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;
+		cam_frame.ymax = cam_framef.ymax + ar->winrct.ymin;
+		BLI_isect_rcti(&ar->winrct, &cam_frame, &cam_frame);
+	}
+	else {
+		cam_frame.xmin = ar->winrct.xmin;
+		cam_frame.xmax = ar->winrct.xmax;
+		cam_frame.ymin = ar->winrct.ymin;
+		cam_frame.ymax = ar->winrct.ymax;
+	}
+
+
 	SaveState(C);
-	StartKetsjiShell(C, ar, 1);
+	StartKetsjiShell(C, ar, &cam_frame, 1);
 	RestoreState(C);
 	
 	CTX_wm_region_set(C, prevar);

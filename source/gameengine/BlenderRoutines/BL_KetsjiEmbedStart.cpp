@@ -120,19 +120,19 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_use_expand_framing)
+extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_frame, int always_use_expand_framing)
 {
 	/* context values */
 	struct wmWindow *win= CTX_wm_window(C);
 	struct Scene *scene= CTX_data_scene(C);
 	struct Main* maggie1= CTX_data_main(C);
-	
+
 
 	RAS_Rect area_rect;
-	area_rect.SetLeft(ar->winrct.xmin);
-	area_rect.SetBottom(ar->winrct.ymin);
-	area_rect.SetRight(ar->winrct.xmax);
-	area_rect.SetTop(ar->winrct.ymax);
+	area_rect.SetLeft(cam_frame->xmin);
+	area_rect.SetBottom(cam_frame->ymin);
+	area_rect.SetRight(cam_frame->xmax);
+	area_rect.SetTop(cam_frame->ymax);
 
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 	Main* blenderdata = maggie1;
@@ -246,14 +246,21 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 		}
 		
 		if(rv3d->persp==V3D_CAMOB) {
-			camzoom = (1.41421 + (rv3d->camzoom / 50.0));
-			camzoom *= camzoom;
+			if(scene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
+				camzoom = 1.0f;
+			}
+			else {
+				camzoom = (1.41421 + (rv3d->camzoom / 50.0));
+				camzoom *= camzoom;
+				camzoom = 4.0 / camzoom;
+			}
 		}
-		else
+		else {
 			camzoom = 2.0;
+		}
 
-		camzoom = 4.0 / camzoom;
 		
+
 		ketsjiengine->SetDrawType(v3d->drawtype);
 		ketsjiengine->SetCameraZoom(camzoom);
 		
@@ -336,6 +343,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 				if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
 			}
+
+			rasterizer->SetBackColor(blscene->gm.framing.col[0], blscene->gm.framing.col[1], blscene->gm.framing.col[2], 0.0f);
 		}
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
@@ -688,6 +697,7 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 			if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
 		}
+		rasterizer->SetBackColor(blscene->gm.framing.col[0], blscene->gm.framing.col[1], blscene->gm.framing.col[2], 0.0f);
 
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{

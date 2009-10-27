@@ -107,11 +107,7 @@ bool RAS_OpenGLRasterizer::Init()
 {
 	GPU_state_init();
 
-	m_redback = 0.4375;
-	m_greenback = 0.4375;
-	m_blueback = 0.4375;
-	m_alphaback = 0.0;
-	
+
 	m_ambr = 0.0f;
 	m_ambg = 0.0f;
 	m_ambb = 0.0f;
@@ -127,6 +123,12 @@ bool RAS_OpenGLRasterizer::Init()
 	glClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+	m_redback = 0.4375;
+	m_greenback = 0.4375;
+	m_blueback = 0.4375;
+	m_alphaback = 0.0;
 
 	glShadeModel(GL_SMOOTH);
 
