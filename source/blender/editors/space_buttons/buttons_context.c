@@ -648,7 +648,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Brush *br= ptr->data;
 
 			if(br)
-				CTX_data_pointer_set(result, &br->id, &RNA_TextureSlot, br->mtex[(int)br->texact]);
+				CTX_data_pointer_set(result, &br->id, &RNA_BrushTextureSlot, br->mtex[(int)br->texact]);
 		}
 
 		return 1;
