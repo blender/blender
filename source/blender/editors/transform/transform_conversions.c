@@ -4400,7 +4400,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 {
 	ID *id= &ob->id;
 	FCurve *fcu;
-
+	
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
@@ -4501,7 +4501,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
 	FCurve *fcu;
-
+	
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
@@ -4635,7 +4635,7 @@ void special_aftertrans_update(TransInfo *t)
 //	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
 	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0;
-
+	
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
@@ -4643,7 +4643,8 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
-	else if (t->spacetype == SPACE_SEQ) {
+	
+	if (t->spacetype == SPACE_SEQ) {
 		/* freeSeqData in transform_conversions.c does this
 		 * keep here so the else at the end wont run... */
 	}
@@ -4945,6 +4946,7 @@ void special_aftertrans_update(TransInfo *t)
 				if (!cancelled)
 					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 			}
+
 		}
 	}
 
