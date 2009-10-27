@@ -123,7 +123,7 @@ extern ListBase editelems;
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3])
 {
-	if (t->persp != V3D_ORTHO)
+	if (t->persp != RV3D_ORTHO)
 	{
 		float p1[4], p2[4];
 		
@@ -1340,7 +1340,7 @@ void calculateCenter(TransInfo *t)
 			Scene *scene = t->scene;
 			RegionView3D *rv3d = t->ar->regiondata;
 			
-			if(v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+			if(v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB)
 			{
 				float axis[3];
 				/* persinv is nasty, use viewinv instead, always right */

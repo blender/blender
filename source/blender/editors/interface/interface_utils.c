@@ -37,6 +37,9 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 /*************************** RNA Utilities ******************************/
 
 uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2)
@@ -183,4 +186,3 @@ int uiIconFromID(ID *id)
 
 	return (ptr.type)? RNA_struct_ui_icon(ptr.type): 0;
 }
-

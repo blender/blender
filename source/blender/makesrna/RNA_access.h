@@ -593,6 +593,8 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
 /* Property Information */
 
 const char *RNA_property_identifier(PropertyRNA *prop);
+const char *RNA_property_description(PropertyRNA *prop);
+
 PropertyType RNA_property_type(PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PropertyRNA *prop);
 PropertyUnit RNA_property_unit(PropertyRNA *prop);

@@ -140,7 +140,7 @@ void setTransformViewMatrices(TransInfo *t)
 		Mat4One(t->viewinv);
 		Mat4One(t->persmat);
 		Mat4One(t->persinv);
-		t->persp = V3D_ORTHO;
+		t->persp = RV3D_ORTHO;
 	}
 
 	calculateCenter2D(t);

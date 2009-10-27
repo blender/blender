@@ -381,6 +381,14 @@ static const char *rna_ensure_property_identifier(PropertyRNA *prop)
 		return ((IDProperty*)prop)->name;
 }
 
+static const char *rna_ensure_property_description(PropertyRNA *prop)
+{
+	if(prop->magic == RNA_MAGIC)
+		return prop->description;
+	else
+		return ((IDProperty*)prop)->name; /* XXX - not correct */
+}
+
 static const char *rna_ensure_property_name(PropertyRNA *prop)
 {
 	if(prop->magic == RNA_MAGIC)
@@ -559,6 +567,11 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen)
 const char *RNA_property_identifier(PropertyRNA *prop)
 {
 	return rna_ensure_property_identifier(prop);
+}
+
+const char *RNA_property_description(PropertyRNA *prop)
+{
+	return rna_ensure_property_description(prop);
 }
 
 PropertyType RNA_property_type(PropertyRNA *prop)

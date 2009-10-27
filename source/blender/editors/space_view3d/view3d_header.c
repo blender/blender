@@ -168,21 +168,30 @@ static RegionView3D *wm_region_view3d(const bContext *C)
 	return NULL;
 }
 
-static void copy_view3d_lock_space(View3D *vd, Scene *scene)
+static void copy_view3d_lock_space(View3D *v3d, Scene *scene)
 {
 	int bit;
 
-	if(vd->scenelock && vd->localvd==NULL) {
-		vd->lay= scene->lay;
-		vd->camera= scene->camera;
+	if(v3d->scenelock && v3d->localvd==NULL) {
+		v3d->lay= scene->lay;
+		v3d->camera= scene->camera;
 		
-		if(vd->camera==0 && vd->persp==V3D_CAMOB)
-			vd->persp= V3D_PERSP;
+		if(v3d->camera==NULL) {
+			ARegion *ar;
+
+			for(ar=v3d->regionbase.first; ar; ar= ar->next) {
+				if(ar->regiontype == RGN_TYPE_WINDOW) {
+					RegionView3D *rv3d= ar->regiondata;
+					if(rv3d->persp==RV3D_CAMOB)
+						rv3d->persp= RV3D_PERSP;
+				}
+			}
+		}
 		
-		if((vd->lay & vd->layact) == 0) {
+		if((v3d->lay & v3d->layact) == 0) {
 			for(bit= 0; bit<32; bit++) {
-				if(vd->lay & (1<<bit)) {
-					vd->layact= 1<<bit;
+				if(v3d->lay & (1<<bit)) {
+					v3d->layact= 1<<bit;
 					break;
 				}
 			}

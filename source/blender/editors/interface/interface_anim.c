@@ -240,11 +240,9 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 	int length;
 
 	if(but->rnapoin.data && but->rnaprop) {
-		pup= uiPupMenuBegin(C, RNA_property_ui_name(but->rnaprop), 0);
-		layout= uiPupMenuLayout(pup);
-		
+
 		length= RNA_property_array_length(&but->rnapoin, but->rnaprop);
-		
+
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {
 				uiItemBooleanO(layout, "Replace Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
@@ -263,20 +261,20 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
 				uiItemBooleanO(layout, "Insert Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
 			}
-			else 
+			else
 				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
 		}
-		
+
 		if(but->flag & UI_BUT_DRIVEN) {
 			uiItemS(layout);
-			
+
 			if(length) {
 				uiItemBooleanO(layout, "Delete Drivers", 0, "ANIM_OT_remove_driver_button", "all", 1);
 				uiItemBooleanO(layout, "Delete Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 			}
 			else
 				uiItemBooleanO(layout, "Delete Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
-				
+
 			uiItemO(layout, "Copy Driver", 0, "ANIM_OT_copy_driver_button");
 			if (ANIM_driver_can_paste())
 				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
@@ -284,21 +282,21 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 		else if(but->flag & UI_BUT_ANIMATED_KEY);
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			uiItemS(layout);
-			
+
 			if(length) {
 				uiItemBooleanO(layout, "Add Drivers", 0, "ANIM_OT_add_driver_button", "all", 1);
 				uiItemBooleanO(layout, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
 			}
 			else
 				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
-			
-			if (ANIM_driver_can_paste())			
+
+			if (ANIM_driver_can_paste())
 				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
 		}
-		
+
 		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			uiItemS(layout);
-			
+
 			if(length) {
 				uiItemBooleanO(layout, "Add All to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 1);
 				uiItemBooleanO(layout, "Add Single to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
@@ -309,11 +307,15 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
 			}
 		}
-		
+
 		uiItemS(layout);
-		
+
 		uiItemO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button");
-		
+
+		uiItemS(layout);
+
+		//ui_but_doc_menu(layout, &but->rnapoin, but->rnaprop);
+
 		uiPupMenuEnd(C, pup);
 	}
 }

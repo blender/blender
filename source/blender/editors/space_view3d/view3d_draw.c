@@ -395,14 +395,14 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 	setlinestyle(0);
 	
 	/* center cross */
-	if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
+	if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) 
 		UI_make_axis_color(col, col2, 'y');
 	else UI_make_axis_color(col, col2, 'x');
 	glColor3ubv((GLubyte *)col2);
 	
 	fdrawline(0.0,  y,  (float)ar->winx,  y); 
 	
-	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
+	if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) 
 		UI_make_axis_color(col, col2, 'y');
 	else UI_make_axis_color(col, col2, 'z');
 	glColor3ubv((GLubyte *)col2);
@@ -662,11 +662,11 @@ static void draw_view_icon(RegionView3D *rv3d)
 {
 	BIFIconID icon;
 	
-	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
+	if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) 
 		icon= ICON_AXIS_TOP;
-	else if( ELEM(rv3d->view, V3D_VIEW_FRONT, V3D_VIEW_BACK)) 
+	else if( ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) 
 		icon= ICON_AXIS_FRONT;
-	else if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
+	else if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) 
 		icon= ICON_AXIS_SIDE;
 	else return ;
 	
@@ -683,33 +683,33 @@ static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	char *name = NULL;
 	
 	switch (rv3d->view) {
-		case V3D_VIEW_FRONT:
-			if (rv3d->persp == V3D_ORTHO) name = "Front Ortho";
+		case RV3D_VIEW_FRONT:
+			if (rv3d->persp == RV3D_ORTHO) name = "Front Ortho";
 			else name = "Front Persp";
 			break;
-		case V3D_VIEW_BACK:
-			if (rv3d->persp == V3D_ORTHO) name = "Back Ortho";
+		case RV3D_VIEW_BACK:
+			if (rv3d->persp == RV3D_ORTHO) name = "Back Ortho";
 			else name = "Back Persp";
 			break;
-		case V3D_VIEW_TOP:
-			if (rv3d->persp == V3D_ORTHO) name = "Top Ortho";
+		case RV3D_VIEW_TOP:
+			if (rv3d->persp == RV3D_ORTHO) name = "Top Ortho";
 			else name = "Top Persp";
 			break;
-		case V3D_VIEW_BOTTOM:
-			if (rv3d->persp == V3D_ORTHO) name = "Bottom Ortho";
+		case RV3D_VIEW_BOTTOM:
+			if (rv3d->persp == RV3D_ORTHO) name = "Bottom Ortho";
 			else name = "Bottom Persp";
 			break;
-		case V3D_VIEW_RIGHT:
-			if (rv3d->persp == V3D_ORTHO) name = "Right Ortho";
+		case RV3D_VIEW_RIGHT:
+			if (rv3d->persp == RV3D_ORTHO) name = "Right Ortho";
 			else name = "Right Persp";
 			break;
-		case V3D_VIEW_LEFT:
-			if (rv3d->persp == V3D_ORTHO) name = "Left Ortho";
+		case RV3D_VIEW_LEFT:
+			if (rv3d->persp == RV3D_ORTHO) name = "Left Ortho";
 			else name = "Left Persp";
 			break;
 			
 		default:
-			if (rv3d->persp==V3D_CAMOB) {
+			if (rv3d->persp==RV3D_CAMOB) {
 				if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = v3d->camera->data;
@@ -718,7 +718,7 @@ static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 					name = "Object as Camera";
 				}
 			} else { 
-				name = (rv3d->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
+				name = (rv3d->persp == RV3D_ORTHO) ? "User Ortho" : "User Persp";
 			}
 			break;
 	}

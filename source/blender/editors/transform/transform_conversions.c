@@ -2355,7 +2355,7 @@ void flushTransSeq(TransInfo *t)
 
 		tdsq= (TransDataSeq *)td->extra;
 		seq= tdsq->seq;
-		new_frame= (int)(td2d->loc[0] + 0.5f);
+		new_frame= (int)floor(td2d->loc[0] + 0.5f);
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
@@ -2363,7 +2363,7 @@ void flushTransSeq(TransInfo *t)
 				seq->start= new_frame - tdsq->start_offset;
 
 			if (seq->depth==0) {
-				seq->machine= (int)(td2d->loc[1] + 0.5f);
+				seq->machine= (int)floor(td2d->loc[1] + 0.5f);
 				CLAMP(seq->machine, 1, MAXSEQ);
 			}
 			break;
@@ -5207,7 +5207,7 @@ void createTransData(bContext *C, TransInfo *t)
 		{
 			View3D *v3d = t->view;
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if(rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+			if(rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB)
 			{
 				t->flag |= T_CAMERA;
 			}

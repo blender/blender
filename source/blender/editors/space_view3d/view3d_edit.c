@@ -103,7 +103,7 @@ static void view3d_boxview_clip(ScrArea *sa)
 			RegionView3D *rv3d= ar->regiondata;
 
 			if(rv3d->viewlock & RV3D_BOXCLIP) {
-				if(ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) {
+				if(ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
 					if(ar->winx>ar->winy) x1= rv3d->dist;
 					else x1= ar->winx*rv3d->dist/ar->winy;
 
@@ -113,7 +113,7 @@ static void view3d_boxview_clip(ScrArea *sa)
 					ofs[0]= rv3d->ofs[0];
 					ofs[1]= rv3d->ofs[1];
 				}
-				else if(ELEM(rv3d->view, V3D_VIEW_FRONT, V3D_VIEW_BACK)) {
+				else if(ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
 					ofs[2]= rv3d->ofs[2];
 
 					if(ar->winx>ar->winy) z1= ar->winy*rv3d->dist/ar->winx;
@@ -181,22 +181,22 @@ static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 			if(rv3dtest->viewlock) {
 				rv3dtest->dist= rv3d->dist;
 
-				if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM) ) {
-					if( ELEM(rv3dtest->view, V3D_VIEW_FRONT, V3D_VIEW_BACK))
+				if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM) ) {
+					if( ELEM(rv3dtest->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK))
 						rv3dtest->ofs[0]= rv3d->ofs[0];
-					else if( ELEM(rv3dtest->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT))
+					else if( ELEM(rv3dtest->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
 						rv3dtest->ofs[1]= rv3d->ofs[1];
 				}
-				else if( ELEM(rv3d->view, V3D_VIEW_FRONT, V3D_VIEW_BACK) ) {
-					if( ELEM(rv3dtest->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM))
+				else if( ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK) ) {
+					if( ELEM(rv3dtest->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
 						rv3dtest->ofs[0]= rv3d->ofs[0];
-					else if( ELEM(rv3dtest->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT))
+					else if( ELEM(rv3dtest->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
 						rv3dtest->ofs[2]= rv3d->ofs[2];
 				}
-				else if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT) ) {
-					if( ELEM(rv3dtest->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM))
+				else if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT) ) {
+					if( ELEM(rv3dtest->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
 						rv3dtest->ofs[1]= rv3d->ofs[1];
-					if( ELEM(rv3dtest->view, V3D_VIEW_FRONT, V3D_VIEW_BACK))
+					if( ELEM(rv3dtest->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK))
 						rv3dtest->ofs[2]= rv3d->ofs[2];
 				}
 
@@ -325,12 +325,12 @@ static const float thres = 0.93f; //cos(20 deg);
 
 static float snapquats[39][6] = {
 	/*{q0, q1, q3, q4, view, oposite_direction}*/
-{COS45, -SIN45, 0.0, 0.0, V3D_VIEW_FRONT, 0},  //front
-{0.0, 0.0, -SIN45, -SIN45, V3D_VIEW_BACK, 0}, //back
-{1.0, 0.0, 0.0, 0.0, V3D_VIEW_TOP, 0},       //top
-{0.0, -1.0, 0.0, 0.0, V3D_VIEW_BOTTOM, 0},      //bottom
-{0.5, -0.5, -0.5, -0.5, V3D_VIEW_LEFT, 0},    //left
-{0.5, -0.5, 0.5, 0.5, V3D_VIEW_RIGHT, 0},      //right
+{COS45, -SIN45, 0.0, 0.0, RV3D_VIEW_FRONT, 0},  //front
+{0.0, 0.0, -SIN45, -SIN45, RV3D_VIEW_BACK, 0}, //back
+{1.0, 0.0, 0.0, 0.0, RV3D_VIEW_TOP, 0},       //top
+{0.0, -1.0, 0.0, 0.0, RV3D_VIEW_BOTTOM, 0},      //bottom
+{0.5, -0.5, -0.5, -0.5, RV3D_VIEW_LEFT, 0},    //left
+{0.5, -0.5, 0.5, 0.5, RV3D_VIEW_RIGHT, 0},      //right
 
 	/* some more 45 deg snaps */
 {0.65328145027160645, -0.65328145027160645, 0.27059805393218994, 0.27059805393218994, 0, 0},
@@ -601,12 +601,12 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	vod= op->customdata;
 
 	/* switch from camera view when: */
-	if(vod->rv3d->persp != V3D_PERSP) {
+	if(vod->rv3d->persp != RV3D_PERSP) {
 
 		if (U.uiflag & USER_AUTOPERSP)
-			vod->rv3d->persp= V3D_PERSP;
-		else if(vod->rv3d->persp==V3D_CAMOB)
-			vod->rv3d->persp= V3D_PERSP;
+			vod->rv3d->persp= RV3D_PERSP;
+		else if(vod->rv3d->persp==RV3D_CAMOB)
+			vod->rv3d->persp= RV3D_PERSP;
 		ED_region_tag_redraw(vod->ar);
 	}
 
@@ -665,7 +665,7 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 
 static void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
-	if(vod->rv3d->persp==V3D_CAMOB) {
+	if(vod->rv3d->persp==RV3D_CAMOB) {
 		float max= (float)MAX2(vod->ar->winx, vod->ar->winy);
 
 		vod->rv3d->camdx += (vod->oldx - x)/(max);
@@ -861,7 +861,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 		view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
 
 
-	if ((U.uiflag & USER_ORBIT_ZBUF) && (U.viewzoom==USER_ZOOM_CONT) && (vod->rv3d->persp==V3D_PERSP)) {
+	if ((U.uiflag & USER_ORBIT_ZBUF) && (U.viewzoom==USER_ZOOM_CONT) && (vod->rv3d->persp==RV3D_PERSP)) {
 		float upvec[3], mat[3][3];
 
 		/* Secret apricot feature, translate the view when in continues mode */
@@ -877,7 +877,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 		if(vod->rv3d->dist>10.0*vod->far) vod->rv3d->dist=10.0*vod->far;
 	}
 
-// XXX	if(vod->rv3d->persp==V3D_ORTHO || vod->rv3d->persp==V3D_CAMOB) preview3d_event= 0;
+// XXX	if(vod->rv3d->persp==RV3D_ORTHO || vod->rv3d->persp==RV3D_CAMOB) preview3d_event= 0;
 
 	if(vod->rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(vod->sa, vod->ar);
@@ -931,7 +931,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 
 	if(delta < 0) {
 		/* this min and max is also in viewmove() */
-		if(rv3d->persp==V3D_CAMOB) {
+		if(rv3d->persp==RV3D_CAMOB) {
 			rv3d->camzoom-= 10;
 			if(rv3d->camzoom<-30) rv3d->camzoom= -30;
 		}
@@ -940,7 +940,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		if(rv3d->persp==V3D_CAMOB) {
+		if(rv3d->persp==RV3D_CAMOB) {
 			rv3d->camzoom+= 10;
 			if(rv3d->camzoom>300) rv3d->camzoom= 300;
 		}
@@ -1062,8 +1062,8 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 			new_dist*= size;
 		}
 
-		if (rv3d->persp==V3D_CAMOB) {
-			rv3d->persp= V3D_PERSP;
+		if (rv3d->persp==RV3D_CAMOB) {
+			rv3d->persp= RV3D_PERSP;
 			smooth_view(C, NULL, v3d->camera, new_ofs, NULL, &new_dist, NULL);
 		}
         else {
@@ -1179,7 +1179,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	afm[2]= (max[2]-min[2]);
 	size= MAX3(afm[0], afm[1], afm[2]);
 	/* perspective should be a bit farther away to look nice */
-	if(rv3d->persp==V3D_ORTHO)
+	if(rv3d->persp==RV3D_ORTHO)
 		size*= 0.7;
 
 	if(size <= v3d->near*1.5f) size= v3d->near*1.5f;
@@ -1201,8 +1201,8 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	v3d->cursor[1]= -new_ofs[1];
 	v3d->cursor[2]= -new_ofs[2];
 
-	if (rv3d->persp==V3D_CAMOB) {
-		rv3d->persp= V3D_PERSP;
+	if (rv3d->persp==RV3D_CAMOB) {
+		rv3d->persp= RV3D_PERSP;
 		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
 	else {
@@ -1284,7 +1284,7 @@ static int view3d_render_border_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	/* if not in camera view do not exec the operator*/
-	if (rv3d->persp == V3D_CAMOB) return WM_border_select_invoke(C, op, event);
+	if (rv3d->persp == RV3D_CAMOB) return WM_border_select_invoke(C, op, event);
 	else return OPERATOR_PASS_THROUGH;
 }
 
@@ -1384,7 +1384,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
 	cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
 
-	if (rv3d->persp==V3D_PERSP) {
+	if (rv3d->persp==RV3D_PERSP) {
 		double p_corner[3];
 
 		/* no depths to use, we cant do anything! */
@@ -1455,7 +1455,7 @@ static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	/* if in camera view do not exec the operator so we do not conflict with set render border*/
-	if (rv3d->persp != V3D_CAMOB)
+	if (rv3d->persp != RV3D_CAMOB)
 		return WM_border_select_invoke(C, op, event);
 	else
 		return OPERATOR_PASS_THROUGH;
@@ -1489,13 +1489,13 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 /* ********************* Changing view operator ****************** */
 
 static EnumPropertyItem prop_view_items[] = {
-	{V3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
-	{V3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
-	{V3D_VIEW_LEFT, "LEFT", 0, "Left", "View From the Left"},
-	{V3D_VIEW_RIGHT, "RIGHT", 0, "Right", "View From the Right"},
-	{V3D_VIEW_TOP, "TOP", 0, "Top", "View From the Top"},
-	{V3D_VIEW_BOTTOM, "BOTTOM", 0, "Bottom", "View From the Bottom"},
-	{V3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the active amera"},
+	{RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
+	{RV3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
+	{RV3D_VIEW_LEFT, "LEFT", 0, "Left", "View From the Left"},
+	{RV3D_VIEW_RIGHT, "RIGHT", 0, "Right", "View From the Right"},
+	{RV3D_VIEW_TOP, "TOP", 0, "Top", "View From the Top"},
+	{RV3D_VIEW_BOTTOM, "BOTTOM", 0, "Bottom", "View From the Bottom"},
+	{RV3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the active amera"},
 	{0, NULL, 0, NULL, NULL}};
 
 static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo)
@@ -1506,12 +1506,12 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 
 	if(rv3d->viewlock) {
 		/* only pass on if */
-		if(rv3d->view==V3D_VIEW_FRONT && view==V3D_VIEW_BACK);
-		else if(rv3d->view==V3D_VIEW_BACK && view==V3D_VIEW_FRONT);
-		else if(rv3d->view==V3D_VIEW_RIGHT && view==V3D_VIEW_LEFT);
-		else if(rv3d->view==V3D_VIEW_LEFT && view==V3D_VIEW_RIGHT);
-		else if(rv3d->view==V3D_VIEW_BOTTOM && view==V3D_VIEW_TOP);
-		else if(rv3d->view==V3D_VIEW_TOP && view==V3D_VIEW_BOTTOM);
+		if(rv3d->view==RV3D_VIEW_FRONT && view==RV3D_VIEW_BACK);
+		else if(rv3d->view==RV3D_VIEW_BACK && view==RV3D_VIEW_FRONT);
+		else if(rv3d->view==RV3D_VIEW_RIGHT && view==RV3D_VIEW_LEFT);
+		else if(rv3d->view==RV3D_VIEW_LEFT && view==RV3D_VIEW_RIGHT);
+		else if(rv3d->view==RV3D_VIEW_BOTTOM && view==RV3D_VIEW_TOP);
+		else if(rv3d->view==RV3D_VIEW_TOP && view==RV3D_VIEW_BOTTOM);
 		else return;
 	}
 
@@ -1525,17 +1525,17 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 		return;
 	}
 
-	if (rv3d->persp==V3D_CAMOB && v3d->camera) {
+	if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
 
-		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= V3D_ORTHO;
-		else if(rv3d->persp==V3D_CAMOB) rv3d->persp= perspo;
+		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= RV3D_ORTHO;
+		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
 		smooth_view(C, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
 	}
 	else {
 
-		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= V3D_ORTHO;
-		else if(rv3d->persp==V3D_CAMOB) rv3d->persp= perspo;
+		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= RV3D_ORTHO;
+		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
 		smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
 	}
@@ -1547,7 +1547,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
-	static int perspo=V3D_PERSP;
+	static int perspo=RV3D_PERSP;
 	int viewnum;
 
 	viewnum = RNA_enum_get(op->ptr, "type");
@@ -1555,35 +1555,35 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	/* Use this to test if we started out with a camera */
 
 	switch (viewnum) {
-		case V3D_VIEW_BOTTOM :
+		case RV3D_VIEW_BOTTOM :
 			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, viewnum, perspo);
 			break;
 
-		case V3D_VIEW_BACK:
+		case RV3D_VIEW_BACK:
 			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, perspo);
 			break;
 
-		case V3D_VIEW_LEFT:
+		case RV3D_VIEW_LEFT:
 			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, viewnum, perspo);
 			break;
 
-		case V3D_VIEW_TOP:
+		case RV3D_VIEW_TOP:
 			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, viewnum, perspo);
 			break;
 
-		case V3D_VIEW_FRONT:
+		case RV3D_VIEW_FRONT:
 			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, perspo);
 			break;
 
-		case V3D_VIEW_RIGHT:
+		case RV3D_VIEW_RIGHT:
 			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, perspo);
 			break;
 
-		case V3D_VIEW_CAMERA:
+		case RV3D_VIEW_CAMERA:
 			if(rv3d->viewlock==0) {
 				/* lastview -  */
 
-				if(rv3d->persp != V3D_CAMOB) {
+				if(rv3d->persp != RV3D_CAMOB) {
 					/* store settings of current view before allowing overwriting with camera view */
 					QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
 					rv3d->lview= rv3d->view;
@@ -1610,7 +1610,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 						v3d->camera= scene_find_camera(scene);
 						/*handle_view3d_lock();*/
 					}
-					rv3d->persp= V3D_CAMOB;
+					rv3d->persp= RV3D_CAMOB;
 					smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 
 				}
@@ -1626,7 +1626,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			break;
 	}
 
-	if(rv3d->persp != V3D_CAMOB) perspo= rv3d->persp;
+	if(rv3d->persp != RV3D_CAMOB) perspo= rv3d->persp;
 
 	return OPERATOR_FINISHED;
 }
@@ -1665,7 +1665,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 
 	if(rv3d->viewlock==0) {
 
-		if(rv3d->persp != V3D_CAMOB) {
+		if(rv3d->persp != RV3D_CAMOB) {
 			if(orbitdir == V3D_VIEW_STEPLEFT || orbitdir == V3D_VIEW_STEPRIGHT) {
 				/* z-axis */
 				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
@@ -1771,9 +1771,9 @@ static int viewpersportho_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	if(rv3d->viewlock==0) {
-		if(rv3d->persp!=V3D_ORTHO)
-			rv3d->persp=V3D_ORTHO;
-		else rv3d->persp=V3D_PERSP;
+		if(rv3d->persp!=RV3D_ORTHO)
+			rv3d->persp=RV3D_ORTHO;
+		else rv3d->persp=RV3D_PERSP;
 		ED_region_tag_redraw(ar);
 	}
 
@@ -2195,7 +2195,7 @@ void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
 	// until the first draw and doesn't update the menu
 	// to reflect persp mode.
 
-	rv3d->persp = V3D_PERSP;
+	rv3d->persp = RV3D_PERSP;
 
 
 	// Correct the distance jump if rv3d->dist != 0
@@ -2357,7 +2357,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	fval[6] = fval[6] / 1000000.0f;
 
     // scale more if not in perspective mode
-	if (rv3d->persp == V3D_ORTHO) {
+	if (rv3d->persp == RV3D_ORTHO) {
 		fval[0] = fval[0] * 0.05f;
 		fval[1] = fval[1] * 0.05f;
 		fval[2] = fval[2] * 0.05f;
@@ -2405,8 +2405,8 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
      */
     len = zsens * sbadjust * fval[2];
 
-    if (rv3d->persp==V3D_CAMOB) {
-        if(rv3d->persp==V3D_CAMOB) { /* This is stupid, please fix - TODO */
+    if (rv3d->persp==RV3D_CAMOB) {
+        if(rv3d->persp==RV3D_CAMOB) { /* This is stupid, please fix - TODO */
             rv3d->camzoom+= 10.0f * -len;
         }
         if (rv3d->camzoom < minZoom) rv3d->camzoom = minZoom;

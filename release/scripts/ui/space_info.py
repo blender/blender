@@ -241,14 +241,8 @@ bpy.types.register(INFO_MT_help)
 
 class HelpOperator(bpy.types.Operator):
 	def execute(self, context):
-		try: import webbrowser
-		except: webbrowser = None
-
-		if webbrowser:
-			webbrowser.open(self.__URL__)
-		else:
-			raise Exception("Operator requires a full Python installation")
-
+		import webbrowser
+		webbrowser.open(self.__URL__)
 		return ('FINISHED',)
 
 class HELP_OT_manual(HelpOperator):

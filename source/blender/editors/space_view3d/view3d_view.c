@@ -285,7 +285,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			rv3d->view= 0;
 			
 			/* ensure it shows correct */
-			if(sms.to_camera) rv3d->persp= V3D_PERSP;
+			if(sms.to_camera) rv3d->persp= RV3D_PERSP;
 			
 			/* keep track of running timer! */
 			if(rv3d->sms==NULL)
@@ -329,7 +329,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* if we went to camera, store the original */
 		if(sms->to_camera) {
-			rv3d->persp= V3D_CAMOB;
+			rv3d->persp= RV3D_CAMOB;
 			VECCOPY(rv3d->ofs, sms->orig_ofs);
 			QUATCOPY(rv3d->viewquat, sms->orig_quat);
 			rv3d->dist = sms->orig_dist;
@@ -411,7 +411,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	setcameratoview3d(v3d, rv3d, v3d->camera);
-	rv3d->persp = V3D_CAMOB;
+	rv3d->persp = RV3D_CAMOB;
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
 	
@@ -452,7 +452,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	
 	if(BASACT) {
-		rv3d->persp= V3D_CAMOB;
+		rv3d->persp= RV3D_CAMOB;
 		v3d->camera= OBACT;
 		if(v3d->scenelock)
 			scene->camera= OBACT;
@@ -487,7 +487,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 	RegionView3D *rv3d= ar->regiondata;
 	float vec[4];
 	
-	if(rv3d->persp != V3D_ORTHO){
+	if(rv3d->persp != RV3D_ORTHO){
 		vec[0]= 2.0f * mval[0] / ar->winx - 1;
 		vec[1]= 2.0f * mval[1] / ar->winy - 1;
 		vec[2]= -1.0f;
@@ -820,7 +820,7 @@ int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
 {
   Camera *cam;
   
-  if(rv3d->persp==V3D_CAMOB) {
+  if(rv3d->persp==RV3D_CAMOB) {
       if(v3d->camera && v3d->camera->type==OB_CAMERA) {
           cam= v3d->camera->data;
 
@@ -833,7 +833,7 @@ int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
           return 0;
   }
   
-  if(rv3d->persp==V3D_ORTHO)
+  if(rv3d->persp==RV3D_ORTHO)
       return 1;
 
   return 0;
@@ -852,7 +852,7 @@ int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, 
 	*clipsta= v3d->near;
 	*clipend= v3d->far;
 	
-	if(rv3d->persp==V3D_CAMOB) {
+	if(rv3d->persp==RV3D_CAMOB) {
 		if(v3d->camera) {
 			if(v3d->camera->type==OB_LAMP ) {
 				Lamp *la;
@@ -875,7 +875,7 @@ int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, 
 		}
 	}
 	
-	if(rv3d->persp==V3D_ORTHO) {
+	if(rv3d->persp==RV3D_ORTHO) {
 		if(winx>winy) x1= -rv3d->dist;
 		else x1= -winx*rv3d->dist/winy;
 		x2= -x1;
@@ -890,7 +890,7 @@ int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, 
 	}
 	else {
 		/* fac for zoom, also used for camdx */
-		if(rv3d->persp==V3D_CAMOB) {
+		if(rv3d->persp==RV3D_CAMOB) {
 			fac= (1.41421+( (float)rv3d->camzoom )/50.0);
 			fac*= fac;
 		}
@@ -1009,7 +1009,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 	Mat3CpyMat4(tmat, rv3d->viewmat);
 	if (smooth) {
 		float new_quat[4];
-		if (rv3d->persp==V3D_CAMOB && v3d->camera) {
+		if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
 			/* were from a camera view */
 			
 			float orig_ofs[3];
@@ -1020,13 +1020,13 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			/* Switch from camera view */
 			Mat3ToQuat(tmat, new_quat);
 			
-			rv3d->persp=V3D_PERSP;
+			rv3d->persp=RV3D_PERSP;
 			rv3d->dist= 0.0;
 			
 			view_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
 			smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 			
-			rv3d->persp=V3D_CAMOB; /* just to be polite, not needed */
+			rv3d->persp=RV3D_CAMOB; /* just to be polite, not needed */
 			
 		} else {
 			Mat3ToQuat(tmat, new_quat);
@@ -1042,27 +1042,27 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 static void view3d_viewlock(RegionView3D *rv3d)
 {
 	switch(rv3d->view) {
-	case V3D_VIEW_BOTTOM :
+	case RV3D_VIEW_BOTTOM :
 		QUATSET(rv3d->viewquat,0.0, -1.0, 0.0, 0.0);
 		break;
 		
-	case V3D_VIEW_BACK:
+	case RV3D_VIEW_BACK:
 		QUATSET(rv3d->viewquat,0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0));
 		break;
 		
-	case V3D_VIEW_LEFT:
+	case RV3D_VIEW_LEFT:
 		QUATSET(rv3d->viewquat,0.5, -0.5, 0.5, 0.5);
 		break;
 		
-	case V3D_VIEW_TOP:
+	case RV3D_VIEW_TOP:
 		QUATSET(rv3d->viewquat,1.0, 0.0, 0.0, 0.0);
 		break;
 		
-	case V3D_VIEW_FRONT:
+	case RV3D_VIEW_FRONT:
 		QUATSET(rv3d->viewquat,(float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0);
 		break;
 		
-	case V3D_VIEW_RIGHT:
+	case RV3D_VIEW_RIGHT:
 		QUATSET(rv3d->viewquat, 0.5, -0.5, -0.5, -0.5);
 		break;
 	}
@@ -1071,7 +1071,7 @@ static void view3d_viewlock(RegionView3D *rv3d)
 /* dont set windows active in in here, is used by renderwin too */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
-	if(rv3d->persp==V3D_CAMOB) {	    /* obs/camera */
+	if(rv3d->persp==RV3D_CAMOB) {	    /* obs/camera */
 		if(v3d->camera) {
 			where_is_object(scene, v3d->camera);	
 			obmat_to_viewmat(v3d, rv3d, v3d->camera, 0);
@@ -1087,7 +1087,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 			view3d_viewlock(rv3d);
 		
 		QuatToMat4(rv3d->viewquat, rv3d->viewmat);
-		if(rv3d->persp==V3D_PERSP) rv3d->viewmat[3][2]-= rv3d->dist;
+		if(rv3d->persp==RV3D_PERSP) rv3d->viewmat[3][2]-= rv3d->dist;
 		if(v3d->ob_centre) {
 			Object *ob= v3d->ob_centre;
 			float vec[3];
@@ -1324,7 +1324,7 @@ static void initlocalview(Scene *scene, ScrArea *sa)
 
 				rv3d->dist= size;
 				/* perspective should be a bit farther away to look nice */
-				if(rv3d->persp==V3D_ORTHO)
+				if(rv3d->persp==RV3D_ORTHO)
 					rv3d->dist*= 0.7;
 
 				// correction for window aspect ratio
@@ -1334,7 +1334,7 @@ static void initlocalview(Scene *scene, ScrArea *sa)
 					rv3d->dist*= asp;
 				}
 				
-				if (rv3d->persp==V3D_CAMOB) rv3d->persp= V3D_PERSP;
+				if (rv3d->persp==RV3D_CAMOB) rv3d->persp= RV3D_PERSP;
 				
 				v3d->cursor[0]= -rv3d->ofs[0];
 				v3d->cursor[1]= -rv3d->ofs[1];
@@ -1566,7 +1566,9 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa, *prevsa= CTX_wm_area(C);
 	ARegion *ar, *prevar= CTX_wm_region(C);
+	RegionView3D *rv3d;
 	rcti cam_frame;
+
 
 	sa= prevsa;
 	if(sa->spacetype != SPACE_VIEW3D) {
@@ -1588,12 +1590,13 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	// bad context switch ..
 	CTX_wm_area_set(C, sa);
 	CTX_wm_region_set(C, ar);
+	rv3d= ar->regiondata;
 
 	view3d_operator_needs_opengl(C);
 	
 	game_set_commmandline_options(&startscene->gm);
 
-	if(startscene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
+	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
 		rctf cam_framef;
 		calc_viewborder(startscene, ar, CTX_wm_view3d(C), &cam_framef);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
@@ -1788,7 +1791,7 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 	fly->ar = CTX_wm_region(C);
 	fly->scene= CTX_data_scene(C);
 
-	if(fly->rv3d->persp==V3D_CAMOB && fly->v3d->camera->id.lib) {
+	if(fly->rv3d->persp==RV3D_CAMOB && fly->v3d->camera->id.lib) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly a camera from an external library");
 		return FALSE;
 	}
@@ -1798,7 +1801,7 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 		return FALSE;
 	}
 
-	if(fly->rv3d->persp==V3D_CAMOB && fly->v3d->camera->constraints.first) {
+	if(fly->rv3d->persp==RV3D_CAMOB && fly->v3d->camera->constraints.first) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly an object with constraints");
 		return FALSE;
 	}
@@ -1842,7 +1845,7 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 
 	fly->persp_backup= fly->rv3d->persp;
 	fly->dist_backup= fly->rv3d->dist;
-	if (fly->rv3d->persp==V3D_CAMOB) {
+	if (fly->rv3d->persp==RV3D_CAMOB) {
 		/* store the origoinal camera loc and rot */
 		VECCOPY(fly->ofs_backup, fly->v3d->camera->loc);
 		VECCOPY(fly->rot_backup, fly->v3d->camera->rot);
@@ -1860,8 +1863,8 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 
 	} else {
 		/* perspective or ortho */
-		if (fly->rv3d->persp==V3D_ORTHO)
-			fly->rv3d->persp= V3D_PERSP; /*if ortho projection, make perspective */
+		if (fly->rv3d->persp==RV3D_ORTHO)
+			fly->rv3d->persp= RV3D_PERSP; /*if ortho projection, make perspective */
 		QUATCOPY(fly->rot_backup, fly->rv3d->viewquat);
 		VECCOPY(fly->ofs_backup, fly->rv3d->ofs);
 		fly->rv3d->dist= 0.0;
@@ -1891,7 +1894,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
 	if (fly->state == FLY_CANCEL) {
 	/* Revert to original view? */
-		if (fly->persp_backup==V3D_CAMOB) { /* a camera view */
+		if (fly->persp_backup==RV3D_CAMOB) { /* a camera view */
 			rv3d->viewbut=1;
 			VECCOPY(v3d->camera->loc, fly->ofs_backup);
 			VECCOPY(v3d->camera->rot, fly->rot_backup);
@@ -1903,7 +1906,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 			rv3d->persp= fly->persp_backup;
 		}
 	}
-	else if (fly->persp_backup==V3D_CAMOB) {	/* camera */
+	else if (fly->persp_backup==RV3D_CAMOB) {	/* camera */
 		float mat3[3][3];
 		Mat3CpyMat4(mat3, v3d->camera->obmat);
 		Mat3ToCompatibleEul(mat3, v3d->camera->rot, fly->rot_backup);
@@ -2289,7 +2292,7 @@ int flyApply(FlyInfo *fly)
 			/* impose a directional lag */
 			VecLerpf(dvec, dvec_tmp, fly->dvec_prev, (1.0f/(1.0f+(time_redraw*5.0f))));
 
-			if (rv3d->persp==V3D_CAMOB) {
+			if (rv3d->persp==RV3D_CAMOB) {
 				if (v3d->camera->protectflag & OB_LOCK_LOCX)
 					dvec[0] = 0.0;
 				if (v3d->camera->protectflag & OB_LOCK_LOCY)
@@ -2313,8 +2316,8 @@ int flyApply(FlyInfo *fly)
 //XXX2.5			do_screenhandlers(G.curscreen); /* advance the next frame */
 
 			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
-			if (rv3d->persp==V3D_CAMOB) {
-				rv3d->persp= V3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
+			if (rv3d->persp==RV3D_CAMOB) {
+				rv3d->persp= RV3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d(scene, v3d, rv3d);
 
 				setcameratoview3d(v3d, rv3d, v3d->camera);
@@ -2324,7 +2327,7 @@ int flyApply(FlyInfo *fly)
 					VecNegf(v3d->camera->loc);
 				}
 
-				rv3d->persp= V3D_CAMOB;
+				rv3d->persp= RV3D_CAMOB;
 #if 0 //XXX2.5
 				/* record the motion */
 				if (IS_AUTOKEY_MODE(NORMAL) && (!playing_anim || cfra != G.scene->r.cfra)) {
@@ -2457,19 +2460,19 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	
 	rv3d->view= 0;
 	
-	if (rv3d->persp==V3D_CAMOB && v3d->camera) {
+	if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
 		/* switch out of camera view */
 		float orig_ofs[3];
 		float orig_dist= rv3d->dist;
 		float orig_lens= v3d->lens;
 		
 		VECCOPY(orig_ofs, rv3d->ofs);
-		rv3d->persp= V3D_PERSP;
+		rv3d->persp= RV3D_PERSP;
 		rv3d->dist= 0.0;
 		view_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
 		smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 	} else {
-		if (rv3d->persp==V3D_CAMOB) rv3d->persp= V3D_PERSP; /* switch out of camera mode */
+		if (rv3d->persp==RV3D_CAMOB) rv3d->persp= RV3D_PERSP; /* switch out of camera mode */
 		smooth_view(NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
 	}
 }

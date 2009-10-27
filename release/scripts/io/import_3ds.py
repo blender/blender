@@ -1122,9 +1122,9 @@ else:
 
 '''
 
-class IMPORT_OT_3ds(bpy.types.Operator):
+class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 	'''Import from 3DS file format (.3ds)'''
-	__idname__ = "import.3ds"
+	__idname__ = "import.autodesk_3ds"
 	__label__ = 'Import 3DS'
 	
 	# List of operator properties, the attributes will be assigned
@@ -1147,10 +1147,10 @@ class IMPORT_OT_3ds(bpy.types.Operator):
 		wm.add_fileselect(self.__operator__)
 		return ('RUNNING_MODAL',)
 
-bpy.ops.add(IMPORT_OT_3ds)
+bpy.ops.add(IMPORT_OT_autodesk_3ds)
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("import.3ds", text="3D Studio (.3ds)...")
+menu_func = lambda self, context: self.layout.itemO("import.autodesk_3ds", text="3D Studio (.3ds)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 # NOTES:

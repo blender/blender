@@ -1364,8 +1364,17 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 						if (!v3d->camera || !object_in_scene(v3d->camera, scene)) {
 							v3d->camera= scene_find_camera(sc->scene);
 							// XXX if (sc==curscreen) handle_view3d_lock();
-							if (!v3d->camera && v3d->persp==V3D_CAMOB) 
-								v3d->persp= V3D_PERSP;
+							if (!v3d->camera) {
+								ARegion *ar;
+								for(ar=v3d->regionbase.first; ar; ar= ar->next) {
+									if(ar->regiontype == RGN_TYPE_WINDOW) {
+										RegionView3D *rv3d= ar->regiondata;
+
+										if(rv3d->persp==RV3D_CAMOB)
+											rv3d->persp= RV3D_PERSP;
+									}
+								}
+							}
 						}
 					}
 					sl= sl->next;
@@ -1429,7 +1438,7 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 				if(old->full) break;
 			if(old==NULL) {
 				printf("something wrong in areafullscreen\n"); 
-				return;
+				return NULL;
 			}
 			    // old feature described below (ton)
 				// in autoplay screens the headers are disabled by 
@@ -1455,7 +1464,8 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 		oldscreen= win->screen;
 
 		/* is there only 1 area? */
-		if(oldscreen->areabase.first==oldscreen->areabase.last) return;
+		if(oldscreen->areabase.first==oldscreen->areabase.last)
+			return NULL;
 		
 		oldscreen->full = SCREENFULL;
 		

@@ -51,6 +51,7 @@
 
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_keyframing.h"
 
 #include "UI_interface.h"
 
@@ -3378,6 +3379,145 @@ static uiBlock *menu_change_hotkey(bContext *C, ARegion *ar, void *arg_but)
 	return block;
 }
 
+static int ui_but_menu(bContext *C, uiBut *but)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	int length;
+	char *name;
+
+	if((but->rnapoin.data && but->rnaprop)==0 && but->optype==NULL)
+		return 0;
+
+
+	if(but->rnaprop)
+		name= RNA_property_ui_name(but->rnaprop);
+	else if (but->optype)
+		name= but->optype->name;
+	else
+		name= "<needs_name>"; // XXX - should never happen.
+
+	pup= uiPupMenuBegin(C, name, 0);
+	layout= uiPupMenuLayout(pup);
+
+	if(but->rnapoin.data && but->rnaprop) {
+
+		length= RNA_property_array_length(&but->rnapoin, but->rnaprop);
+
+		if(but->flag & UI_BUT_ANIMATED_KEY) {
+			if(length) {
+				uiItemBooleanO(layout, "Replace Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
+				uiItemBooleanO(layout, "Replace Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Keyframes", 0, "ANIM_OT_delete_keyframe_button", "all", 1);
+				uiItemBooleanO(layout, "Delete Single Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
+			}
+			else {
+				uiItemBooleanO(layout, "Replace Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
+			}
+		}
+		else if(but->flag & UI_BUT_DRIVEN);
+		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+			if(length) {
+				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
+				uiItemBooleanO(layout, "Insert Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+			}
+			else
+				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+		}
+
+		if(but->flag & UI_BUT_DRIVEN) {
+			uiItemS(layout);
+
+			if(length) {
+				uiItemBooleanO(layout, "Delete Drivers", 0, "ANIM_OT_remove_driver_button", "all", 1);
+				uiItemBooleanO(layout, "Delete Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+			}
+			else
+				uiItemBooleanO(layout, "Delete Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+
+			uiItemO(layout, "Copy Driver", 0, "ANIM_OT_copy_driver_button");
+			if (ANIM_driver_can_paste())
+				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
+		}
+		else if(but->flag & UI_BUT_ANIMATED_KEY);
+		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+			uiItemS(layout);
+
+			if(length) {
+				uiItemBooleanO(layout, "Add Drivers", 0, "ANIM_OT_add_driver_button", "all", 1);
+				uiItemBooleanO(layout, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+			}
+			else
+				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+
+			if (ANIM_driver_can_paste())
+				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
+		}
+
+		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+			uiItemS(layout);
+
+			if(length) {
+				uiItemBooleanO(layout, "Add All to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 1);
+				uiItemBooleanO(layout, "Add Single to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
+			}
+			else {
+				uiItemBooleanO(layout, "Add to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
+			}
+		}
+
+		uiItemS(layout);
+
+		uiItemO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button");
+
+		uiItemS(layout);
+
+
+	}
+
+
+	{	/* Docs */
+		char buf[512];
+		PointerRNA ptr_props;
+
+		if(but->rnapoin.data && but->rnaprop) {
+			sprintf(buf, "%s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+
+			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
+			RNA_string_set(&ptr_props, "doc_id", buf);
+			uiItemFullO(layout, "View Docs", 0, "WM_OT_doc_view", ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
+
+
+			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
+			RNA_string_set(&ptr_props, "doc_id", buf);
+			RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
+
+			uiItemFullO(layout, "Edit Docs (TODO)", 0, "WM_OT_doc_edit", ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
+		}
+		else if (but->optype) {
+			WM_operator_py_idname(buf, but->optype->idname);
+
+			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
+			RNA_string_set(&ptr_props, "doc_id", buf);
+			uiItemFullO(layout, "View Docs", 0, "WM_OT_doc_view", ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
+
+
+			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
+			RNA_string_set(&ptr_props, "doc_id", buf);
+			RNA_string_set(&ptr_props, "doc_new", but->optype->description);
+
+			uiItemFullO(layout, "Edit Docs (TODO)", 0, "WM_OT_doc_edit", ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
+		}
+	}
+
+	uiPupMenuEnd(C, pup);
+
+	return 1;
+}
+
 static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 {
 	uiHandleButtonData *data;
@@ -3431,12 +3571,8 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		/* handle menu */
 		else if(event->type == RIGHTMOUSE && event->val == KM_PRESS) {
 			/* RMB has two options now */
-			if(but->rnapoin.data && but->rnaprop) {
-				button_timers_tooltip_remove(C, but);
-				ui_but_anim_menu(C, but);
-				return WM_UI_HANDLER_BREAK;
-			}
-			else if((but->block->flag & UI_BLOCK_LOOP) && but->optype) {
+
+			if((but->block->flag & UI_BLOCK_LOOP) && but->optype) {
 				IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 				char buf[512];
 				
@@ -3445,6 +3581,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 					uiPupBlock(C, menu_change_hotkey, but);
 
 				}
+			}
+			else if (ui_but_menu(C, but)) {
+				return WM_UI_HANDLER_BREAK;
 			}
 		}
 	}

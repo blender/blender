@@ -245,7 +245,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
-		if(rv3d->persp==V3D_CAMOB) {
+		if(rv3d->persp==RV3D_CAMOB) {
 			if(scene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
 				camzoom = 1.0f;
 			}
@@ -349,10 +349,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
-			if (rv3d->persp != V3D_CAMOB)
+			if (rv3d->persp != RV3D_CAMOB)
 			{
 				ketsjiengine->EnableCameraOverride(startscenename);
-				ketsjiengine->SetCameraOverrideUseOrtho((rv3d->persp == V3D_ORTHO));
+				ketsjiengine->SetCameraOverrideUseOrtho((rv3d->persp == RV3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
 				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);

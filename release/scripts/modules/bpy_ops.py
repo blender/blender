@@ -311,6 +311,67 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 		exec("context.%s=advance_enum" % self.path)
 		return ('FINISHED',)
 
+doc_id = bpy.props.StringProperty(attr="doc_id", name="Doc ID", description="ID for the documentation", maxlen= 1024, default= "")
+doc_new = bpy.props.StringProperty(attr="doc_new", name="Doc New", description="", maxlen= 1024, default= "")
+
+class WM_OT_doc_view(bpy.types.Operator):
+	'''Load online reference docs'''
+	__idname__ = "wm.doc_view"
+	__label__ = "View Documentation"
+	__props__ = [doc_id]
+	_prefix = 'http://www.blender.org/documentation/250PythonDoc'
+	def execute(self, context):
+		id_split = self.doc_id.split('.')
+		# Example url, http://www.graphicall.org/ftp/ideasman42/html/bpy.types.Space3DView-class.html#background_image
+		# Example operator http://www.graphicall.org/ftp/ideasman42/html/bpy.ops.boid-module.html#boidrule_add
+		if len(id_split) == 1: # rna, class
+			url= '%s/bpy.types.%s-class.html' % (self._prefix, id_split[0])
+		elif len(id_split) == 2: # rna, class.prop
+			class_name, class_prop = id_split
+			
+			if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
+				url= '%s/bpy.ops.%s-module.html#%s' % (self._prefix, class_name, class_prop)
+			else:
+				url= '%s/bpy.types.%s-class.html#%s' % (self._prefix, class_name, class_prop)
+			
+		else:
+			return ('PASS_THROUGH',)
+		
+		import webbrowser
+		webbrowser.open(url)
+		
+		return ('FINISHED',)
+
+
+class WM_OT_doc_edit(bpy.types.Operator):
+	'''Load online reference docs'''
+	__idname__ = "wm.doc_edit"
+	__label__ = "Edit Documentation"
+	__props__ = [doc_id, doc_new]
+	
+	def execute(self, context):
+		
+		class_name, class_prop = self.doc_id.split('.')
+		
+		if self.doc_new:
+			
+			if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
+				# operator
+				print("operator - old:'%s' -> new:'%s'" % ('<TODO>', self.doc_new))
+			else:
+				doc_orig = getattr(bpy.types, class_name).__rna__.properties[class_prop].description
+				if doc_orig != self.doc_new:
+					print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
+					# aparently we can use xml/rpc to upload docs to an online review board
+					# Ugh, will run this on every edit.... better not make any mistakes
+				
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		wm = context.manager
+		wm.invoke_props_popup(self.__operator__, event)
+		return ('RUNNING_MODAL',)
+
 
 bpy.ops.add(MESH_OT_delete_edgeloop)
 
@@ -324,3 +385,5 @@ bpy.ops.add(WM_OT_context_toggle_enum)
 bpy.ops.add(WM_OT_context_cycle_enum)
 bpy.ops.add(WM_OT_context_cycle_int)
 
+bpy.ops.add(WM_OT_doc_view)
+bpy.ops.add(WM_OT_doc_edit)
