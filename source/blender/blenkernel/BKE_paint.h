@@ -69,17 +69,15 @@ typedef struct SculptSession {
 	struct MFace *mface;
 	int totvert, totface;
 	float *face_normals;
+	struct PBVH *tree;
 	
 	/* Mesh connectivity */
 	struct ListBase *fmap;
-	struct IndexNode *fmap_mem;
-	int fmap_size;
 
 	/* Used temporarily per-stroke */
 	float *vertexcosnos;
 
 	/* Partial redraw */
-	struct PBVH *tree;
 	int partial_redraw;
 	
 	/* Used to cache the render of the active texture */

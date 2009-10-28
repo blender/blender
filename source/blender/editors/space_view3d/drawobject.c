@@ -2692,7 +2692,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 		   drawFacesSolid() doesn't draw the transparent faces */
 		if(ob->dtx & OB_DRAWTRANSP) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
-			dm->drawFacesSolid(dm, NULL, NULL, GPU_enable_material);
+			dm->drawFacesSolid(dm, NULL, GPU_enable_material);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			GPU_disable_material();
 		}
@@ -2802,10 +2802,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				ob->sculpt->partial_redraw = 0;
 			}
 
-			dm->drawFacesSolid(dm, ob->sculpt->tree, fpl, GPU_enable_material);
+			dm->drawFacesSolid(dm, fpl, GPU_enable_material);
 		}
 		else
-			dm->drawFacesSolid(dm, NULL, NULL, GPU_enable_material);
+			dm->drawFacesSolid(dm, NULL, GPU_enable_material);
 
 		GPU_disable_material();
 
@@ -6276,7 +6276,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 		glEnable(GL_LIGHTING);
 		
 		if(dm) {
-			dm->drawFacesSolid(dm, NULL, NULL, GPU_enable_material);
+			dm->drawFacesSolid(dm, NULL, GPU_enable_material);
 			GPU_end_object_materials();
 		}
 		else if(edm)

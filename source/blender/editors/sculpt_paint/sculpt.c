@@ -193,57 +193,6 @@ static void projectf(bglMats *mats, const float v[3], float p[2])
 
 /*** BVH Tree ***/
 
-/* Updates all the face and vertex normals in a node
-
-   Note: the correctness of some vertex normals will be a little
-   off, not sure if this will be noticeable or not */
-static void sculpt_update_normals(const int *face_indices,
-				  const int *vert_indices,
-				  int totface, int totvert, void *data)
-{
-	SculptSession *ss = data;
-	int i;
-
-	/* Update face normals */
-	for(i = 0; i < totface; ++i) {
-		MFace *f = ss->mface + face_indices[i];
-		float *fn = ss->face_normals + face_indices[i] * 3;
-
-		if(f->v4)
-			CalcNormFloat4(ss->mvert[f->v1].co, ss->mvert[f->v2].co,
-			               ss->mvert[f->v3].co, ss->mvert[f->v4].co, fn);
-		else
-			CalcNormFloat(ss->mvert[f->v1].co, ss->mvert[f->v2].co,
-			              ss->mvert[f->v3].co, fn);
-	}
-
-	/* Update vertex normals */
-	for(i = 0; i < totvert; ++i) {
-		const int v = vert_indices[i];
-		float no[3] = {0,0,0};
-		IndexNode *face;
-
-		for(face = ss->fmap[v].first; face; face = face->next)
-			VecAddf(no, no, ss->face_normals + face->index*3);
-
-		Normalize(no);
-		
-		ss->mvert[v].no[0] = no[0] * 32767;
-		ss->mvert[v].no[1] = no[1] * 32767;
-		ss->mvert[v].no[2] = no[2] * 32767;
-	}
-}
-
-static void sculpt_rebuild_tree(SculptSession *ss)
-{
-	if(ss->tree)
-		BLI_pbvh_free(ss->tree);
-
-	ss->tree = BLI_pbvh_new(sculpt_update_normals, ss);
-	BLI_pbvh_build(ss->tree, ss->mface, ss->mvert, ss->totface,
-		       ss->totvert);
-}
-
 /* Get a screen-space rectangle of the modified area */
 int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 			    Object *ob, rcti *rect)
@@ -1054,11 +1003,10 @@ static struct MultiresModifierData *sculpt_multires_active(Object *ob)
 static void sculpt_update_mesh_elements(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
+	DerivedMesh *dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
 	SculptSession *ss = ob->sculpt;
-	int oldtotvert = ss->totvert;
 
 	if((ss->multires = sculpt_multires_active(ob))) {
-		DerivedMesh *dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
 		ss->totvert = dm->getNumVerts(dm);
 		ss->totface = dm->getNumFaces(dm);
 		ss->mvert = dm->getVertDataArray(dm, CD_MVERT);
@@ -1075,17 +1023,8 @@ static void sculpt_update_mesh_elements(bContext *C)
 			ss->face_normals = MEM_callocN(sizeof(float) * 3 * me->totface, "sculpt face normals");
 	}
 
-	if(ss->tree)
-		BLI_pbvh_set_source(ss->tree, ss->mvert, ss->mface);
-
-	if(ss->totvert != oldtotvert) {
-		if(ss->fmap) MEM_freeN(ss->fmap);
-		if(ss->fmap_mem) MEM_freeN(ss->fmap_mem);
-		create_vert_face_map(&ss->fmap, &ss->fmap_mem, ss->mface, ss->totvert, ss->totface);
-		ss->fmap_size = ss->totvert;
-		
-		sculpt_rebuild_tree(ss);
-	}
+	ss->tree = dm->getPBVH(dm);
+	ss->fmap = dm->getFaceMap(dm);
 }
 
 static int sculpt_mode_poll(bContext *C)

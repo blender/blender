@@ -77,6 +77,12 @@ typedef struct {
 	MVert *mvert;
 	MEdge *medge;
 	MFace *mface;
+
+	/* Cached */
+	struct PBVH *pbvh;
+	/* Mesh connectivity */
+	struct ListBase *fmap;
+	struct IndexNode *fmap_mem;
 } CDDerivedMesh;
 
 /**************** DerivedMesh interface functions ****************/
@@ -169,6 +175,82 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 	no_r[0] = no[0]/32767.f;
 	no_r[1] = no[1]/32767.f;
 	no_r[2] = no[2]/32767.f;
+}
+
+/* Updates all the face and vertex normals in a node
+
+   Note: the correctness of some vertex normals will be a little
+   off, not sure if this will be noticeable or not */
+static void update_node_normals(const int *face_indices,
+				const int *vert_indices,
+				int totface, int totvert, void *data)
+{
+	DerivedMesh *dm = data;
+	CDDerivedMesh *cddm = data;
+	float (*face_nors)[3];
+	int i;
+
+	/* make a face normal layer if not present */
+	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+	if(!face_nors)
+		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC,
+		                                 NULL, dm->numFaceData);
+
+	/* Update face normals */
+	for(i = 0; i < totface; ++i) {
+		MFace *f = cddm->mface + face_indices[i];
+		float *fn = face_nors[face_indices[i]];
+
+		if(f->v4)
+			CalcNormFloat4(cddm->mvert[f->v1].co, cddm->mvert[f->v2].co,
+			               cddm->mvert[f->v3].co, cddm->mvert[f->v4].co, fn);
+		else
+			CalcNormFloat(cddm->mvert[f->v1].co, cddm->mvert[f->v2].co,
+			              cddm->mvert[f->v3].co, fn);
+	}
+
+	/* Update vertex normals */
+	for(i = 0; i < totvert; ++i) {
+		const int v = vert_indices[i];
+		float no[3] = {0,0,0};
+		IndexNode *face;
+
+		for(face = cddm->fmap[v].first; face; face = face->next)
+			VecAddf(no, no, face_nors[face->index]);
+
+		Normalize(no);
+		
+		cddm->mvert[v].no[0] = no[0] * 32767;
+		cddm->mvert[v].no[1] = no[1] * 32767;
+		cddm->mvert[v].no[2] = no[2] * 32767;
+	}
+}
+
+static ListBase *cdDM_getFaceMap(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+
+	if(!cddm->fmap) {
+		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, cddm->mface,
+				     dm->getNumVerts(dm), dm->getNumFaces(dm));
+		printf("rebuild fmap\n");
+	}
+
+	return cddm->fmap;
+}
+
+static struct PBVH *cdDM_getPBVH(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+
+	if(!cddm->pbvh) {
+		cddm->pbvh = BLI_pbvh_new(update_node_normals, cddm);
+		BLI_pbvh_build(cddm->pbvh, cddm->mface, cddm->mvert,
+			       dm->getNumFaces(dm), dm->getNumVerts(dm));
+		printf("rebuild pbvh\n");
+	}
+
+	return cddm->pbvh;
 }
 
 static void cdDM_drawVerts(DerivedMesh *dm)
@@ -419,7 +501,7 @@ int planes_contain_AABB(float bb_min[3], float bb_max[3], void *data)
 	return 1;
 }
 
-static void cdDM_drawFacesSolid(DerivedMesh *dm, void *tree,
+static void cdDM_drawFacesSolid(DerivedMesh *dm,
 				float (*partial_redraw_planes)[4],
 				int (*setMaterial)(int, void *attribs))
 {
@@ -437,19 +519,19 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, void *tree,
 	glVertex3fv(mvert[index].co);	\
 }
 
-	if(tree) {
-		BLI_pbvh_search(tree, BLI_pbvh_update_search_cb,
+	if(cddm->pbvh) {
+		BLI_pbvh_search(cddm->pbvh, BLI_pbvh_update_search_cb,
 				PBVH_NodeData, NULL, NULL,
 				PBVH_SEARCH_UPDATE);
 
 		if(partial_redraw_planes) {
-			BLI_pbvh_search(tree, planes_contain_AABB,
+			BLI_pbvh_search(cddm->pbvh, planes_contain_AABB,
 					partial_redraw_planes,
 					draw_partial_cb, PBVH_DrawData,
 					PBVH_SEARCH_MODIFIED);
 		}
 		else {
-			BLI_pbvh_search(tree, find_all, NULL,
+			BLI_pbvh_search(cddm->pbvh, find_all, NULL,
 					draw_partial_cb, PBVH_DrawData,
 					PBVH_SEARCH_NORMAL);
 
@@ -1376,12 +1458,21 @@ static void cdDM_foreachMappedFaceCenter(
 	}
 }
 
+static void cdDM_free_internal(CDDerivedMesh *cddm)
+{
+	if(cddm->pbvh) BLI_pbvh_free(cddm->pbvh);
+	if(cddm->fmap) MEM_freeN(cddm->fmap);
+	if(cddm->fmap_mem) MEM_freeN(cddm->fmap_mem);
+}
+
 static void cdDM_release(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 
-	if (DM_release(dm))
+	if (DM_release(dm)) {
+		cdDM_free_internal(cddm);
 		MEM_freeN(cddm);
+	}
 }
 
 /**************** CDDM interface functions ****************/
@@ -1415,6 +1506,9 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getVertCos = cdDM_getVertCos;
 	dm->getVertCo = cdDM_getVertCo;
 	dm->getVertNo = cdDM_getVertNo;
+
+	dm->getPBVH = cdDM_getPBVH;
+	dm->getFaceMap = cdDM_getFaceMap;
 
 	dm->drawVerts = cdDM_drawVerts;
 
@@ -1901,6 +1995,7 @@ static void MultiresDM_release(DerivedMesh *dm)
 	}
 
 	if(DM_release(dm)) {
+		cdDM_free_internal(&mrdm->cddm);
 		MEM_freeN(mrdm->subco);
 		MEM_freeN(mrdm->orco);
 		if(mrdm->vert_face_map)

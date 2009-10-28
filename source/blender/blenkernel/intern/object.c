@@ -72,8 +72,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
-#include "BLI_ghash.h"
-#include "BLI_pbvh.h"
 
 #include "BKE_utildefines.h"
 
@@ -231,12 +229,6 @@ void free_sculptsession(SculptSession **ssp)
 	if(ssp && *ssp) {
 		SculptSession *ss = *ssp;
 
-		if(ss->fmap)
-			MEM_freeN(ss->fmap);
-
-		if(ss->fmap_mem)
-			MEM_freeN(ss->fmap_mem);
-
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
 
@@ -245,9 +237,6 @@ void free_sculptsession(SculptSession **ssp)
 
 		if(ss->mesh_co_orig)
 			MEM_freeN(ss->mesh_co_orig);
-
-		if(ss->tree)
-			BLI_pbvh_free(ss->tree);
 
 		if(ss->face_normals)
 			MEM_freeN(ss->face_normals);

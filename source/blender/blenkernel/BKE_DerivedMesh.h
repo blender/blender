@@ -59,6 +59,8 @@ struct MCol;
 struct ColorBand;
 struct GPUVertexAttribs;
 struct GPUDrawObject;
+struct ListBase;
+struct PBVH;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
@@ -73,6 +75,7 @@ struct DerivedMesh {
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
 	int deformedOnly; /* set by modifier stack if only deformed from original */
 	BVHCache bvhCache;
+
 	struct GPUDrawObject *drawObject;
 
 	/* Misc. Queries */
@@ -180,6 +183,14 @@ struct DerivedMesh {
 	/* Get vertex normal, undefined if index is not valid */
 	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
 
+	/* Get a map of vertices to faces
+	 */
+	struct ListBase *(*getFaceMap)(DerivedMesh *dm);
+
+	/* Get the BVH used for paint modes
+	 */
+	struct PBVH *(*getPBVH)(DerivedMesh *dm);
+
 	/* Drawing Operations */
 
 	/* Draw all vertices as bgl points (no options) */
@@ -204,7 +215,7 @@ struct DerivedMesh {
 	 *
 	 * Also called for *final* editmode DerivedMeshes
 	 */
-	void (*drawFacesSolid)(DerivedMesh *dm, void *tree, float (*partial_redraw_planes)[4],
+	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
 	                       int (*setMaterial)(int, void *attribs));
 
 	/* Draw all faces
