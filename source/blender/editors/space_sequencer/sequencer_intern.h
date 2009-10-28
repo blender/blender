@@ -91,6 +91,8 @@ void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
 void SEQUENCER_OT_snap(struct wmOperatorType *ot);
+void SEQUENCER_OT_previous_edit(struct wmOperatorType *ot);
+void SEQUENCER_OT_next_edit(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);

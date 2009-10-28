@@ -2445,3 +2445,119 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
 }
+
+
+static int find_next_prev_edit(Scene *scene, int cfra, int side)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq,*best_seq = NULL,*frame_seq = NULL;
+	
+	int dist, best_dist;
+	best_dist = MAXFRAME*2;
+
+	if(ed==NULL) return cfra;
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		dist = MAXFRAME*2;
+			
+		switch (side) {
+			case SEQ_SIDE_LEFT:
+				if (seq->startdisp < cfra) {
+					dist = cfra - seq->startdisp;
+				}
+				break;
+			case SEQ_SIDE_RIGHT:
+				if (seq->startdisp > cfra) {
+					dist = seq->startdisp - cfra;
+				} else if (seq->startdisp == cfra) {
+					frame_seq=seq;
+				}
+				break;
+		}
+
+		if (dist < best_dist) {
+			best_dist = dist;
+			best_seq = seq;
+		}
+	}
+
+	/* if no sequence to the right is found and the
+	   frame is on the start of the last sequence,
+	   move to the end of the last sequence */
+	if (frame_seq) cfra = frame_seq->enddisp;
+
+	return best_seq ? best_seq->startdisp : cfra;
+}
+
+static int next_prev_edit_internal(Scene *scene, int side) {
+	Editing *ed= seq_give_editing(scene, FALSE);
+	int change=0;
+	int cfra = CFRA;
+	int nfra= find_next_prev_edit(scene, cfra, side);
+	
+	if (nfra != cfra) {
+		CFRA = nfra;
+		change= 1;
+	}
+
+	return change;
+}
+
+/* select less operator */
+static int sequencer_next_edit_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (next_prev_edit_internal(scene, SEQ_SIDE_RIGHT)) {
+		ED_area_tag_redraw(CTX_wm_area(C));
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_next_edit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Next Edit";
+	ot->idname= "SEQUENCER_OT_next_edit";
+	ot->description="Move frame to next edit point.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_next_edit_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+}
+
+/* move frame to previous edit point operator */
+static int sequencer_previous_edit_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (next_prev_edit_internal(scene, SEQ_SIDE_LEFT)) {
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Previous Edit";
+	ot->idname= "SEQUENCER_OT_previous_edit";
+	ot->description="Move frame to previous edit point.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_previous_edit_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+}
