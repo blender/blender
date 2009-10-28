@@ -1496,8 +1496,8 @@ static void node_composit_buts_file_output(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(row, NULL, 0, ptr, "exr_half", 0);
 		uiItemR(row, "", 0, ptr, "exr_codec", 0);
 	}
-	else {
-		uiItemR(row, NULL, 0, ptr, "quality", 0);
+	else if (RNA_enum_get(ptr, "image_type")== R_JPEG90) {
+		uiItemR(row, NULL, 0, ptr, "quality", UI_ITEM_R_SLIDER);
 	}
 	
 	row= uiLayoutRow(layout, 1);
@@ -1698,43 +1698,15 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 
 static void node_texture_buts_bricks(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	short w = butr->xmax-butr->xmin;
-	short ofw = 32;
+	uiLayout *col;
 	
-	uiBlockBeginAlign(block);
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, "Offset", 0, ptr, "offset", 0);
+	uiItemR(col, "Frequency", 0, ptr, "offset_frequency", 0);
 	
-	/* Offset */
-	uiDefButF(
-		block, NUM, B_NODE_EXEC, "Offset",
-		butr->xmin, butr->ymin+20, w-ofw, 20,
-		&node->custom3,
-		0, 1, 0.25, 2,
-		"Offset amount" );
-	uiDefButS(
-		block, NUM, B_NODE_EXEC, "",
-		butr->xmin+w-ofw, butr->ymin+20, ofw, 20,
-		&node->custom1,
-		2, 99, 0, 0,
-		"Offset every N rows" );
-	
-	/* Squash */
-	uiDefButF(
-		block, NUM, B_NODE_EXEC, "Squash",
-		butr->xmin, butr->ymin+0, w-ofw, 20,
-		&node->custom4,
-		0, 99, 0.25, 2,
-		"Stretch amount" );
-	uiDefButS(
-		block, NUM, B_NODE_EXEC, "",
-		butr->xmin+w-ofw, butr->ymin+0, ofw, 20,
-		&node->custom2,
-		2, 99, 0, 0,
-		"Stretch every N rows" );
-	
-	uiBlockEndAlign(block);
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, "Squash", 0, ptr, "squash", 0);
+	uiItemR(col, "Frequency", 0, ptr, "squash_frequency", 0);
 }
 
 /* Copied from buttons_shading.c -- needs unifying */
@@ -1865,28 +1837,7 @@ static void node_texture_buts_image(uiLayout *layout, PointerRNA *ptr)
 
 static void node_texture_buts_output(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	uiBut *bt;
-	short width;
-	char *name = ((TexNodeOutput*)node->storage)->name;
-	
-	uiBlockBeginAlign(block);
-	
-	width = (short)(butr->xmax - butr->xmin);
-	
-	bt = uiDefBut(
-		block, TEX, B_NOP,
-		"Name:",
-		butr->xmin, butr->ymin,
-		width, 19, 
-		name, 0, 31,
-		0, 0, 
-		"Name this output"
-	);
-	
-	uiBlockEndAlign(block);
+	uiItemR(layout, "", 0, ptr, "output_name", 0);
 }
 
 /* only once called */

@@ -914,6 +914,7 @@ static void def_cmp_output_file(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
+	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Quality", "");
 	
 	prop = RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
