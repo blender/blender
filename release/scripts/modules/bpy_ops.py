@@ -317,12 +317,22 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 doc_id = bpy.props.StringProperty(attr="doc_id", name="Doc ID", description="ID for the documentation", maxlen= 1024, default= "")
 doc_new = bpy.props.StringProperty(attr="doc_new", name="Doc New", description="", maxlen= 1024, default= "")
 
+
 class WM_OT_doc_view(bpy.types.Operator):
 	'''Load online reference docs'''
 	__idname__ = "wm.doc_view"
 	__label__ = "View Documentation"
 	__props__ = [doc_id]
 	_prefix = 'http://www.blender.org/documentation/250PythonDoc'
+	
+	def _nested_class_string(self, class_string):
+		ls = []
+		class_obj = getattr(bpy.types, class_string, None).__rna__
+		while class_obj:
+			ls.insert(0, class_obj)
+			class_obj = class_obj.nested
+		return '.'.join([class_obj.identifier for class_obj in ls])
+	
 	def execute(self, context):
 		id_split = self.doc_id.split('.')
 		# Example url, http://www.graphicall.org/ftp/ideasman42/html/bpy.types.Space3DView-class.html#background_image
@@ -332,10 +342,12 @@ class WM_OT_doc_view(bpy.types.Operator):
 		elif len(id_split) == 2: # rna, class.prop
 			class_name, class_prop = id_split
 			
+			class_name_full = self._nested_class_string(class_name) # It so happens that epydoc nests these
+			
 			if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
-				url= '%s/bpy.ops.%s-module.html#%s' % (self._prefix, class_name, class_prop)
+				url= '%s/bpy.ops.%s-module.html#%s' % (self._prefix, class_name_full, class_prop)
 			else:
-				url= '%s/bpy.types.%s-class.html#%s' % (self._prefix, class_name, class_prop)
+				url= '%s/bpy.types.%s-class.html#%s' % (self._prefix, class_name_full, class_prop)
 			
 		else:
 			return ('PASS_THROUGH',)
