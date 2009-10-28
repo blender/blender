@@ -364,6 +364,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
 	__label__ = "Edit Documentation"
 	__props__ = [doc_id, doc_new]
 	
+	
 	def _send_xmlrpc(self, data_dict):		
 		print("sending data:", data_dict)
 		

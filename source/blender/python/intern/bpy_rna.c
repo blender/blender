@@ -1178,7 +1178,6 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA * self, PyObject 
 	return PyBool_FromLong(hidden);
 }
 
-
 static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 {
 	PyObject *ret, *dict;
@@ -1263,6 +1262,13 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 		BLI_freelistN(&lb);
 	}
 	
+	/* Hard coded names */
+	{
+		pystring = PyUnicode_FromString("id_data");
+		PyList_Append(ret, pystring);
+		Py_DECREF(pystring);
+	}
+
 	return ret;
 }
 
@@ -1318,6 +1324,16 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
         }
 
 		BLI_freelistN(&newlb);
+	}
+	else if (strcmp(name, "id_data")==0) { /* XXX - hard coded */
+		if(self->ptr.id.data) {
+			PointerRNA id_ptr;
+			RNA_id_pointer_create((ID *)self->ptr.id.data, &id_ptr);
+			return pyrna_struct_CreatePyObject(&id_ptr);
+		}
+		else {
+			Py_RETURN_NONE;
+		}
 	}
 	else {
 		PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%.200s\" not found", name);

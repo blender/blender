@@ -123,10 +123,8 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 		}
 		
 		if (U.flag & USER_ADD_VIEWALIGNED) {
-			ARegion *ar= CTX_wm_region(C);
-			if(ar) {
-				RegionView3D *rv3d= ar->regiondata;
-				
+			RegionView3D *rv3d = CTX_wm_region_view3d(C);
+			if(rv3d) {
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
 				QuatToEul(rv3d->viewquat, ob->rot);
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
