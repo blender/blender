@@ -42,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_idprop.h"
 #include "BKE_main.h"
 
 #include "ED_armature.h"
@@ -65,6 +66,30 @@ static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
 static char *rna_Bone_path(PointerRNA *ptr)
 {
 	return BLI_sprintfN("bones[\"%s\"]", ((Bone*)ptr->data)->name);
+}
+
+static IDProperty *rna_Bone_idproperties(PointerRNA *ptr, int create)
+{
+	Bone *bone= ptr->data;
+
+	if(create && !bone->prop) {
+		IDPropertyTemplate val = {0};
+		bone->prop= IDP_New(IDP_GROUP, val, "RNA_Bone ID properties");
+	}
+
+	return bone->prop;
+}
+
+static IDProperty *rna_EditBone_idproperties(PointerRNA *ptr, int create)
+{
+	EditBone *ebone= ptr->data;
+
+	if(create && !ebone->prop) {
+		IDPropertyTemplate val = {0};
+		ebone->prop= IDP_New(IDP_GROUP, val, "RNA_EditBone ID properties");
+	}
+
+	return ebone->prop;
 }
 
 static void rna_bone_layer_set(short *layer, const int *values)
@@ -442,6 +467,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Bone", "Bone in an Armature datablock.");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	RNA_def_struct_path_func(srna, "rna_Bone_path");
+	RNA_def_struct_idproperties_func(srna, "rna_Bone_idproperties");
 	
 	/* pointers/collections */
 		/* parent (pointer) */
@@ -509,6 +535,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "EditBone", NULL);
 	RNA_def_struct_sdna(srna, "EditBone");
+	RNA_def_struct_idproperties_func(srna, "rna_Bone_idproperties");
 	RNA_def_struct_ui_text(srna, "Edit Bone", "Editmode bone in an Armature datablock.");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	

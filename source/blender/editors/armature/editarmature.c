@@ -64,6 +64,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -186,6 +187,9 @@ void make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent)
 		eBone->rad_tail= curBone->rad_tail;
 		eBone->segments = curBone->segments;		
 		eBone->layer = curBone->layer;
+
+		if(curBone->prop)
+			eBone->prop= IDP_CopyProperty(curBone->prop);
 		
 		BLI_addtail(edbo, eBone);
 		
@@ -251,7 +255,7 @@ void ED_armature_from_edit(Object *obedit)
 	Object *obt;
 	
 	/* armature bones */
-	free_bones(arm);
+	free_bonelist(&arm->bonebase);
 	
 	/* remove zero sized bones, this gives instable restposes */
 	for (eBone=arm->edbo->first; eBone; eBone= neBone) {
@@ -294,6 +298,9 @@ void ED_armature_from_edit(Object *obedit)
 		newBone->rad_tail= eBone->rad_tail;
 		newBone->segments= eBone->segments;
 		newBone->layer = eBone->layer;
+
+		if(eBone->prop)
+			newBone->prop= IDP_CopyProperty(eBone->prop);
 	}
 	
 	/*	Fix parenting in a separate pass to ensure ebone->bone connections
@@ -1902,11 +1909,21 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 void ED_armature_edit_free(struct Object *ob)
 {
 	bArmature *arm= ob->data;
+	EditBone *eBone;
 	
 	/*	Clear the editbones list */
 	if (arm->edbo) {
-		if (arm->edbo->first)
+		if (arm->edbo->first) {
+			for (eBone=arm->edbo->first; eBone; eBone=eBone->next) {
+				if (eBone->prop) {
+					IDP_FreeProperty(eBone->prop);
+					MEM_freeN(eBone->prop);
+				}
+			}
+
 			BLI_freelistN(arm->edbo);
+		}
+
 		MEM_freeN(arm->edbo);
 		arm->edbo= NULL;
 	}
