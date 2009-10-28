@@ -364,6 +364,16 @@ class WM_OT_doc_edit(bpy.types.Operator):
 	__label__ = "Edit Documentation"
 	__props__ = [doc_id, doc_new]
 	
+	def _send_xmlrpc(self, data_dict):		
+		print("sending data:", data_dict)
+		
+		import xmlrpc.client
+		user = 'blenderuser'
+		pwd = 'blender>user'
+		
+		docblog = xmlrpc.client.ServerProxy("http://www.mindrones.com/blender/svn/xmlrpc.php")
+		docblog.metaWeblog.newPost(1,user,pwd, data_dict,1)
+	
 	def execute(self, context):
 		
 		class_name, class_prop = self.doc_id.split('.')
@@ -373,13 +383,14 @@ class WM_OT_doc_edit(bpy.types.Operator):
 			if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
 				# operator
 				print("operator - old:'%s' -> new:'%s'" % ('<TODO>', self.doc_new))
+				self._send_xmlrpc({'title':'OPERATOR %s:%s' % (self.doc_id,doc_orig),'description':self.doc_new})
 			else:
 				doc_orig = getattr(bpy.types, class_name).__rna__.properties[class_prop].description
 				if doc_orig != self.doc_new:
 					print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
-					# aparently we can use xml/rpc to upload docs to an online review board
 					# Ugh, will run this on every edit.... better not make any mistakes
-				
+					self._send_xmlrpc({'title':'RNA %s:%s' % (self.doc_id,doc_orig),'description':self.doc_new})
+					
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):
