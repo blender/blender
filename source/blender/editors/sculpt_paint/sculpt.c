@@ -1003,7 +1003,9 @@ static struct MultiresModifierData *sculpt_multires_active(Object *ob)
 static void sculpt_update_mesh_elements(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
-	DerivedMesh *dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
+	DerivedMesh *dm =
+		mesh_get_derived_final(CTX_data_scene(C), ob,
+				       CTX_wm_view3d(C)->customdata_mask);
 	SculptSession *ss = ob->sculpt;
 
 	if((ss->multires = sculpt_multires_active(ob))) {
