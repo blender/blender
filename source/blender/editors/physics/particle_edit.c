@@ -3321,15 +3321,13 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		if((pset->flag & PE_KEEP_LENGTHS)==0)
 			recalc_lengths(edit);
 
-		if(ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_CUT)) {
-			if(added || removed) {
-				if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
-					PE_mirror_x(scene, ob, 1);
+		if(ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_CUT) && (added || removed)) {
+			if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
+				PE_mirror_x(scene, ob, 1);
 
-				update_world_cos(ob,edit);
-				psys_free_path_cache(NULL, edit);
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-			}
+			update_world_cos(ob,edit);
+			psys_free_path_cache(NULL, edit);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 		else
 			PE_update_object(scene, ob, 1);
