@@ -893,13 +893,10 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 		name= ui_item_name_add_colon(name, namestr);
 
 	if(layout->root->type == UI_LAYOUT_MENU) {
-		/* whether the property is actually enabled doesn't matter, 
-		 * since the widget code for drawing toggles takes care of the 
-		 * rest (i.e. given the deactivated icon, it finds the active one
-		 * based on the state of the setting)
-		 */
-		if ( (type == PROP_BOOLEAN) || (type==PROP_ENUM && index==RNA_ENUM_VALUE) )
-			icon= ICON_CHECKBOX_DEHLT; /* ICON_CHECKBOX_HLT when on... */
+		if(type == PROP_BOOLEAN)
+			icon= (RNA_property_boolean_get(ptr, prop))? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE)
+			icon= (RNA_property_enum_get(ptr, prop) == value)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
 	}
 
 	slider= (flag & UI_ITEM_R_SLIDER);
