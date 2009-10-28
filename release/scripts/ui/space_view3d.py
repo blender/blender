@@ -1130,9 +1130,10 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 		layout.itemS()
 		
 		layout.itemO("armature.extrude_move")
-		
-		if arm.x_axis_mirror:
-			layout.item_booleanO("armature.extrude_move", "forked", True, text="Extrude Forked")
+
+# EXTRUDE FORKED DOESN'T WORK YET		
+#		if arm.x_axis_mirror:
+#			layout.item_booleanO("armature.extrude_move", "forked", True, text="Extrude Forked")
 		
 		layout.itemO("armature.duplicate_move")
 		layout.itemO("armature.merge")
