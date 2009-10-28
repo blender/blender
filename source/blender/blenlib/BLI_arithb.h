@@ -218,7 +218,7 @@ void Mat4ToEul(float tmat[][4],float *eul);
 void EulToQuat(float *eul, float *quat);
 
 void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot);
-
+void EulToGimbalAxis(float gmat[][3], float *eul, short order);
 
 
 void compatible_eul(float *eul, float *oldrot);

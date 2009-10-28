@@ -575,6 +575,10 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 		sprintf(text, ftext, "view");
 		setConstraint(t, t->spacemtx, mode, text);
 		break;
+	case V3D_MANIP_GIMBAL:
+		sprintf(text, ftext, "gimbal");
+		setConstraint(t, t->spacemtx, mode, text);
+		break;
 	default: /* V3D_MANIP_CUSTOM */
 		sprintf(text, ftext, t->spacename);
 		setConstraint(t, t->spacemtx, mode, text);

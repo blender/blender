@@ -3312,6 +3312,69 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 	
 }
 
+/* the matrix is written to as 3 axis vectors */
+void EulToGimbalAxis(float gmat[][3], float *eul, short order)
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order);
+	short R_order[3];
+	short R_order2[3];
+
+	float quat[4];
+	float teul[3];
+	float tvec[3];
+	int i, a;
+
+	R_order2[R->i]= 0;
+	R_order2[R->j]= 1;
+	R_order2[R->k]= 2;
+
+	R_order[0]= R->i;
+	R_order[1]= R->j;
+	R_order[2]= R->k;
+
+	for(i= 0; i<3; i++) {
+		tvec[0]= tvec[1]= tvec[2]= 0.0f;
+		tvec[i] = 1.0f;
+
+		VecCopyf(teul, eul);
+
+		for(a= R_order2[i]; a >= 1; a--)
+			teul[R_order[a-1]]= 0.0f;
+
+		EulOToQuat(teul, order, quat);
+		NormalQuat(quat);
+		QuatMulVecf(quat, tvec);
+		Normalize(tvec);
+
+		VecCopyf(gmat[i], tvec);
+	}
+
+
+#if 0
+
+	for(i= 0; i<3; i++) {
+		tvec[0]= tvec[1]= tvec[2]= 0.0f;
+		tvec[i] = 1.0f;
+
+		VecCopyf(teul, eul);
+
+		for(a= R_order2[i]; a >= 1; a--)
+			teul[R_order[a-1]]= 0.0f;
+
+		EulToQuat(teul, quat);
+		NormalQuat(quat);
+		QuatMulVecf(quat, tvec);
+		Normalize(tvec);
+
+		VecCopyf(gmat[i], tvec);
+	}
+#endif
+
+
+
+
+}
+
 /* ************ AXIS ANGLE *************** */
 
 /* Axis angle to Quaternions */
