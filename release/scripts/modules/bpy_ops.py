@@ -380,11 +380,13 @@ class WM_OT_doc_edit(bpy.types.Operator):
 		class_name, class_prop = self.doc_id.split('.')
 		
 		if self.doc_new:
+			op_class = getattr(bpy.types, class_name.upper() + '_OT_' + class_prop, None)
 			
-			if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
-				# operator
-				print("operator - old:'%s' -> new:'%s'" % ('<TODO>', self.doc_new))
-				self._send_xmlrpc({'title':'OPERATOR %s:%s' % (self.doc_id,doc_orig),'description':self.doc_new})
+			if op_class:
+				doc_orig = op_class.__rna__.description
+				if doc_orig != self.doc_new:
+					print("operator - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
+					self._send_xmlrpc({'title':'OPERATOR %s:%s' % (self.doc_id,doc_orig),'description':self.doc_new})
 			else:
 				doc_orig = getattr(bpy.types, class_name).__rna__.properties[class_prop].description
 				if doc_orig != self.doc_new:
