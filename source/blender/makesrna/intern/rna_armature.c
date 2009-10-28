@@ -535,7 +535,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "EditBone", NULL);
 	RNA_def_struct_sdna(srna, "EditBone");
-	RNA_def_struct_idproperties_func(srna, "rna_Bone_idproperties");
+	RNA_def_struct_idproperties_func(srna, "rna_EditBone_idproperties");
 	RNA_def_struct_ui_text(srna, "Edit Bone", "Editmode bone in an Armature datablock.");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	

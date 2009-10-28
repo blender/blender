@@ -1559,38 +1559,52 @@ int game_engine_poll(bContext *C)
 	return CTX_data_mode_enum(C)==CTX_MODE_OBJECT ? 1:0;
 }
 
-static int game_engine_exec(bContext *C, wmOperator *unused)
+int ED_view3d_context_activate(bContext *C)
 {
-#if GAMEBLENDER == 1
-	Scene *startscene = CTX_data_scene(C);
 	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa, *prevsa= CTX_wm_area(C);
-	ARegion *ar, *prevar= CTX_wm_region(C);
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar;
 	RegionView3D *rv3d;
-	rcti cam_frame;
 
-
-	sa= prevsa;
-	if(sa->spacetype != SPACE_VIEW3D) {
+	if(sa->spacetype != SPACE_VIEW3D)
 		for(sa=sc->areabase.first; sa; sa= sa->next)
 			if(sa->spacetype==SPACE_VIEW3D)
 				break;
-	}
 
 	if(!sa)
-		return OPERATOR_CANCELLED;
+		return 0;
 	
 	for(ar=sa->regionbase.first; ar; ar=ar->next)
 		if(ar->regiontype == RGN_TYPE_WINDOW)
 			break;
 	
 	if(!ar)
-		return OPERATOR_CANCELLED;
+		return 0;
 	
 	// bad context switch ..
 	CTX_wm_area_set(C, sa);
 	CTX_wm_region_set(C, ar);
 	rv3d= ar->regiondata;
+
+	return 1;
+}
+
+static int game_engine_exec(bContext *C, wmOperator *unused)
+{
+#if GAMEBLENDER == 1
+	Scene *startscene = CTX_data_scene(C);
+	ScrArea *sa, *prevsa= CTX_wm_area(C);
+	ARegion *ar, *prevar= CTX_wm_region(C);
+	RegionView3D *rv3d;
+	rcti cam_frame;
+
+	// bad context switch ..
+	if(!ED_view3d_context_activate(C))
+		return OPERATOR_CANCELLED;
+	
+	rv3d= CTX_wm_region_view3d(C);
+	sa= CTX_wm_area(C);
+	ar= CTX_wm_region(C);
 
 	view3d_operator_needs_opengl(C);
 	

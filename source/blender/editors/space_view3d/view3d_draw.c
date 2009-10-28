@@ -1897,28 +1897,23 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Objec
 	return mask;
 }
 
-void view3d_main_area_draw(const bContext *C, ARegion *ar)
+static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
 {
-	Scene *scene= CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	Scene *sce;
-	Base *base;
-	Object *ob;
-	int retopo= 0, sculptparticle= 0;
-	Object *obact = OBACT;
-	char *grid_unit= NULL;
+	RegionView3D *rv3d= ar->regiondata;
+
+	/* setup window matrices */
+	if(winmat)
+		Mat4CpyMat4(rv3d->winmat, winmat);
+	else
+		setwinmatrixview3d(ar, v3d, NULL); /* NULL= no pickrect */
 	
-	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
+	/* setup view matrix */
+	if(viewmat)
+		Mat4CpyMat4(rv3d->viewmat, viewmat);
+	else
+		setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
 	
-	/* shadow buffers, before we setup matrices */
-	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
-		gpu_update_lamps_shadows(scene, v3d);
-	
-	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
-	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
-	
+	/* update utilitity matrices */
 	Mat4MulMat4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
 	Mat4Invert(rv3d->persinv, rv3d->persmat);
 	Mat4Invert(rv3d->viewinv, rv3d->viewmat);
@@ -1939,23 +1934,118 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		else rv3d->pixsize/= (float)ar->winy;
 	}
 	
-	if(v3d->drawtype > OB_WIRE) {
-		float col[3];
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glClearColor(col[0], col[1], col[2], 0.0); 
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-		
-		glLoadIdentity();
-	}
-	else {
-		float col[3];
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glClearColor(col[0], col[1], col[2], 0.0);
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	}
-	
+	/* set for opengl */
+	glMatrixMode(GL_PROJECTION);
+	wmLoadMatrix(rv3d->winmat);
+
+	glMatrixMode(GL_MODELVIEW);
 	wmLoadMatrix(rv3d->viewmat);
+}
+
+void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy, float viewmat[][4], float winmat[][4])
+{
+	Scene *sce;
+	Base *base;
+	int bwinx, bwiny;
+
+	wmPushMatrix();
+
+	/* set temporary new size */
+	bwinx= ar->winx;
+	bwiny= ar->winy;
+	ar->winx= winx;
+	ar->winy= winy;
+
+	/* set flags */
+	G.f |= G_RENDER_OGL;
+	GPU_free_images();
+
+	/* set background color */
+	glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	/* setup view matrices */
+	view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
+
+	/* set zbuffer */
+	if(v3d->drawtype > OB_WIRE) {
+		v3d->zbuf= TRUE;
+		glEnable(GL_DEPTH_TEST);
+	}
+	else
+		v3d->zbuf= FALSE;
+
+	/* draw set first */
+	if(scene->set) {
+		for(SETLOOPER(scene->set, base)) {
+			if(v3d->lay & base->lay) {
+				UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
+				draw_object(scene, ar, v3d, base, DRAW_CONSTCOLOR|DRAW_SCENESET);
+				
+				if(base->object->transflag & OB_DUPLI)
+					draw_dupli_objects_color(scene, ar, v3d, base, TH_WIRE);
+			}
+		}
+	}
 	
+	/* then draw not selected and the duplis, but skip editmode object */
+	for(base= scene->base.first; base; base= base->next) {
+		if(v3d->lay & base->lay) {
+			/* dupli drawing */
+			if(base->object->transflag & OB_DUPLI)
+				draw_dupli_objects(scene, ar, v3d, base);
+
+			draw_object(scene, ar, v3d, base, 0);
+		}
+	}
+
+	/* transp and X-ray afterdraw stuff */
+	view3d_draw_transp(scene, ar, v3d);
+	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+
+	/* cleanup */
+	if(v3d->zbuf) {
+		v3d->zbuf= FALSE;
+		glDisable(GL_DEPTH_TEST);
+	}
+
+	GPU_free_images();
+
+	/* restore size */
+	ar->winx= bwinx;
+	ar->winy= bwiny;
+
+	wmPopMatrix();
+}
+
+void view3d_main_area_draw(const bContext *C, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *sce;
+	Base *base;
+	Object *ob;
+	float col[3];
+	int retopo= 0, sculptparticle= 0;
+	Object *obact = OBACT;
+	char *grid_unit= NULL;
+	
+	/* from now on all object derived meshes check this */
+	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
+	
+	/* shadow buffers, before we setup matrices */
+	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+		gpu_update_lamps_shadows(scene, v3d);
+
+	/* clear background */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0); 
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	
+	/* setup view matrices */
+	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_draw_clipping(rv3d);
 	

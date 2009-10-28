@@ -139,5 +139,9 @@ void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
 
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene);
 
+int ED_view3d_context_activate(struct bContext *C);
+void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
+	int winx, int winy, float viewmat[][4], float winmat[][4]);
+
 #endif /* ED_VIEW3D_H */
 

@@ -206,6 +206,11 @@ class INFO_MT_render(bpy.types.Menu):
 
 		layout.itemS()
 
+		layout.itemO("screen.opengl_render", text="OpenGL Render Image")
+		layout.item_booleanO("screen.opengl_render", "animation", True, text="OpenGL Render Animation")
+
+		layout.itemS()
+
 		layout.itemO("screen.render_view_show")
 
 class INFO_MT_help(bpy.types.Menu):
