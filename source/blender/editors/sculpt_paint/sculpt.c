@@ -207,6 +207,9 @@ int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	rect->xmin = rect->ymin = INT_MAX;
 	rect->xmax = rect->ymax = INT_MIN;
 
+	if(bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
+		return 0;
+
 	for(i = 0; i < 2; ++i) {
 		for(j = 0; j < 2; ++j) {
 			for(k = 0; k < 2; ++k) {
