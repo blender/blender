@@ -82,7 +82,6 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.operator_context = "EXEC_AREA"
 		layout.itemO("wm.exit_blender", text="Quit", icon='ICON_QUIT')
 
-
 # test for expanding menus
 '''
 class INFO_MT_file_more(INFO_MT_file):
@@ -123,7 +122,6 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 		layout.itemO("file.make_paths_absolute")
 		layout.itemO("file.report_missing_files")
 		layout.itemO("file.find_missing_files")
-
 
 class INFO_MT_mesh_add(dynamic_menu.DynMenu):
 	__label__ = "Mesh"

@@ -64,6 +64,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 				flow.itemR(field, "guide_kink_frequency")
 				flow.itemR(field, "guide_kink_shape")
 				flow.itemR(field, "guide_kink_amplitude")
+
 		elif field.type == 'TEXTURE':
 			col = split.column()
 			col.itemR(field, "strength")
@@ -75,6 +76,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 			col.itemR(field, "use_coordinates")
 			col.itemR(field, "root_coordinates")
 			col.itemR(field, "force_2d")
+
 		else :
 			basic_force_field_settings_ui(self, field)
 			

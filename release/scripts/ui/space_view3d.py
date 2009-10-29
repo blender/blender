@@ -1464,8 +1464,6 @@ class OBJECT_OT_select_pattern(bpy.types.Operator):
 		return ('RUNNING_MODAL',)
 	'''
 
-
-
 bpy.types.register(VIEW3D_HT_header) # Header
 
 bpy.types.register(VIEW3D_MT_view) #View Menus

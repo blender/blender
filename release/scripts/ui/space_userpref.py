@@ -88,12 +88,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
 		sub1.itemR(view, "auto_perspective")
 		sub1.itemR(view, "smooth_view")
 		sub1.itemR(view, "rotation_angle")
-		
-		
-		
 
-					
-		
 		col = split.column()
 		sub = col.split(percentage=0.85)
 		sub1 = sub.column()
@@ -104,8 +99,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
 #		sub1.itemL(text="Open Toolbox Delay:")
 #		sub1.itemR(view, "open_left_mouse_delay", text="Hold LMB")
 #		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
-		
-		
 		
 		#manipulator
 		sub1.itemR(view, "use_manipulator")
@@ -164,8 +157,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub1.itemR(edit, "undo_steps", text="Steps")
 		sub1.itemR(edit, "undo_memory_limit", text="Memory Limit")
 		
-
-
 		col = split.column()
 		sub = col.split(percentage=0.85)
 		

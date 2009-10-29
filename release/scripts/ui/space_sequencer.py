@@ -425,8 +425,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		col.itemR(strip, "directory", text="")
 		
 		# Current element for the filename
-		
-		
+
 		elem = strip.getStripElem(context.scene.current_frame)
 		if elem:
 			split = layout.split(percentage=0.2)

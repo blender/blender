@@ -275,9 +275,6 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
 
 		col = layout.column(align=True)
 		col.itemR(arm, "x_axis_mirror")
-		
-
-
 
 # ********** default tools for editmode_mball ****************
 

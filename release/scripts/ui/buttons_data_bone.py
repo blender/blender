@@ -48,8 +48,6 @@ class BONE_PT_transform(BoneButtonsPanel):
 		else:
 			pchan = ob.pose.pose_channels[context.bone.name]
 
-			
-
 			row = layout.row()
 			col = row.column()
 			col.itemR(pchan, "location")
@@ -141,7 +139,6 @@ class BONE_PT_relations(BoneButtonsPanel):
 		sub.itemR(bone, "hinge", text="Inherit Rotation")
 		sub.itemR(bone, "inherit_scale", text="Inherit Scale")
 
-			
 class BONE_PT_display(BoneButtonsPanel):
 	__label__ = "Display"
 	
@@ -174,7 +171,6 @@ class BONE_PT_display(BoneButtonsPanel):
 			
 			col.itemL(text="Custom Shape:")
 			col.itemR(pchan, "custom_shape", text="")
-
 
 class BONE_PT_deform(BoneButtonsPanel):
 	__label__ = "Deform"
@@ -223,7 +219,6 @@ class BONE_PT_deform(BoneButtonsPanel):
 		
 		col.itemL(text="Offset:")
 		col.itemR(bone, "cyclic_offset")
-
 
 bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)
