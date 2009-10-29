@@ -536,6 +536,9 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	char scestr[FILE_MAXDIR+FILE_MAXFILE];
 	int success=0, fileflags;
 	
+	/* This is needed so undoing/redoing doesnt crash with threaded previews going */
+	WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
+	
 	strcpy(scestr, G.sce);	/* temporal store */
 	fileflags= G.fileflags;
 	G.fileflags |= G_FILE_NO_UI;

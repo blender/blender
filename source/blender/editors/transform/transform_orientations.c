@@ -518,6 +518,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	Object *obedit = CTX_data_active_object(C);
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
+	
 
 	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
@@ -530,7 +531,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 			gimbalAxis(ob, t->spacemtx);
 		break;
 	case V3D_MANIP_NORMAL:
-		if(obedit || ob->mode & OB_MODE_POSE) {
+		if(obedit || (ob && ob->mode & OB_MODE_POSE)) {
 			float mat[3][3];
 			int type;
 			
@@ -579,7 +580,12 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		/* no break we define 'normal' as 'local' in Object mode */
 	case V3D_MANIP_LOCAL:
 		strcpy(t->spacename, "local");
-		Mat3CpyMat4(t->spacemtx, ob->obmat);
+		
+		if(ob)
+			Mat3CpyMat4(t->spacemtx, ob->obmat);
+		else
+			Mat3One(t->spacemtx);
+		
 		Mat3Ortho(t->spacemtx);
 		break;
 		
