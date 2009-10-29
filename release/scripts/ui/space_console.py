@@ -133,6 +133,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 			return ('CANCELLED',)
 		
 		namespace, console, stdout, stderr = get_console(hash(context.region))
+		namespace['C'] = context
 		
 		# redirect output
 		sys.stdout = stdout
