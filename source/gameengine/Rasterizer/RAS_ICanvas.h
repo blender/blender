@@ -135,9 +135,9 @@ public:
 	GetDisplayArea(
 	) const = 0;
 
-	virtual 
-		RAS_Rect &
-	GetDisplayArea(
+	virtual
+		void
+	SetDisplayArea(RAS_Rect *rect
 	) = 0;
 
 	/**

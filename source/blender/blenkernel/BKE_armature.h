@@ -72,8 +72,7 @@ extern "C" {
 
 struct bArmature *add_armature(char *name);
 struct bArmature *get_armature(struct Object *ob);
-void free_boneChildren(struct Bone *bone);
-void free_bones (struct bArmature *arm);
+void free_bonelist (struct ListBase *lb);
 void free_armature(struct bArmature *arm);
 void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);

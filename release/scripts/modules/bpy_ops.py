@@ -21,21 +21,24 @@ context_dict = {
 class bpy_ops(object):
 	'''
 	Fake module like class.
-	
+
 	 bpy.ops
 	'''
+
+	def __getattr__(self, module):
+		'''
+		gets a bpy.ops submodule
+		'''
+		if module.startswith('__'):
+			raise AttributeError(module)
+		return bpy_ops_submodule(module)
+		
 	def add(self, pyop):
 		op_add(pyop)
 	
 	def remove(self, pyop):
 		op_remove(pyop)
 	
-	def __getattr__(self, module):
-		'''
-		gets a bpy.ops submodule
-		'''
-		return bpy_ops_submodule(module)
-		
 	def __dir__(self):
 		
 		submodules = set()
@@ -110,19 +113,36 @@ class bpy_ops_submodule_op(object):
 	def __call__(self, *args, **kw):
 		
 		# Get the operator from blender
-		if len(args) > 1:
-			raise ValueError("only one argument for the execution context is supported ")
+		if len(args) > 2:
+			raise ValueError("only 1 or 2 arguments for the execution context is supported")
+		
+		C_dict = None
 		
 		if args:
+			
+			C_exec = 'EXEC_DEFAULT'
+			
+			if len(args) == 2:
+				C_exec = args[0]
+				C_dict = args[1]
+			else:
+				if type(args[0]) != str:
+					C_dict= args[0]
+				else:
+					C_exec= args[0]
+			
 			try:
-				context = context_dict[args[0]]
+				context = context_dict[C_exec]
 			except:
 				raise ValueError("Expected a single context argument in: " + str(list(context_dict.keys())))
 			
-			return op_call(self.idname(), kw, context)
+			if len(args) == 2:
+				C_dict= args[1]
+			
+			return op_call(self.idname() , C_dict, kw, context)
 		
 		else:
-			return op_call(self.idname(), kw)
+			return op_call(self.idname(), C_dict, kw)
 	
 	def get_rna(self):
 		'''
@@ -311,6 +331,93 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 		exec("context.%s=advance_enum" % self.path)
 		return ('FINISHED',)
 
+doc_id = bpy.props.StringProperty(attr="doc_id", name="Doc ID", description="ID for the documentation", maxlen= 1024, default= "")
+doc_new = bpy.props.StringProperty(attr="doc_new", name="Doc New", description="", maxlen= 1024, default= "")
+
+
+class WM_OT_doc_view(bpy.types.Operator):
+	'''Load online reference docs'''
+	__idname__ = "wm.doc_view"
+	__label__ = "View Documentation"
+	__props__ = [doc_id]
+	_prefix = 'http://www.blender.org/documentation/250PythonDoc'
+	
+	def _nested_class_string(self, class_string):
+		ls = []
+		class_obj = getattr(bpy.types, class_string, None).__rna__
+		while class_obj:
+			ls.insert(0, class_obj)
+			class_obj = class_obj.nested
+		return '.'.join([class_obj.identifier for class_obj in ls])
+	
+	def execute(self, context):
+		id_split = self.doc_id.split('.')
+		# Example url, http://www.graphicall.org/ftp/ideasman42/html/bpy.types.Space3DView-class.html#background_image
+		# Example operator http://www.graphicall.org/ftp/ideasman42/html/bpy.ops.boid-module.html#boidrule_add
+		if len(id_split) == 1: # rna, class
+			url= '%s/bpy.types.%s-class.html' % (self._prefix, id_split[0])
+		elif len(id_split) == 2: # rna, class.prop
+			class_name, class_prop = id_split
+			
+			class_name_full = self._nested_class_string(class_name) # It so happens that epydoc nests these
+			
+			if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
+				url= '%s/bpy.ops.%s-module.html#%s' % (self._prefix, class_name_full, class_prop)
+			else:
+				url= '%s/bpy.types.%s-class.html#%s' % (self._prefix, class_name_full, class_prop)
+			
+		else:
+			return ('PASS_THROUGH',)
+		
+		import webbrowser
+		webbrowser.open(url)
+		
+		return ('FINISHED',)
+
+
+class WM_OT_doc_edit(bpy.types.Operator):
+	'''Load online reference docs'''
+	__idname__ = "wm.doc_edit"
+	__label__ = "Edit Documentation"
+	__props__ = [doc_id, doc_new]
+	
+	
+	def _send_xmlrpc(self, data_dict):		
+		print("sending data:", data_dict)
+		
+		import xmlrpc.client
+		user = 'blenderuser'
+		pwd = 'blender>user'
+		
+		docblog = xmlrpc.client.ServerProxy("http://www.mindrones.com/blender/svn/xmlrpc.php")
+		docblog.metaWeblog.newPost(1,user,pwd, data_dict,1)
+	
+	def execute(self, context):
+		
+		class_name, class_prop = self.doc_id.split('.')
+		
+		if self.doc_new:
+			op_class = getattr(bpy.types, class_name.upper() + '_OT_' + class_prop, None)
+			
+			if op_class:
+				doc_orig = op_class.__rna__.description
+				if doc_orig != self.doc_new:
+					print("operator - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
+					self._send_xmlrpc({'title':'OPERATOR %s:%s' % (self.doc_id,doc_orig),'description':self.doc_new})
+			else:
+				doc_orig = getattr(bpy.types, class_name).__rna__.properties[class_prop].description
+				if doc_orig != self.doc_new:
+					print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
+					# Ugh, will run this on every edit.... better not make any mistakes
+					self._send_xmlrpc({'title':'RNA %s:%s' % (self.doc_id,doc_orig),'description':self.doc_new})
+					
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		wm = context.manager
+		wm.invoke_props_popup(self.__operator__, event)
+		return ('RUNNING_MODAL',)
+
 
 bpy.ops.add(MESH_OT_delete_edgeloop)
 
@@ -324,3 +431,5 @@ bpy.ops.add(WM_OT_context_toggle_enum)
 bpy.ops.add(WM_OT_context_cycle_enum)
 bpy.ops.add(WM_OT_context_cycle_int)
 
+bpy.ops.add(WM_OT_doc_view)
+bpy.ops.add(WM_OT_doc_edit)

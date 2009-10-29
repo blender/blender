@@ -123,10 +123,8 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 		}
 		
 		if (U.flag & USER_ADD_VIEWALIGNED) {
-			ARegion *ar= CTX_wm_region(C);
-			if(ar) {
-				RegionView3D *rv3d= ar->regiondata;
-				
+			RegionView3D *rv3d = CTX_wm_region_view3d(C);
+			if(rv3d) {
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
 				QuatToEul(rv3d->viewquat, ob->rot);
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
@@ -739,7 +737,6 @@ static void copy_object__forwardModifierLinks(void *userData, Object *ob,
 /* after copying objects, copied data should get new pointers */
 static void copy_object_set_idnew(bContext *C, int dupflag)
 {
-	Object *ob;
 	Material *ma, *mao;
 	ID *id;
 #if 0 // XXX old animation system
@@ -749,8 +746,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	int a;
 	
 	/* XXX check object pointers */
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		ob= base->object;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		relink_constraints(&ob->constraints);
 		if (ob->pose){
 			bPoseChannel *chan;

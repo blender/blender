@@ -175,6 +175,61 @@ static void stats_editbone(View3D *v3d, EditBone *ebo)
 		protectflag_to_drawflags(OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE, &v3d->twdrawflag);
 }
 
+
+static int test_rotmode_euler(short rotmode)
+{
+	return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0:1;
+}
+
+void gimbalAxis(Object *ob, float gmat[][3])
+{
+	if(ob->mode & OB_MODE_POSE)
+	{
+		bPoseChannel *pchan= NULL;
+
+		/* use channels to get stats */
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->bone && pchan->bone->flag & BONE_ACTIVE) {
+				if(test_rotmode_euler(pchan->rotmode)) {
+					break;
+				}
+			}
+		}
+
+		if(pchan) {
+			int i;
+
+			EulToGimbalAxis(gmat, pchan->eul, pchan->rotmode);
+
+			for (i=0; i<3; i++)
+				Mat3MulVecfl(pchan->bone->bone_mat, gmat[i]);
+
+			if(pchan->parent) {
+				bPoseChannel *pchan_par= pchan->parent;
+
+				float tmat[3][3];
+				Mat3CpyMat4(tmat, pchan_par->pose_mat);
+
+				for (i=0; i<3; i++)
+					Mat3MulVecfl(tmat, gmat[i]);
+			}
+
+			/* needed if object trans isnt identity */
+			for (i=0; i<3; i++) {
+				float tmat[3][3];
+				Mat3CpyMat4(tmat, ob->obmat);
+				Mat3MulVecfl(tmat, gmat[i]);
+			}
+		}
+	}
+	else {
+		if(test_rotmode_euler(ob->rotmode)) {
+			EulToGimbalAxis(gmat, ob->rot, ob->rotmode);
+		}
+	}
+}
+
+
 /* centroid, boundbox, of selection */
 /* returns total items selected */
 int calc_manipulator_stats(const bContext *C)
@@ -416,6 +471,14 @@ int calc_manipulator_stats(const bContext *C)
 		case V3D_MANIP_GLOBAL:
 			break; /* nothing to do */
 
+		case V3D_MANIP_GIMBAL:
+		{
+			float mat[3][3];
+			Mat3One(mat);
+			gimbalAxis(ob, mat);
+			Mat4CpyMat3(rv3d->twmat, mat);
+			break;
+		}
 		case V3D_MANIP_NORMAL:
 			if(obedit || ob->mode & OB_MODE_POSE) {
 				float mat[3][3];
@@ -1404,9 +1467,10 @@ void BIF_draw_manipulator(const bContext *C)
 	int totsel;
 
 	if(!(v3d->twflag & V3D_USE_MANIPULATOR)) return;
-	if(G.moving && (G.moving & G_TRANSFORM_MANIP)==0) return;
+//	if(G.moving && (G.moving & G_TRANSFORM_MANIP)==0) return;
 
-	if(G.moving==0) {
+//	if(G.moving==0) {
+	{
 		v3d->twflag &= ~V3D_DRAW_MANIPULATOR;
 
 		totsel= calc_manipulator_stats(C);
@@ -1454,7 +1518,7 @@ void BIF_draw_manipulator(const bContext *C)
 				else draw_manipulator_rotate_cyl(v3d, rv3d, 0, drawflags, v3d->twtype, MAN_RGB);
 			}
 			else
-				draw_manipulator_rotate(v3d, rv3d, G.moving, drawflags, v3d->twtype);
+				draw_manipulator_rotate(v3d, rv3d, 0 /* G.moving*/, drawflags, v3d->twtype);
 
 			glDisable(GL_BLEND);
 		}

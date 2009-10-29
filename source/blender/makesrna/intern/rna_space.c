@@ -77,6 +77,7 @@ static EnumPropertyItem draw_channels_items[] = {
 static EnumPropertyItem transform_orientation_items[] = {
 	{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", "Align the transformation axes to world space"},
 	{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", "Align the transformation axes to the selected objects' local space"},
+	{V3D_MANIP_GIMBAL, "GIMBAL", 0, "Gimbal", "Align each axis to the euler rotation axis as used for input"},
 	{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", "Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)"},
 	{V3D_MANIP_VIEW, "VIEW", 0, "View", "Align the transformation axes to the window"},
 	{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
@@ -169,6 +170,7 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_GLOBAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_NORMAL);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_GIMBAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_VIEW);
 

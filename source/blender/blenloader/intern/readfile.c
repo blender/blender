@@ -2345,12 +2345,14 @@ static void direct_link_bones(FileData *fd, Bone* bone)
 	Bone	*child;
 
 	bone->parent= newdataadr(fd, bone->parent);
+	bone->prop= newdataadr(fd, bone->prop);
+	if(bone->prop)
+		IDP_DirectLinkProperty(bone->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 
 	link_list(fd, &bone->childbase);
 
-	for (child=bone->childbase.first; child; child=child->next) {
+	for(child=bone->childbase.first; child; child=child->next)
 		direct_link_bones(fd, child);
-	}
 }
 
 static void direct_link_armature(FileData *fd, bArmature *arm)
@@ -3497,7 +3499,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				ob->type= OB_EMPTY;
 				warn= 1;
 				if(ob->id.lib) printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
-				else printf("Object %s lost data.", ob->id.name+2);
+				else printf("Object %s lost data.\n", ob->id.name+2);
 				
 				if(ob->pose) {
 					free_pose(ob->pose);

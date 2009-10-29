@@ -50,30 +50,31 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 			split = layout.split()
 			
 			col = split.column()
+			
+			col.itemL(text="Quality:")
+			col.itemR(cloth, "quality", text="Steps",slider=True)
+			
 			col.itemL(text="Material:")
 			sub = col.column(align=True)
 			sub.itemR(cloth, "mass")
 			sub.itemR(cloth, "structural_stiffness", text="Structural")
 			sub.itemR(cloth, "bending_stiffness", text="Bending")
+			
+			col = split.column()
+			
+			col.itemL(text="Presets:")
+			col.itemL(text="TODO!")
+
+			col.itemL(text="Damping:")
+			sub = col.column(align=True)
+			sub.itemR(cloth, "spring_damping", text="Spring")
+			sub.itemR(cloth, "air_damping", text="Air")
 
 			col.itemR(cloth, "pin_cloth", text="Pin")
 			sub = col.column(align=True)
 			sub.active = cloth.pin_cloth
 			sub.itemR(cloth, "pin_stiffness", text="Stiffness")
 			sub.item_pointerR(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
-			
-			col = split.column()
-
-			col.itemL(text="Damping:")
-			sub = col.column(align=True)
-			sub.itemR(cloth, "spring_damping", text="Spring")
-			sub.itemR(cloth, "air_damping", text="Air")
-			
-			col.itemL(text="Presets...")
-			col.itemL(text="TODO!")
-			
-			col.itemL(text="Quality:")
-			col.itemR(cloth, "quality", text="Steps",slider=True)
 			
 			# Disabled for now
 			"""

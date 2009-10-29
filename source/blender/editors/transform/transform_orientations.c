@@ -434,7 +434,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 }
 
 char * BIF_menustringTransformOrientation(const bContext *C, char *title) {
-	char menu[] = "%t|Global%x0|Local%x1|Normal%x2|View%x3";
+	char menu[] = "%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3";
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
@@ -510,6 +510,7 @@ static int count_bone_select(bArmature *arm, ListBase *lb, int do_it)
 	return total;
 }
 
+extern void gimbalAxis(Object *ob, float gimbal_vecs[][3]);
 void initTransformOrientation(bContext *C, TransInfo *t)
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -522,7 +523,12 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	case V3D_MANIP_GLOBAL:
 		strcpy(t->spacename, "global");
 		break;
-		
+
+	case V3D_MANIP_GIMBAL:
+		Mat3One(t->spacemtx);
+		if(ob)
+			gimbalAxis(ob, t->spacemtx);
+		break;
 	case V3D_MANIP_NORMAL:
 		if(obedit || ob->mode & OB_MODE_POSE) {
 			float mat[3][3];

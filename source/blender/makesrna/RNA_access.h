@@ -593,6 +593,8 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
 /* Property Information */
 
 const char *RNA_property_identifier(PropertyRNA *prop);
+const char *RNA_property_description(PropertyRNA *prop);
+
 PropertyType RNA_property_type(PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PropertyRNA *prop);
 PropertyUnit RNA_property_unit(PropertyRNA *prop);
@@ -671,6 +673,7 @@ void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, Collectio
 void RNA_property_collection_next(CollectionPropertyIterator *iter);
 void RNA_property_collection_end(CollectionPropertyIterator *iter);
 int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_collection_lookup_index(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *t_ptr);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
 

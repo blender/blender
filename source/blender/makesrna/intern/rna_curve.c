@@ -757,12 +757,12 @@ static void rna_def_curve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
-	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property.");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
-	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	

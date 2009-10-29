@@ -440,7 +440,6 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	TransVert *tv;
-	Object *ob;
 	float gridf, imat[3][3], bmat[3][3], vec[3];
 	int a;
 
@@ -479,9 +478,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 	}
 	else {
 
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-			ob= base->object;
-			
+		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
@@ -575,7 +572,6 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	TransVert *tv;
-	Object *ob;
 	float *curs, imat[3][3], bmat[3][3], vec[3];
 	int a;
 
@@ -608,8 +604,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 		
 	}
 	else {
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-			ob= base->object;
+		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
@@ -776,7 +771,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 		transvmain= NULL;
 	}
 	else {
-		Object *ob= OBACT;
+		Object *ob= CTX_data_active_object(C);
 		
 		if(ob && (ob->mode & OB_MODE_POSE)) {
 			bArmature *arm= ob->data;
@@ -794,8 +789,8 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 			}
 		}
 		else {
-			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-				VECCOPY(vec, base->object->obmat[3]);
+			CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+				VECCOPY(vec, ob->obmat[3]);
 				VecAddf(centroid, centroid, vec);
 				DO_MINMAX(vec, min, max);
 				count++;
@@ -840,6 +835,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 static int snap_curs_to_active(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	float *curs;
@@ -860,8 +856,8 @@ static int snap_curs_to_active(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		if (BASACT) {
-			VECCOPY(curs, BASACT->object->obmat[3]);
+		if (obact) {
+			VECCOPY(curs, obact->obmat[3]);
 		}
 	}
 	
@@ -894,7 +890,6 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	TransVert *tv;
-	Object *ob;
 	float snaploc[3], imat[3][3], bmat[3][3], vec[3], min[3], max[3], centroid[3];
 	int count, a;
 
@@ -938,8 +933,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 	}
 	else {
 		
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-			ob= base->object;
+		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
@@ -957,7 +951,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 			}
 			else {
 				/* not armature bones (i.e. objects) */
-				VECCOPY(vec, base->object->obmat[3]);
+				VECCOPY(vec, ob->obmat[3]);
 				VecAddf(centroid, centroid, vec);
 				DO_MINMAX(vec, min, max);
 				count++;
@@ -1007,8 +1001,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 	}
 	else {
 
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-			ob= base->object;
+		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;

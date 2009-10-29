@@ -3425,7 +3425,7 @@ static int shuffle_seq_time_offset_test(ListBase * seqbasep, char dir)
 	for(seq= seqbasep->first; seq; seq= seq->next) {
 		if(seq->tmp) {
 			for(seq_other= seqbasep->first; seq_other; seq_other= seq_other->next) {
-				if(seq_overlap(seq, seq_other)) {
+				if(!seq_other->tmp && seq_overlap(seq, seq_other)) {
 					if(dir=='L') {
 						offset= MIN2(offset, seq_other->startdisp - seq->enddisp);
 					}

@@ -2355,7 +2355,7 @@ void flushTransSeq(TransInfo *t)
 
 		tdsq= (TransDataSeq *)td->extra;
 		seq= tdsq->seq;
-		new_frame= (int)(td2d->loc[0] + 0.5f);
+		new_frame= (int)floor(td2d->loc[0] + 0.5f);
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
@@ -2363,7 +2363,7 @@ void flushTransSeq(TransInfo *t)
 				seq->start= new_frame - tdsq->start_offset;
 
 			if (seq->depth==0) {
-				seq->machine= (int)(td2d->loc[1] + 0.5f);
+				seq->machine= (int)floor(td2d->loc[1] + 0.5f);
 				CLAMP(seq->machine, 1, MAXSEQ);
 			}
 			break;
@@ -4092,7 +4092,8 @@ static void freeSeqData(TransInfo *t)
 					for(a=0; a<t->total; a++, td++) {
 						seq= ((TransDataSeq *)td->extra)->seq;
 						if ((seq != seq_prev)) {
-							seq->tmp= 1;
+							/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
+							seq->tmp= (void*)1;
 						}
 					}
 
@@ -4399,7 +4400,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 {
 	ID *id= &ob->id;
 	FCurve *fcu;
-
+	
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
@@ -4500,7 +4501,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
 	FCurve *fcu;
-
+	
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
@@ -4634,7 +4635,7 @@ void special_aftertrans_update(TransInfo *t)
 //	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
 	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0;
-
+	
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
@@ -4642,7 +4643,8 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
-	else if (t->spacetype == SPACE_SEQ) {
+	
+	if (t->spacetype == SPACE_SEQ) {
 		/* freeSeqData in transform_conversions.c does this
 		 * keep here so the else at the end wont run... */
 	}
@@ -4944,6 +4946,7 @@ void special_aftertrans_update(TransInfo *t)
 				if (!cancelled)
 					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 			}
+
 		}
 	}
 
@@ -5207,7 +5210,7 @@ void createTransData(bContext *C, TransInfo *t)
 		{
 			View3D *v3d = t->view;
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if(rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+			if(rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB)
 			{
 				t->flag |= T_CAMERA;
 			}

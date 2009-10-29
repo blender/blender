@@ -60,6 +60,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
@@ -93,43 +94,25 @@ bArmature *get_armature(Object *ob)
 	return NULL;
 }
 
-void free_boneChildren(Bone *bone)
-{ 
-	Bone *child;
-	
-	if (bone) {
-		
-		child=bone->childbase.first;
-		if (child){
-			while (child){
-				free_boneChildren (child);
-				child=child->next;
-			}
-			BLI_freelistN (&bone->childbase);
-		}
-	}
-}
-
-void free_bones (bArmature *arm)
+void free_bonelist (ListBase *lb)
 {
 	Bone *bone;
-	/*	Free children (if any)	*/
-	bone= arm->bonebase.first;
-	if (bone) {
-		while (bone){
-			free_boneChildren (bone);
-			bone=bone->next;
+
+	for(bone=lb->first; bone; bone=bone->next) {
+		if(bone->prop) {
+			IDP_FreeProperty(bone->prop);
+			MEM_freeN(bone->prop);
 		}
+		free_bonelist(&bone->childbase);
 	}
 	
-	
-	BLI_freelistN(&arm->bonebase);
+	BLI_freelistN(lb);
 }
 
 void free_armature(bArmature *arm)
 {
 	if (arm) {
-		free_bones(arm);
+		free_bonelist(&arm->bonebase);
 		
 		/* free editmode data */
 		if (arm->edbo) {

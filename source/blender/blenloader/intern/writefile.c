@@ -2131,6 +2131,11 @@ static void write_bone(WriteData *wd, Bone* bone)
 		
 	// Write this bone
 	writestruct(wd, DATA, "Bone", 1, bone);
+
+	/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+	 of library blocks that implement this.*/
+	if (bone->prop)
+		IDP_WriteProperty(bone->prop, wd);
 	
 	// Write Children
 	cbone= bone->childbase.first;

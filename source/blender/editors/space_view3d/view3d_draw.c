@@ -395,14 +395,14 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 	setlinestyle(0);
 	
 	/* center cross */
-	if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
+	if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) 
 		UI_make_axis_color(col, col2, 'y');
 	else UI_make_axis_color(col, col2, 'x');
 	glColor3ubv((GLubyte *)col2);
 	
 	fdrawline(0.0,  y,  (float)ar->winx,  y); 
 	
-	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
+	if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) 
 		UI_make_axis_color(col, col2, 'y');
 	else UI_make_axis_color(col, col2, 'z');
 	glColor3ubv((GLubyte *)col2);
@@ -662,11 +662,11 @@ static void draw_view_icon(RegionView3D *rv3d)
 {
 	BIFIconID icon;
 	
-	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
+	if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) 
 		icon= ICON_AXIS_TOP;
-	else if( ELEM(rv3d->view, V3D_VIEW_FRONT, V3D_VIEW_BACK)) 
+	else if( ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) 
 		icon= ICON_AXIS_FRONT;
-	else if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
+	else if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) 
 		icon= ICON_AXIS_SIDE;
 	else return ;
 	
@@ -683,33 +683,33 @@ static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	char *name = NULL;
 	
 	switch (rv3d->view) {
-		case V3D_VIEW_FRONT:
-			if (rv3d->persp == V3D_ORTHO) name = "Front Ortho";
+		case RV3D_VIEW_FRONT:
+			if (rv3d->persp == RV3D_ORTHO) name = "Front Ortho";
 			else name = "Front Persp";
 			break;
-		case V3D_VIEW_BACK:
-			if (rv3d->persp == V3D_ORTHO) name = "Back Ortho";
+		case RV3D_VIEW_BACK:
+			if (rv3d->persp == RV3D_ORTHO) name = "Back Ortho";
 			else name = "Back Persp";
 			break;
-		case V3D_VIEW_TOP:
-			if (rv3d->persp == V3D_ORTHO) name = "Top Ortho";
+		case RV3D_VIEW_TOP:
+			if (rv3d->persp == RV3D_ORTHO) name = "Top Ortho";
 			else name = "Top Persp";
 			break;
-		case V3D_VIEW_BOTTOM:
-			if (rv3d->persp == V3D_ORTHO) name = "Bottom Ortho";
+		case RV3D_VIEW_BOTTOM:
+			if (rv3d->persp == RV3D_ORTHO) name = "Bottom Ortho";
 			else name = "Bottom Persp";
 			break;
-		case V3D_VIEW_RIGHT:
-			if (rv3d->persp == V3D_ORTHO) name = "Right Ortho";
+		case RV3D_VIEW_RIGHT:
+			if (rv3d->persp == RV3D_ORTHO) name = "Right Ortho";
 			else name = "Right Persp";
 			break;
-		case V3D_VIEW_LEFT:
-			if (rv3d->persp == V3D_ORTHO) name = "Left Ortho";
+		case RV3D_VIEW_LEFT:
+			if (rv3d->persp == RV3D_ORTHO) name = "Left Ortho";
 			else name = "Left Persp";
 			break;
 			
 		default:
-			if (rv3d->persp==V3D_CAMOB) {
+			if (rv3d->persp==RV3D_CAMOB) {
 				if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = v3d->camera->data;
@@ -718,7 +718,7 @@ static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 					name = "Object as Camera";
 				}
 			} else { 
-				name = (rv3d->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
+				name = (rv3d->persp == RV3D_ORTHO) ? "User Ortho" : "User Persp";
 			}
 			break;
 	}
@@ -1866,28 +1866,23 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Objec
 	return mask;
 }
 
-void view3d_main_area_draw(const bContext *C, ARegion *ar)
+static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
 {
-	Scene *scene= CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	Scene *sce;
-	Base *base;
-	Object *ob;
-	int retopo= 0, sculptparticle= 0;
-	Object *obact = OBACT;
-	char *grid_unit= NULL;
+	RegionView3D *rv3d= ar->regiondata;
+
+	/* setup window matrices */
+	if(winmat)
+		Mat4CpyMat4(rv3d->winmat, winmat);
+	else
+		setwinmatrixview3d(ar, v3d, NULL); /* NULL= no pickrect */
 	
-	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
+	/* setup view matrix */
+	if(viewmat)
+		Mat4CpyMat4(rv3d->viewmat, viewmat);
+	else
+		setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
 	
-	/* shadow buffers, before we setup matrices */
-	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
-		gpu_update_lamps_shadows(scene, v3d);
-	
-	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
-	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
-	
+	/* update utilitity matrices */
 	Mat4MulMat4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
 	Mat4Invert(rv3d->persinv, rv3d->persmat);
 	Mat4Invert(rv3d->viewinv, rv3d->viewmat);
@@ -1908,23 +1903,118 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		else rv3d->pixsize/= (float)ar->winy;
 	}
 	
-	if(v3d->drawtype > OB_WIRE) {
-		float col[3];
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glClearColor(col[0], col[1], col[2], 0.0); 
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-		
-		glLoadIdentity();
-	}
-	else {
-		float col[3];
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glClearColor(col[0], col[1], col[2], 0.0);
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	}
-	
+	/* set for opengl */
+	glMatrixMode(GL_PROJECTION);
+	wmLoadMatrix(rv3d->winmat);
+
+	glMatrixMode(GL_MODELVIEW);
 	wmLoadMatrix(rv3d->viewmat);
+}
+
+void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy, float viewmat[][4], float winmat[][4])
+{
+	Scene *sce;
+	Base *base;
+	int bwinx, bwiny;
+
+	wmPushMatrix();
+
+	/* set temporary new size */
+	bwinx= ar->winx;
+	bwiny= ar->winy;
+	ar->winx= winx;
+	ar->winy= winy;
+
+	/* set flags */
+	G.f |= G_RENDER_OGL;
+	GPU_free_images();
+
+	/* set background color */
+	glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	/* setup view matrices */
+	view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
+
+	/* set zbuffer */
+	if(v3d->drawtype > OB_WIRE) {
+		v3d->zbuf= TRUE;
+		glEnable(GL_DEPTH_TEST);
+	}
+	else
+		v3d->zbuf= FALSE;
+
+	/* draw set first */
+	if(scene->set) {
+		for(SETLOOPER(scene->set, base)) {
+			if(v3d->lay & base->lay) {
+				UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
+				draw_object(scene, ar, v3d, base, DRAW_CONSTCOLOR|DRAW_SCENESET);
+				
+				if(base->object->transflag & OB_DUPLI)
+					draw_dupli_objects_color(scene, ar, v3d, base, TH_WIRE);
+			}
+		}
+	}
 	
+	/* then draw not selected and the duplis, but skip editmode object */
+	for(base= scene->base.first; base; base= base->next) {
+		if(v3d->lay & base->lay) {
+			/* dupli drawing */
+			if(base->object->transflag & OB_DUPLI)
+				draw_dupli_objects(scene, ar, v3d, base);
+
+			draw_object(scene, ar, v3d, base, 0);
+		}
+	}
+
+	/* transp and X-ray afterdraw stuff */
+	view3d_draw_transp(scene, ar, v3d);
+	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+
+	/* cleanup */
+	if(v3d->zbuf) {
+		v3d->zbuf= FALSE;
+		glDisable(GL_DEPTH_TEST);
+	}
+
+	GPU_free_images();
+
+	/* restore size */
+	ar->winx= bwinx;
+	ar->winy= bwiny;
+
+	wmPopMatrix();
+}
+
+void view3d_main_area_draw(const bContext *C, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *sce;
+	Base *base;
+	Object *ob;
+	float col[3];
+	int retopo= 0, sculptparticle= 0;
+	Object *obact = OBACT;
+	char *grid_unit= NULL;
+	
+	/* from now on all object derived meshes check this */
+	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
+	
+	/* shadow buffers, before we setup matrices */
+	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+		gpu_update_lamps_shadows(scene, v3d);
+
+	/* clear background */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0); 
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	
+	/* setup view matrices */
+	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_draw_clipping(rv3d);
 	

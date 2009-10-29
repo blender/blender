@@ -1124,11 +1124,24 @@ static int pyrna_prop_contains(BPy_PropertyRNA * self, PyObject *value)
 	return 0;
 }
 
+static PyObject *pyrna_prop_item(BPy_PropertyRNA * self, Py_ssize_t index)
+{
+	/* reuse subscript functions */
+	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+		return prop_subscript_collection_int(self, index);
+	} else if (RNA_property_array_check(&self->ptr, self->prop)) {
+		return prop_subscript_array_int(self, index);
+	}
+
+	PyErr_SetString(PyExc_TypeError, "rna type is not an array or a collection");
+	return NULL;
+}
+
 static PySequenceMethods pyrna_prop_as_sequence = {
 	NULL,		/* Cant set the len otherwise it can evaluate as false */
 	NULL,		/* sq_concat */
 	NULL,		/* sq_repeat */
-	NULL,		/* sq_item */
+	(ssizeargfunc)pyrna_prop_item, /* sq_item */ /* Only set this so PySequence_Check() returns True */
 	NULL,		/* sq_slice */
 	NULL,		/* sq_ass_item */
 	NULL,		/* sq_ass_slice */
@@ -1177,7 +1190,6 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA * self, PyObject 
 
 	return PyBool_FromLong(hidden);
 }
-
 
 static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 {
@@ -1263,6 +1275,13 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 		BLI_freelistN(&lb);
 	}
 	
+	/* Hard coded names */
+	{
+		pystring = PyUnicode_FromString("id_data");
+		PyList_Append(ret, pystring);
+		Py_DECREF(pystring);
+	}
+
 	return ret;
 }
 
@@ -1318,6 +1337,16 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
         }
 
 		BLI_freelistN(&newlb);
+	}
+	else if (strcmp(name, "id_data")==0) { /* XXX - hard coded */
+		if(self->ptr.id.data) {
+			PointerRNA id_ptr;
+			RNA_id_pointer_create((ID *)self->ptr.id.data, &id_ptr);
+			return pyrna_struct_CreatePyObject(&id_ptr);
+		}
+		else {
+			Py_RETURN_NONE;
+		}
 	}
 	else {
 		PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%.200s\" not found", name);

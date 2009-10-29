@@ -139,6 +139,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
 	WM_operatortype_append(MESH_OT_blend_from_shape);
+	WM_operatortype_append(MESH_OT_shape_propagate_to_all);
 	
 	WM_operatortype_append(MESH_OT_uv_texture_add);
 	WM_operatortype_append(MESH_OT_uv_texture_remove);

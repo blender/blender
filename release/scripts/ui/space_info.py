@@ -206,6 +206,11 @@ class INFO_MT_render(bpy.types.Menu):
 
 		layout.itemS()
 
+		layout.itemO("screen.opengl_render", text="OpenGL Render Image")
+		layout.item_booleanO("screen.opengl_render", "animation", True, text="OpenGL Render Animation")
+
+		layout.itemS()
+
 		layout.itemO("screen.render_view_show")
 
 class INFO_MT_help(bpy.types.Menu):
@@ -224,6 +229,8 @@ class INFO_MT_help(bpy.types.Menu):
 		layout.itemO("help.developer_community", icon='ICON_URL')
 		layout.itemO("help.user_community", icon='ICON_URL')
 		layout.itemS()
+		layout.itemO("help.report_bug", icon='ICON_URL')
+		layout.itemS()
 		layout.itemO("help.operator_cheat_sheet")
 
 bpy.types.register(INFO_HT_header)
@@ -241,14 +248,8 @@ bpy.types.register(INFO_MT_help)
 
 class HelpOperator(bpy.types.Operator):
 	def execute(self, context):
-		try: import webbrowser
-		except: webbrowser = None
-
-		if webbrowser:
-			webbrowser.open(self.__URL__)
-		else:
-			raise Exception("Operator requires a full Python installation")
-
+		import webbrowser
+		webbrowser.open(self.__URL__)
 		return ('FINISHED',)
 
 class HELP_OT_manual(HelpOperator):
@@ -286,6 +287,12 @@ class HELP_OT_user_community(HelpOperator):
 	__idname__ = "help.user_community"
 	__label__ = "User Community"
 	__URL__ = 'http://www.blender.org/community/user-community/'
+	
+class HELP_OT_report_bug(HelpOperator):
+	'''Report a bug in the Blender bug tracker'''
+	__idname__ = "help.report_bug"
+	__label__ = "Report a Bug"
+	__URL__ = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 	__idname__ = "help.operator_cheat_sheet"
@@ -318,4 +325,5 @@ bpy.ops.add(HELP_OT_blender_website)
 bpy.ops.add(HELP_OT_blender_eshop)
 bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
+bpy.ops.add(HELP_OT_report_bug)
 bpy.ops.add(HELP_OT_operator_cheat_sheet)

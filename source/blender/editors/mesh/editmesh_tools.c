@@ -5023,14 +5023,12 @@ void MESH_OT_rip(wmOperatorType *ot)
 
 /************************ Shape Operators *************************/
 
-#if 0
-void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
+static void shape_propagate(Object *obedit, EditMesh *em, wmOperator *op)
 {
 	EditVert *ev = NULL;
 	Mesh* me = (Mesh*)obedit->data;
 	Key*  ky = NULL;
 	KeyBlock* kb = NULL;
-	Base* base=NULL;
 
 
 	if(me->key){
@@ -5055,17 +5053,49 @@ void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 		return;
 	}
 
+#if 0
 	//TAG Mesh Objects that share this data
 	for(base = scene->base.first; base; base = base->next){
 		if(base->object && base->object->data == me){
 			base->object->recalc = OB_RECALC_DATA;
 		}
 	}
+#endif
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	return;
 }
-#endif
+
+
+static int shape_propagate_to_all_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	EditMesh *em= BKE_mesh_get_editmesh(me);
+
+	shape_propagate(obedit, em, op);
+
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shape Propagate";
+	ot->description= "Apply selected vertex locations to all other shape keys.";
+	ot->idname= "MESH_OT_shape_propagate_to_all";
+
+	/* api callbacks */
+	ot->exec= shape_propagate_to_all_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 static int blend_from_shape_exec(bContext *C, wmOperator *op)
 {

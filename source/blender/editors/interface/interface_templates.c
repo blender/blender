@@ -1989,14 +1989,15 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	name= (namebuf)? namebuf: "";
 
 	/* hardcoded types */
-	uiBlockSetEmboss(block, UI_EMBOSSN);
-
 	if(itemptr->type == &RNA_MeshTextureFaceLayer || itemptr->type == &RNA_MeshColorLayer) {
 		uiItemL(sub, name, icon);
+		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "active_render", 0, 0, 0, 0, 0, NULL);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
-	else if(itemptr->type == &RNA_MaterialTextureSlot) {
+	else if(RNA_struct_is_a(itemptr->type, &RNA_MaterialTextureSlot)) {
 		uiItemL(sub, name, icon);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, ptr, "use_textures", i, 0, 0, 0, 0,  NULL);
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
@@ -2006,6 +2007,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 		uiItemL(split, name, icon);
 
+		uiBlockSetEmboss(block, UI_EMBOSSN);
 		row= uiLayoutRow(split, 1);
 		if(i == 0) uiItemL(row, "", 0);
 		else uiItemR(row, "", 0, itemptr, "value", 0);
@@ -2013,11 +2015,10 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		if(ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH))
 			uiLayoutSetActive(row, 0);
 		//uiItemR(row, "", ICON_MUTE_IPO_OFF, itemptr, "mute", 0);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else
 		uiItemL(sub, name, icon);
-
-	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	/* free name */
 	if(namebuf)

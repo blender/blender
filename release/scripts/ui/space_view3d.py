@@ -765,8 +765,8 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.itemO("mesh.extrude")
-		layout.itemO("mesh.duplicate")
+		layout.itemO("mesh.extrude_move")
+		layout.itemO("mesh.duplicate_move")
 		layout.itemO("mesh.delete", text="Delete...")
 		
 		layout.itemS()
@@ -808,7 +808,7 @@ class VIEW3D_MT_edit_mesh_specials(bpy.types.Menu):
 		layout.itemO("mesh.faces_shade_smooth")
 		layout.itemO("mesh.faces_shade_flat")
 		layout.itemO("mesh.blend_from_shape")
-		# layout.itemO("mesh.shape_propagate_to_all")
+		layout.itemO("mesh.shape_propagate_to_all")
 		layout.itemO("mesh.select_vertex_path")
 
 class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
@@ -833,7 +833,7 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 		layout.itemO("mesh.blend_from_shape")
 		
 		layout.itemO("object.vertex_group_blend")
-		# uiItemO(layout, "Propagate to All Shapes", 0, "mesh.shape_propagate_to_all");
+		layout.itemO("mesh.shape_propagate_to_all")
 
 class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
 	__label__ = "Edges"
@@ -1129,12 +1129,13 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 				
 		layout.itemS()
 		
-		layout.itemO("armature.extrude")
+		layout.itemO("armature.extrude_move")
+
+# EXTRUDE FORKED DOESN'T WORK YET		
+#		if arm.x_axis_mirror:
+#			layout.item_booleanO("armature.extrude_move", "forked", True, text="Extrude Forked")
 		
-		if arm.x_axis_mirror:
-			layout.item_booleanO("armature.extrude", "forked", True, text="Extrude Forked")
-		
-		layout.itemO("armature.duplicate")
+		layout.itemO("armature.duplicate_move")
 		layout.itemO("armature.merge")
 		layout.itemO("armature.fill")
 		layout.itemO("armature.delete")

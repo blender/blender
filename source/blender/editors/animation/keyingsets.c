@@ -1238,10 +1238,8 @@ static short modifykey_get_context_v3d_data (bContext *C, ListBase *dsources, Ke
 	}
 	else {
 		/* Object Mode: Selected objects */
-		CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
-		{
-			Object *ob= base->object;
-			
+		CTX_DATA_BEGIN(C, Object*, ob, selected_objects) 
+		{			
 			/* add a new keying-source */
 			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
 			BLI_addtail(dsources, cks);

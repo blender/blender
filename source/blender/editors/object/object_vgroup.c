@@ -588,7 +588,7 @@ static void vgroup_normalize(Object *ob)
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
 
 	if(dg) {
-		float weight_max;
+		float weight_max = 0.0f;
 
 		def_nr= ob->actdef-1;
 
@@ -606,7 +606,7 @@ static void vgroup_normalize(Object *ob)
 				dw = ED_vgroup_weight_get(dvert, def_nr);
 				if(dw) {
 					dw->weight /= weight_max;
-
+					
 					/* incase of division errors with very low weights */
 					CLAMP(dw->weight, 0.0f, 1.0f);
 				}

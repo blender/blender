@@ -124,6 +124,9 @@ void CTX_store_free_list(ListBase *contexts);
 int CTX_py_init_get(bContext *C);
 void CTX_py_init_set(bContext *C, int value);
 
+void *CTX_py_dict_get(bContext *C);
+void CTX_py_dict_set(bContext *C, void *value);
+
 /* Window Manager Context */
 
 struct wmWindowManager *CTX_wm_manager(const bContext *C);
