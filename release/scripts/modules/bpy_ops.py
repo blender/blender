@@ -113,19 +113,36 @@ class bpy_ops_submodule_op(object):
 	def __call__(self, *args, **kw):
 		
 		# Get the operator from blender
-		if len(args) > 1:
-			raise ValueError("only one argument for the execution context is supported ")
+		if len(args) > 2:
+			raise ValueError("only 1 or 2 arguments for the execution context is supported")
+		
+		C_dict = None
 		
 		if args:
+			
+			C_exec = 'EXEC_DEFAULT'
+			
+			if len(args) == 2:
+				C_exec = args[0]
+				C_dict = args[1]
+			else:
+				if type(args[0]) != str:
+					C_dict= args[0]
+				else:
+					C_exec= args[0]
+			
 			try:
-				context = context_dict[args[0]]
+				context = context_dict[C_exec]
 			except:
 				raise ValueError("Expected a single context argument in: " + str(list(context_dict.keys())))
 			
-			return op_call(self.idname(), kw, context)
+			if len(args) == 2:
+				C_dict= args[1]
+			
+			return op_call(self.idname() , C_dict, kw, context)
 		
 		else:
-			return op_call(self.idname(), kw)
+			return op_call(self.idname(), C_dict, kw)
 	
 	def get_rna(self):
 		'''

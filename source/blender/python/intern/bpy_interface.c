@@ -63,6 +63,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_text.h"
+#include "BKE_context.h"
 
 #include "BPY_extern.h"
 
@@ -946,5 +947,59 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	bpy_context_clear(C, &gilstate);
 	
 	return error_ret;
+}
+
+
+
+int bpy_context_get(bContext *C, const char *member, bContextDataResult *result)
+{
+	PyObject *pyctx= (PyObject *)CTX_py_dict_get(C);
+	PyObject *item= PyDict_GetItemString(pyctx, member);
+	PointerRNA *ptr= NULL;
+	int done= 0;
+
+	if(item==NULL) {
+		/* pass */
+	}
+	else if(item==Py_None) {
+		/* pass */
+	}
+	else if(BPy_StructRNA_Check(item)) {
+		ptr= &(((BPy_StructRNA *)item)->ptr);
+
+		//result->ptr= ((BPy_StructRNA *)item)->ptr;
+		CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
+		done= 1;
+	}
+	else if (PyList_Check(item)) {
+		int len= PyList_Size(item);
+		int i;
+		for(i = 0; i < len; i++) {
+			PyObject *list_item = PyList_GET_ITEM(item, i); // XXX check type
+
+			if(BPy_StructRNA_Check(list_item)) {
+				/*
+				CollectionPointerLink *link= MEM_callocN(sizeof(CollectionPointerLink), "bpy_context_get");
+				link->ptr= ((BPy_StructRNA *)item)->ptr;
+				BLI_addtail(&result->list, link);
+				*/
+				ptr= &(((BPy_StructRNA *)list_item)->ptr);
+				CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
+			}
+			else {
+				printf("List item not a valid type\n");
+			}
+
+		}
+
+		done= 1;
+	}
+
+	if(done==0) {
+		if (item)	printf("Context '%s' not found\n", member);
+		else		printf("Context '%s' not a valid type\n", member);
+	}
+
+	return done;
 }
 
