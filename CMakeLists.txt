@@ -91,6 +91,19 @@ IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
+IF (WITH_OPENCOLLADA)
+SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
+SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA})
+SET(OPENCOLLADA_LIB OpenCollada)
+SET(PCRE /usr CACHE FILEPATH "PCRE Directory")
+SET(PCRE_LIBPATH ${PCRE}/lib)
+SET(PCRE_LIB pcre)
+SET(EXPAT /usr CACHE FILEPATH "Expat Directory")
+SET(EXPAT_LIBPATH ${EXPAT}/lib)
+SET(EXPAT_LIB expat)
+
+ENDIF (WITH_OPENCOLLADA)
+
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
 #   cmake -D PYTHON_LIB=/usr/local/lib/python2.3/config/libpython2.3.so -D PYTHON_INC=/usr/local/include/python2.3 -D PYTHON_BINARY=/usr/local/bin/python2.3 -G "Unix Makefiles" ../blender
@@ -169,18 +182,6 @@ IF(UNIX AND NOT APPLE)
 			SET(WITH_SDL OFF)
 		ENDIF(NOT SDL_FOUND)
 	ENDIF(WITH_SDL)
-
-	IF(WITH_OPENCOLLADA)
-		SET(OPENCOLLADA /usr/local/opencollada)
-		SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA})
-		SET(OPENCOLLADA_LIB OpenCollada)
-		SET(PCRE /usr)
-		SET(PCRE_LIBPATH ${PCRE}/lib)
-		SET(PCRE_LIB pcre)
-		SET(EXPAT /usr)
-		SET(EXPAT_LIBPATH ${EXPAT}/lib)
-		SET(EXPAT_LIB expat)
-	ENDIF(WITH_OPENCOLLADA)
 
 	FIND_PATH(OPENEXR_INC
 		ImfXdr.h
