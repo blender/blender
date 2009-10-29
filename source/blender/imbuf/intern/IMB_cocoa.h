@@ -1,7 +1,7 @@
 /*
  * IMB_cocoa.h
  *
- * $Id: IMB_cocoa.h 13161 2008-01-07 19:13:47Z hos $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

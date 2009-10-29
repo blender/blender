@@ -1,7 +1,7 @@
 /*
  * imbuf_coca.m
  *
- * $Id: imbuf_cocoa.m 17958 2008-12-19 19:11:02Z blendix $
+ * $Id$
  * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
