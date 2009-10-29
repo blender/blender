@@ -135,11 +135,44 @@ class TEXT_MT_text(bpy.types.Menu):
 
 		layout.itemO("text.properties", icon='ICON_MENU_PANEL')
 		
+		
+		
 		#ifndef DISABLE_PYTHON
 		# XXX layout.column()
 		# XXX uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");
 		# XXX uiDefIconTextBlockBut(block, text_plugin_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Text Plugins", 0, yco-=20, 120, 19, "");
 		#endif
+		
+		layout.itemM("TEXT_MT_templates")
+		
+
+
+class TEXT_MT_templates(bpy.types.Menu):
+	'''
+	Creates the menu items by scanning scripts/templates
+	'''
+	__label__ = "Script Templates"
+	
+	def draw(self, context):
+		import os
+		
+		def path_to_name(f):
+			f_base = os.path.splitext(f)[0]
+			f_base = f_base.replace("_", " ")
+			return ' '.join([w[0].upper() + w[1:] for w in f_base.split()])
+		
+		layout = self.layout
+		template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "templates")
+		
+		for f in sorted(os.listdir(template_dir)):
+			
+			if f.startswith("."):
+				continue
+			
+			path = os.path.join(template_dir, f)
+			layout.item_stringO("text.open", "path", path, text=path_to_name(f))
+
+
 
 class TEXT_MT_edit_view(bpy.types.Menu):
 	__label__ = "View"
@@ -233,6 +266,7 @@ bpy.types.register(TEXT_HT_header)
 bpy.types.register(TEXT_PT_properties)
 bpy.types.register(TEXT_PT_find)
 bpy.types.register(TEXT_MT_text)
+bpy.types.register(TEXT_MT_templates)
 bpy.types.register(TEXT_MT_format)
 bpy.types.register(TEXT_MT_edit)
 bpy.types.register(TEXT_MT_edit_view)

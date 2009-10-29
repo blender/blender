@@ -278,4 +278,4 @@ menu_func = lambda self, context: self.layout.itemO("export.ply", text="Stanford
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 if __name__ == "__main__":
-	bpy.ops.EXPORT_OT_ply(path="/tmp/test.ply")
+	bpy.ops.export.ply(path="/tmp/test.ply")
