@@ -459,16 +459,6 @@ class TEXTURE_PT_image_sampling(TextureTypePanel):
 		slot = context.texture_slot
 		
 		split = layout.split()
-		
-		"""
-		col = split.column()   		
-		col.itemR(tex, "flip_axis")
-		col.itemR(tex, "normal_map")
-		if slot:
-			row = col.row()
-			row.active = tex.normal_map
-			row.itemR(slot, "normal_map_space", text="")
-		"""
 
 		col = split.column()
 		col.itemL(text="Alpha:")
@@ -480,6 +470,11 @@ class TEXTURE_PT_image_sampling(TextureTypePanel):
 		col.itemR(tex, "flip_axis", text="X/Y Axis")
 
 		col = split.column() 
+		col.itemR(tex, "normal_map")
+		row = col.row()
+		row.active = tex.normal_map
+		row.itemR(tex, "normal_space", text="")
+		
 		col.itemL(text="Filter:")
 		col.itemR(tex, "filter", text="")
 		col.itemR(tex, "mipmap")
@@ -519,6 +514,8 @@ class TEXTURE_PT_image_mapping(TextureTypePanel):
 			col.itemL(text="Mirror:")
 			col.itemR(tex, "mirror_x", text="X")
 			col.itemR(tex, "mirror_y", text="Y")
+			layout.itemS()
+
 		elif tex.extension == 'CHECKER': 
 			col = split.column(align=True)
 			row = col.row()
@@ -526,8 +523,7 @@ class TEXTURE_PT_image_mapping(TextureTypePanel):
 			row.itemR(tex, "checker_odd", text="Odd")
 
 			split.itemR(tex, "checker_distance", text="Distance")
-
-		layout.itemS()
+			layout.itemS()
 
 		split = layout.split()
 		
