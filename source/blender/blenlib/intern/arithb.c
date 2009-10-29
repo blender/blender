@@ -2115,6 +2115,161 @@ void i_lookat(float vx, float vy, float vz, float px, float py, float pz, float 
 
 /* ************************************************  */
 
+void Mat3Orthogonal(float mat[][3], int axis)
+{
+	float size[3];
+	size[0] = VecLength(mat[0]);
+	size[1] = VecLength(mat[1]);
+	size[2] = VecLength(mat[2]);
+	Normalize(mat[axis]);
+	switch(axis)
+	{
+		case 0:
+			if (Inpf(mat[0], mat[1]) < 1) {
+				Crossf(mat[2], mat[0], mat[1]);
+				Normalize(mat[2]);
+				Crossf(mat[1], mat[2], mat[0]);
+			} else if (Inpf(mat[0], mat[2]) < 1) {
+				Crossf(mat[1], mat[2], mat[0]);
+				Normalize(mat[1]);
+				Crossf(mat[2], mat[0], mat[1]);
+			} else {
+				float vec[3] = {mat[0][1], mat[0][2], mat[0][0]};
+
+				Crossf(mat[2], mat[0], vec);
+				Normalize(mat[2]);
+				Crossf(mat[1], mat[2], mat[0]);
+			}
+		case 1:
+			if (Inpf(mat[1], mat[0]) < 1) {
+				Crossf(mat[2], mat[0], mat[1]);
+				Normalize(mat[2]);
+				Crossf(mat[0], mat[1], mat[2]);
+			} else if (Inpf(mat[0], mat[2]) < 1) {
+				Crossf(mat[0], mat[1], mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[2], mat[0], mat[1]);
+			} else {
+				float vec[3] = {mat[1][1], mat[1][2], mat[1][0]};
+
+				Crossf(mat[0], mat[1], vec);
+				Normalize(mat[0]);
+				Crossf(mat[2], mat[0], mat[1]);
+			}
+		case 2:
+			if (Inpf(mat[2], mat[0]) < 1) {
+				Crossf(mat[1], mat[2], mat[0]);
+				Normalize(mat[1]);
+				Crossf(mat[0], mat[1], mat[2]);
+			} else if (Inpf(mat[2], mat[1]) < 1) {
+				Crossf(mat[0], mat[1], mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[1], mat[2], mat[0]);
+			} else {
+				float vec[3] = {mat[2][1], mat[2][2], mat[2][0]};
+
+				Crossf(mat[0], vec, mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[1], mat[2], mat[0]);
+			}
+	}
+	VecMulf(mat[0], size[0]);
+	VecMulf(mat[1], size[1]);
+	VecMulf(mat[2], size[2]);
+}
+
+void Mat4Orthogonal(float mat[][4], int axis)
+{
+	float size[3];
+	size[0] = VecLength(mat[0]);
+	size[1] = VecLength(mat[1]);
+	size[2] = VecLength(mat[2]);
+	Normalize(mat[axis]);
+	switch(axis)
+	{
+		case 0:
+			if (Inpf(mat[0], mat[1]) < 1) {
+				Crossf(mat[2], mat[0], mat[1]);
+				Normalize(mat[2]);
+				Crossf(mat[1], mat[2], mat[0]);
+			} else if (Inpf(mat[0], mat[2]) < 1) {
+				Crossf(mat[1], mat[2], mat[0]);
+				Normalize(mat[1]);
+				Crossf(mat[2], mat[0], mat[1]);
+			} else {
+				float vec[3] = {mat[0][1], mat[0][2], mat[0][0]};
+
+				Crossf(mat[2], mat[0], vec);
+				Normalize(mat[2]);
+				Crossf(mat[1], mat[2], mat[0]);
+			}
+		case 1:
+			Normalize(mat[0]);
+			if (Inpf(mat[1], mat[0]) < 1) {
+				Crossf(mat[2], mat[0], mat[1]);
+				Normalize(mat[2]);
+				Crossf(mat[0], mat[1], mat[2]);
+			} else if (Inpf(mat[0], mat[2]) < 1) {
+				Crossf(mat[0], mat[1], mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[2], mat[0], mat[1]);
+			} else {
+				float vec[3] = {mat[1][1], mat[1][2], mat[1][0]};
+
+				Crossf(mat[0], mat[1], vec);
+				Normalize(mat[0]);
+				Crossf(mat[2], mat[0], mat[1]);
+			}
+		case 2:
+			if (Inpf(mat[2], mat[0]) < 1) {
+				Crossf(mat[1], mat[2], mat[0]);
+				Normalize(mat[1]);
+				Crossf(mat[0], mat[1], mat[2]);
+			} else if (Inpf(mat[2], mat[1]) < 1) {
+				Crossf(mat[0], mat[1], mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[1], mat[2], mat[0]);
+			} else {
+				float vec[3] = {mat[2][1], mat[2][2], mat[2][0]};
+
+				Crossf(mat[0], vec, mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[1], mat[2], mat[0]);
+			}
+	}
+	VecMulf(mat[0], size[0]);
+	VecMulf(mat[1], size[1]);
+	VecMulf(mat[2], size[2]);
+}
+
+int IsMat3Orthogonal(float mat[][3])
+{
+	if (fabs(Inpf(mat[0], mat[1])) > 1.5 * FLT_EPSILON)
+		return 0;
+
+	if (fabs(Inpf(mat[1], mat[2])) > 1.5 * FLT_EPSILON)
+		return 0;
+
+	if (fabs(Inpf(mat[0], mat[2])) > 1.5 * FLT_EPSILON)
+		return 0;
+	
+	return 1;
+}
+
+int IsMat4Orthogonal(float mat[][4])
+{
+	if (fabs(Inpf(mat[0], mat[1])) > 1.5 * FLT_EPSILON)
+		return 0;
+
+	if (fabs(Inpf(mat[1], mat[2])) > 1.5 * FLT_EPSILON)
+		return 0;
+
+	if (fabs(Inpf(mat[0], mat[2])) > 1.5 * FLT_EPSILON)
+		return 0;
+	
+	return 1;
+}
+
 void Mat3Ortho(float mat[][3])
 {	
 	Normalize(mat[0]);
