@@ -915,28 +915,30 @@ static EnumPropertyItem prop_make_track_types[] = {
 static int track_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	Object *obact= CTX_data_active_object(C); 
+	
 	int type= RNA_enum_get(op->ptr, "type");
-		
+	
 	if(type == 1) {
 		bConstraint *con;
 		bTrackToConstraint *data;
 
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-			if(base!=BASACT) {
+		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+			if(ob!=obact) {
 				con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
 				strcpy (con->name, "AutoTrack");
 
 				data = con->data;
-				data->tar = BASACT->object;
-				base->object->recalc |= OB_RECALC;
+				data->tar = obact;
+				ob->recalc |= OB_RECALC;
 				
 				/* Lamp and Camera track differently by default */
-				if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
+				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
 					data->reserved1 = TRACK_nZ;
 					data->reserved2 = UP_Y;
 				}
 
-				add_constraint_to_object(con, base->object);
+				add_constraint_to_object(con, ob);
 			}
 		}
 		CTX_DATA_END;
@@ -945,31 +947,31 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-			if(base!=BASACT) {
+		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+			if(ob!=obact) {
 				con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
 				strcpy (con->name, "AutoTrack");
 
 				data = con->data;
-				data->tar = BASACT->object;
-				base->object->recalc |= OB_RECALC;
+				data->tar = obact;
+				ob->recalc |= OB_RECALC;
 				
 				/* Lamp and Camera track differently by default */
-				if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
+				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
 					data->trackflag = TRACK_nZ;
 					data->lockflag = LOCK_Y;
 				}
 
-				add_constraint_to_object(con, base->object);
+				add_constraint_to_object(con, ob);
 			}
 		}
 		CTX_DATA_END;
 	}
 	else {
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-			if(base!=BASACT) {
-				base->object->track= BASACT->object;
-				base->object->recalc |= OB_RECALC;
+		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+			if(ob!=obact) {
+				ob->track= obact;
+				ob->recalc |= OB_RECALC;
 			}
 		}
 		CTX_DATA_END;

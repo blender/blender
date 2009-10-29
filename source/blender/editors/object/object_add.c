@@ -747,8 +747,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	int a;
 	
 	/* XXX check object pointers */
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		ob= base->object;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		relink_constraints(&ob->constraints);
 		if (ob->pose){
 			bPoseChannel *chan;
