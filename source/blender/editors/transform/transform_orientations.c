@@ -581,12 +581,13 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	case V3D_MANIP_LOCAL:
 		strcpy(t->spacename, "local");
 		
-		if(ob)
+		if(ob) {
 			Mat3CpyMat4(t->spacemtx, ob->obmat);
-		else
+			Mat3Ortho(t->spacemtx);
+		} else {
 			Mat3One(t->spacemtx);
+		}
 		
-		Mat3Ortho(t->spacemtx);
 		break;
 		
 	case V3D_MANIP_VIEW:
