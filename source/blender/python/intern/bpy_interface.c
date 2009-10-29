@@ -971,28 +971,36 @@ int bpy_context_get(bContext *C, const char *member, bContextDataResult *result)
 		CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
 		done= 1;
 	}
-	else if (PyList_Check(item)) {
-		int len= PyList_Size(item);
-		int i;
-		for(i = 0; i < len; i++) {
-			PyObject *list_item = PyList_GET_ITEM(item, i); // XXX check type
-
-			if(BPy_StructRNA_Check(list_item)) {
-				/*
-				CollectionPointerLink *link= MEM_callocN(sizeof(CollectionPointerLink), "bpy_context_get");
-				link->ptr= ((BPy_StructRNA *)item)->ptr;
-				BLI_addtail(&result->list, link);
-				*/
-				ptr= &(((BPy_StructRNA *)list_item)->ptr);
-				CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
-			}
-			else {
-				printf("List item not a valid type\n");
-			}
-
+	else if (PySequence_Check(item)) {
+		PyObject *seq_fast= PySequence_Fast(item, "bpy_context_get sequence conversion");
+		if (seq_fast==NULL) {
+			PyErr_Print();
+			PyErr_Clear();
 		}
+		else {
+			int len= PySequence_Fast_GET_SIZE(seq_fast);
+			int i;
+			for(i = 0; i < len; i++) {
+				PyObject *list_item= PySequence_Fast_GET_ITEM(seq_fast, i);
 
-		done= 1;
+				if(BPy_StructRNA_Check(list_item)) {
+					/*
+					CollectionPointerLink *link= MEM_callocN(sizeof(CollectionPointerLink), "bpy_context_get");
+					link->ptr= ((BPy_StructRNA *)item)->ptr;
+					BLI_addtail(&result->list, link);
+					*/
+					ptr= &(((BPy_StructRNA *)list_item)->ptr);
+					CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
+				}
+				else {
+					printf("List item not a valid type\n");
+				}
+
+			}
+			Py_DECREF(seq_fast);
+
+			done= 1;
+		}
 	}
 
 	if(done==0) {

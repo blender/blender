@@ -737,7 +737,6 @@ static void copy_object__forwardModifierLinks(void *userData, Object *ob,
 /* after copying objects, copied data should get new pointers */
 static void copy_object_set_idnew(bContext *C, int dupflag)
 {
-	Object *ob;
 	Material *ma, *mao;
 	ID *id;
 #if 0 // XXX old animation system

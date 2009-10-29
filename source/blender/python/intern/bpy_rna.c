@@ -1124,11 +1124,24 @@ static int pyrna_prop_contains(BPy_PropertyRNA * self, PyObject *value)
 	return 0;
 }
 
+static PyObject *pyrna_prop_item(BPy_PropertyRNA * self, Py_ssize_t index)
+{
+	/* reuse subscript functions */
+	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+		return prop_subscript_collection_int(self, index);
+	} else if (RNA_property_array_check(&self->ptr, self->prop)) {
+		return prop_subscript_array_int(self, index);
+	}
+
+	PyErr_SetString(PyExc_TypeError, "rna type is not an array or a collection");
+	return NULL;
+}
+
 static PySequenceMethods pyrna_prop_as_sequence = {
 	NULL,		/* Cant set the len otherwise it can evaluate as false */
 	NULL,		/* sq_concat */
 	NULL,		/* sq_repeat */
-	NULL,		/* sq_item */
+	(ssizeargfunc)pyrna_prop_item, /* sq_item */ /* Only set this so PySequence_Check() returns True */
 	NULL,		/* sq_slice */
 	NULL,		/* sq_ass_item */
 	NULL,		/* sq_ass_slice */

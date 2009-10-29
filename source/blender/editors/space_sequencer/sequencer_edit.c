@@ -2489,8 +2489,8 @@ static int find_next_prev_edit(Scene *scene, int cfra, int side)
 	return best_seq ? best_seq->startdisp : cfra;
 }
 
-static int next_prev_edit_internal(Scene *scene, int side) {
-	Editing *ed= seq_give_editing(scene, FALSE);
+static int next_prev_edit_internal(Scene *scene, int side)
+{
 	int change=0;
 	int cfra = CFRA;
 	int nfra= find_next_prev_edit(scene, cfra, side);

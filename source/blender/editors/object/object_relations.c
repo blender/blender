@@ -976,7 +976,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	DAG_scene_sort(CTX_data_scene(C));
+	DAG_scene_sort(scene);
 	ED_anim_dag_flush_update(C);	
 	
 	return OPERATOR_FINISHED;
