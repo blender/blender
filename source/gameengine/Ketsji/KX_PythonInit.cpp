@@ -200,6 +200,127 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 	return PyUnicode_FromString(expanded);
 }
 
+static char gPyStartGame_doc[] =
+"startGame(blend)\n\
+Loads the blend file";
+
+static PyObject* gPyStartGame(PyObject*, PyObject* args)
+{
+	char* blendfile;
+
+	if (!PyArg_ParseTuple(args, "s:startGame", &blendfile))
+		return NULL;
+
+	gp_KetsjiEngine->RequestExit(KX_EXIT_REQUEST_START_OTHER_GAME);
+	gp_KetsjiEngine->SetNameNextGame(blendfile);
+
+	Py_RETURN_NONE;
+}
+
+static char gPyEndGame_doc[] =
+"endGame()\n\
+Ends the current game";
+
+static PyObject* gPyEndGame(PyObject*)
+{
+	gp_KetsjiEngine->RequestExit(KX_EXIT_REQUEST_QUIT_GAME);
+
+	//printf("%s\n", gp_GamePythonPath);
+
+	Py_RETURN_NONE;
+}
+
+static char gPyRestartGame_doc[] =
+"restartGame()\n\
+Restarts the current game by reloading the .blend file";
+
+static PyObject* gPyRestartGame(PyObject*)
+{
+	gp_KetsjiEngine->RequestExit(KX_EXIT_REQUEST_RESTART_GAME);
+	gp_KetsjiEngine->SetNameNextGame(gp_GamePythonPath);
+
+	Py_RETURN_NONE;
+}
+
+static char gPySaveGlobalDict_doc[] =
+"saveGlobalDict()\n\
+Saves GameLogic.globalDict to a file";
+
+static PyObject* gPySaveGlobalDict(PyObject*)
+{
+	char marshal_path[512];
+	char *marshal_buffer = NULL;
+	unsigned int marshal_length;
+	FILE *fp = NULL;
+
+	pathGamePythonConfig(marshal_path);
+	marshal_length = saveGamePythonConfig(&marshal_buffer);
+
+	if (marshal_length && marshal_buffer)
+	{
+		fp = fopen(marshal_path, "wb");
+
+		if (fp)
+		{
+			if (fwrite(marshal_buffer, 1, marshal_length, fp) != marshal_length)
+				printf("Warning: could not write marshal data\n");
+
+			fclose(fp);
+		} else {
+			printf("Warning: could not open marshal file\n");
+		}
+	} else {
+		printf("Warning: could not create marshal buffer\n");
+	}
+
+	if (marshal_buffer)
+		delete [] marshal_buffer;
+
+	Py_RETURN_NONE;
+}
+
+static char gPyLoadGlobalDict_doc[] =
+"LoadGlobalDict()\n\
+Loads GameLogic.globalDict from a file";
+
+static PyObject* gPyLoadGlobalDict(PyObject*)
+{
+	char marshal_path[512];
+	char *marshal_buffer = NULL;
+	unsigned int marshal_length;
+	FILE *fp = NULL;
+	int result;
+
+	pathGamePythonConfig(marshal_path);
+
+	fp = fopen(marshal_path, "rb");
+
+	if (fp) {
+		// obtain file size:
+		fseek (fp, 0, SEEK_END);
+		marshal_length = ftell(fp);
+		rewind(fp);
+
+		marshal_buffer = (char*)malloc (sizeof(char)*marshal_length);
+
+		result = fread(marshal_buffer, 1, marshal_length, fp);
+
+		if (result == marshal_length) {
+			loadGamePythonConfig(marshal_buffer, marshal_length);
+		} else {
+			printf("Warning: could not read all of '%s'\n", marshal_path);
+		}
+
+		free(marshal_buffer);
+		fclose(fp);
+	} else {
+		printf("Warning: could not open '%s'\n", marshal_path);
+	}
+
+	Py_RETURN_NONE;
+}
+
+
 static char gPySendMessage_doc[] = 
 "sendMessage(subject, [body, to, from])\n\
 sends a message in same manner as a message actuator\
@@ -466,6 +587,11 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (const char *)gPyExpandPath_doc},
+	{"startGame", (PyCFunction)gPyStartGame, METH_VARARGS, (const char *)gPyStartGame_doc},
+	{"endGame", (PyCFunction)gPyEndGame, METH_NOARGS, (const char *)gPyEndGame_doc},
+	{"restartGame", (PyCFunction)gPyRestartGame, METH_NOARGS, (const char *)gPyRestartGame_doc},
+	{"saveGlobalDict", (PyCFunction)gPySaveGlobalDict, METH_NOARGS, (const char *)gPySaveGlobalDict_doc},
+	{"loadGlobalDict", (PyCFunction)gPyLoadGlobalDict, METH_NOARGS, (const char *)gPyLoadGlobalDict_doc},
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (const char *)gPySendMessage_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
