@@ -2034,9 +2034,10 @@ static float ui_numedit_apply_snap(int temp, float softmin, float softmax, int s
 	return temp;
 }
 
-static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, int snap, int mx)
+static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, int snap, int mx, int my)
 {
 	float deler, tempf, softmin, softmax, softrange;
+	float ladder = powf(10.0, floorf((my - data->dragstarty) / 100.0f));
 	int lvalue, temp, changed= 0;
 	
 	if(mx == data->draglastx)
@@ -2062,7 +2063,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		 * 2px == 1-int, or 1px == 1-ClickStep */
 		if(ui_is_but_float(but)) {
 			fac *= 0.01*but->a1;
-			tempf = data->startvalue + ((mx - data->dragstartx) * fac);
+			tempf = data->startvalue + ((mx - data->dragstartx) * fac) * ladder;
 			tempf= ui_numedit_apply_snapf(tempf, softmin, softmax, softrange, snap);
 
 #if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
@@ -2086,7 +2087,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		else {
 			fac = 0.5; /* simple 2px == 1 */
 
-			temp= data->startvalue + ((mx - data->dragstartx) * fac);
+			temp= data->startvalue + ((mx - data->dragstartx) * fac) * ladder;
 			temp= ui_numedit_apply_snap(temp, softmin, softmax, snap);
 
 #if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
@@ -2121,13 +2122,13 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 
 		if(ui_is_but_float(but) && softrange > 11) {
 			/* non linear change in mouse input- good for high precicsion */
-			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002);
+			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002)*ladder;
 		} else if (!ui_is_but_float(but) && softrange > 129) { /* only scale large int buttons */
 			/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
-			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004);
+			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004)*ladder;
 		} else {
 			/*no scaling */
-			data->dragf+= ((float)(mx-data->draglastx))/deler ;
+			data->dragf+= ((float)(mx-data->draglastx))/deler*ladder ;
 		}
 	
 		if(data->dragf>1.0) data->dragf= 1.0;
@@ -2197,6 +2198,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 			else if(event->type == LEFTMOUSE) {
 				data->dragstartx= data->draglastx= ui_is_a_warp_but(but) ? screen_mx:mx;
+				data->dragstarty= data->draglasty= ui_is_a_warp_but(but) ? screen_my:my;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
@@ -2235,7 +2237,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			
 			snap= (event->ctrl)? (event->shift)? 2: 1: 0;
 
-			if(ui_numedit_but_NUM(but, data, fac, snap, (ui_is_a_warp_but(but) ? screen_mx:mx)))
+			if(ui_numedit_but_NUM(but, data, fac, snap, (ui_is_a_warp_but(but) ? screen_mx:mx), (ui_is_a_warp_but(but) ? screen_my:my)))
 				ui_numedit_apply(C, block, but, data);
 		}
 		retval= WM_UI_HANDLER_BREAK;
@@ -2421,7 +2423,9 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 			else if(event->type == LEFTMOUSE) {
 				data->dragstartx= mx;
+				data->dragstarty= my;
 				data->draglastx= mx;
+				data->draglasty= my;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
@@ -2522,14 +2526,10 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(event->val==KM_PRESS) {
 			if(event->type == LEFTMOUSE) {
-				if(horizontal) {
-					data->dragstartx= mx;
-					data->draglastx= mx;
-				}
-				else {
-					data->dragstartx= my;
-					data->draglastx= my;
-				}
+				data->dragstartx= mx;
+				data->draglastx= mx;
+				data->dragstartx= my;
+				data->draglastx= my;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
