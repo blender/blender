@@ -49,8 +49,15 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	Scene *scene= sc->scene;
 	Base *base;
 
+#if 0	/* Using the context breaks adding objects in the UI. Need to find out why - campbell */
 	Object *obact= CTX_data_active_object(C);
 	Object *obedit= CTX_data_edit_object(C);
+	base= CTX_data_active_base(C);
+#else
+	Object *obedit= scene->obedit; 
+	Object *obact= OBACT;
+	base= BASACT;
+#endif
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
@@ -243,7 +250,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "active_base")) {
-		base= CTX_data_active_base(C); /* not used in many places so get here */
 		if(base)
 			CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, base);
 
