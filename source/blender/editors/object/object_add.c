@@ -525,11 +525,17 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		ED_object_add_type(C, OB_ARMATURE);
+		obedit= ED_object_add_type(C, OB_ARMATURE);
 		ED_object_enter_editmode(C, 0);
+		obedit= CTX_data_edit_object(C);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	
+	if(obedit==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature.");
+		return OPERATOR_CANCELLED;
+	}
 	
 	if(v3d) 
 		rv3d= CTX_wm_region(C)->regiondata;
