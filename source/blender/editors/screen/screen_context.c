@@ -48,10 +48,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	bScreen *sc= CTX_wm_screen(C);
 	Scene *scene= sc->scene;
 	Base *base;
-	Object *ob = NULL;
 
-	if(scene && scene->basact)
-		ob = scene->basact->object;
+	Object *obact= CTX_data_active_object(C);
+	Object *obedit= CTX_data_edit_object(C);
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
@@ -103,7 +102,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "visible_bones") || CTX_data_equals(member, "editable_bones")) {
-		Object *obedit= scene->obedit; // XXX get from context?
 		bArmature *arm= (obedit) ? obedit->data : NULL;
 		EditBone *ebone, *flipbone=NULL;
 		int editable_bones= CTX_data_equals(member, "editable_bones");
@@ -146,7 +144,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "selected_bones") || CTX_data_equals(member, "selected_editable_bones")) {
-		Object *obedit= scene->obedit; // XXX get from context?
 		bArmature *arm= (obedit) ? obedit->data : NULL;
 		EditBone *ebone, *flipbone=NULL;
 		int selected_editable_bones= CTX_data_equals(member, "selected_editable_bones");
@@ -189,7 +186,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "visible_pchans")) {
-		Object *obact= OBACT;
 		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
 		
@@ -205,7 +201,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "selected_pchans")) {
-		Object *obact= OBACT;
 		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
 		
@@ -222,7 +217,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "active_bone")) {
-		Object *obedit= scene->obedit; // XXX get from context?
 		bArmature *arm= (obedit) ? obedit->data : NULL;
 		EditBone *ebone;
 		
@@ -240,7 +234,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		
 	}
 	else if(CTX_data_equals(member, "active_pchan")) {
-		Object *obact= OBACT;
 		bPoseChannel *pchan;
 		
 		pchan= get_active_posechannel(obact);
@@ -250,57 +243,58 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "active_base")) {
-		if(scene->basact)
-			CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, scene->basact);
+		base= CTX_data_active_base(C); /* not used in many places so get here */
+		if(base)
+			CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, base);
 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "active_object")) {
-		if(scene->basact)
-			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+		if(obact)
+			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "object")) {
-		if(scene->basact)
-			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+		if(obact)
+			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "edit_object")) {
 		/* convenience for now, 1 object per scene in editmode */
-		if(scene->obedit)
-			CTX_data_id_pointer_set(result, &scene->obedit->id);
+		if(obedit)
+			CTX_data_id_pointer_set(result, &obedit->id);
 		
 		return 1;
 	}
 	else if(CTX_data_equals(member, "sculpt_object")) {
-		if(ob && (ob->mode & OB_MODE_SCULPT))
-			CTX_data_id_pointer_set(result, &ob->id);
+		if(obact && (obact->mode & OB_MODE_SCULPT))
+			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "vertex_paint_object")) {
-		if(ob && (ob->mode & OB_MODE_VERTEX_PAINT))
-			CTX_data_id_pointer_set(result, &ob->id);
+		if(obact && (obact->mode & OB_MODE_VERTEX_PAINT))
+			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "weight_paint_object")) {
-		if(ob && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			CTX_data_id_pointer_set(result, &ob->id);
+		if(obact && (obact->mode & OB_MODE_WEIGHT_PAINT))
+			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "texture_paint_object")) {
-		if(ob && (ob->mode & OB_MODE_TEXTURE_PAINT))
-			CTX_data_id_pointer_set(result, &ob->id);
+		if(obact && (obact->mode & OB_MODE_TEXTURE_PAINT))
+			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "particle_edit_object")) {
-		if(ob && (ob->mode & OB_MODE_PARTICLE_EDIT))
-			CTX_data_id_pointer_set(result, &ob->id);
+		if(obact && (obact->mode & OB_MODE_PARTICLE_EDIT))
+			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
