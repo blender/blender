@@ -49,8 +49,9 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", ICON_CONSTRAINT_DATA, "Limit Scale", ""},
 	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", ICON_CONSTRAINT_DATA, "Limit Distance", ""},
 	{0, "", 0, "Tracking", ""},
-	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To", ""},
-	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", ICON_CONSTRAINT_DATA, "Locked Track", ""},
+	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To", "Legacy tracking constraint prone to twisting artifacts"},
+	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", ICON_CONSTRAINT_DATA, "Locked Track", "Tracking along a single axis"},
+	{CONSTRAINT_TYPE_DAMPTRACK, "DAMPED_TRACK", ICON_CONSTRAINT_DATA, "Damped Track", "Tracking by taking the shortest path"},
 	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", ICON_CONSTRAINT_DATA, "Clamp To", ""},
 	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO",ICON_CONSTRAINT_DATA, "Stretch To", ""},
 	{CONSTRAINT_TYPE_KINEMATIC, "IK", ICON_CONSTRAINT_DATA, "Inverse Kinematics", ""},
@@ -144,6 +145,8 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_LimitDistanceConstraint;
 		case CONSTRAINT_TYPE_SHRINKWRAP:
 			return &RNA_ShrinkwrapConstraint;
+		case CONSTRAINT_TYPE_DAMPTRACK:
+			return &RNA_DampedTrackConstraint;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -1633,6 +1636,42 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
+static void rna_def_constraint_damped_track(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem damptrack_items[] = {
+		{TRACK_X, "TRACK_X", 0, "X", ""},
+		{TRACK_Y, "TRACK_Y", 0, "Y", ""},
+		{TRACK_Z, "TRACK_Z", 0, "Z", ""},
+		{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
+		{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
+		{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "DampedTrackConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Damped Track Constraint", "Points toward target by taking the shortest rotation path.");
+	RNA_def_struct_sdna_from(srna, "bDampTrackConstraint", "data");
+
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "subtarget");
+	RNA_def_property_ui_text(prop, "Sub-Target", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "track", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
+	RNA_def_property_enum_items(prop, damptrack_items);
+	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+}
+
 /* base struct for constraints */
 void RNA_def_constraint(BlenderRNA *brna)
 {
@@ -1733,6 +1772,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	rna_def_constraint_location_limit(brna);
 	rna_def_constraint_transform(brna);
 	rna_def_constraint_shrinkwrap(brna);
+	rna_def_constraint_damped_track(brna);
 }
 
 #endif

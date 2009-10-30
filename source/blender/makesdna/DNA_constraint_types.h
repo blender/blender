@@ -219,6 +219,14 @@ typedef struct bLockTrackConstraint {
 	char		subtarget[32];
 } bLockTrackConstraint;
 
+/* Damped Tracking constraint */
+typedef struct bDampTrackConstraint {
+	Object		*tar;
+	int			trackflag;
+	int			pad;
+	char		subtarget[32];
+} bDampTrackConstraint;
+
 /* Follow Path constraints */
 typedef struct bFollowPathConstraint {
 	Object		*tar;	/* Must be path object */
@@ -331,6 +339,7 @@ typedef struct bDistLimitConstraint {
 	int 		pad;
 } bDistLimitConstraint;
 
+/* ShrinkWrap Constraint */
 typedef struct bShrinkwrapConstraint {
 	Object		*target;
 	float		dist;			/* distance to kept from target */
@@ -368,10 +377,10 @@ typedef enum B_CONSTAINT_TYPES {
 	CONSTRAINT_TYPE_CLAMPTO, 			/* clampto constraint */	
 	CONSTRAINT_TYPE_TRANSFORM,			/* transformation (loc/rot/size -> loc/rot/size) constraint */	
 	CONSTRAINT_TYPE_SHRINKWRAP,			/* shrinkwrap (loc/rot) constraint */
-	
+	CONSTRAINT_TYPE_DAMPTRACK,			/* New Tracking constraint that minimises twisting */
 	
 	/* NOTE: everytime a new constraint is added, update this */
-	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_SHRINKWRAP
+	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_DAMPTRACK
 } B_CONSTRAINT_TYPES; 
 
 /* bConstraint->flag */

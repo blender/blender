@@ -172,6 +172,7 @@ extern StructRNA RNA_CurveMapPoint;
 extern StructRNA RNA_CurveMapping;
 extern StructRNA RNA_CurveModifier;
 extern StructRNA RNA_CurvePoint;
+extern StructRNA RNA_DampedTrackConstraint;
 extern StructRNA RNA_DecimateModifier;
 extern StructRNA RNA_DelaySensor;
 extern StructRNA RNA_DisplaceModifier;

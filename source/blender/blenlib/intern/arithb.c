@@ -131,6 +131,7 @@ float Normalize(float *n)
 	return d;
 }
 
+/* Crossf stores the cross product c = a x b */
 void Crossf(float *c, float *a, float *b)
 {
 	c[0] = a[1] * b[2] - a[2] * b[1];
