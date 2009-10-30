@@ -71,6 +71,7 @@ static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *v
 		return 0;
 
 	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
+	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
@@ -89,6 +90,7 @@ static int mathutils_rna_vector_set_index(BPy_PropertyRNA *self, int subtype, fl
 		return 0;
 
 	RNA_property_float_set_index(&self->ptr, self->prop, index, vec_to[index]);
+	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
@@ -119,6 +121,7 @@ static int mathutils_rna_matrix_set(BPy_PropertyRNA *self, int subtype, float *m
 		return 0;
 
 	RNA_property_float_set_array(&self->ptr, self->prop, mat_to);
+	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
