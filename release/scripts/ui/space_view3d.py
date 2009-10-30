@@ -109,6 +109,10 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		layout.itemO("view3d.zoom_border", text="Zoom Border...")
 		
 		layout.itemS()
+
+		layout.item_intO("view3d.layers", "nr", 0, text="Show All Layers")
+
+		layout.itemS()
 		
 		layout.itemO("view3d.localview", text="View Global/Local")
 		layout.itemO("view3d.view_center")
@@ -146,6 +150,8 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 		
+		layout.item_booleanO("view3d.view_all", "center", True, text="Center Cursor and View All")
+		layout.itemO("view3d.camera_to_view", text="Align Active Camera to View")
 		layout.itemO("view3d.view_center")
 		
 class VIEW3D_MT_view_cameras(bpy.types.Menu):
