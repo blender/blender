@@ -1154,19 +1154,43 @@ static PySequenceMethods pyrna_prop_as_sequence = {
 
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA * self, PyObject *args)
 {
-	char *path;
+	char *path, *path_full;
 	int index= 0;
 	float cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
-
-	if(!RNA_struct_is_ID(self->ptr.type)) {
-		PyErr_SetString( PyExc_TypeError, "StructRNA - keyframe_insert only for ID type");
-		return NULL;
-	}
+	PropertyRNA *prop;
+	PyObject *result;
 
 	if (!PyArg_ParseTuple(args, "s|if:keyframe_insert", &path, &index, &cfra))
 		return NULL;
 
-	return PyBool_FromLong( insert_keyframe((ID *)self->ptr.data, NULL, NULL, path, index, cfra, 0));
+	if (self->ptr.data==NULL) {
+		PyErr_Format( PyExc_TypeError, "keyframe_insert, this struct has no data, cant be animated", path);
+		return NULL;
+	}
+
+	prop = RNA_struct_find_property(&self->ptr, path);
+
+	if (prop==NULL) {
+		PyErr_Format( PyExc_TypeError, "keyframe_insert, property \"%s\" not found", path);
+		return NULL;
+	}
+
+	if (!RNA_property_animateable(&self->ptr, prop)) {
+		PyErr_Format( PyExc_TypeError, "keyframe_insert, property \"%s\" not animatable", path);
+		return NULL;
+	}
+
+	path_full= RNA_path_from_ID_to_property(&self->ptr, prop);
+
+	if (path_full==NULL) {
+		PyErr_Format( PyExc_TypeError, "keyframe_insert, could not make path to \"%s\"", path);
+		return NULL;
+	}
+
+	result= PyBool_FromLong( insert_keyframe((ID *)self->ptr.id.data, NULL, NULL, path_full, index, cfra, 0));
+	MEM_freeN(path_full);
+
+	return result;
 }
 
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA * self, PyObject *args)
@@ -1366,10 +1390,11 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
 	
 	if (prop==NULL) {
+		// XXX - This currently allows anything to be assigned to an rna prop, need to see how this should be used
+		// but for now it makes porting scripts confusing since it fails silently.
 		if (!BPy_StructRNA_CheckExact(self) && PyObject_GenericSetAttr((PyObject *)self, pyname, value) >= 0) {
 			return 0;
-		}
-		else {
+		} else {
 			PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%.200s\" not found", name);
 			return -1;
 		}

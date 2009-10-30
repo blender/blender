@@ -2211,7 +2211,9 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use as projector transform.");
-
+	/* Could call: ED_base_object_activate(C, scene->basact);
+	 * but would be a bad level call and it seems the notifier is enough */
+	RNA_def_property_update(prop, NC_SCENE|ND_OB_ACTIVE, NULL);
 
 	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
