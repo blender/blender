@@ -29,6 +29,7 @@
  *
  */
 
+#include <stdint.h>
 #include <string.h>
 #import <Cocoa/Cocoa.h>
 
@@ -65,7 +66,7 @@
 struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 {
 	struct ImBuf *ibuf = NULL;
-	uint32 width, height;
+	uint32_t width, height;
 	uchar *rasterRGB = NULL;
 	uchar *rasterRGBA = NULL;
 	uchar *toIBuf = NULL;
@@ -204,7 +205,7 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 
 short imb_cocoaSaveImage(struct ImBuf *ibuf, char *name, int flags)
 {
-	uint16 samplesperpixel, bitspersample;
+	uint16_t samplesperpixel, bitspersample;
 	unsigned char *from = NULL, *to = NULL;
 	unsigned short *to16 = NULL;
 	float *fromf = NULL;
@@ -224,7 +225,7 @@ short imb_cocoaSaveImage(struct ImBuf *ibuf, char *name, int flags)
 	/* check for a valid number of bytes per pixel.  Like the PNG writer,
 	 * the TIFF writer supports 1, 3 or 4 bytes per pixel, corresponding
 	 * to gray, RGB, RGBA respectively. */
-	samplesperpixel = (uint16)((ibuf->depth + 7) >> 3);
+	samplesperpixel = (uint16_t)((ibuf->depth + 7) >> 3);
 	switch (samplesperpixel) {
 		case 4: /*RGBA type*/
 			hasAlpha = YES;
