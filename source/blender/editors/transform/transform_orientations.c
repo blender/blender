@@ -510,7 +510,6 @@ static int count_bone_select(bArmature *arm, ListBase *lb, int do_it)
 	return total;
 }
 
-extern void gimbalAxis(Object *ob, float gimbal_vecs[][3]);
 void initTransformOrientation(bContext *C, TransInfo *t)
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -528,7 +527,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	case V3D_MANIP_GIMBAL:
 		Mat3One(t->spacemtx);
 		if(ob)
-			gimbalAxis(ob, t->spacemtx);
+			gimbal_axis(ob, t->spacemtx);
 		break;
 	case V3D_MANIP_NORMAL:
 		if(obedit || (ob && ob->mode & OB_MODE_POSE)) {

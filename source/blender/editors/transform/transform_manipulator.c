@@ -181,7 +181,7 @@ static int test_rotmode_euler(short rotmode)
 	return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0:1;
 }
 
-void gimbalAxis(Object *ob, float gmat[][3])
+void gimbal_axis(Object *ob, float gmat[][3])
 {
 	if(ob->mode & OB_MODE_POSE)
 	{
@@ -475,7 +475,7 @@ int calc_manipulator_stats(const bContext *C)
 		{
 			float mat[3][3];
 			Mat3One(mat);
-			gimbalAxis(ob, mat);
+			gimbal_axis(ob, mat);
 			Mat4CpyMat3(rv3d->twmat, mat);
 			break;
 		}

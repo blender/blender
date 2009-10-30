@@ -2995,10 +2995,8 @@ void MeanValueWeights(float v[][3], int n, float *co, float *w)
 
 /* Type for rotation order info - see wiki for derivation details */
 typedef struct RotOrderInfo {
-	short i;		/* first axis index */
-	short j;		/* second axis index */
-	short k;		/* third axis index */
-	short parity;	/* parity of axis permuation (even=0, odd=1) - 'n' in original code */
+	short axis[3];
+	short parity;	/* parity of axis permutation (even=0, odd=1) - 'n' in original code */
 } RotOrderInfo;
 
 /* Array of info for Rotation Order calculations 
@@ -3006,12 +3004,12 @@ typedef struct RotOrderInfo {
  */
 static RotOrderInfo rotOrders[]= {
 	/* i, j, k, n */
-	{0, 1, 2, 0}, // XYZ
-	{0, 2, 1, 1}, // XZY
-	{1, 0, 2, 1}, // YXZ
-	{1, 2, 0, 0}, // YZX
-	{2, 0, 1, 0}, // ZXY
-	{2, 1, 0, 1}  // ZYZ
+	{{0, 1, 2}, 0}, // XYZ
+	{{0, 2, 1}, 1}, // XZY
+	{{1, 0, 2}, 1}, // YXZ
+	{{1, 2, 0}, 0}, // YZX
+	{{2, 0, 1}, 0}, // ZXY
+	{{2, 1, 0}, 1}  // ZYZ
 };
 
 /* Get relevant pointer to rotation order set from the array 
@@ -3024,7 +3022,7 @@ static RotOrderInfo rotOrders[]= {
 void EulOToQuat(float e[3], short order, float q[4])
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->i,  j=R->j, 	k=R->k;
+	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	double a[3];
 	
@@ -3063,7 +3061,7 @@ void QuatToEulO(float q[4], float e[3], short order)
 void EulOToMat3(float e[3], short order, float M[3][3])
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->i,  j=R->j, 	k=R->k;
+	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	
 	if (R->parity) {
@@ -3099,7 +3097,7 @@ void EulOToMat4(float e[3], short order, float M[4][4])
 void Mat3ToEulO(float M[3][3], float e[3], short order)
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->i,  j=R->j, 	k=R->k;
+	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
 	double cy = sqrt(M[i][i]*M[i][i] + M[i][j]*M[i][j]);
 	
 	if (cy > 16*FLT_EPSILON) {
@@ -3135,7 +3133,7 @@ void Mat4ToEulO(float M[4][4], float e[3], short order)
 static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->i,  j=R->j, 	k=R->k;
+	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
 	float m[3][3];
 	double cy;
 	
@@ -3472,21 +3470,11 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 void EulToGimbalAxis(float gmat[][3], float *eul, short order)
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order);
-	short R_order[3];
-	short R_order2[3];
 
 	float quat[4];
 	float teul[3];
 	float tvec[3];
 	int i, a;
-
-	R_order2[R->i]= 0;
-	R_order2[R->j]= 1;
-	R_order2[R->k]= 2;
-
-	R_order[0]= R->i;
-	R_order[1]= R->j;
-	R_order[2]= R->k;
 
 	for(i= 0; i<3; i++) {
 		tvec[0]= tvec[1]= tvec[2]= 0.0f;
@@ -3494,8 +3482,9 @@ void EulToGimbalAxis(float gmat[][3], float *eul, short order)
 
 		VecCopyf(teul, eul);
 
-		for(a= R_order2[i]; a >= 1; a--)
-			teul[R_order[a-1]]= 0.0f;
+		/* TODO - only works on XYZ and ZXY */
+		for(a= R->axis[i]; a >= 1; a--)
+			teul[R->axis[a-1]]= 0.0f;
 
 		EulOToQuat(teul, order, quat);
 		NormalQuat(quat);
@@ -3504,31 +3493,6 @@ void EulToGimbalAxis(float gmat[][3], float *eul, short order)
 
 		VecCopyf(gmat[i], tvec);
 	}
-
-
-#if 0
-
-	for(i= 0; i<3; i++) {
-		tvec[0]= tvec[1]= tvec[2]= 0.0f;
-		tvec[i] = 1.0f;
-
-		VecCopyf(teul, eul);
-
-		for(a= R_order2[i]; a >= 1; a--)
-			teul[R_order[a-1]]= 0.0f;
-
-		EulToQuat(teul, quat);
-		NormalQuat(quat);
-		QuatMulVecf(quat, tvec);
-		Normalize(tvec);
-
-		VecCopyf(gmat[i], tvec);
-	}
-#endif
-
-
-
-
 }
 
 /* ************ AXIS ANGLE *************** */
