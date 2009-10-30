@@ -149,8 +149,9 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_next_edit", PAGEUPKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_previous_edit", PAGEDOWNKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_right", RKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_left", LKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_left", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_right", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+	
 
 	/* Mouse selection, a bit verbose :/ */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);

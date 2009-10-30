@@ -246,6 +246,9 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 		layout.item_booleanO("sequencer.mute", "unselected", 1, text="Mute Deselected Strips")
 
 		layout.itemO("sequencer.snap")
+		
+		layout.itemO("sequencer.swap_right")
+		layout.itemO("sequencer.swap_left")
 
 # Panels
 class SequencerButtonsPanel(bpy.types.Panel):

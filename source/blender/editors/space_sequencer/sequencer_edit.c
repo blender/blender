@@ -2602,9 +2602,9 @@ static int sequencer_swap_internal_exec(bContext *C, int side)
 	if(seq) {
 		
 		/* disallow effect strips */
-		if (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3)
+		if ((seq->type!=SEQ_COLOR) && (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
 			return OPERATOR_CANCELLED;
-		if (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3)
+		if ((active_seq->type!=SEQ_COLOR) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
 			return OPERATOR_CANCELLED;
 
 		/* disallow if parent strip (effect strip) is attached */
