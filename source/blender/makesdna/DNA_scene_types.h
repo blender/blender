@@ -669,6 +669,8 @@ typedef struct ToolSettings {
 	/* Transform */
 	short snap_mode, snap_flag, snap_target;
 	short proportional, prop_mode;
+
+	int auto_normalize, intpad; /*auto normalizing mode in wpaint*/
 } ToolSettings;
 
 typedef struct bStats {

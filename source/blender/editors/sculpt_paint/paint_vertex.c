@@ -43,8 +43,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_ghash.h"
 
-
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
@@ -986,7 +987,44 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	
 }
 
-static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha, float paintweight, int vgroup_mirror)
+static void do_weight_paint_auto_normalize(MDeformVert *dvert, 
+					   int paint_nr, char *map)
+{
+	MDeformWeight *dw = dvert->dw;
+	float sum=0.0f, fac=0.0f, paintw=0.0f;
+	int i, tot=0;
+
+	if (!map)
+		return;
+
+	for (i=0; i<dvert->totweight; i++) {
+		if (dvert->dw[i].def_nr == paint_nr)
+			paintw = dvert->dw[i].weight;
+
+		if (map[dvert->dw[i].def_nr]) {
+			tot += 1;
+			if (dvert->dw[i].def_nr != paint_nr)
+				sum += dvert->dw[i].weight;
+		}
+	}
+	
+	if (!tot || sum <= (1.0f - paintw))
+		return;
+
+	fac = sum / (1.0f - paintw);
+	fac = fac==0.0f ? 1.0f : 1.0f / fac;
+
+	for (i=0; i<dvert->totweight; i++) {
+		if (map[dvert->dw[i].def_nr]) {
+			if (dvert->dw[i].def_nr != paint_nr)
+				dvert->dw[i].weight *= fac;
+		}
+	}
+}
+
+static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
+				   int alpha, float paintweight, 
+				   int vgroup_mirror, char *validmap)
 {
 	Mesh *me= ob->data;
 	MDeformWeight *dw, *uw;
@@ -1004,7 +1042,8 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 		return;
 	
 	wpaint_blend(wp, dw, uw, (float)alpha/255.0, paintweight);
-	
+	do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
+
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
@@ -1015,6 +1054,8 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
 				
 			uw->weight= dw->weight;
+
+			do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
 		}
 	}
 }
@@ -1208,7 +1249,66 @@ struct WPaintData {
 	int vgroup_mirror;
 	float *vertexcosnos;
 	float wpimat[3][3];
+	
+	/*variables for auto normalize*/
+	int auto_normalize;
+	char *vgroup_validmap; /*stores if vgroups tie to deforming bones or not*/
 };
+
+static char *wpaint_make_validmap(Mesh *me, Object *ob)
+{
+	bDeformGroup *dg;
+	ModifierData *md;
+	char *validmap;
+	bPose *pose;
+	bPoseChannel *chan;
+	ArmatureModifierData *amd;
+	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+	int i = 0;
+
+	/*add all names to a hash table*/
+	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
+		BLI_ghash_insert(gh, dg->name, NULL);
+	}
+
+	if (!i)
+		return;
+
+	validmap = MEM_callocN(i, "wpaint valid map");
+
+	/*now loop through the armature modifiers and identify deform bones*/
+	for (md = ob->modifiers.first; md; md=md->next) {
+		if (!(md->mode & eModifierMode_Realtime))
+			continue;
+
+		if (md->type == eModifierType_Armature) 
+		{
+			amd = (ArmatureModifierData*) md;
+			pose = amd->object->pose;
+			
+			for (chan=pose->chanbase.first; chan; chan=chan->next) {
+				if (chan->bone->flag & BONE_NO_DEFORM)
+					continue;
+
+				if (BLI_ghash_haskey(gh, chan->name)) {
+					BLI_ghash_remove(gh, chan->name, NULL, NULL);
+					BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
+				}
+			}
+		}
+	}
+	
+	/*add all names to a hash table*/
+	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
+		if (BLI_ghash_lookup(gh, dg->name) != NULL) {
+			validmap[i] = 1;
+		}
+	}
+
+	BLI_ghash_free(gh, NULL, NULL);
+
+	return validmap;
+}
 
 static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1235,6 +1335,12 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	paint_stroke_set_mode_data(stroke, wpd);
 	view3d_set_viewcontext(C, &wpd->vc);
 	wpd->vgroup_mirror= -1;
+	
+	/*set up auto-normalize, and generate map for detecting which
+	  vgroups affect deform bones*/
+	wpd->auto_normalize = ts->auto_normalize;
+	if (wpd->auto_normalize)
+		wpd->vgroup_validmap = wpaint_make_validmap(me, ob);
 	
 	//	if(qual & LR_CTRLKEY) {
 	//		sample_wpaint(scene, ar, v3d, 0);
@@ -1417,7 +1523,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if((me->dvert+mface->v1)->flag) {
 				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
 				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
+					do_weight_paint_vertex(wp, ob, mface->v1, 
+						alpha, paintweight, wpd->vgroup_mirror, 
+						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v1)->flag= 0;
 			}
@@ -1425,7 +1533,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if((me->dvert+mface->v2)->flag) {
 				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
 				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
+					do_weight_paint_vertex(wp, ob, mface->v2, 
+						alpha, paintweight, wpd->vgroup_mirror, 
+						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v2)->flag= 0;
 			}
@@ -1433,7 +1543,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if((me->dvert+mface->v3)->flag) {
 				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
 				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
+					do_weight_paint_vertex(wp, ob, mface->v3, 
+						alpha, paintweight, wpd->vgroup_mirror, 
+						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v3)->flag= 0;
 			}
@@ -1442,7 +1554,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				if(mface->v4) {
 					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
 					if(alpha) {
-						do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
+						do_weight_paint_vertex(wp, ob, mface->v4, 
+							alpha, paintweight, wpd->vgroup_mirror,
+							wpd->vgroup_validmap);
 					}
 					(me->dvert+mface->v4)->flag= 0;
 				}
@@ -1466,6 +1580,9 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 		MEM_freeN(wpd->vertexcosnos);
 	MEM_freeN(wpd->indexar);
 	
+	if (wpd->vgroup_validmap)
+		MEM_freeN(wpd->vgroup_validmap);
+
 	/* frees prev buffer */
 	copy_wpaint_prev(ts->wpaint, NULL, 0);
 	

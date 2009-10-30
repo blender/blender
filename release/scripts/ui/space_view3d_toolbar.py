@@ -519,6 +519,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 	
 		elif context.weight_paint_object and brush:
 			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+			layout.itemR(context.tool_settings, "auto_normalize", text="Auto Normalize")
 			
 			col = layout.column()
 			row = col.row(align=True)
@@ -532,7 +533,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			row = col.row(align=True)
 			row.itemR(brush, "jitter", slider=True)
 			row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
-		
+			
 		# Vertex Paint Mode #
 		
 		elif context.vertex_paint_object and brush:
