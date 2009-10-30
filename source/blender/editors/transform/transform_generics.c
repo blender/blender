@@ -1004,7 +1004,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 				t->flag |= T_PROP_EDIT;
 				
 				if(ts->proportional == PROP_EDIT_CONNECTED)
-					t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
+					t->flag |= T_PROP_CONNECTED;
 			}
 		}
 		

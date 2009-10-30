@@ -101,7 +101,7 @@ void multiresModifier_join(Object *ob)
 	/* First find the highest level of subdivision */
 	base = FIRSTBASE;
 	while(base) {
-		if(TESTBASELIB_BGMODE(v3d, base) && base->object->type==OB_MESH) {
+		if(TESTBASELIB_BGMODE(v3d, scene, base) && base->object->type==OB_MESH) {
 			ModifierData *md;
 			for(md = base->object->modifiers.first; md; md = md->next) {
 				if(md->type == eModifierType_Multires) {
@@ -124,7 +124,7 @@ void multiresModifier_join(Object *ob)
 	/* Subdivide all the displacements to the highest level */
 	base = FIRSTBASE;
 	while(base) {
-		if(TESTBASELIB_BGMODE(v3d, base) && base->object->type==OB_MESH) {
+		if(TESTBASELIB_BGMODE(v3d, scene, base) && base->object->type==OB_MESH) {
 			ModifierData *md = NULL;
 			MultiresModifierData *mmd = NULL;
 
