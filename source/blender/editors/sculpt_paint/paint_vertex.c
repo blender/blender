@@ -1264,7 +1264,7 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 	bPoseChannel *chan;
 	ArmatureModifierData *amd;
 	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
-	int i = 0;
+	int i = 0, step1=1;
 
 	/*add all names to a hash table*/
 	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
@@ -1277,8 +1277,8 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 	validmap = MEM_callocN(i, "wpaint valid map");
 
 	/*now loop through the armature modifiers and identify deform bones*/
-	for (md = ob->modifiers.first; md; md=md->next) {
-		if (!(md->mode & eModifierMode_Realtime))
+	for (md = ob->modifiers.first; md; md= !md->next && step1 ? (step1=0), modifiers_getVirtualModifierList(ob) : md->next) {
+		if (!(md->mode & (eModifierMode_Realtime|eModifierMode_Virtual)))
 			continue;
 
 		if (md->type == eModifierType_Armature) 
