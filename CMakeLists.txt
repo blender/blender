@@ -80,6 +80,7 @@ OPTION(WITH_LZMA          "Enable best LZMA compression, used for pointcache" ON
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
+OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 
 IF (APPLE)
 OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
@@ -89,6 +90,19 @@ ENDIF (APPLE)
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
+
+IF (WITH_OPENCOLLADA)
+SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
+SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA})
+SET(OPENCOLLADA_LIB OpenCollada)
+SET(PCRE /usr CACHE FILEPATH "PCRE Directory")
+SET(PCRE_LIBPATH ${PCRE}/lib)
+SET(PCRE_LIB pcre)
+SET(EXPAT /usr CACHE FILEPATH "Expat Directory")
+SET(EXPAT_LIBPATH ${EXPAT}/lib)
+SET(EXPAT_LIB expat)
+
+ENDIF (WITH_OPENCOLLADA)
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 

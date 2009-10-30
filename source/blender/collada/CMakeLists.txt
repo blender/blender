@@ -1,4 +1,4 @@
-# $Id$
+# $Id: CMakeLists.txt 21789 2009-07-22 05:35:12Z kazanbas $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -24,41 +24,21 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ADD_SUBDIRECTORY(windowmanager)
-ADD_SUBDIRECTORY(editors)
-ADD_SUBDIRECTORY(avi)
-ADD_SUBDIRECTORY(nodes)
-ADD_SUBDIRECTORY(blenkernel)
-ADD_SUBDIRECTORY(blenlib)
-ADD_SUBDIRECTORY(blenloader)
-ADD_SUBDIRECTORY(blenpluginapi)
-ADD_SUBDIRECTORY(imbuf)
-ADD_SUBDIRECTORY(imbuf/intern/cineon)
-ADD_SUBDIRECTORY(gpu)
-ADD_SUBDIRECTORY(makesdna)
-ADD_SUBDIRECTORY(makesrna)
-ADD_SUBDIRECTORY(readblenfile)
-ADD_SUBDIRECTORY(render)
-ADD_SUBDIRECTORY(blenfont)
-ADD_SUBDIRECTORY(ikplugin)
+FILE(GLOB SRC *.cpp)
 
-IF(WITH_OPENEXR)
-	ADD_SUBDIRECTORY(imbuf/intern/openexr)
-ENDIF(WITH_OPENEXR)
+SET(INC
+  .
+  ../blenlib
+  ../blenkernel
+  ../windowmanager
+  ../makesdna
+  ../makesrna
+  ../editors/include
+  ../../../intern/guardedalloc
+  ${OPENCOLLADA}/COLLADAStreamWriter/include
+  ${OPENCOLLADA}/COLLADABaseUtils/include
+  ${OPENCOLLADA}/COLLADAFramework/include
+  ${OPENCOLLADA}/COLLADASaxFrameworkLoader/include 
+)
 
-IF(WITH_DDS)
-	ADD_SUBDIRECTORY(imbuf/intern/dds)
-ENDIF(WITH_DDS)
-
-IF(WITH_QUICKTIME)
-	ADD_SUBDIRECTORY(quicktime)
-ENDIF(WITH_QUICKTIME)
-
-IF(WITH_PYTHON)
-	ADD_SUBDIRECTORY(python)
-ENDIF(WITH_PYTHON)
-
-IF(WITH_OPENCOLLADA)
-  ADD_SUBDIRECTORY(collada)
-ENDIF(WITH_OPENCOLLADA)
-
+BLENDERLIB(bf_collada "${SRC}" "${INC}")

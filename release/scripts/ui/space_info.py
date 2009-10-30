@@ -99,13 +99,13 @@ class INFO_MT_file_import(dynamic_menu.DynMenu):
 	__label__ = "Import"
 
 	def draw(self, context):
-		pass # dynamic menu
+		self.layout.itemO("WM_OT_collada_import", text="COLLADA (.dae)...")
 
 class INFO_MT_file_export(dynamic_menu.DynMenu):
 	__label__ = "Export"
 
 	def draw(self, context):
-		pass # dynamic menu
+		self.layout.itemO("WM_OT_collada_export", text="COLLADA (.dae)...")
 
 class INFO_MT_file_external_data(bpy.types.Menu):
 	__label__ = "External Data"

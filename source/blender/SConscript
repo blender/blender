@@ -33,3 +33,6 @@ if env['WITH_BF_OPENEXR']:
 
 if env['WITH_BF_QUICKTIME']:
     SConscript (['quicktime/SConscript'])
+
+if env['WITH_BF_COLLADA']:
+    SConscript (['collada/SConscript'])

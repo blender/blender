@@ -19,6 +19,9 @@ defs = []
 if not env['WITH_BF_PYTHON']:
 	defs.append('DISABLE_PYTHON')
 
+if env['WITH_BF_COLLADA']:
+	defs.append('WITH_COLLADA')
+
 if env['OURPLATFORM'] == 'linux2':
 	cflags='-pthread'
     	incs += ' ../../../extern/binreloc/include'
