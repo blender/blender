@@ -335,7 +335,7 @@ def read_opts(cfg, args):
 		('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
 		('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
 
-		(BoolVariable('WITH_BF_COLLADA', 'Build COLLADA import/export module if true', True)),
+		(BoolVariable('WITH_BF_COLLADA', 'Build COLLADA import/export module if true', False)),
 		('BF_COLLADA', 'COLLADA base path', ''),
 		('BF_COLLADA_INC', 'COLLADA include path', ''),
 		('BF_COLLADA_LIB', 'COLLADA library', ''),
