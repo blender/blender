@@ -148,16 +148,6 @@ static void node_ID_title_cb(bContext *C, void *node_v, void *unused_v)
 	}
 }
 
-
-static void node_but_title_cb(bContext *C, void *node_v, void *but_v)
-{
-	// bNode *node= node_v;
-	// XXX uiBut *bt= but_v;
-	// XXX BLI_strncpy(node->name, bt->drawstr, NODE_MAXSTR);
-	
-	// allqueue(REDRAWNODE, 0);
-}
-
 #if 0
 /* XXX not used yet, make compiler happy :) */
 static void node_group_alone_cb(bContext *C, void *node_v, void *unused_v)
@@ -389,10 +379,7 @@ static void node_dynamic_update_cb(bContext *C, void *ntree_v, void *node_v)
 
 static void node_buts_texture(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
-	bNodeTree *ntree= ptr->id.data;
-	rctf *butr= &node->butr;
 
 	short multi = (
 		node->id &&
@@ -401,46 +388,18 @@ static void node_buts_texture(uiLayout *layout, PointerRNA *ptr)
 		(node->type != TEX_NODE_TEXTURE)
 	);
 	
-	uiBut *bt;
-	char *strp;
-	short width = (short)(butr->xmax - butr->xmin);
-	
-	/* browse button texture */
-	uiBlockBeginAlign(block);
-	IDnames_to_pupstring(&strp, NULL, "", &(G.main->tex), NULL, NULL);
-	node->menunr= 0;
-	bt= uiDefButS(block, MENU, B_NODE_EXEC, strp, 
-			butr->xmin, butr->ymin+(multi?30:0), 20, 19, 
-				  &node->menunr, 0, 0, 0, 0, "Browse texture");
-	uiButSetFunc(bt, node_browse_tex_cb, ntree, node);
-	if(strp) MEM_freeN(strp);
-	
-	if(node->id) {
-		bt= uiDefBut(block, TEX, B_NOP, "TE:",
-				butr->xmin+19, butr->ymin+(multi?30:0), butr->xmax-butr->xmin-19, 19, 
-					 node->id->name+2, 0.0, 19.0, 0, 0, "Texture name");
-		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-	}
-	uiBlockEndAlign(block);
+	uiItemR(layout, "", 0, ptr, "texture", 0);
 	
 	if(multi) {
-		char *menustr = ntreeTexOutputMenu(((Tex*)node->id)->nodetree);
-		uiDefButS(block, MENU, B_MATPRV, menustr, butr->xmin, butr->ymin, width, 19, &node->custom1, 0, 0, 0, 0, "Which output to use, for multi-output textures");
-		free(menustr);
+		/* Number Drawing not optimal here, better have a list*/
+		uiItemR(layout, "", 0, ptr, "node_output", 0);
 	}
 }
 
 static void node_buts_math(uiLayout *layout, PointerRNA *ptr)
 { 
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	uiBut *bt; 
-
-	bt=uiDefButS(block, MENU, B_NODE_EXEC,  "Add %x0|Subtract %x1|Multiply %x2|Divide %x3|Sine %x4|Cosine %x5|Tangent %x6|Arcsine %x7|Arccosine %x8|Arctangent %x9|Power %x10|Logarithm %x11|Minimum %x12|Maximum %x13|Round %x14|Less Than %x15|Greater Than %x16", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &node->custom1, 0, 0, 0, 0, ""); 
-	uiButSetFunc(bt, node_but_title_cb, node, bt); 
+	uiItemR(layout, "", 0, ptr, "operation", 0);
 }
-
 
 /* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
 
@@ -664,13 +623,7 @@ static void node_shader_buts_mapping(uiLayout *layout, PointerRNA *ptr)
 
 static void node_shader_buts_vect_math(uiLayout *layout, PointerRNA *ptr)
 { 
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	uiBut *bt; 
-
-	bt=uiDefButS(block, MENU, B_NODE_EXEC,  "Add %x0|Subtract %x1|Average %x2|Dot Product %x3 |Cross Product %x4|Normalize %x5", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &node->custom1, 0, 0, 0, 0, ""); 
-	uiButSetFunc(bt, node_but_title_cb, node, bt); 
+	uiItemR(layout, "", 0, ptr, "operation", 0);
 }
 
 static void node_shader_buts_geometry(uiLayout *layout, PointerRNA *ptr)
@@ -785,8 +738,6 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 }
 
 /* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
-
-
 
 static void node_browse_image_cb(bContext *C, void *ntree_v, void *node_v)
 {
