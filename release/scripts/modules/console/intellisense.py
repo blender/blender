@@ -29,17 +29,29 @@ import re
 # line which starts with an import statement
 RE_MODULE = re.compile('^import|from.+')
 
-# The following regular expression means a word which:
-# - doesn't start with a quote (quoted words are not py objects)
-# - starts with a [a-zA-Z0-9_]
-# - afterwards dots are allowed as well
-# - square bracket pairs [] are allowed (should be closed)
+# The following regular expression means an 'unquoted' word
 RE_UNQUOTED_WORD = re.compile(
-    '''(?:^|[^"'])((?:\w+(?:\w|[.]|\[.+?\])*|))$''', re.UNICODE)
+    # don't start with a quote
+    '''(?:^|[^"'a-zA-Z0-9_])'''
+    # start with a \w = [a-zA-Z0-9_]
+    '''((?:\w+'''
+    # allow also dots and closed bracket pairs []
+    '''(?:\w|[.]|\[.+?\])*'''
+    # allow empty string
+    '''|)'''
+    # allow an unfinished index at the end (including quotes)
+    '''(?:\[[^\]]*$)?)$''',
+    # allow unicode as theoretically this is possible
+    re.UNICODE)
 
 
 def complete(line, cursor, namespace, private=True):
-    """Returns a list of possible completions.
+    """Returns a list of possible completions:
+
+    * name completion
+    * attribute completion (obj.attr)
+    * index completion for lists and dictionaries
+    * module completion (from/import)
 
     :param line: incomplete text line
     :type line: str

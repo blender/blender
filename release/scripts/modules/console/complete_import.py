@@ -126,6 +126,8 @@ def complete(line):
 
     >>> complete('import weak')
     ['weakref']
+    >>> complete('from weakref import C')
+    ['CallableProxyType']
     """
     import inspect
 
@@ -148,6 +150,8 @@ def complete(line):
            (hasattr(m, '__file__') and '__init__' in m.__file__):
             completion_list = [attr for attr in dir(m)
                 if is_importable(m, attr)]
+        else:
+            completion_list = []
         completion_list.extend(getattr(m, '__all__', []))
         if hasattr(m, '__file__') and '__init__' in m.__file__:
             completion_list.extend(module_list(os.path.dirname(m.__file__)))
@@ -155,6 +159,9 @@ def complete(line):
         if '__init__' in completion_list:
             completion_list.remove('__init__')
         return completion_list
+
+    def filter_prefix(names, prefix):
+        return [name for name in names if name.startswith(prefix)]
 
     words = line.split(' ')
     if len(words) == 3 and words[0] == 'from':
@@ -164,11 +171,10 @@ def complete(line):
             return get_root_modules()
         mod = words[1].split('.')
         if len(mod) < 2:
-            mod0 = mod[0]
-            return [m for m in get_root_modules() if m.startswith(mod0)]
+            return filter_prefix(get_root_modules(), words[-1])
         completion_list = try_import('.'.join(mod[:-1]), True)
         completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
-        return completion_list
+        return filter_prefix(completion_list, words[-1])
     if len(words) >= 3 and words[0] == 'from':
         mod = words[1]
-        return try_import(mod)
+        return filter_prefix(try_import(mod), words[-1])

@@ -15,10 +15,84 @@
 
 """Autocomplete with the standard library"""
 
+import re
 import rlcompleter
+
+
+RE_INCOMPLETE_INDEX = re.compile('(.*?)\[[^\]]+$')
 
 TEMP = '__tEmP__'  # only \w characters are allowed!
 TEMP_N = len(TEMP)
+
+
+def is_dict(obj):
+    """Returns whether obj is a dictionary"""
+    return hasattr(obj, 'keys') and hasattr(getattr(obj, 'keys'), '__call__')
+
+
+def complete_names(word, namespace):
+    """Complete variable names or attributes
+
+    :param word: word to be completed
+    :type word: str
+    :param namespace: namespace
+    :type namespace: dict
+    :returns: completion matches
+    :rtype: list of str
+
+    >>> complete_names('fo', {'foo': 'bar'})
+    ['foo', 'for', 'format(']
+    """
+    # start completer
+    completer = rlcompleter.Completer(namespace)
+    # find matches with std library (don't try to implement this yourself)
+    completer.complete(word, 0)
+    return sorted(set(completer.matches))
+
+
+def complete_indices(word, namespace, obj=None, base=None):
+    """Complete a list or dictionary with its indices:
+
+    * integer numbers for list
+    * any keys for dictionary
+
+    :param word: word to be completed
+    :type word: str
+    :param namespace: namespace
+    :type namespace: dict
+    :param obj: object evaluated from base
+    :param base: substring which can be evaluated into an object
+    :type base: str
+    :returns: completion matches
+    :rtype: list of str
+
+    >>> complete_indices('foo', {'foo': range(5)})
+    ['foo[0]', 'foo[1]', 'foo[2]', 'foo[3]', 'foo[4]']
+    >>> complete_indices('foo', {'foo': {'bar':0, 1:2}})
+    ['foo[1]', "foo['bar']"]
+    >>> complete_indices("foo['b", {'foo': {'bar':0, 1:2}}, base='foo')
+    ["foo['bar']"]
+    """
+    #FIXME: 'foo["b'
+    if base is None:
+        base = word
+    if obj is None:
+        try:
+            obj = eval(base, namespace)
+        except Exception:
+            return []
+    if not hasattr(obj, '__getitem__'):
+        # obj is not a list or dictionary
+        return []
+    if is_dict(obj):
+        # dictionary type
+        matches = ['%s[%r]' % (base, key) for key in sorted(obj.keys())]
+    else:
+        # list type
+        matches = ['%s[%d]' % (base, idx) for idx in range(len(obj))]
+    if word != base:
+        matches = [match for match in matches if match.startswith(word)]
+    return matches
 
 
 def complete(word, namespace, private=True):
@@ -31,32 +105,77 @@ def complete(word, namespace, private=True):
     :type namespace: dict
     :param private: whether private attribute/methods should be returned
     :type private: bool
+    :returns: completion matches
+    :rtype: list of str
 
-    >>> complete('fo', {'foo': 'bar'})
-    ['foo']
+    >>> complete('foo[1', {'foo': range(14)})
+    ['foo[1]', 'foo[10]', 'foo[11]', 'foo[12]', 'foo[13]']
+    >>> complete('foo[0]', {'foo': [range(5)]})
+    ['foo[0][0]', 'foo[0][1]', 'foo[0][2]', 'foo[0][3]', 'foo[0][4]']
+    >>> complete('foo[0].i', {'foo': [range(5)]})
+    ['foo[0].index(', 'foo[0].insert(']
+    >>> complete('rlcompleter', {'rlcompleter': rlcompleter})
+    ['rlcompleter.']
     """
-    completer = rlcompleter.Completer(namespace)
+    #
+    # if word is empty -> nothing to complete
+    if not word:
+        return []
 
-    # brackets are normally not allowed -> work around (only in this case)
-    if '[' in word:
+    re_incomplete_index = RE_INCOMPLETE_INDEX.search(word)
+    if re_incomplete_index:
+        # ignore incomplete index at the end, e.g 'a[1' -> 'a'
+        matches = complete_indices(word, namespace,
+                    base=re_incomplete_index.group(1))
+
+    elif not('[' in word):
+        matches = complete_names(word, namespace)
+
+    elif word[-1] == ']':
+        matches = [word]
+
+    elif '.' in word:
+        # brackets are normally not allowed -> work around
+
+        # remove brackets by using a temp var without brackets
         obj, attr = word.rsplit('.', 1)
         try:
             # do not run the obj expression in the console
             namespace[TEMP] = eval(obj, namespace)
         except Exception:
             return []
-        _word = TEMP + '.' + attr
-    else:
-        _word = word
-
-    # find matches with stdlibrary (don't try to implement this yourself)
-    completer.complete(_word, 0)
-    matches = completer.matches
-
-    # brackets are normally not allowed -> clean up
-    if '[' in word:
+        matches = complete_names(TEMP + '.' + attr, namespace)
         matches = [obj + match[TEMP_N:] for match in matches]
         del namespace[TEMP]
+
+    else:
+        # safety net, but when would this occur?
+        return []
+
+    if not matches:
+        return []
+
+    # add '.', '('  or '[' if no match has been found
+    elif len(matches) == 1 and matches[0] == word:
+
+        # try to retrieve the object
+        try:
+            obj = eval(word, namespace)
+        except Exception:
+            return []
+        # ignore basic types
+        if type(obj) in (bool, float, int, str):
+            return []
+        # an extra char '[', '(' or '.' will be added
+        if hasattr(obj, '__getitem__'):
+            # list or dictionary
+            matches = complete_indices(word, namespace, obj)
+        elif hasattr(obj, '__call__'):
+            # callables
+            matches = [word + '(']
+        else:
+            # any other type
+            matches = [word + '.']
 
     # separate public from private
     public_matches = [match for match in matches if not('._' in match)]
