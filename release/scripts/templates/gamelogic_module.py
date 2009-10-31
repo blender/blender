@@ -13,14 +13,14 @@ import GameLogic
 # with multiple objects.
 
 def main(cont):
-	own = cont.owner
-	
-	sens = cont.sensors['mySensor']
-	actu = cont.actuators['myActuator']
-	
-	if sens.positive:
-		cont.activate(actu)
-	else:
-		cont.deactivate(actu)
+    own = cont.owner
+
+    sens = cont.sensors['mySensor']
+    actu = cont.actuators['myActuator']
+
+    if sens.positive:
+        cont.activate(actu)
+    else:
+        cont.deactivate(actu)
 
 # dont call main(GameLogic.getCurrentController()), the py controller will

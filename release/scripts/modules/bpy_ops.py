@@ -220,11 +220,11 @@ class WM_OT_context_set_boolean(bpy.types.Operator):
     '''Set a context value.'''
     bl_idname = "wm.context_set_boolean"
     bl_label = "Context Set"
-    
+
     path = rna_path_prop
     value = BoolProperty(name="Value",
             description="Assignment value", default=True)
-    
+
     execute = execute_context_assign
 
 
@@ -232,10 +232,10 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_int"
     bl_label = "Context Set"
-    
+
     path = rna_path_prop
     value = IntProperty(name="Value", description="Assign value", default=0)
-    
+
     execute = execute_context_assign
 
 
@@ -255,7 +255,7 @@ class WM_OT_context_set_string(bpy.types.Operator): # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_string"
     bl_label = "Context Set"
-    
+
     path = rna_path_prop
     value = StringProperty(name="Value",
             description="Assign value", maxlen=1024, default="")
