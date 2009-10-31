@@ -626,9 +626,8 @@ class MESH_OT_skin(bpy.types.Operator):
 	bl_undo = True
 	
 	'''
-	bl_props = [
-		bpy.props.EnumProperty(attr="loft_method", items=[(), ()], description="", default= True),
-	]
+	loft_method = EnumProperty(attr="loft_method", items=[(), ()], description="", default= True)
+	
 	'''
 	
 	def execute(self, context):

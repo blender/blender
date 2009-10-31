@@ -1,6 +1,10 @@
+import bpy
+
 def write_some_data(context, path, use_some_setting):
 	pass
-	
+
+from bpy.props import *
+
 class ExportSomeData(bpy.types.Operator):
 	'''This appiers in the tooltip of the operator and in the generated docs.'''
 	bl_idname = "export.some_data" # this is important since its how bpy.ops.export.some_data is constructed
@@ -10,10 +14,8 @@ class ExportSomeData(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 	
 	# TODO, add better example props
-	bl_props = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= ""),
-		bpy.props.BoolProperty(attr="use_some_setting", name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True),
-	]
+	path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
+	use_some_setting = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True)
 	
 	def poll(self, context):
 		return context.active_object != None

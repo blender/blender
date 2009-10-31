@@ -1090,7 +1090,7 @@ def save_3ds(filename, context):
 #     else:
 #         Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
 # # save_3ds('/test_b.3ds')
-
+from bpy.props import *
 class EXPORT_OT_autodesk_3ds(bpy.types.Operator):
 	'''Export to 3DS file format (.3ds).'''
 	bl_idname = "export.autodesk_3ds"
@@ -1099,10 +1099,10 @@ class EXPORT_OT_autodesk_3ds(bpy.types.Operator):
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	bl_props = [
-		# bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= ""),
-	]
+	
+	# filename = StringProperty(name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
+	path = StringProperty(name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= "")
+
 	
 	def execute(self, context):
 		save_3ds(self.path, context)

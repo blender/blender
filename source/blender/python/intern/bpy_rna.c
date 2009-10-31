@@ -2813,13 +2813,10 @@ static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "name", "description", "default", NULL};
-	char *id, *name="", *description="";
+	char *id=NULL, *name="", *description="";
 	int def=0;
 	PropertyRNA *prop;
 	StructRNA *srna;
-
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssi:BoolProperty", kwlist, &id, &name, &description, &def))
-		return NULL;
 	
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
@@ -2831,6 +2828,10 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssi:BoolProperty", kwlist, &id, &name, &description, &def))
+			return NULL;
+
 		prop= RNA_def_boolean(srna, id, def, name, description);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -2843,13 +2844,10 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
-	char *id, *name="", *description="";
+	char *id=NULL, *name="", *description="";
 	int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, def=0;
 	PropertyRNA *prop;
 	StructRNA *srna;
-
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiii:IntProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
-		return NULL;
 	
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
@@ -2861,6 +2859,10 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiii:IntProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
+			return NULL;
+
 		prop= RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -2873,13 +2875,10 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
-	char *id, *name="", *description="";
+	char *id=NULL, *name="", *description="";
 	float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, def=0.0f;
 	PropertyRNA *prop;
 	StructRNA *srna;
-
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssfffff:FloatProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
-		return NULL;
 	
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
@@ -2891,6 +2890,10 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssfffff:FloatProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
+			return NULL;
+
 		prop= RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -2903,13 +2906,10 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "name", "description", "maxlen", "default", NULL};
-	char *id, *name="", *description="", *def="";
+	char *id=NULL, *name="", *description="", *def="";
 	int maxlen=0;
 	PropertyRNA *prop;
 	StructRNA *srna;
-
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssis:StringProperty", kwlist, &id, &name, &description, &maxlen, &def))
-		return NULL;
 	
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
@@ -2921,6 +2921,10 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssis:StringProperty", kwlist, &id, &name, &description, &maxlen, &def))
+			return NULL;
+
 		prop= RNA_def_string(srna, id, def, maxlen, name, description);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -2979,15 +2983,12 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, const char *def, in
 PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "items", "name", "description", "default", NULL};
-	char *id, *name="", *description="", *def="";
+	char *id=NULL, *name="", *description="", *def="";
 	int defvalue=0;
 	PyObject *items= Py_None;
 	EnumPropertyItem *eitems;
 	PropertyRNA *prop;
 	StructRNA *srna;
-
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sss:EnumProperty", kwlist, &id, &items, &name, &description, &def))
-		return NULL;
 	
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
@@ -2999,6 +3000,10 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sss:EnumProperty", kwlist, &id, &items, &name, &description, &def))
+			return NULL;
+
 		eitems= enum_items_from_py(items, def, &defvalue);
 		if(!eitems)
 			return NULL;
@@ -3035,13 +3040,10 @@ static StructRNA *pointer_type_from_py(PyObject *value)
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "type", "name", "description", NULL};
-	char *id, *name="", *description="";
+	char *id=NULL, *name="", *description="";
 	PropertyRNA *prop;
 	StructRNA *srna, *ptype;
 	PyObject *type= Py_None;
-
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ss:PointerProperty", kwlist, &id, &type, &name, &description))
-		return NULL;
 	
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
@@ -3053,6 +3055,10 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ss:PointerProperty", kwlist, &id, &type, &name, &description))
+			return NULL;
+
 		ptype= pointer_type_from_py(type);
 		if(!ptype)
 			return NULL;
@@ -3070,13 +3076,10 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "type", "name", "description", NULL};
-	char *id, *name="", *description="";
+	char *id=NULL, *name="", *description="";
 	PropertyRNA *prop;
 	StructRNA *srna, *ptype;
 	PyObject *type= Py_None;
-
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ss:CollectionProperty", kwlist, &id, &type, &name, &description))
-		return NULL;
 	
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
@@ -3088,6 +3091,10 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ss:CollectionProperty", kwlist, &id, &type, &name, &description))
+			return NULL;
+
 		ptype= pointer_type_from_py(type);
 		if(!ptype)
 			return NULL;
@@ -3102,50 +3109,58 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 	return NULL;
 }
 
-static int deferred_register_props(PyObject *py_class, StructRNA *srna)
+int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 {
-	PyObject *props, *dummy_args, *item;
-	int i;
-
-	props= PyObject_GetAttrString(py_class, "bl_props");
-	
-	if(!props) {
-		PyErr_Clear();
-		return 1;
-	}
+	PyObject *dummy_args, *item, *key;
+	Py_ssize_t pos = 0;
 
 	dummy_args = PyTuple_New(0);
-
-	for(i=0; i<PyList_Size(props); i++) {
+	
+	while (PyDict_Next(class_dict, &pos, &key, &item)) {
 		PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
-		item = PyList_GET_ITEM(props, i);
-		
-		if(PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
-			PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
-			pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
-			py_srna_cobject = PyCObject_FromVoidPtr(srna, NULL);
-			
-			py_ret = pyfunc(py_srna_cobject, dummy_args, py_kw);
-			Py_DECREF(py_srna_cobject);
+		/* We only care about results from C which
+		 * are for sure types, save some time with error */
+		if(PyTuple_CheckExact(item)) {
+			if(PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 
-			if(py_ret) {
-				Py_DECREF(py_ret);
+				PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
+				pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
+				py_srna_cobject = PyCObject_FromVoidPtr(srna, NULL);
+
+				/* not 100% nice :/, modifies the dict passed, should be ok */
+				PyDict_SetItemString(py_kw, "attr", key);
+
+				py_ret = pyfunc(py_srna_cobject, dummy_args, py_kw);
+				Py_DECREF(py_srna_cobject);
+
+				if(py_ret) {
+					Py_DECREF(py_ret);
+				}
+				else {
+					PyErr_Print();
+					PyErr_Clear();
+
+					PyLineSpit();
+
+					PyErr_Format(PyExc_ValueError, "StructRNA \"%.200s\" registration error: %.200s could not run\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
+					Py_DECREF(dummy_args);
+					return -1;
+				}
 			}
 			else {
-				Py_DECREF(dummy_args);
-				return 0;
+				/* Since this is a class dict, ignore args that can't be passed */
+
+				/* for testing only */
+				/* PyObSpit("Why doesn't this work??", item);
+				PyErr_Print(); */
+				PyErr_Clear();
+
 			}
-		}
-		else {
-			PyErr_Clear();
-			PyErr_SetString(PyExc_AttributeError, "expected list of dicts for bl_props.");
-			Py_DECREF(dummy_args);
-			return 0;
 		}
 	}
 
 	Py_DECREF(dummy_args);
-	return 1;
+	return 0;
 }
 
 /*-------------------- Type Registration ------------------------*/
@@ -3508,8 +3523,19 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 		// Py_DECREF(py_class); // shuld be able to do this XXX since the old rna adds a new ref.
 	}
 
-	if(!deferred_register_props(py_class, srna_new))
-		return NULL;
+	/* Can't use this because it returns a dict proxy
+	 *
+	 * item= PyObject_GetAttrString(py_class, "__dict__");
+	 */
+	item= ((PyTypeObject*)py_class)->tp_dict;
+	if(item) {
+		if(pyrna_deferred_register_props(srna_new, item)!=0) {
+			return NULL;
+		}
+	}
+	else {
+		PyErr_Clear();
+	}
 
 	Py_RETURN_NONE;
 }

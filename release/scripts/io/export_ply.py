@@ -231,6 +231,9 @@ def write(filename, scene, ob, \
 		Blender.Window.EditMode(1, '', 0)
 	"""
 
+from bpy.props import *
+
+
 class EXPORT_OT_ply(bpy.types.Operator):
 	'''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
 	bl_idname = "export.ply"
@@ -239,13 +242,13 @@ class EXPORT_OT_ply(bpy.types.Operator):
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	bl_props = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= ""),
-		bpy.props.BoolProperty(attr="use_modifiers", name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True),
-		bpy.props.BoolProperty(attr="use_normals", name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True),
-		bpy.props.BoolProperty(attr="use_uvs", name="Export UVs", description="Exort the active UV layer", default= True),
-		bpy.props.BoolProperty(attr="use_colors", name="Export Vertex Colors", description="Exort the active vertex color layer", default= True)
-	]
+	
+	path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
+	use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True)
+	use_normals = BoolProperty(name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True)
+	use_uvs = BoolProperty(name="Export UVs", description="Exort the active UV layer", default= True)
+	use_colors = BoolProperty(name="Export Vertex Colors", description="Exort the active vertex color layer", default= True)
+	
 	
 	def poll(self, context):
 		return context.active_object != None

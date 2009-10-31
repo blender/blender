@@ -1439,6 +1439,8 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
 		
 
 # Operators 
+from bpy.props import *
+
 
 class OBJECT_OT_select_pattern(bpy.types.Operator):
 	'''Select object matching a naming pattern.'''
@@ -1446,11 +1448,11 @@ class OBJECT_OT_select_pattern(bpy.types.Operator):
 	bl_label = "Select Pattern"
 	bl_register = True
 	bl_undo = True
-	bl_props = [
-		bpy.props.StringProperty(attr="pattern", name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen= 32, default= "*"),
-		bpy.props.BoolProperty(attr="case_sensitive", name="Case Sensitive", description="Do a case sensitive compare", default= False),
-		bpy.props.BoolProperty(attr="extend", name="Extend", description="Extend the existing selection", default= True),
-	]
+	
+	pattern = StringProperty(name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen= 32, default= "*")
+	case_sensitive = BoolProperty(name="Case Sensitive", description="Do a case sensitive compare", default= False)
+	extend = BoolProperty(name="Extend", description="Extend the existing selection", default= True)
+	
 	
 	def execute(self, context):
 	

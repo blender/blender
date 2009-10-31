@@ -13,11 +13,6 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 	bl_idname = "render.netclientanim"
 	bl_label = "Animation on network"
 	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
-	
 	def poll(self, context):
 		return True
 	
@@ -44,11 +39,6 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 	bl_idname = "render.netclientsend"
 	bl_label = "Send job"
 	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
-	
 	def poll(self, context):
 		return True
 	
@@ -72,11 +62,6 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 	'''Refresh the status of the current jobs'''
 	bl_idname = "render.netclientstatus"
 	bl_label = "Client Status"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -118,11 +103,6 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 	bl_idname = "render.netclientblacklistslave"
 	bl_label = "Client Blacklist Slave"
 	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
-	
 	def poll(self, context):
 		return True
 	
@@ -152,11 +132,6 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	bl_idname = "render.netclientwhitelistslave"
 	bl_label = "Client Whitelist Slave"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -188,11 +163,6 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 	'''Refresh status about available Render slaves'''
 	bl_idname = "render.netclientslaves"
 	bl_label = "Client Slaves"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -239,11 +209,6 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 	bl_idname = "render.netclientcancel"
 	bl_label = "Client Cancel"
 	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
-	
 	def poll(self, context):
 		netsettings = context.scene.network_render
 		return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
@@ -273,11 +238,6 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 	bl_idname = "render.netclientcancelall"
 	bl_label = "Client Cancel All"
 	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
-	
 	def poll(self, context):
 		return True
 		
@@ -304,11 +264,6 @@ class netclientdownload(bpy.types.Operator):
 	'''Download render results from the network'''
 	bl_idname = "render.netclientdownload"
 	bl_label = "Client Download"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
 	
 	def poll(self, context):
 		netsettings = context.scene.network_render
@@ -355,11 +310,6 @@ class netclientscan(bpy.types.Operator):
 	bl_idname = "render.netclientscan"
 	bl_label = "Client Scan"
 	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
-	
 	def poll(self, context):
 		return True
 		
@@ -392,11 +342,6 @@ class netclientweb(bpy.types.Operator):
 	'''Open new window with information about running rendering jobs'''
 	bl_idname = "render.netclientweb"
 	bl_label = "Open Master Monitor"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	bl_props = []
 	
 	def poll(self, context):
 		return True

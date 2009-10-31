@@ -554,12 +554,15 @@ bpy.types.register(USERPREF_PT_system)
 bpy.types.register(USERPREF_PT_file)
 bpy.types.register(USERPREF_PT_input)
 
+from bpy.props import *
+
+
 class WM_OT_keyconfig_export(bpy.types.Operator):
 	"Export key configuration to a python script."
 	bl_idname = "wm.keyconfig_export"
 	bl_label = "Export Key Configuration..."
-	bl_props = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path to write file to.")]
+	
+	path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
 
 	def _string_value(self, value):
 		result = ""
@@ -657,7 +660,8 @@ class WM_OT_keymap_restore(bpy.types.Operator):
 	"Restore key map"
 	bl_idname = "wm.keymap_restore"
 	bl_label = "Restore Key Map"
-	bl_props = [bpy.props.BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")]
+	
+	all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")
 
 	def execute(self, context):
 		wm = context.manager

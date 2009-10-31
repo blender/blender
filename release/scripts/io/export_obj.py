@@ -913,6 +913,9 @@ Currently the exporter lacks these features:
 * multiple scene export (only active scene is written)
 * particles
 '''
+
+from bpy.props import *
+
 class EXPORT_OT_obj(bpy.types.Operator):
 	'''Save a Wavefront OBJ File'''
 	
@@ -922,35 +925,34 @@ class EXPORT_OT_obj(bpy.types.Operator):
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	bl_props = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= ""),
+	path = StringProperty(name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= "")
 
-		# context group
-		bpy.props.BoolProperty(attr="use_selection", name="Selection Only", description="", default= False),
-		bpy.props.BoolProperty(attr="use_all_scenes", name="All Scenes", description="", default= False),
-		bpy.props.BoolProperty(attr="use_animation", name="All Animation", description="", default= False),
+	# context group
+	use_selection = BoolProperty(name="Selection Only", description="", default= False)
+	use_all_scenes = BoolProperty(name="All Scenes", description="", default= False)
+	use_animation = BoolProperty(name="All Animation", description="", default= False)
 
-		# object group
-		bpy.props.BoolProperty(attr="use_modifiers", name="Apply Modifiers", description="", default= True),
-		bpy.props.BoolProperty(attr="use_rotate90", name="Rotate X90", description="", default= True),
+	# object group
+	use_modifiers = BoolProperty(name="Apply Modifiers", description="", default= True)
+	use_rotate90 = BoolProperty(name="Rotate X90", description="", default= True)
 
-		# extra data group
-		bpy.props.BoolProperty(attr="use_edges", name="Edges", description="", default= True),
-		bpy.props.BoolProperty(attr="use_normals", name="Normals", description="", default= False),
-		bpy.props.BoolProperty(attr="use_hq_normals", name="High Quality Normals", description="", default= True),
-		bpy.props.BoolProperty(attr="use_uvs", name="UVs", description="", default= True),
-		bpy.props.BoolProperty(attr="use_materials", name="Materials", description="", default= True),
-		bpy.props.BoolProperty(attr="copy_images", name="Copy Images", description="", default= False),
-		bpy.props.BoolProperty(attr="use_triangles", name="Triangulate", description="", default= False),
-		bpy.props.BoolProperty(attr="use_vertex_groups", name="Polygroups", description="", default= False),
-		bpy.props.BoolProperty(attr="use_nurbs", name="Nurbs", description="", default= False),
+	# extra data group
+	use_edges = BoolProperty(name="Edges", description="", default= True)
+	use_normals = BoolProperty(name="Normals", description="", default= False)
+	use_hq_normals = BoolProperty(name="High Quality Normals", description="", default= True)
+	use_uvs = BoolProperty(name="UVs", description="", default= True)
+	use_materials = BoolProperty(name="Materials", description="", default= True)
+	copy_images = BoolProperty(name="Copy Images", description="", default= False)
+	use_triangles = BoolProperty(name="Triangulate", description="", default= False)
+	use_vertex_groups = BoolProperty(name="Polygroups", description="", default= False)
+	use_nurbs = BoolProperty(name="Nurbs", description="", default= False)
 
-		# grouping group
-		bpy.props.BoolProperty(attr="use_blen_objects", name="Objects as OBJ Objects", description="", default= True),
-		bpy.props.BoolProperty(attr="group_by_object", name="Objects as OBJ Groups ", description="", default= False),
-		bpy.props.BoolProperty(attr="group_by_material", name="Material Groups", description="", default= False),
-		bpy.props.BoolProperty(attr="keep_vertex_order", name="Keep Vertex Order", description="", default= False)
-	]
+	# grouping group
+	use_blen_objects = BoolProperty(name="Objects as OBJ Objects", description="", default= True)
+	group_by_object = BoolProperty(name="Objects as OBJ Groups ", description="", default= False)
+	group_by_material = BoolProperty(name="Material Groups", description="", default= False)
+	keep_vertex_order = BoolProperty(name="Keep Vertex Order", description="", default= False)
+	
 	
 	def execute(self, context):
 

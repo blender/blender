@@ -1121,6 +1121,8 @@ else:
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
 
 '''
+from bpy.props import *
+
 
 class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 	'''Import from 3DS file format (.3ds)'''
@@ -1129,14 +1131,12 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
+	
+	path = StringProperty(name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= ""),
 
-	bl_props = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= ""),
-
-# 		bpy.props.FloatProperty(attr="size_constraint", name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
-# 		bpy.props.BoolProperty(attr="search_images", name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),
-# 		bpy.props.BoolProperty(attr="apply_matrix", name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
-	]
+# 	size_constraint = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
+# 	search_images = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),
+# 	apply_matrix = BoolProperty(name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
 	
 	def execute(self, context):
 		load_3ds(self.path, context, 0.0, False, False)

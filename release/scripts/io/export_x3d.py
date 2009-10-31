@@ -1196,6 +1196,8 @@ def x3d_export_ui(filename):
 # if __name__ == '__main__':
 # 	Blender.Window.FileSelector(x3d_export_ui,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
 
+from bpy.props import *
+
 class EXPORT_OT_x3d(bpy.types.Operator):
 	'''Export selection to Extensible 3D file (.x3d)'''
 	bl_idname = "export.x3d"
@@ -1203,14 +1205,12 @@ class EXPORT_OT_x3d(bpy.types.Operator):
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
-
-	bl_props = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= ""),
-
-		bpy.props.BoolProperty(attr="apply_modifiers", name="Apply Modifiers", description="Use transformed mesh data from each object.", default=True),
-		bpy.props.BoolProperty(attr="triangulate", name="Triangulate", description="Triangulate quads.", default=False),
-		bpy.props.BoolProperty(attr="compress", name="Compress", description="GZip the resulting file, requires a full python install.", default=False),
-	]
+	path = StringProperty(name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= "")
+	
+	apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object.", default=True)
+	triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
+	compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install.", default=False)
+	
 	
 	def execute(self, context):
 		x3d_export(self.path, context, self.apply_modifiers, self.triangulate, self.compress)

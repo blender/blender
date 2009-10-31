@@ -46,6 +46,7 @@ def add_torus(PREF_MAJOR_RAD, PREF_MINOR_RAD, PREF_MAJOR_SEG, PREF_MINOR_SEG):
 	
 	return verts, faces
 
+from bpy.props import *
 
 class MESH_OT_primitive_torus_add(bpy.types.Operator):
 	'''Add a torus mesh.'''
@@ -53,12 +54,11 @@ class MESH_OT_primitive_torus_add(bpy.types.Operator):
 	bl_label = "Add Torus"
 	bl_register = True
 	bl_undo = True
-	bl_props = [
-		bpy.props.FloatProperty(attr="major_radius", name="Major Radius", description="Number of segments for the main ring of the torus", default= 1.0, min= 0.01, max= 100.0),
-		bpy.props.FloatProperty(attr="minor_radius", name="Minor Radius", description="Number of segments for the minor ring of the torus", default= 0.25, min= 0.01, max= 100.0),
-		bpy.props.IntProperty(attr="major_segments", name="Major Segments", description="Number of segments for the main ring of the torus", default= 48, min= 3, max= 256),
-		bpy.props.IntProperty(attr="minor_segments", name="Minor Segments", description="Number of segments for the minor ring of the torus", default= 16, min= 3, max= 256),
-	]
+	
+	major_radius = FloatProperty(name="Major Radius", description="Number of segments for the main ring of the torus", default= 1.0, min= 0.01, max= 100.0)
+	minor_radius = FloatProperty(name="Minor Radius", description="Number of segments for the minor ring of the torus", default= 0.25, min= 0.01, max= 100.0)
+	major_segments = IntProperty(name="Major Segments", description="Number of segments for the main ring of the torus", default= 48, min= 3, max= 256)
+	minor_segments = IntProperty(name="Minor Segments", description="Number of segments for the minor ring of the torus", default= 16, min= 3, max= 256)
 	
 	def execute(self, context):
 		verts_loc, faces = add_torus(self.major_radius, self.minor_radius, self.major_segments, self.minor_segments)

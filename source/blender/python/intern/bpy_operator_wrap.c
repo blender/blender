@@ -41,7 +41,6 @@
 
 #include "../generic/bpy_internal_import.h" // our own imports
 
-#define PYOP_ATTR_PROP			"bl_props"
 #define PYOP_ATTR_UINAME		"bl_label"
 #define PYOP_ATTR_IDNAME		"bl_idname"		/* the name given by python */
 #define PYOP_ATTR_IDNAME_BL	"_bl_idname"	/* our own name converted into blender syntax, users wont see this */
@@ -300,46 +299,18 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 		PyErr_Clear();
 	}
 
-
-
-	props= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
-	
-	if (props) {
-		PyObject *dummy_args = PyTuple_New(0);
-		int i;
-
-		for(i=0; i<PyList_Size(props); i++) {
-			PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
-			item = PyList_GET_ITEM(props, i);
-			
-			if (PyArg_ParseTuple(item, "O!O!:PYTHON_OT_wrapper", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
-				
-				PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
-				pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
-				py_srna_cobject = PyCObject_FromVoidPtr(ot->srna, NULL);
-				
-				py_ret = pyfunc(py_srna_cobject, dummy_args, py_kw);
-				if (py_ret) {
-					Py_DECREF(py_ret);
-				} else {
-					fprintf(stderr, "BPy Operator \"%s\" registration error: %s item %d could not run\n", ot->idname, PYOP_ATTR_PROP, i);
-					PyLineSpit();
-					PyErr_Print();
-					PyErr_Clear();
-				}
-				Py_DECREF(py_srna_cobject);
-				
-			} else {
-				/* cant return NULL from here */ // XXX a bit ugly
-				PyErr_Print();
-				PyErr_Clear();
-			}
-			
-			// expect a tuple with a CObject and a dict
+	/* Can't use this because it returns a dict proxy
+	 *
+	 * item= PyObject_GetAttrString(py_class, "__dict__");
+	 */
+	item= ((PyTypeObject*)py_class)->tp_dict;
+	if(item) {
+		if(pyrna_deferred_register_props(ot->srna, item)!=0) {
+			PyErr_Print();
+			PyErr_Clear();
 		}
-		Py_DECREF(dummy_args);
-		Py_DECREF(props);
-	} else {
+	}
+	else {
 		PyErr_Clear();
 	}
 }
@@ -359,7 +330,6 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	static struct BPY_class_attr_check pyop_class_attr_values[]= {
 		{PYOP_ATTR_IDNAME,		's', -1, OP_MAX_TYPENAME-3,	0}, /* -3 because a.b -> A_OT_b */
 		{PYOP_ATTR_UINAME,		's', -1,-1,	BPY_CLASS_ATTR_OPTIONAL},
-		{PYOP_ATTR_PROP,		'l', -1,-1,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_DESCRIPTION,	's', -1,-1,	BPY_CLASS_ATTR_NONE_OK},
 		{"execute",				'f', 2,	-1, BPY_CLASS_ATTR_OPTIONAL},
 		{"invoke",				'f', 3,	-1, BPY_CLASS_ATTR_OPTIONAL},
@@ -398,24 +368,6 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 			Py_XDECREF((PyObject*)ot->pyop_data);
 		}
 		WM_operatortype_remove(idname);
-	}
-	
-	/* If we have properties set, check its a list of dicts */
-	item= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
-	if (item) {
-		for(i=0; i<PyList_Size(item); i++) {
-			PyObject *py_args = PyList_GET_ITEM(item, i);
-			PyObject *py_func_ptr, *py_kw; /* place holders */
-			
-			if (!PyArg_ParseTuple(py_args, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
-				PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.properties must contain values from FloatProperty", idname);
-				return NULL;				
-			}
-		}
-		Py_DECREF(item);
-	}
-	else {
-		PyErr_Clear();
 	}
 	
 	Py_INCREF(py_class);
