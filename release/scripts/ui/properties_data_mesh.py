@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -13,6 +14,7 @@ class DataButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         return context.mesh
+
 
 class DATA_PT_context_mesh(DataButtonsPanel):
     bl_label = ""
@@ -34,6 +36,7 @@ class DATA_PT_context_mesh(DataButtonsPanel):
             split.template_ID(space, "pin_id")
             split.itemS()
 
+
 class DATA_PT_normals(DataButtonsPanel):
     bl_label = "Normals"
 
@@ -54,6 +57,7 @@ class DATA_PT_normals(DataButtonsPanel):
         col.itemR(mesh, "vertex_normal_flip")
         col.itemR(mesh, "double_sided")
 
+
 class DATA_PT_settings(DataButtonsPanel):
     bl_label = "Settings"
 
@@ -66,6 +70,7 @@ class DATA_PT_settings(DataButtonsPanel):
 
         col = split.column()
         col.itemR(mesh, "texture_mesh")
+
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
     bl_label = "Vertex Groups"
@@ -81,7 +86,7 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 
         rows = 2
         if group:
-            rows= 5
+            rows = 5
 
         row = layout.row()
         row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index", rows=rows)
@@ -111,6 +116,7 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 
             layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight")
 
+
 class DATA_PT_shape_keys(DataButtonsPanel):
     bl_label = "Shape Keys"
 
@@ -135,7 +141,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
         rows = 2
         if kb:
-            rows= 5
+            rows = 5
         row.template_list(key, "keys", ob, "active_shape_key_index", rows=rows)
 
         col = row.column()
@@ -160,7 +166,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             sub.alignment = 'RIGHT'
 
             subrow = sub.row(align=True)
-            subrow.active= enable_edit_value
+            subrow.active = enable_edit_value
             subrow.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
             subrow.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
             subrow.itemO("object.shape_key_clear", icon='ICON_X', text="")
@@ -196,6 +202,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
                 row.active = enable_edit_value
                 row.itemR(key, "slurph")
 
+
 class DATA_PT_uv_texture(DataButtonsPanel):
     bl_label = "UV Texture"
 
@@ -216,6 +223,7 @@ class DATA_PT_uv_texture(DataButtonsPanel):
         lay = me.active_uv_texture
         if lay:
             layout.itemR(lay, "name")
+
 
 class DATA_PT_vertex_colors(DataButtonsPanel):
     bl_label = "Vertex Colors"
@@ -245,4 +253,3 @@ bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
-

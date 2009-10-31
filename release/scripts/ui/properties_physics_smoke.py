@@ -3,11 +3,13 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
+
 
 class PhysicButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -18,6 +20,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
         ob = context.object
         rd = context.scene.render_data
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel):
     bl_label = "Smoke"
@@ -90,6 +93,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
             #elif md.smoke_type == 'TYPE_COLL':
             #	layout.itemS()
 
+
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
     bl_label = "Smoke Groups"
     bl_default_closed = True
@@ -116,6 +120,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
         col.itemL(text="Collision Group:")
         col.itemR(group, "coll_group", text="")
 
+
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
     bl_label = "Smoke Cache"
     bl_default_closed = True
@@ -130,7 +135,8 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
         md = context.smoke.domain_settings
         cache = md.point_cache_low
 
-        point_cache_ui(self, cache, cache.baked==False, 0, 1)
+        point_cache_ui(self, cache, cache.baked == False, 0, 1)
+
 
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
     bl_label = "Smoke High Resolution"
@@ -162,6 +168,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
         col.itemR(md, "strength")
         col.itemR(md, "viewhighres")
 
+
 class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
     bl_label = "Smoke High Resolution Cache"
     bl_default_closed = True
@@ -176,7 +183,8 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
         md = context.smoke.domain_settings
         cache = md.point_cache_high
 
-        point_cache_ui(self, cache, cache.baked==False, 0, 1)
+        point_cache_ui(self, cache, cache.baked == False, 0, 1)
+
 
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
     bl_label = "Smoke Field Weights"

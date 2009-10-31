@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class FILEBROWSER_HT_header(bpy.types.Header):
     bl_space_type = 'FILE_BROWSER'
@@ -41,13 +42,13 @@ class FILEBROWSER_HT_header(bpy.types.Header):
         row = layout.row(align=True)
         row.active = params.do_filter
 
-        row.itemR(params, "filter_folder", text="");
-        row.itemR(params, "filter_blender", text="");
-        row.itemR(params, "filter_image", text="");
-        row.itemR(params, "filter_movie", text="");
-        row.itemR(params, "filter_script", text="");
-        row.itemR(params, "filter_font", text="");
-        row.itemR(params, "filter_sound", text="");
-        row.itemR(params, "filter_text", text="");
+        row.itemR(params, "filter_folder", text="")
+        row.itemR(params, "filter_blender", text="")
+        row.itemR(params, "filter_image", text="")
+        row.itemR(params, "filter_movie", text="")
+        row.itemR(params, "filter_script", text="")
+        row.itemR(params, "filter_font", text="")
+        row.itemR(params, "filter_sound", text="")
+        row.itemR(params, "filter_text", text="")
 
 bpy.types.register(FILEBROWSER_HT_header)

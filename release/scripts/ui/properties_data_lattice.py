@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -13,6 +14,7 @@ class DataButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         return context.lattice
+
 
 class DATA_PT_context_lattice(DataButtonsPanel):
     bl_label = ""
@@ -33,6 +35,7 @@ class DATA_PT_context_lattice(DataButtonsPanel):
         elif lat:
             split.template_ID(space, "pin_id")
             split.itemS()
+
 
 class DATA_PT_lattice(DataButtonsPanel):
     bl_label = "Lattice"

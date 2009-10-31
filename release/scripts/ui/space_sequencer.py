@@ -3,14 +3,17 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
 
-def act_strip(context):
-    try:		return context.scene.sequence_editor.active_strip
-    except:	return None
 
-# Header
+def act_strip(context):
+    try:
+        return context.scene.sequence_editor.active_strip
+    except:
+        return None
+
+
 class SEQUENCER_HT_header(bpy.types.Header):
     bl_space_type = 'SEQUENCE_EDITOR'
 
@@ -41,6 +44,7 @@ class SEQUENCER_HT_header(bpy.types.Header):
             layout.itemO("sequencer.reload")
         else:
             layout.itemR(st, "display_channel", text="Channel")
+
 
 class SEQUENCER_MT_view(bpy.types.Menu):
     bl_label = "View"
@@ -109,6 +113,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 
         """
 
+
 class SEQUENCER_MT_select(bpy.types.Menu):
     bl_label = "Select"
 
@@ -129,6 +134,7 @@ class SEQUENCER_MT_select(bpy.types.Menu):
         layout.itemO("sequencer.select_all_toggle")
         layout.itemO("sequencer.select_inverse")
 
+
 class SEQUENCER_MT_marker(bpy.types.Menu):
     bl_label = "Marker (TODO)"
 
@@ -147,6 +153,7 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
 
         #layout.itemO("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 
+
 class SEQUENCER_MT_add(bpy.types.Menu):
     bl_label = "Add"
 
@@ -163,6 +170,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout.itemO("sequencer.sound_strip_add", text="Sound")
 
         layout.itemM("SEQUENCER_MT_add_effect")
+
 
 class SEQUENCER_MT_add_effect(bpy.types.Menu):
     bl_label = "Effect Strip..."
@@ -186,6 +194,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.item_enumO("sequencer.effect_strip_add", 'type', 'TRANSFORM')
         layout.item_enumO("sequencer.effect_strip_add", 'type', 'COLOR')
         layout.item_enumO("sequencer.effect_strip_add", 'type', 'SPEED')
+
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
     bl_label = "Strip"
@@ -216,17 +225,17 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         if strip:
             stype = strip.type
 
-            if	stype=='EFFECT':
+            if	stype == 'EFFECT':
                 layout.itemS()
                 layout.itemO("sequencer.effect_change")
                 layout.itemO("sequencer.effect_reassign_inputs")
-            elif stype=='IMAGE':
+            elif stype == 'IMAGE':
                 layout.itemS()
                 layout.itemO("sequencer.image_change")
-            elif stype=='SCENE':
+            elif stype == 'SCENE':
                 layout.itemS()
                 layout.itemO("sequencer.scene_change", text="Change Scene")
-            elif stype=='MOVIE':
+            elif stype == 'MOVIE':
                 layout.itemS()
                 layout.itemO("sequencer.movie_change")
 
@@ -255,7 +264,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.itemO("sequencer.swap_right")
         layout.itemO("sequencer.swap_left")
 
-# Panels
+
 class SequencerButtonsPanel(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -263,12 +272,14 @@ class SequencerButtonsPanel(bpy.types.Panel):
     def poll(self, context):
         return context.space_data.display_mode == 'SEQUENCER' and act_strip(context) != None
 
+
 class SequencerButtonsPanel_Output(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
     def poll(self, context):
         return context.space_data.display_mode != 'SEQUENCER'
+
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel):
     bl_label = "Edit Strip"
@@ -320,6 +331,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.itemL(text="Still:")
         col.itemR(strip, "start_still", text="Start")
         col.itemR(strip, "end_still", text="End")
+
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
     bl_label = "Effect Strip"
@@ -408,6 +420,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             col.itemR(strip, "rotation_start", text="Start")
             col.itemR(strip, "rotation_end", text="End")
 
+
 class SEQUENCER_PT_input(SequencerButtonsPanel):
     bl_label = "Strip Input"
 
@@ -463,6 +476,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         col.itemR(strip, "animation_start_offset", text="Start")
         col.itemR(strip, "animation_end_offset", text="End")
 
+
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
     bl_label = "Sound"
 
@@ -493,6 +507,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
             row.itemO("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
 
         row.itemR(strip.sound, "caching")
+
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
     bl_label = "Filter"
@@ -543,6 +558,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
             col.itemR(strip.color_balance, "gain")
             col.itemR(strip.color_balance, "inverse_gain", text="Inverse")
 
+
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
     bl_label = "Proxy"
 
@@ -571,6 +587,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
         if strip.proxy: # TODO - need to add this somehow
             flow.itemR(strip.proxy, "directory")
             flow.itemR(strip.proxy, "file")
+
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
     bl_label = "View Settings"

@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -14,20 +15,21 @@ class DataButtonsPanel(bpy.types.Panel):
     def poll(self, context):
         return (context.object and context.object.type in ('CURVE', 'SURFACE') and context.curve)
 
+
 class DataButtonsPanelCurve(DataButtonsPanel):
-    '''
-    Same as above but for curves only
-    '''
+    '''Same as above but for curves only'''
+
     def poll(self, context):
         return (context.object and context.object.type == 'CURVE' and context.curve)
 
+
 class DataButtonsPanelActive(DataButtonsPanel):
-    '''
-    Same as above but for curves only
-    '''
+    '''Same as above but for curves only'''
+
     def poll(self, context):
         curve = context.curve
         return (curve and curve.active_spline)
+
 
 class DATA_PT_context_curve(DataButtonsPanel):
     bl_label = ""
@@ -48,6 +50,7 @@ class DATA_PT_context_curve(DataButtonsPanel):
         elif curve:
             split.template_ID(space, "pin_id")
             split.itemS()
+
 
 class DATA_PT_shape_curve(DataButtonsPanel):
     bl_label = "Shape"
@@ -70,7 +73,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
         if not is_surf:
             sub = col.column()
-            sub.active = (curve.dimensions=='2D')
+            sub.active = (curve.dimensions == '2D')
             sub.itemL(text="Caps:")
             row = sub.row()
             row.itemR(curve, "front")
@@ -92,7 +95,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
             sub.itemR(curve, "render_resolution_v", text="Render V")
 
         # XXX - put somewhere nicer.
-        row= layout.row()
+        row = layout.row()
         row.itemR(curve, "twist_mode")
         row.itemR(curve, "twist_smooth") # XXX - may not be kept
 
@@ -100,6 +103,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 #		col.itemL(text="HANDLES")
 #		col.itemL(text="NORMALS")
 #		col.itemR(curve, "vertex_normal_flip")
+
 
 class DATA_PT_geometry_curve(DataButtonsPanel):
     bl_label = "Geometry"
@@ -124,6 +128,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
         col.itemR(curve, "bevel_resolution", text="Resolution")
         col.itemL(text="Bevel Object:")
         col.itemR(curve, "bevel_object", text="")
+
 
 class DATA_PT_pathanim(DataButtonsPanelCurve):
     bl_label = "Path Animation"
@@ -150,6 +155,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
         col.itemR(curve, "use_stretch")
         col.itemR(curve, "use_radius")
         col.itemR(curve, "use_time_offset", text="Offset Children")
+
 
 class DATA_PT_active_spline(DataButtonsPanelActive):
     bl_label = "Active Spline"
@@ -214,7 +220,7 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
             if not is_surf:
                 split = layout.split()
                 col = split.column()
-                col.active = (curve.dimensions=='3D')
+                col.active = (curve.dimensions == '3D')
 
                 col.itemL(text="Interpolation:")
                 col.itemR(act_spline, "tilt_interpolation", text="Tilt")

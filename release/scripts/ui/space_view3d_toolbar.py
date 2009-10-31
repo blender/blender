@@ -3,14 +3,17 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class View3DPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
+
 # ********** default tools for objectmode ****************
+
 
 class VIEW3D_PT_tools_objectmode(View3DPanel):
     bl_context = "objectmode"
@@ -30,7 +33,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
         col.itemO("object.duplicate_move")
         col.itemO("object.delete")
 
-        active_object= context.active_object
+        active_object = context.active_object
         if active_object and active_object.type == 'MESH':
 
             col = layout.column(align=True)
@@ -56,6 +59,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
         col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_mesh ****************
+
 
 class VIEW3D_PT_tools_meshedit(View3DPanel):
     bl_context = "mesh_edit"
@@ -108,6 +112,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.itemO("screen.repeat_history", text="History...")
         col.itemO("screen.redo_last", text="Tweak...")
 
+
 class VIEW3D_PT_tools_meshedit_options(View3DPanel):
     bl_context = "mesh_edit"
     bl_label = "Mesh Options"
@@ -121,6 +126,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
         col.itemR(mesh, "use_mirror_x")
 
 # ********** default tools for editmode_curve ****************
+
 
 class VIEW3D_PT_tools_curveedit(View3DPanel):
     bl_context = "curve_edit"
@@ -169,6 +175,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 
 # ********** default tools for editmode_surface ****************
 
+
 class VIEW3D_PT_tools_surfaceedit(View3DPanel):
     bl_context = "surface_edit"
     bl_label = "Surface Tools"
@@ -208,6 +215,7 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 
 # ********** default tools for editmode_text ****************
 
+
 class VIEW3D_PT_tools_textedit(View3DPanel):
     bl_context = "text_edit"
     bl_label = "Text Tools"
@@ -233,6 +241,7 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
         col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_armature ****************
+
 
 class VIEW3D_PT_tools_armatureedit(View3DPanel):
     bl_context = "armature_edit"
@@ -269,6 +278,7 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
         col.itemO("screen.repeat_history", text="History...")
         col.itemO("screen.redo_last", text="Tweak...")
 
+
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
     bl_context = "armature_edit"
     bl_label = "Armature Options"
@@ -282,6 +292,7 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
         col.itemR(arm, "x_axis_mirror")
 
 # ********** default tools for editmode_mball ****************
+
 
 class VIEW3D_PT_tools_mballedit(View3DPanel):
     bl_context = "mball_edit"
@@ -310,6 +321,7 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 
 # ********** default tools for editmode_lattice ****************
 
+
 class VIEW3D_PT_tools_latticeedit(View3DPanel):
     bl_context = "lattice_edit"
     bl_label = "Lattice Tools"
@@ -336,6 +348,7 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
         col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for posemode ****************
+
 
 class VIEW3D_PT_tools_posemode(View3DPanel):
     bl_context = "posemode"
@@ -385,6 +398,7 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
         col.itemO("screen.repeat_history", text="History...")
         col.itemO("screen.redo_last", text="Tweak...")
 
+
 class VIEW3D_PT_tools_posemode_options(View3DPanel):
     bl_context = "posemode"
     bl_label = "Pose Options"
@@ -399,6 +413,7 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel):
         col.itemR(arm, "auto_ik")
 
 # ********** default tools for paint modes ****************
+
 
 class PaintPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -419,6 +434,7 @@ class PaintPanel(bpy.types.Panel):
             return ts.particle_edit
 
         return False
+
 
 class VIEW3D_PT_tools_brush(PaintPanel):
     bl_label = "Brush"
@@ -559,6 +575,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
             '''
 
+
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
     bl_label = "Stroke"
     bl_default_closed = True
@@ -601,6 +618,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
         if texture_paint:
             row.itemR(brush, "use_spacing_pressure", toggle=True, text="")
 
+
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
     bl_label = "Curve"
     bl_default_closed = True
@@ -617,6 +635,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
 
         layout.template_curve_mapping(brush, "curve")
         layout.item_menu_enumO("brush.curve_preset", property="shape")
+
 
 class VIEW3D_PT_sculpt_options(PaintPanel):
     bl_label = "Options"
@@ -649,6 +668,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 
 # ********** default tools for weightpaint ****************
 
+
 class VIEW3D_PT_tools_weightpaint(View3DPanel):
     bl_context = "weightpaint"
     bl_label = "Weight Tools"
@@ -664,6 +684,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
         col.itemO("object.vertex_group_normalize", text="Normalize")
         col.itemO("object.vertex_group_invert", text="Invert")
         col.itemO("object.vertex_group_clean", text="Clean")
+
 
 class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
     bl_context = "weightpaint"
@@ -698,6 +719,7 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
 
 # ********** default tools for vertexpaint ****************
 
+
 class VIEW3D_PT_tools_vertexpaint(View3DPanel):
     bl_context = "vertexpaint"
     bl_label = "Options"
@@ -720,8 +742,8 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
 #		col.itemL(text="Multiply:")
 #		col.itemR(vpaint, "mul", text="")
 
-
 # ********** default tools for texturepaint ****************
+
 
 class VIEW3D_PT_tools_projectpaint(View3DPanel):
     bl_context = "texturepaint"
@@ -740,7 +762,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
 
         ipaint = context.tool_settings.image_paint
         settings = context.tool_settings.image_paint
-        use_projection= ipaint.use_projection
+        use_projection = ipaint.use_projection
 
         col = layout.column()
         sub = col.column()
@@ -776,9 +798,9 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         sub = col.column()
         sub.itemR(ipaint, "seam_bleed")
 
-# ********** default tools for particle mode ****************
 
 class VIEW3D_PT_tools_particlemode(View3DPanel):
+    '''default tools for particle mode'''
     bl_context = "particlemode"
     bl_label = "Options"
 
@@ -798,7 +820,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
                 ptcache = ob.particle_systems[ob.active_particle_system_index].point_cache
         else:
             for md in ob.modifiers:
-                if md.type==pe.type:
+                if md.type == pe.type:
                     ptcache = md.point_cache
 
         if ptcache and len(ptcache.point_cache_list) > 1:
@@ -836,6 +858,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         sub = col.row()
         sub.active = pe.fade_time
         sub.itemR(pe, "fade_frames", slider=True)
+
 
 bpy.types.register(VIEW3D_PT_tools_weightpaint)
 bpy.types.register(VIEW3D_PT_tools_objectmode)

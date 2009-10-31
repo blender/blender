@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -13,6 +14,7 @@ class DataButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         return context.camera
+
 
 class DATA_PT_context_camera(DataButtonsPanel):
     bl_label = ""
@@ -33,6 +35,7 @@ class DATA_PT_context_camera(DataButtonsPanel):
         elif cam:
             split.template_ID(space, "pin_id")
             split.itemS()
+
 
 class DATA_PT_camera(DataButtonsPanel):
     bl_label = "Lens"
@@ -74,6 +77,7 @@ class DATA_PT_camera(DataButtonsPanel):
         row = layout.row()
         row.itemR(cam, "dof_object", text="")
         row.itemR(cam, "dof_distance", text="Distance")
+
 
 class DATA_PT_camera_display(DataButtonsPanel):
     bl_label = "Display"

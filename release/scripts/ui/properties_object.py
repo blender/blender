@@ -3,13 +3,15 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class ObjectButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
+
 
 class OBJECT_PT_context_object(ObjectButtonsPanel):
     bl_label = ""
@@ -23,6 +25,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
         row = layout.row()
         row.itemL(text="", icon='ICON_OBJECT_DATA')
         row.itemR(ob, "name", text="")
+
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
     bl_label = "Transform"
@@ -49,6 +52,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 
         layout.itemR(ob, "rotation_mode")
 
+
 class OBJECT_PT_transform_locks(ObjectButtonsPanel):
     bl_label = "Transform Locks"
     bl_default_closed = True
@@ -73,6 +77,7 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel):
             col.itemR(ob, "lock_rotation", text="Rotation")
 
         row.column().itemR(ob, "lock_scale")
+
 
 class OBJECT_PT_relations(ObjectButtonsPanel):
     bl_label = "Relations"
@@ -102,6 +107,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
             sub.item_pointerR(ob, "parent_bone", parent.data, "bones", text="")
         sub.active = parent != None
 
+
 class OBJECT_PT_groups(ObjectButtonsPanel):
     bl_label = "Groups"
 
@@ -128,6 +134,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 split.column().itemR(group, "layer", text="Dupli")
                 split.column().itemR(group, "dupli_offset", text="")
 
+
 class OBJECT_PT_display(ObjectButtonsPanel):
     bl_label = "Display"
 
@@ -153,6 +160,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         flow.itemR(ob, "draw_texture_space", text="Texture Space")
         flow.itemR(ob, "x_ray", text="X-Ray")
         flow.itemR(ob, "draw_transparent", text="Transparency")
+
 
 class OBJECT_PT_duplication(ObjectButtonsPanel):
     bl_label = "Duplication"
@@ -187,6 +195,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 
         elif ob.dupli_type == 'GROUP':
             layout.itemR(ob, "dupli_group", text="Group")
+
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
     bl_label = "Animation"

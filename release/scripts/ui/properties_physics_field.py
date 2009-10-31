@@ -3,11 +3,12 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
 
 from properties_physics_common import basic_force_field_settings_ui
 from properties_physics_common import basic_force_field_falloff_ui
+
 
 class PhysicButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -17,6 +18,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
     def poll(self, context):
         rd = context.scene.render_data
         return (context.object) and (not rd.use_game_engine)
+
 
 class PHYSICS_PT_field(PhysicButtonsPanel):
     bl_label = "Force Fields"
@@ -29,7 +31,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 
         split = layout.split(percentage=0.2)
         split.itemL(text="Type:")
-        split.itemR(field, "type",text="")
+        split.itemR(field, "type", text="")
 
         if field.type not in ('NONE', 'GUIDE', 'TEXTURE'):
             split = layout.split(percentage=0.2)
@@ -81,8 +83,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "use_coordinates")
             col.itemR(field, "root_coordinates")
             col.itemR(field, "force_2d")
-
-        else :
+        else:
             basic_force_field_settings_ui(self, field)
 
         if field.type not in ('NONE', 'GUIDE'):
@@ -133,6 +134,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 sub = col.column()
                 sub.active = field.use_radial_max
                 sub.itemR(field, "radial_maximum", text="Distance")
+
 
 class PHYSICS_PT_collision(PhysicButtonsPanel):
     bl_label = "Collision"

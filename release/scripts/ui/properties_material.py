@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
@@ -18,6 +19,7 @@ def active_node_mat(mat):
 
     return None
 
+
 class MaterialButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -29,12 +31,14 @@ class MaterialButtonsPanel(bpy.types.Panel):
         engine = context.scene.render_data.engine
         return mat and (engine in self.COMPAT_ENGINES)
 
+
 class MATERIAL_PT_preview(MaterialButtonsPanel):
     bl_label = "Preview"
     COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
     def draw(self, context):
         self.layout.template_preview(context.material)
+
 
 class MATERIAL_PT_context_material(MaterialButtonsPanel):
     bl_label = ""
@@ -88,6 +92,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
         if mat:
             layout.itemR(mat, "type", expand=True)
 
+
 class MATERIAL_PT_shading(MaterialButtonsPanel):
     bl_label = "Shading"
     COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
@@ -123,6 +128,7 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
         elif mat.type == 'HALO':
             layout.itemR(mat, "alpha")
 
+
 class MATERIAL_PT_strand(MaterialButtonsPanel):
     bl_label = "Strand"
     bl_default_closed = True
@@ -156,8 +162,10 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
         col.itemL(text="Shading:")
         col.itemR(tan, "width_fade")
         ob = context.object
-        if ob and ob.type == 'MESH': col.item_pointerR(tan, "uv_layer", ob.data, "uv_textures", text="")
-        else: col.itemR(tan, "uv_layer", text="")
+        if ob and ob.type == 'MESH':
+            col.item_pointerR(tan, "uv_layer", ob.data, "uv_textures", text="")
+        else:
+            col.itemR(tan, "uv_layer", text="")
         col.itemS()
         sub = col.column()
         sub.active = (not mat.shadeless)
@@ -165,6 +173,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
         sub = col.column()
         sub.active = tan.surface_diffuse
         sub.itemR(tan, "blend_distance", text="Distance")
+
 
 class MATERIAL_PT_physics(MaterialButtonsPanel):
     bl_label = "Physics"
@@ -186,6 +195,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel):
         col.itemR(phys, "force", slider=True)
         col.itemR(phys, "elasticity", slider=True)
         col.itemR(phys, "damp", slider=True)
+
 
 class MATERIAL_PT_options(MaterialButtonsPanel):
     bl_label = "Options"
@@ -229,6 +239,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
         col.itemR(mat, "vertex_color_light")
         col.itemR(mat, "object_color")
 
+
 class MATERIAL_PT_shadow(MaterialButtonsPanel):
     bl_label = "Shadow"
     bl_default_closed = True
@@ -262,6 +273,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel):
         sub = col.column()
         sub.active = (not mat.ray_shadow_bias)
         sub.itemR(mat, "shadow_ray_bias", text="Ray Bias")
+
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel):
     bl_label = "Diffuse"
@@ -319,6 +331,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
             row = layout.row()
             row.itemR(mat, "diffuse_ramp_factor", text="Factor")
 
+
 class MATERIAL_PT_specular(MaterialButtonsPanel):
     bl_label = "Specular"
     COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
@@ -373,6 +386,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
             row = layout.row()
             row.itemR(mat, "specular_ramp_factor", text="Factor")
 
+
 class MATERIAL_PT_sss(MaterialButtonsPanel):
     bl_label = "Subsurface Scattering"
     bl_default_closed = True
@@ -417,6 +431,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         sub.itemR(sss, "back")
         col.itemS()
         col.itemR(sss, "error_tolerance", text="Error")
+
 
 class MATERIAL_PT_mirror(MaterialButtonsPanel):
     bl_label = "Mirror"
@@ -473,8 +488,9 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
         sub.itemR(raym, "gloss_samples", text="Samples")
         sub.itemR(raym, "gloss_anisotropic", text="Anisotropic")
 
+
 class MATERIAL_PT_transp(MaterialButtonsPanel):
-    bl_label= "Transparency"
+    bl_label = "Transparency"
     bl_default_closed = True
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
@@ -533,8 +549,9 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
             sub.itemR(rayt, "gloss_threshold", text="Threshold")
             sub.itemR(rayt, "gloss_samples", text="Samples")
 
+
 class MATERIAL_PT_halo(MaterialButtonsPanel):
-    bl_label= "Halo"
+    bl_label = "Halo"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
     def poll(self, context):
@@ -580,8 +597,9 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
         sub.active = halo.star
         sub.itemR(halo, "star_tips")
 
+
 class MATERIAL_PT_flare(MaterialButtonsPanel):
-    bl_label= "Flare"
+    bl_label = "Flare"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
     def poll(self, context):
@@ -627,7 +645,7 @@ bpy.types.register(MATERIAL_PT_strand)
 bpy.types.register(MATERIAL_PT_options)
 bpy.types.register(MATERIAL_PT_shadow)
 
-# Volumetrics
+
 class VolumeButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -637,6 +655,7 @@ class VolumeButtonsPanel(bpy.types.Panel):
         mat = context.material
         engine = context.scene.render_data.engine
         return mat and (mat.type == 'VOLUME') and (engine in self.COMPAT_ENGINES)
+
 
 class MATERIAL_PT_volume_density(VolumeButtonsPanel):
     bl_label = "Density"
@@ -652,6 +671,7 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel):
         row = split.row()
         row.itemR(vol, "density")
         row.itemR(vol, "density_scale")
+
 
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
     bl_label = "Shading"
@@ -677,6 +697,7 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
         sub = col.column(align=True)
         sub.itemR(vol, "reflection")
         sub.itemR(vol, "reflection_color", text="")
+
 
 class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
     bl_label = "Lighting"
@@ -713,8 +734,9 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
             sub.itemR(vol, "ms_spread")
             sub.itemR(vol, "ms_intensity")
 
+
 class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
-    bl_label= "Transparency"
+    bl_label = "Transparency"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
     def draw(self, context):
@@ -723,6 +745,7 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
         mat = context.material # dont use node material
 
         layout.itemR(mat, "transparency_method", expand=True)
+
 
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
     bl_label = "Integration"

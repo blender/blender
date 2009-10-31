@@ -3,6 +3,8 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
+# <pep8-80 compliant>
+
 # for slightly faster access
 from bpy.__ops__ import add        as op_add
 from bpy.__ops__ import remove     as op_remove

@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class SceneButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -13,6 +14,7 @@ class SceneButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         return context.scene
+
 
 class SCENE_PT_scene(SceneButtonsPanel):
     bl_label = "Scene"
@@ -25,6 +27,7 @@ class SCENE_PT_scene(SceneButtonsPanel):
 
         layout.itemR(scene, "camera")
         layout.itemR(scene, "set", text="Background")
+
 
 class SCENE_PT_unit(SceneButtonsPanel):
     bl_label = "Units"
@@ -42,6 +45,7 @@ class SCENE_PT_unit(SceneButtonsPanel):
         row.active = (unit.system != 'NONE')
         row.itemR(unit, "scale_length", text="Scale")
         row.itemR(unit, "use_separate")
+
 
 class SCENE_PT_keying_sets(SceneButtonsPanel):
     bl_label = "Keying Sets"
@@ -72,6 +76,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
             col.itemL(text="Keyframing Settings:")
             col.itemR(ks, "insertkey_needed", text="Needed")
             col.itemR(ks, "insertkey_visual", text="Visual")
+
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel):
     bl_label = "Active Keying Set"
@@ -118,6 +123,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
             col.itemR(ksp, "grouping")
             if ksp.grouping == 'NAMED':
                 col.itemR(ksp, "group")
+
 
 class SCENE_PT_physics(SceneButtonsPanel):
     bl_label = "Gravity"

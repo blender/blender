@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class ConstraintButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -119,7 +120,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
     def IK(self, context, layout, con):
         if context.object.pose.ik_solver == "ITASC":
             layout.itemR(con, "ik_type")
-            getattr(self, "IK_"+con.ik_type)(context, layout, con)
+            getattr(self, "IK_" + con.ik_type)(context, layout, con)
         else:
             # Legacy IK constraint
             self.target_template(layout, con)
@@ -440,7 +441,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
     def LIMIT_DISTANCE(self, context, layout, con):
         self.target_template(layout, con)
 
-        col = layout.column(align=True);
+        col = layout.column(align=True)
         col.itemR(con, "distance")
         col.itemO("constraint.limitdistance_reset")
 
@@ -562,7 +563,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         self.space_template(layout, con)
 
-    def SHRINKWRAP (self, context, layout, con):
+    def SHRINKWRAP(self, context, layout, con):
         self.target_template(layout, con)
 
         layout.itemR(con, "distance")
@@ -581,6 +582,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row.itemL(text="To:")
         row.itemR(con, "track", expand=True)
 
+
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
     bl_label = "Constraints"
     bl_context = "constraint"
@@ -594,10 +596,11 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 
         row = layout.row()
         row.item_menu_enumO("object.constraint_add", "type")
-        row.itemL();
+        row.itemL()
 
         for con in ob.constraints:
             self.draw_constraint(context, con)
+
 
 class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
     bl_label = "Inverse Kinematics"
@@ -681,6 +684,7 @@ class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
             #row.itemR(pchan, "ik_lin_control", text="Joint Size")
             #row.itemR(pchan, "ik_lin_weight", text="Weight", slider=True)
 
+
 class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
     bl_label = "iTaSC parameters"
     bl_default_closed = True
@@ -731,6 +735,7 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
             row.itemR(itasc, "dampmax", text="Damp", slider=True)
             row.itemR(itasc, "dampeps", text="Eps", slider=True)
 
+
 class BONE_PT_constraints(ConstraintButtonsPanel):
     bl_label = "Constraints"
     bl_context = "bone_constraint"
@@ -747,7 +752,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 
         row = layout.row()
         row.item_menu_enumO("pose.constraint_add", "type")
-        row.itemL();
+        row.itemL()
 
         for con in pchan.constraints:
             self.draw_constraint(context, con)

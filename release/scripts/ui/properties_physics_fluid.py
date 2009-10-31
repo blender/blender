@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class PhysicButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -15,6 +16,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
         ob = context.object
         rd = context.scene.render_data
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+
 
 class PHYSICS_PT_fluid(PhysicButtonsPanel):
     bl_label = "Fluid"
@@ -173,6 +175,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 sub.itemR(fluid, "velocity_strength", text="Strength")
                 sub.itemR(fluid, "velocity_radius", text="Radius")
 
+
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
     bl_label = "Domain World"
     bl_default_closed = True
@@ -211,6 +214,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
         sub.itemR(fluid, "grid_levels", slider=True)
         sub.itemR(fluid, "compressibility", slider=True)
 
+
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
     bl_label = "Domain Boundary"
     bl_default_closed = True
@@ -238,6 +242,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
         sub = col.column(align=True)
         sub.itemR(fluid, "surface_smoothing", text="Smoothing")
         sub.itemR(fluid, "surface_subdivisions", text="Subdivisions")
+
 
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
     bl_label = "Domain Particles"

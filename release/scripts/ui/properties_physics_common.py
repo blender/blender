@@ -3,14 +3,16 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
+# <pep8 compliant>
 import bpy
+
 
 def point_cache_ui(self, cache, enabled, particles, smoke):
     layout = self.layout
     layout.set_context_pointer("PointCache", cache)
 
     row = layout.row()
-    row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2 )
+    row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
     col = row.column(align=True)
     col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
     col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
@@ -53,7 +55,7 @@ def point_cache_ui(self, cache, enabled, particles, smoke):
         row.enabled = enabled
         row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
         if not smoke:
-            row.itemR(cache, "step");
+            row.itemR(cache, "step")
 
         if not smoke:
             row = layout.row()
@@ -70,6 +72,7 @@ def point_cache_ui(self, cache, enabled, particles, smoke):
         row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
         row.itemO("ptcache.free_bake_all", text="Free All Bakes")
         layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
+
 
 def effector_weights_ui(self, weights):
         layout = self.layout
@@ -95,6 +98,7 @@ def effector_weights_ui(self, weights):
         flow.itemR(weights, "turbulence", slider=True)
         flow.itemR(weights, "drag", slider=True)
         flow.itemR(weights, "boid", slider=True)
+
 
 def basic_force_field_settings_ui(self, field):
     layout = self.layout

@@ -3,7 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
+# <pep8 compliant>
 import bpy
+
 
 def active_node_mat(mat):
     if mat:
@@ -15,19 +17,24 @@ def active_node_mat(mat):
 
     return None
 
+
 def context_tex_datablock(context):
 
         idblock = active_node_mat(context.material)
-        if idblock: return idblock
+        if idblock:
+            return idblock
 
-        idblock =	context.lamp
-        if idblock: return idblock
+        idblock = context.lamp
+        if idblock:
+            return idblock
 
-        idblock =	context.world
-        if idblock: return idblock
+        idblock = context.world
+        if idblock:
+            return idblock
 
-        idblock =	context.brush
+        idblock = context.brush
         return idblock
+
 
 class TextureButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -37,6 +44,7 @@ class TextureButtonsPanel(bpy.types.Panel):
     def poll(self, context):
         tex = context.texture
         return (tex and (tex.type != 'NONE' or tex.use_nodes))
+
 
 class TEXTURE_PT_preview(TextureButtonsPanel):
     bl_label = "Preview"
@@ -53,6 +61,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
             layout.template_preview(tex, parent=idblock, slot=slot)
         else:
             layout.template_preview(tex, slot=slot)
+
 
 class TEXTURE_PT_context_texture(TextureButtonsPanel):
     bl_label = ""
@@ -91,8 +100,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             context.sculpt_object or
             context.vertex_paint_object or
             context.weight_paint_object or
-            context.texture_paint_object
-        ):
+            context.texture_paint_object):
+
             split.itemR(space, "brush_texture", text="Brush", toggle=True)
 
         if tex:
@@ -110,6 +119,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             else:
                 split.itemL(text="Type:")
                 split.itemR(tex, "type", text="")
+
 
 class TEXTURE_PT_colors(TextureButtonsPanel):
     bl_label = "Colors"
@@ -140,12 +150,13 @@ class TEXTURE_PT_colors(TextureButtonsPanel):
 
 # Texture Slot Panels #
 
+
 class TextureSlotPanel(TextureButtonsPanel):
+
     def poll(self, context):
-        return (
-            context.texture_slot and
-            TextureButtonsPanel.poll(self, context)
-        )
+        return (context.texture_slot and
+                TextureButtonsPanel.poll(self, context))
+
 
 class TEXTURE_PT_mapping(TextureSlotPanel):
     bl_label = "Mapping"
@@ -177,8 +188,11 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
                 split = layout.split(percentage=0.3)
                 split.itemL(text="Layer:")
                 ob = context.object
-                if ob and ob.type == 'MESH': split.item_pointerR(tex, "uv_layer", ob.data, "uv_textures", text="")
-                else: split.itemR(tex, "uv_layer", text="")
+                if ob and ob.type == 'MESH':
+                    split.item_pointerR(tex, "uv_layer", ob.data, "uv_textures", text="")
+                else:
+                    split.itemR(tex, "uv_layer", text="")
+
             elif tex.texture_coordinates == 'OBJECT':
                 split = layout.split(percentage=0.3)
                 split.itemL(text="Object:")
@@ -224,9 +238,9 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 
 class TEXTURE_PT_influence(TextureSlotPanel):
     bl_label = "Influence"
+
     def poll(self, context):
         return context.texture_slot
-
 
     def draw(self, context):
 
@@ -326,10 +340,13 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 
 # Texture Type Panels #
 
+
 class TextureTypePanel(TextureButtonsPanel):
+
     def poll(self, context):
         tex = context.texture
         return (tex and tex.type == self.tex_type and not tex.use_nodes)
+
 
 class TEXTURE_PT_clouds(TextureTypePanel):
     bl_label = "Clouds"
@@ -349,6 +366,7 @@ class TEXTURE_PT_clouds(TextureTypePanel):
         flow.itemR(tex, "noise_size", text="Size")
         flow.itemR(tex, "noise_depth", text="Depth")
         flow.itemR(tex, "nabla", text="Nabla")
+
 
 class TEXTURE_PT_wood(TextureTypePanel):
     bl_label = "Wood"
@@ -374,6 +392,7 @@ class TEXTURE_PT_wood(TextureTypePanel):
         flow.itemR(tex, "turbulence")
         flow.itemR(tex, "nabla")
 
+
 class TEXTURE_PT_marble(TextureTypePanel):
     bl_label = "Marble"
     tex_type = 'MARBLE'
@@ -395,6 +414,7 @@ class TEXTURE_PT_marble(TextureTypePanel):
         flow.itemR(tex, "turbulence")
         flow.itemR(tex, "nabla")
 
+
 class TEXTURE_PT_magic(TextureTypePanel):
     bl_label = "Magic"
     tex_type = 'MAGIC'
@@ -407,6 +427,7 @@ class TEXTURE_PT_magic(TextureTypePanel):
         row = layout.row()
         row.itemR(tex, "noise_depth", text="Depth")
         row.itemR(tex, "turbulence")
+
 
 class TEXTURE_PT_blend(TextureTypePanel):
     bl_label = "Blend"
@@ -422,6 +443,7 @@ class TEXTURE_PT_blend(TextureTypePanel):
 
         sub.active = (tex.progression in ('LINEAR', 'QUADRATIC', 'EASING', 'RADIAL'))
         sub.itemR(tex, "flip_axis", expand=True)
+
 
 class TEXTURE_PT_stucci(TextureTypePanel):
     bl_label = "Stucci"
@@ -441,6 +463,7 @@ class TEXTURE_PT_stucci(TextureTypePanel):
         row.itemR(tex, "noise_size", text="Size")
         row.itemR(tex, "turbulence")
 
+
 class TEXTURE_PT_image(TextureTypePanel):
     bl_label = "Image"
     tex_type = 'IMAGE'
@@ -451,6 +474,7 @@ class TEXTURE_PT_image(TextureTypePanel):
         tex = context.texture
 
         layout.template_image(tex, "image", tex.image_user)
+
 
 class TEXTURE_PT_image_sampling(TextureTypePanel):
     bl_label = "Image Sampling"
@@ -494,6 +518,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel):
                 col.itemR(tex, "filter_probes", text="Probes")
             else:
                 col.itemR(tex, "filter_eccentricity", text="Eccentricity")
+
 
 class TEXTURE_PT_image_mapping(TextureTypePanel):
     bl_label = "Image Mapping"
@@ -543,6 +568,7 @@ class TEXTURE_PT_image_mapping(TextureTypePanel):
         col.itemR(tex, "crop_max_x", text="X")
         col.itemR(tex, "crop_max_y", text="Y")
 
+
 class TEXTURE_PT_plugin(TextureTypePanel):
     bl_label = "Plugin"
     tex_type = 'PLUGIN'
@@ -554,6 +580,7 @@ class TEXTURE_PT_plugin(TextureTypePanel):
 
         layout.itemL(text="Nothing yet")
 
+
 class TEXTURE_PT_envmap(TextureTypePanel):
     bl_label = "Environment Map"
     tex_type = 'ENVIRONMENT_MAP'
@@ -564,6 +591,7 @@ class TEXTURE_PT_envmap(TextureTypePanel):
         tex = context.texture
 
         layout.itemL(text="Nothing yet")
+
 
 class TEXTURE_PT_musgrave(TextureTypePanel):
     bl_label = "Musgrave"
@@ -597,6 +625,7 @@ class TEXTURE_PT_musgrave(TextureTypePanel):
         row = layout.row()
         row.itemR(tex, "noise_size", text="Size")
         row.itemR(tex, "nabla")
+
 
 class TEXTURE_PT_voronoi(TextureTypePanel):
     bl_label = "Voronoi"
@@ -632,6 +661,7 @@ class TEXTURE_PT_voronoi(TextureTypePanel):
         row.itemR(tex, "noise_size", text="Size")
         row.itemR(tex, "nabla")
 
+
 class TEXTURE_PT_distortednoise(TextureTypePanel):
     bl_label = "Distorted Noise"
     tex_type = 'DISTORTED_NOISE'
@@ -648,6 +678,7 @@ class TEXTURE_PT_distortednoise(TextureTypePanel):
         flow.itemR(tex, "distortion", text="Distortion")
         flow.itemR(tex, "noise_size", text="Size")
         flow.itemR(tex, "nabla")
+
 
 class TEXTURE_PT_voxeldata(TextureButtonsPanel):
     bl_label = "Voxel Data"
@@ -678,6 +709,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
         layout.itemR(vd, "interpolation")
         layout.itemR(vd, "extension")
         layout.itemR(vd, "intensity")
+
 
 class TEXTURE_PT_pointdensity(TextureButtonsPanel):
     bl_label = "Point Density"
@@ -730,6 +762,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
         col.itemR(pd, "falloff", text="")
         if pd.falloff == 'SOFT':
             col.itemR(pd, "falloff_softness")
+
 
 class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
     bl_label = "Turbulence"
@@ -791,4 +824,3 @@ bpy.types.register(TEXTURE_PT_pointdensity_turbulence)
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)
-

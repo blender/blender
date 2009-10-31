@@ -3,7 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -12,6 +14,7 @@ class DataButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         return context.meta_ball
+
 
 class DATA_PT_context_metaball(DataButtonsPanel):
     bl_label = ""
@@ -32,6 +35,7 @@ class DATA_PT_context_metaball(DataButtonsPanel):
         elif mball:
             split.template_ID(space, "pin_id")
             split.itemS()
+
 
 class DATA_PT_metaball(DataButtonsPanel):
     bl_label = "Metaball"
@@ -55,6 +59,7 @@ class DATA_PT_metaball(DataButtonsPanel):
 
         layout.itemL(text="Update:")
         layout.itemR(mball, "flag", expand=True)
+
 
 class DATA_PT_metaball_element(DataButtonsPanel):
     bl_label = "Active Element"

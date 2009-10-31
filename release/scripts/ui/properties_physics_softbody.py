@@ -3,14 +3,17 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
 
+
 def softbody_panel_enabled(md):
-    return md.point_cache.baked==False
+    return md.point_cache.baked == False
+
 
 class PhysicButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -21,6 +24,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
         ob = context.object
         rd = context.scene.render_data
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+
 
 class PHYSICS_PT_softbody(PhysicButtonsPanel):
     bl_label = "Soft Body"
@@ -63,6 +67,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
             col.itemL(text="Simulation:")
             col.itemR(softbody, "speed")
 
+
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
     bl_label = "Soft Body Cache"
     bl_default_closed = True
@@ -73,6 +78,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
     def draw(self, context):
         md = context.soft_body
         point_cache_ui(self, md.point_cache, softbody_panel_enabled(md), 0, 0)
+
 
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
     bl_label = "Soft Body Goal"
@@ -114,6 +120,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         col.itemR(softbody, "goal_friction", text="Damping")
 
         layout.item_pointerR(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
+
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
     bl_label = "Soft Body Edges"
@@ -163,6 +170,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         col.itemR(softbody, "edge_collision", text="Edge")
         col.itemR(softbody, "face_collision", text="Face")
 
+
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
     bl_label = "Soft Body Collision"
     bl_default_closed = True
@@ -193,6 +201,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
         col.itemR(softbody, "ball_size", text="Size")
         col.itemR(softbody, "ball_stiff", text="Stiffness")
         col.itemR(softbody, "ball_damp", text="Dampening")
+
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
     bl_label = "Soft Body Solver"
@@ -227,6 +236,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 
         layout.itemL(text="Diagnostics:")
         layout.itemR(softbody, "diagnose")
+
 
 class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):
     bl_label = "Soft Body Field Weights"

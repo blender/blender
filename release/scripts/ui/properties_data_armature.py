@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -13,6 +14,7 @@ class DataButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         return context.armature
+
 
 class DATA_PT_context_arm(DataButtonsPanel):
     bl_label = ""
@@ -33,6 +35,7 @@ class DATA_PT_context_arm(DataButtonsPanel):
         elif arm:
             split.template_ID(space, "pin_id")
             split.itemS()
+
 
 class DATA_PT_skeleton(DataButtonsPanel):
     bl_label = "Skeleton"
@@ -61,6 +64,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
         col.itemR(arm, "deform_quaternion", text="Quaternion")
         col.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
 
+
 class DATA_PT_display(DataButtonsPanel):
     bl_label = "Display"
 
@@ -78,11 +82,12 @@ class DATA_PT_display(DataButtonsPanel):
         flow.itemR(arm, "draw_group_colors", text="Colors")
         flow.itemR(arm, "delay_deform", text="Delay Refresh")
 
+
 class DATA_PT_bone_groups(DataButtonsPanel):
     bl_label = "Bone Groups"
 
     def poll(self, context):
-        return (context.object and context.object.type=='ARMATURE' and context.object.pose)
+        return (context.object and context.object.type == 'ARMATURE' and context.object.pose)
 
     def draw(self, context):
         layout = self.layout
@@ -101,11 +106,11 @@ class DATA_PT_bone_groups(DataButtonsPanel):
         group = pose.active_bone_group
         if group:
             col = layout.column()
-            col.active= (ob.proxy == None)
+            col.active = (ob.proxy == None)
             col.itemR(group, "name")
 
             split = layout.split(0.5)
-            split.active= (ob.proxy == None)
+            split.active = (ob.proxy == None)
             split.itemR(group, "color_set")
             if group.color_set:
                 split.template_triColorSet(group, "colors")
@@ -117,6 +122,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
         row.itemO("pose.group_remove", text="Remove") #row.itemO("pose.bone_group_remove_from", text="Remove")
         #row.itemO("object.bone_group_select", text="Select")
         #row.itemO("object.bone_group_deselect", text="Deselect")
+
 
 class DATA_PT_paths(DataButtonsPanel):
     bl_label = "Paths"
@@ -153,6 +159,7 @@ class DATA_PT_paths(DataButtonsPanel):
         row = layout.row()
         row.itemO("pose.paths_calculate", text="Calculate Paths")
         row.itemO("pose.paths_clear", text="Clear Paths")
+
 
 class DATA_PT_ghost(DataButtonsPanel):
     bl_label = "Ghost"

@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class TEXT_HT_header(bpy.types.Header):
     bl_space_type = 'TEXT_EDITOR'
@@ -43,7 +44,7 @@ class TEXT_HT_header(bpy.types.Header):
                 if text.dirty:
                     row.itemL(text="File: *%s (unsaved)" % text.filename)
                 else:
-                    row.itemL(text="File: %s" % text.filename )
+                    row.itemL(text="File: %s" % text.filename)
             else:
                 if text.library:
                     row.itemL(text="Text: External")
@@ -52,6 +53,7 @@ class TEXT_HT_header(bpy.types.Header):
 
         row = layout.row()
         row.itemO("text.run_script")
+
 
 class TEXT_PT_properties(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'
@@ -72,6 +74,7 @@ class TEXT_PT_properties(bpy.types.Panel):
         flow = layout.column_flow()
         flow.itemR(st, "font_size")
         flow.itemR(st, "tab_width")
+
 
 class TEXT_PT_find(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'
@@ -104,6 +107,7 @@ class TEXT_PT_find(bpy.types.Panel):
         row = layout.row()
         row.itemR(st, "find_wrap", text="Wrap")
         row.itemR(st, "find_all", text="All")
+
 
 class TEXT_MT_text(bpy.types.Menu):
     bl_label = "Text"
@@ -151,7 +155,6 @@ class TEXT_MT_text(bpy.types.Menu):
         layout.itemM("TEXT_MT_templates")
 
 
-
 class TEXT_MT_templates(bpy.types.Menu):
     '''
     Creates the menu items by scanning scripts/templates
@@ -178,7 +181,6 @@ class TEXT_MT_templates(bpy.types.Menu):
             layout.item_stringO("text.open", "path", path, text=path_to_name(f))
 
 
-
 class TEXT_MT_edit_view(bpy.types.Menu):
     bl_label = "View"
 
@@ -187,6 +189,7 @@ class TEXT_MT_edit_view(bpy.types.Menu):
 
         layout.item_enumO("text.move", "type", 'FILE_TOP', text="Top of File")
         layout.item_enumO("text.move", "type", 'FILE_BOTTOM', text="Bottom of File")
+
 
 class TEXT_MT_edit_select(bpy.types.Menu):
     bl_label = "Select"
@@ -197,6 +200,7 @@ class TEXT_MT_edit_select(bpy.types.Menu):
         layout.itemO("text.select_all")
         layout.itemO("text.select_line")
 
+
 class TEXT_MT_edit_markers(bpy.types.Menu):
     bl_label = "Markers"
 
@@ -206,6 +210,7 @@ class TEXT_MT_edit_markers(bpy.types.Menu):
         layout.itemO("text.markers_clear")
         layout.itemO("text.next_marker")
         layout.itemO("text.previous_marker")
+
 
 class TEXT_MT_format(bpy.types.Menu):
     bl_label = "Format"
@@ -225,14 +230,16 @@ class TEXT_MT_format(bpy.types.Menu):
 
         layout.item_menu_enumO("text.convert_whitespace", "type")
 
+
 class TEXT_MT_edit_to3d(bpy.types.Menu):
     bl_label = "Text To 3D Object"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.item_booleanO("text.to_3d_object", "split_lines", False, text="One Object");
-        layout.item_booleanO("text.to_3d_object", "split_lines", True, text="One Object Per Line");
+        layout.item_booleanO("text.to_3d_object", "split_lines", False, text="One Object")
+        layout.item_booleanO("text.to_3d_object", "split_lines", True, text="One Object Per Line")
+
 
 class TEXT_MT_edit(bpy.types.Menu):
     bl_label = "Edit"

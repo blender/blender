@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class USERPREF_HT_header(bpy.types.Header):
     bl_space_type = 'USER_PREFERENCES'
@@ -22,11 +23,13 @@ class USERPREF_HT_header(bpy.types.Header):
             layout.operator_context = "INVOKE_DEFAULT"
             layout.itemO("wm.keyconfig_export", "Export Key Configuration...")
 
+
 class USERPREF_MT_view(bpy.types.Menu):
     bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
+
 
 class USERPREF_PT_tabs(bpy.types.Panel):
     bl_label = ""
@@ -40,6 +43,7 @@ class USERPREF_PT_tabs(bpy.types.Panel):
         userpref = context.user_preferences
 
         layout.itemR(userpref, "active_section", expand=True)
+
 
 class USERPREF_PT_interface(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
@@ -125,6 +129,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub1.itemL(text="Menu Open Delay:")
         sub1.itemR(view, "open_toplevel_delay", text="Top Level")
         sub1.itemR(view, "open_sublevel_delay", text="Sub Level")
+
 
 class USERPREF_PT_edit(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
@@ -230,6 +235,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         sub1.itemR(edit, "duplicate_action", text="Action")
         sub1.itemR(edit, "duplicate_particle", text="Particle")
 
+
 class USERPREF_PT_system(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "System"
@@ -322,6 +328,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub1.itemR(system, "prefetch_frames")
         sub1.itemR(system, "memory_cache_limit")
 
+
 class USERPREF_PT_file(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Files"
@@ -388,6 +395,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub3 = sub2.column()
         sub3.enabled = paths.auto_save_temporary_files
         sub3.itemR(paths, "auto_save_time", text="Timer (mins)")
+
 
 class USERPREF_PT_input(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
@@ -616,7 +624,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
         f.write('# Configuration %s\n' % kc.name)
 
-        f.write("wm = bpy.data.windowmanagers[0]\n");
+        f.write("wm = bpy.data.windowmanagers[0]\n")
         f.write("kc = wm.add_keyconfig(\'%s\')\n\n" % kc.name)
 
         for km in kc.keymaps:
@@ -657,6 +665,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         wm.add_fileselect(self.__operator__)
         return ('RUNNING_MODAL',)
 
+
 class WM_OT_keymap_edit(bpy.types.Operator):
     "Edit key map."
     bl_idname = "wm.keymap_edit"
@@ -667,6 +676,7 @@ class WM_OT_keymap_edit(bpy.types.Operator):
         km = wm.active_keymap
         km.copy_to_user()
         return ('FINISHED',)
+
 
 class WM_OT_keymap_restore(bpy.types.Operator):
     "Restore key map"
@@ -687,6 +697,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
 
         return ('FINISHED',)
 
+
 class WM_OT_keyitem_add(bpy.types.Operator):
     "Add key map item."
     bl_idname = "wm.keyitem_add"
@@ -697,6 +708,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
         km = wm.active_keymap
         kmi = km.add_item("", "A", "PRESS")
         return ('FINISHED',)
+
 
 class WM_OT_keyitem_remove(bpy.types.Operator):
     "Remove key map item."
@@ -715,4 +727,3 @@ bpy.ops.add(WM_OT_keymap_edit)
 bpy.ops.add(WM_OT_keymap_restore)
 bpy.ops.add(WM_OT_keyitem_add)
 bpy.ops.add(WM_OT_keyitem_remove)
-

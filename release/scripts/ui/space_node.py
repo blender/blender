@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class NODE_HT_header(bpy.types.Header):
     bl_space_type = 'NODE_EDITOR'
@@ -52,6 +53,7 @@ class NODE_HT_header(bpy.types.Header):
             layout.itemR(id.render_data, "free_unused_nodes", text="Free Unused")
             layout.itemR(snode, "backdrop")
 
+
 class NODE_MT_view(bpy.types.Menu):
     bl_label = "View"
 
@@ -69,6 +71,7 @@ class NODE_MT_view(bpy.types.Menu):
         layout.itemO("node.view_all")
         layout.itemO("screen.screen_full_area")
 
+
 class NODE_MT_select(bpy.types.Menu):
     bl_label = "Select"
 
@@ -81,6 +84,7 @@ class NODE_MT_select(bpy.types.Menu):
         layout.itemO("node.select_all")
         layout.itemO("node.select_linked_from")
         layout.itemO("node.select_linked_to")
+
 
 class NODE_MT_node(bpy.types.Menu):
     bl_label = "Node"

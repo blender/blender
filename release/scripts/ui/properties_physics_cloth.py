@@ -3,14 +3,16 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
 
+
 def cloth_panel_enabled(md):
-    return md.point_cache.baked==False
+    return md.point_cache.baked == False
+
 
 class PhysicButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -21,6 +23,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
         ob = context.object
         rd = context.scene.render_data
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+
 
 class PHYSICS_PT_cloth(PhysicButtonsPanel):
     bl_label = "Cloth"
@@ -57,7 +60,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             col = split.column()
 
             col.itemL(text="Quality:")
-            col.itemR(cloth, "quality", text="Steps",slider=True)
+            col.itemR(cloth, "quality", text="Steps", slider=True)
 
             col.itemL(text="Material:")
             sub = col.column(align=True)
@@ -92,6 +95,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
                 col.itemR(cloth, "goal_friction", text="Friction")
             """
 
+
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
     bl_label = "Cloth Cache"
     bl_default_closed = True
@@ -102,6 +106,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
     def draw(self, context):
         md = context.cloth
         point_cache_ui(self, md.point_cache, cloth_panel_enabled(md), 0, 0)
+
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
     bl_label = "Cloth Collision"
@@ -138,6 +143,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
         sub.itemR(cloth, "self_collision_quality", slider=True, text="Quality")
         sub.itemR(cloth, "self_min_distance", slider=True, text="Distance")
 
+
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
     bl_label = "Cloth Stiffness Scaling"
     bl_default_closed = True
@@ -173,6 +179,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
         sub = col.column(align=True)
         sub.itemR(cloth, "bending_stiffness_max", text="Max")
         sub.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
+
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel):
     bl_label = "Cloth Field Weights"

@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -14,11 +15,13 @@ class DataButtonsPanel(bpy.types.Panel):
     def poll(self, context):
         return context.lamp
 
+
 class DATA_PT_preview(DataButtonsPanel):
     bl_label = "Preview"
 
     def draw(self, context):
         self.layout.template_preview(context.lamp)
+
 
 class DATA_PT_context_lamp(DataButtonsPanel):
     bl_label = ""
@@ -39,6 +42,7 @@ class DATA_PT_context_lamp(DataButtonsPanel):
         elif lamp:
             split.template_ID(space, "pin_id")
             split.itemS()
+
 
 class DATA_PT_lamp(DataButtonsPanel):
     bl_label = "Lamp"
@@ -79,6 +83,7 @@ class DATA_PT_lamp(DataButtonsPanel):
         col.itemR(lamp, "layer", text="This Layer Only")
         col.itemR(lamp, "specular")
         col.itemR(lamp, "diffuse")
+
 
 class DATA_PT_sunsky(DataButtonsPanel):
     bl_label = "Sky & Atmosphere"
@@ -123,7 +128,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
         sub = col.column()
         sub.itemR(lamp, "sun_brightness", text="Brightness")
         sub.itemR(lamp, "sun_size", text="Size")
-        sub.itemR(lamp, "backscattered_light", slider=True,text="Back Light")
+        sub.itemR(lamp, "backscattered_light", slider=True, text="Back Light")
 
         layout.itemS()
 
@@ -142,14 +147,15 @@ class DATA_PT_sunsky(DataButtonsPanel):
         col.itemL(text="Scattering:")
         sub = col.column(align=True)
         sub.itemR(lamp, "atmosphere_inscattering", slider=True, text="Inscattering")
-        sub.itemR(lamp, "atmosphere_extinction", slider=True ,text="Extinction")
+        sub.itemR(lamp, "atmosphere_extinction", slider=True, text="Extinction")
+
 
 class DATA_PT_shadow(DataButtonsPanel):
     bl_label = "Shadow"
 
     def poll(self, context):
         lamp = context.lamp
-        return (lamp and lamp.type in ('POINT','SUN', 'SPOT', 'AREA'))
+        return (lamp and lamp.type in ('POINT', 'SUN', 'SPOT', 'AREA'))
 
     def draw(self, context):
         layout = self.layout
@@ -242,6 +248,7 @@ class DATA_PT_shadow(DataButtonsPanel):
             sub.active = not lamp.auto_clip_end
             sub.itemR(lamp, "shadow_buffer_clip_end", text=" Clip End")
 
+
 class DATA_PT_area(DataButtonsPanel):
     bl_label = "Area Shape"
 
@@ -265,6 +272,7 @@ class DATA_PT_area(DataButtonsPanel):
         elif (lamp.shape == 'RECTANGLE'):
             sub.itemR(lamp, "size", text="Size X")
             sub.itemR(lamp, "size_y", text="Size Y")
+
 
 class DATA_PT_spot(DataButtonsPanel):
     bl_label = "Spot Shape"
@@ -293,6 +301,7 @@ class DATA_PT_spot(DataButtonsPanel):
         sub.itemR(lamp, "halo_intensity", text="Intensity")
         if lamp.shadow_method == 'BUFFER_SHADOW':
             sub.itemR(lamp, "halo_step", text="Step")
+
 
 class DATA_PT_falloff_curve(DataButtonsPanel):
     bl_label = "Falloff Curve"

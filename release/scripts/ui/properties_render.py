@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class RenderButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -14,7 +15,8 @@ class RenderButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         rd = context.scene.render_data
-        return (context.scene and rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
+        return (context.scene and rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
+
 
 class RENDER_PT_render(RenderButtonsPanel):
     bl_label = "Render"
@@ -30,6 +32,7 @@ class RENDER_PT_render(RenderButtonsPanel):
         row.item_booleanO("screen.render", "animation", True, text="Animation", icon='ICON_RENDER_ANIMATION')
 
         layout.itemR(rd, "display_mode", text="Display")
+
 
 class RENDER_PT_layers(RenderButtonsPanel):
     bl_label = "Layers"
@@ -125,6 +128,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.itemR(rl, "pass_refraction")
         row.itemR(rl, "pass_refraction_exclude", text="", icon='ICON_X')
 
+
 class RENDER_PT_shading(RenderButtonsPanel):
     bl_label = "Shading"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
@@ -146,6 +150,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
         col.itemR(rd, "render_raytracing", text="Ray Tracing")
         col.itemR(rd, "color_management")
         col.itemR(rd, "alpha_mode", text="Alpha")
+
 
 class RENDER_PT_performance(RenderButtonsPanel):
     bl_label = "Performance"
@@ -187,6 +192,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
             sub.itemR(rd, "use_instances", text="Instances")
         sub.itemR(rd, "use_local_coords", text="Local Coordinates")
 
+
 class RENDER_PT_post_processing(RenderButtonsPanel):
     bl_label = "Post Processing"
     bl_default_closed = True
@@ -223,6 +229,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
         sub.active = rd.edge
         sub.itemR(rd, "edge_threshold", text="Threshold", slider=True)
         sub.itemR(rd, "edge_color", text="")
+
 
 class RENDER_PT_output(RenderButtonsPanel):
     bl_label = "Output"
@@ -288,6 +295,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             split = layout.split()
             split.itemR(rd, "tiff_bit")
 
+
 class RENDER_PT_encoding(RenderButtonsPanel):
     bl_label = "Encoding"
     bl_default_closed = True
@@ -340,6 +348,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.itemR(rd, "ffmpeg_multiplex_audio")
         col.itemR(rd, "ffmpeg_audio_volume")
 
+
 class RENDER_PT_antialiasing(RenderButtonsPanel):
     bl_label = "Anti-Aliasing"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
@@ -365,6 +374,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
         col = split.column()
         col.itemR(rd, "pixel_filter", text="")
         col.itemR(rd, "filter_size", text="Size", slider=True)
+
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
     bl_label = "Dimensions"
@@ -403,7 +413,8 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 
         col.itemL(text="Frame Rate:")
         col.itemR(rd, "fps")
-        col.itemR(rd, "fps_base",text="/")
+        col.itemR(rd, "fps_base", text="/")
+
 
 class RENDER_PT_stamp(RenderButtonsPanel):
     bl_label = "Stamp"

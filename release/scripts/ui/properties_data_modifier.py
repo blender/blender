@@ -3,13 +3,15 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"
+
 
 class DATA_PT_modifiers(DataButtonsPanel):
     bl_label = "Modifiers"
@@ -200,7 +202,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         flow.itemR(md, "alive")
         flow.itemR(md, "dead")
 
-        layout.itemO("object.explode_refresh", text="Refresh");
+        layout.itemO("object.explode_refresh", text="Refresh")
 
     def FLUID_SIMULATION(self, layout, ob, md):
         layout.itemL(text="See Fluid panel.")
@@ -305,7 +307,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if md.path:
             row = layout.row()
             row.itemR(md, "position", slider=True)
-            row.itemR(md, "random_position", text = "Random", slider=True)
+            row.itemR(md, "random_position", text="Random", slider=True)
 
     def PARTICLE_SYSTEM(self, layout, ob, md):
         layout.itemL(text="See Particle panel.")

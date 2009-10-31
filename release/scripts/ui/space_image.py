@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class IMAGE_MT_view(bpy.types.Menu):
     bl_label = "View"
@@ -33,11 +34,11 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         layout.itemS()
 
-        ratios = [[1, 8], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1]];
+        ratios = [[1, 8], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1]]
 
         for a, b in ratios:
             text = "Zoom %d:%d" % (a, b)
-            layout.item_floatO("image.view_zoom_ratio", "ratio", a/b, text=text)
+            layout.item_floatO("image.view_zoom_ratio", "ratio", a / b, text=text)
 
         layout.itemS()
 
@@ -46,6 +47,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         layout.itemO("image.view_all")
         layout.itemO("screen.screen_full_area")
+
 
 class IMAGE_MT_select(bpy.types.Menu):
     bl_label = "Select"
@@ -66,6 +68,7 @@ class IMAGE_MT_select(bpy.types.Menu):
 
         layout.itemO("uv.select_pinned")
         layout.itemO("uv.select_linked")
+
 
 class IMAGE_MT_image(bpy.types.Menu):
     bl_label = "Image"
@@ -110,6 +113,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 
             layout.itemR(sima, "image_painting")
 
+
 class IMAGE_MT_uvs_showhide(bpy.types.Menu):
     bl_label = "Show/Hide Faces"
 
@@ -119,6 +123,7 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
         layout.itemO("uv.reveal")
         layout.itemO("uv.hide")
         layout.item_booleanO("uv.hide", "unselected", True)
+
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):
     bl_label = "Transform"
@@ -130,6 +135,7 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
         layout.itemO("tfm.rotate")
         layout.itemO("tfm.resize")
 
+
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
     bl_label = "Mirror"
 
@@ -137,11 +143,12 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = "EXEC_REGION_WIN"
 
-        props= layout.itemO("tfm.mirror", text="X Axis", properties=True)
-        props.constraint_axis[0]= True
+        props = layout.itemO("tfm.mirror", text="X Axis", properties=True)
+        props.constraint_axis[0] = True
 
-        props= layout.itemO("tfm.mirror", text="Y Axis", properties=True)
-        props.constraint_axis[1]= True
+        props = layout.itemO("tfm.mirror", text="Y Axis", properties=True)
+        props.constraint_axis[1] = True
+
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
     bl_label = "Weld/Align"
@@ -151,6 +158,7 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 
         layout.itemO("uv.weld") # W, 1
         layout.items_enumO("uv.align", "axis") # W, 2/3/4
+
 
 class IMAGE_MT_uvs(bpy.types.Menu):
     bl_label = "UVs"
@@ -193,6 +201,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.itemS()
 
         layout.itemM("IMAGE_MT_uvs_showhide")
+
 
 class IMAGE_HT_header(bpy.types.Header):
     bl_space_type = 'IMAGE_EDITOR'
@@ -274,6 +283,7 @@ class IMAGE_HT_header(bpy.types.Header):
         if show_uvedit or sima.image_painting:
             layout.itemR(sima, "update_automatically", text="")
 
+
 class IMAGE_PT_image_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -291,6 +301,7 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
         iuser = sima.image_user
 
         layout.template_image(sima, "image", iuser, compact=True)
+
 
 class IMAGE_PT_game_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -333,7 +344,6 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         col.itemR(ima, "clamp_y", text="Y")
         col.itemS()
         col.itemR(ima, "mapping", expand=True)
-
 
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
@@ -389,6 +399,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             #col.itemR(uvedit, "draw_edges")
             #col.itemR(uvedit, "draw_faces")
 
+
 class IMAGE_PT_paint(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -434,6 +445,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
             col.itemR(brush, "blend", text="Blend")
 
+
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -461,6 +473,7 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
         row.active = brush.use_space
         row.itemR(brush, "spacing", text="Distance", slider=True)
         row.itemR(brush, "use_spacing_pressure", toggle=True, text="")
+
 
 class IMAGE_PT_paint_curve(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -497,4 +510,3 @@ bpy.types.register(IMAGE_PT_paint_stroke)
 bpy.types.register(IMAGE_PT_paint_curve)
 bpy.types.register(IMAGE_PT_game_properties)
 bpy.types.register(IMAGE_PT_view_properties)
-

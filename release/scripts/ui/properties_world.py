@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class WorldButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -16,12 +17,14 @@ class WorldButtonsPanel(bpy.types.Panel):
         rd = context.scene.render_data
         return (context.world) and (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
+
 class WORLD_PT_preview(WorldButtonsPanel):
     bl_label = "Preview"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
     def draw(self, context):
         self.layout.template_preview(context.world)
+
 
 class WORLD_PT_context_world(WorldButtonsPanel):
     bl_label = ""
@@ -46,6 +49,7 @@ class WORLD_PT_context_world(WorldButtonsPanel):
         elif world:
             split.template_ID(space, "pin_id")
 
+
 class WORLD_PT_world(WorldButtonsPanel):
     bl_label = "World"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
@@ -66,6 +70,7 @@ class WORLD_PT_world(WorldButtonsPanel):
         col.itemR(world, "zenith_color")
         col.active = world.blend_sky
         row.column().itemR(world, "ambient_color")
+
 
 class WORLD_PT_mist(WorldButtonsPanel):
     bl_label = "Mist"
@@ -91,6 +96,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
 
         layout.itemR(world.mist, "falloff")
 
+
 class WORLD_PT_stars(WorldButtonsPanel):
     bl_label = "Stars"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
@@ -112,6 +118,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
         flow.itemR(world.stars, "color_randomization", text="Colors")
         flow.itemR(world.stars, "min_distance", text="Min. Dist")
         flow.itemR(world.stars, "average_separation", text="Separation")
+
 
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
     bl_label = "Ambient Occlusion"

@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -13,6 +14,7 @@ class DataButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
+
 
 class DATA_PT_context_text(DataButtonsPanel):
     bl_label = ""
@@ -33,6 +35,7 @@ class DATA_PT_context_text(DataButtonsPanel):
         elif curve:
             split.template_ID(space, "pin_id")
             split.itemS()
+
 
 class DATA_PT_shape_text(DataButtonsPanel):
     bl_label = "Shape Text"
@@ -68,6 +71,7 @@ class DATA_PT_shape_text(DataButtonsPanel):
         col.itemL(text="Display:")
         col.itemR(curve, "fast", text="Fast Editing")
 
+
 class DATA_PT_geometry_text(DataButtonsPanel):
     bl_label = "Geometry"
 
@@ -91,6 +95,7 @@ class DATA_PT_geometry_text(DataButtonsPanel):
         col.itemR(curve, "bevel_resolution", text="Resolution")
         col.itemL(text="Bevel Object:")
         col.itemR(curve, "bevel_object", text="")
+
 
 class DATA_PT_font(DataButtonsPanel):
     bl_label = "Font"
@@ -132,6 +137,7 @@ class DATA_PT_font(DataButtonsPanel):
         col.itemR(text, "ul_position", text="Position")
         col.itemR(text, "ul_height", text="Thickness")
 
+
 class DATA_PT_paragraph(DataButtonsPanel):
     bl_label = "Paragraph"
 
@@ -155,6 +161,7 @@ class DATA_PT_paragraph(DataButtonsPanel):
         col.itemL(text="Offset:")
         col.itemR(text, "offset_x", text="X")
         col.itemR(text, "offset_y", text="Y")
+
 
 class DATA_PT_textboxes(DataButtonsPanel):
     bl_label = "Text Boxes"

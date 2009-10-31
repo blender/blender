@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class BoneButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -13,6 +14,7 @@ class BoneButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         return (context.bone or context.edit_bone)
+
 
 class BONE_PT_context_bone(BoneButtonsPanel):
     bl_label = ""
@@ -28,6 +30,7 @@ class BONE_PT_context_bone(BoneButtonsPanel):
         row = layout.row()
         row.itemL(text="", icon='ICON_BONE_DATA')
         row.itemR(bone, "name", text="")
+
 
 class BONE_PT_transform(BoneButtonsPanel):
     bl_label = "Transform"
@@ -74,6 +77,7 @@ class BONE_PT_transform(BoneButtonsPanel):
 
             layout.itemR(pchan, "rotation_mode")
 
+
 class BONE_PT_transform_locks(BoneButtonsPanel):
     bl_label = "Transform Locks"
     bl_default_closed = True
@@ -103,6 +107,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel):
             col.itemR(pchan, "lock_rotation", text="Rotation")
 
         row.column().itemR(pchan, "lock_scale")
+
 
 class BONE_PT_relations(BoneButtonsPanel):
     bl_label = "Relations"
@@ -145,6 +150,7 @@ class BONE_PT_relations(BoneButtonsPanel):
         sub.itemR(bone, "hinge", text="Inherit Rotation")
         sub.itemR(bone, "inherit_scale", text="Inherit Scale")
 
+
 class BONE_PT_display(BoneButtonsPanel):
     bl_label = "Display"
 
@@ -177,6 +183,7 @@ class BONE_PT_display(BoneButtonsPanel):
 
             col.itemL(text="Custom Shape:")
             col.itemR(pchan, "custom_shape", text="")
+
 
 class BONE_PT_deform(BoneButtonsPanel):
     bl_label = "Deform"

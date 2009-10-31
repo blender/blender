@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class OUTLINER_HT_header(bpy.types.Header):
     bl_space_type = 'OUTLINER'
@@ -45,6 +46,7 @@ class OUTLINER_HT_header(bpy.types.Header):
                 row = layout.row(align=False)
                 row.itemL(text="No Keying Set active")
 
+
 class OUTLINER_MT_view(bpy.types.Menu):
     bl_label = "View"
 
@@ -61,6 +63,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
         col.itemO("outliner.show_one_level")
         col.itemO("outliner.show_hierarchy")
+
 
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
     bl_label = "Edit"

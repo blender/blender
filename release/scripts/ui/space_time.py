@@ -3,8 +3,9 @@
 # http://www.gnu.org/copyleft/gpl.html. Installing, importing or otherwise
 # using this module constitutes acceptance of the terms of this License.
 
-
+# <pep8 compliant>
 import bpy
+
 
 class TIME_HT_header(bpy.types.Header):
     bl_space_type = 'TIMELINE'
@@ -68,6 +69,7 @@ class TIME_HT_header(bpy.types.Header):
         row.itemO("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
         row.itemO("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
 
+
 class TIME_MT_view(bpy.types.Menu):
     bl_label = "View"
 
@@ -81,6 +83,7 @@ class TIME_MT_view(bpy.types.Menu):
         layout.itemS()
 
         layout.itemR(st, "only_selected")
+
 
 class TIME_MT_frame(bpy.types.Menu):
     bl_label = "Frame"
@@ -105,6 +108,7 @@ class TIME_MT_frame(bpy.types.Menu):
         sub = layout.row()
         #sub.active = tools.enable_auto_key
         sub.itemM("TIME_MT_autokey")
+
 
 class TIME_MT_playback(bpy.types.Menu):
     bl_label = "Playback"
@@ -132,6 +136,7 @@ class TIME_MT_playback(bpy.types.Menu):
         layout.itemR(scene, "sync_audio", icon='ICON_SPEAKER')
         layout.itemR(scene, "mute_audio")
         layout.itemR(scene, "scrub_audio")
+
 
 class TIME_MT_autokey(bpy.types.Menu):
     bl_label = "Auto-Keyframing Mode"
