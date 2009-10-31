@@ -122,7 +122,10 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		
 		layout.itemO("screen.region_foursplit", text="Toggle Quad View")
 		layout.itemO("screen.screen_full_area", text="Toggle Full Screen")
-
+		
+		layout.itemS()
+		
+		layout.itemO("screen.animation_play", text="Playback Animation", icon='ICON_PLAY')
 class VIEW3D_MT_view_navigation(bpy.types.Menu):
 	__label__ = "Navigation"
 
@@ -161,6 +164,7 @@ class VIEW3D_MT_view_cameras(bpy.types.Menu):
 		layout = self.layout
 		
 		layout.itemO("view3d.object_as_camera")
+		layout.item_enumO("view3d.viewnumpad", "type", 'CAMERA', text="Active Camera")
 
 # ********** Select menus, suffix from context.mode **********
 
