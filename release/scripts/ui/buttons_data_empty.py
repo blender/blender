@@ -2,15 +2,15 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 	
 	def poll(self, context):
 		return (context.object and context.object.type == 'EMPTY')
 	
 class DATA_PT_empty(DataButtonsPanel):
-	__label__ = "Empty"
+	bl_label = "Empty"
 
 	def draw(self, context):
 		layout = self.layout

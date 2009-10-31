@@ -8,9 +8,9 @@ def softbody_panel_enabled(md):
 	return md.point_cache.baked==False
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "physics"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "physics"
 
 	def poll(self, context):
 		ob = context.object
@@ -18,7 +18,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_softbody(PhysicButtonsPanel):
-	__label__ = "Soft Body"
+	bl_label = "Soft Body"
 
 	def draw(self, context):
 		layout = self.layout
@@ -59,8 +59,8 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 			col.itemR(softbody, "speed")
 			
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
-	__label__ = "Soft Body Cache"
-	__default_closed__ = True
+	bl_label = "Soft Body Cache"
+	bl_default_closed = True
 
 	def poll(self, context):
 		return context.soft_body
@@ -70,8 +70,8 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 		point_cache_ui(self, md.point_cache, softbody_panel_enabled(md), 0, 0)
 			
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
-	__label__ = "Soft Body Goal"
-	__default_closed__ = True
+	bl_label = "Soft Body Goal"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		return context.soft_body
@@ -111,8 +111,8 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 		layout.item_pointerR(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
-	__label__ = "Soft Body Edges"
-	__default_closed__ = True
+	bl_label = "Soft Body Edges"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		return context.soft_body
@@ -159,8 +159,8 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 		col.itemR(softbody, "face_collision", text="Face")
 			
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
-	__label__ = "Soft Body Collision"
-	__default_closed__ = True
+	bl_label = "Soft Body Collision"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		return context.soft_body
@@ -190,8 +190,8 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 		col.itemR(softbody, "ball_damp", text="Dampening")
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
-	__label__ = "Soft Body Solver"
-	__default_closed__ = True
+	bl_label = "Soft Body Solver"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		return context.soft_body
@@ -224,8 +224,8 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 		layout.itemR(softbody, "diagnose")
 
 class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):
-	__label__ = "Soft Body Field Weights"
-	__default_closed__ = True
+	bl_label = "Soft Body Field Weights"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		return (context.soft_body)

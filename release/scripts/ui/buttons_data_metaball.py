@@ -1,15 +1,15 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 	
 	def poll(self, context):
 		return context.meta_ball
 
 class DATA_PT_context_metaball(DataButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -28,7 +28,7 @@ class DATA_PT_context_metaball(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_metaball(DataButtonsPanel):
-	__label__ = "Metaball"
+	bl_label = "Metaball"
 
 	def draw(self, context):
 		layout = self.layout
@@ -51,7 +51,7 @@ class DATA_PT_metaball(DataButtonsPanel):
 		layout.itemR(mball, "flag", expand=True)
 
 class DATA_PT_metaball_element(DataButtonsPanel):
-	__label__ = "Active Element"
+	bl_label = "Active Element"
 	
 	def poll(self, context):
 		return (context.meta_ball and context.meta_ball.active_element)

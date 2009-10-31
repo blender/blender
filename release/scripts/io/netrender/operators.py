@@ -10,13 +10,13 @@ import netrender.model
 @rnaOperator
 class RENDER_OT_netclientanim(bpy.types.Operator):
 	'''Start rendering an animation on network'''
-	__idname__ = "render.netclientanim"
-	__label__ = "Animation on network"
+	bl_idname = "render.netclientanim"
+	bl_label = "Animation on network"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -41,13 +41,13 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientsend(bpy.types.Operator):
 	'''Send Render Job to the Network'''
-	__idname__ = "render.netclientsend"
-	__label__ = "Send job"
+	bl_idname = "render.netclientsend"
+	bl_label = "Send job"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -70,13 +70,13 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientstatus(bpy.types.Operator):
 	'''Refresh the status of the current jobs'''
-	__idname__ = "render.netclientstatus"
-	__label__ = "Client Status"
+	bl_idname = "render.netclientstatus"
+	bl_label = "Client Status"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -115,13 +115,13 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
-	__idname__ = "render.netclientblacklistslave"
-	__label__ = "Client Blacklist Slave"
+	bl_idname = "render.netclientblacklistslave"
+	bl_label = "Client Blacklist Slave"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -150,13 +150,13 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
-	__idname__ = "render.netclientwhitelistslave"
-	__label__ = "Client Whitelist Slave"
+	bl_idname = "render.netclientwhitelistslave"
+	bl_label = "Client Whitelist Slave"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -186,13 +186,13 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientslaves(bpy.types.Operator):
 	'''Refresh status about available Render slaves'''
-	__idname__ = "render.netclientslaves"
-	__label__ = "Client Slaves"
+	bl_idname = "render.netclientslaves"
+	bl_label = "Client Slaves"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -236,13 +236,13 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientcancel(bpy.types.Operator):
 	'''Cancel the selected network rendering job.'''
-	__idname__ = "render.netclientcancel"
-	__label__ = "Client Cancel"
+	bl_idname = "render.netclientcancel"
+	bl_label = "Client Cancel"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		netsettings = context.scene.network_render
@@ -270,13 +270,13 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientcancelall(bpy.types.Operator):
 	'''Cancel all running network rendering jobs.'''
-	__idname__ = "render.netclientcancelall"
-	__label__ = "Client Cancel All"
+	bl_idname = "render.netclientcancelall"
+	bl_label = "Client Cancel All"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -302,13 +302,13 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 @rnaOperator
 class netclientdownload(bpy.types.Operator):
 	'''Download render results from the network'''
-	__idname__ = "render.netclientdownload"
-	__label__ = "Client Download"
+	bl_idname = "render.netclientdownload"
+	bl_label = "Client Download"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		netsettings = context.scene.network_render
@@ -352,13 +352,13 @@ class netclientdownload(bpy.types.Operator):
 @rnaOperator
 class netclientscan(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
-	__idname__ = "render.netclientscan"
-	__label__ = "Client Scan"
+	bl_idname = "render.netclientscan"
+	bl_label = "Client Scan"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True
@@ -390,13 +390,13 @@ class netclientscan(bpy.types.Operator):
 @rnaOperator
 class netclientweb(bpy.types.Operator):
 	'''Open new window with information about running rendering jobs'''
-	__idname__ = "render.netclientweb"
-	__label__ = "Open Master Monitor"
+	bl_idname = "render.netclientweb"
+	bl_label = "Open Master Monitor"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = []
+	bl_props = []
 	
 	def poll(self, context):
 		return True

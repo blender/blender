@@ -2,15 +2,15 @@
 import bpy
 
 class SceneButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "scene"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "scene"
 	
 	def poll(self, context):
 		return context.scene
 
 class SCENE_PT_scene(SceneButtonsPanel):
-	__label__ = "Scene"
+	bl_label = "Scene"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
@@ -22,7 +22,7 @@ class SCENE_PT_scene(SceneButtonsPanel):
 		layout.itemR(scene, "set", text="Background")
 
 class SCENE_PT_unit(SceneButtonsPanel):
-	__label__ = "Units"
+	bl_label = "Units"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
@@ -39,7 +39,7 @@ class SCENE_PT_unit(SceneButtonsPanel):
 		row.itemR(unit, "use_separate")
 		
 class SCENE_PT_keying_sets(SceneButtonsPanel):
-	__label__ = "Keying Sets"
+	bl_label = "Keying Sets"
 	
 	def draw(self, context):
 		layout = self.layout
@@ -69,7 +69,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
 			col.itemR(ks, "insertkey_visual", text="Visual")
 			
 class SCENE_PT_keying_set_paths(SceneButtonsPanel):
-	__label__ = "Active Keying Set"
+	bl_label = "Active Keying Set"
 	
 	def poll(self, context):
 		return (context.scene != None) and (context.scene.active_keying_set != None)
@@ -115,7 +115,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 				col.itemR(ksp, "group")
 
 class SCENE_PT_physics(SceneButtonsPanel):
-	__label__ = "Gravity"
+	bl_label = "Gravity"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):

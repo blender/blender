@@ -2,14 +2,14 @@
 import bpy
 
 class View3DPanel(bpy.types.Panel):
-	__space_type__ = 'VIEW_3D'
-	__region_type__ = 'TOOLS'
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'TOOLS'
 
 # ********** default tools for objectmode ****************
 
 class VIEW3D_PT_tools_objectmode(View3DPanel):
-	__context__ = "objectmode"
-	__label__ = "Object Tools"
+	bl_context = "objectmode"
+	bl_label = "Object Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -53,8 +53,8 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 # ********** default tools for editmode_mesh ****************
 
 class VIEW3D_PT_tools_meshedit(View3DPanel):
-	__context__ = "mesh_edit"
-	__label__ = "Mesh Tools"
+	bl_context = "mesh_edit"
+	bl_label = "Mesh Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -104,8 +104,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col.itemO("screen.redo_last", text="Tweak...")
 		
 class VIEW3D_PT_tools_meshedit_options(View3DPanel):
-	__context__ = "mesh_edit"
-	__label__ = "Mesh Options"
+	bl_context = "mesh_edit"
+	bl_label = "Mesh Options"
 
 	def draw(self, context):
 		layout = self.layout
@@ -118,8 +118,8 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
 # ********** default tools for editmode_curve ****************
 
 class VIEW3D_PT_tools_curveedit(View3DPanel):
-	__context__ = "curve_edit"
-	__label__ = "Curve Tools"
+	bl_context = "curve_edit"
+	bl_label = "Curve Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -165,8 +165,8 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 # ********** default tools for editmode_surface ****************
 
 class VIEW3D_PT_tools_surfaceedit(View3DPanel):
-	__context__ = "surface_edit"
-	__label__ = "Surface Tools"
+	bl_context = "surface_edit"
+	bl_label = "Surface Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -204,8 +204,8 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 # ********** default tools for editmode_text ****************
 
 class VIEW3D_PT_tools_textedit(View3DPanel):
-	__context__ = "text_edit"
-	__label__ = "Text Tools"
+	bl_context = "text_edit"
+	bl_label = "Text Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -230,8 +230,8 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 # ********** default tools for editmode_armature ****************
 
 class VIEW3D_PT_tools_armatureedit(View3DPanel):
-	__context__ = "armature_edit"
-	__label__ = "Armature Tools"
+	bl_context = "armature_edit"
+	bl_label = "Armature Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -265,8 +265,8 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		col.itemO("screen.redo_last", text="Tweak...")
 		
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
-	__context__ = "armature_edit"
-	__label__ = "Armature Options"
+	bl_context = "armature_edit"
+	bl_label = "Armature Options"
 
 	def draw(self, context):
 		layout = self.layout
@@ -279,8 +279,8 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
 # ********** default tools for editmode_mball ****************
 
 class VIEW3D_PT_tools_mballedit(View3DPanel):
-	__context__ = "mball_edit"
-	__label__ = "Meta Tools"
+	bl_context = "mball_edit"
+	bl_label = "Meta Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -306,8 +306,8 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 # ********** default tools for editmode_lattice ****************
 
 class VIEW3D_PT_tools_latticeedit(View3DPanel):
-	__context__ = "lattice_edit"
-	__label__ = "Lattice Tools"
+	bl_context = "lattice_edit"
+	bl_label = "Lattice Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -333,8 +333,8 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
 # ********** default tools for posemode ****************
 
 class VIEW3D_PT_tools_posemode(View3DPanel):
-	__context__ = "posemode"
-	__label__ = "Pose Tools"
+	bl_context = "posemode"
+	bl_label = "Pose Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -381,8 +381,8 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col.itemO("screen.redo_last", text="Tweak...")
 		
 class VIEW3D_PT_tools_posemode_options(View3DPanel):
-	__context__ = "posemode"
-	__label__ = "Pose Options"
+	bl_context = "posemode"
+	bl_label = "Pose Options"
 
 	def draw(self, context):
 		layout = self.layout
@@ -396,8 +396,8 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel):
 # ********** default tools for paint modes ****************
 
 class PaintPanel(bpy.types.Panel):
-	__space_type__ = 'VIEW_3D'
-	__region_type__ = 'TOOLS'
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'TOOLS'
 
 	def paint_settings(self, context):
 		ts = context.tool_settings
@@ -416,7 +416,7 @@ class PaintPanel(bpy.types.Panel):
 		return False
 
 class VIEW3D_PT_tools_brush(PaintPanel):
-	__label__ = "Brush"
+	bl_label = "Brush"
 
 	def poll(self, context):
 		return self.paint_settings(context)
@@ -555,8 +555,8 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			'''
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
-	__label__ = "Stroke"
-	__default_closed__ = True
+	bl_label = "Stroke"
+	bl_default_closed = True
 
 	def poll(self, context):
 		settings = self.paint_settings(context)
@@ -597,8 +597,8 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 			row.itemR(brush, "use_spacing_pressure", toggle=True, text="")	
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
-	__label__ = "Curve"
-	__default_closed__ = True
+	bl_label = "Curve"
+	bl_default_closed = True
 
 	def poll(self, context):
 		settings = self.paint_settings(context)
@@ -614,7 +614,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
 		layout.item_menu_enumO("brush.curve_preset", property="shape")
 		
 class VIEW3D_PT_sculpt_options(PaintPanel):
-	__label__ = "Options"
+	bl_label = "Options"
 
 	def poll(self, context):
 		return context.sculpt_object
@@ -645,8 +645,8 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 # ********** default tools for weightpaint ****************
 
 class VIEW3D_PT_tools_weightpaint(View3DPanel):
-	__context__ = "weightpaint"
-	__label__ = "Weight Tools"
+	bl_context = "weightpaint"
+	bl_label = "Weight Tools"
 
 	def draw(self, context):
 		layout = self.layout
@@ -661,8 +661,8 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
 		col.itemO("object.vertex_group_clean", text="Clean")
 
 class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
-	__context__ = "weightpaint"
-	__label__ = "Options"
+	bl_context = "weightpaint"
+	bl_label = "Options"
 
 	def draw(self, context):
 		layout = self.layout
@@ -694,8 +694,8 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
 # ********** default tools for vertexpaint ****************
 
 class VIEW3D_PT_tools_vertexpaint(View3DPanel):
-	__context__ = "vertexpaint"
-	__label__ = "Options"
+	bl_context = "vertexpaint"
+	bl_label = "Options"
 
 	def draw(self, context):
 		layout = self.layout
@@ -719,8 +719,8 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
 # ********** default tools for texturepaint ****************
 
 class VIEW3D_PT_tools_projectpaint(View3DPanel):
-	__context__ = "texturepaint"
-	__label__ = "Project Paint"
+	bl_context = "texturepaint"
+	bl_label = "Project Paint"
 
 	def poll(self, context): 	 
 		return context.tool_settings.image_paint.tool != 'SMEAR' 	 
@@ -774,8 +774,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
 # ********** default tools for particle mode ****************
 
 class VIEW3D_PT_tools_particlemode(View3DPanel):
-	__context__ = "particlemode"
-	__label__ = "Options"
+	bl_context = "particlemode"
+	bl_label = "Options"
 
 	def draw(self, context):
 		layout = self.layout

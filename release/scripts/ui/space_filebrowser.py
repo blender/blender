@@ -2,7 +2,7 @@
 import bpy
 
 class FILEBROWSER_HT_header(bpy.types.Header):
-	__space_type__ = 'FILE_BROWSER'
+	bl_space_type = 'FILE_BROWSER'
 
 	def draw(self, context):
 		layout = self.layout

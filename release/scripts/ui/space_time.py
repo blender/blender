@@ -2,7 +2,7 @@
 import bpy
 
 class TIME_HT_header(bpy.types.Header):
-	__space_type__ = 'TIMELINE'
+	bl_space_type = 'TIMELINE'
 
 	def draw(self, context):
 		layout = self.layout
@@ -64,7 +64,7 @@ class TIME_HT_header(bpy.types.Header):
 		row.itemO("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
 
 class TIME_MT_view(bpy.types.Menu):
-	__label__ = "View"
+	bl_label = "View"
 
 	def draw(self, context):
 		layout = self.layout
@@ -78,7 +78,7 @@ class TIME_MT_view(bpy.types.Menu):
 		layout.itemR(st, "only_selected")
 
 class TIME_MT_frame(bpy.types.Menu):
-	__label__ = "Frame"
+	bl_label = "Frame"
 
 	def draw(self, context):
 		layout = self.layout
@@ -102,7 +102,7 @@ class TIME_MT_frame(bpy.types.Menu):
 		sub.itemM("TIME_MT_autokey")
 
 class TIME_MT_playback(bpy.types.Menu):
-	__label__ = "Playback"
+	bl_label = "Playback"
 
 	def draw(self, context):
 		layout = self.layout
@@ -129,7 +129,7 @@ class TIME_MT_playback(bpy.types.Menu):
 		layout.itemR(scene, "scrub_audio")
 
 class TIME_MT_autokey(bpy.types.Menu):
-	__label__ = "Auto-Keyframing Mode"
+	bl_label = "Auto-Keyframing Mode"
 
 	def draw(self, context):
 		layout = self.layout

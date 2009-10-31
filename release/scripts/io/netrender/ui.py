@@ -18,9 +18,9 @@ DONE = 2
 ERROR = 3
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
-	__context__ = "render"
+	bl_space_type = "PROPERTIES"
+	bl_region_type = "WINDOW"
+	bl_context = "render"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
@@ -30,7 +30,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 # Setting panel, use in the scene for now.
 @rnaType
 class RENDER_PT_network_settings(RenderButtonsPanel):
-	__label__ = "Network Settings"
+	bl_label = "Network Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 
 	def draw(self, context):
@@ -56,7 +56,7 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
-	__label__ = "Job Settings"
+	bl_label = "Job Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
 	def poll(self, context):
@@ -84,7 +84,7 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 
 @rnaType
 class RENDER_PT_network_slaves(RenderButtonsPanel):
-	__label__ = "Slaves Status"
+	bl_label = "Slaves Status"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
 	def poll(self, context):
@@ -120,7 +120,7 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 
 @rnaType
 class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
-	__label__ = "Slaves Blacklist"
+	bl_label = "Slaves Blacklist"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
 	def poll(self, context):
@@ -155,7 +155,7 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 
 @rnaType
 class RENDER_PT_network_jobs(RenderButtonsPanel):
-	__label__ = "Jobs"
+	bl_label = "Jobs"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
 	def poll(self, context):

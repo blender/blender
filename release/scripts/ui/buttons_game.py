@@ -2,9 +2,9 @@
 import bpy
  
 class PhysicsButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "physics"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "physics"
 
 	def poll(self, context):
 		ob = context.active_object
@@ -12,7 +12,7 @@ class PhysicsButtonsPanel(bpy.types.Panel):
 		return ob and ob.game and (rd.engine == 'BLENDER_GAME')
 
 class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
-	__label__ = "Physics"
+	bl_label = "Physics"
 
 	def draw(self, context):
 		layout = self.layout
@@ -131,7 +131,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			layout.itemR(ob, "restrict_render", text="Invisible")
 			
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
-	__label__ = "Collision Bounds"
+	bl_label = "Collision Bounds"
 
 	def poll(self, context):
 		game = context.object.game
@@ -159,16 +159,16 @@ bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "render"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "render"
 
 	def poll(self, context):
 		rd = context.scene.render_data
 		return (rd.engine == 'BLENDER_GAME')
 
 class RENDER_PT_game(RenderButtonsPanel):
-	__label__ = "Game"
+	bl_label = "Game"
 
 	def draw(self, context):
 		layout = self.layout
@@ -178,7 +178,7 @@ class RENDER_PT_game(RenderButtonsPanel):
 		row.itemL()
 
 class RENDER_PT_game_player(RenderButtonsPanel):
-	__label__ = "Standalone Player"
+	bl_label = "Standalone Player"
 
 	def draw(self, context):
 		layout = self.layout
@@ -209,7 +209,7 @@ class RENDER_PT_game_player(RenderButtonsPanel):
 			col.itemR(gs, "framing_color", text="")
 
 class RENDER_PT_game_stereo(RenderButtonsPanel):
-	__label__ = "Stereo"
+	bl_label = "Stereo"
 
 	def draw(self, context):
 		layout = self.layout
@@ -258,7 +258,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
 			layout.itemR(gs, "dome_text")
 
 class RENDER_PT_game_shading(RenderButtonsPanel):
-	__label__ = "Shading"
+	bl_label = "Shading"
 
 	def draw(self, context):
 		layout = self.layout
@@ -280,7 +280,7 @@ class RENDER_PT_game_shading(RenderButtonsPanel):
 			col.itemR(gs, "glsl_extra_textures", text="Extra Textures")
 
 class RENDER_PT_game_performance(RenderButtonsPanel):
-	__label__ = "Performance"
+	bl_label = "Performance"
 
 	def draw(self, context):
 		layout = self.layout
@@ -302,7 +302,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
 		col.itemR(gs, "display_lists")
 		
 class RENDER_PT_game_sound(RenderButtonsPanel):
-	__label__ = "Sound"
+	bl_label = "Sound"
 
 	def draw(self, context):
 		layout = self.layout
@@ -321,16 +321,16 @@ bpy.types.register(RENDER_PT_game_performance)
 bpy.types.register(RENDER_PT_game_sound)
 
 class WorldButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "world"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "world"
 
 	def poll(self, context):
 		rd = context.scene.render_data
 		return (rd.engine == 'BLENDER_GAME')
 
 class WORLD_PT_game_context_world(WorldButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 
 	def poll(self, context):
 		rd = context.scene.render_data
@@ -351,7 +351,7 @@ class WORLD_PT_game_context_world(WorldButtonsPanel):
 			split.template_ID(space, "pin_id")
 
 class WORLD_PT_game_world(WorldButtonsPanel):
-	__label__ = "World"
+	bl_label = "World"
 
 	def draw(self, context):
 		layout = self.layout
@@ -370,7 +370,7 @@ class WORLD_PT_game_world(WorldButtonsPanel):
 		row.itemR(world.mist, "depth")
 
 class WORLD_PT_game_physics(WorldButtonsPanel):
-	__label__ = "Physics"
+	bl_label = "Physics"
  
 	def draw(self, context):
 		layout = self.layout

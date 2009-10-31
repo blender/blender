@@ -3,14 +3,14 @@ def write_some_data(context, path, use_some_setting):
 	
 class ExportSomeData(bpy.types.Operator):
 	'''This appiers in the tooltip of the operator and in the generated docs.'''
-	__idname__ = "export.some_data" # this is important since its how bpy.ops.export.some_data is constructed
-	__label__ = "Export Some Data"
+	bl_idname = "export.some_data" # this is important since its how bpy.ops.export.some_data is constructed
+	bl_label = "Export Some Data"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
 	# TODO, add better example props
-	__props__ = [
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= ""),
 		bpy.props.BoolProperty(attr="use_some_setting", name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True),
 	]

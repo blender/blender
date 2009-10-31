@@ -159,8 +159,8 @@ def requestResult(conn, job_id, frame):
 
 @rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
-	__idname__ = 'NET_RENDER'
-	__label__ = "Network Render"
+	bl_idname = 'NET_RENDER'
+	bl_label = "Network Render"
 	def render(self, scene):
 		if scene.network_render.mode == "RENDER_CLIENT":
 			self.render_client(scene)

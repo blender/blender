@@ -16,15 +16,15 @@ def particle_panel_poll(context):
 	return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
 
 class ParticleButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "particle"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "particle"
 
 	def poll(self, context):
 		return particle_panel_poll(context)
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 
 	def poll(self, context):
 		return (context.particle_system or context.object)
@@ -105,7 +105,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 					split.itemR(psys, "reactor_target_particle_system", text="Particle System")
 		
 class PARTICLE_PT_emission(ParticleButtonsPanel):
-	__label__ = "Emission"
+	bl_label = "Emission"
 	
 	def poll(self, context):
 		if particle_panel_poll(context):
@@ -158,8 +158,8 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 				row.itemR(part, "grid_resolution")
 
 class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
-	__label__ = "Hair dynamics"
-	__default_closed__ = True
+	bl_label = "Hair dynamics"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		psys = context.particle_system
@@ -205,8 +205,8 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
 		col.itemR(cloth, "quality", text="Steps",slider=True)
 				
 class PARTICLE_PT_cache(ParticleButtonsPanel):
-	__label__ = "Cache"
-	__default_closed__ = True
+	bl_label = "Cache"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		psys = context.particle_system
@@ -225,7 +225,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		point_cache_ui(self, psys.point_cache, particle_panel_enabled(context, psys), not psys.hair_dynamics, 0)
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel):
-	__label__ = "Velocity"
+	bl_label = "Velocity"
 	
 	def poll(self, context):
 		if particle_panel_poll(context):
@@ -270,7 +270,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel):
 		#	sub.itemR(part, "reaction_shape", slider=True)
 		
 class PARTICLE_PT_rotation(ParticleButtonsPanel):
-	__label__ = "Rotation"
+	bl_label = "Rotation"
 	
 	def poll(self, context):
 		if particle_panel_poll(context):
@@ -309,7 +309,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel):
 		sub.itemR(part, "angular_velocity_factor", text="")
 		
 class PARTICLE_PT_physics(ParticleButtonsPanel):
-	__label__ = "Physics"
+	bl_label = "Physics"
 	
 	def poll(self, context):
 		if particle_panel_poll(context):
@@ -449,7 +449,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 					layout.itemR(key, "mode", expand=True)
 
 class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
-	__label__ = "Boid Brain"
+	bl_label = "Boid Brain"
 
 	def poll(self, context):
 		psys = context.particle_system
@@ -543,7 +543,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 				row.itemR(rule, "flee_distance")
 
 class PARTICLE_PT_render(ParticleButtonsPanel):
-	__label__ = "Render"
+	bl_label = "Render"
 	
 	def poll(self, context):
 		psys = context.particle_system
@@ -706,8 +706,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 				col.itemL(text="")
 				
 class PARTICLE_PT_draw(ParticleButtonsPanel):
-	__label__ = "Display"
-	__default_closed__ = True
+	bl_label = "Display"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		psys = context.particle_system
@@ -761,8 +761,8 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 			#subcol.itemL(text="Override material color")
 
 class PARTICLE_PT_children(ParticleButtonsPanel):
-	__label__ = "Children"
-	__default_closed__ = True
+	bl_label = "Children"
+	bl_default_closed = True
 
 	def draw(self, context):
 		layout = self.layout
@@ -837,8 +837,8 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
 		sub.itemR(part, "kink_shape", slider=True)
 
 class PARTICLE_PT_field_weights(ParticleButtonsPanel):
-	__label__ = "Field Weights"
-	__default_closed__ = True
+	bl_label = "Field Weights"
+	bl_default_closed = True
 	
 	def draw(self, context):
 		part = context.particle_system.settings
@@ -848,8 +848,8 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel):
 			self.layout.itemR(part.effector_weights, "do_growing_hair")
 		
 class PARTICLE_PT_force_fields(ParticleButtonsPanel):
-	__label__ = "Force Field Settings"
-	__default_closed__ = True
+	bl_label = "Force Field Settings"
+	bl_default_closed = True
 	
 	def draw(self, context):
 		layout = self.layout
@@ -874,8 +874,8 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel):
 		basic_force_field_falloff_ui(self, part.force_field_2)
 		
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
-	__label__ = "Vertexgroups"
-	__default_closed__ = True
+	bl_label = "Vertexgroups"
+	bl_default_closed = True
 
 	def draw(self, context):
 		layout = self.layout

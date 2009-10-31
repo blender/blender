@@ -1093,13 +1093,13 @@ def save_3ds(filename, context):
 
 class EXPORT_OT_autodesk_3ds(bpy.types.Operator):
 	'''Export to 3DS file format (.3ds).'''
-	__idname__ = "export.autodesk_3ds"
-	__label__ = 'Export 3DS'
+	bl_idname = "export.autodesk_3ds"
+	bl_label = 'Export 3DS'
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	__props__ = [
+	bl_props = [
 		# bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= ""),
 	]

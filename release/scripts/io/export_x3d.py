@@ -1198,13 +1198,13 @@ def x3d_export_ui(filename):
 
 class EXPORT_OT_x3d(bpy.types.Operator):
 	'''Export selection to Extensible 3D file (.x3d)'''
-	__idname__ = "export.x3d"
-	__label__ = 'Export X3D'
+	bl_idname = "export.x3d"
+	bl_label = 'Export X3D'
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	__props__ = [
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= ""),
 
 		bpy.props.BoolProperty(attr="apply_modifiers", name="Apply Modifiers", description="Use transformed mesh data from each object.", default=True),

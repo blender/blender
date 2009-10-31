@@ -7,7 +7,7 @@ def act_strip(context):
 
 # Header
 class SEQUENCER_HT_header(bpy.types.Header):
-	__space_type__ = 'SEQUENCE_EDITOR'
+	bl_space_type = 'SEQUENCE_EDITOR'
 
 	def draw(self, context):
 		layout = self.layout
@@ -38,7 +38,7 @@ class SEQUENCER_HT_header(bpy.types.Header):
 			layout.itemR(st, "display_channel", text="Channel")
 
 class SEQUENCER_MT_view(bpy.types.Menu):
-	__label__ = "View"
+	bl_label = "View"
 	
 	def draw(self, context):
 		layout = self.layout
@@ -105,7 +105,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 		"""
 
 class SEQUENCER_MT_select(bpy.types.Menu):
-	__label__ = "Select"
+	bl_label = "Select"
 
 	def draw(self, context):
 		layout = self.layout
@@ -125,7 +125,7 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 		layout.itemO("sequencer.select_inverse")
 
 class SEQUENCER_MT_marker(bpy.types.Menu):
-	__label__ = "Marker (TODO)"
+	bl_label = "Marker (TODO)"
 
 	def draw(self, context):
 		layout = self.layout
@@ -143,7 +143,7 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
 		#layout.itemO("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 
 class SEQUENCER_MT_add(bpy.types.Menu):
-	__label__ = "Add"
+	bl_label = "Add"
 
 	def draw(self, context):
 		layout = self.layout
@@ -160,7 +160,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		layout.itemM("SEQUENCER_MT_add_effect")
 
 class SEQUENCER_MT_add_effect(bpy.types.Menu):
-	__label__ = "Effect Strip..."
+	bl_label = "Effect Strip..."
 
 	def draw(self, context):
 		layout = self.layout
@@ -183,7 +183,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
 		layout.item_enumO("sequencer.effect_strip_add", 'type', 'SPEED')
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
-	__label__ = "Strip"
+	bl_label = "Strip"
 
 	def draw(self, context):
 		layout = self.layout
@@ -252,21 +252,21 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
 # Panels
 class SequencerButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'SEQUENCE_EDITOR'
-	__region_type__ = 'UI'
+	bl_space_type = 'SEQUENCE_EDITOR'
+	bl_region_type = 'UI'
 
 	def poll(self, context):
 		return context.space_data.display_mode == 'SEQUENCER' and act_strip(context) != None
 		
 class SequencerButtonsPanel_Output(bpy.types.Panel):
-	__space_type__ = 'SEQUENCE_EDITOR'
-	__region_type__ = 'UI'
+	bl_space_type = 'SEQUENCE_EDITOR'
+	bl_region_type = 'UI'
 
 	def poll(self, context):
 		return context.space_data.display_mode != 'SEQUENCER'
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel):
-	__label__ = "Edit Strip"
+	bl_label = "Edit Strip"
 
 	def draw(self, context):
 		layout = self.layout
@@ -317,7 +317,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		col.itemR(strip, "end_still", text="End")
 		
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
-	__label__ = "Effect Strip"
+	bl_label = "Effect Strip"
 
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -404,7 +404,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 			col.itemR(strip, "rotation_end", text="End")
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
-	__label__ = "Strip Input"
+	bl_label = "Strip Input"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -459,7 +459,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		col.itemR(strip, "animation_end_offset", text="End")
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
-	__label__ = "Sound"
+	bl_label = "Sound"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -490,7 +490,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 		row.itemR(strip.sound, "caching")
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
-	__label__ = "Filter"
+	bl_label = "Filter"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -539,7 +539,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 			col.itemR(strip.color_balance, "inverse_gain", text="Inverse")
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
-	__label__ = "Proxy"
+	bl_label = "Proxy"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -568,7 +568,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 			flow.itemR(strip.proxy, "file")
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
-	__label__ = "View Settings"
+	bl_label = "View Settings"
 
 	def draw(self, context):
 		layout = self.layout

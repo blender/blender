@@ -620,13 +620,13 @@ def main(context):
 class MESH_OT_skin(bpy.types.Operator):
 	'''Bridge face loops.'''
 	
-	__idname__ = "mesh.skin"
-	__label__ = "Add Torus"
-	__register__ = True
-	__undo__ = True
+	bl_idname = "mesh.skin"
+	bl_label = "Add Torus"
+	bl_register = True
+	bl_undo = True
 	
 	'''
-	__props__ = [
+	bl_props = [
 		bpy.props.EnumProperty(attr="loft_method", items=[(), ()], description="", default= True),
 	]
 	'''

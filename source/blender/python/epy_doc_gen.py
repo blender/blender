@@ -440,7 +440,7 @@ def rna2epy(BASEPATH):
 	for rna_type_name in dir(bpy.types):
 		rna_type = getattr(bpy.types, rna_type_name)
 		
-		try:		rna_struct = rna_type.__rna__
+		try:		rna_struct = rna_type.bl_rna
 		except:	rna_struct = None
 		
 		if rna_struct:
@@ -672,7 +672,7 @@ def op2epy(BASEPATH):
 		op_mod = getattr(bpy.ops, op_mod_name)
 		operators = dir(op_mod)
 		for op in sorted(operators):
-			# rna = getattr(bpy.types, op).__rna__
+			# rna = getattr(bpy.types, op).bl_rna
 			rna = getattr(op_mod, op).get_rna()
 			write_func(rna, '', out, 'OPERATOR')
 		

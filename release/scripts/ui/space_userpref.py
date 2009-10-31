@@ -2,7 +2,7 @@
 import bpy
 
 class USERPREF_HT_header(bpy.types.Header):
-	__space_type__ = 'USER_PREFERENCES'
+	bl_space_type = 'USER_PREFERENCES'
 
 	def draw(self, context):
 		layout = self.layout
@@ -18,14 +18,14 @@ class USERPREF_HT_header(bpy.types.Header):
 			layout.itemO("wm.keyconfig_export", "Export Key Configuration...")
 			
 class USERPREF_MT_view(bpy.types.Menu):
-	__label__ = "View"
+	bl_label = "View"
 
 	def draw(self, context):
 		layout = self.layout
 
 class USERPREF_PT_tabs(bpy.types.Panel):
-	__space_type__ = 'USER_PREFERENCES'
-	__show_header__ = False
+	bl_space_type = 'USER_PREFERENCES'
+	bl_show_header = False
 
 	def draw(self, context):
 		layout = self.layout
@@ -35,9 +35,9 @@ class USERPREF_PT_tabs(bpy.types.Panel):
 		layout.itemR(userpref, "active_section", expand=True)
 
 class USERPREF_PT_interface(bpy.types.Panel):
-	__space_type__ = 'USER_PREFERENCES'
-	__label__ = "Interface"
-	__show_header__ = False
+	bl_space_type = 'USER_PREFERENCES'
+	bl_label = "Interface"
+	bl_show_header = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -119,9 +119,9 @@ class USERPREF_PT_interface(bpy.types.Panel):
 		sub1.itemR(view, "open_sublevel_delay", text="Sub Level")
 
 class USERPREF_PT_edit(bpy.types.Panel):
-	__space_type__ = 'USER_PREFERENCES'
-	__label__ = "Edit"
-	__show_header__ = False
+	bl_space_type = 'USER_PREFERENCES'
+	bl_label = "Edit"
+	bl_show_header = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -222,9 +222,9 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub1.itemR(edit, "duplicate_particle", text="Particle")
 		
 class USERPREF_PT_system(bpy.types.Panel):
-	__space_type__ = 'USER_PREFERENCES'
-	__label__ = "System"
-	__show_header__ = False
+	bl_space_type = 'USER_PREFERENCES'
+	bl_label = "System"
+	bl_show_header = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -313,9 +313,9 @@ class USERPREF_PT_system(bpy.types.Panel):
 		sub1.itemR(system, "memory_cache_limit")
 		
 class USERPREF_PT_file(bpy.types.Panel):
-	__space_type__ = 'USER_PREFERENCES'
-	__label__ = "Files"
-	__show_header__ = False
+	bl_space_type = 'USER_PREFERENCES'
+	bl_label = "Files"
+	bl_show_header = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -379,9 +379,9 @@ class USERPREF_PT_file(bpy.types.Panel):
 		sub3.itemR(paths, "auto_save_time", text="Timer (mins)")
 
 class USERPREF_PT_input(bpy.types.Panel):
-	__space_type__ = 'USER_PREFERENCES'
-	__label__ = "Input"
-	__show_header__ = False
+	bl_space_type = 'USER_PREFERENCES'
+	bl_label = "Input"
+	bl_show_header = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -556,9 +556,9 @@ bpy.types.register(USERPREF_PT_input)
 
 class WM_OT_keyconfig_export(bpy.types.Operator):
 	"Export key configuration to a python script."
-	__idname__ = "wm.keyconfig_export"
-	__label__ = "Export Key Configuration..."
-	__props__ = [
+	bl_idname = "wm.keyconfig_export"
+	bl_label = "Export Key Configuration..."
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path to write file to.")]
 
 	def _string_value(self, value):
@@ -644,8 +644,8 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
 class WM_OT_keymap_edit(bpy.types.Operator):
 	"Edit key map."
-	__idname__ = "wm.keymap_edit"
-	__label__ = "Edit Key Map"
+	bl_idname = "wm.keymap_edit"
+	bl_label = "Edit Key Map"
 
 	def execute(self, context):
 		wm = context.manager
@@ -655,9 +655,9 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
 class WM_OT_keymap_restore(bpy.types.Operator):
 	"Restore key map"
-	__idname__ = "wm.keymap_restore"
-	__label__ = "Restore Key Map"
-	__props__ = [bpy.props.BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")]
+	bl_idname = "wm.keymap_restore"
+	bl_label = "Restore Key Map"
+	bl_props = [bpy.props.BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")]
 
 	def execute(self, context):
 		wm = context.manager
@@ -673,8 +673,8 @@ class WM_OT_keymap_restore(bpy.types.Operator):
 	
 class WM_OT_keyitem_add(bpy.types.Operator):
 	"Add key map item."
-	__idname__ = "wm.keyitem_add"
-	__label__ = "Add Key Map Item"
+	bl_idname = "wm.keyitem_add"
+	bl_label = "Add Key Map Item"
 
 	def execute(self, context):
 		wm = context.manager
@@ -684,8 +684,8 @@ class WM_OT_keyitem_add(bpy.types.Operator):
 	
 class WM_OT_keyitem_remove(bpy.types.Operator):
 	"Remove key map item."
-	__idname__ = "wm.keyitem_remove"
-	__label__ = "Remove Key Map Item"
+	bl_idname = "wm.keyitem_remove"
+	bl_label = "Remove Key Map Item"
 
 	def execute(self, context):
 		wm = context.manager

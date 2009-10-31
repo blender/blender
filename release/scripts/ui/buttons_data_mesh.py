@@ -2,15 +2,15 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 	
 	def poll(self, context):
 		return context.mesh
 
 class DATA_PT_context_mesh(DataButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -29,7 +29,7 @@ class DATA_PT_context_mesh(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_normals(DataButtonsPanel):
-	__label__ = "Normals"
+	bl_label = "Normals"
 
 	def draw(self, context):
 		layout = self.layout
@@ -49,7 +49,7 @@ class DATA_PT_normals(DataButtonsPanel):
 		col.itemR(mesh, "double_sided")
 
 class DATA_PT_settings(DataButtonsPanel):
-	__label__ = "Settings"
+	bl_label = "Settings"
 
 	def draw(self, context):
 		layout = self.layout
@@ -62,7 +62,7 @@ class DATA_PT_settings(DataButtonsPanel):
 		col.itemR(mesh, "texture_mesh")
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
-	__label__ = "Vertex Groups"
+	bl_label = "Vertex Groups"
 	
 	def poll(self, context):
 		return (context.object and context.object.type in ('MESH', 'LATTICE'))
@@ -106,7 +106,7 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight")
 
 class DATA_PT_shape_keys(DataButtonsPanel):
-	__label__ = "Shape Keys"
+	bl_label = "Shape Keys"
 	
 	def poll(self, context):
 		return (context.object and context.object.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE'))
@@ -191,7 +191,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 				row.itemR(key, "slurph")
 
 class DATA_PT_uv_texture(DataButtonsPanel):
-	__label__ = "UV Texture"
+	bl_label = "UV Texture"
 	
 	def draw(self, context):
 		layout = self.layout
@@ -212,7 +212,7 @@ class DATA_PT_uv_texture(DataButtonsPanel):
 			layout.itemR(lay, "name")
 
 class DATA_PT_vertex_colors(DataButtonsPanel):
-	__label__ = "Vertex Colors"
+	bl_label = "Vertex Colors"
 	
 	def draw(self, context):
 		layout = self.layout

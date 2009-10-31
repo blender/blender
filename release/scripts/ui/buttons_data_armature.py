@@ -2,15 +2,15 @@
 import bpy
  
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 	
 	def poll(self, context):
 		return context.armature
 
 class DATA_PT_context_arm(DataButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -29,7 +29,7 @@ class DATA_PT_context_arm(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_skeleton(DataButtonsPanel):
-	__label__ = "Skeleton"
+	bl_label = "Skeleton"
 	
 	def draw(self, context):
 		layout = self.layout
@@ -56,7 +56,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		col.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
 		
 class DATA_PT_display(DataButtonsPanel):
-	__label__ = "Display"
+	bl_label = "Display"
 	
 	def draw(self, context):
 		layout = self.layout
@@ -73,7 +73,7 @@ class DATA_PT_display(DataButtonsPanel):
 		flow.itemR(arm, "delay_deform", text="Delay Refresh")
 
 class DATA_PT_bone_groups(DataButtonsPanel):
-	__label__ = "Bone Groups"
+	bl_label = "Bone Groups"
 	
 	def poll(self, context):
 		return (context.object and context.object.type=='ARMATURE' and context.object.pose)
@@ -113,7 +113,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 		#row.itemO("object.bone_group_deselect", text="Deselect")
 
 class DATA_PT_paths(DataButtonsPanel):
-	__label__ = "Paths"
+	bl_label = "Paths"
 
 	def draw(self, context):
 		layout = self.layout
@@ -149,7 +149,7 @@ class DATA_PT_paths(DataButtonsPanel):
 		row.itemO("pose.paths_clear", text="Clear Paths")
 
 class DATA_PT_ghost(DataButtonsPanel):
-	__label__ = "Ghost"
+	bl_label = "Ghost"
 
 	def draw(self, context):
 		layout = self.layout

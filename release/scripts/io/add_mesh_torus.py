@@ -49,11 +49,11 @@ def add_torus(PREF_MAJOR_RAD, PREF_MINOR_RAD, PREF_MAJOR_SEG, PREF_MINOR_SEG):
 
 class MESH_OT_primitive_torus_add(bpy.types.Operator):
 	'''Add a torus mesh.'''
-	__idname__ = "mesh.primitive_torus_add"
-	__label__ = "Add Torus"
-	__register__ = True
-	__undo__ = True
-	__props__ = [
+	bl_idname = "mesh.primitive_torus_add"
+	bl_label = "Add Torus"
+	bl_register = True
+	bl_undo = True
+	bl_props = [
 		bpy.props.FloatProperty(attr="major_radius", name="Major Radius", description="Number of segments for the main ring of the torus", default= 1.0, min= 0.01, max= 100.0),
 		bpy.props.FloatProperty(attr="minor_radius", name="Minor Radius", description="Number of segments for the minor ring of the torus", default= 0.25, min= 0.01, max= 100.0),
 		bpy.props.IntProperty(attr="major_segments", name="Major Segments", description="Number of segments for the main ring of the torus", default= 48, min= 3, max= 256),

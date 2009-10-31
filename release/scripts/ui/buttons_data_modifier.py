@@ -2,12 +2,12 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "modifier"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "modifier"
 	
 class DATA_PT_modifiers(DataButtonsPanel):
-	__label__ = "Modifiers"
+	bl_label = "Modifiers"
 
 	def draw(self, context):
 		layout = self.layout

@@ -2,15 +2,15 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 	
 	def poll(self, context):
 		return context.lattice
 	
 class DATA_PT_context_lattice(DataButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -29,7 +29,7 @@ class DATA_PT_context_lattice(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_lattice(DataButtonsPanel):
-	__label__ = "Lattice"
+	bl_label = "Lattice"
 
 	def draw(self, context):
 		layout = self.layout

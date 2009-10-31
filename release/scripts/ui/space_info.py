@@ -5,7 +5,7 @@ import dynamic_menu
 # reload(dynamic_menu)
 
 class INFO_HT_header(bpy.types.Header):
-	__space_type__ = 'INFO'
+	bl_space_type = 'INFO'
 
 	def draw(self, context):
 		layout = self.layout
@@ -43,7 +43,7 @@ class INFO_HT_header(bpy.types.Header):
 		layout.itemO("wm.window_fullscreen_toggle", icon='ICON_ARROW_LEFTRIGHT', text="")
 
 class INFO_MT_file(bpy.types.Menu):
-	__label__ = "File"
+	bl_label = "File"
 
 	def draw(self, context):
 		layout = self.layout
@@ -85,7 +85,7 @@ class INFO_MT_file(bpy.types.Menu):
 # test for expanding menus
 '''
 class INFO_MT_file_more(INFO_MT_file):
-	__label__ = "File"
+	bl_label = "File"
 
 	def draw(self, context):
 		layout = self.layout
@@ -96,19 +96,19 @@ dynamic_menu.setup(INFO_MT_file_more)
 '''
 
 class INFO_MT_file_import(dynamic_menu.DynMenu):
-	__label__ = "Import"
+	bl_label = "Import"
 
 	def draw(self, context):
 		self.layout.itemO("WM_OT_collada_import", text="COLLADA (.dae)...")
 
 class INFO_MT_file_export(dynamic_menu.DynMenu):
-	__label__ = "Export"
+	bl_label = "Export"
 
 	def draw(self, context):
 		self.layout.itemO("WM_OT_collada_export", text="COLLADA (.dae)...")
 
 class INFO_MT_file_external_data(bpy.types.Menu):
-	__label__ = "External Data"
+	bl_label = "External Data"
 
 	def draw(self, context):
 		layout = self.layout
@@ -124,7 +124,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 		layout.itemO("file.find_missing_files")
 
 class INFO_MT_mesh_add(dynamic_menu.DynMenu):
-	__label__ = "Mesh"
+	bl_label = "Mesh"
 	def draw(self, context):
 		layout = self.layout
 		layout.operator_context = 'INVOKE_REGION_WIN'
@@ -140,7 +140,7 @@ class INFO_MT_mesh_add(dynamic_menu.DynMenu):
 		layout.itemO("mesh.primitive_monkey_add", icon='ICON_MESH_MONKEY', text="Monkey")
 
 class INFO_MT_add(bpy.types.Menu):
-	__label__ = "Add"
+	bl_label = "Add"
 
 	def draw(self, context):
 		layout = self.layout
@@ -175,7 +175,7 @@ class INFO_MT_add(bpy.types.Menu):
 		layout.item_menu_enumO("object.group_instance_add", "type", text="Group Instance", icon='ICON_OUTLINER_OB_EMPTY')
 
 class INFO_MT_game(bpy.types.Menu):
-	__label__ = "Game"
+	bl_label = "Game"
 
 	def draw(self, context):
 		layout = self.layout
@@ -192,7 +192,7 @@ class INFO_MT_game(bpy.types.Menu):
 		layout.itemR(gs, "deprecation_warnings")
 
 class INFO_MT_render(bpy.types.Menu):
-	__label__ = "Render"
+	bl_label = "Render"
 
 	def draw(self, context):
 		layout = self.layout
@@ -212,7 +212,7 @@ class INFO_MT_render(bpy.types.Menu):
 		layout.itemO("screen.render_view_show")
 
 class INFO_MT_help(bpy.types.Menu):
-	__label__ = "Help"
+	bl_label = "Help"
 
 	def draw(self, context):
 		layout = self.layout
@@ -247,54 +247,54 @@ bpy.types.register(INFO_MT_help)
 class HelpOperator(bpy.types.Operator):
 	def execute(self, context):
 		import webbrowser
-		webbrowser.open(self.__URL__)
+		webbrowser.open(self._url)
 		return ('FINISHED',)
 
 class HELP_OT_manual(HelpOperator):
 	'''The Blender Wiki manual'''
-	__idname__ = "help.manual"
-	__label__ = "Manual"
-	__URL__ = 'http://wiki.blender.org/index.php/Manual'
+	bl_idname = "help.manual"
+	bl_label = "Manual"
+	_url = 'http://wiki.blender.org/index.php/Manual'
 
 class HELP_OT_release_logs(HelpOperator):
 	'''Information about the changes in this version of Blender'''
-	__idname__ = "help.release_logs"
-	__label__ = "Release Logs"
-	__URL__ = 'http://www.blender.org/development/release-logs/'
+	bl_idname = "help.release_logs"
+	bl_label = "Release Logs"
+	_url = 'http://www.blender.org/development/release-logs/'
 
 class HELP_OT_blender_website(HelpOperator):
 	'''The official Blender website'''
-	__idname__ = "help.blender_website"
-	__label__ = "Blender Website"
-	__URL__ = 'http://www.blender.org/'
+	bl_idname = "help.blender_website"
+	bl_label = "Blender Website"
+	_url = 'http://www.blender.org/'
 
 class HELP_OT_blender_eshop(HelpOperator):
 	'''Buy official Blender resources and merchandise online'''
-	__idname__ = "help.blender_eshop"
-	__label__ = "Blender e-Shop"
-	__URL__ = 'http://www.blender3d.org/e-shop'
+	bl_idname = "help.blender_eshop"
+	bl_label = "Blender e-Shop"
+	_url = 'http://www.blender3d.org/e-shop'
 
 class HELP_OT_developer_community(HelpOperator):
 	'''Get involved with Blender development'''
-	__idname__ = "help.developer_community"
-	__label__ = "Developer Community"
-	__URL__ = 'http://www.blender.org/community/get-involved/'
+	bl_idname = "help.developer_community"
+	bl_label = "Developer Community"
+	_url = 'http://www.blender.org/community/get-involved/'
 
 class HELP_OT_user_community(HelpOperator):
 	'''Get involved with other Blender users'''
-	__idname__ = "help.user_community"
-	__label__ = "User Community"
-	__URL__ = 'http://www.blender.org/community/user-community/'
+	bl_idname = "help.user_community"
+	bl_label = "User Community"
+	_url = 'http://www.blender.org/community/user-community/'
 	
 class HELP_OT_report_bug(HelpOperator):
 	'''Report a bug in the Blender bug tracker'''
-	__idname__ = "help.report_bug"
-	__label__ = "Report a Bug"
-	__URL__ = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
+	bl_idname = "help.report_bug"
+	bl_label = "Report a Bug"
+	_url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
-	__idname__ = "help.operator_cheat_sheet"
-	__label__ = "Operator Cheat Sheet (new textblock)"
+	bl_idname = "help.operator_cheat_sheet"
+	bl_label = "Operator Cheat Sheet (new textblock)"
 	def execute(self, context):
 		op_strings = []
 		tot = 0

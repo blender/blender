@@ -151,7 +151,7 @@ class bpy_ops_submodule_op(object):
 
     def get_rna(self):
         '''
-        currently only used for '__rna__'
+        currently only used for 'bl_rna'
         '''
         return op_get_rna(self.idname())
 
@@ -173,8 +173,8 @@ from bpy.props import *
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
     '''Export a single object as a stanford PLY with normals,
     colours and texture coordinates.'''
-    __idname__ = "mesh.delete_edgeloop"
-    __label__ = "Delete Edge Loop"
+    bl_idname = "mesh.delete_edgeloop"
+    bl_label = "Delete Edge Loop"
 
     def execute(self, context):
         bpy.ops.tfm.edge_slide(value=1.0)
@@ -218,9 +218,9 @@ def execute_context_assign(self, context):
 
 class WM_OT_context_set_boolean(bpy.types.Operator):
     '''Set a context value.'''
-    __idname__ = "wm.context_set_boolean"
-    __label__ = "Context Set"
-    __props__ = [
+    bl_idname = "wm.context_set_boolean"
+    bl_label = "Context Set"
+    bl_props = [
         rna_path_prop,
         BoolProperty(attr="value", name="Value",
             description="Assignment value", default=True)]
@@ -230,9 +230,9 @@ class WM_OT_context_set_boolean(bpy.types.Operator):
 
 class WM_OT_context_set_int(bpy.types.Operator): # same as enum
     '''Set a context value.'''
-    __idname__ = "wm.context_set_int"
-    __label__ = "Context Set"
-    __props__ = [
+    bl_idname = "wm.context_set_int"
+    bl_label = "Context Set"
+    bl_props = [
         rna_path_prop,
             IntProperty(attr="value", name="Value",
                 description="Assignment value", default=0)]
@@ -241,9 +241,9 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
 
 class WM_OT_context_set_float(bpy.types.Operator): # same as enum
     '''Set a context value.'''
-    __idname__ = "wm.context_set_int"
-    __label__ = "Context Set"
-    __props__ = [
+    bl_idname = "wm.context_set_int"
+    bl_label = "Context Set"
+    bl_props = [
         rna_path_prop,
         FloatProperty(attr="value", name="Value",
             description="Assignment value", default=0.0)]
@@ -252,9 +252,9 @@ class WM_OT_context_set_float(bpy.types.Operator): # same as enum
 
 class WM_OT_context_set_string(bpy.types.Operator): # same as enum
     '''Set a context value.'''
-    __idname__ = "wm.context_set_string"
-    __label__ = "Context Set"
-    __props__ = [
+    bl_idname = "wm.context_set_string"
+    bl_label = "Context Set"
+    bl_props = [
         rna_path_prop,
         StringProperty(attr="value", name="Value",
             description="Assignment value", maxlen=1024, default="")]
@@ -264,9 +264,9 @@ class WM_OT_context_set_string(bpy.types.Operator): # same as enum
 
 class WM_OT_context_set_enum(bpy.types.Operator):
     '''Set a context value.'''
-    __idname__ = "wm.context_set_enum"
-    __label__ = "Context Set"
-    __props__ = [
+    bl_idname = "wm.context_set_enum"
+    bl_label = "Context Set"
+    bl_props = [
         rna_path_prop,
         StringProperty(attr="value", name="Value",
             description="Assignment value (as a string)",
@@ -277,9 +277,9 @@ class WM_OT_context_set_enum(bpy.types.Operator):
 
 class WM_OT_context_toggle(bpy.types.Operator):
     '''Toggle a context value.'''
-    __idname__ = "wm.context_toggle"
-    __label__ = "Context Toggle"
-    __props__ = [rna_path_prop]
+    bl_idname = "wm.context_toggle"
+    bl_label = "Context Toggle"
+    bl_props = [rna_path_prop]
 
     def execute(self, context):
 
@@ -292,9 +292,9 @@ class WM_OT_context_toggle(bpy.types.Operator):
 
 class WM_OT_context_toggle_enum(bpy.types.Operator):
     '''Toggle a context value.'''
-    __idname__ = "wm.context_toggle_enum"
-    __label__ = "Context Toggle Values"
-    __props__ = [
+    bl_idname = "wm.context_toggle_enum"
+    bl_label = "Context Toggle Values"
+    bl_props = [
         rna_path_prop,
         StringProperty(attr="value_1", name="Value", \
                 description="Toggle enum", maxlen=1024, default=""),
@@ -316,9 +316,9 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 class WM_OT_context_cycle_int(bpy.types.Operator):
     '''Set a context value. Useful for cycling active material,
     vertex keys, groups' etc.'''
-    __idname__ = "wm.context_cycle_int"
-    __label__ = "Context Int Cycle"
-    __props__ = [rna_path_prop, rna_reverse_prop]
+    bl_idname = "wm.context_cycle_int"
+    bl_label = "Context Int Cycle"
+    bl_props = [rna_path_prop, rna_reverse_prop]
 
     def execute(self, context):
 
@@ -346,9 +346,9 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
 
 class WM_OT_context_cycle_enum(bpy.types.Operator):
     '''Toggle a context value.'''
-    __idname__ = "wm.context_cycle_enum"
-    __label__ = "Context Enum Cycle"
-    __props__ = [rna_path_prop, rna_reverse_prop]
+    bl_idname = "wm.context_cycle_enum"
+    bl_label = "Context Enum Cycle"
+    bl_props = [rna_path_prop, rna_reverse_prop]
 
     def execute(self, context):
 
@@ -401,14 +401,14 @@ doc_new = StringProperty(attr="doc_new", name="Doc New",
 
 class WM_OT_doc_view(bpy.types.Operator):
     '''Load online reference docs'''
-    __idname__ = "wm.doc_view"
-    __label__ = "View Documentation"
-    __props__ = [doc_id]
+    bl_idname = "wm.doc_view"
+    bl_label = "View Documentation"
+    bl_props = [doc_id]
     _prefix = 'http://www.blender.org/documentation/250PythonDoc'
 
     def _nested_class_string(self, class_string):
         ls = []
-        class_obj = getattr(bpy.types, class_string, None).__rna__
+        class_obj = getattr(bpy.types, class_string, None).bl_rna
         while class_obj:
             ls.insert(0, class_obj)
             class_obj = class_obj.nested
@@ -442,9 +442,9 @@ class WM_OT_doc_view(bpy.types.Operator):
 
 class WM_OT_doc_edit(bpy.types.Operator):
     '''Load online reference docs'''
-    __idname__ = "wm.doc_edit"
-    __label__ = "Edit Documentation"
-    __props__ = [doc_id, doc_new]
+    bl_idname = "wm.doc_edit"
+    bl_label = "Edit Documentation"
+    bl_props = [doc_id, doc_new]
     _url = "http://www.mindrones.com/blender/svn/xmlrpc.php"
 
     def _send_xmlrpc(self, data_dict):
@@ -472,7 +472,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
         upload = {}
 
         if op_class:
-            rna = op_class.__rna__
+            rna = op_class.bl_rna
             doc_orig = rna.description
             if doc_orig == self.doc_new:
                 return 'OPERATOR_CANCELLED'
@@ -484,7 +484,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
             self._send_xmlrpc(upload)
 
         else:
-            rna = getattr(bpy.types, class_name).__rna__
+            rna = getattr(bpy.types, class_name).bl_rna
             doc_orig = rna.properties[class_prop].description
             if doc_orig == self.doc_new:
                 return 'OPERATOR_CANCELLED'

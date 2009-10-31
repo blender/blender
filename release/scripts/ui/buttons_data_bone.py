@@ -2,15 +2,15 @@
 import bpy
  
 class BoneButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "bone"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "bone"
 	
 	def poll(self, context):
 		return (context.bone or context.edit_bone)
 
 class BONE_PT_context_bone(BoneButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 
 	def draw(self, context):
 		layout = self.layout
@@ -24,7 +24,7 @@ class BONE_PT_context_bone(BoneButtonsPanel):
 		row.itemR(bone, "name", text="")
 
 class BONE_PT_transform(BoneButtonsPanel):
-	__label__ = "Transform"
+	bl_label = "Transform"
 
 	def draw(self, context):
 		layout = self.layout
@@ -69,8 +69,8 @@ class BONE_PT_transform(BoneButtonsPanel):
 			layout.itemR(pchan, "rotation_mode")
 				
 class BONE_PT_transform_locks(BoneButtonsPanel):
-	__label__ = "Transform Locks"
-	__default_closed__ = True
+	bl_label = "Transform Locks"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		return context.bone
@@ -99,7 +99,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel):
 		row.column().itemR(pchan, "lock_scale")
 
 class BONE_PT_relations(BoneButtonsPanel):
-	__label__ = "Relations"
+	bl_label = "Relations"
 
 	def draw(self, context):
 		layout = self.layout
@@ -140,7 +140,7 @@ class BONE_PT_relations(BoneButtonsPanel):
 		sub.itemR(bone, "inherit_scale", text="Inherit Scale")
 
 class BONE_PT_display(BoneButtonsPanel):
-	__label__ = "Display"
+	bl_label = "Display"
 	
 	def poll(self, context):
 		return context.bone
@@ -173,8 +173,8 @@ class BONE_PT_display(BoneButtonsPanel):
 			col.itemR(pchan, "custom_shape", text="")
 
 class BONE_PT_deform(BoneButtonsPanel):
-	__label__ = "Deform"
-	__default_closed__ = True
+	bl_label = "Deform"
+	bl_default_closed = True
 
 	def draw_header(self, context):
 		bone = context.bone

@@ -1124,13 +1124,13 @@ else:
 
 class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 	'''Import from 3DS file format (.3ds)'''
-	__idname__ = "import.autodesk_3ds"
-	__label__ = 'Import 3DS'
+	bl_idname = "import.autodesk_3ds"
+	bl_label = 'Import 3DS'
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	__props__ = [
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= ""),
 
 # 		bpy.props.FloatProperty(attr="size_constraint", name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),

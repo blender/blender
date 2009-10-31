@@ -2,9 +2,9 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 	
 	def poll(self, context):
 		return (context.object and context.object.type in ('CURVE', 'SURFACE') and context.curve)
@@ -25,7 +25,7 @@ class DataButtonsPanelActive(DataButtonsPanel):
 		return (curve and curve.active_spline)
 
 class DATA_PT_context_curve(DataButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -44,7 +44,7 @@ class DATA_PT_context_curve(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_shape_curve(DataButtonsPanel):
-	__label__ = "Shape"
+	bl_label = "Shape"
 	
 	def draw(self, context):
 		layout = self.layout
@@ -96,7 +96,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 #		col.itemR(curve, "vertex_normal_flip")
 
 class DATA_PT_geometry_curve(DataButtonsPanel):
-	__label__ = "Geometry"
+	bl_label = "Geometry"
 
 	def draw(self, context):
 		layout = self.layout
@@ -120,7 +120,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
 		col.itemR(curve, "bevel_object", text="")
 
 class DATA_PT_pathanim(DataButtonsPanelCurve):
-	__label__ = "Path Animation"
+	bl_label = "Path Animation"
 	
 	def draw_header(self, context):
 		curve = context.curve
@@ -146,7 +146,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
 		col.itemR(curve, "use_time_offset", text="Offset Children")
 	
 class DATA_PT_active_spline(DataButtonsPanelActive):
-	__label__ = "Active Spline"
+	bl_label = "Active Spline"
 
 	def draw(self, context):
 		layout = self.layout

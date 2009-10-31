@@ -2,9 +2,9 @@
 import bpy
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "render"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "render"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
@@ -12,7 +12,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 		return (context.scene and rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 class RENDER_PT_render(RenderButtonsPanel):
-	__label__ = "Render"
+	bl_label = "Render"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def draw(self, context):
@@ -27,8 +27,8 @@ class RENDER_PT_render(RenderButtonsPanel):
 		layout.itemR(rd, "display_mode", text="Display")
 
 class RENDER_PT_layers(RenderButtonsPanel):
-	__label__ = "Layers"
-	__default_closed__ = True
+	bl_label = "Layers"
+	bl_default_closed = True
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def draw(self, context):
@@ -121,7 +121,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
 		row.itemR(rl, "pass_refraction_exclude", text="", icon='ICON_X')
 
 class RENDER_PT_shading(RenderButtonsPanel):
-	__label__ = "Shading"
+	bl_label = "Shading"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
@@ -143,8 +143,8 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		col.itemR(rd, "alpha_mode", text="Alpha")
 
 class RENDER_PT_performance(RenderButtonsPanel):
-	__label__ = "Performance"
-	__default_closed__ = True
+	bl_label = "Performance"
+	bl_default_closed = True
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
@@ -183,8 +183,8 @@ class RENDER_PT_performance(RenderButtonsPanel):
 		sub.itemR(rd, "use_local_coords", text="Local Coordinates")
 
 class RENDER_PT_post_processing(RenderButtonsPanel):
-	__label__ = "Post Processing"
-	__default_closed__ = True
+	bl_label = "Post Processing"
+	bl_default_closed = True
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
@@ -220,7 +220,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
 		sub.itemR(rd, "edge_color", text="")
 		
 class RENDER_PT_output(RenderButtonsPanel):
-	__label__ = "Output"
+	bl_label = "Output"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
@@ -284,8 +284,8 @@ class RENDER_PT_output(RenderButtonsPanel):
 			split.itemR(rd, "tiff_bit")
 
 class RENDER_PT_encoding(RenderButtonsPanel):
-	__label__ = "Encoding"
-	__default_closed__ = True
+	bl_label = "Encoding"
+	bl_default_closed = True
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def poll(self, context):
@@ -336,7 +336,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 		col.itemR(rd, "ffmpeg_audio_volume")
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
-	__label__ = "Anti-Aliasing"
+	bl_label = "Anti-Aliasing"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
@@ -362,7 +362,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 		col.itemR(rd, "filter_size", text="Size", slider=True)
 	
 class RENDER_PT_dimensions(RenderButtonsPanel):
-	__label__ = "Dimensions"
+	bl_label = "Dimensions"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
@@ -401,8 +401,8 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 		col.itemR(rd, "fps_base",text="/")
 
 class RENDER_PT_stamp(RenderButtonsPanel):
-	__label__ = "Stamp"
-	__default_closed__ = True
+	bl_label = "Stamp"
+	bl_default_closed = True
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):

@@ -5,16 +5,16 @@ from buttons_physics_common import basic_force_field_settings_ui
 from buttons_physics_common import basic_force_field_falloff_ui
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "physics"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "physics"
 
 	def poll(self, context):
 		rd = context.scene.render_data
 		return (context.object) and (not rd.use_game_engine)
 		
 class PHYSICS_PT_field(PhysicButtonsPanel):
-	__label__ = "Force Fields"
+	bl_label = "Force Fields"
 
 	def draw(self, context):
 		layout = self.layout
@@ -130,8 +130,8 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 				sub.itemR(field, "radial_maximum", text="Distance")
 
 class PHYSICS_PT_collision(PhysicButtonsPanel):
-	__label__ = "Collision"
-	#__default_closed__ = True
+	bl_label = "Collision"
+	#bl_default_closed = True
 	
 	def poll(self, context):
 		ob = context.object

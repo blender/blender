@@ -26,16 +26,16 @@ def context_tex_datablock(context):
 		return idblock
 
 class TextureButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "texture"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "texture"
 	
 	def poll(self, context):
 		tex = context.texture
 		return (tex and (tex.type != 'NONE' or tex.use_nodes))
 		
 class TEXTURE_PT_preview(TextureButtonsPanel):
-	__label__ = "Preview"
+	bl_label = "Preview"
 
 	def draw(self, context):
 		layout = self.layout
@@ -51,7 +51,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 			layout.template_preview(tex, slot=slot)
 			
 class TEXTURE_PT_context_texture(TextureButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 
 	def poll(self, context):
 		return (context.material or context.world or context.lamp or context.brush or context.texture)
@@ -107,8 +107,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 				split.itemR(tex, "type", text="")
 			
 class TEXTURE_PT_colors(TextureButtonsPanel):
-	__label__ = "Colors"
-	__default_closed__ = True
+	bl_label = "Colors"
+	bl_default_closed = True
 
 	def draw(self, context):
 		layout = self.layout
@@ -143,7 +143,7 @@ class TextureSlotPanel(TextureButtonsPanel):
 		)
 				
 class TEXTURE_PT_mapping(TextureSlotPanel):
-	__label__ = "Mapping"
+	bl_label = "Mapping"
 	
 	def draw(self, context):
 		layout = self.layout
@@ -218,7 +218,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 			
 
 class TEXTURE_PT_influence(TextureSlotPanel):
-	__label__ = "Influence"
+	bl_label = "Influence"
 	def poll(self, context):
 		return context.texture_slot
 		
@@ -327,7 +327,7 @@ class TextureTypePanel(TextureButtonsPanel):
 		return (tex and tex.type == self.tex_type and not tex.use_nodes)
 
 class TEXTURE_PT_clouds(TextureTypePanel):
-	__label__ = "Clouds"
+	bl_label = "Clouds"
 	tex_type = 'CLOUDS'
 
 	def draw(self, context):
@@ -346,7 +346,7 @@ class TEXTURE_PT_clouds(TextureTypePanel):
 		flow.itemR(tex, "nabla", text="Nabla")
 
 class TEXTURE_PT_wood(TextureTypePanel):
-	__label__ = "Wood"
+	bl_label = "Wood"
 	tex_type = 'WOOD'
 
 	def draw(self, context):
@@ -370,7 +370,7 @@ class TEXTURE_PT_wood(TextureTypePanel):
 		flow.itemR(tex, "nabla")
 		
 class TEXTURE_PT_marble(TextureTypePanel):
-	__label__ = "Marble"
+	bl_label = "Marble"
 	tex_type = 'MARBLE'
 	
 	def draw(self, context):
@@ -391,7 +391,7 @@ class TEXTURE_PT_marble(TextureTypePanel):
 		flow.itemR(tex, "nabla")
 
 class TEXTURE_PT_magic(TextureTypePanel):
-	__label__ = "Magic"
+	bl_label = "Magic"
 	tex_type = 'MAGIC'
 	
 	def draw(self, context):
@@ -404,7 +404,7 @@ class TEXTURE_PT_magic(TextureTypePanel):
 		row.itemR(tex, "turbulence")
 
 class TEXTURE_PT_blend(TextureTypePanel):
-	__label__ = "Blend"
+	bl_label = "Blend"
 	tex_type = 'BLEND'
 	
 	def draw(self, context):
@@ -419,7 +419,7 @@ class TEXTURE_PT_blend(TextureTypePanel):
 		sub.itemR(tex, "flip_axis", expand=True)
 			
 class TEXTURE_PT_stucci(TextureTypePanel):
-	__label__ = "Stucci"
+	bl_label = "Stucci"
 	tex_type = 'STUCCI'
 	
 	def draw(self, context):
@@ -437,7 +437,7 @@ class TEXTURE_PT_stucci(TextureTypePanel):
 		row.itemR(tex, "turbulence")
 		
 class TEXTURE_PT_image(TextureTypePanel):
-	__label__ = "Image"
+	bl_label = "Image"
 	tex_type = 'IMAGE'
 	
 	def draw(self, context):
@@ -448,8 +448,8 @@ class TEXTURE_PT_image(TextureTypePanel):
 		layout.template_image(tex, "image", tex.image_user)
 
 class TEXTURE_PT_image_sampling(TextureTypePanel):
-	__label__ = "Image Sampling"
-	__default_closed__ = True
+	bl_label = "Image Sampling"
+	bl_default_closed = True
 	tex_type = 'IMAGE'
 	
 	def draw(self, context):
@@ -491,8 +491,8 @@ class TEXTURE_PT_image_sampling(TextureTypePanel):
 				col.itemR(tex, "filter_eccentricity", text="Eccentricity")
 
 class TEXTURE_PT_image_mapping(TextureTypePanel):
-	__label__ = "Image Mapping"
-	__default_closed__ = True
+	bl_label = "Image Mapping"
+	bl_default_closed = True
 	tex_type = 'IMAGE'
 	
 	def draw(self, context):
@@ -539,7 +539,7 @@ class TEXTURE_PT_image_mapping(TextureTypePanel):
 		col.itemR(tex, "crop_max_y", text="Y")
 	
 class TEXTURE_PT_plugin(TextureTypePanel):
-	__label__ = "Plugin"
+	bl_label = "Plugin"
 	tex_type = 'PLUGIN'
 	
 	def draw(self, context):
@@ -550,7 +550,7 @@ class TEXTURE_PT_plugin(TextureTypePanel):
 		layout.itemL(text="Nothing yet")
 		
 class TEXTURE_PT_envmap(TextureTypePanel):
-	__label__ = "Environment Map"
+	bl_label = "Environment Map"
 	tex_type = 'ENVIRONMENT_MAP'
 	
 	def draw(self, context):
@@ -561,7 +561,7 @@ class TEXTURE_PT_envmap(TextureTypePanel):
 		layout.itemL(text="Nothing yet")
 		
 class TEXTURE_PT_musgrave(TextureTypePanel):
-	__label__ = "Musgrave"
+	bl_label = "Musgrave"
 	tex_type = 'MUSGRAVE'
 	
 	def draw(self, context):
@@ -594,7 +594,7 @@ class TEXTURE_PT_musgrave(TextureTypePanel):
 		row.itemR(tex, "nabla")
 
 class TEXTURE_PT_voronoi(TextureTypePanel):
-	__label__ = "Voronoi"
+	bl_label = "Voronoi"
 	tex_type = 'VORONOI'
 
 	def draw(self, context):
@@ -628,7 +628,7 @@ class TEXTURE_PT_voronoi(TextureTypePanel):
 		row.itemR(tex, "nabla")
 			
 class TEXTURE_PT_distortednoise(TextureTypePanel):
-	__label__ = "Distorted Noise"
+	bl_label = "Distorted Noise"
 	tex_type = 'DISTORTED_NOISE'
 	
 	def draw(self, context):
@@ -645,7 +645,7 @@ class TEXTURE_PT_distortednoise(TextureTypePanel):
 		flow.itemR(tex, "nabla")	
 		
 class TEXTURE_PT_voxeldata(TextureButtonsPanel):
-	__label__ = "Voxel Data"
+	bl_label = "Voxel Data"
 
 	def poll(self, context):
 		tex = context.texture
@@ -675,7 +675,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
 		layout.itemR(vd, "intensity")
 		
 class TEXTURE_PT_pointdensity(TextureButtonsPanel):
-	__label__ = "Point Density"
+	bl_label = "Point Density"
 
 	def poll(self, context):
 		tex = context.texture
@@ -727,7 +727,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 			col.itemR(pd, "falloff_softness")
 
 class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
-	__label__ = "Turbulence"
+	bl_label = "Turbulence"
 	
 	def poll(self, context):
 		tex = context.texture

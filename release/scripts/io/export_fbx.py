@@ -3335,13 +3335,13 @@ def write_ui():
 
 class EXPORT_OT_fbx(bpy.types.Operator):
 	'''Selection to an ASCII Autodesk FBX'''
-	__idname__ = "export.fbx"
-	__label__ = "Export FBX"
+	bl_idname = "export.fbx"
+	bl_label = "Export FBX"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = [
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= ""),
 		
 		bpy.props.BoolProperty(attr="EXP_OBS_SELECTED", name="Selected Objects", description="Export selected objects on visible layers", default=True),

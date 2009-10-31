@@ -2,15 +2,15 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 
 	def poll(self, context):
 		return context.camera
 		
 class DATA_PT_context_camera(DataButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -29,7 +29,7 @@ class DATA_PT_context_camera(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_camera(DataButtonsPanel):
-	__label__ = "Lens"
+	bl_label = "Lens"
 
 	def draw(self, context):
 		layout = self.layout
@@ -70,7 +70,7 @@ class DATA_PT_camera(DataButtonsPanel):
 		row.itemR(cam, "dof_distance", text="Distance")
 		
 class DATA_PT_camera_display(DataButtonsPanel):
-	__label__ = "Display"
+	bl_label = "Display"
 
 	def draw(self, context):
 		layout = self.layout

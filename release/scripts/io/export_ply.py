@@ -233,13 +233,13 @@ def write(filename, scene, ob, \
 
 class EXPORT_OT_ply(bpy.types.Operator):
 	'''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
-	__idname__ = "export.ply"
-	__label__ = "Export PLY"
+	bl_idname = "export.ply"
+	bl_label = "Export PLY"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = [
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= ""),
 		bpy.props.BoolProperty(attr="use_modifiers", name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True),
 		bpy.props.BoolProperty(attr="use_normals", name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True),

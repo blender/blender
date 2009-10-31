@@ -135,8 +135,8 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 
 class EXPORT_OT_mdd(bpy.types.Operator):
 	'''Animated mesh to MDD vertex keyframe file.'''
-	__idname__ = "export.mdd"
-	__label__ = "Export MDD"
+	bl_idname = "export.mdd"
+	bl_label = "Export MDD"
 
 	# get first scene to get min and max properties for frames, fps
 
@@ -148,7 +148,7 @@ class EXPORT_OT_mdd(bpy.types.Operator):
 
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
-	__props__ = [
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the MDD file", maxlen= 1024, default= "tmp.mdd"),
 		bpy.props.IntProperty(attr="fps", name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default= 25),
 		bpy.props.IntProperty(attr="start_frame", name="Start Frame", description="Start frame for baking", min=minframe,max=maxframe,default=1),

@@ -2,9 +2,9 @@
 import bpy
 
 class ConstraintButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "constraint"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "constraint"
 
 	def draw_constraint(self, context, con):
 		layout = self.layout
@@ -577,8 +577,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemR(con, "track", expand=True)
 		
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
-	__label__ = "Constraints"
-	__context__ = "constraint"
+	bl_label = "Constraints"
+	bl_context = "constraint"
 
 	def poll(self, context):
 		return (context.object)
@@ -595,9 +595,9 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 			self.draw_constraint(context, con)
 
 class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
-	__label__ = "Inverse Kinematics"
-	__default_closed__ = True
-	__context__ = "bone_constraint"
+	bl_label = "Inverse Kinematics"
+	bl_default_closed = True
+	bl_context = "bone_constraint"
 	
 	def poll(self, context):
 		ob = context.object
@@ -677,9 +677,9 @@ class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
 			#row.itemR(pchan, "ik_lin_weight", text="Weight", slider=True)
 
 class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
-	__label__ = "iTaSC parameters"
-	__default_closed__ = True
-	__context__ = "bone_constraint"
+	bl_label = "iTaSC parameters"
+	bl_default_closed = True
+	bl_context = "bone_constraint"
 	
 	def poll(self, context):
 		ob = context.object
@@ -727,8 +727,8 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
 			row.itemR(itasc, "dampeps", text="Eps", slider=True)
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
-	__label__ = "Constraints"
-	__context__ = "bone_constraint"
+	bl_label = "Constraints"
+	bl_context = "bone_constraint"
 
 	def poll(self, context):
 		ob = context.object

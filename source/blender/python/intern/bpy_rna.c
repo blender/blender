@@ -2407,7 +2407,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	item = pyrna_struct_CreatePyObject(&ptr);
 
 	//item = PyCObject_FromVoidPtr(srna, NULL);
-	PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "__rna__", item);
+	PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "bl_rna", item);
 	Py_DECREF(item);
 	/* done with rna instance */
 
@@ -2740,26 +2740,26 @@ static StructRNA *pyrna_struct_as_srna(PyObject *self)
 	
 	/* ack, PyObject_GetAttrString wont look up this types tp_dict first :/ */
 	if(PyType_Check(self)) {
-		py_srna = (BPy_StructRNA *)PyDict_GetItemString(((PyTypeObject *)self)->tp_dict, "__rna__");
+		py_srna = (BPy_StructRNA *)PyDict_GetItemString(((PyTypeObject *)self)->tp_dict, "bl_rna");
 		Py_XINCREF(py_srna);
 	}
 	
 	if(py_srna==NULL)
-		py_srna = (BPy_StructRNA*)PyObject_GetAttrString(self, "__rna__");
+		py_srna = (BPy_StructRNA*)PyObject_GetAttrString(self, "bl_rna");
 
 	if(py_srna==NULL) {
-	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no __rna__ attribute, should never happen.");
+	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no bl_rna attribute, should never happen.");
 		return NULL;
 	}
 
 	if(!BPy_StructRNA_Check(py_srna)) {
-	 	PyErr_Format(PyExc_SystemError, "internal error, __rna__ was of type %.200s, instead of %.200s instance.", Py_TYPE(py_srna)->tp_name, pyrna_struct_Type.tp_name);
+	 	PyErr_Format(PyExc_SystemError, "internal error, bl_rna was of type %.200s, instead of %.200s instance.", Py_TYPE(py_srna)->tp_name, pyrna_struct_Type.tp_name);
 	 	Py_DECREF(py_srna);
 		return NULL;
 	}
 
 	if(py_srna->ptr.type != &RNA_Struct) {
-	 	PyErr_SetString(PyExc_SystemError, "internal error, __rna__ was not a RNA_Struct type of rna struct.");
+	 	PyErr_SetString(PyExc_SystemError, "internal error, bl_rna was not a RNA_Struct type of rna struct.");
 	 	Py_DECREF(py_srna);
 		return NULL;
 	}
@@ -3107,7 +3107,7 @@ static int deferred_register_props(PyObject *py_class, StructRNA *srna)
 	PyObject *props, *dummy_args, *item;
 	int i;
 
-	props= PyObject_GetAttrString(py_class, "__props__");
+	props= PyObject_GetAttrString(py_class, "bl_props");
 	
 	if(!props) {
 		PyErr_Clear();
@@ -3138,7 +3138,7 @@ static int deferred_register_props(PyObject *py_class, StructRNA *srna)
 		}
 		else {
 			PyErr_Clear();
-			PyErr_SetString(PyExc_AttributeError, "expected list of dicts for __props__.");
+			PyErr_SetString(PyExc_AttributeError, "expected list of dicts for bl_props.");
 			Py_DECREF(dummy_args);
 			return 0;
 		}
@@ -3179,7 +3179,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	PyObject *item, *fitem;
 	PyObject *py_arg_count;
 	int i, flag, arg_count, func_arg_count;
-	char identifier[128];
+	char *identifier;
 
 	if (base_class) {
 		if (!PyObject_IsSubclass(py_class, base_class)) {
@@ -3250,11 +3250,11 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 		if(!(flag & PROP_REGISTER))
 			continue;
 
-		BLI_snprintf(identifier, sizeof(identifier), "__%s__", RNA_property_identifier(prop));
+		identifier= RNA_property_identifier(prop);
 		item = PyObject_GetAttrString(py_class, identifier);
 
 		if (item==NULL) {
-			if(strcmp(identifier, "__idname__") == 0) {
+			if(strcmp(identifier, "bl_idname") == 0) {
 				item= PyObject_GetAttrString(py_class, "__name__");
 
 				if(item) {

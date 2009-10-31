@@ -2,21 +2,21 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 	
 	def poll(self, context):
 		return context.lamp
 		
 class DATA_PT_preview(DataButtonsPanel):
-	__label__ = "Preview"
+	bl_label = "Preview"
 
 	def draw(self, context):
 		self.layout.template_preview(context.lamp)
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -35,7 +35,7 @@ class DATA_PT_context_lamp(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_lamp(DataButtonsPanel):
-	__label__ = "Lamp"
+	bl_label = "Lamp"
 
 	def draw(self, context):
 		layout = self.layout
@@ -75,7 +75,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		col.itemR(lamp, "diffuse")	
 
 class DATA_PT_sunsky(DataButtonsPanel):
-	__label__ = "Sky & Atmosphere"
+	bl_label = "Sky & Atmosphere"
 	
 	def poll(self, context):
 		lamp = context.lamp
@@ -139,7 +139,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		sub.itemR(lamp, "atmosphere_extinction", slider=True ,text="Extinction")
 		
 class DATA_PT_shadow(DataButtonsPanel):
-	__label__ = "Shadow"
+	bl_label = "Shadow"
 	
 	def poll(self, context):
 		lamp = context.lamp
@@ -237,7 +237,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 			sub.itemR(lamp, "shadow_buffer_clip_end", text=" Clip End")
 
 class DATA_PT_area(DataButtonsPanel):
-	__label__ = "Area Shape"
+	bl_label = "Area Shape"
 	
 	def poll(self, context):
 		lamp = context.lamp
@@ -261,7 +261,7 @@ class DATA_PT_area(DataButtonsPanel):
 			sub.itemR(lamp, "size_y", text="Size Y")
 
 class DATA_PT_spot(DataButtonsPanel):
-	__label__ = "Spot Shape"
+	bl_label = "Spot Shape"
 	
 	def poll(self, context):
 		lamp = context.lamp
@@ -289,8 +289,8 @@ class DATA_PT_spot(DataButtonsPanel):
 			sub.itemR(lamp, "halo_step", text="Step")
 
 class DATA_PT_falloff_curve(DataButtonsPanel):
-	__label__ = "Falloff Curve"
-	__default_closed__ = True
+	bl_label = "Falloff Curve"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		lamp = context.lamp

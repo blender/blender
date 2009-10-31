@@ -41,13 +41,13 @@
 
 #include "../generic/bpy_internal_import.h" // our own imports
 
-#define PYOP_ATTR_PROP			"__props__"
-#define PYOP_ATTR_UINAME		"__label__"
-#define PYOP_ATTR_IDNAME		"__idname__"	/* the name given by python */
-#define PYOP_ATTR_IDNAME_BL		"__idname_bl__"	/* our own name converted into blender syntax, users wont see this */
-#define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
-#define PYOP_ATTR_REGISTER		"__register__"	/* True/False. if this python operator should be registered */
-#define PYOP_ATTR_UNDO			"__undo__"	/* True/False. if this python operator should be undone */
+#define PYOP_ATTR_PROP			"bl_props"
+#define PYOP_ATTR_UINAME		"bl_label"
+#define PYOP_ATTR_IDNAME		"bl_idname"		/* the name given by python */
+#define PYOP_ATTR_IDNAME_BL	"_bl_idname"	/* our own name converted into blender syntax, users wont see this */
+#define PYOP_ATTR_DESCRIPTION	"__doc__"		/* use pythons docstring */
+#define PYOP_ATTR_REGISTER		"bl_register"	/* True/False. if this python operator should be registered */
+#define PYOP_ATTR_UNDO			"bl_undo"		/* True/False. if this python operator should be undone */
 
 static struct BPY_flag_def pyop_ret_flags[] = {
 	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
@@ -98,7 +98,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 	bpy_context_set(C, &gilstate);
 
 	args = PyTuple_New(1);
-	PyTuple_SET_ITEM(args, 0, PyObject_GetAttrString(py_class, "__rna__")); // need to use an rna instance as the first arg
+	PyTuple_SET_ITEM(args, 0, PyObject_GetAttrString(py_class, "bl_rna")); // need to use an rna instance as the first arg
 	py_class_instance = PyObject_Call(py_class, args, NULL);
 	Py_DECREF(args);
 	

@@ -2,7 +2,7 @@
 import bpy
 
 class Buttons_HT_header(bpy.types.Header):
-	__space_type__ = 'PROPERTIES'
+	bl_space_type = 'PROPERTIES'
 
 	def draw(self, context):
 		layout = self.layout
@@ -22,7 +22,7 @@ class Buttons_HT_header(bpy.types.Header):
 		row.itemR(scene, "current_frame")
 
 class Buttons_MT_view(bpy.types.Menu):
-	__label__ = "View"
+	bl_label = "View"
 
 	def draw(self, context):
 		layout = self.layout

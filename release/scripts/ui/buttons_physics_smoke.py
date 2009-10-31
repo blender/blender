@@ -5,9 +5,9 @@ from buttons_physics_common import point_cache_ui
 from buttons_physics_common import effector_weights_ui
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "physics"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "physics"
 
 	def poll(self, context):
 		ob = context.object
@@ -15,7 +15,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_smoke(PhysicButtonsPanel):
-	__label__ = "Smoke"
+	bl_label = "Smoke"
 
 	def draw(self, context):
 		layout = self.layout
@@ -86,8 +86,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 			#	layout.itemS()
 
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
-	__label__ = "Smoke Groups"
-	__default_closed__ = True
+	bl_label = "Smoke Groups"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		md = context.smoke
@@ -112,8 +112,8 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
 		col.itemR(group, "coll_group", text="")
 
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
-	__label__ = "Smoke Cache"
-	__default_closed__ = True
+	bl_label = "Smoke Cache"
+	bl_default_closed = True
 
 	def poll(self, context):
 		md = context.smoke
@@ -128,8 +128,8 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
 		point_cache_ui(self, cache, cache.baked==False, 0, 1)
 					
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
-	__label__ = "Smoke High Resolution"
-	__default_closed__ = True
+	bl_label = "Smoke High Resolution"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		md = context.smoke
@@ -158,8 +158,8 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
 		col.itemR(md, "viewhighres")
 		
 class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
-	__label__ = "Smoke High Resolution Cache"
-	__default_closed__ = True
+	bl_label = "Smoke High Resolution Cache"
+	bl_default_closed = True
 
 	def poll(self, context):
 		md = context.smoke
@@ -174,8 +174,8 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
 		point_cache_ui(self, cache, cache.baked==False, 0, 1)
 		
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
-	__label__ = "Smoke Field Weights"
-	__default_closed__ = True
+	bl_label = "Smoke Field Weights"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		smoke = context.smoke

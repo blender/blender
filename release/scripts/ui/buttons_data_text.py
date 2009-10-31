@@ -2,15 +2,15 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "data"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
 	
 	def poll(self, context):
 		return (context.object and context.object.type == 'TEXT' and context.curve)
 
 class DATA_PT_context_text(DataButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 
 	def draw(self, context):
 		layout = self.layout
@@ -29,7 +29,7 @@ class DATA_PT_context_text(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_shape_text(DataButtonsPanel):
-	__label__ = "Shape Text"
+	bl_label = "Shape Text"
 
 	def draw(self, context):
 		layout = self.layout
@@ -63,7 +63,7 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		col.itemR(curve, "fast", text="Fast Editing")
 
 class DATA_PT_geometry_text(DataButtonsPanel):
-	__label__ = "Geometry"
+	bl_label = "Geometry"
 
 	def draw(self, context):
 		layout = self.layout
@@ -87,7 +87,7 @@ class DATA_PT_geometry_text(DataButtonsPanel):
 		col.itemR(curve, "bevel_object", text="")
 
 class DATA_PT_font(DataButtonsPanel):
-	__label__ = "Font"
+	bl_label = "Font"
 
 	def draw(self, context):
 		layout = self.layout
@@ -127,7 +127,7 @@ class DATA_PT_font(DataButtonsPanel):
 		col.itemR(text, "ul_height", text="Thickness")
 
 class DATA_PT_paragraph(DataButtonsPanel):
-	__label__ = "Paragraph"
+	bl_label = "Paragraph"
 
 	def draw(self, context):
 		layout = self.layout
@@ -151,7 +151,7 @@ class DATA_PT_paragraph(DataButtonsPanel):
 		col.itemR(text, "offset_y", text="Y")
 
 class DATA_PT_textboxes(DataButtonsPanel):
-	__label__ = "Text Boxes"
+	bl_label = "Text Boxes"
 
 	def draw(self, context):
 		layout = self.layout

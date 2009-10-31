@@ -1,9 +1,9 @@
 import bpy
 
 class LOGIC_PT_properties(bpy.types.Panel):
-	__space_type__ = 'LOGIC_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Properties"
+	bl_space_type = 'LOGIC_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Properties"
 
 	def poll(self, context):
 		ob = context.active_object

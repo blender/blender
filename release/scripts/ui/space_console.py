@@ -3,7 +3,7 @@ import bpy
 
 
 class CONSOLE_HT_header(bpy.types.Header):
-    __space_type__ = 'CONSOLE'
+    bl_space_type = 'CONSOLE'
 
     def draw(self, context):
         sc = context.space_data
@@ -41,7 +41,7 @@ class CONSOLE_HT_header(bpy.types.Header):
 
 
 class CONSOLE_MT_console(bpy.types.Menu):
-    __label__ = "Console"
+    bl_label = "Console"
 
     def draw(self, context):
         layout = self.layout
@@ -52,7 +52,7 @@ class CONSOLE_MT_console(bpy.types.Menu):
 
 
 class CONSOLE_MT_report(bpy.types.Menu):
-    __label__ = "Report"
+    bl_label = "Report"
 
     def draw(self, context):
         layout = self.layout
@@ -110,9 +110,9 @@ def get_console(console_id):
 
 class CONSOLE_OT_exec(bpy.types.Operator):
     '''Execute the current console line as a python expression.'''
-    __idname__ = "console.execute"
-    __label__ = "Console Execute"
-    __register__ = False
+    bl_idname = "console.execute"
+    bl_label = "Console Execute"
+    bl_register = False
 
     # Both prompts must be the same length
     PROMPT = '>>> '
@@ -190,9 +190,9 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 class CONSOLE_OT_autocomplete(bpy.types.Operator):
     '''Evaluate the namespace up until the cursor and give a list of
     options or complete the name if there is only one.'''
-    __idname__ = "console.autocomplete"
-    __label__ = "Console Autocomplete"
-    __register__ = False
+    bl_idname = "console.autocomplete"
+    bl_label = "Console Autocomplete"
+    bl_register = False
 
     def poll(self, context):
         return context.space_data.console_type == 'PYTHON'

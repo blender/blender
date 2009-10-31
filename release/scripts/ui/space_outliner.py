@@ -2,7 +2,7 @@
 import bpy
 
 class OUTLINER_HT_header(bpy.types.Header):
-	__space_type__ = 'OUTLINER'
+	bl_space_type = 'OUTLINER'
 
 	def draw(self, context):
 		layout = self.layout
@@ -41,7 +41,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 				row.itemL(text="No Keying Set active")
 
 class OUTLINER_MT_view(bpy.types.Menu):
-	__label__ = "View"
+	bl_label = "View"
 
 	def draw(self, context):
 		layout = self.layout
@@ -58,7 +58,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
 		col.itemO("outliner.show_hierarchy")
 		
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
-	__label__ = "Edit"
+	bl_label = "Edit"
 	
 	def draw(self, context):
 		layout = self.layout

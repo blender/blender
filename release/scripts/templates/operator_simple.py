@@ -4,8 +4,8 @@ def main(context):
 	
 class SimpleOperator(bpy.types.Operator):
 	''''''
-	__idname__ = "object.simple_operator"
-	__label__ = "Simple Object Operator"
+	bl_idname = "object.simple_operator"
+	bl_label = "Simple Object Operator"
 	
 	def poll(self, context):
 		return context.active_object != None

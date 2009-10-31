@@ -916,13 +916,13 @@ Currently the exporter lacks these features:
 class EXPORT_OT_obj(bpy.types.Operator):
 	'''Save a Wavefront OBJ File'''
 	
-	__idname__ = "export.obj"
-	__label__ = 'Export OBJ'
+	bl_idname = "export.obj"
+	bl_label = 'Export OBJ'
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	__props__ = [
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= ""),
 
 		# context group

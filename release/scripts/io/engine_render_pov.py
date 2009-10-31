@@ -697,8 +697,8 @@ IntProperty(	attr="pov_radio_recursion_limit",
 	
 
 class PovrayRender(bpy.types.RenderEngine):
-	__idname__ = 'POVRAY_RENDER'
-	__label__ = "Povray"
+	bl_idname = 'POVRAY_RENDER'
+	bl_label = "Povray"
 	DELAY = 0.02
 	
 	def _export(self, scene):
@@ -850,9 +850,9 @@ for member in dir(buttons_material):
 del buttons_material
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "render"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "render"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
@@ -860,7 +860,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 		return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel):
-	__label__ = "Radiosity"
+	bl_label = "Radiosity"
 	COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
 	def draw_header(self, context):

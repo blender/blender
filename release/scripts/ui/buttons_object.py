@@ -2,12 +2,12 @@
 import bpy
 
 class ObjectButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "object"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "object"
 
 class OBJECT_PT_context_object(ObjectButtonsPanel):
-	__show_header__ = False
+	bl_show_header = False
 
 	def draw(self, context):
 		layout = self.layout
@@ -19,7 +19,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 		row.itemR(ob, "name", text="")
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
-	__label__ = "Transform"
+	bl_label = "Transform"
 
 	def draw(self, context):
 		layout = self.layout
@@ -44,8 +44,8 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 		layout.itemR(ob, "rotation_mode")
 		
 class OBJECT_PT_transform_locks(ObjectButtonsPanel):
-	__label__ = "Transform Locks"
-	__default_closed__ = True
+	bl_label = "Transform Locks"
+	bl_default_closed = True
 	
 	def draw(self, context):
 		layout = self.layout
@@ -69,7 +69,7 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel):
 		row.column().itemR(ob, "lock_scale")
 
 class OBJECT_PT_relations(ObjectButtonsPanel):
-	__label__ = "Relations"
+	bl_label = "Relations"
 
 	def draw(self, context):
 		layout = self.layout
@@ -97,7 +97,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
 		sub.active = parent != None
 
 class OBJECT_PT_groups(ObjectButtonsPanel):
-	__label__ = "Groups"
+	bl_label = "Groups"
 
 	def draw(self, context):
 		layout = self.layout
@@ -123,7 +123,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 				split.column().itemR(group, "dupli_offset", text="")
 
 class OBJECT_PT_display(ObjectButtonsPanel):
-	__label__ = "Display"
+	bl_label = "Display"
 
 	def draw(self, context):
 		layout = self.layout
@@ -149,7 +149,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 		flow.itemR(ob, "draw_transparent", text="Transparency")
 
 class OBJECT_PT_duplication(ObjectButtonsPanel):
-	__label__ = "Duplication"
+	bl_label = "Duplication"
 
 	def draw(self, context):
 		layout = self.layout
@@ -183,7 +183,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 			layout.itemR(ob, "dupli_group", text="Group")
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
-	__label__ = "Animation"
+	bl_label = "Animation"
 
 	def draw(self, context):
 		layout = self.layout

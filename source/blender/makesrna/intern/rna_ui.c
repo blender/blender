@@ -591,33 +591,34 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "drawname");
 
 	/* registration */
-	prop= RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "space_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "region_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_region_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->region_type");
 	RNA_def_property_enum_items(prop, region_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "context", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->context");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "default_closed", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_default_closed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_DEFAULT_CLOSED);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "show_header", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_show_header", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 }
@@ -647,11 +648,11 @@ static void rna_def_header(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "UILayout");
 
 	/* registration */
-	prop= RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "space_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
@@ -691,11 +692,12 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "UILayout");
 
 	/* registration */
-	prop= RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 

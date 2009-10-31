@@ -8,9 +8,9 @@ def cloth_panel_enabled(md):
 	return md.point_cache.baked==False
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "physics"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "physics"
 
 	def poll(self, context):
 		ob = context.object
@@ -18,7 +18,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_cloth(PhysicButtonsPanel):
-	__label__ = "Cloth"
+	bl_label = "Cloth"
 
 	def draw(self, context):
 		layout = self.layout
@@ -88,8 +88,8 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 			"""
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
-	__label__ = "Cloth Cache"
-	__default_closed__ = True
+	bl_label = "Cloth Cache"
+	bl_default_closed = True
 
 	def poll(self, context):
 		return context.cloth
@@ -99,8 +99,8 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		point_cache_ui(self, md.point_cache, cloth_panel_enabled(md), 0, 0)
 		
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
-	__label__ = "Cloth Collision"
-	__default_closed__ = True
+	bl_label = "Cloth Collision"
+	bl_default_closed = True
 
 	def poll(self, context):
 		return context.cloth
@@ -134,8 +134,8 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 		sub.itemR(cloth, "self_min_distance", slider=True, text="Distance")
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
-	__label__ = "Cloth Stiffness Scaling"
-	__default_closed__ = True
+	bl_label = "Cloth Stiffness Scaling"
+	bl_default_closed = True
 
 	def poll(self, context):
 		return context.cloth
@@ -170,8 +170,8 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 		sub.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel):
-	__label__ = "Cloth Field Weights"
-	__default_closed__ = True
+	bl_label = "Cloth Field Weights"
+	bl_default_closed = True
 	
 	def poll(self, context):
 		return (context.cloth)

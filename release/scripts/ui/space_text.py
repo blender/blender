@@ -2,7 +2,7 @@
 import bpy
 
 class TEXT_HT_header(bpy.types.Header):
-	__space_type__ = 'TEXT_EDITOR'
+	bl_space_type = 'TEXT_EDITOR'
 
 	def draw(self, context):
 		layout = self.layout
@@ -49,9 +49,9 @@ class TEXT_HT_header(bpy.types.Header):
 		row.itemO("text.run_script")
 
 class TEXT_PT_properties(bpy.types.Panel):
-	__space_type__ = 'TEXT_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Properties"
+	bl_space_type = 'TEXT_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Properties"
 
 	def draw(self, context):
 		layout = self.layout
@@ -69,9 +69,9 @@ class TEXT_PT_properties(bpy.types.Panel):
 		flow.itemR(st, "tab_width")
 
 class TEXT_PT_find(bpy.types.Panel):
-	__space_type__ = 'TEXT_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Find"
+	bl_space_type = 'TEXT_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Find"
 
 	def draw(self, context):
 		layout = self.layout
@@ -101,7 +101,7 @@ class TEXT_PT_find(bpy.types.Panel):
 		row.itemR(st, "find_all", text="All")
 
 class TEXT_MT_text(bpy.types.Menu):
-	__label__ = "Text"
+	bl_label = "Text"
 
 	def draw(self, context):
 		layout = self.layout
@@ -151,7 +151,7 @@ class TEXT_MT_templates(bpy.types.Menu):
 	'''
 	Creates the menu items by scanning scripts/templates
 	'''
-	__label__ = "Script Templates"
+	bl_label = "Script Templates"
 	
 	def draw(self, context):
 		import os
@@ -175,7 +175,7 @@ class TEXT_MT_templates(bpy.types.Menu):
 
 
 class TEXT_MT_edit_view(bpy.types.Menu):
-	__label__ = "View"
+	bl_label = "View"
 
 	def draw(self, context):
 		layout = self.layout
@@ -184,7 +184,7 @@ class TEXT_MT_edit_view(bpy.types.Menu):
 		layout.item_enumO("text.move", "type", 'FILE_BOTTOM', text="Bottom of File")
 
 class TEXT_MT_edit_select(bpy.types.Menu):
-	__label__ = "Select"
+	bl_label = "Select"
 
 	def draw(self, context):
 		layout = self.layout
@@ -193,7 +193,7 @@ class TEXT_MT_edit_select(bpy.types.Menu):
 		layout.itemO("text.select_line")
 
 class TEXT_MT_edit_markers(bpy.types.Menu):
-	__label__ = "Markers"
+	bl_label = "Markers"
 
 	def draw(self, context):
 		layout = self.layout
@@ -203,7 +203,7 @@ class TEXT_MT_edit_markers(bpy.types.Menu):
 		layout.itemO("text.previous_marker")
 
 class TEXT_MT_format(bpy.types.Menu):
-	__label__ = "Format"
+	bl_label = "Format"
 
 	def draw(self, context):
 		layout = self.layout
@@ -221,7 +221,7 @@ class TEXT_MT_format(bpy.types.Menu):
 		layout.item_menu_enumO("text.convert_whitespace", "type")
 
 class TEXT_MT_edit_to3d(bpy.types.Menu):
-	__label__ = "Text To 3D Object"
+	bl_label = "Text To 3D Object"
 
 	def draw(self, context):
 		layout = self.layout
@@ -230,7 +230,7 @@ class TEXT_MT_edit_to3d(bpy.types.Menu):
 		layout.item_booleanO("text.to_3d_object", "split_lines", True, text="One Object Per Line");
 
 class TEXT_MT_edit(bpy.types.Menu):
-	__label__ = "Edit"
+	bl_label = "Edit"
 
 	def poll(self, context):
 		return (context.space_data.text)

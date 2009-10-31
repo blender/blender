@@ -2,7 +2,7 @@
 import bpy
 
 class IMAGE_MT_view(bpy.types.Menu):
-	__label__ = "View"
+	bl_label = "View"
 
 	def draw(self, context):
 		layout = self.layout
@@ -43,7 +43,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 		layout.itemO("screen.screen_full_area")
 
 class IMAGE_MT_select(bpy.types.Menu):
-	__label__ = "Select"
+	bl_label = "Select"
 
 	def draw(self, context):
 		layout = self.layout
@@ -63,7 +63,7 @@ class IMAGE_MT_select(bpy.types.Menu):
 		layout.itemO("uv.select_linked")
 
 class IMAGE_MT_image(bpy.types.Menu):
-	__label__ = "Image"
+	bl_label = "Image"
 
 	def draw(self, context):
 		layout = self.layout
@@ -106,7 +106,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 			layout.itemR(sima, "image_painting")
 
 class IMAGE_MT_uvs_showhide(bpy.types.Menu):
-	__label__ = "Show/Hide Faces"
+	bl_label = "Show/Hide Faces"
 
 	def draw(self, context):
 		layout = self.layout
@@ -116,7 +116,7 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
 		layout.item_booleanO("uv.hide", "unselected", True)
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):
-	__label__ = "Transform"
+	bl_label = "Transform"
 
 	def draw(self, context):
 		layout = self.layout
@@ -126,7 +126,7 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
 		layout.itemO("tfm.resize")
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
-	__label__ = "Mirror"
+	bl_label = "Mirror"
 
 	def draw(self, context):
 		layout = self.layout
@@ -139,7 +139,7 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 		props.constraint_axis[1]= True
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
-	__label__ = "Weld/Align"
+	bl_label = "Weld/Align"
 
 	def draw(self, context):
 		layout = self.layout
@@ -148,7 +148,7 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 		layout.items_enumO("uv.align", "axis") # W, 2/3/4
 
 class IMAGE_MT_uvs(bpy.types.Menu):
-	__label__ = "UVs"
+	bl_label = "UVs"
 
 	def draw(self, context):
 		layout = self.layout
@@ -190,7 +190,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 		layout.itemM("IMAGE_MT_uvs_showhide")
 
 class IMAGE_HT_header(bpy.types.Header):
-	__space_type__ = 'IMAGE_EDITOR'
+	bl_space_type = 'IMAGE_EDITOR'
 
 	def draw(self, context):
 		layout = self.layout
@@ -270,9 +270,9 @@ class IMAGE_HT_header(bpy.types.Header):
 			layout.itemR(sima, "update_automatically", text="")
 
 class IMAGE_PT_image_properties(bpy.types.Panel):
-	__space_type__ = 'IMAGE_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Image"
+	bl_space_type = 'IMAGE_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Image"
 
 	def poll(self, context):
 		sima = context.space_data
@@ -288,9 +288,9 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
 		layout.template_image(sima, "image", iuser, compact=True)
 
 class IMAGE_PT_game_properties(bpy.types.Panel):
-	__space_type__ = 'IMAGE_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Game Properties"
+	bl_space_type = 'IMAGE_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Game Properties"
 
 	def poll(self, context):
 		rd = context.scene.render_data
@@ -332,9 +332,9 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 		
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
-	__space_type__ = 'IMAGE_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Display"
+	bl_space_type = 'IMAGE_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Display"
 
 	def poll(self, context):
 		sima = context.space_data
@@ -385,9 +385,9 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 			#col.itemR(uvedit, "draw_faces")
 
 class IMAGE_PT_paint(bpy.types.Panel):
-	__space_type__ = 'IMAGE_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Paint"
+	bl_space_type = 'IMAGE_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Paint"
 
 	def poll(self, context):
 		sima = context.space_data
@@ -430,10 +430,10 @@ class IMAGE_PT_paint(bpy.types.Panel):
 			col.itemR(brush, "blend", text="Blend")
 
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
-	__space_type__ = 'IMAGE_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Paint Stroke"
-	__default_closed__ = True
+	bl_space_type = 'IMAGE_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Paint Stroke"
+	bl_default_closed = True
 
 	def poll(self, context):
 		sima = context.space_data
@@ -458,10 +458,10 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
 		row.itemR(brush, "use_spacing_pressure", toggle=True, text="")	
 
 class IMAGE_PT_paint_curve(bpy.types.Panel):
-	__space_type__ = 'IMAGE_EDITOR'
-	__region_type__ = 'UI'
-	__label__ = "Paint Curve"
-	__default_closed__ = True
+	bl_space_type = 'IMAGE_EDITOR'
+	bl_region_type = 'UI'
+	bl_label = "Paint Curve"
+	bl_default_closed = True
 
 	def poll(self, context):
 		sima = context.space_data

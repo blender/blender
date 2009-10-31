@@ -2,7 +2,7 @@
 import bpy
 
 class NODE_HT_header(bpy.types.Header):
-	__space_type__ = 'NODE_EDITOR'
+	bl_space_type = 'NODE_EDITOR'
 
 	def draw(self, context):
 		layout = self.layout
@@ -48,7 +48,7 @@ class NODE_HT_header(bpy.types.Header):
 			layout.itemR(snode, "backdrop")
 
 class NODE_MT_view(bpy.types.Menu):
-	__label__ = "View"
+	bl_label = "View"
 
 	def draw(self, context):
 		layout = self.layout
@@ -65,7 +65,7 @@ class NODE_MT_view(bpy.types.Menu):
 		layout.itemO("screen.screen_full_area")
 
 class NODE_MT_select(bpy.types.Menu):
-	__label__ = "Select"
+	bl_label = "Select"
 
 	def draw(self, context):
 		layout = self.layout
@@ -78,7 +78,7 @@ class NODE_MT_select(bpy.types.Menu):
 		layout.itemO("node.select_linked_to")
 
 class NODE_MT_node(bpy.types.Menu):
-	__label__ = "Node"
+	bl_label = "Node"
 
 	def draw(self, context):
 		layout = self.layout

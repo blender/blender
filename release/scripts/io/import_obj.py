@@ -1555,13 +1555,13 @@ else:
 
 class IMPORT_OT_obj(bpy.types.Operator):
 	'''Load a Wavefront OBJ File.'''
-	__idname__ = "import.obj"
-	__label__ = "Import OBJ"
+	bl_idname = "import.obj"
+	bl_label = "Import OBJ"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = [
+	bl_props = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= ""),
 
 		bpy.props.BoolProperty(attr="CREATE_SMOOTH_GROUPS", name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True),
