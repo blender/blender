@@ -2356,7 +2356,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't resize objects itself
 			if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
 				/* scale val and reset size */
- 				*td->val = td->ival * fsize[0] * td->factor;
+ 				*td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
 				
 				td->ext->size[0] = td->ext->isize[0];
 				td->ext->size[1] = td->ext->isize[1];
@@ -2367,9 +2367,9 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 				if (td->flag & TD_SINGLESIZE)
 	 				*td->val = td->ival;
 				
-				td->ext->size[0] = td->ext->isize[0] * (fsize[0]) * td->factor;
-				td->ext->size[1] = td->ext->isize[1] * (fsize[1]) * td->factor;
-				td->ext->size[2] = td->ext->isize[2] * (fsize[2]) * td->factor;
+				td->ext->size[0] = td->ext->isize[0] * (1 + (fsize[0] - 1) * td->factor);
+				td->ext->size[1] = td->ext->isize[1] * (1 + (fsize[1] - 1) * td->factor);
+				td->ext->size[2] = td->ext->isize[2] * (1 + (fsize[2] - 1) * td->factor);
 			}
 		}
 		
