@@ -2723,6 +2723,7 @@ PyObject *BPY_rna_props( void )
 {
 	PyObject *submodule;
 	submodule= PyModule_Create(&props_module);
+	PyDict_SetItemString(PySys_GetObject("modules"), props_module.m_name, submodule);
 	
 	/* INCREF since its its assumed that all these functions return the
 	 * module with a new ref like PyDict_New, since they are passed to
