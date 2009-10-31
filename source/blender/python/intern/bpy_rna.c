@@ -3194,7 +3194,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	PyObject *item, *fitem;
 	PyObject *py_arg_count;
 	int i, flag, arg_count, func_arg_count;
-	char *identifier;
+	const char *identifier;
 
 	if (base_class) {
 		if (!PyObject_IsSubclass(py_class, base_class)) {
@@ -3269,6 +3269,8 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 		item = PyObject_GetAttrString(py_class, identifier);
 
 		if (item==NULL) {
+
+			/* Sneaky workaround to use the class name as the bl_idname */
 			if(strcmp(identifier, "bl_idname") == 0) {
 				item= PyObject_GetAttrString(py_class, "__name__");
 
@@ -3280,7 +3282,8 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 				}
 			}
 
-			if (item==NULL && (flag & PROP_REGISTER_OPTIONAL)==0) {
+
+			if (item == NULL && (((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL))) {
 				PyErr_Format( PyExc_AttributeError, "expected %.200s class to have an \"%.200s\" attribute", class_type, identifier);
 				return -1;
 			}

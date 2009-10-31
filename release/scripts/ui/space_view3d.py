@@ -886,6 +886,7 @@ class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
 
 class VIEW3D_MT_edit_mesh_faces(dynamic_menu.DynMenu):
 	bl_label = "Faces"
+	bl_idname = "VIEW3D_MT_edit_mesh_faces"
 
 	def draw(self, context):
 		layout = self.layout

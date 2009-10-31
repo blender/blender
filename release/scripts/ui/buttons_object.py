@@ -7,6 +7,7 @@ class ObjectButtonsPanel(bpy.types.Panel):
 	bl_context = "object"
 
 class OBJECT_PT_context_object(ObjectButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 
 	def draw(self, context):

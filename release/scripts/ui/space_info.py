@@ -96,12 +96,14 @@ dynamic_menu.setup(INFO_MT_file_more)
 '''
 
 class INFO_MT_file_import(dynamic_menu.DynMenu):
+	bl_idname = "INFO_MT_file_import"
 	bl_label = "Import"
 
 	def draw(self, context):
 		self.layout.itemO("WM_OT_collada_import", text="COLLADA (.dae)...")
 
 class INFO_MT_file_export(dynamic_menu.DynMenu):
+	bl_idname = "INFO_MT_file_export"
 	bl_label = "Export"
 
 	def draw(self, context):
@@ -124,6 +126,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 		layout.itemO("file.find_missing_files")
 
 class INFO_MT_mesh_add(dynamic_menu.DynMenu):
+	bl_idname = "INFO_MT_mesh_add"
 	bl_label = "Mesh"
 	def draw(self, context):
 		layout = self.layout

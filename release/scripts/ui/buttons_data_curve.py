@@ -25,6 +25,7 @@ class DataButtonsPanelActive(DataButtonsPanel):
 		return (curve and curve.active_spline)
 
 class DATA_PT_context_curve(DataButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 	
 	def draw(self, context):

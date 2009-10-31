@@ -592,7 +592,6 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
@@ -612,15 +611,15 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->context");
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL); /* should this be optional? - Campbell */
 
 	prop= RNA_def_property(srna, "bl_default_closed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_DEFAULT_CLOSED);
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	prop= RNA_def_property(srna, "bl_show_header", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 }
 
 static void rna_def_header(BlenderRNA *brna)
@@ -693,7 +692,6 @@ static void rna_def_menu(BlenderRNA *brna)
 
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 

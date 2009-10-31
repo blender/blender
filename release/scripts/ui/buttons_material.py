@@ -32,6 +32,7 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 		self.layout.template_preview(context.material)
 		
 class MATERIAL_PT_context_material(MaterialButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 

@@ -9,6 +9,7 @@ class DataButtonsPanel(bpy.types.Panel):
 		return context.meta_ball
 
 class DATA_PT_context_metaball(DataButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 	
 	def draw(self, context):

@@ -1,4 +1,3 @@
-
 import bpy
 
 def active_node_mat(mat):
@@ -51,6 +50,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 			layout.template_preview(tex, slot=slot)
 			
 class TEXTURE_PT_context_texture(TextureButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 
 	def poll(self, context):

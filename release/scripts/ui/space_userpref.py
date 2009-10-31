@@ -24,7 +24,9 @@ class USERPREF_MT_view(bpy.types.Menu):
 		layout = self.layout
 
 class USERPREF_PT_tabs(bpy.types.Panel):
+	bl_label = ""
 	bl_space_type = 'USER_PREFERENCES'
+	bl_region_type = 'WINDOW'
 	bl_show_header = False
 
 	def draw(self, context):
@@ -37,6 +39,7 @@ class USERPREF_PT_tabs(bpy.types.Panel):
 class USERPREF_PT_interface(bpy.types.Panel):
 	bl_space_type = 'USER_PREFERENCES'
 	bl_label = "Interface"
+	bl_region_type = 'WINDOW'
 	bl_show_header = False
 
 	def poll(self, context):
@@ -121,6 +124,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
 class USERPREF_PT_edit(bpy.types.Panel):
 	bl_space_type = 'USER_PREFERENCES'
 	bl_label = "Edit"
+	bl_region_type = 'WINDOW'
 	bl_show_header = False
 
 	def poll(self, context):
@@ -224,6 +228,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
 class USERPREF_PT_system(bpy.types.Panel):
 	bl_space_type = 'USER_PREFERENCES'
 	bl_label = "System"
+	bl_region_type = 'WINDOW'
 	bl_show_header = False
 
 	def poll(self, context):
@@ -315,6 +320,7 @@ class USERPREF_PT_system(bpy.types.Panel):
 class USERPREF_PT_file(bpy.types.Panel):
 	bl_space_type = 'USER_PREFERENCES'
 	bl_label = "Files"
+	bl_region_type = 'WINDOW'
 	bl_show_header = False
 
 	def poll(self, context):
@@ -381,6 +387,7 @@ class USERPREF_PT_file(bpy.types.Panel):
 class USERPREF_PT_input(bpy.types.Panel):
 	bl_space_type = 'USER_PREFERENCES'
 	bl_label = "Input"
+	bl_region_type = 'WINDOW'
 	bl_show_header = False
 
 	def poll(self, context):

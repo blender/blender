@@ -330,6 +330,7 @@ class WorldButtonsPanel(bpy.types.Panel):
 		return (rd.engine == 'BLENDER_GAME')
 
 class WORLD_PT_game_context_world(WorldButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 
 	def poll(self, context):

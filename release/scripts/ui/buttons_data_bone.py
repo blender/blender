@@ -10,6 +10,7 @@ class BoneButtonsPanel(bpy.types.Panel):
 		return (context.bone or context.edit_bone)
 
 class BONE_PT_context_bone(BoneButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 
 	def draw(self, context):

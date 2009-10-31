@@ -10,6 +10,7 @@ class DataButtonsPanel(bpy.types.Panel):
 		return context.lattice
 	
 class DATA_PT_context_lattice(DataButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 	
 	def draw(self, context):

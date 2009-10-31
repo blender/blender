@@ -19,6 +19,7 @@ class WORLD_PT_preview(WorldButtonsPanel):
 		self.layout.template_preview(context.world)
 	
 class WORLD_PT_context_world(WorldButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 

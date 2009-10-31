@@ -10,6 +10,7 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.object and context.object.type == 'TEXT' and context.curve)
 
 class DATA_PT_context_text(DataButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 
 	def draw(self, context):
@@ -171,7 +172,7 @@ class DATA_PT_textboxes(DataButtonsPanel):
 			col.itemR(box, "x", text="X")
 			col.itemR(box, "y", text="Y")
 
-bpy.types.register(DATA_PT_context_text)	
+bpy.types.register(DATA_PT_context_text)
 bpy.types.register(DATA_PT_shape_text)	
 bpy.types.register(DATA_PT_geometry_text)
 bpy.types.register(DATA_PT_font)

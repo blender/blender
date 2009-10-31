@@ -24,6 +24,7 @@ class ParticleButtonsPanel(bpy.types.Panel):
 		return particle_panel_poll(context)
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 
 	def poll(self, context):

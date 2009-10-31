@@ -16,6 +16,7 @@ class DATA_PT_preview(DataButtonsPanel):
 		self.layout.template_preview(context.lamp)
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 	
 	def draw(self, context):

@@ -10,6 +10,7 @@ class DataButtonsPanel(bpy.types.Panel):
 		return context.camera
 		
 class DATA_PT_context_camera(DataButtonsPanel):
+	bl_label = ""
 	bl_show_header = False
 	
 	def draw(self, context):
