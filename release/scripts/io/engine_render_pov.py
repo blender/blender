@@ -826,28 +826,28 @@ class PovrayRender(bpy.types.RenderEngine):
 bpy.types.register(PovrayRender)
 
 # Use some of the existing buttons.
-import buttons_render
-buttons_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
-del buttons_render
+import properties_render
+properties_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
+del properties_render
 
 # Use only a subset of the world panels
-import buttons_world
-buttons_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_world.WORLD_PT_context_world.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
-del buttons_world
+import properties_world
+properties_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_world.WORLD_PT_context_world.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
+del properties_world
 
 # Example of wrapping every class 'as is'
-import buttons_material
-for member in dir(buttons_material):
-	subclass = getattr(buttons_material, member)
+import properties_material
+for member in dir(properties_material):
+	subclass = getattr(properties_material, member)
 	try:		subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
 	except:	pass
-del buttons_material
+del properties_material
 
 class RenderButtonsPanel(bpy.types.Panel):
 	bl_space_type = 'PROPERTIES'

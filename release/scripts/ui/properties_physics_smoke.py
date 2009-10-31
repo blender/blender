@@ -1,8 +1,8 @@
 
 import bpy
 
-from buttons_physics_common import point_cache_ui
-from buttons_physics_common import effector_weights_ui
+from properties_physics_common import point_cache_ui
+from properties_physics_common import effector_weights_ui
 
 class PhysicButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

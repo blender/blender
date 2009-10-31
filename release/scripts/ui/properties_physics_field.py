@@ -1,8 +1,8 @@
 
 import bpy
 
-from buttons_physics_common import basic_force_field_settings_ui
-from buttons_physics_common import basic_force_field_falloff_ui
+from properties_physics_common import basic_force_field_settings_ui
+from properties_physics_common import basic_force_field_falloff_ui
 
 class PhysicButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

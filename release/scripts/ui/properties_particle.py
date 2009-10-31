@@ -1,10 +1,10 @@
 
 import bpy
 
-from buttons_physics_common import point_cache_ui
-from buttons_physics_common import effector_weights_ui
-from buttons_physics_common import basic_force_field_settings_ui
-from buttons_physics_common import basic_force_field_falloff_ui
+from properties_physics_common import point_cache_ui
+from properties_physics_common import effector_weights_ui
+from properties_physics_common import basic_force_field_settings_ui
+from properties_physics_common import basic_force_field_falloff_ui
 
 def particle_panel_enabled(context, psys):
     return psys.point_cache.baked==False and psys.edited==False and (not context.particle_system_editable)
