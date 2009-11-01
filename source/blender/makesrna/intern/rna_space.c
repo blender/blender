@@ -153,10 +153,10 @@ static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
 	Scene *scene = ((bScreen*)ptr->id.data)->scene;
 	View3D *v3d= (View3D*)ptr->data;
 	
-	if (v3d->twmode < 4)
+	if (v3d->twmode < V3D_MANIP_CUSTOM)
 		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, NULL);
 	else
-		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, BLI_findlink(&scene->transform_spaces, v3d->twmode - 4));
+		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, BLI_findlink(&scene->transform_spaces, v3d->twmode - V3D_MANIP_CUSTOM));
 }
 
 EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, int *free)
