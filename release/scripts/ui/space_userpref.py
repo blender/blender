@@ -508,13 +508,16 @@ class USERPREF_PT_input(bpy.types.Panel):
             row = subcol.row()
 
             if kmi.expanded:
-                row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_RIGHT")
+                row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_DOWN")
             else:
                 row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_RIGHT")
 
             itemrow = row.row()
             itemrow.enabled = km.user_defined
-            itemrow.itemR(kmi, "active", text="", icon="ICON_CHECKBOX_DEHLT")
+            if kmi.active:
+            	itemrow.itemR(kmi, "active", text="", icon="ICON_CHECKBOX_HLT")
+            else:
+           	    itemrow.itemR(kmi, "active", text="", icon="ICON_CHECKBOX_DEHLT")
 
             itemcol = itemrow.column()
             itemcol.active = kmi.active
