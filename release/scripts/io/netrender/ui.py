@@ -122,14 +122,14 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 		sub.itemO("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
 		sub.itemO("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
 		
-		if len(bpy.data.netrender_slaves) == 0 and len(netsettings.slaves) > 0:
+		if len(bpy.netrender_slaves) == 0 and len(netsettings.slaves) > 0:
 			while(len(netsettings.slaves) > 0):
 				netsettings.slaves.remove(0)
 		
 		if netsettings.active_slave_index >= 0 and len(netsettings.slaves) > 0:
 			layout.itemS()
 			
-			slave = bpy.data.netrender_slaves[netsettings.active_slave_index]
+			slave = bpy.netrender_slaves[netsettings.active_slave_index]
 
 			layout.itemL(text="Name: " + slave.name)
 			layout.itemL(text="Address: " + slave.address[0])
@@ -157,14 +157,14 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 		sub = row.column(align=True)
 		sub.itemO("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
 
-		if len(bpy.data.netrender_blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
+		if len(bpy.netrender_blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
 			while(len(netsettings.slaves_blacklist) > 0):
 				netsettings.slaves_blacklist.remove(0)
 		
 		if netsettings.active_blacklisted_slave_index >= 0 and len(netsettings.slaves_blacklist) > 0:
 			layout.itemS()
 			
-			slave = bpy.data.netrender_blacklist[netsettings.active_blacklisted_slave_index]
+			slave = bpy.netrender_blacklist[netsettings.active_blacklisted_slave_index]
 
 			layout.itemL(text="Name: " + slave.name)
 			layout.itemL(text="Address: " + slave.address[0])
@@ -195,14 +195,14 @@ class RENDER_PT_network_jobs(RenderButtonsPanel):
 		sub.itemO("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
 		sub.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
 
-		if len(bpy.data.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
+		if len(bpy.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
 			while(len(netsettings.jobs) > 0):
 				netsettings.jobs.remove(0)
 		
 		if netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0:
 			layout.itemS()
 			
-			job = bpy.data.netrender_jobs[netsettings.active_job_index]
+			job = bpy.netrender_jobs[netsettings.active_job_index]
 
 			layout.itemL(text="Name: %s" % job.name)
 			layout.itemL(text="Length: %04i" % len(job))

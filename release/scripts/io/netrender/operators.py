@@ -99,10 +99,10 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 			while(len(netsettings.jobs) > 0):
 				netsettings.jobs.remove(0)
 			
-			bpy.data.netrender_jobs = []
+			bpy.netrender_jobs = []
 			
 			for j in jobs:
-				bpy.data.netrender_jobs.append(j)
+				bpy.netrender_jobs.append(j)
 				netsettings.jobs.add()
 				job = netsettings.jobs[-1]
 				
@@ -130,8 +130,8 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 		if netsettings.active_slave_index >= 0:
 			
 			# deal with data
-			slave = bpy.data.netrender_slaves.pop(netsettings.active_slave_index)
-			bpy.data.netrender_blacklist.append(slave)
+			slave = bpy.netrender_slaves.pop(netsettings.active_slave_index)
+			bpy.netrender_blacklist.append(slave)
 			
 			# deal with rna
 			netsettings.slaves_blacklist.add()
@@ -160,8 +160,8 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 		if netsettings.active_blacklisted_slave_index >= 0:
 			
 			# deal with data
-			slave = bpy.data.netrender_blacklist.pop(netsettings.active_blacklisted_slave_index)
-			bpy.data.netrender_slaves.append(slave)
+			slave = bpy.netrender_blacklist.pop(netsettings.active_blacklisted_slave_index)
+			bpy.netrender_slaves.append(slave)
 			
 			# deal with rna
 			netsettings.slaves.add()
@@ -200,17 +200,17 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 			while(len(netsettings.slaves) > 0):
 				netsettings.slaves.remove(0)
 			
-			bpy.data.netrender_slaves = []
+			bpy.netrender_slaves = []
 			
 			for s in slaves:
-				for i in range(len(bpy.data.netrender_blacklist)):
-					slave = bpy.data.netrender_blacklist[i]
+				for i in range(len(bpy.netrender_blacklist)):
+					slave = bpy.netrender_blacklist[i]
 					if slave.id == s.id:
-						bpy.data.netrender_blacklist[i] = s
+						bpy.netrender_blacklist[i] = s
 						netsettings.slaves_blacklist[i].name = s.name
 						break
 				else:
-					bpy.data.netrender_slaves.append(s)
+					bpy.netrender_slaves.append(s)
 					
 					netsettings.slaves.add()
 					slave = netsettings.slaves[-1]
@@ -236,7 +236,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			job = bpy.data.netrender_jobs[netsettings.active_job_index]
+			job = bpy.netrender_jobs[netsettings.active_job_index]
 			
 			conn.request("POST", "/cancel", headers={"job-id":job.id})
 			
@@ -294,7 +294,7 @@ class netclientdownload(bpy.types.Operator):
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			job = bpy.data.netrender_jobs[netsettings.active_job_index]
+			job = bpy.netrender_jobs[netsettings.active_job_index]
 			
 			for frame in job.frames:
 				client.requestResult(conn, job.id, frame.number)

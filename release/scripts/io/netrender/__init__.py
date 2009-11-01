@@ -32,6 +32,7 @@ import ui
 
 import bpy
 
-bpy.data.netrender_jobs = []
-bpy.data.netrender_slaves = []
-bpy.data.netrender_blacklist = []
+bpy.netrender_jobs = []
+bpy.netrender_slaves = []
+bpy.netrender_blacklist = []
+

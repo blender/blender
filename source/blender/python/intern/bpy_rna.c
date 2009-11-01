@@ -1392,9 +1392,12 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 	if (prop==NULL) {
 		// XXX - This currently allows anything to be assigned to an rna prop, need to see how this should be used
 		// but for now it makes porting scripts confusing since it fails silently.
+#if 0
 		if (!BPy_StructRNA_CheckExact(self) && PyObject_GenericSetAttr((PyObject *)self, pyname, value) >= 0) {
 			return 0;
-		} else {
+		} else
+#endif
+		{
 			PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%.200s\" not found", name);
 			return -1;
 		}
