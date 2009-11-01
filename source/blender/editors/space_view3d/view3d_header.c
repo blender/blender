@@ -2249,7 +2249,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		/* OpenGL Render */
 		row= uiLayoutRow(layout, 1);
-		uiItemO(row, "", ICON_RENDER_STILL, "SCREEN_OT_opengl_render", 0);
+		uiItemO(row, "", ICON_RENDER_STILL, "SCREEN_OT_opengl_render");
 		uiItemBooleanO(row, "", ICON_RENDER_ANIMATION, "SCREEN_OT_opengl_render", "animation", 1);
 
 		
