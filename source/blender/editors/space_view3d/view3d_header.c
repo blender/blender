@@ -2006,6 +2006,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
+	uiLayout *row;
 	int a, xco=0, maxco=0, yco= 0;
 	
 	block= uiLayoutAbsoluteBlock(layout);
@@ -2246,7 +2247,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 		}
 
-		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
+		/* OpenGL Render */
+		row= uiLayoutRow(layout, 1);
+		uiItemO(row, "", ICON_RENDER_STILL, "SCREEN_OT_opengl_render", 0);
+		uiItemBooleanO(row, "", ICON_RENDER_ANIMATION, "SCREEN_OT_opengl_render", "animation", 1);
+
 		
 		if (ob && (ob->mode & OB_MODE_POSE)) {
 			PointerRNA *but_ptr;
