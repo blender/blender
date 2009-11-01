@@ -4716,7 +4716,7 @@ void special_aftertrans_update(TransInfo *t)
 	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0;
 	
 	/* early out when nothing happened */
-	if (t->total == 0 || t->mode != TFM_DUMMY)
+	if (t->total == 0 || t->mode == TFM_DUMMY)
 		return;
 	
 	if (t->spacetype==SPACE_VIEW3D) {
