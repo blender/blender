@@ -776,6 +776,8 @@ void recalcData(TransInfo *t)
 			flushTransParticles(t);
 		}
 		else {
+			int i;
+			
 			for(base= FIRSTBASE; base; base= base->next) {
 				Object *ob= base->object;
 				
@@ -784,18 +786,26 @@ void recalcData(TransInfo *t)
 					ob->recalc |= OB_RECALC_OB;
 				if(base->flag & BA_HAS_RECALC_DATA)
 					ob->recalc |= OB_RECALC_DATA;
+			}
+			
+			for (i = 0; i < t->total; i++) {
+				TransData *td = t->data + i;
+				Object *ob = td->ob;
 				
-				/* if object/base is selected */
-				if ((base->flag & SELECT) || (ob->flag & SELECT)) {
-					/* if animtimer is running, and the object already has animation data,
-					 * check if the auto-record feature means that we should record 'samples'
-					 * (i.e. uneditable animation values)
-					 */
-					// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-					if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-						animrecord_check_state(t->scene, &ob->id, t->animtimer);
-						autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
-					}
+				if (td->flag & TD_NOACTION)
+					break;
+				
+				if (td->flag & TD_SKIP)
+					continue;
+				
+				/* if animtimer is running, and the object already has animation data,
+				 * check if the auto-record feature means that we should record 'samples'
+				 * (i.e. uneditable animation values)
+				 */
+				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+					animrecord_check_state(t->scene, &ob->id, t->animtimer);
+					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 				}
 				
 				/* proxy exception */

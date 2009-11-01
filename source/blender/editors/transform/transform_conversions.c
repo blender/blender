@@ -4703,16 +4703,21 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 }
 
 
-/* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
-/* note: transdata has been freed already! */
-/* note: this runs even when createTransData exits early because  (t->total==0), is this correct?... (campbell) */
-/* note: sequencer freeing has its own function now because of a conflict with transform's order of freeing (campbell)*/
+/* inserting keys, refresh ipo-keys, pointcache, redraw events... */
+/* 
+ * note: sequencer freeing has its own function now because of a conflict with transform's order of freeing (campbell)
+ * 		 Order changed, the sequencer stuff should go back in here
+ * */
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
 	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0;
+	
+	/* early out when nothing happened */
+	if (t->total == 0 || t->mode != TFM_DUMMY)
+		return;
 	
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
@@ -4988,43 +4993,42 @@ void special_aftertrans_update(TransInfo *t)
 	else if(t->scene->basact && (ob = t->scene->basact->object) && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, ob)) {
 		;
 	}
-	else {
-		/* Objects */
-		// XXX ideally, this would go through context iterators, but we don't have context iterator access here,
-		// so we make do with old data + access styles...
-		Scene *scene= t->scene;
-		Base *base;
+	else { /* Objects */
+		int i;
 
-		for (base= FIRSTBASE; base; base= base->next) {
-			ob= base->object;
+		for (i = 0; i < t->total; i++) {
+			TransData *td = t->data + i;
+			Object *ob = td->ob;
+			ListBase pidlist;
+			PTCacheID *pid;
+			
+			if (td->flag & TD_NOACTION)
+				break;
+			
+			if (td->flag & TD_SKIP)
+				continue;
 
-			if (base->flag & SELECT && (t->mode != TFM_DUMMY)) {
-				ListBase pidlist;
-				PTCacheID *pid;
-
-				/* flag object caches as outdated */
-				BKE_ptcache_ids_from_object(&pidlist, ob);
-				for(pid=pidlist.first; pid; pid=pid->next) {
-					if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
-						pid->cache->flag |= PTCACHE_OUTDATED;
-				}
-				BLI_freelistN(&pidlist);
-
-				/* pointcache refresh */
-				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
-					ob->recalc |= OB_RECALC_DATA;
-
-				/* Needed for proper updating of "quick cached" dynamics. */
-				/* Creates troubles for moving animated objects without */
-				/* autokey though, probably needed is an anim sys override? */
-				/* Please remove if some other solution is found. -jahka */
-				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-
-				/* Set autokey if necessary */
-				if (!cancelled)
-					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
+			/* flag object caches as outdated */
+			BKE_ptcache_ids_from_object(&pidlist, ob);
+			for(pid=pidlist.first; pid; pid=pid->next) {
+				if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
+					pid->cache->flag |= PTCACHE_OUTDATED;
 			}
+			BLI_freelistN(&pidlist);
 
+			/* pointcache refresh */
+			if (BKE_ptcache_object_reset(t->scene, ob, PTCACHE_RESET_OUTDATED))
+				ob->recalc |= OB_RECALC_DATA;
+
+			/* Needed for proper updating of "quick cached" dynamics. */
+			/* Creates troubles for moving animated objects without */
+			/* autokey though, probably needed is an anim sys override? */
+			/* Please remove if some other solution is found. -jahka */
+			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+
+			/* Set autokey if necessary */
+			if (!cancelled)
+				autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 		}
 	}
 

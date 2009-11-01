@@ -1012,10 +1012,11 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 		VECCOPY(vec, t->con.center);
 	}
 
-	postTrans(t);
 
 	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
 	special_aftertrans_update(t);
+
+	postTrans(t);
 
 	MEM_freeN(t);
 
@@ -1573,11 +1574,11 @@ int transformEnd(bContext *C, TransInfo *t)
 			exit_code = OPERATOR_FINISHED;
 		}
 
-		/* free data */
-		postTrans(t);
-
 		/* aftertrans does insert keyframes, and clears base flags, doesnt read transdata */
 		special_aftertrans_update(t);
+
+		/* free data */
+		postTrans(t);
 
 		/* send events out for redraws */
 		viewRedrawPost(t);
