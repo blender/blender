@@ -1682,6 +1682,7 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 	
 	/* perform binding step if required */
 	if ((ikData->flag & CONSTRAINT_SPLINEIK_BOUND) == 0) {
+		float segmentLen= (1.0f / (float)segcount);
 		int i;
 		
 		/* setup new empty array for the points list */
@@ -1701,7 +1702,7 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 				if (totLength == 0.0f) {
 					/* 1) equi-spaced joints */
 					// TODO: maybe this should become an option too, in case we want this option by default
-					ikData->points[i]= (1.0f / (float)segcount); // TODO: optimize by puttig this outside the loop!
+					ikData->points[i]= segmentLen;
 				}
 				else {
 					 /*	2) to find this point on the curve, we take a step from the previous joint
@@ -1719,6 +1720,12 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 		/* spline has now been bound */
 		ikData->flag |= CONSTRAINT_SPLINEIK_BOUND;
 	}
+	
+	/* apply corrections for sensitivity to scaling on a copy of the bind points,
+	 * since it's easier to determine the positions of all the joints beforehand this way
+	 */
+	// TODO: code me!
+	
 	
 	/* make a new Spline-IK chain, and store it in the IK chains */
 	// TODO: we should check if there is already an IK chain on this, since that would take presidence...
@@ -1801,10 +1808,10 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 	VECCOPY(pchan->pose_mat[1], splineVec);
 	
 	
-	/* step 3: determine two vectors which will both be at right angles to the bone vector 
-	 * 	based on the method described at 
+	/* step 3a: determine two vectors which will both be at right angles to the bone vector 
+	 * 	based on the "Gram Schmidt process" for finding a set of Orthonormal Vectors, described at 
 	 *		http://ltcconline.net/greenl/courses/203/Vectors/orthonormalBases.htm
-	 *	and normalise them to make sure they they don't act strangely
+	 *	and normalise them to make sure they will behave nicely (as unit vectors)
 	 */
 		/* x-axis = dirX - projection(dirX onto splineVec) */
 	Projf(axis1, dirX, splineVec); /* project dirX onto splineVec */
@@ -1821,12 +1828,14 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 	
 	Normalize(pchan->pose_mat[2]);
 	
+	/* step 3b: rotate these axes for roll control and also to minimise flipping rotations */
+	// NOTE: for controlling flipping rotations, we could look to the curve for guidance...
+		// TODO: code me!
 	
-	/* step 4a: multiply all the axes of the bone by the scaling factor to get uniform scaling */
-	// TODO: maybe this can be extended to give non-uniform scaling?
-	//VecMulf(pchan->pose_mat[0], scaleFac);
+	
+	/* step 4: only multiply the y-axis by the scaling factor to get nice volume-preservation */
+	// NOTE: the x+z could get multiplied too, but that may be best left as an option
 	VecMulf(pchan->pose_mat[1], scaleFac);
-	//VecMulf(pchan->pose_mat[2], scaleFac);	
 	
 	/* step 5: set the location of the bone in the matrix */
 	VECCOPY(pchan->pose_mat[3], pchan->pose_head);
@@ -1851,6 +1860,8 @@ static void splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_
 				bPoseChannel *pchan= tree->chain[i];
 				splineik_evaluate_bone(tree, ob, pchan, i);
 			}
+			
+			// TODO: if another pass is needed to ensure the validity of the chain after blending, it should go here
 		}
 		
 		/* free the tree info now */
@@ -2166,7 +2177,7 @@ void where_is_pose (Scene *scene, Object *ob)
 		
 		/* 1. clear flags */
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			pchan->flag &= ~(POSE_DONE|POSE_CHAIN|POSE_IKTREE);
+			pchan->flag &= ~(POSE_DONE|POSE_CHAIN|POSE_IKTREE|POSE_IKSPLINE);
 		}
 		
 		/* 2a. construct the IK tree (standard IK) */

@@ -1450,7 +1450,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	/* */
+	/* refresh depsgraph */
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */

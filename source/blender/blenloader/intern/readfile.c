@@ -2265,6 +2265,20 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->target = newlibadr(fd, id->lib, data->target);
 			}
 			break;
+		case CONSTRAINT_TYPE_DAMPTRACK:
+			{
+				bDampTrackConstraint *data;
+				data= ((bDampTrackConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data;
+				data= ((bSplineIKConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -10730,6 +10744,18 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 			{
 				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->target);
+			}
+			break;
+		case CONSTRAINT_TYPE_DAMPTRACK:
+			{
+				bDampTrackConstraint *data = (bDampTrackConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data = (bSplineIKConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
 			}
 			break;
 		default:
