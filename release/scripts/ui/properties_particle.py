@@ -439,14 +439,14 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             row.template_list(psys, "targets", psys, "active_particle_target_index")
 
             col = row.column()
-            subrow = col.row()
-            subcol = subrow.column(align=True)
-            subcol.itemO("particle.new_target", icon='ICON_ZOOMIN', text="")
-            subcol.itemO("particle.remove_target", icon='ICON_ZOOMOUT', text="")
-            subrow = col.row()
-            subcol = subrow.column(align=True)
-            subcol.itemO("particle.target_move_up", icon='VICON_MOVE_UP', text="")
-            subcol.itemO("particle.target_move_down", icon='VICON_MOVE_DOWN', text="")
+            sub = col.row()
+            subsub = sub.column(align=True)
+            subsub.itemO("particle.new_target", icon='ICON_ZOOMIN', text="")
+            subsub.itemO("particle.remove_target", icon='ICON_ZOOMOUT', text="")
+            sub = col.row()
+            subsub = sub.column(align=True)
+            subsub.itemO("particle.target_move_up", icon='VICON_MOVE_UP', text="")
+            subsub.itemO("particle.target_move_down", icon='VICON_MOVE_DOWN', text="")
 
             key = psys.active_particle_target
             if key:
@@ -462,11 +462,11 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
                     col.itemR(key, "time")
                     col.itemR(key, "duration")
                 else:
-                    subrow = row.row()
+                    sub = row.row()
                     #doesn't work yet
                     #subrow.red_alert = key.valid
-                    subrow.itemR(key, "object", text="")
-                    subrow.itemR(key, "system", text="System")
+                    sub.itemR(key, "object", text="")
+                    sub.itemR(key, "system", text="System")
 
                     layout.itemR(key, "mode", expand=True)
 
@@ -517,14 +517,14 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
         row.template_list(state, "rules", state, "active_boid_rule_index")
 
         col = row.column()
-        subrow = col.row()
-        subcol = subrow.column(align=True)
-        subcol.item_menu_enumO("boid.rule_add", "type", icon='ICON_ZOOMIN', text="")
-        subcol.itemO("boid.rule_del", icon='ICON_ZOOMOUT', text="")
-        subrow = col.row()
-        subcol = subrow.column(align=True)
-        subcol.itemO("boid.rule_move_up", icon='VICON_MOVE_UP', text="")
-        subcol.itemO("boid.rule_move_down", icon='VICON_MOVE_DOWN', text="")
+        sub = col.row()
+        subsub = sub.column(align=True)
+        subsub.item_menu_enumO("boid.rule_add", "type", icon='ICON_ZOOMIN', text="")
+        subsub.itemO("boid.rule_del", icon='ICON_ZOOMOUT', text="")
+        sub = col.row()
+        subcol = sub.column(align=True)
+        subsub.itemO("boid.rule_move_up", icon='VICON_MOVE_UP', text="")
+        subsub.itemO("boid.rule_move_down", icon='VICON_MOVE_DOWN', text="")
 
         rule = state.active_boid_rule
 
@@ -619,19 +619,19 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
                 return
 
             sub.itemR(part, "render_strand")
-            colsub = sub.column()
-            colsub.active = part.render_strand == False
-            colsub.itemR(part, "render_adaptive")
-            colsub = sub.column()
-            colsub.active = part.render_adaptive or part.render_strand == True
-            colsub.itemR(part, "adaptive_angle")
-            colsub = sub.column()
-            colsub.active = part.render_adaptive == True and part.render_strand == False
-            colsub.itemR(part, "adaptive_pix")
+            subsub = sub.column()
+            subsub.active = part.render_strand == False
+            subsub.itemR(part, "render_adaptive")
+            subsub = sub.column()
+            subsub.active = part.render_adaptive or part.render_strand == True
+            subsub.itemR(part, "adaptive_angle")
+            subsub = sub.column()
+            subsub.active = part.render_adaptive == True and part.render_strand == False
+            subsub.itemR(part, "adaptive_pix")
             sub.itemR(part, "hair_bspline")
             sub.itemR(part, "render_step", text="Steps")
+			
             sub = split.column()
-
             sub.itemL(text="Timing:")
             sub.itemR(part, "abs_path_time")
             sub.itemR(part, "path_start", text="Start", slider=not part.abs_path_time)
@@ -650,9 +650,9 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
                     row.itemR(part, "simplify_transition")
                     row = layout.row()
                     row.itemR(part, "viewport")
-                    subrow = row.row()
-                    subrow.active = part.viewport == True
-                    subrow.itemR(part, "simplify_viewport")
+                    sub = row.row()
+                    sub.active = part.viewport == True
+                    sub.itemR(part, "simplify_viewport")
 
         elif part.ren_as == 'OBJECT':
             sub.itemR(part, "dupli_object")
@@ -662,27 +662,27 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
             split = layout.split()
             sub = split.column()
             sub.itemR(part, "whole_group")
-            colsub = sub.column()
-            colsub.active = part.whole_group == False
-            colsub.itemR(part, "use_group_count")
+            subsub = sub.column()
+            subsub.active = part.whole_group == False
+            subsub.itemR(part, "use_group_count")
 
             sub = split.column()
-            colsub = sub.column()
-            colsub.active = part.whole_group == False
-            colsub.itemR(part, "use_global_dupli")
-            colsub.itemR(part, "rand_group")
+            subsub = sub.column()
+            subsub.active = part.whole_group == False
+            subsub.itemR(part, "use_global_dupli")
+            subsub.itemR(part, "rand_group")
 
             if part.use_group_count and not part.whole_group:
                 row = layout.row()
                 row.template_list(part, "dupliweights", part, "active_dupliweight_index")
 
                 col = row.column()
-                subrow = col.row()
-                subcol = subrow.column(align=True)
-                subcol.itemO("particle.dupliob_copy", icon='ICON_ZOOMIN', text="")
-                subcol.itemO("particle.dupliob_remove", icon='ICON_ZOOMOUT', text="")
-                subcol.itemO("particle.dupliob_move_up", icon='VICON_MOVE_UP', text="")
-                subcol.itemO("particle.dupliob_move_down", icon='VICON_MOVE_DOWN', text="")
+                sub = col.row()
+                subsub = sub.column(align=True)
+                subsub.itemO("particle.dupliob_copy", icon='ICON_ZOOMIN', text="")
+                subsub.itemO("particle.dupliob_remove", icon='ICON_ZOOMOUT', text="")
+                subsub.itemO("particle.dupliob_move_up", icon='VICON_MOVE_UP', text="")
+                subsub.itemO("particle.dupliob_move_down", icon='VICON_MOVE_DOWN', text="")
 
                 weight = part.active_dupliweight
                 if weight:
@@ -788,10 +788,10 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
         if (path):
             col.itemR(part, "draw_step")
         else:
-            subcol = col.column()
-            subcol.active = part.material_color == False
-            #subcol.itemL(text="color")
-            #subcol.itemL(text="Override material color")
+            sub = col.column()
+            sub.active = part.material_color == False
+            #sub.itemL(text="color")
+            #sub.itemL(text="Override material color")
 
 
 class PARTICLE_PT_children(ParticleButtonsPanel):
@@ -864,11 +864,11 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
 
         split = layout.split()
 
-        sub = split.column()
-        sub.itemR(part, "kink_amplitude")
-        sub.itemR(part, "kink_frequency")
-        sub = split.column()
-        sub.itemR(part, "kink_shape", slider=True)
+        col = split.column()
+        col.itemR(part, "kink_amplitude")
+        col.itemR(part, "kink_frequency")
+        col = split.column()
+        col.itemR(part, "kink_shape", slider=True)
 
 
 class PARTICLE_PT_field_weights(ParticleButtonsPanel):
