@@ -49,6 +49,8 @@ class INFO_HT_header(bpy.types.Header):
         layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
         layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
 
+        layout.itemS()
+
         if rd.multiple_engines:
             layout.itemR(rd, "engine", text="")
 
@@ -59,7 +61,7 @@ class INFO_HT_header(bpy.types.Header):
 
         layout.itemL(text=scene.statistics())
 
-        layout.itemO("wm.window_fullscreen_toggle", icon='ICON_ARROW_LEFTRIGHT', text="")
+        layout.itemO("wm.window_fullscreen_toggle", icon='ICON_FULLSCREEN_ENTER', text="")
 
 
 class INFO_MT_file(bpy.types.Menu):
