@@ -686,9 +686,9 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 static int freestyle_module_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
 
-	printf("freestyle_module_add_exec\n");
-	FRS_add_module();
+	FRS_add_module(&srl->freestyleConfig);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 	
@@ -712,11 +712,11 @@ void SCENE_OT_freestyle_module_add(wmOperatorType *ot)
 static int freestyle_module_remove_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
 	FreestyleModuleConfig *module= ptr.data;
 
-	printf("freestyle_module_remove_exec\n");
-	FRS_delete_module(module, NULL);
+	FRS_delete_module(&srl->freestyleConfig, module);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 	
@@ -740,13 +740,13 @@ void SCENE_OT_freestyle_module_remove(wmOperatorType *ot)
 static int freestyle_module_move_up_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
 	FreestyleModuleConfig *module= ptr.data;
 	int active = RNA_boolean_get(op->ptr, "active");
 
-	printf("freestyle_module_move_up_exec\n");
 	if(active)
-		FRS_move_up_module(module, NULL);
+		FRS_move_up_module(&srl->freestyleConfig, module);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 	
@@ -773,13 +773,13 @@ void SCENE_OT_freestyle_module_move_up(wmOperatorType *ot)
 static int freestyle_module_move_down_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
 	FreestyleModuleConfig *module= ptr.data;
 	int active = RNA_boolean_get(op->ptr, "active");
 
-	printf("freestyle_module_move_down_exec\n");
 	if(active)
-		FRS_move_down_module(module, NULL);
+		FRS_move_down_module(&srl->freestyleConfig, module);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 	

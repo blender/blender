@@ -654,9 +654,6 @@ void BKE_write_undo(bContext *C, char *name)
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
 void BKE_undo_step(bContext *C, int step)
 {
-	
-	FRS_initialize(C);
-	
 	if(step==0) {
 		read_undosave(C, curundo);
 	}

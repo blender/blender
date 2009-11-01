@@ -28,26 +28,16 @@ extern "C" {
 #include "../../FRS_freestyle_config.h"
 
 	// Freestyle configuration
-	short freestyle_is_initialized = 0;
+	static short freestyle_is_initialized = 0;
 	static Config::Path *pathconfig = NULL;
 	static Controller *controller = NULL;
 	static AppView *view = NULL;
-	static Scene *current_scene = NULL;
 
 	// camera information
 	float freestyle_viewpoint[3];
 	float freestyle_mv[4][4];
 	float freestyle_proj[4][4];
 	int freestyle_viewport[4];
-	
-	// Panel configuration
-	char* freestyle_current_module_path = NULL;
-	SceneRenderLayer* freestyle_current_layer = NULL;
-
-	ListBase* freestyle_modules;
-	int* freestyle_flags;
-	float* freestyle_sphere_radius;
-	float* freestyle_dkr_epsilon;
 	
 	string default_module_path;
 
@@ -57,24 +47,17 @@ extern "C" {
 
 	void FRS_initialize(bContext* C){
 		
-		if( !freestyle_is_initialized ) {
+		if( freestyle_is_initialized )
+			return;
 
-			pathconfig = new Config::Path;
-			controller = new Controller(C);
-			view = new AppView;
-			controller->setView(view);
+		pathconfig = new Config::Path;
+		controller = new Controller(C);
+		view = new AppView;
+		controller->setView(view);
 			
-			default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
+		default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
 			
-			freestyle_is_initialized = 1;
-		}
-		
-		current_scene = CTX_data_scene(C);
-		if( !current_scene )
-			current_scene = (Scene*) CTX_data_main(C)->scene.first;
-		
-		FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&current_scene->r.layers, current_scene->r.actlay) );
-		
+		freestyle_is_initialized = 1;
 	}
 	
 	void FRS_exit() {
@@ -216,7 +199,7 @@ extern "C" {
 		init_view(re);
 		init_camera(re);
 		
-		for(srl= (SceneRenderLayer *)current_scene->r.layers.first; srl; srl= srl->next) {
+		for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl; srl= srl->next) {
 			if( !(srl->layflag & SCE_LAY_DISABLE) &&
 			 	srl->layflag & SCE_LAY_FRS &&
 				displayed_layer_count(srl) > 0       )
@@ -271,59 +254,32 @@ extern "C" {
 		BLI_freelistN( &srl->freestyleConfig.modules );
 	}
 
-	void FRS_select_layer( SceneRenderLayer* srl )
-	{	
-		FreestyleConfig* config = &srl->freestyleConfig;
-		
-		freestyle_modules = &config->modules;
-		freestyle_flags = &config->flags;
-		freestyle_sphere_radius = &config->sphere_radius;
-		freestyle_dkr_epsilon = &config->dkr_epsilon;
-		
-		freestyle_current_layer = srl;
-		current_scene->freestyle_current_layer_number = BLI_findindex(&current_scene->r.layers, freestyle_current_layer);
-	}
-	
-	void FRS_add_module()
+	void FRS_add_module(FreestyleConfig *config)
 	{
 		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) MEM_callocN( sizeof(FreestyleModuleConfig), "style module configuration");
-		BLI_addtail(freestyle_modules, (void*) module_conf);
+		BLI_addtail(&config->modules, (void*) module_conf);
 		
 		strcpy( module_conf->module_path, default_module_path.c_str() );
 		module_conf->is_displayed = 1;	
 	}
 	
-	void FRS_delete_module(void *module_index_ptr, void *unused)
+	void FRS_delete_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 	{
-		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) module_index_ptr;
-
-		BLI_freelinkN( freestyle_modules, module_conf);
+		BLI_freelinkN(&config->modules, module_conf);
 	}
 	
-	void FRS_move_up_module(void *module_index_ptr, void *unused)
+	void FRS_move_up_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 	{
-		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) module_index_ptr;
-
-		BLI_remlink(freestyle_modules, module_conf);
-		BLI_insertlink(freestyle_modules, module_conf->prev->prev, module_conf);
+		BLI_remlink(&config->modules, module_conf);
+		BLI_insertlink(&config->modules, module_conf->prev->prev, module_conf);
 	}
 	
-	void FRS_move_down_module(void *module_index_ptr, void *unused)
+	void FRS_move_down_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 	{			
-		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) module_index_ptr;
-		
-		BLI_remlink(freestyle_modules, module_conf);
-		BLI_insertlink(freestyle_modules, module_conf->next, module_conf);
+		BLI_remlink(&config->modules, module_conf);
+		BLI_insertlink(&config->modules, module_conf->next, module_conf);
 	}
-	
-	void FRS_set_module_path(void *module_index_ptr, void *unused)
-	{
-		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
-		freestyle_current_module_path = module_conf->module_path;
-	}
-	
-	
-	
+
 #ifdef __cplusplus
 }
 #endif
