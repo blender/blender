@@ -66,7 +66,7 @@
 struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 {
 	struct ImBuf *ibuf = NULL;
-	uint32_t width, height;
+	NSSize bitmapSize;
 	uchar *rasterRGB = NULL;
 	uchar *rasterRGBA = NULL;
 	uchar *toIBuf = NULL;
@@ -87,11 +87,14 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 		return NULL;
 	}
 	
-	width = [bitmapImage pixelsWide];
-	height = [bitmapImage pixelsHigh];
+	bitmapSize.width = [bitmapImage pixelsWide];
+	bitmapSize.height = [bitmapImage pixelsHigh];
+	
+	/* Tell cocoa image resolution is same as current system one */
+	[bitmapImage setSize:bitmapSize];
 	
 	/* allocate the image buffer */
-	ibuf = IMB_allocImBuf(width, height, 32/*RGBA*/, 0, 0);
+	ibuf = IMB_allocImBuf(bitmapSize.width, bitmapSize.height, 32/*RGBA*/, 0, 0);
 	if (!ibuf) {
 		fprintf(stderr, 
 			"imb_cocoaLoadImage: could not allocate memory for the " \
@@ -113,12 +116,12 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 		
 		/* First get RGB values w/o Alpha to avoid pre-multiplication, 32bit but last byte is unused */
 		blBitmapFormatImageRGB = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-																	  pixelsWide:width 
-																	  pixelsHigh:height
+																	  pixelsWide:bitmapSize.width 
+																	  pixelsHigh:bitmapSize.height
 																   bitsPerSample:8 samplesPerPixel:3 hasAlpha:NO isPlanar:NO
 																  colorSpaceName:NSCalibratedRGBColorSpace 
 																	bitmapFormat:0
-																	 bytesPerRow:4*width
+																	 bytesPerRow:4*bitmapSize.width
 																	bitsPerPixel:32/*RGB format padded to 32bits*/];
 				
 		[NSGraphicsContext saveGraphicsState];
@@ -136,12 +139,12 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 
 		/* Then get Alpha values by getting the RGBA image (that is premultiplied btw) */
 		blBitmapFormatImageRGBA = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-																		  pixelsWide:width
-																		  pixelsHigh:height
+																		  pixelsWide:bitmapSize.width
+																		  pixelsHigh:bitmapSize.height
 																	   bitsPerSample:8 samplesPerPixel:4 hasAlpha:YES isPlanar:NO
 																	  colorSpaceName:NSCalibratedRGBColorSpace
 																		bitmapFormat:0
-																		 bytesPerRow:4*width
+																		 bytesPerRow:4*bitmapSize.width
 																		bitsPerPixel:32/* RGBA */];
 		
 		[NSGraphicsContext saveGraphicsState];
@@ -160,10 +163,10 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 		
 		/*Copy the image to ibuf, flipping it vertically*/
 		toIBuf = (uchar*)ibuf->rect;
-		for (x = 0; x < width; x++) {
-			for (y = 0; y < height; y++) {
-				to_i = (height-y-1)*width + x;
-				from_i = y*width + x;
+		for (x = 0; x < bitmapSize.width; x++) {
+			for (y = 0; y < bitmapSize.height; y++) {
+				to_i = (bitmapSize.height-y-1)*bitmapSize.width + x;
+				from_i = y*bitmapSize.width + x;
 
 				toIBuf[4*to_i] = rasterRGB[4*from_i]; /* R */
 				toIBuf[4*to_i+1] = rasterRGB[4*from_i+1]; /* G */
