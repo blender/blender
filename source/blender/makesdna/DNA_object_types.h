@@ -500,6 +500,7 @@ extern Object workob;
 /* ob->shapeflag */
 #define OB_SHAPE_LOCK		1
 #define OB_SHAPE_TEMPLOCK	2		// deprecated
+#define OB_SHAPE_EDIT_MODE	4
 
 /* ob->nlaflag */
 	// XXX depreceated - old animation system

@@ -178,7 +178,7 @@ extern unsigned int hashsizes[];
 /*---------inlined functions---------*/
 BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
-	Entry *e= BLI_mempool_alloc(gh->entrypool);
+	Entry *e= (Entry*) BLI_mempool_alloc(gh->entrypool);
 
 	e->key= key;
 	e->val= val;

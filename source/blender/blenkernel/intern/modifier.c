@@ -64,6 +64,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
+#include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -96,6 +97,7 @@
 #include "BKE_fluidsim.h"
 #include "BKE_global.h"
 #include "BKE_multires.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
@@ -1196,9 +1198,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* need to avoid infinite recursion here */
 	if(amd->start_cap && amd->start_cap != ob)
-		start_cap = mesh_get_derived_final(scene, amd->start_cap, CD_MASK_MESH);
+		start_cap = amd->start_cap->derivedFinal;
 	if(amd->end_cap && amd->end_cap != ob)
-		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
+		end_cap = amd->end_cap->derivedFinal;
 
 	Mat4One(offset);
 
@@ -5549,7 +5551,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 {
 	// XXX doesn't handle derived data
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
-	DerivedMesh *dm = mesh_get_derived_final(md->scene, bmd->object, CD_MASK_BAREMESH);
+	DerivedMesh *dm = bmd->object->derivedFinal;
 
 	/* we do a quick sanity check */
 	if(dm && (derivedData->getNumTessFaces(derivedData) > 3)
@@ -7536,6 +7538,52 @@ static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, BME
 		dm->release(dm);
 }
 
+/* Shape Key */
+
+static void shapekeyModifier_deformVerts(
+					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+{
+	KeyBlock *kb= ob_get_keyblock(ob);
+	float (*deformedVerts)[3];
+
+	if(kb && kb->totelem == numVerts) {
+		deformedVerts= (float(*)[3])do_ob_key(md->scene, ob);
+		if(deformedVerts) {
+			memcpy(vertexCos, deformedVerts, sizeof(float)*3*numVerts);
+			MEM_freeN(deformedVerts);
+		}
+	}
+}
+
+static void shapekeyModifier_deformVertsEM(
+					   ModifierData *md, Object *ob, EditMesh *editData,
+	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	Key *key= ob_get_key(ob);
+
+	if(key && key->type == KEY_RELATIVE)
+		shapekeyModifier_deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
+}
+
+static void shapekeyModifier_deformMatricesEM(
+					      ModifierData *md, Object *ob, EditMesh *editData,
+	   DerivedMesh *derivedData, float (*vertexCos)[3],
+					     float (*defMats)[3][3], int numVerts)
+{
+	Key *key= ob_get_key(ob);
+	KeyBlock *kb= ob_get_keyblock(ob);
+	float scale[3][3];
+	int a;
+
+	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
+		Mat3Scale(scale, kb->curval);
+
+		for(a=0; a<numVerts; a++)
+			Mat3CpyMat3(defMats[a], scale);
+	}
+}
+
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -7940,6 +7988,14 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->copyData = multiresModifier_copyData;
 		mti->applyModifier = multiresModifier_applyModifier;
 
+		mti = INIT_TYPE(ShapeKey);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsCVs
+				| eModifierTypeFlag_SupportsEditmode;
+		mti->deformVerts = shapekeyModifier_deformVerts;
+		mti->deformVertsEM = shapekeyModifier_deformVertsEM;
+		mti->deformMatricesEM = shapekeyModifier_deformMatricesEM;
+
 		typeArrInit = 0;
 #undef INIT_TYPE
 	}
@@ -8104,9 +8160,9 @@ void modifier_setError(ModifierData *md, char *format, ...)
  * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
  * then is NULL)
  */
-int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r)
+int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r, int virtual_)
 {
-	ModifierData *md = ob->modifiers.first;
+	ModifierData *md = (virtual_)? modifiers_getVirtualModifierList(ob): ob->modifiers.first;
 	int i, cageIndex = -1;
 
 	/* Find the last modifier acting on the cage. */
@@ -8215,11 +8271,11 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 	static ArmatureModifierData amd;
 	static CurveModifierData cmd;
 	static LatticeModifierData lmd;
+	static ShapeKeyModifierData smd;
 	static int init = 1;
+	ModifierData *md;
 
 	if (init) {
-		ModifierData *md;
-
 		md = modifier_new(eModifierType_Armature);
 		amd = *((ArmatureModifierData*) md);
 		modifier_free(md);
@@ -8232,32 +8288,50 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 		lmd = *((LatticeModifierData*) md);
 		modifier_free(md);
 
+		md = modifier_new(eModifierType_ShapeKey);
+		smd = *((ShapeKeyModifierData*) md);
+		modifier_free(md);
+
 		amd.modifier.mode |= eModifierMode_Virtual;
 		cmd.modifier.mode |= eModifierMode_Virtual;
 		lmd.modifier.mode |= eModifierMode_Virtual;
+		smd.modifier.mode |= eModifierMode_Virtual;
 
 		init = 0;
 	}
 
-	if (ob->parent) {
+	md = ob->modifiers.first;
+
+	if(ob->parent) {
 		if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
 			amd.object = ob->parent;
-			amd.modifier.next = ob->modifiers.first;
+			amd.modifier.next = md;
 			amd.deformflag= ((bArmature *)(ob->parent->data))->deformflag;
-			return &amd.modifier;
+			md = &amd.modifier;
 		} else if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
 			cmd.object = ob->parent;
 			cmd.defaxis = ob->trackflag + 1;
-			cmd.modifier.next = ob->modifiers.first;
-			return &cmd.modifier;
+			cmd.modifier.next = md;
+			md = &cmd.modifier;
 		} else if(ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
 			lmd.object = ob->parent;
-			lmd.modifier.next = ob->modifiers.first;
-			return &lmd.modifier;
+			lmd.modifier.next = md;
+			md = &lmd.modifier;
 		}
 	}
 
-	return ob->modifiers.first;
+	/* shape key modifier, not yet for curves */
+	if(ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
+		if(ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE))
+			smd.modifier.mode |= eModifierMode_Editmode|eModifierMode_OnCage;
+		else
+			smd.modifier.mode &= ~eModifierMode_Editmode|eModifierMode_OnCage;
+
+		smd.modifier.next = md;
+		md = &smd.modifier;
+	}
+
+	return md;
 }
 /* Takes an object and returns its first selected armature, else just its
  * armature
@@ -8333,6 +8407,8 @@ int modifier_isDeformer(ModifierData *md)
 	if (md->type==eModifierType_Curve)
 		return 1;
 	if (md->type==eModifierType_Lattice)
+		return 1;
+	if (md->type==eModifierType_ShapeKey)
 		return 1;
 	
 	return 0;

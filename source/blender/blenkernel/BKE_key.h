@@ -56,17 +56,15 @@ void key_curve_position_weights(float t, float *data, int type);
 void key_curve_tangent_weights(float t, float *data, int type);
 void key_curve_normal_weights(float t, float *data, int type);
 
-/* only exported to curve.c! */
-void cp_cu_key(struct Curve *cu, struct KeyBlock *kb, int start, int end);
-
-int do_ob_key(struct Scene *scene, struct Object *ob);
+float *do_ob_key(struct Scene *scene, struct Object *ob);
 
 struct Key *ob_get_key(struct Object *ob);
 struct KeyBlock *ob_get_keyblock(struct Object *ob);
 struct KeyBlock *key_get_keyblock(struct Key *key, int index);
 struct KeyBlock *key_get_named_keyblock(struct Key *key, const char name[]);
+char *key_get_curValue_rnaPath(struct Key *key, struct KeyBlock *kb);
 // needed for the GE
-void do_rel_key(int start, int end, int tot, char *basispoin, struct Key *key, int mode);
+void do_rel_key(int start, int end, int tot, char *basispoin, struct Key *key, struct KeyBlock *actkb, int mode);
 
 #ifdef __cplusplus
 };

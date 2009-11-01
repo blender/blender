@@ -255,12 +255,14 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *scene, Object *ob)
 	BMesh *bm;
 
 	if (!me->mpoly && me->totface) {
+		printf("yeek!! bmesh conversion issue! may lose shapekeys!\n");
+
 		em = make_editMesh(scene, ob);
 		bm = editmesh_to_bmesh(em);
 	
 		free_editMesh(em);
 	} else {
-		bm = BKE_mesh_to_bmesh(me);
+		bm = BKE_mesh_to_bmesh(me, ob);
 	}
 
 	me->edit_btmesh = BMEdit_Create(bm);

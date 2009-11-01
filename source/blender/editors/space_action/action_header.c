@@ -69,6 +69,7 @@
 
 enum {
 	B_REDR= 1,
+	B_MODECHANGE,
 } eActHeader_Events;
 
 /* ********************************************************* */
@@ -166,62 +167,11 @@ static void act_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unus
 	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
 }
 
-static void act_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); 
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_CFRA);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_FRAME);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_SECOND);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_MARKER);
-}
-
-static void act_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_CFRA);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_YAXIS);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_XAXIS);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_MARKER);
-}
-
-static void act_edit_keytypesmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_KEYFRAME);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_BREAKDOWN);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_EXTREME);
-}
-
-static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_FREE);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_AUTO);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_VECT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_ALIGN);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_AUTO_ANIM); // xxx?
-}
-
-static void act_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_CONST);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_LIN);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_BEZ);
-}
-
-static void act_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
-}
-
 static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemMenuF(layout, "Transform", 0, act_edit_transformmenu, NULL);
-	uiItemMenuF(layout, "Snap", 0, act_edit_snapmenu, NULL);
-	uiItemMenuF(layout, "Mirror", 0, act_edit_mirrormenu, NULL);
+	uiItemMenuEnumO(layout, "Snap", 0, "ACT_OT_snap", "type");
+	uiItemMenuEnumO(layout, "Mirror", 0, "ACT_OT_mirror", "type");
 	
 	uiItemS(layout);
 	
@@ -234,10 +184,10 @@ static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Keyframe Type", 0, act_edit_keytypesmenu, NULL);
-	uiItemMenuF(layout, "Handle Type", 0, act_edit_handlesmenu, NULL);
-	uiItemMenuF(layout, "Interpolation Mode", 0, act_edit_ipomenu, NULL);
-	uiItemMenuF(layout, "Extrapolation Mode", 0, act_edit_expomenu, NULL);
+	uiItemMenuEnumO(layout, "Keyframe Type", 0, "ACT_OT_keyframe_type", "type");
+	uiItemMenuEnumO(layout, "Handle Type", 0, "ACT_OT_handle_type", "type");
+	uiItemMenuEnumO(layout, "Interpolation Type", 0, "ACT_OT_interpolation_type", "type");
+	uiItemMenuEnumO(layout, "Extrapolation Type", 0, "ACT_OT_extrapolation_type", "type");
 	
 	uiItemS(layout);
 	
@@ -254,6 +204,15 @@ static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void do_action_buttons(bContext *C, void *arg, int event)
 {
+	/* special exception for mode changing - enable custom settings? */
+	if (event == B_MODECHANGE) {
+		SpaceAction *saction= CTX_wm_space_action(C);
+		
+		/* if the new mode is ShapeKeys editor, enable sliders */
+		if (saction->mode == SACTCONT_SHAPEKEY)
+			saction->flag |= SACTION_SLIDERS;
+	}
+	
 	ED_area_tag_refresh(CTX_wm_area(C));
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
@@ -318,7 +277,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* MODE SELECTOR */
-	uiDefButC(block, MENU, B_REDR, 
+	uiDefButC(block, MENU, B_MODECHANGE, 
 			"Editor Mode %t|DopeSheet %x3|Action Editor %x0|ShapeKey Editor %x1|Grease Pencil %x2", 
 			xco,yco,90,YIC, &saction->mode, 0, 1, 0, 0, 
 			"Editing modes for this editor");

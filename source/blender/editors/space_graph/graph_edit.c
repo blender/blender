@@ -1419,10 +1419,14 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 	
 	BLI_freelistN(&anim_data);
 	
-	/* set the new current frame value, based on the average time */
+	/* set the new current frame and cursor values, based on the average time and value */
 	if (bed.i1) {
+		SpaceIpo *sipo= ac.sa->spacedata.first;
 		Scene *scene= ac.scene;
+		
+		/* take the average values, rounding to the nearest int for the current frame */
 		CFRA= (int)floor((bed.f1 / bed.i1) + 0.5f);
+		sipo->cursorVal= bed.f2 / (float)bed.i1;
 	}
 	
 	/* set notifier that things have changed */
@@ -1450,7 +1454,8 @@ void GRAPH_OT_frame_jump (wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 EnumPropertyItem prop_graphkeys_snap_types[] = {
-	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
+	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current Frame", ""},
+	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value", ""},
 	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
 	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
 	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
@@ -1480,6 +1485,10 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	if (mode == GRAPHKEYS_SNAP_NEAREST_MARKER) {
 		bed.list.first= (ac->markers) ? ac->markers->first : NULL;
 		bed.list.last= (ac->markers) ? ac->markers->last : NULL;
+	}
+	else if (mode == GRAPHKEYS_SNAP_VALUE) {
+		SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+		bed.f1= (sipo) ? sipo->cursorVal : 0.0f;
 	}
 	
 	/* snap keyframes */
@@ -1546,7 +1555,8 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_graphkeys_mirror_types[] = {
-	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
+	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame", ""},
+	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value", ""},
 	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", ""},
 	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
 	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
@@ -1588,6 +1598,10 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 			bed.f1= (float)marker->frame;
 		else
 			return;
+	}
+	else if (mode == GRAPHKEYS_MIRROR_VALUE) {
+		SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+		bed.f1= (sipo) ? sipo->cursorVal : 0.0f;
 	}
 	
 	/* filter data */

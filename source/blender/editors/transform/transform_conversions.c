@@ -578,12 +578,25 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 	if (pchan->rotmode > 0) {
 		td->ext->rot= pchan->eul;
+		td->ext->rotAxis= NULL;
+		td->ext->rotAngle= NULL;
 		td->ext->quat= NULL;
 		
 		VECCOPY(td->ext->irot, pchan->eul);
 	}
+	else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+		td->ext->rot= NULL;
+		td->ext->rotAxis= pchan->rotAxis;
+		td->ext->rotAngle= &pchan->rotAngle;
+		td->ext->quat= NULL;
+		
+		td->ext->irotAngle= pchan->rotAngle;
+		VECCOPY(td->ext->irotAxis, pchan->rotAxis);
+	}
 	else {
 		td->ext->rot= NULL;
+		td->ext->rotAxis= NULL;
+		td->ext->rotAngle= NULL;
 		td->ext->quat= pchan->quat;
 		
 		QUATCOPY(td->ext->iquat, pchan->quat);
@@ -1337,7 +1350,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 }
 
 /* Utility function for getting the handle data from bezier's */
-TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt) {
+TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt) {
 	TransDataCurveHandleFlags *hdata;
 	td->flag |= TD_BEZTRIPLE;
 	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
@@ -1427,7 +1440,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						td->ext = NULL;
 						td->val = NULL;
 
-						hdata = initTransDataCurveHandes(td, bezt);
+						hdata = initTransDataCurveHandles(td, bezt);
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -1462,7 +1475,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0)
 						/* If the middle is selected but the sides arnt, this is needed */
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
-							hdata = initTransDataCurveHandes(td, bezt);
+							hdata = initTransDataCurveHandles(td, bezt);
 						}
 
 						td++;
@@ -1487,7 +1500,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						td->val = NULL;
 
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
-							hdata = initTransDataCurveHandes(td, bezt);
+							hdata = initTransDataCurveHandles(td, bezt);
 						}
 
 						Mat3CpyMat3(td->smtx, smtx);
@@ -1506,7 +1519,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 			if (propmode && head != tail)
 				calc_distanceCurveVerts(head, tail-1);
 
-			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandes
+			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandles
 			 * but for now just dont change handle types */
 			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0)
 				testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
@@ -2246,7 +2259,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
-		if(modifiers_getCageIndex(t->obedit, NULL)>=0) {
+		if(modifiers_getCageIndex(t->obedit, NULL, 1)>=0) {
 			if(modifiers_isDeformed(t->scene, t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
@@ -2399,8 +2412,8 @@ void flushTransSeq(TransInfo *t)
 {
 	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check alredy done */
 	int a, new_frame;
-	TransData *td= t->data;
-	TransData2D *td2d= t->data2d;
+	TransData *td= NULL;
+	TransData2D *td2d= NULL;
 	TransDataSeq *tdsq= NULL;
 	Sequence *seq;
 
@@ -2412,7 +2425,7 @@ void flushTransSeq(TransInfo *t)
 	Sequence *seq_prev= NULL;
 
 	/* flush to 2d vector from internally used 3d vector */
-	for(a=0; a<t->total; a++, td++, td2d++) {
+	for(a=0, td= t->data, td2d= t->data2d; a<t->total; a++, td++, td2d++) {
 
 		tdsq= (TransDataSeq *)td->extra;
 		seq= tdsq->seq;
@@ -2446,15 +2459,29 @@ void flushTransSeq(TransInfo *t)
 				 * children are ALWAYS transformed first
 				 * so we dont need to do this in another loop. */
 				calc_sequence(seq);
+			}
+			else {
+				calc_sequence_disp(seq);
+			}
+		}
+		seq_prev= seq;
+	}
 
+	/* need to do the overlap check in a new loop otherwise adjacent strips
+	 * will not be updated and we'll get false positives */
+	seq_prev= NULL;
+	for(a=0, td= t->data, td2d= t->data2d; a<t->total; a++, td++, td2d++) {
+
+		tdsq= (TransDataSeq *)td->extra;
+		seq= tdsq->seq;
+
+		if (seq != seq_prev) {
+			if(seq->depth==0) {
 				/* test overlap, displayes red outline */
 				seq->flag &= ~SEQ_OVERLAP;
 				if( seq_test_overlap(seqbasep, seq) ) {
 					seq->flag |= SEQ_OVERLAP;
 				}
-			}
-			else {
-				calc_sequence_disp(seq);
 			}
 		}
 		seq_prev= seq;
@@ -3404,6 +3431,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 
 static void createTransGraphEditData(bContext *C, TransInfo *t)
 {
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
@@ -3416,7 +3444,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	bAnimListElem *ale;
 	int filter;
 	
-	BezTriple *bezt, *prevbezt;
+	BezTriple *bezt;
 	int count=0, i;
 	float cfra;
 	char side;
@@ -3435,7 +3463,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
 		
-		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
 		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
@@ -3456,29 +3484,28 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		else
 			cfra = (float)CFRA;
 		
+		/* F-Curve may not have any keyframes */
+		if (fcu->bezt == NULL)
+			continue;
+		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
-		if (fcu->bezt) {
-			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
-				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
-					if (v2d->around == V3D_LOCAL) {
-						/* for local-pivot we only need to count the number of selected handles only, so that centerpoitns don't
-						 * don't get moved wrong
-						 */
-						if (bezt->ipo == BEZT_IPO_BEZ) {
-							if (bezt->f1 & SELECT) count++;
-							if (bezt->f3 & SELECT) count++;
-						}
-						else if (bezt->f2 & SELECT) count++;
+		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
+				if (sipo->around == V3D_LOCAL) {
+					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
+					 * don't get moved wrong
+					 */
+					if (bezt->ipo == BEZT_IPO_BEZ) {
+						if (bezt->f1 & SELECT) count++;
+						if (bezt->f3 & SELECT) count++;
 					}
-					else {
-						/* for 'normal' pivots */
-						if (bezt->ipo == BEZT_IPO_BEZ) {
-							if (bezt->f1 & SELECT) count++;
-							if (bezt->f2 & SELECT) count++;
-							if (bezt->f3 & SELECT) count++;
-						}
-						else if (bezt->f2 & SELECT) count++;
-					}
+					else if (bezt->f2 & SELECT) count++; // TODO: could this cause problems?
+				}
+				else {
+					/* for 'normal' pivots - just include anything that is selected */
+					if (bezt->f1 & SELECT) count++;
+					if (bezt->f2 & SELECT) count++;
+					if (bezt->f3 & SELECT) count++;
 				}
 			}
 		}
@@ -3514,49 +3541,46 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
+			
+		/* F-Curve may not have any keyframes */
+		if (fcu->bezt == NULL)
+			continue;
 		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
-		bezt= fcu->bezt;
-		prevbezt= NULL;
-		
-		for (i=0; i < fcu->totvert; i++, prevbezt=bezt, bezt++) {
+		for (i=0, bezt= fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TransDataCurveHandleFlags *hdata = NULL;
 				short h1=1, h2=1;
 				
-				/* only include handles if selected, and interpolaton mode uses beztriples */
-				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
-					if (bezt->f1 & SELECT) {
-						hdata = initTransDataCurveHandes(td, bezt);
-						bezt_to_transdata(td++, td2d++, adt, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
-					}
-					else
-						h1= 0;
+				/* only include handles if selected, irrespective of the interpolation modes */
+				if (bezt->f1 & SELECT) {
+					hdata = initTransDataCurveHandles(td, bezt);
+					bezt_to_transdata(td++, td2d++, adt, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
 				}
-				if (bezt->ipo == BEZT_IPO_BEZ) {
-					if (bezt->f3 & SELECT) {
-						if (hdata==NULL)
-							hdata = initTransDataCurveHandes(td, bezt);
-						bezt_to_transdata(td++, td2d++, adt, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
-					}
-					else
-						h2= 0;
+				else
+					h1= 0;
+				if (bezt->f3 & SELECT) {
+					if (hdata==NULL)
+						hdata = initTransDataCurveHandles(td, bezt);
+					bezt_to_transdata(td++, td2d++, adt, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
 				}
+				else
+					h2= 0;
 				
 				/* only include main vert if selected */
 				if (bezt->f2 & SELECT) {
-					/* if scaling around individuals centers, do no include keyframes */
-					if (v2d->around != V3D_LOCAL) {
+					/* if scaling around individuals centers, do not include keyframes */
+					if (sipo->around != V3D_LOCAL) {
 						/* if handles were not selected, store their selection status */
 						if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
 							if (hdata == NULL)
-								hdata = initTransDataCurveHandes(td, bezt);
+								hdata = initTransDataCurveHandles(td, bezt);
 						}
 						
 						bezt_to_transdata(td++, td2d++, adt, bezt->vec[1], bezt->vec[1], 1, 0, intvals);
 					}
 					
-					/* special hack (must be done after initTransDataCurveHandes(), as that stores handle settings to restore...):
+					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
 					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
 					 *	  then check if we're using auto-handles.
 					 *	- If so, change them auto-handles to aligned handles so that handles get affected too
@@ -4089,6 +4113,100 @@ static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *
 	return tot;
 }
 
+static void freeSeqData(TransInfo *t)
+{
+	Editing *ed= seq_give_editing(t->scene, FALSE);
+
+	if(ed != NULL) {
+		ListBase *seqbasep= ed->seqbasep;
+		TransData *td= t->data;
+		int a;
+
+		/* prevent updating the same seq twice
+		 * if the transdata order is changed this will mess up
+		 * but so will TransDataSeq */
+		Sequence *seq_prev= NULL;
+		Sequence *seq;
+
+
+		if (!(t->state == TRANS_CANCEL)) {
+
+#if 0		// default 2.4 behavior
+
+			/* flush to 2d vector from internally used 3d vector */
+			for(a=0; a<t->total; a++, td++) {
+				if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
+				seq= ((TransDataSeq *)td->extra)->seq;
+					shuffle_seq(seqbasep, seq);
+				}
+
+				seq_prev= seq;
+			}
+
+#else		// durian hack
+			{
+				int overlap= 0;
+
+				for(a=0; a<t->total; a++, td++) {
+					seq_prev= NULL;
+					seq= ((TransDataSeq *)td->extra)->seq;
+					if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
+						overlap= 1;
+						break;
+					}
+					seq_prev= seq;
+				}
+
+				if(overlap) {
+					for(seq= seqbasep->first; seq; seq= seq->next)
+						seq->tmp= NULL;
+
+					td= t->data;
+					seq_prev= NULL;
+					for(a=0; a<t->total; a++, td++) {
+						seq= ((TransDataSeq *)td->extra)->seq;
+						if ((seq != seq_prev)) {
+							seq->tmp= 1;
+						}
+					}
+
+					shuffle_seq_time(seqbasep);
+				}
+			}
+#endif
+
+			for(seq= seqbasep->first; seq; seq= seq->next) {
+				/* We might want to build a list of effects that need to be updated during transform */
+				if(seq->type & SEQ_EFFECT) {
+					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
+					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
+					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
+				}
+			}
+
+			sort_seq(t->scene);
+		}
+		else {
+			/* Cancelled, need to update the strips display */
+			for(a=0; a<t->total; a++, td++) {
+				seq= ((TransDataSeq *)td->extra)->seq;
+				if ((seq != seq_prev) && (seq->depth==0)) {
+					calc_sequence_disp(seq);
+				}
+				seq_prev= seq;
+			}
+		}
+	}
+
+	if (t->customData) {
+		MEM_freeN(t->customData);
+		t->customData= NULL;
+	}
+	if (t->data) {
+		MEM_freeN(t->data); // XXX postTrans usually does this
+		t->data= NULL;
+	}
+}
 
 static void createTransSeqData(bContext *C, TransInfo *t)
 {
@@ -4106,6 +4224,8 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 		t->total= 0;
 		return;
 	}
+
+	t->customFree= freeSeqData;
 
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
@@ -4195,14 +4315,37 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 
 	td->loc = ob->loc;
 	VECCOPY(td->iloc, td->loc);
-
-	td->ext->rot = ob->rot;
-	VECCOPY(td->ext->irot, ob->rot);
-	VECCOPY(td->ext->drot, ob->drot);
 	
-	td->ext->quat = ob->quat;
-	QUATCOPY(td->ext->iquat, ob->quat);
-	QUATCOPY(td->ext->dquat, ob->dquat);
+	if (ob->rotmode > 0) {
+		td->ext->rot= ob->rot;
+		td->ext->rotAxis= NULL;
+		td->ext->rotAngle= NULL;
+		td->ext->quat= NULL;
+		
+		VECCOPY(td->ext->irot, ob->rot);
+		VECCOPY(td->ext->drot, ob->drot);
+	}
+	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+		td->ext->rot= NULL;
+		td->ext->rotAxis= ob->rotAxis;
+		td->ext->rotAngle= &ob->rotAngle;
+		td->ext->quat= NULL;
+		
+		td->ext->irotAngle= ob->rotAngle;
+		VECCOPY(td->ext->irotAxis, ob->rotAxis);
+		td->ext->drotAngle= ob->drotAngle;
+		VECCOPY(td->ext->drotAxis, ob->drotAxis);
+	}
+	else {
+		td->ext->rot= NULL;
+		td->ext->rotAxis= NULL;
+		td->ext->rotAngle= NULL;
+		td->ext->quat= ob->quat;
+		
+		QUATCOPY(td->ext->iquat, ob->quat);
+		QUATCOPY(td->ext->dquat, ob->dquat);
+	}
+	td->rotOrder=ob->rotmode;
 
 	td->ext->size = ob->size;
 	VECCOPY(td->ext->isize, ob->size);
@@ -4558,6 +4701,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 /* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
 /* note: this runs even when createTransData exits early because  (t->total==0), is this correct?... (campbell) */
+/* note: sequencer freeing has its own function now because of a conflict with transform's order of freeing (campbell)*/
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
@@ -4568,71 +4712,13 @@ void special_aftertrans_update(TransInfo *t)
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
-				EM_automerge(t->scene, t->obedit, 1);
+				EDBM_automerge(t->scene, t->obedit, 1);
 			}
 		}
 	}
-
-	if (t->spacetype == SPACE_SEQ) {
-		Editing *ed= seq_give_editing(t->scene, FALSE);
-		if (ed && !cancelled) {
-			ListBase *seqbasep= ed->seqbasep;
-			Sequence *seq;
-#if 0		// TRANSFORM_FIX_ME, Would prefer to use this since the array takes into
-			// account what where transforming (with extend, locked strips etc)
-			// But at the moment t->data is freed in postTrans so for now re-shuffeling selected strips works ok. - Campbell
-
-			int a;
-			TransData *td= t->data;
-
-			/* prevent updating the same seq twice
-			 * if the transdata order is changed this will mess up
-			 * but so will TransDataSeq */
-			Sequence *seq_prev= NULL;
-
-			/* flush to 2d vector from internally used 3d vector */
-			for(a=0; a<t->total; a++, td++) {
-				seq= ((TransDataSeq *)td->extra)->seq;
-				if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
-					shuffle_seq(seqbasep, seq);
-				}
-
-				seq_prev= seq;
-			}
-#else		// while t->data is not available...
-			int machine, max_machine = 0;
-
-			/* update in order so we always move bottom strips first */
-			for(seq= seqbasep->first; seq; seq= seq->next) {
-				max_machine = MAX2(max_machine, seq->machine);
-			}
-
-			for (machine = 0; machine <= max_machine; machine++)
-			{
-				for(seq= seqbasep->first; seq; seq= seq->next) {
-					if (seq->machine == machine && seq->depth == 0 && (seq->flag & (SELECT|SEQ_LEFTSEL|SEQ_RIGHTSEL)) != 0 && (seq->flag & SEQ_OVERLAP)) {
-						shuffle_seq(seqbasep, seq);
-					}
-				}
-			}
-#endif
-
-			for(seq= seqbasep->first; seq; seq= seq->next) {
-				/* We might want to build a list of effects that need to be updated during transform */
-				if(seq->type & SEQ_EFFECT) {
-					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
-					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
-					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
-				}
-			}
-
-			sort_seq(t->scene);
-		}
-
-		if (t->customData)
-			MEM_freeN(t->customData);
-		if (t->data)
-			MEM_freeN(t->data); // XXX postTrans usually does this
+	else if (t->spacetype == SPACE_SEQ) {
+		/* freeSeqData in transform_conversions.c does this
+		 * keep here so the else at the end wont run... */
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;

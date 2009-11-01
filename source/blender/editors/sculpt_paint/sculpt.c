@@ -1107,7 +1107,7 @@ char sculpt_modifiers_active(Object *ob)
    it's the last modifier on the stack and it is not on the first level */
 static struct MultiresModifierData *sculpt_multires_active(Object *ob)
 {
-	ModifierData *md;
+	ModifierData *md, *nmd;
 	
 	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
 		if(md->type == eModifierType_Multires) {
@@ -1115,12 +1115,11 @@ static struct MultiresModifierData *sculpt_multires_active(Object *ob)
 
 			/* Check if any of the modifiers after multires are active
 			 * if not it can use the multires struct */
-			for (md= md->next; md; md= md->next) {
-				if(md->mode & eModifierMode_Realtime)
-					return NULL;
-			}
+			for (nmd= md->next; nmd; nmd= nmd->next)
+				if(nmd->mode & eModifierMode_Realtime)
+					break;
 
-			if(mmd->lvl != 1)
+			if(!nmd && mmd->lvl != 1)
 				return mmd;
 		}
 	}

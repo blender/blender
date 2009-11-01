@@ -226,8 +226,6 @@ static void clear_global(void)
 //	free_vertexpaint();
 
 	G.main= NULL;
-	
-	G.f &= ~(G_FACESELECT);
 }
 
 /* make sure path names are correct for OS */
@@ -281,12 +279,15 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	Object *ob;
 	bScreen *curscreen= NULL;
 	Scene *curscene= NULL;
+	int recover;
 	char mode;
-	
+
 	/* 'u' = undo save, 'n' = no UI load */
 	if(bfd->main->screen.first==NULL) mode= 'u';
 	else if(G.fileflags & G_FILE_NO_UI) mode= 'n';
 	else mode= 0;
+
+	recover= (G.fileflags & G_FILE_RECOVER);
 	
 	clean_paths(bfd->main);
 	
@@ -371,6 +372,16 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if(G.main->versionfile < 250)
 		do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
 	
+	/* in case of autosave or quit.blend, use original filename instead */
+	if(recover && bfd->filename[0])
+		filename= bfd->filename;
+	
+	/* these are the same at times, should never copy to the same location */
+	if(G.sce != filename)
+		BLI_strncpy(G.sce, filename, FILE_MAX);
+	
+	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
+
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(CTX_data_scene(C));
 
@@ -382,11 +393,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	
 	/* now tag update flags, to ensure deformers get calculated on redraw */
 	DAG_scene_update_flags(CTX_data_scene(C), CTX_data_scene(C)->lay);
-	
-	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
-		strcpy(G.sce, filename);
-	
-	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 	
 	MEM_freeN(bfd);
 }

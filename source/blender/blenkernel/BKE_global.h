@@ -110,7 +110,7 @@ typedef struct Global {
 #define G_BACKBUFSEL	(1 <<  4)
 #define G_PICKSEL		(1 <<  5)
 
-#define G_FACESELECT	(1 <<  8)
+/* #define G_FACESELECT	(1 <<  8) use (mesh->editflag & ME_EDIT_PAINT_MASK) */
 
 #define G_DEBUG			(1 << 12)
 #define G_DOSCRIPTLINKS (1 << 13)
@@ -145,6 +145,7 @@ typedef struct Global {
 #define G_FILE_GLSL_NO_NODES	 (1 << 20)				/* deprecated */
 #define G_FILE_GLSL_NO_EXTRA_TEX (1 << 21)				/* deprecated */
 #define G_FILE_IGNORE_DEPRECATION_WARNINGS	(1 << 22)	/* deprecated */
+#define G_FILE_RECOVER			 (1 << 23)
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0

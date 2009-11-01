@@ -214,7 +214,7 @@ static void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr)
 
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 {
-	if(!GPU_extensions_minimum_support())
+	if(!GPU_glsl_support())
 		return 0;
 	if(G.f & G_PICKSEL)
 		return 0;
@@ -924,11 +924,11 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 		/* draw the circle/square representing spotbl */
 		if(la->type==LA_SPOT) {
 			float spotblcirc = fabs(z)*(1 - pow(la->spotblend, 2));
-			/* make sure the line is always visible - prevent it from reaching the outer border (or 0) 
-			 * values are kinda arbitrary - just what seemed to work well */
-			if (spotblcirc == 0) spotblcirc = 0.15;
-			else if (spotblcirc == fabs(z)) spotblcirc = fabs(z) - 0.07;
-			circ(0.0, 0.0, spotblcirc);
+			/* hide line if it is zero size or overlaps with outer border,
+			   previously it adjusted to always to show it but that seems
+			   confusing because it doesn't show the actual blend size */
+			if (spotblcirc != 0 && spotblcirc != fabs(z))
+				circ(0.0, 0.0, spotblcirc);
 		}
 		
 	}
@@ -2715,7 +2715,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 				GPU_buffer_unbind();
 			}
 			else {
-				finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0);
+				finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, em, 0);
 			}
 			GPU_buffer_free(buffer,0);
 
@@ -3831,7 +3831,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	//if(part->flag&PART_GLOB_TIME)
 	cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
 
-	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL)
+	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL && psys->childcache==NULL)
 		draw_as=PART_DRAW_DOT;
 
 /* 3. */
@@ -4182,6 +4182,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
 			totpart=0;
+		else if(psys->pathcache==NULL)
+			totpart=0;
 
 		/* draw actual/parent particles */
 		cache=psys->pathcache;
@@ -4328,7 +4330,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	PTCacheEditKey *key;
 	ParticleEditSettings *pset = PE_settings(scene);
 	int i, k, totpoint = edit->totpoint, timed = pset->flag & PE_FADE_TIME ? pset->fade_frames : 0;
-	int steps;
+	int steps=1;
 	char nosel[4], sel[4];
 	float sel_col[3];
 	float nosel_col[3];
@@ -5882,6 +5884,22 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob);
 
+	/* particle mode has to be drawn first so that possible child particles get cached in edit mode */
+	if(		(warning_recursive==0) &&
+			(flag & DRAW_PICKING)==0 &&
+			(!scene->obedit)	
+	  ) {
+
+		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+			PTCacheEdit *edit = PE_get_current(scene, ob);
+			if(edit) {
+				wmLoadMatrix(rv3d->viewmat);
+				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);
+				wmMultMatrix(ob->obmat);
+			}
+		}
+	}
+
 	/* code for new particle system */
 	if(		(warning_recursive==0) &&
 			(ob->particlesystem.first) &&
@@ -5905,21 +5923,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		
 		//glDepthMask(GL_TRUE);
 		if(col) cpack(col);
-	}
-	
-	if(		(warning_recursive==0) &&
-			(flag & DRAW_PICKING)==0 &&
-			(!scene->obedit)	
-	  ) {
-
-		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
-			PTCacheEdit *edit = PE_get_current(scene, ob);
-			if(edit) {
-				wmLoadMatrix(rv3d->viewmat);
-				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);
-				wmMultMatrix(ob->obmat);
-			}
-		}
 	}
 
 	/* draw code for smoke */
@@ -6264,7 +6267,7 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 	}
 }
 
-static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmooth_r)
+static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = userData;
 
@@ -6278,7 +6281,14 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 		return 0;
 	}
 }
+
 static int bbs_mesh_solid__setDrawOpts_legacy(void *userData, int index, int *drawSmooth_r)
+{
+	WM_set_framebuffer_index_color(index+1);
+	return 1;
+}
+
+static int bbs_mesh_solid_hide__setDrawOpts_legacy(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = userData;
 
@@ -6290,13 +6300,13 @@ static int bbs_mesh_solid__setDrawOpts_legacy(void *userData, int index, int *dr
 	}
 }
 
-/* TODO remove this - since face select mode now only works with painting */
 static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
 	MCol *colors;
 	int i,j;
+	int face_sel_mode = (me->flag & ME_EDIT_PAINT_MASK) ? 1:0;
 	
 	glColor3ub(0, 0, 0);
 		
@@ -6309,7 +6319,7 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 				ind = index[i];
 			else
 				ind = i;
-			if (!(me->mface[ind].flag&ME_HIDE)) {
+			if (face_sel_mode==0 || !(me->mface[ind].flag&ME_HIDE)) {
 				unsigned int fbindex = index_to_framebuffer(ind+1);
 				for(j=0;j<4;j++) {
 					colors[i*4+j].b = ((fbindex)&0xFF);
@@ -6325,10 +6335,13 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 		CustomData_add_layer( &dm->faceData, CD_ID_MCOL, CD_ASSIGN, colors, dm->numFaceData );
 		GPU_buffer_free(dm->drawObject->colors,0);
 		dm->drawObject->colors = 0;
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 1);
+
+		if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 1);
+		else				dm->drawMappedFaces(dm, NULL, me, 1);
 	}
 	else {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts_legacy, me, 0);
+		if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts_legacy, me, 0);
+		else				dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts_legacy, me, 0);
 	}
 
 	dm->release(dm);

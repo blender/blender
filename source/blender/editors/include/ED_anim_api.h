@@ -99,7 +99,7 @@ typedef struct bAnimListElem {
 	void 	*data;			/* source data this elem represents */
 	int 	type;			/* one of the ANIMTYPE_* values */
 	int		flag;			/* copy of elem's flags for quick access */
-	int 	index;			/* copy of adrcode where applicable */
+	int 	index;			/* for un-named data, the index of the data in it's collection */
 	
 	void	*key_data;		/* motion data - mostly F-Curves, but can be other types too */
 	short	datatype;		/* type of motion data to expect */
@@ -144,7 +144,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSMBALL,
 	ANIMTYPE_DSARM,
 	
-	ANIMTYPE_SHAPEKEY,		// XXX probably can become depreceated???
+	ANIMTYPE_SHAPEKEY,
 	
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
@@ -209,7 +209,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_MAT_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWMATS))
 #define FILTER_PART_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWPARTS))
 	/* 'Sub-object' channels (flags stored in Data block) */
-#define FILTER_SKE_OBJD(key) ((key->flag & KEYBLOCK_DS_EXPAND))
+#define FILTER_SKE_OBJD(key) ((key->flag & KEY_DS_EXPAND))
 #define FILTER_MAT_OBJD(ma) ((ma->flag & MA_DS_EXPAND))
 #define FILTER_LAM_OBJD(la) ((la->flag & LA_DS_EXPAND))
 #define FILTER_CAM_OBJD(ca) ((ca->flag & CAM_DS_EXPAND))
@@ -231,6 +231,10 @@ typedef enum eAnimFilter_Flags {
 	/* F-Curve Channels */
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED)==0)
 #define SEL_FCU(fcu) (fcu->flag & (FCURVE_ACTIVE|FCURVE_SELECTED))
+
+/* ShapeKey mode only */
+#define EDITABLE_SHAPEKEY(kb) ((kb->flag & KEYBLOCK_LOCKED)==0)
+#define SEL_SHAPEKEY(kb) (kb->flag & KEYBLOCK_SEL)
 
 /* Grease Pencil only */
 	/* Grease Pencil datablock settings */

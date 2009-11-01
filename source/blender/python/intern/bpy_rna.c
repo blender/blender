@@ -1590,7 +1590,7 @@ static int foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, cons
 
 static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 {
-	PyObject *item;
+	PyObject *item = NULL;
 	int i=0, ok, buffer_is_compat;
 	void *array= NULL;
 
@@ -2677,7 +2677,7 @@ PyObject *BPY_rna_props( void )
 
 static StructRNA *pyrna_struct_as_srna(PyObject *self)
 {
-	BPy_StructRNA *py_srna;
+	BPy_StructRNA *py_srna = NULL;
 	StructRNA *srna;
 	
 	/* ack, PyObject_GetAttrString wont look up this types tp_dict first :/ */

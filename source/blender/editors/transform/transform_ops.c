@@ -327,6 +327,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		t->flag |= T_MODAL; // XXX meh maybe somewhere else
 
+		op->flag |= OP_GRAB_POINTER; // XXX maybe we want this with the manipulator only?
 		return OPERATOR_RUNNING_MODAL;
 	}
 }

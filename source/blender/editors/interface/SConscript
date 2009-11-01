@@ -7,7 +7,7 @@ for source in env.Glob('*_api.c'):
 	sources.remove(source)
 
 incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc'
+incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc ../../gpu'
 incs += ' #/extern/glew/include'
 incs += ' ../../python/' # python button eval
 

@@ -719,7 +719,7 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 	EditFace *efa;
 	EditEdge *eed;
 	EditSelection *ese;
-	float *co;
+	float *co, (*keyco)[3]= NULL;
 	int tot, a, eekadoodle= 0;
 
 	em= MEM_callocN(sizeof(EditMesh), "editmesh");
@@ -732,7 +732,8 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 	
 	actkey = ob_get_keyblock(ob);
 	if(actkey) {
-		tot= actkey->totelem;
+		keyco= actkey->data;
+		em->shapenr= ob->shapenr;
 	}
 
 	/* make editverts */
@@ -745,8 +746,8 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 		co= mvert->co;
 
 		/* edit the shape key coordinate if available */
-		if(actkey && a < actkey->totelem)
-			co= (float*)actkey->data + 3*a;
+		if(keyco && a < actkey->totelem)
+			co= keyco[a];
 
 		eve= addvertlist(em, co, NULL);
 		evlist[a]= eve;
@@ -1129,7 +1130,8 @@ void load_editMesh(Scene *scene, Object *ob, EditMesh *em)
 
 	/* are there keys? */
 	if(me->key) {
-		KeyBlock *currkey, *actkey = ob_get_keyblock(ob);
+		KeyBlock *currkey;
+		KeyBlock *actkey= BLI_findlink(&me->key->block, em->shapenr-1);
 
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */
@@ -1146,7 +1148,7 @@ void load_editMesh(Scene *scene, Object *ob, EditMesh *em)
 			while(eve) {
 				if (eve->keyindex >= 0 && eve->keyindex < currkey->totelem) { // valid old vertex
 					if(currkey == actkey) {
-						if (actkey == me->key->refkey) {
+						if(actkey == me->key->refkey) {
 							VECCOPY(fp, mvert->co);
 						}
 						else {

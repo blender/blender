@@ -90,6 +90,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_slow_parent_set);
 	WM_operatortype_append(OBJECT_OT_slow_parent_clear);
 	WM_operatortype_append(OBJECT_OT_make_local);
+	WM_operatortype_append(OBJECT_OT_make_single_user);
 	WM_operatortype_append(OBJECT_OT_move_to_layer);
 
 	WM_operatortype_append(OBJECT_OT_select_inverse);
@@ -162,6 +163,11 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_deselect);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_linked);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
+	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
+	WM_operatortype_append(OBJECT_OT_vertex_group_normalize_all);
+	WM_operatortype_append(OBJECT_OT_vertex_group_invert);
+	WM_operatortype_append(OBJECT_OT_vertex_group_blend);
+	WM_operatortype_append(OBJECT_OT_vertex_group_clean);
 	WM_operatortype_append(OBJECT_OT_vertex_group_menu);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 
@@ -170,6 +176,9 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
 	WM_operatortype_append(OBJECT_OT_shape_key_remove);
+	WM_operatortype_append(OBJECT_OT_shape_key_clear);
+	WM_operatortype_append(OBJECT_OT_shape_key_mirror);
+	WM_operatortype_append(OBJECT_OT_shape_key_move);
 
 	WM_operatortype_append(LATTICE_OT_select_all_toggle);
 	WM_operatortype_append(LATTICE_OT_make_regular);
@@ -181,10 +190,19 @@ void ED_operatortypes_object(void)
 void ED_operatormacros_object(void)
 {
 	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
 	
 	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
+		WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	}
+
+	/* grr, should be able to pass options on... */
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	if(ot) {
+		otmacro= WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
+		RNA_boolean_set(otmacro->ptr, "linked", 1);
 		WM_operatortype_macro_define(ot, "TFM_OT_translate");
 	}
 }
@@ -249,15 +267,22 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "name", "INFO_MT_add");
 
+	WM_keymap_add_item(keymap, "OBJECT_OT_duplicates_make_real", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_object_apply");
 
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_single_user");
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0)->ptr, "linked", 1);
+	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move_linked", DKEY, KM_PRESS, KM_ALT, 0);
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_convert", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	
+	WM_keymap_add_item(keymap, "OBJECT_OT_make_local", LKEY, KM_PRESS, 0, 0);
+
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
@@ -272,6 +297,8 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+
+	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }
 
 void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet)

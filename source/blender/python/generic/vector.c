@@ -1271,7 +1271,7 @@ static PyObject *Vector_getSwizzle(VectorObject * self, void *closure)
    unchanged. */
 static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closure)
 {
-	VectorObject *vecVal;
+	VectorObject *vecVal = NULL;
 	PyObject *item;
 	size_t listLen;
 	float scalarVal;

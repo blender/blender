@@ -2216,6 +2216,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 	return buf;
 }
 
+/* Resolve the given RNA path to find the pointer+property indicated at the end of the path */
 int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
 	PropertyRNA *prop;

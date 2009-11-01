@@ -126,7 +126,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 	ED_keymap_anim(keyconf);
 	ED_keymap_animchannels(keyconf);
 	ED_keymap_gpencil(keyconf);
-	ED_keymap_object(keyconf);
+	ED_keymap_object(keyconf); /* defines lattice also */
 	ED_keymap_mesh(keyconf);
 	ED_keymap_uvedit(keyconf);
 	ED_keymap_curve(keyconf);
@@ -150,10 +150,6 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 }
 
 /* ********************** custom drawcall api ***************** */
-
-/* type */
-#define REGION_DRAW_PRE		1
-#define REGION_DRAW_POST	0
 
 typedef struct RegionDrawCB {
 	struct RegionDrawCB *next, *prev;

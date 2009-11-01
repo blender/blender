@@ -78,7 +78,6 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 	float visibility = 1.f;
 	
 	if(lar->shb) {
-		float dot=1.f;
 		float dxco[3]={0.f, 0.f, 0.f}, dyco[3]={0.f, 0.f, 0.f};
 		
 		visibility = testshadowbuf(&R, lar->shb, co, dxco, dyco, 1.0, 0.0);		
@@ -139,7 +138,8 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 		isect->skip = RE_SKIP_VLR_NEIGHBOUR;
 		isect->orig.face = (void*)shi->vlr;
 		isect->orig.ob = (void*)shi->obi;
-	} else if (intersect_type == VOL_BOUNDS_SS) {
+	} else { // if (intersect_type == VOL_BOUNDS_SS) {
+		isect->skip= 0;
 		isect->orig.face= NULL;
 		isect->orig.ob = NULL;
 	}

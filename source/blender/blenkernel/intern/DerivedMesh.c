@@ -1990,9 +1990,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	*final_r = NULL;
 
 	if(useDeform) {
-		if(useDeform > 0 && do_ob_key(scene, ob)) /* shape key makes deform verts */
-			deformedVerts = mesh_getVertexCos(me, &numVerts);
-		else if(inputVertexCos)
+		if(inputVertexCos)
 			deformedVerts = inputVertexCos;
 		
 		/* Apply all leading deforming modifiers */
@@ -2035,7 +2033,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		if(inputVertexCos)
 			deformedVerts = inputVertexCos;
 		else
-			deformedVerts = mesh_getRefKeyCos(me, &numVerts);
+			deformedVerts = mesh_getVertexCos(me, &numVerts);
 	}
 
 
@@ -2248,7 +2246,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
 	DerivedMesh *dm, *orcodm = NULL;
-	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL);
+	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL, 1);
 	LinkNode *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
@@ -2259,7 +2257,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	}
 
 	dm = NULL;
-	md = ob->modifiers.first;
+	md = modifiers_getVirtualModifierList(ob);
 	
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
@@ -2695,13 +2693,13 @@ int editbmesh_get_first_deform_matrices(Object *ob, BMEditMesh *em, float (**def
 	ModifierData *md;
 	DerivedMesh *dm;
 	int i, a, numleft = 0, numVerts = 0;
-	int cageIndex = modifiers_getCageIndex(ob, NULL);
+	int cageIndex = modifiers_getCageIndex(ob, NULL, 1);
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
 
 	modifiers_clearErrors(ob);
 
 	dm = NULL;
-	md = ob->modifiers.first;
+	md = modifiers_getVirtualModifierList(ob);
 
 	/* compute the deformation matrices and coordinates for the first
 	   modifiers with on cage editing that are enabled and support computing

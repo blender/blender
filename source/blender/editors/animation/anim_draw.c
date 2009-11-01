@@ -156,7 +156,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	glScalef(xscale, 1.0, 1.0);
 }
 
-/* General call for drawing current frame indicator in a */
+/* General call for drawing current frame indicator in animation editor */
 void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 {
 	Scene *scene= CTX_data_scene(C);

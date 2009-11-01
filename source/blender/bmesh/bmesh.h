@@ -177,6 +177,9 @@ typedef struct BMesh {
 
 	/*active face pointer*/
 	struct BMFace *act_face;
+
+	/*active shape key number, should really be in BMEditMesh, not here*/
+	int shapenr;
 } BMesh;
 
 typedef struct BMVert {	

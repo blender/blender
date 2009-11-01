@@ -192,7 +192,6 @@ static void *do_job_thread(void *job_v)
 {
 	wmJob *steve= job_v;
 	
-	steve->stop= steve->ready= 0;
 	steve->startjob(steve->run_customdata, &steve->stop, &steve->do_update);
 	steve->ready= 1;
 	
@@ -245,6 +244,9 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 				if(steve->initjob)
 					steve->initjob(steve->run_customdata);
 				
+				steve->stop= 0;
+				steve->ready= 0;
+
 				BLI_init_threads(&steve->threads, do_job_thread, 1);
 				BLI_insert_thread(&steve->threads, steve);
 
@@ -253,7 +255,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 			
 			/* restarted job has timer already */
 			if(steve->wt==NULL)
-				steve->wt= WM_event_add_window_timer(steve->win, TIMERJOBS, steve->timestep);
+				steve->wt= WM_event_add_timer(wm, steve->win, TIMERJOBS, steve->timestep);
 		}
 		else printf("job fails, not initialized\n");
 	}
@@ -269,7 +271,7 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *steve)
 	}
 	
 	if(steve->wt)
-		WM_event_remove_window_timer(steve->win, steve->wt);
+		WM_event_remove_timer(wm, steve->win, steve->wt);
 	if(steve->customdata)
 		steve->free(steve->customdata);
 	if(steve->run_customdata)
@@ -315,14 +317,14 @@ void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 }
 
 /* hardcoded to event TIMERJOBS */
-static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
+void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmJob *steve= wm->jobs.first;
+	wmJob *steve= wm->jobs.first, *stevenext;
 	
-	for(; steve; steve= steve->next) {
+	for(; steve; steve= stevenext) {
+		stevenext= steve->next;
 		
-		if(evt->customdata==steve->wt) {
+		if(steve->wt==wt) {
 			
 			/* running threads */
 			if(steve->threads.first) {
@@ -356,7 +358,7 @@ static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
 						WM_jobs_start(wm, steve);
 					}
 					else {
-						WM_event_remove_window_timer(steve->win, steve->wt);
+						WM_event_remove_timer(wm, steve->win, steve->wt);
 						steve->wt= NULL;
 						
 						/* remove steve */
@@ -368,23 +370,7 @@ static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
 			else if(steve->suspended) {
 				WM_jobs_start(wm, steve);
 			}
-			
-			return OPERATOR_FINISHED;
 		}
 	}
-	return OPERATOR_PASS_THROUGH;
 }
 
-void WM_OT_jobs_timer(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Jobs timer";
-	ot->idname= "WM_OT_jobs_timer";
-	ot->description="Jobs timer operator.";
-	
-	/* api callbacks */
-	ot->invoke= wm_jobs_timer;
-	
-	ot->poll= ED_operator_screenactive;
-	
-}

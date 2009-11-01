@@ -135,6 +135,7 @@ struct SeqEffectHandle {
 /* ********************* prototypes *************** */
 
 /* sequence.c */
+void printf_strip(struct Sequence *seq);
 
 // extern
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
@@ -181,6 +182,7 @@ int check_single_seq(struct Sequence *seq);
 void fix_single_seq(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test);
+int shuffle_seq_time(ListBase * seqbasep);
 void free_imbuf_seq(struct ListBase * seqbasep, int check_mem_usage);
 
 void seq_update_sound(struct Sequence *seq);

@@ -2235,7 +2235,18 @@ void DAG_id_flush_update(ID *id, short flag)
 				}
 			}
 		}
-
+		
+		/* set flags based on ShapeKey */
+		if(idtype == ID_KE) {
+			for(obt=bmain->object.first; obt; obt= obt->id.next) {
+				Key *key= ob_get_key(obt);
+				if(!(ob && obt == ob) && ((ID *)key == id)) {
+					obt->flag |= (OB_RECALC|OB_RECALC_DATA);
+					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+				}
+			}
+		}
+		
 		/* set flags based on particle settings */
 		if(idtype == ID_PA) {
 			ParticleSystem *psys;

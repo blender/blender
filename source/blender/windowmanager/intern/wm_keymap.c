@@ -415,15 +415,19 @@ wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
 	
 	/* first user defined keymaps */
 	km= wm_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
-	if(km)
+	if(km) {
+		km->poll= keymap->poll; /* lazy init */
 		return km;
+	}
 	
 	/* then user key config */
 	keyconf= wm_keyconfig_list_find(&wm->keyconfigs, U.keyconfigstr);
 	if(keyconf) {
 		km= wm_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
-		if(km)
+		if(km) {
+			km->poll= keymap->poll; /* lazy init */
 			return km;
+		}
 	}
 
 	/* then use default */

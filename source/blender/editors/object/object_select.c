@@ -95,7 +95,6 @@ void ED_base_object_select(Base *base, short mode)
 void ED_base_object_activate(bContext *C, Base *base)
 {
 	Scene *scene= CTX_data_scene(C);
-	Base *tbase;
 	
 	/* sets scene->basact */
 	BASACT= base;

@@ -102,8 +102,6 @@ void mouse_lattice(struct bContext *C, short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, char *name);
 
 /* object_shapekey.c */
-void insert_shapekey(struct Scene *scene, struct Object *ob);
-void delete_key(struct Scene *scene, struct Object *ob);
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
 void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
 void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);

@@ -82,6 +82,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_by_number_vertices);
+	WM_operatortype_append(MESH_OT_select_mirror);
 	WM_operatortype_append(MESH_OT_normals_make_consistent);
 	WM_operatortype_append(MESH_OT_merge);
 	WM_operatortype_append(MESH_OT_subdivide);
@@ -90,7 +91,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_plane_add);
 	WM_operatortype_append(MESH_OT_primitive_cube_add);
 	WM_operatortype_append(MESH_OT_primitive_circle_add);
-	WM_operatortype_append(MESH_OT_primitive_cylinder_add);
 	WM_operatortype_append(MESH_OT_primitive_tube_add);
 	WM_operatortype_append(MESH_OT_primitive_cone_add);
 	WM_operatortype_append(MESH_OT_primitive_grid_add);
@@ -105,7 +105,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_spin);
 	WM_operatortype_append(MESH_OT_screw);
 	
-	WM_operatortype_append(MESH_OT_vertices_transform_to_sphere);
 	WM_operatortype_append(MESH_OT_split);
 	WM_operatortype_append(MESH_OT_extrude_repeat);
 	WM_operatortype_append(MESH_OT_edge_rotate);
@@ -143,6 +142,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_flip_normals);
 	WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
+	WM_operatortype_append(MESH_OT_blend_from_shape);
 	
 	WM_operatortype_append(MESH_OT_uv_texture_add);
 	WM_operatortype_append(MESH_OT_uv_texture_remove);
@@ -236,8 +236,6 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_faces_select_linked_flat", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_edges_select_sharp", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
-	
-	WM_keymap_add_item(keymap, "MESH_OT_vertices_transform_to_sphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT , 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_edge_split", MKEY, KM_PRESS, 0, 0);
@@ -299,8 +297,10 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "name", "INFO_MT_mesh_add");
 	
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, 0, 0);
-						/* use KM_RELEASE because same key is used for tweaks */
-	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_RELEASE, KM_CTRL, 0);
+						/* use KM_RELEASE because same key is used for tweaks
+						 * TEMPORARY REMAP TO ALT+CTRL TO AVOID CONFLICT 
+						 * */
+	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_RELEASE, KM_CTRL|KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_delete", DELKEY, KM_PRESS, 0, 0);

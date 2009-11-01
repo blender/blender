@@ -29,6 +29,7 @@
 #define WM_H
 
 struct wmWindow;
+struct ReportList;
 
 typedef struct wmPaintCursor {
 	struct wmPaintCursor *next, *prev;
@@ -64,9 +65,16 @@ void wm_gesture_draw(struct wmWindow *win);
 int wm_gesture_evaluate(bContext *C, wmGesture *gesture);
 void wm_gesture_tag_redraw(bContext *C);
 
-/* wm_jobs.h */
-void WM_OT_jobs_timer(struct wmOperatorType *ot);
+/* wm_jobs.c */
+void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt);
 void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt);
+
+/* wm_files.c */
+void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt);
+void wm_autosave_timer_ended(wmWindowManager *wm);
+void wm_autosave_delete(void);
+void wm_autosave_read(bContext *C, struct ReportList *reports);
+void wm_autosave_location(char *filename);
 
 #endif /* WM_H */
 

@@ -165,6 +165,8 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 				return NULL;
 
 			memcpy(matrix, mat->contigPtr, sizeof(float) * mat->rowSize * mat->colSize);
+			argSize = mat->rowSize;
+			seqSize = mat->colSize;
 		}
 	}else{ //2-4 arguments (all seqs? all same size?)
 		for(i =0; i < argSize; i++){

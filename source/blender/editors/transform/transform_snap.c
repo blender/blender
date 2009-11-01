@@ -346,6 +346,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 {
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
+	Scene *scene = t->scene;
 	int snapping = 0;
 	short snap_mode = t->settings->snap_target;
 	
@@ -408,6 +409,15 @@ void initSnapping(TransInfo *t, wmOperator *op)
 			{
 				t->tsnap.mode = SNAP_ALL;
 			}
+		}
+		/* Particles edit mode*/
+		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
+			(snapping) && // Only if the snap flag is on
+			(obedit == NULL && BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT ))
+		{
+			t->tsnap.status |= SNAP_ON;
+			t->tsnap.modePoint = SNAP_GEO;
+			t->tsnap.mode = SNAP_ALL;
 		}
 		/* Object mode */
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
@@ -625,7 +635,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			DepthPeel *p1, *p2;
 			float *last_p = NULL;
 			float dist = FLT_MAX;
-			float p[3];
+			float p[3] = {0.0f, 0.0f, 0.0f};
 			
 			depth_peels.first = depth_peels.last = NULL;
 			
@@ -1468,8 +1478,19 @@ int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mv
 	if (mode == SNAP_ALL && obedit)
 	{
 		Object *ob = obedit;
-		
+
 		retval |= snapObject(scene, ar, ob, 1, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
+	}
+
+	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
+	 * which makes the loop skip it, even the derived mesh will never change
+	 *
+	 * To solve that problem, we do it first as an exception. 
+	 * */
+	if(BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT)
+	{
+		Object *ob = BASACT->object;
+		retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 	}
 	
 	base= FIRSTBASE;

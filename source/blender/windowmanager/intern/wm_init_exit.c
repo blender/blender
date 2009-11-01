@@ -287,7 +287,7 @@ void WM_exit(bContext *C)
 		BLI_cellalloc_destroy();
 		MEM_printmemlist();
 	}
-//	delete_autosave();
+	wm_autosave_delete();
 	
 	printf("\nBlender quit\n");
 	

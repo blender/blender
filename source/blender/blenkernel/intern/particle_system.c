@@ -3504,8 +3504,6 @@ static void psys_changed_physics(ParticleSimulationData *sim)
 	if(part->phystype == PART_PHYS_BOIDS && part->boids == NULL) {
 		BoidState *state;
 
-		psys_check_boid_data(sim->psys);
-
 		part->boids = MEM_callocN(sizeof(BoidSettings), "Boid Settings");
 		boid_default_settings(part->boids);
 
@@ -3518,6 +3516,8 @@ static void psys_changed_physics(ParticleSimulationData *sim)
 		state->flag |= BOIDSTATE_CURRENT;
 		BLI_addtail(&part->boids->states, state);
 	}
+
+	psys_check_boid_data(sim->psys);
 }
 static void particles_fluid_step(ParticleSimulationData *sim, int cfra)
 {	

@@ -75,6 +75,7 @@
 #define TIMER1			0x0112	/* timer event, slot for internal use */
 #define TIMER2			0x0113	/* timer event, slot for internal use */
 #define TIMERJOBS		0x0114  /* timer event, internal use */
+#define TIMERAUTOSAVE	0x0115  /* timer event, internal use */
 
 /* standard keyboard */
 #define AKEY		'a'
@@ -203,7 +204,7 @@
 #define ISMOUSE(event)	(event >= LEFTMOUSE && event <= WHEELOUTMOUSE)
 
 	/* test wether the event is timer event */
-#define ISTIMER(event)	(event >= TIMER && event <= TIMERJOBS)
+#define ISTIMER(event)	(event >= TIMER && event <= TIMERAUTOSAVE)
 
 	/* test wether the event is tweak event */
 #define ISTWEAK(event)	(event >= EVT_TWEAK_L && event <= EVT_GESTURE)

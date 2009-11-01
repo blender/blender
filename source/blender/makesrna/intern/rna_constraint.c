@@ -27,6 +27,8 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+#include "rna_internal.h"
+
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
@@ -37,36 +39,30 @@
 #include "WM_types.h"
 
 EnumPropertyItem constraint_type_items[] ={
-	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", 0, "Child Of", ""},
-	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", 0, "Transformation", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", 0, "Copy Location", ""},
-	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", 0, "Copy Rotation", ""},
-	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", 0, "Copy Scale", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_LOCLIMIT, "LIMIT_LOCATION", 0, "Limit Location", ""},
-	{CONSTRAINT_TYPE_ROTLIMIT, "LIMIT_ROTATION", 0, "Limit Rotation", ""},
-	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", 0, "Limit Scale", ""},
-	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", 0, "Limit Distance", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", 0, "Track To", ""},
-	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", 0, "Locked Track", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_MINMAX, "FLOOR", 0, "Floor", ""},
-	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", 0, "Shrinkwrap", ""},
-	{CONSTRAINT_TYPE_FOLLOWPATH, "FOLLOW_PATH", 0, "Follow Path", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", 0, "Clamp To", ""},
-	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO", 0, "Stretch To", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_KINEMATIC, "IK", 0, "IK", ""},
-	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", 0, "Rigid Body Joint", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_ACTION, "ACTION", 0, "Action", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", 0, "Script", ""},
-	{0, "", 0, NULL, NULL},
-	{CONSTRAINT_TYPE_NULL, "NULL", 0, "Null", ""},
+	{0, "", 0, "Transform", ""},
+	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", ICON_CONSTRAINT_DATA, "Transformation", ""},
+	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", ICON_CONSTRAINT_DATA, "Copy Location", ""},
+	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", ICON_CONSTRAINT_DATA, "Copy Rotation", ""},
+	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", ICON_CONSTRAINT_DATA, "Copy Scale", ""},
+	{CONSTRAINT_TYPE_LOCLIMIT, "LIMIT_LOCATION", ICON_CONSTRAINT_DATA, "Limit Location", ""},
+	{CONSTRAINT_TYPE_ROTLIMIT, "LIMIT_ROTATION", ICON_CONSTRAINT_DATA, "Limit Rotation", ""},
+	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", ICON_CONSTRAINT_DATA, "Limit Scale", ""},
+	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", ICON_CONSTRAINT_DATA, "Limit Distance", ""},
+	{0, "", 0, "Tracking", ""},
+	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To", ""},
+	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", ICON_CONSTRAINT_DATA, "Locked Track", ""},
+	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", ICON_CONSTRAINT_DATA, "Clamp To", ""},
+	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO",ICON_CONSTRAINT_DATA, "Stretch To", ""},
+	{CONSTRAINT_TYPE_KINEMATIC, "IK", ICON_CONSTRAINT_DATA, "Inverse Kinematics", ""},
+	{0, "", 0, "Relationship", ""},
+	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", ICON_CONSTRAINT_DATA, "Child Of", ""},
+	{CONSTRAINT_TYPE_MINMAX, "FLOOR", ICON_CONSTRAINT_DATA, "Floor", ""},
+	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", ICON_CONSTRAINT_DATA, "Shrinkwrap", ""},
+	{CONSTRAINT_TYPE_FOLLOWPATH, "FOLLOW_PATH", ICON_CONSTRAINT_DATA, "Follow Path", ""},
+	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", ICON_CONSTRAINT_DATA, "Rigid Body Joint", ""},
+	{CONSTRAINT_TYPE_ACTION, "ACTION", ICON_CONSTRAINT_DATA, "Action", ""},
+	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", ICON_CONSTRAINT_DATA, "Script", ""},
+
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem space_pchan_items[] = {
@@ -95,6 +91,7 @@ EnumPropertyItem constraint_ik_axisref_items[] ={
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
@@ -155,6 +152,10 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 {
 	bConstraint *con= ptr->data;
+	char oldname[32];
+	
+	/* make a copy of the old name first */
+	BLI_strncpy(oldname, con->name, sizeof(oldname));
 	
 	/* copy the new name into the name slot */
 	BLI_strncpy(con->name, value, sizeof(con->name));
@@ -168,6 +169,9 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 		if (list)
 			unique_constraint_name(con, list); 
 	}
+	
+	/* fix all the animation data which may link to this */
+	BKE_all_animdata_fix_paths_rename("constraints", oldname, con->name);
 }
 
 static char *rna_Constraint_path(PointerRNA *ptr)

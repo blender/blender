@@ -69,6 +69,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -96,10 +97,8 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "bmesh.h"
 
 /* XXX */
-static int extern_qread() {return 0;}
 static void waitcursor(int val) {}
 static int pupmenu() {return 0;}
-static int qtest() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
 
 /* XXX */
@@ -4245,6 +4244,7 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 
 /************************ Shape Operators *************************/
 
+#if 0
 void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 {
 	EditVert *ev = NULL;
@@ -4286,8 +4286,9 @@ void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	return;
 }
+#endif
 
-void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock)
+static int blend_from_shape_exec(bContext *C, wmOperator *op)
 {
 #if 0 //BMESH_TODO
 	EditVert *ev = NULL;
@@ -4295,65 +4296,34 @@ void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock
 	float perc = 0;
 	char str[64];
 	float *data, *odata;
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	Key *key= me->key;
+	EditMesh *em= BKE_mesh_get_editmesh(me);
+	EditVert *eve;
+	KeyBlock *kb;
+	float *data, co[3];
+	float blend= RNA_float_get(op->ptr, "blend");
+	int shape= RNA_enum_get(op->ptr, "shape");
+	int add= RNA_int_get(op->ptr, "add");
+	int blended= 0;
 
-	data  = fromBlock->data;
-	odata = thisBlock->data;
+	if(key && (kb= BLI_findlink(&key->block, shape))) {
+		data= kb->data;
 
-// XXX	getmouseco_areawin(mval);
-	curval[0] = mval[0] + 1; curval[1] = mval[1] + 1;
+		for(eve=em->verts.first; eve; eve=eve->next){
+			if(eve->f & SELECT) {
+				if(eve->keyindex >= 0 && eve->keyindex < kb->totelem) {
+					VECCOPY(co, data + eve->keyindex*3);
 
-	while (finished == 0)
-	{
-// XXX		getmouseco_areawin(mval);
-		if (mval[0] != curval[0] || mval[1] != curval[1])
-		{
+					if(add) {
+						VecMulf(co, blend);
+						VecAddf(eve->co, eve->co, co);
+					}
+					else
+						VecLerpf(eve->co, eve->co, co, blend);
 
-			if(mval[0] > curval[0])
-				perc += 0.1;
-			else if(mval[0] < curval[0])
-				perc -= 0.1;
-
-			if(perc < 0) perc = 0;
-			if(perc > 1) perc = 1;
-
-			curval[0] = mval[0];
-			curval[1] = mval[1];
-
-			if(fullcopy == 1){
-				perc = 1;
-			}
-
-			for(ev = em->verts.first; ev ; ev = ev->next){
-				if(ev->f & SELECT){
-					VecLerpf(ev->co,odata+(ev->keyindex*3),data+(ev->keyindex*3),perc);
-				}
-			}
-			sprintf(str,"Blending at %d%c  MMB to Copy at 100%c",(int)(perc*100),'%','%');
-//			DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-//			headerprint(str);
-//			force_draw(0);
-
-			if(fullcopy == 1){
-				break;
-			}
-
-		} else {
-			PIL_sleep_ms(10);
-		}
-
-		while(qtest()) {
-			short val=0;
-			event= extern_qread(&val);
-			if(val){
-				if(ELEM3(event, PADENTER, LEFTMOUSE, RETKEY)){
-					finished = 1;
-				}
-				else if (event == MIDDLEMOUSE){
-					fullcopy = 1;
-				}
-				else if (ELEM3(event,ESCKEY,RIGHTMOUSE,RIGHTMOUSE)){
-					canceled = 1;
-					finished = 1;
+					blended= 1;
 				}
 			}
 		}
@@ -4367,73 +4337,63 @@ void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock
 		}
 	return;
 #endif
+	return OPERATOR_CANCELLED;
 }
 
+static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= (obedit) ? obedit->data : NULL;
+	Key *key;
+	KeyBlock *kb, *actkb;
+	EnumPropertyItem tmp= {0, "", 0, "", ""}, *item= NULL;
+	int totitem= 0, a;
 
+	if(obedit && obedit->type == OB_MESH) {
+		key= me->key;
+		actkb= ob_get_keyblock(obedit);
 
-void shape_copy_select_from(Object *obedit, EditMesh *em, wmOperator *op)
+		if(key && actkb) {
+			for(kb=key->block.first, a=0; kb; kb=kb->next, a++) {
+				if(kb != actkb) {
+					tmp.value= a;
+					tmp.identifier= kb->name;
+					tmp.name= kb->name;
+					RNA_enum_item_add(&item, &totitem, &tmp);
+				}
+			}
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
+void MESH_OT_blend_from_shape(wmOperatorType *ot)
 {
-	Mesh* me = (Mesh*)obedit->data;
-	EditVert *ev = NULL;
-	int totverts = 0,curshape = obedit->shapenr;
+	PropertyRNA *prop;
+	static EnumPropertyItem shape_items[]= {{0, NULL, 0, NULL, NULL}};
 
-	Key*  ky = NULL;
-	KeyBlock *kb = NULL,*thisBlock = NULL;
-	int maxlen=32, nr=0, a=0;
-	char *menu;
+	/* identifiers */
+	ot->name= "Blend From Shape";
+	ot->description= "Blend in shape from a shape key.";
+	ot->idname= "MESH_OT_blend_from_shape";
 
-	if(me->key){
-		ky = me->key;
-	} else {
-		BKE_report(op->reports, RPT_ERROR, "Object Has No Key");
-		return;
-	}
+	/* api callbacks */
+	ot->exec= blend_from_shape_exec;
+	ot->invoke= WM_operator_props_popup;
+	ot->poll= ED_operator_editmesh;
 
-	if(ky->block.first){
-		for(kb=ky->block.first;kb;kb = kb->next){
-			maxlen += 40; // Size of a block name
-			if(a == curshape-1){
-					thisBlock = kb;
-			}
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-			a++;
-		}
-		a=0;
-		menu = MEM_callocN(maxlen, "Copy Shape Menu Text");
-		strcpy(menu, "Copy Vert Positions from Shape %t|");
-		for(kb=ky->block.first;kb;kb = kb->next){
-			if(a != curshape-1){
-				sprintf(menu,"%s %s %cx%d|",menu,kb->name,'%',a);
-			}
-			a++;
-		}
-// XXX		nr = pupmenu_col(menu, 20);
-		MEM_freeN(menu);
-	} else {
-		BKE_report(op->reports, RPT_ERROR, "Object Has No Blendshapes");
-		return;
-	}
-
-	a = 0;
-
-	for(kb=ky->block.first;kb;kb = kb->next){
-		if(a == nr){
-
-			for(ev = em->verts.first;ev;ev = ev->next){
-				totverts++;
-			}
-
-			if(me->totvert != totverts){
-				BKE_report(op->reports, RPT_ERROR, "Shape Has had Verts Added/Removed, please cycle editmode before copying");
-				return;
-			}
-			shape_copy_from_lerp(em, thisBlock,kb);
-
-			return;
-		}
-		a++;
-	}
-	return;
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending.");
+	RNA_def_enum_funcs(prop, shape_itemf);
+	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor.", -2.0f, 2.0f);
+	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather then blend between shapes.");
 }
 
 /************************ Merge Operator *************************/

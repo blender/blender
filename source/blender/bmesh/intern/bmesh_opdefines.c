@@ -468,11 +468,12 @@ BMOpDefine def_object_load_bmesh = {
 /*
   BMesh to Mesh
 
-  Converts a bmesh to a Mesh
+  Converts a bmesh to a Mesh.  This is reserved for exiting editmode.
 */
 BMOpDefine def_bmesh_to_mesh = {
 	"bmesh_to_mesh",
-	{{BMOP_OPSLOT_PNT, "meshptr"}, //pointer to a mesh structure to fill in
+	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a mesh structure to fill in
+	 {BMOP_OPSLOT_PNT, "object"}, //pointer to an object structure
 	 {BMOP_OPSLOT_INT, "notesselation"}, //don't calculate mfaces
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_to_mesh_exec,
@@ -482,11 +483,13 @@ BMOpDefine def_bmesh_to_mesh = {
 /*
   Mesh to BMesh
 
-  Load the contents of a mesh into the bmesh.
+  Load the contents of a mesh into the bmesh.  this bmop is private, it's
+  reserved exclusively for entering editmode.
 */
 BMOpDefine def_mesh_to_bmesh = {
 	"mesh_to_bmesh",
 	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a Mesh structure
+	 {BMOP_OPSLOT_PNT, "object"}, //pointer to an Object structure
 	 {0, /*null-terminating sentinel*/}},
 	mesh_to_bmesh_exec,
 	0

@@ -99,41 +99,43 @@ static int pupmenu() {return 0;}
 
 /* ****************************** MIRROR **************** */
 
-void EM_select_mirrored(Object *obedit, EditMesh *em)
+void EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em)
 {
-#if 0
-	if(em->selectmode & SCE_SELECT_VERTEX) {
-		EditVert *eve, *v1;
-		
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->f & SELECT) {
-				v1= editmesh_get_x_mirror_vert(obedit, em, eve->co);
-				if(v1) {
-					eve->f &= ~SELECT;
-					v1->f |= SELECT;
-				}
+	EditVert *eve, *eve_mirror;
+
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		eve->tmp.v= NULL;
+	}
+
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->tmp.v==NULL) {
+			eve_mirror = editmesh_get_x_mirror_vert(ob, em, eve->co);
+			if(eve_mirror) {
+				eve->tmp.v= eve_mirror;
+				eve_mirror->tmp.v = eve;
 			}
 		}
 	}
-#endif
 }
 
-void EM_automerge(int update) 
+void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
 {
-// XXX	int len;
-	
-//	if ((scene->automerge) &&
-//		(obedit && obedit->type==OB_MESH) &&
-//		(((Mesh*)obedit->data)->mr==NULL)
-//	  ) {
-//		len = removedoublesflag(1, 1, scene->toolsettings->doublimit);
-//		if (len) {
-//			em->totvert -= len; /* saves doing a countall */
-//			if (update) {
-//				DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-//			}
-//		}
-//	}
+
+	EditVert *eve;
+
+	EM_cache_x_mirror_vert(obedit, em);
+
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f & SELECT && eve->tmp.v) {
+			eve->tmp.v->f |= SELECT;
+
+			if(extend==FALSE)
+				eve->f &= ~SELECT;
+
+			/* remove the interference */
+			eve->tmp.v->tmp.v= eve->tmp.v= NULL;
+		}
+	}
 }
 
 /* ****************************** SELECTION ROUTINES **************** */
@@ -1247,6 +1249,39 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
 }
 
+
+int select_mirror_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+
+	int extend= RNA_boolean_get(op->ptr, "extend");
+
+	EM_select_mirrored(obedit, em, extend);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_mirror(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Mirror";
+	ot->description= "Select mesh items at mirrored locations.";
+	ot->idname= "MESH_OT_select_mirror";
+
+	/* api callbacks */
+	ot->exec= select_mirror_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
+}
+
 static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 {
 	/* Find edges that have exactly two neighboring faces,
@@ -2293,99 +2328,6 @@ void vertexnoise(Object *obedit, EditMesh *em)
 	recalc_editnormals(em);
 //	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
-}
-
-static void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, float perc)
-{
-	EditVert *eve;
-	float *curs, len, vec[3], cent[3], fac, facm, imat[3][3], bmat[3][3];
-	int tot;
-	
-// XXX	if(button(&perc, 1, 100, "Percentage:")==0) return;
-	
-	fac= perc/100.0f;
-	facm= 1.0f-fac;
-	
-	Mat3CpyMat4(bmat, obedit->obmat);
-	Mat3Inv(imat, bmat);
-
-	/* center */
-	curs= give_cursor(scene, v3d);
-	cent[0]= curs[0]-obedit->obmat[3][0];
-	cent[1]= curs[1]-obedit->obmat[3][1];
-	cent[2]= curs[2]-obedit->obmat[3][2];
-	Mat3MulVecfl(imat, cent);
-
-	len= 0.0;
-	tot= 0;
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & SELECT) {
-			tot++;
-			len+= VecLenf(cent, eve->co);
-		}
-		eve= eve->next;
-	}
-	len/=tot;
-	
-	if(len==0.0) len= 10.0;
-	
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & SELECT) {
-			vec[0]= eve->co[0]-cent[0];
-			vec[1]= eve->co[1]-cent[1];
-			vec[2]= eve->co[2]-cent[2];
-			
-			Normalize(vec);
-			
-			eve->co[0]= fac*(cent[0]+vec[0]*len) + facm*eve->co[0];
-			eve->co[1]= fac*(cent[1]+vec[1]*len) + facm*eve->co[1];
-			eve->co[2]= fac*(cent[2]+vec[2]*len) + facm*eve->co[2];
-			
-		}
-		eve= eve->next;
-	}
-	
-	recalc_editnormals(em);
-//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-
-}
-
-static int vertices_to_sphere_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	vertices_to_sphere(scene, v3d, obedit, em, RNA_float_get(op->ptr,"percent"));
-		
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_vertices_transform_to_sphere(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Vertices to Sphere";
-	//added "around cursor" to differentiate between "TFM_OT_tosphere()"
-	ot->description= "Move selected vertices outward in a spherical shape around cursor.";
-	ot->idname= "MESH_OT_vertices_transform_to_sphere";
-	
-	/* api callbacks */
-	ot->exec= vertices_to_sphere_exec;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
-	
-	/* props */
-	RNA_def_float(ot->srna, "percent", 100.0f, 0.0f, 100.0f, "Percent", "DOC_BROKEN", 0.01f, 100.0f);
 }
 
 void flipface(EditMesh *em, EditFace *efa)

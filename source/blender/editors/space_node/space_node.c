@@ -171,6 +171,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SPACE:
 			if(wmn->data==ND_SPACE_NODE)
 				ED_area_tag_refresh(sa);
+			else if(wmn->data==ND_SPACE_NODE_VIEW)
+				ED_area_tag_redraw(sa);
 			break;
 	}
 }

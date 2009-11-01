@@ -2278,14 +2278,19 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 	ParticleSettings *part = psys->part;
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
 	int totparent=0, between=0;
-	int steps = (int)pow(2.0,(double)part->draw_step);
+	int steps = (int)pow(2.0, (double)part->draw_step);
 	int totchild = psys->totchild;
 	int i, seed, totthread= threads[0].tot;
 
 	/*---start figuring out what is actually wanted---*/
-	if(psys_in_edit_mode(scene, psys))
+	if(psys_in_edit_mode(scene, psys)) {
+		ParticleEditSettings *pset = &scene->toolsettings->particle;
+
 		if(psys->renderdata==0 && (psys->edit==NULL || pset->flag & PE_DRAW_PART)==0)
 			totchild=0;
+
+		steps = (int)pow(2.0, (double)pset->draw_step);
+	}
 
 	if(totchild && part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
 		totparent=(int)(totchild*part->parents*0.3);
@@ -2361,7 +2366,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 	ParticleSystem *psys = ctx->sim.psys;
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey **cache= psys->childcache;
-	ParticleCacheKey **pcache= psys->pathcache;
+	ParticleCacheKey **pcache= psys_in_edit_mode(ctx->sim.scene, psys) ? psys->edit->pathcache : psys->pathcache;
 	ParticleCacheKey *state, *par = NULL, *key[4];
 	ParticleData *pa=NULL;
 	ParticleTexture ptex;
@@ -2372,6 +2377,9 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 	float eff_length, eff_vec[3];
 	int k, cpa_num;
 	short cpa_from;
+
+	if(!pcache)
+		return;
 
 	if(part->flag & PART_BRANCHING) {
 		branch_begin=rng_getFloat(thread->rng_path);
@@ -2955,7 +2963,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	
 	float birthtime = 0.0, dietime = 0.0;
 	float t, time = 0.0, keytime = 0.0, frs_sec;
-	float hairmat[4][4];
+	float hairmat[4][4], rotmat[3][3], prev_tangent[3];
 	int k,i;
 	int steps = (int)pow(2.0, (double)pset->draw_step);
 	int totpart = edit->totpoint;
@@ -2999,8 +3007,12 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 		/*--get the first data points--*/
 		init_particle_interpolation(ob, psys, pa, &pind);
 
-		if(psys)
+		if(psys) {
 			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+			VECCOPY(rotmat[0], hairmat[2]);
+			VECCOPY(rotmat[1], hairmat[1]);
+			VECCOPY(rotmat[2], hairmat[0]);
+		}
 
 		birthtime = pind.birthtime;
 		dietime = pind.dietime;
@@ -3021,8 +3033,54 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			do_particle_interpolation(psys, i, pa, t, frs_sec, &pind, &result);
 
 			 /* non-hair points are allready in global space */
-			if(psys && !(psys->flag & PSYS_GLOBAL_HAIR))
+			if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 				Mat4MulVecfl(hairmat, result.co);
+
+				/* create rotations for proper creation of children */
+				if(k) {
+					float cosangle, angle, tangent[3], normal[3], q[4];
+
+					if(k == 1) {
+						/* calculate initial tangent for incremental rotations */
+						VECSUB(tangent, ca->co, (ca - 1)->co);
+						VECCOPY(prev_tangent, tangent);
+						Normalize(prev_tangent);
+
+						/* First rotation is based on emitting face orientation.		*/
+						/* This is way better than having flipping rotations resulting	*/
+						/* from using a global axis as a rotation pole (vec_to_quat()). */
+						/* It's not an ideal solution though since it disregards the	*/
+						/* initial tangent, but taking that in to account will allow	*/
+						/* the possibility of flipping again. -jahka					*/
+						Mat3ToQuat_is_ok(rotmat, (ca-1)->rot);
+					}
+					else {
+						VECSUB(tangent, ca->co, (ca - 1)->co);
+						Normalize(tangent);
+
+						cosangle= Inpf(tangent, prev_tangent);
+
+						/* note we do the comparison on cosangle instead of
+						* angle, since floating point accuracy makes it give
+						* different results across platforms */
+						if(cosangle > 0.999999f) {
+							QUATCOPY((ca - 1)->rot, (ca - 2)->rot);
+						}
+						else {
+							angle= saacos(cosangle);
+							Crossf(normal, prev_tangent, tangent);
+							VecRotToQuat(normal, angle, q);
+							QuatMul((ca - 1)->rot, q, (ca - 2)->rot);
+						}
+
+						VECCOPY(prev_tangent, tangent);
+					}
+
+					if(k == steps)
+						QUATCOPY(ca->rot, (ca - 1)->rot);
+				}
+
+			}
 
 			VECCOPY(ca->co, result.co);
 
@@ -3054,6 +3112,11 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	}
 
 	edit->totcached = totpart;
+
+	if(psys && psys->part->type == PART_HAIR) {
+		ParticleSimulationData sim = {scene, ob, psys, psys_get_modifier(ob, psys), NULL};
+		psys_cache_child_paths(&sim, cfra, 1);
+	}
 }
 /************************************************/
 /*			Particle Key handling				*/
@@ -3766,6 +3829,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 		pind.keyed = keyed;
 		pind.cache = cached ? psys->pointcache : NULL;
 		pind.epoint = NULL;
+		pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
 		pind.dm = psys->hair_out_dm;
 		init_particle_interpolation(sim->ob, psys, pa, &pind);
 		do_particle_interpolation(psys, p, pa, t, frs_sec, &pind, state);

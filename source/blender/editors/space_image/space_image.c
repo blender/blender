@@ -211,6 +211,7 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_save_as", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	keymap= WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
@@ -429,15 +430,17 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 	draw_uvedit_main(sima, ar, scene, obedit);
 
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 		
 	/* Grease Pencil too (in addition to UV's) */
 	draw_image_grease_pencil((bContext *)C, 1); 
 
 	UI_view2d_view_restore(C);
-	
+
 	/* draw Grease Pencil - screen space only */
 	draw_image_grease_pencil((bContext *)C, 0);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	/* scrollers? */
 	/*scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

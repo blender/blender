@@ -258,7 +258,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT))
 					sel= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT);
 				
-				if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
+				if (ELEM3(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
 					switch (ale->type) {
 						case ANIMTYPE_SUMMARY:
 						{
@@ -306,17 +306,6 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					
 					if (ac->datatype == ANIMCONT_ACTION)
 						glRectf(act_start,  (float)y-ACHANNEL_HEIGHT_HALF,  act_end,  (float)y+ACHANNEL_HEIGHT_HALF);
-				}
-				else if (ac->datatype == ANIMCONT_SHAPEKEY) {
-					/* all frames that have a frame number less than one
-					 * get a desaturated orange background
-					 */
-					glColor4ub(col2[0], col2[1], col2[2], 0x22);
-					glRectf(0.0f, (float)y-ACHANNEL_HEIGHT_HALF, 1.0f, (float)y+ACHANNEL_HEIGHT_HALF);
-					
-					/* frames one and higher get a saturated orange background */
-					glColor4ub(col2[0], col2[1], col2[2], 0x44);
-					glRectf(1.0f, (float)y-ACHANNEL_HEIGHT_HALF, v2d->cur.xmax+EXTRA_SCROLL_PAD,  (float)y+ACHANNEL_HEIGHT_HALF);
 				}
 				else if (ac->datatype == ANIMCONT_GPENCIL) {
 					/* frames less than one get less saturated background */

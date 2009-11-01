@@ -261,7 +261,7 @@ static void editbmesh_apply_to_mirror(TransInfo *t)
 			continue;
 
 		eve = td->extra;
-		if(eve) {
+		if (eve) {
 			eve->co[0]= -td->loc[0];
 			eve->co[1]= td->loc[1];
 			eve->co[2]= td->loc[2];
@@ -270,8 +270,8 @@ static void editbmesh_apply_to_mirror(TransInfo *t)
 		if (td->flag & TD_MIRROR_EDGE)
 		{
 			td->loc[0] = 0;
+		}
 	}
-}
 }
 
 /* tags the given ID block for refreshes (if applicable) due to 
@@ -286,15 +286,8 @@ static void animedit_refresh_id_tags (Scene *scene, ID *id)
 		if (adt)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
-		/* if ID-block is Object, set recalc flags */
-		switch (GS(id->name)) {
-			case ID_OB:
-			{
-				Object *ob= (Object *)id;
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-			}
-				break;
-		}
+		/* set recalc flags */
+		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -352,11 +345,6 @@ void recalcData(TransInfo *t)
 	Scene *scene = t->scene;
 	Base *base = scene->basact;
 
-	if (t->obedit) {
-	}
-	else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
-		flushTransParticles(t);
-	}
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
 	}
@@ -683,144 +671,147 @@ void recalcData(TransInfo *t)
 				EDBM_RecalcNormals(em);
 				BMEdit_RecalcTesselation(em);
 			}
-		else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
-			bArmature *arm= t->obedit->data;
-			ListBase *edbo = arm->edbo;
-			EditBone *ebo;
-			TransData *td = t->data;
-			int i;
+			else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
+				bArmature *arm= t->obedit->data;
+				ListBase *edbo = arm->edbo;
+				EditBone *ebo;
+				TransData *td = t->data;
+				int i;
 				
-			/* Ensure all bones are correctly adjusted */
-			for (ebo = edbo->first; ebo; ebo = ebo->next){
+				/* Ensure all bones are correctly adjusted */
+				for (ebo = edbo->first; ebo; ebo = ebo->next){
 					
-				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
-					/* If this bone has a parent tip that has been moved */
-					if (ebo->parent->flag & BONE_TIPSEL){
-						VECCOPY (ebo->head, ebo->parent->tail);
-						if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
+					if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
+						/* If this bone has a parent tip that has been moved */
+						if (ebo->parent->flag & BONE_TIPSEL){
+							VECCOPY (ebo->head, ebo->parent->tail);
+							if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
+						}
+						/* If this bone has a parent tip that has NOT been moved */
+						else{
+							VECCOPY (ebo->parent->tail, ebo->head);
+							if(t->mode==TFM_BONE_ENVELOPE) ebo->parent->rad_tail= ebo->rad_head;
+						}
 					}
-					/* If this bone has a parent tip that has NOT been moved */
-					else{
-						VECCOPY (ebo->parent->tail, ebo->head);
-						if(t->mode==TFM_BONE_ENVELOPE) ebo->parent->rad_tail= ebo->rad_head;
-					}
-				}
 					
-				/* on extrude bones, oldlength==0.0f, so we scale radius of points */
-				ebo->length= VecLenf(ebo->head, ebo->tail);
-				if(ebo->oldlength==0.0f) {
-					ebo->rad_head= 0.25f*ebo->length;
-					ebo->rad_tail= 0.10f*ebo->length;
-					ebo->dist= 0.25f*ebo->length;
-					if(ebo->parent) {
-						if(ebo->rad_head > ebo->parent->rad_tail)
-							ebo->rad_head= ebo->parent->rad_tail;
+					/* on extrude bones, oldlength==0.0f, so we scale radius of points */
+					ebo->length= VecLenf(ebo->head, ebo->tail);
+					if(ebo->oldlength==0.0f) {
+						ebo->rad_head= 0.25f*ebo->length;
+						ebo->rad_tail= 0.10f*ebo->length;
+						ebo->dist= 0.25f*ebo->length;
+						if(ebo->parent) {
+							if(ebo->rad_head > ebo->parent->rad_tail)
+								ebo->rad_head= ebo->parent->rad_tail;
+						}
+					}
+					else if(t->mode!=TFM_BONE_ENVELOPE) {
+						/* if bones change length, lets do that for the deform distance as well */
+						ebo->dist*= ebo->length/ebo->oldlength;
+						ebo->rad_head*= ebo->length/ebo->oldlength;
+						ebo->rad_tail*= ebo->length/ebo->oldlength;
+						ebo->oldlength= ebo->length;
 					}
 				}
-				else if(t->mode!=TFM_BONE_ENVELOPE) {
-					/* if bones change length, lets do that for the deform distance as well */
-					ebo->dist*= ebo->length/ebo->oldlength;
-					ebo->rad_head*= ebo->length/ebo->oldlength;
-					ebo->rad_tail*= ebo->length/ebo->oldlength;
-					ebo->oldlength= ebo->length;
-				}
-			}
 				
 				
-			if (t->mode != TFM_BONE_ROLL)
-			{
-				/* fix roll */
-				for(i = 0; i < t->total; i++, td++)
+				if (t->mode != TFM_BONE_ROLL)
 				{
-					if (td->extra)
+					/* fix roll */
+					for(i = 0; i < t->total; i++, td++)
 					{
-						float vec[3], up_axis[3];
-						float qrot[4];
-							
-						ebo = td->extra;
-						VECCOPY(up_axis, td->axismtx[2]);
-							
-						if (t->mode != TFM_ROTATION)
+						if (td->extra)
 						{
-							VecSubf(vec, ebo->tail, ebo->head);
-							Normalize(vec);
-							RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
-							QuatMulVecf(qrot, up_axis);
-						}
-						else
-						{
-							Mat3MulVecfl(t->mat, up_axis);
-						}
+							float vec[3], up_axis[3];
+							float qrot[4];
 							
-						ebo->roll = ED_rollBoneToVector(ebo, up_axis);
+							ebo = td->extra;
+							VECCOPY(up_axis, td->axismtx[2]);
+							
+							if (t->mode != TFM_ROTATION)
+							{
+								VecSubf(vec, ebo->tail, ebo->head);
+								Normalize(vec);
+								RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
+								QuatMulVecf(qrot, up_axis);
+							}
+							else
+							{
+								Mat3MulVecfl(t->mat, up_axis);
+							}
+							
+							ebo->roll = ED_rollBoneToVector(ebo, up_axis);
+						}
 					}
 				}
+				
+				if(arm->flag & ARM_MIRROR_EDIT)
+					transform_armature_mirror_update(t->obedit);
+				
 			}
-				
-			if(arm->flag & ARM_MIRROR_EDIT)
-				transform_armature_mirror_update(t->obedit);
-				
+			else
+				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 		}
-		else
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-	}
-	else if( (t->flag & T_POSE) && t->poseobj) {
-		Object *ob= t->poseobj;
-		bArmature *arm= ob->data;
+		else if( (t->flag & T_POSE) && t->poseobj) {
+			Object *ob= t->poseobj;
+			bArmature *arm= ob->data;
 			
-		/* if animtimer is running, and the object already has animation data,
-		 * check if the auto-record feature means that we should record 'samples'
-		 * (i.e. uneditable animation values)
-		 */
-		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-			int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
-			
-			animrecord_check_state(t->scene, &ob->id, t->animtimer);
-			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
-		}
-			
-		/* old optimize trick... this enforces to bypass the depgraph */
-		if (!(arm->flag & ARM_DELAYDEFORM)) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-		}
-		else
-			where_is_pose(scene, ob);
-	}
-	else {
-		for(base= FIRSTBASE; base; base= base->next) {
-			Object *ob= base->object;
+			/* if animtimer is running, and the object already has animation data,
+			 * check if the auto-record feature means that we should record 'samples'
+			 * (i.e. uneditable animation values)
+			 */
+			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+			if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+				int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 				
-			/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
-			if(base->flag & BA_HAS_RECALC_OB)
-				ob->recalc |= OB_RECALC_OB;
-			if(base->flag & BA_HAS_RECALC_DATA)
-				ob->recalc |= OB_RECALC_DATA;
+				animrecord_check_state(t->scene, &ob->id, t->animtimer);
+				autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+			}
+			
+			/* old optimize trick... this enforces to bypass the depgraph */
+			if (!(arm->flag & ARM_DELAYDEFORM)) {
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+			}
+			else
+				where_is_pose(scene, ob);
+		}
+		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
+			flushTransParticles(t);
+		}
+		else {
+			for(base= FIRSTBASE; base; base= base->next) {
+				Object *ob= base->object;
 				
-			/* if object/base is selected */
-			if ((base->flag & SELECT) || (ob->flag & SELECT)) {
-				/* if animtimer is running, and the object already has animation data,
-				 * check if the auto-record feature means that we should record 'samples'
-				 * (i.e. uneditable animation values)
-				 */
-				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-					animrecord_check_state(t->scene, &ob->id, t->animtimer);
-					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
+				/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
+				if(base->flag & BA_HAS_RECALC_OB)
+					ob->recalc |= OB_RECALC_OB;
+				if(base->flag & BA_HAS_RECALC_DATA)
+					ob->recalc |= OB_RECALC_DATA;
+				
+				/* if object/base is selected */
+				if ((base->flag & SELECT) || (ob->flag & SELECT)) {
+					/* if animtimer is running, and the object already has animation data,
+					 * check if the auto-record feature means that we should record 'samples'
+					 * (i.e. uneditable animation values)
+					 */
+					// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+					if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+						animrecord_check_state(t->scene, &ob->id, t->animtimer);
+						autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
+					}
 				}
-			}
 				
-			/* proxy exception */
-			if(ob->proxy)
-				ob->proxy->recalc |= ob->recalc;
-			if(ob->proxy_group)
-				group_tag_recalc(ob->proxy_group->dup_group);
+				/* proxy exception */
+				if(ob->proxy)
+					ob->proxy->recalc |= ob->recalc;
+				if(ob->proxy_group)
+					group_tag_recalc(ob->proxy_group->dup_group);
+			}
 		}
-	}
 		
 		if(((View3D*)t->view)->drawtype == OB_SHADED)
-		reshadeall_displist(t->scene);
-}
+			reshadeall_displist(t->scene);
+	}
 }
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
@@ -964,11 +955,18 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->view = &ar->v2d;
 		t->around = sima->around;
 	}
+	else if(t->spacetype==SPACE_IPO) 
+	{
+		SpaceIpo *sipo= sa->spacedata.first;
+		t->view = &ar->v2d;
+		t->around = sipo->around;
+	}
 	else
 	{
 		// XXX for now, get View2D  from the active region
 		t->view = &ar->v2d;
 
+		// XXX for now, the center point is the midpoint of the data
 		t->around = V3D_CENTER;
 	}
 
@@ -1057,9 +1055,18 @@ void postTrans (TransInfo *t)
 {
 	TransData *td;
 
-	if (t->draw_handle)
-	{
-		ED_region_draw_cb_exit(t->ar->type, t->draw_handle);
+	if (t->draw_handle_view)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
+	if (t->draw_handle_pixel)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
+	
+
+	if (t->customFree) {
+		/* Can take over freeing t->data and data2d etc... */
+		t->customFree(t);
+	}
+	else if (t->customData) {
+		MEM_freeN(t->customData);
 	}
 
 	/* postTrans can be called when nothing is selected, so data is NULL already */
@@ -1090,13 +1097,14 @@ void postTrans (TransInfo *t)
 	{
 		MEM_freeN(t->mouse.data);
 	}
-	
+
 	if (t->customFree) {
 		t->customFree(t);
 	}
 	else if (t->customData) {
-			MEM_freeN(t->customData);
-	}}
+		MEM_freeN(t->customData);
+	}
+}
 
 void applyTransObjects(TransInfo *t)
 {
@@ -1205,6 +1213,18 @@ void calculateCenterCursor2D(TransInfo *t)
 	calculateCenter2D(t);
 }
 
+void calculateCenterCursorGraph2D(TransInfo *t)
+{
+	SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+	Scene *scene= t->scene;
+	
+	/* cursor is combination of current frame, and graph-editor cursor value */
+	t->center[0]= (float)(scene->r.cfra);
+	t->center[1]= sipo->cursorVal;
+	
+	calculateCenter2D(t);
+}
+
 void calculateCenterMedian(TransInfo *t)
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
@@ -1276,6 +1296,8 @@ void calculateCenter(TransInfo *t)
 	case V3D_CURSOR:
 		if(t->spacetype==SPACE_IMAGE)
 			calculateCenterCursor2D(t);
+		else if(t->spacetype==SPACE_IPO)
+			calculateCenterCursorGraph2D(t);
 		else
 			calculateCenterCursor(t);
 		break;

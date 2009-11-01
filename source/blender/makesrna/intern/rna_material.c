@@ -58,6 +58,7 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_node.h"
 
@@ -143,19 +144,8 @@ static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 
 static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)
 {
-	Material *ma= (Material*)ptr->data;
-	Material *ma_node= NULL;
-
-	/* used in buttons to check context, also checks for edited groups */
-
-	if(ma && ma->use_nodes && ma->nodetree) {
-		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);
-
-		if(node)
-			ma_node= (Material *)node->id;
-	}
-
-	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma_node);
+	Material *ma= give_node_material((Material*)ptr->data);
+	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
 }
 
 static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA value)
@@ -1338,8 +1328,8 @@ static void rna_def_material_specularity(StructRNA *srna)
 	 * multiple times, which may give somewhat strange changes in the outliner,
 	 * but in the UI they are never visible at the same time. */
 
-	prop= RNA_def_property(srna, "specular_hardness", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "har");
+	prop= RNA_def_property(srna, "specular_hardness", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "har");
 	RNA_def_property_range(prop, 1, 511);
 	RNA_def_property_ui_text(prop, "Specular Hardness", "");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
@@ -1599,6 +1589,11 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "invert_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ZINV);
 	RNA_def_property_ui_text(prop, "Invert Z Depth", "Renders material's faces with an inverted Z buffer (scanline only).");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop= RNA_def_property(srna, "z_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "zoffs");
+	RNA_def_property_ui_text(prop, "Z Offset", "Gives faces an artificial offset in the Z buffer for Z transparency.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "sky", PROP_BOOLEAN, PROP_NONE);
