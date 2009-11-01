@@ -32,7 +32,6 @@
 #define DNA_CONSTRAINT_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_ipo_types.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
 
@@ -41,9 +40,10 @@ struct Text;
 struct Ipo;
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
+// XXX depreceated... old AnimSys
 typedef struct bConstraintChannel {
 	struct bConstraintChannel *next, *prev;
-	Ipo			*ipo;
+	struct Ipo			*ipo;
 	short		flag;
 	char		name[30];
 } bConstraintChannel;
@@ -66,6 +66,7 @@ typedef struct bConstraint {
 	int			pad;
 	
 	struct Ipo *ipo;		/* local influence ipo or driver */ // XXX depreceated for 2.5... old animation system hack
+	
 	/* below are readonly fields that are set at runtime by the solver for use in the GE (only IK atm) */
 	float       lin_error;		/* residual error on constraint expressed in blender unit*/
 	float       rot_error;		/* residual error on constraint expressed in radiant */
@@ -122,7 +123,7 @@ typedef struct bPythonConstraint {
 } bPythonConstraint;
 
 
-/* inverse-Kinematics (IK) constraint
+/* Inverse-Kinematics (IK) constraint
    This constraint supports a variety of mode determine by the type field 
    according to B_CONSTRAINT_IK_TYPE.
    Some fields are used by all types, some are specific to some types
@@ -150,6 +151,27 @@ typedef enum B_CONSTRAINT_IK_TYPE {
 	CONSTRAINT_IK_COPYPOSE = 0,		/* 'standard' IK constraint: match position and/or orientation of target */
 	CONSTRAINT_IK_DISTANCE			/* maintain distance with target */
 } B_CONSTRAINT_IK_TYPE;
+
+
+/* Spline IK Constraint 
+ * Aligns 'n' bones to the curvature defined by the curve,
+ * with the chain ending on the bone that owns this constraint, 
+ * and starting on the nth parent.
+ */
+typedef struct bSplineIKConstraint {
+		/* target(s) */
+	Object 		*tar;		/* curve object (with follow path enabled) which drives the bone chain */
+	
+		/* binding details */
+	float 		*points;	/* array of numpoints items, denoting parametric positions along curve that joints should follow */
+	short 		numpoints;	/* number of points to bound in points array */
+	short		chainlen;	/* number of bones ('n') that are in the chain */
+	
+		/* settings */	
+	short flag;				/* general settings for constraint */
+	short upflag;			/* axis of bone that points up */
+} bSplineIKConstraint;
+
 
 /* Single-target subobject constraints ---------------------  */
 /* Track To Constraint */
@@ -378,9 +400,10 @@ typedef enum B_CONSTAINT_TYPES {
 	CONSTRAINT_TYPE_TRANSFORM,			/* transformation (loc/rot/size -> loc/rot/size) constraint */	
 	CONSTRAINT_TYPE_SHRINKWRAP,			/* shrinkwrap (loc/rot) constraint */
 	CONSTRAINT_TYPE_DAMPTRACK,			/* New Tracking constraint that minimises twisting */
+	CONSTRAINT_TYPE_SPLINEIK,			/* Spline-IK - Align 'n' bones to a curve */
 	
-	/* NOTE: everytime a new constraint is added, update this */
-	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_DAMPTRACK
+	/* NOTE: no constraints are allowed to be added after this */
+	NUM_CONSTRAINT_TYPES
 } B_CONSTRAINT_TYPES; 
 
 /* bConstraint->flag */
@@ -521,6 +544,13 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 	/* axis relative to target */
 #define CONSTRAINT_IK_TARGETAXIS	16384
 
+/* bSplineIKConstraint->flag */
+	/* chain has been attached to spline */
+#define CONSTRAINT_SPLINEIK_BOUND		(1<<0)
+	/* roll on chains is not determined by the constraint */
+#define CONSTRAINT_SPLINEIK_NO_TWIST	(1<<1)
+	/* root of chain is not influence by the constraint */
+#define CONSTRAINT_SPLINEIK_NO_ROOT		(1<<2)
 
 /* MinMax (floor) flags */
 #define MINMAX_STICKY	0x01

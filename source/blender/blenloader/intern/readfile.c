@@ -2288,6 +2288,11 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 			if (data->prop)
 				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
+		else if (cons->type == CONSTRAINT_TYPE_SPLINEIK) {
+			bSplineIKConstraint *data= cons->data;
+			
+			data->points= newdataadr(fd, data->points);
+		}
 	}
 }
 

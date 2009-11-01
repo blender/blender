@@ -1224,14 +1224,14 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					
 					QuatToMat4(quat, totmat);
 				}
-
+				
 				if (data->followflag & FOLLOWPATH_RADIUS) {
 					float tmat[4][4], rmat[4][4];
 					Mat4Scale(tmat, radius);
 					Mat4MulMat4(rmat, totmat, tmat);
 					Mat4CpyMat4(totmat, rmat);
 				}
-
+				
 				VECCOPY(totmat[3], vec);
 				
 				Mat4MulSerie(ct->matrix, ct->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1265,7 +1265,7 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		/* un-apply scaling caused by path */
 		if ((data->followflag & FOLLOWPATH_RADIUS)==0) { /* XXX - assume that scale correction means that radius will have some scale error in it - Campbell */
 			float obsize[3];
-
+			
 			Mat4ToSize(cob->matrix, obsize);
 			if (obsize[0])
 				VecMulf(cob->matrix[0], size[0] / obsize[0]);
@@ -3446,13 +3446,95 @@ static bConstraintTypeInfo CTI_DAMPTRACK = {
 	damptrack_evaluate /* evaluate */
 };
 
+/* ----------- Spline IK ------------ */
+
+static void splineik_free (bConstraint *con)
+{
+	bSplineIKConstraint *data= con->data;
+	
+	/* binding array */
+	if (data->points)
+		MEM_freeN(data->points);
+}	
+
+static void splineik_copy (bConstraint *con, bConstraint *srccon)
+{
+	bSplineIKConstraint *src= srccon->data;
+	bSplineIKConstraint *dst= con->data;
+	
+	/* copy the binding array */
+	dst->points= MEM_dupallocN(src->points);
+}
+
+static int splineik_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bSplineIKConstraint *data= con->data;
+		bConstraintTarget *ct;
+		
+		/* standard target-getting macro for single-target constraints without subtargets */
+		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+static void splineik_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bSplineIKConstraint *data= con->data;
+		bConstraintTarget *ct= list->first;
+		
+		/* the following macro is used for all standard single-target constraints */
+		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy)
+	}
+}
+
+static void splineik_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+{
+	if (VALID_CONS_TARGET(ct)) {
+		Curve *cu= ct->tar->data;
+		
+		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
+		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
+		 */
+		
+		/* only happens on reload file, but violates depsgraph still... fix! */
+		if (cu->path==NULL || cu->path->data==NULL)
+			makeDispListCurveTypes(cob->scene, ct->tar, 0);
+	}
+	
+	/* technically, this isn't really needed for evaluation, but we don't know what else
+	 * might end up calling this...
+	 */
+	if (ct)
+		Mat4One(ct->matrix);
+}
+
+static bConstraintTypeInfo CTI_SPLINEIK = {
+	CONSTRAINT_TYPE_SPLINEIK, /* type */
+	sizeof(bSplineIKConstraint), /* size */
+	"Spline IK", /* name */
+	"bSplineIKConstraint", /* struct name */
+	splineik_free, /* free data */
+	NULL, /* relink data */
+	splineik_copy, /* copy data */
+	NULL, /* new data */
+	splineik_get_tars, /* get constraint targets */
+	splineik_flush_tars, /* flush constraint targets */
+	splineik_get_tarmat, /* get target matrix */
+	NULL /* evaluate - solved as separate loop */
+};
+
 /* ************************* Constraints Type-Info *************************** */
 /* All of the constraints api functions use bConstraintTypeInfo structs to carry out
  * and operations that involve constraint specific code.
  */
 
 /* These globals only ever get directly accessed in this file */
-static bConstraintTypeInfo *constraintsTypeInfo[NUM_CONSTRAINT_TYPES+1];
+static bConstraintTypeInfo *constraintsTypeInfo[NUM_CONSTRAINT_TYPES];
 static short CTI_INIT= 1; /* when non-zero, the list needs to be updated */
 
 /* This function only gets called when CTI_INIT is non-zero */
@@ -3479,6 +3561,7 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[19]= &CTI_TRANSFORM;		/* Transformation Constraint */
 	constraintsTypeInfo[20]= &CTI_SHRINKWRAP;		/* Shrinkwrap Constraint */
 	constraintsTypeInfo[21]= &CTI_DAMPTRACK;		/* Damped TrackTo Constraint */
+	constraintsTypeInfo[22]= &CTI_SPLINEIK;			/* Spline IK Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only
@@ -3494,7 +3577,7 @@ bConstraintTypeInfo *get_constraint_typeinfo (int type)
 	
 	/* only return for valid types */
 	if ( (type >= CONSTRAINT_TYPE_NULL) && 
-		 (type <= NUM_CONSTRAINT_TYPES ) ) 
+		 (type < NUM_CONSTRAINT_TYPES ) ) 
 	{
 		/* there shouldn't be any segfaults here... */
 		return constraintsTypeInfo[type];

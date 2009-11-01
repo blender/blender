@@ -327,7 +327,7 @@ static void test_constraints (Object *owner, const char substring[])
 			
 			/* clear disabled-flag first */
 			curcon->flag &= ~CONSTRAINT_DISABLE;
-
+			
 			if (curcon->type == CONSTRAINT_TYPE_KINEMATIC) {
 				bKinematicConstraint *data = curcon->data;
 				
@@ -395,6 +395,26 @@ static void test_constraints (Object *owner, const char substring[])
 				if (data->lockflag+3==data->trackflag)
 					curcon->flag |= CONSTRAINT_DISABLE;
 			}
+			else if (curcon->type == CONSTRAINT_TYPE_SPLINEIK) {
+				bSplineIKConstraint *data = curcon->data;
+				
+				/* if the number of points does not match the amount required by the chain length,
+				 * free the points array and request a rebind...
+				 */
+				if ( (data->points == NULL) ||
+					 (!(data->flag & CONSTRAINT_SPLINEIK_NO_ROOT) && (data->numpoints != data->chainlen+1)) ||
+					 ( (data->flag & CONSTRAINT_SPLINEIK_NO_ROOT) && (data->numpoints != data->chainlen)) )
+				{
+					/* free the points array */
+					if (data->points) {
+						MEM_freeN(data->points);
+						data->points = NULL;
+					}
+					
+					/* clear the bound flag, forcing a rebind next time this is evaluated */
+					data->flag &= ~CONSTRAINT_SPLINEIK_BOUND;
+				}
+			}
 			
 			/* Check targets for constraints */
 			if (cti && cti->get_constraint_targets) {
@@ -414,7 +434,7 @@ static void test_constraints (Object *owner, const char substring[])
 					}
 					
 					/* target checks for specific constraints */
-					if (ELEM(curcon->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO)) {
+					if (ELEM3(curcon->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK)) {
 						if (ct->tar) {
 							if (ct->tar->type != OB_CURVE) {
 								ct->tar= NULL;
@@ -855,7 +875,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
 	{
 		free_constraints(&pchan->constraints);
-		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_CONST);
+		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_SPLINEIK|PCHAN_HAS_CONST);
 	}
 	CTX_DATA_END;
 	
@@ -947,6 +967,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			/* curve-based constraints - set the only_curve and only_ob flags */
 		case CONSTRAINT_TYPE_CLAMPTO:
 		case CONSTRAINT_TYPE_FOLLOWPATH:
+		case CONSTRAINT_TYPE_SPLINEIK:
 			only_curve= 1;
 			only_ob= 1;
 			add= 0;
@@ -1070,6 +1091,10 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		BKE_report(op->reports, RPT_ERROR, "IK Constraint can only be added to Bones.");
 		return OPERATOR_CANCELLED;
 	}
+	if ( (type == CONSTRAINT_TYPE_SPLINEIK) && ((!pchan) || (list != &pchan->constraints)) ) {
+		BKE_report(op->reports, RPT_ERROR, "Spline IK Constraint can only be added to Bones.");
+		return OPERATOR_CANCELLED;
+	}
 	
 	/* create a new constraint of the type requried, and add it to the active/given constraints list */
 	con = add_new_constraint(type);
@@ -1119,6 +1144,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	}
 	
 	/* do type-specific tweaking to the constraint settings  */
+	// TODO: does action constraint need anything here - i.e. spaceonce?
 	switch (type) {
 		case CONSTRAINT_TYPE_CHILDOF:
 		{

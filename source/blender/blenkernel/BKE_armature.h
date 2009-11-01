@@ -55,11 +55,14 @@ typedef struct PoseTarget
 typedef struct PoseTree
 {
 	struct PoseTree *next, *prev;
-
+	
+	int 	type;					/* type of IK that this serves (CONSTRAINT_TYPE_KINEMATIC or ..._SPLINEIK) */
+	int		totchannel;				/* number of pose channels */
+	
 	struct ListBase targets;		/* list of targets of the tree */
 	struct bPoseChannel	**pchan;	/* array of pose channels */
 	int		*parent;				/* and their parents */
-	int		totchannel;				/* number of pose channels */
+	
 	float	(*basis_change)[3][3]; 	/* basis change result from solver */
 	int		iterations;				/* iterations from the constraint */
 	int     stretch;				/* disable stretching */

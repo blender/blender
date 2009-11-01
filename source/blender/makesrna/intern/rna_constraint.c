@@ -55,6 +55,7 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", ICON_CONSTRAINT_DATA, "Clamp To", ""},
 	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO",ICON_CONSTRAINT_DATA, "Stretch To", ""},
 	{CONSTRAINT_TYPE_KINEMATIC, "IK", ICON_CONSTRAINT_DATA, "Inverse Kinematics", ""},
+	{CONSTRAINT_TYPE_SPLINEIK, "SPLINE_IK", ICON_CONSTRAINT_DATA, "Spline IK", ""},
 	{0, "", 0, "Relationship", ""},
 	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", ICON_CONSTRAINT_DATA, "Child Of", ""},
 	{CONSTRAINT_TYPE_MINMAX, "FLOOR", ICON_CONSTRAINT_DATA, "Floor", ""},
@@ -147,6 +148,8 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_ShrinkwrapConstraint;
 		case CONSTRAINT_TYPE_DAMPTRACK:
 			return &RNA_DampedTrackConstraint;
+		case CONSTRAINT_TYPE_SPLINEIK:
+			return &RNA_SplineIKConstraint;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -1169,7 +1172,7 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bClampToConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_pointer_sdna(prop, NULL, "tar"); // TODO: curve only!
 	RNA_def_property_ui_text(prop, "Target", "Target Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -1672,6 +1675,30 @@ static void rna_def_constraint_damped_track(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
+static void rna_def_constraint_spline_ik(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SplineIKConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Spline IK Constraint", "Align 'n' bones along a curve.");
+	RNA_def_struct_sdna_from(srna, "bSplineIKConstraint", "data");
+
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tar"); // TODO: curve only
+	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	
+	prop= RNA_def_property(srna, "chain_length", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "chainlen");
+	RNA_def_property_range(prop, 1, 255); // TODO: this should really check the max length of the chain the constraint is attached to
+	RNA_def_property_ui_text(prop, "Chain Length", "How many bones are included in the chain");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	
+	// TODO: add access to the positions array to allow more flexible aligning?
+}
+
 /* base struct for constraints */
 void RNA_def_constraint(BlenderRNA *brna)
 {
@@ -1773,6 +1800,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	rna_def_constraint_transform(brna);
 	rna_def_constraint_shrinkwrap(brna);
 	rna_def_constraint_damped_track(brna);
+	rna_def_constraint_spline_ik(brna);
 }
 
 #endif

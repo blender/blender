@@ -52,6 +52,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_anim.h"
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
@@ -1604,6 +1605,260 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 }
 
 
+/* ********************** SPLINE IK SOLVER ******************* */
+
+/* Temporary evaluation tree data used for Spline IK */
+typedef struct tSplineIK_Tree {
+	struct tSplineIK_Tree *next, *prev;
+	
+	int 	type;					/* type of IK that this serves (CONSTRAINT_TYPE_KINEMATIC or ..._SPLINEIK) */
+	
+	int chainlen;					/* number of bones in the chain */
+	bPoseChannel **chain;			/* chain of bones to affect using Spline IK (ordered from the tip) */
+	
+	bPoseChannel *root;				/* bone that is the root node of the chain */
+	
+	bConstraint *con;				/* constraint for this chain */
+	bSplineIKConstraint *ikData;	/* constraint settings for this chain */
+} tSplineIK_Tree;
+
+/* ----------- */
+
+/* Tag the bones in the chain formed by the given bone for IK */
+static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
+{
+	bPoseChannel *pchan, *pchanRoot=NULL;
+	bPoseChannel *pchanChain[255];
+	bConstraint *con = NULL;
+	bSplineIKConstraint *ikData = NULL;
+	float boneLengths[255];
+	float totLength = 0.0f;
+	int segcount = 0;
+	
+	/* find the SplineIK constraint */
+	for (con= pchan_tip->constraints.first; con; con= con->next) {
+		if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
+			ikData= con->data;
+			
+			/* target can only be curve */
+			if ((ikData->tar == NULL) || (ikData->tar->type != OB_CURVE))  
+				continue;
+			/* skip if disabled */
+			if ( (con->enforce == 0.0f) || (con->flag & (CONSTRAINT_DISABLE|CONSTRAINT_OFF)) )
+				continue;
+			
+			/* otherwise, constraint is ok... */
+			break;
+		}
+	}
+	if (con == NULL)
+		return;
+	
+	/* find the root bone and the chain of bones from the root to the tip 
+	 * NOTE: this assumes that the bones are connected, but that may not be true...
+	 */
+	for (pchan= pchan_tip; pchan; pchan= pchan->parent) {
+		/* store this segment in the chain */
+		pchanChain[segcount]= pchan;
+		
+		/* if performing rebinding, calculate the length of the bone */
+		if ((ikData->flag & CONSTRAINT_SPLINEIK_BOUND) == 0) {
+			boneLengths[segcount]= pchan->bone->length;
+			totLength += boneLengths[segcount];
+		}
+		
+		/* check if we've gotten the number of bones required yet (after incrementing the count first)
+		 * NOTE: the 255 limit here is rather ugly, but the standard IK does this too!
+		 */
+		segcount++;
+		if ((segcount == ikData->chainlen) || (segcount > 255))
+			break;
+	}
+	
+	if (segcount == 0)
+		return;
+	else
+		pchanRoot= pchanChain[segcount-1];
+	
+	/* perform binding step if required */
+	if ((ikData->flag & CONSTRAINT_SPLINEIK_BOUND) == 0) {
+		int i;
+		
+		/* setup new empty array for the points list */
+		if (ikData->points) 
+			MEM_freeN(ikData->points);
+		ikData->numpoints= (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT)? ikData->chainlen : ikData->chainlen+1;
+		ikData->points= MEM_callocN(sizeof(float)*ikData->numpoints, "Spline IK Binding");
+		
+		/* perform binding of the joints to parametric positions along the curve based 
+		 * proportion of the total length that each bone occupies
+		 */
+		for (i = 0; i < segcount; i++) {
+			if (i != 0) {
+				/* 'head' joints 
+				 * 	- 2 methods; the one chosen depends on whether we've got usable lengths
+				 */
+				if (totLength == 0.0f) {
+					/* 1) equi-spaced joints */
+					// TODO: maybe this should become an option too, in case we want this option by default
+					ikData->points[i]= (1.0f / (float)segcount); // TODO: optimize by puttig this outside the loop!
+				}
+				else {
+					 /*	2) to find this point on the curve, we take a step from the previous joint
+					  *	  a distance given by the proportion that this bone takes
+					  */
+					ikData->points[i]= ikData->points[i-1] - (boneLengths[i] / totLength);
+				}
+			}
+			else {
+				/* 'tip' of chain, special exception for the first joint */
+				ikData->points[0]= 1.0f;
+			}
+		}
+		
+		/* spline has now been bound */
+		ikData->flag |= CONSTRAINT_SPLINEIK_BOUND;
+	}
+	
+	/* make a new Spline-IK chain, and store it in the IK chains */
+	// TODO: we should check if there is already an IK chain on this, since that would take presidence...
+	{
+		/* make new tree */
+		tSplineIK_Tree *tree= MEM_callocN(sizeof(tSplineIK_Tree), "SplineIK Tree");
+		tree->type= CONSTRAINT_TYPE_SPLINEIK;
+		
+		tree->chainlen= segcount;
+		
+		/* copy over the array of links to bones in the chain (from tip to root) */
+		tree->chain= MEM_callocN(sizeof(bPoseChannel*)*segcount, "SplineIK Chain");
+		memcpy(tree->chain, pchanChain, sizeof(bPoseChannel*)*segcount);
+		
+		tree->root= pchanRoot;
+		tree->con= con;
+		tree->ikData= ikData;
+		
+		/* AND! link the tree to the root */
+		BLI_addtail(&pchanRoot->iktree, tree);
+	}
+	
+	/* mark root channel having an IK tree */
+	pchanRoot->flag |= POSE_IKSPLINE;
+}
+
+/* Tag which bones are members of Spline IK chains */
+static void splineik_init_tree(Scene *scene, Object *ob, float ctime)
+{
+	bPoseChannel *pchan;
+	
+	/* find the tips of Spline IK chains, which are simply the bones which have been tagged as such */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->constflag & PCHAN_HAS_SPLINEIK)
+			splineik_init_tree_from_pchan(ob, pchan);
+	}
+}
+
+/* ----------- */
+
+/* Evaluate spline IK for a given bone */
+// TODO: this method doesn't allow for non-strechiness...
+// TODO: include code for dealing with constraint blending
+static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChannel *pchan, int index)
+{
+	bSplineIKConstraint *ikData= tree->ikData;
+	float dirX[3]={1,0,0}, dirZ[3]={0,0,1};
+	float axis1[3], axis2[3], tmpVec[3];
+	float splineVec[3], scaleFac;
+	float vec[4], dir[3];
+	
+	/* step 1: get xyz positions for the endpoints of the bone */
+		/* tail */
+	if ( where_on_path(ikData->tar, ikData->points[index], vec, dir, NULL, NULL) ) {
+		/* convert the position to pose-space, then store it */
+		Mat4MulVecfl(ob->imat, vec);
+		VECCOPY(pchan->pose_tail, vec);
+	}
+		/* head */  // TODO: only calculate here when we're 
+	if ( where_on_path(ikData->tar, ikData->points[index+1], vec, dir, NULL, NULL) ) {
+		/* store the position, and convert it to pose space */
+		Mat4MulVecfl(ob->imat, vec);
+		VECCOPY(pchan->pose_head, vec);
+	}
+	
+	
+	/* step 2a: determine the implied transform from these endpoints 
+	 *	- splineVec: the vector direction that the spline applies on the bone
+	 *	- scaleFac: the factor that the bone length is scaled by to get the desired amount
+	 */
+	VecSubf(splineVec, pchan->pose_tail, pchan->pose_head);
+	scaleFac= VecLength(splineVec) / pchan->bone->length; // TODO: this will need to be modified by blending factor
+	
+	/* step 2b: the spline vector now becomes the y-axis of the bone
+	 *	- we need to normalise the splineVec first, so that it's just a unit direction vector
+	 */
+	Mat4One(pchan->pose_mat);
+	
+	Normalize(splineVec);
+	VECCOPY(pchan->pose_mat[1], splineVec);
+	
+	
+	/* step 3: determine two vectors which will both be at right angles to the bone vector 
+	 * 	based on the method described at 
+	 *		http://ltcconline.net/greenl/courses/203/Vectors/orthonormalBases.htm
+	 *	and normalise them to make sure they they don't act strangely
+	 */
+		/* x-axis = dirX - projection(dirX onto splineVec) */
+	Projf(axis1, dirX, splineVec); /* project dirX onto splineVec */
+	VecSubf(pchan->pose_mat[0], dirX, axis1);
+	
+	Normalize(pchan->pose_mat[0]);
+	
+		/* z-axis = dirZ - projection(dirZ onto splineVec) - projection(dirZ onto dirX) */
+	Projf(axis1, dirZ, splineVec);					/* project dirZ onto Y-Axis */
+	Projf(axis2, dirZ, pchan->pose_mat[0]); 		/* project dirZ onto X-Axis */
+	
+	VecSubf(tmpVec, dirZ, axis1); 					/* dirZ - proj(dirZ->YAxis) */
+	VecSubf(pchan->pose_mat[2], tmpVec, axis2); 	/* (dirZ - proj(dirZ->YAxis)) - proj(dirZ->XAxis) */
+	
+	Normalize(pchan->pose_mat[2]);
+	
+	
+	/* step 4a: multiply all the axes of the bone by the scaling factor to get uniform scaling */
+	// TODO: maybe this can be extended to give non-uniform scaling?
+	//VecMulf(pchan->pose_mat[0], scaleFac);
+	VecMulf(pchan->pose_mat[1], scaleFac);
+	//VecMulf(pchan->pose_mat[2], scaleFac);	
+	
+	/* step 5: set the location of the bone in the matrix */
+	VECCOPY(pchan->pose_mat[3], pchan->pose_head);
+	
+	/* done! */
+	pchan->flag |= POSE_DONE;
+}
+
+/* Evaluate the chain starting from the nominated bone */
+static void splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
+{
+	tSplineIK_Tree *tree;
+	
+	/* for each pose-tree, execute it if it is spline, otherwise just free it */
+	for (tree= pchan_root->iktree.first; tree; tree= pchan_root->iktree.first) {
+		/* only evaluate if tagged for Spline IK */
+		if (tree->type == CONSTRAINT_TYPE_SPLINEIK) {
+			int i;
+			
+			/* walk over each bone in the chain, calculating the effects of spline IK */
+			for (i= 0; i < tree->chainlen; i++) {
+				bPoseChannel *pchan= tree->chain[i];
+				splineik_evaluate_bone(tree, ob, pchan, i);
+			}
+		}
+		
+		/* free the tree info now */
+		if (tree->chain) MEM_freeN(tree->chain);
+		BLI_freelinkN(&pchan_root->iktree, tree);
+	}
+}
+
 /* ********************** THE POSE SOLVER ******************* */
 
 
@@ -1629,7 +1884,7 @@ void chan_calc_mat(bPoseChannel *chan)
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */
-		NormalQuat(chan->quat);
+		NormalQuat(chan->quat); // TODO: do this with local vars only!
 		QuatToMat3(chan->quat, rmat);
 	}
 	
@@ -1908,20 +2163,30 @@ void where_is_pose (Scene *scene, Object *ob)
 	}
 	else {
 		Mat4Invert(ob->imat, ob->obmat);	// imat is needed 
-
+		
 		/* 1. clear flags */
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			pchan->flag &= ~(POSE_DONE|POSE_CHAIN|POSE_IKTREE);
 		}
-		/* 2. construct the IK tree */
+		
+		/* 2a. construct the IK tree (standard IK) */
 		BIK_initialize_tree(scene, ob, ctime);
-
+		
+		/* 2b. construct the Spline IK trees 
+		 *  - this is not integrated as an IK plugin, since it should be able
+		 *	  to function in conjunction with standard IK
+		 */
+		splineik_init_tree(scene, ob, ctime);
+		
 		/* 3. the main loop, channels are already hierarchical sorted from root to children */
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			
-			/* 4. if we find an IK root, we handle it separated */
+			/* 4a. if we find an IK root, we handle it separated */
 			if(pchan->flag & POSE_IKTREE) {
 				BIK_execute_tree(scene, ob, pchan, ctime);
+			}
+			/* 4b. if we find a Spline IK root, we handle it separated too */
+			else if(pchan->flag & POSE_IKSPLINE) {
+				splineik_execute_tree(scene, ob, pchan, ctime);
 			}
 			/* 5. otherwise just call the normal solver */
 			else if(!(pchan->flag & POSE_DONE)) {
