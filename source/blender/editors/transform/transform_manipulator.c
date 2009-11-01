@@ -197,34 +197,51 @@ void gimbal_axis(Object *ob, float gmat[][3])
 		}
 
 		if(pchan) {
-			int i;
+			float mat[3][3], tmat[3][3], obmat[3][3];
 
-			EulToGimbalAxis(gmat, pchan->eul, pchan->rotmode);
+			EulToGimbalAxis(mat, pchan->eul, pchan->rotmode);
 
-			for (i=0; i<3; i++)
-				Mat3MulVecfl(pchan->bone->bone_mat, gmat[i]);
+			/* apply bone transformation */
+			Mat3MulMat3(tmat, pchan->bone->bone_mat, mat);
+			
+			if (pchan->parent)
+			{
+				float parent_mat[3][3];
 
-			if(pchan->parent) {
-				bPoseChannel *pchan_par= pchan->parent;
+				Mat3CpyMat4(parent_mat, pchan->parent->pose_mat);
+				Mat3MulMat3(mat, parent_mat, tmat);
 
-				float tmat[3][3];
-				Mat3CpyMat4(tmat, pchan_par->pose_mat);
-
-				for (i=0; i<3; i++)
-					Mat3MulVecfl(tmat, gmat[i]);
+				/* needed if object transformation isn't identity */
+				Mat3CpyMat4(obmat, ob->obmat);
+				Mat3MulMat3(gmat, obmat, mat);
+			}
+			else
+			{
+				/* needed if object transformation isn't identity */
+				Mat3CpyMat4(obmat, ob->obmat);
+				Mat3MulMat3(gmat, obmat, tmat);
 			}
 
-			/* needed if object trans isnt identity */
-			for (i=0; i<3; i++) {
-				float tmat[3][3];
-				Mat3CpyMat4(tmat, ob->obmat);
-				Mat3MulVecfl(tmat, gmat[i]);
-			}
+			Mat3Ortho(gmat);
 		}
 	}
 	else {
 		if(test_rotmode_euler(ob->rotmode)) {
-			EulToGimbalAxis(gmat, ob->rot, ob->rotmode);
+			
+			
+			if (ob->parent)
+			{
+				float parent_mat[3][3], amat[3][3];
+				
+				EulToGimbalAxis(amat, ob->rot, ob->rotmode);
+				Mat3CpyMat4(parent_mat, ob->parent->obmat);
+				Mat3Ortho(parent_mat);
+				Mat3MulMat3(gmat, parent_mat, amat);
+			}
+			else
+			{
+				EulToGimbalAxis(gmat, ob->rot, ob->rotmode);
+			}
 		}
 	}
 }
