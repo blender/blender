@@ -643,7 +643,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
             subsub.itemR(part, "adaptive_pix")
             sub.itemR(part, "hair_bspline")
             sub.itemR(part, "render_step", text="Steps")
-			
+
             sub = split.column()
             sub.itemL(text="Timing:")
             sub.itemR(part, "abs_path_time")

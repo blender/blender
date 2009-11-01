@@ -594,10 +594,10 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         row.itemL(text="To:")
         row.itemR(con, "track", expand=True)
-		
+
     def SPLINE_IK(self, context, layout, con):
         self.target_template(layout, con)
-        
+
         row = layout.row()
         row.itemR(con, "chain_length")
         # TODO: add the various options this constraint has...
