@@ -199,6 +199,7 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
         layout = self.layout
 
         layout.itemO("view3d.select_border")
+        layout.itemO("view3d.select_circle")
 
         layout.itemS()
 
@@ -208,7 +209,11 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
         layout.itemO("object.select_mirror", text="Mirror")
         layout.itemO("object.select_by_layer", text="Select All by Layer")
         layout.item_menu_enumO("object.select_by_type", "type", "", text="Select All by Type...")
-        layout.item_menu_enumO("object.select_grouped", "type", text="Select Grouped...")
+        
+        layout.itemS()
+        
+        layout.item_menu_enumO("object.select_grouped", "type", text="Grouped")
+        layout.item_menu_enumO("object.select_linked", "type", text="Linked")
         layout.itemO("object.select_pattern", text="Select Pattern...")
 
 
@@ -218,7 +223,7 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("view3d.select_border", text="Border Select...")
+        layout.itemO("view3d.select_border")
 
         layout.itemS()
 
@@ -268,7 +273,8 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("view3d.select_border", text="Border Select...")
+        layout.itemO("view3d.select_border")
+        layout.itemO("view3d.select_circle")
 
         layout.itemS()
 
@@ -314,8 +320,8 @@ class VIEW3D_MT_select_edit_curve(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("view3d.select_border", text="Border Select...")
-        layout.itemO("view3d.select_circle", text="Circle Select...")
+        layout.itemO("view3d.select_border")
+        layout.itemO("view3d.select_circle")
 
         layout.itemS()
 
@@ -343,8 +349,8 @@ class VIEW3D_MT_select_edit_surface(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("view3d.select_border", text="Border Select...")
-        layout.itemO("view3d.select_circle", text="Circle Select...")
+        layout.itemO("view3d.select_border")
+        layout.itemO("view3d.select_circle")
 
         layout.itemS()
 
@@ -400,7 +406,8 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("view3d.select_border", text="Border Select...")
+        layout.itemO("view3d.select_border")
+        
 
         layout.itemS()
 
@@ -687,6 +694,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.itemS()
 
         layout.itemO("pose.apply")
+        layout.itemO("pose.relax")
 
         layout.itemS()
 
@@ -946,7 +954,6 @@ class VIEW3D_MT_edit_mesh_faces(dynamic_menu.DynMenu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.itemO("mesh.flip_normals")
         # layout.itemO("mesh.bevel")
         # layout.itemO("mesh.bevel")
         layout.itemO("mesh.edge_face_add")
@@ -1023,7 +1030,7 @@ def draw_curve(self, context):
 
     layout.itemS()
 
-    layout.itemR(settings, "proportional_editing")
+    layout.item_menu_enumR(settings, "proportional_editing")
     layout.item_menu_enumR(settings, "proportional_editing_falloff")
 
     layout.itemS()
@@ -1085,7 +1092,7 @@ class VIEW3D_MT_edit_text(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.itemm("view3d_mt_edit_text_chars")
+        layout.itemM("VIEW3D_MT_edit_text_chars")
 
 
 class VIEW3D_MT_edit_text_chars(bpy.types.Menu):
@@ -1144,7 +1151,7 @@ class VIEW3D_MT_edit_meta(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.itemR(settings, "proportional_editing")
+        layout.item_menu_enumR(settings, "proportional_editing")
         layout.item_menu_enumR(settings, "proportional_editing_falloff")
 
         layout.itemS()
@@ -1179,7 +1186,7 @@ class VIEW3D_MT_edit_lattice(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.itemR(settings, "proportional_editing")
+        layout.item_menu_enumR(settings, "proportional_editing")
         layout.item_menu_enumR(settings, "proportional_editing_falloff")
 
 
