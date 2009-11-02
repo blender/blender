@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 __author__ = "Campbell Barton"
 __url__ = ['www.blender.org', 'blenderartists.org']
 __version__ = "1.2"
@@ -3332,44 +3350,44 @@ def write_ui():
 	
 	
 	# GLOBALS.clear()
-
+from bpy.props import *
 class EXPORT_OT_fbx(bpy.types.Operator):
 	'''Selection to an ASCII Autodesk FBX'''
-	__idname__ = "export.fbx"
-	__label__ = "Export FBX"
+	bl_idname = "export.fbx"
+	bl_label = "Export FBX"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= ""),
-		
-		bpy.props.BoolProperty(attr="EXP_OBS_SELECTED", name="Selected Objects", description="Export selected objects on visible layers", default=True),
-# 		bpy.props.BoolProperty(attr="EXP_OBS_SCENE", name="Scene Objects", description="Export all objects in this scene", default=True),
-		bpy.props.FloatProperty(attr="_SCALE", name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0),
-		bpy.props.BoolProperty(attr="_XROT90", name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True),
-		bpy.props.BoolProperty(attr="_YROT90", name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False),
-		bpy.props.BoolProperty(attr="_ZROT90", name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False),
-		bpy.props.BoolProperty(attr="EXP_EMPTY", name="Empties", description="Export empty objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_CAMERA", name="Cameras", description="Export camera objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_LAMP", name="Lamps", description="Export lamp objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_ARMATURE", name="Armatures", description="Export armature objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_MESH", name="Meshes", description="Export mesh objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_MESH_APPLY_MOD", name="Modifiers", description="Apply modifiers to mesh objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_MESH_HQ_NORMALS", name="HQ Normals", description="Generate high quality normals", default=True),
-		bpy.props.BoolProperty(attr="EXP_IMAGE_COPY", name="Copy Image Files", description="Copy image files to the destination path", default=False),
-		# armature animation
-		bpy.props.BoolProperty(attr="ANIM_ENABLE", name="Enable Animation", description="Export keyframe animation", default=True),
-		bpy.props.BoolProperty(attr="ANIM_OPTIMIZE", name="Optimize Keyframes", description="Remove double keyframes", default=True),
-		bpy.props.FloatProperty(attr="ANIM_OPTIMIZE_PRECISSION", name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0),
-# 		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True),
-		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="All Actions", description="Use all actions for armatures, if false, use current action", default=False),
-		# batch
-		bpy.props.BoolProperty(attr="BATCH_ENABLE", name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False),
-		bpy.props.BoolProperty(attr="BATCH_GROUP", name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False),
-		bpy.props.BoolProperty(attr="BATCH_OWN_DIR", name="Own Dir", description="Create a dir for each exported file", default=True),
-		bpy.props.StringProperty(attr="BATCH_FILE_PREFIX", name="Prefix", description="Prefix each file with this name", maxlen= 1024, default=""),
-	]
+	
+	path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= "")
+	
+	EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
+# 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
+	_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
+	_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True)
+	_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False)
+	_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False)
+	EXP_EMPTY = BoolProperty(name="Empties", description="Export empty objects", default=True)
+	EXP_CAMERA = BoolProperty(name="Cameras", description="Export camera objects", default=True)
+	EXP_LAMP = BoolProperty(name="Lamps", description="Export lamp objects", default=True)
+	EXP_ARMATURE = BoolProperty(name="Armatures", description="Export armature objects", default=True)
+	EXP_MESH = BoolProperty(name="Meshes", description="Export mesh objects", default=True)
+	EXP_MESH_APPLY_MOD = BoolProperty(name="Modifiers", description="Apply modifiers to mesh objects", default=True)
+	EXP_MESH_HQ_NORMALS = BoolProperty(name="HQ Normals", description="Generate high quality normals", default=True)
+	EXP_IMAGE_COPY = BoolProperty(name="Copy Image Files", description="Copy image files to the destination path", default=False)
+	# armature animation
+	ANIM_ENABLE = BoolProperty(name="Enable Animation", description="Export keyframe animation", default=True)
+	ANIM_OPTIMIZE = BoolProperty(name="Optimize Keyframes", description="Remove double keyframes", default=True)
+	ANIM_OPTIMIZE_PRECISSION = FloatProperty(name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0)
+# 	ANIM_ACTION_ALL = BoolProperty(name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True)
+	ANIM_ACTION_ALL = BoolProperty(name="All Actions", description="Use all actions for armatures, if false, use current action", default=False)
+	# batch
+	BATCH_ENABLE = BoolProperty(name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False)
+	BATCH_GROUP = BoolProperty(name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False)
+	BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
+	BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen= 1024, default="")
+	
 	
 	def poll(self, context):
 		print("Poll")
@@ -3411,7 +3429,7 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 	
 	def invoke(self, context, event):	
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
 

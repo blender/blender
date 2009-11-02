@@ -620,10 +620,9 @@ static void rna_def_filter_size_common(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	/* XXX: not sure about the name of this, "Min" seems a bit off */
-	prop= RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "filter_size_minimum", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_FILTER_MIN);
-	RNA_def_property_ui_text(prop, "Use Filter", "Use Filter Size as a minimal filter value in pixels");
+	RNA_def_property_ui_text(prop, "Minimum Filter Size", "Use Filter Size as a minimal filter value in pixels");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "filter_size", PROP_FLOAT, PROP_NONE);
@@ -1062,7 +1061,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem prop_normal_space[] = {
-		{MTEX_NSPACE_CAMERA, "CAMERA", 0, "Extend", ""},
+		{MTEX_NSPACE_CAMERA, "CAMERA", 0, "Camera", ""},
 		{MTEX_NSPACE_WORLD, "WORLD", 0, "World", ""},
 		{MTEX_NSPACE_OBJECT, "OBJECT", 0, "Object", ""},
 		{MTEX_NSPACE_TANGENT, "TANGENT", 0, "Tangent", ""},
@@ -1080,7 +1079,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mipmap_gauss", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_GAUSS_MIP);
-	RNA_def_property_ui_text(prop, "MIP Map Gauss", "Uses Gauss filter to sample down MIP maps");
+	RNA_def_property_ui_text(prop, "MIP Map Gaussian filter", "Uses Gauss filter to sample down MIP maps");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "interpolation", PROP_BOOLEAN, PROP_NONE);

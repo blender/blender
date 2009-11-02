@@ -413,6 +413,7 @@ extern StructRNA RNA_SoftBodyModifier;
 extern StructRNA RNA_SoftBodySettings;
 extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
+extern StructRNA RNA_SplineIKConstraint;
 extern StructRNA RNA_Space;
 extern StructRNA RNA_Space3DView;
 extern StructRNA RNA_SpaceConsole;

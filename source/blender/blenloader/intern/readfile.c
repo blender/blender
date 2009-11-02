@@ -2265,6 +2265,20 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->target = newlibadr(fd, id->lib, data->target);
 			}
 			break;
+		case CONSTRAINT_TYPE_DAMPTRACK:
+			{
+				bDampTrackConstraint *data;
+				data= ((bDampTrackConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data;
+				data= ((bSplineIKConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -2287,6 +2301,11 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 			data->prop = newdataadr(fd, data->prop);
 			if (data->prop)
 				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		}
+		else if (cons->type == CONSTRAINT_TYPE_SPLINEIK) {
+			bSplineIKConstraint *data= cons->data;
+			
+			data->points= newdataadr(fd, data->points);
 		}
 	}
 }
@@ -10725,6 +10744,18 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 			{
 				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->target);
+			}
+			break;
+		case CONSTRAINT_TYPE_DAMPTRACK:
+			{
+				bDampTrackConstraint *data = (bDampTrackConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data = (bSplineIKConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
 			}
 			break;
 		default:

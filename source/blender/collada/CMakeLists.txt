@@ -26,6 +26,24 @@
 
 FILE(GLOB SRC *.cpp)
 
+IF(APPLE)
+SET(INC
+  .
+  ../blenlib
+  ../blenkernel
+  ../windowmanager
+  ../makesdna
+  ../makesrna
+  ../editors/include
+  ../../../intern/guardedalloc
+  ${OPENCOLLADA_INC}/COLLADAStreamWriter
+  ${OPENCOLLADA_INC}/COLLADABaseUtils
+  ${OPENCOLLADA_INC}/COLLADAFramework
+  ${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader 
+)
+
+ELSE(APPLE)
+
 SET(INC
   .
   ../blenlib
@@ -40,5 +58,7 @@ SET(INC
   ${OPENCOLLADA}/COLLADAFramework/include
   ${OPENCOLLADA}/COLLADASaxFrameworkLoader/include 
 )
+
+ENDIF(APPLE)
 
 BLENDERLIB(bf_collada "${SRC}" "${INC}")

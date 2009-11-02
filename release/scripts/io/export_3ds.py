@@ -1,4 +1,22 @@
 # coding: utf-8
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 __author__ = ["Campbell Barton", "Bob Holcomb", "Richard Lärkäng", "Damien McGinnes", "Mark Stijnman"]
 __url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
 __version__ = "0.90a"
@@ -1090,19 +1108,19 @@ def save_3ds(filename, context):
 #     else:
 #         Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
 # # save_3ds('/test_b.3ds')
-
+from bpy.props import *
 class EXPORT_OT_autodesk_3ds(bpy.types.Operator):
 	'''Export to 3DS file format (.3ds).'''
-	__idname__ = "export.autodesk_3ds"
-	__label__ = 'Export 3DS'
+	bl_idname = "export.autodesk_3ds"
+	bl_label = 'Export 3DS'
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	__props__ = [
-		# bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= ""),
-	]
+	
+	# filename = StringProperty(name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
+	path = StringProperty(name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= "")
+
 	
 	def execute(self, context):
 		save_3ds(self.path, context)
@@ -1110,7 +1128,7 @@ class EXPORT_OT_autodesk_3ds(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 	
 	def poll(self, context): # Poll isnt working yet

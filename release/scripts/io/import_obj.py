@@ -1,3 +1,20 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
 __author__= "Campbell Barton", "Jiri Hnidek", "Paolo Ciccone"
 __url__= ['http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj', 'blender.org', 'blenderartists.org']
@@ -1553,31 +1570,33 @@ else:
 	print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
 '''
 
+from bpy.props import *
+
 class IMPORT_OT_obj(bpy.types.Operator):
 	'''Load a Wavefront OBJ File.'''
-	__idname__ = "import.obj"
-	__label__ = "Import OBJ"
+	bl_idname = "import.obj"
+	bl_label = "Import OBJ"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= ""),
+	
+	path = StringProperty(name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= "")
 
-		bpy.props.BoolProperty(attr="CREATE_SMOOTH_GROUPS", name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True),
-		bpy.props.BoolProperty(attr="CREATE_FGONS", name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True),
-		bpy.props.BoolProperty(attr="CREATE_EDGES", name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default= True),
-		bpy.props.BoolProperty(attr="SPLIT_OBJECTS", name="Object", description="Import OBJ Objects into Blender Objects", default= True),
-		bpy.props.BoolProperty(attr="SPLIT_GROUPS", name="Group", description="Import OBJ Groups into Blender Objects", default= True),
-		bpy.props.BoolProperty(attr="SPLIT_MATERIALS", name="Material", description="Import each material into a seperate mesh (Avoids > 16 per mesh error)", default= True),
-		# old comment: only used for user feedback
-		# disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
-		# bpy.props.BoolProperty(attr="KEEP_VERT_ORDER", name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True),
-		bpy.props.BoolProperty(attr="ROTATE_X90", name="-X90", description="Rotate X 90.", default= True),
-		bpy.props.FloatProperty(attr="CLAMP_SIZE", name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.01, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0),
-		bpy.props.BoolProperty(attr="POLYGROUPS", name="Poly Groups", description="Import OBJ groups as vertex groups.", default= True),
-		bpy.props.BoolProperty(attr="IMAGE_SEARCH", name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default= True),
-	]
+	CREATE_SMOOTH_GROUPS = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True)
+	CREATE_FGONS = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True)
+	CREATE_EDGES = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default= True)
+	SPLIT_OBJECTS = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default= True)
+	SPLIT_GROUPS = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default= True)
+	SPLIT_MATERIALS = BoolProperty(name="Material", description="Import each material into a seperate mesh (Avoids > 16 per mesh error)", default= True)
+	# old comment: only used for user feedback
+	# disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
+	# KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
+	ROTATE_X90 = BoolProperty(name="-X90", description="Rotate X 90.", default= True)
+	CLAMP_SIZE = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.01, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
+	POLYGROUPS = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default= True)
+	IMAGE_SEARCH = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default= True)
+	
 	
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
@@ -1599,7 +1618,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
 	
 	def invoke(self, context, event):	
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
 

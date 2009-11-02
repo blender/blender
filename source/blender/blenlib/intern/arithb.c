@@ -3471,28 +3471,25 @@ void EulToGimbalAxis(float gmat[][3], float *eul, short order)
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order);
 
-	float quat[4];
+	float mat[3][3];
 	float teul[3];
-	float tvec[3];
-	int i, a;
 
-	for(i= 0; i<3; i++) {
-		tvec[0]= tvec[1]= tvec[2]= 0.0f;
-		tvec[i] = 1.0f;
-
-		VecCopyf(teul, eul);
-
-		/* TODO - only works on XYZ and ZXY */
-		for(a= R->axis[i]; a >= 1; a--)
-			teul[R->axis[a-1]]= 0.0f;
-
-		EulOToQuat(teul, order, quat);
-		NormalQuat(quat);
-		QuatMulVecf(quat, tvec);
-		Normalize(tvec);
-
-		VecCopyf(gmat[i], tvec);
-	}
+	/* first axis is local */
+	EulOToMat3(eul, order, mat);
+	VecCopyf(gmat[R->axis[0]], mat[R->axis[0]]);
+	
+	/* second axis is local minus first rotation */
+	VecCopyf(teul, eul);
+	teul[R->axis[0]] = 0;
+	EulOToMat3(teul, order, mat);
+	VecCopyf(gmat[R->axis[1]], mat[R->axis[1]]);
+	
+	
+	/* Last axis is global */
+	gmat[R->axis[2]][0] = 0;
+	gmat[R->axis[2]][1] = 0;
+	gmat[R->axis[2]][2] = 0;
+	gmat[R->axis[2]][R->axis[2]] = 1;
 }
 
 /* ************ AXIS ANGLE *************** */

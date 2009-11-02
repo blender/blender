@@ -59,15 +59,13 @@ static EnumPropertyItem node_blend_type_items[] = {
 	{12, "HUE",          0, "Hue",         ""},
 	{16, "SOFT_LIGHT",   0, "Soft Light",  ""},
 	{17, "LINEAR_LIGHT", 0, "Linear Light",""},
-	{0, NULL, 0, NULL, NULL}
-};
+	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem node_flip_items[] = {
 	{0, "X",  0, "Flip X",     ""},
 	{1, "Y",  0, "Flip Y",     ""},
 	{2, "XY", 0, "Flip X & Y", ""},
-	{0, NULL, 0, NULL, NULL}
-};
+	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem node_math_items[] = {
 	{ 0, "ADD",          0, "Add",          ""},
@@ -87,8 +85,7 @@ static EnumPropertyItem node_math_items[] = {
 	{14, "ROUND",        0, "Round",        ""},
 	{15, "LESS_THAN",    0, "Less Than",    ""},
 	{16, "GREATER_THAN", 0, "Greater Than", ""},
-	{0, NULL, 0, NULL, NULL}
-};
+	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem node_vec_math_items[] = {
 	{0, "ADD",           0, "Add",           ""},
@@ -97,8 +94,7 @@ static EnumPropertyItem node_vec_math_items[] = {
 	{3, "DOT_PRODUCT",   0, "Dot Product",   ""},
 	{4, "CROSS_PRODUCT", 0, "Cross Product", ""},
 	{5, "NORMALIZE",     0, "Normalize",     ""},
-	{0, NULL, 0, NULL, NULL}
-};
+	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem node_filter_items[] = {
 	{0, "SOFTEN",  0, "Soften",  ""},
@@ -108,8 +104,7 @@ static EnumPropertyItem node_filter_items[] = {
 	{4, "PREWITT", 0, "Prewitt", ""},
 	{5, "KIRSCH",  0, "Kirsch",  ""},
 	{6, "SHADOW",  0, "Shadow",  ""},
-	{0, NULL, 0, NULL, NULL}
-};
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -583,8 +578,7 @@ static void def_cmp_blur(StructRNA *srna)
 		{R_FILTER_FAST_GAUSS, "FAST_GAUSS", 0, "Fast Gaussian", ""},
 		{R_FILTER_CATROM,     "CATROM",     0, "Catrom",        ""},
 		{R_FILTER_MITCH,      "MITCH",      0, "Mitch",         ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 
 	RNA_def_struct_sdna_from(srna, "NodeBlurData", "storage");
 	
@@ -766,8 +760,7 @@ static void def_cmp_levels(StructRNA *srna)
 		{3, "GREEN", 0, "G", "Green Channel"},
 		{4, "BLUE", 0, "B", "Blue Channel"},
 		{5, "LUMINANCE", 0, "L", "Luminance Channel"},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
@@ -785,8 +778,7 @@ static void def_cmp_image(StructRNA *srna)
 		{IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
 		{IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
 		{IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
-		{0, NULL, 0, NULL, NULL}
-	};*/
+		{0, NULL, 0, NULL, NULL}};*/
 	
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
@@ -949,8 +941,7 @@ static void def_cmp_scale(StructRNA *srna)
 		{0, "RELATIVE",   0, "Relative",   ""},
 		{1, "ABSOLUTE",   0, "Absolute",   ""},
 		{2, "SCENE_SIZE", 0, "Scene Size", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
@@ -1034,8 +1025,7 @@ static void def_cmp_color_spill(StructRNA *srna)
 		{1, "R", 0, "R", "Red Spill Suppression"},
 		{2, "G", 0, "G", "Green Spill Suppression"},
 		{3, "B", 0, "B", "Blue Spill Suppression"},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
@@ -1121,8 +1111,7 @@ static void def_cmp_channel_matte(StructRNA *srna)
 		{2, "HSV", 0, "HSV",   "HSV Color Space"},
 		{3, "YUV", 0, "YUV",   "YUV Color Space"},
 		{4, "YCC", 0, "YCbCr", "YCbCr Color Space"},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
@@ -1171,8 +1160,7 @@ static void def_cmp_splitviewer(StructRNA *srna)
 	static EnumPropertyItem axis_items[] = {
 		{0, "X",  0, "X",     ""},
 		{1, "Y",  0, "Y",     ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom2");
@@ -1221,8 +1209,7 @@ static void def_cmp_defocus(StructRNA *srna)
 		{4, "SQUARE",   0, "Square",     "4 sides"},
 		{3, "TRIANGLE", 0, "Triangular", "3 sides"},
 		{0, "CIRCLE",   0, "Circular",   ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	RNA_def_struct_sdna_from(srna, "NodeDefocus", "storage");
 	
@@ -1423,8 +1410,7 @@ static void def_cmp_premul_key(StructRNA *srna)
 	static EnumPropertyItem type_items[] = {
 		{0, "KEY_TO_PREMUL", 0, "Key to Premul", ""},
 		{1, "PREMUL_TO_KEY", 0, "Premul to Key", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
@@ -1443,15 +1429,13 @@ static void def_cmp_glare(StructRNA *srna)
 		{2, "STREAKS",     0, "Streaks",     ""},
 		{1, "FOG_GLOW",    0, "Fog Glow",    ""},
 		{0, "SIMPLE_STAR", 0, "Simple Star", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem quality_items[] = {
 		{0, "HIGH",   0, "High",   ""},
 		{1, "MEDIUM", 0, "Medium", ""},
 		{2, "LOW",    0, "Low",    ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	RNA_def_struct_sdna_from(srna, "NodeGlare", "storage");
 	
@@ -1530,8 +1514,7 @@ static void def_cmp_tonemap(StructRNA *srna)
 	static EnumPropertyItem type_items[] = {
 		{1, "RD_PHOTORECEPTOR", 0, "R/D Photoreceptor", ""},
 		{0, "RH_SIMPLE",        0, "Rh Simple",         ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+		{0, NULL, 0, NULL, NULL}};
 	
 	RNA_def_struct_sdna_from(srna, "NodeTonemap", "storage");
 	

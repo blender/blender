@@ -109,7 +109,9 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 	if(tree==NULL) {
 		/* make new tree */
 		tree= MEM_callocN(sizeof(PoseTree), "posetree");
-
+	
+		tree->type= CONSTRAINT_TYPE_KINEMATIC;
+		
 		tree->iterations= data->iterations;
 		tree->totchannel= segcount;
 		tree->stretch = (data->flag & CONSTRAINT_IK_STRETCH);
@@ -502,6 +504,10 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 	while(pchan->iktree.first) {
 		PoseTree *tree= pchan->iktree.first;
 		int a;
+		
+		/* stop on the first tree that isn't a standard IK chain */
+		if (tree->type != CONSTRAINT_TYPE_KINEMATIC)
+			return;
 		
 		/* 4. walk over the tree for regular solving */
 		for(a=0; a<tree->totchannel; a++) {

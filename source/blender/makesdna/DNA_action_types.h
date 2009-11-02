@@ -159,20 +159,30 @@ typedef struct bPoseChannel {
 
 /* PoseChannel (transform) flags */
 typedef enum ePchan_Flag {
-	POSE_LOC		=	0x0001,
-	POSE_ROT		=	0x0002,
-	POSE_SIZE		=	0x0004,
-	POSE_IK_MAT		=	0x0008,
-	POSE_UNUSED2	=	0x0010,
-	POSE_UNUSED3	=	0x0020,
-	POSE_UNUSED4	=	0x0040,
-	POSE_UNUSED5	=	0x0080,
-	POSE_HAS_IK		=	0x0100,
-	POSE_CHAIN		=	0x0200,
-	POSE_DONE		=   0x0400,
-	POSE_KEY		=	0x1000,
-	POSE_STRIDE		=	0x2000,
-	POSE_IKTREE		=   0x4000,
+		/* has transforms */
+	POSE_LOC		=	(1<<0),
+	POSE_ROT		=	(1<<1),
+	POSE_SIZE		=	(1<<2),
+		/* old IK/cache stuff... */
+	POSE_IK_MAT		=	(1<<3),
+	POSE_UNUSED2	=	(1<<4),
+	POSE_UNUSED3	=	(1<<5),
+	POSE_UNUSED4	=	(1<<6),
+	POSE_UNUSED5	=	(1<<7),
+		/* has Standard IK */
+	POSE_HAS_IK		=	(1<<8),
+		/* IK/Pose solving*/
+	POSE_CHAIN		=	(1<<9),
+	POSE_DONE		=   (1<<10),
+		/* visualisation */
+	POSE_KEY		=	(1<<11),
+	POSE_STRIDE		=	(1<<12),
+		/* standard IK solving */
+	POSE_IKTREE		=   (1<<13),
+		/* has Spline IK */
+	POSE_HAS_IKS	= 	(1<<14),
+		/* spline IK solving */
+	POSE_IKSPLINE	= 	(1<<15),
 } ePchan_Flag;
 
 /* PoseChannel constflag (constraint detection) */
@@ -183,7 +193,9 @@ typedef enum ePchan_ConstFlag {
 	PCHAN_HAS_ACTION	= (1<<2),
 	PCHAN_HAS_TARGET	= (1<<3),
 		/* only for drawing Posemode too */
-	PCHAN_HAS_STRIDE	= (1<<4)
+	PCHAN_HAS_STRIDE	= (1<<4),
+		/* spline IK */
+	PCHAN_HAS_SPLINEIK	= (1<<5),
 } ePchan_ConstFlag;
 
 /* PoseChannel->ikflag */
@@ -202,7 +214,6 @@ typedef enum ePchan_IkFlag {
 	BONE_IK_NO_XDOF_TEMP = (1<<10),
 	BONE_IK_NO_YDOF_TEMP = (1<<11),
 	BONE_IK_NO_ZDOF_TEMP = (1<<12),
-
 } ePchan_IkFlag;
 
 /* PoseChannel->rotmode and Object->rotmode */

@@ -247,9 +247,7 @@ void WM_exit(bContext *C)
 	BPY_end_python();
 #endif
 
-#if !(defined(__APPLE__) && defined(GHOST_COCOA))
 	libtiff_exit();
-#endif
 	
 #ifdef WITH_QUICKTIME
 	quicktime_exit();

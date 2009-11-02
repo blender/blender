@@ -10,15 +10,6 @@ sources = env.Glob('intern/*.cpp')
 if window_system == 'darwin':
 	sources += env.Glob('intern/*.mm')
 
-#if env['WITH_GHOST_COCOA'] == True:
-#	env.Append(CFLAGS=['-DGHOST_COCOA']) 
-#	env.Append(CXXFLAGS=['-DGHOST_COCOA'])
-#	env.Append(CPPFLAGS=['-DGHOST_COCOA'])
-
-#defs = ''
-#if env['WITH_GHOST_COCOA']:
-#	defs += 'GHOST_COCOA'
-# maybe we need it later
 
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window']
 

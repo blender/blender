@@ -2006,6 +2006,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
+	uiLayout *row;
 	int a, xco=0, maxco=0, yco= 0;
 	
 	block= uiLayoutAbsoluteBlock(layout);
@@ -2162,7 +2163,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 	
 		/* proportional falloff */
-		if((obedit && (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
+		if((obedit == NULL || (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		
 			uiBlockBeginAlign(block);
 			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,yco,XIC+10,YIC, &(ts->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
@@ -2246,7 +2247,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 		}
 
-		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
+		/* OpenGL Render */
+		row= uiLayoutRow(layout, 1);
+		uiItemO(row, "", ICON_RENDER_STILL, "SCREEN_OT_opengl_render");
+		uiItemBooleanO(row, "", ICON_RENDER_ANIMATION, "SCREEN_OT_opengl_render", "animation", 1);
+
 		
 		if (ob && (ob->mode & OB_MODE_POSE)) {
 			PointerRNA *but_ptr;

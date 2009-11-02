@@ -73,6 +73,7 @@ typedef struct Bone {
 typedef struct bArmature {
 	ID			id;
 	struct AnimData *adt;
+	
 	ListBase	bonebase;
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */

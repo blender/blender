@@ -601,8 +601,9 @@ static char *camera_adrcodes_to_paths (int adrcode, int *array_index)
 				return "ortho_scale";
 			else
 				return "lens"; 
+#else // XXX lazy hack for now...
+			return "lens";
 #endif // XXX this cannot be resolved easily
-			break;
 			
 		case CAM_STA:
 			return "clip_start";

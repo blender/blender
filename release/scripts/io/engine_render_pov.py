@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 import bpy
 
 from math import atan, pi, degrees
@@ -697,8 +715,8 @@ IntProperty(	attr="pov_radio_recursion_limit",
 	
 
 class PovrayRender(bpy.types.RenderEngine):
-	__idname__ = 'POVRAY_RENDER'
-	__label__ = "Povray"
+	bl_idname = 'POVRAY_RENDER'
+	bl_label = "Povray"
 	DELAY = 0.02
 	
 	def _export(self, scene):
@@ -826,33 +844,33 @@ class PovrayRender(bpy.types.RenderEngine):
 bpy.types.register(PovrayRender)
 
 # Use some of the existing buttons.
-import buttons_render
-buttons_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
-del buttons_render
+import properties_render
+properties_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
+del properties_render
 
 # Use only a subset of the world panels
-import buttons_world
-buttons_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_world.WORLD_PT_context_world.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
-del buttons_world
+import properties_world
+properties_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_world.WORLD_PT_context_world.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
+del properties_world
 
 # Example of wrapping every class 'as is'
-import buttons_material
-for member in dir(buttons_material):
-	subclass = getattr(buttons_material, member)
+import properties_material
+for member in dir(properties_material):
+	subclass = getattr(properties_material, member)
 	try:		subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
 	except:	pass
-del buttons_material
+del properties_material
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "render"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "render"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
@@ -860,7 +878,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 		return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel):
-	__label__ = "Radiosity"
+	bl_label = "Radiosity"
 	COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
 	def draw_header(self, context):

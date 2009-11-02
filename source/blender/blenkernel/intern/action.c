@@ -622,7 +622,7 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	}
 }
 
-/* checks for IK constraint, and also for Follow-Path constraint.
+/* checks for IK constraint, Spline IK, and also for Follow-Path constraint.
  * can do more constraints flags later 
  */
 /* pose should be entirely OK */
@@ -675,6 +675,8 @@ void update_pose_constraint_flags(bPose *pose)
 				if ((data->tar) && (data->tar->type==OB_CURVE))
 					pose->flag |= POSE_CONSTRAINTS_TIMEDEPEND;
 			}
+			else if (con->type == CONSTRAINT_TYPE_SPLINEIK)
+				pchan->constflag |= PCHAN_HAS_SPLINEIK;
 			else 
 				pchan->constflag |= PCHAN_HAS_CONST;
 		}
