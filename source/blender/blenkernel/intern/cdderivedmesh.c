@@ -1989,67 +1989,74 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 		VECCOPY(vert->no, vertNormals[i]);
 }
 
-/* adapted from mesh_calc_normals */
 void CDDM_calc_normals(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	float (*temp_nors)[3];
 	float (*face_nors)[3];
-	int i;
+	float (*vert_nors)[3];
+	int i, j, *origIndex;
 	int numVerts = dm->numVertData;
 	int numFaces = dm->numFaceData;
 	MFace *mf;
+	MPoly *mp;
 	MVert *mv;
+	MLoop *ml;
 
 	if(numVerts == 0) return;
 
-	temp_nors = MEM_callocN(numVerts * sizeof(*temp_nors),
-	                        "CDDM_calc_normals temp_nors");
+	if (CustomData_has_layer(&dm->faceData, CD_NORMAL))
+		CustomData_free_layer(&dm->faceData, CD_NORMAL, dm->numFaceData, 0);
 
-	/* we don't want to overwrite any referenced layers */
-	mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
-	cddm->mvert = mv;
+	/*recalc tesselation to ensure we have valid origindex values
+	  for mface->mpoly lookups.*/
+	cdDM_recalcTesselation(dm);
 
-	/* make a face normal layer if not present */
-	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
-	if(!face_nors)
-		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC,
-		                                 NULL, dm->numFaceData);
+	numFaces = dm->numFaceData;
 
-	/* calculate face normals and add to vertex normals */
-	mf = CDDM_get_tessfaces(dm);
-	for(i = 0; i < numFaces; i++, mf++) {
-		float *f_no = face_nors[i];
+	/*first go through and calculate normals for all the polys*/
+	temp_nors = MEM_callocN(sizeof(float)*3*dm->numPolyData, "temp_nors cdderivedmesh.c");
+	vert_nors = MEM_callocN(sizeof(float)*3*dm->numVertData, "vert_nors cdderivedmesh.c");
+	
+	mp = cddm->mpoly;
+	for (i=0; i<dm->numPolyData; i++, mp++) {
+		mesh_calc_poly_normal(mp, cddm->mloop+mp->loopstart, cddm->mvert, temp_nors[i]);
 
-		if(mf->v4)
-			CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
-			               mv[mf->v3].co, mv[mf->v4].co, f_no);
-		else
-			CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
-			              mv[mf->v3].co, f_no);
-		
-		VecAddf(temp_nors[mf->v1], temp_nors[mf->v1], f_no);
-		VecAddf(temp_nors[mf->v2], temp_nors[mf->v2], f_no);
-		VecAddf(temp_nors[mf->v3], temp_nors[mf->v3], f_no);
-		if(mf->v4)
-			VecAddf(temp_nors[mf->v4], temp_nors[mf->v4], f_no);
+		ml = cddm->mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			VECADD(vert_nors[ml->v], vert_nors[ml->v], temp_nors[i]);
+		}
 	}
 
-	/* normalize vertex normals and assign */
-	for(i = 0; i < numVerts; i++, mv++) {
-		float *no = temp_nors[i];
+	face_nors = MEM_callocN(sizeof(float)*3*dm->numFaceData, "face_nors cdderivedmesh.c");
+	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, face_nors, dm->numFaceData);
+	origIndex = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX);
+
+	mf = cddm->mface;
+	for (i=0; i<dm->numFaceData; i++, mf++, origIndex++) {
+		VECCOPY(face_nors[i], temp_nors[*origIndex]);
+	}
+
+	mv = cddm->mvert;
+	for (i=0; i<dm->numVertData; i++, mv++) {
+		float *no = vert_nors[i];
 		
 		if (Normalize(no) == 0.0) {
 			VECCOPY(no, mv->co);
-			Normalize(no);
+			if (Normalize(no) == 0.0) {
+				no[0] = 0.0f;
+				no[1] = 0.0f;
+				no[2] = 1.0f;
+			}
 		}
 
-		mv->no[0] = (short)(no[0] * 32767.0);
-		mv->no[1] = (short)(no[1] * 32767.0);
-		mv->no[2] = (short)(no[2] * 32767.0);
+		mv->no[0] = (short)(no[0] * 32767.0f);
+		mv->no[1] = (short)(no[1] * 32767.0f);
+		mv->no[2] = (short)(no[2] * 32767.0f);
 	}
-	
+
 	MEM_freeN(temp_nors);
+	MEM_freeN(vert_nors);
 }
 
 void CDDM_calc_edges(DerivedMesh *dm)

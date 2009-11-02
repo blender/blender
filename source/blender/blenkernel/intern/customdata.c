@@ -840,7 +840,6 @@ static void layerInterp_shapekey(void **sources, float *weights,
 
 	memset(co, 0, sizeof(float)*3);
 	
-	sub_weight = sub_weights;
 	for(i = 0; i < count; ++i) {
 		float weight = weights ? weights[i] : 1.0f;
 		
@@ -896,7 +895,7 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MCol)*4, "MCol", 4, "TextureCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
-	{sizeof(float), "", 3, "ShapeKey", layerInterp_shapekey},
+	{sizeof(float)*3, "", 0, "ShapeKey", NULL, NULL, layerInterp_shapekey},
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -904,7 +903,7 @@ const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
 	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
 	"CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol", "CDMPoly", 
-	"CDMLoop", "CDMLoopCol", "CDIDCol", "CDTextureCol", "CDShapeKeyIndex"};
+	"CDMLoop", "CDMLoopCol", "CDIDCol", "CDTextureCol", "CDShapeKeyIndex", "CDShapeKey"};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE | CD_MASK_MLOOP | CD_MASK_MPOLY;
@@ -913,7 +912,7 @@ const CustomDataMask CD_MASK_MESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
 	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS |
 	CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MPOLY | CD_MASK_MLOOP |
-	CD_MASK_MTEXPOLY;
+	CD_MASK_MTEXPOLY | CD_MASK_NORMAL;
 const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MLOOPUV |
 	CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_SHAPE_KEYINDEX |
@@ -923,7 +922,8 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
 	CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_WEIGHT_MLOOPCOL |
-	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | CD_MASK_WEIGHT_MCOL;
+	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | 
+	CD_MASK_WEIGHT_MCOL | CD_MASK_NORMAL;
 const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | 
 	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX;
@@ -1073,6 +1073,17 @@ int CustomData_get_layer_index(const CustomData *data, int type)
 			return i;
 
 	return -1;
+}
+
+int CustomData_get_layer_index_n(const struct CustomData *data, int type, int n)
+{
+	int i; 
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			return i + n;
+
+	return -1;	
 }
 
 int CustomData_get_named_layer_index(const CustomData *data, int type, char *name)

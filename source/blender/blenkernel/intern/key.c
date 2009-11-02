@@ -118,6 +118,8 @@ Key *add_key(ID *id)	/* common function */
 	
 	key->type= KEY_NORMAL;
 	key->from= id;
+
+	key->uidgen = 1;
 	
 	// XXX the code here uses some defines which will soon be depreceated...
 	if( GS(id->name)==ID_ME) {
