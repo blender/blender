@@ -368,10 +368,8 @@ int main(int argc, char **argv)
 			switch(argv[a][1]) {
 			case 'a': /* -b was not given, play an animation */
 				
-#if !(defined(__APPLE__) && defined(GHOST_COCOA))
 				/* exception here, see below, it probably needs happens after qt init? */
 				libtiff_init();
-#endif
 
 // XXX				playanim(argc-1, argv+1);
 				exit(0);
@@ -540,10 +538,6 @@ int main(int argc, char **argv)
 
 #endif /* WITH_QUICKTIME */
 
-#if defined(__APPLE__) && defined(GHOST_COCOA)
-	/* libtiff is not used, Cocoa services are used instead for tiff I/O */
-	G.have_libtiff = 1;
-#else
 	/* dynamically load libtiff, if available */
 	libtiff_init();
 	if (!G.have_libtiff && (G.f & G_DEBUG)) {
@@ -551,7 +545,6 @@ int main(int argc, char **argv)
 		printf("Try setting the BF_TIFF_LIB environment variable if you want this support.\n");
 		printf("Example: setenv BF_TIFF_LIB /usr/lib/libtiff.so\n");
 	}
-#endif
 
 	/* OK we are ready for it */
 

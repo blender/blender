@@ -57,7 +57,7 @@
 #include "IMB_dpxcineon.h"
 #include "BKE_global.h"
 
-#if defined(__APPLE__) && defined(GHOST_COCOA)
+#if defined(__APPLE__) && defined(IMBUF_COCOA)
 #include "IMB_cocoa.h"
 #else
 #include "IMB_tiff.h"
@@ -157,7 +157,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		ibuf = imb_loadcineon((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);
 	
-#if defined(__APPLE__) && defined(GHOST_COCOA)
+#if defined(__APPLE__) && defined(IMBUF_COCOA)
 		ibuf = imb_cocoaLoadImage((uchar *)mem, size, flags);
 		if(ibuf) {
 			ibuf->ftype = TIF;

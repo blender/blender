@@ -53,7 +53,7 @@
 #include "IMB_bmp.h"
 #include "IMB_radiance_hdr.h"
 
-#if defined(__APPLE__) && defined(GHOST_COCOA)
+#if defined(__APPLE__) && defined(IMBUF_COCOA)
 #include "IMB_cocoa.h"
 #else
 #include "IMB_tiff.h"
@@ -119,7 +119,7 @@ short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 		return imb_saveiris(ibuf, name, flags);
 	}
 	
-#if defined(__APPLE__) && defined(GHOST_COCOA)
+#if defined(__APPLE__) && defined(IMBUF_COCOA)
 	if (IS_tiff(ibuf)) {
 		if(ibuf->rect==NULL && ibuf->rect_float)
 			IMB_rect_from_float(ibuf);
