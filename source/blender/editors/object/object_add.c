@@ -232,9 +232,19 @@ static Object *effector_add_type(bContext *C, int type)
 		BLI_addtail(curve_get_editcurve(ob), add_nurbs_primitive(C, CU_NURBS|CU_PRIM_PATH, 1));
 		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
-	else
+	else {
 		ob=	add_object(scene, OB_EMPTY);
-
+	
+		switch(type) {
+			case PFIELD_WIND:
+			case PFIELD_VORTEX:
+				ob->empty_drawtype = OB_SINGLE_ARROW;
+				break;		
+		}
+	}
+	
+	
+	
 	ob->pd= object_add_collision_fields(type);
 
 	/* editor level activate, notifiers */
