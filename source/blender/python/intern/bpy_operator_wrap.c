@@ -90,14 +90,18 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 	PointerRNA ptr_context;
 	PointerRNA ptr_operator;
 	PointerRNA ptr_event;
-	PyObject *py_operator;
 
 	PyGILState_STATE gilstate;
 
 	bpy_context_set(C, &gilstate);
 
 	args = PyTuple_New(1);
-	PyTuple_SET_ITEM(args, 0, PyObject_GetAttrString(py_class, "bl_rna")); // need to use an rna instance as the first arg
+
+	/* poll has no 'op', should be ok still */
+	/* use an rna instance as the first arg */
+	RNA_pointer_create(NULL, &RNA_Operator, op, &ptr_operator);
+	PyTuple_SET_ITEM(args, 0, pyrna_struct_CreatePyObject(&ptr_operator));
+
 	py_class_instance = PyObject_Call(py_class, args, NULL);
 	Py_DECREF(args);
 	
@@ -118,14 +122,6 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 				Py_DECREF(item);
 			}
 			RNA_STRUCT_END;
-		}
-
-		/* set operator pointer RNA as instance "__operator__" attribute */
-		if(op) {
-			RNA_pointer_create(NULL, &RNA_Operator, op, &ptr_operator);
-			py_operator= pyrna_struct_CreatePyObject(&ptr_operator);
-			PyDict_SetItemString(class_dict, "__operator__", py_operator);
-			Py_DECREF(py_operator);
 		}
 
 		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
@@ -159,6 +155,10 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		Py_DECREF(args);
 		Py_DECREF(item);
 		Py_DECREF(class_dict);
+	}
+	else {
+		PyErr_Print();
+		PyErr_Clear();
 	}
 	
 	if (ret == NULL) { /* covers py_class_instance failing too */

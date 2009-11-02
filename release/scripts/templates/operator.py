@@ -51,11 +51,11 @@ class ExportSomeData(bpy.types.Operator):
 
         if True:
             # File selector
-            wm.add_fileselect(self.__operator__) # will run self.execute()
+            wm.add_fileselect(self) # will run self.execute()
             return ('RUNNING_MODAL',)
         else if 0:
             # Redo popup
-            wm.invoke_props_popup(self.__operator__, event) #
+            wm.invoke_props_popup(self, event) #
             return ('RUNNING_MODAL',)
         else if 0:
             return self.execute(context)

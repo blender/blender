@@ -528,7 +528,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.manager
-        wm.invoke_props_popup(self.__operator__, event)
+        wm.invoke_props_popup(self, event)
         return ('RUNNING_MODAL',)
 
 

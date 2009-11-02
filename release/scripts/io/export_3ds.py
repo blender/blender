@@ -1128,7 +1128,7 @@ class EXPORT_OT_autodesk_3ds(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 	
 	def poll(self, context): # Poll isnt working yet
