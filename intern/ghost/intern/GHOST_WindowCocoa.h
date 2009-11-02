@@ -170,6 +170,12 @@ public:
 	virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
+	 * Gets the screen the window is displayed in
+	 * @return The NSScreen object
+	 */
+	NSScreen* getScreen();
+	
+	/**
 	 * Sets the state of the window (normal, minimized, maximized).
 	 * @param state The state of the window.
 	 * @return Indication of success.
@@ -237,17 +243,11 @@ protected:
 	virtual GHOST_TSuccess setWindowCursorVisibility(bool visible);
 	
 	/**
-	 * Sets the cursor warp accumulator. Overriden for workaround due to Cocoa next event after cursor set giving delta values non zero
-	 */
-	inline virtual bool setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y);
-	
-	/**
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
-	 * @param warp	Only used when grab is enabled, hides the mouse and allows gragging outside the screen.
 	 */
-	virtual GHOST_TSuccess setWindowCursorGrab(bool grab, bool warp, bool restore);
-	
+	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode);
+		
 	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls.

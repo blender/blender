@@ -2,8 +2,9 @@
 
 struct BMesh;
 struct BMLoop;
-struct DerivedMesh;
 struct BMFace;
+struct Mesh;
+struct DerivedMesh;
 
 /*
 ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
@@ -49,6 +50,10 @@ typedef struct BMEditMesh {
 	int selectmode;
 
 	int mat_nr;
+
+	/*Mesh structure this editmesh came from, if it came from one*/
+	struct Mesh *me;
+	struct Object *ob;
 } BMEditMesh;
 
 void BMEdit_RecalcTesselation(BMEditMesh *tm);

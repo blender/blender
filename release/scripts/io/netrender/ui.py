@@ -20,7 +20,7 @@ ERROR = 3
 class RenderButtonsPanel(bpy.types.Panel):
 	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
-	__context__ = "scene"
+	__context__ = "render"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
@@ -29,13 +29,9 @@ class RenderButtonsPanel(bpy.types.Panel):
 
 # Setting panel, use in the scene for now.
 @rnaType
-class SCENE_PT_network_settings(RenderButtonsPanel):
+class RENDER_PT_network_settings(RenderButtonsPanel):
 	__label__ = "Network Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
-
-	def draw_header(self, context):
-		layout = self.layout
-		scene = context.scene
 
 	def draw(self, context):
 		layout = self.layout
@@ -48,7 +44,6 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		
 		col.itemR(scene.network_render, "mode")
 		col.itemR(scene.network_render, "path")
 		col.itemR(scene.network_render, "server_address")
@@ -60,7 +55,7 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 			col.itemO("render.netclientscan", icon="ICON_FILE_REFRESH", text="")
 
 @rnaType
-class SCENE_PT_network_job(RenderButtonsPanel):
+class RENDER_PT_network_job(RenderButtonsPanel):
 	__label__ = "Job Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
@@ -79,16 +74,16 @@ class SCENE_PT_network_job(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		
-		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animaton on network")
-		col.itemO("render.netclientsend", icon="ICON_FILE_BLEND", text="Send job")
-		col.itemO("render.netclientweb", icon="ICON_QUESTION", text="Open Master Monitor")
+		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION')
+		col.itemO("render.netclientsend", icon="ICON_FILE_BLEND")
+		col.itemO("render.netclientweb", icon="ICON_QUESTION")
 		col.itemR(scene.network_render, "job_name")
-		col.itemR(scene.network_render, "priority")
-		col.itemR(scene.network_render, "chunks")
+		row = col.row()
+		row.itemR(scene.network_render, "priority")
+		row.itemR(scene.network_render, "chunks")
 
 @rnaType
-class SCENE_PT_network_slaves(RenderButtonsPanel):
+class RENDER_PT_network_slaves(RenderButtonsPanel):
 	__label__ = "Slaves Status"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
@@ -105,11 +100,9 @@ class SCENE_PT_network_slaves(RenderButtonsPanel):
 		row = layout.row()
 		row.template_list(netsettings, "slaves", netsettings, "active_slave_index", rows=2)
 
-		col = row.column()
-
-		subcol = col.column(align=True)
-		subcol.itemO("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
-		subcol.itemO("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
+		sub = row.column(align=True)
+		sub.itemO("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
+		sub.itemO("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
 		
 		if len(bpy.data.netrender_slaves) == 0 and len(netsettings.slaves) > 0:
 			while(len(netsettings.slaves) > 0):
@@ -126,7 +119,7 @@ class SCENE_PT_network_slaves(RenderButtonsPanel):
 			layout.itemL(text="Stats: " + slave.stats)
 
 @rnaType
-class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
+class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 	__label__ = "Slaves Blacklist"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
@@ -143,10 +136,8 @@ class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
 		row = layout.row()
 		row.template_list(netsettings, "slaves_blacklist", netsettings, "active_blacklisted_slave_index", rows=2)
 
-		col = row.column()
-
-		subcol = col.column(align=True)
-		subcol.itemO("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
+		sub = row.column(align=True)
+		sub.itemO("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
 
 		if len(bpy.data.netrender_blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
 			while(len(netsettings.slaves_blacklist) > 0):
@@ -163,7 +154,7 @@ class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
 			layout.itemL(text="Stats: " + time.ctime(slave.stats))
 
 @rnaType
-class SCENE_PT_network_jobs(RenderButtonsPanel):
+class RENDER_PT_network_jobs(RenderButtonsPanel):
 	__label__ = "Jobs"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
@@ -180,13 +171,11 @@ class SCENE_PT_network_jobs(RenderButtonsPanel):
 		row = layout.row()
 		row.template_list(netsettings, "jobs", netsettings, "active_job_index", rows=2)
 
-		col = row.column()
-
-		subcol = col.column(align=True)
-		subcol.itemO("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
-		subcol.itemO("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
-		subcol.itemO("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
-		subcol.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
+		sub = row.column(align=True)
+		sub.itemO("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
+		sub.itemO("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
+		sub.itemO("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
+		sub.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
 
 		if len(bpy.data.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
 			while(len(netsettings.jobs) > 0):
@@ -234,18 +223,21 @@ NetRenderSettings.BoolProperty( attr="server_broadcast",
 				description="broadcast server address on local network",
 				default = True)
 
-if os.name == 'nt':
-	NetRenderSettings.StringProperty( attr="path",
-					name="Path",
-					description="Path for temporary files",
-					maxlen = 128,
-					default = "C:/tmp/")
-else:
-	NetRenderSettings.StringProperty( attr="path",
-					name="Path",
-					description="Path for temporary files",
-					maxlen = 128,
-					default = "/tmp/")
+default_path = os.environ.get("TEMP", None)
+
+if not default_path:
+	if os.name == 'nt':
+		default_path = "c:/tmp/"
+	else:
+		default_path = "/tmp/"
+elif not default_path.endswith(os.sep):
+	default_path += os.sep
+
+NetRenderSettings.StringProperty( attr="path",
+				name="Path",
+				description="Path for temporary files",
+				maxlen = 128,
+				default = default_path)
 
 NetRenderSettings.StringProperty( attr="job_name",
 				name="Job name",
@@ -300,8 +292,8 @@ NetRenderSettings.EnumProperty(attr="mode",
 										("RENDER_MASTER", "Master", "Act as render master"),
 										("RENDER_SLAVE", "Slave", "Act as render slave"),
 									),
-						name="network mode",
-						description="mode of operation of this instance",
+						name="Network mode",
+						description="Mode of operation of this instance",
 						default="RENDER_CLIENT")
 
 NetRenderSettings.CollectionProperty(attr="slaves", type=NetRenderSlave, name="Slaves", description="")

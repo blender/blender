@@ -38,7 +38,6 @@ class SEQUENCER_HT_header(bpy.types.Header):
 			layout.itemR(st, "display_channel", text="Channel")
 
 class SEQUENCER_MT_view(bpy.types.Menu):
-	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "View"
 	
 	def draw(self, context):
@@ -106,7 +105,6 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 		"""
 
 class SEQUENCER_MT_select(bpy.types.Menu):
-	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Select"
 
 	def draw(self, context):
@@ -127,7 +125,6 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 		layout.itemO("sequencer.select_inverse")
 
 class SEQUENCER_MT_marker(bpy.types.Menu):
-	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Marker (TODO)"
 
 	def draw(self, context):
@@ -146,11 +143,11 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
 		#layout.itemO("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 
 class SEQUENCER_MT_add(bpy.types.Menu):
-	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Add"
 
 	def draw(self, context):
 		layout = self.layout
+		layout.operator_context = 'INVOKE_REGION_WIN'
 		
 		st = context.space_data
 		
@@ -163,12 +160,11 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		layout.itemM("SEQUENCER_MT_add_effect")
 
 class SEQUENCER_MT_add_effect(bpy.types.Menu):
-	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Effect Strip..."
 
 	def draw(self, context):
 		layout = self.layout
-		
+		layout.operator_context = 'INVOKE_REGION_WIN'
 		st = context.space_data
 		
 		layout.column()
@@ -187,7 +183,6 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
 		layout.item_enumO("sequencer.effect_strip_add", 'type', 'SPEED')
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
-	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Strip"
 
 	def draw(self, context):

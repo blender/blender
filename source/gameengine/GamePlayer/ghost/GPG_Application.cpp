@@ -539,7 +539,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
 
-		if(GPU_extensions_minimum_support())
+		if(GPU_glsl_support())
 			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
 		else if(gm->matmode == GAME_MAT_GLSL)
 			m_blendermat = false;

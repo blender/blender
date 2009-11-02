@@ -39,7 +39,7 @@ typedef struct CustomDataLayer {
 	int active_rnd; /* number of the layer to render*/
 	int active_clone; /* number of the layer to render*/
 	int active_mask; /* number of the layer to render*/
-	char pad[4];
+	int uid; /*shape keyblock unique id reference*/
 	char name[32];  /* layer name */
 	void *data;     /* layer data */
 } CustomDataLayer;

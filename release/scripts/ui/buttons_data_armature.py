@@ -47,9 +47,6 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		col.itemR(arm, "layer", text="")
 		col.itemL(text="Protected Layers:")
 		col.itemR(arm, "layer_protection", text="")
-		col.itemL(text="Edit Options:")
-		col.itemR(arm, "x_axis_mirror")
-		col.itemR(arm, "auto_ik")
 		
 		col = split.column()
 		col.itemL(text="Deform:")
@@ -88,7 +85,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 		pose = ob.pose
 		
 		row = layout.row()
-		row.template_list(pose, "bone_groups", pose, "active_bone_group_index")
+		row.template_list(pose, "bone_groups", pose, "active_bone_group_index", rows=2)
 		
 		col = row.column(align=True)
 		col.active = (ob.proxy == None)

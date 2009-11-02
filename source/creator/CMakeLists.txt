@@ -207,6 +207,7 @@ IF(APPLE)
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND find ${TARGETDIR} -name .svn -prune -exec rm -rf {} "\;"
+			COMMAND find ${TARGETDIR} -name __MACOSX -prune -exec rm -rf {} "\;"
 		)
     
     
@@ -325,11 +326,16 @@ IF(WIN32)
 		ENDIF(WITH_INTERNATIONAL)
       
 		IF(WITH_PYTHON)
+			IF(WITH_LIBS10.5)
+				SET(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
+			ELSE(WITH_LIBS10.5)
+				SET(PYTHON_ZIP "python.zip")
+			ENDIF(WITH_LIBS10.5)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
 				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
-				COMMAND unzip -q ${LIBDIR}/release/python.zip -d ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
+				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
 				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
 		ENDIF(WITH_PYTHON)      

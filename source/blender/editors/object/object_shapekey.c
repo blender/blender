@@ -139,9 +139,11 @@ static KeyBlock *add_keyblock(Scene *scene, Key *key)
 		// XXX this is old anim system stuff? (i.e. the 'index' of the shapekey)
 	kb->adrcode= tot-1;
 	
+	kb->uid = key->uidgen++;
+
 	key->totkey++;
 	if(key->totkey==1) key->refkey= kb;
-	
+		
 	kb->slidermin= 0.0f;
 	kb->slidermax= 1.0f;
 	
@@ -241,7 +243,8 @@ static void insert_lattkey(Scene *scene, Object *ob)
 	}
 
 	kb= add_keyblock(scene, key);
-	
+	kb->uid = key->uidgen++;
+
 	if(newkey) {
 		/* create from lattice */
 		latt_to_key(lt, kb);
@@ -372,6 +375,7 @@ static void insert_curvekey(Scene *scene, Object *ob)
 	}
 	
 	kb= add_keyblock(scene, key);
+	kb->uid = key->uidgen++;
 	
 	if(newkey) {
 		/* create from curve */

@@ -540,10 +540,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_outliner\outliner_header.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\space_outliner\outliner_intern.h"
 				>
 			</File>

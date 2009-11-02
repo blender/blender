@@ -297,11 +297,13 @@ GHOST_WindowX11(
 	// we want this window treated.
 
 	XSizeHints * xsizehints = XAllocSizeHints();
-	xsizehints->flags = USPosition | USSize;
+	xsizehints->flags = PPosition | PSize | PMinSize;
 	xsizehints->x = left;
 	xsizehints->y = top;
 	xsizehints->width = width;
 	xsizehints->height = height;
+	xsizehints->min_width= 320;  	// size hints, could be made apart of the ghost api
+	xsizehints->min_height= 240;	// limits are also arbitrary, but should not allow 1x1 window
 	XSetWMNormalHints(m_display, m_window, xsizehints);
 	XFree(xsizehints);
 
@@ -382,7 +384,6 @@ GHOST_WindowX11(
 	XSetWMHints(display, m_window, xwmhints );
 	XFree(xwmhints);
 	// done setting the icon
-	
 
 	setTitle(title);
 
@@ -1400,47 +1401,35 @@ setWindowCursorVisibility(
 	GHOST_TSuccess
 GHOST_WindowX11::
 setWindowCursorGrab(
-	bool grab, bool warp, bool restore
+	GHOST_TGrabCursorMode mode
 ){
-	if(grab) {
-		if(warp) {
-			m_system->getCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+	if(mode != GHOST_kGrabDisable) {
+		if(mode != GHOST_kGrabNormal) {
+			m_system->getCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
+			setCursorGrabAccum(0, 0);
 
-			setCursorWarpAccum(0, 0);
-			setWindowCursorVisibility(false);
-			m_cursorWarp= true;
+			if(mode == GHOST_kGrabHide)
+				setWindowCursorVisibility(false);
+
 		}
 		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	}
 	else {
-		if(m_cursorWarp) { /* are we exiting warp */
+		if (m_cursorGrab==GHOST_kGrabHide) {
+			m_system->setCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
 			setWindowCursorVisibility(true);
-			/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
-			if(restore) {
-				GHOST_Rect bounds;
-				GHOST_TInt32 x_new, y_new, x_rel, y_rel;
-
-				getClientBounds(bounds);
-
-				x_new= m_cursorWarpInitPos[0]+m_cursorWarpAccumPos[0];
-				y_new= m_cursorWarpInitPos[1]+m_cursorWarpAccumPos[1];
-
-				screenToClient(x_new, y_new, x_rel, y_rel);
-
-				if(x_rel < 0)		x_new = (x_new-x_rel) + 2;
-				if(y_rel < 0)		y_new = (y_new-y_rel) + 2;
-				if(x_rel > bounds.getWidth())	x_new -= (x_rel-bounds.getWidth()) + 2;
-				if(y_rel > bounds.getHeight())	y_new -= (y_rel-bounds.getHeight()) + 2;
-				m_system->setCursorPosition(x_new, y_new);
-
-			}
-			else {
-				m_system->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
-			}
-
-			setCursorWarpAccum(0, 0);
-			m_cursorWarp= false;
 		}
+
+		if(m_cursorGrab != GHOST_kGrabNormal) {
+			/* use to generate a mouse move event, otherwise the last event
+			 * blender gets can be outside the screen causing menus not to show
+			 * properly unless the user moves the mouse */
+			XWarpPointer(m_display,None,None,0,0,0,0,0,0);
+		}
+
+		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+		setCursorGrabAccum(0, 0);
+		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
 		XUngrabPointer(m_display, CurrentTime);
 	}
 

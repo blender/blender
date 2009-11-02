@@ -267,6 +267,8 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *scene, Object *ob)
 
 	me->edit_btmesh = BMEdit_Create(bm);
 	me->edit_btmesh->selectmode = ts->selectmode;
+	me->edit_btmesh->me = me;
+	me->edit_btmesh->ob = ob;
 }
 
 void EDBM_LoadEditBMesh(Scene *scene, Object *ob)
@@ -557,6 +559,9 @@ static void *editbtMesh_to_undoMesh(void *emv)
 {
 	BMEditMesh *em = emv;
 	undomesh *me = MEM_callocN(sizeof(undomesh), "undo Mesh");
+	
+	/*make sure shape keys work*/
+	me->me.key = em->me->key;
 
 	/*we recalc the tesselation here, to avoid seeding calls to
 	  BMEdit_RecalcTesselation throughout the code.*/
@@ -578,7 +583,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv)
 	BMEdit_Free(em);
 
 	bm = BM_Make_Mesh(allocsize);
-	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p", me);
+	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p", me, em->ob);
 
 	em2 = BMEdit_Create(bm);
 	*em = *em2;

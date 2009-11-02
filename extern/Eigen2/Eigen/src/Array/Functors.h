@@ -43,6 +43,8 @@ struct ei_scalar_add_op {
   inline const PacketScalar packetOp(const PacketScalar& a) const
   { return ei_padd(a, ei_pset1(m_other)); }
   const Scalar m_other;
+private:
+  ei_scalar_add_op& operator=(const ei_scalar_add_op&);
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_add_op<Scalar> >
@@ -138,6 +140,8 @@ struct ei_scalar_pow_op {
   inline ei_scalar_pow_op(const Scalar& exponent) : m_exponent(exponent) {}
   inline Scalar operator() (const Scalar& a) const { return ei_pow(a, m_exponent); }
   const Scalar m_exponent;
+private:
+  ei_scalar_pow_op& operator=(const ei_scalar_pow_op&);
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_pow_op<Scalar> >

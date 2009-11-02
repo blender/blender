@@ -56,7 +56,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	MEdge *medge;
 	MLoop *ml;
 	MPoly *mpoly;
-	KeyBlock *actkey;
+	KeyBlock *actkey, *block;
 	BMVert *v, **vt=NULL;
 	BMEdge *e, **fedges=NULL, **et = NULL;
 	BMFace *f;
@@ -77,19 +77,37 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 	CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
 
-	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
-	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
-	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
-	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
- 
 	actkey = ob_get_keyblock(ob);
 	if(actkey && actkey->totelem == me->totvert) {
+		/*check if we need to generate unique ids for the shapekeys.
+		  this also exists in the file reading code, but is here for
+		  a sanity check*/
+		if (!me->key->uidgen) {
+			printf("yeek! had to generate shape key uid's in a situation we shouldn't need to!\n");
+			me->key->uidgen = 1;
+			for (block=me->key->block.first; block; block=block->next) {
+				block->uid = me->key->uidgen++;
+			}
+		}
+
 		keyco= actkey->data;
 		bm->shapenr= ob->shapenr;
+		for (i=0, block=me->key->block.first; block; block=block->next, i++) {
+			CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY, 
+			                 CD_ASSIGN, NULL, 0, block->name);
+			
+			j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
+			bm->vdata.layers[j].uid = block->uid;
+		}
 	} else if (actkey) {
 		printf("shapekey<->mesh mismatch!\n");
 	}
 	
+	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
+	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
+	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
+	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
+
 	for (i=0; i<me->totvert; i++, mvert++) {
 		v = BM_Make_Vert(bm, keyco ? keyco[i] : mvert->co, NULL);
 		VECCOPY(v->no, mvert->no);
@@ -110,6 +128,15 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		/*set shape key original index*/
 		keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
 		*keyi = i;
+
+		/*set shapekey data*/
+		if (me->key) {
+			for (block=me->key->block.first, j=0; block; block=block->next, j++) {
+				float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, 
+				                                   CD_SHAPEKEY, j);
+				VECCOPY(co, ((float*)block->data)+3*i);
+			}
+		}
 	}
 
 	if (!me->totedge) {
@@ -262,6 +289,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
 	Object *ob = BMO_Get_Pnt(op, "object");
 	MLoop *mloop;
+	KeyBlock *block;
 	MPoly *mpoly;
 	MVert *mvert, *oldverts;
 	MEdge *medge;
@@ -271,6 +299,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	BMLoop *l;
 	BMFace *f;
 	BMIter iter, liter;
+	float *facenors = NULL;
 	int i, j, *keyi, ototvert, totloop, totface, numTex, numCol;
 	int dotess = !BMO_Get_Int(op, "notesselation");
 
@@ -328,7 +357,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
 	CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
 	CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
-
+	
 	i = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		VECCOPY(mvert->co, v->co);
@@ -402,9 +431,13 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		/* new tess face block */
 		if(totface==0) mface= NULL;
-		else mface= MEM_callocN(totface*sizeof(MFace), "loadeditbMesh face");
+		else {
+			mface= MEM_callocN(totface*sizeof(MFace), "loadeditbMesh face");
+			facenors = MEM_callocN(totface*sizeof(float)*3, "facenors");
+		}
 
 		CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
+		CustomData_add_layer(&me->fdata, CD_NORMAL, CD_ASSIGN, facenors, me->totface);
 		CustomData_from_bmeshpoly(&me->fdata, &bm->pdata, &bm->ldata, totface);
 
 		mesh_update_customdata_pointers(me);
@@ -457,7 +490,10 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				test_index_face(mface, &me->fdata, i, 1);
 				
 				loops_to_corners(bm, me, i, f, ls, numTex, numCol);
+				VECCOPY(facenors, ls[0]->f->no);
+
 				mface++;
+				facenors += 3;
 				i++;
 			}
 			BLI_end_edgefill();
@@ -561,7 +597,73 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 	mesh_update_customdata_pointers(me);
 
-	/* are there keys? */
+	if (me->key) {
+		KeyBlock *actkey= BLI_findlink(&me->key->block, bm->shapenr-1);
+
+		/*go through and find any shapekey customdata layers
+		  that might not have corrusponding KeyBlocks, and add them if
+		  necassary.*/
+		j = 0;
+		for (i=0; i<bm->vdata.totlayer; i++) {
+			if (bm->vdata.layers[i].type != CD_SHAPEKEY)
+				continue;
+
+			for (block=me->key->block.first; block; block=block->next) {
+				if (block->uid == bm->vdata.layers[i].uid)
+					break;
+			}
+			
+			if (!block) {
+				block = MEM_callocN(sizeof(KeyBlock), "KeyBlock mesh_conv.c");
+				block->type = KEY_LINEAR;
+				block->slidermin = 0.0f;
+				block->slidermax = 1.0f;
+
+				BLI_addtail(&me->key->block, block);
+				me->key->totkey++;
+			}
+
+			j++;
+		}
+
+		for (block=me->key->block.first; block; block=block->next) {
+			j = 0;
+
+			for (i=0; i<bm->vdata.totlayer; i++) {
+				if (bm->vdata.layers[i].type != CD_SHAPEKEY)
+					continue;
+
+				if (block->uid == bm->vdata.layers[i].uid) {
+					float *fp, *co;
+
+					if (block->data)
+						MEM_freeN(block->data);
+					block->data = fp = MEM_mallocN(sizeof(float)*3*bm->totvert, "shape key data");
+					block->totelem = bm->totvert;
+
+					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+						co = block==actkey ? eve->co : CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
+						
+						VECCOPY(fp, co);
+						fp += 3;
+					}
+					break;
+				}
+
+				j++;
+			}
+
+			/*if we didn't find a shapekey, tag the block to be reconstructed
+			  via the old method below*/
+			if (j == CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY)) {
+				block->flag |= KEYBLOCK_MISSING;
+			}
+		}
+	}
+
+	/* old method of reconstructing keys via vertice's original key indices,
+	   currently used if the new method above fails (which is theoretically
+	   possible in certain cases of undo).*/
 	if(me->key) {
 		float *fp, *newkey, *oldkey;
 		KeyBlock *currkey;
@@ -571,6 +673,16 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		 * with the way things were before editmode */
 		currkey = me->key->block.first;
 		while(currkey) {
+			if (!(currkey->flag & KEYBLOCK_MISSING)) {
+				currkey = currkey->next;
+				continue;
+			}
+			
+			printf("warning: had to hackishly reconstruct shape key \"%s\","
+			       " it may not be correct anymore.\n", currkey->name);
+
+			currkey->flag &= ~KEYBLOCK_MISSING;
+
 			fp= newkey= MEM_callocN(me->key->elemsize*bm->totvert,  "currkey->data");
 			oldkey = currkey->data;
 

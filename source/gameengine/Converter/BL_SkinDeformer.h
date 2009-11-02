@@ -72,6 +72,7 @@ public:
 
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
+	bool UpdateInternal (bool shape_applied);
 	bool Apply (class RAS_IPolyMaterial *polymat);
 	bool UpdateBuckets(void) 
 	{

@@ -21,8 +21,6 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 		
 		ob = context.object
 		field = ob.field
-
-		#layout.active = field.enabled
 		
 		split = layout.split(percentage=0.2)
 		split.itemL(text="Type:")
@@ -39,7 +37,33 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 		if field.type == 'NONE':
 			return # nothing to draw
 		elif field.type == 'GUIDE':
-			layout.itemR(field, "guide_path_add")
+			col = split.column()
+			col.itemR(field, "guide_minimum")
+			col.itemR(field, "guide_free")
+			col.itemR(field, "falloff_power")
+			col.itemR(field, "guide_path_add")
+			
+			col = split.column()
+			col.itemL(text="Clumping:")
+			col.itemR(field, "guide_clump_amount")
+			col.itemR(field, "guide_clump_shape")
+			
+			row = layout.row()			
+			row.itemR(field, "use_max_distance")
+			sub = row.row()
+			sub.active = field.use_max_distance
+			sub.itemR(field, "maximum_distance")
+			
+			layout.itemS()
+
+			layout.itemR(field, "guide_kink_type")
+			if (field.guide_kink_type != "NONE"):
+				layout.itemR(field, "guide_kink_axis")
+				
+				flow = layout.column_flow()
+				flow.itemR(field, "guide_kink_frequency")
+				flow.itemR(field, "guide_kink_shape")
+				flow.itemR(field, "guide_kink_amplitude")
 		elif field.type == 'TEXTURE':
 			col = split.column()
 			col.itemR(field, "strength")
@@ -102,17 +126,6 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 				sub = col.column()
 				sub.active = field.use_radial_max
 				sub.itemR(field, "radial_maximum", text="Distance")
-				
-		#if ob.type in 'CURVE':
-			#if field.type == 'GUIDE':
-				#colsub = col.column(align=True)
-			
-		#if field.type != 'NONE':
-			#layout.itemR(field, "strength")
-
-		#if field.type in ('HARMONIC', 'SPHERICAL', 'CHARGE', "LENNARDj"):
-			#if ob.type in ('MESH', 'SURFACE', 'FONT', 'CURVE'):
-				#layout.itemR(field, "surface")
 
 class PHYSICS_PT_collision(PhysicButtonsPanel):
 	__label__ = "Collision"

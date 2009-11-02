@@ -48,6 +48,19 @@ class DATA_PT_normals(DataButtonsPanel):
 		col.itemR(mesh, "vertex_normal_flip")
 		col.itemR(mesh, "double_sided")
 
+class DATA_PT_settings(DataButtonsPanel):
+	__label__ = "Settings"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		mesh = context.mesh
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(mesh, "texture_mesh")
+
 class DATA_PT_vertex_groups(DataButtonsPanel):
 	__label__ = "Vertex Groups"
 	
@@ -58,24 +71,28 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 		layout = self.layout
 		
 		ob = context.object
+		group = ob.active_vertex_group
+
+		rows = 2
+		if group:
+			rows= 5
 
 		row = layout.row()
-		row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index", rows=2)
+		row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index", rows=rows)
 
 		col = row.column(align=True)
 		col.itemO("object.vertex_group_add", icon='ICON_ZOOMIN', text="")
 		col.itemO("object.vertex_group_remove", icon='ICON_ZOOMOUT', text="")
 
-		col.itemO("object.vertex_group_copy", icon='ICON_COPYDOWN', text="")
+		col.itemO("object.vertex_group_copy", icon='ICON_COPY_ID', text="")
 		if ob.data.users > 1:
-			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_COPYDOWN', text="")
+			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_LINK_AREA', text="")
 
-		group = ob.active_vertex_group
 		if group:
 			row = layout.row()
 			row.itemR(group, "name")
 
-		if ob.mode == 'EDIT':
+		if ob.mode == 'EDIT' and len(ob.vertex_groups) > 0:
 			row = layout.row()
 			
 			sub = row.row(align=True)
@@ -92,7 +109,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 	__label__ = "Shape Keys"
 	
 	def poll(self, context):
-		return (context.object and context.object.type in ('MESH', 'LATTICE'))
+		return (context.object and context.object.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE'))
 
 	def draw(self, context):
 		layout = self.layout
@@ -101,8 +118,19 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		key = ob.data.shape_keys
 		kb = ob.active_shape_key
 
+		enable_edit = ob.mode != 'EDIT'
+		enable_edit_value = False
+
+		if ob.shape_key_lock == False:
+			if enable_edit or (ob.type == 'MESH' and ob.shape_key_edit_mode):
+				enable_edit_value = True
+
 		row = layout.row()
-		row.template_list(key, "keys", ob, "active_shape_key_index", rows=2)
+
+		rows = 2
+		if kb:
+			rows= 5
+		row.template_list(key, "keys", ob, "active_shape_key_index", rows=rows)
 
 		col = row.column()
 
@@ -114,44 +142,53 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 			col.itemS()
 
 			subcol = col.column(align=True)
-			subcol.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
-			subcol.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
+			subcol.item_enumO("object.shape_key_move", "type", 'UP', icon='ICON_TRIA_UP', text="")
+			subcol.item_enumO("object.shape_key_move", "type", 'DOWN', icon='ICON_TRIA_DOWN', text="")
+
+			split = layout.split(percentage=0.4)
+			sub = split.row()
+			sub.enabled = enable_edit
+			sub.itemR(key, "relative")
+
+			sub = split.row()
+			sub.alignment = 'RIGHT'
+
+			subrow = sub.row(align=True)
+			subrow.active= enable_edit_value
+			subrow.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
+			subrow.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
+			subrow.itemO("object.shape_key_clear", icon='ICON_X', text="")
+
+			sub.itemO("object.shape_key_mirror", icon='ICON_MOD_MIRROR', text="")
+
+			sub.itemR(ob, "shape_key_edit_mode", text="")
+
+			row = layout.row()
+			row.itemR(kb, "name")
 
 			if key.relative:
-				row = layout.row()
-				row.itemR(key, "relative")
-				row.itemL()
-
-				row = layout.row()
-				row.itemR(kb, "name")
-
 				if ob.active_shape_key_index != 0:
-					
 					row = layout.row()
-					row.enabled = ob.shape_key_lock == False
-					row.itemR(kb, "value", slider=True)
+					row.active = enable_edit_value
+					row.itemR(kb, "value")
 					
 					split = layout.split()
 					sub = split.column(align=True)
-					sub.enabled = ob.shape_key_lock == False
+					sub.active = enable_edit_value
 					sub.itemL(text="Range:")
 					sub.itemR(kb, "slider_min", text="Min")
 					sub.itemR(kb, "slider_max", text="Max")
 					
-					sub = split.column()
+					sub = split.column(align=True)
+					sub.active = enable_edit_value
 					sub.itemL(text="Blend:")
 					sub.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
 					sub.item_pointerR(kb, "relative_key", key, "keys", text="")
 					
 			else:
 				row = layout.row()
-				row.itemR(key, "relative")
+				row.active = enable_edit_value
 				row.itemR(key, "slurph")
-
-				layout.itemR(kb, "name")
-
-		if ob.mode == 'EDIT':
-			layout.enabled = False
 
 class DATA_PT_uv_texture(DataButtonsPanel):
 	__label__ = "UV Texture"
@@ -197,7 +234,9 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 
 bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_normals)
+bpy.types.register(DATA_PT_settings)
 bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
+

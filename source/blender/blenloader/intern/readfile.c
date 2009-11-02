@@ -2453,6 +2453,16 @@ static void lib_link_key(FileData *fd, Main *main)
 
 	key= main->key.first;
 	while(key) {
+		/*check if we need to generate unique ids for the shapekeys*/
+		if (!key->uidgen) {
+			KeyBlock *block;
+
+			key->uidgen = 1;
+			for (block=key->block.first; block; block=block->next) {
+				block->uid = key->uidgen++;
+			}
+		}
+
 		if(key->id.flag & LIB_NEEDLINK) {
 			if(key->adt) lib_link_animdata(fd, &key->id, key->adt);
 			

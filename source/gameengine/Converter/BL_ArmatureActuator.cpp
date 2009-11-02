@@ -31,9 +31,9 @@
 #include "DNA_constraint_types.h"
 #include "DNA_actuator_types.h"
 #include "BKE_constraint.h"
-#include "BLI_arithb.h"
 #include "BL_ArmatureActuator.h"
 #include "BL_ArmatureObject.h"
+#include "BLI_arithb.h"
 
 /**
  * This class is the conversion of the Pose channel constraint.

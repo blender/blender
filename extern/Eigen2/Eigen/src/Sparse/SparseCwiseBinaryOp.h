@@ -126,6 +126,8 @@ class SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
     EIGEN_STRONG_INLINE InnerIterator(const SparseCwiseBinaryOp& binOp, int outer)
       : Base(binOp,outer)
     {}
+  private:
+    InnerIterator& operator=(const InnerIterator&);
 };
 
 /***************************************************************************
@@ -197,6 +199,9 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Deri
     const BinaryOp& m_functor;
     Scalar m_value;
     int m_id;
+
+  private:
+    ei_sparse_cwise_binary_op_inner_iterator_selector& operator=(const ei_sparse_cwise_binary_op_inner_iterator_selector&);
 };
 
 // sparse - sparse  (product)
@@ -250,6 +255,9 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
     LhsIterator m_lhsIter;
     RhsIterator m_rhsIter;
     const BinaryFunc& m_functor;
+
+  private:
+    ei_sparse_cwise_binary_op_inner_iterator_selector& operator=(const ei_sparse_cwise_binary_op_inner_iterator_selector&);
 };
 
 // sparse - dense  (product)
@@ -290,6 +298,9 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
     LhsIterator m_lhsIter;
     const BinaryFunc m_functor;
     const int m_outer;
+
+  private:
+    ei_sparse_cwise_binary_op_inner_iterator_selector& operator=(const ei_sparse_cwise_binary_op_inner_iterator_selector&);
 };
 
 // sparse - dense  (product)

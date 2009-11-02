@@ -26,8 +26,6 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 		
 		ob = context.object
 		
-		layout.itemR(ob, "rotation_mode")
-
 		row = layout.row()
 		
 		row.column().itemR(ob, "location")
@@ -42,6 +40,8 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 			row.column().itemR(ob, "rotation_euler", text="Rotation")
 			
 		row.column().itemR(ob, "scale")
+		
+		layout.itemR(ob, "rotation_mode")
 		
 class OBJECT_PT_transform_locks(ObjectButtonsPanel):
 	__label__ = "Transform Locks"

@@ -17,7 +17,7 @@ if [ -d eigen2 ]
 then
     cd eigen2
     # put here the version you want to use
-    hg up 2.0.6
+    hg up 2.0
     rm -f `find Eigen/ -type f -name "CMakeLists.txt"`
     cp -r Eigen ..
     cd ..

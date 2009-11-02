@@ -1,6 +1,19 @@
 	
 import bpy
 
+def active_node_mat(mat):
+	# TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
+	# which settings from node-materials are used
+	if mat:
+		mat_node = mat.active_node_material
+		if mat_node:
+			return mat_node
+		else:
+			return mat
+
+	return None
+
+
 class MaterialButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
@@ -46,6 +59,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 			col = row.column(align=True)
 			col.itemO("object.material_slot_add", icon='ICON_ZOOMIN', text="")
 			col.itemO("object.material_slot_remove", icon='ICON_ZOOMOUT', text="")
+			col.itemO("object.material_slot_copy", icon='ICON_COPY_ID', text="")
 
 			if ob.mode == 'EDIT':
 				row = layout.row(align=True)
@@ -74,14 +88,14 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def poll(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE', 'HALO')) and (engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = active_node_mat(context.material)
 
 		if mat.type in ('SURFACE', 'WIRE'):
 			split = layout.split()
@@ -117,7 +131,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = context.material # dont use node material
 		tan = mat.strand
 		
 		split = layout.split()
@@ -136,7 +150,9 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 		col = split.column()
 		col.itemL(text="Shading:")
 		col.itemR(tan, "width_fade")
-		col.itemR(tan, "uv_layer")
+		ob = context.object
+		if ob and ob.type == 'MESH': col.item_pointerR(tan, "uv_layer", ob.data, "uv_textures", text="")
+		else: col.itemR(tan, "uv_layer", text="")
 		col.itemS()
 		sub = col.column()
 		sub.active = (not mat.shadeless)
@@ -152,7 +168,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		phys = context.material.physics
+		phys = context.material.physics # dont use node material
 		
 		split = layout.split()
 		
@@ -171,14 +187,14 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def poll(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE', 'HALO')) and (engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = active_node_mat(context.material)
 		
 		split = layout.split()
 		
@@ -188,6 +204,9 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		col.itemR(mat, "sky")
 		col.itemR(mat, "exclude_mist")
 		col.itemR(mat, "invert_z")
+		sub = col.row()
+		sub.itemR(mat, "z_offset")
+		sub.active = mat.transparency and mat.transparency_method == 'Z_TRANSPARENCY'
 		sub = col.column(align=True)
 		sub.itemL(text="Light Group:")
 		sub.itemR(mat, "light_group", text="")
@@ -211,14 +230,14 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 	
 	def poll(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = active_node_mat(context.material)
 		
 		split = layout.split()
 		
@@ -244,14 +263,14 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def poll(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material	
+		mat = active_node_mat(context.material)
 		
 		split = layout.split()
 		
@@ -292,20 +311,22 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 			split = row.split(percentage=0.3)
 			split.itemL(text="Blend:")
 			split.itemR(mat, "diffuse_ramp_blend", text="")
+			row = layout.row()
+			row.itemR(mat, "diffuse_ramp_factor", text="Factor")
 
 class MATERIAL_PT_specular(MaterialButtonsPanel):
 	__label__ = "Specular"
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def poll(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = active_node_mat(context.material)
 		
 		layout.active = (not mat.shadeless)
 		
@@ -344,6 +365,8 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 			split = row.split(percentage=0.3)
 			split.itemL(text="Blend:")
 			split.itemR(mat, "specular_ramp_blend", text="")
+			row = layout.row()
+			row.itemR(mat, "specular_ramp_factor", text="Factor")
 		
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__label__ = "Subsurface Scattering"
@@ -351,12 +374,12 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def poll(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
 	def draw_header(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		sss = mat.subsurface_scattering
 		
 		self.layout.active = (not mat.shadeless)
@@ -365,7 +388,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = active_node_mat(context.material)
 		sss = mat.subsurface_scattering
 
 		layout.active = sss.enabled	
@@ -396,19 +419,19 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def poll(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 	
 	def draw_header(self, context):	
-		raym = context.material.raytrace_mirror
+		raym = active_node_mat(context.material).raytrace_mirror
 
 		self.layout.itemR(raym, "enabled", text="")
 	
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = active_node_mat(context.material)
 		raym = mat.raytrace_mirror
 		
 		layout.active = raym.enabled
@@ -451,19 +474,19 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 		
 	def poll(self, context):
-		mat = context.material
+		mat = active_node_mat(context.material)
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
 	def draw_header(self, context):	
-		mat = context.material
+		mat = active_node_mat(context.material)
 
 		self.layout.itemR(mat, "transparency", text="")
 
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = active_node_mat(context.material)
 		rayt = mat.raytrace_transparency
 		
 		row = layout.row()
@@ -517,7 +540,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = context.material # dont use node material
 		halo = mat.halo
 
 		split = layout.split()
@@ -569,7 +592,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = context.material # dont use node material
 		halo = mat.halo
 
 		layout.active = halo.flare_mode
@@ -618,8 +641,7 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		mat = context.material
-		vol = context.material.volume
+		vol = context.material.volume # dont use node material
 		
 		split = layout.split()
 		row = split.row()
@@ -635,7 +657,7 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		vol = context.material.volume
+		vol = context.material.volume # dont use node material
 		
 		split = layout.split()
 		
@@ -660,21 +682,22 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		vol = context.material.volume
+		vol = context.material.volume # dont use node material
 		
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(vol, "scattering_mode", text="")
+		col.itemR(vol, "lighting_mode", text="")
 		
 		col = split.column()
 		
-		if vol.scattering_mode == 'SINGLE_SCATTERING':
+		if vol.lighting_mode == 'SHADED':
+			col.itemR(vol, "external_shadows")
 			col.itemR(vol, "light_cache")
 			sub = col.column()
 			sub.active = vol.light_cache
 			sub.itemR(vol, "cache_resolution")
-		elif vol.scattering_mode in ('MULTIPLE_SCATTERING', 'SINGLE_PLUS_MULTIPLE_SCATTERING'):
+		elif vol.lighting_mode in ('MULTIPLE_SCATTERING', 'SHADED_PLUS_MULTIPLE_SCATTERING'):
 			sub = col.column()
 			sub.enabled = True
 			sub.active = False
@@ -694,7 +717,7 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
+		mat = context.material # dont use node material
 		
 		layout.itemR(mat, "transparency_method", expand=True)
 		
@@ -706,7 +729,7 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		vol = context.material.volume
+		vol = context.material.volume # dont use node material
 		
 		split = layout.split()
 		

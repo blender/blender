@@ -202,7 +202,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 			col.itemL(text="Buffer Type:")
 			col.row().itemR(lamp, "shadow_buffer_type", expand=True)
 
-			if lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY'):
+			if lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY', 'DEEP'):
 				split = layout.split()
 				
 				col = split.column()
@@ -218,6 +218,8 @@ class DATA_PT_shadow(DataButtonsPanel):
 				sub = col.column(align=True)
 				sub.itemR(lamp, "shadow_buffer_size", text="Size")
 				sub.itemR(lamp, "shadow_buffer_samples", text="Samples")
+				if lamp.shadow_buffer_type == 'DEEP':
+					col.itemR(lamp, "compression_threshold")
 				
 			elif lamp.shadow_buffer_type == 'IRREGULAR':
 				layout.itemR(lamp, "shadow_buffer_bias", text="Bias")
@@ -249,7 +251,7 @@ class DATA_PT_area(DataButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(lamp, "shape", text="")
+		col.row().itemR(lamp, "shape", expand=True)
 		
 		sub = col.column(align=True)
 		if (lamp.shape == 'SQUARE'):
@@ -273,9 +275,9 @@ class DATA_PT_spot(DataButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		sub = col.column(align=True)
+		sub = col.column()
 		sub.itemR(lamp, "spot_size", text="Size")
-		sub.itemR(lamp, "spot_blend", text="Blend")
+		sub.itemR(lamp, "spot_blend", text="Blend", slider=True)
 		col.itemR(lamp, "square")
 		
 		col = split.column()

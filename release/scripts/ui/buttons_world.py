@@ -129,7 +129,8 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		
 		col = split.column()
 		col.itemL(text="Attenuation:")
-		col.itemR(ao, "distance")
+		if ao.gather_method == 'RAYTRACE':
+			col.itemR(ao, "distance")
 		col.itemR(ao, "falloff")
 		sub = col.row()
 		sub.active = ao.falloff

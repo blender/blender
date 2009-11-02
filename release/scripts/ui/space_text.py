@@ -98,7 +98,6 @@ class TEXT_PT_find(bpy.types.Panel):
 		row.itemR(st, "find_all", text="All")
 
 class TEXT_MT_text(bpy.types.Menu):
-	__space_type__ = 'TEXT_EDITOR'
 	__label__ = "Text"
 
 	def draw(self, context):
@@ -140,7 +139,6 @@ class TEXT_MT_text(bpy.types.Menu):
 		#endif
 
 class TEXT_MT_edit_view(bpy.types.Menu):
-	__space_type__ = 'TEXT_EDITOR'
 	__label__ = "View"
 
 	def draw(self, context):
@@ -150,7 +148,6 @@ class TEXT_MT_edit_view(bpy.types.Menu):
 		layout.item_enumO("text.move", "type", 'FILE_BOTTOM', text="Bottom of File")
 
 class TEXT_MT_edit_select(bpy.types.Menu):
-	__space_type__ = 'TEXT_EDITOR'
 	__label__ = "Select"
 
 	def draw(self, context):
@@ -160,7 +157,6 @@ class TEXT_MT_edit_select(bpy.types.Menu):
 		layout.itemO("text.select_line")
 
 class TEXT_MT_edit_markers(bpy.types.Menu):
-	__space_type__ = 'TEXT_EDITOR'
 	__label__ = "Markers"
 
 	def draw(self, context):
@@ -171,7 +167,6 @@ class TEXT_MT_edit_markers(bpy.types.Menu):
 		layout.itemO("text.previous_marker")
 
 class TEXT_MT_format(bpy.types.Menu):
-	__space_type__ = 'TEXT_EDITOR'
 	__label__ = "Format"
 
 	def draw(self, context):
@@ -190,7 +185,6 @@ class TEXT_MT_format(bpy.types.Menu):
 		layout.item_menu_enumO("text.convert_whitespace", "type")
 
 class TEXT_MT_edit_to3d(bpy.types.Menu):
-	__space_type__ = 'TEXT_EDITOR'
 	__label__ = "Text To 3D Object"
 
 	def draw(self, context):
@@ -200,7 +194,6 @@ class TEXT_MT_edit_to3d(bpy.types.Menu):
 		layout.item_booleanO("text.to_3d_object", "split_lines", True, text="One Object Per Line");
 
 class TEXT_MT_edit(bpy.types.Menu):
-	__space_type__ = 'TEXT_EDITOR'
 	__label__ = "Edit"
 
 	def poll(self, context):

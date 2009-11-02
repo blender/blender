@@ -1,6 +1,9 @@
 
 import bpy
 
+import dynamic_menu
+# reload(dynamic_menu)
+
 class INFO_HT_header(bpy.types.Header):
 	__space_type__ = 'INFO'
 
@@ -36,28 +39,30 @@ class INFO_HT_header(bpy.types.Header):
 		layout.template_running_jobs()
 
 		layout.itemL(text=scene.statistics())
-			
+		
+		layout.itemO("wm.window_fullscreen_toggle", icon='ICON_ARROW_LEFTRIGHT', text="")
+
 class INFO_MT_file(bpy.types.Menu):
-	__space_type__ = 'INFO'
 	__label__ = "File"
 
 	def draw(self, context):
 		layout = self.layout
 
 		layout.operator_context = "EXEC_AREA"
-		layout.itemO("wm.read_homefile", text="New")
+		layout.itemO("wm.read_homefile", text="New", icon='ICON_NEW')
 		layout.operator_context = "INVOKE_AREA"
-		layout.itemO("wm.open_mainfile", text="Open...")
+		layout.itemO("wm.open_mainfile", text="Open...", icon='ICON_FILE_FOLDER')
 		layout.item_menu_enumO("wm.open_recentfile", "file", text="Open Recent")
 		layout.itemO("wm.recover_last_session")
+		layout.itemO("wm.recover_auto_save", text="Recover Auto Save...")
 
 		layout.itemS()
 
 		layout.operator_context = "EXEC_AREA"
-		layout.itemO("wm.save_mainfile", text="Save")
+		layout.itemO("wm.save_mainfile", text="Save", icon='ICON_FILE_TICK')
 		layout.operator_context = "INVOKE_AREA"
 		layout.itemO("wm.save_as_mainfile", text="Save As...")
-		layout.itemO("screen.userpref_show", text="User Preferences...")
+		layout.itemO("screen.userpref_show", text="User Preferences...", icon='ICON_PREFERENCES')
 
 		layout.itemS()
 		layout.operator_context = "INVOKE_AREA"
@@ -75,35 +80,35 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.itemS()
 
 		layout.operator_context = "EXEC_AREA"
-		layout.itemO("wm.exit_blender", text="Quit")
+		layout.itemO("wm.exit_blender", text="Quit", icon='ICON_QUIT')
 
-class INFO_MT_file_import(bpy.types.Menu):
-	__space_type__ = 'INFO'
+
+# test for expanding menus
+'''
+class INFO_MT_file_more(INFO_MT_file):
+	__label__ = "File"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("wm.read_homefile", text="TESTING ")
+
+dynamic_menu.setup(INFO_MT_file_more)
+'''
+
+class INFO_MT_file_import(dynamic_menu.DynMenu):
 	__label__ = "Import"
 
 	def draw(self, context):
-		layout = self.layout
-		
-		layout.itemO("import.3ds", text="3DS")
-		layout.itemO("import.obj", text="OBJ")
+		pass # dynamic menu
 
-
-class INFO_MT_file_export(bpy.types.Menu):
-	__space_type__ = 'INFO'
+class INFO_MT_file_export(dynamic_menu.DynMenu):
 	__label__ = "Export"
 
 	def draw(self, context):
-		layout = self.layout
-
-		layout.itemO("export.3ds", text="3DS")
-		layout.itemO("export.fbx", text="FBX")
-		layout.itemO("export.obj", text="OBJ")
-		layout.itemO("export.ply", text="PLY")
-		layout.itemO("export.x3d", text="X3D")
-
+		pass # dynamic menu
 
 class INFO_MT_file_external_data(bpy.types.Menu):
-	__space_type__ = 'INFO'
 	__label__ = "External Data"
 
 	def draw(self, context):
@@ -119,8 +124,24 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 		layout.itemO("file.report_missing_files")
 		layout.itemO("file.find_missing_files")
 
+
+class INFO_MT_mesh_add(dynamic_menu.DynMenu):
+	__label__ = "Mesh"
+	def draw(self, context):
+		layout = self.layout
+		layout.operator_context = 'INVOKE_REGION_WIN'
+		layout.itemO("mesh.primitive_plane_add", icon='ICON_MESH_PLANE', text="Plane")
+		layout.itemO("mesh.primitive_cube_add", icon='ICON_MESH_CUBE', text="Cube")
+		layout.itemO("mesh.primitive_circle_add", icon='ICON_MESH_CIRCLE', text="Circle")
+		layout.itemO("mesh.primitive_uv_sphere_add", icon='ICON_MESH_UVSPHERE', text="UV Sphere")
+		layout.itemO("mesh.primitive_ico_sphere_add", icon='ICON_MESH_ICOSPHERE', text="Icosphere")
+		layout.itemO("mesh.primitive_tube_add", icon='ICON_MESH_TUBE', text="Tube")
+		layout.itemO("mesh.primitive_cone_add", icon='ICON_MESH_CONE', text="Cone")
+		layout.itemS()
+		layout.itemO("mesh.primitive_grid_add", icon='ICON_MESH_GRID', text="Grid")
+		layout.itemO("mesh.primitive_monkey_add", icon='ICON_MESH_MONKEY', text="Monkey")
+
 class INFO_MT_add(bpy.types.Menu):
-	__space_type__ = 'INFO'
 	__label__ = "Add"
 
 	def draw(self, context):
@@ -128,7 +149,9 @@ class INFO_MT_add(bpy.types.Menu):
 
 		layout.operator_context = "EXEC_SCREEN"
 
-		layout.item_menu_enumO("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+		# layout.item_menu_enumO("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+		layout.itemM("INFO_MT_mesh_add", icon='ICON_OUTLINER_OB_MESH')
+		
 		layout.item_menu_enumO("object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
 		layout.item_menu_enumO("object.surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
 		layout.item_menu_enumO("object.metaball_add", "type", 'META', text="Metaball", icon='ICON_OUTLINER_OB_META')
@@ -144,9 +167,16 @@ class INFO_MT_add(bpy.types.Menu):
 
 		layout.item_enumO("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
 		layout.item_menu_enumO("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
+		
+		layout.itemS()
+		
+		layout.item_menu_enumO("object.effector_add", "type", 'EMPTY', text="Force Field", icon='ICON_OUTLINER_OB_EMPTY')
+
+		layout.itemS()		
+		
+		layout.item_menu_enumO("object.group_instance_add", "type", text="Group Instance", icon='ICON_OUTLINER_OB_EMPTY')
 
 class INFO_MT_game(bpy.types.Menu):
-	__space_type__ = 'INFO'
 	__label__ = "Game"
 
 	def draw(self, context):
@@ -164,7 +194,6 @@ class INFO_MT_game(bpy.types.Menu):
 		layout.itemR(gs, "deprecation_warnings")
 
 class INFO_MT_render(bpy.types.Menu):
-	__space_type__ = 'INFO'
 	__label__ = "Render"
 
 	def draw(self, context):
@@ -172,32 +201,30 @@ class INFO_MT_render(bpy.types.Menu):
 		
 		rd = context.scene.render_data
 
-		layout.itemO("screen.render", text="Render Image")
-		layout.item_booleanO("screen.render", "animation", True, text="Render Animation")
+		layout.itemO("screen.render", text="Render Image", icon='ICON_RENDER_STILL')
+		layout.item_booleanO("screen.render", "animation", True, text="Render Animation", icon='ICON_RENDER_ANIMATION')
 
 		layout.itemS()
 
 		layout.itemO("screen.render_view_show")
 
 class INFO_MT_help(bpy.types.Menu):
-	__space_type__ = 'INFO'
 	__label__ = "Help"
 
 	def draw(self, context):
 		layout = self.layout
 
-		layout.itemO("help.manual")
-		layout.itemO("help.release_logs")
+		layout.itemO("help.manual", icon='ICON_HELP')
+		layout.itemO("help.release_logs", icon='ICON_URL')
 
 		layout.itemS()
 
-		layout.itemO("help.blender_website")
-		layout.itemO("help.blender_eshop")
-		layout.itemO("help.developer_community")
-		layout.itemO("help.user_community")
+		layout.itemO("help.blender_website", icon='ICON_URL')
+		layout.itemO("help.blender_eshop", icon='ICON_URL')
+		layout.itemO("help.developer_community", icon='ICON_URL')
+		layout.itemO("help.user_community", icon='ICON_URL')
 		layout.itemS()
 		layout.itemO("help.operator_cheat_sheet")
-		
 
 bpy.types.register(INFO_HT_header)
 bpy.types.register(INFO_MT_file)
@@ -205,6 +232,7 @@ bpy.types.register(INFO_MT_file_import)
 bpy.types.register(INFO_MT_file_export)
 bpy.types.register(INFO_MT_file_external_data)
 bpy.types.register(INFO_MT_add)
+bpy.types.register(INFO_MT_mesh_add)
 bpy.types.register(INFO_MT_game)
 bpy.types.register(INFO_MT_render)
 bpy.types.register(INFO_MT_help)
@@ -224,38 +252,44 @@ class HelpOperator(bpy.types.Operator):
 		return ('FINISHED',)
 
 class HELP_OT_manual(HelpOperator):
+	'''The Blender Wiki manual'''
 	__idname__ = "help.manual"
 	__label__ = "Manual"
 	__URL__ = 'http://wiki.blender.org/index.php/Manual'
 
 class HELP_OT_release_logs(HelpOperator):
+	'''Information about the changes in this version of Blender'''
 	__idname__ = "help.release_logs"
 	__label__ = "Release Logs"
 	__URL__ = 'http://www.blender.org/development/release-logs/'
 
 class HELP_OT_blender_website(HelpOperator):
+	'''The official Blender website'''
 	__idname__ = "help.blender_website"
 	__label__ = "Blender Website"
 	__URL__ = 'http://www.blender.org/'
 
 class HELP_OT_blender_eshop(HelpOperator):
+	'''Buy official Blender resources and merchandise online'''
 	__idname__ = "help.blender_eshop"
 	__label__ = "Blender e-Shop"
 	__URL__ = 'http://www.blender3d.org/e-shop'
 
 class HELP_OT_developer_community(HelpOperator):
+	'''Get involved with Blender development'''
 	__idname__ = "help.developer_community"
 	__label__ = "Developer Community"
 	__URL__ = 'http://www.blender.org/community/get-involved/'
 
 class HELP_OT_user_community(HelpOperator):
+	'''Get involved with other Blender users'''
 	__idname__ = "help.user_community"
 	__label__ = "User Community"
 	__URL__ = 'http://www.blender.org/community/user-community/'
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 	__idname__ = "help.operator_cheat_sheet"
-	__label__ = "Operator Cheet Sheet (new textblock)"
+	__label__ = "Operator Cheat Sheet (new textblock)"
 	def execute(self, context):
 		op_strings = []
 		tot = 0
@@ -278,7 +312,6 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 		print("See OperatorList.txt textblock")
 		return ('FINISHED',)
 
-
 bpy.ops.add(HELP_OT_manual)
 bpy.ops.add(HELP_OT_release_logs)
 bpy.ops.add(HELP_OT_blender_website)
@@ -286,4 +319,3 @@ bpy.ops.add(HELP_OT_blender_eshop)
 bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
 bpy.ops.add(HELP_OT_operator_cheat_sheet)
-

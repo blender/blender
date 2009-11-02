@@ -525,7 +525,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 @interface CocoaAppDelegate : NSObject {
 	GHOST_SystemCocoa *systemCocoa;
 }
--(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
+- (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 - (void)applicationWillTerminate:(NSNotification *)aNotification;
 @end
@@ -534,6 +535,12 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 -(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa
 {
 	systemCocoa = sysCocoa;
+}
+
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
+{
+	NSLog(@"\nGet open file event from cocoa : %@",filename);
+	return YES;
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
@@ -565,6 +572,8 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
 	m_modifierMask =0;
 	m_pressedMouseButtons =0;
+	m_cursorDelta_x=0;
+	m_cursorDelta_y=0;
 	m_displayManager = new GHOST_DisplayManagerCocoa ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemCocoa::GHOST_SystemCocoa(): m_displayManager==0\n");
 	m_displayManager->initialize();
@@ -656,13 +665,14 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 				[NSApp setWindowsMenu:windowMenu];
 				[windowMenu release];
 			}
-			[NSApp finishLaunching];
 		}
 		if ([NSApp delegate] == nil) {
 			CocoaAppDelegate *appDelegate = [[CocoaAppDelegate alloc] init];
 			[appDelegate setSystemCocoa:this];
 			[NSApp setDelegate:appDelegate];
 		}
+		
+		[NSApp finishLaunching];
 				
 		[pool drain];
     }
@@ -787,7 +797,9 @@ GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
 
 
 	
-
+/**
+ * @note : returns coordinates in Cocoa screen coordinates
+ */
 GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
     NSPoint mouseLoc = [NSEvent mouseLocation];
@@ -798,17 +810,24 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
     return GHOST_kSuccess;
 }
 
-
+/**
+ * @note : expect Cocoa screen coordinates
+ */
 GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
 {
 	float xf=(float)x, yf=(float)y;
+	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
+	NSScreen *windowScreen = window->getScreen();
+	NSRect screenRect = [windowScreen frame];
+	
+	//Set position relative to current screen
+	xf -= screenRect.origin.x;
+	yf -= screenRect.origin.y;
 	
 	//Quartz Display Services uses the old coordinates (top left origin)
-	yf = [[NSScreen mainScreen] frame].size.height -yf;
-	
-	//CGAssociateMouseAndMouseCursorPosition(false);
-	CGWarpMouseCursorPosition(CGPointMake(xf, yf));
-	//CGAssociateMouseAndMouseCursorPosition(true);
+	yf = screenRect.size.height -yf;
+
+	CGDisplayMoveCursorToPoint([[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
 
     return GHOST_kSuccess;
 }
@@ -873,15 +892,6 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		 
 		 if (timerMgr->fireTimers(getMilliSeconds())) {
 		 anyProcessed = true;
-		 }
-		 
-			 if (getFullScreen()) {
-		 // Check if the full-screen window is dirty
-		 GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
-		 if (((GHOST_WindowCarbon*)window)->getFullScreenDirty()) {
-		 pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
-		 anyProcessed = true;
-		 }
 		 }*/
 		
 		do {
@@ -999,6 +1009,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 
 GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 {
+	GHOST_Window* window = (GHOST_Window*)m_windowManager->getActiveWindow();
+	
+	//Discard quit event if we are in cursor grab sequence
+	if (window && (window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
+		return GHOST_kExitCancel;
+	
 	//Check open windows if some changes are not saved
 	if (m_windowManager->getAnyModifiedState())
 	{
@@ -1008,7 +1024,14 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 		{
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
 			return GHOST_kExitNow;
+		} else {
+			//Give back focus to the blender window if user selected cancel quit
+			NSArray *windowsList = [NSApp orderedWindows];
+			if ([windowsList count]) {
+				[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+			}
 		}
+
 	}
 	else {
 		pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
@@ -1023,11 +1046,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 {
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+	
+	if (!window) return GHOST_kFailure;
+	
 	GHOST_TabletData& ct=((GHOST_WindowCocoa*)window)->GetCocoaTabletData();
 	
 	switch (eventType) {
 		case NSTabletPoint:
-			ct.Pressure = [event tangentialPressure];
+			ct.Pressure = [event pressure];
 			ct.Xtilt = [event tilt].x;
 			ct.Ytilt = [event tilt].y;
 			break;
@@ -1129,27 +1155,78 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					//No tablet event included : do nothing
 					break;
 			}
+			
 		case NSMouseMoved:
-			{
-				if(window->getCursorWarp()) {
-					GHOST_TInt32 x_warp, y_warp, x_accum, y_accum;
-					
-					window->getCursorWarpPos(x_warp, y_warp);
-					
-					window->getCursorWarpAccum(x_accum, y_accum);
-					x_accum += [event deltaX];
-					y_accum += -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
-					window->setCursorWarpAccum(x_accum, y_accum);
-					
-					pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
-				} 
-				else { //Normal cursor operation: send mouse position in window
-					NSPoint mousePos = [event locationInWindow];
-					pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
-					window->setCursorWarpAccum(0, 0); //Mouse motion occured between two cursor warps, so we can reset the delta counter
+				switch (window->getCursorGrabMode()) {
+					case GHOST_kGrabHide: //Cursor hidden grab operation : no cursor move
+					{
+						GHOST_TInt32 x_warp, y_warp, x_accum, y_accum;
+						
+						window->getCursorGrabInitPos(x_warp, y_warp);
+						
+						window->getCursorGrabAccum(x_accum, y_accum);
+						x_accum += [event deltaX];
+						y_accum += -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
+						window->setCursorGrabAccum(x_accum, y_accum);
+						
+						pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
+					}
+						break;
+					case GHOST_kGrabWrap: //Wrap cursor at area/window boundaries
+					{
+						NSPoint mousePos = [event locationInWindow];
+						GHOST_TInt32 x_mouse= mousePos.x;
+						GHOST_TInt32 y_mouse= mousePos.y;
+						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur;
+						GHOST_Rect bounds, windowBounds, correctedBounds;
+						
+						/* fallback to window bounds */
+						if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
+							window->getClientBounds(bounds);
+						
+						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
+						window->getClientBounds(windowBounds);
+						window->screenToClient(bounds.m_l,bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
+						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
+						correctedBounds.m_b = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_b;
+						correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
+						
+						//Update accumulation counts
+						window->getCursorGrabAccum(x_accum, y_accum);
+						x_accum += [event deltaX]-m_cursorDelta_x;
+						y_accum += -[event deltaY]-m_cursorDelta_y; //Strange Apple implementation (inverted coordinates for the deltaY) ...
+						window->setCursorGrabAccum(x_accum, y_accum);
+						
+						
+						//Warp mouse cursor if needed
+						x_mouse += [event deltaX]-m_cursorDelta_x;
+						y_mouse += -[event deltaY]-m_cursorDelta_y;
+						correctedBounds.wrapPoint(x_mouse, y_mouse, 2);
+						
+						//Compensate for mouse moved event taking cursor position set into account
+						m_cursorDelta_x = x_mouse-mousePos.x;
+						m_cursorDelta_y = y_mouse-mousePos.y;
+						
+						//Set new cursor position
+						window->clientToScreen(x_mouse, y_mouse, x_cur, y_cur);
+						setCursorPosition(x_cur, y_cur); /* wrap */
+						
+						//Post event
+						window->getCursorGrabInitPos(x_cur, y_cur);
+						pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, x_cur + x_accum, y_cur + y_accum));
+					}
+						break;
+					default:
+					{
+						//Normal cursor operation: send mouse position in window
+						NSPoint mousePos = [event locationInWindow];
+						pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
+						m_cursorDelta_x=0;
+						m_cursorDelta_y=0; //Mouse motion occured between two cursor warps, so we can reset the delta counter
+					}
+						break;
 				}
 				break;
-			}
 			
 		case NSScrollWheel:
 			{
@@ -1323,74 +1400,3 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	
 	[pool drain];
 }
-
-#pragma mark Carbon stuff to remove
-
-#ifdef WITH_CARBON
-
-
-OSErr GHOST_SystemCarbon::sAEHandlerLaunch(const AppleEvent *event, AppleEvent *reply, SInt32 refCon)
-{
-	//GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
-	
-	return noErr;
-}
-
-OSErr GHOST_SystemCarbon::sAEHandlerOpenDocs(const AppleEvent *event, AppleEvent *reply, SInt32 refCon)
-{
-	//GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
-	AEDescList docs;
-	SInt32 ndocs;
-	OSErr err;
-	
-	err = AEGetParamDesc(event, keyDirectObject, typeAEList, &docs);
-	if (err != noErr)  return err;
-	
-	err = AECountItems(&docs, &ndocs);
-	if (err==noErr) {
-		int i;
-		
-		for (i=0; i<ndocs; i++) {
-			FSSpec fss;
-			AEKeyword kwd;
-			DescType actType;
-			Size actSize;
-			
-			err = AEGetNthPtr(&docs, i+1, typeFSS, &kwd, &actType, &fss, sizeof(fss), &actSize);
-			if (err!=noErr)
-				break;
-			
-			if (i==0) {
-				FSRef fsref;
-				
-				if (FSpMakeFSRef(&fss, &fsref)!=noErr)
-					break;
-				if (FSRefMakePath(&fsref, (UInt8*) g_firstFileBuf, sizeof(g_firstFileBuf))!=noErr)
-					break;
-				
-				g_hasFirstFile = true;
-			}
-		}
-	}
-	
-	AEDisposeDesc(&docs);
-	
-	return err;
-}
-
-OSErr GHOST_SystemCarbon::sAEHandlerPrintDocs(const AppleEvent *event, AppleEvent *reply, SInt32 refCon)
-{
-	//GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
-	
-	return noErr;
-}
-
-OSErr GHOST_SystemCarbon::sAEHandlerQuit(const AppleEvent *event, AppleEvent *reply, SInt32 refCon)
-{
-	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
-	
-	sys->pushEvent( new GHOST_Event(sys->getMilliSeconds(), GHOST_kEventQuit, NULL) );
-	
-	return noErr;
-}
-#endif

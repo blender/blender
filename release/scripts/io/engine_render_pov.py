@@ -826,12 +826,12 @@ class PovrayRender(bpy.types.RenderEngine):
 bpy.types.register(PovrayRender)
 
 # Use some of the existing buttons.
-import buttons_scene
-buttons_scene.SCENE_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_scene.SCENE_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_scene.SCENE_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
-buttons_scene.SCENE_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
-del buttons_scene
+import buttons_render
+buttons_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
+del buttons_render
 
 # Use only a subset of the world panels
 import buttons_world
@@ -852,14 +852,14 @@ del buttons_material
 class RenderButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
-	__context__ = "scene"
+	__context__ = "render"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
 		rd = context.scene.render_data
 		return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
-class SCENE_PT_povray_radiosity(RenderButtonsPanel):
+class RENDER_PT_povray_radiosity(RenderButtonsPanel):
 	__label__ = "Radiosity"
 	COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
@@ -909,4 +909,4 @@ class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 			col = split.column()
 			col.itemR(scene, "pov_radio_always_sample")
 
-bpy.types.register(SCENE_PT_povray_radiosity)
+bpy.types.register(RENDER_PT_povray_radiosity)

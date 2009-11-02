@@ -228,34 +228,7 @@ protected:
      * @return Indication whether the event was handled. 
      */
     GHOST_TSuccess handleKeyEvent(void *eventPtr);
-
-    /**
-     * Handles all basic Mac application stuff for a mouse down event.
-     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
-     * @return Indication whether the event was handled. 
-     */
-   // bool handleMouseDown(void *eventPtr);
-
-    /**
-     * Handles a Mac menu command.
-     * @param menuResult A Mac menu/item identifier.
-     * @return Indication whether the event was handled. 
-     */
-   // bool handleMenuCommand(GHOST_TInt32 menuResult);
     
-    /* callback for blender generated events */
-//	static OSStatus blendEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData);
-
-
-    /**
-     * Callback for Mac Timer tasks that expire.
-     * @param tmTask Pointer to the timer task that expired.
-     */
-    //static void s_timerCallback(TMTaskPtr tmTask);
-    	
-    /** Event handler reference. */
-    //EventHandlerRef m_handler;
-	
 	/** Start time at initialization. */
 	GHOST_TUns64 m_start_time;
 	
@@ -266,7 +239,12 @@ protected:
     GHOST_TUns32 m_modifierMask;
 
     /** Ignores window size messages (when window is dragged). */
-    bool m_ignoreWindowSizedMessages;    
+    bool m_ignoreWindowSizedMessages;   
+	
+	/** Stores the mouse cursor delta due to setting a new cursor position
+	 * Needed because cocoa event delta cursor move takes setCursorPosition changes too.
+	 */
+	GHOST_TInt32 m_cursorDelta_x, m_cursorDelta_y;
 };
 
 #endif // _GHOST_SYSTEM_COCOA_H_

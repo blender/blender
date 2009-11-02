@@ -356,7 +356,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 			if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 				usemat = true;
 
-			if(GPU_extensions_minimum_support())
+			if(GPU_glsl_support())
 				useglslmat = true;
 			else if(blscene->gm.matmode == GAME_MAT_GLSL)
 				usemat = false;

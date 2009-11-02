@@ -46,7 +46,6 @@ typedef unsigned long uint_ptr;
 
 
 #define KX_INERTIA_INFINITE 10000
-#include "BLI_arithb.h"
 #include "RAS_IPolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_GameObject.h"
@@ -79,6 +78,8 @@ typedef unsigned long uint_ptr;
 // in the game engine.
 
 #include "KX_SG_NodeRelationships.h"
+
+#include "BLI_arithb.h"
 
 static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
 static MT_Vector3 dummy_scaling = MT_Vector3(1.0, 1.0, 1.0);

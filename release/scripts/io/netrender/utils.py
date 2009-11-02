@@ -75,7 +75,7 @@ def prefixPath(prefix_directory, file_path, prefix_path):
 			
 			if prefix_path and p.startswith(prefix_path):
 				directory = prefix_directory + p[len(prefix_path):]
-				full_path = directory + n
+				full_path = directory + os.sep + n
 				if not os.path.exists(directory):
 					os.mkdir(directory)
 			else:
