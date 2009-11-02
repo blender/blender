@@ -150,6 +150,25 @@ static void rna_Object_select_update(bContext *C, PointerRNA *ptr)
 	ED_base_object_select(object_in_scene(ob, CTX_data_scene(C)), mode);
 }
 
+static void rna_Base_select_update(bContext *C, PointerRNA *ptr)
+{
+	Base *base= (Base*)ptr->data;
+	short mode = base->flag & BA_SELECT ? BA_SELECT : BA_DESELECT;
+	ED_base_object_select(base, mode);
+}
+
+static void rna_Object_layer_update__internal(Scene *scene, Base *base, Object *ob)
+{
+	/* try to avoid scene sort */
+	if((ob->lay & scene->lay) && (base->lay & scene->lay)) {
+ 		/* pass */
+	} else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0) {
+		/* pass */
+	} else {
+		DAG_scene_sort(scene);
+	}
+}
+
 static void rna_Object_layer_update(bContext *C, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -160,15 +179,19 @@ static void rna_Object_layer_update(bContext *C, PointerRNA *ptr)
 	if(!base)
 		return;
 
-	/* try to avoid scene sort */
-	if((ob->lay & scene->lay) && (base->lay & scene->lay))
- 		base->lay= ob->lay;
-	else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0)
-		base->lay= ob->lay;
-	else {
-		base->lay= ob->lay;
-		DAG_scene_sort(scene);
-	}
+	base->lay= ob->lay;
+	rna_Object_layer_update__internal(scene, base, ob);
+}
+
+static void rna_Base_layer_update(bContext *C, PointerRNA *ptr)
+{
+	Base *base= (Base*)ptr->id.data;
+	Object *ob= (Object*)base->object;
+	Scene *scene= CTX_data_scene(C);
+
+	ob->lay= base->lay;
+
+	rna_Object_layer_update__internal(scene, base, ob);
 }
 
 static int rna_Object_data_editable(PointerRNA *ptr)
@@ -697,23 +720,47 @@ static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_GameObjectSettings, ptr->id.data);
 }
 
-static void rna_Object_layer_set(PointerRNA *ptr, const int *values)
+
+static unsigned int rna_Object_layer_validate__internal(const int *values, unsigned int lay)
 {
-	Object *ob= (Object*)ptr->data;
-	int i, tot= 0;
+	int i, tot;
 
 	/* ensure we always have some layer selected */
 	for(i=0; i<20; i++)
 		if(values[i])
 			tot++;
-	
+
 	if(tot==0)
-		return;
+		return 0;
 
 	for(i=0; i<20; i++) {
-		if(values[i]) ob->lay |= (1<<i);
-		else ob->lay &= ~(1<<i);
+		if(values[i])	lay |= (1<<i);
+		else			lay &= ~(1<<i);
 	}
+
+	return lay;
+}
+
+static void rna_Object_layer_set(PointerRNA *ptr, const int *values)
+{
+	Object *ob= (Object*)ptr->data;
+	unsigned int lay;
+
+	lay= rna_Object_layer_validate__internal(values, ob->lay);
+	if(lay)
+		ob->lay= lay;
+}
+
+static void rna_Base_layer_set(PointerRNA *ptr, const int *values)
+{
+	Base *base= (Base*)ptr->data;
+
+	unsigned int lay;
+	lay= rna_Object_layer_validate__internal(values, base->lay);
+	if(lay)
+		base->lay= lay;
+
+	/* rna_Base_layer_update updates the objects layer */
 }
 
 static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
@@ -1707,10 +1754,44 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	/* TODO: DupliObject has more properties that can be wrapped */
 }
 
+static void rna_def_base(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Base", NULL);
+	RNA_def_struct_sdna(srna, "Base");
+	RNA_def_struct_ui_text(srna, "Object Base", "An objects instance in a scene.");
+	RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);
+
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "object");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object", "Object this base links to.");
+
+	/* same as object layer */
+	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
+	RNA_def_property_array(prop, 20);
+	RNA_def_property_ui_text(prop, "Layers", "Layers the object is on.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Base_layer_set");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Base_layer_update");
+
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BA_SELECT);
+	RNA_def_property_ui_text(prop, "Selected", "Object base selection state.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Base_select_update");
+
+	/* could use other flags like - BA_WAS_SEL, but for now selected is enough */
+
+	/* TODO: DupliObject has more properties that can be wrapped */
+}
+
 void RNA_def_object(BlenderRNA *brna)
 {
 	rna_def_object(brna);
 	rna_def_object_game_settings(brna);
+	rna_def_base(brna);
 	rna_def_vertex_group(brna);
 	rna_def_material_slot(brna);
 	rna_def_dupli_object(brna);

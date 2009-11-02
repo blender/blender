@@ -2227,6 +2227,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	/* Bases/Objects */
+	prop= RNA_def_property(srna, "bases", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
+	RNA_def_property_struct_type(prop, "Base");
+	RNA_def_property_ui_text(prop, "Bases", "");
+
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");

@@ -114,7 +114,7 @@ void LATTICE_OT_select_all_toggle(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
 
 /* object_group.c */
-void GROUP_OT_group_create(struct wmOperatorType *ot);
+void GROUP_OT_create(struct wmOperatorType *ot);
 void GROUP_OT_objects_remove(struct wmOperatorType *ot);
 void GROUP_OT_objects_add_active(struct wmOperatorType *ot);
 void GROUP_OT_objects_remove_active(struct wmOperatorType *ot);

@@ -104,7 +104,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_select_mirror);
 	WM_operatortype_append(OBJECT_OT_select_name); /* XXX - weak, not compat with linked objects */
 
-	WM_operatortype_append(GROUP_OT_group_create);
+	WM_operatortype_append(GROUP_OT_create);
 	WM_operatortype_append(GROUP_OT_objects_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
@@ -294,7 +294,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_verify_item(keymap, "GROUP_OT_group_create", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "GROUP_OT_create", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);

@@ -98,6 +98,8 @@ class bpy_ops_submodule(object):
         '''
         gets a bpy.ops.submodule function
         '''
+        if func.startswith('__'):
+            raise AttributeError(func)
         return bpy_ops_submodule_op(self.module, func)
 
     def __dir__(self):
