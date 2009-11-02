@@ -91,7 +91,7 @@ IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
-IF (WITH_OPENCOLLADA)
+IF (WITH_OPENCOLLADA AND NOT APPLE)
 SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
 SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA})
 SET(OPENCOLLADA_LIB OpenCollada)
@@ -101,8 +101,7 @@ SET(PCRE_LIB pcre)
 SET(EXPAT /usr CACHE FILEPATH "Expat Directory")
 SET(EXPAT_LIBPATH ${EXPAT}/lib)
 SET(EXPAT_LIB expat)
-
-ENDIF (WITH_OPENCOLLADA)
+ENDIF (WITH_OPENCOLLADA AND NOT APPLE)
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
@@ -517,11 +516,27 @@ IF(APPLE)
 	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
 	ENDIF (WITH_COCOA)
+
 	IF(WITH_OPENMP)
 		SET(LLIBS "${LLIBS} -lgomp ")
 		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp ")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp ")
 	ENDIF(WITH_OPENMP)
+
+	IF (WITH_OPENCOLLADA)
+		SET(OPENCOLLADA ${LIBDIR}/opencollada)
+		SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
+		SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
+		SET(OPENCOLLADA_LIB "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lUTF -lxml2" )
+		#pcre is bundled with openCollada
+		#SET(PCRE ${LIBDIR}/pcre)
+		#SET(PCRE_LIBPATH ${PCRE}/lib)
+		SET(PCRE_LIB pcre)
+		#native OSX libxml2 is used
+		#SET(EXPAT ${LIBDIR}/expat)
+		#SET(EXPAT_LIBPATH ${EXPAT}/lib)
+		#SET(EXPAT_LIB expat)
+	ENDIF (WITH_OPENCOLLADA)
 
 	SET(SDL ${LIBDIR}/sdl)
 	SET(SDL_INCLUDE_DIR ${SDL}/include)
