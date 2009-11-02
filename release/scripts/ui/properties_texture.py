@@ -519,11 +519,13 @@ class TEXTURE_PT_image_sampling(TextureTypePanel):
 
         col.itemL(text="Filter:")
         col.itemR(tex, "filter", text="")
+        col.itemR(tex, "filter_size")
+        col.itemR(tex, "filter_size_minimum")
         col.itemR(tex, "mipmap")
 
         row = col.row()
         row.active = tex.mipmap
-        row.itemR(tex, "mipmap_gauss", text="Gauss")
+        row.itemR(tex, "mipmap_gauss")
 
         col.itemR(tex, "interpolation")
         if tex.mipmap and tex.filter != 'DEFAULT':
