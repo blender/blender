@@ -120,14 +120,20 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_use_expand_framing)
+extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_frame, int always_use_expand_framing)
 {
 	/* context values */
 	struct wmWindow *win= CTX_wm_window(C);
 	struct Scene *scene= CTX_data_scene(C);
 	struct Main* maggie1= CTX_data_main(C);
-	
-	
+
+
+	RAS_Rect area_rect;
+	area_rect.SetLeft(cam_frame->xmin);
+	area_rect.SetBottom(cam_frame->ymin);
+	area_rect.SetRight(cam_frame->xmax);
+	area_rect.SetTop(cam_frame->ymax);
+
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 	Main* blenderdata = maggie1;
 
@@ -167,7 +173,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -239,15 +245,22 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
-		if(rv3d->persp==V3D_CAMOB) {
-			camzoom = (1.41421 + (rv3d->camzoom / 50.0));
-			camzoom *= camzoom;
+		if(rv3d->persp==RV3D_CAMOB) {
+			if(scene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
+				camzoom = 1.0f;
+			}
+			else {
+				camzoom = (1.41421 + (rv3d->camzoom / 50.0));
+				camzoom *= camzoom;
+				camzoom = 4.0 / camzoom;
+			}
 		}
-		else
+		else {
 			camzoom = 2.0;
+		}
 
-		camzoom = 4.0 / camzoom;
 		
+
 		ketsjiengine->SetDrawType(v3d->drawtype);
 		ketsjiengine->SetCameraZoom(camzoom);
 		
@@ -330,14 +343,16 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 				if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
 			}
+
+			rasterizer->SetBackColor(blscene->gm.framing.col[0], blscene->gm.framing.col[1], blscene->gm.framing.col[2], 0.0f);
 		}
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
-			if (rv3d->persp != V3D_CAMOB)
+			if (rv3d->persp != RV3D_CAMOB)
 			{
 				ketsjiengine->EnableCameraOverride(startscenename);
-				ketsjiengine->SetCameraOverrideUseOrtho((rv3d->persp == V3D_ORTHO));
+				ketsjiengine->SetCameraOverrideUseOrtho((rv3d->persp == RV3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
 				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
@@ -589,6 +604,12 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 
 	Main* blenderdata = maggie;
 
+	RAS_Rect area_rect;
+	area_rect.SetLeft(ar->winrct.xmin);
+	area_rect.SetBottom(ar->winrct.ymin);
+	area_rect.SetRight(ar->winrct.xmax);
+	area_rect.SetTop(ar->winrct.ymax);
+
 	char* startscenename = scenename;
 	char pathname[FILE_MAXDIR+FILE_MAXFILE];
 	STR_String exitstring = "";
@@ -619,7 +640,7 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 		bool usemat = false;
 
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect);
 		//canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -676,6 +697,7 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 			if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
 		}
+		rasterizer->SetBackColor(blscene->gm.framing.col[0], blscene->gm.framing.col[1], blscene->gm.framing.col[2], 0.0f);
 
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{

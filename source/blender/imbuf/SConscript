@@ -2,9 +2,14 @@
 Import ('env')
 
 sources = env.Glob('intern/*.c')
+if env['WITH_GHOST_COCOA']:
+	sources += env.Glob('intern/*.m')
+	sources.remove('intern/dynlibtiff.c')
+	sources.remove('intern/tiff.c')
 
 incs = '. ../makesdna #/intern/guardedalloc #/intern/memutil ../blenlib'
 incs += ' ../avi ../blenkernel'
+
 
 incs += ' ' + env['BF_JPEG_INC']
 incs += ' ' + env['BF_PNG_INC']

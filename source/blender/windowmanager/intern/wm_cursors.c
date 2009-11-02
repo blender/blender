@@ -181,7 +181,7 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 void WM_cursor_ungrab(wmWindow *win)
 {
 	if ((G.f & G_DEBUG) == 0)
-		if(win)
+		if(win && win->ghostwin)
 			GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL);
 }
 

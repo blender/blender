@@ -81,6 +81,7 @@ static void graph_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	uiItemS(layout);
 	
 	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cursor", 0);
 	uiItemR(layout, NULL, 0, &spaceptr, "show_sliders", 0);
 	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0);
 	
@@ -158,54 +159,11 @@ static void graph_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_un
 	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
 }
 
-static void graph_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_FRAME);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_SECOND);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_MARKER);
-}
-
-static void graph_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_CFRA);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_YAXIS);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_XAXIS);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_MARKER);
-}
-
-static void graph_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_FREE);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_AUTO);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_VECT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_ALIGN);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_AUTO_ANIM); // xxx?
-}
-
-static void graph_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_CONST);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_LIN);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_BEZ);
-}
-
-static void graph_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
-}
-
 static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemMenuF(layout, "Transform", 0, graph_edit_transformmenu, NULL);
-	uiItemMenuF(layout, "Snap", 0, graph_edit_snapmenu, NULL);
-	uiItemMenuF(layout, "Mirror", 0, graph_edit_mirrormenu, NULL);
+	uiItemMenuEnumO(layout, "Snap", 0, "GRAPH_OT_snap", "type");
+	uiItemMenuEnumO(layout, "Mirror", 0, "GRAPH_OT_mirror", "type");
 	
 	uiItemS(layout);
 	
@@ -219,9 +177,9 @@ static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Handle Type", 0, graph_edit_handlesmenu, NULL);
-	uiItemMenuF(layout, "Interpolation Mode", 0, graph_edit_ipomenu, NULL);
-	uiItemMenuF(layout, "Extrapolation Mode", 0, graph_edit_expomenu, NULL);
+	uiItemMenuEnumO(layout, "Handle Type", 0, "GRAPH_OT_handle_type", "type");
+	uiItemMenuEnumO(layout, "Interpolation Mode", 0, "GRAPH_OT_interpolation_type", "type");
+	uiItemMenuEnumO(layout, "Extrapolation Mode", 0, "GRAPH_OT_extrapolation_type", "type");
 	
 	uiItemS(layout);
 	
@@ -248,17 +206,30 @@ static void do_graph_buttons(bContext *C, void *arg, int event)
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
+static char *garound_pup(const bContext *C)
+{
+	static char string[512];
+	char *str = string;
+
+	str += sprintf(str, "%s", "Pivot: %t"); 
+	str += sprintf(str, "%s", "|Bounding Box Center %x0"); 
+	//str += sprintf(str, "%s", "|Median Point %x3");
+	str += sprintf(str, "%s", "|2D Cursor %x1");
+	str += sprintf(str, "%s", "|Individual Centers %x2");
+	return string;
+}
 
 void graph_header_buttons(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
+	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 	int xco, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_graph_buttons, NULL);
 	
+	/* standard buttosn in header - viewtype selector and menus */
 	xco= ED_area_header_standardbuttons(C, block, yco);
 	
 	if ((sa->flag & HEADER_NO_PULLDOWN)==0) {
@@ -307,6 +278,10 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 				"Auto-snapping mode for keyframe times when transforming");
 	}
 	xco += 98;
+	
+	/* pivot mode setting */
+	uiDefIconTextButI(block, ICONTEXTROW,B_REDR, ICON_ROTATE, garound_pup(C), xco,yco,XIC+10,YIC, &(sipo->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot");
+	xco+= XIC+10;
 	
 	/* copy + paste */
 	uiBlockBeginAlign(block);

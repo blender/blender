@@ -568,6 +568,13 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 			row.itemR(con, "axis_x")
 			row.itemR(con, "axis_y")
 			row.itemR(con, "axis_z")
+			
+	def DAMPED_TRACK(self, context, layout, con):
+		self.target_template(layout, con)
+		
+		row = layout.row()
+		row.itemL(text="To:")
+		row.itemR(con, "track", expand=True)
 		
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
 	__label__ = "Constraints"

@@ -148,6 +148,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_LAST_ACTIVE	(1<<24)
 #define UI_BUT_UNDO			(1<<25)
 #define UI_BUT_IMMEDIATE	(1<<26)
+#define UI_BUT_NO_TOOLTIP	(1<<27)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -603,16 +604,17 @@ int uiLayoutGetKeepAspect(uiLayout *layout);
 int uiLayoutGetWidth(uiLayout *layout);
 float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
-ListBase *uiLayoutBoxGetList(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);
 uiLayout *uiLayoutColumn(uiLayout *layout, int align);
 uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align);
 uiLayout *uiLayoutBox(uiLayout *layout);
-uiLayout *uiLayoutListBox(uiLayout *layout);
-uiLayout *uiLayoutFree(uiLayout *layout, int align);
+uiLayout *uiLayoutListBox(uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop,
+	struct PointerRNA *actptr, struct PropertyRNA *actprop);
+uiLayout *uiLayoutAbsolute(uiLayout *layout, int align);
 uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
+uiLayout *uiLayoutOverlap(uiLayout *layout);
 
 uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 
@@ -639,14 +641,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplate_view3d_select_faceselmenu(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 
-typedef struct uiListItem {
-	struct uiListItem *next, *prev;
-
-	struct PointerRNA data;
-	uiLayout *layout;
-} uiListItem;
-
-ListBase uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int type);
+void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int type);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

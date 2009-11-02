@@ -1168,7 +1168,7 @@ void GPU_color4_upload( DerivedMesh *dm, unsigned char *data )
 void GPU_color_switch( int mode )
 {
 	if( mode ) {
-		if( !GLStates & GPU_BUFFER_COLOR_STATE )
+		if( !(GLStates & GPU_BUFFER_COLOR_STATE) )
 			glEnableClientState( GL_COLOR_ARRAY );
 		GLStates |= GPU_BUFFER_COLOR_STATE;
 	}

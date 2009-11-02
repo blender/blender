@@ -48,6 +48,8 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	
 	char		*opname;
 	PyObject	*kw= NULL; /* optional args */
+	PyObject	*context_dict= NULL; /* optional args */
+	PyObject	*context_dict_back;
 
 	/* note that context is an int, python does the conversion in this case */
 	int context= WM_OP_EXEC_DEFAULT;
@@ -55,7 +57,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
 	bContext *C = BPy_GetContext();
 	
-	if (!PyArg_ParseTuple(args, "s|O!i:bpy.__ops__.call", &opname, &PyDict_Type, &kw, &context))
+	if (!PyArg_ParseTuple(args, "sO|O!i:bpy.__ops__.call", &opname, &context_dict, &PyDict_Type, &kw, &context))
 		return NULL;
 
 	ot= WM_operatortype_find(opname, TRUE);
@@ -65,61 +67,74 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		return NULL;
 	}
 	
+	if(!PyDict_Check(context_dict))
+		context_dict= NULL;
+
+	context_dict_back= CTX_py_dict_get(C);
+
+	CTX_py_dict_set(C, (void *)context_dict);
+	Py_XINCREF(context_dict); /* so we done loose it */
+
 	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
 		PyErr_SetString( PyExc_SystemError, "bpy.__ops__.call: operator poll() function failed, context is incorrect");
-		return NULL;
+		error_val= -1;
 	}
+	else {
+		/* WM_operator_properties_create(&ptr, opname); */
+		/* Save another lookup */
+		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 
-	/* WM_operator_properties_create(&ptr, opname); */
-	/* Save another lookup */
-	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		if(kw && PyDict_Size(kw))
+			error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
+
+
+		if (error_val==0) {
+			ReportList *reports;
+
+			reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
+			BKE_reports_init(reports, RPT_STORE);
+
+			WM_operator_call_py(C, ot, context, &ptr, reports);
+
+			if(BPy_reports_to_error(reports))
+				error_val = -1;
+
+			/* operator output is nice to have in the terminal/console too */
+			if(reports->list.first) {
+				char *report_str= BKE_reports_string(reports, 0); /* all reports */
 	
-	if(kw && PyDict_Size(kw))
-		error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
-
+				if(report_str) {
+					PySys_WriteStdout("%s\n", report_str);
+					MEM_freeN(report_str);
+				}
+			}
 	
-	if (error_val==0) {
-		ReportList *reports;
-
-		reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
-		BKE_reports_init(reports, RPT_STORE);
-
-		WM_operator_call_py(C, ot, context, &ptr, reports);
-
-		if(BPy_reports_to_error(reports))
-			error_val = -1;
-
-		/* operator output is nice to have in the terminal/console too */
-		if(reports->list.first) {
-			char *report_str= BKE_reports_string(reports, 0); /* all reports */
-
-			if(report_str) {
-				PySys_WriteStdout("%s\n", report_str);
-				MEM_freeN(report_str);
+			BKE_reports_clear(reports);
+			if ((reports->flag & RPT_FREE) == 0)
+			{
+				MEM_freeN(reports);
 			}
 		}
 
-		BKE_reports_clear(reports);
-		if ((reports->flag & RPT_FREE) == 0)
-		{
-			MEM_freeN(reports);
-		}
-	}
-
-	WM_operator_properties_free(&ptr);
+		WM_operator_properties_free(&ptr);
 
 #if 0
-	/* if there is some way to know an operator takes args we should use this */
-	{
-		/* no props */
-		if (kw != NULL) {
-			PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", opname);
-			return NULL;
-		}
+		/* if there is some way to know an operator takes args we should use this */
+		{
+			/* no props */
+			if (kw != NULL) {
+				PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", opname);
+				return NULL;
+			}
 
-		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
-	}
+			WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
+		}
 #endif
+	}
+
+	/* restore with original context dict, probably NULL but need this for nested operator calls */
+	Py_XDECREF(context_dict);
+	CTX_py_dict_set(C, (void *)context_dict_back);
 
 	if (error_val==-1) {
 		return NULL;

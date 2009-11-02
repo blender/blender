@@ -372,133 +372,6 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar)
 	return GHOST_kKeyUnknown;
 }
 
-/* MacOSX returns a Roman charset with kEventParamKeyMacCharCodes
- * as defined here: http://developer.apple.com/documentation/mac/Text/Text-516.html
- * I am not sure how international this works...
- * For cross-platform convention, we'll use the Latin ascii set instead.
- * As defined at: http://www.ramsch.org/martin/uni/fmi-hp/iso8859-1.html
- * 
- */
-static unsigned char convertRomanToLatin(unsigned char ascii)
-{
-
-	if(ascii<128) return ascii;
-	
-	switch(ascii) {
-	case 128:	return 142;
-	case 129:	return 143;
-	case 130:	return 128;
-	case 131:	return 201;
-	case 132:	return 209;
-	case 133:	return 214;
-	case 134:	return 220;
-	case 135:	return 225;
-	case 136:	return 224;
-	case 137:	return 226;
-	case 138:	return 228;
-	case 139:	return 227;
-	case 140:	return 229;
-	case 141:	return 231;
-	case 142:	return 233;
-	case 143:	return 232;
-	case 144:	return 234;
-	case 145:	return 235;
-	case 146:	return 237;
-	case 147:	return 236;
-	case 148:	return 238;
-	case 149:	return 239;
-	case 150:	return 241;
-	case 151:	return 243;
-	case 152:	return 242;
-	case 153:	return 244;
-	case 154:	return 246;
-	case 155:	return 245;
-	case 156:	return 250;
-	case 157:	return 249;
-	case 158:	return 251;
-	case 159:	return 252;
-	case 160:	return 0;
-	case 161:	return 176;
-	case 162:	return 162;
-	case 163:	return 163;
-	case 164:	return 167;
-	case 165:	return 183;
-	case 166:	return 182;
-	case 167:	return 223;
-	case 168:	return 174;
-	case 169:	return 169;
-	case 170:	return 174;
-	case 171:	return 180;
-	case 172:	return 168;
-	case 173:	return 0;
-	case 174:	return 198;
-	case 175:	return 216;
-	case 176:	return 0;
-	case 177:	return 177;
-	case 178:	return 0;
-	case 179:	return 0;
-	case 180:	return 165;
-	case 181:	return 181;
-	case 182:	return 0;
-	case 183:	return 0;
-	case 184:	return 215;
-	case 185:	return 0;
-	case 186:	return 0;
-	case 187:	return 170;
-	case 188:	return 186;
-	case 189:	return 0;
-	case 190:	return 230;
-	case 191:	return 248;
-	case 192:	return 191;
-	case 193:	return 161;
-	case 194:	return 172;
-	case 195:	return 0;
-	case 196:	return 0;
-	case 197:	return 0;
-	case 198:	return 0;
-	case 199:	return 171;
-	case 200:	return 187;
-	case 201:	return 201;
-	case 202:	return 0;
-	case 203:	return 192;
-	case 204:	return 195;
-	case 205:	return 213;
-	case 206:	return 0;
-	case 207:	return 0;
-	case 208:	return 0;
-	case 209:	return 0;
-	case 210:	return 0;
-	
-	case 214:	return 247;
-
-	case 229:	return 194;
-	case 230:	return 202;
-	case 231:	return 193;
-	case 232:	return 203;
-	case 233:	return 200;
-	case 234:	return 205;
-	case 235:	return 206;
-	case 236:	return 207;
-	case 237:	return 204;
-	case 238:	return 211;
-	case 239:	return 212;
-	case 240:	return 0;
-	case 241:	return 210;
-	case 242:	return 218;
-	case 243:	return 219;
-	case 244:	return 217;
-	case 245:	return 0;
-	case 246:	return 0;
-	case 247:	return 0;
-	case 248:	return 0;
-	case 249:	return 0;
-	case 250:	return 0;
-
-	
-		default: return 0;
-	}
-
-}
 
 #define FIRSTFILEBUFLG 512
 static bool g_hasFirstFile = false;
@@ -525,7 +398,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 @interface CocoaAppDelegate : NSObject {
 	GHOST_SystemCocoa *systemCocoa;
 }
--(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
+- (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 - (void)applicationWillTerminate:(NSNotification *)aNotification;
 @end
@@ -534,6 +408,12 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 -(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa
 {
 	systemCocoa = sysCocoa;
+}
+
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
+{
+	NSLog(@"\nGet open file event from cocoa : %@",filename);
+	return YES;
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
@@ -658,13 +538,14 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 				[NSApp setWindowsMenu:windowMenu];
 				[windowMenu release];
 			}
-			[NSApp finishLaunching];
 		}
 		if ([NSApp delegate] == nil) {
 			CocoaAppDelegate *appDelegate = [[CocoaAppDelegate alloc] init];
 			[appDelegate setSystemCocoa:this];
 			[NSApp setDelegate:appDelegate];
 		}
+		
+		[NSApp finishLaunching];
 				
 		[pool drain];
     }
@@ -789,7 +670,9 @@ GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
 
 
 	
-
+/**
+ * @note : returns coordinates in Cocoa screen coordinates
+ */
 GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
     NSPoint mouseLoc = [NSEvent mouseLocation];
@@ -800,17 +683,24 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
     return GHOST_kSuccess;
 }
 
-
+/**
+ * @note : expect Cocoa screen coordinates
+ */
 GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
 {
 	float xf=(float)x, yf=(float)y;
+	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
+	NSScreen *windowScreen = window->getScreen();
+	NSRect screenRect = [windowScreen frame];
+	
+	//Set position relative to current screen
+	xf -= screenRect.origin.x;
+	yf -= screenRect.origin.y;
 	
 	//Quartz Display Services uses the old coordinates (top left origin)
-	yf = [[NSScreen mainScreen] frame].size.height -yf;
-	
-	//CGAssociateMouseAndMouseCursorPosition(false);
-	CGWarpMouseCursorPosition(CGPointMake(xf, yf));
-	//CGAssociateMouseAndMouseCursorPosition(true);
+	yf = screenRect.size.height -yf;
+
+	CGDisplayMoveCursorToPoint((CGDirectDisplayID)[[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
 
     return GHOST_kSuccess;
 }
@@ -995,7 +885,7 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	GHOST_Window* window = (GHOST_Window*)m_windowManager->getActiveWindow();
 	
 	//Discard quit event if we are in cursor grab sequence
-	if ((window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
+	if (window && (window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
 		return GHOST_kExitCancel;
 	
 	//Check open windows if some changes are not saved
@@ -1007,7 +897,14 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 		{
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
 			return GHOST_kExitNow;
+		} else {
+			//Give back focus to the blender window if user selected cancel quit
+			NSArray *windowsList = [NSApp orderedWindows];
+			if ([windowsList count]) {
+				[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+			}
 		}
+
 	}
 	else {
 		pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
@@ -1022,11 +919,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 {
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+	
+	if (!window) return GHOST_kFailure;
+	
 	GHOST_TabletData& ct=((GHOST_WindowCocoa*)window)->GetCocoaTabletData();
 	
 	switch (eventType) {
 		case NSTabletPoint:
-			ct.Pressure = [event tangentialPressure];
+			ct.Pressure = [event pressure];
 			ct.Xtilt = [event tilt].x;
 			ct.Ytilt = [event tilt].y;
 			break;
@@ -1159,10 +1059,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
 						window->getClientBounds(windowBounds);
-						bounds.m_b = (windowBounds.m_b - windowBounds.m_t) - bounds.m_b;
-						bounds.m_t = (windowBounds.m_b - windowBounds.m_t) - bounds.m_t;
 						window->screenToClient(bounds.m_l,bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
 						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
+						correctedBounds.m_b = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_b;
+						correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
 						
 						//Update accumulation counts
 						window->getCursorGrabAccum(x_accum, y_accum);
@@ -1228,8 +1128,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	unsigned int modifiers;
 	NSString *characters;
+	NSData *convertedCharacters;
 	GHOST_TKey keyCode;
 	unsigned char ascii;
+	NSString* charsIgnoringModifiers;
 
 	/* Can happen, very rarely - seems to only be when command-H makes
 	 * the window go away and we still get an HKey up. 
@@ -1242,16 +1144,25 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	switch ([event type]) {
 		case NSKeyDown:
 		case NSKeyUp:
-			characters = [event characters];
-			if ([characters length]) { //Check for dead keys
+			charsIgnoringModifiers = [event charactersIgnoringModifiers];
+			if ([charsIgnoringModifiers length]>0)
 				keyCode = convertKey([event keyCode],
-									 [[event charactersIgnoringModifiers] characterAtIndex:0]);
-				ascii= convertRomanToLatin((char)[characters characterAtIndex:0]);
-			} else {
+									 [charsIgnoringModifiers characterAtIndex:0]);
+			else
 				keyCode = convertKey([event keyCode],0);
-				ascii= 0;
+
+				
+			characters = [event characters];
+			if ([characters length]>0) { //Check for dead keys
+				//Convert characters to iso latin 1 encoding
+				convertedCharacters = [characters dataUsingEncoding:NSISOLatin1StringEncoding];
+				if ([convertedCharacters length]>0)
+					ascii =((char*)[convertedCharacters bytes])[0];
+				else
+					ascii = 0; //Character not available in iso latin 1 encoding
 			}
-			
+			else
+				ascii= 0;
 			
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa

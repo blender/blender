@@ -1901,7 +1901,7 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return scroll_exec(C, op);
 	
 	/* verify we are in the right zone */
-	if(!(mval[0]>2 && mval[0]<20 && mval[1]>2 && mval[1]<ar->winy))
+	if(!(mval[0]>ar->winx-20 && mval[0]<ar->winx-2 && mval[1]>2 && mval[1]<ar->winy))
 		return OPERATOR_PASS_THROUGH;
 
 	tsc= MEM_callocN(sizeof(TextScroll), "TextScroll");

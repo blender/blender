@@ -1040,7 +1040,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 
 	/* wake up animtimer */
 	if(win->screen->animtimer)
-		WM_event_window_timer_sleep(win, win->screen->animtimer, 0);
+		WM_event_timer_sleep(wm, win, win->screen->animtimer, 0);
 	
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
@@ -1097,6 +1097,7 @@ void ED_area_exit(bContext *C, ScrArea *sa)
 
 void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *prevwin= CTX_wm_window(C);
 	ScrArea *sa;
 	ARegion *ar;
@@ -1104,7 +1105,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	CTX_wm_window_set(C, window);
 	
 	if(screen->animtimer)
-		WM_event_remove_window_timer(window, screen->animtimer);
+		WM_event_remove_timer(wm, window, screen->animtimer);
 	screen->animtimer= NULL;
 	
 	if(screen->mainwin)
@@ -1232,6 +1233,7 @@ int ED_screen_area_active(const bContext *C)
 /* Do NOT call in area/region queues! */
 void ED_screen_set(bContext *C, bScreen *sc)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *oldscreen= CTX_wm_screen(C);
 	ID *id;
@@ -1264,7 +1266,7 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer= NULL;
 		if(wt)
-			WM_event_window_timer_sleep(win, wt, 1);
+			WM_event_timer_sleep(wm, win, wt, 1);
 		
 		ED_screen_exit(C, win, oldscreen);
 		oldscreen->animtimer= wt;
@@ -1362,8 +1364,17 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 						if (!v3d->camera || !object_in_scene(v3d->camera, scene)) {
 							v3d->camera= scene_find_camera(sc->scene);
 							// XXX if (sc==curscreen) handle_view3d_lock();
-							if (!v3d->camera && v3d->persp==V3D_CAMOB) 
-								v3d->persp= V3D_PERSP;
+							if (!v3d->camera) {
+								ARegion *ar;
+								for(ar=v3d->regionbase.first; ar; ar= ar->next) {
+									if(ar->regiontype == RGN_TYPE_WINDOW) {
+										RegionView3D *rv3d= ar->regiondata;
+
+										if(rv3d->persp==RV3D_CAMOB)
+											rv3d->persp= RV3D_PERSP;
+									}
+								}
+							}
 						}
 					}
 					sl= sl->next;
@@ -1402,18 +1413,15 @@ void ED_screen_delete_scene(bContext *C, Scene *scene)
 }
 
 /* this function toggles: if area is full then the parent will be restored */
-void ed_screen_fullarea(bContext *C, ScrArea *sa)
+ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 {
 	bScreen *sc, *oldscreen;
 	
-	if(sa==NULL) {
-		return;
-	}
-	else if(sa->full) {
+	if(sa && sa->full) {
 		short fulltype;
 		
 		sc= sa->full;		/* the old screen to restore */
-		oldscreen= CTX_wm_screen(C);	/* the one disappearing */
+		oldscreen= win->screen;	/* the one disappearing */
 		
 		fulltype = sc->full;
 		
@@ -1430,7 +1438,7 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 				if(old->full) break;
 			if(old==NULL) {
 				printf("something wrong in areafullscreen\n"); 
-				return;
+				return NULL;
 			}
 			    // old feature described below (ton)
 				// in autoplay screens the headers are disabled by 
@@ -1453,14 +1461,15 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 	else {
 		ScrArea *newa;
 		
-		oldscreen= CTX_wm_screen(C);
+		oldscreen= win->screen;
 
 		/* is there only 1 area? */
-		if(oldscreen->areabase.first==oldscreen->areabase.last) return;
+		if(oldscreen->areabase.first==oldscreen->areabase.last)
+			return NULL;
 		
 		oldscreen->full = SCREENFULL;
 		
-		sc= ED_screen_add(CTX_wm_window(C), CTX_data_scene(C), "temp");
+		sc= ED_screen_add(win, oldscreen->scene, "temp");
 		sc->full = SCREENFULL; // XXX
 		
 		/* timer */
@@ -1468,8 +1477,13 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 		oldscreen->animtimer= NULL;
 		
 		/* returns the top small area */
-		newa= area_split(CTX_wm_window(C), sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
+		newa= area_split(win, sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
 		ED_area_newspace(C, newa, SPACE_INFO);
+
+		/* use random area when we have no active one, e.g. when the
+		   mouse is outside of the window and we open a file browser */
+		if(!sa)
+			sa= oldscreen->areabase.first;
 
 		/* copy area */
 		newa= newa->prev;
@@ -1487,30 +1501,33 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 
 	/* XXX retopo_force_update(); */
 
+	return sc->areabase.first;
 }
 
 int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 {
-	if(sa==NULL)
-		return 0;
-	
-	if(sa->full==0)
-		ed_screen_fullarea(C, sa);
+	wmWindow *win= CTX_wm_window(C);
+	ScrArea *newsa= NULL;
 
-	/* CTX_wm_area(C) is new area */
-	ED_area_newspace(C, CTX_wm_area(C), type);
+	if(!sa || sa->full==0)
+		newsa= ed_screen_fullarea(C, win, sa);
+	else
+		newsa= sa;
+
+	ED_area_newspace(C, newsa, type);
 	
 	return 1;
 }
 
 void ED_screen_full_prevspace(bContext *C)
 {
+	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
 	
 	ED_area_prevspace(C);
 	
 	if(sa->full)
-		ed_screen_fullarea(C, sa);
+		ed_screen_fullarea(C, win, sa);
 }
 
 /* redraws: uses defines from stime->redraws 
@@ -1519,17 +1536,18 @@ void ED_screen_full_prevspace(bContext *C)
 void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= CTX_wm_window(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	if(screen->animtimer)
-		WM_event_remove_window_timer(win, screen->animtimer);
+		WM_event_remove_timer(wm, win, screen->animtimer);
 	screen->animtimer= NULL;
 	
 	if(enable) {
 		struct ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
 		
-		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
+		screen->animtimer= WM_event_add_timer(wm, win, TIMER0, (1.0/FPS));
 		sad->ar= CTX_wm_region(C);
 		sad->redraws= redraws;
 		sad->flag |= (enable < 0)? ANIMPLAY_FLAG_REVERSE: 0;

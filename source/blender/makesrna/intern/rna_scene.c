@@ -76,14 +76,16 @@ EnumPropertyItem proportional_editing_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_scene.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 
 #include "BLI_threads.h"
 
 #include "ED_info.h"
 #include "ED_node.h"
+#include "ED_view3d.h"
 
 #include "RE_pipeline.h"
 
@@ -93,6 +95,15 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 
 	/* we are actually iterating a Base list, so override get */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
+}
+
+static void rna_Scene_skgen_etch_template_set(PointerRNA *ptr, PointerRNA value)
+{
+	ToolSettings *ts = (ToolSettings*)ptr->data;
+	if(value.data && ((Object*)value.data)->type == OB_ARMATURE)
+		ts->skgen_template = value.data;
+	else
+		ts->skgen_template = NULL;
 }
 
 static PointerRNA rna_Scene_active_object_get(PointerRNA *ptr)
@@ -149,6 +160,14 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 	Scene *scene= (Scene*)ptr->data;
 
 	scene->lay= layer_set(scene->lay, values);
+}
+
+static void rna_Scene_layer_update(bContext *C, PointerRNA *ptr)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= (Scene*)ptr->data;
+
+	ED_view3d_scene_layers_update(bmain, scene);
 }
 
 static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
@@ -523,6 +542,19 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem retarget_roll_items[] = {
+		{SK_RETARGET_ROLL_NONE, "NONE", 0, "None", "Don't adjust roll."},
+		{SK_RETARGET_ROLL_VIEW, "VIEW", 0, "View", "Roll bones to face the view."},
+		{SK_RETARGET_ROLL_JOINT, "JOINT", 0, "Joint", "Roll bone to original joint plane offset."},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem sketch_convert_items[] = {
+		{SK_CONVERT_CUT_FIXED, "FIXED", 0, "Fixed", "Subdivide stroke in fixed number of bones."},
+		{SK_CONVERT_CUT_LENGTH, "LENGTH", 0, "Length", "Subdivide stroke in bones of specific length."},
+		{SK_CONVERT_CUT_ADAPTATIVE, "ADAPTIVE", 0, "Adaptive", "Subdivide stroke adaptively, with more subdivision in curvier parts."},
+		{SK_CONVERT_RETARGET, "RETARGET", 0, "Retarget", "Retarget template bone chain to stroke."},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
 	
@@ -530,6 +562,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_struct_type(prop, "Sculpt");
 	RNA_def_property_ui_text(prop, "Sculpt", "");
 	
+	prop = RNA_def_property(srna, "auto_normalize", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "auto_normalize", 1);
+	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize", 
+		"Ensure all bone-deforming vertex groups add up to 1.0 while "
+		 "weight painting");
+
 	prop= RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
 	RNA_def_property_ui_text(prop, "Vertex Paint", "");
@@ -638,6 +676,70 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "vertex_group_weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "vgroup_weight");
 	RNA_def_property_ui_text(prop, "Vertex Group Weight", "Weight to assign in vertex groups.");
+
+	/* etch-a-ton */
+	prop= RNA_def_property(srna, "bone_sketching", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING);
+	RNA_def_property_ui_text(prop, "Use Bone Sketching", "DOC BROKEN");
+//	RNA_def_property_ui_icon(prop, ICON_EDIT, 0);
+
+	prop= RNA_def_property(srna, "etch_quick", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING_QUICK);
+	RNA_def_property_ui_text(prop, "Quick Sketching", "DOC BROKEN");
+
+	prop= RNA_def_property(srna, "etch_overdraw", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING_ADJUST);
+	RNA_def_property_ui_text(prop, "Overdraw Sketching", "DOC BROKEN");
+	
+	prop= RNA_def_property(srna, "etch_autoname", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "skgen_retarget_options", SK_RETARGET_AUTONAME);
+	RNA_def_property_ui_text(prop, "Autoname", "DOC BROKEN");
+
+	prop= RNA_def_property(srna, "etch_number", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "skgen_num_string");
+	RNA_def_property_ui_text(prop, "Number", "DOC BROKEN");
+
+	prop= RNA_def_property(srna, "etch_side", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "skgen_num_string");
+	RNA_def_property_ui_text(prop, "Side", "DOC BROKEN");
+
+	prop= RNA_def_property(srna, "etch_template", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "skgen_template");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_skgen_etch_template_set", NULL);
+	RNA_def_property_ui_text(prop, "Template", "Template armature that will be retargeted to the stroke.");
+
+	prop= RNA_def_property(srna, "etch_subdivision_number", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "skgen_subdivision_number");
+	RNA_def_property_range(prop, 1, 10000);
+	RNA_def_property_ui_text(prop, "Subdivisions", "Number of bones in the subdivided stroke.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "etch_adaptive_limit", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "skgen_correlation_limit");
+	RNA_def_property_range(prop, 0.00001, 1.0);
+	RNA_def_property_ui_range(prop, 0.01, 1.0, 0.01, 2);
+	RNA_def_property_ui_text(prop, "Limit", "Number of bones in the subdivided stroke.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "etch_length_limit", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "skgen_length_limit");
+	RNA_def_property_range(prop, 0.00001, 100000.0);
+	RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Length", "Number of bones in the subdivided stroke.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "etch_roll_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "skgen_retarget_roll");
+	RNA_def_property_enum_items(prop, retarget_roll_items);
+	RNA_def_property_ui_text(prop, "Retarget roll mode", "Method used to adjust the roll of bones when retargeting.");
+	
+	prop= RNA_def_property(srna, "etch_convert_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bone_sketching_convert");
+	RNA_def_property_enum_items(prop, sketch_convert_items);
+	RNA_def_property_ui_text(prop, "Stroke conversion method", "Method used to convert stroke to bones.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
 
@@ -2133,9 +2235,9 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
-	
+	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
+	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_layer_update");
 	
 	/* Frame Range Stuff */
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_TIME);

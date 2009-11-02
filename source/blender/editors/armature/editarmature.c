@@ -55,6 +55,7 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
@@ -63,6 +64,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -185,6 +187,9 @@ void make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent)
 		eBone->rad_tail= curBone->rad_tail;
 		eBone->segments = curBone->segments;		
 		eBone->layer = curBone->layer;
+
+		if(curBone->prop)
+			eBone->prop= IDP_CopyProperty(curBone->prop);
 		
 		BLI_addtail(edbo, eBone);
 		
@@ -250,7 +255,7 @@ void ED_armature_from_edit(Object *obedit)
 	Object *obt;
 	
 	/* armature bones */
-	free_bones(arm);
+	free_bonelist(&arm->bonebase);
 	
 	/* remove zero sized bones, this gives instable restposes */
 	for (eBone=arm->edbo->first; eBone; eBone= neBone) {
@@ -293,6 +298,9 @@ void ED_armature_from_edit(Object *obedit)
 		newBone->rad_tail= eBone->rad_tail;
 		newBone->segments= eBone->segments;
 		newBone->layer = eBone->layer;
+
+		if(eBone->prop)
+			newBone->prop= IDP_CopyProperty(eBone->prop);
 	}
 	
 	/*	Fix parenting in a separate pass to ensure ebone->bone connections
@@ -1901,11 +1909,21 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 void ED_armature_edit_free(struct Object *ob)
 {
 	bArmature *arm= ob->data;
+	EditBone *eBone;
 	
 	/*	Clear the editbones list */
 	if (arm->edbo) {
-		if (arm->edbo->first)
+		if (arm->edbo->first) {
+			for (eBone=arm->edbo->first; eBone; eBone=eBone->next) {
+				if (eBone->prop) {
+					IDP_FreeProperty(eBone->prop);
+					MEM_freeN(eBone->prop);
+				}
+			}
+
 			BLI_freelistN(arm->edbo);
+		}
+
 		MEM_freeN(arm->edbo);
 		arm->edbo= NULL;
 	}
@@ -2224,7 +2242,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 
 	VECCOPY(bone->head, curs);
 	
-	if ( (U.flag & USER_ADD_VIEWALIGNED) )
+	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
 	else
 		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
@@ -2712,17 +2730,6 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int armature_duplicate_selected_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int retv= armature_duplicate_selected_exec(C, op);
-
-	if (retv == OPERATOR_FINISHED) {
-		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-	}
-
-	return retv;
-}
 
 void ARMATURE_OT_duplicate(wmOperatorType *ot)
 {
@@ -2731,15 +2738,11 @@ void ARMATURE_OT_duplicate(wmOperatorType *ot)
 	ot->idname= "ARMATURE_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke = armature_duplicate_selected_invoke;
 	ot->exec = armature_duplicate_selected_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
 
@@ -3384,17 +3387,6 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int armature_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	if (OPERATOR_CANCELLED == armature_extrude_exec(C, op))
-		return OPERATOR_CANCELLED;
-
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-	return OPERATOR_FINISHED;
-}
-
 void ARMATURE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3402,7 +3394,6 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	ot->idname= "ARMATURE_OT_extrude";
 	
 	/* api callbacks */
-	ot->invoke= armature_extrude_invoke;
 	ot->exec= armature_extrude_exec;
 	ot->poll= ED_operator_editarmature;
 	
@@ -3411,8 +3402,6 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 /* ********************** Bone Add ********************/
 
@@ -3434,7 +3423,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	Mat4Invert(obedit->imat, obedit->obmat);
 	Mat4MulVecfl(obedit->imat, curs);
 
-	if (U.flag & USER_ADD_VIEWALIGNED)
+	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		Mat3CpyMat4(obmat, rv3d->viewmat);
 	else Mat3One(obmat);
 	
@@ -3449,7 +3438,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
 	VECCOPY(bone->head, curs);
 	
-	if(U.flag & USER_ADD_VIEWALIGNED)
+	if(rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
 	else
 		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
@@ -5036,11 +5025,11 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
-		/* select pchan, only if selectable */
-		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
-			if (sel==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-			else pchan->bone->flag |= BONE_SELECTED;
-		}
+		/* select pchan only if selectable, but deselect works always */
+		if (sel==0) 
+			pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
+		else if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
+			pchan->bone->flag |= BONE_SELECTED;
 	}
 	CTX_DATA_END;	
 
@@ -5289,9 +5278,8 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 		
 		/* now check if we're in editmode, we need to find the unique name */
 		if (arm->edbo) {
-			EditBone	*eBone;
+			EditBone *eBone= editbone_name_exists(arm->edbo, oldname);
 			
-			eBone= editbone_name_exists(arm->edbo, oldname);
 			if (eBone) {
 				unique_editbone_name(arm->edbo, newname, NULL);
 				BLI_strncpy(eBone->name, newname, MAXBONENAME);
@@ -5302,7 +5290,7 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			Bone *bone= get_named_bone(arm, oldname);
 			
 			if (bone) {
-				unique_bone_name (arm, newname);
+				unique_bone_name(arm, newname);
 				BLI_strncpy(bone->name, newname, MAXBONENAME);
 			}
 			else return;
@@ -5313,41 +5301,13 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			/* we have the object using the armature */
 			if (arm==ob->data) {
 				Object *cob;
-				//bAction  *act;
-				//bActionChannel *achan;
-				//bActionStrip *strip;
 				
-				/* Rename action channel if necessary */
-#if 0 // XXX old animation system
-				act = ob->action;
-				if (act && !act->id.lib) {
-					/*	Find the appropriate channel */
-					achan= get_action_channel(act, oldname);
-					if (achan) 
-						BLI_strncpy(achan->name, newname, MAXBONENAME);
-				}
-#endif // XXX old animation system
-		
 				/* Rename the pose channel, if it exists */
 				if (ob->pose) {
 					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
 					if (pchan)
 						BLI_strncpy(pchan->name, newname, MAXBONENAME);
 				}
-				
-				/* check all nla-strips too */
-#if 0 // XXX old animation system
-				for (strip= ob->nlastrips.first; strip; strip= strip->next) {
-					/* Rename action channel if necessary */
-					act = strip->act;
-					if (act && !act->id.lib) {
-						/*	Find the appropriate channel */
-						achan= get_action_channel(act, oldname);
-						if (achan) 
-							BLI_strncpy(achan->name, newname, MAXBONENAME);
-					}
-				}
-#endif // XXX old animation system
 				
 				/* Update any object constraints to use the new bone name */
 				for (cob= G.main->object.first; cob; cob= cob->id.next) {
@@ -5379,31 +5339,14 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 					   BLI_strncpy(dg->name, newname, MAXBONENAME);
 				}
 			}
-		}
-		
-		/* do entire db - ipo's for the drivers */
-#if 0 // XXX old animation system
-		for (ipo= G.main->ipo.first; ipo; ipo= ipo->id.next) {
-			IpoCurve *icu;
 			
-			/* check each curve's driver */
-			for (icu= ipo->curve.first; icu; icu= icu->next) {
-				IpoDriver *icd= icu->driver;
-				
-				if ((icd) && (icd->ob)) {
-					ob= icd->ob;
-					
-					if (icu->driver->type == IPO_DRIVER_TYPE_NORMAL) {
-						if (!strcmp(oldname, icd->name))
-							BLI_strncpy(icd->name, newname, MAXBONENAME);
-					}
-					else {
-						/* TODO: pydrivers need to be treated differently */
-					}
-				}
-			}			
+			/* Fix animation data attached to this object */
+			// TODO: should we be using the database wide version instead (since drivers may break)
+			if (ob->adt) {
+				/* posechannels only... */
+				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.pose_channels", oldname, newname);
+			}
 		}
-#endif // XXX old animation system
 	}
 }
 

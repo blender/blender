@@ -1970,11 +1970,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	Strip *strip_new;
 	StripElem *se, *se_new;
 	int start_ofs, cfra, frame_end;
-	static int step= 1;
-
-//	add_numbut(0, NUM|INT, "Image Duration:", 1, 256, &step, NULL);
-//	if (!do_clever_numbuts("Separate Images", 1, REDRAW))
-//		return;
+	int step= RNA_int_get(op->ptr, "length");
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
@@ -2044,13 +2040,15 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	ot->description="On image sequences strips, it return a strip for each image.";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
+	ot->invoke= WM_operator_props_popup;
 	ot->exec= sequencer_separate_images_exec;
 
 	ot->poll= ED_operator_sequencer_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "length", 1, 1, 1000, "Length", "Length of each frame", 1, INT_MAX);
 }
 
 
@@ -2446,4 +2444,120 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
+}
+
+
+static int find_next_prev_edit(Scene *scene, int cfra, int side)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq,*best_seq = NULL,*frame_seq = NULL;
+	
+	int dist, best_dist;
+	best_dist = MAXFRAME*2;
+
+	if(ed==NULL) return cfra;
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		dist = MAXFRAME*2;
+			
+		switch (side) {
+			case SEQ_SIDE_LEFT:
+				if (seq->startdisp < cfra) {
+					dist = cfra - seq->startdisp;
+				}
+				break;
+			case SEQ_SIDE_RIGHT:
+				if (seq->startdisp > cfra) {
+					dist = seq->startdisp - cfra;
+				} else if (seq->startdisp == cfra) {
+					frame_seq=seq;
+				}
+				break;
+		}
+
+		if (dist < best_dist) {
+			best_dist = dist;
+			best_seq = seq;
+		}
+	}
+
+	/* if no sequence to the right is found and the
+	   frame is on the start of the last sequence,
+	   move to the end of the last sequence */
+	if (frame_seq) cfra = frame_seq->enddisp;
+
+	return best_seq ? best_seq->startdisp : cfra;
+}
+
+static int next_prev_edit_internal(Scene *scene, int side)
+{
+	int change=0;
+	int cfra = CFRA;
+	int nfra= find_next_prev_edit(scene, cfra, side);
+	
+	if (nfra != cfra) {
+		CFRA = nfra;
+		change= 1;
+	}
+
+	return change;
+}
+
+/* select less operator */
+static int sequencer_next_edit_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (next_prev_edit_internal(scene, SEQ_SIDE_RIGHT)) {
+		ED_area_tag_redraw(CTX_wm_area(C));
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_next_edit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Next Edit";
+	ot->idname= "SEQUENCER_OT_next_edit";
+	ot->description="Move frame to next edit point.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_next_edit_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+}
+
+/* move frame to previous edit point operator */
+static int sequencer_previous_edit_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (next_prev_edit_internal(scene, SEQ_SIDE_LEFT)) {
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Previous Edit";
+	ot->idname= "SEQUENCER_OT_previous_edit";
+	ot->description="Move frame to previous edit point.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_previous_edit_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
 }

@@ -36,5 +36,7 @@ else:
 if env['WITH_BF_FHS']: # /usr -> /usr/share/blender/2.5
 	defs.append('BLENDERPATH=\\"' + os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION']) + '\\"')
 	
+if env['BF_BUILDINFO']:
+	defs.append('BUILD_DATE')
 
 env.BlenderLib ( libname = 'bf_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 0 )

@@ -1705,7 +1705,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 	GHash *hash;
 	GHashIterator *ihash;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3],ve[3],avel[3]={0.0,0.0,0.0},
-    vv1[3], vv2[3], vv3[3], vv4[3], coledge[3], mindistedge = 1000.0f, 
+    vv1[3], vv2[3], vv3[3], vv4[3], coledge[3]={0.0f, 0.0f, 0.0f}, mindistedge = 1000.0f, 
 	outerforceaccu[3],innerforceaccu[3],
 		facedist,n_mag,force_mag_norm,minx,miny,minz,maxx,maxy,maxz,
 		innerfacethickness = -0.5f, outerfacethickness = 0.2f,

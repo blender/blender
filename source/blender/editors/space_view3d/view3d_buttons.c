@@ -1300,6 +1300,7 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 }
 #endif
 
+#if 0 // XXX not used
 static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
 {
 	BIF_deleteSketch(C);
@@ -1315,6 +1316,7 @@ static void assign_template_sketch_armature(bContext *C, void *arg1, void *arg2)
 	int index = *(int*)arg1;
 	BIF_setTemplate(C, index);
 }
+
 
 static int view3d_panel_bonesketch_spaces_poll(const bContext *C, PanelType *pt)
 {
@@ -1432,8 +1434,6 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 	uiBlockEndAlign(block);
 }
 
-#if 0 // XXX not used
-
 /* op->invoke */
 static void redo_cb(bContext *C, void *arg_op, void *arg2)
 {
@@ -1496,26 +1496,7 @@ void view3d_buttons_register(ARegionType *art)
 	strcpy(pt->label, "Grease Pencil");
 	pt->draw= gpencil_panel_standard;
 	BLI_addtail(&art->paneltypes, pt);
-/*
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel properties");
-	strcpy(pt->idname, "VIEW3D_PT_properties");
-	strcpy(pt->label, "View Properties");
-	pt->draw= view3d_panel_properties;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel transform spaces");
-	strcpy(pt->idname, "VIEW3D_PT_transform spaces");
-	strcpy(pt->label, "Transform Orientations");
-	pt->draw= view3d_panel_transform_spaces;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel bonesketch spaces");
-	strcpy(pt->idname, "VIEW3D_PT_bonesketch_spaces");
-	strcpy(pt->label, "Bone Sketching");
-	pt->draw= view3d_panel_bonesketch_spaces;
-	pt->poll= view3d_panel_bonesketch_spaces_poll;
-	BLI_addtail(&art->paneltypes, pt);
-*/
+	
 	// XXX view3d_panel_preview(C, ar, 0);
 }
 

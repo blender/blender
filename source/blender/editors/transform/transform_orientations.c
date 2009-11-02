@@ -434,7 +434,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 }
 
 char * BIF_menustringTransformOrientation(const bContext *C, char *title) {
-	char menu[] = "%t|Global%x0|Local%x1|Normal%x2|View%x3";
+	char menu[] = "%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3";
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
@@ -517,14 +517,20 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	Object *obedit = CTX_data_active_object(C);
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
+	
 
 	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
 		strcpy(t->spacename, "global");
 		break;
-		
+
+	case V3D_MANIP_GIMBAL:
+		Mat3One(t->spacemtx);
+		if(ob)
+			gimbal_axis(ob, t->spacemtx);
+		break;
 	case V3D_MANIP_NORMAL:
-		if(obedit || ob->mode & OB_MODE_POSE) {
+		if(obedit || (ob && ob->mode & OB_MODE_POSE)) {
 			float mat[3][3];
 			int type;
 			
@@ -573,8 +579,14 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		/* no break we define 'normal' as 'local' in Object mode */
 	case V3D_MANIP_LOCAL:
 		strcpy(t->spacename, "local");
-		Mat3CpyMat4(t->spacemtx, ob->obmat);
-		Mat3Ortho(t->spacemtx);
+		
+		if(ob) {
+			Mat3CpyMat4(t->spacemtx, ob->obmat);
+			Mat3Ortho(t->spacemtx);
+		} else {
+			Mat3One(t->spacemtx);
+		}
+		
 		break;
 		
 	case V3D_MANIP_VIEW:

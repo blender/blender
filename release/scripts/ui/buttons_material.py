@@ -13,7 +13,6 @@ def active_node_mat(mat):
 
 	return None
 
-
 class MaterialButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
@@ -648,7 +647,6 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel):
 		row.itemR(vol, "density")
 		row.itemR(vol, "density_scale")
 
-		
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
 	__label__ = "Shading"
 	__default_closed__ = False
@@ -708,7 +706,6 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
 			sub.itemR(vol, "ms_diffusion")
 			sub.itemR(vol, "ms_spread")
 			sub.itemR(vol, "ms_intensity")
-
 
 class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
 	__label__= "Transparency"

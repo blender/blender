@@ -41,10 +41,12 @@ struct View3D;
 struct ViewContext;
 struct RegionView3D;
 struct SK_Sketch;
+struct IDProperty;
 
 typedef struct EditBone
 {
 	struct EditBone *next, *prev;
+	struct IDProperty 		*prop;			/* User-Defined Properties on this Bone */
 	struct EditBone *parent;/*	Editbones have a one-way link  (i.e. children refer
 									to parents.  This is converted to a two-way link for
 									normal bones when leaving editmode.	*/
@@ -92,6 +94,7 @@ typedef struct EditBone
 
 /* armature_ops.c */
 void ED_operatortypes_armature(void);
+void ED_operatormacros_armature(void);
 void ED_keymap_armature(struct wmKeyConfig *keyconf);
 
 /* editarmature.c */

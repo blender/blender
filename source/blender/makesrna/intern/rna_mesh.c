@@ -1615,6 +1615,12 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Z Mirror", "Z Axis mirror editing");
 	 */
 
+	prop= RNA_def_property(srna, "use_paint_mask", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_PAINT_MASK);
+	RNA_def_property_ui_text(prop, "Paint Mask", "Face selection masking for painting");
+
+
+
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 
 	RNA_api_mesh(srna);

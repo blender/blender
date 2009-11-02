@@ -217,6 +217,11 @@ if env['WITH_BF_OPENMP'] == 1:
 				env.Append(CPPFLAGS=['-fopenmp'])
 				env.Append(CXXFLAGS=['-fopenmp'])
 
+if env['WITH_GHOST_COCOA'] == True:
+	env.Append(CFLAGS=['-DGHOST_COCOA']) 
+	env.Append(CXXFLAGS=['-DGHOST_COCOA'])
+	env.Append(CPPFLAGS=['-DGHOST_COCOA'])
+
 #check for additional debug libnames
 
 if env.has_key('BF_DEBUG_LIBS'):

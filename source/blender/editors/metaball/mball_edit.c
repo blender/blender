@@ -129,7 +129,7 @@ MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
 	cent[2]-= obedit->obmat[3][2];
 
 	if (rv3d) {
-		if (!(newname) || U.flag & USER_ADD_VIEWALIGNED || !rv3d)
+		if (!(newname) || U.flag & USER_ADD_VIEWALIGNED)
 			Mat3CpyMat4(imat, rv3d->viewmat);
 		else
 			Mat3One(imat);

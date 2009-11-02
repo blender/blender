@@ -650,8 +650,10 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
 	blank_lines = st->viewlines / 2;
 	
 	/* nicer code: use scroll rect for entire bar */
-	scroll->xmin= 5;
-	scroll->xmax= 17;
+	//scroll->xmin= 5;
+	//scroll->xmax= 17;
+	scroll->xmin= ar->winx - 17;
+	scroll->xmax= ar->winx - 5;
 	scroll->ymin= 4;
 	scroll->ymax= 4+pix_available;
 	
@@ -751,15 +753,6 @@ static void draw_textscroll(SpaceText *st, ARegion *ar, rcti *scroll)
 	uiWidgetColors wcol= btheme->tui.wcol_scroll;
 	char col[3];
 	float rad;
-	
-//	UI_ThemeColorShade(TH_SHADE1, -20);
-//	glRecti(2, 2, 20, ar->winy-6);
-//	uiEmboss(2, 2, 20, ar->winy-6, 1);
-
-//	UI_ThemeColor(TH_SHADE1);
-//	glRecti(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax);
-
-//	uiEmboss(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax, st->flags & ST_SCROLL_SELECT);
 	
 	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT)?UI_SCROLL_PRESSED:0);
 

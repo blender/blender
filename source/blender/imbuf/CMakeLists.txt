@@ -24,7 +24,13 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
+IF(WITH_COCOA)
+	FILE(GLOB SRC intern/*.c intern/*.m)
+	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/dynlibtiff.c")
+	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/tiff.c")
+ELSE(WITH_COCOA)
+	FILE(GLOB SRC intern/*.c)
+ENDIF(WITH_COCOA)
 
 SET(INC 
 	. ../makesdna ../../../intern/guardedalloc ../../../intern/memutil ../blenlib
@@ -54,7 +60,7 @@ IF(WITH_FFMPEG)
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
-if(WITH_DDS)
+IF(WITH_DDS)
 	ADD_DEFINITIONS(-DWITH_DDS)
 ENDIF(WITH_DDS)
 

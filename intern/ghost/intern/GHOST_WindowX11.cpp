@@ -297,11 +297,13 @@ GHOST_WindowX11(
 	// we want this window treated.
 
 	XSizeHints * xsizehints = XAllocSizeHints();
-	xsizehints->flags = USPosition | USSize;
+	xsizehints->flags = PPosition | PSize | PMinSize;
 	xsizehints->x = left;
 	xsizehints->y = top;
 	xsizehints->width = width;
 	xsizehints->height = height;
+	xsizehints->min_width= 320;  	// size hints, could be made apart of the ghost api
+	xsizehints->min_height= 240;	// limits are also arbitrary, but should not allow 1x1 window
 	XSetWMNormalHints(m_display, m_window, xsizehints);
 	XFree(xsizehints);
 
@@ -382,7 +384,6 @@ GHOST_WindowX11(
 	XSetWMHints(display, m_window, xwmhints );
 	XFree(xwmhints);
 	// done setting the icon
-	
 
 	setTitle(title);
 

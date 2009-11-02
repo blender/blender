@@ -151,8 +151,8 @@ static SpaceLink *graph_new(const bContext *C)
 	
 	ar->v2d.cur= ar->v2d.tot;
 	
-	ar->v2d.min[0]= 0.01f;
-	ar->v2d.min[1]= 0.01f;
+	ar->v2d.min[0]= 0.001f;
+	ar->v2d.min[1]= 0.001f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
 	ar->v2d.max[1]= 50000.0f;
@@ -260,6 +260,27 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* only free grid after drawing data, as we need to use it to determine sampling rate */
 	UI_view2d_grid_free(grid);
+	
+	/* horizontal component of value-cursor (value line before the current frame line) */
+	if ((sipo->flag & SIPO_NODRAWCURSOR)==0) {
+		float vec[2];
+		
+		/* Draw a green line to indicate the cursor value */
+		vec[1]= sipo->cursorVal;
+		
+		UI_ThemeColorShadeAlpha(TH_CFRAME, -10, -50);
+		glLineWidth(2.0);
+		
+		glEnable(GL_BLEND);
+		glBegin(GL_LINE_STRIP);
+			vec[0]= v2d->cur.xmin;
+			glVertex2fv(vec);
+			
+			vec[0]= v2d->cur.xmax;
+			glVertex2fv(vec);
+		glEnd(); // GL_LINE_STRIP
+		glDisable(GL_BLEND);
+	}
 	
 	/* current frame */
 	if (sipo->flag & SIPO_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;

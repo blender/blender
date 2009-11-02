@@ -107,6 +107,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   const int m = matrix.rows();
   const int n = matrix.cols();
   const int nu = std::min(m,n);
+  ei_assert(m>=n && "In Eigen 2.0, SVD only works for MxN matrices with M>=N. Sorry!");
 
   m_matU.resize(m, nu);
   m_matU.setZero();

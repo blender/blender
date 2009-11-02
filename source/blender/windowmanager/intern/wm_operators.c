@@ -973,7 +973,7 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 
 	WM_read_file(C, path, op->reports);
 	
-	return 0;
+	return OPERATOR_FINISHED;
 }
 
 static void WM_OT_open_mainfile(wmOperatorType *ot)
@@ -1155,12 +1155,9 @@ static void WM_OT_link_append(wmOperatorType *ot)
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
-	char scestr[FILE_MAX], filename[FILE_MAX];
-	int save_over;
+	char filename[FILE_MAX];
 
-	/* back up some values */
-	BLI_strncpy(scestr, G.sce, sizeof(scestr));
-	save_over = G.save_over;
+	G.fileflags |= G_FILE_RECOVER;
 
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -1170,11 +1167,9 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 	BLI_make_file_string("/", filename, btempdir, "quit.blend");
 	WM_read_file(C, filename, op->reports);
 
-	/* restore */
-	G.save_over = save_over;
-	BLI_strncpy(G.sce, scestr, sizeof(G.sce));
+	G.fileflags &= ~G_FILE_RECOVER;
 
-	return 0;
+	return OPERATOR_FINISHED;
 }
 
 static void WM_OT_recover_last_session(wmOperatorType *ot)
@@ -1185,6 +1180,52 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 	
 	ot->exec= wm_recover_last_session_exec;
 	ot->poll= WM_operator_winactive;
+}
+
+/* *************** recover auto save **************** */
+
+static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
+{
+	char path[FILE_MAX];
+
+	RNA_string_get(op->ptr, "path", path);
+
+	G.fileflags |= G_FILE_RECOVER;
+
+	// XXX wm in context is not set correctly after WM_read_file -> crash
+	// do it before for now, but is this correct with multiple windows?
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	/* load file */
+	WM_read_file(C, path, op->reports);
+
+	G.fileflags &= ~G_FILE_RECOVER;
+
+	return OPERATOR_FINISHED;
+}
+
+static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	char filename[FILE_MAX];
+
+	wm_autosave_location(filename);
+	RNA_string_set(op->ptr, "path", filename);
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static void WM_OT_recover_auto_save(wmOperatorType *ot)
+{
+	ot->name= "Recover Auto Save";
+	ot->idname= "WM_OT_recover_auto_save";
+	ot->description="Open an automatically saved file to recover it.";
+	
+	ot->exec= wm_recover_auto_save_exec;
+	ot->invoke= wm_recover_auto_save_invoke;
+	ot->poll= WM_operator_winactive;
+
+	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER);
 }
 
 /* *************** save file as **************** */
@@ -1230,10 +1271,9 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
-	int compress;
+	int fileflags;
 
 	save_set_compress(op);
-	compress= RNA_boolean_get(op->ptr, "compress");
 	
 	if(RNA_property_is_set(op->ptr, "path"))
 		RNA_string_get(op->ptr, "path", path);
@@ -1242,7 +1282,15 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		untitled(path);
 	}
 
-	WM_write_file(C, path, compress, op->reports);
+	fileflags= G.fileflags;
+
+	/* set compression flag */
+	if(RNA_boolean_get(op->ptr, "compress"))
+		fileflags |= G_FILE_COMPRESS;
+	else
+		fileflags &= ~G_FILE_COMPRESS;
+
+	WM_write_file(C, path, fileflags, op->reports);
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
@@ -1274,8 +1322,12 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
 	RNA_string_set(op->ptr, "path", name);
-	uiPupMenuSaveOver(C, op, name);
-
+	
+	if (G.save_over)
+		uiPupMenuSaveOver(C, op, name);
+	else
+		WM_event_add_fileselect(C, op);
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -2246,7 +2298,22 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 
 }
 
+/* ************************** memory statistics for testing ***************** */
 
+static int memory_statistics_exec(bContext *C, wmOperator *op)
+{
+	MEM_printmemlist_stats();
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_memory_statistics(wmOperatorType *ot)
+{
+	ot->name= "Memory Statistics";
+	ot->idname= "WM_OT_memory_statistics";
+	ot->description= "Print memory statistics to the console.";
+	
+	ot->exec= memory_statistics_exec;
+}
 
 /* ******************************************************* */
  
@@ -2274,10 +2341,11 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_open_mainfile);
 	WM_operatortype_append(WM_OT_link_append);
 	WM_operatortype_append(WM_OT_recover_last_session);
-	WM_operatortype_append(WM_OT_jobs_timer);
+	WM_operatortype_append(WM_OT_recover_auto_save);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_redraw_timer);
+	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_search_menu);
 
@@ -2296,9 +2364,6 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
 	wmKeyMapItem *km;
 	
-	/* items to make WM work */
-	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);
-	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	#ifdef __APPLE__
@@ -2313,9 +2378,13 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0); 
 	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);

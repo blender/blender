@@ -2179,7 +2179,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					Projf(vec2, vec, cob->matrix[1]);
 					VecSubf(totmat[2], vec, vec2);
 					Normalize(totmat[2]);
-
+					
 					/* the y axis is fixed */
 					totmat[1][0] = cob->matrix[1][0];
 					totmat[1][1] = cob->matrix[1][1];
@@ -2311,20 +2311,20 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					break;
 				default:
 				{
-						totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
-						totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
-						totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
+					totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
+					totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
+					totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
 				}
 					break;
 			}
 		}
 			break;
 		default:
-			{
-				totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
-				totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
-				totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
-			}
+		{
+			totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
+			totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
+			totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
+		}
 			break;
 		}
 		/* Block to keep matrix heading */
@@ -3327,7 +3327,124 @@ static bConstraintTypeInfo CTI_SHRINKWRAP = {
 	shrinkwrap_evaluate /* evaluate */
 };
 
+/* --------- Damped Track ---------- */
 
+static void damptrack_new_data (void *cdata)
+{
+	bDampTrackConstraint *data= (bDampTrackConstraint *)cdata;
+	
+	data->trackflag = TRACK_Y;
+}	
+
+static int damptrack_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bDampTrackConstraint *data= con->data;
+		bConstraintTarget *ct;
+		
+		/* the following macro is used for all standard single-target constraints */
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+static void damptrack_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bDampTrackConstraint *data= con->data;
+		bConstraintTarget *ct= list->first;
+		
+		/* the following macro is used for all standard single-target constraints */
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+	}
+}
+
+/* array of direction vectors for the tracking flags */
+static const float track_dir_vecs[6][3] = {
+	{+1,0,0}, {0,+1,0}, {0,0,+1},		/* TRACK_X,  TRACK_Y,  TRACK_Z */
+	{-1,0,0}, {0,-1,0}, {0,0,-1}		/* TRACK_NX, TRACK_NY, TRACK_NZ */
+};
+
+static void damptrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bDampTrackConstraint *data= con->data;
+	bConstraintTarget *ct= targets->first;
+	
+	if (VALID_CONS_TARGET(ct)) {
+		float obvec[3], tarvec[3], obloc[3];
+		float raxis[3], rangle;
+		float rmat[3][3], tmat[4][4];
+		
+		/* find the (unit) direction that the axis we're interested in currently points 
+		 *	- Mat4Mul3Vecfl() only takes the 3x3 (rotation+scaling) components of the 4x4 matrix 
+		 *	- the normalisation step at the end should take care of any unwanted scaling
+		 *	  left over in the 3x3 matrix we used
+		 */
+		VECCOPY(obvec, track_dir_vecs[data->trackflag]);
+		Mat4Mul3Vecfl(cob->matrix, obvec);
+		
+		if (Normalize(obvec) == 0.0f) {
+			/* exceptional case - just use the track vector as appropriate */
+			VECCOPY(obvec, track_dir_vecs[data->trackflag]);
+		}
+		
+		/* find the (unit) direction vector going from the owner to the target */
+		VECCOPY(obloc, cob->matrix[3]);
+		VecSubf(tarvec, ct->matrix[3], obloc);
+		
+		if (Normalize(tarvec) == 0.0f) {
+			/* the target is sitting on the owner, so just make them use the same direction vectors */
+			// FIXME: or would it be better to use the pure direction vector?
+			VECCOPY(tarvec, obvec);
+			//VECCOPY(tarvec, track_dir_vecs[data->trackflag]);
+		}
+		
+		/* determine the axis-angle rotation, which represents the smallest possible rotation
+		 * between the two rotation vectors (i.e. the 'damping' referred to in the name)
+		 *	- we take this to be the rotation around the normal axis/vector to the plane defined
+		 *	  by the current and destination vectors, which will 'map' the current axis to the 
+		 *	  destination vector
+		 *	- the min/max wrappers around (obvec . tarvec) result (stored temporarily in rangle)
+		 *	  are used to ensure that the smallest angle is chosen
+		 */
+		Crossf(raxis, obvec, tarvec);
+		
+		rangle= Inpf(obvec, tarvec);
+		rangle= acos( MAX2(-1.0f, MIN2(1.0f, rangle)) );
+		
+		/* construct rotation matrix from the axis-angle rotation found above 
+		 *	- this call takes care to make sure that the axis provided is a unit vector first
+		 */
+		AxisAngleToMat3(raxis, rangle, rmat);
+		
+		/* rotate the owner in the way defined by this rotation matrix, then reapply the location since
+		 * we may have destroyed that in the process of multiplying the matrix
+		 */
+		Mat4One(tmat);
+		Mat4MulMat34(tmat, rmat, cob->matrix); // m1, m3, m2
+		
+		Mat4CpyMat4(cob->matrix, tmat);
+		VECCOPY(cob->matrix[3], obloc);
+	}
+}
+
+static bConstraintTypeInfo CTI_DAMPTRACK = {
+	CONSTRAINT_TYPE_DAMPTRACK, /* type */
+	sizeof(bDampTrackConstraint), /* size */
+	"Damped Track", /* name */
+	"bDampTrackConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	NULL, /* copy data */
+	damptrack_new_data, /* new data */
+	damptrack_get_tars, /* get constraint targets */
+	damptrack_flush_tars, /* flush constraint targets */
+	default_get_tarmat, /* get target matrix */
+	damptrack_evaluate /* evaluate */
+};
 
 /* ************************* Constraints Type-Info *************************** */
 /* All of the constraints api functions use bConstraintTypeInfo structs to carry out
@@ -3361,6 +3478,7 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[18]= &CTI_CLAMPTO; 			/* ClampTo Constraint */	
 	constraintsTypeInfo[19]= &CTI_TRANSFORM;		/* Transformation Constraint */
 	constraintsTypeInfo[20]= &CTI_SHRINKWRAP;		/* Shrinkwrap Constraint */
+	constraintsTypeInfo[21]= &CTI_DAMPTRACK;		/* Damped TrackTo Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

@@ -480,7 +480,6 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 static int editmode_toggle_exec(bContext *C, wmOperator *op)
 {
-	
 	if(!CTX_data_edit_object(C))
 		ED_object_enter_editmode(C, EM_WAITCURSOR);
 	else
@@ -1605,14 +1604,12 @@ void copy_attr_menu(Scene *scene, View3D *v3d)
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
-	Object *ob;
 	Curve *cu;
 	Nurb *nu;
 	int clear= (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
 	int done= 0;
 
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		ob= base->object;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
 		if(ob->type==OB_MESH) {
 			mesh_set_smooth_flag(ob, !clear);
@@ -1868,7 +1865,6 @@ void auto_timeoffs(Scene *scene, View3D *v3d)
 
 void ofs_timeoffs(Scene *scene, View3D *v3d)
 {
-	Base *base;
 	float offset=0.0f;
 
 	if(BASACT==0 || v3d==NULL) return;
@@ -1876,13 +1872,12 @@ void ofs_timeoffs(Scene *scene, View3D *v3d)
 // XXX	if(fbutton(&offset, -10000.0f, 10000.0f, 10, 10, "Offset")==0) return;
 
 	/* make array of all bases, xco yco (screen) */
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			base->object->sf += offset;
-			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
-			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
-		}
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		ob->sf += offset;
+		if (ob->sf < -MAXFRAMEF)		ob->sf = -MAXFRAMEF;
+		else if (ob->sf > MAXFRAMEF)	ob->sf = MAXFRAMEF;
 	}
+	CTX_DATA_END;
 
 }
 

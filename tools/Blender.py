@@ -255,22 +255,12 @@ def buildinfo(lenv, build_type):
 
 	obj = []
 	if lenv['BF_BUILDINFO']:
-		if sys.platform=='win32':
-			build_info_file = open("source/creator/winbuildinfo.h", 'w')
-			build_info_file.write("char *build_date=\"%s\";\n"%build_date)
-			build_info_file.write("char *build_time=\"%s\";\n"%build_time)
-			build_info_file.write("char *build_rev=\"%s\";\n"%build_rev)
-			build_info_file.write("char *build_platform=\"win32\";\n")
-			build_info_file.write("char *build_type=\"dynamic\";\n")
-			build_info_file.close()
-			lenv.Append (CPPDEFINES = ['NAN_BUILDINFO', 'BUILD_DATE'])
-		else:
-			lenv.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
-										'BUILD_DATE=\'"%s"\''%(build_date),
-										'BUILD_TYPE=\'"dynamic"\'',
-										'BUILD_REV=\'"%s"\''%(build_rev),
-										'NAN_BUILDINFO',
-										'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
+		lenv.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
+									'BUILD_DATE=\'"%s"\''%(build_date),
+									'BUILD_TYPE=\'"dynamic"\'',
+									'BUILD_REV=\'"%s"\''%(build_rev),
+									'NAN_BUILDINFO',
+									'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
 		obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
 						[root_build_dir+'source/creator/buildinfo.c'])]
 	return obj
@@ -478,7 +468,13 @@ def AppIt(target=None, source=None, env=None):
 	a = '%s' % (target[0])
 	builddir, b = os.path.split(a)
 	libdir = env['LCGDIR'][1:]
-
+	osxarch = env['MACOSX_ARCHITECTURE']
+	print("compiled architecture: %s"%(osxarch))
+	if  libdir == '../lib/darwin-9.x.universal':
+		python_zip = 'python_' + osxarch + '.zip' # set specific python_arch.zip
+	else:
+		python_zip = 'python.zip' # compatibility for darwin8 python.zip
+	print("unzipping to app-bundle: %s"%(python_zip))
 	bldroot = env.Dir('.').abspath
 	binary = env['BINARYKIND']
 	 
@@ -499,7 +495,7 @@ def AppIt(target=None, source=None, env=None):
 	cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s'%(builddir, binary,builddir, binary, binary)
 	commands.getoutput(cmd)
 	cmd = 'mkdir %s/%s.app/Contents/MacOS/.blender/'%(builddir, binary)
-	print cmd
+#	print cmd
 	commands.getoutput(cmd)
 	cmd = builddir + '/%s.app/Contents/MacOS/.blender'%binary
 	shutil.copy(bldroot + '/bin/.blender/.bfont.ttf', cmd)
@@ -512,7 +508,7 @@ def AppIt(target=None, source=None, env=None):
 	commands.getoutput(cmd) 
 	cmd = 'mkdir %s/%s.app/Contents/MacOS/.blender/python/'%(builddir,binary)
 	commands.getoutput(cmd) 
-	cmd = 'unzip -q %s/release/python.zip -d %s/%s.app/Contents/MacOS/.blender/python/'%(libdir,builddir,binary)
+	cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/.blender/python/'%(libdir,python_zip,builddir,binary)
 	commands.getoutput(cmd) 
 	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd)
@@ -525,6 +521,8 @@ def AppIt(target=None, source=None, env=None):
 	cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(builddir, binary)
 	commands.getoutput(cmd)
 	cmd = 'find %s/%s.app -name .DS_Store -exec rm -rf {} \;'%(builddir, binary)
+	commands.getoutput(cmd)
+	cmd = 'find %s/%s.app -name __MACOSX -exec rm -rf {} \;'%(builddir, binary)
 	commands.getoutput(cmd)
 
 # extract copy system python, be sure to update other build systems

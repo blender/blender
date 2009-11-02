@@ -247,7 +247,9 @@ void WM_exit(bContext *C)
 	BPY_end_python();
 #endif
 
+#if !(defined(__APPLE__) && defined(GHOST_COCOA))
 	libtiff_exit();
+#endif
 	
 #ifdef WITH_QUICKTIME
 	quicktime_exit();
@@ -283,7 +285,7 @@ void WM_exit(bContext *C)
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
 	}
-//	delete_autosave();
+	wm_autosave_delete();
 	
 	printf("\nBlender quit\n");
 	

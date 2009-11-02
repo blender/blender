@@ -4157,7 +4157,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	PTCacheEditKey *key;
 	ParticleEditSettings *pset = PE_settings(scene);
 	int i, k, totpoint = edit->totpoint, timed = pset->flag & PE_FADE_TIME ? pset->fade_frames : 0;
-	int steps;
+	int steps=1;
 	char nosel[4], sel[4];
 	float sel_col[3];
 	float nosel_col[3];
@@ -6121,7 +6121,7 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 	Mesh *me = (Mesh*)ob->data;
 	MCol *colors;
 	int i,j;
-	int face_sel_mode = (G.f & G_FACESELECT) ? 1:0;
+	int face_sel_mode = (me->flag & ME_EDIT_PAINT_MASK) ? 1:0;
 	
 	glColor3ub(0, 0, 0);
 		

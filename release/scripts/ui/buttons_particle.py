@@ -14,7 +14,6 @@ def particle_panel_poll(context):
 	if psys==None:	return False
 	if psys.settings==None:  return False
 	return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
-	
 
 class ParticleButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
@@ -32,6 +31,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+
 		ob = context.object
 		psys = context.particle_system
 
@@ -46,6 +46,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 
 		if psys and not psys.settings:
 			split = layout.split(percentage=0.32)
+
 			col = split.column()
 			col.itemL(text="Name:")
 			col.itemL(text="Settings:")
@@ -458,8 +459,9 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		return psys.settings.physics_type=='BOIDS'
 	
 	def draw(self, context):
-		boids = context.particle_system.settings.boids
 		layout = self.layout
+
+		boids = context.particle_system.settings.boids
 		
 		layout.enabled = particle_panel_enabled(context, context.particle_system)
 		
@@ -539,7 +541,6 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 			elif rule.type == 'FIGHT':
 				row.itemR(rule, "distance")
 				row.itemR(rule, "flee_distance")
-		
 
 class PARTICLE_PT_render(ParticleButtonsPanel):
 	__label__ = "Render"
@@ -623,7 +624,6 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 					subrow = row.row()
 					subrow.active = part.viewport==True
 					subrow.itemR(part, "simplify_viewport")
-			
 
 		elif part.ren_as == 'OBJECT':
 			sub.itemR(part, "dupli_object")
@@ -659,7 +659,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 				if weight:
 					row = layout.row()
 					row.itemR(weight, "count")
-			
+
 		elif part.ren_as == 'BILLBOARD':
 			sub.itemL(text="Align:")
 			
@@ -853,6 +853,7 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel):
 	
 	def draw(self, context):
 		layout = self.layout
+
 		part = context.particle_system.settings
 		
 		layout.itemR(part, "self_effect")

@@ -22,7 +22,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		
 		col = layout.column(align=True)
 		col.itemL(text="Object:")
-		col.itemO("object.duplicate")
+		col.itemO("object.duplicate_move")
 		col.itemO("object.delete")
 		
 		active_object= context.active_object
@@ -38,11 +38,11 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		col.itemO("anim.insert_keyframe_menu", text="Insert")
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
 		
-#		col = layout.column(align=True)
-#		col.itemL(text="Grease Pencil:")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-#		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -67,12 +67,12 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		
 		col = layout.column(align=True)
 		col.itemL(text="Mesh:")
-		col.itemO("mesh.duplicate")
+		col.itemO("mesh.duplicate_move")
 		col.itemO("mesh.delete")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Modeling:")
-		col.itemO("mesh.extrude")
+		col.itemO("mesh.extrude_move")
 		col.itemO("mesh.subdivide")
 		col.itemO("mesh.loopcut")
 		col.itemO("mesh.spin")
@@ -91,11 +91,11 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col.itemO("mesh.uvs_rotate")
 		col.itemO("mesh.uvs_mirror")
 		
-#		col = layout.column(align=True)
-#		col.itemL(text="Grease Pencil:")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-#		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -103,7 +103,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
 		
-class VIEW3D_PT_tools_mesheditoptions(View3DPanel):
+class VIEW3D_PT_tools_meshedit_options(View3DPanel):
 	__context__ = "mesh_edit"
 	__label__ = "Mesh Options"
 
@@ -150,11 +150,11 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
 		
-#		col = layout.column(align=True)
-#		col.itemL(text="Grease Pencil:")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-#		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -189,11 +189,11 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
 		
-#		col = layout.column(align=True)
-#		col.itemL(text="Grease Pencil:")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-#		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -245,18 +245,18 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		col = layout.column(align=True)
 		col.itemL(text="Bones:")
 		col.itemO("armature.bone_primitive_add", text="Add")
-		col.itemO("armature.duplicate", text="Duplicate")
+		col.itemO("armature.duplicate_move", text="Duplicate")
 		col.itemO("armature.delete", text="Delete")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Modeling:")
-		col.itemO("armature.extrude")
+		col.itemO("armature.extrude_move")
 		
-#		col = layout.column(align=True)
-#		col.itemL(text="Grease Pencil:")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-#		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -264,8 +264,17 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
 		
+class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
+	__context__ = "armature_edit"
+	__label__ = "Armature Options"
 
+	def draw(self, context):
+		layout = self.layout
+		
+		arm = context.active_object.data
 
+		col = layout.column(align=True)
+		col.itemR(arm, "x_axis_mirror")
 
 # ********** default tools for editmode_mball ****************
 
@@ -282,11 +291,11 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
-#		col = layout.column(align=True)
-#		col.itemL(text="Grease Pencil:")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-#		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -309,11 +318,11 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
-#		col = layout.column(align=True)
-#		col.itemL(text="Grease Pencil:")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-#		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -359,11 +368,11 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col.itemO("pose.push", text="Push")
 		col.itemO("pose.breakdown", text="Breakdowner")
 		
-#		col = layout.column(align=True)
-#		col.itemL(text="Grease Pencil:")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-#		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-#		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -510,6 +519,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 	
 		elif context.weight_paint_object and brush:
 			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+			layout.itemR(context.tool_settings, "auto_normalize", text="Auto Normalize")
 			
 			col = layout.column()
 			row = col.row(align=True)
@@ -523,7 +533,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			row = col.row(align=True)
 			row.itemR(brush, "jitter", slider=True)
 			row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
-		
+			
 		# Vertex Paint Mode #
 		
 		elif context.vertex_paint_object and brush:
@@ -635,6 +645,22 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 # ********** default tools for weightpaint ****************
 
 class VIEW3D_PT_tools_weightpaint(View3DPanel):
+	__context__ = "weightpaint"
+	__label__ = "Weight Tools"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		wpaint = context.tool_settings.weight_paint
+
+		col = layout.column()
+		# col.itemL(text="Blend:")
+		col.itemO("object.vertex_group_normalize_all", text="Normalize All")
+		col.itemO("object.vertex_group_normalize", text="Normalize")
+		col.itemO("object.vertex_group_invert", text="Invert")
+		col.itemO("object.vertex_group_clean", text="Clean")
+
+class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
 	__context__ = "weightpaint"
 	__label__ = "Options"
 
@@ -806,13 +832,15 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 		sub.active = pe.fade_time
 		sub.itemR(pe, "fade_frames", slider=True)
 
+bpy.types.register(VIEW3D_PT_tools_weightpaint)
 bpy.types.register(VIEW3D_PT_tools_objectmode)
 bpy.types.register(VIEW3D_PT_tools_meshedit)
-bpy.types.register(VIEW3D_PT_tools_mesheditoptions)
+bpy.types.register(VIEW3D_PT_tools_meshedit_options)
 bpy.types.register(VIEW3D_PT_tools_curveedit)
 bpy.types.register(VIEW3D_PT_tools_surfaceedit)
 bpy.types.register(VIEW3D_PT_tools_textedit)
 bpy.types.register(VIEW3D_PT_tools_armatureedit)
+bpy.types.register(VIEW3D_PT_tools_armatureedit_options)
 bpy.types.register(VIEW3D_PT_tools_mballedit)
 bpy.types.register(VIEW3D_PT_tools_latticeedit)
 bpy.types.register(VIEW3D_PT_tools_posemode)
@@ -822,6 +850,6 @@ bpy.types.register(VIEW3D_PT_tools_brush_stroke)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
 bpy.types.register(VIEW3D_PT_tools_vertexpaint)
-bpy.types.register(VIEW3D_PT_tools_weightpaint)
+bpy.types.register(VIEW3D_PT_tools_weightpaint_options)
 bpy.types.register(VIEW3D_PT_tools_projectpaint)
 bpy.types.register(VIEW3D_PT_tools_particlemode)

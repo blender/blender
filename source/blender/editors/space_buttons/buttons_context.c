@@ -60,6 +60,7 @@
 
 #include "ED_armature.h"
 #include "ED_screen.h"
+#include "ED_physics.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -114,6 +115,8 @@ static int buttons_context_path_scene(ButsContextPath *path)
 	return RNA_struct_is_a(ptr->type, &RNA_Scene);
 }
 
+/* note: this function can return 1 without adding a world to the path
+ * so the buttons stay visible, but be sure to check the ID type if a ID_WO */
 static int buttons_context_path_world(ButsContextPath *path)
 {
 	Scene *scene;
@@ -372,7 +375,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 	else if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
 		wo= path->ptr[path->len-1].data;
 
-		if(wo) {
+		if(wo && GS(wo->id.name)==ID_WO) {
 			tex= give_current_world_texture(wo);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
@@ -645,7 +648,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Brush *br= ptr->data;
 
 			if(br)
-				CTX_data_pointer_set(result, &br->id, &RNA_TextureSlot, br->mtex[(int)br->texact]);
+				CTX_data_pointer_set(result, &br->id, &RNA_BrushTextureSlot, br->mtex[(int)br->texact]);
 		}
 
 		return 1;
@@ -663,7 +666,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 1;
 	}
 	else if(CTX_data_equals(member, "particle_system_editable")) {
-		if(PE_poll(C))
+		if(PE_poll((bContext*)C))
 			set_pointer_type(path, result, &RNA_ParticleSystem);
 		else
 			CTX_data_pointer_set(result, NULL, &RNA_ParticleSystem, NULL);

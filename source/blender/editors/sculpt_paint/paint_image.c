@@ -3182,7 +3182,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 #endif
 		
-		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
+		if (tf->tpage && ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_MASK)==0 || mf->flag & ME_FACE_SEL)) {
 			
 			float *v1coSS, *v2coSS, *v3coSS, *v4coSS=NULL;
 			
@@ -4290,7 +4290,7 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 	if (texpaint) {
 		/* pick new face and image */
 		if (	imapaint_pick_face(vc, s->me, mval, &newfaceindex) &&
-				((G.f & G_FACESELECT)==0 || (s->me->mface+newfaceindex)->flag & ME_FACE_SEL)
+				((s->me->editflag & ME_EDIT_PAINT_MASK)==0 || (s->me->mface+newfaceindex)->flag & ME_FACE_SEL)
 		) {
 			ImBuf *ibuf;
 			
@@ -4645,7 +4645,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 	PaintOperation *pop= op->customdata;
 
 	if(pop->timer)
-		WM_event_remove_window_timer(CTX_wm_window(C), pop->timer);
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), pop->timer);
 
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 	imapaint_canvas_free(&pop->s);
@@ -4757,7 +4757,7 @@ static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_event_add_modal_handler(C, op);
 
 	if(pop->s.brush->flag & BRUSH_AIRBRUSH)
-		pop->timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER, 0.01f);
+		pop->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -5252,3 +5252,7 @@ void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
 }
 
 
+int facemask_paint_poll(bContext *C)
+{
+	return paint_facesel_test(CTX_data_active_object(C));
+}

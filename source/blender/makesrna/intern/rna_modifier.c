@@ -37,6 +37,7 @@
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_bmesh.h" /* For BevelModifierData */
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
@@ -68,7 +69,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
-	{0, "", 0, "Physics", ""},
+	{0, "", 0, "Simulate", ""},
 	{eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
 	{eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
 	{eModifierType_Explode, "EXPLODE", ICON_MOD_EXPLODE, "Explode", ""},
@@ -168,6 +169,10 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 {
 	ModifierData *md= ptr->data;
+	char oldname[32];
+	
+	/* make a copy of the old name first */
+	BLI_strncpy(oldname, md->name, sizeof(oldname));
 	
 	/* copy the new name into the name slot */
 	BLI_strncpy(md->name, value, sizeof(md->name));
@@ -177,6 +182,9 @@ void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 		Object *ob= ptr->id.data;
 		modifier_unique_name(&ob->modifiers, md);
 	}
+	
+	/* fix all the animation data which may link to this */
+	BKE_all_animdata_fix_paths_rename("modifiers", oldname, md->name);
 }
 
 static char *rna_Modifier_path(PointerRNA *ptr)

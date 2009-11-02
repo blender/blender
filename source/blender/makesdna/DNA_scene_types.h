@@ -669,6 +669,8 @@ typedef struct ToolSettings {
 	/* Transform */
 	short snap_mode, snap_flag, snap_target;
 	short proportional, prop_mode;
+
+	int auto_normalize, intpad; /*auto normalizing mode in wpaint*/
 } ToolSettings;
 
 typedef struct bStats {
@@ -1169,6 +1171,7 @@ typedef enum SculptFlags {
 #define	SK_RETARGET_AUTONAME			1
 
 /* toolsettings->skgen_retarget_roll */
+#define	SK_RETARGET_ROLL_NONE			0
 #define	SK_RETARGET_ROLL_VIEW			1
 #define	SK_RETARGET_ROLL_JOINT			2
 

@@ -121,6 +121,21 @@ void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ptr->id.data);
 }
 
+void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
+{
+	Object *ob= ptr->id.data;
+	Scene *scene= CTX_data_scene(C);
+	int editmode= (scene->obedit == ob && ob->type == OB_MESH);
+
+	if(editmode) {
+		/* exit/enter editmode to get new shape */
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO);
+		ED_object_enter_editmode(C, EM_WAITCURSOR);
+	}
+
+	rna_Object_update_data(C, ptr);
+}
+
 static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
@@ -168,7 +183,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob= (Object*)ptr->data;
 	ID *id= value.data;
 
-	if(ob->type == OB_EMPTY || id == NULL)
+	if(ob->type == OB_EMPTY || id == NULL || ob->mode & OB_MODE_EDIT)
 		return;
 	
 	if(ob->type == OB_MESH) {
@@ -757,14 +772,6 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
 	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &keyptr);
 	return keyptr;
-}
-
-static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
-{
-	Object *ob= (Object*)ptr->id.data;
-
-	if(value) ob->shapeflag |= OB_SHAPE_LOCK;
-	else ob->shapeflag &= ~OB_SHAPE_LOCK;
 }
 
 static PointerRNA rna_Object_field_get(PointerRNA *ptr)
@@ -1405,13 +1412,13 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "empty_draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "empty_drawtype");
 	RNA_def_property_enum_items(prop, empty_drawtype_items);
-	RNA_def_property_ui_text(prop, "Empty Draw Type", "Viewport display style for empties.");
+	RNA_def_property_ui_text(prop, "Empty Display Type", "Viewport display style for empties.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "empty_drawsize");
 	RNA_def_property_range(prop, 0.01, 10.0);
-	RNA_def_property_ui_text(prop, "Empty Draw Size", "Size of of display for empties in the viewport.");
+	RNA_def_property_ui_text(prop, "Empty Display Size", "Size of of display for empties in the viewport.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* render */
@@ -1646,9 +1653,14 @@ static void rna_def_object(BlenderRNA *brna)
 	/* shape keys */
 	prop= RNA_def_property(srna, "shape_key_lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_shape_key_lock_set");
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object.");
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+
+	prop= RNA_def_property(srna, "shape_key_edit_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_EDIT_MODE);
+	RNA_def_property_ui_text(prop, "Shape Key Edit Mode", "Apply shape keys in edit mode (for Meshes only).");
+	RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
 	RNA_def_property_update(prop, 0, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "active_shape_key", PROP_POINTER, PROP_NONE);
@@ -1660,7 +1672,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_shape_key_index_get", "rna_Object_active_shape_key_index_set", "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index.");
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_Object_active_shape_update");
 
 	RNA_api_object(srna);
 }

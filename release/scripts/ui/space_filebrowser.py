@@ -34,6 +34,8 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 		layout.itemR(params, "do_filter", text="", icon='ICON_FILTER')
 		
 		row = layout.row(align=True)
+		row.active = params.do_filter
+
 		row.itemR(params, "filter_folder", text="");
 		row.itemR(params, "filter_blender", text="");
 		row.itemR(params, "filter_image", text="");
@@ -42,7 +44,5 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 		row.itemR(params, "filter_font", text="");
 		row.itemR(params, "filter_sound", text="");
 		row.itemR(params, "filter_text", text="");
-
-		row.active = params.do_filter
 
 bpy.types.register(FILEBROWSER_HT_header)

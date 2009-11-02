@@ -34,20 +34,14 @@
 #include <Carbon/Carbon.h>
 #endif
 
+/***** Multithreaded opengl code : uncomment for enabling
+#include <OpenGL/OpenGL.h>
+*/
+ 
 #include "GHOST_WindowCocoa.h"
 #include "GHOST_SystemCocoa.h"
 #include "GHOST_Debug.h"
 
-
-// Pixel Format Attributes for the windowed NSOpenGLContext
-static NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
-{
-	NSOpenGLPFADoubleBuffer,
-	NSOpenGLPFAAccelerated,
-	//NSOpenGLPFAAllowOfflineRenderers,   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
-	NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute) 32,
-	(NSOpenGLPixelFormatAttribute) 0
-};
 
 #pragma mark Cocoa window delegate object
 /* live resize ugly patch
@@ -110,10 +104,14 @@ extern "C" {
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-	if (![[notification object] inLiveResize]) {
+#ifdef MAC_OS_X_VERSION_10_6
+	//if (![[notification object] inLiveResize]) {
 		//Send event only once, at end of resize operation (when user has released mouse button)
+#endif
 		systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
-	}
+#ifdef MAC_OS_X_VERSION_10_6
+	//}
+#endif
 	/* Live resize ugly patch. Needed because live resize runs in a modal loop, not letting main loop run
 	 if ([[notification object] inLiveResize]) {
 		systemCocoa->dispatchEvents();
@@ -183,9 +181,12 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual
 ) :
-	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone),
+	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone, stereoVisual),
 	m_customCursor(0)
 {
+	NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[40];
+	int i;
+	
 	m_systemCocoa = systemCocoa;
 	m_fullScreen = false;
 	
@@ -194,6 +195,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 
 	//Creates the window
 	NSRect rect;
+	NSSize	minSize;
 	
 	rect.origin.x = left;
 	rect.origin.y = top;
@@ -208,9 +210,28 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		return;
 	}
 	
+	//Forbid to resize the window below the blender defined minimum one
+	minSize.width = 320;
+	minSize.height = 240;
+	[m_window setContentMinSize:minSize];
+	
 	setTitle(title);
 	
-			
+	
+	// Pixel Format Attributes for the windowed NSOpenGLContext
+	i=0;
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
+	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
+	
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
+	pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
+	
+	if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
+	
+	pixelFormatAttrsWindow[i] = (NSOpenGLPixelFormatAttribute) 0;
+	
+
 	//Creates the OpenGL View inside the window
 	NSOpenGLPixelFormat *pixelFormat =
 	[[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttrsWindow];
@@ -501,6 +522,13 @@ void GHOST_WindowCocoa::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST
 	outY = screenCoord.y;
 }
 
+
+NSScreen* GHOST_WindowCocoa::getScreen()
+{
+	return [m_window screen];
+}
+
+
 /**
  * @note Fullscreen switch is not actual fullscreen with display capture. As this capture removes all OS X window manager features.
  * Instead, the menu bar and the dock are hidden, and the window is made borderless and enlarged.
@@ -719,6 +747,10 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 	NSOpenGLPixelFormat *pixelFormat;
 	NSOpenGLContext *tmpOpenGLContext;
 	
+	/***** Multithreaded opengl code : uncomment for enabling
+	CGLContextObj cglCtx;
+	*/
+	 
 	switch (type) {
 		case GHOST_kDrawingContextTypeOpenGL:
 			if (!getValid()) break;
@@ -730,6 +762,13 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 				success = GHOST_kFailure;
 				break;
 			}
+			
+			//Switch openGL to multhreaded mode
+			/******* Multithreaded opengl code : uncomment for enabling
+			cglCtx = (CGLContextObj)[tmpOpenGLContext CGLContextObj];
+			if (CGLEnable(cglCtx, kCGLCEMPEngine) == kCGLNoError)
+				printf("\nSwitched openGL to multithreaded mode");
+			 */
 			
 			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;
 #ifdef WAIT_FOR_VSYNC

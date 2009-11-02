@@ -87,9 +87,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-/* XXX */
-extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-
 /* *************************** */
 /* Utility Drawing Defines */
 
@@ -202,7 +199,10 @@ static void draw_fcurve_vertices_keyframes (FCurve *fcu, View2D *v2d, short edit
 }
 
 
-/* helper func - draw handle vertex for an F-Curve as a round unfilled circle */
+/* helper func - draw handle vertex for an F-Curve as a round unfilled circle 
+ * NOTE: the caller MUST HAVE GL_LINE_SMOOTH & GL_BLEND ENABLED, otherwise, the controls don't 
+ * have a consistent appearance (due to off-pixel alignments)...
+ */
 static void draw_fcurve_handle_control (float x, float y, float xscale, float yscale, float hsize)
 {
 	static GLuint displist=0;
@@ -226,15 +226,8 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 	glTranslatef(x, y, 0.0f);
 	glScalef(1.0f/xscale*hsize, 1.0f/yscale*hsize, 1.0f);
 	
-	/* anti-aliased lines for more consistent appearance */
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
-	
 	/* draw! */
 	glCallList(displist);
-	
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
 	
 	/* restore view transform */
 	glScalef(xscale/hsize, yscale/hsize, 1.0);
@@ -257,6 +250,10 @@ static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel)
 	if (sel) UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
 	else UI_ThemeColor(TH_HANDLE_VERTEX);
 	
+	/* anti-aliased lines for more consistent appearance */
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	
 	for (i=0; i < fcu->totvert; i++, prevbezt=bezt, bezt++) {
 		/* Draw the editmode handels for a bezier curve (others don't have handles) 
 		 * if their selection status matches the selection status we're drawing for
@@ -273,6 +270,9 @@ static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel)
 				draw_fcurve_handle_control(bezt->vec[2][0], bezt->vec[2][1], xscale, yscale, hsize);
 		}
 	}
+	
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
 }
 
 /* helper func - set color to draw F-Curve data with */
@@ -399,7 +399,10 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 
 /* Samples ---------------- */
 
-/* helper func - draw sample-range marker for an F-Curve as a cross */
+/* helper func - draw sample-range marker for an F-Curve as a cross 
+ * NOTE: the caller MUST HAVE GL_LINE_SMOOTH & GL_BLEND ENABLED, otherwise, the controls don't 
+ * have a consistent appearance (due to off-pixel alignments)...
+ */
 static void draw_fcurve_sample_control (float x, float y, float xscale, float yscale, float hsize)
 {
 	static GLuint displist=0;
@@ -424,15 +427,8 @@ static void draw_fcurve_sample_control (float x, float y, float xscale, float ys
 	glTranslatef(x, y, 0.0f);
 	glScalef(1.0f/xscale*hsize, 1.0f/yscale*hsize, 1.0f);
 	
-	/* anti-aliased lines for more consistent appearance */
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
-	
 	/* draw! */
 	glCallList(displist);
-	
-	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
 	
 	/* restore view transform */
 	glScalef(xscale/hsize, yscale/hsize, 1.0);
@@ -459,8 +455,15 @@ static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	
 	/* draw */
 	if (first && last) {
+		/* anti-aliased lines for more consistent appearance */
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_BLEND);
+		
 		draw_fcurve_sample_control(first->vec[0], first->vec[1], xscale, yscale, hsize);
 		draw_fcurve_sample_control(last->vec[0], last->vec[1], xscale, yscale, hsize);
+		
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
 	}
 }
 
@@ -875,7 +878,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 					draw_fcurve_vertices(sipo, ar, fcu);
 				}
 				else {
-					/* samples: should we only draw two indicators at either end as indicators? */
+					/* samples: only draw two indicators at either end as indicators */
 					draw_fcurve_samples(sipo, ar, fcu);
 				}
 			}

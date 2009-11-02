@@ -209,8 +209,10 @@ void wm_check(bContext *C)
 	if(wm->windows.first==NULL) return;
 
 	/* case: fileread */
-	if((wm->initialized & WM_INIT_WINDOW) == 0)
+	if((wm->initialized & WM_INIT_WINDOW) == 0) {
 		WM_keymap_init(C);
+		WM_autosave_init(C);
+	}
 	
 	/* case: no open windows at all, for old file reads */
 	wm_window_add_ghostwindows(wm);
@@ -269,12 +271,15 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	wmWindow *win;
 	wmOperator *op;
 	wmKeyConfig *keyconf;
-	
+
+	if(wm->autosavetimer)
+		wm_autosave_timer_ended(wm);
+
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
 		win->screen= NULL; /* prevent draw clear to use screen */
 		wm_draw_window_clear(win);
-		wm_window_free(C, win);
+		wm_window_free(C, wm, win);
 	}
 	
 	while((op= wm->operators.first)) {

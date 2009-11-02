@@ -301,7 +301,7 @@ static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 	
 	/* assign the drawing handle for drawing preview line... */
 	lcd->ar= CTX_wm_region(C);
-	lcd->draw_handle= ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST);
+	lcd->draw_handle= ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
 	lcd->ob = CTX_data_edit_object(C);
 	lcd->em= BKE_mesh_get_editmesh((Mesh *)lcd->ob->data);
 	lcd->extend = do_cut ? 0 : RNA_boolean_get(op->ptr, "extend");

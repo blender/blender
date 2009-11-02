@@ -290,8 +290,12 @@ static float shorten_string(char* string, float w, int flag)
 
 static int get_file_icon(struct direntry *file)
 {
-	if (file->type & S_IFDIR)
+	if (file->type & S_IFDIR) {
+		if ( strcmp(file->relname, "..") == 0) {
+				return  ICON_FILE_PARENT;
+		}
 		return ICON_FILE_FOLDER;
+	}
 	else if (file->flags & BLENDERFILE)
 		return ICON_FILE_BLEND;
 	else if (file->flags & IMAGEFILE)
@@ -610,7 +614,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	}
 
 	if (!sfile->loadimage_timer)
-		sfile->loadimage_timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
+		sfile->loadimage_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
 }
 
 

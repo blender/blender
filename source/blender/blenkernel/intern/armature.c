@@ -60,6 +60,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
@@ -93,43 +94,25 @@ bArmature *get_armature(Object *ob)
 	return NULL;
 }
 
-void free_boneChildren(Bone *bone)
-{ 
-	Bone *child;
-	
-	if (bone) {
-		
-		child=bone->childbase.first;
-		if (child){
-			while (child){
-				free_boneChildren (child);
-				child=child->next;
-			}
-			BLI_freelistN (&bone->childbase);
-		}
-	}
-}
-
-void free_bones (bArmature *arm)
+void free_bonelist (ListBase *lb)
 {
 	Bone *bone;
-	/*	Free children (if any)	*/
-	bone= arm->bonebase.first;
-	if (bone) {
-		while (bone){
-			free_boneChildren (bone);
-			bone=bone->next;
+
+	for(bone=lb->first; bone; bone=bone->next) {
+		if(bone->prop) {
+			IDP_FreeProperty(bone->prop);
+			MEM_freeN(bone->prop);
 		}
+		free_bonelist(&bone->childbase);
 	}
 	
-	
-	BLI_freelistN(&arm->bonebase);
+	BLI_freelistN(lb);
 }
 
 void free_armature(bArmature *arm)
 {
 	if (arm) {
-		free_bones(arm);
+		free_bonelist(&arm->bonebase);
 		
 		/* free editmode data */
 		if (arm->edbo) {
@@ -1286,7 +1269,7 @@ void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float
  *	- the result should be that the rotations given in the provided pointers have had conversions 
  *	  applied (as appropriate), such that the rotation of the element hasn't 'visually' changed 
  */
-void BKE_rotMode_change_values (float quat[4], float eul[3], float *axis, float angle[3], short oldMode, short newMode)
+void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
 {
 	/* check if any change - if so, need to convert data */
 	if (newMode > 0) { /* to euler */

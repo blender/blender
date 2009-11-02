@@ -115,7 +115,7 @@ static SpaceLink *node_new(const bContext *C)
 	ar->v2d.max[0]= 32000.0f;
 	ar->v2d.max[1]= 32000.0f;
 	
-	ar->v2d.minzoom= 0.5f;
+	ar->v2d.minzoom= 0.2f;
 	ar->v2d.maxzoom= 1.21f;
 	
 	ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
@@ -171,6 +171,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SPACE:
 			if(wmn->data==ND_SPACE_NODE)
 				ED_area_tag_refresh(sa);
+			else if(wmn->data==ND_SPACE_NODE_VIEW)
+				ED_area_tag_redraw(sa);
 			break;
 	}
 }

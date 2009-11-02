@@ -49,11 +49,12 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../python
 CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I../../blenfont
+CPPFLAGS += -I../../gpu
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
-# own include 
+# own include
 
-CPPFLAGS += -I../include 
+CPPFLAGS += -I../include
 
 ifeq ($(WITH_OPENEXR), true)
     CPPFLAGS += -DWITH_OPENEXR

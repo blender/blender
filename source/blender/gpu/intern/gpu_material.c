@@ -1509,6 +1509,7 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[][4], int *winsize
 	Mat4MulMat4(lamp->persmat, persmat, rangemat);
 
 	/* opengl */
+	glDisable(GL_SCISSOR_TEST);
 	GPU_framebuffer_texture_bind(lamp->fb, lamp->tex);
 
 	/* set matrices */
@@ -1521,6 +1522,7 @@ void GPU_lamp_shadow_buffer_unbind(GPULamp *lamp)
 {
 	GPU_framebuffer_texture_unbind(lamp->fb, lamp->tex);
 	GPU_framebuffer_restore();
+	glEnable(GL_SCISSOR_TEST);
 }
 
 int GPU_lamp_shadow_layer(GPULamp *lamp)

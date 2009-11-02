@@ -155,6 +155,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 			col = split.column()
 			
 			col.itemL(text="Sampling:")
+			col.itemR(ao, "passes")
 			col.itemR(ao, "error_tolerance", text="Error")
 			col.itemR(ao, "pixel_cache")
 			col.itemR(ao, "correction")

@@ -851,7 +851,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 	ParticleSystemModifierData *psmd;
 	POINT_P; KEY_K;
 	int index;
-	float *vec, *nor, dvec[3], dot, dist_1st;
+	float *vec, *nor, dvec[3], dot, dist_1st=0.0f;
 	float hairimat[4][4], hairmat[4][4];
 
 	if(edit==NULL || edit->psys==NULL || (pset->flag & PE_DEFLECT_EMITTER)==0 || (edit->psys->flag & PSYS_GLOBAL_HAIR))
@@ -2795,7 +2795,7 @@ static void brush_length(PEData *data, int point_index)
 	PTCacheEdit *edit= data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
 	KEY_K;
-	float dvec[3],pvec[3];
+	float dvec[3],pvec[3] = {0.0f, 0.0f, 0.0f};
 
 	LOOP_KEYS {
 		if(k==0) {
@@ -2819,7 +2819,7 @@ static void brush_puff(PEData *data, int point_index)
 	PTCacheEditPoint *point = edit->points + point_index;
 	KEY_K;
 	float mat[4][4], imat[4][4];
-	float lastco[3], rootco[3], co[3], nor[3], kco[3], dco[3], fac, length;
+	float lastco[3], rootco[3] = {0.0f, 0.0f, 0.0f}, co[3], nor[3], kco[3], dco[3], fac=0.0f, length=0.0f;
 
 	if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 		psys_mat_hair_to_global(data->ob, data->dm, psys->part->from, psys->particles + point_index, mat);
@@ -2901,7 +2901,7 @@ static void brush_smooth_do(PEData *data, float mat[][4], float imat[][4], int p
 	(data->edit->points + point_index)->flag |= PEP_EDIT_RECALC;
 }
 
-static void brush_add(PEData *data, short number)
+static int brush_add(PEData *data, short number)
 {
 	Scene *scene= data->scene;
 	Object *ob= data->ob;
@@ -2922,7 +2922,7 @@ static void brush_add(PEData *data, short number)
 	Mat4Invert(imat,ob->obmat);
 
 	if(psys->flag & PSYS_GLOBAL_HAIR)
-		return;
+		return 0;
 
 	BLI_srandom(psys->seed+data->mval[0]+data->mval[1]);
 	
@@ -3097,6 +3097,8 @@ static void brush_add(PEData *data, short number)
 	
 	if(!psmd->dm->deformedOnly)
 		dm->release(dm);
+	
+	return n;
 }
 
 /************************* brush edit operator ********************/
@@ -3147,7 +3149,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	ARegion *ar= CTX_wm_region(C);
 	float vec[3], mousef[2];
 	short mval[2], mvalo[2];
-	int flip, mouse[2], dx, dy, removed= 0, selected= 0;
+	int flip, mouse[2], dx, dy, removed= 0, added=0, selected= 0;
 	int lock_root = pset->flag & PE_LOCK_FIRST;
 
 	if(!PE_start_edit(edit))
@@ -3225,6 +3227,9 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					if(pset->flag & PE_KEEP_LENGTHS)
 						recalc_lengths(edit);
 				}
+				else
+					removed= 0;
+
 				break;
 			}
 			case PE_BRUSH_LENGTH:
@@ -3279,11 +3284,13 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					PE_set_view3d_data(C, &data);
 					data.mval= mval;
 
-					brush_add(&data, brush->strength);
+					added= brush_add(&data, brush->strength);
 
 					if(pset->flag & PE_KEEP_LENGTHS)
 						recalc_lengths(edit);
 				}
+				else
+					added= 0;
 				break;
 			}
 			case PE_BRUSH_SMOOTH:
@@ -3314,7 +3321,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		if((pset->flag & PE_KEEP_LENGTHS)==0)
 			recalc_lengths(edit);
 
-		if(pset->brushtype == PE_BRUSH_ADD || removed) {
+		if(ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_CUT) && (added || removed)) {
 			if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
 				PE_mirror_x(scene, ob, 1);
 

@@ -252,6 +252,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_MODE:
 				case ND_RENDER_OPTIONS:
 				case ND_KEYINGSET:
+				case ND_LAYER:
 					ED_area_tag_redraw(sa);
 					break;
 					

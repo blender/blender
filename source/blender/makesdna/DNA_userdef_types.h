@@ -266,6 +266,8 @@ typedef struct bTheme {
 	ThemeWireColor tarm[20];
 	/*ThemeWireColor tobj[20];*/
 	
+	int active_theme_group, pad;
+	
 } bTheme;
 
 typedef struct SolidLight {

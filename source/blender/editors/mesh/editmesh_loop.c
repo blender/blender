@@ -207,7 +207,7 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 	EditEdge *nearest=NULL, *eed;
 	float fac;
 	int keys = 0, holdnum=0, selectmode, dist;
-	short mvalo[2] = {0,0}, mval[2];
+	short mvalo[2] = {0, 0}, mval[2] = {0, 0};
 	short event=0, val, choosing=1, cancel=0, cuthalf = 0, smooth=0;
 	short hasHidden = 0;
 	char msg[128];
@@ -251,7 +251,7 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 //			}
 #endif
 		}
-		else PIL_sleep_ms(10);	// idle		
+		else PIL_sleep_ms(10);	// idle
 		
 		
 		while(qtest()) 

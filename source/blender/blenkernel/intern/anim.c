@@ -278,7 +278,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 	/* Need to verify the quat interpolation is correct - XXX */
 
 	if (quat) {
-		float totfac, q1[4], q2[4];
+		//float totfac, q1[4], q2[4];
 
 		/* checks for totfac are needed when 'fac' is 1.0 key_curve_position_weights can assign zero
 		 * to more then one index in data which can give divide by zero error */

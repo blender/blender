@@ -123,10 +123,8 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 		}
 		
 		if (U.flag & USER_ADD_VIEWALIGNED) {
-			ARegion *ar= CTX_wm_region(C);
-			if(ar) {
-				RegionView3D *rv3d= ar->regiondata;
-				
+			RegionView3D *rv3d = CTX_wm_region_view3d(C);
+			if(rv3d) {
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
 				QuatToEul(rv3d->viewquat, ob->rot);
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
@@ -293,17 +291,20 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb;
 	Nurb *nu;
-	int newob= 0;
+	int newob= 0, type= RNA_enum_get(op->ptr, "type");
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
 		ED_object_add_type(C, OB_CURVE);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
+		obedit= CTX_data_edit_object(C);
+
+		if(type & CU_PRIM_PATH)
+			((Curve*)obedit->data)->flag |= CU_PATH|CU_3D;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	obedit= CTX_data_edit_object(C);
-	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	nu= add_nurbs_primitive(C, type, newob);
 	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
 	
@@ -524,11 +525,17 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		ED_object_add_type(C, OB_ARMATURE);
+		obedit= ED_object_add_type(C, OB_ARMATURE);
 		ED_object_enter_editmode(C, 0);
+		obedit= CTX_data_edit_object(C);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	
+	if(obedit==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature.");
+		return OPERATOR_CANCELLED;
+	}
 	
 	if(v3d) 
 		rv3d= CTX_wm_region(C)->regiondata;
@@ -736,7 +743,6 @@ static void copy_object__forwardModifierLinks(void *userData, Object *ob,
 /* after copying objects, copied data should get new pointers */
 static void copy_object_set_idnew(bContext *C, int dupflag)
 {
-	Object *ob;
 	Material *ma, *mao;
 	ID *id;
 #if 0 // XXX old animation system
@@ -746,8 +752,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	int a;
 	
 	/* XXX check object pointers */
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		ob= base->object;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		relink_constraints(&ob->constraints);
 		if (ob->pose){
 			bPoseChannel *chan;

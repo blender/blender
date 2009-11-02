@@ -82,6 +82,7 @@ typedef enum eEditKeyframes_Mirror {
 	MIRROR_KEYS_YAXIS,
 	MIRROR_KEYS_XAXIS,
 	MIRROR_KEYS_MARKER,
+	MIRROR_KEYS_VALUE,
 } eEditKeyframes_Mirror;
 
 /* ************************************************ */

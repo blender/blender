@@ -69,7 +69,6 @@ void MESH_OT_separate(struct wmOperatorType *ot);
 void MESH_OT_primitive_plane_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_cube_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_circle_add(struct wmOperatorType *ot);
-void MESH_OT_primitive_cylinder_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_tube_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_cone_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_grid_add(struct wmOperatorType *ot);
@@ -152,6 +151,7 @@ void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
 void MESH_OT_hide(struct wmOperatorType *ot);
 void MESH_OT_reveal(struct wmOperatorType *ot);
 void MESH_OT_select_by_number_vertices(struct wmOperatorType *ot);
+void MESH_OT_select_mirror(struct wmOperatorType *ot);
 void MESH_OT_normals_make_consistent(struct wmOperatorType *ot);
 void MESH_OT_faces_select_linked_flat(struct wmOperatorType *ot);
 void MESH_OT_edges_select_sharp(struct wmOperatorType *ot);
@@ -226,6 +226,7 @@ void MESH_OT_colors_mirror(struct wmOperatorType *ot);
 void MESH_OT_delete(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 
+void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
 
 /* ******************* mesh_layers.c */

@@ -71,6 +71,7 @@ struct bContext {
 
 		int recursion;
 		int py_init; /* true if python is initialized */
+		void *py_context;
 	} data;
 	
 	/* data evaluation */
@@ -173,6 +174,15 @@ int CTX_py_init_get(bContext *C)
 void CTX_py_init_set(bContext *C, int value)
 {
 	C->data.py_init= value;
+}
+
+void *CTX_py_dict_get(bContext *C)
+{
+	return C->data.py_context;
+}
+void CTX_py_dict_set(bContext *C, void *value)
+{
+	C->data.py_context= value;
 }
 
 /* window manager context */
@@ -400,6 +410,10 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	int done= 0, recursion= C->data.recursion;
 
 	memset(result, 0, sizeof(bContextDataResult));
+
+	if(CTX_py_dict_get(C)) {
+		return bpy_context_get(C, member, result);
+	}
 
 	/* we check recursion to ensure that we do not get infinite
 	 * loops requesting data from ourselfs in a context callback */

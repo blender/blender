@@ -51,14 +51,22 @@
 #include "IMB_amiga.h"
 #include "IMB_png.h"
 #include "IMB_bmp.h"
-#include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
+
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+#include "IMB_cocoa.h"
+#else
+#include "IMB_tiff.h"
+#endif
+
 #ifdef WITH_OPENJPEG
 #include "IMB_jp2.h"
 #endif
+
 #ifdef WITH_OPENEXR
 #include "openexr/openexr_api.h"
 #endif
+
 #ifdef WITH_DDS
 #include "dds/dds_api.h"
 #endif
@@ -110,11 +118,21 @@ short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 			IMB_rect_from_float(ibuf);
 		return imb_saveiris(ibuf, name, flags);
 	}
+	
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+	if (IS_tiff(ibuf)) {
+		if(ibuf->rect==NULL && ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
+		return imb_cocoaSaveImage(ibuf, name, flags);
+	}
+#else
 	if (G.have_libtiff && IS_tiff(ibuf)) {
 		if(ibuf->rect==NULL && ibuf->rect_float)
 			IMB_rect_from_float(ibuf);
 		return imb_savetiff(ibuf, name, flags);
 	}
+#endif
+	
 #ifdef WITH_OPENEXR
 	if (IS_openexr(ibuf)) {
 		return imb_save_openexr(ibuf, name, flags);

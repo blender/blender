@@ -90,7 +90,6 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 		row.itemR(curve, "twist_mode")
 		row.itemR(curve, "twist_smooth") # XXX - may not be kept
 
-
 #		col.itemL(text="Display:")
 #		col.itemL(text="HANDLES")
 #		col.itemL(text="NORMALS")
@@ -218,7 +217,6 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
 			split = layout.split()
 			col = split.column()
 			col.itemR(act_spline, "smooth")
-
 
 bpy.types.register(DATA_PT_context_curve)
 bpy.types.register(DATA_PT_shape_curve)

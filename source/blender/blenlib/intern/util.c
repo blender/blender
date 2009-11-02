@@ -992,6 +992,18 @@ void BLI_setenv(const char *env, const char*val)
 #endif
 }
 
+
+/**
+ Only set an env var if already not there.
+ Like Unix setenv(env, val, 0);
+ */
+void BLI_setenv_if_new(const char *env, const char* val)
+{
+	if(getenv(env) == NULL)
+		BLI_setenv(env, val);
+}
+
+
 void BLI_clean(char *path)
 {
 	if(path==0) return;
@@ -1374,10 +1386,10 @@ void BLI_where_am_i(char *fullname, const char *name)
 	char *path = NULL, *temp;
 	
 #ifdef _WIN32
-	char *seperator = ";";
+	char *separator = ";";
 	char slash = '\\';
 #else
-	char *seperator = ":";
+	char *separator = ":";
 	char slash = '/';
 #endif
 
@@ -1415,7 +1427,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 			path = getenv("PATH");
 			if (path) {
 				do {
-					temp = strstr(path, seperator);
+					temp = strstr(path, separator);
 					if (temp) {
 						strncpy(filename, path, temp - path);
 						filename[temp - path] = 0;

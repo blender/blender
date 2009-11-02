@@ -37,6 +37,9 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 /*************************** RNA Utilities ******************************/
 
 uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2)
@@ -58,11 +61,12 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 				value= RNA_property_boolean_get_index(ptr, prop, index);
 			else
 				value= RNA_property_boolean_get(ptr, prop);
-
+			
+			// XXX: when to do TOG, and when to do ICONTOG? for now, let's just do TOG, since ICONTOG causes too much trouble everywhere else
 			if(icon && name && strcmp(name, "") == 0)
-				but= uiDefIconButR(block, ICONTOG, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+				but= uiDefIconButR(block, TOG, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else if(icon)
-				but= uiDefIconTextButR(block, ICONTOG, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+				but= uiDefIconTextButR(block, TOG, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else
 				but= uiDefButR(block, OPTION, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
@@ -183,4 +187,3 @@ int uiIconFromID(ID *id)
 
 	return (ptr.type)? RNA_struct_ui_icon(ptr.type): 0;
 }
-

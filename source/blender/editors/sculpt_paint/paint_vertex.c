@@ -43,8 +43,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_ghash.h"
 
-
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
@@ -197,13 +198,13 @@ unsigned int rgba_to_mcol(float r, float g, float b, float a)
 	
 }
 
-static unsigned int vpaint_get_current_col(VPaint *vp)
+unsigned int vpaint_get_current_col(VPaint *vp)
 {
 	Brush *brush = paint_brush(&vp->paint);
 	return rgba_to_mcol(brush->rgb[0], brush->rgb[1], brush->rgb[2], 1.0f);
 }
 
-void do_shared_vertexcol(Mesh *me)
+static void do_shared_vertexcol(Mesh *me)
 {
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
@@ -221,7 +222,7 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if((tface && tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+		if((tface && tface->mode & TF_SHAREDCOL) || (me->editflag & ME_EDIT_PAINT_MASK)==0) {
 			scol= scolmain+4*mface->v1;
 			scol[0]++; scol[1]+= mcol[1]; scol[2]+= mcol[2]; scol[3]+= mcol[3];
 			scol= scolmain+4*mface->v2;
@@ -251,7 +252,7 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if((tface && tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+		if((tface && tface->mode & TF_SHAREDCOL) || (me->editflag & ME_EDIT_PAINT_MASK)==0) {
 			scol= scolmain+4*mface->v1;
 			mcol[1]= scol[1]; mcol[2]= scol[2]; mcol[3]= scol[3];
 			scol= scolmain+4*mface->v2;
@@ -269,20 +270,13 @@ void do_shared_vertexcol(Mesh *me)
 	MEM_freeN(scolmain);
 }
 
-void make_vertexcol(Scene *scene, int shade)	/* single ob */
+static void make_vertexcol(Object *ob)	/* single ob */
 {
-	Object *ob;
 	Mesh *me;
-
-	if(scene->obedit) {
-		error("Unable to perform function in Edit Mode");
-		return;
-	}
-	
-	ob= OBACT;
 	if(!ob || ob->id.lib) return;
 	me= get_mesh(ob);
 	if(me==0) return;
+	if(me->edit_mesh) return;
 
 	/* copies from shadedisplist to mcol */
 	if(!me->mcol) {
@@ -290,10 +284,11 @@ void make_vertexcol(Scene *scene, int shade)	/* single ob */
 		mesh_update_customdata_pointers(me);
 	}
 
-	if(shade)
-		shadeMeshMCol(scene, ob, me);
-	else
-		memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
+	//if(shade)
+	//	shadeMeshMCol(scene, ob, me);
+	//else
+
+	memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
 	
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	
@@ -330,22 +325,20 @@ static void copy_wpaint_prev (VPaint *wp, MDeformVert *dverts, int dcount)
 }
 
 
-void clear_vpaint(Scene *scene, int selected)
+void vpaint_fill(Object *ob, unsigned int paintcol)
 {
 	Mesh *me;
 	MFace *mf;
-	Object *ob;
-	unsigned int paintcol, *mcol;
-	int i;
+	unsigned int *mcol;
+	int i, selected;
 
-	ob= OBACT;
 	me= get_mesh(ob);
 	if(me==0 || me->totface==0) return;
 
 	if(!me->mcol)
-		make_vertexcol(scene, 0);
+		make_vertexcol(ob);
 
-	paintcol= vpaint_get_current_col(scene->toolsettings->vpaint);
+	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
 	mf = me->mface;
 	mcol = (unsigned int*)me->mcol;
@@ -363,30 +356,34 @@ void clear_vpaint(Scene *scene, int selected)
 
 
 /* fills in the selected faces with the current weight and vertex group */
-void clear_wpaint_selectedfaces(Scene *scene)
+void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
-	ToolSettings *ts= scene->toolsettings;
-	VPaint *wp= ts->wpaint;
-	float paintweight= ts->vgroup_weight;
 	Mesh *me;
 	MFace *mface;
-	Object *ob;
 	MDeformWeight *dw, *uw;
 	int *indexar;
 	int index, vgroup;
 	unsigned int faceverts[5]={0,0,0,0,0};
 	unsigned char i;
 	int vgroup_mirror= -1;
+	int selected;
 	
-	ob= OBACT;
 	me= ob->data;
 	if(me==0 || me->totface==0 || me->dvert==0 || !me->mface) return;
 	
+	selected= (me->editflag & ME_EDIT_PAINT_MASK);
+
 	indexar= get_indexarray();
-	for(index=0, mface=me->mface; index<me->totface; index++, mface++) {
-		if((mface->flag & ME_FACE_SEL)==0)
-			indexar[index]= 0;
-		else
+	if(selected) {
+		for(index=0, mface=me->mface; index<me->totface; index++, mface++) {
+			if((mface->flag & ME_FACE_SEL)==0)
+				indexar[index]= 0;
+			else
+				indexar[index]= index+1;
+		}
+	}
+	else {
+		for(index=0; index<me->totface; index++)
 			indexar[index]= index+1;
 	}
 	
@@ -860,7 +857,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
 	int index;
-	short mval[2], sco[2];
+	short mval[2] = {0, 0}, sco[2];
 
 	if (!me) return;
 	
@@ -990,7 +987,44 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	
 }
 
-static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha, float paintweight, int vgroup_mirror)
+static void do_weight_paint_auto_normalize(MDeformVert *dvert, 
+					   int paint_nr, char *map)
+{
+	MDeformWeight *dw = dvert->dw;
+	float sum=0.0f, fac=0.0f, paintw=0.0f;
+	int i, tot=0;
+
+	if (!map)
+		return;
+
+	for (i=0; i<dvert->totweight; i++) {
+		if (dvert->dw[i].def_nr == paint_nr)
+			paintw = dvert->dw[i].weight;
+
+		if (map[dvert->dw[i].def_nr]) {
+			tot += 1;
+			if (dvert->dw[i].def_nr != paint_nr)
+				sum += dvert->dw[i].weight;
+		}
+	}
+	
+	if (!tot || sum <= (1.0f - paintw))
+		return;
+
+	fac = sum / (1.0f - paintw);
+	fac = fac==0.0f ? 1.0f : 1.0f / fac;
+
+	for (i=0; i<dvert->totweight; i++) {
+		if (map[dvert->dw[i].def_nr]) {
+			if (dvert->dw[i].def_nr != paint_nr)
+				dvert->dw[i].weight *= fac;
+		}
+	}
+}
+
+static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
+				   int alpha, float paintweight, 
+				   int vgroup_mirror, char *validmap)
 {
 	Mesh *me= ob->data;
 	MDeformWeight *dw, *uw;
@@ -1008,7 +1042,8 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 		return;
 	
 	wpaint_blend(wp, dw, uw, (float)alpha/255.0, paintweight);
-	
+	do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
+
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
@@ -1019,6 +1054,8 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
 				
 			uw->weight= dw->weight;
+
+			do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
 		}
 	}
 }
@@ -1212,7 +1249,66 @@ struct WPaintData {
 	int vgroup_mirror;
 	float *vertexcosnos;
 	float wpimat[3][3];
+	
+	/*variables for auto normalize*/
+	int auto_normalize;
+	char *vgroup_validmap; /*stores if vgroups tie to deforming bones or not*/
 };
+
+static char *wpaint_make_validmap(Mesh *me, Object *ob)
+{
+	bDeformGroup *dg;
+	ModifierData *md;
+	char *validmap;
+	bPose *pose;
+	bPoseChannel *chan;
+	ArmatureModifierData *amd;
+	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+	int i = 0, step1=1;
+
+	/*add all names to a hash table*/
+	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
+		BLI_ghash_insert(gh, dg->name, NULL);
+	}
+
+	if (!i)
+		return;
+
+	validmap = MEM_callocN(i, "wpaint valid map");
+
+	/*now loop through the armature modifiers and identify deform bones*/
+	for (md = ob->modifiers.first; md; md= !md->next && step1 ? (step1=0), modifiers_getVirtualModifierList(ob) : md->next) {
+		if (!(md->mode & (eModifierMode_Realtime|eModifierMode_Virtual)))
+			continue;
+
+		if (md->type == eModifierType_Armature) 
+		{
+			amd = (ArmatureModifierData*) md;
+			pose = amd->object->pose;
+			
+			for (chan=pose->chanbase.first; chan; chan=chan->next) {
+				if (chan->bone->flag & BONE_NO_DEFORM)
+					continue;
+
+				if (BLI_ghash_haskey(gh, chan->name)) {
+					BLI_ghash_remove(gh, chan->name, NULL, NULL);
+					BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
+				}
+			}
+		}
+	}
+	
+	/*add all names to a hash table*/
+	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
+		if (BLI_ghash_lookup(gh, dg->name) != NULL) {
+			validmap[i] = 1;
+		}
+	}
+
+	BLI_ghash_free(gh, NULL, NULL);
+
+	return validmap;
+}
 
 static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1239,6 +1335,12 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	paint_stroke_set_mode_data(stroke, wpd);
 	view3d_set_viewcontext(C, &wpd->vc);
 	wpd->vgroup_mirror= -1;
+	
+	/*set up auto-normalize, and generate map for detecting which
+	  vgroups affect deform bones*/
+	wpd->auto_normalize = ts->auto_normalize;
+	if (wpd->auto_normalize)
+		wpd->vgroup_validmap = wpaint_make_validmap(me, ob);
 	
 	//	if(qual & LR_CTRLKEY) {
 	//		sample_wpaint(scene, ar, v3d, 0);
@@ -1361,7 +1463,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 			
-	if((G.f & G_FACESELECT) && me->mface) {
+	if((me->editflag & ME_EDIT_PAINT_MASK) && me->mface) {
 		for(index=0; index<totindex; index++) {
 			if(indexar[index] && indexar[index]<=me->totface) {
 				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
@@ -1421,7 +1523,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if((me->dvert+mface->v1)->flag) {
 				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
 				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
+					do_weight_paint_vertex(wp, ob, mface->v1, 
+						alpha, paintweight, wpd->vgroup_mirror, 
+						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v1)->flag= 0;
 			}
@@ -1429,7 +1533,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if((me->dvert+mface->v2)->flag) {
 				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
 				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
+					do_weight_paint_vertex(wp, ob, mface->v2, 
+						alpha, paintweight, wpd->vgroup_mirror, 
+						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v2)->flag= 0;
 			}
@@ -1437,7 +1543,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if((me->dvert+mface->v3)->flag) {
 				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
 				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
+					do_weight_paint_vertex(wp, ob, mface->v3, 
+						alpha, paintweight, wpd->vgroup_mirror, 
+						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v3)->flag= 0;
 			}
@@ -1446,7 +1554,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				if(mface->v4) {
 					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
 					if(alpha) {
-						do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
+						do_weight_paint_vertex(wp, ob, mface->v4, 
+							alpha, paintweight, wpd->vgroup_mirror,
+							wpd->vgroup_validmap);
 					}
 					(me->dvert+mface->v4)->flag= 0;
 				}
@@ -1470,6 +1580,9 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 		MEM_freeN(wpd->vertexcosnos);
 	MEM_freeN(wpd->indexar);
 	
+	if (wpd->vgroup_validmap)
+		MEM_freeN(wpd->vgroup_validmap);
+
 	/* frees prev buffer */
 	copy_wpaint_prev(ts->wpaint, NULL, 0);
 	
@@ -1528,6 +1641,32 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
+static int weight_paint_set_exec(bContext *C, wmOperator *op)
+{
+	struct Scene *scene= CTX_data_scene(C);
+	Object *obact = CTX_data_active_object(C);
+
+	wpaint_fill(scene->toolsettings->wpaint, obact, scene->toolsettings->vgroup_weight);
+	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_weight_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Weight Set";
+	ot->idname= "PAINT_OT_weight_set";
+
+	/* api callbacks */
+	ot->exec= weight_paint_set_exec;
+	ot->poll= facemask_paint_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+}
+
 /* ************ set / clear vertex paint mode ********** */
 
 
@@ -1551,7 +1690,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		return OPERATOR_FINISHED;
 	}
 	
-	if(me && me->mcol==NULL) make_vertexcol(scene, 0);
+	if(me && me->mcol==NULL) make_vertexcol(ob);
 	
 	/* toggle: end vpaint */
 	if(ob->mode & OB_MODE_VERTEX_PAINT) {
@@ -1642,7 +1781,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
 	
-	if(me->mcol==NULL) make_vertexcol(CTX_data_scene(C), 0);
+	if(me->mcol==NULL) make_vertexcol(ob);
 	if(me->mcol==NULL) return OPERATOR_CANCELLED;
 	
 	/* make mode data storage */
@@ -1675,7 +1814,7 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index
 	int alpha, i;
 	
 	if((vp->flag & VP_COLINDEX && mface->mat_nr!=ob->actcol-1) ||
-	   (G.f & G_FACESELECT && !(mface->flag & ME_FACE_SEL)))
+	   ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL)))
 		return;
 
 	if(vp->mode==VP_BLUR) {

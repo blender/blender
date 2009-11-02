@@ -2131,6 +2131,11 @@ static void write_bone(WriteData *wd, Bone* bone)
 		
 	// Write this bone
 	writestruct(wd, DATA, "Bone", 1, bone);
+
+	/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+	 of library blocks that implement this.*/
+	if (bone->prop)
+		IDP_WriteProperty(bone->prop, wd);
 	
 	// Write Children
 	cbone= bone->childbase.first;
@@ -2308,7 +2313,7 @@ static void write_scripts(WriteData *wd, ListBase *idbase)
 /* context is usually defined by WM, two cases where no WM is available:
  * - for forward compatibility, curscreen has to be saved
  * - for undofile, curscene needs to be saved */
-static void write_global(WriteData *wd, Main *mainvar)
+static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 {
 	FileGlobal fg;
 	bScreen *screen;
@@ -2321,8 +2326,9 @@ static void write_global(WriteData *wd, Main *mainvar)
 	fg.curscene= screen->scene;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
-	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
+	fg.fileflags= (fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
 	fg.globalf= G.f;
+	BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));
 
 	sprintf(subvstr, "%4d", BLENDER_SUBVERSION);
 	memcpy(fg.subvstr, subvstr, 4);
@@ -2351,7 +2357,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	mywrite(wd, buf, 12);
 
 	write_renderinfo(wd, mainvar);
-	write_global(wd, mainvar);
+	write_global(wd, write_flags, mainvar);
 
 	/* no UI save in undo */
 	if(current==NULL) {
@@ -2382,8 +2388,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
 	write_gpencils (wd, &mainvar->gpencil);
-	if(current==NULL)	
-		write_libraries(wd,  mainvar->next); /* no library save in undo */
+	write_libraries(wd,  mainvar->next);
 
 	if (write_user_block) {
 		write_userdef(wd);

@@ -360,6 +360,9 @@ class SparseVector<Scalar,_Flags>::InnerIterator
     const CompressedStorage<Scalar>& m_data;
     int m_id;
     const int m_end;
+
+  private:
+    InnerIterator& operator=(const InnerIterator&);
 };
 
 #endif // EIGEN_SPARSEVECTOR_H

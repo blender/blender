@@ -306,6 +306,11 @@ char *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len)
 
 	if(kmi->oskey)
 		strcat(buf, "Cmd ");
+		
+	if(kmi->keymodifier) {
+		strcat(buf, WM_key_event_string(kmi->keymodifier));
+		strcat(buf, " ");
+	}
 
 	strcat(buf, WM_key_event_string(kmi->type));
 	BLI_strncpy(str, buf, len);

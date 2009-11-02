@@ -123,10 +123,16 @@ def basic_force_field_settings_ui(self, field):
 	if field.type == 'TURBULENCE':
 		col.itemR(field, "global_coordinates", text="Global")
 	
-	row = layout.row()
-	row.itemL(text="Effect point:")
-	row.itemR(field, "do_location")
-	row.itemR(field, "do_rotation")
+	split = layout.split()
+	
+	col = split.column()
+	col.itemL(text="Effect point:")
+	col.itemR(field, "do_location")
+	col.itemR(field, "do_rotation")
+	
+	sub = split.column()
+	sub.itemL(text="Collision:")
+	sub.itemR(field, "do_absorption")
 		
 		
 def basic_force_field_falloff_ui(self, field):
@@ -140,7 +146,6 @@ def basic_force_field_falloff_ui(self, field):
 	col.itemR(field, "z_direction", text="")
 	col.itemR(field, "use_min_distance", text="Use Minimum")
 	col.itemR(field, "use_max_distance", text="Use Maximum")
-	col.itemR(field, "do_absorption")
 
 	col = split.column()
 	col.itemR(field, "falloff_power", text="Power")

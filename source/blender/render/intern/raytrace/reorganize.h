@@ -26,9 +26,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #include <stdio.h>
-#include <math.h>
 #include <algorithm>
+#include <math.h>
 #include <vector>
 #include <queue>
 
@@ -158,7 +159,7 @@ void pushup(Node *parent)
 	{
 		float c_area = bb_area(child->bb, child->bb+3) ;
 		int nchilds = count_childs(child);
-		float original_cost = (c_area / p_area)*nchilds + 1;
+		float original_cost = ((p_area != 0.0f)? (c_area / p_area)*nchilds: 1.0f) + 1;
 		float flatten_cost = nchilds;
 		if(flatten_cost < original_cost && nchilds >= 2)
 		{
@@ -289,7 +290,6 @@ float bvh_refit(Node *node)
  * with the purpose to reduce the expected cost (eg.: number of BB tests).
  */
 #include <vector>
-#include <cmath>
 #define MAX_CUT_SIZE	16
 #define MAX_OPTIMIZE_CHILDS	MAX_CUT_SIZE
 
@@ -397,7 +397,7 @@ struct VBVH_optimalPackSIMD
 				for(Node *child = node->child; child && RE_rayobject_isAligned(child); child = child->sibling)
 				{
 					this->child[nchilds] = child;
-					this->child_hit_prob[nchilds] = bb_area(child->bb, child->bb+3) / parent_area;
+					this->child_hit_prob[nchilds] = (parent_area != 0.0f)? bb_area(child->bb, child->bb+3) / parent_area: 1.0f;
 					nchilds++;
 				}
 
@@ -467,7 +467,7 @@ struct VBVH_optimalPackSIMD
 				float parent_area = bb_area(node->bb, node->bb+3);
 				for(Node *child = node->child; child && RE_rayobject_isAligned(child); child = child->sibling)
 				{
-					cost += ( bb_area(child->bb, child->bb+3) / parent_area ) * child->get_cost(1);
+					cost += ((parent_area != 0.0f)? ( bb_area(child->bb, child->bb+3) / parent_area ): 1.0f) * child->get_cost(1);
 				}
 				
 				cost += testcost(nchilds);

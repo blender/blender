@@ -381,6 +381,14 @@ static const char *rna_ensure_property_identifier(PropertyRNA *prop)
 		return ((IDProperty*)prop)->name;
 }
 
+static const char *rna_ensure_property_description(PropertyRNA *prop)
+{
+	if(prop->magic == RNA_MAGIC)
+		return prop->description;
+	else
+		return ((IDProperty*)prop)->name; /* XXX - not correct */
+}
+
 static const char *rna_ensure_property_name(PropertyRNA *prop)
 {
 	if(prop->magic == RNA_MAGIC)
@@ -559,6 +567,11 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen)
 const char *RNA_property_identifier(PropertyRNA *prop)
 {
 	return rna_ensure_property_identifier(prop);
+}
+
+const char *RNA_property_description(PropertyRNA *prop)
+{
+	return rna_ensure_property_description(prop);
 }
 
 PropertyType RNA_property_type(PropertyRNA *prop)
@@ -1647,6 +1660,25 @@ void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)
 		IDP_ResizeIDPArray(idprop, 0);
 }
 
+int RNA_property_collection_lookup_index(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *t_ptr)
+{
+	CollectionPropertyIterator iter;
+	int index= 0;
+	
+	RNA_property_collection_begin(ptr, prop, &iter);
+	for(index=0; iter.valid; RNA_property_collection_next(&iter), index++) {
+		if (iter.ptr.data == t_ptr->data)
+			break;
+	}
+	RNA_property_collection_end(&iter);
+	
+	/* did we find it? */
+	if (iter.valid)
+		return index;
+	else
+		return -1;
+}
+
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr)
 {
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
@@ -2216,6 +2248,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 	return buf;
 }
 
+/* Resolve the given RNA path to find the pointer+property indicated at the end of the path */
 int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
 	PropertyRNA *prop;
@@ -2402,14 +2435,14 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 			/* if type has a path to some ID, use it */
 			ptrpath= ptr->type->path(ptr);
 		}
-		else if(ptr->type->nested) {
+		else if(ptr->type->nested && RNA_struct_is_ID(ptr->type->nested)) {
 			PointerRNA parentptr;
 			PropertyRNA *userprop;
 			
 			/* find the property in the struct we're nested in that references this struct, and 
 			 * use its identifier as the first part of the path used...
 			 */
-			RNA_pointer_create(ptr->id.data, ptr->type->nested, ptr->data, &parentptr);
+			RNA_id_pointer_create(ptr->id.data, &parentptr);
 			userprop= RNA_struct_find_nested(&parentptr, ptr->type); 
 			
 			if(userprop)

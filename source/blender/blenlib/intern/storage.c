@@ -470,11 +470,7 @@ int BLI_exist(char *name)
 
 /* would be better in fileops.c except that it needs stat.h so add here */
 int BLI_is_dir(char *file) {
-#ifdef WIN32
-	return 1; /* XXX - TODO */
-#else
 	return S_ISDIR(BLI_exist(file));
-#endif
 }
 
 LinkNode *BLI_read_file_as_lines(char *name)

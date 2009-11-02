@@ -1077,35 +1077,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, PointerRNA *ptr)
 	}
 }
 
-static void node_blur_relative_cb(bContext *C, void *node, void *poin2)
-{
-	bNode *nodev= node;
-	NodeBlurData *nbd= nodev->storage;
-	if(nbd->image_in_width != 0){
-		if(nbd->relative){ /* convert absolute values to relative */
-			nbd->percentx= (float)(nbd->sizex)/nbd->image_in_width;
-			nbd->percenty= (float)(nbd->sizey)/nbd->image_in_height;
-		}else{ /* convert relative values to absolute */
-			nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
-			nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
-		}
-	}
-	// allqueue(REDRAWNODE, 0);
-}
-static void node_blur_update_sizex_cb(bContext *C, void *node, void *poin2)
-{
-	bNode *nodev= node;
-	NodeBlurData *nbd= nodev->storage;
 
-	nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
-}
-static void node_blur_update_sizey_cb(bContext *C, void *node, void *poin2)
-{
-	bNode *nodev= node;
-	NodeBlurData *nbd= nodev->storage;
-
-	nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
-}
 static void node_composit_buts_blur(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *col;
@@ -1390,7 +1362,6 @@ static void node_composit_buts_color_spill(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_chroma_matte(uiLayout *layout, PointerRNA *ptr)
 {
-
 	uiLayout *col;
 	
 	col= uiLayoutColumn(layout, 0);
@@ -1401,26 +1372,6 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(col, NULL, 0, ptr, "lift", UI_ITEM_R_SLIDER);
 	uiItemR(col, NULL, 0, ptr, "gain", UI_ITEM_R_SLIDER);
 	uiItemR(col, NULL, 0, ptr, "shadow_adjust", UI_ITEM_R_SLIDER);
-
-//	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-//	bNode *node= ptr->data;
-//	rctf *butr= &node->butr;
-//	short dx=(butr->xmax-butr->xmin)/2;
-//	NodeChroma *c= node->storage;
-
-//	uiBlockBeginAlign(block);
-//
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Acceptance ", butr->xmin, butr->ymin+60, butr->xmax-butr->xmin, 20, &c->t1, 1.0f, 80.0f, 100, 0, "Tolerance for colors to be considered a keying color");
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Cutoff ", butr->xmin, butr->ymin+40, butr->xmax-butr->xmin, 20, &c->t2, 0.0f, 30.0f, 100, 0, "Colors below this will be considered as exact matches for keying color");
-//
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Lift ", butr->xmin, butr->ymin+20, dx, 20, &c->fsize, 0.0f, 1.0f, 100, 0, "Alpha Lift");
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Gain ", butr->xmin+dx, butr->ymin+20, dx, 20, &c->fstrength, 0.0f, 1.0f, 100, 0, "Alpha Gain");
-//
-//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Shadow Adjust ", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &c->t3, 0.0f, 1.0f, 100, 0, "Adjusts the brightness of any shadows captured");
-//	uiBlockEndAlign(block);
-//
-//	if(c->t2 > c->t1)
-//		c->t2=c->t1;
 }
 
 static void node_composit_buts_color_matte(uiLayout *layout, PointerRNA *ptr)
@@ -1434,7 +1385,9 @@ static void node_composit_buts_color_matte(uiLayout *layout, PointerRNA *ptr)
 }
 
 static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
-{
+{	
+	uiLayout *col, *row;
+	
 	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
@@ -1443,16 +1396,9 @@ static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
 	NodeChroma *c=node->storage;
 	char *c1, *c2, *c3;
 
-	/*color space selectors*/
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_NODE_EXEC,"RGB",
-		butr->xmin,butr->ymin+60,sx,20,&node->custom1,1,1, 0, 0, "RGB Color Space");
-	uiDefButS(block, ROW,B_NODE_EXEC,"HSV",
-		butr->xmin+sx,butr->ymin+60,sx,20,&node->custom1,1,2, 0, 0, "HSV Color Space");
-	uiDefButS(block, ROW,B_NODE_EXEC,"YUV",
-		butr->xmin+2*sx,butr->ymin+60,sx,20,&node->custom1,1,3, 0, 0, "YUV Color Space");
-	uiDefButS(block, ROW,B_NODE_EXEC,"YCC",
-		butr->xmin+3*sx,butr->ymin+60,sx,20,&node->custom1,1,4, 0, 0, "YCbCr Color Space");
+	/*color space selector*/
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, NULL, 0, ptr, "color_space", UI_ITEM_R_EXPAND);
 
 	if (node->custom1==1) {
 		c1="R"; c2="G"; c3="B";
@@ -1468,48 +1414,30 @@ static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
 	}
 
 	/*channel selector */
+	row= uiLayoutRow(layout, 0);
+	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_NODE_EXEC, c1,
 		butr->xmin,butr->ymin+40,cx,20,&node->custom2,1, 1, 0, 0, "Channel 1");
 	uiDefButS(block, ROW, B_NODE_EXEC, c2,
 		butr->xmin+cx,butr->ymin+40,cx,20,&node->custom2,1, 2, 0, 0, "Channel 2");
 	uiDefButS(block, ROW, B_NODE_EXEC, c3,
 		butr->xmin+cx+cx,butr->ymin+40,cx,20,&node->custom2, 1, 3, 0, 0, "Channel 3");
-
-	/*tolerance sliders */
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "High ", 
-		butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-		&c->t1, 0.0f, 1.0f, 100, 0, "Values higher than this setting are 100% opaque");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Low ", 
-		butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-		&c->t2, 0.0f, 1.0f, 100, 0, "Values lower than this setting are 100% keyed");
 	uiBlockEndAlign(block);
 
-	/*keep t2 (low) less than t1 (high) */
-	if(c->t2 > c->t1) {
-		c->t2=c->t1;
-	}
+	/*tolerance sliders */
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "high", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "low", UI_ITEM_R_SLIDER);
+
 }
 
 static void node_composit_buts_luma_matte(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeChroma *c=node->storage;
-
-	/*tolerance sliders */
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "High ", 
-		butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-		&c->t1, 0.0f, 1.0f, 100, 0, "Values higher than this setting are 100% opaque");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Low ", 
-		butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-		&c->t2, 0.0f, 1.0f, 100, 0, "Values lower than this setting are 100% keyed");
-	uiBlockEndAlign(block);
-
-	/*keep t2 (low) less than t1 (high) */
-	if(c->t2 > c->t1) {
-		c->t2=c->t1;
-	}
+	uiLayout *col;
+	
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "high", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "low", UI_ITEM_R_SLIDER);
 }
 
 static void node_composit_buts_map_uv(uiLayout *layout, PointerRNA *ptr)
@@ -1529,6 +1457,7 @@ static void node_composit_buts_id_mask(uiLayout *layout, PointerRNA *ptr)
 }
 
 /* allocate sufficient! */
+/*
 static void node_imagetype_string(char *str)
 {
 	str += sprintf(str, "Save Image as: %%t|");
@@ -1543,67 +1472,37 @@ static void node_imagetype_string(char *str)
 	str += sprintf(str, "DPX %%x%d|", R_DPX);
 	str += sprintf(str, "OpenEXR %%x%d", R_OPENEXR);
 }
+*/
 
-static void node_set_image_cb(bContext *C, void *ntree_v, void *node_v)
+/*static void node_set_image_cb(bContext *C, void *ntree_v, void *node_v)
 {
 	bNodeTree *ntree= ntree_v;
 	bNode *node= node_v;
 	
 	nodeSetActive(ntree, node);
 }
+*/
 
 static void node_composit_buts_file_output(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	bNodeTree *ntree= ptr->id.data;
-	rctf *butr= &node->butr;
-	NodeImageFile *nif= node->storage;
-	uiBut *bt;
-	short x= (short)butr->xmin;
-	short y= (short)butr->ymin;
-	short w= (short)butr->xmax-butr->xmin;
-	char str[320];
-	
-	node_imagetype_string(str);
-	
-	uiBlockBeginAlign(block);
-	
-	bt = uiDefIconBut(block, BUT, B_NODE_SETIMAGE, ICON_FILESEL,
-			  x, y+60, 20, 20,
-			  0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
-	uiButSetFunc(bt, node_set_image_cb, ntree, node);
-	
-	uiDefBut(block, TEX, B_NOP, "",
-			  20+x, y+60, w-20, 20, 
-			  nif->name, 0.0f, 240.0f, 0, 0, "");
-	
-	uiDefButS(block, MENU, B_NOP, str,
-			  x, y+40, w, 20, 
-			  &nif->imtype, 0.0f, 1.0f, 0, 0, "");
-	
-	if(nif->imtype==R_OPENEXR) {
-		uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_REDR, "Half",	
-					x, y+20, w/2, 20, 
-					&nif->subimtype, 0, 0, 0, 0, "");
+	uiLayout *col, *row;
 
-		uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
-					x+w/2, y+20, w/2, 20, 
-					&nif->codec, 0, 0, 0, 0, "");
+	col= uiLayoutColumn(layout, 0);
+	uiItemR(col, "", 0, ptr, "filename", 0);
+	uiItemR(col, "", 0, ptr, "image_type", 0);
+	
+	row= uiLayoutRow(layout, 0);
+	if (RNA_enum_get(ptr, "image_type")== R_OPENEXR) {
+		uiItemR(row, NULL, 0, ptr, "exr_half", 0);
+		uiItemR(row, "", 0, ptr, "exr_codec", 0);
 	}
-	else {
-		uiDefButS(block, NUM, B_NOP, "Quality: ",
-			  x, y+20, w, 20, 
-			  &nif->quality, 10.0f, 100.0f, 10, 0, "");
+	else if (RNA_enum_get(ptr, "image_type")== R_JPEG90) {
+		uiItemR(row, NULL, 0, ptr, "quality", UI_ITEM_R_SLIDER);
 	}
 	
-	/* start frame, end frame */
-	uiDefButI(block, NUM, B_NODE_EXEC, "SFra: ", 
-			  x, y, w/2, 20, 
-			  &nif->sfra, 1, MAXFRAMEF, 10, 0, "");
-	uiDefButI(block, NUM, B_NODE_EXEC, "EFra: ", 
-			  x+w/2, y, w/2, 20, 
-			  &nif->efra, 1, MAXFRAMEF, 10, 0, "");
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, "Start", 0, ptr, "start_frame", 0);
+	uiItemR(row, "End", 0, ptr, "end_frame", 0);
 }
 
 static void node_scale_cb(bContext *C, void *node_v, void *unused_v)
@@ -1799,43 +1698,15 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 
 static void node_texture_buts_bricks(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	short w = butr->xmax-butr->xmin;
-	short ofw = 32;
+	uiLayout *col;
 	
-	uiBlockBeginAlign(block);
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, "Offset", 0, ptr, "offset", 0);
+	uiItemR(col, "Frequency", 0, ptr, "offset_frequency", 0);
 	
-	/* Offset */
-	uiDefButF(
-		block, NUM, B_NODE_EXEC, "Offset",
-		butr->xmin, butr->ymin+20, w-ofw, 20,
-		&node->custom3,
-		0, 1, 0.25, 2,
-		"Offset amount" );
-	uiDefButS(
-		block, NUM, B_NODE_EXEC, "",
-		butr->xmin+w-ofw, butr->ymin+20, ofw, 20,
-		&node->custom1,
-		2, 99, 0, 0,
-		"Offset every N rows" );
-	
-	/* Squash */
-	uiDefButF(
-		block, NUM, B_NODE_EXEC, "Squash",
-		butr->xmin, butr->ymin+0, w-ofw, 20,
-		&node->custom4,
-		0, 99, 0.25, 2,
-		"Stretch amount" );
-	uiDefButS(
-		block, NUM, B_NODE_EXEC, "",
-		butr->xmin+w-ofw, butr->ymin+0, ofw, 20,
-		&node->custom2,
-		2, 99, 0, 0,
-		"Stretch every N rows" );
-	
-	uiBlockEndAlign(block);
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, "Squash", 0, ptr, "squash", 0);
+	uiItemR(col, "Frequency", 0, ptr, "squash_frequency", 0);
 }
 
 /* Copied from buttons_shading.c -- needs unifying */
@@ -1966,28 +1837,7 @@ static void node_texture_buts_image(uiLayout *layout, PointerRNA *ptr)
 
 static void node_texture_buts_output(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	uiBut *bt;
-	short width;
-	char *name = ((TexNodeOutput*)node->storage)->name;
-	
-	uiBlockBeginAlign(block);
-	
-	width = (short)(butr->xmax - butr->xmin);
-	
-	bt = uiDefBut(
-		block, TEX, B_NOP,
-		"Name:",
-		butr->xmin, butr->ymin,
-		width, 19, 
-		name, 0, 31,
-		0, 0, 
-		"Name this output"
-	);
-	
-	uiBlockEndAlign(block);
+	uiItemR(layout, "", 0, ptr, "output_name", 0);
 }
 
 /* only once called */

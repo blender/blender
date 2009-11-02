@@ -80,6 +80,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_by_number_vertices);
+	WM_operatortype_append(MESH_OT_select_mirror);
 	WM_operatortype_append(MESH_OT_normals_make_consistent);
 	WM_operatortype_append(MESH_OT_merge);
 	WM_operatortype_append(MESH_OT_subdivide);
@@ -88,7 +89,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_plane_add);
 	WM_operatortype_append(MESH_OT_primitive_cube_add);
 	WM_operatortype_append(MESH_OT_primitive_circle_add);
-	WM_operatortype_append(MESH_OT_primitive_cylinder_add);
 	WM_operatortype_append(MESH_OT_primitive_tube_add);
 	WM_operatortype_append(MESH_OT_primitive_cone_add);
 	WM_operatortype_append(MESH_OT_primitive_grid_add);
@@ -139,6 +139,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
 	WM_operatortype_append(MESH_OT_blend_from_shape);
+	WM_operatortype_append(MESH_OT_shape_propagate_to_all);
 	
 	WM_operatortype_append(MESH_OT_uv_texture_add);
 	WM_operatortype_append(MESH_OT_uv_texture_remove);
