@@ -1927,4 +1927,1247 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 	bNode *node;
 	bNodeSocket *sock;
 	
-	for(node= ntree->
+	for(node= ntree->nodes.first; node; node= node->next) {
+		
+		/* initialize needed for groups */
+		node->exec= 0;	
+		
+		if(is_group==0) {
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				bNodeStack *ns= ntree->stack + sock->stack_index;
+				
+				if(sock->ns.data) {
+					ns->data= sock->ns.data;
+					sock->ns.data= NULL;
+				}
+			}
+		}
+		/* cannot initialize them while using in threads */
+		if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB)) {
+			curvemapping_initialize(node->storage);
+			if(node->type==CMP_NODE_CURVE_RGB)
+				curvemapping_premultiply(node->storage, 0);
+		}
+		if(node->type==NODE_GROUP)
+			composit_begin_exec((bNodeTree *)node->id, 1);
+
+	}
+}
+
+/* copy stack compbufs to sockets */
+static void composit_end_exec(bNodeTree *ntree, int is_group)
+{
+	extern void print_compbuf(char *str, struct CompBuf *cbuf);
+	bNode *node;
+	bNodeStack *ns;
+	int a;
+
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(is_group==0) {
+			bNodeSocket *sock;
+		
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				ns= ntree->stack + sock->stack_index;
+				if(ns->data) {
+					sock->ns.data= ns->data;
+					ns->data= NULL;
+				}
+			}
+		}
+		if(node->type==CMP_NODE_CURVE_RGB)
+			curvemapping_premultiply(node->storage, 1);
+		
+		if(node->type==NODE_GROUP)
+			composit_end_exec((bNodeTree *)node->id, 1);
+
+		node->need_exec= 0;
+	}
+	
+	if(is_group==0) {
+		/* internally, group buffers are not stored */
+		for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
+			if(ns->data) {
+				printf("freed leftover buffer from stack\n");
+				free_compbuf(ns->data);
+				ns->data= NULL;
+			}
+		}
+	}
+}
+
+static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack)
+{
+	bNodeTree *ntree= (bNodeTree *)gnode->id;
+	bNode *node;
+	
+	stack+= gnode->stack_index;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->execfunc) {
+			bNodeSocket *sock;
+			
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->intern) {
+					if(sock->link) {
+						bNodeStack *ns= stack + sock->link->fromsock->stack_index;
+						ns->hasoutput= 1;
+						ns->sockettype= sock->link->fromsock->type;
+					}
+					else
+						sock->ns.sockettype= sock->type;
+				}
+			}
+		}
+	}
+}
+
+/* notes below are ancient! (ton) */
+/* stack indices make sure all nodes only write in allocated data, for making it thread safe */
+/* only root tree gets the stack, to enable instances to have own stack entries */
+/* per tree (and per group) unique indices are created */
+/* the index_ext we need to be able to map from groups to the group-node own stack */
+
+typedef struct bNodeThreadStack {
+	struct bNodeThreadStack *next, *prev;
+	bNodeStack *stack;
+	int used;
+} bNodeThreadStack;
+
+static bNodeThreadStack *ntreeGetThreadStack(bNodeTree *ntree, int thread)
+{
+	ListBase *lb= &ntree->threadstack[thread];
+	bNodeThreadStack *nts;
+	
+	for(nts=lb->first; nts; nts=nts->next) {
+		if(!nts->used) {
+			nts->used= 1;
+			return nts;
+		}
+	}
+	nts= MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
+	nts->stack= MEM_dupallocN(ntree->stack);
+	nts->used= 1;
+	BLI_addtail(lb, nts);
+
+	return nts;
+}
+
+static void ntreeReleaseThreadStack(bNodeThreadStack *nts)
+{
+	nts->used= 0;
+}
+
+/* free texture delegates */
+static void tex_end_exec(bNodeTree *ntree)
+{
+	bNodeThreadStack *nts;
+	bNodeStack *ns;
+	int th, a;
+	
+	if(ntree->threadstack)
+		for(th=0; th<BLENDER_MAX_THREADS; th++)
+			for(nts=ntree->threadstack[th].first; nts; nts=nts->next)
+				for(ns= nts->stack, a=0; a<ntree->stacksize; a++, ns++)
+					if(ns->data)
+						MEM_freeN(ns->data);
+						
+}
+
+void ntreeBeginExecTree(bNodeTree *ntree)
+{
+	/* let's make it sure */
+	if(ntree->init & NTREE_EXEC_INIT)
+		return;
+	
+	/* allocate the thread stack listbase array */
+	if(ntree->type!=NTREE_COMPOSIT)
+		ntree->threadstack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(ListBase), "thread stack array");
+
+	/* goes recursive over all groups */
+	ntree->stacksize= ntree_begin_exec_tree(ntree);
+
+	if(ntree->stacksize) {
+		bNode *node;
+		bNodeStack *ns;
+		int a;
+		
+		/* allocate the base stack */
+		ns=ntree->stack= MEM_callocN(ntree->stacksize*sizeof(bNodeStack), "node stack");
+		
+		/* tag inputs, the get_stack() gives own socket stackdata if not in use */
+		for(a=0; a<ntree->stacksize; a++, ns++) ns->hasinput= 1;
+		
+		/* tag used outputs, so we know when we can skip operations */
+		for(node= ntree->nodes.first; node; node= node->next) {
+			bNodeSocket *sock;
+			
+			/* composite has own need_exec tag handling */
+			if(ntree->type!=NTREE_COMPOSIT)
+				node->need_exec= 1;
+
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->link) {
+					ns= ntree->stack + sock->link->fromsock->stack_index;
+					ns->hasoutput= 1;
+					ns->sockettype= sock->link->fromsock->type;
+				}
+				else
+					sock->ns.sockettype= sock->type;
+				
+				if(sock->link) {
+					bNodeLink *link= sock->link;
+					/* this is the test for a cyclic case */
+					if(link->fromnode && link->tonode) {
+						if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF);
+						else {
+							node->need_exec= 0;
+						}
+					}
+				}
+			}
+			
+			if(node->type==NODE_GROUP && node->id)
+				group_tag_used_outputs(node, ntree->stack);
+			
+		}
+		
+		if(ntree->type==NTREE_COMPOSIT)
+			composit_begin_exec(ntree, 0);
+	}
+	
+	ntree->init |= NTREE_EXEC_INIT;
+}
+
+void ntreeEndExecTree(bNodeTree *ntree)
+{
+	
+	if(ntree->init & NTREE_EXEC_INIT) {
+		bNodeThreadStack *nts;
+		int a;
+		
+		/* another callback candidate! */
+		if(ntree->type==NTREE_COMPOSIT)
+			composit_end_exec(ntree, 0);
+		else if(ntree->type==NTREE_TEXTURE)
+			tex_end_exec(ntree);
+		
+		if(ntree->stack) {
+			MEM_freeN(ntree->stack);
+			ntree->stack= NULL;
+		}
+
+		if(ntree->threadstack) {
+			for(a=0; a<BLENDER_MAX_THREADS; a++) {
+				for(nts=ntree->threadstack[a].first; nts; nts=nts->next)
+					if (nts->stack) MEM_freeN(nts->stack);
+				BLI_freelistN(&ntree->threadstack[a]);
+			}
+
+			MEM_freeN(ntree->threadstack);
+			ntree->threadstack= NULL;
+		}
+
+		ntree->init &= ~NTREE_EXEC_INIT;
+	}
+}
+
+static void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack **out)
+{
+	bNodeSocket *sock;
+	
+	/* build pointer stack */
+	for(sock= node->inputs.first; sock; sock= sock->next) {
+		if(sock->link)
+			*(in++)= stack + sock->link->fromsock->stack_index;
+		else
+			*(in++)= &sock->ns;
+	}
+	
+	for(sock= node->outputs.first; sock; sock= sock->next) {
+		*(out++)= stack + sock->stack_index;
+	}
+}
+
+/* nodes are presorted, so exec is in order of list */
+void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
+{
+	bNode *node;
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *stack;
+	bNodeThreadStack *nts = NULL;
+	
+	/* only when initialized */
+	if((ntree->init & NTREE_EXEC_INIT)==0)
+		ntreeBeginExecTree(ntree);
+		
+	/* composite does 1 node per thread, so no multiple stacks needed */
+	if(ntree->type==NTREE_COMPOSIT) {
+		stack= ntree->stack;
+	}
+	else {
+		nts= ntreeGetThreadStack(ntree, thread);
+		stack= nts->stack;
+	}
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->need_exec) {
+			if(node->typeinfo->execfunc) {
+				node_get_stack(node, stack, nsin, nsout);
+				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
+			}
+			else if(node->type==NODE_GROUP && node->id) {
+				node_get_stack(node, stack, nsin, nsout);
+				node_group_execute(stack, callerdata, node, nsin, nsout); 
+			}
+		}
+	}
+
+	if(nts)
+		ntreeReleaseThreadStack(nts);
+}
+
+
+/* ***************************** threaded version for execute composite nodes ************* */
+/* these are nodes without input, only giving values */
+/* or nodes with only value inputs */
+static int node_only_value(bNode *node)
+{
+	bNodeSocket *sock;
+	
+	if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_VALUE, CMP_NODE_RGB))
+		return 1;
+	
+	/* doing this for all node types goes wrong. memory free errors */
+	if(node->inputs.first && node->type==CMP_NODE_MAP_VALUE) {
+		int retval= 1;
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if(sock->link)
+				retval &= node_only_value(sock->link->fromnode);
+		}
+		return retval;
+	}
+	return 0;
+}
+
+
+/* not changing info, for thread callback */
+typedef struct ThreadData {
+	bNodeStack *stack;
+	RenderData *rd;
+} ThreadData;
+
+static void *exec_composite_node(void *node_v)
+{
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	bNode *node= node_v;
+	ThreadData *thd= (ThreadData *)node->threaddata;
+	
+	node_get_stack(node, thd->stack, nsin, nsout);
+	
+	if((node->flag & NODE_MUTED) && (!node_only_value(node))) {
+		/* viewers we execute, for feedback to user */
+		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
+			node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
+		else
+			node_compo_pass_on(node, nsin, nsout);
+	}
+	else if(node->typeinfo->execfunc) {
+		node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
+	}
+	else if(node->type==NODE_GROUP && node->id) {
+		node_group_execute(thd->stack, thd->rd, node, nsin, nsout); 
+	}
+	
+	node->exec |= NODE_READY;
+	return 0;
+}
+
+/* return total of executable nodes, for timecursor */
+/* only compositor uses it */
+static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
+{
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	bNode *node;
+	bNodeSocket *sock;
+	int totnode= 0, group_edit= 0;
+	
+	/* note; do not add a dependency sort here, the stack was created already */
+	
+	/* if we are in group edit, viewer nodes get skipped when group has viewer */
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+			if(ntreeHasType((bNodeTree *)node->id, CMP_NODE_VIEWER))
+				group_edit= 1;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		int a;
+		
+		node_get_stack(node, thd->stack, nsin, nsout);
+		
+		/* test the outputs */
+		/* skip value-only nodes (should be in type!) */
+		if(!node_only_value(node)) {
+			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+				if(nsout[a]->data==NULL && nsout[a]->hasoutput) {
+					node->need_exec= 1;
+					break;
+				}
+			}
+		}
+		
+		/* test the inputs */
+		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+			/* skip viewer nodes in bg render or group edit */
+			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) && (G.background || group_edit))
+				node->need_exec= 0;
+			/* is sock in use? */
+			else if(sock->link) {
+				bNodeLink *link= sock->link;
+				
+				/* this is the test for a cyclic case */
+				if(link->fromnode==NULL || link->tonode==NULL);
+				else if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
+					if(link->fromnode->need_exec) {
+						node->need_exec= 1;
+						break;
+					}
+				}
+				else {
+					node->need_exec= 0;
+					printf("Node %s skipped, cyclic dependency\n", node->name);
+				}
+			}
+		}
+		
+		if(node->need_exec) {
+			
+			/* free output buffers */
+			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+				if(nsout[a]->data) {
+					free_compbuf(nsout[a]->data);
+					nsout[a]->data= NULL;
+				}
+			}
+			totnode++;
+			/* printf("node needs exec %s\n", node->name); */
+			
+			/* tag for getExecutableNode() */
+			node->exec= 0;
+		}
+		else {
+			/* tag for getExecutableNode() */
+			node->exec= NODE_READY|NODE_FINISHED|NODE_SKIPPED;
+			
+		}
+	}
+	
+	/* last step: set the stack values for only-value nodes */
+	/* just does all now, compared to a full buffer exec this is nothing */
+	if(totnode) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->need_exec==0 && node_only_value(node)) {
+				if(node->typeinfo->execfunc) {
+					node_get_stack(node, thd->stack, nsin, nsout);
+					node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
+				}
+			}
+		}
+	}
+	
+	return totnode;
+}
+
+/* while executing tree, free buffers from nodes that are not needed anymore */
+static void freeExecutableNode(bNodeTree *ntree)
+{
+	/* node outputs can be freed when:
+	- not a render result or image node
+	- when node outputs go to nodes all being set NODE_FINISHED
+	*/
+	bNode *node;
+	bNodeSocket *sock;
+	
+	/* set exec flag for finished nodes that might need freed */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type!=CMP_NODE_R_LAYERS)
+			if(node->exec & NODE_FINISHED)
+				node->exec |= NODE_FREEBUFS;
+	}
+	/* clear this flag for input links that are not done yet */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if((node->exec & NODE_FINISHED)==0) {
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				if(sock->link)
+					sock->link->fromnode->exec &= ~NODE_FREEBUFS;
+		}
+	}
+	/* now we can free buffers */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->exec & NODE_FREEBUFS) {
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				bNodeStack *ns= ntree->stack + sock->stack_index;
+				if(ns->data) {
+					free_compbuf(ns->data);
+					ns->data= NULL;
+					// printf("freed buf node %s \n", node->name);
+				}
+			}
+		}
+	}
+}
+
+static bNode *getExecutableNode(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->exec==0) {
+			
+			/* input sockets should be ready */
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->link)
+					if((sock->link->fromnode->exec & NODE_READY)==0)
+						break;
+			}
+			if(sock==NULL)
+				return node;
+		}
+	}
+	return NULL;
+}
+
+
+/* optimized tree execute test for compositing */
+void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
+{
+	bNode *node;
+	ListBase threads;
+	ThreadData thdata;
+	int totnode, rendering= 1;
+	
+	if(ntree==NULL) return;
+	
+	if(do_preview)
+		ntreeInitPreview(ntree, 0, 0);
+	
+	ntreeBeginExecTree(ntree);
+	
+	/* prevent unlucky accidents */
+	if(G.background)
+		rd->scemode &= ~R_COMP_CROP;
+	
+	/* setup callerdata for thread callback */
+	thdata.rd= rd;
+	thdata.stack= ntree->stack;
+	
+	/* fixed seed, for example noise texture */
+	BLI_srandom(rd->cfra);
+
+	/* sets need_exec tags in nodes */
+	totnode= setExecutableNodes(ntree, &thdata);
+
+	BLI_init_threads(&threads, exec_composite_node, rd->threads);
+	
+	while(rendering) {
+		
+		if(BLI_available_threads(&threads)) {
+			node= getExecutableNode(ntree);
+			if(node) {
+				
+				if(ntree->timecursor)
+					ntree->timecursor(ntree->tch, totnode);
+				if(ntree->stats_draw) {
+					char str[64];
+					sprintf(str, "Compositing %d %s", totnode, node->name);
+					ntree->stats_draw(ntree->sdh, str);
+				}
+				totnode--;
+				
+				node->threaddata = &thdata;
+				node->exec= NODE_PROCESSING;
+				BLI_insert_thread(&threads, node);
+			}
+			else
+				PIL_sleep_ms(50);
+		}
+		else
+			PIL_sleep_ms(50);
+		
+		rendering= 0;
+		/* test for ESC */
+		if(ntree->test_break && ntree->test_break(ntree->tbh)) {
+			for(node= ntree->nodes.first; node; node= node->next)
+				node->exec |= NODE_READY;
+		}
+		
+		/* check for ready ones, and if we need to continue */
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->exec & NODE_READY) {
+				if((node->exec & NODE_FINISHED)==0) {
+					BLI_remove_thread(&threads, node); /* this waits for running thread to finish btw */
+					node->exec |= NODE_FINISHED;
+					
+					/* freeing unused buffers */
+					if(rd->scemode & R_COMP_FREE)
+						freeExecutableNode(ntree);
+				}
+			}
+			else rendering= 1;
+		}
+	}
+	
+	BLI_end_threads(&threads);
+	
+	ntreeEndExecTree(ntree);
+}
+
+
+/* ********** copy composite tree entirely, to allow threaded exec ******************* */
+/* ***************** do NOT execute this in a thread!               ****************** */
+
+/* returns localized composite tree for execution in threads */
+/* local tree then owns all compbufs */
+bNodeTree *ntreeLocalize(bNodeTree *ntree)
+{
+	bNodeTree *ltree= ntreeCopyTree(ntree, 0);
+	bNode *node;
+	bNodeSocket *sock;
+	
+	/* move over the compbufs */
+	/* right after ntreeCopyTree() oldsock pointers are valid */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		
+		/* store new_node pointer to original */
+		node->new_node->new_node= node;
+		/* ensure new user input gets handled ok */
+		node->need_exec= 0;
+		
+		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+			if(node->id) {
+				if(node->flag & NODE_DO_OUTPUT)
+					node->new_node->id= (ID *)BKE_image_copy((Image *)node->id);
+				else
+					node->new_node->id= NULL;
+			}
+		}
+		
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			
+			sock->new_sock->ns.data= sock->ns.data;
+			sock->ns.data= NULL;
+			sock->new_sock->new_sock= sock;
+		}
+	}
+	
+	return ltree;
+}
+
+static int node_exists(bNodeTree *ntree, bNode *testnode)
+{
+	bNode *node= ntree->nodes.first;
+	for(; node; node= node->next)
+		if(node==testnode)
+			return 1;
+	return 0;
+}
+
+static int outsocket_exists(bNode *node, bNodeSocket *testsock)
+{
+	bNodeSocket *sock= node->outputs.first;
+	for(; sock; sock= sock->next)
+		if(sock==testsock)
+			return 1;
+	return 0;
+}
+
+
+/* sync local composite with real tree */
+/* local composite is supposed to be running, be careful moving previews! */
+void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
+{
+	bNode *lnode;
+	
+	/* move over the compbufs and previews */
+	for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		if( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
+			if(node_exists(ntree, lnode->new_node)) {
+				
+				if(lnode->preview && lnode->preview->rect) {
+					node_free_preview(lnode->new_node);
+					lnode->new_node->preview= lnode->preview;
+					lnode->preview= NULL;
+				}
+			}
+		}
+	}
+}
+
+/* merge local tree results back, and free local tree */
+/* we have to assume the editor already changed completely */
+void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
+{
+	bNode *lnode;
+	bNodeSocket *lsock;
+	
+	/* move over the compbufs and previews */
+	for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		if(node_exists(ntree, lnode->new_node)) {
+			
+			if(lnode->preview && lnode->preview->rect) {
+				node_free_preview(lnode->new_node);
+				lnode->new_node->preview= lnode->preview;
+				lnode->preview= NULL;
+			}
+			
+			if(ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				if(lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
+					/* image_merge does sanity check for pointers */
+					BKE_image_merge((Image *)lnode->new_node->id, (Image *)lnode->id);
+				}
+			}
+			
+			for(lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
+				if(outsocket_exists(lnode->new_node, lsock->new_sock)) {
+					lsock->new_sock->ns.data= lsock->ns.data;
+					lsock->ns.data= NULL;
+						lsock->new_sock= NULL;
+				}
+			}
+		}
+	}
+	ntreeFreeTree(localtree);
+	MEM_freeN(localtree);
+}
+
+/* *********************************************** */
+
+/* GPU material from shader nodes */
+
+static void gpu_from_node_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack *gs)
+{
+	bNodeSocket *sock;
+	int i;
+
+	for (sock=sockets->first, i=0; sock; sock=sock->next, i++) {
+		memset(&gs[i], 0, sizeof(gs[i]));
+
+    	QUATCOPY(gs[i].vec, ns[i]->vec);
+		gs[i].link= ns[i]->data;
+
+		if (sock->type == SOCK_VALUE)
+			gs[i].type= GPU_FLOAT;
+		else if (sock->type == SOCK_VECTOR)
+			gs[i].type= GPU_VEC3;
+		else if (sock->type == SOCK_RGBA)
+			gs[i].type= GPU_VEC4;
+		else
+			gs[i].type= GPU_NONE;
+
+		gs[i].name = "";
+		gs[i].hasinput= ns[i]->hasinput && ns[i]->data;
+		gs[i].hasoutput= ns[i]->hasinput && ns[i]->data;
+		gs[i].sockettype= ns[i]->sockettype;
+	}
+
+	gs[i].type= GPU_NONE;
+}
+
+static void data_from_gpu_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack *gs)
+{
+	bNodeSocket *sock;
+	int i;
+
+	for (sock=sockets->first, i=0; sock; sock=sock->next, i++) {
+		ns[i]->data= gs[i].link;
+		ns[i]->hasinput= gs[i].hasinput && gs[i].link;
+		ns[i]->hasoutput= gs[i].hasoutput;
+		ns[i]->sockettype= gs[i].sockettype;
+	}
+}
+
+static void gpu_node_group_execute(bNodeStack *stack, GPUMaterial *mat, bNode *gnode, bNodeStack **in, bNodeStack **out)
+{
+	bNode *node;
+	bNodeTree *ntree= (bNodeTree *)gnode->id;
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	GPUNodeStack gpuin[MAX_SOCKET+1], gpuout[MAX_SOCKET+1];
+	int doit = 0;
+	
+	if(ntree==NULL) return;
+	
+	stack+= gnode->stack_index;
+		
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->gpufunc) {
+			group_node_get_stack(node, stack, nsin, nsout, in, out);
+
+			doit = 0;
+			
+			/* for groups, only execute outputs for edited group */
+			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+				if(gnode->flag & NODE_GROUP_EDIT)
+					if(node->flag & NODE_DO_OUTPUT)
+						doit = 1;
+			}
+			else
+				doit = 1;
+
+			if(doit)  {
+				gpu_from_node_stack(&node->inputs, nsin, gpuin);
+				gpu_from_node_stack(&node->outputs, nsout, gpuout);
+				if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
+					data_from_gpu_stack(&node->outputs, nsout, gpuout);
+			}
+		}
+	}
+}
+
+void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
+{
+	bNode *node;
+	bNodeStack *stack;
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	GPUNodeStack gpuin[MAX_SOCKET+1], gpuout[MAX_SOCKET+1];
+
+	if((ntree->init & NTREE_EXEC_INIT)==0)
+		ntreeBeginExecTree(ntree);
+
+	stack= ntree->stack;
+
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->gpufunc) {
+			node_get_stack(node, stack, nsin, nsout);
+			gpu_from_node_stack(&node->inputs, nsin, gpuin);
+			gpu_from_node_stack(&node->outputs, nsout, gpuout);
+			if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
+				data_from_gpu_stack(&node->outputs, nsout, gpuout);
+		}
+        else if(node->type==NODE_GROUP && node->id) {
+			node_get_stack(node, stack, nsin, nsout);
+			gpu_node_group_execute(stack, mat, node, nsin, nsout);
+		}
+	}
+
+	ntreeEndExecTree(ntree);
+}
+
+/* **************** call to switch lamploop for material node ************ */
+
+void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
+
+void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult *))
+{
+	node_shader_lamp_loop= lamp_loop_func;
+}
+
+/* clumsy checking... should do dynamic outputs once */
+static void force_hidden_passes(bNode *node, int passflag)
+{
+	bNodeSocket *sock;
+	
+	for(sock= node->outputs.first; sock; sock= sock->next)
+		sock->flag &= ~SOCK_UNAVAIL;
+	
+	sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
+	if(!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
+	if(!(passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
+	if(!(passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
+	if(!(passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
+	if(!(passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
+	if(!(passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
+	if(!(passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
+	if(!(passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
+	if(!(passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
+	if(!(passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
+	if(!(passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_RADIO);
+	if(!(passflag & SCE_PASS_RADIO)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
+	if(!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_MIST);
+	if(!(passflag & SCE_PASS_MIST)) sock->flag |= SOCK_UNAVAIL;
+	
+}
+
+/* based on rules, force sockets hidden always */
+void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if( node->type==CMP_NODE_R_LAYERS) {
+			Scene *sce= node->id?(Scene *)node->id:curscene;
+			SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+			if(srl)
+				force_hidden_passes(node, srl->passflag);
+		}
+		else if( node->type==CMP_NODE_IMAGE) {
+			Image *ima= (Image *)node->id;
+			if(ima) {
+				if(ima->rr) {
+					ImageUser *iuser= node->storage;
+					RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+					if(rl)
+						force_hidden_passes(node, rl->passflag);
+					else
+						force_hidden_passes(node, 0);
+				}
+				else if(ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
+					force_hidden_passes(node, RRES_OUT_Z);
+				}
+				else
+					force_hidden_passes(node, 0);
+			}
+			else
+				force_hidden_passes(node, 0);
+		}
+	}
+
+}
+
+/* called from render pipeline, to tag render input and output */
+/* need to do all scenes, to prevent errors when you re-render 1 scene */
+void ntreeCompositTagRender(Scene *curscene)
+{
+	Scene *sce;
+	
+	for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
+			
+			for(node= sce->nodetree->nodes.first; node; node= node->next) {
+				if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
+					NodeTagChanged(sce->nodetree, node);
+			}
+		}
+	}
+}
+
+/* tags nodes that have animation capabilities */
+int ntreeCompositTagAnimated(bNodeTree *ntree)
+{
+	bNode *node;
+	int tagged= 0;
+	
+	if(ntree==NULL) return 0;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_IMAGE) {
+			Image *ima= (Image *)node->id;
+			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				NodeTagChanged(ntree, node);
+				tagged= 1;
+			}
+		}
+		else if(node->type==CMP_NODE_TIME) {
+			NodeTagChanged(ntree, node);
+			tagged= 1;
+		}
+		else if(node->type==CMP_NODE_R_LAYERS) {
+			NodeTagChanged(ntree, node);
+			tagged= 1;
+		}
+		else if(node->type==NODE_GROUP) {
+			if( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
+				NodeTagChanged(ntree, node);
+			}
+		}
+	}
+	
+	return tagged;
+}
+
+
+/* called from image window preview */
+void ntreeCompositTagGenerators(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
+			NodeTagChanged(ntree, node);
+	}
+}
+
+int ntreeTexTagAnimated(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return 0;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==TEX_NODE_CURVE_TIME) {
+			NodeTagChanged(ntree, node);
+			return 1;
+		}
+		else if(node->type==NODE_GROUP) {
+			if( ntreeTexTagAnimated((bNodeTree *)node->id) ) {
+				return 1;
+			}
+		}
+	}
+	
+	return 0;
+}
+
+/* ************* node definition init ********** */
+
+static bNodeType *is_nodetype_registered(ListBase *typelist, int type, ID *id) 
+{
+	bNodeType *ntype= typelist->first;
+	
+	for(;ntype; ntype= ntype->next )
+		if(ntype->type==type && ntype->id==id)
+			return ntype;
+	
+	return NULL;
+}
+
+/* type can be from a static array, we make copy for duplicate types (like group) */
+void nodeRegisterType(ListBase *typelist, const bNodeType *ntype) 
+{
+	bNodeType *found= is_nodetype_registered(typelist, ntype->type, ntype->id);
+	
+	if(found==NULL) {
+		bNodeType *ntypen= MEM_callocN(sizeof(bNodeType), "node type");
+		*ntypen= *ntype;
+		BLI_addtail(typelist, ntypen);
+ 	}
+}
+
+static void registerCompositNodes(ListBase *ntypelist)
+{
+	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	nodeRegisterType(ntypelist, &cmp_node_rlayers);
+	nodeRegisterType(ntypelist, &cmp_node_image);
+	nodeRegisterType(ntypelist, &cmp_node_texture);
+	nodeRegisterType(ntypelist, &cmp_node_value);
+	nodeRegisterType(ntypelist, &cmp_node_rgb);
+	nodeRegisterType(ntypelist, &cmp_node_curve_time);
+	
+	nodeRegisterType(ntypelist, &cmp_node_composite);
+	nodeRegisterType(ntypelist, &cmp_node_viewer);
+	nodeRegisterType(ntypelist, &cmp_node_splitviewer);
+	nodeRegisterType(ntypelist, &cmp_node_output_file);
+	nodeRegisterType(ntypelist, &cmp_node_view_levels);
+	
+	nodeRegisterType(ntypelist, &cmp_node_curve_rgb);
+	nodeRegisterType(ntypelist, &cmp_node_mix_rgb);
+	nodeRegisterType(ntypelist, &cmp_node_hue_sat);
+	nodeRegisterType(ntypelist, &cmp_node_brightcontrast);
+	nodeRegisterType(ntypelist, &cmp_node_gamma);
+	nodeRegisterType(ntypelist, &cmp_node_invert);
+	nodeRegisterType(ntypelist, &cmp_node_alphaover);
+	nodeRegisterType(ntypelist, &cmp_node_zcombine);
+	
+	nodeRegisterType(ntypelist, &cmp_node_normal);
+	nodeRegisterType(ntypelist, &cmp_node_curve_vec);
+	nodeRegisterType(ntypelist, &cmp_node_map_value);
+	nodeRegisterType(ntypelist, &cmp_node_normalize);
+	
+	nodeRegisterType(ntypelist, &cmp_node_filter);
+	nodeRegisterType(ntypelist, &cmp_node_blur);
+	nodeRegisterType(ntypelist, &cmp_node_dblur);
+	nodeRegisterType(ntypelist, &cmp_node_bilateralblur);
+	nodeRegisterType(ntypelist, &cmp_node_vecblur);
+	nodeRegisterType(ntypelist, &cmp_node_dilateerode);
+	nodeRegisterType(ntypelist, &cmp_node_defocus);
+	
+	nodeRegisterType(ntypelist, &cmp_node_valtorgb);
+	nodeRegisterType(ntypelist, &cmp_node_rgbtobw);
+	nodeRegisterType(ntypelist, &cmp_node_setalpha);
+	nodeRegisterType(ntypelist, &cmp_node_idmask);
+	nodeRegisterType(ntypelist, &cmp_node_math);
+	nodeRegisterType(ntypelist, &cmp_node_seprgba);
+	nodeRegisterType(ntypelist, &cmp_node_combrgba);
+	nodeRegisterType(ntypelist, &cmp_node_sephsva);
+	nodeRegisterType(ntypelist, &cmp_node_combhsva);
+	nodeRegisterType(ntypelist, &cmp_node_sepyuva);
+	nodeRegisterType(ntypelist, &cmp_node_combyuva);
+	nodeRegisterType(ntypelist, &cmp_node_sepycca);
+	nodeRegisterType(ntypelist, &cmp_node_combycca);
+	nodeRegisterType(ntypelist, &cmp_node_premulkey);
+	
+	nodeRegisterType(ntypelist, &cmp_node_diff_matte);
+	nodeRegisterType(ntypelist, &cmp_node_distance_matte);
+	nodeRegisterType(ntypelist, &cmp_node_chroma_matte);
+	nodeRegisterType(ntypelist, &cmp_node_color_matte);
+	nodeRegisterType(ntypelist, &cmp_node_channel_matte);
+	nodeRegisterType(ntypelist, &cmp_node_color_spill);
+	nodeRegisterType(ntypelist, &cmp_node_luma_matte);
+	
+	nodeRegisterType(ntypelist, &cmp_node_translate);
+	nodeRegisterType(ntypelist, &cmp_node_rotate);
+	nodeRegisterType(ntypelist, &cmp_node_scale);
+	nodeRegisterType(ntypelist, &cmp_node_flip);
+	nodeRegisterType(ntypelist, &cmp_node_crop);
+	nodeRegisterType(ntypelist, &cmp_node_displace);
+	nodeRegisterType(ntypelist, &cmp_node_mapuv);
+	nodeRegisterType(ntypelist, &cmp_node_glare);
+	nodeRegisterType(ntypelist, &cmp_node_tonemap);
+	nodeRegisterType(ntypelist, &cmp_node_lensdist);
+}
+
+static void registerShaderNodes(ListBase *ntypelist) 
+{
+	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	nodeRegisterType(ntypelist, &sh_node_output);
+	nodeRegisterType(ntypelist, &sh_node_mix_rgb);
+	nodeRegisterType(ntypelist, &sh_node_valtorgb);
+	nodeRegisterType(ntypelist, &sh_node_rgbtobw);
+	nodeRegisterType(ntypelist, &sh_node_normal);
+	nodeRegisterType(ntypelist, &sh_node_geom);
+	nodeRegisterType(ntypelist, &sh_node_mapping);
+	nodeRegisterType(ntypelist, &sh_node_curve_vec);
+	nodeRegisterType(ntypelist, &sh_node_curve_rgb);
+	nodeRegisterType(ntypelist, &sh_node_math);
+	nodeRegisterType(ntypelist, &sh_node_vect_math);
+	nodeRegisterType(ntypelist, &sh_node_squeeze);
+	nodeRegisterType(ntypelist, &sh_node_camera);
+	nodeRegisterType(ntypelist, &sh_node_material);
+	nodeRegisterType(ntypelist, &sh_node_material_ext);
+	nodeRegisterType(ntypelist, &sh_node_value);
+	nodeRegisterType(ntypelist, &sh_node_rgb);
+	nodeRegisterType(ntypelist, &sh_node_texture);
+	nodeRegisterType(ntypelist, &node_dynamic_typeinfo);
+	nodeRegisterType(ntypelist, &sh_node_invert);
+	nodeRegisterType(ntypelist, &sh_node_seprgb);
+	nodeRegisterType(ntypelist, &sh_node_combrgb);
+	nodeRegisterType(ntypelist, &sh_node_hue_sat);
+}
+
+static void registerTextureNodes(ListBase *ntypelist)
+{
+	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	nodeRegisterType(ntypelist, &tex_node_math);
+	nodeRegisterType(ntypelist, &tex_node_mix_rgb);
+	nodeRegisterType(ntypelist, &tex_node_valtorgb);
+	nodeRegisterType(ntypelist, &tex_node_rgbtobw);
+	nodeRegisterType(ntypelist, &tex_node_valtonor);
+	nodeRegisterType(ntypelist, &tex_node_curve_rgb);
+	nodeRegisterType(ntypelist, &tex_node_curve_time);
+	nodeRegisterType(ntypelist, &tex_node_invert);
+	nodeRegisterType(ntypelist, &tex_node_hue_sat);
+	nodeRegisterType(ntypelist, &tex_node_coord);
+	nodeRegisterType(ntypelist, &tex_node_distance);
+	nodeRegisterType(ntypelist, &tex_node_compose);
+	nodeRegisterType(ntypelist, &tex_node_decompose);
+	
+	nodeRegisterType(ntypelist, &tex_node_output);
+	nodeRegisterType(ntypelist, &tex_node_viewer);
+	
+	nodeRegisterType(ntypelist, &tex_node_checker);
+	nodeRegisterType(ntypelist, &tex_node_texture);
+	nodeRegisterType(ntypelist, &tex_node_bricks);
+	nodeRegisterType(ntypelist, &tex_node_image);
+	
+	nodeRegisterType(ntypelist, &tex_node_rotate);
+	nodeRegisterType(ntypelist, &tex_node_translate);
+	nodeRegisterType(ntypelist, &tex_node_scale);
+	nodeRegisterType(ntypelist, &tex_node_at);
+	
+	nodeRegisterType(ntypelist, &tex_node_proc_voronoi);
+	nodeRegisterType(ntypelist, &tex_node_proc_blend);
+	nodeRegisterType(ntypelist, &tex_node_proc_magic);
+	nodeRegisterType(ntypelist, &tex_node_proc_marble);
+	nodeRegisterType(ntypelist, &tex_node_proc_clouds);
+	nodeRegisterType(ntypelist, &tex_node_proc_wood);
+	nodeRegisterType(ntypelist, &tex_node_proc_musgrave);
+	nodeRegisterType(ntypelist, &tex_node_proc_noise);
+	nodeRegisterType(ntypelist, &tex_node_proc_stucci);
+	nodeRegisterType(ntypelist, &tex_node_proc_distnoise);
+}
+
+static void remove_dynamic_typeinfos(ListBase *list)
+{
+	bNodeType *ntype= list->first;
+	bNodeType *next= NULL;
+	while(ntype) {
+		next= ntype->next;
+		if(ntype->type==NODE_DYNAMIC && ntype->id!=NULL) {
+			BLI_remlink(list, ntype);
+			if(ntype->inputs) {
+				bNodeSocketType *sock= ntype->inputs;
+				while(sock->type!=-1) {
+					MEM_freeN(sock->name);
+					sock++;
+				}
+				MEM_freeN(ntype->inputs);
+			}
+			if(ntype->outputs) {
+				bNodeSocketType *sock= ntype->outputs;
+				while(sock->type!=-1) {
+					MEM_freeN(sock->name);
+					sock++;
+				}
+				MEM_freeN(ntype->outputs);
+			}
+			if(ntype->name) {
+				MEM_freeN(ntype->name);
+			}
+			MEM_freeN(ntype);
+		}
+		ntype= next;
+	}
+}
+
+void init_nodesystem(void) 
+{
+	registerCompositNodes(&node_all_composit);
+	registerShaderNodes(&node_all_shaders);
+	registerTextureNodes(&node_all_textures);
+}
+
+void free_nodesystem(void) 
+{
+	/*remove_dynamic_typeinfos(&node_all_composit);*/ /* unused for now */
+	BLI_freelistN(&node_all_composit);
+	remove_dynamic_typeinfos(&node_all_shaders);
+	BLI_freelistN(&node_all_shaders);
+	BLI_freelistN(&node_all_textures);
+}
+
+/* called from unlink_scene, when deleting a scene goes over all scenes
+ * other than the input, checks if they have render layer nodes referencing
+ * the to-be-deleted scene, and resets them to NULL. */
+
+/* XXX needs to get current scene then! */
+void clear_scene_in_nodes(Main *bmain, Scene *sce)
+{
+	Scene *sce1;
+	bNode *node;
+
+	for(sce1= bmain->scene.first; sce1; sce1=sce1->id.next) {
+		if(sce1!=sce) {
+			if(sce1->nodetree) {
+				for(node= sce1->nodetree->nodes.first; node; node= node->next) {
+					if(node->type==CMP_NODE_R_LAYERS) {
+						Scene *nodesce= (Scene *)node->id;
+						
+						if (nodesce==sce) node->id = NULL;
+					}
+				}
+			}
+		}
+	}
+}

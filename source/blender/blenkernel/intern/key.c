@@ -96,6 +96,20 @@ void free_key(Key *key)
 	
 }
 
+void free_key_nolib(Key *key)
+{
+	KeyBlock *kb;
+	
+	while( (kb= key->block.first) ) {
+		
+		if(kb->data) MEM_freeN(kb->data);
+		
+		BLI_remlink(&key->block, kb);
+		MEM_freeN(kb);
+	}
+	
+}
+
 /* GS reads the memory pointed at in a specific ordering. There are,
  * however two definitions for it. I have jotted them down here, both,
  * but I think the first one is actually used. The thing is that
@@ -165,6 +179,32 @@ Key *copy_key(Key *key)
 #if 0 // XXX old animation system
 	keyn->ipo= copy_ipo(key->ipo);
 #endif // XXX old animation system
+	
+	BLI_duplicatelist(&keyn->block, &key->block);
+	
+	kb= key->block.first;
+	kbn= keyn->block.first;
+	while(kbn) {
+		
+		if(kbn->data) kbn->data= MEM_dupallocN(kbn->data);
+		if(kb==key->refkey) keyn->refkey= kbn;
+		
+		kbn= kbn->next;
+		kb= kb->next;
+	}
+	
+	return keyn;
+}
+
+
+Key *copy_key_nolib(Key *key)
+{
+	Key *keyn;
+	KeyBlock *kbn, *kb;
+	
+	if(key==0) return 0;
+	
+	keyn= MEM_dupallocN(key);
 	
 	BLI_duplicatelist(&keyn->block, &key->block);
 	

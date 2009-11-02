@@ -561,7 +561,7 @@ static void *editbtMesh_to_undoMesh(void *emv)
 	undomesh *me = MEM_callocN(sizeof(undomesh), "undo Mesh");
 	
 	/*make sure shape keys work*/
-	me->me.key = em->me->key;
+	me->me.key = copy_key_nolib(em->me->key);
 
 	/*we recalc the tesselation here, to avoid seeding calls to
 	  BMEdit_RecalcTesselation throughout the code.*/
