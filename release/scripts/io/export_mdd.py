@@ -1,3 +1,20 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
 __author__ = "Bill L.Nieuwendorp"
 __bpydoc__ = """\
@@ -133,10 +150,12 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 	"""
 	sce.set_frame(orig_frame)
 
+from bpy.props import *
+
 class EXPORT_OT_mdd(bpy.types.Operator):
 	'''Animated mesh to MDD vertex keyframe file.'''
-	__idname__ = "export.mdd"
-	__label__ = "Export MDD"
+	bl_idname = "export.mdd"
+	bl_label = "Export MDD"
 
 	# get first scene to get min and max properties for frames, fps
 
@@ -148,12 +167,10 @@ class EXPORT_OT_mdd(bpy.types.Operator):
 
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the MDD file", maxlen= 1024, default= "tmp.mdd"),
-		bpy.props.IntProperty(attr="fps", name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default= 25),
-		bpy.props.IntProperty(attr="start_frame", name="Start Frame", description="Start frame for baking", min=minframe,max=maxframe,default=1),
-		bpy.props.IntProperty(attr="end_frame", name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default= 250),
-	]
+	path = StringProperty(name="File Path", description="File path used for exporting the MDD file", maxlen= 1024, default= "tmp.mdd")
+	fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default= 25)
+	start_frame = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe,max=maxframe,default=1)
+	end_frame = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default= 250)
 
 	def poll(self, context):
 		return context.active_object != None
@@ -167,7 +184,7 @@ class EXPORT_OT_mdd(bpy.types.Operator):
 	
 	def invoke(self, context, event):	
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
 bpy.ops.add(EXPORT_OT_mdd)

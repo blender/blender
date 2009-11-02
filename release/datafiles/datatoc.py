@@ -27,23 +27,23 @@
 import sys, os
 
 if len(sys.argv) < 2:
-	sys.stdout.write("Usage: datatoc <data_file>\n")
-	sys.exit(1)
+    sys.stdout.write("Usage: datatoc <data_file>\n")
+    sys.exit(1)
 
 filename = sys.argv[1]
 
 try:
-	fpin = open(filename, "rb");
+    fpin = open(filename, "rb");
 except:
-	sys.stdout.write("Unable to open input %s\n" % sys.argv[1])
-	sys.exit(1)
+    sys.stdout.write("Unable to open input %s\n" % sys.argv[1])
+    sys.exit(1)
 
 fpin.seek(0, os.SEEK_END)
 size = fpin.tell()
 fpin.seek(0)
 
 if filename[0] == ".":
-	filename = filename[1:]
+    filename = filename[1:]
 
 cname = filename + ".c"
 sys.stdout.write("Making C file <%s>\n" % cname)
@@ -52,10 +52,10 @@ filename = filename.replace(".", "_")
 sys.stdout.write(str(size))
 sys.stdout.write("\n")
 try:
-	fpout = open(cname, "w")
+    fpout = open(cname, "w")
 except:
-	sys.stdout.write("Unable to open output %s\n" % cname)
-	sys.exit(1)
+    sys.stdout.write("Unable to open output %s\n" % cname)
+    sys.exit(1)
 
 fpout.write("/* DataToC output of file <%s> */\n\n" % filename)
 fpout.write("int datatoc_%s_size= %d;\n" % (filename, size))
@@ -63,11 +63,11 @@ fpout.write("int datatoc_%s_size= %d;\n" % (filename, size))
 fpout.write("char datatoc_%s[]= {\n" % filename)
 
 while size > 0:
-	size -= 1
-	if size % 32 == 31:
-		fpout.write("\n")
-	
-	fpout.write("%3d," % ord(fpin.read(1)))
+    size -= 1
+    if size % 32 == 31:
+        fpout.write("\n")
+
+    fpout.write("%3d," % ord(fpin.read(1)))
 
 fpout.write("\n  0};\n\n")
 

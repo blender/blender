@@ -153,10 +153,10 @@ static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
 	Scene *scene = ((bScreen*)ptr->id.data)->scene;
 	View3D *v3d= (View3D*)ptr->data;
 	
-	if (v3d->twmode < 4)
+	if (v3d->twmode < V3D_MANIP_CUSTOM)
 		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, NULL);
 	else
-		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, BLI_findlink(&scene->transform_spaces, v3d->twmode - 4));
+		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, BLI_findlink(&scene->transform_spaces, v3d->twmode - V3D_MANIP_CUSTOM));
 }
 
 EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, int *free)
@@ -1001,7 +1001,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Transform Markers", "Transform markers as well as strips.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "seperate_color_preview", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "separate_color_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAW_COLOR_SEPERATED);
 	RNA_def_property_ui_text(prop, "Seperate Colors", "Seperate color channels in preview.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);

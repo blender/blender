@@ -620,10 +620,9 @@ static void rna_def_filter_size_common(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	/* XXX: not sure about the name of this, "Min" seems a bit off */
-	prop= RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "filter_size_minimum", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_FILTER_MIN);
-	RNA_def_property_ui_text(prop, "Use Filter", "Use Filter Size as a minimal filter value in pixels");
+	RNA_def_property_ui_text(prop, "Minimum Filter Size", "Use Filter Size as a minimal filter value in pixels");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "filter_size", PROP_FLOAT, PROP_NONE);
@@ -1060,6 +1059,13 @@ static void rna_def_texture_image(BlenderRNA *brna)
 		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Causes the image to repeat horizontally and vertically"},
 		{TEX_CHECKER, "CHECKER", 0, "Checker", "Causes the image to repeat in checker board pattern"},
 		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem prop_normal_space[] = {
+		{MTEX_NSPACE_CAMERA, "CAMERA", 0, "Camera", ""},
+		{MTEX_NSPACE_WORLD, "WORLD", 0, "World", ""},
+		{MTEX_NSPACE_OBJECT, "OBJECT", 0, "Object", ""},
+		{MTEX_NSPACE_TANGENT, "TANGENT", 0, "Tangent", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ImageTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Image Texture", "");
@@ -1073,7 +1079,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mipmap_gauss", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_GAUSS_MIP);
-	RNA_def_property_ui_text(prop, "MIP Map Gauss", "Uses Gauss filter to sample down MIP maps");
+	RNA_def_property_ui_text(prop, "MIP Map Gaussian filter", "Uses Gauss filter to sample down MIP maps");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "interpolation", PROP_BOOLEAN, PROP_NONE);
@@ -1103,14 +1109,6 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	rna_def_filter_size_common(srna);
-
-	prop= RNA_def_property(srna, "normal_map", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_NORMALMAP);
-	RNA_def_property_ui_text(prop, "Normal Map", "Uses image RGB values for normal mapping");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-	/* XXX: mtex->normapspace "Sets space of normal map image" "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3" 
-	 *			not sure why this goes in mtex instead of texture directly? */
 
 	prop= RNA_def_property(srna, "extension", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
@@ -1229,6 +1227,21 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "afmax");
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Filter Eccentricity", "Maximum eccentricity. Higher gives less blur at distant/oblique angles, but is also slower.");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	/* Normal Map */
+	prop= RNA_def_property(srna, "normal_map", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_NORMALMAP);
+	RNA_def_property_ui_text(prop, "Normal Map", "Uses image RGB values for normal mapping");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	/*	not sure why this goes in mtex instead of texture directly? */
+	RNA_def_struct_sdna(srna, "MTex");
+	
+	prop= RNA_def_property(srna, "normal_space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "normapspace");
+	RNA_def_property_enum_items(prop, prop_normal_space);
+	RNA_def_property_ui_text(prop, "Normal Space", "Sets space of normal map image.");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 

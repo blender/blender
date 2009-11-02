@@ -72,8 +72,8 @@
 
 GPW_KeyboardDevice::GPW_KeyboardDevice(void)
 {
-	m_seperateLeftRight = false;
-	m_seperateLeftRightInitialized = false;
+	m_separateLeftRight = false;
+	m_separateLeftRightInitialized = false;
 
 	m_reverseKeyTranslateTable['A'                             ] = KX_AKEY                    ;                  
 	m_reverseKeyTranslateTable['B'                             ] = KX_BKEY                    ;                  
@@ -222,10 +222,10 @@ void GPW_KeyboardDevice::ConvertModifierKey(WPARAM wParam, bool isDown)
 	It didn't work all that well on some newer hardware, and worked less 
 	well with the passage of time, so it was fully disabled in ME.
 	*/
-	if (!m_seperateLeftRightInitialized && isDown) {
+	if (!m_separateLeftRightInitialized && isDown) {
 		CheckForSeperateLeftRight(wParam);
 	}
-	if (m_seperateLeftRight) {
+	if (m_separateLeftRight) {
 		bool down = HIBYTE(::GetKeyState(VK_LSHIFT)) != 0;
 		ConvertEvent(VK_LSHIFT, down);
 		down = HIBYTE(::GetKeyState(VK_RSHIFT)) != 0;
@@ -255,26 +255,26 @@ void GPW_KeyboardDevice::ConvertModifierKey(WPARAM wParam, bool isDown)
 
 void GPW_KeyboardDevice::CheckForSeperateLeftRight(WPARAM wParam)
 {
-	// Check whether this system supports seperate left and right keys
+	// Check whether this system supports separate left and right keys
 	switch (wParam) {
 		case VK_SHIFT:
-			m_seperateLeftRight = 
+			m_separateLeftRight = 
 				(HIBYTE(::GetKeyState(VK_LSHIFT)) != 0) ||
 				(HIBYTE(::GetKeyState(VK_RSHIFT)) != 0) ?
 				true : false;
 			break;
 		case VK_CONTROL:
-			m_seperateLeftRight = 
+			m_separateLeftRight = 
 				(HIBYTE(::GetKeyState(VK_LCONTROL)) != 0) ||
 				(HIBYTE(::GetKeyState(VK_RCONTROL)) != 0) ?
 				true : false;
 			break;
 		case VK_MENU:
-			m_seperateLeftRight = 
+			m_separateLeftRight = 
 				(HIBYTE(::GetKeyState(VK_LMENU)) != 0) ||
 				(HIBYTE(::GetKeyState(VK_RMENU)) != 0) ?
 				true : false;
 			break;
 	}
-	m_seperateLeftRightInitialized = true;
+	m_separateLeftRightInitialized = true;
 }

@@ -2242,7 +2242,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 
 	VECCOPY(bone->head, curs);
 	
-	if ( (U.flag & USER_ADD_VIEWALIGNED) )
+	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
 	else
 		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
@@ -3423,7 +3423,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	Mat4Invert(obedit->imat, obedit->obmat);
 	Mat4MulVecfl(obedit->imat, curs);
 
-	if (U.flag & USER_ADD_VIEWALIGNED)
+	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		Mat3CpyMat4(obmat, rv3d->viewmat);
 	else Mat3One(obmat);
 	
@@ -3438,7 +3438,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
 	VECCOPY(bone->head, curs);
 	
-	if(U.flag & USER_ADD_VIEWALIGNED)
+	if(rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
 	else
 		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z

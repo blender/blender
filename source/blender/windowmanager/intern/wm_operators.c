@@ -1345,6 +1345,105 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 }
 
 
+/* XXX: move these collada operators to a more appropriate place */
+#ifdef WITH_COLLADA
+
+#include "../../collada/collada.h"
+
+static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	//char name[FILE_MAX];
+	//BLI_strncpy(name, G.sce, FILE_MAX);
+	//untitled(name);
+
+	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
+	
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* function used for WM_OT_save_mainfile too */
+static int wm_collada_export_exec(bContext *C, wmOperator *op)
+{
+	char filename[FILE_MAX];
+	
+	if(RNA_property_is_set(op->ptr, "path"))
+		RNA_string_get(op->ptr, "path", filename);
+	else {
+		BLI_strncpy(filename, G.sce, FILE_MAX);
+		untitled(filename);
+	}
+	
+	//WM_write_file(C, filename, op->reports);
+	collada_export(CTX_data_scene(C), filename);
+	
+	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_collada_export(wmOperatorType *ot)
+{
+	ot->name= "Export COLLADA";
+	ot->idname= "WM_OT_collada_export";
+	
+	ot->invoke= wm_collada_export_invoke;
+	ot->exec= wm_collada_export_exec;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= 0;
+	
+	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
+}
+
+static int wm_collada_import_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
+	
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* function used for WM_OT_save_mainfile too */
+static int wm_collada_import_exec(bContext *C, wmOperator *op)
+{
+	char filename[FILE_MAX];
+	
+	if(RNA_property_is_set(op->ptr, "path"))
+		RNA_string_get(op->ptr, "path", filename);
+	else {
+		BLI_strncpy(filename, G.sce, FILE_MAX);
+		untitled(filename);
+	}
+	
+	//WM_write_file(C, filename, op->reports);
+	collada_import(C, filename);
+	
+	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_collada_import(wmOperatorType *ot)
+{
+	ot->name= "Import COLLADA";
+	ot->idname= "WM_OT_collada_import";
+	
+	ot->invoke= wm_collada_import_invoke;
+	ot->exec= wm_collada_import_exec;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= 0;
+	
+	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
+}
+
+#endif
+
+
+
 /* *********************** */
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
@@ -2248,6 +2347,13 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
+
+#ifdef WITH_COLLADA
+	/* XXX: move these */
+	WM_operatortype_append(WM_OT_collada_export);
+	WM_operatortype_append(WM_OT_collada_import);
+#endif
+
 }
 
 /* default keymap for windows and screens, only call once per WM */

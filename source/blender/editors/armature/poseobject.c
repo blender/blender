@@ -1310,7 +1310,6 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	Object *ob;
 	bArmature *arm;
 	bPose *pose;
-	bPoseChannel *pchan;
 	short done= 0;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
@@ -1334,18 +1333,12 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	
 	/* add selected bones to group then */
 	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
-	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-		// NOTE: sync this view3d_context() in space_view3d.c
-		if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
-				pchan->agrp_index= pose->active_group;
-				done= 1;
-			}
-		}
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		pchan->agrp_index= pose->active_group;
+		done= 1;
 	}
-	
+	CTX_DATA_END;
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
@@ -1437,54 +1430,6 @@ void POSE_OT_group_unassign (wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
-/* ----------------- */
-
-static int pose_groupOps_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
-{
-	Object *ob= CTX_data_active_object(C);
-	uiPopupMenu *pup= uiPupMenuBegin(C, op->type->name, 0);
-	uiLayout *layout= uiPupMenuLayout(pup);
-	
-	/* sanity check - must have object with pose */
-	if ELEM(NULL, ob, ob->pose)
-		return OPERATOR_CANCELLED;
-	
-	/* get mode of action */
-	if (CTX_DATA_COUNT(C, selected_pchans)) {
-		/* if selected bone(s), include options to add/remove to active group */
-		uiItemO(layout, "Add Selected to Active Group", 0, "POSE_OT_group_assign");
-		
-		uiItemS(layout);
-		
-		uiItemO(layout, "Remove Selected from All Groups", 0, "POSE_OT_group_unassign");
-		uiItemO(layout, "Remove Active Group", 0, "POSE_OT_group_remove");
-	}
-	else {
-		/* no selected bones - so just options for groups management */
-		uiItemO(layout, "Add New Group", 0, "POSE_OT_group_add");
-		uiItemO(layout, "Remove Active Group", 0, "POSE_OT_group_remove");
-	}
-		
-	return OPERATOR_CANCELLED;
-}
-
-void POSE_OT_groups_menu (wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Bone Group Tools";
-	ot->idname= "POSE_OT_groups_menu";
-	ot->description= "Menu displaying available tools for Bone Groups.";
-	
-	/* api callbacks (only invoke needed) */
-	ot->invoke= pose_groupOps_menu_invoke;
-	ot->poll= ED_operator_posemode;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-}
-
-/* ********************************************** */
 
 static short pose_select_same_group (Object *ob)
 {

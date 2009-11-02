@@ -246,6 +246,9 @@ BF_OPENGL_LIB = 'GL GLU'
 BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
+#OpenCollada flags
+WITH_BF_COLLADA = False
+
 #############################################################################
 ###################  various compile settings and flags    ##################
 #############################################################################

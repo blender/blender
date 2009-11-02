@@ -378,7 +378,8 @@ IF(UNIX)
 		bf_cineon 
 		bf_openexr 
 		bf_dds
-		bf_readblenfile 
+		bf_readblenfile
+		bf_collada
 		blender_bop 
 		bf_kernel 
 		bf_decimation 

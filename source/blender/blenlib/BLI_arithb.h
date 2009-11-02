@@ -323,8 +323,14 @@ void Mat4One(float m[][4]);
 void Mat3Scale(float m[][3], float scale);
 void Mat4Scale(float m[][4], float scale);
 
+/* NOTE: These only normalise the matrix, they don't make it orthogonal */
 void Mat3Ortho(float mat[][3]);
 void Mat4Ortho(float mat[][4]);
+
+int IsMat3Orthogonal(float mat[][3]);
+void Mat3Orthogonal(float mat[][3], int axis); /* axis is the one to keep in place (assumes it is non-null) */
+int IsMat4Orthogonal(float mat[][4]);
+void Mat4Orthogonal(float mat[][4], int axis); /* axis is the one to keep in place (assumes it is non-null) */
 
 void VecMat4MulVecfl(float *in, float mat[][4], float *vec);
 void Mat4MulMat43(float (*m1)[4], float (*m3)[4], float (*m2)[3]);

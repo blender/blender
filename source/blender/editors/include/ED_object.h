@@ -42,6 +42,9 @@ struct Mesh;
 struct Curve;
 struct ReportList;
 struct ModifierData;
+struct wmOperatorType;
+struct wmOperator;
+struct wmEvent;
 
 /* object_edit.c */
 void ED_operatortypes_object(void);
@@ -74,8 +77,11 @@ void ED_object_toggle_modes(struct bContext *C, int mode);
 void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 
-void ED_object_base_init_from_view(struct bContext *C, struct Base *base);
-struct Object *ED_object_add_type(struct bContext *C, int type);
+void ED_object_base_init_from_view(struct bContext *C, struct Base *base, int view_align);
+void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
+int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+void ED_object_add_generic_get_opts(struct wmOperator *op, int *view_align, int *enter_editmode);
+struct Object *ED_object_add_type(struct bContext *C, int type, int view_align, int enter_editmode);
 
 void ED_object_single_users(struct Scene *scene, int full);
 

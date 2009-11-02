@@ -903,6 +903,9 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 	IDProperty *idprop;
 
+	/* just incase other values are passed */
+	if(value) value= 1;
+
 	if((idprop=rna_idproperty_check(&prop, ptr)))
 		IDP_Int(idprop)= value;
 	else if(bprop->set)

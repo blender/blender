@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 import bpy
 import sys, os
 import http, http.client, http.server, urllib
@@ -18,9 +36,9 @@ DONE = 2
 ERROR = 3
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
-	__context__ = "render"
+	bl_space_type = "PROPERTIES"
+	bl_region_type = "WINDOW"
+	bl_context = "render"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
@@ -30,7 +48,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 # Setting panel, use in the scene for now.
 @rnaType
 class RENDER_PT_network_settings(RenderButtonsPanel):
-	__label__ = "Network Settings"
+	bl_label = "Network Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 
 	def draw(self, context):
@@ -56,7 +74,7 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
-	__label__ = "Job Settings"
+	bl_label = "Job Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
 	def poll(self, context):
@@ -84,7 +102,7 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 
 @rnaType
 class RENDER_PT_network_slaves(RenderButtonsPanel):
-	__label__ = "Slaves Status"
+	bl_label = "Slaves Status"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
 	def poll(self, context):
@@ -104,14 +122,14 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 		sub.itemO("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
 		sub.itemO("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
 		
-		if len(bpy.data.netrender_slaves) == 0 and len(netsettings.slaves) > 0:
+		if len(bpy.netrender_slaves) == 0 and len(netsettings.slaves) > 0:
 			while(len(netsettings.slaves) > 0):
 				netsettings.slaves.remove(0)
 		
 		if netsettings.active_slave_index >= 0 and len(netsettings.slaves) > 0:
 			layout.itemS()
 			
-			slave = bpy.data.netrender_slaves[netsettings.active_slave_index]
+			slave = bpy.netrender_slaves[netsettings.active_slave_index]
 
 			layout.itemL(text="Name: " + slave.name)
 			layout.itemL(text="Address: " + slave.address[0])
@@ -120,7 +138,7 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 
 @rnaType
 class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
-	__label__ = "Slaves Blacklist"
+	bl_label = "Slaves Blacklist"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
 	def poll(self, context):
@@ -139,14 +157,14 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 		sub = row.column(align=True)
 		sub.itemO("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
 
-		if len(bpy.data.netrender_blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
+		if len(bpy.netrender_blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
 			while(len(netsettings.slaves_blacklist) > 0):
 				netsettings.slaves_blacklist.remove(0)
 		
 		if netsettings.active_blacklisted_slave_index >= 0 and len(netsettings.slaves_blacklist) > 0:
 			layout.itemS()
 			
-			slave = bpy.data.netrender_blacklist[netsettings.active_blacklisted_slave_index]
+			slave = bpy.netrender_blacklist[netsettings.active_blacklisted_slave_index]
 
 			layout.itemL(text="Name: " + slave.name)
 			layout.itemL(text="Address: " + slave.address[0])
@@ -155,7 +173,7 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 
 @rnaType
 class RENDER_PT_network_jobs(RenderButtonsPanel):
-	__label__ = "Jobs"
+	bl_label = "Jobs"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
 	def poll(self, context):
@@ -177,14 +195,14 @@ class RENDER_PT_network_jobs(RenderButtonsPanel):
 		sub.itemO("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
 		sub.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
 
-		if len(bpy.data.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
+		if len(bpy.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
 			while(len(netsettings.jobs) > 0):
 				netsettings.jobs.remove(0)
 		
 		if netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0:
 			layout.itemS()
 			
-			job = bpy.data.netrender_jobs[netsettings.active_job_index]
+			job = bpy.netrender_jobs[netsettings.active_job_index]
 
 			layout.itemL(text="Name: %s" % job.name)
 			layout.itemL(text="Length: %04i" % len(job))

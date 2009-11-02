@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 # import Blender
 import time, functools
 import bpy
@@ -620,15 +638,14 @@ def main(context):
 class MESH_OT_skin(bpy.types.Operator):
 	'''Bridge face loops.'''
 	
-	__idname__ = "mesh.skin"
-	__label__ = "Add Torus"
-	__register__ = True
-	__undo__ = True
+	bl_idname = "mesh.skin"
+	bl_label = "Add Torus"
+	bl_register = True
+	bl_undo = True
 	
 	'''
-	__props__ = [
-		bpy.props.EnumProperty(attr="loft_method", items=[(), ()], description="", default= True),
-	]
+	loft_method = EnumProperty(attr="loft_method", items=[(), ()], description="", default= True)
+	
 	'''
 	
 	def execute(self, context):

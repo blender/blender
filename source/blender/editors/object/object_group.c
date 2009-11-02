@@ -198,11 +198,11 @@ static int group_create_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Group *group= NULL;
-	char gid[32]; //group id
+	char name[32]; /* id name */
 	
-	RNA_string_get(op->ptr, "GID", gid);
+	RNA_string_get(op->ptr, "name", name);
 	
-	group= add_group(gid);
+	group= add_group(name);
 		
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		add_to_group(group, base->object);
@@ -218,12 +218,12 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GROUP_OT_group_create(wmOperatorType *ot)
+void GROUP_OT_create(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Create New Group";
-	ot->description = "Create an object group.";
-	ot->idname= "GROUP_OT_group_create";
+	ot->description = "Create an object group from selected objects.";
+	ot->idname= "GROUP_OT_create";
 	
 	/* api callbacks */
 	ot->exec= group_create_exec;	
@@ -232,7 +232,7 @@ void GROUP_OT_group_create(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_string(ot->srna, "GID", "Group", 32, "Name", "Name of the new group");
+	RNA_def_string(ot->srna, "name", "Group", 32, "Name", "Name of the new group");
 }
 
 /****************** properties window operators *********************/

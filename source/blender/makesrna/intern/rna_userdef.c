@@ -1165,6 +1165,8 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ThemeSpace");
 	RNA_def_struct_ui_text(srna, "Theme Sequence Editor", "Theme settings for the Sequence Editor.");
 
+    rna_def_userdef_theme_spaces_main(srna, SPACE_IMAGE);
+
 	prop= RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Grid", "");
@@ -1421,11 +1423,22 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem active_theme_group[] = {
-		{0, "USER_INTERFACE", 0, "User Interface", ""},
-		{1, "VIEW_3D", 0, "View 3D", ""},
-		{2, "GRAPH_EDITOR", 0, "Graph Editor", ""},
-		{3, "FILE_BROWSER", 0, "File Browser", ""},
-
+		{0, "USER_INTERFACE", ICON_UI, "User Interface", ""},
+		{1, "VIEW_3D", ICON_VIEW3D, "View 3D", ""},
+		{2, "GRAPH_EDITOR", ICON_IPO, "Graph Editor", ""},
+		{3, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
+		{4, "NLA_EDITOR", ICON_NLA, "NLA Editor", ""},
+		{5, "DOPESHEET_EDITOR", ICON_ACTION, "Dopesheet Editor", ""},
+		{6, "IMAGE_EDITOR", ICON_IMAGE_COL, "Image Editor", ""},
+		{7, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Sequence Editor", ""},
+		{8, "PROPERTIES", ICON_BUTS, "Properties", ""},
+		{9, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
+		{10, "TIMELINE", ICON_TIME, "Timeline", ""},
+		{11, "NODE_EDITOR", ICON_NODE, "Node Editor", ""},
+		{12, "LOGIC_EDITOR", ICON_LOGIC, "Logic Editor", ""},
+		{13, "OUTLINER", ICON_OOPS, "Outliner", ""},
+		{14, "INFO", ICON_INFO, "Info", ""},
+		{15, "USER_PREFERENCES", ICON_PREFERENCES, "User Preferences", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Theme", NULL);
@@ -1436,10 +1449,10 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Name of the theme.");
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "active_theme_group", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "active_theme", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "active_theme_group");
 	RNA_def_property_enum_items(prop, active_theme_group);
-	RNA_def_property_ui_text(prop, "Theme Group", "");
+	RNA_def_property_ui_text(prop, "Active Theme", "");
 
 	prop= RNA_def_property(srna, "user_interface", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -2413,7 +2426,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 		{USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
 		{USER_SECTION_EDIT, "EDITING", 0, "Editing", ""},
 		{USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
-//		{USER_SECTION_THEME, "THEMES", 0, "Themes", ""}, Doesn't work yet
+		{USER_SECTION_THEME, "THEMES", 0, "Themes", ""},
 		{USER_SECTION_FILE, "FILES", 0, "File", ""},
 		{USER_SECTION_SYSTEM, "SYSTEM", 0, "System", ""},
 		{0, NULL, 0, NULL, NULL}};

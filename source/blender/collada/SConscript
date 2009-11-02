@@ -1,0 +1,10 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.cpp')
+
+# relative paths to include dirs, space-separated, string
+incs = '../blenlib ../blenkernel ../windowmanager ../makesdna ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter/include [OPENCOLLADA]/COLLADABaseUtils/include [OPENCOLLADA]/COLLADAFramework/include [OPENCOLLADA]/COLLADASaxFrameworkLoader/include '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
+
+env.BlenderLib ('bf_collada', sources, Split(incs), [], libtype='core', priority=200 )
+

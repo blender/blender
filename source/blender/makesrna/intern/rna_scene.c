@@ -562,6 +562,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_struct_type(prop, "Sculpt");
 	RNA_def_property_ui_text(prop, "Sculpt", "");
 	
+	prop = RNA_def_property(srna, "auto_normalize", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "auto_normalize", 1);
+	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize", 
+		"Ensure all bone-deforming vertex groups add up to 1.0 while "
+		 "weight painting");
+
 	prop= RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
 	RNA_def_property_ui_text(prop, "Vertex Paint", "");
@@ -2205,7 +2211,9 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use as projector transform.");
-
+	/* Could call: ED_base_object_activate(C, scene->basact);
+	 * but would be a bad level call and it seems the notifier is enough */
+	RNA_def_property_update(prop, NC_SCENE|ND_OB_ACTIVE, NULL);
 
 	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -2219,6 +2227,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	/* Bases/Objects */
+	prop= RNA_def_property(srna, "bases", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
+	RNA_def_property_struct_type(prop, "Base");
+	RNA_def_property_ui_text(prop, "Bases", "");
+
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");

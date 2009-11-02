@@ -1267,7 +1267,8 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
 	/* for now, the active area is used to determine what set of contexts apply */
 	if (sa == NULL)
 		return 0;
-		
+
+#if 0
 	switch (sa->spacetype) {
 		case SPACE_VIEW3D:	/* 3D-View: Selected Objects or Bones */
 			return modifykey_get_context_v3d_data(C, dsources, ks);
@@ -1275,6 +1276,10 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
 	
 	/* nothing happened */
 	return 0;
+#endif
+
+	/* looking into this code, it doesnt use the 3D view - Campbell */
+	return modifykey_get_context_v3d_data(C, dsources, ks);
 } 
 
 /* KeyingSet Operations (Insert/Delete Keyframes) ------------ */

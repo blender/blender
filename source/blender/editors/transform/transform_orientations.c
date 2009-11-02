@@ -510,7 +510,6 @@ static int count_bone_select(bArmature *arm, ListBase *lb, int do_it)
 	return total;
 }
 
-extern void gimbalAxis(Object *ob, float gimbal_vecs[][3]);
 void initTransformOrientation(bContext *C, TransInfo *t)
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -518,6 +517,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	Object *obedit = CTX_data_active_object(C);
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
+	
 
 	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
@@ -527,10 +527,10 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	case V3D_MANIP_GIMBAL:
 		Mat3One(t->spacemtx);
 		if(ob)
-			gimbalAxis(ob, t->spacemtx);
+			gimbal_axis(ob, t->spacemtx);
 		break;
 	case V3D_MANIP_NORMAL:
-		if(obedit || ob->mode & OB_MODE_POSE) {
+		if(obedit || (ob && ob->mode & OB_MODE_POSE)) {
 			float mat[3][3];
 			int type;
 			
@@ -579,8 +579,14 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		/* no break we define 'normal' as 'local' in Object mode */
 	case V3D_MANIP_LOCAL:
 		strcpy(t->spacename, "local");
-		Mat3CpyMat4(t->spacemtx, ob->obmat);
-		Mat3Ortho(t->spacemtx);
+		
+		if(ob) {
+			Mat3CpyMat4(t->spacemtx, ob->obmat);
+			Mat3Ortho(t->spacemtx);
+		} else {
+			Mat3One(t->spacemtx);
+		}
+		
 		break;
 		
 	case V3D_MANIP_VIEW:
