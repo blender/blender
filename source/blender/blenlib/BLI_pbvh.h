@@ -1,62 +1,98 @@
+/**
+ * A BVH for high poly meshes.
+ * 
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+#ifndef BLI_PBVH_H
+#define BLI_PBVH_H
+
 struct MFace;
 struct MVert;
 struct PBVH;
+struct PBVHNode;
+struct ListBase;
 
-/* Returns 1 if the search should continue from this node, 0 otherwise */
-typedef int (*BLI_pbvh_SearchCallback)(float bb_min[3], float bb_max[3],
-				       void *data);
+typedef struct PBVH PBVH;
+typedef struct PBVHNode PBVHNode;
 
-typedef void (*BLI_pbvh_HitCallback)(const int *face_indices,
-				     const int *vert_indices,
-				     int totface, int totvert, void *data);
-int BLI_pbvh_search_range(float bb_min[3], float bb_max[3], void *data_v);
+/* Callbacks */
 
-typedef enum {
-	PBVH_SEARCH_NORMAL,
+/* returns 1 if the search should continue from this node, 0 otherwise */
+typedef int (*BLI_pbvh_SearchCallback)(PBVHNode *node,
+	float bb_min[3], float bb_max[3], void *data);
 
-	/* When the callback returns a 1 for a leaf node, that node will be
-	   marked as modified */
-	PBVH_SEARCH_MARK_MODIFIED,
-	
-	/* Update gpu data for modified nodes. Also clears the Modified flag. */
-	PBVH_SEARCH_MODIFIED,
+typedef void (*BLI_pbvh_HitCallback)(PBVHNode *node, void *data);
 
-	
-	PBVH_SEARCH_UPDATE
-} PBVH_SearchMode;
+/* Building */
 
-/* Pass the node as data to the callback */
-#define PBVH_NodeData (void*)0xa
-/* Pass the draw buffers as data to the callback */
-#define PBVH_DrawData (void*)0xb
+PBVH *BLI_pbvh_new(void);
+void BLI_pbvh_build(PBVH *bvh, struct MFace *faces, struct MVert *verts,
+		    int totface, int totvert);
+void BLI_pbvh_free(PBVH *bvh);
 
-void BLI_pbvh_search(struct PBVH *bvh, BLI_pbvh_SearchCallback scb,
-		     void *search_data, BLI_pbvh_HitCallback hcb,
-		     void *hit_data, PBVH_SearchMode mode);
+void BLI_pbvh_set_source(PBVH *bvh, struct MVert *, struct MFace *mface);
 
-/* The hit callback is called for all leaf nodes intersecting the ray;
+/* Hierarchical Search in the BVH, two methods:
+   * for each hit calling a callback
+   * gather nodes in an array (easy to multithread) */
+
+void BLI_pbvh_search_callback(PBVH *bvh,
+	BLI_pbvh_SearchCallback scb, void *search_data,
+	BLI_pbvh_HitCallback hcb, void *hit_data);
+
+void BLI_pbvh_search_gather(PBVH *bvh,
+	BLI_pbvh_SearchCallback scb, void *search_data,
+	PBVHNode ***array, int *tot);
+
+/* Raycast
+   the hit callback is called for all leaf nodes intersecting the ray;
    it's up to the callback to find the primitive within the leaves that is
    hit first */
-void BLI_pbvh_raycast(struct PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
+
+void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
 		      float ray_start[3], float ray_normal[3]);
 
+/* Node Access */
 
-int BLI_pbvh_update_search_cb(float bb_min[3], float bb_max[3], void *data_v);
+typedef enum {
+	PBVH_Leaf = 1,
 
-/* Get the bounding box around all nodes that have been marked as modified. */
-void BLI_pbvh_modified_bounding_box(struct PBVH *bvh,
-				    float bb_min[3], float bb_max[3]);
-void BLI_pbvh_reset_modified_bounding_box(struct PBVH *bvh);
+	PBVH_UpdateNormals = 2,
+	PBVH_UpdateBB = 4,
+	PBVH_UpdateDrawBuffers = 8,
+	PBVH_UpdateRedraw = 16
+} PBVHNodeFlags;
 
-/* Lock is off by default, turn on to stop redraw from clearing the modified
-   flag from nodes */
-void BLI_pbvh_toggle_modified_lock(struct PBVH *bvh);
+void BLI_pbvh_node_mark_update(PBVHNode *node);
 
+void BLI_pbvh_node_get_verts(PBVHNode *node, int **vert_indices, int *totvert);
+void BLI_pbvh_node_get_faces(PBVHNode *node, int **face_indices, int *totface);
+void *BLI_pbvh_node_get_draw_buffers(PBVHNode *node);
 
+/* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
 
-struct PBVH *BLI_pbvh_new(BLI_pbvh_HitCallback update_cb, void *update_cb_data);
-void BLI_pbvh_build(struct PBVH *bvh, struct MFace *faces, struct MVert *verts,
-		    int totface, int totvert);
-void BLI_pbvh_free(struct PBVH *bvh);
+void BLI_pbvh_update(PBVH *bvh, int flags,
+	float (*face_nors)[3], struct ListBase *fmap);
+void BLI_pbvh_redraw_bounding_box(PBVH *bvh, float bb_min[3], float bb_max[3]);
 
-void BLI_pbvh_set_source(struct PBVH *bvh, struct MVert *, struct MFace *mface);
+#endif /* BLI_PBVH_H */
+

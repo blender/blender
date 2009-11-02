@@ -114,16 +114,17 @@ float sasqrtf(float fac)
 
 float Normalize(float *n)
 {
-	float d;
+	float d, invd;
 	
 	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
 	/* A larger value causes normalize errors in a scaled down models with camera xtreme close */
 	if(d>1.0e-35f) {
 		d= (float)sqrt(d);
+		invd= 1.0f/d;
 
-		n[0]/=d; 
-		n[1]/=d; 
-		n[2]/=d;
+		n[0]*=invd; 
+		n[1]*=invd; 
+		n[2]*=invd;
 	} else {
 		n[0]=n[1]=n[2]= 0.0f;
 		d= 0.0f;

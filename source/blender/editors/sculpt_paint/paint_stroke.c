@@ -234,9 +234,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PaintStroke *stroke = op->customdata;
 	float mouse[2];
-
-	if(event->type == TIMER && (event->customdata != stroke->timer))
-		return OPERATOR_RUNNING_MODAL;
+	int first= 0;
 
 	if(!stroke->stroke_started) {
 		stroke->last_mouse_position[0] = event->x;
@@ -251,26 +249,27 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 				stroke->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
 		}
 
+		first= 1;
 		//ED_region_tag_redraw(ar);
 	}
 
-	if(stroke->stroke_started) {
-		if(paint_smooth_stroke(stroke, mouse, event)) {
-			if(paint_space_stroke_enabled(stroke->brush)) {
-				if(!paint_space_stroke(C, op, event, mouse))
-					;//ED_region_tag_redraw(ar);
+	/* TODO: fix hardcoded event here */
+	if(first || event->type == MOUSEMOVE || (event->type == TIMER && (event->customdata == stroke->timer))) {
+		if(stroke->stroke_started) {
+			if(paint_smooth_stroke(stroke, mouse, event)) {
+				if(paint_space_stroke_enabled(stroke->brush)) {
+					if(!paint_space_stroke(C, op, event, mouse))
+						;//ED_region_tag_redraw(ar);
+				}
+				else
+					paint_brush_stroke_add_step(C, op, event, mouse);
 			}
 			else
-				paint_brush_stroke_add_step(C, op, event, mouse);
+				;//ED_region_tag_redraw(ar);
 		}
-		else
-			;//ED_region_tag_redraw(ar);
 	}
-
-	/* TODO: fix hardcoded event here */
-	if(event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-		/* Exit stroke, free data */
-
+	else if(event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+		/* exit stroke, free data */
 		if(stroke->smooth_stroke_cursor)
 			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
 
@@ -281,8 +280,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		MEM_freeN(stroke);
 		return OPERATOR_FINISHED;
 	}
-	else
-		return OPERATOR_RUNNING_MODAL;
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 int paint_stroke_exec(bContext *C, wmOperator *op)

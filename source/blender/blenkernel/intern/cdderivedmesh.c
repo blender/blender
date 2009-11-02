@@ -177,55 +177,6 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 	no_r[2] = no[2]/32767.f;
 }
 
-/* Updates all the face and vertex normals in a node
-
-   Note: the correctness of some vertex normals will be a little
-   off, not sure if this will be noticeable or not */
-static void update_node_normals(const int *face_indices,
-				const int *vert_indices,
-				int totface, int totvert, void *data)
-{
-	DerivedMesh *dm = data;
-	CDDerivedMesh *cddm = data;
-	float (*face_nors)[3];
-	int i;
-
-	/* make a face normal layer if not present */
-	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
-	if(!face_nors)
-		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC,
-		                                 NULL, dm->numFaceData);
-
-	/* Update face normals */
-	for(i = 0; i < totface; ++i) {
-		MFace *f = cddm->mface + face_indices[i];
-		float *fn = face_nors[face_indices[i]];
-
-		if(f->v4)
-			CalcNormFloat4(cddm->mvert[f->v1].co, cddm->mvert[f->v2].co,
-			               cddm->mvert[f->v3].co, cddm->mvert[f->v4].co, fn);
-		else
-			CalcNormFloat(cddm->mvert[f->v1].co, cddm->mvert[f->v2].co,
-			              cddm->mvert[f->v3].co, fn);
-	}
-
-	/* Update vertex normals */
-	for(i = 0; i < totvert; ++i) {
-		const int v = vert_indices[i];
-		float no[3] = {0,0,0};
-		IndexNode *face;
-
-		for(face = cddm->fmap[v].first; face; face = face->next)
-			VecAddf(no, no, face_nors[face->index]);
-
-		Normalize(no);
-		
-		cddm->mvert[v].no[0] = no[0] * 32767;
-		cddm->mvert[v].no[1] = no[1] * 32767;
-		cddm->mvert[v].no[2] = no[2] * 32767;
-	}
-}
-
 static ListBase *cdDM_getFaceMap(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -244,7 +195,7 @@ static struct PBVH *cdDM_getPBVH(DerivedMesh *dm)
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 
 	if(!cddm->pbvh) {
-		cddm->pbvh = BLI_pbvh_new(update_node_normals, cddm);
+		cddm->pbvh = BLI_pbvh_new();
 		BLI_pbvh_build(cddm->pbvh, cddm->mface, cddm->mvert,
 			       dm->getNumFaces(dm), dm->getNumVerts(dm));
 		printf("rebuild pbvh\n");
@@ -445,9 +396,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 static int nodes_drawn = 0;
 static int is_partial = 0;
 /* XXX: Just a temporary replacement for the real drawing code */
-static void draw_partial_cb(const int *face_indices,
-			    const int *vert_indices,
-			    int totface, int totvert, void *data_v)
+static void draw_partial_cb(PBVHNode *node, void *data)
 {
 	/* XXX: Just some quick code to show leaf nodes in different colors */
 	/*float col[3]; int i;
@@ -462,13 +411,8 @@ static void draw_partial_cb(const int *face_indices,
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, col);
 
 	glColor3f(1, 0, 0);*/
-	GPU_draw_buffers(data_v);
+	GPU_draw_buffers(BLI_pbvh_node_get_draw_buffers(node));
 	++nodes_drawn;
-}
-
-int find_all(float bb_min[3], float bb_max[3], void *data)
-{
-	return 1;
 }
 
 /* Adapted from:
@@ -476,7 +420,7 @@ int find_all(float bb_min[3], float bb_max[3], void *data)
    Returns true if the AABB is at least partially within the frustum
    (ok, not a real frustum), false otherwise.
 */
-int planes_contain_AABB(float bb_min[3], float bb_max[3], void *data)
+int planes_contain_AABB(PBVHNode *node, float bb_min[3], float bb_max[3], void *data)
 {
 	float (*planes)[4] = data;
 	int i, axis;
@@ -520,27 +464,36 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 }
 
 	if(cddm->pbvh) {
-		BLI_pbvh_search(cddm->pbvh, BLI_pbvh_update_search_cb,
-				PBVH_NodeData, NULL, NULL,
-				PBVH_SEARCH_UPDATE);
+		float (*face_nors)[3];
+
+		/* make a face normal layer if not present */
+		face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+		if(!face_nors)
+			face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC,
+											 NULL, dm->numFaceData);
+
+		BLI_pbvh_update(cddm->pbvh, PBVH_UpdateNormals|PBVH_UpdateDrawBuffers,
+			face_nors, cdDM_getFaceMap(dm));
+
+		/* should be per face */
+		if(dm->numFaceData && mface->flag & ME_SMOOTH)
+			glShadeModel(GL_SMOOTH);
 
 		if(partial_redraw_planes) {
-			BLI_pbvh_search(cddm->pbvh, planes_contain_AABB,
-					partial_redraw_planes,
-					draw_partial_cb, PBVH_DrawData,
-					PBVH_SEARCH_MODIFIED);
+			BLI_pbvh_search_callback(cddm->pbvh, planes_contain_AABB,
+					partial_redraw_planes, draw_partial_cb, NULL);
 		}
 		else {
-			BLI_pbvh_search(cddm->pbvh, find_all, NULL,
-					draw_partial_cb, PBVH_DrawData,
-					PBVH_SEARCH_NORMAL);
-
+			BLI_pbvh_search_callback(cddm->pbvh, NULL, NULL,
+					draw_partial_cb, NULL);
 		}
 
 		is_partial = !!partial_redraw_planes;
 
 		//printf("nodes drawn=%d\n", nodes_drawn);
 		nodes_drawn = 0;
+
+		glShadeModel(GL_FLAT);
 
 		return;
 	}

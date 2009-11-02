@@ -47,6 +47,7 @@ struct Object;
 struct MTFace;
 struct VecNor;
 struct CustomData;
+struct Scene;
 
 #ifdef __cplusplus
 extern "C" {

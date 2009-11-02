@@ -83,7 +83,7 @@ Brush *add_brush(const char *name)
 	brush->clone.alpha= 0.5;
 	brush->sculpt_tool = SCULPT_TOOL_DRAW;
 
-	brush_curve_preset(brush, BRUSH_PRESET_SHARP);
+	brush_curve_preset(brush, BRUSH_PRESET_SMOOTH);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
