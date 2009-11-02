@@ -611,7 +611,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
-    bl_label = "Constraints"
+    bl_label = "Object Constraints"
     bl_context = "constraint"
 
     def poll(self, context):
@@ -764,7 +764,7 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
 
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
-    bl_label = "Constraints"
+    bl_label = "Bone Constraints"
     bl_context = "bone_constraint"
 
     def poll(self, context):
