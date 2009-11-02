@@ -5158,7 +5158,7 @@ void CURVE_OT_tilt_clear(wmOperatorType *ot)
 
 /****************** undo for curves ****************/
 
-static void undoCurve_to_editCurve(void *lbu, void *lbe)
+static void undoCurve_to_editCurve(void *lbu, void *lbe, void *obdata)
 {
 	ListBase *lb= lbu;
 	ListBase *editnurb= lbe;
@@ -5173,7 +5173,7 @@ static void undoCurve_to_editCurve(void *lbu, void *lbe)
 	}
 }
 
-static void *editCurve_to_undoCurve(void *lbe)
+static void *editCurve_to_undoCurve(void *lbe, void *obdata)
 {
 	ListBase *editnurb= lbe;
 	ListBase *lb;

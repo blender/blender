@@ -614,7 +614,7 @@ static void freeMetaElemlist(ListBase *lb)
 }
 
 
-static void undoMball_to_editMball(void *lbu, void *lbe)
+static void undoMball_to_editMball(void *lbu, void *lbe, void *obdata)
 {
 	ListBase *lb= lbu;
 	ListBase *editelems= lbe;
@@ -632,7 +632,7 @@ static void undoMball_to_editMball(void *lbu, void *lbe)
 	
 }
 
-static void *editMball_to_undoMball(void *lbe)
+static void *editMball_to_undoMball(void *lbe, void *obdata)
 {
 	ListBase *editelems= lbe;
 	ListBase *lb;

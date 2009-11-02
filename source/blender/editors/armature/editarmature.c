@@ -2086,7 +2086,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 
 /* **************** undo for armatures ************** */
 
-static void undoBones_to_editBones(void *lbuv, void *lbev)
+static void undoBones_to_editBones(void *lbuv, void *lbev, void *data)
 {
 	ListBase *lbu= lbuv;
 	ListBase *edbo= lbev;
@@ -2111,7 +2111,7 @@ static void undoBones_to_editBones(void *lbuv, void *lbev)
 	}
 }
 
-static void *editBones_to_undoBones(void *lbev)
+static void *editBones_to_undoBones(void *lbev, void *obdata)
 {
 	ListBase *edbo= lbev;
 	ListBase *lb;

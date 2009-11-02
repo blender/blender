@@ -77,6 +77,10 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 	CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
 
+	if (me->key && ob->shapenr > me->key->totkey) {
+		ob->shapenr = me->key->totkey-1;
+	}
+
 	actkey = ob_get_keyblock(ob);
 	if(actkey && actkey->totelem == me->totvert) {
 		/*check if we need to generate unique ids for the shapekeys.

@@ -95,8 +95,8 @@ typedef struct UndoElem {
 	char name[MAXUNDONAME];
 	void * (*getdata)(bContext *C);
 	void (*freedata)(void *);
-	void (*to_editmode)(void *, void *);
-	void * (*from_editmode)(void *);
+	void (*to_editmode)(void *, void *, void *);
+	void * (*from_editmode)(void *, void *);
 	int (*validate_undo)(void *, void *);
 } UndoElem;
 
@@ -106,10 +106,10 @@ static UndoElem *curundo= NULL;
 
 /* ********************* xtern api calls ************* */
 
-static void undo_restore(UndoElem *undo, void *editdata)
+static void undo_restore(UndoElem *undo, void *editdata, void *obdata)
 {
 	if(undo) {
-		undo->to_editmode(undo->undodata, editdata);	
+		undo->to_editmode(undo->undodata, editdata, obdata);	
 	}
 }
 
@@ -117,8 +117,8 @@ static void undo_restore(UndoElem *undo, void *editdata)
 void undo_editmode_push(bContext *C, char *name, 
 						void * (*getdata)(bContext *C),
 						void (*freedata)(void *), 
-						void (*to_editmode)(void *, void *),  
-						void *(*from_editmode)(void *),
+						void (*to_editmode)(void *, void *, void *),  
+						void *(*from_editmode)(void *, void *),
 						int (*validate_undo)(void *, void *))
 {
 	UndoElem *uel;
@@ -167,7 +167,7 @@ void undo_editmode_push(bContext *C, char *name,
 	/* copy  */
 	memused= MEM_get_memory_in_use();
 	editdata= getdata(C);
-	curundo->undodata= curundo->from_editmode(editdata);
+	curundo->undodata= curundo->from_editmode(editdata, obedit->data);
 	curundo->undosize= MEM_get_memory_in_use() - memused;
 	curundo->ob= obedit;
 	curundo->id= obedit->id;
@@ -240,12 +240,13 @@ static void undo_clean_stack(bContext *C)
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
 void undo_editmode_step(bContext *C, int step)
 {
-	
+	Object *ob = CTX_data_edit_object(C);
+
 	/* prevent undo to happen on wrong object, stack can be a mix */
 	undo_clean_stack(C);
 	
 	if(step==0) {
-		undo_restore(curundo, curundo->getdata(C));
+		undo_restore(curundo, curundo->getdata(C), ob->data);
 	}
 	else if(step==1) {
 		
@@ -253,7 +254,7 @@ void undo_editmode_step(bContext *C, int step)
 		else {
 			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
-			undo_restore(curundo, curundo->getdata(C));
+			undo_restore(curundo, curundo->getdata(C), ob->data);
 		}
 	}
 	else {
@@ -261,7 +262,7 @@ void undo_editmode_step(bContext *C, int step)
 		
 		if(curundo==NULL || curundo->next==NULL) error("No more steps to redo");
 		else {
-			undo_restore(curundo->next, curundo->getdata(C));
+			undo_restore(curundo->next, curundo->getdata(C), ob->data);
 			curundo= curundo->next;
 			if(G.f & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
