@@ -102,7 +102,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 	Py_DECREF(args);
 	
 	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
-		
+		PyObject *class_dict= PyObject_GetAttrString(py_class_instance, "__dict__");
 		
 		/* Assign instance attributes from operator properties */
 		if(op) {
@@ -114,7 +114,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 				if (strcmp(arg_name, "rna_type")==0) continue;
 
 				item = pyrna_prop_to_py(op->ptr, prop);
-				PyObject_SetAttrString(py_class_instance, arg_name, item);
+				PyDict_SetItemString(class_dict, arg_name, item);
 				Py_DECREF(item);
 			}
 			RNA_STRUCT_END;
@@ -124,7 +124,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		if(op) {
 			RNA_pointer_create(NULL, &RNA_Operator, op, &ptr_operator);
 			py_operator= pyrna_struct_CreatePyObject(&ptr_operator);
-			PyObject_SetAttrString(py_class_instance, "__operator__", py_operator);
+			PyDict_SetItemString(class_dict, "__operator__", py_operator);
 			Py_DECREF(py_operator);
 		}
 
@@ -158,6 +158,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		
 		Py_DECREF(args);
 		Py_DECREF(item);
+		Py_DECREF(class_dict);
 	}
 	
 	if (ret == NULL) { /* covers py_class_instance failing too */
@@ -245,7 +246,7 @@ static int PYTHON_OT_poll(bContext *C, wmOperatorType *ot)
 void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 {
 	PyObject *py_class = (PyObject *)userdata;
-	PyObject *props, *item;
+	PyObject *item;
 
 	/* identifiers */
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME_BL);
@@ -325,7 +326,6 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	
 	char *idname= NULL;
 	char idname_bl[OP_MAX_TYPENAME]; /* converted to blender syntax */
-	int i;
 
 	static struct BPY_class_attr_check pyop_class_attr_values[]= {
 		{PYOP_ATTR_IDNAME,		's', -1, OP_MAX_TYPENAME-3,	0}, /* -3 because a.b -> A_OT_b */
