@@ -3769,7 +3769,13 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 {
 	/* the simulator */
 	float forcetime;
-	double sct,sst=PIL_check_seconds_timer();
+	double sct,sst;
+		
+		
+	sst=PIL_check_seconds_timer();
+	/* integration back in time is possible in theory, but pretty useless here 
+	so refuse to do so */
+	if(dtime < 0) return; 
 	
 	ccd_update_deflector_hash(scene, ob, sb->scratch->colliderhash);
 
@@ -3784,8 +3790,8 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		/* special case of 2nd order Runge-Kutta type AKA Heun */
 		int mid_flags=0;
 		float err = 0;
-		float forcetimemax = 1.0f;
-		float forcetimemin = 0.001f;
+		float forcetimemax = 1.0f; /* set defaults guess we shall do one frame */
+		float forcetimemin = 0.01f; /* set defaults guess 1/100 is tight enough */
 		float timedone =0.0; /* how far did we get without violating error condition */
 							 /* loops = counter for emergency brake
 							 * we don't want to lock up the system if physics fail
@@ -3793,13 +3799,12 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		int loops =0 ; 
 		
 		SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
-		if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
-		
-		if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
+		/* adjust loop limits */
+		if (sb->minloops > 0) forcetimemax = dtime / sb->minloops;
+		if (sb->maxloops > 0) forcetimemin = dtime / sb->maxloops;
 
 		if(sb->solver_ID>0) mid_flags |= MID_PRESERVE;
 		
-		//forcetime = dtime; /* hope for integrating in one step */
 		forcetime =forcetimemax; /* hope for integrating in one step */
 		while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
 		{
