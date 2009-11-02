@@ -180,8 +180,14 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
             subrow = sub.row(align=True)
             subrow.active = enable_edit_value
-            subrow.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
-            subrow.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
+            if ob.shape_key_lock:
+                subrow.itemR(ob, "shape_key_lock", icon='ICON_PINNED', text="")
+            else:
+                subrow.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
+            if kb.mute:
+                subrow.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
+            else:
+                subrow.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
             subrow.itemO("object.shape_key_clear", icon='ICON_X', text="")
 
             sub.itemO("object.shape_key_mirror", icon='ICON_MOD_MIRROR', text="")

@@ -278,6 +278,7 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
         col = layout.column(align=True)
         col.itemL(text="Modeling:")
         col.itemO("armature.extrude_move")
+        col.itemO("armature.subdivide_multi", text="Subdivide")
 
         col = layout.column(align=True)
         col.itemL(text="Grease Pencil:")

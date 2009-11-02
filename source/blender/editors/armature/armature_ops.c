@@ -209,7 +209,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_bone_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 		/* only the menu-version of subdivide is registered in keymaps for now */
-	WM_keymap_add_item(keymap, "ARMATURE_OT_subdivs", SKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_subdivide_multi", WKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
