@@ -36,7 +36,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
             # show/key buttons here are most likely obsolete now, with
             # keyframing functionality being part of every button
-            if con.type not in ('RIGID_BODY_JOINT', 'NULL'):
+            if con.type not in ('RIGID_BODY_JOINT', 'SPLINE_IK', 'NULL'):
                 box.itemR(con, "influence")
 
     def space_template(self, layout, con, target=True, owner=True):
@@ -597,10 +597,17 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
     def SPLINE_IK(self, context, layout, con):
         self.target_template(layout, con)
-
-        row = layout.row()
-        row.itemR(con, "chain_length")
-        # TODO: add the various options this constraint has...
+        
+        col = layout.column()
+        col.itemL(text="Spline Fitting:")
+        col.itemR(con, "chain_length")
+        col.itemR(con, "even_divisions")
+        #col.itemR(con, "affect_root") # XXX: this is not that useful yet
+        
+        col = layout.column()
+        col.itemL(text="Chain Scaling:")
+        col.itemR(con, "keep_max_length")
+        col.itemR(con, "radius_to_thickness")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):

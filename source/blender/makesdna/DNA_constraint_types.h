@@ -546,11 +546,15 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 
 /* bSplineIKConstraint->flag */
 	/* chain has been attached to spline */
-#define CONSTRAINT_SPLINEIK_BOUND		(1<<0)
-	/* roll on chains is not determined by the constraint */
-#define CONSTRAINT_SPLINEIK_NO_TWIST	(1<<1)
-	/* root of chain is not influence by the constraint */
-#define CONSTRAINT_SPLINEIK_NO_ROOT		(1<<2)
+#define CONSTRAINT_SPLINEIK_BOUND			(1<<0)
+	/* root of chain is not influenced by the constraint */
+#define CONSTRAINT_SPLINEIK_NO_ROOT			(1<<1)
+	/* bones in the chain should not scale to fit the curve */
+#define CONSTRAINT_SPLINEIK_SCALE_LIMITED	(1<<2)
+	/* bones in the chain should take their x/z scales from the curve radius */
+#define CONSTRAINT_SPLINEIK_RAD2FAT			(1<<3)
+	/* evenly distribute the bones along the path regardless of length */
+#define CONSTRAINT_SPLINEIK_EVENSPLITS		(1<<4)			
 
 /* MinMax (floor) flags */
 #define MINMAX_STICKY	0x01

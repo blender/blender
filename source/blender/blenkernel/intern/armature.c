@@ -34,13 +34,12 @@
 
 #include "MEM_guardedalloc.h"
 
-//XXX #include "nla.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_lattice_types.h"
@@ -1613,7 +1612,10 @@ typedef struct tSplineIK_Tree {
 	
 	int 	type;					/* type of IK that this serves (CONSTRAINT_TYPE_KINEMATIC or ..._SPLINEIK) */
 	
-	int chainlen;					/* number of bones in the chain */
+	short free_points;				/* free the point positions array */
+	short chainlen;					/* number of bones in the chain */
+	
+	float *points;					/* parametric positions for the joints along the curve */
 	bPoseChannel **chain;			/* chain of bones to affect using Spline IK (ordered from the tip) */
 	
 	bPoseChannel *root;				/* bone that is the root node of the chain */
@@ -1631,8 +1633,9 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 	bPoseChannel *pchanChain[255];
 	bConstraint *con = NULL;
 	bSplineIKConstraint *ikData = NULL;
-	float boneLengths[255];
+	float boneLengths[255], *jointPoints;
 	float totLength = 0.0f;
+	short free_joints = 0;
 	int segcount = 0;
 	
 	/* find the SplineIK constraint */
@@ -1662,10 +1665,8 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 		pchanChain[segcount]= pchan;
 		
 		/* if performing rebinding, calculate the length of the bone */
-		if ((ikData->flag & CONSTRAINT_SPLINEIK_BOUND) == 0) {
-			boneLengths[segcount]= pchan->bone->length;
-			totLength += boneLengths[segcount];
-		}
+		boneLengths[segcount]= pchan->bone->length;
+		totLength += boneLengths[segcount];
 		
 		/* check if we've gotten the number of bones required yet (after incrementing the count first)
 		 * NOTE: the 255 limit here is rather ugly, but the standard IK does this too!
@@ -1699,9 +1700,8 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 				/* 'head' joints 
 				 * 	- 2 methods; the one chosen depends on whether we've got usable lengths
 				 */
-				if (totLength == 0.0f) {
+				if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
 					/* 1) equi-spaced joints */
-					// TODO: maybe this should become an option too, in case we want this option by default
 					ikData->points[i]= segmentLen;
 				}
 				else {
@@ -1724,8 +1724,37 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 	/* apply corrections for sensitivity to scaling on a copy of the bind points,
 	 * since it's easier to determine the positions of all the joints beforehand this way
 	 */
-	// TODO: code me!
-	
+	if ((ikData->flag & CONSTRAINT_SPLINEIK_SCALE_LIMITED) && (totLength != 0.0f)) {
+		Curve *cu= (Curve *)ikData->tar->data;
+		float splineLen, maxScale;
+		int i;
+		
+		/* make a copy of the points array, that we'll store in the tree 
+		 *	- although we could just multiply the points on the fly, this approach means that
+		 * 	  we can introduce per-segment stretchiness later if it is necessary
+		 */
+		jointPoints= MEM_dupallocN(ikData->points);
+		free_joints= 1;
+		
+		/* get the current length of the curve */
+		// NOTE: this is assumed to be correct even after the curve was resized
+		splineLen= cu->path->totdist;
+		
+		/* calculate the scale factor to multiply all the path values by so that the 
+		 * bone chain retains its current length, such that
+		 *	maxScale * splineLen = totLength
+		 */
+		maxScale = totLength / splineLen;
+		
+		/* apply scaling correction to all of the temporary points */
+		for (i = 0; i < segcount; i++)
+			jointPoints[i] *= maxScale;
+	}
+	else {
+		/* just use the existing points array */
+		jointPoints= ikData->points;
+		free_joints= 0;
+	}
 	
 	/* make a new Spline-IK chain, and store it in the IK chains */
 	// TODO: we should check if there is already an IK chain on this, since that would take presidence...
@@ -1740,6 +1769,11 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 		tree->chain= MEM_callocN(sizeof(bPoseChannel*)*segcount, "SplineIK Chain");
 		memcpy(tree->chain, pchanChain, sizeof(bPoseChannel*)*segcount);
 		
+		/* store reference to joint position array */
+		tree->points= jointPoints;
+		tree->free_points= free_joints;
+		
+		/* store references to different parts of the chain */
 		tree->root= pchanRoot;
 		tree->con= con;
 		tree->ikData= ikData;
@@ -1767,28 +1801,53 @@ static void splineik_init_tree(Scene *scene, Object *ob, float ctime)
 /* ----------- */
 
 /* Evaluate spline IK for a given bone */
-// TODO: this method doesn't allow for non-strechiness...
-// TODO: include code for dealing with constraint blending
-static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChannel *pchan, int index)
+static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *ob, bPoseChannel *pchan, int index, float ctime)
 {
 	bSplineIKConstraint *ikData= tree->ikData;
 	float dirX[3]={1,0,0}, dirZ[3]={0,0,1};
 	float axis1[3], axis2[3], tmpVec[3];
 	float splineVec[3], scaleFac;
+	float rad, radius=1.0f;
 	float vec[4], dir[3];
 	
-	/* step 1: get xyz positions for the endpoints of the bone */
+	/* step 1: get xyz positions for the endpoints of the bone
+	 * 	assume that they can be calculated on the path so that these calls will never fail
+	 */
 		/* tail */
-	if ( where_on_path(ikData->tar, ikData->points[index], vec, dir, NULL, NULL) ) {
+	if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad) ) {
 		/* convert the position to pose-space, then store it */
 		Mat4MulVecfl(ob->imat, vec);
 		VECCOPY(pchan->pose_tail, vec);
+		
+		/* set the new radius */
+		radius= rad;
 	}
-		/* head */  // TODO: only calculate here when we're 
-	if ( where_on_path(ikData->tar, ikData->points[index+1], vec, dir, NULL, NULL) ) {
-		/* store the position, and convert it to pose space */
-		Mat4MulVecfl(ob->imat, vec);
-		VECCOPY(pchan->pose_head, vec);
+		/* head 
+		 *	- check that this isn't the last bone that is subject to restrictions 
+		 *	  i.e. if no-root option is enabled, the root should be calculated in the standard way
+		 */
+	if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT)==0 || (index+1 < ikData->chainlen)) 
+	{
+		/* the head location of this bone is driven by the spline */
+		if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
+			/* store the position, and convert it to pose space */
+			Mat4MulVecfl(ob->imat, vec);
+			VECCOPY(pchan->pose_head, vec);
+			
+			/* set the new radius (it should be the average value) */
+			radius = (radius+rad) / 2;
+		}
+	}
+	else { 
+		// FIXME: this option isn't really useful yet...
+		//	maybe we are more interested in the head deltas that arise from this instead?
+		/* use the standard calculations for this */
+		where_is_pose_bone(scene, ob, pchan, ctime);
+		
+		/* hack: assume for now that the pose_tail vector is still valid from the previous step, 
+		 * and set that again now so that the chain doesn't get broken
+		 */
+		VECCOPY(pchan->pose_tail, vec); 
 	}
 	
 	
@@ -1833,9 +1892,15 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Object *ob, bPoseChanne
 		// TODO: code me!
 	
 	
-	/* step 4: only multiply the y-axis by the scaling factor to get nice volume-preservation */
-	// NOTE: the x+z could get multiplied too, but that may be best left as an option
+	/* step 4: set the scaling factors for the axes */
+		/* only multiply the y-axis by the scaling factor to get nice volume-preservation */
 	VecMulf(pchan->pose_mat[1], scaleFac);
+		
+		/* set the scaling factors of the x and z axes from the average radius of the curve? */
+	if (ikData->flag & CONSTRAINT_SPLINEIK_RAD2FAT) {
+		VecMulf(pchan->pose_mat[0], radius);
+		VecMulf(pchan->pose_mat[2], radius);
+	}
 	
 	/* step 5: set the location of the bone in the matrix */
 	VECCOPY(pchan->pose_mat[3], pchan->pose_head);
@@ -1855,17 +1920,23 @@ static void splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_
 		if (tree->type == CONSTRAINT_TYPE_SPLINEIK) {
 			int i;
 			
-			/* walk over each bone in the chain, calculating the effects of spline IK */
-			for (i= 0; i < tree->chainlen; i++) {
+			/* walk over each bone in the chain, calculating the effects of spline IK
+			 * 	- the chain is traversed in the opposite order to storage order (i.e. parent to children)
+			 *	  so that dependencies are correct
+			 */
+			for (i= tree->chainlen-1; i >= 0; i--) {
 				bPoseChannel *pchan= tree->chain[i];
-				splineik_evaluate_bone(tree, ob, pchan, i);
+				splineik_evaluate_bone(tree, scene, ob, pchan, i, ctime);
 			}
 			
 			// TODO: if another pass is needed to ensure the validity of the chain after blending, it should go here
+			
+			/* free the tree info specific to SplineIK trees now */
+			if (tree->chain) MEM_freeN(tree->chain);
+			if (tree->free_points) MEM_freeN(tree->points);
 		}
 		
-		/* free the tree info now */
-		if (tree->chain) MEM_freeN(tree->chain);
+		/* free this tree */
 		BLI_freelinkN(&pchan_root->iktree, tree);
 	}
 }

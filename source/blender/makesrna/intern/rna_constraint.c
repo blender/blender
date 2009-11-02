@@ -1683,10 +1683,11 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SplineIKConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Spline IK Constraint", "Align 'n' bones along a curve.");
 	RNA_def_struct_sdna_from(srna, "bSplineIKConstraint", "data");
-
+	
+	/* target chain */
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tar"); // TODO: curve only
-	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_ui_text(prop, "Target", "Curve that controls this relationship");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 	
@@ -1697,6 +1698,27 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 	
 	// TODO: add access to the positions array to allow more flexible aligning?
+	
+	/* settings */
+	prop= RNA_def_property(srna, "affect_root", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_NO_ROOT);
+	RNA_def_property_ui_text(prop, "Affect Root", "Include the root joint in the calculations.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "even_divisions", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_EVENSPLITS);
+	RNA_def_property_ui_text(prop, "Even Divisions", "Ignore the relative lengths of the bones when fitting to the curve.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "keep_max_length", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_SCALE_LIMITED);
+	RNA_def_property_ui_text(prop, "Keep Max Length", "Maintain the maximum length of the chain when spline is stretched.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "radius_to_thickness", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_RAD2FAT);
+	RNA_def_property_ui_text(prop, "Radius to Thickness", "Radius of the spline affects the x/z scaling of the bones.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
 /* base struct for constraints */
