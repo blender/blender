@@ -342,6 +342,722 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub1.itemR(system, "memory_cache_limit")
 
 
+class USERPREF_PT_theme(bpy.types.Panel):
+    bl_space_type = 'USER_PREFERENCES'
+    bl_label = "Themes"
+    bl_region_type = 'WINDOW'
+    bl_show_header = False
+
+    def poll(self, context):
+        userpref = context.user_preferences
+
+        return (userpref.active_section == 'THEMES')
+
+    def draw(self, context):
+        layout = self.layout
+        
+        theme = context.user_preferences.themes[0]
+        
+        
+        split = layout.split(percentage=0.33)
+        split.itemR(theme, "active_theme", text="")
+        
+        layout.itemS()
+        
+        split = layout.split()
+        
+        if theme.active_theme == 'VIEW_3D':
+            v3d = theme.view_3d
+            
+            col = split.column()  
+            col.itemR(v3d, "back")
+            col.itemR(v3d, "title")
+            col.itemR(v3d, "text")
+            col.itemR(v3d, "text_hi")
+            col.itemR(v3d, "header")
+            col.itemR(v3d, "header_text")
+            
+            col = split.column()  
+            col.itemR(v3d, "header_text_hi")    
+            col.itemR(v3d, "grid")
+            col.itemR(v3d, "panel", slider=True)
+            col.itemR(v3d, "wire")
+            col.itemR(v3d, "lamp", slider=True)
+            
+            col = split.column()  
+            col.itemR(v3d, "current_frame")
+            col.itemR(v3d, "editmesh_active", slider=True)  
+            col.itemR(v3d, "object_selected")
+            col.itemR(v3d, "object_active")
+            col.itemR(v3d, "object_grouped")
+            col.itemR(v3d, "object_grouped_active")
+            
+            col = split.column()  
+            col.itemR(v3d, "transform")
+            col.itemR(v3d, "vertex")
+            col.itemR(v3d, "face", slider=True)
+            col.itemR(v3d, "normal")
+            col.itemR(v3d, "bone_solid")
+            col.itemR(v3d, "bone_pose") 
+
+#           col.itemR(v3d, "edge") Doesn't seem to work
+        elif theme.active_theme == 'USER_INTERFACE':
+            
+            ui = theme.user_interface.wcol_regular
+            
+            layout.itemL(text="Regular:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            layout.itemS()
+            
+            ui = theme.user_interface.wcol_tool
+            layout.itemL(text="Tool:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_radio
+            layout.itemL(text="Radio Buttons:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_text
+            layout.itemL(text="Text:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_option
+            layout.itemL(text="Option:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_toggle
+            layout.itemL(text="Toggle:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_num
+            layout.itemL(text="Number Field:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_numslider
+            layout.itemL(text="Value Slider:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_box
+            layout.itemL(text="Box:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_menu
+            layout.itemL(text="Menu:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_pulldown
+            layout.itemL(text="Pulldown:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_menu_back
+            layout.itemL(text="Menu Back:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_menu_item
+            layout.itemL(text="Menu Item:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_scroll
+            layout.itemL(text="Scroll Bar:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_list_item
+            layout.itemL(text="List Item:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "outline")
+            sub1.itemR(ui, "item", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner", slider=True)
+            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1 = sub.column()
+            sub1.itemR(ui, "text")
+            sub1.itemR(ui, "text_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "shaded")
+            sub2 = sub1.column(align=True)
+            sub2.active = ui.shaded
+            sub2.itemR(ui, "shadetop")
+            sub2.itemR(ui, "shadedown")
+            
+            ui = theme.user_interface.wcol_state
+            layout.itemL(text="State:")
+            
+            sub = layout.row()
+            sub1 = sub.column()  
+            sub1.itemR(ui, "inner_anim")
+            sub1.itemR(ui, "inner_anim_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner_driven")
+            sub1.itemR(ui, "inner_driven_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "inner_key")
+            sub1.itemR(ui, "inner_key_sel")
+            sub1 = sub.column()
+            sub1.itemR(ui, "blend")
+            
+            ui = theme.user_interface
+            layout.itemS()
+            
+            sub = layout.row() 
+            sub.itemR(ui, "icon_file")
+            
+            layout.itemS()
+            layout.itemS()
+            
+
+        elif theme.active_theme == 'GRAPH_EDITOR':
+            graph = theme.graph_editor
+            
+            col = split.column()
+            col.itemR(graph, "back")
+            col.itemR(graph, "title")
+            col.itemR(graph, "text")
+            col.itemR(graph, "text_hi")
+            col.itemR(graph, "header")
+            
+            col = split.column()
+            col.itemR(graph, "header_text")
+            col.itemR(graph, "header_text_hi")   
+            col.itemR(graph, "grid")
+            col.itemR(graph, "panel")
+            col.itemR(graph, "window_sliders")
+            
+            col = split.column()
+            col.itemR(graph, "channels_region")
+            col.itemR(graph, "vertex")
+            col.itemR(graph, "current_frame")
+            col.itemR(graph, "handle_vertex")
+            col.itemR(graph, "handle_vertex_select")
+            
+            col = split.column()
+            col.itemR(graph, "handle_vertex_size")
+            col.itemR(graph, "channel_group")
+            col.itemR(graph, "active_channels_group")
+            col.itemR(graph, "dopesheet_channel")
+            col.itemR(graph, "dopesheet_subchannel")
+            
+            
+        elif theme.active_theme == 'FILE_BROWSER':
+            file = theme.file_browser
+           
+            col = split.column()
+            col.itemR(file, "back")
+            col.itemR(file, "title")
+            col.itemR(file, "text")
+            col.itemR(file, "text_hi")
+            
+            col = split.column()
+            col.itemR(file, "header")
+            col.itemR(file, "header_text")
+            col.itemR(file, "header_text_hi")
+            
+            col = split.column()
+            col.itemR(file, "selected_file")
+            col.itemR(file, "tiles")
+            col.itemR(file, "scrollbar")
+            
+            col = split.column()
+            col.itemR(file, "scroll_handle")
+            col.itemR(file, "active_file")
+            col.itemR(file, "active_file_text")
+            
+        elif theme.active_theme == 'NLA_EDITOR':
+            nla = theme.nla_editor
+            
+            col = split.column()
+            col.itemR(nla, "back")
+            col.itemR(nla, "title")
+            col.itemR(nla, "text")
+            col.itemR(nla, "text_hi")
+            
+            col = split.column()
+            col.itemR(nla, "header")
+            col.itemR(nla, "header_text")
+            col.itemR(nla, "header_text_hi")
+            col.itemR(nla, "grid")
+            
+            col = split.column()
+            col.itemR(nla, "view_sliders")
+            col.itemR(nla, "bars")
+            col.itemR(nla, "bars_selected")
+            
+            col = split.column()
+            col.itemR(nla, "strips")
+            col.itemR(nla, "strips_selected")
+            col.itemR(nla, "current_frame")
+            
+        elif theme.active_theme == 'DOPESHEET_EDITOR':
+            dope = theme.dopesheet_editor
+            
+            col = split.column()
+            col.itemR(dope, "back")
+            col.itemR(dope, "title")
+            col.itemR(dope, "text")
+            col.itemR(dope, "text_hi")
+            col.itemR(dope, "header")
+            
+            col = split.column()
+            col.itemR(dope, "header_text")
+            col.itemR(dope, "header_text_hi")
+            col.itemR(dope, "grid")
+            col.itemR(dope, "value_sliders")
+            col.itemR(dope, "view_sliders")
+            
+            col = split.column()
+            col.itemR(dope, "channels")
+            col.itemR(dope, "channels_selected")
+            col.itemR(dope, "channel_group")
+            col.itemR(dope, "active_channels_group")
+            col.itemR(dope, "long_key")
+            
+            col = split.column()
+            col.itemR(dope, "long_key_selected")
+            col.itemR(dope, "current_frame")
+            col.itemR(dope, "dopesheet_channel")
+            col.itemR(dope, "dopesheet_subchannel")
+            
+        elif theme.active_theme == 'IMAGE_EDITOR':
+            image = theme.image_editor
+
+            col = split.column()
+            col.itemR(image, "back")
+            col.itemR(image, "title")
+            
+            col = split.column()
+            col.itemR(image, "text")
+            col.itemR(image, "text_hi")
+            
+            col = split.column()
+            col.itemR(image, "header")
+            col.itemR(image, "header_text")
+            
+            col = split.column()
+            col.itemR(image, "header_text_hi")
+            col.itemR(image, "editmesh_active", slider=True)
+            
+        elif theme.active_theme == 'SEQUENCE_EDITOR':
+            seq = theme.sequence_editor
+           
+            col = split.column()
+            col.itemR(seq, "back")
+            col.itemR(seq, "title")
+            col.itemR(seq, "text")
+            col.itemR(seq, "text_hi")
+            col.itemR(seq, "header")
+            
+            col = split.column()
+            col.itemR(seq, "header_text")
+            col.itemR(seq, "header_text_hi")
+            col.itemR(seq, "grid")
+            col.itemR(seq, "window_sliders")
+            col.itemR(seq, "movie_strip")
+            
+            col = split.column()
+            col.itemR(seq, "image_strip")
+            col.itemR(seq, "scene_strip")
+            col.itemR(seq, "audio_strip")
+            col.itemR(seq, "effect_strip")
+            col.itemR(seq, "plugin_strip")
+            
+            col = split.column()
+            col.itemR(seq, "transition_strip")
+            col.itemR(seq, "meta_strip")
+            col.itemR(seq, "current_frame")
+            col.itemR(seq, "keyframe")
+            col.itemR(seq, "draw_action")
+            
+        elif theme.active_theme == 'PROPERTIES':
+            prop = theme.properties
+           
+            col = split.column()
+            col.itemR(prop, "back")
+            col.itemR(prop, "title")
+            
+            col = split.column()
+            col.itemR(prop, "text")
+            col.itemR(prop, "text_hi")
+           
+            col = split.column()
+            col.itemR(prop, "header")
+            col.itemR(prop, "header_text")
+           
+            col = split.column()
+            col.itemR(prop, "header_text_hi")
+            col.itemR(prop, "panel")
+            
+        elif theme.active_theme == 'TEXT_EDITOR':
+            text = theme.text_editor
+           
+            col = split.column()
+            col.itemR(text, "back")
+            col.itemR(text, "title")
+            col.itemR(text, "text")
+            col.itemR(text, "text_hi")
+            
+            col = split.column()
+            col.itemR(text, "header")
+            col.itemR(text, "header_text")
+            col.itemR(text, "header_text_hi")
+            col.itemR(text, "line_numbers_background")
+            
+            col = split.column()
+            col.itemR(text, "scroll_bar")
+            col.itemR(text, "selected_text")
+            col.itemR(text, "cursor")
+            col.itemR(text, "syntax_builtin")
+            
+            col = split.column()
+            col.itemR(text, "syntax_special")
+            col.itemR(text, "syntax_comment")
+            col.itemR(text, "syntax_string")
+            col.itemR(text, "syntax_numbers")
+            
+        elif theme.active_theme == 'TIMELINE':
+            time = theme.timeline
+            
+            col = split.column()
+            col.itemR(time, "back")
+            col.itemR(time, "title")
+            col.itemR(time, "text")
+            
+            col = split.column()
+            col.itemR(time, "text_hi")
+            col.itemR(time, "header")
+            
+            col = split.column()
+            col.itemR(time, "header_text")
+            col.itemR(time, "header_text_hi")
+            
+            col = split.column()
+            col.itemR(time, "grid")
+            col.itemR(time, "current_frame")
+            
+        elif theme.active_theme == 'NODE_EDITOR':
+            node = theme.node_editor
+            
+            col = split.column()
+            col.itemR(node, "back")
+            col.itemR(node, "title")
+            col.itemR(node, "text")
+            col.itemR(node, "text_hi")
+            
+            col = split.column()
+            col.itemR(node, "header")
+            col.itemR(node, "header_text")
+            col.itemR(node, "header_text_hi")
+            col.itemR(node, "wires")
+            
+            col = split.column()
+            col.itemR(node, "wire_select")
+            col.itemR(node, "selected_text")
+            col.itemR(node, "node_backdrop")
+            col.itemR(node, "in_out_node")
+            
+            col = split.column()
+            col.itemR(node, "converter_node")
+            col.itemR(node, "operator_node")
+            col.itemR(node, "group_node")
+            
+        elif theme.active_theme == 'LOGIC_EDITOR':
+            logic = theme.logic_editor
+           
+            col = split.column()
+            col.itemR(logic, "back")
+            col.itemR(logic, "title")
+            
+            col = split.column()
+            col.itemR(logic, "text")
+            col.itemR(logic, "text_hi")
+            
+            col = split.column()
+            col.itemR(logic, "header")
+            col.itemR(logic, "header_text")
+            
+            col = split.column()
+            col.itemR(logic, "header_text_hi")
+            col.itemR(logic, "panel")
+
+        elif theme.active_theme == 'OUTLINER':
+            out = theme.outliner
+            
+            col = split.column()
+            col.itemR(out, "back")
+            col.itemR(out, "title")
+            
+            col = split.column()
+            col.itemR(out, "text")
+            col.itemR(out, "text_hi")
+            
+            col = split.column()
+            col.itemR(out, "header")
+            col.itemR(out, "header_text")
+            
+            col = split.column()
+            col.itemR(out, "header_text_hi")
+            
+        elif theme.active_theme == 'INFO':
+            info = theme.info
+            
+            col = split.column()
+            col.itemR(info, "back")
+            col.itemR(info, "title")
+            
+            col = split.column()
+            col.itemR(info, "text")
+            col.itemR(info, "text_hi")
+            
+            col = split.column()
+            col.itemR(info, "header")
+            col.itemR(info, "header_text")
+            
+            col = split.column()
+            col.itemR(info, "header_text_hi")
+           
+        elif theme.active_theme == 'USER_PREFERENCES':
+            prefs = theme.user_preferences
+            
+            col = split.column()
+            col.itemR(prefs, "back")
+            col.itemR(prefs, "title")
+            
+            col = split.column()
+            col.itemR(prefs, "text")
+            col.itemR(prefs, "text_hi")
+            
+            col = split.column()
+            col.itemR(prefs, "header")
+            col.itemR(prefs, "header_text")
+            
+            col = split.column()
+            col.itemR(prefs, "header_text_hi")
+
+
 class USERPREF_PT_file(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Files"
@@ -585,6 +1301,7 @@ bpy.types.register(USERPREF_HT_header)
 bpy.types.register(USERPREF_MT_view)
 bpy.types.register(USERPREF_PT_tabs)
 bpy.types.register(USERPREF_PT_interface)
+bpy.types.register(USERPREF_PT_theme)
 bpy.types.register(USERPREF_PT_edit)
 bpy.types.register(USERPREF_PT_system)
 bpy.types.register(USERPREF_PT_file)
