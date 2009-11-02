@@ -118,7 +118,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if st.display_mode == 'IMAGE':
             layout.itemR(st, "draw_safe_margin")
         if st.display_mode == 'WAVEFORM':
-            layout.itemR(st, "seperate_color_preview")
+            layout.itemR(st, "separate_color_preview")
 
         """
     if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");

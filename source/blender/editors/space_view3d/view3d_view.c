@@ -1447,7 +1447,7 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Local View";
-	ot->description= "Toggle display of selected object(s) seperately and centered in view.";
+	ot->description= "Toggle display of selected object(s) separately and centered in view.";
 	ot->idname= "VIEW3D_OT_localview";
 	
 	/* api callbacks */
