@@ -128,7 +128,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_select_linked);
 	WM_operatortype_append(POSE_OT_select_constraint_target);
 	
-	WM_operatortype_append(POSE_OT_groups_menu);
 	WM_operatortype_append(POSE_OT_group_add);
 	WM_operatortype_append(POSE_OT_group_remove);
 	WM_operatortype_append(POSE_OT_group_assign);
@@ -312,7 +311,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "POSE_OT_ik_add", IKEY, KM_PRESS, /*KM_CTRL|*/KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_ik_clear", IKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "POSE_OT_groups_menu", GKEY, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", GKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_pose_group");
 	
 		/* set flags */
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);
