@@ -479,7 +479,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 	obedit= add_object(scene, OB_FONT);
 	base= scene->basact;
 
-	ED_object_base_init_from_view(C, base);
+	ED_object_base_init_from_view(C, base, 1); /* seems to assume view align ? TODO - look into this, could be an operator option */
 	where_is_object(scene, obedit);
 
 	obedit->loc[0] += offset[0];

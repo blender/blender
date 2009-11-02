@@ -1334,7 +1334,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         col.itemR(view, "all_object_centers")
         col.itemR(view, "relationship_lines")
         if ob and ob.type == 'MESH':
-            mesh = context.active_object.data
+            mesh = ob.data
             col.itemR(mesh, "all_edges")
 
         col = layout.column()

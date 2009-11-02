@@ -1970,7 +1970,10 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 	ot->invoke= set_3dcursor_invoke;
 
 	ot->poll= ED_operator_view3d_active;
-
+    
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+    
 	/* rna later */
 
 }

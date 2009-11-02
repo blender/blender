@@ -1272,7 +1272,7 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 	}
 
 	if (!i)
-		return;
+		return NULL;
 
 	validmap = MEM_callocN(i, "wpaint valid map");
 
