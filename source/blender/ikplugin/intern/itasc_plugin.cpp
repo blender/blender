@@ -89,6 +89,7 @@ void KDL::SetToZero(JntArray& array);
 // one structure for each target in the scene
 struct IK_Target
 {
+	struct Scene			*blscene;
 	iTaSC::MovingFrame*		target;
 	iTaSC::ConstraintSet*	constraint;
 	struct bConstraint*		blenderConstraint;
@@ -105,6 +106,7 @@ struct IK_Target
 	float					eeRest[4][4];	//end effector initial pose relative to armature
 
 	IK_Target() {
+		blscene = NULL;
 		target = NULL;
 		constraint = NULL;
 		blenderConstraint = NULL;
@@ -155,6 +157,7 @@ struct IK_Channel {
 
 struct IK_Scene
 {
+	struct Scene		*blscene;
 	IK_Scene*			next;
 	int					numchan;	// number of channel in pchan
 	int					numjoint;	// number of joint in jointArray
@@ -172,6 +175,7 @@ struct IK_Scene
 	std::vector<IK_Target*>		targets;
 
 	IK_Scene() {
+		blscene = NULL;
 		next = NULL;
 		channels = NULL;
 		armature = NULL;
@@ -533,7 +537,7 @@ static bool target_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Fram
 	bConstraint* constraint = (bConstraint*)target->blenderConstraint;
 	float tarmat[4][4];
 
-	get_constraint_target_matrix(constraint, 0, CONSTRAINT_OBTYPE_OBJECT, target->owner, tarmat, 1.0);
+	get_constraint_target_matrix(target->blscene, constraint, 0, CONSTRAINT_OBTYPE_OBJECT, target->owner, tarmat, 1.0);
 
 	// rootmat contains the target pose in world coordinate
 	// if enforce is != 1.0, blend the target position with the end effector position
@@ -601,7 +605,7 @@ static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame&
 		IK_Channel &rootchan = ikscene->channels[0];
 
 		// get polar target matrix in world space
-		get_constraint_target_matrix(ikscene->polarConstraint, 1, CONSTRAINT_OBTYPE_OBJECT, ikscene->blArmature, mat, 1.0);
+		get_constraint_target_matrix(ikscene->blscene, ikscene->polarConstraint, 1, CONSTRAINT_OBTYPE_OBJECT, ikscene->blArmature, mat, 1.0);
 		// convert to armature space
 		Mat4MulMat4(polemat, mat, imat);
 		// get the target in world space (was computed before as target object are defined before base object)
@@ -1050,6 +1054,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		return NULL;
 
 	ikscene = new IK_Scene;
+	ikscene->blscene = blscene;
 	arm = new iTaSC::Armature();
 	scene = new iTaSC::Scene();
 	ikscene->channels = new IK_Channel[tree->totchannel];
@@ -1382,6 +1387,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 	// finally add the constraint
 	for (t=0; t<ikscene->targets.size(); t++) {
 		IK_Target* iktarget = ikscene->targets[t];
+		iktarget->blscene = blscene;
 		condata= (bKinematicConstraint*)iktarget->blenderConstraint->data;
 		pchan = tree->pchan[iktarget->channel];
 		unsigned int controltype, bonecnt;
@@ -1411,10 +1417,22 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		switch (condata->type) {
 		case CONSTRAINT_IK_COPYPOSE:
 			controltype = 0;
-			if ((condata->flag & CONSTRAINT_IK_ROT) && (condata->orientweight != 0.0))
-				controltype |= iTaSC::CopyPose::CTL_ROTATION;
-			if ((condata->weight != 0.0))
-				controltype |= iTaSC::CopyPose::CTL_POSITION;
+			if (condata->flag & CONSTRAINT_IK_ROT) {
+				if (!(condata->flag & CONSTRAINT_IK_NO_ROT_X))
+					controltype |= iTaSC::CopyPose::CTL_ROTATIONX;
+				if (!(condata->flag & CONSTRAINT_IK_NO_ROT_Y))
+					controltype |= iTaSC::CopyPose::CTL_ROTATIONY;
+				if (!(condata->flag & CONSTRAINT_IK_NO_ROT_Z))
+					controltype |= iTaSC::CopyPose::CTL_ROTATIONZ;
+			}
+			if (condata->flag & CONSTRAINT_IK_POS) {
+				if (!(condata->flag & CONSTRAINT_IK_NO_POS_X))
+					controltype |= iTaSC::CopyPose::CTL_POSITIONX;
+				if (!(condata->flag & CONSTRAINT_IK_NO_POS_Y))
+					controltype |= iTaSC::CopyPose::CTL_POSITIONY;
+				if (!(condata->flag & CONSTRAINT_IK_NO_POS_Z))
+					controltype |= iTaSC::CopyPose::CTL_POSITIONZ;
+			}
 			if (controltype) {
 				iktarget->constraint = new iTaSC::CopyPose(controltype, controltype, bonelen);
 				// set the gain
@@ -1426,7 +1444,10 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 				iktarget->errorCallback = copypose_error;
 				iktarget->controlType = controltype;
 				// add the constraint
-				ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, armname, iktarget->targetName, ikscene->channels[iktarget->channel].tail);
+				if (condata->flag & CONSTRAINT_IK_TARGETAXIS)
+					ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, iktarget->targetName, armname, "", ikscene->channels[iktarget->channel].tail);
+				else
+					ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, armname, iktarget->targetName, ikscene->channels[iktarget->channel].tail);
 			}
 			break;
 		case CONSTRAINT_IK_DISTANCE:
