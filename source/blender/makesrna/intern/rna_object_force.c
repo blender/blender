@@ -300,7 +300,7 @@ static char *rna_CollisionSettings_path(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 	
-	return BLI_sprintfN("modifiers[%s].settings", md->name);
+	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
 }
 
 static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
@@ -417,7 +417,7 @@ static char *rna_SoftBodySettings_path(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
 	
-	return BLI_sprintfN("modifiers[%s].settings", md->name);
+	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
 }
 
 static int particle_id_check(PointerRNA *ptr)
@@ -575,7 +575,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 		if (md) {
 			/* no pointer from modifier data to actual softbody storage, would be good to add */
 			if (ob->soft->effector_weights == ew)
-				return BLI_sprintfN("modifiers[%s].settings.effector_weights", md->name);
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", md->name);
 		}
 		
 		/* check cloth modifier */
@@ -584,7 +584,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 			ClothModifierData *cmd = (ClothModifierData *)md;
 			
 			if (cmd->sim_parms->effector_weights == ew)
-				return BLI_sprintfN("modifiers[%s].settings.effector_weights", md->name);
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", md->name);
 		}
 		
 		/* check smoke modifier */
@@ -593,7 +593,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 			SmokeModifierData *smd = (SmokeModifierData *)md;
 			
 			if (smd->domain->effector_weights == ew)
-				return BLI_sprintfN("modifiers[%s].settings.effector_weights", md->name);
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", md->name);
 		}
 	}
 	return NULL;

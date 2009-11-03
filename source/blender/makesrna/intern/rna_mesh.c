@@ -798,7 +798,7 @@ static char *rna_MeshVertex_path(PointerRNA *ptr)
 
 static char *rna_MeshTextureFaceLayer_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("uv_textures[%s]", ((CustomDataLayer*)ptr->data)->name);
+	return BLI_sprintfN("uv_textures[\"%s\"]", ((CustomDataLayer*)ptr->data)->name);
 }
 
 static char *rna_CustomDataData_path(PointerRNA *ptr, char *collection, int type)
@@ -813,7 +813,7 @@ static char *rna_CustomDataData_path(PointerRNA *ptr, char *collection, int type
 		if(cdl->type == type) {
 			b= ((char*)ptr->data - ((char*)cdl->data))/CustomData_sizeof(type);
 			if(b >= 0 && b < me->totface)
-				return BLI_sprintfN("%s[%s].data[%d]", collection, cdl->name, b);
+				return BLI_sprintfN("%s[\"%s\"].data[%d]", collection, cdl->name, b);
 		}
 	}
 
@@ -827,7 +827,7 @@ static char *rna_MeshTextureFace_path(PointerRNA *ptr)
 
 static char *rna_MeshColorLayer_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("vertex_colors[%s]", ((CustomDataLayer*)ptr->data)->name);
+	return BLI_sprintfN("vertex_colors[\"%s\"]", ((CustomDataLayer*)ptr->data)->name);
 }
 
 static char *rna_MeshColor_path(PointerRNA *ptr)
@@ -842,7 +842,7 @@ static char *rna_MeshSticky_path(PointerRNA *ptr)
 
 static char *rna_MeshIntPropertyLayer_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("int_layers[%s]", ((CustomDataLayer*)ptr->data)->name);
+	return BLI_sprintfN("int_layers[\"%s\"]", ((CustomDataLayer*)ptr->data)->name);
 }
 
 static char *rna_MeshIntProperty_path(PointerRNA *ptr)
@@ -852,7 +852,7 @@ static char *rna_MeshIntProperty_path(PointerRNA *ptr)
 
 static char *rna_MeshFloatPropertyLayer_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("float_layers[%s]", ((CustomDataLayer*)ptr->data)->name);
+	return BLI_sprintfN("float_layers[\"%s\"]", ((CustomDataLayer*)ptr->data)->name);
 }
 
 static char *rna_MeshFloatProperty_path(PointerRNA *ptr)
@@ -862,7 +862,7 @@ static char *rna_MeshFloatProperty_path(PointerRNA *ptr)
 
 static char *rna_MeshStringPropertyLayer_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("string_layers[%s]", ((CustomDataLayer*)ptr->data)->name);
+	return BLI_sprintfN("string_layers[\"%s\"]", ((CustomDataLayer*)ptr->data)->name);
 }
 
 static char *rna_MeshStringProperty_path(PointerRNA *ptr)
