@@ -2971,10 +2971,6 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		if (obedit!=ob && finalDM)
 			finalDM->release(finalDM);
 	}
-//	else if(!em && (G.f & G_SCULPTMODE) &&(scene->sculptdata.flags & SCULPT_DRAW_FAST) &&
-//	        OBACT==ob && !sculpt_modifiers_active(ob)) {
-// XXX		sculptmode_draw_mesh(0);
-//	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		if(me->totface<=4 || boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {

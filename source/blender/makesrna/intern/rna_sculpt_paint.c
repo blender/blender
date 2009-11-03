@@ -207,10 +207,6 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_BRUSH);
 	RNA_def_property_ui_text(prop, "Show Brush", "");
-
-	prop= RNA_def_property(srna, "partial_redraw", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_FAST);
-	RNA_def_property_ui_text(prop, "Partial Redraw", "Optimize sculpting by only refreshing modified faces.");
 }
 
 static void rna_def_vertex_paint(BlenderRNA *brna)
