@@ -4,12 +4,12 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -209,9 +209,9 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
         layout.itemO("object.select_mirror", text="Mirror")
         layout.itemO("object.select_by_layer", text="Select All by Layer")
         layout.item_menu_enumO("object.select_by_type", "type", "", text="Select All by Type...")
-        
+
         layout.itemS()
-        
+
         layout.item_menu_enumO("object.select_grouped", "type", text="Grouped")
         layout.item_menu_enumO("object.select_linked", "type", text="Linked")
         layout.itemO("object.select_pattern", text="Select Pattern...")
@@ -407,7 +407,7 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
         layout = self.layout
 
         layout.itemO("view3d.select_border")
-        
+
 
         layout.itemS()
 
