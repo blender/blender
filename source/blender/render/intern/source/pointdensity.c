@@ -41,6 +41,7 @@
 #include "BKE_particle.h"
 #include "BKE_texture.h"
 
+#include "DNA_meshdata_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_particle_types.h"
 
@@ -184,38 +185,44 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 }
 
 
-static void pointdensity_cache_object(Render *re, PointDensity *pd, ObjectRen *obr)
+static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 {
 	int i;
+	DerivedMesh *dm;
+	MVert *mvert = NULL;
+	float cam_mat[4][4];
 	
-	if (!obr || !pd) return;
-	if(!obr->vertnodes) return;
+	dm = mesh_create_derived_render(re->scene, ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+	mvert= dm->getVertArray(dm);	/* local object space */
 	
-	/* in case ob->imat isn't up-to-date */
-	Mat4Invert(obr->ob->imat, obr->ob->obmat);
+	pd->totpoints= dm->getNumVerts(dm);
+	if (pd->totpoints == 0) return;
+
+	pd->point_tree = BLI_bvhtree_new(pd->totpoints, 0.0, 4, 6);
 	
-	pd->point_tree = BLI_bvhtree_new(obr->totvert, 0.0, 4, 6);
-	pd->totpoints = obr->totvert;
-	
-	for(i=0; i<obr->totvert; i++) {
-		float ver_co[3];
-		VertRen *ver= RE_findOrAddVert(obr, i);
+	for(i=0; i < pd->totpoints; i++, mvert++) {
+		float co[3];
 		
-		VECCOPY(ver_co, ver->co);
-		Mat4MulVecfl(re->viewinv, ver_co);
-		
-		if (pd->ob_cache_space == TEX_PD_OBJECTSPACE) {
-			Mat4MulVecfl(obr->ob->imat, ver_co);
-		} else if (pd->psys_cache_space == TEX_PD_OBJECTLOC) {
-			VecSubf(ver_co, ver_co, obr->ob->loc);
-		} else {
-			/* TEX_PD_WORLDSPACE */
+		VECCOPY(co, mvert->co);
+
+		switch(pd->ob_cache_space) {
+			case TEX_PD_OBJECTSPACE:
+				break;
+			case TEX_PD_OBJECTLOC:
+				Mat4MulVecfl(ob->obmat, co);
+				VecSubf(co, co, ob->loc);
+				break;
+			case TEX_PD_WORLDSPACE:
+			default:
+				Mat4MulVecfl(ob->obmat, co);
+				break;
 		}
-		
-		BLI_bvhtree_insert(pd->point_tree, i, ver_co, 1);
+
+		BLI_bvhtree_insert(pd->point_tree, i, co, 1);
 	}
 	
 	BLI_bvhtree_balance(pd->point_tree);
+	dm->release(dm);
 
 }
 static void cache_pointdensity(Render *re, Tex *tex)
@@ -237,19 +244,7 @@ static void cache_pointdensity(Render *re, Tex *tex)
 	}
 	else if (pd->source == TEX_PD_OBJECT) {
 		Object *ob = pd->object;
-		ObjectRen *obr;
-		int found=0;
-
-		/* find the obren that corresponds to the object */
-		for (obr=re->objecttable.first; obr; obr=obr->next) {
-			if (obr->ob == ob) {
-				found=1;
-				break;
-			}
-		}
-		if (!found) return;
-		
-		pointdensity_cache_object(re, pd, obr);
+		if (ob)	pointdensity_cache_object(re, pd, ob);
 	}
 }
 
