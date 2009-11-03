@@ -986,6 +986,15 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			drawcircball(GL_LINE_LOOP, unitmat[3], size, unitmat);
 		}
 	}
+
+	/* Screen aligned trackball rot circle */
+	if(drawflags & MAN_ROT_T) {
+		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_T);
+
+		UI_ThemeColor(TH_TRANSFORM);
+		drawcircball(GL_LINE_LOOP, unitmat[3], 0.2f*size, unitmat);
+	}
+
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
