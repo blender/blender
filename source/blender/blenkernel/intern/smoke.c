@@ -823,7 +823,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 					// we got nice flow object
 					SmokeFlowSettings *sfs = smd2->flow;
 					
-					if(sfs->psys && sfs->psys->part && sfs->psys->part->type==PART_EMITTER) // is particle system selected
+					if(sfs && sfs->psys && sfs->psys->part && sfs->psys->part->type==PART_EMITTER) // is particle system selected
 					{
 						ParticleSystem *psys = sfs->psys;
 						ParticleSettings *part=psys->part;

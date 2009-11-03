@@ -139,6 +139,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
 	WM_operatortype_append(MESH_OT_blend_from_shape);
+	WM_operatortype_append(MESH_OT_shape_propagate_to_all);
 	
 	WM_operatortype_append(MESH_OT_uv_texture_add);
 	WM_operatortype_append(MESH_OT_uv_texture_remove);
@@ -239,8 +240,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_edge_flip", FKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
-	
-	WM_keymap_add_item(keymap, "MESH_OT_split", FOURKEY, KM_PRESS, KM_CTRL, 0);
+
 	WM_keymap_add_item(keymap, "MESH_OT_extrude_repeat", FOURKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_edge_rotate", FIVEKEY, KM_PRESS, KM_CTRL, 0);
 	
@@ -264,6 +264,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "name", "INFO_MT_mesh_add");
 	
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_split", YKEY, KM_PRESS, 0, 0);
 						/* use KM_RELEASE because same key is used for tweaks
 						 * TEMPORARY REMAP TO ALT+CTRL TO AVOID CONFLICT 
 						 * */

@@ -83,6 +83,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_shade_flat);
 
 	WM_operatortype_append(OBJECT_OT_parent_set);
+	WM_operatortype_append(OBJECT_OT_parent_no_inverse_set);
 	WM_operatortype_append(OBJECT_OT_parent_clear);
 	WM_operatortype_append(OBJECT_OT_vertex_parent_set);
 	WM_operatortype_append(OBJECT_OT_track_set);
@@ -103,7 +104,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_select_mirror);
 	WM_operatortype_append(OBJECT_OT_select_name); /* XXX - weak, not compat with linked objects */
 
-	WM_operatortype_append(GROUP_OT_group_create);
+	WM_operatortype_append(GROUP_OT_create);
 	WM_operatortype_append(GROUP_OT_objects_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
@@ -195,7 +196,8 @@ void ED_operatormacros_object(void)
 	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
-		WM_operatortype_macro_define(ot, "TFM_OT_translate");
+		otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
 
 	/* grr, should be able to pass options on... */
@@ -203,7 +205,8 @@ void ED_operatormacros_object(void)
 	if(ot) {
 		otmacro= WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		RNA_boolean_set(otmacro->ptr, "linked", 1);
-		WM_operatortype_macro_define(ot, "TFM_OT_translate");
+		otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
 }
 
@@ -237,6 +240,9 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Object Mode", 0, 0);
 	keymap->poll= object_mode_poll;
 	
+	/* object mode supports PET now */
+	ED_object_generic_keymap(keyconf, keymap, TRUE);
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
@@ -244,6 +250,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_mirror", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_no_inverse_set", PKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_track_set", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_track_clear", TKEY, KM_PRESS, KM_ALT, 0);
@@ -287,7 +294,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_verify_item(keymap, "GROUP_OT_group_create", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "GROUP_OT_create", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);

@@ -60,6 +60,7 @@
 
 #include "ED_armature.h"
 #include "ED_screen.h"
+#include "ED_physics.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -647,7 +648,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Brush *br= ptr->data;
 
 			if(br)
-				CTX_data_pointer_set(result, &br->id, &RNA_TextureSlot, br->mtex[(int)br->texact]);
+				CTX_data_pointer_set(result, &br->id, &RNA_BrushTextureSlot, br->mtex[(int)br->texact]);
 		}
 
 		return 1;
@@ -665,7 +666,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 1;
 	}
 	else if(CTX_data_equals(member, "particle_system_editable")) {
-		if(PE_poll(C))
+		if(PE_poll((bContext*)C))
 			set_pointer_type(path, result, &RNA_ParticleSystem);
 		else
 			CTX_data_pointer_set(result, NULL, &RNA_ParticleSystem, NULL);

@@ -2355,7 +2355,7 @@ void flushTransSeq(TransInfo *t)
 
 		tdsq= (TransDataSeq *)td->extra;
 		seq= tdsq->seq;
-		new_frame= (int)(td2d->loc[0] + 0.5f);
+		new_frame= (int)floor(td2d->loc[0] + 0.5f);
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
@@ -2363,7 +2363,7 @@ void flushTransSeq(TransInfo *t)
 				seq->start= new_frame - tdsq->start_offset;
 
 			if (seq->depth==0) {
-				seq->machine= (int)(td2d->loc[1] + 0.5f);
+				seq->machine= (int)floor(td2d->loc[1] + 0.5f);
 				CLAMP(seq->machine, 1, MAXSEQ);
 			}
 			break;
@@ -4092,7 +4092,8 @@ static void freeSeqData(TransInfo *t)
 					for(a=0; a<t->total; a++, td++) {
 						seq= ((TransDataSeq *)td->extra)->seq;
 						if ((seq != seq_prev)) {
-							seq->tmp= 1;
+							/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
+							seq->tmp= (void*)1;
 						}
 					}
 
@@ -4313,7 +4314,7 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 /* it deselects Bases, so we have to call the clear function always after */
 static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 {
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene = t->scene;
 	View3D *v3d = t->view;
 
 	/*
@@ -4338,7 +4339,7 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 	for (base= scene->base.first; base; base= base->next) {
 		base->flag &= ~BA_WAS_SEL;
 
-		if(TESTBASELIB_BGMODE(v3d, base)) {
+		if(TESTBASELIB_BGMODE(v3d, scene, base)) {
 			Object *ob= base->object;
 			Object *parsel= ob->parent;
 
@@ -4350,12 +4351,10 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 
 			if(parsel)
 			{
-				if ((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL)
-				{
+				/* rotation around local centers are allowed to propagate */
+				if ((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL) {
 					base->flag |= BA_TRANSFORM_CHILD;
-				}
-				else
-				{
+				} else {
 					base->flag &= ~SELECT;
 					base->flag |= BA_WAS_SEL;
 				}
@@ -4378,6 +4377,86 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 	}
 }
 
+static int mark_children(Object *ob)
+{
+	if (ob->flag & (SELECT|BA_TRANSFORM_CHILD))
+		return 1;
+
+	if (ob->parent)
+	{
+		if (mark_children(ob->parent))
+		{
+			ob->flag |= BA_TRANSFORM_CHILD;
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+static int count_proportional_objects(TransInfo *t)
+{
+	int total = 0;
+	Scene *scene = t->scene;
+	View3D *v3d = t->view;
+	Base *base;
+
+	/* rotations around local centers are allowed to propagate, so we take all objects */
+	if (!((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL))
+	{
+		/* mark all parents */
+		for (base= scene->base.first; base; base= base->next) {
+			if(TESTBASELIB_BGMODE(v3d, scene, base)) {
+				Object *parent = base->object->parent;
+	
+				/* flag all parents */
+				while(parent) {
+					parent->flag |= BA_TRANSFORM_PARENT;
+					parent = parent->parent;
+				}
+			}
+		}
+
+		/* mark all children */
+		for (base= scene->base.first; base; base= base->next) {
+			/* all base not already selected or marked that is editable */
+			if ((base->object->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 && BASE_EDITABLE_BGMODE(v3d, scene, base))
+			{
+				mark_children(base->object);
+			}
+		}
+	}
+	
+	for (base= scene->base.first; base; base= base->next) {
+		Object *ob= base->object;
+
+		/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
+		if ((ob->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 && BASE_EDITABLE_BGMODE(v3d, scene, base))
+		{
+
+			/* used for flush, depgraph will change recalcs if needed :) */
+			ob->recalc |= OB_RECALC_OB;
+
+			total += 1;
+		}
+	}
+	
+
+	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
+	DAG_scene_flush_update(t->scene, -1, 0);
+
+	/* and we store them temporal in base (only used for transform code) */
+	/* this because after doing updates, the object->recalc is cleared */
+	for (base= scene->base.first; base; base= base->next) {
+		if(base->object->recalc & OB_RECALC_OB)
+			base->flag |= BA_HAS_RECALC_OB;
+		if(base->object->recalc & OB_RECALC_DATA)
+			base->flag |= BA_HAS_RECALC_DATA;
+	}
+
+	return total;
+}
+
 static void clear_trans_object_base_flags(TransInfo *t)
 {
 	Scene *sce = t->scene;
@@ -4388,7 +4467,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
 		if(base->flag & BA_WAS_SEL)
 			base->flag |= SELECT;
 
-		base->flag &= ~(BA_WAS_SEL|BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA|BA_DO_IPO|BA_TRANSFORM_CHILD);
+		base->flag &= ~(BA_WAS_SEL|BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA|BA_DO_IPO|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT);
 	}
 }
 
@@ -4399,7 +4478,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 {
 	ID *id= &ob->id;
 	FCurve *fcu;
-
+	
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
@@ -4500,7 +4579,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
 	FCurve *fcu;
-
+	
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
@@ -4624,17 +4703,22 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 }
 
 
-/* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
-/* note: transdata has been freed already! */
-/* note: this runs even when createTransData exits early because  (t->total==0), is this correct?... (campbell) */
-/* note: sequencer freeing has its own function now because of a conflict with transform's order of freeing (campbell)*/
+/* inserting keys, refresh ipo-keys, pointcache, redraw events... */
+/* 
+ * note: sequencer freeing has its own function now because of a conflict with transform's order of freeing (campbell)
+ * 		 Order changed, the sequencer stuff should go back in here
+ * */
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
 	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0;
-
+	
+	/* early out when nothing happened */
+	if (t->total == 0 || t->mode == TFM_DUMMY)
+		return;
+	
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
@@ -4642,9 +4726,13 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
-	else if (t->spacetype == SPACE_SEQ) {
+	
+	if (t->spacetype == SPACE_SEQ) {
 		/* freeSeqData in transform_conversions.c does this
 		 * keep here so the else at the end wont run... */
+	}
+	else if (t->spacetype == SPACE_NODE) {
+		/* pass */
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -4908,42 +4996,42 @@ void special_aftertrans_update(TransInfo *t)
 	else if(t->scene->basact && (ob = t->scene->basact->object) && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, ob)) {
 		;
 	}
-	else {
-		/* Objects */
-		// XXX ideally, this would go through context iterators, but we don't have context iterator access here,
-		// so we make do with old data + access styles...
-		Scene *scene= t->scene;
-		Base *base;
+	else { /* Objects */
+		int i;
 
-		for (base= FIRSTBASE; base; base= base->next) {
-			ob= base->object;
+		for (i = 0; i < t->total; i++) {
+			TransData *td = t->data + i;
+			Object *ob = td->ob;
+			ListBase pidlist;
+			PTCacheID *pid;
+			
+			if (td->flag & TD_NOACTION)
+				break;
+			
+			if (td->flag & TD_SKIP)
+				continue;
 
-			if (base->flag & SELECT && (t->mode != TFM_DUMMY)) {
-				ListBase pidlist;
-				PTCacheID *pid;
-
-				/* flag object caches as outdated */
-				BKE_ptcache_ids_from_object(&pidlist, ob);
-				for(pid=pidlist.first; pid; pid=pid->next) {
-					if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
-						pid->cache->flag |= PTCACHE_OUTDATED;
-				}
-				BLI_freelistN(&pidlist);
-
-				/* pointcache refresh */
-				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
-					ob->recalc |= OB_RECALC_DATA;
-
-				/* Needed for proper updating of "quick cached" dynamics. */
-				/* Creates troubles for moving animated objects without */
-				/* autokey though, probably needed is an anim sys override? */
-				/* Please remove if some other solution is found. -jahka */
-				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-
-				/* Set autokey if necessary */
-				if (!cancelled)
-					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
+			/* flag object caches as outdated */
+			BKE_ptcache_ids_from_object(&pidlist, ob);
+			for(pid=pidlist.first; pid; pid=pid->next) {
+				if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
+					pid->cache->flag |= PTCACHE_OUTDATED;
 			}
+			BLI_freelistN(&pidlist);
+
+			/* pointcache refresh */
+			if (BKE_ptcache_object_reset(t->scene, ob, PTCACHE_RESET_OUTDATED))
+				ob->recalc |= OB_RECALC_DATA;
+
+			/* Needed for proper updating of "quick cached" dynamics. */
+			/* Creates troubles for moving animated objects without */
+			/* autokey though, probably needed is an anim sys override? */
+			/* Please remove if some other solution is found. -jahka */
+			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+
+			/* Set autokey if necessary */
+			if (!cancelled)
+				autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 		}
 	}
 
@@ -4969,18 +5057,22 @@ static void createTransObject(bContext *C, TransInfo *t)
 {
 	TransData *td = NULL;
 	TransDataExtension *tx;
-//	IpoKey *ik;
-//	ListBase elems;
+	int propmode = t->flag & T_PROP_EDIT;
 
 	set_trans_object_base_flags(C, t);
 
 	/* count */
 	t->total= CTX_DATA_COUNT(C, selected_objects);
-
+	
 	if(!t->total) {
 		/* clear here, main transform function escapes too */
 		clear_trans_object_base_flags(t);
 		return;
+	}
+	
+	if (propmode)
+	{
+		t->total += count_proportional_objects(t);
 	}
 
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransOb");
@@ -5012,6 +5104,30 @@ static void createTransObject(bContext *C, TransInfo *t)
 		tx++;
 	}
 	CTX_DATA_END;
+	
+	if (propmode)
+	{
+		Scene *scene = t->scene;
+		View3D *v3d = t->view;
+		Base *base;
+
+		for (base= scene->base.first; base; base= base->next) {
+			Object *ob= base->object;
+
+			/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
+			if ((ob->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 && BASE_EDITABLE_BGMODE(v3d, scene, base))
+			{
+				td->protectflag= ob->protectflag;
+				td->ext = tx;
+				td->rotOrder= ob->rotmode;
+				
+				ObjectToTransData(C, t, td, ob);
+				td->val = NULL;
+				td++;
+				tx++;
+			}
+		}
+	}
 }
 
 /* transcribe given node into TransData2D for Transforming */
@@ -5142,6 +5258,8 @@ void createTransData(bContext *C, TransInfo *t)
 			printf("edit type not implemented!\n");
 		}
 
+		t->flag |= T_EDIT|T_POINTS;
+
 		if(t->data && t->flag & T_PROP_EDIT) {
 			if (ELEM(t->obedit->type, OB_CURVE, OB_MESH)) {
 				sort_trans_data(t);	// makes selected become first in array
@@ -5154,8 +5272,6 @@ void createTransData(bContext *C, TransInfo *t)
 				sort_trans_data_dist(t);
 			}
 		}
-
-		t->flag |= T_EDIT|T_POINTS;
 
 		/* exception... hackish, we want bonesize to use bone orientation matrix (ton) */
 		if(t->mode==TFM_BONESIZE) {
@@ -5187,27 +5303,32 @@ void createTransData(bContext *C, TransInfo *t)
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) 
 		&& PE_start_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
+		t->flag |= T_POINTS;
 
 		if(t->data && t->flag & T_PROP_EDIT) {
 			sort_trans_data(t);	// makes selected become first in array
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
 		}
-
-		t->flag |= T_POINTS;
 	}
 	else {
-		t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
+		// t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
 		t->options |= CTX_NO_PET;
 		
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
 
+		if(t->data && t->flag & T_PROP_EDIT) {
+			// selected objects are already first, no need to presort
+			set_prop_dist(t, 1);
+			sort_trans_data_dist(t);
+		}
+
 		if (t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
 			View3D *v3d = t->view;
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if(rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+			if(rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB)
 			{
 				t->flag |= T_CAMERA;
 			}

@@ -209,6 +209,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 			if (constflag & PCHAN_HAS_STRIDE) glColor4ub(0, 0, 200, 80);
 			else if (constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
 			else if (constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
+			else if (constflag & PCHAN_HAS_SPLINEIK) glColor4ub(200, 255, 0, 80);
 			else if (constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
 			else if (constflag) UI_ThemeColor4(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
 			
@@ -280,6 +281,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 			if (constflag & PCHAN_HAS_STRIDE) glColor3ub(0, 0, 200);
 			else if (constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
 			else if (constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
+			else if (constflag & PCHAN_HAS_SPLINEIK) glColor3ub(200, 255, 0);
 			else if (constflag & PCHAN_HAS_CONST) glColor3ub(0, 255, 120);
 			else if (constflag) UI_ThemeColor(TH_BONE_POSE);	/* PCHAN_HAS_ACTION */ 
 		}
@@ -1296,36 +1298,68 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 	bPoseChannel *parchan;
 	
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
-			bKinematicConstraint *data = (bKinematicConstraint*)con->data;
-			int segcount= 0;
-			
-			/* if only_temp, only draw if it is a temporary ik-chain */
-			if ((only_temp) && !(data->flag & CONSTRAINT_IK_TEMP))
-				continue;
-			
-			setlinestyle(3);
-			glBegin(GL_LINES);
-			
-			/* exclude tip from chain? */
-			if ((data->flag & CONSTRAINT_IK_TIP)==0)
-				parchan= pchan->parent;
-			else
-				parchan= pchan;
-			
-			glVertex3fv(parchan->pose_tail);
-			
-			/* Find the chain's root */
-			while (parchan->parent) {
-				segcount++;
-				if(segcount==data->rootbone || segcount>255) break; // 255 is weak
-				parchan= parchan->parent;
+		if (con->enforce == 0.0f)
+			continue;
+		
+		switch (con->type) {
+			case CONSTRAINT_TYPE_KINEMATIC:
+			{
+				bKinematicConstraint *data = (bKinematicConstraint*)con->data;
+				int segcount= 0;
+				
+				/* if only_temp, only draw if it is a temporary ik-chain */
+				if ((only_temp) && !(data->flag & CONSTRAINT_IK_TEMP))
+					continue;
+				
+				setlinestyle(3);
+				glBegin(GL_LINES);
+				
+				/* exclude tip from chain? */
+				if ((data->flag & CONSTRAINT_IK_TIP)==0)
+					parchan= pchan->parent;
+				else
+					parchan= pchan;
+				
+				glVertex3fv(parchan->pose_tail);
+				
+				/* Find the chain's root */
+				while (parchan->parent) {
+					segcount++;
+					if(segcount==data->rootbone || segcount>255) break; // 255 is weak
+					parchan= parchan->parent;
+				}
+				if (parchan)
+					glVertex3fv(parchan->pose_head);
+				
+				glEnd();
+				setlinestyle(0);
 			}
-			if (parchan)
-				glVertex3fv(parchan->pose_head);
-			
-			glEnd();
-			setlinestyle(0);
+				break;
+			case CONSTRAINT_TYPE_SPLINEIK: 
+			{
+				bSplineIKConstraint *data = (bSplineIKConstraint*)con->data;
+				int segcount= 0;
+				
+				setlinestyle(3);
+				glBegin(GL_LINES);
+				
+				parchan= pchan;
+				glVertex3fv(parchan->pose_tail);
+				
+				/* Find the chain's root */
+				while (parchan->parent) {
+					segcount++;
+					// FIXME: revise the breaking conditions
+					if(segcount==data->chainlen || segcount>255) break; // 255 is weak
+					parchan= parchan->parent;
+				}
+				if (parchan) // XXX revise the breaking conditions to only stop at the tail?
+					glVertex3fv(parchan->pose_head);
+				
+				glEnd();
+				setlinestyle(0);
+			}
+				break;
 		}
 	}
 }
@@ -1743,6 +1777,14 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 									pchan_draw_IK_root_lines(pchan, !(do_dashed & 2));
 								}
 							}
+							else if (pchan->constflag & PCHAN_HAS_SPLINEIK) {
+								if (bone->flag & BONE_SELECTED) {
+									glColor3ub(150, 200, 50);	// add theme!
+									
+									glLoadName(index & 0xFFFF);
+									pchan_draw_IK_root_lines(pchan, !(do_dashed & 2));
+								}
+							}	
 						}
 					}
 					

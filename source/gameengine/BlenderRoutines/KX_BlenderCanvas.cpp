@@ -35,9 +35,9 @@
 #endif
 
 
-KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, ARegion *ar) :
+KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect) :
 m_win(win),
-m_ar(ar)
+m_frame_rect(rect)
 {
 }
 
@@ -96,12 +96,12 @@ void KX_BlenderCanvas::ClearBuffer(int type)
 
 int KX_BlenderCanvas::GetWidth(
 ) const {
-	return m_ar->winx;
+	return m_frame_rect.GetWidth();
 }
 
 int KX_BlenderCanvas::GetHeight(
 ) const {
-	return m_ar->winy;
+	return m_frame_rect.GetHeight();
 }
 
 RAS_Rect &
@@ -119,8 +119,8 @@ SetViewPort(
 ){
 	int vp_width = (x2 - x1) + 1;
 	int vp_height = (y2 - y1) + 1;
-	int minx = m_ar->winrct.xmin;
-	int miny = m_ar->winrct.ymin;
+	int minx = m_frame_rect.GetLeft();
+	int miny = m_frame_rect.GetBottom();
 
 	m_area_rect.SetLeft(minx + x1);
 	m_area_rect.SetBottom(miny + y1);
@@ -162,9 +162,9 @@ void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 //	(0,0) is top left, (width,height) is bottom right
 void KX_BlenderCanvas::SetMousePosition(int x,int y)
 {
-	int winX = m_ar->winrct.xmin;
-	int winY = m_ar->winrct.ymin;
-	int winH = m_ar->winy;
+	int winX = m_frame_rect.GetLeft();
+	int winY = m_frame_rect.GetBottom();
+	int winH = m_frame_rect.GetHeight();
 	
 	BL_warp_pointer(winX + x, winY + (winH-y-1));
 }
@@ -173,5 +173,5 @@ void KX_BlenderCanvas::SetMousePosition(int x,int y)
 
 void KX_BlenderCanvas::MakeScreenShot(const char* filename)
 {
-	BL_MakeScreenShot(m_ar, filename);
+//	BL_MakeScreenShot(m_ar, filename);
 }

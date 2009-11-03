@@ -347,7 +347,6 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *ob;
 	bArmature *arm;
 	Mesh *me;
 	Curve *cu;
@@ -359,8 +358,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	int a, change = 0;
 	
 	/* first check if we can execute */
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		ob= base->object;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
 		if(ob->type==OB_MESH) {
 			me= ob->data;
@@ -394,8 +392,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	CTX_DATA_END;
 	
 	/* now execute */
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		ob= base->object;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
 		/* calculate rotation/scale matrix */
 		if(apply_scale && apply_rot)
@@ -669,7 +666,6 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *obedit= CTX_data_edit_object(C);
-	Object *ob;
 	Mesh *me, *tme;
 	Curve *cu;
 /*	BezTriple *bezt;
@@ -733,8 +729,8 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* reset flags */
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-			base->object->flag &= ~OB_DONE;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+			ob->flag &= ~OB_DONE;
 	}
 	CTX_DATA_END;
 	
@@ -742,18 +738,18 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 		me->flag &= ~ME_ISDONE;
 	}
 	
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		if((base->object->flag & OB_DONE)==0) {
-			base->object->flag |= OB_DONE;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		if((ob->flag & OB_DONE)==0) {
+			ob->flag |= OB_DONE;
 				
-			if(obedit==NULL && (me=get_mesh(base->object)) ) {
+			if(obedit==NULL && (me=get_mesh(ob)) ) {
 				if (me->id.lib) {
 					tot_lib_error++;
 				} else {
 					if(centermode==2) {
 						VECCOPY(cent, give_cursor(scene, v3d));
-						Mat4Invert(base->object->imat, base->object->obmat);
-						Mat4MulVecfl(base->object->imat, cent);
+						Mat4Invert(ob->imat, ob->obmat);
+						Mat4MulVecfl(ob->imat, cent);
 					} else {
 						INIT_MINMAX(min, max);
 						mvert= me->mvert;
@@ -785,37 +781,36 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 					me->flag |= ME_ISDONE;
 						
 					if(centermode) {
-						Mat3CpyMat4(omat, base->object->obmat);
+						Mat3CpyMat4(omat, ob->obmat);
 						
 						VECCOPY(centn, cent);
 						Mat3MulVecfl(omat, centn);
-						base->object->loc[0]+= centn[0];
-						base->object->loc[1]+= centn[1];
-						base->object->loc[2]+= centn[2];
+						ob->loc[0]+= centn[0];
+						ob->loc[1]+= centn[1];
+						ob->loc[2]+= centn[2];
 						
-						where_is_object(scene, base->object);
-						ignore_parent_tx(bmain, scene, base->object);
+						where_is_object(scene, ob);
+						ignore_parent_tx(bmain, scene, ob);
 						
 						/* other users? */
-						CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-							ob = base->object;
-							if((ob->flag & OB_DONE)==0) {
-								tme= get_mesh(ob);
+						CTX_DATA_BEGIN(C, Object*, ob_other, selected_editable_objects) {
+							if((ob_other->flag & OB_DONE)==0) {
+								tme= get_mesh(ob_other);
 								
 								if(tme==me) {
 									
-									ob->flag |= OB_DONE;
-									ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+									ob_other->flag |= OB_DONE;
+									ob_other->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 
-									Mat3CpyMat4(omat, ob->obmat);
+									Mat3CpyMat4(omat, ob_other->obmat);
 									VECCOPY(centn, cent);
 									Mat3MulVecfl(omat, centn);
-									ob->loc[0]+= centn[0];
-									ob->loc[1]+= centn[1];
-									ob->loc[2]+= centn[2];
+									ob_other->loc[0]+= centn[0];
+									ob_other->loc[1]+= centn[1];
+									ob_other->loc[2]+= centn[2];
 									
-									where_is_object(scene, ob);
-									ignore_parent_tx(bmain, scene, ob);
+									where_is_object(scene, ob_other);
+									ignore_parent_tx(bmain, scene, ob_other);
 									
 									if(tme && (tme->flag & ME_ISDONE)==0) {
 										mvert= tme->mvert;
@@ -838,25 +833,23 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 									}
 								}
 							}
-							
-							ob= ob->id.next;
 						}
 						CTX_DATA_END;
 					}
 					tot_change++;
 				}
 			}
-			else if (ELEM(base->object->type, OB_CURVE, OB_SURF)) {
+			else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 				
 				/* weak code here... (ton) */
-				if(obedit==base->object) {
+				if(obedit==ob) {
 					ListBase *editnurb= curve_get_editcurve(obedit);
 
 					nu1= editnurb->first;
 					cu= obedit->data;
 				}
 				else {
-					cu= base->object->data;
+					cu= ob->data;
 					nu1= cu->nurb.first;
 				}
 				
@@ -865,8 +858,8 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 				} else {
 					if(centermode==2) {
 						VECCOPY(cent, give_cursor(scene, v3d));
-						Mat4Invert(base->object->imat, base->object->obmat);
-						Mat4MulVecfl(base->object->imat, cent);
+						Mat4Invert(ob->imat, ob->obmat);
+						Mat4MulVecfl(ob->imat, cent);
 
 						/* don't allow Z change if curve is 2D */
 						if( !( cu->flag & CU_3D ) )
@@ -904,16 +897,16 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 						nu= nu->next;
 					}
 			
-					if(centermode && obedit==0) {
-						Mat3CpyMat4(omat, base->object->obmat);
+					if(centermode && obedit==NULL) {
+						Mat3CpyMat4(omat, ob->obmat);
 						
 						Mat3MulVecfl(omat, cent);
-						base->object->loc[0]+= cent[0];
-						base->object->loc[1]+= cent[1];
-						base->object->loc[2]+= cent[2];
+						ob->loc[0]+= cent[0];
+						ob->loc[1]+= cent[1];
+						ob->loc[2]+= cent[2];
 						
-						where_is_object(scene, base->object);
-						ignore_parent_tx(bmain, scene, base->object);
+						where_is_object(scene, ob);
+						ignore_parent_tx(bmain, scene, ob);
 					}
 					
 					tot_change++;
@@ -925,12 +918,12 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 					}
 				}
 			}
-			else if(base->object->type==OB_FONT) {
+			else if(ob->type==OB_FONT) {
 				/* get from bb */
 				
-				cu= base->object->data;
+				cu= ob->data;
 				
-				if(cu->bb==0) {
+				if(cu->bb==NULL) {
 					/* do nothing*/
 				} else if (cu->id.lib) {
 					tot_lib_error++;
@@ -945,8 +938,8 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 					tot_change++;
 				}
 			}
-			else if(base->object->type==OB_ARMATURE) {
-				bArmature *arm = base->object->data;
+			else if(ob->type==OB_ARMATURE) {
+				bArmature *arm = ob->data;
 				
 				if (arm->id.lib) {
 					tot_lib_error++;
@@ -958,17 +951,17 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 					/* Function to recenter armatures in editarmature.c 
 					 * Bone + object locations are handled there.
 					 */
-					docenter_armature(scene, v3d, base->object, centermode);
+					docenter_armature(scene, v3d, ob, centermode);
 					tot_change++;
 					
-					where_is_object(scene, base->object);
-					ignore_parent_tx(bmain, scene, base->object);
+					where_is_object(scene, ob);
+					ignore_parent_tx(bmain, scene, ob);
 					
 					if(obedit) 
 						break;
 				}
 			}
-			base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+			ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 		}
 	}
 	CTX_DATA_END;

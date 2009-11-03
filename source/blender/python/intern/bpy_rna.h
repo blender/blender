@@ -91,6 +91,8 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
 PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args);
 
+int pyrna_deferred_register_props(struct StructRNA *srna, PyObject *class_dict);
+
 /* called before stopping python */
 void pyrna_alloc_types(void);
 void pyrna_free_types(void);

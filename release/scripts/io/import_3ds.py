@@ -1,3 +1,20 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
 __author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton', 'Mario Lapin']
 __url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
@@ -1121,22 +1138,22 @@ else:
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
 
 '''
+from bpy.props import *
 
-class IMPORT_OT_3ds(bpy.types.Operator):
+
+class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 	'''Import from 3DS file format (.3ds)'''
-	__idname__ = "import.3ds"
-	__label__ = 'Import 3DS'
+	bl_idname = "import.autodesk_3ds"
+	bl_label = 'Import 3DS'
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
+	
+	path = StringProperty(name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= ""),
 
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= ""),
-
-# 		bpy.props.FloatProperty(attr="size_constraint", name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
-# 		bpy.props.BoolProperty(attr="search_images", name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),
-# 		bpy.props.BoolProperty(attr="apply_matrix", name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
-	]
+# 	size_constraint = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
+# 	search_images = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),
+# 	apply_matrix = BoolProperty(name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
 	
 	def execute(self, context):
 		load_3ds(self.path, context, 0.0, False, False)
@@ -1144,13 +1161,13 @@ class IMPORT_OT_3ds(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
-bpy.ops.add(IMPORT_OT_3ds)
+bpy.ops.add(IMPORT_OT_autodesk_3ds)
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("import.3ds", text="3D Studio (.3ds)...")
+menu_func = lambda self, context: self.layout.itemO("import.autodesk_3ds", text="3D Studio (.3ds)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 # NOTES:

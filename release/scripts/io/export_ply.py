@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 import bpy
 
 __author__ = "Bruce Merry"
@@ -231,21 +249,24 @@ def write(filename, scene, ob, \
 		Blender.Window.EditMode(1, '', 0)
 	"""
 
+from bpy.props import *
+
+
 class EXPORT_OT_ply(bpy.types.Operator):
 	'''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
-	__idname__ = "export.ply"
-	__label__ = "Export PLY"
+	bl_idname = "export.ply"
+	bl_label = "Export PLY"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= ""),
-		bpy.props.BoolProperty(attr="use_modifiers", name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True),
-		bpy.props.BoolProperty(attr="use_normals", name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True),
-		bpy.props.BoolProperty(attr="use_uvs", name="Export UVs", description="Exort the active UV layer", default= True),
-		bpy.props.BoolProperty(attr="use_colors", name="Export Vertex Colors", description="Exort the active vertex color layer", default= True)
-	]
+	
+	path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
+	use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True)
+	use_normals = BoolProperty(name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True)
+	use_uvs = BoolProperty(name="Export UVs", description="Exort the active UV layer", default= True)
+	use_colors = BoolProperty(name="Export Vertex Colors", description="Exort the active vertex color layer", default= True)
+	
 	
 	def poll(self, context):
 		return context.active_object != None
@@ -267,7 +288,7 @@ class EXPORT_OT_ply(bpy.types.Operator):
 	
 	def invoke(self, context, event):	
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
 
@@ -278,4 +299,4 @@ menu_func = lambda self, context: self.layout.itemO("export.ply", text="Stanford
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 if __name__ == "__main__":
-	bpy.ops.EXPORT_OT_ply(path="/tmp/test.ply")
+	bpy.ops.export.ply(path="/tmp/test.ply")

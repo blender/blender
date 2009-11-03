@@ -298,8 +298,6 @@ Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, int sel)
 	
 	if(ed==NULL) return NULL;
 
-	if (sel) sel = SELECT;
-	
 	seq= ed->seqbasep->first;
 	while(seq) {
 		if(		(seq!=test) &&
@@ -2444,4 +2442,230 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
+}
+
+
+static int find_next_prev_edit(Scene *scene, int cfra, int side)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq,*best_seq = NULL,*frame_seq = NULL;
+	
+	int dist, best_dist;
+	best_dist = MAXFRAME*2;
+
+	if(ed==NULL) return cfra;
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		dist = MAXFRAME*2;
+			
+		switch (side) {
+			case SEQ_SIDE_LEFT:
+				if (seq->startdisp < cfra) {
+					dist = cfra - seq->startdisp;
+				}
+				break;
+			case SEQ_SIDE_RIGHT:
+				if (seq->startdisp > cfra) {
+					dist = seq->startdisp - cfra;
+				} else if (seq->startdisp == cfra) {
+					frame_seq=seq;
+				}
+				break;
+		}
+
+		if (dist < best_dist) {
+			best_dist = dist;
+			best_seq = seq;
+		}
+	}
+
+	/* if no sequence to the right is found and the
+	   frame is on the start of the last sequence,
+	   move to the end of the last sequence */
+	if (frame_seq) cfra = frame_seq->enddisp;
+
+	return best_seq ? best_seq->startdisp : cfra;
+}
+
+static int next_prev_edit_internal(Scene *scene, int side)
+{
+	int change=0;
+	int cfra = CFRA;
+	int nfra= find_next_prev_edit(scene, cfra, side);
+	
+	if (nfra != cfra) {
+		CFRA = nfra;
+		change= 1;
+	}
+
+	return change;
+}
+
+/* select less operator */
+static int sequencer_next_edit_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (next_prev_edit_internal(scene, SEQ_SIDE_RIGHT)) {
+		ED_area_tag_redraw(CTX_wm_area(C));
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_next_edit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Next Edit";
+	ot->idname= "SEQUENCER_OT_next_edit";
+	ot->description="Move frame to next edit point.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_next_edit_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+}
+
+/* move frame to previous edit point operator */
+static int sequencer_previous_edit_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (next_prev_edit_internal(scene, SEQ_SIDE_LEFT)) {
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Previous Edit";
+	ot->idname= "SEQUENCER_OT_previous_edit";
+	ot->description="Move frame to previous edit point.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_previous_edit_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+}
+
+static void swap_sequence(Sequence* seqa, Sequence* seqb)
+{
+	int gap = seqb->startdisp - seqa->enddisp;
+	seqb->start = seqa->start;
+	calc_sequence(seqb);
+	seqa->start = seqb->enddisp + gap;
+	calc_sequence(seqa);
+}
+
+static Sequence* sequence_find_parent(Scene* scene, Sequence* child)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *parent= NULL;
+	Sequence *seq;
+
+	if(ed==NULL) return NULL;
+
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if ( (seq != child) && seq_is_parent(seq, child) ) {
+			parent = seq;
+			break;
+		}
+	}
+	return parent;
+
+}
+
+static int sequencer_swap_internal_exec(bContext *C, int side)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *active_seq = get_last_seq(scene);
+	Sequence *seq;
+
+	if(ed==NULL) return OPERATOR_CANCELLED;
+	if(active_seq==NULL) return OPERATOR_CANCELLED;
+
+	seq = find_next_prev_sequence(scene, active_seq, side, -1);
+	
+	if(seq) {
+		
+		/* disallow effect strips */
+		if ((seq->type!=SEQ_COLOR) && (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
+			return OPERATOR_CANCELLED;
+		if ((active_seq->type!=SEQ_COLOR) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
+			return OPERATOR_CANCELLED;
+
+		/* disallow if parent strip (effect strip) is attached */
+		if ( sequence_find_parent(scene, active_seq)) {
+			return OPERATOR_CANCELLED;
+		}
+
+		switch (side) {
+			case SEQ_SIDE_LEFT: 
+				swap_sequence(seq, active_seq);
+				break;
+			case SEQ_SIDE_RIGHT: 
+				swap_sequence(active_seq, seq);
+				break;
+		}
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+static int sequencer_swap_right_exec(bContext *C, wmOperator *op)
+{
+	return sequencer_swap_internal_exec(C, SEQ_SIDE_RIGHT);
+}
+
+void SEQUENCER_OT_swap_right(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Swap Strip Right";
+	ot->idname= "SEQUENCER_OT_swap_right";
+	ot->description="Swap active strip with strip to the right.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_swap_right_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+}
+
+static int sequencer_swap_left_exec(bContext *C, wmOperator *op)
+{
+	return sequencer_swap_internal_exec(C, SEQ_SIDE_LEFT);
+}
+
+void SEQUENCER_OT_swap_left(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Swap Strip Left";
+	ot->idname= "SEQUENCER_OT_swap_left";
+	ot->description="Swap active strip with strip to the left.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_swap_left_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
 }

@@ -616,7 +616,7 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex)
 	}
 	else {
 		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-		glReadBuffer(GL_NONE);
+		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 	}
 
 	status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
@@ -725,6 +725,78 @@ void GPU_framebuffer_restore()
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 		GG.currentfb = 0;
 	}
+}
+
+/* GPUOffScreen */
+
+struct GPUOffScreen {
+	GPUFrameBuffer *fb;
+	GPUTexture *color;
+	GPUTexture *depth;
+};
+
+GPUOffScreen *GPU_offscreen_create(int width, int height)
+{
+	GPUOffScreen *ofs;
+
+	ofs= MEM_callocN(sizeof(GPUOffScreen), "GPUOffScreen");
+
+	ofs->fb = GPU_framebuffer_create();
+	if(!ofs->fb) {
+		GPU_offscreen_free(ofs);
+		return NULL;
+	}
+
+	ofs->depth = GPU_texture_create_depth(width, height);
+	if(!ofs->depth) {
+		GPU_offscreen_free(ofs);
+		return NULL;
+	}
+
+	if(!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth)) {
+		GPU_offscreen_free(ofs);
+		return NULL;
+	}
+
+	ofs->color = GPU_texture_create_2D(width, height, NULL);
+	if(!ofs->color) {
+		GPU_offscreen_free(ofs);
+		return NULL;
+	}
+
+	if(!GPU_framebuffer_texture_attach(ofs->fb, ofs->color)) {
+		GPU_offscreen_free(ofs);
+		return NULL;
+	}
+
+	GPU_framebuffer_restore();
+
+	return ofs;
+}
+
+void GPU_offscreen_free(GPUOffScreen *ofs)
+{
+	if(ofs->fb)
+		GPU_framebuffer_free(ofs->fb);
+	if(ofs->color)
+		GPU_texture_free(ofs->color);
+	if(ofs->depth)
+		GPU_texture_free(ofs->depth);
+	
+	MEM_freeN(ofs);
+}
+
+void GPU_offscreen_bind(GPUOffScreen *ofs)
+{
+	glDisable(GL_SCISSOR_TEST);
+	GPU_framebuffer_texture_bind(ofs->fb, ofs->color);
+}
+
+void GPU_offscreen_unbind(GPUOffScreen *ofs)
+{
+	GPU_framebuffer_texture_unbind(ofs->fb, ofs->color);
+	GPU_framebuffer_restore();
+	glEnable(GL_SCISSOR_TEST);
 }
 
 /* GPUShader */

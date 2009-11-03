@@ -172,6 +172,7 @@ extern StructRNA RNA_CurveMapPoint;
 extern StructRNA RNA_CurveMapping;
 extern StructRNA RNA_CurveModifier;
 extern StructRNA RNA_CurvePoint;
+extern StructRNA RNA_DampedTrackConstraint;
 extern StructRNA RNA_DecimateModifier;
 extern StructRNA RNA_DelaySensor;
 extern StructRNA RNA_DisplaceModifier;
@@ -413,6 +414,7 @@ extern StructRNA RNA_SoftBodyModifier;
 extern StructRNA RNA_SoftBodySettings;
 extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
+extern StructRNA RNA_SplineIKConstraint;
 extern StructRNA RNA_Space;
 extern StructRNA RNA_Space3DView;
 extern StructRNA RNA_SpaceConsole;
@@ -594,6 +596,8 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
 /* Property Information */
 
 const char *RNA_property_identifier(PropertyRNA *prop);
+const char *RNA_property_description(PropertyRNA *prop);
+
 PropertyType RNA_property_type(PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PropertyRNA *prop);
 PropertyUnit RNA_property_unit(PropertyRNA *prop);
@@ -672,6 +676,7 @@ void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, Collectio
 void RNA_property_collection_next(CollectionPropertyIterator *iter);
 void RNA_property_collection_end(CollectionPropertyIterator *iter);
 int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_collection_lookup_index(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *t_ptr);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
 

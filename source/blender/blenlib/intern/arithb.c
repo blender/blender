@@ -131,6 +131,7 @@ float Normalize(float *n)
 	return d;
 }
 
+/* Crossf stores the cross product c = a x b */
 void Crossf(float *c, float *a, float *b)
 {
 	c[0] = a[1] * b[2] - a[2] * b[1];
@@ -2115,6 +2116,161 @@ void i_lookat(float vx, float vy, float vz, float px, float py, float pz, float 
 
 /* ************************************************  */
 
+void Mat3Orthogonal(float mat[][3], int axis)
+{
+	float size[3];
+	size[0] = VecLength(mat[0]);
+	size[1] = VecLength(mat[1]);
+	size[2] = VecLength(mat[2]);
+	Normalize(mat[axis]);
+	switch(axis)
+	{
+		case 0:
+			if (Inpf(mat[0], mat[1]) < 1) {
+				Crossf(mat[2], mat[0], mat[1]);
+				Normalize(mat[2]);
+				Crossf(mat[1], mat[2], mat[0]);
+			} else if (Inpf(mat[0], mat[2]) < 1) {
+				Crossf(mat[1], mat[2], mat[0]);
+				Normalize(mat[1]);
+				Crossf(mat[2], mat[0], mat[1]);
+			} else {
+				float vec[3] = {mat[0][1], mat[0][2], mat[0][0]};
+
+				Crossf(mat[2], mat[0], vec);
+				Normalize(mat[2]);
+				Crossf(mat[1], mat[2], mat[0]);
+			}
+		case 1:
+			if (Inpf(mat[1], mat[0]) < 1) {
+				Crossf(mat[2], mat[0], mat[1]);
+				Normalize(mat[2]);
+				Crossf(mat[0], mat[1], mat[2]);
+			} else if (Inpf(mat[0], mat[2]) < 1) {
+				Crossf(mat[0], mat[1], mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[2], mat[0], mat[1]);
+			} else {
+				float vec[3] = {mat[1][1], mat[1][2], mat[1][0]};
+
+				Crossf(mat[0], mat[1], vec);
+				Normalize(mat[0]);
+				Crossf(mat[2], mat[0], mat[1]);
+			}
+		case 2:
+			if (Inpf(mat[2], mat[0]) < 1) {
+				Crossf(mat[1], mat[2], mat[0]);
+				Normalize(mat[1]);
+				Crossf(mat[0], mat[1], mat[2]);
+			} else if (Inpf(mat[2], mat[1]) < 1) {
+				Crossf(mat[0], mat[1], mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[1], mat[2], mat[0]);
+			} else {
+				float vec[3] = {mat[2][1], mat[2][2], mat[2][0]};
+
+				Crossf(mat[0], vec, mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[1], mat[2], mat[0]);
+			}
+	}
+	VecMulf(mat[0], size[0]);
+	VecMulf(mat[1], size[1]);
+	VecMulf(mat[2], size[2]);
+}
+
+void Mat4Orthogonal(float mat[][4], int axis)
+{
+	float size[3];
+	size[0] = VecLength(mat[0]);
+	size[1] = VecLength(mat[1]);
+	size[2] = VecLength(mat[2]);
+	Normalize(mat[axis]);
+	switch(axis)
+	{
+		case 0:
+			if (Inpf(mat[0], mat[1]) < 1) {
+				Crossf(mat[2], mat[0], mat[1]);
+				Normalize(mat[2]);
+				Crossf(mat[1], mat[2], mat[0]);
+			} else if (Inpf(mat[0], mat[2]) < 1) {
+				Crossf(mat[1], mat[2], mat[0]);
+				Normalize(mat[1]);
+				Crossf(mat[2], mat[0], mat[1]);
+			} else {
+				float vec[3] = {mat[0][1], mat[0][2], mat[0][0]};
+
+				Crossf(mat[2], mat[0], vec);
+				Normalize(mat[2]);
+				Crossf(mat[1], mat[2], mat[0]);
+			}
+		case 1:
+			Normalize(mat[0]);
+			if (Inpf(mat[1], mat[0]) < 1) {
+				Crossf(mat[2], mat[0], mat[1]);
+				Normalize(mat[2]);
+				Crossf(mat[0], mat[1], mat[2]);
+			} else if (Inpf(mat[0], mat[2]) < 1) {
+				Crossf(mat[0], mat[1], mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[2], mat[0], mat[1]);
+			} else {
+				float vec[3] = {mat[1][1], mat[1][2], mat[1][0]};
+
+				Crossf(mat[0], mat[1], vec);
+				Normalize(mat[0]);
+				Crossf(mat[2], mat[0], mat[1]);
+			}
+		case 2:
+			if (Inpf(mat[2], mat[0]) < 1) {
+				Crossf(mat[1], mat[2], mat[0]);
+				Normalize(mat[1]);
+				Crossf(mat[0], mat[1], mat[2]);
+			} else if (Inpf(mat[2], mat[1]) < 1) {
+				Crossf(mat[0], mat[1], mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[1], mat[2], mat[0]);
+			} else {
+				float vec[3] = {mat[2][1], mat[2][2], mat[2][0]};
+
+				Crossf(mat[0], vec, mat[2]);
+				Normalize(mat[0]);
+				Crossf(mat[1], mat[2], mat[0]);
+			}
+	}
+	VecMulf(mat[0], size[0]);
+	VecMulf(mat[1], size[1]);
+	VecMulf(mat[2], size[2]);
+}
+
+int IsMat3Orthogonal(float mat[][3])
+{
+	if (fabs(Inpf(mat[0], mat[1])) > 1.5 * FLT_EPSILON)
+		return 0;
+
+	if (fabs(Inpf(mat[1], mat[2])) > 1.5 * FLT_EPSILON)
+		return 0;
+
+	if (fabs(Inpf(mat[0], mat[2])) > 1.5 * FLT_EPSILON)
+		return 0;
+	
+	return 1;
+}
+
+int IsMat4Orthogonal(float mat[][4])
+{
+	if (fabs(Inpf(mat[0], mat[1])) > 1.5 * FLT_EPSILON)
+		return 0;
+
+	if (fabs(Inpf(mat[1], mat[2])) > 1.5 * FLT_EPSILON)
+		return 0;
+
+	if (fabs(Inpf(mat[0], mat[2])) > 1.5 * FLT_EPSILON)
+		return 0;
+	
+	return 1;
+}
+
 void Mat3Ortho(float mat[][3])
 {	
 	Normalize(mat[0]);
@@ -2839,10 +2995,8 @@ void MeanValueWeights(float v[][3], int n, float *co, float *w)
 
 /* Type for rotation order info - see wiki for derivation details */
 typedef struct RotOrderInfo {
-	short i;		/* first axis index */
-	short j;		/* second axis index */
-	short k;		/* third axis index */
-	short parity;	/* parity of axis permuation (even=0, odd=1) - 'n' in original code */
+	short axis[3];
+	short parity;	/* parity of axis permutation (even=0, odd=1) - 'n' in original code */
 } RotOrderInfo;
 
 /* Array of info for Rotation Order calculations 
@@ -2850,12 +3004,12 @@ typedef struct RotOrderInfo {
  */
 static RotOrderInfo rotOrders[]= {
 	/* i, j, k, n */
-	{0, 1, 2, 0}, // XYZ
-	{0, 2, 1, 1}, // XZY
-	{1, 0, 2, 1}, // YXZ
-	{1, 2, 0, 0}, // YZX
-	{2, 0, 1, 0}, // ZXY
-	{2, 1, 0, 1}  // ZYZ
+	{{0, 1, 2}, 0}, // XYZ
+	{{0, 2, 1}, 1}, // XZY
+	{{1, 0, 2}, 1}, // YXZ
+	{{1, 2, 0}, 0}, // YZX
+	{{2, 0, 1}, 0}, // ZXY
+	{{2, 1, 0}, 1}  // ZYZ
 };
 
 /* Get relevant pointer to rotation order set from the array 
@@ -2868,7 +3022,7 @@ static RotOrderInfo rotOrders[]= {
 void EulOToQuat(float e[3], short order, float q[4])
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->i,  j=R->j, 	k=R->k;
+	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	double a[3];
 	
@@ -2907,7 +3061,7 @@ void QuatToEulO(float q[4], float e[3], short order)
 void EulOToMat3(float e[3], short order, float M[3][3])
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->i,  j=R->j, 	k=R->k;
+	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	
 	if (R->parity) {
@@ -2943,7 +3097,7 @@ void EulOToMat4(float e[3], short order, float M[4][4])
 void Mat3ToEulO(float M[3][3], float e[3], short order)
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->i,  j=R->j, 	k=R->k;
+	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
 	double cy = sqrt(M[i][i]*M[i][i] + M[i][j]*M[i][j]);
 	
 	if (cy > 16*FLT_EPSILON) {
@@ -2979,7 +3133,7 @@ void Mat4ToEulO(float M[4][4], float e[3], short order)
 static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->i,  j=R->j, 	k=R->k;
+	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
 	float m[3][3];
 	double cy;
 	
@@ -3310,6 +3464,32 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 		VecCopyf(eul, eul1);
 	}
 	
+}
+
+/* the matrix is written to as 3 axis vectors */
+void EulToGimbalAxis(float gmat[][3], float *eul, short order)
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order);
+
+	float mat[3][3];
+	float teul[3];
+
+	/* first axis is local */
+	EulOToMat3(eul, order, mat);
+	VecCopyf(gmat[R->axis[0]], mat[R->axis[0]]);
+	
+	/* second axis is local minus first rotation */
+	VecCopyf(teul, eul);
+	teul[R->axis[0]] = 0;
+	EulOToMat3(teul, order, mat);
+	VecCopyf(gmat[R->axis[1]], mat[R->axis[1]]);
+	
+	
+	/* Last axis is global */
+	gmat[R->axis[2]][0] = 0;
+	gmat[R->axis[2]][1] = 0;
+	gmat[R->axis[2]][2] = 0;
+	gmat[R->axis[2]][R->axis[2]] = 1;
 }
 
 /* ************ AXIS ANGLE *************** */

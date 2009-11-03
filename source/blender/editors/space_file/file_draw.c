@@ -290,8 +290,12 @@ static float shorten_string(char* string, float w, int flag)
 
 static int get_file_icon(struct direntry *file)
 {
-	if (file->type & S_IFDIR)
+	if (file->type & S_IFDIR) {
+		if ( strcmp(file->relname, "..") == 0) {
+				return  ICON_FILE_PARENT;
+		}
 		return ICON_FILE_FOLDER;
+	}
 	else if (file->flags & BLENDERFILE)
 		return ICON_FILE_BLEND;
 	else if (file->flags & IMAGEFILE)

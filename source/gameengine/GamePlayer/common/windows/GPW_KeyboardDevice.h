@@ -57,9 +57,9 @@ protected:
 	void CheckForSeperateLeftRight(WPARAM wParam);
 
 	/** Stores the capability of this system to distinguish left and right modifier keys. */
-	bool m_seperateLeftRight;
+	bool m_separateLeftRight;
 	/** Stores the initialization state of the member m_leftRightDistinguishable. */
-	bool m_seperateLeftRightInitialized;
+	bool m_separateLeftRightInitialized;
 };
 
 #endif //_GPW_KEYBOARDDEVICE_H_

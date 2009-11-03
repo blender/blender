@@ -413,9 +413,10 @@ extern Object workob;
 #define BA_FROMSET			128
 
 #define BA_TRANSFORM_CHILD	256 /* child of a transformed object */
+#define BA_TRANSFORM_PARENT	8192 /* parent of a transformed object */
 
 /* an initial attempt as making selection more specific! */
-#define BA_DESELECT	0
+#define BA_DESELECT		0
 #define BA_SELECT		1
 
 

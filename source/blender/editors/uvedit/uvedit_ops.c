@@ -1886,7 +1886,7 @@ void UV_OT_unlink_selection(wmOperatorType *ot)
 /* This function sets the selection on tagged faces, need because settings the
  * selection a face is done in a number of places but it also needs to respect
  * the sticky modes for the UV verts, so dealing with the sticky modes is best
- * done in a seperate function.
+ * done in a separate function.
  * 
  * De-selects faces that have been tagged on efa->tmp.l.  */
 

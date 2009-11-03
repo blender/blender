@@ -76,7 +76,7 @@ abort();
 #endif /* breakpoint */
 
 
-#if defined(WIN32) && !defined(__GNUC__)
+#if defined(_WIN32) && !defined(__GNUC__)
 #define MT_assert(predicate) assert(predicate)
 #else
 
