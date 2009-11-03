@@ -1412,6 +1412,54 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 	return pyrna_py_to_prop(&self->ptr, prop, NULL, value, "StructRNA - Attribute (setattr):");
 }
 
+static PyObject *pyrna_prop_getattro( BPy_PropertyRNA * self, PyObject *pyname )
+{
+	char *name = _PyUnicode_AsString(pyname);
+
+	if(strcmp(name, "active")==0) {
+		PropertyRNA *prop_act;
+
+		if (RNA_property_type(self->prop) != PROP_COLLECTION) {
+			PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not a collection");
+			return NULL;
+		}
+
+		prop_act= RNA_property_collection_active(self->prop);
+		if (prop_act==NULL) {
+			PyErr_SetString( PyExc_TypeError, "collection has no active");
+			return NULL;
+		}
+
+		return pyrna_prop_to_py(&self->ptr, prop_act);
+	}
+
+	return PyObject_GenericGetAttr((PyObject *)self, pyname);
+}
+
+//--------------- setattr-------------------------------------------
+static int pyrna_prop_setattro( BPy_PropertyRNA * self, PyObject *pyname, PyObject * value )
+{
+	char *name = _PyUnicode_AsString(pyname);
+	if(strcmp(name, "active")==0) {
+		PropertyRNA *prop_act;
+
+		if (RNA_property_type(self->prop) != PROP_COLLECTION) {
+			PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not a collection");
+			return -1;
+		}
+
+		prop_act= RNA_property_collection_active(self->prop);
+		if (prop_act==NULL) {
+			PyErr_SetString( PyExc_TypeError, "collection has no active");
+			return -1;
+		}
+
+		return pyrna_py_to_prop(&self->ptr, prop_act, NULL, value, "StructRNA - Attribute (setattr):");
+	}
+
+	return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
+}
+
 static PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 {
 	PyObject *ret;
@@ -1850,7 +1898,6 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 	/* array accessor function */
 	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
 	{"foreach_set", (PyCFunction)pyrna_prop_foreach_set, METH_VARARGS, NULL},
-
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2321,8 +2368,10 @@ PyTypeObject pyrna_prop_Type = {
 	NULL,						/* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
-	NULL, /*PyObject_GenericGetAttr - MINGW Complains, assign later */	/* getattrofunc tp_getattro; */ /* will only use these if this is a subtype of a py class */
-	NULL, /*PyObject_GenericSetAttr - MINGW Complains, assign later */	/* setattrofunc tp_setattro; */
+
+	/* will only use these if this is a subtype of a py class */
+	( getattrofunc ) pyrna_prop_getattro,	/* getattrofunc tp_getattro; */
+	( setattrofunc ) pyrna_prop_setattro,	/* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
@@ -2588,10 +2637,6 @@ PyObject *BPY_rna_module( void )
 	mathutils_rna_array_cb_index= Mathutils_RegisterCallback(&mathutils_rna_array_cb);
 	mathutils_rna_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_rna_matrix_cb);
 #endif
-	
-	/* This can't be set in the pytype struct because some compilers complain */
-	pyrna_prop_Type.tp_getattro = PyObject_GenericGetAttr; 
-	pyrna_prop_Type.tp_setattro = PyObject_GenericSetAttr; 
 	
 	if( PyType_Ready( &pyrna_struct_Type ) < 0 )
 		return NULL;

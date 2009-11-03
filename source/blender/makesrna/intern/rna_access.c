@@ -1756,6 +1756,12 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 	}
 }
 
+PropertyRNA *RNA_property_collection_active(PropertyRNA *prop)
+{
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	return cprop->active;
+}
+
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array)
 {
 	CollectionPropertyIterator iter;
