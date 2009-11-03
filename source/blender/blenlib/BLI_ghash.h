@@ -190,7 +190,7 @@ BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 		int i, nold= gh->nbuckets;
 		
 		gh->nbuckets= hashsizes[++gh->cursize];
-		gh->buckets= malloc(gh->nbuckets*sizeof(*gh->buckets));
+		gh->buckets= (Entry**)malloc(gh->nbuckets*sizeof(*gh->buckets));
 		memset(gh->buckets, 0, gh->nbuckets*sizeof(*gh->buckets));
 		
 		for (i=0; i<nold; i++) {
