@@ -224,8 +224,17 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
-	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_posemode_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
+		RNA_boolean_set(kmi->ptr, "toggle", 1);
+
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "mode", OB_MODE_POSE);
+		RNA_boolean_set(kmi->ptr, "toggle", 1);
+
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
+		RNA_boolean_set(kmi->ptr, "toggle", 1);
 	
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
