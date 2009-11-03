@@ -109,7 +109,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 
         col = layout.column(align=True)
         col.itemL(text="UV Mapping:")
-        col.itemO("uv.mapping_menu", text="Unwrap")
+        col.item_stringO("wm.call_menu", "name", "VIEW3D_MT_uv_map", text="Unwrap")
+        
         col.itemO("mesh.uvs_rotate")
         col.itemO("mesh.uvs_mirror")
 

@@ -90,7 +90,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.itemO("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.itemO("view3d.snap_cursor_to_active", text="Cursor to Active")
 
-class VIEW3D_MT_uv_map(bpy.types.Menu):
+class VIEW3D_MT_uv_map(dynamic_menu.DynMenu):
     bl_label = "UV Mapping"
 
     def draw(self, context):

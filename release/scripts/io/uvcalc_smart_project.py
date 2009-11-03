@@ -821,7 +821,7 @@ class thickface(object):
 
 global ob
 ob = None
-def main(context):
+def main(context, island_margin, projection_limit):
 	global USER_FILL_HOLES
 	global USER_FILL_HOLES_QUALITY
 	global USER_STRETCH_ASPECT
@@ -847,34 +847,15 @@ def main(context):
 		raise('error, no selected mesh objects')
 	
 	# Create the variables.
-	USER_PROJECTION_LIMIT = (66)
+	USER_PROJECTION_LIMIT = projection_limit
 	USER_ONLY_SELECTED_FACES = (1)
 	USER_SHARE_SPACE = (1) # Only for hole filling.
 	USER_STRETCH_ASPECT = (1) # Only for hole filling.
-	USER_ISLAND_MARGIN = (0.0) # Only for hole filling.
+	USER_ISLAND_MARGIN = island_margin # Only for hole filling.
 	USER_FILL_HOLES = (0)
 	USER_FILL_HOLES_QUALITY = (50) # Only for hole filling.
 	USER_VIEW_INIT = (0) # Only for hole filling.
 	USER_AREA_WEIGHT = (1) # Only for hole filling.
-	
-	
-	pup_block = [\
-	'Projection',\
-	('Angle Limit:', USER_PROJECTION_LIMIT, 1, 89, 'lower for more projection groups, higher for less distortion.'),\
-	('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
-	('Init from view', USER_VIEW_INIT, 'The first projection will be from the view vector.'),\
-	('Area Weight', USER_AREA_WEIGHT, 'Weight projections vector by face area.'),\
-	'',\
-	'',\
-	'',\
-	'UV Layout',\
-	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
-	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
-	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.5, 'Margin to reduce bleed from adjacent islands.'),\
-	'Fill in empty areas',\
-	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
-	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
-	]
 	
 	# Reuse variable
 	if len(obList) == 1:
@@ -1123,19 +1104,59 @@ def main(context):
 #XXX	Window.WaitCursor(0)
 #XXX	Window.RedrawAll()
 
+"""
+	pup_block = [\
+	'Projection',\
+*	('Angle Limit:', USER_PROJECTION_LIMIT, 1, 89, ''),\
+	('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
+	('Init from view', USER_VIEW_INIT, 'The first projection will be from the view vector.'),\
+	('Area Weight', USER_AREA_WEIGHT, 'Weight projections vector by face area.'),\
+	'',\
+	'',\
+	'',\
+	'UV Layout',\
+	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
+	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
+*	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.5, ''),\
+	'Fill in empty areas',\
+	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
+	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
+	]
+"""
+
+from bpy.props import *
 class SmartProject(bpy.types.Operator):
 	'''This script projection unwraps the selected faces of a mesh. it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces.'''
 	bl_idname = "uv.smart_project"
 	bl_label = "Smart UV Project"
 
+	bl_register = True
+	bl_undo = True
+
+	angle_limit = FloatProperty(name="Angle Limit",
+			description="lower for more projection groups, higher for less distortion.",
+			default=66.0, min=1.0, max=89.0)
+
+	island_margin = FloatProperty(name="Island Margin",
+			description="Margin to reduce bleed from adjacent islands.",
+			default=0.0, min=0.0, max=1.0)
+
 	def poll(self, context):
 		return context.active_object != None
 
 	def execute(self, context):
-		main(context)
+		main(context, self.island_margin, self.angle_limit)
 		return ('FINISHED',)
 
 bpy.ops.add(SmartProject)
+
+# Add to a menu
+import dynamic_menu
+
+menu_func = (lambda self, context: self.layout.itemO(SmartProject.bl_idname,
+										text="Smart Project"))
+
+menu_item = dynamic_menu.add(bpy.types.VIEW3D_MT_uv_map, menu_func)
 
 if __name__ == '__main__':
 	bpy.ops.uv.smart_project()
