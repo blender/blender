@@ -60,10 +60,13 @@ struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
 /*
   this function recreates a tesselation.
   returns number of tesselation faces.
+
+  use_poly_origindex sets whether or not the tesselation faces' origindex
+  layer should point to original poly indices or real poly indices.
  */
 int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata, 
 	struct CustomData *pdata, struct MVert *mvert, int totface, 
-	int totloop, int totpoly);
+	int totloop, int totpoly, int use_poly_origindex);
 
 /*calculates a face normal.*/
 void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 

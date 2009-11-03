@@ -2507,7 +2507,7 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 	cddm->numFaceData = mesh_recalcTesselation(&cddm->faceData, 
 		&cddm->loopData, &cddm->polyData, 
 		mvert, cddm->numFaceData, 
-		cddm->numLoopData, cddm->numPolyData);
+		cddm->numLoopData, cddm->numPolyData, 1);
 
 	CDDM_set_mface(cddm, DM_get_tessface_data_layer(cddm, CD_MFACE));
 	CDDM_calc_normals(cddm);

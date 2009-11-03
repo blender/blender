@@ -1310,7 +1310,20 @@ static void cdDM_recalcTesselation(DerivedMesh *dm)
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 
 	dm->numFaceData = mesh_recalcTesselation(&dm->faceData, &dm->loopData, 
-		&dm->polyData, cddm->mvert, dm->numFaceData, dm->numLoopData, dm->numPolyData);
+		&dm->polyData, cddm->mvert, dm->numFaceData, dm->numLoopData, 
+		dm->numPolyData, 1);
+	
+	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+}
+
+/*ignores original poly origindex layer*/
+static void cdDM_recalcTesselation2(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+
+	dm->numFaceData = mesh_recalcTesselation(&dm->faceData, &dm->loopData, 
+		&dm->polyData, cddm->mvert, dm->numFaceData, dm->numLoopData, 
+		dm->numPolyData, 0);
 	
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 }
@@ -2010,7 +2023,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 
 	/*recalc tesselation to ensure we have valid origindex values
 	  for mface->mpoly lookups.*/
-	cdDM_recalcTesselation(dm);
+	cdDM_recalcTesselation2(dm);
 
 	numFaces = dm->numFaceData;
 
@@ -2029,7 +2042,6 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	}
 
 	face_nors = MEM_callocN(sizeof(float)*3*dm->numFaceData, "face_nors cdderivedmesh.c");
-	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, face_nors, dm->numFaceData);
 	origIndex = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX);
 
 	mf = cddm->mface;
@@ -2057,6 +2069,13 @@ void CDDM_calc_normals(DerivedMesh *dm)
 
 	MEM_freeN(temp_nors);
 	MEM_freeN(vert_nors);
+
+	/*this restores original poly origindex -> tessface origindex mapping,
+	  instead of the poly index -> tessface origindex one we generated
+	  with cdDM_recalcTesselation2*/
+	cdDM_recalcTesselation(dm);
+	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, 
+		face_nors, dm->numFaceData);
 }
 
 void CDDM_calc_edges(DerivedMesh *dm)

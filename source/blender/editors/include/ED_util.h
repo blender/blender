@@ -54,8 +54,8 @@ void	ED_OT_redo				(struct wmOperatorType *ot);
 void undo_editmode_push(struct bContext *C, char *name, 
 						void * (*getdata)(struct bContext *C),
 						void (*freedata)(void *), 
-						void (*to_editmode)(void *, void *),  
-						void *(*from_editmode)(void *),
+						void (*to_editmode)(void *, void *, void *),  
+						void *(*from_editmode)(void *, void *),
 						int (*validate_undo)(void *, void *));
 
 						

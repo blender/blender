@@ -1604,7 +1604,7 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 int mesh_recalcTesselation(CustomData *fdata, 
                            CustomData *ldata, CustomData *pdata,
                            MVert *mvert, int totface, int totloop, 
-                           int totpoly)
+                           int totpoly, int use_poly_origindex)
 {
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;
@@ -1624,7 +1624,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 	
 	k = 0;
 	mp = mpoly;
-	polyorigIndex = CustomData_get_layer(pdata, CD_ORIGINDEX);
+	polyorigIndex = use_poly_origindex? CustomData_get_layer(pdata, CD_ORIGINDEX) : NULL;
 	for (i=0; i<totpoly; i++, mp++) {
 		ml = mloop + mp->loopstart;
 		firstv = NULL;

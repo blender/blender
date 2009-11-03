@@ -1287,7 +1287,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	/*we can't assume mfaces have a correct origindex layer that indices to mpolys.
 	  so instead we have to regenerate the tesselation faces altogether.*/
 	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
-		me->mvert, me->totface, me->totloop, me->totpoly);
+		me->mvert, me->totface, me->totloop, me->totpoly, 1);
 	mesh_update_customdata_pointers(me);
 	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
 
@@ -1717,7 +1717,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me,
 	/*we can't assume mfaces have a correct origindex layer that indices to mpolys.
 	  so instead we have to regenerate the tesselation faces altogether.*/
 	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
-		me->mvert, me->totface, me->totloop, me->totpoly);
+		me->mvert, me->totface, me->totloop, me->totpoly, 1);
 	mesh_update_customdata_pointers(me);
 	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
 

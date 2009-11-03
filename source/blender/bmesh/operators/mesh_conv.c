@@ -32,15 +32,6 @@
 #include "bmesh.h"
 
 /*
-  HACK: we're using the old keyindex shape key hack for now, where each
-  vertex is assigned an index on entering editmode, which is used to retrieve
-  the original shapekey coordinates on exiting editmode.
-
-  this should be replaced by proper use of customdata layers, but I'm not
-  sure if that's such a good idea before merging with trunk or not.
-*/
-
-/*
  * MESH CONV.C
  *
  * This file contains functions
