@@ -128,6 +128,17 @@ static void rna_MeshFace_normal_get(PointerRNA *ptr, float *values)
 		CalcNormFloat(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, values);
 }
 
+static float rna_MeshFace_area_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MFace *mface= (MFace*)ptr->data;
+
+	if(mface->v4)
+		return AreaQ3Dfl(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co);
+	else
+		return AreaT3Dfl(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co);
+}
+
 /* notice red and blue are swapped */
 static void rna_MeshColor_color1_get(PointerRNA *ptr, float *values)
 {
@@ -1048,6 +1059,11 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_MeshFace_normal_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "face normal", "local space unit length normal vector for this face");
+
+	prop= RNA_def_property(srna, "area", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MeshFace_area_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "face area", "read only area of the face");
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -1,26 +1,5 @@
-#!BPY
-
-""" Registration info for Blender menus: <- these words are ignored
-Name: 'Unwrap (smart projections)'
-Blender: 240
-Group: 'UVCalculation'
-Tooltip: 'UV Unwrap mesh faces for all select mesh objects'
-"""
-
-
-__author__ = "Campbell Barton"
-__url__ = ("blender", "blenderartists.org")
-__version__ = "1.1 12/18/05"
-
-__bpydoc__ = """\
-This script projection unwraps the selected faces of a mesh.
-
-it operates on all selected mesh objects, and can be used unwrap
-selected faces, or all faces.
-"""
-
 # -------------------------------------------------------------------------- 
-# Smart Projection UV Projection Unwrapper v1.1 by Campbell Barton (AKA Ideasman) 
+# Smart Projection UV Projection Unwrapper v1.2 by Campbell Barton (AKA Ideasman) 
 # -------------------------------------------------------------------------- 
 # ***** BEGIN GPL LICENSE BLOCK ***** 
 # 
@@ -42,10 +21,12 @@ selected faces, or all faces.
 # -------------------------------------------------------------------------- 
 
 
-from Blender import Object, Draw, Window, sys, Mesh, Geometry
-from Blender.Mathutils import Matrix, Vector, RotationMatrix
+#from Blender import Object, Draw, Window, sys, Mesh, Geometry
+from Mathutils import Matrix, Vector, RotationMatrix
+import time
+import Geometry
 import bpy
-from math import cos
+from math import cos, degrees, radians
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
 SMALL_NUM = 0.000000001
@@ -182,7 +163,7 @@ def island2Edge(island):
 	# Sort by length
 	
 		
-	length_sorted_edges = [(Vector(key[0]), Vector(key[1]), value) for key, value in edges.iteritems() if value != 0]
+	length_sorted_edges = [(Vector(key[0]), Vector(key[1]), value) for key, value in edges.items() if value != 0]
 	
 	try:	length_sorted_edges.sort(key = lambda A: -A[2]) # largest first
 	except:	length_sorted_edges.sort(lambda A, B: cmp(B[2], A[2]))
@@ -192,7 +173,7 @@ def island2Edge(island):
 	#	e.pop(2)
 	
 	# return edges and unique points
-	return length_sorted_edges, [v.__copy__().resize3D() for v in unique_points.itervalues()]
+	return length_sorted_edges, [v.__copy__().resize3D() for v in unique_points.values()]
 	
 # ========================= NOT WORKING????
 # Find if a points inside an edge loop, un-orderd.
@@ -294,15 +275,15 @@ def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
 	
 # Takes a list of faces that make up a UV island and rotate
 # until they optimally fit inside a square.
-ROTMAT_2D_POS_90D = RotationMatrix( 90, 2)
-ROTMAT_2D_POS_45D = RotationMatrix( 45, 2)
+ROTMAT_2D_POS_90D = RotationMatrix( radians(90.0), 2)
+ROTMAT_2D_POS_45D = RotationMatrix( radians(45.0), 2)
 
 RotMatStepRotation = []
 rot_angle = 22.5 #45.0/2
 while rot_angle > 0.1:
 	RotMatStepRotation.append([\
-	 RotationMatrix( rot_angle, 2),\
-	 RotationMatrix( -rot_angle, 2)])
+	 RotationMatrix( radians(rot_angle), 2),\
+	 RotationMatrix( radians(-rot_angle), 2)])
 	
 	rot_angle = rot_angle/2.0
 	
@@ -381,7 +362,7 @@ def optiRotateUvIsland(faces):
 	i = 0 # count the serialized uv/vectors
 	for f in faces:
 		#f.uv = [uv for uv in uvVecs[i:len(f)+i] ]
-		for j, k in enumerate(xrange(i, len(f.v)+i)):
+		for j, k in enumerate(range(i, len(f.v)+i)):
 			f.uv[j][:] = uvVecs[k]
 		i += len(f.v)
 
@@ -428,16 +409,13 @@ def mergeUvIslands(islandList):
 	# no.. chance that to most simple edge loop first.
 	decoratedIslandListAreaSort =decoratedIslandList[:]
 	
-	try:	decoratedIslandListAreaSort.sort(key = lambda A: A[3])
-	except:	decoratedIslandListAreaSort.sort(lambda A, B: cmp(A[3], B[3]))
-	
+	decoratedIslandListAreaSort.sort(key = lambda A: A[3])
 	
 	# sort by efficiency, Least Efficient first.
 	decoratedIslandListEfficSort = decoratedIslandList[:]
 	# decoratedIslandListEfficSort.sort(lambda A, B: cmp(B[2], A[2]))
 
-	try:	decoratedIslandListEfficSort.sort(key = lambda A: -A[2])
-	except:	decoratedIslandListEfficSort.sort(lambda A, B: cmp(B[2], A[2]))
+	decoratedIslandListEfficSort.sort(key = lambda A: -A[2])
 
 	# ================================================== THESE CAN BE TWEAKED.
 	# This is a quality value for the number of tests.
@@ -557,7 +535,7 @@ def mergeUvIslands(islandList):
 							elif Intersect == 0: # No intersection?? Place it.
 								# Progress
 								removedCount +=1
-								Window.DrawProgressBar(0.0, 'Merged: %i islands, Ctrl to finish early.' % removedCount)
+#XXX								Window.DrawProgressBar(0.0, 'Merged: %i islands, Ctrl to finish early.' % removedCount)
 								
 								# Move faces into new island and offset
 								targetIsland[0].extend(sourceIsland[0])
@@ -581,7 +559,7 @@ def mergeUvIslands(islandList):
 								
 								# Sort by edge length, reverse so biggest are first.
 								
-								try: 	targetIsland[6].sort(key = lambda A: A[2])
+								try:	 targetIsland[6].sort(key = lambda A: A[2])
 								except:	targetIsland[6].sort(lambda B,A: cmp(A[2], B[2] ))
 								
 								
@@ -625,16 +603,15 @@ def getUvIslands(faceGroups, me):
 	
 	# Get seams so we dont cross over seams
 	edge_seams = {} # shoudl be a set
-	SEAM = Mesh.EdgeFlags.SEAM
 	for ed in me.edges:
-		if ed.flag & SEAM:
+		if ed.seam:
 			edge_seams[ed.key] = None # dummy var- use sets!			
 	# Done finding seams
 	
 	
 	islandList = []
 	
-	Window.DrawProgressBar(0.0, 'Splitting %d projection groups into UV islands:' % len(faceGroups))
+#XXX	Window.DrawProgressBar(0.0, 'Splitting %d projection groups into UV islands:' % len(faceGroups))
 	#print '\tSplitting %d projection groups into UV islands:' % len(faceGroups),
 	# Find grouped faces
 	
@@ -652,7 +629,7 @@ def getUvIslands(faceGroups, me):
 		
 		for i, f in enumerate(faces):
 			for ed_key in f.edge_keys:
-				if edge_seams.has_key(ed_key): # DELIMIT SEAMS! ;)
+				if ed_key in edge_seams: # DELIMIT SEAMS! ;)
 					edge_users[ed_key] = [] # so as not to raise an error
 				else:
 					try:		edge_users[ed_key].append(i)
@@ -677,7 +654,7 @@ def getUvIslands(faceGroups, me):
 			ok = True
 			while ok:
 				ok= False
-				for i in xrange(len(faces)):
+				for i in range(len(faces)):
 					if face_modes[i] == 1: # search
 						for ed_key in faces[i].edge_keys:
 							for ii in edge_users[ed_key]:
@@ -691,7 +668,7 @@ def getUvIslands(faceGroups, me):
 			islandList.append(newIsland)
 			
 			ok = False
-			for i in xrange(len(faces)):
+			for i in range(len(faces)):
 				if face_modes[i] == 0:
 					newIsland = []
 					newIsland.append(faces[i])
@@ -700,7 +677,7 @@ def getUvIslands(faceGroups, me):
 					break
 			# if not ok will stop looping
 	
-	Window.DrawProgressBar(0.1, 'Optimizing Rotation for %i UV Islands' % len(islandList))
+#XXX	Window.DrawProgressBar(0.1, 'Optimizing Rotation for %i UV Islands' % len(islandList))
 	
 	for island in islandList:
 		optiRotateUvIsland(island)
@@ -710,7 +687,7 @@ def getUvIslands(faceGroups, me):
 
 def packIslands(islandList):
 	if USER_FILL_HOLES:
-		Window.DrawProgressBar(0.1, 'Merging Islands (Ctrl: skip merge)...')
+#XXX		Window.DrawProgressBar(0.1, 'Merging Islands (Ctrl: skip merge)...')
 		mergeUvIslands(islandList) # Modify in place
 		
 	
@@ -760,18 +737,18 @@ def packIslands(islandList):
 	# with the islands.
 	
 	#print '\tPacking UV Islands...'
-	Window.DrawProgressBar(0.7, 'Packing %i UV Islands...' % len(packBoxes) )
+#XXX	Window.DrawProgressBar(0.7, 'Packing %i UV Islands...' % len(packBoxes) )
 	
-	time1 = sys.time()
+	time1 = time.time()
 	packWidth, packHeight = Geometry.BoxPack2D(packBoxes)
 	
-	# print 'Box Packing Time:', sys.time() - time1
+	# print 'Box Packing Time:', time.time() - time1
 	
 	#if len(pa	ckedLs) != len(islandList):
 	#	raise "Error packed boxes differes from original length"
 	
 	#print '\tWriting Packed Data to faces'
-	Window.DrawProgressBar(0.8, 'Writing Packed Data to faces')
+#XXX	Window.DrawProgressBar(0.8, 'Writing Packed Data to faces')
 	
 	# Sort by ID, so there in sync again
 	islandIdx = len(islandList)
@@ -812,50 +789,73 @@ def VectoMat(vec):
 	return Matrix([a1[0], a1[1], a1[2]], [a2[0], a2[1], a2[2]], [a3[0], a3[1], a3[2]])
 
 
+# Utility funcs for 2.5, make into a module??
+def ord_ind(i1,i2):
+	if i1<i2: return i1,i2
+	return i2,i1
+	
+def edge_key(ed):
+	v1,v2 = tuple(ed.verts)
+	return ord_ind(v1, v2)
+
+def face_edge_keys(f):
+	verts  = tuple(f.verts)
+	if len(verts)==3:
+		return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[0])
+	
+	return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
+
 
 class thickface(object):
 	__slost__= 'v', 'uv', 'no', 'area', 'edge_keys'
-	def __init__(self, face):
-		self.v = face.v
-		self.uv = face.uv
-		self.no = face.no
+	def __init__(self, face, uvface, mesh_verts):
+		self.v = [mesh_verts[i] for i in face.verts]
+		if len(self.v)==4:
+			self.uv = uvface.uv1, uvface.uv2, uvface.uv3, uvface.uv4
+		else:
+			self.uv = uvface.uv1, uvface.uv2, uvface.uv3
+			
+		self.no = face.normal
 		self.area = face.area
-		self.edge_keys = face.edge_keys
+		self.edge_keys = face_edge_keys(face)
 
 global ob
 ob = None
-def main():
+def main(context):
 	global USER_FILL_HOLES
 	global USER_FILL_HOLES_QUALITY
 	global USER_STRETCH_ASPECT
 	global USER_ISLAND_MARGIN
 	
-	objects= bpy.data.scenes.active.objects
+#XXX objects= bpy.data.scenes.active.objects
+	objects = context.selected_editable_objects
+	
 	
 	# we can will tag them later.
-	obList =  [ob for ob in objects.context if ob.type == 'Mesh']
+	obList =  [ob for ob in objects if ob.type == 'MESH']
 	
 	# Face select object may not be selected.
-	ob = objects.active
-	if ob and ob.sel == 0 and ob.type == 'Mesh':
+#XXX	ob = objects.active
+	ob= objects[0]
+
+	if ob and ob.selected == 0 and ob.type == 'MESH':
 		# Add to the list
 		obList =[ob]
 	del objects
 	
 	if not obList:
-		Draw.PupMenu('error, no selected mesh objects')
-		return
+		raise('error, no selected mesh objects')
 	
 	# Create the variables.
-	USER_PROJECTION_LIMIT = Draw.Create(66)
-	USER_ONLY_SELECTED_FACES = Draw.Create(1)
-	USER_SHARE_SPACE = Draw.Create(1) # Only for hole filling.
-	USER_STRETCH_ASPECT = Draw.Create(1) # Only for hole filling.
-	USER_ISLAND_MARGIN = Draw.Create(0.0) # Only for hole filling.
-	USER_FILL_HOLES = Draw.Create(0)
-	USER_FILL_HOLES_QUALITY = Draw.Create(50) # Only for hole filling.
-	USER_VIEW_INIT = Draw.Create(0) # Only for hole filling.
-	USER_AREA_WEIGHT = Draw.Create(1) # Only for hole filling.
+	USER_PROJECTION_LIMIT = (66)
+	USER_ONLY_SELECTED_FACES = (1)
+	USER_SHARE_SPACE = (1) # Only for hole filling.
+	USER_STRETCH_ASPECT = (1) # Only for hole filling.
+	USER_ISLAND_MARGIN = (0.0) # Only for hole filling.
+	USER_FILL_HOLES = (0)
+	USER_FILL_HOLES_QUALITY = (50) # Only for hole filling.
+	USER_VIEW_INIT = (0) # Only for hole filling.
+	USER_AREA_WEIGHT = (1) # Only for hole filling.
 	
 	
 	pup_block = [\
@@ -885,69 +885,64 @@ def main():
 	# HACK, loop until mouse is lifted.
 	'''
 	while Window.GetMouseButtons() != 0:
-		sys.sleep(10)
+		time.sleep(10)
 	'''
 	
-	if not Draw.PupBlock(ob % len(obList), pup_block):
-		return
-	del ob
+#XXX	if not Draw.PupBlock(ob % len(obList), pup_block):
+#XXX		return
+#XXX	del ob
 	
 	# Convert from being button types
-	USER_PROJECTION_LIMIT = USER_PROJECTION_LIMIT.val
-	USER_ONLY_SELECTED_FACES = USER_ONLY_SELECTED_FACES.val
-	USER_SHARE_SPACE = USER_SHARE_SPACE.val
-	USER_STRETCH_ASPECT = USER_STRETCH_ASPECT.val
-	USER_ISLAND_MARGIN = USER_ISLAND_MARGIN.val
-	USER_FILL_HOLES = USER_FILL_HOLES.val
-	USER_FILL_HOLES_QUALITY = USER_FILL_HOLES_QUALITY.val
-	USER_VIEW_INIT = USER_VIEW_INIT.val
-	USER_AREA_WEIGHT = USER_AREA_WEIGHT.val
 	
 	USER_PROJECTION_LIMIT_CONVERTED = cos(USER_PROJECTION_LIMIT * DEG_TO_RAD)
 	USER_PROJECTION_LIMIT_HALF_CONVERTED = cos((USER_PROJECTION_LIMIT/2) * DEG_TO_RAD)
 	
 	
 	# Toggle Edit mode
-	is_editmode = Window.EditMode()
+	is_editmode = (context.active_object.mode == 'EDIT')
 	if is_editmode:
-		Window.EditMode(0)
+		bpy.ops.object.mode_set(mode='OBJECT')
 	# Assume face select mode! an annoying hack to toggle face select mode because Mesh dosent like faceSelectMode.
 	
 	if USER_SHARE_SPACE:
 		# Sort by data name so we get consistant results
-		try:	obList.sort(key = lambda ob: ob.getData(name_only=1))
-		except:	obList.sort(lambda ob1, ob2: cmp( ob1.getData(name_only=1), ob2.getData(name_only=1) ))
-		
+		obList.sort(key = lambda ob: ob.data.name)
 		collected_islandList= []
 	
-	Window.WaitCursor(1)
+#XXX	Window.WaitCursor(1)
 	
-	time1 = sys.time()
+	time1 = time.time()
 	
 	# Tag as False se we dont operate on teh same mesh twice.
-	bpy.data.meshes.tag = False 
+#XXX	bpy.data.meshes.tag = False 
+	for me in bpy.data.meshes:
+		me.tag = False
+
 	
 	for ob in obList:
-		me = ob.getData(mesh=1)
+		me = ob.data
 		
-		if me.tag or me.lib:
+		if me.tag or me.library:
 			continue
 		
 		# Tag as used
 		me.tag = True
 		
-		if not me.faceUV: # Mesh has no UV Coords, dont bother.
-			me.faceUV= True
+		if len(me.uv_textures)==0: # Mesh has no UV Coords, dont bother.
+			me.add_uv_texture()
+		
+		uv_layer = me.active_uv_texture.data
+		me_verts = list(me.verts)
 		
 		if USER_ONLY_SELECTED_FACES:
-			meshFaces = [thickface(f) for f in me.faces if f.sel]
-		else:
-			meshFaces = map(thickface, me.faces)
+			meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.selected]
+		#else:
+		#	meshFaces = map(thickface, me.faces)
 		
 		if not meshFaces:
 			continue
 		
-		Window.DrawProgressBar(0.1, 'SmartProj UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
+#XXX		Window.DrawProgressBar(0.1, 'SmartProj UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
 		
 		# =======
 		# Generate a projection list from face normals, this is ment to be smart :)
@@ -957,8 +952,7 @@ def main():
 		# meshFaces = []
 		
 		# meshFaces.sort( lambda a, b: cmp(b.area , a.area) ) # Biggest first.
-		try:	meshFaces.sort( key = lambda a: -a.area ) 
-		except:	meshFaces.sort( lambda a, b: cmp(b.area , a.area) )
+		meshFaces.sort( key = lambda a: -a.area ) 
 			
 		# remove all zero area faces
 		while meshFaces and meshFaces[-1].area <= SMALL_NUM:
@@ -998,7 +992,7 @@ def main():
 			# If theres none there then start with the largest face
 			
 			# add all the faces that are close.
-			for fIdx in xrange(len(tempMeshFaces)-1, -1, -1):
+			for fIdx in range(len(tempMeshFaces)-1, -1, -1):
 				# Use half the angle limit so we dont overweight faces towards this
 				# normal and hog all the faces.
 				if newProjectVec.dot(tempMeshFaces[fIdx].no) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
@@ -1022,7 +1016,7 @@ def main():
 			mostUniqueAngle = 1.0 # 1.0 is 0d. no difference.
 			mostUniqueIndex = 0 # dummy
 			
-			for fIdx in xrange(len(tempMeshFaces)-1, -1, -1):
+			for fIdx in range(len(tempMeshFaces)-1, -1, -1):
 				angleDifference = -1.0 # 180d difference.
 				
 				# Get the closest vec angle we are to.
@@ -1057,11 +1051,11 @@ def main():
 			Draw.PupMenu('error, no projection vecs where generated, 0 area faces can cause this.')
 			return
 		
-		faceProjectionGroupList =[[] for i in xrange(len(projectVecs)) ]
+		faceProjectionGroupList =[[] for i in range(len(projectVecs)) ]
 		
 		# MAP and Arrange # We know there are 3 or 4 faces here 
 		
-		for fIdx in xrange(len(meshFaces)-1, -1, -1):
+		for fIdx in range(len(meshFaces)-1, -1, -1):
 			fvec = meshFaces[fIdx].no
 			i = len(projectVecs)
 			
@@ -1085,7 +1079,7 @@ def main():
 		
 		
 		# Now faceProjectionGroupList is full of faces that face match the project Vecs list
-		for i in xrange(len(projectVecs)):
+		for i in range(len(projectVecs)):
 			# Account for projectVecs having no faces.
 			if not faceProjectionGroupList[i]:
 				continue
@@ -1097,7 +1091,8 @@ def main():
 			for f in faceProjectionGroupList[i]:
 				f_uv = f.uv
 				for j, v in enumerate(f.v):
-					f_uv[j][:] = (MatProj * v.co)[:2]
+					# XXX - note, between Mathutils in 2.4 and 2.5 the order changed.
+					f_uv[j][:] = (v.co * MatProj)[:2]
 		
 		
 		if USER_SHARE_SPACE:
@@ -1115,18 +1110,33 @@ def main():
 	
 	# We want to pack all in 1 go, so pack now
 	if USER_SHARE_SPACE:
-		Window.DrawProgressBar(0.9, "Box Packing for all objects...")
+#XXX		Window.DrawProgressBar(0.9, "Box Packing for all objects...")
 		packIslands(collected_islandList)
 	
-	print "Smart Projection time: %.2f" % (sys.time() - time1)
-	# Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec." % (sys.time() - time1))
+	print("Smart Projection time: %.2f" % (time.time() - time1))
+	# Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec." % (time.time() - time1))
 	
 	if is_editmode:
-		Window.EditMode(1)
+		bpy.ops.object.mode_set(mode='EDIT')
 	
-	Window.DrawProgressBar(1.0, "")
-	Window.WaitCursor(0)
-	Window.RedrawAll()
+#XXX	Window.DrawProgressBar(1.0, "")
+#XXX	Window.WaitCursor(0)
+#XXX	Window.RedrawAll()
+
+class SmartProject(bpy.types.Operator):
+	'''This script projection unwraps the selected faces of a mesh. it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces.'''
+	bl_idname = "uv.smart_project"
+	bl_label = "Smart UV Project"
+
+	def poll(self, context):
+		return context.active_object != None
+
+	def execute(self, context):
+		main(context)
+		return ('FINISHED',)
+
+bpy.ops.add(SmartProject)
 
 if __name__ == '__main__':
-	main()
+	bpy.ops.uv.smart_project()
+
