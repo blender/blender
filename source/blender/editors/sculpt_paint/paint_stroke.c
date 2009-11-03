@@ -101,7 +101,11 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 
 static void paint_draw_cursor(bContext *C, int x, int y, void *customdata)
 {
-	Brush *brush = paint_brush(paint_get_active(CTX_data_scene(C)));
+	Paint *paint = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(paint);
+
+	if(!(paint->flags & PAINT_SHOW_BRUSH))
+		return;
 
 	glColor4ubv(paint_get_active(CTX_data_scene(C))->paint_cursor_col);
 	glEnable(GL_LINE_SMOOTH);

@@ -633,7 +633,8 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
                 layout.itemR(brush, "use_anchor")
 
             if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
-                layout.itemR(brush, "flip_direction")
+                layout.item_enumR(brush, "direction", value="SUBTRACT")
+                layout.item_enumR(brush, "direction", value="ADD")
 
             if brush.sculpt_tool == 'LAYER':
                 layout.itemR(brush, "use_persistent")

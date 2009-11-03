@@ -663,7 +663,6 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
         sculpt = context.tool_settings.sculpt
 
         col = layout.column()
-        col.itemR(sculpt, "partial_redraw", text="Partial Refresh")
         col.itemR(sculpt, "show_brush")
 
         split = self.layout.split()

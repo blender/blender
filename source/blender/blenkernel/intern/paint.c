@@ -175,6 +175,8 @@ void paint_init(Paint *p, const char col[3])
 
 	memcpy(p->paint_cursor_col, col, 3);
 	p->paint_cursor_col[3] = 128;
+
+	p->flags |= PAINT_SHOW_BRUSH;
 }
 
 void free_paint(Paint *paint)
