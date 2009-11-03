@@ -46,7 +46,7 @@ def addPointCache(job, ob, point_cache, default_path):
 	if name == "":
 		name = "".join(["%02X" % ord(c) for c in ob.name])
 	
-	cache_path = bpy.sys.expandpath(point_cache.filepath) if point_cache.external else default_path
+	cache_path = bpy.utils.expandpath(point_cache.filepath) if point_cache.external else default_path
 	
 	index = "%02i" % point_cache.index
 	
@@ -111,14 +111,14 @@ def clientSendJob(conn, scene, anim = False):
 	# LIBRARIES
 	###########################
 	for lib in bpy.data.libraries:
-		job.addFile(bpy.sys.expandpath(lib_path))
+		job.addFile(bpy.utils.expandpath(lib_path))
 		
 	###########################
 	# IMAGES
 	###########################
 	for image in bpy.data.images:
 		if image.source == "FILE" and not image.packed_file:
-			job.addFile(bpy.sys.expandpath(image.filename))
+			job.addFile(bpy.utils.expandpath(image.filename))
 	
 	###########################
 	# FLUID + POINT CACHE
@@ -129,7 +129,7 @@ def clientSendJob(conn, scene, anim = False):
 	for object in bpy.data.objects:
 		for modifier in object.modifiers:
 			if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-				addFluidFiles(job, bpy.sys.expandpath(modifier.settings.path))
+				addFluidFiles(job, bpy.utils.expandpath(modifier.settings.path))
 			elif modifier.type == "CLOTH":
 				addPointCache(job, object, modifier.point_cache, default_path)
 			elif modifier.type == "SOFT_BODY":

@@ -200,7 +200,7 @@ static void bpy_init_modules( void )
 		}
 		
 		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
-		bpy_import_test("bpy_sys"); /* adds its self to bpy.sys */
+		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
 		bpy_import_test("bpy_ext"); /* extensions to our existing types */
 	}
 	

@@ -223,11 +223,11 @@ def copy_images(dest_dir):
 	copyCount = 0
 	
 # 	for bImage in uniqueImages.values():
-# 		image_path = bpy.sys.expandpath(bImage.filename)
+# 		image_path = bpy.utils.expandpath(bImage.filename)
 # 		if bpy.sys.exists(image_path):
 # 			# Make a name for the target path.
 # 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
-# 			if not bpy.sys.exists(dest_image_path): # Image isnt alredy there
+# 			if not bpy.utils.exists(dest_image_path): # Image isnt alredy there
 # 				print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
 # 				copy_file(image_path, dest_image_path)
 # 				copyCount+=1
