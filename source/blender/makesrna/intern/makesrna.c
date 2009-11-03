@@ -1834,9 +1834,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				else fprintf(f, "NULL, ");
 				if(cprop->remove) fprintf(f, "&rna_%s_%s_func, ", srna->identifier, (char*)cprop->remove);
 				else fprintf(f, "NULL, ");
-
 				if(cprop->active) fprintf(f, "(PropertyRNA*)&rna_%s%s_%s, ", srna->identifier, strnest, cprop->active->identifier);
-
+				else fprintf(f, "NULL, ");
 				if(cprop->type) fprintf(f, "&RNA_%s\n", (char*)cprop->type);
 				else fprintf(f, "NULL\n");
 				break;
