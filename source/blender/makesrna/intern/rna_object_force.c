@@ -29,10 +29,12 @@
 
 #include "rna_internal.h"
 
+#include "DNA_cloth_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_smoke_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -292,6 +294,15 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 
 	BLI_freelistN(&pidlist);
 }
+
+static char *rna_CollisionSettings_path(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Collision);
+	
+	return BLI_sprintfN("modifiers[%s].settings", md->name);
+}
+
 static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
 {
 	Object *data= (Object*)(ptr->id.data);
@@ -401,15 +412,24 @@ static void rna_SoftBodySettings_goal_vgroup_set(PointerRNA *ptr, const char *va
 	rna_object_vgroup_name_index_set(ptr, value, &sb->vertgroup);
 }
 
-static int particle_field_check(PointerRNA *ptr)
+static char *rna_SoftBodySettings_path(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
+	
+	return BLI_sprintfN("modifiers[%s].settings", md->name);
+}
+
+static int particle_id_check(PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
 	return (GS(id->name) == ID_PA);
 }
+
 static void rna_FieldSettings_update(bContext *C, PointerRNA *ptr)
 {
-	if(particle_field_check(ptr)) {
+	if(particle_id_check(ptr)) {
 		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
 
 		if(part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
@@ -443,7 +463,7 @@ static void rna_FieldSettings_shape_update(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene= CTX_data_scene(C);
 
-	if(!particle_field_check(ptr)) {
+	if(!particle_id_check(ptr)) {
 		Object *ob= (Object*)ptr->id.data;
 		PartDeflect *pd= ob->pd;
 		ModifierData *md= modifiers_findByType(ob, eModifierType_Surface);
@@ -467,7 +487,7 @@ static void rna_FieldSettings_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene= CTX_data_scene(C);
 
-	if(particle_field_check(ptr)) {
+	if(particle_id_check(ptr)) {
 		DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC|PSYS_RECALC_RESET);
 	}
 	else {
@@ -493,6 +513,30 @@ static void rna_FieldSettings_dependency_update(bContext *C, PointerRNA *ptr)
 	}
 }
 
+static char *rna_FieldSettings_path(PointerRNA *ptr)
+{
+	PartDeflect *pd = (PartDeflect *)ptr->data;
+	
+	/* Check through all possible places the settings can be to find the right one */
+	
+	if(particle_id_check(ptr)) {
+		/* particle system force field */
+		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
+		
+		if (part->pd == pd)
+			return BLI_sprintfN("force_field_1");
+		else if (part->pd2 == pd)
+			return BLI_sprintfN("force_field_2");
+	} else {
+		/* object force field */
+		Object *ob= (Object*)ptr->id.data;
+		
+		if (ob->pd == pd)
+			return BLI_sprintfN("field");
+	}
+	return NULL;
+}
+
 static void rna_EffectorWeight_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
@@ -510,6 +554,51 @@ static void rna_EffectorWeight_dependency_update(bContext *C, PointerRNA *ptr)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
 }
+
+static char *rna_EffectorWeight_path(PointerRNA *ptr)
+{
+	EffectorWeights *ew = (EffectorWeights *)ptr->data;
+	/* Check through all possible places the settings can be to find the right one */
+	
+	if(particle_id_check(ptr)) {
+		/* particle effector weights */
+		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
+		
+		if (part->effector_weights == ew)
+			return BLI_sprintfN("effector_weights");
+	} else {
+		Object *ob= (Object*)ptr->id.data;
+		ModifierData *md;
+		
+		/* check softbody modifier */
+		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
+		if (md) {
+			/* no pointer from modifier data to actual softbody storage, would be good to add */
+			if (ob->soft->effector_weights == ew)
+				return BLI_sprintfN("modifiers[%s].settings.effector_weights", md->name);
+		}
+		
+		/* check cloth modifier */
+		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		if (md) {
+			ClothModifierData *cmd = (ClothModifierData *)md;
+			
+			if (cmd->sim_parms->effector_weights == ew)
+				return BLI_sprintfN("modifiers[%s].settings.effector_weights", md->name);
+		}
+		
+		/* check smoke modifier */
+		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
+		if (md) {
+			SmokeModifierData *smd = (SmokeModifierData *)md;
+			
+			if (smd->domain->effector_weights == ew)
+				return BLI_sprintfN("modifiers[%s].settings.effector_weights", md->name);
+		}
+	}
+	return NULL;
+}
+
 static void rna_CollisionSettings_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -546,7 +635,7 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, 
 {
 	Object *ob= NULL;
 
-	if(particle_field_check(ptr))
+	if(particle_id_check(ptr))
 		return empty_shape_items;
 	
 	ob= (Object*)ptr->id.data;
@@ -671,6 +760,7 @@ static void rna_def_collision(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "CollisionSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");
+	RNA_def_struct_path_func(srna, "rna_CollisionSettings_path");
 	RNA_def_struct_ui_text(srna, "Collision Settings", "Collision settings for object in physics simulation.");
 	
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
@@ -755,6 +845,8 @@ static void rna_def_effector_weight(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "EffectorWeights", NULL);
+	RNA_def_struct_sdna(srna, "EffectorWeights");
+	RNA_def_struct_path_func(srna, "rna_EffectorWeight_path");
 	RNA_def_struct_ui_text(srna, "Effector Weights", "Effector weights for physics simulation.");
 	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 
@@ -929,6 +1021,7 @@ static void rna_def_field(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "FieldSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");
+	RNA_def_struct_path_func(srna, "rna_FieldSettings_path");
 	RNA_def_struct_ui_text(srna, "Field Settings", "Field settings for an object in physics simulation.");
 	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 	
@@ -1282,6 +1375,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "SoftBodySettings", NULL);
 	RNA_def_struct_sdna(srna, "SoftBody");
+	RNA_def_struct_path_func(srna, "rna_SoftBodySettings_path");
 	RNA_def_struct_ui_text(srna, "Soft Body Settings", "Soft body simulation settings for an object.");
 	
 	/* General Settings */
@@ -1501,6 +1595,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 
 	prop= RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "effector_weights");
 	RNA_def_property_struct_type(prop, "EffectorWeights");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Weights", "");

@@ -1493,6 +1493,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "soft_body", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "soft");
+	RNA_def_property_struct_type(prop, "SoftBodySettings");
 	RNA_def_property_ui_text(prop, "Soft Body Settings", "Settings for soft body simulation.");
 
 	prop= RNA_def_property(srna, "particle_systems", PROP_COLLECTION, PROP_NONE);
