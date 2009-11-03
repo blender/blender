@@ -786,7 +786,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				case NSFlagsChanged:
 					handleKeyEvent(event);
 					
-					/* Support system-wide keyboard shortcuts, like Exposé, ...) =>included in always NSApp sendEvent */
+					/* Support system-wide keyboard shortcuts, like Expos√©, ...) =>included in always NSApp sendEvent */
 					/*		if (([event modifierFlags] & NSCommandKeyMask) || [event type] == NSFlagsChanged) {
 					 [NSApp sendEvent:event];
 					 }*/
@@ -891,8 +891,8 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	//Check open windows if some changes are not saved
 	if (m_windowManager->getAnyModifiedState())
 	{
-		int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes have not been saved. Do you really want to quit ?",
-										 @"Cancel", @"Quit anyway", nil);
+		int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes have not been saved.\nDo you really want to quit ?",
+										 @"Cancel", @"Quit Anyway", nil);
 		if (shouldQuit == NSAlertAlternateReturn)
 		{
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
