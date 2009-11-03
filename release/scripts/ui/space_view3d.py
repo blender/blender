@@ -90,6 +90,22 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.itemO("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.itemO("view3d.snap_cursor_to_active", text="Cursor to Active")
 
+class VIEW3D_MT_uv_map(bpy.types.Menu):
+    bl_label = "UV Mapping"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.itemO("uv.unwrap")
+        layout.itemO("uv.cube_project")
+        layout.itemO("uv.cylinder_project")
+        layout.itemO("uv.sphere_project")
+        layout.itemO("uv.project_from_view")
+
+        layout.itemS()
+
+        layout.itemO("uv.reset")
+
 # ********** View menus **********
 
 
@@ -831,7 +847,7 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.itemO("uv.mapping_menu", text="UV Unwrap...")
+        layout.itemM("VIEW3D_MT_uv_map", text="UV Unwrap...")
 
         layout.itemS()
 
@@ -1603,6 +1619,7 @@ bpy.types.register(VIEW3D_MT_pose_constraints)
 bpy.types.register(VIEW3D_MT_pose_showhide)
 
 bpy.types.register(VIEW3D_MT_snap) # Edit Menus
+bpy.types.register(VIEW3D_MT_uv_map) # Edit Menus
 
 bpy.types.register(VIEW3D_MT_edit_mesh)
 bpy.types.register(VIEW3D_MT_edit_mesh_specials) # Only as a menu for keybindings
