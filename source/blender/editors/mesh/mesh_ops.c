@@ -77,8 +77,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_linked_pick);
 	WM_operatortype_append(MESH_OT_select_random);
 	WM_operatortype_append(MESH_OT_selection_type);
-	WM_operatortype_append(MESH_OT_pin);
-	WM_operatortype_append(MESH_OT_unpin);
+	//WM_operatortype_append(MESH_OT_pin);
+	//WM_operatortype_append(MESH_OT_unpin);
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_by_number_vertices);
@@ -244,10 +244,10 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* pin */
-	WM_keymap_add_item(keymap, "MESH_OT_pin", RETKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_pin", RETKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
-	WM_keymap_add_item(keymap, "MESH_OT_unpin", RETKEY, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_unpin", RETKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "unselected", 1);
+	//WM_keymap_add_item(keymap, "MESH_OT_pin", RETKEY, KM_PRESS, 0, 0);
+	//RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_pin", RETKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
+	//WM_keymap_add_item(keymap, "MESH_OT_unpin", RETKEY, KM_PRESS, KM_ALT, 0);
+	//RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_unpin", RETKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "unselected", 1);
 
 	/* hide */
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);
