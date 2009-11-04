@@ -2906,7 +2906,7 @@ void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
 
 float (*curve_getKeyVertexCos(Curve *cu, ListBase *lb, float *key))[3]
 {
-	int i, numVerts;
+	int i, numVerts = count_curveverts(lb);
 	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "cu_vcos");
 	Nurb *nu;
 

@@ -238,6 +238,7 @@ static void insert_lattkey(Scene *scene, Object *ob)
 	if(key==NULL) {
 		key= lt->key= add_key( (ID *)lt);
 		key->type= KEY_RELATIVE;
+		newkey= 1;
 	}
 
 	kb= add_keyblock(scene, key);
