@@ -235,11 +235,8 @@ void free_sculptsession(SculptSession **ssp)
 		if(ss->layer_disps)
 			MEM_freeN(ss->layer_disps);
 
-		if(ss->mesh_co_orig)
-			MEM_freeN(ss->mesh_co_orig);
-
-		if(ss->face_normals)
-			MEM_freeN(ss->face_normals);
+		if(ss->layer_co)
+			MEM_freeN(ss->layer_co);
 
 		MEM_freeN(ss);
 
