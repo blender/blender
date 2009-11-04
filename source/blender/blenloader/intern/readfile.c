@@ -2882,10 +2882,8 @@ static void lib_link_texture(FileData *fd, Main *main)
 			tex->ima= newlibadr_us(fd, tex->id.lib, tex->ima);
 			tex->ipo= newlibadr_us(fd, tex->id.lib, tex->ipo);
 			if(tex->env) tex->env->object= newlibadr(fd, tex->id.lib, tex->env->object);
-			if(tex->pd) {
+			if(tex->pd)
 				tex->pd->object= newlibadr(fd, tex->id.lib, tex->pd->object);
-				tex->pd->psys= newlibadr(fd, tex->id.lib, tex->pd->psys);
-			}
 			if(tex->vd) tex->vd->object= newlibadr(fd, tex->id.lib, tex->vd->object);
 
 			if(tex->nodetree)

@@ -72,6 +72,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
+#include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -83,6 +84,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -91,10 +93,6 @@
 #include "ED_screen.h"
 
 #include "object_intern.h"
-
-/* ************* XXX **************** */
-static int pupmenu(const char *msg) {return 0;}
-static int pupmenu_col(const char *msg, int val) {return 0;}
 
 /*********************** Make Vertex Parent Operator ************************/
 
@@ -1132,97 +1130,77 @@ void link_to_scene(unsigned short nr)
 #endif
 }
 
-
-void make_links(bContext *C, wmOperator *op, Scene *scene, View3D *v3d, short event)
+static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
-	Object *ob, *obt;
-	Base *base, *nbase, *sbase;
-	Scene *sce = NULL;
-	ID *id;
-	int a;
-	short nr=0;
-	char *strp;
+	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "type"));
 
-	if(!(ob=OBACT)) return;
-
-	if(event==1) {
-		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), 0, &nr);
-		
-		if(nr == -2) {
-			MEM_freeN(strp);
-
-// XXX			activate_databrowse((ID *)scene, ID_SCE, 0, B_INFOSCE, &(G.curscreen->scenenr), link_to_scene );
-			
-			return;			
-		}
-		else {
-			event= pupmenu_col(strp, 20);
-			MEM_freeN(strp);
-		
-			if(event<= 0) return;
-		
-			nr= 1;
-			sce= G.main->scene.first;
-			while(sce) {
-				if(nr==event) break;
-				nr++;
-				sce= sce->id.next;
-			}
-			if(sce==scene) {
-				BKE_report(op->reports, RPT_ERROR, "This is the current scene");
-				return;
-			}
-			if(sce==0 || sce->id.lib) return;
-			
-			/* remember: is needed below */
-			event= 1;
-		}
+	if(scene_to==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Scene not found");
+		return OPERATOR_CANCELLED;
 	}
 
-	/* All non group linking */
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(event==1 || base != BASACT) {
-			
-			obt= base->object;
+	if(scene_to == CTX_data_scene(C)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
+		return OPERATOR_CANCELLED;
+	}
 
-			if(TESTBASE(v3d, base)) {
-				
-				if(event==1) {		/* to scene */
-					
-					/* test if already linked */
-					sbase= sce->base.first;
-					while(sbase) {
-						if(sbase->object==base->object) break;
-						sbase= sbase->next;
-					}
-					if(sbase) {	/* remove */
-						continue;
-					}
-					
-					nbase= MEM_mallocN( sizeof(Base), "newbase");
-					*nbase= *base;
-					BLI_addhead( &(sce->base), nbase);
-					id_us_plus((ID *)base->object);
+	CTX_DATA_BEGIN(C, Base*, base, selected_bases)
+	{
+		if(!object_in_scene(base->object, scene_to)) {
+			Base *nbase= MEM_mallocN( sizeof(Base), "newbase");
+			*nbase= *base;
+			BLI_addhead( &(scene_to->base), nbase);
+			id_us_plus((ID *)base->object);
+		}
+	}
+	CTX_DATA_END;
+
+	ED_anim_dag_flush_update(C);
+
+	/* one day multiple scenes will be visible, then we should have some update function for them */
+	return OPERATOR_FINISHED;
+}
+
+enum {
+	MAKE_LINKS_OBDATA = 1,
+	MAKE_LINKS_MATERIALS,
+	MAKE_LINKS_ANIMDATA,
+	MAKE_LINKS_DUPLIGROUP,
+};
+
+static int make_links_data_exec(bContext *C, wmOperator *op)
+{
+	int event = RNA_int_get(op->ptr, "type");
+	Object *ob;
+	ID *id;
+	int a;
+
+	ob= CTX_data_active_object(C);
+
+	CTX_DATA_BEGIN(C, Object*, obt, selected_editable_objects) {
+		if(ob != obt) {
+			switch(event) {
+			case MAKE_LINKS_OBDATA: /* obdata */
+				id= obt->data;
+				id->us--;
+
+				id= ob->data;
+				id_us_plus(id);
+				obt->data= id;
+
+				/* if amount of material indices changed: */
+				test_object_materials(obt->data);
+
+				obt->recalc |= OB_RECALC_DATA;
+				break;
+			case MAKE_LINKS_MATERIALS:
+				/* new approach, using functions from kernel */
+				for(a=0; a<ob->totcol; a++) {
+					Material *ma= give_current_material(ob, a+1);
+					assign_material(obt, ma, a+1);	/* also works with ma==NULL */
 				}
-			}
-			if(TESTBASELIB(v3d, base)) {
-				if(event==2 || event==5) {  /* obdata */
-					if(ob->type==obt->type) {
-						
-							id= obt->data;
-							id->us--;
-							
-							id= ob->data;
-							id_us_plus(id);
-							obt->data= id;
-							
-							/* if amount of material indices changed: */
-							test_object_materials(obt->data);
-
-							obt->recalc |= OB_RECALC_DATA;
-						}
-					}
-				else if(event==4) {  /* ob ipo */
+				break;
+			case MAKE_LINKS_ANIMDATA:
 #if 0 // XXX old animation system
 					if(obt->ipo) obt->ipo->id.us--;
 					obt->ipo= ob->ipo;
@@ -1231,66 +1209,74 @@ void make_links(bContext *C, wmOperator *op, Scene *scene, View3D *v3d, short ev
 						do_ob_ipo(scene, obt);
 					}
 #endif // XXX old animation system
+				break;
+			case MAKE_LINKS_DUPLIGROUP:
+				if(ob->dup_group) ob->dup_group->id.us--;
+				obt->dup_group= ob->dup_group;
+				if(obt->dup_group) {
+					id_us_plus((ID *)obt->dup_group);
+					obt->transflag |= OB_DUPLIGROUP;
 				}
-				else if(event==6) {
-					if(ob->dup_group) ob->dup_group->id.us--;
-					obt->dup_group= ob->dup_group;
-					if(obt->dup_group) {
-						id_us_plus((ID *)obt->dup_group);
-						obt->transflag |= OB_DUPLIGROUP;
-					}
-				}
-				else if(event==3) {  /* materials */
-					
-					/* new approach, using functions from kernel */
-					for(a=0; a<ob->totcol; a++) {
-						Material *ma= give_current_material(ob, a+1);
-						assign_material(obt, ma, a+1);	/* also works with ma==NULL */
-					}
-				}
+				break;
 			}
 		}
 	}
-	
-	ED_anim_dag_flush_update(C);	
+	CTX_DATA_END;
 
+	ED_anim_dag_flush_update(C);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	return OPERATOR_FINISHED;
 }
 
-void make_links_menu(bContext *C, Scene *scene, View3D *v3d)
+
+void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 {
-	Object *ob;
-	short event=0;
-	char str[140];
-	
-	if(!(ob=OBACT)) return;
-	
-	strcpy(str, "Make Links %t|To Scene...%x1|%l|Object Ipo%x4");
-	
-	if(ob->type==OB_MESH)
-		strcat(str, "|Mesh Data%x2|Materials%x3");
-	else if(ob->type==OB_CURVE)
-		strcat(str, "|Curve Data%x2|Materials%x3");
-	else if(ob->type==OB_FONT)
-		strcat(str, "|Text Data%x2|Materials%x3");
-	else if(ob->type==OB_SURF)
-		strcat(str, "|Surface Data%x2|Materials%x3");
-	else if(ob->type==OB_MBALL)
-		strcat(str, "|Materials%x3");
-	else if(ob->type==OB_CAMERA)
-		strcat(str, "|Camera Data%x2");
-	else if(ob->type==OB_LAMP)
-		strcat(str, "|Lamp Data%x2");
-	else if(ob->type==OB_LATTICE)
-		strcat(str, "|Lattice Data%x2");
-	else if(ob->type==OB_ARMATURE)
-		strcat(str, "|Armature Data%x2");
-	
-	event= pupmenu(str);
-	
-	if(event<= 0) return;
-	
-	make_links(C, NULL, scene, v3d, event);
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Link Objects to Scene";
+	ot->description = "Make linked data local to each object.";
+	ot->idname= "OBJECT_OT_make_links_scene";
+
+	/* api callbacks */
+	ot->exec= make_links_scene_exec;
+	/* better not run the poll check */
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, RNA_scene_itemf);
 }
+
+void OBJECT_OT_make_links_data(wmOperatorType *ot)
+{
+	static EnumPropertyItem make_links_items[]= {
+		{MAKE_LINKS_OBDATA,		"OBDATA", 0, "Object Data", ""},
+		{MAKE_LINKS_MATERIALS,	"MATERIAL", 0, "Materials", ""},
+		{MAKE_LINKS_ANIMDATA,	"ANIMATION", 0, "Animation Data", ""},
+		{MAKE_LINKS_DUPLIGROUP,	"DUPLIGROUP", 0, "DupliGroup", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Link Data";
+	ot->description = "Make links from the active object to other selected objects.";
+	ot->idname= "OBJECT_OT_make_links_data";
+
+	/* api callbacks */
+	ot->exec= make_links_data_exec;
+	ot->poll= ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", make_links_items, 0, "Type", "");
+}
+
 
 /**************************** Make Single User ********************************/
 

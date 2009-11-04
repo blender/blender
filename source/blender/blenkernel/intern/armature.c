@@ -1689,7 +1689,9 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 		/* setup new empty array for the points list */
 		if (ikData->points) 
 			MEM_freeN(ikData->points);
-		ikData->numpoints= (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT)? ikData->chainlen : ikData->chainlen+1;
+		// NOTE: just do chainlen+1 always for now, since we may get crashes otherwise
+		//ikData->numpoints= (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT)? ikData->chainlen : ikData->chainlen+1;
+		ikData->numpoints= ikData->chainlen+1; 
 		ikData->points= MEM_callocN(sizeof(float)*ikData->numpoints, "Spline IK Binding");
 		
 		/* perform binding of the joints to parametric positions along the curve based 
@@ -1804,106 +1806,109 @@ static void splineik_init_tree(Scene *scene, Object *ob, float ctime)
 static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *ob, bPoseChannel *pchan, int index, float ctime)
 {
 	bSplineIKConstraint *ikData= tree->ikData;
-	float dirX[3]={1,0,0}, dirZ[3]={0,0,1};
-	float axis1[3], axis2[3], tmpVec[3];
+	float poseHead[3], poseTail[3], poseMat[4][4]; 
 	float splineVec[3], scaleFac;
 	float rad, radius=1.0f;
 	float vec[4], dir[3];
 	
-	/* step 1: get xyz positions for the endpoints of the bone
-	 * 	assume that they can be calculated on the path so that these calls will never fail
-	 */
-		/* tail */
+	/* firstly, calculate the bone matrix the standard way, since this is needed for roll control */
+	where_is_pose_bone(scene, ob, pchan, ctime);
+	
+	VECCOPY(poseHead, pchan->pose_head);
+	VECCOPY(poseTail, pchan->pose_tail);
+	
+	/* step 1a: get xyz positions for the tail endpoint of the bone */
 	if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad) ) {
 		/* convert the position to pose-space, then store it */
 		Mat4MulVecfl(ob->imat, vec);
-		VECCOPY(pchan->pose_tail, vec);
+		VECCOPY(poseTail, vec);
 		
 		/* set the new radius */
 		radius= rad;
 	}
-		/* head 
-		 *	- check that this isn't the last bone that is subject to restrictions 
-		 *	  i.e. if no-root option is enabled, the root should be calculated in the standard way
-		 */
-	if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT)==0 || (index+1 < ikData->chainlen)) 
-	{
-		/* the head location of this bone is driven by the spline */
-		if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
-			/* store the position, and convert it to pose space */
-			Mat4MulVecfl(ob->imat, vec);
-			VECCOPY(pchan->pose_head, vec);
-			
-			/* set the new radius (it should be the average value) */
-			radius = (radius+rad) / 2;
-		}
-	}
-	else { 
-		// FIXME: this option isn't really useful yet...
-		//	maybe we are more interested in the head deltas that arise from this instead?
-		/* use the standard calculations for this */
-		where_is_pose_bone(scene, ob, pchan, ctime);
+	
+	/* step 1b: get xyz positions for the head endpoint of the bone */
+		/* firstly, calculate the position that the path suggests */
+	if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
+		/* store the position, and convert it to pose space */
+		Mat4MulVecfl(ob->imat, vec);
+		VECCOPY(poseHead, vec);
 		
-		/* hack: assume for now that the pose_tail vector is still valid from the previous step, 
-		 * and set that again now so that the chain doesn't get broken
-		 */
-		VECCOPY(pchan->pose_tail, vec); 
+		/* set the new radius (it should be the average value) */
+		radius = (radius+rad) / 2;
+	}
+	if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) && (pchan == tree->root)) 
+	{
+		// this is the root bone, and it can be controlled however we like...
+		// TODO: how do we calculate the offset of the root, if we don't even know the binding?
+		VECCOPY(poseHead, pchan->pose_head);
 	}
 	
-	
-	/* step 2a: determine the implied transform from these endpoints 
+	/* step 2: determine the implied transform from these endpoints 
 	 *	- splineVec: the vector direction that the spline applies on the bone
 	 *	- scaleFac: the factor that the bone length is scaled by to get the desired amount
 	 */
-	VecSubf(splineVec, pchan->pose_tail, pchan->pose_head);
-	scaleFac= VecLength(splineVec) / pchan->bone->length; // TODO: this will need to be modified by blending factor
+	VecSubf(splineVec, poseTail, poseHead);
+	scaleFac= VecLength(splineVec) / pchan->bone->length;
 	
-	/* step 2b: the spline vector now becomes the y-axis of the bone
-	 *	- we need to normalise the splineVec first, so that it's just a unit direction vector
+	/* step 3: compute the shortest rotation needed to map from the bone rotation to the current axis 
+	 * 	- this uses the same method as is used for the Damped Track Constraint (see the code there for details)
 	 */
-	Mat4One(pchan->pose_mat);
-	
-	Normalize(splineVec);
-	VECCOPY(pchan->pose_mat[1], splineVec);
-	
-	
-	/* step 3a: determine two vectors which will both be at right angles to the bone vector 
-	 * 	based on the "Gram Schmidt process" for finding a set of Orthonormal Vectors, described at 
-	 *		http://ltcconline.net/greenl/courses/203/Vectors/orthonormalBases.htm
-	 *	and normalise them to make sure they will behave nicely (as unit vectors)
-	 */
-		/* x-axis = dirX - projection(dirX onto splineVec) */
-	Projf(axis1, dirX, splineVec); /* project dirX onto splineVec */
-	VecSubf(pchan->pose_mat[0], dirX, axis1);
-	
-	Normalize(pchan->pose_mat[0]);
-	
-		/* z-axis = dirZ - projection(dirZ onto splineVec) - projection(dirZ onto dirX) */
-	Projf(axis1, dirZ, splineVec);					/* project dirZ onto Y-Axis */
-	Projf(axis2, dirZ, pchan->pose_mat[0]); 		/* project dirZ onto X-Axis */
-	
-	VecSubf(tmpVec, dirZ, axis1); 					/* dirZ - proj(dirZ->YAxis) */
-	VecSubf(pchan->pose_mat[2], tmpVec, axis2); 	/* (dirZ - proj(dirZ->YAxis)) - proj(dirZ->XAxis) */
-	
-	Normalize(pchan->pose_mat[2]);
-	
-	/* step 3b: rotate these axes for roll control and also to minimise flipping rotations */
-	// NOTE: for controlling flipping rotations, we could look to the curve for guidance...
-		// TODO: code me!
-	
+	{
+		float dmat[3][3], rmat[3][3], tmat[3][3];
+		float raxis[3], rangle;
+		
+		/* compute the raw rotation matrix from the bone's current matrix by extracting only the
+		 * orientation-relevant axes, and normalising them
+		 */
+		VECCOPY(rmat[0], pchan->pose_mat[0]);
+		VECCOPY(rmat[1], pchan->pose_mat[1]);
+		VECCOPY(rmat[2], pchan->pose_mat[2]);
+		Mat3Ortho(rmat);
+		
+		/* also, normalise the orientation imposed by the bone, now that we've extracted the scale factor */
+		Normalize(splineVec);
+		
+		/* calculate smallest axis-angle rotation necessary for getting from the
+		 * current orientation of the bone, to the spline-imposed direction
+		 */
+		Crossf(raxis, rmat[1], splineVec);
+		
+		rangle= Inpf(rmat[1], splineVec);
+		rangle= acos( MAX2(-1.0f, MIN2(1.0f, rangle)) );
+		
+		/* construct rotation matrix from the axis-angle rotation found above 
+		 *	- this call takes care to make sure that the axis provided is a unit vector first
+		 */
+		AxisAngleToMat3(raxis, rangle, dmat);
+		
+		/* combine these rotations so that the y-axis of the bone is now aligned as the spline dictates,
+		 * while still maintaining roll control from the existing bone animation
+		 */
+		Mat3MulMat3(tmat, dmat, rmat); // m1, m3, m2
+		Mat3Ortho(tmat); /* attempt to reduce shearing, though I doubt this'll really help too much now... */
+		Mat4CpyMat3(poseMat, tmat);
+	}
 	
 	/* step 4: set the scaling factors for the axes */
+	{
 		/* only multiply the y-axis by the scaling factor to get nice volume-preservation */
-	VecMulf(pchan->pose_mat[1], scaleFac);
-		
+		VecMulf(poseMat[1], scaleFac);
+			
 		/* set the scaling factors of the x and z axes from the average radius of the curve? */
-	if (ikData->flag & CONSTRAINT_SPLINEIK_RAD2FAT) {
-		VecMulf(pchan->pose_mat[0], radius);
-		VecMulf(pchan->pose_mat[2], radius);
+		if (ikData->flag & CONSTRAINT_SPLINEIK_RAD2FAT) {
+			VecMulf(poseMat[0], radius);
+			VecMulf(poseMat[2], radius);
+		}
 	}
 	
 	/* step 5: set the location of the bone in the matrix */
-	VECCOPY(pchan->pose_mat[3], pchan->pose_head);
+	VECCOPY(poseMat[3], pchan->pose_head);
+	
+	/* finally, store the new transform */
+	Mat4CpyMat4(pchan->pose_mat, poseMat);
+	VECCOPY(pchan->pose_head, poseHead);
+	VECCOPY(pchan->pose_tail, poseTail);
 	
 	/* done! */
 	pchan->flag |= POSE_DONE;

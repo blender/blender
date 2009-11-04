@@ -200,7 +200,7 @@ static void bpy_init_modules( void )
 		}
 		
 		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
-		bpy_import_test("bpy_sys"); /* adds its self to bpy.sys */
+		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
 		bpy_import_test("bpy_ext"); /* extensions to our existing types */
 	}
 	
@@ -607,7 +607,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *file_extension;
 	char *dirname;
 	char path[FILE_MAX];
-	char *dirs[] = {"scripts/ui", "scripts/io", NULL};
+	char *dirs[] = {"scripts/ui", "scripts/op", "scripts/io", NULL};
 	int path_flags[] = {BLI_GETHOME_LOCAL|BLI_GETHOME_SYSTEM, BLI_GETHOME_USER}; /* SYSTEM / NON-SYSTEM */
 	int a, err, flag_iter;
 	

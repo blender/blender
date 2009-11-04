@@ -19,6 +19,7 @@
 import bpy
 
 def write_some_data(context, path, use_some_setting):
+    print("running write_some_data...")
     pass
 
 from bpy.props import *
@@ -33,16 +34,18 @@ class ExportSomeData(bpy.types.Operator):
 
     # TODO, add better example props
     path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
-    use_some_setting = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True)
+    use_setting = BoolProperty(name="Example Boolean", description="Example Tooltip", default= True)
 
     def poll(self, context):
         return context.active_object != None
 
     def execute(self, context):
-        if not self.is_property_set("path"):
-            raise Exception("filename not set")
 
-        write(self.path, context, use_setting, SOME_SETTING = self.use_some_setting)
+        # # Bug, currently isnt working
+        #if not self.is_property_set("path"):
+        #    raise Exception("filename not set")
+
+        write_some_data(self.path, context, self.use_setting)
 
         return ('FINISHED',)
 
@@ -53,11 +56,11 @@ class ExportSomeData(bpy.types.Operator):
             # File selector
             wm.add_fileselect(self) # will run self.execute()
             return ('RUNNING_MODAL',)
-        else if 0:
+        elif 0:
             # Redo popup
             wm.invoke_props_popup(self, event) #
             return ('RUNNING_MODAL',)
-        else if 0:
+        elif 0:
             return self.execute(context)
 
 

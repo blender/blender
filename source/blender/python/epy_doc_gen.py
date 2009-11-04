@@ -23,10 +23,10 @@ Usage,
 run this script from blenders root path once you have compiled blender
     ./blender.bin -P source/blender/python/epy_doc_gen.py
 
-This will generate rna.py and bpyoperator.py in "./source/blender/python/doc/"
+This will generate python files in "./source/blender/python/doc/bpy"
 Generate html docs  by running...
 
-    epydoc source/blender/python/doc/*.py -v \\
+    epydoc source/blender/python/doc/bpy/ -v \\
             -o source/blender/python/doc/html \\
             --inheritance=included \\
             --no-sourcecode \\
@@ -288,7 +288,11 @@ def write_func(rna, ident, out, func_type):
 
     out.write(ident+'def %s(%s):\n' % (rna_func_name, ', '.join(kw_args)))
     out.write(ident+'\t"""\n')
-    out.write(ident+'\t%s\n' % rna_func_desc)
+    
+    # Descriptions could be multiline
+    for rna_func_desc_line in rna_func_desc.split('\n'):
+        out.write(ident+'\t%s\n' % rna_func_desc_line.strip())
+    
     for desc in kw_arg_attrs:
         out.write(ident+'\t%s\n' % desc)
 

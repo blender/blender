@@ -218,25 +218,39 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 		VecMulf(out, -factor);	/* -factor makes move down going backwards */
 	}
 	else {
-		float cb[3], ab[3];
+		float v[3], i1[3], i2[3];
+		float v2[3], v4[3];
+		float norm_center[3];
+		float plane[3];
 
-		VECCOPY(out, axis);
+		getViewVector(t, t->con.center, norm_center);
+		Crossf(plane, norm_center, axis);
 
-		/* Get view vector on axis to define a plane */
-		VecAddf(vec, t->con.center, in);
-		getViewVector(t, vec, norm);
-
-		Crossf(vec, norm, axis);
-
-		/* Project input vector on the plane passing on axis */
-		Projf(vec, in, vec);
+		Projf(vec, in, plane);
 		VecSubf(vec, in, vec);
+		
+		VecAddf(v, vec, t->con.center);
+		getViewVector(t, v, norm);
 
-		/* intersect the two lines: axis and norm */
-		Crossf(cb, vec, norm);
-		Crossf(ab, axis, norm);
-
-		VecMulf(out, Inpf(cb, ab) / Inpf(ab, ab));
+		/* give arbitrary large value if projection is impossible */
+		factor = Inpf(axis, norm);
+		if (1 - fabs(factor) < 0.0002f) {
+			VECCOPY(out, axis);
+			if (factor > 0) {
+				VecMulf(out, 1000000000);
+			} else {
+				VecMulf(out, -1000000000);
+			}
+		} else {
+			VecAddf(v2, t->con.center, axis);
+			VecAddf(v4, v, norm);
+			
+			LineIntersectLine(t->con.center, v2, v, v4, i1, i2);
+			
+			VecSubf(v, i2, v);
+	
+			VecSubf(out, i1, t->con.center);
+		}
 	}
 }
 

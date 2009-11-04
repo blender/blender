@@ -4,12 +4,12 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -89,6 +89,22 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.itemO("view3d.snap_cursor_to_selected", text="Cursor to Selected")
         layout.itemO("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.itemO("view3d.snap_cursor_to_active", text="Cursor to Active")
+
+class VIEW3D_MT_uv_map(dynamic_menu.DynMenu):
+    bl_label = "UV Mapping"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.itemO("uv.unwrap")
+        layout.itemO("uv.cube_project")
+        layout.itemO("uv.cylinder_project")
+        layout.itemO("uv.sphere_project")
+        layout.itemO("uv.project_from_view")
+
+        layout.itemS()
+
+        layout.itemO("uv.reset")
 
 # ********** View menus **********
 
@@ -209,9 +225,9 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
         layout.itemO("object.select_mirror", text="Mirror")
         layout.itemO("object.select_by_layer", text="Select All by Layer")
         layout.item_menu_enumO("object.select_by_type", "type", "", text="Select All by Type...")
-        
+
         layout.itemS()
-        
+
         layout.item_menu_enumO("object.select_grouped", "type", text="Grouped")
         layout.item_menu_enumO("object.select_linked", "type", text="Linked")
         layout.itemO("object.select_pattern", text="Select Pattern...")
@@ -407,7 +423,7 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
         layout = self.layout
 
         layout.itemO("view3d.select_border")
-        
+
 
         layout.itemS()
 
@@ -463,8 +479,10 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.item_booleanO("object.duplicate", "linked", True, text="Duplicate Linked")
         layout.itemO("object.delete", text="Delete...")
         layout.itemO("object.proxy_make", text="Make Proxy...")
+        layout.itemM("VIEW3D_MT_make_links", text="Make Links...")
         layout.item_menu_enumO("object.make_local", "type", text="Make Local...")
         layout.itemM("VIEW3D_MT_make_single_user")
+        layout.itemM("VIEW3D_MT_make_links")
 
         layout.itemS()
 
@@ -587,6 +605,18 @@ class VIEW3D_MT_make_single_user(bpy.types.Menu):
 
         props = layout.itemO("object.make_single_user", properties=True, text="Animation")
         props.animation = True
+
+
+class VIEW3D_MT_make_links(bpy.types.Menu):
+    bl_label = "Make Links"
+
+    def draw(self, context):
+        layout = self.layout
+        
+        layout.item_menu_enumO("object.make_links_scene", "type", text="Objects to Scene...")
+
+        layout.items_enumO("object.make_links_data", property="type") # inline
+
 
 # ********** Vertex paint menu **********
 
@@ -832,7 +862,7 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.itemO("uv.mapping_menu", text="UV Unwrap...")
+        layout.itemM("VIEW3D_MT_uv_map", text="UV Unwrap...")
 
         layout.itemS()
 
@@ -1359,8 +1389,8 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
     bl_label = "Mesh Display"
 
     def poll(self, context):
-        editmesh = context.mode == 'EDIT_MESH'
-        return (editmesh)
+        # The active object check is needed because of localmode
+        return (context.active_object and (context.mode == 'EDIT_MESH'))
 
     def draw(self, context):
         layout = self.layout
@@ -1585,6 +1615,7 @@ bpy.types.register(VIEW3D_MT_object_group)
 bpy.types.register(VIEW3D_MT_object_constraints)
 bpy.types.register(VIEW3D_MT_object_showhide)
 bpy.types.register(VIEW3D_MT_make_single_user)
+bpy.types.register(VIEW3D_MT_make_links)
 
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
@@ -1604,6 +1635,7 @@ bpy.types.register(VIEW3D_MT_pose_constraints)
 bpy.types.register(VIEW3D_MT_pose_showhide)
 
 bpy.types.register(VIEW3D_MT_snap) # Edit Menus
+bpy.types.register(VIEW3D_MT_uv_map) # Edit Menus
 
 bpy.types.register(VIEW3D_MT_edit_mesh)
 bpy.types.register(VIEW3D_MT_edit_mesh_specials) # Only as a menu for keybindings

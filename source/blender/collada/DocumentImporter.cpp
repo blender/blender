@@ -1721,6 +1721,8 @@ public:
 		new_tris = count_new_tris(mesh, me, new_tris);
 		
 		read_faces(mesh, me, new_tris);
+
+		// make_edges(me, 0);
 		
  		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 
@@ -1858,6 +1860,9 @@ private:
 		FCurve *fcu;
 		std::vector<FCurve*>::iterator it;
 		int i = 0;
+
+		char *p = strstr(rna_path, "rotation_euler");
+		bool is_rotation = p && *(p + strlen("rotation_euler")) == '\0';
 		
 		for (it = curves.begin(); it != curves.end(); it++) {
 			fcu = *it;
@@ -1867,8 +1872,7 @@ private:
 			else fcu->array_index = array_index;
 
 			// convert degrees to radians for rotation
-			char *p = strstr(rna_path, "rotation");
-			if (p && *(p + strlen("rotation")) == '\0') {
+			if (is_rotation) {
 				for(int j = 0; j < fcu->totvert; j++) {
 					float rot_intan = fcu->bezt[j].vec[0][1];
 					float rot_output = fcu->bezt[j].vec[1][1];
@@ -1903,7 +1907,7 @@ private:
 					action_groups_add_channel(act, grp, fcu);
 					
 				}
-				if (p && *(p + strlen("rotation")) == '\0') {
+				if (is_rotation) {
 					fcurves_actionGroup_map[grp].push_back(fcu);
 				}
 			}
@@ -2051,9 +2055,9 @@ public:
 		case COLLADAFW::Transformation::ROTATE:
 			{
 				if (is_joint)
-					BLI_snprintf(rna_path, sizeof(rna_path), "%s.euler_rotation", joint_path);
+					BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_euler", joint_path);
 				else
-					BLI_strncpy(rna_path, "rotation", sizeof(rna_path));
+					BLI_strncpy(rna_path, "rotation_euler", sizeof(rna_path));
 
 				COLLADAFW::Rotate* rot = (COLLADAFW::Rotate*)animated.tm;
 				COLLADABU::Math::Vector3& axis = rot->getRotationAxis();
@@ -2082,8 +2086,7 @@ public:
 						}
 						break;
 					case COLLADAFW::AnimationList::AXISANGLE:
-						// convert axis-angle to quat? or XYZ?
-						break;
+						// TODO convert axis-angle to quat? or XYZ?
 					default:
 						fprintf(stderr, "AnimationClass %d is not supported for ROTATE transformation.\n",
 								binding.animationClass);
@@ -2124,7 +2127,7 @@ public:
 						add_fcurves_to_object(ob, fcurves, rna_path, -1, &animated);
 						break;
 					default:
-						fprintf(stderr, "AnimationClass %d is not supported for TRANSLATE transformation.\n",
+						fprintf(stderr, "AnimationClass %d is not supported for SCALE transformation.\n",
 								binding.animationClass);
 					}
 				}
@@ -2171,7 +2174,7 @@ public:
 			char rna_path[100];
 
 			BLI_snprintf(joint_path, sizeof(joint_path), "pose.pose_channels[\"%s\"]", grp->name);
-			BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation", joint_path);
+			BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_euler", joint_path);
 
 			FCurve *quatcu[4] = {
 				create_fcurve(0, rna_path),

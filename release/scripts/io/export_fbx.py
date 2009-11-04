@@ -237,14 +237,14 @@ def sane_groupname(data):	return sane_name(data, sane_name_mapping_group)
 # 	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
 # 		use when we know the file will be in the basepath.
 # 	'''
-# 	fname = bpy.sys.expandpath(fname_orig)
+# 	fname = bpy.utils.expandpath(fname_orig)
 # # 	fname = Blender.sys.expandpath(fname_orig)
 # 	fname_strip = os.path.basename(fname)
 # # 	fname_strip = strip_path(fname)
 # 	if FORCE_CWD:
 # 		fname_rel = '.' + os.sep + fname_strip
 # 	else:
-# 		fname_rel = bpy.sys.relpath(fname, basepath)
+# 		fname_rel = bpy.utils.relpath(fname, basepath)
 # # 		fname_rel = Blender.sys.relpath(fname, basepath)
 # 	if fname_rel.startswith('//'): fname_rel = '.' + os.sep + fname_rel[2:]
 # 	return fname, fname_strip, fname_rel
@@ -349,7 +349,7 @@ def write(filename, batch_objects = None, \
 		fbxpath = filename
 		
 		# get the path component of filename
-		tmp_exists = bpy.sys.exists(fbxpath)
+		tmp_exists = bpy.utils.exists(fbxpath)
 # 		tmp_exists = Blender.sys.exists(fbxpath)
 		
 		if tmp_exists != 2: # a file, we want a path
@@ -363,7 +363,7 @@ def write(filename, batch_objects = None, \
 # 				Draw.PupMenu('Error%t|Directory does not exist!')
 				return
 
-			tmp_exists = bpy.sys.exists(fbxpath)
+			tmp_exists = bpy.utils.exists(fbxpath)
 # 			tmp_exists = Blender.sys.exists(fbxpath)
 		
 		if tmp_exists != 2:
@@ -398,7 +398,7 @@ def write(filename, batch_objects = None, \
 				# path may alredy exist
 				# TODO - might exist but be a file. unlikely but should probably account for it.
 
-				if bpy.sys.exists(new_fbxpath) == 0:
+				if bpy.utils.exists(new_fbxpath) == 0:
 # 				if Blender.sys.exists(new_fbxpath) == 0:
 					os.mkdir(new_fbxpath)
 				
@@ -3351,7 +3351,7 @@ def write_ui():
 	
 	# GLOBALS.clear()
 from bpy.props import *
-class EXPORT_OT_fbx(bpy.types.Operator):
+class ExportFBX(bpy.types.Operator):
 	'''Selection to an ASCII Autodesk FBX'''
 	bl_idname = "export.fbx"
 	bl_label = "Export FBX"
@@ -3433,7 +3433,7 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 		return ('RUNNING_MODAL',)
 
 
-bpy.ops.add(EXPORT_OT_fbx)
+bpy.ops.add(ExportFBX)
 
 # if __name__ == "__main__":
 # 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
@@ -3456,7 +3456,7 @@ bpy.ops.add(EXPORT_OT_fbx)
 # - bpy.data.remove_scene: line 366
 # - bpy.sys.time move to bpy.sys.util?
 # - new scene creation, activation: lines 327-342, 368
-# - uses bpy.sys.expandpath, *.relpath - replace at least relpath
+# - uses bpy.utils.expandpath, *.relpath - replace at least relpath
 
 # SMALL or COSMETICAL
 # - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')
@@ -3464,6 +3464,10 @@ bpy.ops.add(EXPORT_OT_fbx)
 
 # Add to a menu
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.fbx", text="Autodesk FBX...")
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".fbx")
+    self.layout.item_stringO(ExportFBX.bl_idname, "path", default_path, text="Autodesk FBX...")
+
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 

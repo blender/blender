@@ -157,7 +157,7 @@ static char *rna_FluidSettings_path(PointerRNA *ptr)
 	FluidsimSettings *fss = (FluidsimSettings*)ptr->data;
 	ModifierData *md= (ModifierData *)fss->fmd;
 
-	return BLI_sprintfN("modifiers[%s].settings", md->name);
+	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
 }
 
 #else

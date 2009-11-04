@@ -4,12 +4,12 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -187,7 +187,9 @@ class INFO_MT_add(bpy.types.Menu):
         layout.itemO("object.text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
 
         layout.itemS()
-
+        
+        layout.operator_context = "INVOKE_SCREEN"
+        
         layout.itemO("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
         layout.item_enumO("object.add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
         layout.item_enumO("object.add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
@@ -195,6 +197,9 @@ class INFO_MT_add(bpy.types.Menu):
         layout.itemS()
 
         layout.item_enumO("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
+        
+        layout.operator_context = "EXEC_SCREEN"
+        
         layout.item_menu_enumO("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
 
         layout.itemS()

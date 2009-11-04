@@ -790,12 +790,16 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
  *	The flag argument is used for special settings that alter the behaviour of
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
+ *
+ *	index of -1 keys all array indices
  */
 short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	FCurve *fcu;
+	int array_index_max= array_index+1;
+	int ret= 0;
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
@@ -814,8 +818,8 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		/* apply NLA-mapping to frame to use (if applicable) */
 		cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 	}
-	fcu= verify_fcurve(act, group, rna_path, array_index, 1);
-	
+
+#if 0
 	/* apply special time tweaking */
 		// XXX check on this stuff...
 	if (GS(id->name) == ID_OB) {
@@ -827,9 +831,22 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		//	cfra-= give_timeoffset(ob)*scene->r.framelen;
 		//}
 	}
-	
-	/* insert keyframe */
-	return insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
+#endif
+
+	if(array_index==-1) { /* Key All */
+		array_index= 0;
+		array_index_max= RNA_property_array_length(&ptr, prop) + 1;
+	}
+
+	/* will only loop once unless the array index was -1 */
+	for( ; array_index < array_index_max; array_index++) {
+		fcu= verify_fcurve(act, group, rna_path, array_index, 1);
+
+		/* insert keyframe */
+		ret |= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
+	}
+
+	return ret;
 }
 
 /* ************************************************** */

@@ -3577,10 +3577,11 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 {
 	int i;
 	int texmapping = dmd->texmapping;
+	float mapob_imat[4][4];
 
 	if(texmapping == MOD_DISP_MAP_OBJECT) {
 		if(dmd->map_object)
-			Mat4Invert(dmd->map_object->imat, dmd->map_object->obmat);
+			Mat4Invert(mapob_imat, dmd->map_object->obmat);
 		else /* if there is no map object, default to local */
 			texmapping = MOD_DISP_MAP_LOCAL;
 	}
@@ -3651,7 +3652,7 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 			case MOD_DISP_MAP_OBJECT:
 				VECCOPY(*texco, *co);
 				Mat4MulVecfl(ob->obmat, *texco);
-				Mat4MulVecfl(dmd->map_object->imat, *texco);
+				Mat4MulVecfl(mapob_imat, *texco);
 				break;
 		}
 	}

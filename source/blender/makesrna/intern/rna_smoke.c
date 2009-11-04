@@ -83,7 +83,7 @@ static char *rna_SmokeDomainSettings_path(PointerRNA *ptr)
 	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
 	ModifierData *md= (ModifierData *)settings->smd;
 
-	return BLI_sprintfN("modifiers[%s].domain_settings", md->name);
+	return BLI_sprintfN("modifiers[\"%s\"].domain_settings", md->name);
 }
 
 static char *rna_SmokeFlowSettings_path(PointerRNA *ptr)
@@ -91,7 +91,7 @@ static char *rna_SmokeFlowSettings_path(PointerRNA *ptr)
 	SmokeFlowSettings *settings = (SmokeFlowSettings*)ptr->data;
 	ModifierData *md= (ModifierData *)settings->smd;
 
-	return BLI_sprintfN("modifiers[%s].flow_settings", md->name);
+	return BLI_sprintfN("modifiers[\"%s\"].flow_settings", md->name);
 }
 
 static char *rna_SmokeCollSettings_path(PointerRNA *ptr)
@@ -99,7 +99,7 @@ static char *rna_SmokeCollSettings_path(PointerRNA *ptr)
 	SmokeCollSettings *settings = (SmokeCollSettings*)ptr->data;
 	ModifierData *md= (ModifierData *)settings->smd;
 
-	return BLI_sprintfN("modifiers[%s].coll_settings", md->name);
+	return BLI_sprintfN("modifiers[\"%s\"].coll_settings", md->name);
 }
 
 #else
