@@ -1511,7 +1511,7 @@ int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 
 	if(!sa || sa->full==0)
 		newsa= ed_screen_fullarea(C, win, sa);
-	else
+	if(!newsa)
 		newsa= sa;
 
 	ED_area_newspace(C, newsa, type);
