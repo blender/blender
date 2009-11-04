@@ -930,63 +930,64 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
+        ob = context.object
         psys = context.particle_system
         part = psys.settings
 
-        layout.itemL(text="Nothing here yet.")
+        # layout.itemL(text="Nothing here yet.")
 
-        #row = layout.row()
-        #row.itemL(text="Vertex Group")
-        #row.itemL(text="Negate")
+        row = layout.row()
+        row.itemL(text="Vertex Group")
+        row.itemL(text="Negate")
 
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_density")
-        #row.itemR(psys, "vertex_group_density_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
+        row.itemR(psys, "vertex_group_density_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_velocity")
-        #row.itemR(psys, "vertex_group_velocity_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
+        row.itemR(psys, "vertex_group_velocity_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_length")
-        #row.itemR(psys, "vertex_group_length_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
+        row.itemR(psys, "vertex_group_length_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_clump")
-        #row.itemR(psys, "vertex_group_clump_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
+        row.itemR(psys, "vertex_group_clump_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_kink")
-        #row.itemR(psys, "vertex_group_kink_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
+        row.itemR(psys, "vertex_group_kink_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_roughness1")
-        #row.itemR(psys, "vertex_group_roughness1_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_roughness1", ob, "vertex_groups", text="Roughness 1")
+        row.itemR(psys, "vertex_group_roughness1_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_roughness2")
-        #row.itemR(psys, "vertex_group_roughness2_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_roughness2", ob, "vertex_groups", text="Roughness 2")
+        row.itemR(psys, "vertex_group_roughness2_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_roughness_end")
-        #row.itemR(psys, "vertex_group_roughness_end_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
+        row.itemR(psys, "vertex_group_roughness_end_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_size")
-        #row.itemR(psys, "vertex_group_size_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_size", ob, "vertex_groups", text="Size")
+        row.itemR(psys, "vertex_group_size_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_tangent")
-        #row.itemR(psys, "vertex_group_tangent_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_tangent", ob, "vertex_groups", text="Tangent")
+        row.itemR(psys, "vertex_group_tangent_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_rotation")
-        #row.itemR(psys, "vertex_group_rotation_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_rotation", ob, "vertex_groups", text="Rotation")
+        row.itemR(psys, "vertex_group_rotation_negate", text="")
 
-        #row = layout.row()
-        #row.itemR(psys, "vertex_group_field")
-        #row.itemR(psys, "vertex_group_field_negate", text="")
+        row = layout.row()
+        row.item_pointerR(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
+        row.itemR(psys, "vertex_group_field_negate", text="")
 
 bpy.types.register(PARTICLE_PT_particles)
 bpy.types.register(PARTICLE_PT_hair_dynamics)

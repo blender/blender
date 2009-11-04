@@ -231,7 +231,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	char bb_uvname[3][32];					/* billboard uv name */
 
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
-	short vgroup[12], vg_neg, rt3;			/* vertex groups */
+	short vgroup[12], vg_neg, rt3;			/* vertex groups, 0==disable, 1==starting index */
 
 	/* temporary storage during render */
 	void *renderdata;

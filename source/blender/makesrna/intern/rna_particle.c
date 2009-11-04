@@ -98,6 +98,7 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_cloth.h"
+#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_modifier.h"
@@ -553,6 +554,93 @@ static PointerRNA rna_Particle_field2_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, part->pd2);
 }
 
+static void psys_vg_name_get__internal(PointerRNA *ptr, char *value, int index)
+{
+	Object *ob= ptr->id.data;
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
+
+	if(psys->vgroup[index] > 0) {
+		bDeformGroup *defGroup= BLI_findlink(&ob->defbase, psys->vgroup[index]-1);
+
+		if(defGroup) {
+			strcpy(value, defGroup->name);
+			return;
+		}
+	}
+
+	value[0]= '\0';
+}
+static int psys_vg_name_len__internal(PointerRNA *ptr, int index)
+{
+	Object *ob= ptr->id.data;
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
+
+	if(psys->vgroup[index] > 0) {
+		bDeformGroup *defGroup= BLI_findlink(&ob->defbase, psys->vgroup[index]-1);
+
+		if(defGroup) {
+			return strlen(defGroup->name);
+		}
+	}
+	return 0;
+}
+static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int index)
+{
+	Object *ob= ptr->id.data;
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
+
+	if(value[0]=='\0') {
+		psys->vgroup[index]= 0;
+	}
+	else {
+		int vgroup_num = get_named_vertexgroup_num(ob, value);
+
+		if(vgroup_num == -1)
+			return;
+
+		psys->vgroup[index]= vgroup_num + 1;
+	}
+}
+
+/* irritating string functions for each index :/ */
+static void rna_ParticleVGroup_name_get_0(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 0); }
+static void rna_ParticleVGroup_name_get_1(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 1); }
+static void rna_ParticleVGroup_name_get_2(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 2); }
+static void rna_ParticleVGroup_name_get_3(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 3); }
+static void rna_ParticleVGroup_name_get_4(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 4); }
+static void rna_ParticleVGroup_name_get_5(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 5); }
+static void rna_ParticleVGroup_name_get_6(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 6); }
+static void rna_ParticleVGroup_name_get_7(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 7); }
+static void rna_ParticleVGroup_name_get_8(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 8); }
+static void rna_ParticleVGroup_name_get_9(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 9); }
+static void rna_ParticleVGroup_name_get_10(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 10); }
+static void rna_ParticleVGroup_name_get_11(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 11); }
+
+static int rna_ParticleVGroup_name_len_0(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 0); }
+static int rna_ParticleVGroup_name_len_1(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 1); }
+static int rna_ParticleVGroup_name_len_2(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 2); }
+static int rna_ParticleVGroup_name_len_3(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 3); }
+static int rna_ParticleVGroup_name_len_4(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 4); }
+static int rna_ParticleVGroup_name_len_5(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 5); }
+static int rna_ParticleVGroup_name_len_6(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 6); }
+static int rna_ParticleVGroup_name_len_7(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 7); }
+static int rna_ParticleVGroup_name_len_8(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 8); }
+static int rna_ParticleVGroup_name_len_9(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 9); }
+static int rna_ParticleVGroup_name_len_10(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 10); }
+static int rna_ParticleVGroup_name_len_11(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 11); }
+
+static void rna_ParticleVGroup_name_set_0(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 0); }
+static void rna_ParticleVGroup_name_set_1(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 1); }
+static void rna_ParticleVGroup_name_set_2(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 2); }
+static void rna_ParticleVGroup_name_set_3(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 3); }
+static void rna_ParticleVGroup_name_set_4(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 4); }
+static void rna_ParticleVGroup_name_set_5(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 5); }
+static void rna_ParticleVGroup_name_set_6(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 6); }
+static void rna_ParticleVGroup_name_set_7(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 7); }
+static void rna_ParticleVGroup_name_set_8(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 8); }
+static void rna_ParticleVGroup_name_set_9(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 9); }
+static void rna_ParticleVGroup_name_set_10(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 10); }
+static void rna_ParticleVGroup_name_set_11(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 11); }
 
 #else
 
@@ -1913,8 +2001,17 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Billboard Split UV", "UV Layer to control billboard splitting.");
 
 	/* vertex groups */
+
+	/* note, internally store as ints, access as strings */
+#if 0 // int access. works ok but isnt useful for the UI
 	prop= RNA_def_property(srna, "vertex_group_density", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "vgroup[0]");
+	RNA_def_property_ui_text(prop, "Vertex Group Density", "Vertex group to control density.");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+#endif
+
+	prop= RNA_def_property(srna, "vertex_group_density", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_0", "rna_ParticleVGroup_name_len_0", "rna_ParticleVGroup_name_set_0");
 	RNA_def_property_ui_text(prop, "Vertex Group Density", "Vertex group to control density.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -1923,8 +2020,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Density Negate", "Negate the effect of the density vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_velocity", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[1]");
+	prop= RNA_def_property(srna, "vertex_group_velocity", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_1", "rna_ParticleVGroup_name_len_1", "rna_ParticleVGroup_name_set_1");
 	RNA_def_property_ui_text(prop, "Vertex Group Velocity", "Vertex group to control velocity.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -1933,8 +2030,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Velocity Negate", "Negate the effect of the velocity vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_length", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[2]");
+	prop= RNA_def_property(srna, "vertex_group_length", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_2", "rna_ParticleVGroup_name_len_2", "rna_ParticleVGroup_name_set_2");
 	RNA_def_property_ui_text(prop, "Vertex Group Length", "Vertex group to control length.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
@@ -1943,8 +2040,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Length Negate", "Negate the effect of the length vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "vertex_group_clump", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[3]");
+	prop= RNA_def_property(srna, "vertex_group_clump", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_3", "rna_ParticleVGroup_name_len_3", "rna_ParticleVGroup_name_set_3");
 	RNA_def_property_ui_text(prop, "Vertex Group Clump", "Vertex group to control clump.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
@@ -1953,8 +2050,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Clump Negate", "Negate the effect of the clump vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_kink", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[4]");
+	prop= RNA_def_property(srna, "vertex_group_kink", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_4", "rna_ParticleVGroup_name_len_4", "rna_ParticleVGroup_name_set_4");
 	RNA_def_property_ui_text(prop, "Vertex Group Kink", "Vertex group to control kink.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
@@ -1963,8 +2060,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Kink Negate", "Negate the effect of the kink vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_roughness1", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[5]");
+	prop= RNA_def_property(srna, "vertex_group_roughness1", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_5", "rna_ParticleVGroup_name_len_5", "rna_ParticleVGroup_name_set_5");
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness 1", "Vertex group to control roughness 1.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
@@ -1973,8 +2070,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness 1 Negate", "Negate the effect of the roughness 1 vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_roughness2", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[6]");
+	prop= RNA_def_property(srna, "vertex_group_roughness2", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_6", "rna_ParticleVGroup_name_len_6", "rna_ParticleVGroup_name_set_6");
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness 2", "Vertex group to control roughness 2.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
@@ -1983,8 +2080,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness 2 Negate", "Negate the effect of the roughness 2 vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_roughness_end", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[7]");
+	prop= RNA_def_property(srna, "vertex_group_roughness_end", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_7", "rna_ParticleVGroup_name_len_7", "rna_ParticleVGroup_name_set_7");
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness End", "Vertex group to control roughness end.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
@@ -1993,8 +2090,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness End Negate", "Negate the effect of the roughness end vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_size", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[8]");
+	prop= RNA_def_property(srna, "vertex_group_size", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_8", "rna_ParticleVGroup_name_len_8", "rna_ParticleVGroup_name_set_8");
 	RNA_def_property_ui_text(prop, "Vertex Group Size", "Vertex group to control size.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -2003,8 +2100,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Size Negate", "Negate the effect of the size vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_tangent", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[9]");
+	prop= RNA_def_property(srna, "vertex_group_tangent", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_9", "rna_ParticleVGroup_name_len_9", "rna_ParticleVGroup_name_set_9");
 	RNA_def_property_ui_text(prop, "Vertex Group Tangent", "Vertex group to control tangent.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -2013,8 +2110,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Tangent Negate", "Negate the effect of the tangent vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_rotation", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[10]");
+	prop= RNA_def_property(srna, "vertex_group_rotation", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_10", "rna_ParticleVGroup_name_len_10", "rna_ParticleVGroup_name_set_10");
 	RNA_def_property_ui_text(prop, "Vertex Group Rotation", "Vertex group to control rotation.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -2023,8 +2120,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Rotation Negate", "Negate the effect of the rotation vertex group.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_field", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vgroup[11]");
+	prop= RNA_def_property(srna, "vertex_group_field", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_11", "rna_ParticleVGroup_name_len_11", "rna_ParticleVGroup_name_set_11");
 	RNA_def_property_ui_text(prop, "Vertex Group Field", "Vertex group to control field.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
