@@ -41,6 +41,7 @@
 
 /* only for keyframing */
 #include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 #include "ED_keyframing.h"
 
 #define USE_MATHUTILS
@@ -1193,6 +1194,48 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA * self, PyObject *ar
 	return result;
 }
 
+
+static PyObject *pyrna_struct_driver_add(BPy_StructRNA * self, PyObject *args)
+{
+	char *path, *path_full;
+	int index= -1; /* default to all */
+	PropertyRNA *prop;
+	PyObject *result;
+
+	if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index))
+		return NULL;
+
+	if (self->ptr.data==NULL) {
+		PyErr_Format( PyExc_TypeError, "driver_add, this struct has no data, cant be animated", path);
+		return NULL;
+	}
+
+	prop = RNA_struct_find_property(&self->ptr, path);
+
+	if (prop==NULL) {
+		PyErr_Format( PyExc_TypeError, "driver_add, property \"%s\" not found", path);
+		return NULL;
+	}
+
+	if (!RNA_property_animateable(&self->ptr, prop)) {
+		PyErr_Format( PyExc_TypeError, "driver_add, property \"%s\" not animatable", path);
+		return NULL;
+	}
+
+	path_full= RNA_path_from_ID_to_property(&self->ptr, prop);
+
+	if (path_full==NULL) {
+		PyErr_Format( PyExc_TypeError, "driver_add, could not make path to \"%s\"", path);
+		return NULL;
+	}
+
+	result= PyBool_FromLong( ANIM_add_driver((ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON));
+	MEM_freeN(path_full);
+
+	return result;
+}
+
+
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA * self, PyObject *args)
 {
 	char *name;
@@ -1878,6 +1921,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
+	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, NULL},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},
 

@@ -147,6 +147,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	FCurve *fcu;
+	int array_index_max = array_index+1;
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
@@ -155,37 +156,46 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 		return 0;
 	}
 	
-	/* create F-Curve with Driver */
-	fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
+	if(array_index==-1) { /* Key All */
+		array_index= 0;
+		array_index_max= RNA_property_array_length(&ptr, prop) + 1;
+	}
 
-	if (fcu && fcu->driver) {
-		fcu->driver->type= type;
+	/* will only loop once unless the array index was -1 */
+	for( ; array_index < array_index_max; array_index++) {
 		
-		/* fill in current value for python */
-		if (type == DRIVER_TYPE_PYTHON) {
-			PropertyType proptype= RNA_property_type(prop);
-			int array= RNA_property_array_length(&ptr, prop);
-			char *expression= fcu->driver->expression;
-			int val, maxlen= sizeof(fcu->driver->expression);
-			float fval;
+		/* create F-Curve with Driver */
+		fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
+
+		if (fcu && fcu->driver) {
+			fcu->driver->type= type;
 			
-			if (proptype == PROP_BOOLEAN) {
-				if (!array) val= RNA_property_boolean_get(&ptr, prop);
-				else val= RNA_property_boolean_get_index(&ptr, prop, array_index);
+			/* fill in current value for python */
+			if (type == DRIVER_TYPE_PYTHON) {
+				PropertyType proptype= RNA_property_type(prop);
+				int array= RNA_property_array_length(&ptr, prop);
+				char *expression= fcu->driver->expression;
+				int val, maxlen= sizeof(fcu->driver->expression);
+				float fval;
 				
-				BLI_strncpy(expression, (val)? "True": "False", maxlen);
-			}
-			else if (proptype == PROP_INT) {
-				if (!array) val= RNA_property_int_get(&ptr, prop);
-				else val= RNA_property_int_get_index(&ptr, prop, array_index);
-				
-				BLI_snprintf(expression, maxlen, "%d", val);
-			}
-			else if (proptype == PROP_FLOAT) {
-				if (!array) fval= RNA_property_float_get(&ptr, prop);
-				else fval= RNA_property_float_get_index(&ptr, prop, array_index);
-				
-				BLI_snprintf(expression, maxlen, "%.3f", fval);
+				if (proptype == PROP_BOOLEAN) {
+					if (!array) val= RNA_property_boolean_get(&ptr, prop);
+					else val= RNA_property_boolean_get_index(&ptr, prop, array_index);
+
+					BLI_strncpy(expression, (val)? "True": "False", maxlen);
+				}
+				else if (proptype == PROP_INT) {
+					if (!array) val= RNA_property_int_get(&ptr, prop);
+					else val= RNA_property_int_get_index(&ptr, prop, array_index);
+
+					BLI_snprintf(expression, maxlen, "%d", val);
+				}
+				else if (proptype == PROP_FLOAT) {
+					if (!array) fval= RNA_property_float_get(&ptr, prop);
+					else fval= RNA_property_float_get_index(&ptr, prop, array_index);
+
+					BLI_snprintf(expression, maxlen, "%.3f", fval);
+				}
 			}
 		}
 	}
@@ -357,27 +367,20 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	PropertyRNA *prop= NULL;
 	char *path;
 	short success= 0;
-	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
+	int index, length, all= RNA_boolean_get(op->ptr, "all");
 	
 	/* try to create driver using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
-	
+
+	if (all)
+		index= -1;
+
 	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
-		if (path) {
-			if (all) {
-				length= RNA_property_array_length(&ptr, prop);
-				
-				if (length) index= 0;
-				else length= 1;
-			}
-			else
-				length= 1;
-			
-			for (a=0; a<length; a++)
-				success+= ANIM_add_driver(ptr.id.data, path, index+a, 0, DRIVER_TYPE_PYTHON);
+		if (path) {			
+			success+= ANIM_add_driver(ptr.id.data, path, index, 0, DRIVER_TYPE_PYTHON);
 			
 			MEM_freeN(path);
 		}
