@@ -321,7 +321,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
         class_name, class_prop = self.doc_id.split('.')
 
         if not self.doc_new:
-            return 'OPERATOR_CANCELLED'
+            return ('CANCELLED',)
 
         # check if this is an operator
         op_name = class_name.upper() + '_OT_' + class_prop
@@ -334,7 +334,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
             rna = op_class.bl_rna
             doc_orig = rna.description
             if doc_orig == self.doc_new:
-                return 'OPERATOR_CANCELLED'
+                return ('CANCELLED',)
 
             print("op - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
             upload["title"] = 'OPERATOR %s:%s' % (self.doc_id, doc_orig)
@@ -346,7 +346,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
             rna = getattr(bpy.types, class_name).bl_rna
             doc_orig = rna.properties[class_prop].description
             if doc_orig == self.doc_new:
-                return 'OPERATOR_CANCELLED'
+                return ('CANCELLED',)
 
             print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
             upload["title"] = 'RNA %s:%s' % s(self.doc_id, doc_orig)

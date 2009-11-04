@@ -2470,9 +2470,9 @@ static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, I
 /* can add more */
 EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->group.first);
+	return rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->group.first);
 }
 EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->scene.first);
+	return rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->scene.first);
 }
