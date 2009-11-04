@@ -45,8 +45,11 @@ void sculpt_get_redraw_planes(float planes[4][4], struct ARegion *ar,
 void ED_operatortypes_paint(void);
 void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
-/* paint_image.c */
-void undo_imagepaint_step(int step);
-void undo_imagepaint_clear(void);
+/* paint_undo.c */
+#define UNDO_PAINT_IMAGE	0
+#define UNDO_PAINT_MESH		1
+
+void ED_undo_paint_step(struct bContext *C, int type, int step);
+void ED_undo_paint_free(void);
 
 #endif

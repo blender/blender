@@ -1411,7 +1411,7 @@ static void do_view3d_tpaintmenu(bContext *C, void *arg, int event)
 #if 0
 	switch(event) {
 	case 0: /* undo image painting */
-		undo_imagepaint_step(1);
+		ED_paint_undo_step(UNDO_PAINT_IMAGE, 1);
 		break;
 	}
 
