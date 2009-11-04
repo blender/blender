@@ -330,13 +330,9 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype==SPACE_IMAGE) {
 		// XXX how to deal with lock?
-#if 0
 		SpaceImage *sima= (SpaceImage*)t->sa->spacedata.first;
-		if(sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
-		else force_draw(0);
-#endif
-
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, t->obedit->data);
+		if(sima->lock) WM_event_add_notifier(C, NC_GEOM|ND_DATA, t->obedit->data);
+		else ED_area_tag_redraw(t->sa);
 	}
 }
 
