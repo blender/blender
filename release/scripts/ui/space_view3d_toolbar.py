@@ -134,10 +134,12 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
     def draw(self, context):
         layout = self.layout
 
-        mesh = context.active_object.data
+        ob = context.active_object
 
-        col = layout.column(align=True)
-        col.itemR(mesh, "use_mirror_x")
+        if ob:
+            mesh = context.active_object.data
+            col = layout.column(align=True)
+            col.itemR(mesh, "use_mirror_x")
 
 # ********** default tools for editmode_curve ****************
 

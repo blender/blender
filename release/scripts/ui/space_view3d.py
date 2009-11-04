@@ -1388,8 +1388,8 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
     bl_label = "Mesh Display"
 
     def poll(self, context):
-        editmesh = context.mode == 'EDIT_MESH'
-        return (editmesh)
+        # The active object check is needed because of localmode
+        return (context.active_object and (context.mode == 'EDIT_MESH'))
 
     def draw(self, context):
         layout = self.layout
