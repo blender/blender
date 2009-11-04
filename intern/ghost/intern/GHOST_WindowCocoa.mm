@@ -68,7 +68,7 @@ extern "C" {
 - (void)windowWillClose:(NSNotification *)notification;
 - (void)windowDidBecomeKey:(NSNotification *)notification;
 - (void)windowDidResignKey:(NSNotification *)notification;
-- (void)windowDidUpdate:(NSNotification *)notification;
+- (void)windowDidExpose:(NSNotification *)notification;
 - (void)windowDidResize:(NSNotification *)notification;
 @end
 
@@ -91,13 +91,10 @@ extern "C" {
 
 - (void)windowDidResignKey:(NSNotification *)notification
 {
-	//The window is no more key when its own view becomes fullscreen
-	//but ghost doesn't know the view/window difference, so hide this fact
-	if (associatedWindow->getState() != GHOST_kWindowStateFullScreen)
-		systemCocoa->handleWindowEvent(GHOST_kEventWindowDeactivate, associatedWindow);
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowDeactivate, associatedWindow);
 }
 
-- (void)windowDidUpdate:(NSNotification *)notification
+- (void)windowDidExpose:(NSNotification *)notification
 {
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
 }
@@ -622,6 +619,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Make window normal and resize it
 				[m_window setStyleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
 				[m_window setFrame:[[m_window screen] visibleFrame] display:YES];
+				//TODO for 10.6 only : window title is forgotten after the style change
 				[m_window makeFirstResponder:m_openGLView];
 #else
 				//With 10.5, we need to create a new window to change its style to borderless
