@@ -709,114 +709,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	case B_OBJECTPANEL:
 		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 		break;
-		
-	case B_OBJECTPANELROT:
-		if(ob) {
-			float eul[3];
-			
-			/* make a copy to eul[3], to allow TAB on buttons to work */
-			eul[0]= M_PI*tfp->ob_eul[0]/180.0;
-			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
-			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
-			
-			if (ob->rotmode == ROT_MODE_AXISANGLE) {
-				float quat[4];
-				/* convert to axis-angle, passing through quats  */
-				EulToQuat(eul, quat);
-				QuatToAxisAngle(quat, ob->rotAxis, &ob->rotAngle);
-			}
-			else if (ob->rotmode == ROT_MODE_QUAT)
-				EulToQuat(eul, ob->quat);
-			else
-				VecCopyf(ob->rot, eul);
-				
-			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-		}
-		break;
 
-	case B_OBJECTPANELSCALE:
-		if(ob) {
-
-			/* link scale; figure out which axis changed */
-			if (tfp->link_scale) {
-				float ratio, tmp, max = 0.0;
-				int axis;
-				
-				axis = 0;
-				max = fabs(tfp->ob_scale[0] - ob->size[0]);
-				tmp = fabs(tfp->ob_scale[1] - ob->size[1]);
-				if (tmp > max) {
-					axis = 1;
-					max = tmp;
-				}
-				tmp = fabs(tfp->ob_scale[2] - ob->size[2]);
-				if (tmp > max) {
-					axis = 2;
-					max = tmp;
-				}
-			
-				if (ob->size[axis] != tfp->ob_scale[axis]) {
-					if (fabs(ob->size[axis]) > FLT_EPSILON) {
-						ratio = tfp->ob_scale[axis] / ob->size[axis];
-						ob->size[0] *= ratio;
-						ob->size[1] *= ratio;
-						ob->size[2] *= ratio;
-					}
-				}
-			}
-			else {
-				VECCOPY(ob->size, tfp->ob_scale);
-				
-			}
-			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-		}
-		break;
-
-	case B_OBJECTPANELDIMS:
-		bb= object_get_boundbox(ob);
-		if(bb) {
-			float old_dims[3], scale[3], ratio, len[3];
-			int axis;
-
-			Mat4ToSize(ob->obmat, scale);
-
-			len[0] = bb->vec[4][0] - bb->vec[0][0];
-			len[1] = bb->vec[2][1] - bb->vec[0][1];
-			len[2] = bb->vec[1][2] - bb->vec[0][2];
-
-			old_dims[0] = fabs(scale[0]) * len[0];
-			old_dims[1] = fabs(scale[1]) * len[1];
-			old_dims[2] = fabs(scale[2]) * len[2];
-
-			/* for each axis changed */
-			for (axis = 0; axis<3; axis++) {
-				if (fabs(old_dims[axis] - tfp->ob_dims[axis]) > 0.0001) {
-					if (old_dims[axis] > 0.0) {
-						ratio = tfp->ob_dims[axis] / old_dims[axis]; 
-						if (tfp->link_scale) {
-							ob->size[0] *= ratio;
-							ob->size[1] *= ratio;
-							ob->size[2] *= ratio;
-							break;
-						}
-						else {
-							ob->size[axis] *= ratio;
-						}
-					}
-					else {
-						if (len[axis] > 0) {
-							ob->size[axis] = tfp->ob_dims[axis] / len[axis];
-						}
-					}
-				}
-			}
-			
-			/* prevent multiple B_OBJECTPANELDIMS events to keep scaling, cycling with TAB on buttons can cause that */
-			VECCOPY(tfp->ob_dims, old_dims);
-			
-			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-		}
-		break;
 	
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
@@ -1119,7 +1012,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	Object *ob= OBACT;
 	TransformProperties *tfp;
 	PointerRNA obptr;
-	uiLayout *col, *row;
+	uiLayout *col, *row, *split, *colsub;
 	float lim;
 	
 	if(ob==NULL) return;
@@ -1160,117 +1053,61 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		v3d_posearmature_buts(col, v3d, ob, lim);
 	}
 	else {
-		BoundBox *bb = NULL;
-
-		uiLayoutAbsoluteBlock(col);
-
-		block= uiLayoutAbsoluteBlock(col);
-		uiDefBut(block, LABEL, 0, "Location:",										0, 300, 100, 20, 0, 0, 0, 0, 0, "");
-		uiBlockBeginAlign(block);	
-		uiDefButF(block, NUM, B_OBJECTPANEL, "X:",									0, 280, 120, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");		
-		uiDefButF(block, NUM, B_OBJECTPANEL, "Y:",									0, 260, 120, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "Z:",									0, 240, 120, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
-		uiBlockEndAlign(block);
+		split = uiLayoutSplit(col, 0.8);
+		colsub = uiLayoutColumn(split, 1);
+		uiItemR(colsub, "Location", 0, &obptr, "location", 0);
+		colsub = uiLayoutColumn(split, 1);
+		uiItemL(colsub, "", 0);
+		uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
 		
-		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, B_REDR, ICON_UNLOCKED,		125, 280, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects X Location value from being Transformed");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, B_REDR, ICON_UNLOCKED,		125, 260, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Y Location value from being Transformed");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,		125, 240, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Location value from being Transformed");
-		uiBlockEndAlign(block);
+		split = uiLayoutSplit(col, 0.8);
 		
-		if (ob->rotmode == ROT_MODE_AXISANGLE) {
-			float quat[4];
-			/* convert to euler, passing through quats... */
-			AxisAngleToQuat(quat, ob->rotAxis, ob->rotAngle);
-			QuatToEul(quat, tfp->ob_eul);
+		switch(ob->rotmode) {
+			case ROT_MODE_XYZ:
+			case ROT_MODE_XZY:
+			case ROT_MODE_YXZ:
+			case ROT_MODE_YZX:
+			case ROT_MODE_ZXY:
+			case ROT_MODE_ZYX:
+				colsub = uiLayoutColumn(split, 1);
+				uiItemR(colsub, "Rotation", 0, &obptr, "rotation_euler", 0);
+				colsub = uiLayoutColumn(split, 1);
+				uiItemL(colsub, "", 0);
+				uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+				break;
+			case ROT_MODE_QUAT:
+				colsub = uiLayoutColumn(split, 1);
+				uiItemR(colsub, "Rotation", 0, &obptr, "rotation_quaternion", 0);
+				colsub = uiLayoutColumn(split, 1);
+				uiItemR(colsub, "W", 0, &obptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
+				if (ob->protectflag & OB_LOCK_ROT4D)
+					uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+				else
+					uiItemL(colsub, "", 0);
+				uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+				break;
+			case ROT_MODE_AXISANGLE:
+				colsub = uiLayoutColumn(split, 1);
+				uiItemR(colsub, "Rotation", 0, &obptr, "rotation_axis_angle", 0);
+				colsub = uiLayoutColumn(split, 1);
+				uiItemR(colsub, "W", 0, &obptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
+				if (ob->protectflag & OB_LOCK_ROT4D)
+					uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+				else
+					uiItemL(colsub, "", 0);
+				uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+				break;
 		}
-		else if (ob->rotmode == ROT_MODE_QUAT)
-			QuatToEul(ob->quat, tfp->ob_eul);
-		else
-			VecCopyf(tfp->ob_eul, ob->rot);
-		tfp->ob_eul[0]*= 180.0/M_PI;
-		tfp->ob_eul[1]*= 180.0/M_PI;
-		tfp->ob_eul[2]*= 180.0/M_PI;
+		uiItemR(col, "", 0, &obptr, "rotation_mode", 0);
 		
-		uiBlockBeginAlign(block);
-		if ((ob->parent) && (ob->partype == PARBONE)) {
-			uiDefBut(block, LABEL, 0, "Rotation:",									0, 220, 100, 20, 0, 0, 0, 0, 0, "");
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "X:",							0, 200, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "Y:",							0, 180, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "Z:",							0, 160, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
-			uiBlockEndAlign(block);
-			
-			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	125, 200, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects X Rotation from being Transformed");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	125, 180, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Y Rotation value from being Transformed");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	125, 160, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Rotation value from being Transformed");
-			uiBlockEndAlign(block);
-
-		}
-		else {
-			uiDefBut(block, LABEL, 0, "Rotation:",									0, 220, 100, 20, 0, 0, 0, 0, 0, "");
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "X:",							0, 200, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");			
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "Y:",							0, 180, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "Z:",							0, 160, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
-			uiBlockEndAlign(block);
-			
-			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	125, 200, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects X Rotation value from being Transformed");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	125, 180, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Y Rotation value from being Transformed");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	125, 160, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Rotation value from being Transformed");
-			uiBlockEndAlign(block);
-		}
-
-		tfp->ob_scale[0]= ob->size[0];
-		tfp->ob_scale[1]= ob->size[1];
-		tfp->ob_scale[2]= ob->size[2];
-
-		uiDefBut(block, LABEL, 0, "Scale:",											0, 140, 100, 20, 0, 0, 0, 0, 0, "");
-		uiDefButS(block, OPTION, B_REDR, "Link",									60, 140, 50, 19, &(tfp->link_scale), 0, 1, 0, 0, "Scale values vary proportionally in all directions");
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "X:",								0, 120, 120, 19, &(tfp->ob_scale[0]), -lim, lim, 10, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "Y:",								0, 100, 120, 19, &(tfp->ob_scale[1]), -lim, lim, 10, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "Z:",								0, 80, 120, 19, &(tfp->ob_scale[2]), -lim, lim, 10, 3, "");
-		uiBlockEndAlign(block);
+		split = uiLayoutSplit(col, 0.8);
+		colsub = uiLayoutColumn(split, 1);
+		uiItemR(colsub, "Scale", 0, &obptr, "scale", 0);
+		colsub = uiLayoutColumn(split, 1);
+		uiItemL(colsub, "", 0);
+		uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
 		
-		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED,		125, 120, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects X Scale value from being Transformed");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,		125, 100, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Y Scale value from being Transformed");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,		125, 80, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Scale value from being Transformed");
-		
-		
-
-		bb= object_get_boundbox(ob);
-		if (bb) {
-			float scale[3];
-
-			Mat4ToSize(ob->obmat, scale);
-
-			tfp->ob_dims[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
-			tfp->ob_dims[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
-			tfp->ob_dims[2] = fabs(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
-
-			
-			if ((ob->parent) && (ob->partype == PARBONE)) {
-				uiDefBut(block, LABEL, 0, "Dimensions:",			0, 60, 100, 20, 0, 0, 0, 0, 0, "");
-				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "X:",		0, 40, 150, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate X bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Y:",		0, 20, 150, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate Y bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Z:",		0, 0, 150, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate Z bounding box size");
-
-			}
-			else {
-				uiDefBut(block, LABEL, 0, "Dimensions:",			0, 60, 100, 20, 0, 0, 0, 0, 0, "");
-				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "X:",		0, 40, 150, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate X bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Y:",		0, 20, 150, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate Y bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Z:",		0, 0, 150, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate Z bounding box size");
-			}
-
-			uiBlockEndAlign(block);
-		}
+		uiItemR(col, "Dimensions", 0, &obptr, "dimensions", 0);
 	}
 }
 

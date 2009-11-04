@@ -94,6 +94,7 @@ EnumPropertyItem object_type_items[] = {
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_key.h"
+#include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
@@ -533,30 +534,45 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 	ob->rotmode= value;
 }
 
-/* not called directly */
-static void rna_Object_scale_linked_set(Object *ob, float value, int axis)
+static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 {
-	if(ob->size[axis]==0.0f || value==0.0f) {
-		ob->size[0]= ob->size[1]= ob->size[2]= value;
-	}
-	else {
-		VecMulf(ob->size, value / ob->size[axis]);
+	Object *ob= ptr->data;
+	BoundBox *bb = NULL;
+	
+	bb= object_get_boundbox(ob);
+	if (bb) {
+		float scale[3];
+		
+		Mat4ToSize(ob->obmat, scale);
+		
+		value[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
+		value[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
+		value[2] = fabs(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
+	} else {
+		value[0] = value[1] = value[2] = 0.f;
 	}
 }
 
-static void rna_Object_scale_x_linked_set(PointerRNA *ptr, float value)
+static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 {
-	rna_Object_scale_linked_set(ptr->data, value, 0);
+	Object *ob= ptr->data;
+	BoundBox *bb = NULL;
+	
+	bb= object_get_boundbox(ob);
+	if (bb) {
+		float scale[3], len[3];
+		
+		Mat4ToSize(ob->obmat, scale);
+		
+		len[0] = bb->vec[4][0] - bb->vec[0][0];
+		len[1] = bb->vec[2][1] - bb->vec[0][1];
+		len[2] = bb->vec[1][2] - bb->vec[0][2];
+		
+		ob->size[0] = value[0] / len[0];
+		ob->size[1] = value[1] / len[1];
+		ob->size[2] = value[2] / len[2];
+	}
 }
-static void rna_Object_scale_y_linked_set(PointerRNA *ptr, float value)
-{
-	rna_Object_scale_linked_set(ptr->data, value, 1);
-}
-static void rna_Object_scale_z_linked_set(PointerRNA *ptr, float value)
-{
-	rna_Object_scale_linked_set(ptr->data, value, 2);
-}
-
 
 
 static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
@@ -1337,26 +1353,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Scale", "Scaling of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
+
+	prop= RNA_def_property(srna, "dimensions", PROP_FLOAT, PROP_XYZ|PROP_UNIT_LENGTH);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_Object_dimensions_get", "rna_Object_dimensions_set", NULL);
+	RNA_def_property_ui_text(prop, "Dimensions", "Absolute bounding box dimensions of the object.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
-	/* linked scale for the transform panel */
-	prop= RNA_def_property(srna, "scale_linked_x", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "size[0]");
-	RNA_def_property_float_funcs(prop, NULL, "rna_Object_scale_x_linked_set", NULL);
-	RNA_def_property_ui_text(prop, "Scale X", "Scaling of the objects X axis.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
-
-	prop= RNA_def_property(srna, "scale_linked_y", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "size[1]");
-	RNA_def_property_float_funcs(prop, NULL, "rna_Object_scale_y_linked_set", NULL);
-	RNA_def_property_ui_text(prop, "Scale Y", "Scaling of the objects X axis.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
-
-	prop= RNA_def_property(srna, "scale_linked_z", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "size[2]");
-	RNA_def_property_float_funcs(prop, NULL, "rna_Object_scale_z_linked_set", NULL);
-	RNA_def_property_ui_text(prop, "Scale Z", "Scaling of the objects Z axis.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
-
 
 	/* delta transforms */
 	prop= RNA_def_property(srna, "delta_location", PROP_FLOAT, PROP_TRANSLATION);
