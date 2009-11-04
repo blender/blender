@@ -464,13 +464,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 }
 
 	if(cddm->pbvh) {
-		float (*face_nors)[3];
-
-		/* make a face normal layer if not present */
-		face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
-		if(!face_nors)
-			face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC,
-											 NULL, dm->numFaceData);
+		float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
 		BLI_pbvh_update(cddm->pbvh, PBVH_UpdateNormals|PBVH_UpdateDrawBuffers,
 			face_nors);
