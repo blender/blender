@@ -334,6 +334,8 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	int newob= 0, type= RNA_enum_get(op->ptr, "type");
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
@@ -417,6 +419,8 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	int newob= 0;
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
@@ -476,6 +480,8 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	MetaElem *elem;
 	int newob= 0;
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
@@ -540,6 +546,8 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit && obedit->type==OB_FONT)
@@ -577,6 +585,8 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= NULL;
 	int newob= 0;
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
