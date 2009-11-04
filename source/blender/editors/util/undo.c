@@ -147,6 +147,8 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		
 		if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 			ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step);
+		else if(obact && obact->mode & OB_MODE_SCULPT)
+			ED_undo_paint_step(C, UNDO_PAINT_MESH, step);
 		else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 			if(step==1)
 				PE_undo(CTX_data_scene(C));
