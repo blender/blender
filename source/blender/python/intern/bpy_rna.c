@@ -1155,7 +1155,7 @@ static PySequenceMethods pyrna_prop_as_sequence = {
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA * self, PyObject *args)
 {
 	char *path, *path_full;
-	int index= 0;
+	int index= -1; /* default to all */
 	float cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
 	PropertyRNA *prop;
 	PyObject *result;
