@@ -1832,7 +1832,7 @@ public:
 		std::string new_rna_path;
 		
 		if (strstr(rna_path, "rotation")) {
-			new_rna_path = strstr(rna_path, "rotation");
+			new_rna_path = "rotation";
 			return new_rna_path + axis_name;
 		}
 		else if (strstr(rna_path, "location")) {
@@ -2058,7 +2058,7 @@ public:
 				
 				if (!strcmp(fcu->rna_path, "location") ||
 					!strcmp(fcu->rna_path, "scale") ||
-					!strcmp(fcu->rna_path, "rotation")) {
+					!strcmp(fcu->rna_path, "rotation_euler")) {
 					
 					add_animation(fcu, id_name(ob));
 				}
