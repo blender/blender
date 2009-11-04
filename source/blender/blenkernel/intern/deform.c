@@ -110,7 +110,7 @@ bDeformGroup *get_named_vertexgroup (Object *ob, char *name)
 	return NULL;
 }
 
-int get_named_vertexgroup_num (Object *ob, char *name)
+int get_named_vertexgroup_num (Object *ob, const char *name)
 {
 	/* Return the location of the named deform group within the list of
 	 * deform groups. This function is a combination of get_defgroup_num and
