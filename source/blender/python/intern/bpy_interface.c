@@ -607,7 +607,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *file_extension;
 	char *dirname;
 	char path[FILE_MAX];
-	char *dirs[] = {"scripts/ui", "scripts/io", NULL};
+	char *dirs[] = {"scripts/ui", "scripts/op", "scripts/io", NULL};
 	int path_flags[] = {BLI_GETHOME_LOCAL|BLI_GETHOME_SYSTEM, BLI_GETHOME_USER}; /* SYSTEM / NON-SYSTEM */
 	int a, err, flag_iter;
 	
