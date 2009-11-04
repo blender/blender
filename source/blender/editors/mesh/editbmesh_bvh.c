@@ -90,6 +90,7 @@
 #include "mesh_intern.h"
 #include "bmesh.h"
 
+#define IN_EDITMESHBVH
 #include "editbmesh_bvh.h"
 
 typedef struct BMBVHTree {
