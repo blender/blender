@@ -170,11 +170,11 @@ def write_func(rna, ident, out, func_type):
     # Operators and functions work differently
     if func_type=='OPERATOR':
         rna_func_name = rna_struct.identifier.split("_OT_")[-1]
-        rna_func_desc = rna_struct.description.strip().replace('\n', ' ')
+        rna_func_desc = rna_struct.description.strip()
         items = rna_struct.properties.items()
     else:
         rna_func_name = rna.identifier
-        rna_func_desc = rna.description.strip().replace('\n', ' ')
+        rna_func_desc = rna.description.strip()
         items = rna.parameters.items()
 
 
@@ -288,7 +288,11 @@ def write_func(rna, ident, out, func_type):
 
     out.write(ident+'def %s(%s):\n' % (rna_func_name, ', '.join(kw_args)))
     out.write(ident+'\t"""\n')
-    out.write(ident+'\t%s\n' % rna_func_desc)
+    
+    # Descriptions could be multiline
+    for rna_func_desc_line in rna_func_desc.split('\n'):
+        out.write(ident+'\t%s\n' % rna_func_desc_line.strip())
+    
     for desc in kw_arg_attrs:
         out.write(ident+'\t%s\n' % desc)
 

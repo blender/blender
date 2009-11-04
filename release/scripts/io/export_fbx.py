@@ -3351,7 +3351,7 @@ def write_ui():
 	
 	# GLOBALS.clear()
 from bpy.props import *
-class EXPORT_OT_fbx(bpy.types.Operator):
+class ExportFBX(bpy.types.Operator):
 	'''Selection to an ASCII Autodesk FBX'''
 	bl_idname = "export.fbx"
 	bl_label = "Export FBX"
@@ -3433,7 +3433,7 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 		return ('RUNNING_MODAL',)
 
 
-bpy.ops.add(EXPORT_OT_fbx)
+bpy.ops.add(ExportFBX)
 
 # if __name__ == "__main__":
 # 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
@@ -3464,6 +3464,10 @@ bpy.ops.add(EXPORT_OT_fbx)
 
 # Add to a menu
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.fbx", text="Autodesk FBX...")
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".fbx")
+    self.layout.item_stringO(ExportFBX.bl_idname, "path", default_path, text="Autodesk FBX...")
+
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
