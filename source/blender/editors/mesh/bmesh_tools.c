@@ -399,18 +399,6 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 	BMO_HeaderFlag_To_Slot(bm, &extop, "edgefacein",
 		               flag, BM_VERT|BM_EDGE|BM_FACE);
 
-	BM_ITER(vert, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_Select(bm, vert, 0);
-	}
-
-	BM_ITER(edge, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_Select(bm, edge, 0);
-	}
-
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_Select(bm, f, 0);
-	}
-
 	/* If a mirror modifier with clipping is on, we need to adjust some 
 	 * of the cases above to handle edges on the line of symmetry.
 	 */
@@ -459,6 +447,18 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 				}
 			}
 		}
+	}
+
+	BM_ITER(vert, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_Select(bm, vert, 0);
+	}
+
+	BM_ITER(edge, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_Select(bm, edge, 0);
+	}
+
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_Select(bm, f, 0);
 	}
 
 	BMO_Exec_Op(bm, &extop);
@@ -2973,7 +2973,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMLoop *l;
 	BMEdge *e, *e2, *closest = NULL;
 	BMVert *v;
-	int side = 0, i;
+	int side = 0, i, singlesel = 0;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1], 0.0f};
 	float dist = FLT_MAX, d;
 
@@ -2989,6 +2989,8 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	  the closest edge around that vert to the mouse cursor,
 	  then rip the two adjacent edges in the vert fan.*/
 	if (em->bm->totvertsel == 1 && em->bm->totedgesel == 0 && em->bm->totfacesel == 0) {
+		singlesel = 1;
+
 		/*find selected vert*/
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_TestHFlag(v, BM_SELECT))
@@ -3015,21 +3017,23 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/*rip two adjacent edges*/
 		if (BM_Edge_FaceCount(e2) == 1) {
 			l = e2->loop;
-			e = BM_OtherFaceLoop(e2, l->f, v);
+			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 
 			BMINDEX_SET(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
 		} else if (BM_Edge_FaceCount(e2) == 2) {
 			l = e2->loop;
-			e = BM_OtherFaceLoop(e2, l->f, v);
+			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BMINDEX_SET(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
 			
 			l = e2->loop->radial.next->data;
-			e = BM_OtherFaceLoop(e2, l->f, v);
+			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BMINDEX_SET(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
 		}
+
+		dist = FLT_MAX;
 	} else {
 		/*expand edge selection*/
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -3121,8 +3125,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 		
-		if (i == 1) 
-			BM_Select(em->bm, e2, 0);
+		if (i == 1)  {
+			if (singlesel)
+				BM_Select(em->bm, v, 0);
+			else
+				BM_Select(em->bm, e2, 0);
+		}
 	}
 
 	EDBM_selectmode_flush(em);

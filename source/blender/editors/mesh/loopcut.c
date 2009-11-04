@@ -384,6 +384,79 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 
 	switch (event->type) {
+		case LEFTMOUSE: /* abort */ // XXX hardcoded
+			ED_region_tag_redraw(lcd->ar);
+			ringsel_exit(C, op);
+
+			return OPERATOR_FINISHED;
+		case RIGHTMOUSE: /* confirm */ // XXX hardcoded
+			if (event->val == KM_RELEASE) {
+				/* finish */
+				ED_region_tag_redraw(lcd->ar);
+				
+				ringsel_finish(C, op);
+				ringsel_exit(C, op);
+				
+				return OPERATOR_FINISHED;
+			}
+			
+			ED_region_tag_redraw(lcd->ar);
+			break;
+		case ESCKEY:
+			if (event->val == KM_RELEASE) {
+				/* cancel */
+				ED_region_tag_redraw(lcd->ar);
+				
+				return ringsel_cancel(C, op);
+			}
+			
+			ED_region_tag_redraw(lcd->ar);
+			break;
+		case WHEELUPMOUSE:  /* change number of cuts */
+			cuts++;
+			RNA_int_set(op->ptr,"number_cuts",cuts);
+			ringsel_find_edge(lcd, C, lcd->ar, cuts);
+			
+			ED_region_tag_redraw(lcd->ar);
+			break;
+		case WHEELDOWNMOUSE:  /* change number of cuts */
+			cuts=MAX2(cuts-1,1);
+			RNA_int_set(op->ptr,"number_cuts",cuts);
+			ringsel_find_edge(lcd, C, lcd->ar,cuts);
+			
+			ED_region_tag_redraw(lcd->ar);
+			break;
+		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
+			int dist = 75;
+			BMEdge *edge;
+
+			lcd->vc.mval[0] = event->mval[0];
+			lcd->vc.mval[1] = event->mval[1];
+			edge = EDBM_findnearestedge(&lcd->vc, &dist);
+
+			if (edge != lcd->eed) {
+				lcd->eed = edge;
+				ringsel_find_edge(lcd, C, lcd->ar, cuts);
+			}
+
+			ED_region_tag_redraw(lcd->ar);
+			break;
+		}			
+	}
+	
+	/* keep going until the user confirms */
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
+{
+	int cuts= RNA_int_get(op->ptr,"number_cuts");
+	tringselOpData *lcd= op->customdata;
+
+	view3d_operator_needs_opengl(C);
+
+
+	switch (event->type) {
 		case LEFTMOUSE: /* confirm */ // XXX hardcoded
 			if (event->val == KM_RELEASE) {
 				/* finish */
@@ -398,6 +471,10 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 			ED_region_tag_redraw(lcd->ar);
 			break;
 		case RIGHTMOUSE: /* abort */ // XXX hardcoded
+			ED_region_tag_redraw(lcd->ar);
+			ringsel_exit(C, op);
+
+			return OPERATOR_FINISHED;
 		case ESCKEY:
 			if (event->val == KM_RELEASE) {
 				/* cancel */
@@ -472,7 +549,7 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->invoke= ringcut_invoke;
-	ot->modal= ringsel_modal;
+	ot->modal= loopcut_modal;
 	ot->cancel= ringsel_cancel;
 	ot->poll= ED_operator_editmesh;
 	
