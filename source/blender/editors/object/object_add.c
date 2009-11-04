@@ -561,6 +561,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_text_add";
 	
 	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_add_text_exec;
 	ot->poll= ED_operator_scene_editable;
 	
@@ -579,7 +580,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		obedit= ED_object_add_type(C, OB_ARMATURE, view_align, TRUE);
+		ED_object_add_type(C, OB_ARMATURE, view_align, TRUE);
 		ED_object_enter_editmode(C, 0);
 		obedit= CTX_data_edit_object(C);
 		newob = 1;
@@ -615,6 +616,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_armature_add";
 	
 	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_armature_add_exec;
 	ot->poll= ED_operator_scene_editable;
 	

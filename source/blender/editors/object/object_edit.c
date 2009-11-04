@@ -471,6 +471,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	}
 	else {
 		scene->obedit= NULL; // XXX for context
+		ob->mode &= ~OB_MODE_EDIT;
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 	}
 	

@@ -187,7 +187,9 @@ class INFO_MT_add(bpy.types.Menu):
         layout.itemO("object.text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
 
         layout.itemS()
-
+        
+        layout.operator_context = "INVOKE_SCREEN"
+        
         layout.itemO("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
         layout.item_enumO("object.add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
         layout.item_enumO("object.add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
@@ -195,6 +197,9 @@ class INFO_MT_add(bpy.types.Menu):
         layout.itemS()
 
         layout.item_enumO("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
+        
+        layout.operator_context = "EXEC_SCREEN"
+        
         layout.item_menu_enumO("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
 
         layout.itemS()
