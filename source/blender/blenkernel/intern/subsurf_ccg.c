@@ -546,7 +546,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	// load verts
 	faceBase = i = 0;
 	mvert = CDDM_get_verts(result);
-	origIndex = result->getVertData(result, 0, CD_ORIGINDEX);
+	origIndex = result->getVertDataArray(result, CD_ORIGINDEX);
 
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = faceMap2[index];
@@ -663,7 +663,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	// load edges
 	i = 0;
 	med = CDDM_get_edges(result);
-	origIndex = result->getEdgeData(result, 0, CD_ORIGINDEX);
+	origIndex = result->getEdgeDataArray(result, CD_ORIGINDEX);
 
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = faceMap2[index];
@@ -738,7 +738,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	// load faces
 	i = 0;
 	mf = CDDM_get_faces(result);
-	origIndex = result->getFaceData(result, 0, CD_ORIGINDEX);
+	origIndex = result->getFaceDataArray(result, CD_ORIGINDEX);
 
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = faceMap2[index];
@@ -846,7 +846,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 
 	mv = mvert;
 	index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-	for(i = 0; i < totvert; i++, mv++, index++) {
+	for(i = 0; i < totvert; i++, mv++) {
 		CCGVert *v;
 
 		if(vertexCos) {
@@ -855,12 +855,12 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 			ccgSubSurf_syncVert(ss, SET_INT_IN_POINTER(i), mv->co, 0, &v);
 		}
 
-		((int*)ccgSubSurf_getVertUserData(ss, v))[1] = *index;
+		((int*)ccgSubSurf_getVertUserData(ss, v))[1] = (index)? *index++: i;
 	}
 
 	me = medge;
 	index = (int *)dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-	for(i = 0; i < totedge; i++, me++, index++) {
+	for(i = 0; i < totedge; i++, me++) {
 		CCGEdge *e;
 		float crease;
 
@@ -870,12 +870,12 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		ccgSubSurf_syncEdge(ss, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(me->v1),
 		                    SET_INT_IN_POINTER(me->v2), crease, &e);
 
-		((int*)ccgSubSurf_getEdgeUserData(ss, e))[1] = *index;
+		((int*)ccgSubSurf_getEdgeUserData(ss, e))[1] = (index)? *index++: i;
 	}
 
 	mf = mface;
 	index = (int *)dm->getFaceDataArray(dm, CD_ORIGINDEX);
-	for (i = 0; i < totface; i++, mf++, index++) {
+	for (i = 0; i < totface; i++, mf++) {
 		CCGFace *f;
 
 		fVerts[0] = SET_INT_IN_POINTER(mf->v1);
@@ -901,7 +901,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 			return;
 		}
 
-		((int*)ccgSubSurf_getFaceUserData(ss, f))[1] = *index;
+		((int*)ccgSubSurf_getFaceUserData(ss, f))[1] = (index)? *index++: i;
 	}
 
 	ccgSubSurf_processSync(ss);

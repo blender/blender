@@ -440,15 +440,14 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 	/* only continue if there's a valid DerivedMesh */
 	if (dm) {
 		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-		int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
 		int numVerts = dm->getNumVerts(dm);
 		int i, j, count = 0;
 		float co[3], nor[3];
 		
-		/* check that dvert and index are valid pointers (just in case) */
-		if (dvert && index) {
+		/* check that dvert is a valid pointers (just in case) */
+		if (dvert) {
 			/* get the average of all verts with that are in the vertex-group */
-			for (i = 0; i < numVerts; i++, index++) {	
+			for (i = 0; i < numVerts; i++) {	
 				for (j = 0; j < dvert[i].totweight; j++) {
 					/* does this vertex belong to nominated vertex group? */
 					if (dvert[i].dw[j].def_nr == dgroup) {

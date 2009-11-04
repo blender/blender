@@ -1017,7 +1017,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 				continue;
 			}
 			else if(setDrawOptions) {
-				orig = index[a];
+				orig = (index)? index[a]: a;
 
 				if(orig == ORIGINDEX_NONE)
 					continue;
@@ -1514,16 +1514,11 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_mesh dm");
 	DerivedMesh *dm = &cddm->dm;
 	CustomDataMask mask = CD_MASK_MESH & (~CD_MASK_MDISPS);
-	int i, *index, alloctype;
+	int alloctype;
 
-	/* this does a referenced copy, the only new layers being ORIGINDEX,
-	 * with an exception for fluidsim */
+	/* this does a referenced copy, with an exception for fluidsim */
 
 	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface);
-
-	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totvert);
-	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totedge);
-	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totface);
 
 	dm->deformedOnly = 1;
 
@@ -1539,18 +1534,6 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
-
-	index = CustomData_get_layer(&dm->vertData, CD_ORIGINDEX);
-	for(i = 0; i < mesh->totvert; ++i, ++index)
-		*index = i;
-
-	index = CustomData_get_layer(&dm->edgeData, CD_ORIGINDEX);
-	for(i = 0; i < mesh->totedge; ++i, ++index)
-		*index = i;
-
-	index = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX);
-	for(i = 0; i < mesh->totface; ++i, ++index)
-		*index = i;
 
 	return dm;
 }
@@ -1695,6 +1678,13 @@ DerivedMesh *CDDM_from_template(DerivedMesh *source,
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numFaces);
+
+	if(!CustomData_get_layer(&dm->vertData, CD_ORIGINDEX))
+		CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
+	if(!CustomData_get_layer(&dm->edgeData, CD_ORIGINDEX))
+		CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+	if(!CustomData_get_layer(&dm->faceData, CD_ORIGINDEX))
+		CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, numFaces);
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
@@ -1999,6 +1989,13 @@ DerivedMesh *MultiresDM_new(MultiresSubsurf *ms, DerivedMesh *orig, int numVerts
 	}
 	else
 		DM_init(dm, numVerts, numEdges, numFaces);
+
+	if(!CustomData_get_layer(&dm->vertData, CD_ORIGINDEX))
+		CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
+	if(!CustomData_get_layer(&dm->edgeData, CD_ORIGINDEX))
+		CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+	if(!CustomData_get_layer(&dm->faceData, CD_ORIGINDEX))
+		CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, numFaces);
 
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);

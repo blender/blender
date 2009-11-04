@@ -96,7 +96,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceind
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = dm->getFaceDataArray(dm, CD_MTFACE), *tf;
-	int numfaces = dm->getNumFaces(dm), a;
+	int numfaces = dm->getNumFaces(dm), a, findex;
 	float p[2], w[3], absw, minabsw;
 	MFace mf;
 	MVert mv[4];
@@ -106,7 +106,9 @@ void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceind
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
 	for(a = 0; a < numfaces; a++) {
-		if(index[a] == faceindex) {
+		findex= (index)? index[a]: a;
+
+		if(findex == faceindex) {
 			dm->getFace(dm, a, &mf);
 
 			dm->getVert(dm, mf.v1, &mv[0]);

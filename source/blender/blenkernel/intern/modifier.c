@@ -5695,7 +5695,7 @@ static void hookModifier_deformVerts(
 				/* if DerivedMesh is present and has original index data,
 				* use it
 				*/
-				if(dm && dm->getVertData(dm, 0, CD_ORIGINDEX)) {
+				if(dm && dm->getVertDataArray(dm, CD_ORIGINDEX)) {
 					int j;
 					int orig_index;
 					for(j = 0; j < numVerts; ++j) {

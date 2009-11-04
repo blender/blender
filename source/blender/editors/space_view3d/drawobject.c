@@ -6142,10 +6142,8 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 		int ind;
 		colors = MEM_mallocN(dm->getNumFaces(dm)*sizeof(MCol)*4,"bbs_mesh_solid");
 		for(i=0;i<dm->getNumFaces(dm);i++) {
-			if( index != 0 )
-				ind = index[i];
-			else
-				ind = i;
+			ind= ( index )? index[i]: i;
+
 			if (face_sel_mode==0 || !(me->mface[ind].flag&ME_HIDE)) {
 				unsigned int fbindex = index_to_framebuffer(ind+1);
 				for(j=0;j<4;j++) {

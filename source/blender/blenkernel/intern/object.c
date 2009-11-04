@@ -1781,13 +1781,15 @@ static void give_parvert(Object *par, int nr, float *vec)
 			DerivedMesh *dm = par->derivedFinal;
 			
 			if(dm) {
-				int i, count = 0, numVerts = dm->getNumVerts(dm);
+				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
 				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
 				float co[3];
 
 				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; ++i, ++index) {
-					if(*index == nr) {
+				for(i = 0; i < numVerts; ++i) {
+					vindex= (index)? *index: i;
+
+					if(vindex == nr) {
 						dm->getVertCo(dm, i, co);
 						VecAddf(vec, vec, co);
 						count++;
