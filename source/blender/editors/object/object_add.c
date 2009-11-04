@@ -678,31 +678,8 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, FALSE);
 }
 
-/* add dupligroup */
-static EnumPropertyItem *add_dupligroup_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	EnumPropertyItem *item= NULL, item_tmp;
-	int totitem= 0;
-	int i= 0;
-	Group *group;
-
-	memset(&item_tmp, 0, sizeof(item_tmp));
-
-	for(group= CTX_data_main(C)->group.first; group; group= group->id.next) {
-		item_tmp.identifier= item_tmp.name= group->id.name+2;
-		item_tmp.value= i++;
-		RNA_enum_item_add(&item, &totitem, &item_tmp);
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*free= 1;
-
-	return item;
-}
-
 static int group_instance_add_exec(bContext *C, wmOperator *op)
 {
-	/* XXX, using an enum for library lookups is a bit dodgy */
 	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "type"));
 
 	int view_align, enter_editmode;
@@ -728,9 +705,6 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_group_dummy_types[] = {
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	/* identifiers */
 	ot->name= "Add Group Instance";
@@ -746,8 +720,8 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->flag= 0;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", prop_group_dummy_types, 0, "Type", "");
-	RNA_def_enum_funcs(prop, add_dupligroup_itemf);
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, RNA_group_itemf);
 	ED_object_add_generic_props(ot, FALSE);
 }
 

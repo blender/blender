@@ -479,8 +479,10 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.item_booleanO("object.duplicate", "linked", True, text="Duplicate Linked")
         layout.itemO("object.delete", text="Delete...")
         layout.itemO("object.proxy_make", text="Make Proxy...")
+        layout.itemM("VIEW3D_MT_make_links", text="Make Links...")
         layout.item_menu_enumO("object.make_local", "type", text="Make Local...")
         layout.itemM("VIEW3D_MT_make_single_user")
+        layout.itemM("VIEW3D_MT_make_links")
 
         layout.itemS()
 
@@ -603,6 +605,18 @@ class VIEW3D_MT_make_single_user(bpy.types.Menu):
 
         props = layout.itemO("object.make_single_user", properties=True, text="Animation")
         props.animation = True
+
+
+class VIEW3D_MT_make_links(bpy.types.Menu):
+    bl_label = "Make Links"
+
+    def draw(self, context):
+        layout = self.layout
+        
+        layout.item_menu_enumO("object.make_links_scene", "type", text="Objects to Scene...")
+
+        layout.items_enumO("object.make_links_data", property="type") # inline
+
 
 # ********** Vertex paint menu **********
 
@@ -1600,6 +1614,7 @@ bpy.types.register(VIEW3D_MT_object_group)
 bpy.types.register(VIEW3D_MT_object_constraints)
 bpy.types.register(VIEW3D_MT_object_showhide)
 bpy.types.register(VIEW3D_MT_make_single_user)
+bpy.types.register(VIEW3D_MT_make_links)
 
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu

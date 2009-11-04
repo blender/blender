@@ -734,6 +734,11 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 	return &RNA_UnknownType;
 }
 
+/* Reuse for dynamic types  */
+EnumPropertyItem DummyRNA_NULL_items[] = {
+	{0, NULL, 0, NULL, NULL}
+};
+
 void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)rna_ensure_property(prop);

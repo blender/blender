@@ -92,6 +92,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_slow_parent_clear);
 	WM_operatortype_append(OBJECT_OT_make_local);
 	WM_operatortype_append(OBJECT_OT_make_single_user);
+	WM_operatortype_append(OBJECT_OT_make_links_scene);
+	WM_operatortype_append(OBJECT_OT_make_links_data);
 	WM_operatortype_append(OBJECT_OT_move_to_layer);
 
 	WM_operatortype_append(OBJECT_OT_select_inverse);
@@ -290,6 +292,9 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_single_user");
+    
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", LKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_links");
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move_linked", DKEY, KM_PRESS, KM_ALT, 0);

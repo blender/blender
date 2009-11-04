@@ -2446,3 +2446,33 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(km->ptr, "value", "DOPESHEET_EDITOR");
 }
 
+/* Generic itemf's for operators that take library args */
+static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, ID *id)
+{
+	EnumPropertyItem *item= NULL, item_tmp;
+	int totitem= 0;
+	int i= 0;
+
+	memset(&item_tmp, 0, sizeof(item_tmp));
+
+	for( ; id; id= id->next) {
+		item_tmp.identifier= item_tmp.name= id->name+2;
+		item_tmp.value= i++;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
+/* can add more */
+EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->group.first);
+}
+EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->scene.first);
+}
