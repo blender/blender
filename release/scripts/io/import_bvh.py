@@ -1,51 +1,17 @@
-#!BPY
+import math
 
-"""
-Name: 'Motion Capture (.bvh)...'
-Blender: 242
-Group: 'Import'
-Tip: 'Import a (.bvh) motion capture file'
-"""
-
-__author__ = "Campbell Barton"
-__url__ = ("blender.org", "blenderartists.org")
-__version__ = "1.90 06/08/01"
-
-__bpydoc__ = """\
-This script imports BVH motion capture data to Blender.
-as empties or armatures.
-"""
-
-# -------------------------------------------------------------------------- 
-# BVH Import v2.0 by Campbell Barton (AKA Ideasman) 
-# -------------------------------------------------------------------------- 
-# ***** BEGIN GPL LICENSE BLOCK ***** 
-# 
-# This program is free software; you can redistribute it and/or 
-# modify it under the terms of the GNU General Public License 
-# as published by the Free Software Foundation; either version 2 
-# of the License, or (at your option) any later version. 
-# 
-# This program is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the 
-# GNU General Public License for more details. 
-# 
-# You should have received a copy of the GNU General Public License 
-# along with this program; if not, write to the Free Software Foundation, 
-# Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA. 
-# 
-# ***** END GPL LICENCE BLOCK ***** 
-# -------------------------------------------------------------------------- 
-
-import Blender
+# import Blender
 import bpy
-import BPyMessages
-Vector= Blender.Mathutils.Vector
-Euler= Blender.Mathutils.Euler
-Matrix= Blender.Mathutils.Matrix
-RotationMatrix = Blender.Mathutils.RotationMatrix
-TranslationMatrix= Blender.Mathutils.TranslationMatrix
+# import BPyMessages
+import Mathutils
+Vector= Mathutils.Vector
+Euler= Mathutils.Euler
+Matrix= Mathutils.Matrix
+RotationMatrix= Mathutils.RotationMatrix
+TranslationMatrix= Mathutils.TranslationMatrix
+
+# NASTY GLOBAL
+ROT_STYLE = 'QUAT'
 
 DEG2RAD = 0.017453292519943295
 
@@ -101,13 +67,21 @@ MATRIX_IDENTITY_3x3 = Matrix([1,0,0],[0,1,0],[0,0,1])
 MATRIX_IDENTITY_4x4 = Matrix([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])
 
 def eulerRotate(x,y,z, rot_order): 
+	
 	# Clamp all values between 0 and 360, values outside this raise an error.
-	mats=[RotationMatrix(x%360,3,'x'), RotationMatrix(y%360,3,'y'), RotationMatrix(z%360,3,'z')]
+	mats=[RotationMatrix(math.radians(x%360),3,'x'), RotationMatrix(math.radians(y%360),3,'y'), RotationMatrix(math.radians(z%360),3,'z')]
 	# print rot_order
 	# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
-	return (mats[rot_order[2]]*(mats[rot_order[1]]* (mats[rot_order[0]]* MATRIX_IDENTITY_3x3))).toEuler()
+	
+	#XXX, order changes???
+	#eul = (mats[rot_order[2]]*(mats[rot_order[1]]* (mats[rot_order[0]]* MATRIX_IDENTITY_3x3))).toEuler()	
+	eul = (MATRIX_IDENTITY_3x3*mats[rot_order[0]]*(mats[rot_order[1]]* (mats[rot_order[2]]))).toEuler()	
+	
+	eul = math.degrees(eul.x), math.degrees(eul.y), math.degrees(eul.z) 
+	
+	return eul
 
-def read_bvh(file_path, GLOBAL_SCALE=1.0):
+def read_bvh(context, file_path, GLOBAL_SCALE=1.0):
 	# File loading stuff
 	# Open the file for importing
 	file = open(file_path, 'rU')	
@@ -247,8 +221,12 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 			if channels[2] != -1:
 				lz= GLOBAL_SCALE * float(  line[channels[2]] )
 			
-			if channels[3] != -1 or channels[4] != -1 or channels[5] != -1:						
-				rx, ry, rz = eulerRotate(float( line[channels[3]] ), float( line[channels[4]] ), float( line[channels[5]] ), bvh_node.rot_order)
+			if channels[3] != -1 or channels[4] != -1 or channels[5] != -1:
+				rx, ry, rz = float( line[channels[3]] ), float( line[channels[4]] ), float( line[channels[5]] )
+				
+				if ROT_STYLE != 'NATIVE':
+					rx, ry, rz = eulerRotate(rx, ry, rz, bvh_node.rot_order)
+				
 				#x,y,z = x/10.0, y/10.0, z/10.0 # For IPO's 36 is 360d
 				
 				# Make interpolation not cross between 180d, thjis fixes sub frame interpolation and time scaling.
@@ -268,13 +246,13 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 		lineIdx += 1
 	
 	# Assign children
-	for bvh_node in bvh_nodes.itervalues():		
+	for bvh_node in bvh_nodes.values():		
 		bvh_node_parent= bvh_node.parent
 		if bvh_node_parent:
 			bvh_node_parent.children.append(bvh_node)
 	
 	# Now set the tip of each bvh_node
-	for bvh_node in bvh_nodes.itervalues():
+	for bvh_node in bvh_nodes.values():
 		
 		if not bvh_node.rest_tail_world:
 			if len(bvh_node.children)==0:
@@ -311,12 +289,12 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 
 
 
-def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
+def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	
 	if IMPORT_START_FRAME<1:
 		IMPORT_START_FRAME= 1
 		
-	scn= bpy.data.scenes.active
+	scn= context.scene
 	scn.objects.selected = []
 	
 	objects= []
@@ -327,20 +305,20 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 		return ob
 	
 	# Add objects
-	for name, bvh_node in bvh_nodes.iteritems():
+	for name, bvh_node in bvh_nodes.items():
 		bvh_node.temp= add_ob(name)
 	
 	# Parent the objects
-	for bvh_node in bvh_nodes.itervalues():
+	for bvh_node in bvh_nodes.values():
 		bvh_node.temp.makeParent([ bvh_node_child.temp for bvh_node_child in bvh_node.children ], 1, 0) # ojbs, noninverse, 1 = not fast.
 	
 	# Offset
-	for bvh_node in bvh_nodes.itervalues():
+	for bvh_node in bvh_nodes.values():
 		# Make relative to parents offset
 		bvh_node.temp.loc= bvh_node.rest_head_local
 	
 	# Add tail objects
-	for name, bvh_node in bvh_nodes.iteritems():
+	for name, bvh_node in bvh_nodes.items():
 		if not bvh_node.children:
 			ob_end= add_ob(name + '_end')
 			bvh_node.temp.makeParent([ob_end], 1, 0) # ojbs, noninverse, 1 = not fast.
@@ -348,10 +326,10 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	
 	
 	# Animate the data, the last used bvh_node will do since they all have the same number of frames
-	for current_frame in xrange(len(bvh_node.anim_data)):
+	for current_frame in range(len(bvh_node.anim_data)):
 		Blender.Set('curframe', current_frame+IMPORT_START_FRAME)
 		
-		for bvh_node in bvh_nodes.itervalues():
+		for bvh_node in bvh_nodes.values():
 			lx,ly,lz,rx,ry,rz= bvh_node.anim_data[current_frame]
 			
 			rest_head_local= bvh_node.rest_head_local
@@ -366,28 +344,47 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 
 
 
-def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
+def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	
 	if IMPORT_START_FRAME<1:
 		IMPORT_START_FRAME= 1
 		
 	
 	# Add the new armature, 
-	scn = bpy.data.scenes.active
-	scn.objects.selected = []
+	scn = context.scene
+#XXX	scn.objects.selected = []
+	for ob in scn.objects:
+		ob.selected = False
 	
-	arm_data= bpy.data.armatures.new()
-	arm_ob = scn.objects.new(arm_data)
-	scn.objects.context = [arm_ob]
-	scn.objects.active = arm_ob
+	
+#XXX	arm_data= bpy.data.armatures.new()
+#XXX	arm_ob = scn.objects.new(arm_data)
+	bpy.ops.object.armature_add()
+	arm_ob= scn.objects[-1]
+	arm_data= arm_ob.data
+
+	
+	
+	
+#XXX	scn.objects.context = [arm_ob]
+#XXX	scn.objects.active = arm_ob
+	arm_ob.selected= True
+	scn.objects.active= arm_ob
+	print(scn.objects.active)
+	
 	
 	# Put us into editmode
-	arm_data.makeEditable()
+#XXX	arm_data.makeEditable()
+	
+	bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+	bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+	
 	
 	# Get the average bone length for zero length bones, we may not use this.
 	average_bone_length= 0.0
 	nonzero_count= 0
-	for bvh_node in bvh_nodes.itervalues():
+	for bvh_node in bvh_nodes.values():
 		l= (bvh_node.rest_head_local-bvh_node.rest_tail_local).length
 		if l:
 			average_bone_length+= l
@@ -401,14 +398,22 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 		average_bone_length = average_bone_length/nonzero_count
 	
 	
+#XXX - sloppy operator code
 	
+	bpy.ops.armature.delete()
+	bpy.ops.armature.select_all_toggle()
+	bpy.ops.armature.delete()
+
 	ZERO_AREA_BONES= []
-	for name, bvh_node in bvh_nodes.iteritems():
+	for name, bvh_node in bvh_nodes.items():
 		# New editbone
-		bone= bvh_node.temp= Blender.Armature.Editbone()
+		bpy.ops.armature.bone_primitive_add(name="Bone")
 		
+#XXX		bone= bvh_node.temp= Blender.Armature.Editbone()
+		bone= bvh_node.temp= arm_data.edit_bones[-1]
+
 		bone.name= name
-		arm_data.bones[name]= bone
+#		arm_data.bones[name]= bone
 		
 		bone.head= bvh_node.rest_head_world
 		bone.tail= bvh_node.rest_tail_world
@@ -425,9 +430,9 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 				bone.tail.y= bone.tail.y+average_bone_length
 			
 			ZERO_AREA_BONES.append(bone.name)
-		
 	
-	for bvh_node in bvh_nodes.itervalues():
+	
+	for bvh_node in bvh_nodes.values():
 		if bvh_node.parent:
 			# bvh_node.temp is the Editbone
 			
@@ -439,32 +444,82 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 			bvh_node.parent and\
 			bvh_node.parent.temp.name not in ZERO_AREA_BONES and\
 			bvh_node.parent.rest_tail_local == bvh_node.rest_head_local:
-				bvh_node.temp.options= [Blender.Armature.CONNECTED]
+				bvh_node.temp.connected= True
 	
 	# Replace the editbone with the editbone name,
 	# to avoid memory errors accessing the editbone outside editmode
-	for bvh_node in bvh_nodes.itervalues():
+	for bvh_node in bvh_nodes.values():
 		bvh_node.temp= bvh_node.temp.name
 	
-	arm_data.update()
+#XXX	arm_data.update()
 	
 	# Now Apply the animation to the armature
 	
 	# Get armature animation data
-	pose= arm_ob.getPose()
-	pose_bones= pose.bones
+	bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+	bpy.ops.object.mode_set(mode='POSE', toggle=False)
 	
-	action = Blender.Armature.NLA.NewAction("Action") 
-	action.setActive(arm_ob)
+	pose= arm_ob.pose
+	pose_bones= pose.pose_channels
+	
+	
+	if ROT_STYLE=='NATIVE':
+		eul_order_lookup = {\
+			(0,1,2):'XYZ',
+			(0,2,1):'XZY',
+			(1,0,2):'YXZ',
+			(1,2,0):'YZX',
+			(2,0,1):'ZXY',
+			(2,1,0):'ZYZ'
+		}
+		
+		for bvh_node in bvh_nodes.values():
+			bone_name= bvh_node.temp # may not be the same name as the bvh_node, could have been shortened.
+			pose_bone= pose_bones[bone_name]
+			pose_bone.rotation_mode  = eul_order_lookup[tuple(bvh_node.rot_order)]
+		
+	elif ROT_STYLE=='XYZ':
+		for pose_bone in pose_bones:
+			pose_bone.rotation_mode  = 'XYZ'
+	else:
+		# Quats default
+		pass 
+	
+	
+	bpy.ops.pose.select_all_toggle() # set
+	bpy.ops.anim.insert_keyframe_menu(type=-4) # XXX -     -4 ???
+	
+
+	
+	
+	
+	#for p in pose_bones:
+	#	print(p)
+	
+	
+#XXX	action = Blender.Armature.NLA.NewAction("Action") 
+#XXX	action.setActive(arm_ob)
+	
+	#bpy.ops.act.new()
+	#action = bpy.data.actions[-1]
+	
+	# arm_ob.animation_data.action = action
+	action = arm_ob.animation_data.action
+	
+	
+	
+	
 	#xformConstants= [ Blender.Object.Pose.LOC, Blender.Object.Pose.ROT ]
 	
 	# Replace the bvh_node.temp (currently an editbone)
 	# With a tuple  (pose_bone, armature_bone, bone_rest_matrix, bone_rest_matrix_inv)
-	for bvh_node in bvh_nodes.itervalues():
+	for bvh_node in bvh_nodes.values():
 		bone_name= bvh_node.temp # may not be the same name as the bvh_node, could have been shortened.
 		pose_bone= pose_bones[bone_name]
 		rest_bone= arm_data.bones[bone_name]
-		bone_rest_matrix = rest_bone.matrix['ARMATURESPACE'].rotationPart()
+#XXX		bone_rest_matrix = rest_bone.matrix['ARMATURESPACE'].rotationPart()
+		bone_rest_matrix = rest_bone.matrix.rotationPart()
+		
 		
 		bone_rest_matrix_inv= Matrix(bone_rest_matrix)
 		bone_rest_matrix_inv.invert()
@@ -475,59 +530,113 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 		
 	
 	# Make a dict for fast access without rebuilding a list all the time.
+	'''
 	xformConstants_dict={
 	(True,True):	[Blender.Object.Pose.LOC, Blender.Object.Pose.ROT],\
 	(False,True):	[Blender.Object.Pose.ROT],\
 	(True,False):	[Blender.Object.Pose.LOC],\
 	(False,False):	[],\
 	}
-	
+	'''
 	
 	# KEYFRAME METHOD, SLOW, USE IPOS DIRECT
 	
 	# Animate the data, the last used bvh_node will do since they all have the same number of frames
-	for current_frame in xrange(len(bvh_node.anim_data)-1): # skip the first frame (rest frame)
+	for current_frame in range(len(bvh_node.anim_data)-1): # skip the first frame (rest frame)
 		# print current_frame
 		
-		#if current_frame==40: # debugging
+		#if current_frame==150: # debugging
 		#	break
 		
 		# Dont neet to set the current frame
-		for bvh_node in bvh_nodes.itervalues():
+		for bvh_node in bvh_nodes.values():
 			pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv= bvh_node.temp
 			lx,ly,lz,rx,ry,rz= bvh_node.anim_data[current_frame+1]
 			
 			if bvh_node.has_rot:
-				# Set the rotation, not so simple			
-				bone_rotation_matrix= Euler(rx,ry,rz).toMatrix()
-				bone_rotation_matrix.resize4x4()
-				pose_bone.quat= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat()
+				
+				if ROT_STYLE=='QUAT':
+					# Set the rotation, not so simple
+					bone_rotation_matrix= Euler(math.radians(rx), math.radians(ry), math.radians(rz)).toMatrix()
+					
+					bone_rotation_matrix.resize4x4()
+					#XXX ORDER CHANGE???
+					#pose_bone.rotation_quaternion= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat() # ORIGINAL
+					# pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix).toQuat()
+					# pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix).toQuat() # BAD
+					# pose_bone.rotation_quaternion= bone_rotation_matrix.toQuat() # NOT GOOD
+					# pose_bone.rotation_quaternion= bone_rotation_matrix.toQuat() # NOT GOOD
+					
+					#pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix_inv * bone_rest_matrix).toQuat()
+					#pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rest_matrix * bone_rotation_matrix).toQuat()
+					#pose_bone.rotation_quaternion= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat()
+					
+					#pose_bone.rotation_quaternion= ( bone_rest_matrix* bone_rest_matrix_inv * bone_rotation_matrix).toQuat()
+					#pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix  * bone_rest_matrix_inv).toQuat()
+					#pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix  * bone_rest_matrix ).toQuat()
+					
+					pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix).toQuat()
+					
+				else:
+					bone_rotation_matrix= Euler(math.radians(rx), math.radians(ry), math.radians(rz)).toMatrix()
+					bone_rotation_matrix.resize4x4()
+					
+					eul= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toEuler()
+					
+					#pose_bone.rotation_euler = math.radians(rx), math.radians(ry), math.radians(rz)
+					pose_bone.rotation_euler = eul
+				
+				print("ROTATION" + str(Euler(math.radians(rx), math.radians(ry), math.radians(rz))))
 			
 			if bvh_node.has_loc:
 				# Set the Location, simple too
-				pose_bone.loc= (\
-				TranslationMatrix(Vector(lx, ly, lz) - bvh_node.rest_head_local ) *\
-				bone_rest_matrix_inv).translationPart() # WHY * 10? - just how pose works
+				
+				#XXX ORDER CHANGE
+				# pose_bone.location= (TranslationMatrix(Vector(lx, ly, lz) - bvh_node.rest_head_local ) * bone_rest_matrix_inv).translationPart() # WHY * 10? - just how pose works
+				# pose_bone.location= (bone_rest_matrix_inv * TranslationMatrix(Vector(lx, ly, lz) - bvh_node.rest_head_local )).translationPart()
+				# pose_bone.location= lx, ly, lz
+				pose_bone.location= Vector(lx, ly, lz) - bvh_node.rest_head_local
+				
+
+#XXX		# TODO- add in 2.5
+			if 0:
+				# Get the transform 
+				xformConstants= xformConstants_dict[bvh_node.has_loc, bvh_node.has_rot]
+				
+				if xformConstants:
+					# Insert the keyframe from the loc/quat
+					pose_bone.insertKey(arm_ob, current_frame+IMPORT_START_FRAME, xformConstants, True )
+			else:
+				
+				if bvh_node.has_loc:
+					pose_bone.keyframe_insert("location")
+				if bvh_node.has_rot:
+					if ROT_STYLE=='QUAT':
+						pose_bone.keyframe_insert("rotation_quaternion")
+					else:
+						pose_bone.keyframe_insert("rotation_euler")
+				
+				
 			
-			# Get the transform 
-			xformConstants= xformConstants_dict[bvh_node.has_loc, bvh_node.has_rot]
-			
-			
-			if xformConstants:
-				# Insert the keyframe from the loc/quat
-				pose_bone.insertKey(arm_ob, current_frame+IMPORT_START_FRAME, xformConstants, True )
+		# bpy.ops.anim.insert_keyframe_menu(type=-4) # XXX -     -4 ???
+		bpy.ops.screen.frame_offset(delta=1)
 		
 		# First time, set the IPO's to linear
-		if current_frame==0:
-			for ipo in action.getAllChannelIpos().itervalues():
-				if ipo:
-					for cur in ipo:
-						cur.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
-						if IMPORT_LOOP:
-							cur.extend = Blender.IpoCurve.ExtendTypes.CYCLIC
+#XXX	#TODO
+		if 0:
+			if current_frame==0:
+				for ipo in action.getAllChannelIpos().values():
+					if ipo:
+						for cur in ipo:
+							cur.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+							if IMPORT_LOOP:
+								cur.extend = Blender.IpoCurve.ExtendTypes.CYCLIC
 							
 						
-		
+		else:
+			for cu in action.fcurves:
+				for bez in cu.keyframe_points:
+					bez.interpolation = 'CONSTANT'
 		
 	# END KEYFRAME METHOD
 	
@@ -535,7 +644,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 	"""
 	# IPO KEYFRAME SETTING
 	# Add in the IPOs by adding keyframes, AFAIK theres no way to add IPOs to an action so I do this :/
-	for bvh_node in bvh_nodes.itervalues():
+	for bvh_node in bvh_nodes.values():
 		pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv= bvh_node.temp
 		
 		# Get the transform 
@@ -550,7 +659,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 	action_ipos= action.getAllChannelIpos()
 	
 	
-	for bvh_node in bvh_nodes.itervalues():
+	for bvh_node in bvh_nodes.values():
 		has_loc= bvh_node.has_loc
 		has_rot= bvh_node.has_rot
 		
@@ -610,7 +719,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 				ox,oy,oz= pose_locations[0]
 				x,y,z= pose_locations[1]
 				
-				for i in xrange(1, len(pose_locations)-1): # from second frame to second last frame
+				for i in range(1, len(pose_locations)-1): # from second frame to second last frame
 					
 					nx,ny,nz= pose_locations[i+1]
 					xset= yset= zset= True # we set all these by default
@@ -641,7 +750,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 				ow,ox,oy,oz= pose_rotations[0]
 				w,x,y,z= pose_rotations[1]
 				
-				for i in xrange(1, len(pose_rotations)-1): # from second frame to second last frame
+				for i in range(1, len(pose_rotations)-1): # from second frame to second last frame
 					
 					nw, nx,ny,nz= pose_rotations[i+1]
 					wset= xset= yset= zset= True # we set all these by default
@@ -661,7 +770,9 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 
 	# IPO KEYFRAME SETTING
 	"""
-	pose.update()
+	
+# XXX NOT NEEDED NOW?
+	# pose.update()
 	return arm_ob
 
 
@@ -691,18 +802,18 @@ for f in ('/d/staggered_walk.bvh',):
 		bvh_node_dict2armature(bvh_nodes, 1)
 '''
 
-def load_bvh_ui(file, PREF_UI= True):
+def load_bvh_ui(context, file, PREF_UI= False):
 	
-	if BPyMessages.Error_NoFile(file):
-		return
+#XXX	if BPyMessages.Error_NoFile(file):
+#XXX		return
 	
-	Draw= Blender.Draw
+#XXX	Draw= Blender.Draw
 	
-	IMPORT_SCALE = Draw.Create(0.1)
-	IMPORT_START_FRAME = Draw.Create(1)
-	IMPORT_AS_ARMATURE = Draw.Create(1)
-	IMPORT_AS_EMPTIES = Draw.Create(0)
-	IMPORT_LOOP = Draw.Create(0)
+	IMPORT_SCALE = 0.1
+	IMPORT_START_FRAME = 1
+	IMPORT_AS_ARMATURE = 1
+	IMPORT_AS_EMPTIES = 0
+	IMPORT_LOOP = 0
 	
 	# Get USER Options
 	if PREF_UI:
@@ -714,44 +825,57 @@ def load_bvh_ui(file, PREF_UI= True):
 		('Loop Animation', IMPORT_LOOP, 'Enable cyclic IPOs'),\
 		]
 		
-		if not Draw.PupBlock('BVH Import...', pup_block):
-			return
+#XXX		if not Draw.PupBlock('BVH Import...', pup_block):
+#XXX			return
 	
-	print 'Attempting import BVH', file
-	
-	IMPORT_SCALE = IMPORT_SCALE.val
-	IMPORT_START_FRAME = IMPORT_START_FRAME.val
-	IMPORT_AS_ARMATURE = IMPORT_AS_ARMATURE.val
-	IMPORT_AS_EMPTIES = IMPORT_AS_EMPTIES.val
-	IMPORT_LOOP = IMPORT_LOOP.val
+	# print('Attempting import BVH', file)
 	
 	if not IMPORT_AS_ARMATURE and not IMPORT_AS_EMPTIES:
-		Blender.Draw.PupMenu('No import option selected')
-		return
-	Blender.Window.WaitCursor(1)
+		raise('No import option selected')
+
+#XXX	Blender.Window.WaitCursor(1)
 	# Get the BVH data and act on it.
-	t1= Blender.sys.time()
-	print '\tparsing bvh...',
-	bvh_nodes= read_bvh(file, IMPORT_SCALE)
-	print '%.4f' % (Blender.sys.time()-t1)
-	t1= Blender.sys.time()
-	print '\timporting to blender...',
-	if IMPORT_AS_ARMATURE:	bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME, IMPORT_LOOP)
-	if IMPORT_AS_EMPTIES:	bvh_node_dict2objects(bvh_nodes,  IMPORT_START_FRAME, IMPORT_LOOP)
+	import time
+	t1= time.time()
+	print('\tparsing bvh...', end= "")
+	bvh_nodes= read_bvh(context, file, IMPORT_SCALE)
+	print('%.4f' % (time.time()-t1))
+	t1= time.time()
+	print('\timporting to blender...', end="")
+	if IMPORT_AS_ARMATURE:	bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME, IMPORT_LOOP)
+	if IMPORT_AS_EMPTIES:	bvh_node_dict2objects(context, bvh_nodes,  IMPORT_START_FRAME, IMPORT_LOOP)
 	
-	print 'Done in %.4f\n' % (Blender.sys.time()-t1)
-	Blender.Window.WaitCursor(0)
+	print('Done in %.4f\n' % (time.time()-t1))
+#XXX	Blender.Window.WaitCursor(0)
 
 def main():
 	Blender.Window.FileSelector(load_bvh_ui, 'Import BVH', '*.bvh')
 
-if __name__ == '__main__':
-	#def foo():
-	main()
-	'''
-	scn = bpy.data.scenes.active
-	for ob in list(scn.objects):
-		if ob.name!='arm__':
-			scn.objects.unlink(ob)
-	load_bvh_ui('/test.bvh', False)
-	'''
+from bpy.props import *
+
+class BvhImporter(bpy.types.Operator):
+	'''Load a Wavefront OBJ File.'''
+	bl_idname = "import.bvh"
+	bl_label = "Import BVH"
+	
+	path = StringProperty(name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= "")
+	
+	def execute(self, context):
+		# print("Selected: " + context.active_object.name)
+
+		read_bvh(context, self.path)
+
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):	
+		wm = context.manager
+		wm.add_fileselect(self)
+		return ('RUNNING_MODAL',)
+
+
+bpy.ops.add(BvhImporter)
+
+
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("import.bvh", text="Motion Capture (.bvh)...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
