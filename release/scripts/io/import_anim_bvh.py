@@ -855,7 +855,7 @@ from bpy.props import *
 
 class BvhImporter(bpy.types.Operator):
 	'''Load a Wavefront OBJ File.'''
-	bl_idname = "import.bvh"
+	bl_idname = "import_anim.bvh"
 	bl_label = "Import BVH"
 	
 	path = StringProperty(name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= "")
@@ -877,5 +877,5 @@ bpy.ops.add(BvhImporter)
 
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("import.bvh", text="Motion Capture (.bvh)...")
+menu_func = lambda self, context: self.layout.itemO(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)

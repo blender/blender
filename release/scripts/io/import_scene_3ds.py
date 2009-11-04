@@ -139,7 +139,7 @@ import os
 import time
 import struct
 
-from import_obj import unpack_face_list, load_image
+from import_scene_obj import unpack_face_list, load_image
 
 import bpy
 import Mathutils
@@ -1143,7 +1143,7 @@ from bpy.props import *
 
 class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 	'''Import from 3DS file format (.3ds)'''
-	bl_idname = "import.autodesk_3ds"
+	bl_idname = "import_scene.autodesk_3ds"
 	bl_label = 'Import 3DS'
 	
 	# List of operator properties, the attributes will be assigned
@@ -1167,7 +1167,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 bpy.ops.add(IMPORT_OT_autodesk_3ds)
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("import.autodesk_3ds", text="3D Studio (.3ds)...")
+menu_func = lambda self, context: self.layout.itemO(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 # NOTES:

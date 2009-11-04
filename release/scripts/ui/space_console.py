@@ -157,6 +157,10 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 
         console, stdout, stderr = get_console(hash(context.region))
 
+        # Hack, useful but must add some other way to access
+        #if "C" not in console.locals:
+        console.locals["C"] = context
+
         # redirect output
         sys.stdout = stdout
         sys.stderr = stderr
@@ -222,7 +226,7 @@ class CONSOLE_OT_autocomplete(bpy.types.Operator):
         sc = context.space_data
 
         console = get_console(hash(context.region))[0]
-
+        
         current_line = sc.history[-1]
         line = current_line.line
 
