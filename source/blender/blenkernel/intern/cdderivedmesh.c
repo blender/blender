@@ -473,7 +473,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 											 NULL, dm->numFaceData);
 
 		BLI_pbvh_update(cddm->pbvh, PBVH_UpdateNormals|PBVH_UpdateDrawBuffers,
-			face_nors, cdDM_getFaceMap(dm));
+			face_nors);
 
 		/* should be per face */
 		if(dm->numFaceData && mface->flag & ME_SMOOTH)

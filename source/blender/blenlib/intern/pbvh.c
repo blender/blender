@@ -101,6 +101,7 @@ struct PBVH {
 
 	int *face_indices;
 	int totface;
+	int totvert;
 
 	/* Mesh data */
 	MVert *verts;
@@ -435,6 +436,7 @@ void BLI_pbvh_build(PBVH *bvh, MFace *faces, MVert *verts, int totface, int totv
 	bvh->faces = faces;
 	bvh->verts = verts;
 	bvh->vert_bitmap = BLI_bitmap_new(totvert);
+	bvh->totvert= totvert;
 
 	BB_reset(&cb);
 
@@ -641,24 +643,40 @@ static int update_search_cb(PBVHNode *node,
 	return 1;
 }
 
-static void pbvh_update_face_normals(PBVH *bvh, PBVHNode **nodes,
+static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	int totnode, float (*face_nors)[3])
 {
-	PBVHNode *node;
+	float (*vnor)[3];
 	int n;
+
+	/* could be per node to save some memory, but also means
+	   we have to store for each vertex which node it is in */
+	vnor= MEM_callocN(sizeof(float)*3*bvh->totvert, "bvh temp vnors");
+
+	/* subtle assumptions:
+	   - We know that for all edited vertices, the nodes with faces
+	     adjacent to these vertices have been marked with PBVH_UpdateNormals.
+		 This is true because if the vertex is inside the brush radius, the
+		 bounding box of it's adjacent faces will be as well.
+	   - However this is only true for the vertices that have actually been
+	     edited, not for all vertices in the nodes marked for update, so we
+		 can only update vertices marked with ME_VERT_PBVH_UPDATE.
+	*/
 
 	#pragma omp parallel for private(n) schedule(static)
 	for(n = 0; n < totnode; n++) {
-		node= nodes[n];
+		PBVHNode *node= nodes[n];
 
 		if((node->flag & PBVH_UpdateNormals)) {
-			int i, totface, *faces;
+			int i, j, totface, *faces;
 
 			BLI_pbvh_node_get_faces(node, &faces, &totface);
 
 			for(i = 0; i < totface; ++i) {
-				MFace *f = bvh->faces + faces[i];
-				float *fn = face_nors[faces[i]];
+				MFace *f= bvh->faces + faces[i];
+				float fn[3];
+				unsigned int *fv = &f->v1;
+				int sides= (f->v4)? 4: 3;
 
 				if(f->v4)
 					CalcNormFloat4(bvh->verts[f->v1].co, bvh->verts[f->v2].co,
@@ -666,49 +684,75 @@ static void pbvh_update_face_normals(PBVH *bvh, PBVHNode **nodes,
 				else
 					CalcNormFloat(bvh->verts[f->v1].co, bvh->verts[f->v2].co,
 								  bvh->verts[f->v3].co, fn);
+
+				for(j = 0; j < sides; ++j) {
+					int v= fv[j];
+
+					if(bvh->verts[v].flag & ME_VERT_PBVH_UPDATE) {
+						/* this seems like it could be very slow but profile
+						   does not show this, so just leave it for now? */
+						#pragma omp atomic
+						vnor[v][0] += fn[0];
+						#pragma omp atomic
+						vnor[v][1] += fn[1];
+						#pragma omp atomic
+						vnor[v][2] += fn[2];
+					}
+				}
+
+				if(face_nors)
+					VECCOPY(face_nors[faces[i]], fn);
 			}
 		}
 	}
-}
 
-static void pbvh_update_BB_normals(PBVH *bvh, PBVHNode **nodes,
-	int totnode, int flag, float (*face_nors)[3], ListBase *fmap)
-{
-	PBVHNode *node;
-	int n;
-
-	/* update BB, vertex normals, redraw flag */
 	#pragma omp parallel for private(n) schedule(static)
 	for(n = 0; n < totnode; n++) {
-		node= nodes[n];
+		PBVHNode *node= nodes[n];
 
-		if((flag & PBVH_UpdateBB) && (node->flag & PBVH_UpdateBB)) {
-			update_node_vb(bvh, node);
-			/* don't clear flag yet, leave it for flushing later */
-		}
-
-		if((flag & PBVH_UpdateNormals) && (node->flag & PBVH_UpdateNormals)) {
+		if(node->flag & PBVH_UpdateNormals) {
 			int i, *verts, totvert;
 
 			BLI_pbvh_node_get_verts(node, &verts, &totvert);
 
 			for(i = 0; i < totvert; ++i) {
 				const int v = verts[i];
-				float no[3] = {0,0,0};
-				IndexNode *face;
+				MVert *mvert= &bvh->verts[v];
 
-				for(face = fmap[v].first; face; face = face->next)
-					VecAddf(no, no, face_nors[face->index]);
+				if(mvert->flag & ME_VERT_PBVH_UPDATE) {
+					float no[3];
 
-				Normalize(no);
-				
-				bvh->verts[v].no[0] = no[0] * 32767;
-				bvh->verts[v].no[1] = no[1] * 32767;
-				bvh->verts[v].no[2] = no[2] * 32767;
+					VECCOPY(no, vnor[v]);
+					Normalize(no);
+					
+					mvert->no[0] = (short)(no[0]*32767.0f);
+					mvert->no[1] = (short)(no[1]*32767.0f);
+					mvert->no[2] = (short)(no[2]*32767.0f);
+					
+					mvert->flag &= ~ME_VERT_PBVH_UPDATE;
+				}
 			}
 
 			node->flag &= ~PBVH_UpdateNormals;
 		}
+	}
+
+	MEM_freeN(vnor);
+}
+
+static void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes,
+	int totnode, int flag)
+{
+	int n;
+
+	/* update BB, redraw flag */
+	#pragma omp parallel for private(n) schedule(static)
+	for(n = 0; n < totnode; n++) {
+		PBVHNode *node= nodes[n];
+
+		if((flag & PBVH_UpdateBB) && (node->flag & PBVH_UpdateBB))
+			/* don't clear flag yet, leave it for flushing later */
+			update_node_vb(bvh, node);
 
 		if((flag & PBVH_UpdateRedraw) && (node->flag & PBVH_UpdateRedraw))
 			node->flag &= ~PBVH_UpdateRedraw;
@@ -757,7 +801,7 @@ static int pbvh_flush_bb(PBVH *bvh, PBVHNode *node)
 	return update;
 }
 
-void BLI_pbvh_update(PBVH *bvh, int flag, float (*face_nors)[3], ListBase *fmap)
+void BLI_pbvh_update(PBVH *bvh, int flag, float (*face_nors)[3])
 {
 	PBVHNode **nodes;
 	int totnode;
@@ -765,10 +809,10 @@ void BLI_pbvh_update(PBVH *bvh, int flag, float (*face_nors)[3], ListBase *fmap)
 	BLI_pbvh_search_gather(bvh, update_search_cb, NULL, &nodes, &totnode);
 
 	if(flag & PBVH_UpdateNormals)
-		pbvh_update_face_normals(bvh, nodes, totnode, face_nors);
+		pbvh_update_normals(bvh, nodes, totnode, face_nors);
 
-	if(flag & (PBVH_UpdateNormals|PBVH_UpdateBB|PBVH_UpdateRedraw))
-		pbvh_update_BB_normals(bvh, nodes, totnode, flag, face_nors, fmap);
+	if(flag & (PBVH_UpdateBB|PBVH_UpdateRedraw))
+		pbvh_update_BB_redraw(bvh, nodes, totnode, flag);
 
 	if(flag & PBVH_UpdateDrawBuffers)
 		pbvh_update_draw_buffers(bvh, nodes, totnode);

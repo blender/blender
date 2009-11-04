@@ -266,7 +266,7 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	MEM_freeN(bb);
 
 	/* clear redraw flag from nodes */
-	BLI_pbvh_update(ob->sculpt->tree, PBVH_UpdateRedraw, NULL, NULL);
+	BLI_pbvh_update(ob->sculpt->tree, PBVH_UpdateRedraw, NULL);
 }
 
 /*** Looping Over Nodes in a BVH Node ***/
@@ -624,6 +624,7 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 								 vd.co[2] + offset[2]*fade};
 
 			sculpt_clip(sd, ss, vd.co, val);
+			ss->mvert[vd.index].flag |= ME_VERT_PBVH_UPDATE;
 		}
 
 		BLI_pbvh_node_mark_update(nodes[n]);
@@ -697,6 +698,7 @@ static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int
 				val[2] = vd.co[2]+(avg[2]-vd.co[2])*fade;
 				
 				sculpt_clip(sd, ss, vd.co, val);			
+				ss->mvert[vd.index].flag |= ME_VERT_PBVH_UPDATE;
 			}
 
 			BLI_pbvh_node_mark_update(nodes[n]);
@@ -723,6 +725,7 @@ static void do_pinch_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 								 vd.co[2]+(vd.location[2]-vd.co[2])*fade};
 			
 			sculpt_clip(sd, ss, vd.co, val);			
+			ss->mvert[vd.index].flag |= ME_VERT_PBVH_UPDATE;
 		}
 
 		BLI_pbvh_node_mark_update(nodes[n]);
@@ -821,6 +824,7 @@ static void do_inflate_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, in
 			VecAddf(add, add, vd.co);
 			
 			sculpt_clip(sd, ss, vd.co, add);
+			ss->mvert[vd.index].flag |= ME_VERT_PBVH_UPDATE;
 		}
 
 		BLI_pbvh_node_mark_update(nodes[n]);
@@ -944,6 +948,7 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, PBVHNode **node
 				VecAddf(val, val, vd.co);
 
 				sculpt_clip(sd, ss, vd.co, val);
+				ss->mvert[vd.index].flag |= ME_VERT_PBVH_UPDATE;
 			}
 		}
 
@@ -1631,7 +1636,7 @@ static void sculpt_flush_update(bContext *C)
 		multires_mark_as_modified(ob);
 	}
 
-	BLI_pbvh_update(ss->tree, PBVH_UpdateBB, NULL, NULL);
+	BLI_pbvh_update(ss->tree, PBVH_UpdateBB, NULL);
 	redraw = sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r);
 
 	if(redraw) {

@@ -90,8 +90,7 @@ void *BLI_pbvh_node_get_draw_buffers(PBVHNode *node);
 
 /* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
 
-void BLI_pbvh_update(PBVH *bvh, int flags,
-	float (*face_nors)[3], struct ListBase *fmap);
+void BLI_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
 void BLI_pbvh_redraw_bounding_box(PBVH *bvh, float bb_min[3], float bb_max[3]);
 
 #endif /* BLI_PBVH_H */
