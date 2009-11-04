@@ -407,6 +407,38 @@ void MEM_printmemlist_stats()
 	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use/(double)(1024*1024));
 	for(a=0, pb=printblock; a<totpb; a++, pb++)
 		printf("%s items: %d, len: %.3f MB\n", pb->name, pb->items, (double)pb->len/(double)(1024*1024));
+	
+	{
+		uintptr_t other= mem_in_use;
+
+		printf(
+			"from pylab import *\n"
+			"\n"
+			"figure(1, figsize=(10,10))\n"
+			"\n"
+			"memory = [\n");
+
+		for(a=0, pb=printblock; a<totpb; a++, pb++) {
+			printf("[\"%s\", %.3f],\n", pb->name, (double)pb->len/(double)(1024*1024));
+			other -= pb->len;
+
+			if((double)pb->len/(double)mem_in_use < 0.025)
+				break;
+		}
+
+		printf(
+			"[\"other\", %.3f]]\n"
+			"\n"
+			"labels = [m[0] for m in memory]\n"
+			"fracs = [m[1] for m in memory]\n"
+			"map = cm.get_cmap(\"Paired\")\n"
+			"colors = [map(float(i)/len(fracs)) for i in range(0, len(fracs))]\n"
+			"\n"
+			"pie(fracs, labels=labels, colors=colors, autopct='%%1.1f%%%%')\n"
+			"title(\"Memory Usage: %.3f MB\")\n"
+			"\n"
+			"show()\n", (double)other/(double)(1024*1024), (double)mem_in_use/(double)(1024*1024));
+	}
 
 	free(printblock);
 	
