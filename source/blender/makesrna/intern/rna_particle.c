@@ -127,6 +127,12 @@ static void rna_Particle_redo(bContext *C, PointerRNA *ptr)
 	particle_recalc(C, ptr, PSYS_RECALC_REDO);
 }
 
+static void rna_Particle_redo_dependency(bContext *C, PointerRNA *ptr)
+{
+	DAG_scene_sort(CTX_data_scene(C));
+	rna_Particle_redo(C, ptr);
+}
+
 static void rna_Particle_reset(bContext *C, PointerRNA *ptr)
 {
 	particle_recalc(C, ptr, PSYS_RECALC_RESET);
@@ -1713,7 +1719,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dupli Object", "Show this Object in place of particles.");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_dependency");
 
 	prop= RNA_def_property(srna, "billboard_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "bb_ob");
