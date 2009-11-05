@@ -127,7 +127,7 @@ def get_console(console_id):
     return console, stdout, stderr
 
 
-class CONSOLE_OT_exec(bpy.types.Operator):
+class ConsoleExec(bpy.types.Operator):
     '''Execute the current console line as a python expression.'''
     bl_idname = "console.execute"
     bl_label = "Console Execute"
@@ -210,7 +210,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
         return ('FINISHED',)
 
 
-class CONSOLE_OT_autocomplete(bpy.types.Operator):
+class ConsoleAutocomplete(bpy.types.Operator):
     '''Evaluate the namespace up until the cursor and give a list of
     options or complete the name if there is only one.'''
     bl_idname = "console.autocomplete"
@@ -256,9 +256,36 @@ class CONSOLE_OT_autocomplete(bpy.types.Operator):
         return ('FINISHED',)
 
 
+class ConsoleBanner(bpy.types.Operator):
+    bl_idname = "console.banner"
+
+    def execute(self, context):
+        sc = context.space_data
+        version_string = sys.version.strip().replace('\n', ' ')
+
+        add_scrollback(" * Python Interactive Console %s *" % version_string, 'OUTPUT')
+        add_scrollback("Command History:  Up/Down Arrow", 'OUTPUT')
+        add_scrollback("Cursor:           Left/Right Home/End", 'OUTPUT')
+        add_scrollback("Remove:           Backspace/Delete", 'OUTPUT')
+        add_scrollback("Execute:          Enter", 'OUTPUT')
+        add_scrollback("Autocomplete:     Ctrl+Space", 'OUTPUT')
+        add_scrollback("Ctrl +/-  Wheel:  Zoom", 'OUTPUT')
+        add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, Mathutils, Geometry, BGL", 'OUTPUT')
+        add_scrollback("", 'OUTPUT')
+        add_scrollback("", 'OUTPUT')
+        sc.prompt = ConsoleExec.PROMPT
+
+        # Add context into the namespace for quick access
+        console = get_console(hash(context.region))[0]
+        console.locals["C"] = bpy.context
+
+        return ('FINISHED',)
+
+
 bpy.types.register(CONSOLE_HT_header)
 bpy.types.register(CONSOLE_MT_console)
 bpy.types.register(CONSOLE_MT_report)
 
-bpy.ops.add(CONSOLE_OT_exec)
-bpy.ops.add(CONSOLE_OT_autocomplete)
+bpy.ops.add(ConsoleExec)
+bpy.ops.add(ConsoleAutocomplete)
+bpy.ops.add(ConsoleBanner)

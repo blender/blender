@@ -101,8 +101,6 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 
 	if(py_call_level==1) {
 
-		BPY_update_modules(); /* can give really bad results if this isnt here */
-
 		if(C) { // XXX - should always be true.
 			BPy_SetContext(C);
 			bpy_import_main_set(CTX_data_main(C));
@@ -110,6 +108,8 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 		else {
 			fprintf(stderr, "ERROR: Python context called with a NULL Context. this should not happen!\n");
 		}
+
+		BPY_update_modules(); /* can give really bad results if this isnt here */
 
 #ifdef TIME_PY_RUN
 		if(bpy_timer_count==0) {
@@ -171,6 +171,7 @@ void BPY_free_compiled_text( struct Text *text )
 /*****************************************************************************
 * Description: Creates the bpy module and adds it to sys.modules for importing
 *****************************************************************************/
+static BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
 static void bpy_init_modules( void )
 {
 	PyObject *mod;
@@ -204,6 +205,15 @@ static void bpy_init_modules( void )
 		bpy_import_test("bpy_ext"); /* extensions to our existing types */
 	}
 	
+	/* bpy context */
+	{
+		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+		RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
+
+		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
+	}
+
+
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
@@ -220,7 +230,7 @@ void BPY_update_modules( void )
 
 	/* refreshes the main struct */
 	BPY_update_rna_module();
-
+	bpy_context_module->ptr.data= (void *)BPy_GetContext();
 }
 
 /*****************************************************************************

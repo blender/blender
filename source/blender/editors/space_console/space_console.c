@@ -164,21 +164,9 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	View2DScrollers *scrollers;
 	//float col[3];
 	
-	/* add helper text, why not? */
-	if(sc->scrollback.first==NULL) {
-		console_scrollback_add_str(C, " * Python Interactive Console *", 0);
-		console_scrollback_add_str(C, "Command History:  Up/Down Arrow", 0);
-		console_scrollback_add_str(C, "Cursor:           Left/Right Home/End", 0);
-		console_scrollback_add_str(C, "Remove:           Backspace/Delete", 0);
-		console_scrollback_add_str(C, "Execute:          Enter", 0);
-		console_scrollback_add_str(C, "Autocomplete:     Ctrl+Space", 0);
-		console_scrollback_add_str(C, "Ctrl +/-  Wheel:  Zoom", 0);
-		console_scrollback_add_str(C, "Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.ui", 0);
+	if(sc->scrollback.first==NULL)
+		WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
 
-		/* This is normally set by python but to start with its easier just to set it like this rather then running python with no args */
-		strcpy(sc->prompt, ">>> ");
-	}
-	
 	/* clear and setup matrix */
 	//UI_GetThemeColor3fv(TH_BACK, col);
 	//glClearColor(col[0], col[1], col[2], 0.0);
