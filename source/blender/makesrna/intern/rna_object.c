@@ -568,9 +568,9 @@ static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 		len[1] = bb->vec[2][1] - bb->vec[0][1];
 		len[2] = bb->vec[1][2] - bb->vec[0][2];
 		
-		ob->size[0] = value[0] / len[0];
-		ob->size[1] = value[1] / len[1];
-		ob->size[2] = value[2] / len[2];
+		if (len[0] > 0.f) ob->size[0] = value[0] / len[0];
+		if (len[1] > 0.f) ob->size[1] = value[1] / len[1];
+		if (len[2] > 0.f) ob->size[2] = value[2] / len[2];
 	}
 }
 

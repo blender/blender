@@ -498,6 +498,80 @@ static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
 }
 #endif
 
+static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *split, *colsub;
+	
+	split = uiLayoutSplit(layout, 0.8);
+	
+	if (ptr->type == &RNA_PoseChannel) {
+		PointerRNA boneptr;
+		Bone *bone;
+		
+		boneptr = RNA_pointer_get(ptr, "bone");
+		bone = boneptr.data;
+		uiLayoutSetActive(split, !(bone->parent && bone->flag & BONE_CONNECTED));
+	}
+	colsub = uiLayoutColumn(split, 1);
+	uiItemR(colsub, "Location", 0, ptr, "location", 0);
+	colsub = uiLayoutColumn(split, 1);
+	uiItemL(colsub, "", 0);
+	uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+	
+	split = uiLayoutSplit(layout, 0.8);
+	
+	switch(RNA_enum_get(ptr, "rotation_mode")) {
+		case ROT_MODE_XYZ:
+		case ROT_MODE_XZY:
+		case ROT_MODE_YXZ:
+		case ROT_MODE_YZX:
+		case ROT_MODE_ZXY:
+		case ROT_MODE_ZYX:
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "Rotation", 0, ptr, "rotation_euler", 0);
+			colsub = uiLayoutColumn(split, 1);
+			uiItemL(colsub, "", 0);
+			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			break;
+		case ROT_MODE_QUAT:
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "Rotation", 0, ptr, "rotation_quaternion", 0);
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "W", 0, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
+			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
+				uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			else
+				uiItemL(colsub, "", 0);
+			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			break;
+		case ROT_MODE_AXISANGLE:
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "Rotation", 0, ptr, "rotation_axis_angle", 0);
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "W", 0, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
+			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
+				uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			else
+				uiItemL(colsub, "", 0);
+			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			break;
+	}
+	uiItemR(layout, "", 0, ptr, "rotation_mode", 0);
+	
+	split = uiLayoutSplit(layout, 0.8);
+	colsub = uiLayoutColumn(split, 1);
+	uiItemR(colsub, "Scale", 0, ptr, "scale", 0);
+	colsub = uiLayoutColumn(split, 1);
+	uiItemL(colsub, "", 0);
+	uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+	
+	if (ptr->type == &RNA_Object) {
+		Object *ob = ptr->data;
+		if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+			uiItemR(layout, "Dimensions", 0, ptr, "dimensions", 0);
+	}
+}
+
 static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
@@ -506,7 +580,7 @@ static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	Bone *bone= NULL;
 	TransformProperties *tfp= v3d->properties_storage;
 	PointerRNA pchanptr;
-	uiLayout *row;
+	uiLayout *row, *col;
 
 	arm = ob->data;
 	if (!arm || !ob->pose) return;
@@ -517,16 +591,25 @@ static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 			break;
 	}
 	if (!pchan)	{
-		uiDefBut(block, LABEL, 0, "No Bone Active",			0, 240, 100, 20, 0, 0, 0, 0, 0, "");
+		row= uiLayoutRow(layout, 0);
+		uiItemL(row, "No Active Bone", 0);
 		return; 
 	}
-	else {
-		row= uiLayoutRow(layout, 0);
-		RNA_pointer_create(&ob->id, &RNA_PoseChannel, pchan, &pchanptr);
-		uiItemL(row, "", ICON_BONE_DATA);
-		uiItemR(row, "", 0, &pchanptr, "name", 0);
-	}
+	row= uiLayoutRow(layout, 0);
 	
+	RNA_pointer_create(&ob->id, &RNA_PoseChannel, pchan, &pchanptr);
+	
+	uiItemL(row, "", ICON_BONE_DATA);
+	uiItemR(row, "", 0, &pchanptr, "name", 0);
+
+	col= uiLayoutColumn(layout, 0);
+	
+	/* XXX: RNA buts show data in native types (i.e. quats, 4-component axis/angle, etc.)
+	 * but oldskool UI shows in eulers always. Do we want to be able to still display in Eulers?
+	 * Maybe needs RNA/ui options to display rotations as different types... */
+	v3d_transform_butsR(col, &pchanptr);
+
+#if 0
 	uiLayoutAbsoluteBlock(layout);
 
 	if (pchan->rotmode == ROT_MODE_AXISANGLE) {
@@ -581,6 +664,7 @@ static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,	125, 40, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Scale value from being Transformed");
 	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,	125, 20, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects z Scale value from being Transformed");
 	uiBlockEndAlign(block);
+#endif
 }
 
 /* assumes armature editmode */
@@ -1012,7 +1096,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	Object *ob= OBACT;
 	TransformProperties *tfp;
 	PointerRNA obptr;
-	uiLayout *col, *row, *split, *colsub;
+	uiLayout *col, *row;
 	float lim;
 	
 	if(ob==NULL) return;
@@ -1053,61 +1137,8 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		v3d_posearmature_buts(col, v3d, ob, lim);
 	}
 	else {
-		split = uiLayoutSplit(col, 0.8);
-		colsub = uiLayoutColumn(split, 1);
-		uiItemR(colsub, "Location", 0, &obptr, "location", 0);
-		colsub = uiLayoutColumn(split, 1);
-		uiItemL(colsub, "", 0);
-		uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-		
-		split = uiLayoutSplit(col, 0.8);
-		
-		switch(ob->rotmode) {
-			case ROT_MODE_XYZ:
-			case ROT_MODE_XZY:
-			case ROT_MODE_YXZ:
-			case ROT_MODE_YZX:
-			case ROT_MODE_ZXY:
-			case ROT_MODE_ZYX:
-				colsub = uiLayoutColumn(split, 1);
-				uiItemR(colsub, "Rotation", 0, &obptr, "rotation_euler", 0);
-				colsub = uiLayoutColumn(split, 1);
-				uiItemL(colsub, "", 0);
-				uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-				break;
-			case ROT_MODE_QUAT:
-				colsub = uiLayoutColumn(split, 1);
-				uiItemR(colsub, "Rotation", 0, &obptr, "rotation_quaternion", 0);
-				colsub = uiLayoutColumn(split, 1);
-				uiItemR(colsub, "W", 0, &obptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
-				if (ob->protectflag & OB_LOCK_ROT4D)
-					uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-				else
-					uiItemL(colsub, "", 0);
-				uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-				break;
-			case ROT_MODE_AXISANGLE:
-				colsub = uiLayoutColumn(split, 1);
-				uiItemR(colsub, "Rotation", 0, &obptr, "rotation_axis_angle", 0);
-				colsub = uiLayoutColumn(split, 1);
-				uiItemR(colsub, "W", 0, &obptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
-				if (ob->protectflag & OB_LOCK_ROT4D)
-					uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-				else
-					uiItemL(colsub, "", 0);
-				uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-				break;
-		}
-		uiItemR(col, "", 0, &obptr, "rotation_mode", 0);
-		
-		split = uiLayoutSplit(col, 0.8);
-		colsub = uiLayoutColumn(split, 1);
-		uiItemR(colsub, "Scale", 0, &obptr, "scale", 0);
-		colsub = uiLayoutColumn(split, 1);
-		uiItemL(colsub, "", 0);
-		uiItemR(colsub, "", ICON_LOCKED, &obptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-		
-		uiItemR(col, "Dimensions", 0, &obptr, "dimensions", 0);
+
+		v3d_transform_butsR(col, &obptr);
 	}
 }
 
