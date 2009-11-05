@@ -1666,7 +1666,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	int sx, sy;
-	
+
 	switch(event->type) {
 		case MOUSEMOVE:
 			
@@ -1681,23 +1681,26 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 				gesture_circle_apply(C, op);
 
 			break;
-		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
+		case PADMINUS:
+		case MINUSKEY:
 			rect->xmax += 2 + rect->xmax/10;
 			wm_gesture_tag_redraw(C);
 			break;
-		case WHEELDOWNMOUSE:
+		case WHEELUPMOUSE:
+		case PADPLUSKEY:
+		case EQUALKEY:
 			rect->xmax -= 2 + rect->xmax/10;
 			if(rect->xmax < 1) rect->xmax= 1;
 			wm_gesture_tag_redraw(C);
 			break;
 		case LEFTMOUSE:
-		case MIDDLEMOUSE:
+//		case MIDDLEMOUSE: /* ??? - somehow mouse wheel are interpreted as middle mouse release events - campbell */
 		case RIGHTMOUSE:
 			if(event->val==KM_RELEASE) {	/* key release */
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
-			}
-			else {
+			} else {
 				if( RNA_struct_find_property(op->ptr, "event_type") )
 					RNA_int_set(op->ptr, "event_type", event->type);
 				

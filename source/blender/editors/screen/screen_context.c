@@ -231,7 +231,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
 				if (EBONE_VISIBLE(arm, ebone)) {
 					if (ebone->flag & BONE_ACTIVE) {
-						CTX_data_pointer_set(result, &arm->id, &RNA_UnknownType, ebone);
+						CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, ebone);
 						
 						return 1;
 					}
