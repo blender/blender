@@ -715,7 +715,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
