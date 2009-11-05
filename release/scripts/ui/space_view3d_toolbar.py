@@ -101,6 +101,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.itemO("mesh.screw")
         col.itemO("mesh.merge")
         col.itemO("mesh.rip_move")
+        col.itemO("mesh.flip_normals")
 
         col = layout.column(align=True)
         col.itemL(text="Shading:")
