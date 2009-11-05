@@ -590,17 +590,9 @@ static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 		if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
 			break;
 	}
-	if (!pchan)	{
-		row= uiLayoutRow(layout, 0);
-		uiItemL(row, "No Active Bone", 0);
-		return; 
-	}
-	row= uiLayoutRow(layout, 0);
+//	row= uiLayoutRow(layout, 0);
 	
 	RNA_pointer_create(&ob->id, &RNA_PoseChannel, pchan, &pchanptr);
-	
-	uiItemL(row, "", ICON_BONE_DATA);
-	uiItemR(row, "", 0, &pchanptr, "name", 0);
 
 	col= uiLayoutColumn(layout, 0);
 	
@@ -702,10 +694,9 @@ static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	if (!ebone)
 		return;
 	
-	row= uiLayoutRow(layout, 0);
+//	row= uiLayoutRow(layout, 0);
 	RNA_pointer_create(&arm->id, &RNA_EditBone, ebone, &eboneptr);
-	uiItemL(row, "", ICON_BONE_DATA);
-	uiItemR(row, "", 0, &eboneptr, "name", 0);
+
 
 	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, "Head", 0, &eboneptr, "head", 0);
@@ -732,10 +723,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob, float lim)
 	
 	RNA_pointer_create(&mball->id, &RNA_MetaBall, mball, &mbptr);
 	
-	row= uiLayoutRow(layout, 0);
-	
-	uiItemL(row, "", ICON_META_DATA);
-	uiItemR(row, "", 0, &mbptr, "name", 0);
+//	row= uiLayoutRow(layout, 0);
 
 	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
 	
@@ -1089,8 +1077,6 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	col= uiLayoutColumn(pa->layout, 0);
 	row= uiLayoutRow(col, 0);
 	RNA_id_pointer_create(&ob->id, &obptr);
-	uiItemL(row, "", ICON_OBJECT_DATA);
-	uiItemR(row, "", 0, &obptr, "name", 0);
 
 	if(ob==obedit) {
 		if(ob->type==OB_ARMATURE) v3d_editarmature_buts(col, v3d, ob, lim);

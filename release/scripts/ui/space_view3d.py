@@ -1338,6 +1338,33 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 
         layout.column().itemR(scene, "cursor_location", text="3D Cursor:")
 
+class VIEW3D_PT_3dview_item(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Item"
+ 
+    def poll(self, context):
+        return (context.active_object or context.bone or context.edit_bone)
+ 
+    def draw(self, context):
+        layout = self.layout
+       
+        ob = context.object
+ 
+        row = layout.row()
+        row.itemL(text="", icon='ICON_OBJECT_DATA')
+        row.itemR(ob, "name", text="")
+       
+        if ((context.active_bone or context.active_pchan) and ob.type == 'ARMATURE' and (ob.mode == 'EDIT' or ob.mode == 'POSE')):
+            bone = context.active_bone
+            if not bone:
+                pchan = context.active_pchan
+                if pchan:
+                    bone = pchan.bone
+           
+            row = layout.row()
+            row.itemL(text="", icon='ICON_BONE_DATA')
+            row.itemR(bone, "name", text="")
 
 class VIEW3D_PT_3dview_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -1664,7 +1691,8 @@ bpy.types.register(VIEW3D_MT_edit_armature)
 bpy.types.register(VIEW3D_MT_edit_armature_parent)
 bpy.types.register(VIEW3D_MT_edit_armature_roll)
 
-bpy.types.register(VIEW3D_PT_3dview_properties) # Panels
+bpy.types.register(VIEW3D_PT_3dview_item) # Panels
+bpy.types.register(VIEW3D_PT_3dview_properties)
 bpy.types.register(VIEW3D_PT_3dview_display)
 bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
 bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
