@@ -109,6 +109,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_vertex_path);
 	WM_operatortype_append(MESH_OT_loop_to_region);
 	WM_operatortype_append(MESH_OT_region_to_loop);
+	WM_operatortype_append(MESH_OT_select_axis);
 	
 	WM_operatortype_append(MESH_OT_uvs_rotate);
 	WM_operatortype_append(MESH_OT_uvs_mirror);
