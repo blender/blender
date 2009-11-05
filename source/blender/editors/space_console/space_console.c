@@ -164,7 +164,7 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	View2DScrollers *scrollers;
 	//float col[3];
 	
-	if(sc->scrollback.first==NULL)
+	if((sc->type==CONSOLE_TYPE_PYTHON) && (sc->scrollback.first==NULL))
 		WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
 
 	/* clear and setup matrix */
