@@ -54,6 +54,8 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
+#include "UI_interface.h"
+
 /* XXX actually should be not here... solve later */
 #include "wm_subwindow.h"
 
@@ -1416,6 +1418,15 @@ void ED_screen_delete_scene(bContext *C, Scene *scene)
 ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 {
 	bScreen *sc, *oldscreen;
+	ARegion *ar;
+
+	if(sa) {
+		/* ensure we don't have a button active anymore, can crash when
+		   switching screens with tooltip open because region and tooltip
+		   are no longer in the same screen */
+		for(ar=sa->regionbase.first; ar; ar=ar->next)
+			uiFreeBlocks(C, &ar->uiblocks);
+	}
 	
 	if(sa && sa->full) {
 		short fulltype;
