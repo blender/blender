@@ -789,23 +789,6 @@ def VectoMat(vec):
 	return Matrix([a1[0], a1[1], a1[2]], [a2[0], a2[1], a2[2]], [a3[0], a3[1], a3[2]])
 
 
-# Utility funcs for 2.5, make into a module??
-def ord_ind(i1,i2):
-	if i1<i2: return i1,i2
-	return i2,i1
-	
-def edge_key(ed):
-	v1,v2 = tuple(ed.verts)
-	return ord_ind(v1, v2)
-
-def face_edge_keys(f):
-	verts  = tuple(f.verts)
-	if len(verts)==3:
-		return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[0])
-	
-	return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
-
-
 class thickface(object):
 	__slost__= 'v', 'uv', 'no', 'area', 'edge_keys'
 	def __init__(self, face, uvface, mesh_verts):
@@ -817,7 +800,7 @@ class thickface(object):
 			
 		self.no = face.normal
 		self.area = face.area
-		self.edge_keys = face_edge_keys(face)
+		self.edge_keys = face.edge_keys()
 
 global ob
 ob = None

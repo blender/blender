@@ -302,6 +302,7 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
         layout.itemO("mesh.select_random", text="Random...")
         layout.itemO("mesh.edges_select_sharp", text="Sharp Edges")
         layout.itemO("mesh.faces_select_linked_flat", text="Linked Flat Faces")
+        layout.itemO("mesh.faces_select_interior", text="Interior Faces")
 
         layout.itemS()
 
