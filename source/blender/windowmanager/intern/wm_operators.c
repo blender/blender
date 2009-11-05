@@ -81,6 +81,7 @@
 #include "wm.h"
 #include "wm_draw.h"
 #include "wm_event_system.h"
+#include "wm_event_types.h"
 #include "wm_subwindow.h"
 #include "wm_window.h"
 
@@ -1635,6 +1636,10 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 /* **************** circle gesture *************** */
 /* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
+#ifdef GESTURE_MEMORY
+int circle_select_size= 25; // XXX - need some operator memory thing\!
+#endif
+
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
@@ -1652,6 +1657,9 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	
+    if(RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_NOP)
+        return;
+
 	/* operator arguments and storage. */
 	RNA_int_set(op->ptr, "x", rect->xmin);
 	RNA_int_set(op->ptr, "y", rect->ymin);
@@ -1659,6 +1667,10 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 	
 	if(op->type->exec)
 		op->type->exec(C, op);
+
+#ifdef GESTURE_MEMORY
+	circle_select_size= rect->xmax;
+#endif
 }
 
 int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -1667,52 +1679,48 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	rcti *rect= gesture->customdata;
 	int sx, sy;
 
-	switch(event->type) {
-		case MOUSEMOVE:
-			
-			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
-			
-			rect->xmin= event->x - sx;
-			rect->ymin= event->y - sy;
-			
-			wm_gesture_tag_redraw(C);
-			
-			if(gesture->mode)
-				gesture_circle_apply(C, op);
+	if(event->type== MOUSEMOVE) {
+		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
-			break;
-		case WHEELDOWNMOUSE:
-		case PADMINUS:
-		case MINUSKEY:
+		rect->xmin= event->x - sx;
+		rect->ymin= event->y - sy;
+
+		wm_gesture_tag_redraw(C);
+
+		if(gesture->mode)
+			gesture_circle_apply(C, op);
+	}
+	else if (event->type==EVT_MODAL_MAP) {
+		switch (event->val) {
+		case GESTURE_MODAL_ADD:
 			rect->xmax += 2 + rect->xmax/10;
 			wm_gesture_tag_redraw(C);
 			break;
-		case WHEELUPMOUSE:
-		case PADPLUSKEY:
-		case EQUALKEY:
+		case GESTURE_MODAL_SUB:
 			rect->xmax -= 2 + rect->xmax/10;
 			if(rect->xmax < 1) rect->xmax= 1;
 			wm_gesture_tag_redraw(C);
 			break;
-		case LEFTMOUSE:
-//		case MIDDLEMOUSE: /* ??? - somehow mouse wheel are interpreted as middle mouse release events - campbell */
-		case RIGHTMOUSE:
-			if(event->val==KM_RELEASE) {	/* key release */
-				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED;
-			} else {
-				if( RNA_struct_find_property(op->ptr, "event_type") )
-					RNA_int_set(op->ptr, "event_type", event->type);
-				
+		case GESTURE_MODAL_SELECT:
+		case GESTURE_MODAL_DESELECT:
+		case GESTURE_MODAL_NOP:
+			if(RNA_struct_find_property(op->ptr, "gesture_mode"))
+				RNA_int_set(op->ptr, "gesture_mode", event->val);
+
+			if(event->val != GESTURE_MODAL_NOP) {
 				/* apply first click */
 				gesture_circle_apply(C, op);
 				gesture->mode= 1;
 			}
 			break;
-		case ESCKEY:
+
+		case GESTURE_MODAL_CANCEL:
+		case GESTURE_MODAL_CONFIRM:
 			wm_gesture_end(C, op);
 			return OPERATOR_CANCELLED;
+		}
 	}
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -2359,6 +2367,53 @@ void wm_operatortype_init(void)
 
 }
 
+/* called in transform_ops.c, on each regeneration of keymaps  */
+static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
+	{GESTURE_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+	{GESTURE_MODAL_ADD, "ADD", 0, "Add", ""},
+	{GESTURE_MODAL_SUB, "SUBTRACT", 0, "Subtract", ""},
+
+	{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
+	{GESTURE_MODAL_DESELECT,"DESELECT", 0, "DeSelect", ""},
+	{GESTURE_MODAL_NOP,"NOP", 0, "No Operation", ""},
+
+
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Gesture Circle");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "View3D Gesture Circle", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CONFIRM);
+
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, GESTURE_MODAL_SELECT);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, KM_ANY, 0, GESTURE_MODAL_DESELECT);
+
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, GESTURE_MODAL_NOP);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, GESTURE_MODAL_NOP);
+
+	WM_modalkeymap_add_item(keymap, PADPLUSKEY, KM_PRESS, 0, 0, GESTURE_MODAL_ADD);
+	WM_modalkeymap_add_item(keymap, PADMINUS, KM_PRESS, 0, 0, GESTURE_MODAL_SUB);
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_ADD);
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_SUB);
+
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_circle");
+	WM_modalkeymap_assign(keymap, "UV_OT_circle_select");
+
+}
+
 /* default keymap for windows and screens, only call once per WM */
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
@@ -2447,6 +2502,8 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
 	RNA_string_set(km->ptr, "value", "DOPESHEET_EDITOR");
+
+	gesture_circle_modal_keymap(keyconf);
 }
 
 /* Generic itemf's for operators that take library args */

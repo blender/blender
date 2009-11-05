@@ -2205,9 +2205,10 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	MTFace *tface;
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
-
+    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+    
 	/* get operator properties */
-	select= (RNA_int_get(op->ptr, "event_type") == LEFTMOUSE); // XXX hardcoded
+	select= (gesture_mode == GESTURE_MODAL_SELECT);
 	x= RNA_int_get(op->ptr, "x");
 	y= RNA_int_get(op->ptr, "y");
 	radius= RNA_int_get(op->ptr, "radius");
@@ -2261,7 +2262,7 @@ void UV_OT_circle_select(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 }
 
 /* ******************** snap cursor operator **************** */

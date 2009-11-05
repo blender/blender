@@ -261,7 +261,15 @@
 #define EVT_BUT_OPEN	0x5021
 #define EVT_MODAL_MAP	0x5022
 
+/* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
+#define GESTURE_MODAL_CANCEL		1
+#define GESTURE_MODAL_CONFIRM		2
+#define GESTURE_MODAL_ADD		 	3
+#define GESTURE_MODAL_SUB			4
 
+#define GESTURE_MODAL_SELECT		5
+#define GESTURE_MODAL_DESELECT		6
+#define GESTURE_MODAL_NOP			7
 
 #endif	/* WM_EVENT_TYPES_H */
 
