@@ -383,9 +383,11 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		v3d= sa->spacedata.first;
 	
 	if((flag & EM_IGNORE_LAYER)==0) {
-		if(v3d && (base->lay & v3d->lay)==0) return;
-		else if(!v3d && (base->lay & scene->lay)==0) return;
 		base= CTX_data_active_base(C); /* active layer checked here for view3d */
+
+		if(base==NULL) return;
+		else if(v3d && (base->lay & v3d->lay)==0) return;
+		else if(!v3d && (base->lay & scene->lay)==0) return;
 	}
 	else {
 		base= scene->basact;
