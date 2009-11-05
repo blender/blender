@@ -1810,6 +1810,79 @@ static void lattice_circle_select(ViewContext *vc, int selecting, short *mval, f
 	lattice_foreachScreenVert(vc, latticecurve_circle_doSelect, &data);
 }
 
+
+static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int x, int y, short head)
+{
+	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
+	int mx = x - data->mval[0], my = y - data->mval[1];
+	float r = sqrt(mx*mx + my*my);
+	
+	if (r <= data->radius) {
+		if (head) {
+			if (data->select)
+				ebone->flag |= BONE_ROOTSEL;
+			else 
+				ebone->flag &= ~BONE_ROOTSEL;
+		}
+		else {
+			if (data->select)
+				ebone->flag |= BONE_TIPSEL;
+			else 
+				ebone->flag &= ~BONE_TIPSEL;
+		}
+		return 1;
+	}
+	return 0;
+}
+static void armature_circle_select(ViewContext *vc, int selecting, short *mval, float rad)
+{
+	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
+	bArmature *arm= vc->obedit->data;
+	EditBone *ebone;
+	
+	/* set vc->edit data */
+	data.select = selecting;
+	data.mval[0] = mval[0];
+	data.mval[1] = mval[1];
+	data.radius = rad;
+
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	
+	/* check each EditBone... */
+	// TODO: could be optimised at some point
+	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
+		short sco1[2], sco2[2], didpoint=0;
+		float vec[3];
+		
+		/* project head location to screenspace */
+		VECCOPY(vec, ebone->head);
+		Mat4MulVecfl(vc->obedit->obmat, vec);
+		project_short(vc->ar, vec, sco1);
+		
+		/* project tail location to screenspace */
+		VECCOPY(vec, ebone->tail);
+		Mat4MulVecfl(vc->obedit->obmat, vec);
+		project_short(vc->ar, vec, sco2);
+		
+		/* check if the head and/or tail is in the circle 
+		 *	- the call to check also does the selection already
+		 */
+		if (armature_circle_doSelectJoint(&data, ebone, sco1[0], sco1[1], 1))
+			didpoint= 1;
+		if (armature_circle_doSelectJoint(&data, ebone, sco2[0], sco2[1], 0))
+			didpoint= 1;
+			
+		/* only if the endpoints didn't get selected, deal with the middle of the bone too */
+		// XXX should we just do this always?
+		if ( (didpoint==0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1]) ) {
+			if (selecting) 
+				ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
+			else 
+				ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL); 
+		}
+	}
+}
+
 /** Callbacks for circle selection in Editmode */
 
 static void obedit_circle_select(ViewContext *vc, short selecting, short *mval, float rad) 
@@ -1824,6 +1897,9 @@ static void obedit_circle_select(ViewContext *vc, short selecting, short *mval, 
 		break;
 	case OB_LATTICE:
 		lattice_circle_select(vc, selecting, mval, rad);
+		break;
+	case OB_ARMATURE:
+		armature_circle_select(vc, selecting, mval, rad);
 		break;
 	default:
 		return;

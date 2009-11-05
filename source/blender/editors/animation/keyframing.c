@@ -832,20 +832,21 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		//}
 	}
 #endif
-
-	if(array_index==-1) { /* Key All */
+	
+	/* key entire array convenience method */
+	if (array_index == -1) { 
 		array_index= 0;
 		array_index_max= RNA_property_array_length(&ptr, prop) + 1;
 	}
-
+	
 	/* will only loop once unless the array index was -1 */
-	for( ; array_index < array_index_max; array_index++) {
+	for (; array_index < array_index_max; array_index++) {
 		fcu= verify_fcurve(act, group, rna_path, array_index, 1);
-
+		
 		/* insert keyframe */
-		ret |= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
+		ret += insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
 	}
-
+	
 	return ret;
 }
 

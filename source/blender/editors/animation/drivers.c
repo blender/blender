@@ -156,17 +156,17 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 		return 0;
 	}
 	
-	if(array_index==-1) { /* Key All */
+	/* key entire array convenience method */
+	if (array_index == -1) {
 		array_index= 0;
 		array_index_max= RNA_property_array_length(&ptr, prop) + 1;
 	}
-
+	
 	/* will only loop once unless the array index was -1 */
-	for( ; array_index < array_index_max; array_index++) {
-		
+	for (; array_index < array_index_max; array_index++) {
 		/* create F-Curve with Driver */
 		fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
-
+		
 		if (fcu && fcu->driver) {
 			fcu->driver->type= type;
 			
@@ -181,19 +181,19 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 				if (proptype == PROP_BOOLEAN) {
 					if (!array) val= RNA_property_boolean_get(&ptr, prop);
 					else val= RNA_property_boolean_get_index(&ptr, prop, array_index);
-
+					
 					BLI_strncpy(expression, (val)? "True": "False", maxlen);
 				}
 				else if (proptype == PROP_INT) {
 					if (!array) val= RNA_property_int_get(&ptr, prop);
 					else val= RNA_property_int_get_index(&ptr, prop, array_index);
-
+					
 					BLI_snprintf(expression, maxlen, "%d", val);
 				}
 				else if (proptype == PROP_FLOAT) {
 					if (!array) fval= RNA_property_float_get(&ptr, prop);
 					else fval= RNA_property_float_get_index(&ptr, prop, array_index);
-
+					
 					BLI_snprintf(expression, maxlen, "%.3f", fval);
 				}
 			}
