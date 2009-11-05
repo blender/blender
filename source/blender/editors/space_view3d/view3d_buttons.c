@@ -689,7 +689,7 @@ static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	bArmature *arm= ob->data;
 	EditBone *ebone;
 	TransformProperties *tfp= v3d->properties_storage;
-	uiLayout *row;
+	uiLayout *row, *col;
 	PointerRNA eboneptr;
 	
 	ebone= arm->edbo->first;
@@ -707,64 +707,72 @@ static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	uiItemL(row, "", ICON_BONE_DATA);
 	uiItemR(row, "", 0, &eboneptr, "name", 0);
 
-	uiLayoutAbsoluteBlock(layout);
+	col= uiLayoutColumn(layout, 0);
+	uiItemR(col, "Head", 0, &eboneptr, "head", 0);
+	if (ebone->parent && ebone->flag & BONE_CONNECTED ) {
+		PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
+		uiItemR(col, "Radius", 0, &parptr, "tail_radius", 0);
+	} else {
+		uiItemR(col, "Radius", 0, &eboneptr, "head_radius", 0);
+	}
 	
-	uiDefBut(block, LABEL, 0, "Head:",					0, 210, 100, 20, 0, 0, 0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "X:",		0, 190, 100, 19, ebone->head, -lim, lim, 10, 3, "X Location of the head end of the bone");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Y:",		0, 170, 100, 19, ebone->head+1, -lim, lim, 10, 3, "Y Location of the head end of the bone");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Z:",		0, 150, 100, 19, ebone->head+2, -lim, lim, 10, 3, "Z Location of the head end of the bone");
-	if (ebone->parent && ebone->flag & BONE_CONNECTED )
-		uiDefButF(block, NUM, B_ARMATUREPANEL1, "Radius:",	0, 130, 100, 19, &ebone->parent->rad_tail, 0, lim, 10, 3, "Head radius. Visualize with the Envelope display option");
-	else
-		uiDefButF(block, NUM, B_ARMATUREPANEL1, "Radius:",	0, 130, 100, 19, &ebone->rad_head, 0, lim, 10, 3, "Head radius. Visualize with the Envelope display option");
-	uiBlockEndAlign(block);
+	uiItemR(col, "Tail", 0, &eboneptr, "tail", 0);
+	uiItemR(col, "Radius", 0, &eboneptr, "tail_radius", 0);
 	
-	uiBlockEndAlign(block);
-	uiDefBut(block, LABEL, 0, "Tail:",					0, 110, 100, 20, 0, 0, 0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "X:",		0, 90, 100, 19, ebone->tail, -lim, lim, 10, 3, "X Location of the tail end of the bone");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Y:",		0, 70, 100, 19, ebone->tail+1, -lim, lim, 10, 3, "Y Location of the tail end of the bone");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Z:",		0, 50, 100, 19, ebone->tail+2, -lim, lim, 10, 3, "Z Location of the tail end of the bone");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Radius:",	0, 30, 100, 19, &ebone->rad_tail, 0, lim, 10, 3, "Tail radius. Visualize with the Envelope display option");
-	uiBlockEndAlign(block);
-	
-	tfp->ob_eul[0]= 180.0*ebone->roll/M_PI;
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	0, 0, 100, 19, tfp->ob_eul, -lim, lim, 1000, 3, "Bone rotation around head-tail axis");
-	uiBlockBeginAlign(block);
-	
-	
+	uiItemR(col, "Roll", 0, &eboneptr, "roll", 0);
 }
 
 static void v3d_editmetaball_buts(uiLayout *layout, Object *ob, float lim)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	MetaElem *lastelem= NULL; // XXX
+	PointerRNA mbptr, ptr;
+	MetaBall *mball= ob->data;
+	uiLayout *row, *col;
+	
+	if (!mball || !(mball->lastelem)) return;
+	
+	RNA_pointer_create(&mball->id, &RNA_MetaBall, mball, &mbptr);
+	
+	row= uiLayoutRow(layout, 0);
+	
+	uiItemL(row, "", ICON_META_DATA);
+	uiItemR(row, "", 0, &mbptr, "name", 0);
 
-	if(lastelem) {
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_RECALCMBALL, "LocX:", 10, 70, 140, 19, &lastelem->x, -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, B_RECALCMBALL, "LocY:", 10, 50, 140, 19, &lastelem->y, -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, B_RECALCMBALL, "LocZ:", 10, 30, 140, 19, &lastelem->z, -lim, lim, 100, 3, "");
-
-		uiBlockBeginAlign(block);
-		if(lastelem->type!=MB_BALL)
-			uiDefButF(block, NUM, B_RECALCMBALL, "dx:", 160, 70, 140, 19, &lastelem->expx, 0, lim, 100, 3, "");
-		if((lastelem->type!=MB_BALL) && (lastelem->type!=MB_TUBE))
-			uiDefButF(block, NUM, B_RECALCMBALL, "dy:", 160, 50, 140, 19, &lastelem->expy, 0, lim, 100, 3, "");
-		if((lastelem->type==MB_ELIPSOID) || (lastelem->type==MB_CUBE))
-			uiDefButF(block, NUM, B_RECALCMBALL, "dz:", 160, 30, 140, 19, &lastelem->expz, 0, lim, 100, 3, "");
-
-		uiBlockEndAlign(block); 
-
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_RECALCMBALL, "Radius:", 10, 120, 140, 19, &lastelem->rad, 0, lim, 100, 3, "Size of the active metaball");
-		uiDefButF(block, NUM, B_RECALCMBALL, "Stiffness:", 10, 100, 140, 19, &lastelem->s, 0, 10, 100, 3, "Stiffness of the active metaball");
-		uiBlockEndAlign(block);
-		
-		uiDefButS(block, MENU, B_RECALCMBALL, "Type%t|Ball%x0|Tube%x4|Plane%x5|Elipsoid%x6|Cube%x7", 160, 120, 140, 19, &lastelem->type, 0.0, 0.0, 0, 0, "Set active element type");
-		
-	}
+	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
+	
+	col= uiLayoutColumn(layout, 0);
+	uiItemR(col, "Location", 0, &ptr, "location", 0);
+	
+	uiItemR(col, "Radius", 0, &ptr, "radius", 0);
+	uiItemR(col, "Stiffness", 0, &ptr, "stiffness", 0);
+	
+	uiItemR(col, "Type", 0, &ptr, "type", 0);
+	
+	col= uiLayoutColumn(layout, 1);
+	switch (RNA_enum_get(&ptr, "type")) {
+		case MB_BALL:
+			break;
+		case MB_CUBE:
+			uiItemL(col, "Size:", 0);
+			uiItemR(col, "X", 0, &ptr, "size_x", 0);
+			uiItemR(col, "Y", 0, &ptr, "size_y", 0);
+			uiItemR(col, "Z", 0, &ptr, "size_z", 0);
+			break;
+		case MB_TUBE:
+			uiItemL(col, "Size:", 0);
+			uiItemR(col, "X", 0, &ptr, "size_x", 0);
+			break;
+		case MB_PLANE:
+			uiItemL(col, "Size:", 0);
+			uiItemR(col, "X", 0, &ptr, "size_x", 0);
+			uiItemR(col, "Y", 0, &ptr, "size_y", 0);
+			break;
+		case MB_ELIPSOID:
+			uiItemL(col, "Size:", 0);
+			uiItemR(col, "X", 0, &ptr, "size_x", 0);
+			uiItemR(col, "Y", 0, &ptr, "size_y", 0);
+			uiItemR(col, "Z", 0, &ptr, "size_z", 0);
+			break;		   
+	}	
 }
 
 /* test if 'ob' is a parent somewhere in par's parents */
@@ -814,51 +822,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		}
 		break;
 		
-	case B_ARMATUREPANEL1:
-		{
-			bArmature *arm= obedit->data;
-			EditBone *ebone, *child;
-			
-			for (ebone = arm->edbo->first; ebone; ebone=ebone->next){
-				if ((ebone->flag & BONE_ACTIVE) && (ebone->layer & arm->layer))
-					break;
-			}
-			if (ebone) {
-				ebone->roll= M_PI*tfp->ob_eul[0]/180.0;
-				//	Update our parent
-				if (ebone->parent && ebone->flag & BONE_CONNECTED){
-					VECCOPY (ebone->parent->tail, ebone->head);
-				}
-			
-				//	Update our children if necessary
-				for (child = arm->edbo->first; child; child=child->next){
-					if (child->parent == ebone && (child->flag & BONE_CONNECTED)){
-						VECCOPY (child->head, ebone->tail);
-					}
-				}
-				if(arm->flag & ARM_MIRROR_EDIT) {
-					EditBone *eboflip= ED_armature_bone_get_mirrored(arm->edbo, ebone);
-					if(eboflip) {
-						eboflip->roll= -ebone->roll;
-						eboflip->head[0]= -ebone->head[0];
-						eboflip->tail[0]= -ebone->tail[0];
-						
-						//	Update our parent
-						if (eboflip->parent && eboflip->flag & BONE_CONNECTED){
-							VECCOPY (eboflip->parent->tail, eboflip->head);
-						}
-						
-						//	Update our children if necessary
-						for (child = arm->edbo->first; child; child=child->next){
-							if (child->parent == eboflip && (child->flag & BONE_CONNECTED)){
-								VECCOPY (child->head, eboflip->tail);
-							}
-						}
-					}
-				}
-			}
-		}
-		break;
+
 	case B_ARMATUREPANEL3:  // rotate button on channel
 		{
 			bArmature *arm;

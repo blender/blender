@@ -65,6 +65,8 @@ static void rna_MetaBall_update_data(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
 }
 
+
+
 #else
 
 static void rna_def_metaelement(BlenderRNA *brna)
@@ -105,6 +107,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_UNSIGNED|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "rad");
 	RNA_def_property_ui_text(prop, "Radius", "");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
 	prop= RNA_def_property(srna, "size_x", PROP_FLOAT, PROP_DISTANCE);
