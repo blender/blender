@@ -179,20 +179,22 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             sub.alignment = 'RIGHT'
 
             subrow = sub.row(align=True)
-            subrow.active = enable_edit_value
+            subrow1 = subrow.row(align=True)
+            subrow1.active = enable_edit_value
             if ob.shape_key_lock:
-                subrow.itemR(ob, "shape_key_lock", icon='ICON_PINNED', text="")
+                subrow1.itemR(ob, "shape_key_lock", icon='ICON_PINNED', text="")
             else:
-                subrow.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
+                subrow1.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
             if kb.mute:
-                subrow.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
+                subrow1.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
             else:
-                subrow.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
+                subrow1.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
+            subrow.itemR(ob, "shape_key_edit_mode", text="")
+            
+            subrow = sub.row(align=True)
+            subrow.itemO("object.shape_key_mirror", icon='ICON_ARROW_LEFTRIGHT', text="")
             subrow.itemO("object.shape_key_clear", icon='ICON_X', text="")
-
-            sub.itemO("object.shape_key_mirror", icon='ICON_MOD_MIRROR', text="")
-
-            sub.itemR(ob, "shape_key_edit_mode", text="")
+            
 
             row = layout.row()
             row.itemR(kb, "name")
