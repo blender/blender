@@ -264,6 +264,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 
 	if(type==PFIELD_GUIDE) {
 		ob= ED_object_add_type(C, OB_CURVE, view_align, FALSE);
+		rename_id(&ob->id, "CurveGuide");
 
 		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
 		ED_object_enter_editmode(C, 0);
@@ -274,6 +275,8 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 	}
 	else {
 		ob= ED_object_add_type(C, OB_EMPTY, view_align, FALSE);
+		rename_id(&ob->id, "Field");
+
 		switch(type) {
 			case PFIELD_WIND:
 			case PFIELD_VORTEX:
