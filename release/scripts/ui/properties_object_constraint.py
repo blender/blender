@@ -607,7 +607,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         col = layout.column()
         col.itemL(text="Chain Scaling:")
         col.itemR(con, "keep_max_length")
-        col.itemR(con, "radius_to_thickness")
+        col.itemR(con, "xz_scaling_mode")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):

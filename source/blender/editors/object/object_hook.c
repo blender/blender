@@ -362,6 +362,9 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 
 void object_hook_select(Object *ob, HookModifierData *hmd) 
 {
+	if (hmd->indexar == NULL)
+		return;
+	
 	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
 	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
 	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);

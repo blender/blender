@@ -145,6 +145,7 @@ Curve *add_curve(char *name, int type)
 	cu->fsize= 1.0;
 	cu->ulheight = 0.05;	
 	cu->texflag= CU_AUTOSPACE;
+	cu->twist_mode= CU_TWIST_MINIMUM;	// XXX: this one seems to be the best one in most cases, at least for curve deform...
 	
 	cu->bb= unit_boundbox();
 	

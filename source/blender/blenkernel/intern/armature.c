@@ -1891,14 +1891,33 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	}
 	
 	/* step 4: set the scaling factors for the axes */
+	// TODO: include a no-scale option?
 	{
 		/* only multiply the y-axis by the scaling factor to get nice volume-preservation */
 		VecMulf(poseMat[1], scaleFac);
-			
-		/* set the scaling factors of the x and z axes from the average radius of the curve? */
-		if (ikData->flag & CONSTRAINT_SPLINEIK_RAD2FAT) {
-			VecMulf(poseMat[0], radius);
-			VecMulf(poseMat[2], radius);
+		
+		/* set the scaling factors of the x and z axes from... */
+		switch (ikData->xzScaleMode) {
+			case CONSTRAINT_SPLINEIK_XZS_RADIUS:
+			{
+				/* radius of curve */
+				VecMulf(poseMat[0], radius);
+				VecMulf(poseMat[2], radius);
+			}
+				break;
+			case CONSTRAINT_SPLINEIK_XZS_ORIGINAL:
+			{
+				/* original scales get used */
+				float scale;
+				
+				/* x-axis scale */
+				scale= VecLength(pchan->pose_mat[0]);
+				VecMulf(poseMat[0], scale);
+				/* z-axis scale */
+				scale= VecLength(pchan->pose_mat[2]);
+				VecMulf(poseMat[2], scale);
+			}
+				break;
 		}
 	}
 	
