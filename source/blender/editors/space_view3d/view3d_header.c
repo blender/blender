@@ -1778,7 +1778,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		WM_operator_properties_free(&props_ptr);
 		break;		
 	case B_AROUND:
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, obedit->data);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, 0);
 // XXX		handle_view3d_around(); /* copies to other 3d windows */
 		break;
 		
