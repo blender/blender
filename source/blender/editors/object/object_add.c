@@ -196,7 +196,7 @@ Object *ED_object_add_type(bContext *C, int type, int view_align, int enter_edit
 	DAG_scene_sort(scene);
 
 	if(enter_editmode)
-		ED_object_enter_editmode(C, 0);
+		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
 
 	return ob;
 }
@@ -342,9 +342,8 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		ED_object_add_type(C, OB_CURVE, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_CURVE, view_align, TRUE);
 		newob = 1;
-		obedit= CTX_data_edit_object(C);
 
 		if(type & CU_PRIM_PATH)
 			((Curve*)obedit->data)->flag |= CU_PATH|CU_3D;
@@ -427,12 +426,11 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
-		ED_object_add_type(C, OB_SURF, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_SURF, view_align, TRUE);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	obedit= CTX_data_edit_object(C);
 	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
 	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
@@ -488,12 +486,11 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
-		ED_object_add_type(C, OB_MBALL, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_MBALL, view_align, TRUE);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	obedit= CTX_data_edit_object(C);
 	elem= (MetaElem*)add_metaball_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
 	mball= (MetaBall*)obedit->data;
 	BLI_addtail(mball->editelems, elem);
@@ -556,8 +553,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	if(obedit && obedit->type==OB_FONT)
 		return OPERATOR_CANCELLED;
 
-	ED_object_add_type(C, OB_FONT, view_align, enter_editmode);
-	obedit= CTX_data_active_object(C);
+	obedit= ED_object_add_type(C, OB_FONT, view_align, enter_editmode);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
@@ -593,9 +589,8 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		ED_object_add_type(C, OB_ARMATURE, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_ARMATURE, view_align, TRUE);
 		ED_object_enter_editmode(C, 0);
-		obedit= CTX_data_edit_object(C);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);

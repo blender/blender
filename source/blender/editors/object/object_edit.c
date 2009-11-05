@@ -371,25 +371,29 @@ void ED_object_exit_editmode(bContext *C, int flag)
 void ED_object_enter_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
-	Base *base= CTX_data_active_base(C);
+	Base *base= NULL;
 	Object *ob;
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= NULL;
 	int ok= 0;
 	
 	if(scene->id.lib) return;
-	if(base==NULL) return;
 	
 	if(sa && sa->spacetype==SPACE_VIEW3D)
 		v3d= sa->spacedata.first;
 	
-	if(v3d && (base->lay & v3d->lay)==0) return;
-	else if(!v3d && (base->lay & scene->lay)==0) return;
+	if((flag & EM_IGNORE_LAYER)==0) {
+		if(v3d && (base->lay & v3d->lay)==0) return;
+		else if(!v3d && (base->lay & scene->lay)==0) return;
+		base= CTX_data_active_base(C); /* active layer checked here for view3d */
+	}
+	else {
+		base= scene->basact;
+	}
+
+	if (ELEM3(NULL, base, base->object, base->object->data)) return;
 
 	ob = base->object;
-
-	if(ob==NULL) return;
-	if(ob->data==NULL) return;
 	
 	if (object_data_is_libdata(ob)) {
 		error_libdata();
