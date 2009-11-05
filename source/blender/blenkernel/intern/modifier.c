@@ -82,7 +82,7 @@
 #include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_bmesh.h"
-// XXX #include "BKE_booleanops.h"
+#include "BKE_booleanops.h"
 #include "BKE_cloth.h"
 #include "BKE_collision.h"
 #include "BKE_cdderivedmesh.h"
@@ -113,17 +113,11 @@
 #include "BKE_shrinkwrap.h"
 #include "BKE_simple_deform.h"
 
-//XXX #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
-
-// XXX
-static struct DerivedMesh *NewBooleanDerivedMesh() {return NULL;}
 
 #include "CCGSubSurf.h"
 
 #include "RE_shader_ext.h"
-
-//XXX #include "BIF_meshlaplacian.h"
 
 /* Utility */
 
@@ -4138,11 +4132,11 @@ static DerivedMesh *decimateModifier_applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
   int useRenderParams, int isFinalCalc)
 {
-	// DecimateModifierData *dmd = (DecimateModifierData*) md;
+	DecimateModifierData *dmd = (DecimateModifierData*) md;
 	DerivedMesh *dm = derivedData, *result = NULL;
 	MVert *mvert;
 	MFace *mface;
-	// LOD_Decimation_Info lod;
+	LOD_Decimation_Info lod;
 	int totvert, totface;
 	int a, numTris;
 
@@ -4164,8 +4158,6 @@ static DerivedMesh *decimateModifier_applyModifier(
 		goto exit;
 	}
 
-	// XXX
-#if 0
 	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*totvert, "vertices");
 	lod.vertex_normal_buffer= MEM_mallocN(3*sizeof(float)*totvert, "normals");
 	lod.triangle_index_buffer= MEM_mallocN(3*sizeof(int)*numTris, "trias");
@@ -4250,10 +4242,6 @@ static DerivedMesh *decimateModifier_applyModifier(
 	MEM_freeN(lod.vertex_buffer);
 	MEM_freeN(lod.vertex_normal_buffer);
 	MEM_freeN(lod.triangle_index_buffer);
-#else
-	modifier_setError(md, "Modifier not working yet in 2.5.");
-	goto exit;
-#endif
 
 exit:
 		return result;
@@ -6390,12 +6378,6 @@ static CustomDataMask booleanModifier_requiredDataMask(Object *ob, ModifierData 
 
 	dataMask |= (1 << CD_MDEFORMVERT);
 	
-	/* particles only need this if they are after a non deform modifier, and
-	* the modifier stack will only create them in that case. */
-// 	dataMask |= CD_MASK_ORIGSPACE;
-
-// 	dataMask |= CD_MASK_ORCO;
-	
 	return dataMask;
 }
 
@@ -7866,17 +7848,17 @@ static void meshdeformModifier_do(
       float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
-	Mesh *me= ob->data;
+	Mesh *me= (mmd->object)? mmd->object->data: NULL;
+	EditMesh *em = (me)? BKE_mesh_get_editmesh(me): NULL;
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDeformWeight *dw;
-	EditMesh *em = BKE_mesh_get_editmesh(me);
 	MVert *cagemvert;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
 	int a, b, totvert, totcagevert, defgrp_index;
 	
-	if(!mmd->object || (!mmd->bindcos && !mmd->needbind))
+	if(!mmd->object || (!mmd->bindcos && !mmd->bindfunc))
 		return;
 	
 	/* get cage derivedmesh */
@@ -7914,7 +7896,7 @@ static void meshdeformModifier_do(
 		/* progress bar redraw can make this recursive .. */
 		if(!recursive) {
 			recursive = 1;
-			//XXX harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
+			mmd->bindfunc(md->scene, mmd, (float*)vertexCos, numVerts, cagemat);
 			recursive = 0;
 		}
 	}
