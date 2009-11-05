@@ -41,15 +41,13 @@ struct btDiscreteCollisionDetectorInterface
 	struct ClosestPointInput
 	{
 		ClosestPointInput()
-			:m_maximumDistanceSquared(btScalar(1e30)),
-			m_stackAlloc(0)
+			:m_maximumDistanceSquared(btScalar(1e30))
 		{
 		}
 
 		btTransform m_transformA;
 		btTransform m_transformB;
 		btScalar	m_maximumDistanceSquared;
-		btStackAlloc* m_stackAlloc;
 	};
 
 	virtual ~btDiscreteCollisionDetectorInterface() {};
