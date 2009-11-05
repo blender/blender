@@ -277,13 +277,12 @@ class WM_OT_doc_view(bpy.types.Operator):
         elif len(id_split) == 2: # rna, class.prop
             class_name, class_prop = id_split
 
-            # It so happens that epydoc nests these
-            class_name_full = self._nested_class_string(class_name)
-
             if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
                 url = '%s/bpy.ops.%s-module.html#%s' % \
-                        (self._prefix, class_name_full, class_prop)
+                        (self._prefix, class_name, class_prop)
             else:
+                # It so happens that epydoc nests these
+                class_name_full = self._nested_class_string(class_name)
                 url = '%s/bpy.types.%s-class.html#%s' % \
                         (self._prefix, class_name_full, class_prop)
 
@@ -349,7 +348,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
                 return ('RUNNING_MODAL',)
 
             print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
-            upload["title"] = 'RNA %s:%s' % s(self.doc_id, doc_orig)
+            upload["title"] = 'RNA %s:%s' % (self.doc_id, doc_orig)
 
         upload["description"] = self.doc_new
 
