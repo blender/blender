@@ -739,7 +739,7 @@ static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
 
 static unsigned int rna_Object_layer_validate__internal(const int *values, unsigned int lay)
 {
-	int i, tot;
+	int i, tot= 0;
 
 	/* ensure we always have some layer selected */
 	for(i=0; i<20; i++)
