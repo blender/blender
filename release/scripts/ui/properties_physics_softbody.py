@@ -73,8 +73,9 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 
             col = split.column()
             col.itemL(text="Object:")
-            col.itemR(softbody, "mass")
             col.itemR(softbody, "friction")
+            col.itemR(softbody, "mass")
+            col.item_pointerR(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
 
             col = split.column()
             col.itemL(text="Simulation:")
@@ -167,6 +168,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         col.itemR(softbody, "plastic")
         col.itemR(softbody, "bending")
         col.itemR(softbody, "spring_length", text="Length")
+        col.item_pointerR(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
         col = split.column()
         col.itemR(softbody, "stiff_quads")
