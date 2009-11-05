@@ -196,7 +196,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
 		
-		if (obact && arm) {
+		if (obact && obact->pose && arm) {
 			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
@@ -211,7 +211,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
 		
-		if (obact && arm) {
+		if (obact && obact->pose && arm) {
 			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {

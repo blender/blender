@@ -69,6 +69,7 @@ EnumPropertyItem id_type_items[] = {
 
 #include "BKE_idprop.h"
 #include "BKE_library.h"
+#include "BKE_animsys.h"
 
 /* name functions that ignore the first two ID characters */
 void rna_ID_name_get(PointerRNA *ptr, char *value)
@@ -326,6 +327,15 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Create a copy of this datablock (not supported for all datablocks).");
 	parm= RNA_def_pointer(func, "id", "ID", "", "New copy of the ID.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "animation_data_create", "BKE_id_add_animdata");
+	RNA_def_function_ui_description(func, "Create animation data to this ID, note that not all ID types support this.");
+	parm= RNA_def_pointer(func, "anim_data", "AnimData", "", "New animation data or NULL.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "animation_data_clear", "BKE_free_animdata");
+	RNA_def_function_ui_description(func, "Clear animation on this this ID.");
+
 }
 
 static void rna_def_library(BlenderRNA *brna)
