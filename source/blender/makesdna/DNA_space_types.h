@@ -506,6 +506,7 @@ typedef struct SpaceConsole {
 	ListBase scrollback; /* ConsoleLine; output */
 	ListBase history; /* ConsoleLine; command history, current edited line is the first */
 	char prompt[8];
+	char language[32]; /* multiple consoles are possible, not just python */
 	
 } SpaceConsole;
 

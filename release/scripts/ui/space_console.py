@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import sys
 import bpy
+from bpy.props import *
 
 
 class CONSOLE_HT_header(bpy.types.Header):
@@ -68,6 +69,7 @@ class CONSOLE_MT_console(bpy.types.Menu):
         layout.itemO("console.clear")
         layout.itemO("console.copy")
         layout.itemO("console.paste")
+        layout.itemM("CONSOLE_MT_language")
 
 
 class CONSOLE_MT_report(bpy.types.Menu):
@@ -81,50 +83,29 @@ class CONSOLE_MT_report(bpy.types.Menu):
         layout.itemO("console.report_delete")
         layout.itemO("console.report_copy")
 
+class CONSOLE_MT_language(bpy.types.Menu):
+    bl_label = "Languages..."
+
+    def draw(self, context):
+        layout = self.layout
+        layout.column()
+        
+        mod = bpy.ops.console
+        languages = []
+        for opname in dir(mod):
+            # execute_python, execute_shell etc.
+            if opname.startswith("execute_"):
+                languages.append(opname.split('_', 1)[-1])
+        
+        languages.sort()
+        
+        for language in languages:
+            layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
 
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
         bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
             type=text_type)
-
-
-def get_console(console_id):
-    '''
-    helper function for console operators
-    currently each text datablock gets its own
-    console - bpython_code.InteractiveConsole()
-    ...which is stored in this function.
-
-    console_id can be any hashable type
-    '''
-    from code import InteractiveConsole
-
-    try:
-        consoles = get_console.consoles
-    except:
-        consoles = get_console.consoles = {}
-
-    # clear all dead consoles, use text names as IDs
-    # TODO, find a way to clear IDs
-    '''
-    for console_id in list(consoles.keys()):
-        if console_id not in bpy.data.texts:
-            del consoles[id]
-    '''
-
-    try:
-        console, stdout, stderr = consoles[console_id]
-    except:
-        namespace = {'__builtins__': __builtins__, 'bpy': bpy}
-        console = InteractiveConsole(namespace)
-
-        import io
-        stdout = io.StringIO()
-        stderr = io.StringIO()
-
-        consoles[console_id] = console, stdout, stderr
-
-    return console, stdout, stderr
 
 
 class ConsoleExec(bpy.types.Operator):
@@ -133,79 +114,15 @@ class ConsoleExec(bpy.types.Operator):
     bl_label = "Console Execute"
     bl_register = False
 
-    # Both prompts must be the same length
-    PROMPT = '>>> '
-    PROMPT_MULTI = '... '
-
-    # is this working???
-    '''
-    def poll(self, context):
-        return (context.space_data.type == 'PYTHON')
-    '''
-    # its not :|
-
     def execute(self, context):
         sc = context.space_data
 
-        try:
-            line = sc.history[-1].line
-        except:
-            return ('CANCELLED',)
+        execute = getattr(bpy.ops.console, "execute_" + sc.language, None)
 
-        if sc.console_type != 'PYTHON':
-            return ('CANCELLED',)
-
-        console, stdout, stderr = get_console(hash(context.region))
-
-        # Hack, useful but must add some other way to access
-        #if "C" not in console.locals:
-        console.locals["C"] = context
-
-        # redirect output
-        sys.stdout = stdout
-        sys.stderr = stderr
-
-        # run the console
-        if not line.strip():
-            line_exec = '\n'  # executes a multiline statement
+        if execute:
+            execute()
         else:
-            line_exec = line
-
-        is_multiline = console.push(line_exec)
-
-        stdout.seek(0)
-        stderr.seek(0)
-
-        output = stdout.read()
-        output_err = stderr.read()
-
-        # cleanup
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-        sys.last_traceback = None
-
-        # So we can reuse, clear all data
-        stdout.truncate(0)
-        stderr.truncate(0)
-
-        bpy.ops.console.scrollback_append(text=sc.prompt + line, type='INPUT')
-
-        if is_multiline:
-            sc.prompt = self.PROMPT_MULTI
-        else:
-            sc.prompt = self.PROMPT
-
-        # insert a new blank line
-        bpy.ops.console.history_append(text="", current_character=0,
-            remove_duplicates=True)
-
-        # Insert the output into the editor
-        # not quite correct because the order might have changed,
-        # but ok 99% of the time.
-        if output:
-            add_scrollback(output, 'OUTPUT')
-        if output_err:
-            add_scrollback(output_err, 'ERROR')
+            print("Error: bpy.ops.console.execute_" + sc.language + " - not found")
 
         return ('FINISHED',)
 
@@ -218,40 +135,17 @@ class ConsoleAutocomplete(bpy.types.Operator):
     bl_register = False
 
     def poll(self, context):
-        return context.space_data.console_type == 'PYTHON'
+        return context.space_data.console_type != 'REPORT'
 
     def execute(self, context):
-        from console import intellisense
-
         sc = context.space_data
 
-        console = get_console(hash(context.region))[0]
-        
-        current_line = sc.history[-1]
-        line = current_line.line
+        autocomplete = getattr(bpy.ops.console, "autocomplete_" + sc.language, None)
 
-        if not console:
-            return ('CANCELLED',)
-
-        if sc.console_type != 'PYTHON':
-            return ('CANCELLED',)
-
-        # This function isnt aware of the text editor or being an operator
-        # just does the autocomp then copy its results back
-        current_line.line, current_line.current_character, scrollback = \
-            intellisense.expand(
-                line=current_line.line,
-                cursor=current_line.current_character,
-                namespace=console.locals,
-                private='-d' in sys.argv)
-
-        # Now we need to copy back the line from blender back into the
-        # text editor. This will change when we dont use the text editor
-        # anymore
-        if scrollback:
-            add_scrollback(scrollback, 'INFO')
-
-        context.area.tag_redraw()
+        if autocomplete:
+            autocomplete()
+        else:
+            print("Error: bpy.ops.console.autocomplete_" + sc.language + " - not found")
 
         return ('FINISHED',)
 
@@ -261,23 +155,38 @@ class ConsoleBanner(bpy.types.Operator):
 
     def execute(self, context):
         sc = context.space_data
-        version_string = sys.version.strip().replace('\n', ' ')
+        
+        # default to python
+        if not sc.language:
+            sc.language = 'python'
 
-        add_scrollback(" * Python Interactive Console %s *" % version_string, 'OUTPUT')
-        add_scrollback("Command History:  Up/Down Arrow", 'OUTPUT')
-        add_scrollback("Cursor:           Left/Right Home/End", 'OUTPUT')
-        add_scrollback("Remove:           Backspace/Delete", 'OUTPUT')
-        add_scrollback("Execute:          Enter", 'OUTPUT')
-        add_scrollback("Autocomplete:     Ctrl+Space", 'OUTPUT')
-        add_scrollback("Ctrl +/-  Wheel:  Zoom", 'OUTPUT')
-        add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, Mathutils, Geometry, BGL", 'OUTPUT')
-        add_scrollback("", 'OUTPUT')
-        add_scrollback("", 'OUTPUT')
-        sc.prompt = ConsoleExec.PROMPT
+        banner = getattr(bpy.ops.console, "banner_" + sc.language, None)
+        
+        if banner:
+            banner()
+        else:
+            print("Error: bpy.ops.console.banner_" + sc.language + " - not found")
 
-        # Add context into the namespace for quick access
-        console = get_console(hash(context.region))[0]
-        console.locals["C"] = bpy.context
+        return ('FINISHED',)
+
+
+
+class ConsoleLanguage(bpy.types.Operator):
+    '''Set the current language for this console'''
+    bl_idname = "console.language"
+    language = StringProperty(name="Language", maxlen= 32, default= "")
+
+    def execute(self, context):
+        sc = context.space_data
+        
+        # defailt to python
+        sc.language = self.language
+        
+        bpy.ops.console.banner()
+        
+        # insert a new blank line
+        bpy.ops.console.history_append(text="", current_character=0,
+            remove_duplicates=True)
 
         return ('FINISHED',)
 
@@ -285,7 +194,12 @@ class ConsoleBanner(bpy.types.Operator):
 bpy.types.register(CONSOLE_HT_header)
 bpy.types.register(CONSOLE_MT_console)
 bpy.types.register(CONSOLE_MT_report)
+bpy.types.register(CONSOLE_MT_language)
 
+# Stubs that call the language operators
 bpy.ops.add(ConsoleExec)
 bpy.ops.add(ConsoleAutocomplete)
 bpy.ops.add(ConsoleBanner)
+
+# Set the language and call the banner
+bpy.ops.add(ConsoleLanguage)
