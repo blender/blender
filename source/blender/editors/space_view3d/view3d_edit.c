@@ -1498,27 +1498,56 @@ static EnumPropertyItem prop_view_items[] = {
 	{RV3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the active amera"},
 	{0, NULL, 0, NULL, NULL}};
 
-static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo)
+
+/* would like to make this a generic function - outside of transform */
+extern void getTransformOrientationMatrix(const bContext *C, float twmat[][4], int activeOnly);
+
+static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	float new_quat[4];
 
-	if(rv3d->viewlock) {
-		/* only pass on if */
-		if(rv3d->view==RV3D_VIEW_FRONT && view==RV3D_VIEW_BACK);
-		else if(rv3d->view==RV3D_VIEW_BACK && view==RV3D_VIEW_FRONT);
-		else if(rv3d->view==RV3D_VIEW_RIGHT && view==RV3D_VIEW_LEFT);
-		else if(rv3d->view==RV3D_VIEW_LEFT && view==RV3D_VIEW_RIGHT);
-		else if(rv3d->view==RV3D_VIEW_BOTTOM && view==RV3D_VIEW_TOP);
-		else if(rv3d->view==RV3D_VIEW_TOP && view==RV3D_VIEW_BOTTOM);
-		else return;
-	}
-
 	new_quat[0]= q1; new_quat[1]= q2;
 	new_quat[2]= q3; new_quat[3]= q4;
 
-	rv3d->view= view;
+	if(align_active) {
+		/* align to active object */
+		Object *obact= CTX_data_active_object(C);
+		if (obact==NULL) {
+			/* no active object, ignore this option */
+			align_active= FALSE;
+		}
+		else {
+			float obact_quat[4];
+			float twmat[4][4];
+
+			/* same as transform manipulator when normal is set */
+			getTransformOrientationMatrix(C, twmat, TRUE);
+
+			Mat4ToQuat(twmat, obact_quat);
+			QuatInv(obact_quat);
+			QuatMul(new_quat, new_quat, obact_quat);
+
+			rv3d->view= view= 0;
+		}
+	}
+
+	if(align_active==FALSE) {
+		/* normal operation */
+		if(rv3d->viewlock) {
+			/* only pass on if */
+			if(rv3d->view==RV3D_VIEW_FRONT && view==RV3D_VIEW_BACK);
+			else if(rv3d->view==RV3D_VIEW_BACK && view==RV3D_VIEW_FRONT);
+			else if(rv3d->view==RV3D_VIEW_RIGHT && view==RV3D_VIEW_LEFT);
+			else if(rv3d->view==RV3D_VIEW_LEFT && view==RV3D_VIEW_RIGHT);
+			else if(rv3d->view==RV3D_VIEW_BOTTOM && view==RV3D_VIEW_TOP);
+			else if(rv3d->view==RV3D_VIEW_TOP && view==RV3D_VIEW_BOTTOM);
+			else return;
+		}
+
+		rv3d->view= view;
+	}
 
 	if(rv3d->viewlock) {
 		ED_region_tag_redraw(CTX_wm_region(C));
@@ -1548,35 +1577,36 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	static int perspo=RV3D_PERSP;
-	int viewnum;
+	int viewnum, align_active;
 
 	viewnum = RNA_enum_get(op->ptr, "type");
+	align_active = RNA_boolean_get(op->ptr, "align_active");
 
 	/* Use this to test if we started out with a camera */
 
 	switch (viewnum) {
 		case RV3D_VIEW_BOTTOM :
-			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, viewnum, perspo);
+			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, viewnum, perspo, align_active);
 			break;
 
 		case RV3D_VIEW_BACK:
-			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, perspo);
+			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, perspo, align_active);
 			break;
 
 		case RV3D_VIEW_LEFT:
-			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, viewnum, perspo);
+			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, viewnum, perspo, align_active);
 			break;
 
 		case RV3D_VIEW_TOP:
-			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, viewnum, perspo);
+			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, viewnum, perspo, align_active);
 			break;
 
 		case RV3D_VIEW_FRONT:
-			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, perspo);
+			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, perspo, align_active);
 			break;
 
 		case RV3D_VIEW_RIGHT:
-			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, perspo);
+			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, perspo, align_active);
 			break;
 
 		case RV3D_VIEW_CAMERA:
@@ -1617,7 +1647,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				else{
 					/* return to settings of last view */
 					/* does smooth_view too */
-					axis_set_view(C, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp);
+					axis_set_view(C, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp, 0);
 				}
 			}
 			break;
@@ -1645,6 +1675,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	ot->flag= 0;
 
 	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
+	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active objects axis");
 }
 
 static EnumPropertyItem prop_view_orbit_items[] = {

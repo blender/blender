@@ -531,49 +531,8 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		break;
 	case V3D_MANIP_NORMAL:
 		if(obedit || (ob && ob->mode & OB_MODE_POSE)) {
-			float mat[3][3];
-			int type;
-			
 			strcpy(t->spacename, "normal");
-			
-			type = getTransformOrientation(C, normal, plane, (v3d->around == V3D_ACTIVE));
-			
-			switch (type)
-			{
-				case ORIENTATION_NORMAL:
-					if (createSpaceNormalTangent(mat, normal, plane) == 0)
-					{
-						type = ORIENTATION_NONE;
-					}
-					break;
-				case ORIENTATION_VERT:
-					if (createSpaceNormal(mat, normal) == 0)
-					{
-						type = ORIENTATION_NONE;
-					}
-					break;
-				case ORIENTATION_EDGE:
-					if (createSpaceNormalTangent(mat, normal, plane) == 0)
-					{
-						type = ORIENTATION_NONE;
-					}
-					break;
-				case ORIENTATION_FACE:
-					if (createSpaceNormalTangent(mat, normal, plane) == 0)
-					{
-						type = ORIENTATION_NONE;
-					}
-					break;
-			}
-			
-			if (type == ORIENTATION_NONE)
-			{
-				Mat3One(t->spacemtx);
-			}
-			else
-			{
-				Mat3CpyMat3(t->spacemtx, mat);
-			}
+			getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
 			break;
 		}
 		/* no break we define 'normal' as 'local' in Object mode */
@@ -966,4 +925,52 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	}
 	
 	return result;
+}
+
+void getTransformOrientationMatrix(const bContext *C, float twmat[][4], int activeOnly)
+{
+	float normal[3]={0.0, 0.0, 0.0};
+	float plane[3]={0.0, 0.0, 0.0};
+
+	float mat[3][3];
+	int type;
+
+	type = getTransformOrientation(C, normal, plane, activeOnly);
+
+	switch (type)
+	{
+		case ORIENTATION_NORMAL:
+			if (createSpaceNormalTangent(mat, normal, plane) == 0)
+			{
+				type = ORIENTATION_NONE;
+			}
+			break;
+		case ORIENTATION_VERT:
+			if (createSpaceNormal(mat, normal) == 0)
+			{
+				type = ORIENTATION_NONE;
+			}
+			break;
+		case ORIENTATION_EDGE:
+			if (createSpaceNormalTangent(mat, normal, plane) == 0)
+			{
+				type = ORIENTATION_NONE;
+			}
+			break;
+		case ORIENTATION_FACE:
+			if (createSpaceNormalTangent(mat, normal, plane) == 0)
+			{
+				type = ORIENTATION_NONE;
+			}
+			break;
+	}
+
+	if (type == ORIENTATION_NONE)
+	{
+		Mat4One(twmat);
+	}
+	else
+	{
+		Mat4CpyMat3(twmat, mat);
+	}
 }

@@ -259,8 +259,6 @@ int calc_manipulator_stats(const bContext *C)
 	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
 	Object *ob= OBACT;
-	float normal[3]={0.0, 0.0, 0.0};
-	float plane[3]={0.0, 0.0, 0.0};
 	int a, totsel= 0;
 
 	/* transform widget matrix */
@@ -498,47 +496,7 @@ int calc_manipulator_stats(const bContext *C)
 		}
 		case V3D_MANIP_NORMAL:
 			if(obedit || ob->mode & OB_MODE_POSE) {
-				float mat[3][3];
-				int type;
-
-				type = getTransformOrientation(C, normal, plane, (v3d->around == V3D_ACTIVE));
-
-				switch (type)
-				{
-					case ORIENTATION_NORMAL:
-						if (createSpaceNormalTangent(mat, normal, plane) == 0)
-						{
-							type = ORIENTATION_NONE;
-						}
-						break;
-					case ORIENTATION_VERT:
-						if (createSpaceNormal(mat, normal) == 0)
-						{
-							type = ORIENTATION_NONE;
-						}
-						break;
-					case ORIENTATION_EDGE:
-						if (createSpaceNormalTangent(mat, normal, plane) == 0)
-						{
-							type = ORIENTATION_NONE;
-						}
-						break;
-					case ORIENTATION_FACE:
-						if (createSpaceNormalTangent(mat, normal, plane) == 0)
-						{
-							type = ORIENTATION_NONE;
-						}
-						break;
-				}
-
-				if (type == ORIENTATION_NONE)
-				{
-					Mat4One(rv3d->twmat);
-				}
-				else
-				{
-					Mat4CpyMat3(rv3d->twmat, mat);
-				}
+				getTransformOrientationMatrix(C, rv3d->twmat, (v3d->around == V3D_ACTIVE));
 				break;
 			}
 			/* no break we define 'normal' as 'local' in Object mode */
