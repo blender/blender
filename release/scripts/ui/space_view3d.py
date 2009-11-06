@@ -191,9 +191,39 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.itemM("VIEW3D_MT_view_align_selected")
+
+        layout.itemS()
+
         layout.item_booleanO("view3d.view_all", "center", True, text="Center Cursor and View All")
         layout.itemO("view3d.camera_to_view", text="Align Active Camera to View")
         layout.itemO("view3d.view_center")
+
+
+class VIEW3D_MT_view_align_selected(bpy.types.Menu):
+    bl_label = "Align View to Selected"
+
+    def draw(self, context):
+        layout = self.layout
+
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Top")
+        props.align_active = True
+        props.type = 'TOP'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Bottom")
+        props.align_active = True
+        props.type = 'BOTTOM'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Front")
+        props.align_active = True
+        props.type = 'FRONT'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Back")
+        props.align_active = True
+        props.type = 'BACK'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Right")
+        props.align_active = True
+        props.type = 'RIGHT'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Left")
+        props.align_active = True
+        props.type = 'LEFT'
 
 
 class VIEW3D_MT_view_cameras(bpy.types.Menu):
@@ -1621,6 +1651,7 @@ bpy.types.register(VIEW3D_HT_header) # Header
 bpy.types.register(VIEW3D_MT_view) #View Menus
 bpy.types.register(VIEW3D_MT_view_navigation)
 bpy.types.register(VIEW3D_MT_view_align)
+bpy.types.register(VIEW3D_MT_view_align_selected)
 bpy.types.register(VIEW3D_MT_view_cameras)
 
 bpy.types.register(VIEW3D_MT_select_object) # Select Menus
