@@ -37,8 +37,7 @@ typedef struct PBVHNode PBVHNode;
 /* Callbacks */
 
 /* returns 1 if the search should continue from this node, 0 otherwise */
-typedef int (*BLI_pbvh_SearchCallback)(PBVHNode *node,
-	float bb_min[3], float bb_max[3], void *data);
+typedef int (*BLI_pbvh_SearchCallback)(PBVHNode *node, void *data);
 
 typedef void (*BLI_pbvh_HitCallback)(PBVHNode *node, void *data);
 
@@ -69,7 +68,7 @@ void BLI_pbvh_search_gather(PBVH *bvh,
    hit first */
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
-		      float ray_start[3], float ray_normal[3]);
+		      float ray_start[3], float ray_normal[3], int original);
 
 /* Node Access */
 
@@ -78,20 +77,25 @@ typedef enum {
 
 	PBVH_UpdateNormals = 2,
 	PBVH_UpdateBB = 4,
+	PBVH_UpdateOriginalBB = 4,
 	PBVH_UpdateDrawBuffers = 8,
 	PBVH_UpdateRedraw = 16
 } PBVHNodeFlags;
 
 void BLI_pbvh_node_mark_update(PBVHNode *node);
 
-void BLI_pbvh_node_get_verts(PBVHNode *node, int **vert_indices, int *totvert);
-void BLI_pbvh_node_get_faces(PBVHNode *node, int **face_indices, int *totface);
+void BLI_pbvh_node_get_verts(PBVHNode *node, int **vert_indices,
+	int *totvert, int *allverts);
+void BLI_pbvh_node_get_faces(PBVHNode *node, int **face_indices,
+	int **face_vert_indices, int *totface);
 void *BLI_pbvh_node_get_draw_buffers(PBVHNode *node);
+void BLI_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
+void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 
 /* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
 
 void BLI_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
-void BLI_pbvh_redraw_bounding_box(PBVH *bvh, float bb_min[3], float bb_max[3]);
+void BLI_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);
 
 #endif /* BLI_PBVH_H */
 

@@ -420,11 +420,13 @@ static void draw_partial_cb(PBVHNode *node, void *data)
    Returns true if the AABB is at least partially within the frustum
    (ok, not a real frustum), false otherwise.
 */
-int planes_contain_AABB(PBVHNode *node, float bb_min[3], float bb_max[3], void *data)
+int planes_contain_AABB(PBVHNode *node, void *data)
 {
 	float (*planes)[4] = data;
 	int i, axis;
-	float vmin[3], vmax[3];
+	float vmin[3], vmax[3], bb_min[3], bb_max[3];
+
+	BLI_pbvh_node_get_BB(node, bb_min, bb_max);
 
 	for(i = 0; i < 4; ++i) { 
 		for(axis = 0; axis < 3; ++axis) {

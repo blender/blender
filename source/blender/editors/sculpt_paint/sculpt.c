@@ -108,15 +108,6 @@
  *
  */
 
-/* ActiveData stores an Index into the mvert array of Mesh, plus Fade, which
-   stores how far the vertex is from the brush center, scaled to the range [0,1]. */
-typedef struct ActiveData {
-	struct ActiveData *next, *prev;
-	unsigned int Index;
-	float Fade;
-	float dist;
-} ActiveData;
-
 typedef enum StrokeFlags {
 	CLIP_X = 1,
 	CLIP_Y = 2,
@@ -155,7 +146,6 @@ typedef struct StrokeCache {
 	ViewContext *vc;
 	Brush *brush;
 
-	short (*orig_norms)[3]; /* Copy of the mesh vertices' normals */
 	float (*face_norms)[3]; /* Copy of the mesh faces' normals */
 	float rotation; /* Texture rotation (radians) for anchored and rake modes */
 	int pixel_radius, previous_pixel_radius;
@@ -167,6 +157,7 @@ typedef struct StrokeCache {
 	int symmetry; /* Symmetry index between 0 and 7 */
 	float view_normal[3], view_normal_symmetry[3];
 	int last_rake[2]; /* Last location of updating rake rotation */
+	int original;
 } StrokeCache;
 
 /* ===== OPENGL =====
@@ -206,7 +197,7 @@ int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 
 	view3d_get_object_project_mat(rv3d, ob, pmat);
 
-	BLI_pbvh_redraw_bounding_box(ob->sculpt->tree, bb_min, bb_max);
+	BLI_pbvh_redraw_BB(ob->sculpt->tree, bb_min, bb_max);
 
 	rect->xmin = rect->ymin = INT_MAX;
 	rect->xmax = rect->ymax = INT_MIN;
@@ -280,6 +271,7 @@ typedef struct SculptUndoNode {
 	void *node;					/* only during push, not valid afterwards! */
 
 	float (*co)[3];
+	short (*no)[3];
 	int *index;
 	int totvert;
 } SculptUndoNode;
@@ -329,7 +321,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		   needs to work correct when exiting/entering sculpt mode and
 		   the nodes get recreated, though in that case it could do all */
 		BLI_pbvh_search_callback(ss->tree, NULL, NULL, update_cb, NULL);
-		BLI_pbvh_update(ss->tree, PBVH_UpdateBB, NULL);
+		BLI_pbvh_update(ss->tree, PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw, NULL);
 
 		/* not really convinced this is correct .. */
 		if((mmd=sculpt_multires_active(ob))) {
@@ -350,28 +342,43 @@ static void sculpt_undo_free(ListBase *lb)
 	for(unode=lb->first; unode; unode=unode->next) {
 		if(unode->co)
 			MEM_freeN(unode->co);
+		if(unode->no)
+			MEM_freeN(unode->no);
 		if(unode->index)
 			MEM_freeN(unode->index);
 	}
 }
 
-static float (*sculpt_undo_push_node(SculptSession *ss, PBVHNode *node))[3]
+static SculptUndoNode *sculpt_undo_get_node(SculptSession *ss, PBVHNode *node)
+{
+	ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_MESH);
+	SculptUndoNode *unode;
+
+	if(!lb)
+		return NULL;
+
+	for(unode=lb->first; unode; unode=unode->next)
+		if(unode->node == node)
+			return unode;
+
+	return NULL;
+}
+
+static SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 {
 	ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_MESH);
 	Object *ob= ss->ob;
 	SculptUndoNode *unode;
-	int i, totvert, *verts;
+	int i, totvert, allvert, *verts;
 
-	BLI_pbvh_node_get_verts(node, &verts, &totvert);
+	BLI_pbvh_node_get_verts(node, &verts, &totvert, &allvert);
 
 	/* list is manipulated by multiple threads, so we lock */
 	BLI_lock_thread(LOCK_CUSTOM1);
 
-	for(unode=lb->first; unode; unode=unode->next) {
-		if(unode->node == node && strcmp(unode->idname, ob->id.name)==0) {
-			BLI_unlock_thread(LOCK_CUSTOM1);
-			return unode->co;
-		}
+	if((unode= sculpt_undo_get_node(ss, node))) {
+		BLI_unlock_thread(LOCK_CUSTOM1);
+		return unode;
 	}
 
 	unode= MEM_callocN(sizeof(SculptUndoNode), "SculptUndoNode");
@@ -381,19 +388,44 @@ static float (*sculpt_undo_push_node(SculptSession *ss, PBVHNode *node))[3]
 	unode->totvert= totvert;
 	unode->maxvert= ss->totvert;
 	/* we will use this while sculpting, is mapalloc slow to access then? */
-	unode->co= MEM_mapallocN(sizeof(float)*3*totvert, "SculptUndoNode.co");
-	unode->index= MEM_mapallocN(sizeof(int)*totvert, "SculptUndoNode.index");
-	undo_paint_push_count_alloc(UNDO_PAINT_MESH, (sizeof(float)*3 + sizeof(int))*totvert);
+	unode->co= MEM_mapallocN(sizeof(float)*3*allvert, "SculptUndoNode.co");
+	unode->no= MEM_mapallocN(sizeof(short)*3*allvert, "SculptUndoNode.no");
+	unode->index= MEM_mapallocN(sizeof(int)*allvert, "SculptUndoNode.index");
+	undo_paint_push_count_alloc(UNDO_PAINT_MESH, (sizeof(float)*3 + sizeof(short)*3 + sizeof(int))*allvert);
 	BLI_addtail(lb, unode);
 
 	BLI_unlock_thread(LOCK_CUSTOM1);
 
 	/* copy threaded, hopefully this is the performance critical part */
-	memcpy(unode->index, verts, sizeof(int)*totvert);
-	for(i=0; i<totvert; i++)
+	memcpy(unode->index, verts, sizeof(int)*allvert);
+	for(i=0; i<allvert; i++) {
 		VECCOPY(unode->co[i], ss->mvert[verts[i]].co)
+		VECCOPY(unode->no[i], ss->mvert[verts[i]].no)
+	}
 	
-	return unode->co;
+	return unode;
+}
+
+static void sculpt_undo_push_begin(SculptSession *ss, char *name)
+{
+	undo_paint_push_begin(UNDO_PAINT_MESH, name,
+		sculpt_undo_restore, sculpt_undo_free);
+}
+
+static void sculpt_undo_push_end(SculptSession *ss)
+{
+	ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_MESH);
+	SculptUndoNode *unode;
+
+	/* we don't need normals in the undo stack */
+	for(unode=lb->first; unode; unode=unode->next) {
+		if(unode->no) {
+			MEM_freeN(unode->no);
+			unode->no= NULL;
+		}
+	}
+
+	undo_paint_push_end(UNDO_PAINT_MESH);
 }
 
 /************************ Looping Over Verts in a BVH Node *******************/
@@ -422,7 +454,7 @@ static void sculpt_node_verts_init(Sculpt *sd, SculptSession *ss,
 	vd->mvert= ss->mvert;
 	vd->origvert= origvert;
 	vd->i= -1;
-	BLI_pbvh_node_get_verts(node, &vd->verts, &vd->totvert);
+	BLI_pbvh_node_get_verts(node, &vd->verts, &vd->totvert, NULL);
 }
 
 static int sculpt_node_verts_next(SculptVertexData *vd)
@@ -628,13 +660,15 @@ typedef struct {
 } SculptSearchSphereData;
 
 /* Test AABB against sphere */
-static int sculpt_search_sphere_cb(PBVHNode *node,
-	float bb_min[3], float bb_max[3], void *data_v)
+static int sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 {
 	SculptSearchSphereData *data = data_v;
 	float *center = data->ss->cache->location, nearest[3];
-	float t[3];
+	float t[3], bb_min[3], bb_max[3];
 	int i;
+
+	//BLI_pbvh_node_get_original_BB(node, bb_min, bb_max);
+	BLI_pbvh_node_get_BB(node, bb_min, bb_max);
 
 	for(i = 0; i < 3; ++i) {
 		if(bb_min[i] > center[i])
@@ -682,7 +716,6 @@ static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], cons
 /* For draw/layer/flatten; finds average normal for all active vertices */
 static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3], PBVHNode **nodes, int totnode)
 {
-	Brush *brush = paint_brush(&sd->paint);
 	StrokeCache *cache = ss->cache;
 	const int view = 0; /* XXX: should probably be a flag, not number: brush_type==SCULPT_TOOL_DRAW ? sculptmode_brush()->view : 0; */
 	float out[3] = {0.0f, 0.0f, 0.0f};
@@ -696,24 +729,30 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 	#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		SculptVertexData vd;
+		SculptUndoNode *unode;
 		float nout[3] = {0.0f, 0.0f, 0.0f};
 		float nout_flip[3] = {0.0f, 0.0f, 0.0f};
 		
+		// XXX push instead of get for thread safety in draw
+		// brush .. lame, but also not harmful really
+		unode= sculpt_undo_push_node(ss, nodes[n]);
 		sculpt_node_verts_init(sd, ss, nodes[n], NULL, &vd);
 
-		if(brush->flag & BRUSH_ANCHORED) {
+		if(unode && ss->cache->original) {
 			while(sculpt_node_verts_next(&vd))
-				add_norm_if(out_dir, nout, nout_flip, cache->orig_norms[vd.index]);
+				add_norm_if(out_dir, nout, nout_flip, unode->no[vd.i]);
 		}
 		else {
 			while(sculpt_node_verts_next(&vd))
 				add_norm_if(out_dir, nout, nout_flip, ss->mvert[vd.index].no);
 		}
 
-		/* we sum per node and add together later for threads */
-		#pragma omp critical
-		VecAddf(out, out, nout);
-		VecAddf(out_flip, out_flip, nout_flip);
+		{
+			/* we sum per node and add together later for threads */
+			#pragma omp critical
+			VecAddf(out, out, nout);
+			VecAddf(out_flip, out_flip, nout_flip);
+		}
 	}
 
 	if (out[0]==0.0 && out[1]==0.0 && out[2]==0.0) {
@@ -875,7 +914,7 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 {
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength= ss->cache->bstrength;
-	float grab_delta[3], (*origco)[3];
+	float grab_delta[3];
 	int n;
 	
 	VecCopyf(grab_delta, ss->cache->grab_delta_symmetry);
@@ -883,8 +922,11 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 	#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		SculptVertexData vd;
+		SculptUndoNode *unode;
+		float (*origco)[3];
 		
-		origco= sculpt_undo_push_node(ss, nodes[n]);
+		unode= sculpt_undo_push_node(ss, nodes[n]);
+		origco= unode->co;
 		sculpt_node_verts_init(sd, ss, nodes[n], origco, &vd);
 
 		while(sculpt_node_verts_next(&vd)) {
@@ -921,9 +963,11 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		SculptVertexData vd;
+		SculptUndoNode *unode;
 		float (*origco)[3];
 		
-		origco= sculpt_undo_push_node(ss, nodes[n]);
+		unode= sculpt_undo_push_node(ss, nodes[n]);
+		origco= unode->co;
 		sculpt_node_verts_init(sd, ss, nodes[n], NULL, &vd);
 
 		while(sculpt_node_verts_next(&vd)) {
@@ -1422,8 +1466,6 @@ static float unproject_brush_radius(ViewContext *vc, float center[3], float offs
 static void sculpt_cache_free(StrokeCache *cache)
 {
 	int i;
-	if(cache->orig_norms)
-		MEM_freeN(cache->orig_norms);
 	if(cache->face_norms)
 		MEM_freeN(cache->face_norms);
 	if(cache->mats)
@@ -1479,20 +1521,19 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 
 	/* Make copies of the mesh vertex locations and normals for some tools */
 	if(brush->flag & BRUSH_ANCHORED) {
-		cache->orig_norms= MEM_mallocN(sizeof(short) * 3 * ss->totvert, "Sculpt orig norm");
-		for(i = 0; i < ss->totvert; ++i) {
-			cache->orig_norms[i][0] = ss->mvert[i].no[0];
-			cache->orig_norms[i][1] = ss->mvert[i].no[1];
-			cache->orig_norms[i][2] = ss->mvert[i].no[2];
-		}
-
 		if(ss->face_normals) {
 			float *fn = ss->face_normals;
 			cache->face_norms= MEM_mallocN(sizeof(float) * 3 * ss->totface, "Sculpt face norms");
 			for(i = 0; i < ss->totface; ++i, fn += 3)
 				VecCopyf(cache->face_norms[i], fn);
 		}
+
+		cache->original = 1;
 	}
+
+	if(ELEM3(brush->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE))
+		if(!(brush->flag & BRUSH_ACCUMULATE))
+			cache->original = 1;
 
 	cache->rotation = 0;
 	cache->first_time = 1;
@@ -1601,15 +1642,47 @@ typedef struct {
 	float *ray_start, *ray_normal;
 	int hit;
 	float dist;
+	int original;
 } SculptRaycastData;
 
 void sculpt_raycast_cb(PBVHNode *node, void *data_v)
 {
 	SculptRaycastData *srd = data_v;
 	MVert *vert = srd->ss->mvert;
-	int i, totface, *faces;
+	int i, totface, *faces, *face_verts;
 
-	BLI_pbvh_node_get_faces(node, &faces, &totface);
+	if(srd->original && srd->ss->cache) {
+		SculptUndoNode *unode;
+
+		unode= sculpt_undo_get_node(srd->ss, node);
+
+		if(unode) {
+			/* intersect with coordinates from before we started stroke */
+			BLI_pbvh_node_get_faces(node, &faces, &face_verts, &totface);
+
+			for(i = 0; i < totface; ++i) {
+				MFace *f = srd->ss->mface + faces[i];
+				/*if(face_verts[i*4 + 0] >= unode->totvert) abort();
+				if(face_verts[i*4 + 1] >= unode->totvert) abort();
+				if(face_verts[i*4 + 2] >= unode->totvert) abort();
+				if(f->v4 && face_verts[i*4 + 3] >= unode->totvert) abort();*/
+
+				if(ray_face_intersection(srd->ray_start, srd->ray_normal,
+							 unode->co[face_verts[i*4+0]],
+							 unode->co[face_verts[i*4+1]],
+							 unode->co[face_verts[i*4+2]],
+							 f->v4? unode->co[face_verts[i*4+3]]: NULL,
+							 &srd->dist)) {
+					srd->hit = faces[i];
+				}
+			}
+
+			return;
+		}
+	}
+
+	/* intersect with current coordinates */
+	BLI_pbvh_node_get_faces(node, &faces, NULL, &totface);
 
 	for(i = 0; i < totface; ++i) {
 		MFace *f = srd->ss->mface + faces[i];
@@ -1631,6 +1704,8 @@ void sculpt_raycast_cb(PBVHNode *node, void *data_v)
 int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float out[3], float mouse[2])
 {
 	ViewContext *vc = paint_stroke_view_context(stroke);
+	SculptSession *ss= vc->obact->sculpt;
+	StrokeCache *cache= ss->cache;
 	float ray_start[3], ray_normal[3];
 	float mval[2] = {mouse[0] - vc->ar->winrct.xmin,
 			 mouse[1] - vc->ar->winrct.ymin};
@@ -1643,8 +1718,9 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	srd.ray_normal = ray_normal;
 	srd.dist = FLT_MAX;
 	srd.hit = -1;
-	BLI_pbvh_raycast(vc->obact->sculpt->tree, sculpt_raycast_cb, &srd,
-		     ray_start, ray_normal);
+	srd.original = (cache)? cache->original: 0;
+	BLI_pbvh_raycast(ss->tree, sculpt_raycast_cb, &srd,
+		     ray_start, ray_normal, srd.original);
 	
 	VecCopyf(out, ray_normal);
 	VecMulf(out, srd.dist);
@@ -1713,7 +1789,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 	int i;
 
 	/* Restore the mesh before continuing with anchored stroke */
-	if((brush->flag & BRUSH_ANCHORED) && cache->orig_norms) {
+	if(brush->flag & BRUSH_ANCHORED) {
 		ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_MESH);
 		SculptUndoNode *unode;
 
@@ -1721,17 +1797,14 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 		for(unode = lb->first; unode; unode = unode->next) {
 			float (*co)[3]= unode->co;
+			short (*no)[3]= unode->no;
 			int *index= unode->index;
 			int totvert= unode->totvert;
 
-			for(i = 0; i < totvert; ++i)
+			for(i = 0; i < totvert; ++i) {
 				VECCOPY(ss->mvert[index[i]].co, co[i]);
-		}
-
-		for(i = 0; i < ss->totvert; ++i) {
-			ss->mvert[i].no[0] = cache->orig_norms[i][0];
-			ss->mvert[i].no[1] = cache->orig_norms[i][1];
-			ss->mvert[i].no[2] = cache->orig_norms[i][2];
+				VECCOPY(ss->mvert[index[i]].no, no[i]);
+			}
 		}
 
 		if(ss->face_normals) {
@@ -1796,8 +1869,7 @@ static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 
 		sculpt_update_cache_invariants(sd, ss, C, op);
 
-		undo_paint_push_begin(UNDO_PAINT_MESH, sculpt_tool_name(sd),
-			sculpt_undo_restore, sculpt_undo_free);
+		sculpt_undo_push_begin(ss, sculpt_tool_name(sd));
 
 		return 1;
 	}
@@ -1824,13 +1896,12 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 
 	/* Finished */
 	if(ss->cache) {
-		// Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;
 
-		undo_paint_push_end(UNDO_PAINT_MESH);
-		// XXX ED_undo_push(C, sculpt_tool_name(sd));
+		sculpt_undo_push_end(ss);
+
+		BLI_pbvh_update(ss->tree, PBVH_UpdateOriginalBB, NULL);
 	}
 }
 
@@ -1867,8 +1938,6 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 	sculpt_flush_update(C);
 	sculpt_cache_free(ss->cache);
-
-	// XXX ED_undo_push(C, sculpt_tool_name(sd));
 
 	return OPERATOR_FINISHED;
 }

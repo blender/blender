@@ -191,10 +191,14 @@ void undo_paint_push_begin(int type, char *name, UndoRestoreCb restore, UndoFree
 
 ListBase *undo_paint_push_get_list(int type)
 {
-	if(type == UNDO_PAINT_IMAGE)
-		return &ImageUndoStack.current->elems;
-	else if(type == UNDO_PAINT_MESH)
-		return &MeshUndoStack.current->elems;
+	if(type == UNDO_PAINT_IMAGE) {
+		if(ImageUndoStack.current)
+			return &ImageUndoStack.current->elems;
+	}
+	else if(type == UNDO_PAINT_MESH) {
+		if(MeshUndoStack.current)
+			return &MeshUndoStack.current->elems;
+	}
 	
 	return NULL;
 }

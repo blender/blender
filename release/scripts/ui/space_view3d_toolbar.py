@@ -523,6 +523,9 @@ class VIEW3D_PT_tools_brush(PaintPanel):
                 if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
                     col.row().itemR(brush, "direction", expand=True)
 
+                if brush.sculpt_tool in ('DRAW', 'INFLATE', 'LAYER'):
+                    col.itemR(brush, "use_accumulate")
+
                 if brush.sculpt_tool == 'LAYER':
                     col.itemR(brush, "use_persistent")
                     col.itemO("sculpt.set_persistent_base")
