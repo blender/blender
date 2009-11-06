@@ -592,6 +592,11 @@ static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	}
 //	row= uiLayoutRow(layout, 0);
 	
+	if (!pchan)	{
+		uiItemL(layout, "No Bone Active", 0);
+		return; 
+	}
+
 	RNA_pointer_create(&ob->id, &RNA_PoseChannel, pchan, &pchanptr);
 
 	col= uiLayoutColumn(layout, 0);
