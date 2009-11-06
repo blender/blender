@@ -318,6 +318,14 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 	
 	for (v=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v=BMIter_Step(&iter)) {
 		if (BMO_TestFlag(bm, v, VERT_MARK)) {
+			/*check if it's a two-valence vert*/
+			if (BM_Vert_EdgeCount(v) == 2) {
+
+				/*collapse the vert*/
+				BM_Collapse_Vert(bm, v->edge, v, 0.5f);
+				continue;
+			}
+
 			f=BMIter_New(&fiter, bm, BM_FACES_OF_VERT, v);
 			for (; f; f=BMIter_Step(&fiter)) {
 				BMO_SetFlag(bm, f, FACE_ORIG);

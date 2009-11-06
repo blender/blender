@@ -777,9 +777,9 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 	edgeringWalker *lwalk, owalk;
 	BMEdge *e = data;
 
-	BMW_pushstate(walker);
-
 	if (!e->loop) return;
+
+	BMW_pushstate(walker);
 
 	lwalk = walker->currentstate;
 	lwalk->l = e->loop;
@@ -857,6 +857,8 @@ static void *uvedgeWalker_yield(BMWalker *walker)
 	uvedgeWalker *lwalk = walker->currentstate;
 	
 	if (!lwalk) return NULL;
+	
+	return lwalk->l;
 }
 
 static void *uvedgeWalker_step(BMWalker *walker)

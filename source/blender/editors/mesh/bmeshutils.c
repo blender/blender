@@ -65,6 +65,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
@@ -163,6 +164,8 @@ int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, char *fmt, ..
 	em->emcopyusers++;
 
 	va_end(list);
+
+	return 1;
 }
 
 
@@ -568,7 +571,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	  BMEdit_RecalcTesselation throughout the code.*/
 	BMEdit_RecalcTesselation(em);
 
-	BMO_CallOpf(em->bm, "bmesh_to_mesh meshptr=%p notesselation=%i", me, 1);
+	BMO_CallOpf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%i", me, 1);
 	me->selectmode = em->selectmode;
 
 	return me;

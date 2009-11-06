@@ -1112,8 +1112,8 @@ static void rna_def_modifier_edgesplit(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_MOD_EDGESPLIT);
 
 	prop= RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 180);
-	RNA_def_property_ui_range(prop, 0, 180, 100, 2);
+	RNA_def_property_range(prop, 0, 90);
+	RNA_def_property_ui_range(prop, 0, 90, 100, 2);
 	RNA_def_property_ui_text(prop, "Split Angle", "Angle above which to split edges.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
