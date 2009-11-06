@@ -830,6 +830,8 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 
         layout.itemR(pe, "type", text="")
 
+        ptcache = None
+
         if pe.type == 'PARTICLES':
             if ob.particle_systems:
                 if len(ob.particle_systems) > 1:
