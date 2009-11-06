@@ -127,6 +127,12 @@ class bpy_ops_submodule_op(object):
     '''
 
     __keys__ = ('module', 'func')
+    
+    
+    def _get_doc(self):
+        return op_as_string(self.idname())
+    
+    __doc__ = property(_get_doc)
 
     def __init__(self, module, func):
         self.module = module
