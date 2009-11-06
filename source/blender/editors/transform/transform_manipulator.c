@@ -496,7 +496,9 @@ int calc_manipulator_stats(const bContext *C)
 		}
 		case V3D_MANIP_NORMAL:
 			if(obedit || ob->mode & OB_MODE_POSE) {
-				getTransformOrientationMatrix(C, rv3d->twmat, (v3d->around == V3D_ACTIVE));
+				float mat[3][3];
+				ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
+				Mat4CpyMat3(rv3d->twmat, mat);
 				break;
 			}
 			/* no break we define 'normal' as 'local' in Object mode */

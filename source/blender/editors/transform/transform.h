@@ -698,8 +698,6 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
 
-/* also used in view3d_edit.c, todo - move outside of transform */
-void getTransformOrientationMatrix(const struct bContext *C, float twmat[][4], int use_active);
 int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 
