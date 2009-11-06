@@ -574,13 +574,14 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 
 static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
-	uiBlock *block= uiLayoutGetBlock(layout);
+//	uiBlock *block= uiLayoutGetBlock(layout);
 	bArmature *arm;
 	bPoseChannel *pchan;
 	Bone *bone= NULL;
-	TransformProperties *tfp= v3d->properties_storage;
+//	TransformProperties *tfp= v3d->properties_storage;
 	PointerRNA pchanptr;
-	uiLayout *row, *col;
+	uiLayout *col;
+//	uiLayout *row;
 
 	arm = ob->data;
 	if (!arm || !ob->pose) return;
@@ -682,11 +683,12 @@ void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
 
 static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
-	uiBlock *block= uiLayoutGetBlock(layout);
+//	uiBlock *block= uiLayoutGetBlock(layout);
 	bArmature *arm= ob->data;
 	EditBone *ebone;
-	TransformProperties *tfp= v3d->properties_storage;
-	uiLayout *row, *col;
+//	TransformProperties *tfp= v3d->properties_storage;
+//	uiLayout *row;
+	uiLayout *col;
 	PointerRNA eboneptr;
 	
 	ebone= arm->edbo->first;
@@ -722,7 +724,8 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob, float lim)
 {
 	PointerRNA mbptr, ptr;
 	MetaBall *mball= ob->data;
-	uiLayout *row, *col;
+//	uiLayout *row;
+	uiLayout *col;
 	
 	if (!mball || !(mball->lastelem)) return;
 	
@@ -779,9 +782,9 @@ static int test_parent_loop(Object *par, Object *ob)
 static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
+//	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	BoundBox *bb;
+//	BoundBox *bb;
 	Object *ob= OBACT;
 	TransformProperties *tfp= v3d->properties_storage;
 	

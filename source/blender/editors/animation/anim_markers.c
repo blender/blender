@@ -814,7 +814,7 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker;
 	float xminf, xmaxf, yminf, ymaxf;
-	int event_type= RNA_int_get(op->ptr, "event_type");
+	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	int xmin= RNA_int_get(op->ptr, "xmin");
 	int xmax= RNA_int_get(op->ptr, "xmax");
 	int ymin= RNA_int_get(op->ptr, "ymin");
@@ -833,13 +833,12 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	/* XXX marker context */
 	for(marker= markers->first; marker; marker= marker->next) {
 		if ((marker->frame > xminf) && (marker->frame <= xmaxf)) {
-			/* XXX weak... */
-			switch (event_type) {
-				case LEFTMOUSE:
+			switch (gesture_mode) {
+				case GESTURE_MODAL_SELECT:
 					if ((marker->flag & SELECT) == 0) 
 						marker->flag |= SELECT;
 					break;
-				case RIGHTMOUSE:
+				case GESTURE_MODAL_DESELECT:
 					if (marker->flag & SELECT) 
 						marker->flag &= ~SELECT;
 					break;
@@ -870,11 +869,7 @@ static void MARKER_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	WM_operator_properties_gesture_border(ot, FALSE);
 }
 
 /* *********************** (de)select all ***************** */

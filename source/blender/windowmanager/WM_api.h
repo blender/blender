@@ -185,6 +185,7 @@ void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
+void		WM_operator_properties_gesture_border(wmOperatorType *ot, int extend);
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
