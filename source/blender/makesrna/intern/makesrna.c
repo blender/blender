@@ -1995,7 +1995,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_context.c", NULL, RNA_def_context},
 	{"rna_controller.c", NULL, RNA_def_controller},
 	{"rna_curve.c", NULL, RNA_def_curve},
-	{"rna_fcurve.c", NULL, RNA_def_fcurve},
+	{"rna_fcurve.c", "rna_fcurve_api.c", RNA_def_fcurve},
 	{"rna_fluidsim.c", NULL, RNA_def_fluidsim},
 	{"rna_gpencil.c", NULL, RNA_def_gpencil},
 	{"rna_group.c", NULL, RNA_def_group},
