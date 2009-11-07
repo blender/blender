@@ -145,6 +145,7 @@ Curve *add_curve(char *name, int type)
 	cu->fsize= 1.0;
 	cu->ulheight = 0.05;	
 	cu->texflag= CU_AUTOSPACE;
+	cu->twist_mode= CU_TWIST_MINIMUM;	// XXX: this one seems to be the best one in most cases, at least for curve deform...
 	
 	cu->bb= unit_boundbox();
 	
@@ -2906,7 +2907,7 @@ void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
 
 float (*curve_getKeyVertexCos(Curve *cu, ListBase *lb, float *key))[3]
 {
-	int i, numVerts;
+	int i, numVerts = count_curveverts(lb);
 	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "cu_vcos");
 	Nurb *nu;
 

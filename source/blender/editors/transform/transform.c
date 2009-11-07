@@ -140,7 +140,7 @@ void setTransformViewMatrices(TransInfo *t)
 		Mat4One(t->viewinv);
 		Mat4One(t->persmat);
 		Mat4One(t->persinv);
-		t->persp = V3D_ORTHO;
+		t->persp = RV3D_ORTHO;
 	}
 
 	calculateCenter2D(t);
@@ -330,13 +330,9 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype==SPACE_IMAGE) {
 		// XXX how to deal with lock?
-#if 0
 		SpaceImage *sima= (SpaceImage*)t->sa->spacedata.first;
-		if(sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
-		else force_draw(0);
-#endif
-
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, t->obedit->data);
+		if(sima->lock) WM_event_add_notifier(C, NC_GEOM|ND_DATA, t->obedit->data);
+		else ED_area_tag_redraw(t->sa);
 	}
 }
 
@@ -1012,10 +1008,11 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 		VECCOPY(vec, t->con.center);
 	}
 
-	postTrans(t);
 
 	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
 	special_aftertrans_update(t);
+
+	postTrans(t);
 
 	MEM_freeN(t);
 
@@ -1573,11 +1570,11 @@ int transformEnd(bContext *C, TransInfo *t)
 			exit_code = OPERATOR_FINISHED;
 		}
 
-		/* free data */
-		postTrans(t);
-
 		/* aftertrans does insert keyframes, and clears base flags, doesnt read transdata */
 		special_aftertrans_update(t);
+
+		/* free data */
+		postTrans(t);
 
 		/* send events out for redraws */
 		viewRedrawPost(t);
@@ -2342,7 +2339,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		if (t->flag & (T_OBJECT|T_TEXTURE|T_POSE)) {
 			float obsizemat[3][3];
 			// Reorient the size mat to fit the oriented object.
-			Mat3MulMat3(obsizemat, td->axismtx, tmat);
+			Mat3MulMat3(obsizemat, tmat, td->axismtx);
 			//printmatrix3("obsizemat", obsizemat);
 			TransMat3ToSize(obsizemat, td->axismtx, fsize);
 			//printvecf("fsize", fsize);
@@ -2356,7 +2353,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't resize objects itself
 			if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
 				/* scale val and reset size */
- 				*td->val = td->ival * fsize[0] * td->factor;
+ 				*td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
 				
 				td->ext->size[0] = td->ext->isize[0];
 				td->ext->size[1] = td->ext->isize[1];
@@ -2367,9 +2364,9 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 				if (td->flag & TD_SINGLESIZE)
 	 				*td->val = td->ival;
 				
-				td->ext->size[0] = td->ext->isize[0] * (fsize[0]) * td->factor;
-				td->ext->size[1] = td->ext->isize[1] * (fsize[1]) * td->factor;
-				td->ext->size[2] = td->ext->isize[2] * (fsize[2]) * td->factor;
+				td->ext->size[0] = td->ext->isize[0] * (1 + (fsize[0] - 1) * td->factor);
+				td->ext->size[1] = td->ext->isize[1] * (1 + (fsize[1] - 1) * td->factor);
+				td->ext->size[2] = td->ext->isize[2] * (1 + (fsize[2] - 1) * td->factor);
 			}
 		}
 		

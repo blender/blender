@@ -365,10 +365,6 @@ double plNearestPoints(float p1[3], float p2[3], float p3[3], float q1[3], float
 	btPointCollector gjkOutput;
 	btGjkPairDetector::ClosestPointInput input;
 	
-	btStackAlloc gStackAlloc(1024*1024*2);
- 
-	input.m_stackAlloc = &gStackAlloc;
-	
 	btTransform tr;
 	tr.setIdentity();
 	

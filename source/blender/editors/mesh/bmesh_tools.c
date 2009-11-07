@@ -1773,7 +1773,7 @@ void EDBM_unpin_mesh(BMEditMesh *em, int swap)
 {
 	BMIter iter;
 	BMHeader *ele;
-	int i, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	int sels[3] = {1, !(em->selectmode & SCE_SELECT_VERTEX), !(em->selectmode & SCE_SELECT_VERTEX | SCE_SELECT_EDGE)};
 	int itermode;
 	
@@ -2627,7 +2627,6 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMOperator bmop;
-	char msg[100];
 	int count;
 
 	EDBM_InitOpf(em, &bmop, op, "finddoubles verts=%hv dist=%f", 
@@ -3370,3 +3369,242 @@ void MESH_OT_rip(wmOperatorType *ot)
 	Properties_Proportional(ot);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
+
+/************************ Shape Operators *************************/
+
+/*BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
+static void shape_propagate(Object *obedit, BMEditMesh *em, wmOperator *op)
+{
+	BMIter iter;
+	BMVert *eve = NULL;
+	float *co;
+	int i, totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
+
+	if (!CustomData_has_layer(&em->bm->vdata, CD_SHAPEKEY)) {
+		BKE_report(op->reports, RPT_ERROR, "Mesh does not have shape keys");
+		return;
+	}
+	
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_TestHFlag(eve, BM_SELECT) || BM_TestHFlag(eve, BM_HIDDEN))
+			continue;
+
+		for (i=0; i<totshape; i++) {
+			co = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, i);
+			VECCOPY(co, eve->co);
+		}
+	}
+
+#if 0
+	//TAG Mesh Objects that share this data
+	for(base = scene->base.first; base; base = base->next){
+		if(base->object && base->object->data == me){
+			base->object->recalc = OB_RECALC_DATA;
+		}
+	}
+#endif
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+}
+
+
+static int shape_propagate_to_all_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	BMEditMesh *em= me->edit_btmesh;
+
+	shape_propagate(obedit, em, op);
+
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shape Propagate";
+	ot->description= "Apply selected vertex locations to all other shape keys.";
+	ot->idname= "MESH_OT_shape_propagate_to_all";
+
+	/* api callbacks */
+	ot->exec= shape_propagate_to_all_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/*BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
+static int blend_from_shape_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	BMEditMesh *em= me->edit_btmesh;
+	BMVert *eve;
+	BMIter iter;
+	float co[3], *sco;
+	float blend= RNA_float_get(op->ptr, "blend");
+	int shape= RNA_enum_get(op->ptr, "shape");
+	int add= RNA_int_get(op->ptr, "add");
+	int blended= 0, totshape;
+
+	/*sanity check*/
+	totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
+	if (totshape == 0 || shape < 0 || shape >= totshape)
+		return OPERATOR_CANCELLED;
+
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_TestHFlag(eve, BM_SELECT) || BM_TestHFlag(eve, BM_HIDDEN))
+			continue;
+
+		sco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, shape);
+		VECCOPY(co, sco);
+
+
+		if(add) {
+			VecMulf(co, blend);
+			VecAddf(eve->co, eve->co, co);
+		}
+		else
+			VecLerpf(eve->co, eve->co, co, blend);
+		
+		VECCOPY(sco, co);
+	}
+
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return OPERATOR_FINISHED;
+}
+
+static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= (obedit) ? obedit->data : NULL;
+	BMEditMesh *em = me->edit_btmesh;
+	EnumPropertyItem tmp= {0, "", 0, "", ""}, *item= NULL;
+	int totitem= 0, a;
+
+	if(obedit && obedit->type == OB_MESH && CustomData_has_layer(&em->bm->vdata, CD_SHAPEKEY)) {
+		for (a=0; a<em->bm->vdata.totlayer; a++) {
+			if (em->bm->vdata.layers[a].type != CD_SHAPEKEY)
+				continue;
+
+			tmp.value= totitem;
+			tmp.identifier= em->bm->vdata.layers[a].name;
+			tmp.name= em->bm->vdata.layers[a].name;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+
+			totitem++;
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
+void MESH_OT_blend_from_shape(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	static EnumPropertyItem shape_items[]= {{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Blend From Shape";
+	ot->description= "Blend in shape from a shape key.";
+	ot->idname= "MESH_OT_blend_from_shape";
+
+	/* api callbacks */
+	ot->exec= blend_from_shape_exec;
+	ot->invoke= WM_operator_props_popup;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending.");
+	RNA_def_enum_funcs(prop, shape_itemf);
+	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor.", -2.0f, 2.0f);
+	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather then blend between shapes.");
+}
+
+/* TODO - some way to select on an arbitrary axis */
+static int select_axis_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditSelection *ese = em->bm->selected.last;
+	int axis= RNA_int_get(op->ptr, "axis");
+	int mode= RNA_enum_get(op->ptr, "mode"); /* -1==aligned, 0==neg, 1==pos*/
+
+	if(ese==NULL)
+		return OPERATOR_CANCELLED;
+
+	if(ese->type==BM_VERT) {
+		BMVert *ev, *act_vert= (BMVert*)ese->data;
+		BMIter iter;
+		float value= act_vert->co[axis];
+		float limit=  CTX_data_tool_settings(C)->doublimit; // XXX
+
+		if(mode==0)
+			value -= limit;
+		else if (mode==1) 
+			value += limit;
+
+		BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if(!BM_TestHFlag(ev, BM_HIDDEN)) {
+				switch(mode) {
+				case -1: /* aligned */
+					if(fabs(ev->co[axis] - value) < limit)
+						BM_Select(em->bm, ev, 1);
+					break;
+				case 0: /* neg */
+					if(ev->co[axis] > value)
+						BM_Select(em->bm, ev, 1);
+					break;
+				case 1: /* pos */
+					if(ev->co[axis] < value)
+						BM_Select(em->bm, ev, 1);
+					break;
+				}
+			}
+		}
+	}
+
+	EDBM_selectmode_flush(em);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_axis(wmOperatorType *ot)
+{
+	static EnumPropertyItem axis_mode_items[] = {
+		{0,  "POSITIVE", 0, "Positive Axis", ""},
+		{1,  "NEGATIVE", 0, "Negative Axis", ""},
+		{-1, "ALIGNED",  0, "Aligned Axis", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Select Axis";
+	ot->description= "Select all data in the mesh on a single axis.";
+	ot->idname= "MESH_OT_select_axis";
+
+	/* api callbacks */
+	ot->exec= select_axis_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "mode", axis_mode_items, 0, "Axis Mode", "Axis side to use when selecting");
+	RNA_def_int(ot->srna, "axis", 0, 0, 2, "Axis", "Select the axis to compare each vertex on", 0, 2);
+}
+

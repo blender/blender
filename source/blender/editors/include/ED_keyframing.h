@@ -116,7 +116,7 @@ typedef struct bCommonKeySrc {
 /* -------- */
 
 /* mode for modify_keyframes */
-enum {
+typedef enum eModifyKey_Modes {
 	MODIFYKEY_MODE_INSERT = 0,
 	MODIFYKEY_MODE_DELETE,
 } eModifyKey_Modes;
@@ -208,7 +208,7 @@ short id_frame_has_keyframe(struct ID *id, float frame, short filter);
  * WARNING: do not alter order of these, as also stored in files
  *	(for v3d->keyflags)
  */
-enum {
+typedef enum eAnimFilterFlags {
 		/* general */
 	ANIMFILTER_KEYS_LOCAL	= (1<<0),		/* only include locally available anim data */
 	ANIMFILTER_KEYS_MUTED	= (1<<1),		/* include muted elements */

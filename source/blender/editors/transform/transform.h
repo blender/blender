@@ -535,6 +535,7 @@ void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
+void gimbal_axis(struct Object *ob, float gmat[][3]);
 int calc_manipulator_stats(const struct bContext *C);
 float get_drawsize(struct ARegion *ar, float *co);
 
@@ -696,6 +697,9 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 #define ORIENTATION_FACE	4
 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
+
+/* also used in view3d_edit.c, todo - move outside of transform */
+void getTransformOrientationMatrix(const struct bContext *C, float twmat[][4], int use_active);
 int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 

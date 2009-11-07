@@ -221,6 +221,12 @@ static void rna_Curve_update_data(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
 }
 
+static void rna_Curve_update_deps(bContext *C, PointerRNA *ptr)
+{
+	DAG_scene_sort(CTX_data_scene(C));
+	rna_Curve_update_data(C, ptr);
+}
+
 static void rna_Nurb_update_handle_data(bContext *C, PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
@@ -552,7 +558,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "textoncurve");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text on Curve", "Curve deforming text object.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
 	
 	prop= RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfont");
@@ -757,12 +763,12 @@ static void rna_def_curve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
-	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property.");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
-	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	
@@ -776,13 +782,13 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "bevobj");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Object", "Curve object name that defines the bevel shape.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
 	
 	prop= RNA_def_property(srna, "taper_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "taperobj");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width).");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
 	
 	/* Flags */
 

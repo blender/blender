@@ -133,6 +133,7 @@ static int logic_properties(bContext *C, wmOperator *op)
 void LOGIC_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
+	ot->description= "Toggle display properties panel.";
 	ot->idname= "LOGIC_OT_properties";
 	
 	ot->exec= logic_properties;

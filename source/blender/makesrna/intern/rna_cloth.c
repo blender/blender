@@ -152,7 +152,7 @@ static char *rna_ClothSettings_path(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
 
-	return md ? BLI_sprintfN("modifiers[%s].settings", md->name) : NULL;
+	return md ? BLI_sprintfN("modifiers[\"%s\"].settings", md->name) : NULL;
 }
 
 static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
@@ -160,7 +160,7 @@ static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
 
-	return md ? BLI_sprintfN("modifiers[%s].collision_settings", md->name) : NULL;
+	return md ? BLI_sprintfN("modifiers[\"%s\"].collision_settings", md->name) : NULL;
 }
 
 #else

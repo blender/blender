@@ -44,6 +44,7 @@ struct AnimData;
 
 typedef struct Bone {
 	struct Bone		*next, *prev;	/*	Next/prev elements within this list	*/
+	IDProperty 		*prop;			/* User-Defined Properties on this Bone */
 	struct Bone		*parent;		/*	Parent (ik parent if appropriate flag is set		*/
 	ListBase		childbase;		/*	Children	*/
 	char			name[32];		/*  Name of the bone - must be unique within the armature */
@@ -72,6 +73,7 @@ typedef struct Bone {
 typedef struct bArmature {
 	ID			id;
 	struct AnimData *adt;
+	
 	ListBase	bonebase;
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */

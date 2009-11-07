@@ -976,7 +976,7 @@ void GRAPH_OT_bake (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm; // FIXME...
 	ot->exec= graphkeys_bake_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->poll= graphop_selected_fcurve_poll; 
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

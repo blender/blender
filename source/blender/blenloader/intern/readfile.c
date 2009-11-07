@@ -2266,6 +2266,20 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->target = newlibadr(fd, id->lib, data->target);
 			}
 			break;
+		case CONSTRAINT_TYPE_DAMPTRACK:
+			{
+				bDampTrackConstraint *data;
+				data= ((bDampTrackConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data;
+				data= ((bSplineIKConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -2289,6 +2303,11 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 			if (data->prop)
 				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
+		else if (cons->type == CONSTRAINT_TYPE_SPLINEIK) {
+			bSplineIKConstraint *data= cons->data;
+			
+			data->points= newdataadr(fd, data->points);
+	}
 	}
 }
 
@@ -2346,12 +2365,14 @@ static void direct_link_bones(FileData *fd, Bone* bone)
 	Bone	*child;
 
 	bone->parent= newdataadr(fd, bone->parent);
+	bone->prop= newdataadr(fd, bone->prop);
+	if(bone->prop)
+		IDP_DirectLinkProperty(bone->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 
 	link_list(fd, &bone->childbase);
 
-	for (child=bone->childbase.first; child; child=child->next) {
+	for(child=bone->childbase.first; child; child=child->next)
 		direct_link_bones(fd, child);
-	}
 }
 
 static void direct_link_armature(FileData *fd, bArmature *arm)
@@ -2872,10 +2893,8 @@ static void lib_link_texture(FileData *fd, Main *main)
 			tex->ima= newlibadr_us(fd, tex->id.lib, tex->ima);
 			tex->ipo= newlibadr_us(fd, tex->id.lib, tex->ipo);
 			if(tex->env) tex->env->object= newlibadr(fd, tex->id.lib, tex->env->object);
-			if(tex->pd) {
+			if(tex->pd)
 				tex->pd->object= newlibadr(fd, tex->id.lib, tex->pd->object);
-				tex->pd->psys= newlibadr(fd, tex->id.lib, tex->pd->psys);
-			}
 			if(tex->vd) tex->vd->object= newlibadr(fd, tex->id.lib, tex->vd->object);
 
 			if(tex->nodetree)
@@ -3675,7 +3694,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				ob->type= OB_EMPTY;
 				warn= 1;
 				if(ob->id.lib) printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
-				else printf("Object %s lost data.", ob->id.name+2);
+				else printf("Object %s lost data.\n", ob->id.name+2);
 				
 				if(ob->pose) {
 					free_pose(ob->pose);
@@ -10901,6 +10920,18 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 			{
 				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->target);
+			}
+			break;
+		case CONSTRAINT_TYPE_DAMPTRACK:
+			{
+				bDampTrackConstraint *data = (bDampTrackConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data = (bSplineIKConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
 			}
 			break;
 		default:

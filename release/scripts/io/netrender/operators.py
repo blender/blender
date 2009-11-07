@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 import bpy
 import sys, os
 import http, http.client, http.server, urllib, socket
@@ -10,13 +28,8 @@ import netrender.model
 @rnaOperator
 class RENDER_OT_netclientanim(bpy.types.Operator):
 	'''Start rendering an animation on network'''
-	__idname__ = "render.netclientanim"
-	__label__ = "Animation on network"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientanim"
+	bl_label = "Animation on network"
 	
 	def poll(self, context):
 		return True
@@ -41,13 +54,8 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientsend(bpy.types.Operator):
 	'''Send Render Job to the Network'''
-	__idname__ = "render.netclientsend"
-	__label__ = "Send job"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientsend"
+	bl_label = "Send job"
 	
 	def poll(self, context):
 		return True
@@ -70,13 +78,8 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientstatus(bpy.types.Operator):
 	'''Refresh the status of the current jobs'''
-	__idname__ = "render.netclientstatus"
-	__label__ = "Client Status"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientstatus"
+	bl_label = "Client Status"
 	
 	def poll(self, context):
 		return True
@@ -96,10 +99,10 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 			while(len(netsettings.jobs) > 0):
 				netsettings.jobs.remove(0)
 			
-			bpy.data.netrender_jobs = []
+			bpy.netrender_jobs = []
 			
 			for j in jobs:
-				bpy.data.netrender_jobs.append(j)
+				bpy.netrender_jobs.append(j)
 				netsettings.jobs.add()
 				job = netsettings.jobs[-1]
 				
@@ -115,13 +118,8 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
-	__idname__ = "render.netclientblacklistslave"
-	__label__ = "Client Blacklist Slave"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientblacklistslave"
+	bl_label = "Client Blacklist Slave"
 	
 	def poll(self, context):
 		return True
@@ -132,8 +130,8 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 		if netsettings.active_slave_index >= 0:
 			
 			# deal with data
-			slave = bpy.data.netrender_slaves.pop(netsettings.active_slave_index)
-			bpy.data.netrender_blacklist.append(slave)
+			slave = bpy.netrender_slaves.pop(netsettings.active_slave_index)
+			bpy.netrender_blacklist.append(slave)
 			
 			# deal with rna
 			netsettings.slaves_blacklist.add()
@@ -150,13 +148,8 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
-	__idname__ = "render.netclientwhitelistslave"
-	__label__ = "Client Whitelist Slave"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientwhitelistslave"
+	bl_label = "Client Whitelist Slave"
 	
 	def poll(self, context):
 		return True
@@ -167,8 +160,8 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 		if netsettings.active_blacklisted_slave_index >= 0:
 			
 			# deal with data
-			slave = bpy.data.netrender_blacklist.pop(netsettings.active_blacklisted_slave_index)
-			bpy.data.netrender_slaves.append(slave)
+			slave = bpy.netrender_blacklist.pop(netsettings.active_blacklisted_slave_index)
+			bpy.netrender_slaves.append(slave)
 			
 			# deal with rna
 			netsettings.slaves.add()
@@ -186,13 +179,8 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientslaves(bpy.types.Operator):
 	'''Refresh status about available Render slaves'''
-	__idname__ = "render.netclientslaves"
-	__label__ = "Client Slaves"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientslaves"
+	bl_label = "Client Slaves"
 	
 	def poll(self, context):
 		return True
@@ -212,17 +200,17 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 			while(len(netsettings.slaves) > 0):
 				netsettings.slaves.remove(0)
 			
-			bpy.data.netrender_slaves = []
+			bpy.netrender_slaves = []
 			
 			for s in slaves:
-				for i in range(len(bpy.data.netrender_blacklist)):
-					slave = bpy.data.netrender_blacklist[i]
+				for i in range(len(bpy.netrender_blacklist)):
+					slave = bpy.netrender_blacklist[i]
 					if slave.id == s.id:
-						bpy.data.netrender_blacklist[i] = s
+						bpy.netrender_blacklist[i] = s
 						netsettings.slaves_blacklist[i].name = s.name
 						break
 				else:
-					bpy.data.netrender_slaves.append(s)
+					bpy.netrender_slaves.append(s)
 					
 					netsettings.slaves.add()
 					slave = netsettings.slaves[-1]
@@ -236,13 +224,8 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientcancel(bpy.types.Operator):
 	'''Cancel the selected network rendering job.'''
-	__idname__ = "render.netclientcancel"
-	__label__ = "Client Cancel"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientcancel"
+	bl_label = "Client Cancel"
 	
 	def poll(self, context):
 		netsettings = context.scene.network_render
@@ -253,7 +236,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			job = bpy.data.netrender_jobs[netsettings.active_job_index]
+			job = bpy.netrender_jobs[netsettings.active_job_index]
 			
 			conn.request("POST", "/cancel", headers={"job-id":job.id})
 			
@@ -270,13 +253,8 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 @rnaOperator
 class RENDER_OT_netclientcancelall(bpy.types.Operator):
 	'''Cancel all running network rendering jobs.'''
-	__idname__ = "render.netclientcancelall"
-	__label__ = "Client Cancel All"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientcancelall"
+	bl_label = "Client Cancel All"
 	
 	def poll(self, context):
 		return True
@@ -302,13 +280,8 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 @rnaOperator
 class netclientdownload(bpy.types.Operator):
 	'''Download render results from the network'''
-	__idname__ = "render.netclientdownload"
-	__label__ = "Client Download"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientdownload"
+	bl_label = "Client Download"
 	
 	def poll(self, context):
 		netsettings = context.scene.network_render
@@ -321,7 +294,7 @@ class netclientdownload(bpy.types.Operator):
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			job = bpy.data.netrender_jobs[netsettings.active_job_index]
+			job = bpy.netrender_jobs[netsettings.active_job_index]
 			
 			for frame in job.frames:
 				client.requestResult(conn, job.id, frame.number)
@@ -352,13 +325,8 @@ class netclientdownload(bpy.types.Operator):
 @rnaOperator
 class netclientscan(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
-	__idname__ = "render.netclientscan"
-	__label__ = "Client Scan"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientscan"
+	bl_label = "Client Scan"
 	
 	def poll(self, context):
 		return True
@@ -390,13 +358,8 @@ class netclientscan(bpy.types.Operator):
 @rnaOperator
 class netclientweb(bpy.types.Operator):
 	'''Open new window with information about running rendering jobs'''
-	__idname__ = "render.netclientweb"
-	__label__ = "Open Master Monitor"
-	
-	# List of operator properties, the attributes will be assigned
-	# to the class instance from the operator settings before calling.
-	
-	__props__ = []
+	bl_idname = "render.netclientweb"
+	bl_label = "Open Master Monitor"
 	
 	def poll(self, context):
 		return True

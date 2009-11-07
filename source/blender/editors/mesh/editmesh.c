@@ -730,6 +730,13 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 	em->totedge= me->totedge;
 	em->totface= me->totface;
 	
+	if(tot==0) {
+		return;
+	}
+	
+	if(ob->actcol > 0)
+		em->mat_nr= ob->actcol-1;
+
 	actkey = ob_get_keyblock(ob);
 	if(actkey) {
 		keyco= actkey->data;
@@ -934,8 +941,6 @@ void load_editMesh(Scene *scene, Object *ob, EditMesh *em)
 	CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
 	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
 	mesh_update_customdata_pointers(me);
-
-	em->mat_nr= ob->actcol-1;
 
 	/* the vertices, use ->tmp.l as counter */
 	eve= em->verts.first;

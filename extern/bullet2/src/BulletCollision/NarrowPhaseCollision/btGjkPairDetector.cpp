@@ -293,7 +293,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 					m_minkowskiA,m_minkowskiB,
 					localTransA,localTransB,
 					m_cachedSeparatingAxis, tmpPointOnA, tmpPointOnB,
-					debugDraw,input.m_stackAlloc
+					debugDraw
 					);
 
 				if (isValid2)

@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 import bpy
 import sys, os, re
 import http, http.client, http.server, urllib
@@ -28,7 +46,7 @@ def addPointCache(job, ob, point_cache, default_path):
 	if name == "":
 		name = "".join(["%02X" % ord(c) for c in ob.name])
 	
-	cache_path = bpy.sys.expandpath(point_cache.filepath) if point_cache.external else default_path
+	cache_path = bpy.utils.expandpath(point_cache.filepath) if point_cache.external else default_path
 	
 	index = "%02i" % point_cache.index
 	
@@ -93,14 +111,14 @@ def clientSendJob(conn, scene, anim = False):
 	# LIBRARIES
 	###########################
 	for lib in bpy.data.libraries:
-		job.addFile(bpy.sys.expandpath(lib_path))
+		job.addFile(bpy.utils.expandpath(lib_path))
 		
 	###########################
 	# IMAGES
 	###########################
 	for image in bpy.data.images:
 		if image.source == "FILE" and not image.packed_file:
-			job.addFile(bpy.sys.expandpath(image.filename))
+			job.addFile(bpy.utils.expandpath(image.filename))
 	
 	###########################
 	# FLUID + POINT CACHE
@@ -111,7 +129,7 @@ def clientSendJob(conn, scene, anim = False):
 	for object in bpy.data.objects:
 		for modifier in object.modifiers:
 			if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-				addFluidFiles(job, bpy.sys.expandpath(modifier.settings.path))
+				addFluidFiles(job, bpy.utils.expandpath(modifier.settings.path))
 			elif modifier.type == "CLOTH":
 				addPointCache(job, object, modifier.point_cache, default_path)
 			elif modifier.type == "SOFT_BODY":
@@ -159,8 +177,8 @@ def requestResult(conn, job_id, frame):
 
 @rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
-	__idname__ = 'NET_RENDER'
-	__label__ = "Network Render"
+	bl_idname = 'NET_RENDER'
+	bl_label = "Network Render"
 	def render(self, scene):
 		if scene.network_render.mode == "RENDER_CLIENT":
 			self.render_client(scene)
@@ -235,3 +253,15 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			
 			conn.close()
 
+def compatible(module):
+	exec("import " + module)
+	module = eval(module)
+	for member in dir(module):
+		subclass = getattr(module, member)
+		try:		subclass.COMPAT_ENGINES.add('NET_RENDER')
+		except:	pass
+	del module
+
+compatible("properties_render")
+compatible("properties_world")
+compatible("properties_material")

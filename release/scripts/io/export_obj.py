@@ -1,4 +1,20 @@
-#!BPY
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
 """
 Name: 'Wavefront (.obj)...'
@@ -207,11 +223,11 @@ def copy_images(dest_dir):
 	copyCount = 0
 	
 # 	for bImage in uniqueImages.values():
-# 		image_path = bpy.sys.expandpath(bImage.filename)
+# 		image_path = bpy.utils.expandpath(bImage.filename)
 # 		if bpy.sys.exists(image_path):
 # 			# Make a name for the target path.
 # 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
-# 			if not bpy.sys.exists(dest_image_path): # Image isnt alredy there
+# 			if not bpy.utils.exists(dest_image_path): # Image isnt alredy there
 # 				print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
 # 				copy_file(image_path, dest_image_path)
 # 				copyCount+=1
@@ -913,44 +929,46 @@ Currently the exporter lacks these features:
 * multiple scene export (only active scene is written)
 * particles
 '''
-class EXPORT_OT_obj(bpy.types.Operator):
+
+from bpy.props import *
+
+class ExportOBJ(bpy.types.Operator):
 	'''Save a Wavefront OBJ File'''
 	
-	__idname__ = "export.obj"
-	__label__ = 'Export OBJ'
+	bl_idname = "export.obj"
+	bl_label = 'Export OBJ'
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= ""),
+	path = StringProperty(name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= "")
 
-		# context group
-		bpy.props.BoolProperty(attr="use_selection", name="Selection Only", description="", default= False),
-		bpy.props.BoolProperty(attr="use_all_scenes", name="All Scenes", description="", default= False),
-		bpy.props.BoolProperty(attr="use_animation", name="All Animation", description="", default= False),
+	# context group
+	use_selection = BoolProperty(name="Selection Only", description="", default= False)
+	use_all_scenes = BoolProperty(name="All Scenes", description="", default= False)
+	use_animation = BoolProperty(name="All Animation", description="", default= False)
 
-		# object group
-		bpy.props.BoolProperty(attr="use_modifiers", name="Apply Modifiers", description="", default= True),
-		bpy.props.BoolProperty(attr="use_rotate90", name="Rotate X90", description="", default= True),
+	# object group
+	use_modifiers = BoolProperty(name="Apply Modifiers", description="", default= True)
+	use_rotate90 = BoolProperty(name="Rotate X90", description="", default= True)
 
-		# extra data group
-		bpy.props.BoolProperty(attr="use_edges", name="Edges", description="", default= True),
-		bpy.props.BoolProperty(attr="use_normals", name="Normals", description="", default= False),
-		bpy.props.BoolProperty(attr="use_hq_normals", name="High Quality Normals", description="", default= True),
-		bpy.props.BoolProperty(attr="use_uvs", name="UVs", description="", default= True),
-		bpy.props.BoolProperty(attr="use_materials", name="Materials", description="", default= True),
-		bpy.props.BoolProperty(attr="copy_images", name="Copy Images", description="", default= False),
-		bpy.props.BoolProperty(attr="use_triangles", name="Triangulate", description="", default= False),
-		bpy.props.BoolProperty(attr="use_vertex_groups", name="Polygroups", description="", default= False),
-		bpy.props.BoolProperty(attr="use_nurbs", name="Nurbs", description="", default= False),
+	# extra data group
+	use_edges = BoolProperty(name="Edges", description="", default= True)
+	use_normals = BoolProperty(name="Normals", description="", default= False)
+	use_hq_normals = BoolProperty(name="High Quality Normals", description="", default= True)
+	use_uvs = BoolProperty(name="UVs", description="", default= True)
+	use_materials = BoolProperty(name="Materials", description="", default= True)
+	copy_images = BoolProperty(name="Copy Images", description="", default= False)
+	use_triangles = BoolProperty(name="Triangulate", description="", default= False)
+	use_vertex_groups = BoolProperty(name="Polygroups", description="", default= False)
+	use_nurbs = BoolProperty(name="Nurbs", description="", default= False)
 
-		# grouping group
-		bpy.props.BoolProperty(attr="use_blen_objects", name="Objects as OBJ Objects", description="", default= True),
-		bpy.props.BoolProperty(attr="group_by_object", name="Objects as OBJ Groups ", description="", default= False),
-		bpy.props.BoolProperty(attr="group_by_material", name="Material Groups", description="", default= False),
-		bpy.props.BoolProperty(attr="keep_vertex_order", name="Keep Vertex Order", description="", default= False)
-	]
+	# grouping group
+	use_blen_objects = BoolProperty(name="Objects as OBJ Objects", description="", default= True)
+	group_by_object = BoolProperty(name="Objects as OBJ Groups ", description="", default= False)
+	group_by_material = BoolProperty(name="Material Groups", description="", default= False)
+	keep_vertex_order = BoolProperty(name="Keep Vertex Order", description="", default= False)
+	
 	
 	def execute(self, context):
 
@@ -977,17 +995,21 @@ class EXPORT_OT_obj(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 	
 	def poll(self, context): # Poll isnt working yet
 		print("Poll")
 		return context.active_object != None
 
-bpy.ops.add(EXPORT_OT_obj)
+bpy.ops.add(ExportOBJ)
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.obj", text="Wavefront (.obj)...")
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".obj")
+    self.layout.item_stringO(ExportOBJ.bl_idname, "path", default_path, text="Wavefront (.obj)...")
+
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 if __name__ == "__main__":

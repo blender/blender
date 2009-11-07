@@ -35,20 +35,21 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_boid_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_group_types.h"
-#include "DNA_particle_types.h"
+#include "DNA_ipo_types.h" 	// XXX old animation system stuff to remove!
+#include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_force.h"
-#include "DNA_texture_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_ipo_types.h" 	// XXX old animation system stuff to remove!
+#include "DNA_particle_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_smoke_types.h"
+#include "DNA_texture_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -2276,7 +2277,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 /*	Object *ob= ctx->sim.ob; */
 	ParticleSystem *psys= ctx->sim.psys;
 	ParticleSettings *part = psys->part;
-	ParticleEditSettings *pset = &scene->toolsettings->particle;
+/*	ParticleEditSettings *pset = &scene->toolsettings->particle; */
 	int totparent=0, between=0;
 	int steps = (int)pow(2.0, (double)part->draw_step);
 	int totchild = psys->totchild;
@@ -3309,9 +3310,19 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 {
 	ParticleSystem *psys = psys_get_current(ob);
 	ParticleSystemModifierData *psmd;
+	ModifierData *md;
 
 	if(!psys)
 		return;
+
+	/* clear all other appearances of this pointer (like on smoke flow modifier) */
+	if((md = modifiers_findByType(ob, eModifierType_Smoke)))
+	{
+		SmokeModifierData *smd = (SmokeModifierData *)md;
+		if((smd->type == MOD_SMOKE_TYPE_FLOW) && smd->flow && smd->flow->psys)
+			if(smd->flow->psys == psys)
+				smd->flow->psys = NULL;
+	}
 
 	/* clear modifier */
 	psmd= psys_get_modifier(ob, psys);
@@ -3324,6 +3335,8 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 
 	if(ob->particlesystem.first)
 		((ParticleSystem *) ob->particlesystem.first)->flag |= PSYS_CURRENT;
+	else
+		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 
 	DAG_scene_sort(scene);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);

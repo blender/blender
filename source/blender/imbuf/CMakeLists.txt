@@ -26,6 +26,7 @@
 
 FILE(GLOB SRC intern/*.c)
 
+
 SET(INC 
 	. ../makesdna ../../../intern/guardedalloc ../../../intern/memutil ../blenlib
 	../avi ../blenkernel
@@ -54,7 +55,7 @@ IF(WITH_FFMPEG)
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
-if(WITH_DDS)
+IF(WITH_DDS)
 	ADD_DEFINITIONS(-DWITH_DDS)
 ENDIF(WITH_DDS)
 

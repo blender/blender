@@ -77,6 +77,10 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_meta_make);
 	WM_operatortype_append(SEQUENCER_OT_meta_separate);
 	WM_operatortype_append(SEQUENCER_OT_snap);
+	WM_operatortype_append(SEQUENCER_OT_next_edit);
+	WM_operatortype_append(SEQUENCER_OT_previous_edit);
+	WM_operatortype_append(SEQUENCER_OT_swap_right);
+	WM_operatortype_append(SEQUENCER_OT_swap_left);
 
 	WM_operatortype_append(SEQUENCER_OT_view_all);
 	WM_operatortype_append(SEQUENCER_OT_view_selected);
@@ -142,6 +146,12 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_next_edit", PAGEUPKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_previous_edit", PAGEDOWNKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_left", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_right", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+	
 
 	/* Mouse selection, a bit verbose :/ */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);

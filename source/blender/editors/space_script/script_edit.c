@@ -79,6 +79,7 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Run python file";
+	ot->description= "Run Python file.";
 	ot->idname= "SCRIPT_OT_python_file_run";
 
 	/* api callbacks */
@@ -111,6 +112,7 @@ void SCRIPT_OT_python_run_ui_scripts(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reload Python Interface";
+	ot->description= "Reload Python interface.";
 	ot->idname= "SCRIPT_OT_python_run_ui_scripts";
 
 	/* api callbacks */

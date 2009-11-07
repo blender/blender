@@ -78,8 +78,6 @@ endif
 
 GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
 GRPLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
-GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
-GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
@@ -118,6 +116,9 @@ COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sdl.a
 COMLIB += $(NAN_SAMPLERATE)/lib/$(DEBUG_DIR)libsamplerate.a
 COMLIB += $(NAN_LZO)/lib/$(DEBUG_DIR)libminilzo.a
 COMLIB += $(NAN_LZMA)/lib/$(DEBUG_DIR)liblzma.a
+COMLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
+COMLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
+COMLIB += $(NAN_DECIMATION)/lib/$(DEBUG_DIR)libdecimation.a
 
 ifeq ($(WITH_FFMPEG),true)
     COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
@@ -233,7 +234,6 @@ endif
 
 # note: space_api.a in begin of editors, screen.a in end
 PULIB = $(NAN_MOTO)/lib/libmoto.a
-PULIB += $(NAN_DECIMATION)/lib/$(DEBUG_DIR)libdecimation.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 PULIB += $(OCGDIR)/blender/ed_space/$(DEBUG_DIR)libed_space.a
 PULIB += $(OCGDIR)/blender/ed_sound/$(DEBUG_DIR)libed_sound.a

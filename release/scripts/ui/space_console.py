@@ -1,240 +1,205 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+import sys
 import bpy
+from bpy.props import *
+
 
 class CONSOLE_HT_header(bpy.types.Header):
-	__space_type__ = 'CONSOLE'
+    bl_space_type = 'CONSOLE'
 
-	def draw(self, context):
-		sc = context.space_data
-		# text = sc.text
-		layout = self.layout
+    def draw(self, context):
+        sc = context.space_data
+        # text = sc.text
+        layout = self.layout
 
-		row= layout.row(align=True)
-		row.template_header()
+        row = layout.row(align=True)
+        row.template_header()
 
-		if context.area.show_menus:
-			sub = row.row(align=True)
+        if context.area.show_menus:
+            sub = row.row(align=True)
 
-			if sc.console_type == 'REPORT':
-				sub.itemM("CONSOLE_MT_report")
-			else:
-				sub.itemM("CONSOLE_MT_console")
+            if sc.console_type == 'REPORT':
+                sub.itemM("CONSOLE_MT_report")
+            else:
+                sub.itemM("CONSOLE_MT_console")
 
-		layout.itemS()
-		layout.itemR(sc, "console_type", expand=True)
+        layout.itemS()
+        layout.itemR(sc, "console_type", expand=True)
 
-		if sc.console_type == 'REPORT':
-			row = layout.row(align=True)
-			row.itemR(sc, "show_report_debug", text="Debug")
-			row.itemR(sc, "show_report_info", text="Info")
-			row.itemR(sc, "show_report_operator", text="Operators")
-			row.itemR(sc, "show_report_warn", text="Warnings")
-			row.itemR(sc, "show_report_error", text="Errors")
-			
-			row = layout.row()
-			row.enabled = sc.show_report_operator
-			row.itemO("console.report_replay")
-		else:
-			row = layout.row(align=True)
-			row.itemO("console.autocomplete", text="Autocomplete")
+        if sc.console_type == 'REPORT':
+            row = layout.row(align=True)
+            row.itemR(sc, "show_report_debug", text="Debug")
+            row.itemR(sc, "show_report_info", text="Info")
+            row.itemR(sc, "show_report_operator", text="Operators")
+            row.itemR(sc, "show_report_warn", text="Warnings")
+            row.itemR(sc, "show_report_error", text="Errors")
+
+            row = layout.row()
+            row.enabled = sc.show_report_operator
+            row.itemO("console.report_replay")
+        else:
+            row = layout.row(align=True)
+            row.itemO("console.autocomplete", text="Autocomplete")
+
 
 class CONSOLE_MT_console(bpy.types.Menu):
-	__label__ = "Console"
+    bl_label = "Console"
 
-	def draw(self, context):
-		layout = self.layout
-		sc = context.space_data
+    def draw(self, context):
+        layout = self.layout
+        layout.column()
+        layout.itemO("console.clear")
+        layout.itemO("console.copy")
+        layout.itemO("console.paste")
+        layout.itemM("CONSOLE_MT_language")
 
-		layout.column()
-		layout.itemO("console.clear")
-		layout.itemO("console.copy")
-		layout.itemO("console.paste")
 
 class CONSOLE_MT_report(bpy.types.Menu):
-	__label__ = "Report"
+    bl_label = "Report"
 
-	def draw(self, context):
-		layout = self.layout
-		sc = context.space_data
+    def draw(self, context):
+        layout = self.layout
+        layout.column()
+        layout.itemO("console.select_all_toggle")
+        layout.itemO("console.select_border")
+        layout.itemO("console.report_delete")
+        layout.itemO("console.report_copy")
 
-		layout.column()
-		layout.itemO("console.select_all_toggle")
-		layout.itemO("console.select_border")
-		layout.itemO("console.report_delete")
-		layout.itemO("console.report_copy")
+class CONSOLE_MT_language(bpy.types.Menu):
+    bl_label = "Languages..."
+
+    def draw(self, context):
+        layout = self.layout
+        layout.column()
+        
+        mod = bpy.ops.console
+        languages = []
+        for opname in dir(mod):
+            # execute_python, execute_shell etc.
+            if opname.startswith("execute_"):
+                languages.append(opname.split('_', 1)[-1])
+        
+        languages.sort()
+        
+        for language in languages:
+            layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
 
 def add_scrollback(text, text_type):
-	for l in text.split('\n'):
-		bpy.ops.console.scrollback_append(text=l.replace('\t', '    '), type=text_type)
-
-def get_console(console_id):
-	'''
-	helper function for console operators
-	currently each text datablock gets its own console - code.InteractiveConsole()
-	...which is stored in this function.
-	
-	console_id can be any hashable type
-	'''
-	import sys, code
-	
-	try:	consoles = get_console.consoles
-	except:consoles = get_console.consoles = {}
-	
-	# clear all dead consoles, use text names as IDs
-	# TODO, find a way to clear IDs
-	'''
-	for console_id in list(consoles.keys()):
-		if console_id not in bpy.data.texts:
-			del consoles[id]
-	'''
-	
-	try:
-		namespace, console, stdout, stderr = consoles[console_id]
-	except:
-		namespace = {'__builtins__':__builtins__} # locals()
-		namespace['bpy'] = bpy
-		
-		console = code.InteractiveConsole(namespace)
-		
-		import io
-		stdout = io.StringIO()
-		stderr = io.StringIO()
-	
-		consoles[console_id]= namespace, console, stdout, stderr
-		
-	return namespace, console, stdout, stderr
-
-class CONSOLE_OT_exec(bpy.types.Operator):
-	'''Execute the current console line as a python expression.'''
-	__idname__ = "console.execute"
-	__label__ = "Console Execute"
-	__register__ = False
-	
-	# Both prompts must be the same length
-	PROMPT = '>>> ' 
-	PROMPT_MULTI = '... '
-	
-	# is this working???
-	'''
-	def poll(self, context):
-		return (context.space_data.type == 'PYTHON')
-	''' # its not :|
-	
-	def execute(self, context):
-		import sys
-		
-		sc = context.space_data
-		
-		try:
-			line = sc.history[-1].line
-		except:
-			return ('CANCELLED',)
-		
-		if sc.console_type != 'PYTHON':
-			return ('CANCELLED',)
-		
-		namespace, console, stdout, stderr = get_console(hash(context.region))
-		
-		# redirect output
-		sys.stdout = stdout
-		sys.stderr = stderr
-		
-		# run the console
-		if not line.strip():
-			line_exec = '\n' # executes a multiline statement
-		else:
-			line_exec = line
-		
-		is_multiline = console.push(line_exec)
-		
-		stdout.seek(0)
-		stderr.seek(0)
-		
-		output = stdout.read()
-		output_err = stderr.read()
-	
-		# cleanup
-		sys.stdout = sys.__stdout__
-		sys.stderr = sys.__stderr__
-		sys.last_traceback = None
-		
-		# So we can reuse, clear all data
-		stdout.truncate(0)
-		stderr.truncate(0)
-		
-		bpy.ops.console.scrollback_append(text = sc.prompt+line, type='INPUT')
-		
-		if is_multiline:	sc.prompt = self.PROMPT_MULTI
-		else:				sc.prompt = self.PROMPT
-		
-		# insert a new blank line
-		bpy.ops.console.history_append(text="", current_character=0, remove_duplicates= True)
-		
-		# Insert the output into the editor
-		# not quite correct because the order might have changed, but ok 99% of the time.
-		if output:			add_scrollback(output, 'OUTPUT')
-		if output_err:		add_scrollback(output_err, 'ERROR')
-		
-		
-		return ('FINISHED',)
+    for l in text.split('\n'):
+        bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
+            type=text_type)
 
 
-class CONSOLE_OT_autocomplete(bpy.types.Operator):
-	'''Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one.'''
-	__idname__ = "console.autocomplete"
-	__label__ = "Console Autocomplete"
-	__register__ = False
-	
-	def poll(self, context):
-		return context.space_data.console_type == 'PYTHON'
-	
-	def execute(self, context):
-		
-		sc = context.space_data
-		
-		namespace, console, stdout, stderr = get_console(hash(context.region))
-		
-		current_line = sc.history[-1]
-		line = current_line.line
-		
-		if not console:
-			return ('CANCELLED',)
-		
-		if sc.console_type != 'PYTHON':
-			return ('CANCELLED',)
-		
-		# fake cursor, use for autocomp func.
-		bcon = {}
-		bcon['cursor'] = current_line.current_character
-		bcon['console'] = console
-		bcon['edit_text'] = line
-		bcon['namespace'] = namespace
-		bcon['scrollback'] = '' # nor from the BGE console
-		
-		
-		# This function isnt aware of the text editor or being an operator
-		# just does the autocomp then copy its results back
-		import autocomplete
-		autocomplete.execute(bcon)
-		
-		# Now we need to copy back the line from blender back into the text editor.
-		# This will change when we dont use the text editor anymore
-		if bcon['scrollback']:
-			add_scrollback(bcon['scrollback'], 'INFO')
-		
-		# copy back
-		current_line.line = bcon['edit_text']
-		current_line.current_character = bcon['cursor']
-		
-		context.area.tag_redraw()
-		
-		return ('FINISHED',)
+class ConsoleExec(bpy.types.Operator):
+    '''Execute the current console line as a python expression.'''
+    bl_idname = "console.execute"
+    bl_label = "Console Execute"
+    bl_register = False
 
+    def execute(self, context):
+        sc = context.space_data
+
+        execute = getattr(bpy.ops.console, "execute_" + sc.language, None)
+
+        if execute:
+            execute()
+        else:
+            print("Error: bpy.ops.console.execute_" + sc.language + " - not found")
+
+        return ('FINISHED',)
+
+
+class ConsoleAutocomplete(bpy.types.Operator):
+    '''Evaluate the namespace up until the cursor and give a list of
+    options or complete the name if there is only one.'''
+    bl_idname = "console.autocomplete"
+    bl_label = "Console Autocomplete"
+    bl_register = False
+
+    def poll(self, context):
+        return context.space_data.console_type != 'REPORT'
+
+    def execute(self, context):
+        sc = context.space_data
+
+        autocomplete = getattr(bpy.ops.console, "autocomplete_" + sc.language, None)
+
+        if autocomplete:
+            autocomplete()
+        else:
+            print("Error: bpy.ops.console.autocomplete_" + sc.language + " - not found")
+
+        return ('FINISHED',)
+
+
+class ConsoleBanner(bpy.types.Operator):
+    bl_idname = "console.banner"
+
+    def execute(self, context):
+        sc = context.space_data
+        
+        # default to python
+        if not sc.language:
+            sc.language = 'python'
+
+        banner = getattr(bpy.ops.console, "banner_" + sc.language, None)
+        
+        if banner:
+            banner()
+        else:
+            print("Error: bpy.ops.console.banner_" + sc.language + " - not found")
+
+        return ('FINISHED',)
+
+
+
+class ConsoleLanguage(bpy.types.Operator):
+    '''Set the current language for this console'''
+    bl_idname = "console.language"
+    language = StringProperty(name="Language", maxlen= 32, default= "")
+
+    def execute(self, context):
+        sc = context.space_data
+        
+        # defailt to python
+        sc.language = self.language
+        
+        bpy.ops.console.banner()
+        
+        # insert a new blank line
+        bpy.ops.console.history_append(text="", current_character=0,
+            remove_duplicates=True)
+
+        return ('FINISHED',)
 
 
 bpy.types.register(CONSOLE_HT_header)
 bpy.types.register(CONSOLE_MT_console)
 bpy.types.register(CONSOLE_MT_report)
+bpy.types.register(CONSOLE_MT_language)
 
-bpy.ops.add(CONSOLE_OT_exec)
-bpy.ops.add(CONSOLE_OT_autocomplete)
+# Stubs that call the language operators
+bpy.ops.add(ConsoleExec)
+bpy.ops.add(ConsoleAutocomplete)
+bpy.ops.add(ConsoleBanner)
 
+# Set the language and call the banner
+bpy.ops.add(ConsoleLanguage)

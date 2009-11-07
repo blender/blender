@@ -124,7 +124,7 @@ extern ListBase editelems;
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3])
 {
-	if (t->persp != V3D_ORTHO)
+	if (t->persp != RV3D_ORTHO)
 	{
 		float p1[4], p2[4];
 
@@ -779,6 +779,8 @@ void recalcData(TransInfo *t)
 			flushTransParticles(t);
 		}
 		else {
+			int i;
+			
 			for(base= FIRSTBASE; base; base= base->next) {
 				Object *ob= base->object;
 				
@@ -787,9 +789,18 @@ void recalcData(TransInfo *t)
 					ob->recalc |= OB_RECALC_OB;
 				if(base->flag & BA_HAS_RECALC_DATA)
 					ob->recalc |= OB_RECALC_DATA;
+			}
 				
-				/* if object/base is selected */
-				if ((base->flag & SELECT) || (ob->flag & SELECT)) {
+			for (i = 0; i < t->total; i++) {
+				TransData *td = t->data + i;
+				Object *ob = td->ob;
+				
+				if (td->flag & TD_NOACTION)
+					break;
+				
+				if (td->flag & TD_SKIP)
+					continue;
+				
 					/* if animtimer is running, and the object already has animation data,
 					 * check if the auto-record feature means that we should record 'samples'
 					 * (i.e. uneditable animation values)
@@ -799,7 +810,6 @@ void recalcData(TransInfo *t)
 						animrecord_check_state(t->scene, &ob->id, t->animtimer);
 						autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 					}
-				}
 				
 				/* proxy exception */
 				if(ob->proxy)
@@ -1008,7 +1018,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			t->flag |= T_PROP_EDIT;
 
 				if(ts->proportional == PROP_EDIT_CONNECTED)
-				t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
+					t->flag |= T_PROP_CONNECTED;
 		}
 	}
 
@@ -1308,16 +1318,19 @@ void calculateCenter(TransInfo *t)
 	case V3D_ACTIVE:
 		{
 		/* set median, and if if if... do object center */
-#if 0 // TRANSFORM_FIX_ME
-		EditSelection ese;
+		
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
 
-		if (t->obedit && t->obedit->type == OB_MESH && EM_get_actSelection(&ese)) {
+		if (t->obedit && t->obedit->type == OB_MESH) {
+			EditSelection ese;
+			EditMesh *em = BKE_mesh_get_editmesh(t->obedit->data);
+			
+			if (EM_get_actSelection(em, &ese)) {
 			EM_editselection_center(t->center, &ese);
 			calculateCenter2D(t);
 			break;
+			}
 		} /* END EDIT MODE ACTIVE ELEMENT */
-#endif
 
 		calculateCenterMedian(t);
 		if((t->flag & (T_EDIT|T_POSE))==0)
@@ -1351,7 +1364,7 @@ void calculateCenter(TransInfo *t)
 			Scene *scene = t->scene;
 			RegionView3D *rv3d = t->ar->regiondata;
 
-			if(v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+			if(v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB)
 			{
 				float axis[3];
 				/* persinv is nasty, use viewinv instead, always right */

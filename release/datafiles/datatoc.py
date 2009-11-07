@@ -66,7 +66,7 @@ while size > 0:
 	size -= 1
 	if size % 32 == 31:
 		fpout.write("\n")
-	
+
 	fpout.write("%3d," % ord(fpin.read(1)))
 
 fpout.write("\n  0};\n\n")

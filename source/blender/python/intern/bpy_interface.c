@@ -63,6 +63,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_text.h"
+#include "BKE_context.h"
 
 #include "BPY_extern.h"
 
@@ -100,8 +101,6 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 
 	if(py_call_level==1) {
 
-		BPY_update_modules(); /* can give really bad results if this isnt here */
-
 		if(C) { // XXX - should always be true.
 			BPy_SetContext(C);
 			bpy_import_main_set(CTX_data_main(C));
@@ -109,6 +108,8 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 		else {
 			fprintf(stderr, "ERROR: Python context called with a NULL Context. this should not happen!\n");
 		}
+
+		BPY_update_modules(); /* can give really bad results if this isnt here */
 
 #ifdef TIME_PY_RUN
 		if(bpy_timer_count==0) {
@@ -170,6 +171,7 @@ void BPY_free_compiled_text( struct Text *text )
 /*****************************************************************************
 * Description: Creates the bpy module and adds it to sys.modules for importing
 *****************************************************************************/
+static BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
 static void bpy_init_modules( void )
 {
 	PyObject *mod;
@@ -199,9 +201,19 @@ static void bpy_init_modules( void )
 		}
 		
 		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
-		bpy_import_test("bpy_sys"); /* adds its self to bpy.sys */
+		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
+		bpy_import_test("bpy_ext"); /* extensions to our existing types */
 	}
 	
+	/* bpy context */
+	{
+		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+		RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
+
+		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
+	}
+
+
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
@@ -218,7 +230,7 @@ void BPY_update_modules( void )
 
 	/* refreshes the main struct */
 	BPY_update_rna_module();
-
+	bpy_context_module->ptr.data= (void *)BPy_GetContext();
 }
 
 /*****************************************************************************
@@ -608,7 +620,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *file_extension;
 	char *dirname;
 	char path[FILE_MAX];
-	char *dirs[] = {"scripts/ui", "scripts/io", NULL};
+	char *dirs[] = {"scripts/ui", "scripts/op", "scripts/io", NULL};
 	int path_flags[] = {BLI_GETHOME_LOCAL|BLI_GETHOME_SYSTEM, BLI_GETHOME_USER}; /* SYSTEM / NON-SYSTEM */
 	int a, err, flag_iter;
 	
@@ -948,5 +960,67 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	bpy_context_clear(C, &gilstate);
 	
 	return error_ret;
+}
+
+
+
+int bpy_context_get(bContext *C, const char *member, bContextDataResult *result)
+{
+	PyObject *pyctx= (PyObject *)CTX_py_dict_get(C);
+	PyObject *item= PyDict_GetItemString(pyctx, member);
+	PointerRNA *ptr= NULL;
+	int done= 0;
+
+	if(item==NULL) {
+		/* pass */
+	}
+	else if(item==Py_None) {
+		/* pass */
+	}
+	else if(BPy_StructRNA_Check(item)) {
+		ptr= &(((BPy_StructRNA *)item)->ptr);
+
+		//result->ptr= ((BPy_StructRNA *)item)->ptr;
+		CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
+		done= 1;
+	}
+	else if (PySequence_Check(item)) {
+		PyObject *seq_fast= PySequence_Fast(item, "bpy_context_get sequence conversion");
+		if (seq_fast==NULL) {
+			PyErr_Print();
+			PyErr_Clear();
+		}
+		else {
+			int len= PySequence_Fast_GET_SIZE(seq_fast);
+			int i;
+			for(i = 0; i < len; i++) {
+				PyObject *list_item= PySequence_Fast_GET_ITEM(seq_fast, i);
+
+				if(BPy_StructRNA_Check(list_item)) {
+					/*
+					CollectionPointerLink *link= MEM_callocN(sizeof(CollectionPointerLink), "bpy_context_get");
+					link->ptr= ((BPy_StructRNA *)item)->ptr;
+					BLI_addtail(&result->list, link);
+					*/
+					ptr= &(((BPy_StructRNA *)list_item)->ptr);
+					CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
+				}
+				else {
+					printf("List item not a valid type\n");
+				}
+
+			}
+			Py_DECREF(seq_fast);
+
+			done= 1;
+		}
+	}
+
+	if(done==0) {
+		if (item)	printf("Context '%s' not found\n", member);
+		else		printf("Context '%s' not a valid type\n", member);
+	}
+
+	return done;
 }
 

@@ -53,6 +53,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
 			'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
+			'WITH_BF_COLLADA', 'BF_COLLADA', 'BF_COLLADA_INC', 'BF_COLLADA_LIB', 'BF_OPENCOLLADA', 'BF_OPENCOLLADA_INC', 'BF_OPENCOLLADA_LIB', 'BF_OPENCOLLADA_LIBPATH', 'BF_PCRE', 'BF_PCRE_LIB', 'BF_PCRE_LIBPATH', 'BF_EXPAT', 'BF_EXPAT_LIB', 'BF_EXPAT_LIBPATH',
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
 			'WITH_BF_BINRELOC',
@@ -63,6 +64,7 @@ def validate_arguments(args, bc):
 			'WITHOUT_BF_INSTALL',
 			'WITHOUT_BF_PYTHON_INSTALL',
 			'WITH_BF_OPENMP',
+			'WITH_GHOST_COCOA',
 			'BF_FANCY', 'BF_QUIET',
 			'BF_X264_CONFIG',
 			'BF_XVIDCORE_CONFIG',
@@ -84,7 +86,7 @@ def validate_arguments(args, bc):
 			'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
 			'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
 			'C_WARN', 'CC_WARN', 'CXX_WARN',
-			'LLIBS', 'PLATFORM_LINKFLAGS',
+			'LLIBS', 'PLATFORM_LINKFLAGS','MACOSX_ARCHITECTURE',
 	]
 	
 	
@@ -312,6 +314,7 @@ def read_opts(cfg, args):
 		('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
 
 		(BoolVariable('WITH_BF_OPENMP', 'Use OpenMP if true', False)),
+		(BoolVariable('WITH_GHOST_COCOA', 'Use Cocoa-framework if true', False)),
 
 		(BoolVariable('WITH_BF_QUICKTIME', 'Use QuickTime if true', False)),
 		('BF_QUICKTIME', 'QuickTime base path', ''),
@@ -332,6 +335,21 @@ def read_opts(cfg, args):
 		('BF_OPENGL_LIBPATH', 'OpenGL library path', ''),
 		('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
 		('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
+
+		(BoolVariable('WITH_BF_COLLADA', 'Build COLLADA import/export module if true', False)),
+		('BF_COLLADA', 'COLLADA base path', ''),
+		('BF_COLLADA_INC', 'COLLADA include path', ''),
+		('BF_COLLADA_LIB', 'COLLADA library', ''),
+		('BF_OPENCOLLADA', 'OpenCollada base path', ''),
+		('BF_OPENCOLLADA_INC', 'OpenCollada base include path', ''),
+		('BF_OPENCOLLADA_LIB', 'OpenCollada library', ''),
+		('BF_OPENCOLLADA_LIBPATH', 'OpenCollada library path', ''),
+		('BF_PCRE', 'PCRE base path', ''),
+		('BF_PCRE_LIB', 'PCRE library', ''),
+		('BF_PCRE_LIBPATH', 'PCRE library path', ''),
+		('BF_EXPAT', 'Expat base path', ''),
+		('BF_EXPAT_LIB', 'Expat library', ''),
+		('BF_EXPAT_LIBPATH', 'Expat library path', ''),
 		
 		(BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
 		(BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
@@ -351,6 +369,7 @@ def read_opts(cfg, args):
 
 		('LLIBS', 'Platform libs', ''),
 		('PLATFORM_LINKFLAGS', 'Platform linkflags', ''),
+		('MACOSX_ARCHITECTURE', 'python_arch.zip select', ''),
 
 		(BoolVariable('BF_PROFILE', 'Add profiling information if true', False)),
 		('BF_PROFILE_CFLAGS', 'C only profiling flags', ''),

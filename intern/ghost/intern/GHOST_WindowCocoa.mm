@@ -43,16 +43,6 @@
 #include "GHOST_Debug.h"
 
 
-// Pixel Format Attributes for the windowed NSOpenGLContext
-static NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
-{
-	NSOpenGLPFADoubleBuffer,
-	NSOpenGLPFAAccelerated,
-	//NSOpenGLPFAAllowOfflineRenderers,   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
-	NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute) 32,
-	(NSOpenGLPixelFormatAttribute) 0
-};
-
 #pragma mark Cocoa window delegate object
 /* live resize ugly patch
 extern "C" {
@@ -78,7 +68,7 @@ extern "C" {
 - (void)windowWillClose:(NSNotification *)notification;
 - (void)windowDidBecomeKey:(NSNotification *)notification;
 - (void)windowDidResignKey:(NSNotification *)notification;
-- (void)windowDidUpdate:(NSNotification *)notification;
+- (void)windowDidExpose:(NSNotification *)notification;
 - (void)windowDidResize:(NSNotification *)notification;
 @end
 
@@ -101,13 +91,10 @@ extern "C" {
 
 - (void)windowDidResignKey:(NSNotification *)notification
 {
-	//The window is no more key when its own view becomes fullscreen
-	//but ghost doesn't know the view/window difference, so hide this fact
-	if (associatedWindow->getState() != GHOST_kWindowStateFullScreen)
 		systemCocoa->handleWindowEvent(GHOST_kEventWindowDeactivate, associatedWindow);
 }
 
-- (void)windowDidUpdate:(NSNotification *)notification
+- (void)windowDidExpose:(NSNotification *)notification
 {
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
 }
@@ -191,9 +178,12 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual
 ) :
-	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone),
+	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone, stereoVisual),
 	m_customCursor(0)
 {
+	NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[40];
+	int i;
+	
 	m_systemCocoa = systemCocoa;
 	m_fullScreen = false;
 	
@@ -225,6 +215,20 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	setTitle(title);
 	
 			
+	// Pixel Format Attributes for the windowed NSOpenGLContext
+	i=0;
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
+	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
+	
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
+	pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
+	
+	if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
+	
+	pixelFormatAttrsWindow[i] = (NSOpenGLPixelFormatAttribute) 0;
+	
+
 	//Creates the OpenGL View inside the window
 	NSOpenGLPixelFormat *pixelFormat =
 	[[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttrsWindow];
@@ -615,6 +619,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Make window normal and resize it
 				[m_window setStyleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
 				[m_window setFrame:[[m_window screen] visibleFrame] display:YES];
+				//TODO for 10.6 only : window title is forgotten after the style change
 				[m_window makeFirstResponder:m_openGLView];
 #else
 				//With 10.5, we need to create a new window to change its style to borderless

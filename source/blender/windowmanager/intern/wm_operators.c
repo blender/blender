@@ -81,6 +81,7 @@
 #include "wm.h"
 #include "wm_draw.h"
 #include "wm_event_system.h"
+#include "wm_event_types.h"
 #include "wm_subwindow.h"
 #include "wm_window.h"
 
@@ -1345,6 +1346,105 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 }
 
 
+/* XXX: move these collada operators to a more appropriate place */
+#ifdef WITH_COLLADA
+
+#include "../../collada/collada.h"
+
+static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	//char name[FILE_MAX];
+	//BLI_strncpy(name, G.sce, FILE_MAX);
+	//untitled(name);
+
+	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
+	
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* function used for WM_OT_save_mainfile too */
+static int wm_collada_export_exec(bContext *C, wmOperator *op)
+{
+	char filename[FILE_MAX];
+	
+	if(RNA_property_is_set(op->ptr, "path"))
+		RNA_string_get(op->ptr, "path", filename);
+	else {
+		BLI_strncpy(filename, G.sce, FILE_MAX);
+		untitled(filename);
+	}
+	
+	//WM_write_file(C, filename, op->reports);
+	collada_export(CTX_data_scene(C), filename);
+	
+	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_collada_export(wmOperatorType *ot)
+{
+	ot->name= "Export COLLADA";
+	ot->idname= "WM_OT_collada_export";
+	
+	ot->invoke= wm_collada_export_invoke;
+	ot->exec= wm_collada_export_exec;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= 0;
+	
+	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
+}
+
+static int wm_collada_import_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
+	
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* function used for WM_OT_save_mainfile too */
+static int wm_collada_import_exec(bContext *C, wmOperator *op)
+{
+	char filename[FILE_MAX];
+	
+	if(RNA_property_is_set(op->ptr, "path"))
+		RNA_string_get(op->ptr, "path", filename);
+	else {
+		BLI_strncpy(filename, G.sce, FILE_MAX);
+		untitled(filename);
+	}
+	
+	//WM_write_file(C, filename, op->reports);
+	collada_import(C, filename);
+	
+	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_collada_import(wmOperatorType *ot)
+{
+	ot->name= "Import COLLADA";
+	ot->idname= "WM_OT_collada_import";
+	
+	ot->invoke= wm_collada_import_invoke;
+	ot->exec= wm_collada_import_exec;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= 0;
+	
+	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
+}
+
+#endif
+
+
+
 /* *********************** */
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
@@ -1536,6 +1636,10 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 /* **************** circle gesture *************** */
 /* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
+#ifdef GESTURE_MEMORY
+int circle_select_size= 25; // XXX - need some operator memory thing\!
+#endif
+
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
@@ -1553,6 +1657,9 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	
+    if(RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_NOP)
+        return;
+
 	/* operator arguments and storage. */
 	RNA_int_set(op->ptr, "x", rect->xmin);
 	RNA_int_set(op->ptr, "y", rect->ymin);
@@ -1560,6 +1667,10 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 	
 	if(op->type->exec)
 		op->type->exec(C, op);
+
+#ifdef GESTURE_MEMORY
+	circle_select_size= rect->xmax;
+#endif
 }
 
 int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -1567,50 +1678,52 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	int sx, sy;
-	
-	switch(event->type) {
-		case MOUSEMOVE:
-			
+
+	if(event->type== MOUSEMOVE) {
 			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
-			
+
 			rect->xmin= event->x - sx;
 			rect->ymin= event->y - sy;
-			
+
 			wm_gesture_tag_redraw(C);
-			
+
 			if(gesture->mode)
 				gesture_circle_apply(C, op);
-
-			break;
-		case WHEELUPMOUSE:
+	}
+	else if (event->type==EVT_MODAL_MAP) {
+		switch (event->val) {
+		case GESTURE_MODAL_ADD:
 			rect->xmax += 2 + rect->xmax/10;
 			wm_gesture_tag_redraw(C);
 			break;
-		case WHEELDOWNMOUSE:
+		case GESTURE_MODAL_SUB:
 			rect->xmax -= 2 + rect->xmax/10;
 			if(rect->xmax < 1) rect->xmax= 1;
 			wm_gesture_tag_redraw(C);
 			break;
-		case LEFTMOUSE:
-		case MIDDLEMOUSE:
-		case RIGHTMOUSE:
-			if(event->val==KM_RELEASE) {	/* key release */
-				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED;
-			}
-			else {
-				if( RNA_struct_find_property(op->ptr, "event_type") )
-					RNA_int_set(op->ptr, "event_type", event->type);
-				
+		case GESTURE_MODAL_SELECT:
+		case GESTURE_MODAL_DESELECT:
+		case GESTURE_MODAL_NOP:
+			if(RNA_struct_find_property(op->ptr, "gesture_mode"))
+				RNA_int_set(op->ptr, "gesture_mode", event->val);
+
+			if(event->val != GESTURE_MODAL_NOP) {
 				/* apply first click */
 				gesture_circle_apply(C, op);
 				gesture->mode= 1;
 			}
 			break;
-		case ESCKEY:
+
+		case GESTURE_MODAL_CANCEL:
+		case GESTURE_MODAL_CONFIRM:
 			wm_gesture_end(C, op);
 			return OPERATOR_CANCELLED;
 	}
+	}
+	else {
+		return OPERATOR_PASS_THROUGH;
+	}
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -2197,7 +2310,22 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 
 }
 
+/* ************************** memory statistics for testing ***************** */
 
+static int memory_statistics_exec(bContext *C, wmOperator *op)
+{
+	MEM_printmemlist_stats();
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_memory_statistics(wmOperatorType *ot)
+{
+	ot->name= "Memory Statistics";
+	ot->idname= "WM_OT_memory_statistics";
+	ot->description= "Print memory statistics to the console.";
+	
+	ot->exec= memory_statistics_exec;
+}
 
 /* ******************************************************* */
  
@@ -2229,9 +2357,69 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_redraw_timer);
+	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
+
+#ifdef WITH_COLLADA
+	/* XXX: move these */
+	WM_operatortype_append(WM_OT_collada_export);
+	WM_operatortype_append(WM_OT_collada_import);
+#endif
+
+}
+
+/* called in transform_ops.c, on each regeneration of keymaps  */
+static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
+	{GESTURE_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+	{GESTURE_MODAL_ADD, "ADD", 0, "Add", ""},
+	{GESTURE_MODAL_SUB, "SUBTRACT", 0, "Subtract", ""},
+
+	{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
+	{GESTURE_MODAL_DESELECT,"DESELECT", 0, "DeSelect", ""},
+	{GESTURE_MODAL_NOP,"NOP", 0, "No Operation", ""},
+
+
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Gesture Circle");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "View3D Gesture Circle", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, 0, 0, GESTURE_MODAL_CONFIRM);
+
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_SELECT);
+
+//	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_DESELECT); //  defailt 2.4x
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_DESELECT);
+
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_NOP);
+
+//	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_NOP); //  defailt 2.4x
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_SHIFT, 0, GESTURE_MODAL_NOP);
+
+
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_SUB);
+	WM_modalkeymap_add_item(keymap, PADMINUS, KM_PRESS, 0, 0, GESTURE_MODAL_SUB);
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_ADD);
+	WM_modalkeymap_add_item(keymap, PADPLUSKEY, KM_PRESS, 0, 0, GESTURE_MODAL_ADD);
+
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_circle");
+	WM_modalkeymap_assign(keymap, "UV_OT_circle_select");
+
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -2256,7 +2444,9 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
+	km= WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(km->ptr, "link", FALSE);
+
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
@@ -2320,5 +2510,37 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
 	RNA_string_set(km->ptr, "value", "DOPESHEET_EDITOR");
+
+	gesture_circle_modal_keymap(keyconf);
 }
 
+/* Generic itemf's for operators that take library args */
+static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, ID *id)
+{
+	EnumPropertyItem *item= NULL, item_tmp;
+	int totitem= 0;
+	int i= 0;
+
+	memset(&item_tmp, 0, sizeof(item_tmp));
+
+	for( ; id; id= id->next) {
+		item_tmp.identifier= item_tmp.name= id->name+2;
+		item_tmp.value= i++;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
+/* can add more */
+EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->group.first);
+}
+EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->scene.first);
+}

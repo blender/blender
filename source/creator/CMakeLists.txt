@@ -207,7 +207,6 @@ IF(APPLE)
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND find ${TARGETDIR} -name .svn -prune -exec rm -rf {} "\;"
-			COMMAND find ${TARGETDIR} -name __MACOSX -prune -exec rm -rf {} "\;"
 		)
     
     
@@ -344,6 +343,7 @@ IF(WIN32)
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender    
 			COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
 			COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
+            		COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
 		)
 	ENDIF(APPLE)
 >>>>>>> .merge-right.r23146
@@ -590,7 +590,9 @@ IF(UNIX)
 		bf_cineon 
 		bf_openexr 
 		bf_dds
-		bf_readblenfile 
+		bf_readblenfile
+		bf_collada
+		blender_BSP 
 		blender_bop 
 		bf_kernel 
 		bf_decimation 

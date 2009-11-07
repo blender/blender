@@ -269,11 +269,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	/* registration */
 	RNA_define_verify_sdna(0);
 
-	prop= RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 

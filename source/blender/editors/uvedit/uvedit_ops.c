@@ -1267,6 +1267,7 @@ void UV_OT_align(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Align";
+	ot->description= "Align selected UV vertices to an axis.";
 	ot->idname= "UV_OT_align";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1291,6 +1292,7 @@ void UV_OT_weld(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Weld";
+	ot->description= "Weld selected UV vertices together.";
 	ot->idname= "UV_OT_weld";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1458,6 +1460,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Stitch";
+	ot->description= "Stitch selected UV vertices by proximity.";
 	ot->idname= "UV_OT_stitch";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1517,6 +1520,7 @@ void UV_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Inverse";
+	ot->description= "Select inverse of (un)selected UV vertices.";
 	ot->idname= "UV_OT_select_inverse";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1592,6 +1596,7 @@ void UV_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
+	ot->description= "(de)select all UV vertices.";
 	ot->idname= "UV_OT_select_all_toggle";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1933,6 +1938,7 @@ void UV_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select";
+	ot->description= "Select UV vertice.";
 	ot->idname= "UV_OT_select";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1981,6 +1987,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop Select";
+	ot->description= "Select a loop of connected UV vertices.";
 	ot->idname= "UV_OT_select_loop";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2028,6 +2035,7 @@ void UV_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked";
+	ot->description= "Select all UV vertices linked to the active UV map.";
 	ot->idname= "UV_OT_select_linked";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2094,6 +2102,7 @@ void UV_OT_unlink_selection(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unlink Selection";
+	ot->description= "Unlink selected UV vertices from active UV map.";
 	ot->idname= "UV_OT_unlink_selection";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2107,7 +2116,7 @@ void UV_OT_unlink_selection(wmOperatorType *ot)
 /* This function sets the selection on tagged faces, need because settings the
  * selection a face is done in a number of places but it also needs to respect
  * the sticky modes for the UV verts, so dealing with the sticky modes is best
- * done in a seperate function.
+ * done in a separate function.
  * 
  * De-selects faces that have been tagged on efa->tmp.l.  */
 
@@ -2351,6 +2360,7 @@ void UV_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
+	ot->description= "Select UV vertices using border selection.";
 	ot->idname= "UV_OT_select_border";
 	
 	/* api callbacks */
@@ -2408,9 +2418,10 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	MTexPoly *tface;
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
-
+    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+    
 	/* get operator properties */
-	select= (RNA_int_get(op->ptr, "event_type") == LEFTMOUSE); // XXX hardcoded
+	select= (gesture_mode == GESTURE_MODAL_SELECT);
 	x= RNA_int_get(op->ptr, "x");
 	y= RNA_int_get(op->ptr, "y");
 	radius= RNA_int_get(op->ptr, "radius");
@@ -2446,6 +2457,7 @@ void UV_OT_circle_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Circle Select";
+	ot->description= "Select UV vertices using circle selection.";
 	ot->idname= "UV_OT_circle_select";
 	
 	/* api callbacks */
@@ -2461,7 +2473,7 @@ void UV_OT_circle_select(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 }
 
 /* ******************** snap cursor operator **************** */
@@ -2521,6 +2533,7 @@ void UV_OT_snap_cursor(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Snap Cursor";
+	ot->description= "Snap cursor to target type.";
 	ot->idname= "UV_OT_snap_cursor";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2729,6 +2742,7 @@ void UV_OT_snap_selection(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Snap Selection";
+	ot->description= "Snap selected UV vertices to target type.";
 	ot->idname= "UV_OT_snap_selection";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2782,6 +2796,7 @@ void UV_OT_pin(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pin";
+	ot->description= "Set/clear selected UV vertices as anchored between multiple unwrap operations.";
 	ot->idname= "UV_OT_pin";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2829,6 +2844,7 @@ void UV_OT_select_pinned(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Selected Pinned";
+	ot->description= "Select all pinned UV vertices.";
 	ot->idname= "UV_OT_select_pinned";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2896,6 +2912,7 @@ void UV_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide Selected";
+	ot->description= "Hide (un)selected UV vertices.";
 	ot->idname= "UV_OT_hide";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2959,6 +2976,7 @@ void UV_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reveal Hidden";
+	ot->description= "Reveal all hidden UV vertices.";
 	ot->idname= "UV_OT_reveal";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -3000,7 +3018,8 @@ static int set_2d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void UV_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set 3D Cursor";
+	ot->name= "Set 2D Cursor";
+	ot->description= "Set 2D cursor location.";
 	ot->idname= "UV_OT_cursor_set";
 	
 	/* api callbacks */
@@ -3066,6 +3085,7 @@ void UV_OT_tile_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Tile";
+	ot->description= "Set UV image tile coordinates.";
 	ot->idname= "UV_OT_tile_set";
 	
 	/* api callbacks */
@@ -3106,7 +3126,6 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_cube_project);
 	WM_operatortype_append(UV_OT_cylinder_project);
 	WM_operatortype_append(UV_OT_from_view);
-	WM_operatortype_append(UV_OT_mapping_menu);
 	WM_operatortype_append(UV_OT_minimize_stretch);
 	WM_operatortype_append(UV_OT_pack_islands);
 	WM_operatortype_append(UV_OT_reset);

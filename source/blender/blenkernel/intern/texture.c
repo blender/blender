@@ -1125,7 +1125,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->totpoints = 0;
 	pd->coba = add_colorband(1);
 	pd->object = NULL;
-	pd->psys = NULL;
+	pd->psys = 0;
 	return pd;
 } 
 

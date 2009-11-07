@@ -1834,6 +1834,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				else fprintf(f, "NULL, ");
 				if(cprop->remove) fprintf(f, "&rna_%s_%s_func, ", srna->identifier, (char*)cprop->remove);
 				else fprintf(f, "NULL, ");
+				if(cprop->active) fprintf(f, "(PropertyRNA*)&rna_%s%s_%s, ", srna->identifier, strnest, cprop->active->identifier);
+				else fprintf(f, "NULL, ");
 				if(cprop->type) fprintf(f, "&RNA_%s\n", (char*)cprop->type);
 				else fprintf(f, "NULL\n");
 				break;
@@ -1993,7 +1995,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_context.c", NULL, RNA_def_context},
 	{"rna_controller.c", NULL, RNA_def_controller},
 	{"rna_curve.c", NULL, RNA_def_curve},
-	{"rna_fcurve.c", NULL, RNA_def_fcurve},
+	{"rna_fcurve.c", "rna_fcurve_api.c", RNA_def_fcurve},
 	{"rna_fluidsim.c", NULL, RNA_def_fluidsim},
 	{"rna_gpencil.c", NULL, RNA_def_gpencil},
 	{"rna_group.c", NULL, RNA_def_group},

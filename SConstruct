@@ -124,7 +124,10 @@ if toolset:
 		#if env:
 		#	btools.SetupSpawn(env)
 else:
-	env = BlenderEnvironment(ENV = os.environ)
+	if bitness==64 and platform=='win32':
+		env = BlenderEnvironment(ENV = os.environ, MSVS_ARCH='amd64')
+	else:
+		env = BlenderEnvironment(ENV = os.environ)
 
 if not env:
 	print "Could not create a build environment"
@@ -216,6 +219,11 @@ if env['WITH_BF_OPENMP'] == 1:
 				env.Append(CCFLAGS=['-fopenmp']) 
 				env.Append(CPPFLAGS=['-fopenmp'])
 				env.Append(CXXFLAGS=['-fopenmp'])
+
+if env['WITH_GHOST_COCOA'] == True:
+	env.Append(CFLAGS=['-DGHOST_COCOA']) 
+	env.Append(CXXFLAGS=['-DGHOST_COCOA'])
+	env.Append(CPPFLAGS=['-DGHOST_COCOA'])
 
 #check for additional debug libnames
 

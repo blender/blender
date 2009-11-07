@@ -49,11 +49,13 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", ICON_CONSTRAINT_DATA, "Limit Scale", ""},
 	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", ICON_CONSTRAINT_DATA, "Limit Distance", ""},
 	{0, "", 0, "Tracking", ""},
-	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To", ""},
-	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", ICON_CONSTRAINT_DATA, "Locked Track", ""},
+	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To", "Legacy tracking constraint prone to twisting artifacts"},
+	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", ICON_CONSTRAINT_DATA, "Locked Track", "Tracking along a single axis"},
+	{CONSTRAINT_TYPE_DAMPTRACK, "DAMPED_TRACK", ICON_CONSTRAINT_DATA, "Damped Track", "Tracking by taking the shortest path"},
 	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", ICON_CONSTRAINT_DATA, "Clamp To", ""},
 	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO",ICON_CONSTRAINT_DATA, "Stretch To", ""},
 	{CONSTRAINT_TYPE_KINEMATIC, "IK", ICON_CONSTRAINT_DATA, "Inverse Kinematics", ""},
+	{CONSTRAINT_TYPE_SPLINEIK, "SPLINE_IK", ICON_CONSTRAINT_DATA, "Spline IK", ""},
 	{0, "", 0, "Relationship", ""},
 	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", ICON_CONSTRAINT_DATA, "Child Of", ""},
 	{CONSTRAINT_TYPE_MINMAX, "FLOOR", ICON_CONSTRAINT_DATA, "Floor", ""},
@@ -144,6 +146,10 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_LimitDistanceConstraint;
 		case CONSTRAINT_TYPE_SHRINKWRAP:
 			return &RNA_ShrinkwrapConstraint;
+		case CONSTRAINT_TYPE_DAMPTRACK:
+			return &RNA_DampedTrackConstraint;
+		case CONSTRAINT_TYPE_SPLINEIK:
+			return &RNA_SplineIKConstraint;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -1166,7 +1172,7 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bClampToConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_pointer_sdna(prop, NULL, "tar"); // TODO: curve only!
 	RNA_def_property_ui_text(prop, "Target", "Target Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -1633,6 +1639,95 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
+static void rna_def_constraint_damped_track(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem damptrack_items[] = {
+		{TRACK_X, "TRACK_X", 0, "X", ""},
+		{TRACK_Y, "TRACK_Y", 0, "Y", ""},
+		{TRACK_Z, "TRACK_Z", 0, "Z", ""},
+		{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
+		{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
+		{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "DampedTrackConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Damped Track Constraint", "Points toward target by taking the shortest rotation path.");
+	RNA_def_struct_sdna_from(srna, "bDampTrackConstraint", "data");
+
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "subtarget");
+	RNA_def_property_ui_text(prop, "Sub-Target", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "track", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
+	RNA_def_property_enum_items(prop, damptrack_items);
+	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+}
+
+static void rna_def_constraint_spline_ik(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem splineik_xz_scale_mode[] = {
+		{CONSTRAINT_SPLINEIK_XZS_NONE, "NONE", 0, "None", "Don't scale the x and z axes, giving a volume preservation effect. (Default)"},
+		{CONSTRAINT_SPLINEIK_XZS_RADIUS, "CURVE_RADIUS", 0, "Curve Radius", "Use the radius of the curve."},
+		{CONSTRAINT_SPLINEIK_XZS_ORIGINAL, "ORIGINAL", 0, "Original", "Use the original scaling of the bones."},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "SplineIKConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Spline IK Constraint", "Align 'n' bones along a curve.");
+	RNA_def_struct_sdna_from(srna, "bSplineIKConstraint", "data");
+	
+	/* target chain */
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_ui_text(prop, "Target", "Curve that controls this relationship");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	
+	prop= RNA_def_property(srna, "chain_length", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "chainlen");
+	RNA_def_property_range(prop, 1, 255); // TODO: this should really check the max length of the chain the constraint is attached to
+	RNA_def_property_ui_text(prop, "Chain Length", "How many bones are included in the chain");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	
+	// TODO: add access to the positions array to allow more flexible aligning?
+	
+	/* settings */
+	prop= RNA_def_property(srna, "affect_root", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_NO_ROOT);
+	RNA_def_property_ui_text(prop, "Affect Root", "Include the root joint in the calculations.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "even_divisions", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_EVENSPLITS);
+	RNA_def_property_ui_text(prop, "Even Divisions", "Ignore the relative lengths of the bones when fitting to the curve.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "keep_max_length", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_SCALE_LIMITED);
+	RNA_def_property_ui_text(prop, "Keep Max Length", "Maintain the maximum length of the chain when spline is stretched.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "xz_scaling_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "xzScaleMode");
+	RNA_def_property_enum_items(prop, splineik_xz_scale_mode);
+	RNA_def_property_ui_text(prop, "XZ Scale Mode", "Method used for determining the scaling of the X and Z axes of the bone.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+}
+
 /* base struct for constraints */
 void RNA_def_constraint(BlenderRNA *brna)
 {
@@ -1733,6 +1828,8 @@ void RNA_def_constraint(BlenderRNA *brna)
 	rna_def_constraint_location_limit(brna);
 	rna_def_constraint_transform(brna);
 	rna_def_constraint_shrinkwrap(brna);
+	rna_def_constraint_damped_track(brna);
+	rna_def_constraint_spline_ik(brna);
 }
 
 #endif

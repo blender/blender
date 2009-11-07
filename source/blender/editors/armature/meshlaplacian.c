@@ -69,7 +69,7 @@ static void waitcursor(int val) {}
 static void progress_bar() {}
 static void start_progress_bar() {}
 static void end_progress_bar() {}
-static void error() {}
+static void error(char *str) { printf("error: %s\n", str); }
 /* ************* XXX *************** */
 
 
@@ -1698,7 +1698,7 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 	nlDeleteContext(context);
 }
 
-void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd, float (*vertexcos)[3], int totvert, float cagemat[][4])
+void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[][4])
 {
 	MeshDeformBind mdb;
 	MDefBindInfluence *inf;
@@ -1714,7 +1714,7 @@ void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd, float 
 	memset(&mdb, 0, sizeof(MeshDeformBind));
 
 	/* get mesh and cage mesh */
-	mdb.vertexcos= vertexcos;
+	mdb.vertexcos= (float(*)[3])vertexcos;
 	mdb.totvert= totvert;
 	
 	mdb.cagedm= mesh_create_derived_no_deform(scene, mmd->object, NULL, CD_MASK_BAREMESH);

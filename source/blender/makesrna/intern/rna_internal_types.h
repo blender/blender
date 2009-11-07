@@ -257,6 +257,8 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
 	FunctionRNA *add, *remove;
 
+	PropertyRNA *active;
+
 	struct StructRNA *type;
 } CollectionPropertyRNA;
 

@@ -1078,7 +1078,15 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 					IDP_WriteProperty(data->prop, wd);
 				}
 				break;
+				case CONSTRAINT_TYPE_SPLINEIK: 
+				{
+					bSplineIKConstraint *data= (bSplineIKConstraint*)con->data;
+					
+					/* write points array */
+					writedata(wd, DATA, sizeof(float)*(data->numpoints), data->points);
 			}
+					break;
+		}
 		}
 		
 		/* Write the constraint */
@@ -2133,6 +2141,11 @@ static void write_bone(WriteData *wd, Bone* bone)
 		
 	// Write this bone
 	writestruct(wd, DATA, "Bone", 1, bone);
+
+	/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+	 of library blocks that implement this.*/
+	if (bone->prop)
+		IDP_WriteProperty(bone->prop, wd);
 	
 	// Write Children
 	cbone= bone->childbase.first;

@@ -269,6 +269,7 @@ void MESH_OT_edge_rotate(struct wmOperatorType *ot);
 void MESH_OT_select_vertex_path(struct wmOperatorType *ot);
 void MESH_OT_loop_to_region(struct wmOperatorType *ot);
 void MESH_OT_region_to_loop(struct wmOperatorType *ot);
+void MESH_OT_select_axis(struct wmOperatorType *ot);
 
 void MESH_OT_uvs_rotate(struct wmOperatorType *ot);
 //void MESH_OT_uvs_mirror(struct wmOperatorType *ot);
@@ -281,6 +282,7 @@ void MESH_OT_colors_reverse(struct wmOperatorType *ot);
 void MESH_OT_delete(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 
+void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
 
 /* ******************* mesh_layers.c */

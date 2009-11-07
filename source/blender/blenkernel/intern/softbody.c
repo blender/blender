@@ -93,12 +93,13 @@ static int (*SB_localInterruptCallBack)(void) = NULL;
 
 /* ********** soft body engine ******* */
 
+typedef	enum {SB_EDGE=1,SB_BEND=2,SB_STIFFQUAD=3} type_spring;
 
 typedef struct BodySpring {
 	int v1, v2;
-	float len, strength, cf,load;
+	float len,cf,load;
 	float ext_force[3]; /* edges colliding and sailing */
-	short order;
+	type_spring springtype;
 	short flag;
 } BodySpring;
 
@@ -614,13 +615,11 @@ static void add_mesh_quad_diag_springs(Object *ob)
 					if(mface->v4) {
 						bs->v1= mface->v1;
 						bs->v2= mface->v3;
-						bs->strength= s_shear;
-						bs->order   =2;
+						bs->springtype   =SB_STIFFQUAD;
 						bs++;
 						bs->v1= mface->v2;
 						bs->v2= mface->v4;
-						bs->strength= s_shear;
-						bs->order   =2;
+						bs->springtype   =SB_STIFFQUAD;
 						bs++;
 						
 					}
@@ -671,8 +670,7 @@ static void add_2nd_order_roller(Object *ob,float stiffness,int *counter, int ad
 						if (addsprings){
 							bs3->v1= v0;
 							bs3->v2= bs2->v1;
-							bs3->strength= stiffness;
-							bs3->order=2;
+						    bs3->springtype   =SB_BEND;
 							bs3++;
 						}
 					}
@@ -681,8 +679,7 @@ static void add_2nd_order_roller(Object *ob,float stiffness,int *counter, int ad
 						if (addsprings){
 							bs3->v1= v0;
 							bs3->v2= bs2->v2;
-							bs3->strength= stiffness;
-							bs3->order=2;
+						    bs3->springtype   =SB_BEND;
 							bs3++;
 						}
 
@@ -786,7 +783,7 @@ static void calculate_collision_balls(Object *ob)
 		/* first estimation based on attached */
 		for(b=bp->nofsprings;b>0;b--){
 			bs = sb->bspring + bp->springs[b-1];
-			if (bs->order == 1){
+			if (bs->springtype == SB_EDGE){
 			akku += bs->len;
 			akku_count++,
 			min = MIN2(bs->len,min);
@@ -1530,7 +1527,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
 			bs->flag &= ~BSF_INTERSECT;
 
-			if (bs->order ==1){
+			if (bs->springtype == SB_EDGE){
 				/* +++ springs colliding */
 				if (ob->softflag & OB_SB_EDGECOLL){
 					if ( sb_detect_edge_collisionCached (sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos,
@@ -2078,7 +2075,21 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 	    kw = (bp1->springweight+bp2->springweight)/2.0f;
 		kw = kw * kw;
 		kw = kw * kw;
-	forcefactor *= bs->strength * kw; 
+	switch (bs->springtype){
+		case SB_EDGE:
+			forcefactor *=  kw; 
+			break;
+		case SB_BEND:
+			forcefactor *=sb->secondspring*kw; 
+			break;
+		case SB_STIFFQUAD:
+			forcefactor *=sb->shearstiff*sb->shearstiff* kw; 
+			break;
+		default:
+			break;
+	}
+
+
 	Vec3PlusStVec(bp1->force,(bs->len - distance)*forcefactor,dir);
 
 	/* do bp1 <--> bp2 viscous */
@@ -3276,8 +3287,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 			for(a=me->totedge; a>0; a--, medge++, bs++) {
 				bs->v1= medge->v1;
 				bs->v2= medge->v2;
-				bs->strength= 1.0;
-				bs->order=1;
+				bs->springtype=SB_EDGE;
 			}
 			
 			
@@ -3355,24 +3365,21 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff,Object *
 				if(w) {
 					bs->v1 = bpc;
 					bs->v2 = bpc-dw;
-				    bs->strength= 1.0;
-					bs->order=1;
+					bs->springtype=SB_EDGE;
 					bs->len= globallen((bp-dw)->vec, bp->vec,ob);
 					bs++;
 				}
 				if(v) {
 					bs->v1 = bpc;
 					bs->v2 = bpc-dv;
-				    bs->strength= 1.0;
-					bs->order=1;
+					bs->springtype=SB_EDGE;
 					bs->len= globallen((bp-dv)->vec, bp->vec,ob);
 					bs++;
 				}
 				if(u) {
 					bs->v1 = bpuc;
 					bs->v2 = bpc;
-				    bs->strength= 1.0;
-					bs->order=1;
+					bs->springtype=SB_EDGE;
 					bs->len= globallen((bpu)->vec, bp->vec,ob);
 					bs++;
 				}
@@ -3383,16 +3390,14 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff,Object *
 						if( v && u ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw-dv-1;
-							bs->strength= 1.0;
-					bs->order=2;
+							bs->springtype=SB_BEND;
 							bs->len= globallen((bp-dw-dv-1)->vec, bp->vec,ob);
 							bs++;
 						}						
 						if( (v < lt->pntsv-1) && (u) ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw+dv-1;
-							bs->strength= 1.0;
-					bs->order=2;
+							bs->springtype=SB_BEND;
 							bs->len= globallen((bp-dw+dv-1)->vec, bp->vec,ob);
 							bs++;
 						}						
@@ -3402,16 +3407,14 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff,Object *
 						if( v && u ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw-dv-1;
-							bs->strength= 1.0;
-					bs->order=2;
+							bs->springtype=SB_BEND;
 							bs->len= globallen((bp+dw-dv-1)->vec, bp->vec,ob);
 							bs++;
 						}						
 						if( (v < lt->pntsv-1) && (u) ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw+dv-1;
-							bs->strength= 1.0;
-					bs->order=2;
+							bs->springtype=SB_BEND;
 							 bs->len= globallen((bp+dw+dv-1)->vec, bp->vec,ob);
 							bs++;
 						}						
@@ -3521,22 +3524,19 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 					if(a>0) {
 						bs->v1= curindex-1;
 						bs->v2= curindex;
-						bs->strength= 1.0;
-						bs->order=1;
+						bs->springtype=SB_EDGE;
 						bs->len= globallen( (bezt-1)->vec[2], bezt->vec[0], ob );
 						bs++;
 					}
 					bs->v1= curindex;
 					bs->v2= curindex+1;
-					bs->strength= 1.0;
-					bs->order=1;
+					bs->springtype=SB_EDGE;
 					bs->len= globallen( bezt->vec[0], bezt->vec[1], ob );
 					bs++;
-					
+
 					bs->v1= curindex+1;
 					bs->v2= curindex+2;
-					bs->strength= 1.0;
-					bs->order=1;
+					bs->springtype=SB_EDGE;
 					bs->len= globallen( bezt->vec[1], bezt->vec[2], ob );
 					bs++;
 				}
@@ -3552,8 +3552,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 				if(totspring && a>0) {
 					bs->v1= curindex-1;
 					bs->v2= curindex;
-					bs->strength= 1.0;
-					bs->order=1;
+					bs->springtype=SB_EDGE;
 					bs->len= globallen( (bpnt-1)->vec, bpnt->vec , ob );
 					bs++;
 				}
@@ -3770,7 +3769,15 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 {
 	/* the simulator */
 	float forcetime;
-	double sct,sst=PIL_check_seconds_timer();
+	double sct,sst;
+	
+		
+	sst=PIL_check_seconds_timer();
+	/* Integration back in time is possible in theory, but pretty useless here. 
+	So we refuse to do so. Since we do not know anything about 'outside' canges
+	especially colliders we refuse to go more than 10 frames.
+	*/
+	if(dtime < 0 || dtime > 10.5f) return; 
 	
 	ccd_update_deflector_hash(scene, ob, sb->scratch->colliderhash);
 
@@ -3785,8 +3792,8 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		/* special case of 2nd order Runge-Kutta type AKA Heun */
 		int mid_flags=0;
 		float err = 0;
-		float forcetimemax = 1.0f;
-		float forcetimemin = 0.001f;
+		float forcetimemax = 1.0f; /* set defaults guess we shall do one frame */
+		float forcetimemin = 0.01f; /* set defaults guess 1/100 is tight enough */
 		float timedone =0.0; /* how far did we get without violating error condition */
 							 /* loops = counter for emergency brake
 							 * we don't want to lock up the system if physics fail
@@ -3794,13 +3801,12 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		int loops =0 ; 
 		
 		SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
-		if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
-		
-		if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
+		/* adjust loop limits */
+		if (sb->minloops > 0) forcetimemax = dtime / sb->minloops;
+		if (sb->maxloops > 0) forcetimemin = dtime / sb->maxloops;
 
 		if(sb->solver_ID>0) mid_flags |= MID_PRESERVE;
 		
-		//forcetime = dtime; /* hope for integrating in one step */
 		forcetime =forcetimemax; /* hope for integrating in one step */
 		while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
 		{
@@ -3854,7 +3860,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 			loops++;
 			if(sb->solverflags & SBSO_MONITOR ){
 				sct=PIL_check_seconds_timer();
-				if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
+				if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone/dtime);
 			}
 			/* ask for user break */ 
 			if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
@@ -4023,11 +4029,11 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	/* checking time: */
 	dtime = framedelta*timescale;
 
+	/* do simulation */
 	softbody_step(scene, ob, sb, dtime);
 
 	softbody_to_object(ob, vertexCos, numVerts, 0);
 
-	/* do simulation */
 	cache->simframe= framenr;
 	cache->flag |= PTCACHE_SIMULATION_VALID;
 

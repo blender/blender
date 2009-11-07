@@ -399,7 +399,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 								
 								if (ct->subtarget[0])
 									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA|DAG_RL_DATA_DATA, cti->name);
-								else if(ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO)) 	
+								else if(ELEM3(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK)) 	
 									dag_add_relation(dag,node3,node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, cti->name);
 								else
 									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA, cti->name);
@@ -2407,7 +2407,7 @@ void DAG_pose_sort(Object *ob)
 						bPoseChannel *target= get_pose_channel(ob->pose, ct->subtarget);
 						if (target) {
 							node2= dag_get_node(dag, target);
-							dag_add_relation(dag, node2, node, 0, "IK Constraint");
+							dag_add_relation(dag, node2, node, 0, "Pose Constraint");
 							
 							if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 								bKinematicConstraint *data = (bKinematicConstraint *)con->data;

@@ -105,6 +105,8 @@ static void do_graph_region_buttons(bContext *C, void *arg, int event)
 	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 }
 
+/* -------------- */
+
 static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **fcu)
 {
 	bAnimContext ac;
@@ -135,6 +137,37 @@ static int graph_panel_poll(const bContext *C, PanelType *pt)
 {
 	return graph_panel_context(C, NULL, NULL);
 }
+
+/* -------------- */
+
+/* Graph Editor View Settings */
+static void graph_panel_view(const bContext *C, Panel *pa)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA spaceptr, sceneptr;
+	uiLayout *col, *subcol;
+	
+	/* get RNA pointers for use when creating the UI elements */
+	RNA_id_pointer_create(&scene->id, &sceneptr);
+	RNA_pointer_create(&sc->id, &RNA_SpaceGraphEditor, sipo, &spaceptr);
+
+	/* 2D-Cursor */
+	col= uiLayoutColumn(pa->layout, 0);
+		uiItemR(col, NULL, 0, &spaceptr, "show_cursor", 0);
+		
+		subcol= uiLayoutColumn(col, 1);
+		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
+			uiItemR(subcol, "Cursor X", 0, &sceneptr, "current_frame", 0);
+			uiItemR(subcol, "Cursor Y", 0, &spaceptr, "cursor_value", 0);
+			
+		subcol= uiLayoutColumn(col, 1);
+		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
+			uiItemO(subcol, "Cursor from Selection", 0, "GRAPH_OT_frame_jump");
+}
+
+/* ******************* active F-Curve ************** */
 
 static void graph_panel_properties(const bContext *C, Panel *pa)
 {
@@ -226,7 +259,7 @@ static void driver_delete_var_cb (bContext *C, void *driver_v, void *dtar_v)
 	ChannelDriver *driver= (ChannelDriver *)driver_v;
 	DriverTarget *dtar= (DriverTarget *)dtar_v;
 	
-	/* add a new var */
+	/* remove the active target */
 	driver_free_target(driver, dtar);
 }
 
@@ -308,7 +341,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* add driver target variables */
 	col= uiLayoutColumn(pa->layout, 0);
 	block= uiLayoutGetBlock(col);
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Variable", 0, 0, 10*UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
+		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Target", 0, 0, 10*UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
 		uiButSetFunc(but, driver_add_var_cb, driver, NULL);
 	
 	/* loop over targets, drawing them */
@@ -413,6 +446,12 @@ void graph_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
+	strcpy(pt->idname, "GRAPH_PT_view");
+	strcpy(pt->label, "View");
+	pt->draw= graph_panel_view;
+	BLI_addtail(&art->paneltypes, pt);
+	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
 	strcpy(pt->idname, "GRAPH_PT_properties");
 	strcpy(pt->label, "Properties");

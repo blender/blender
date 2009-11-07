@@ -147,10 +147,6 @@ void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
 
 /* ********************** view3d_select: selection manipulations ********************* */
 
-/* XXX to solve *************** */
-static void BIF_undo_push() {}
-/* XXX end ********************* */
-
 /* local prototypes */
 
 void EM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
@@ -467,8 +463,6 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-
 	if(vc->scene->toolsettings->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
@@ -711,7 +705,7 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if(vc->obedit==NULL) {
+	if(vc->obedit==NULL) { /* Object Mode */
 		if(paint_facesel_test(ob))
 			do_lasso_select_facemode(vc, mcords, moves, select);
 		else if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))
@@ -721,17 +715,18 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
 	}
-	else if(vc->obedit->type==OB_MESH) {
+	else { /* Edit Mode */
+		if(vc->obedit->type==OB_MESH)
 		do_lasso_select_mesh(vc, mcords, moves, select);
-	} else if(vc->obedit->type==OB_CURVE || vc->obedit->type==OB_SURF) 
+		else if(vc->obedit->type==OB_CURVE || vc->obedit->type==OB_SURF) 
 		do_lasso_select_curve(vc, mcords, moves, select);
 	else if(vc->obedit->type==OB_LATTICE) 
 		do_lasso_select_lattice(vc, mcords, moves, select);
 	else if(vc->obedit->type==OB_ARMATURE)
 		do_lasso_select_armature(vc, mcords, moves, select);
-
-	BIF_undo_push("Lasso select");
 	
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc->obedit->data);
+	}
 }
 
 static EnumPropertyItem lasso_select_types[] = {
@@ -1834,6 +1829,79 @@ static void lattice_circle_select(ViewContext *vc, int selecting, short *mval, f
 	lattice_foreachScreenVert(vc, latticecurve_circle_doSelect, &data);
 }
 
+
+static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int x, int y, short head)
+{
+	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
+	int mx = x - data->mval[0], my = y - data->mval[1];
+	float r = sqrt(mx*mx + my*my);
+	
+	if (r <= data->radius) {
+		if (head) {
+			if (data->select)
+				ebone->flag |= BONE_ROOTSEL;
+			else 
+				ebone->flag &= ~BONE_ROOTSEL;
+		}
+		else {
+			if (data->select)
+				ebone->flag |= BONE_TIPSEL;
+			else 
+				ebone->flag &= ~BONE_TIPSEL;
+		}
+		return 1;
+	}
+	return 0;
+}
+static void armature_circle_select(ViewContext *vc, int selecting, short *mval, float rad)
+{
+	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
+	bArmature *arm= vc->obedit->data;
+	EditBone *ebone;
+	
+	/* set vc->edit data */
+	data.select = selecting;
+	data.mval[0] = mval[0];
+	data.mval[1] = mval[1];
+	data.radius = rad;
+
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	
+	/* check each EditBone... */
+	// TODO: could be optimised at some point
+	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
+		short sco1[2], sco2[2], didpoint=0;
+		float vec[3];
+		
+		/* project head location to screenspace */
+		VECCOPY(vec, ebone->head);
+		Mat4MulVecfl(vc->obedit->obmat, vec);
+		project_short(vc->ar, vec, sco1);
+		
+		/* project tail location to screenspace */
+		VECCOPY(vec, ebone->tail);
+		Mat4MulVecfl(vc->obedit->obmat, vec);
+		project_short(vc->ar, vec, sco2);
+		
+		/* check if the head and/or tail is in the circle 
+		 *	- the call to check also does the selection already
+		 */
+		if (armature_circle_doSelectJoint(&data, ebone, sco1[0], sco1[1], 1))
+			didpoint= 1;
+		if (armature_circle_doSelectJoint(&data, ebone, sco2[0], sco2[1], 0))
+			didpoint= 1;
+			
+		/* only if the endpoints didn't get selected, deal with the middle of the bone too */
+		// XXX should we just do this always?
+		if ( (didpoint==0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1]) ) {
+			if (selecting) 
+				ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
+			else 
+				ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL); 
+		}
+	}
+}
+
 /** Callbacks for circle selection in Editmode */
 
 static void obedit_circle_select(ViewContext *vc, short selecting, short *mval, float rad) 
@@ -1848,6 +1916,9 @@ static void obedit_circle_select(ViewContext *vc, short selecting, short *mval, 
 		break;
 	case OB_LATTICE:
 		lattice_circle_select(vc, selecting, mval, rad);
+		break;
+	case OB_ARMATURE:
+		armature_circle_select(vc, selecting, mval, rad);
 		break;
 	default:
 		return;
@@ -1865,17 +1936,20 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int x= RNA_int_get(op->ptr, "x");
 	int y= RNA_int_get(op->ptr, "y");
 	int radius= RNA_int_get(op->ptr, "radius");
+    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+    int selecting;
 	
+    selecting= (gesture_mode==GESTURE_MODAL_SELECT);
+    
 	if(CTX_data_edit_object(C) || (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		ViewContext vc;
-		short mval[2], selecting;
+		short mval[2];
 		
 		view3d_operator_needs_opengl(C);
 		
 		view3d_set_viewcontext(C, &vc);
 		mval[0]= x;
 		mval[1]= y;
-		selecting= LEFTMOUSE==RNA_int_get(op->ptr, "event_type"); // XXX solve
 
 		if(CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
@@ -1886,7 +1960,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		Base *base;
-		
+		selecting= selecting?BA_SELECT:BA_DESELECT;
 		for(base= FIRSTBASE; base; base= base->next) {
 			if(base->lay & v3d->lay) {
 				project_short(ar, base->object->obmat[3], &base->sx);
@@ -1894,7 +1968,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 					int dx= base->sx-x;
 					int dy= base->sy-y;
 					if( dx*dx + dy*dy < radius*radius)
-						ED_base_object_select(base, BA_SELECT);
+						ED_base_object_select(base, selecting);
 				}
 			}
 		}
@@ -1922,5 +1996,5 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
 }

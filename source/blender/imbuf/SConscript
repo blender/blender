@@ -6,6 +6,7 @@ sources = env.Glob('intern/*.c')
 incs = '. ../makesdna #/intern/guardedalloc #/intern/memutil ../blenlib'
 incs += ' ../avi ../blenkernel'
 
+
 incs += ' ' + env['BF_JPEG_INC']
 incs += ' ' + env['BF_PNG_INC']
 incs += ' ' + env['BF_TIFF_INC']

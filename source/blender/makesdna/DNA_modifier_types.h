@@ -508,8 +508,7 @@ typedef struct MeshDeformModifierData {
 	struct Object *object;			/* mesh object */
 	char defgrp_name[32];			/* optional vertexgroup name */
 
-	short gridsize, needbind;
-	short flag, pad;
+	short gridsize, flag, pad[2];
 
 	/* variables filled in when bound */
 	float *bindweights, *bindcos;	/* computed binding weights */
@@ -522,6 +521,10 @@ typedef struct MeshDeformModifierData {
 	float dyncellmin[3];			/* offset of the dynamic bind grid */
 	float dyncellwidth;				/* width of dynamic bind cell */
 	float bindmat[4][4];			/* matrix of cage at binding time */
+
+	/* runtime */
+	void (*bindfunc)(struct Scene *scene, struct MeshDeformModifierData *mmd,
+		float *vertexcos, int totvert, float cagemat[][4]);
 } MeshDeformModifierData;
 
 typedef enum {

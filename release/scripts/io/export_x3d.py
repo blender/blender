@@ -1,3 +1,20 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
 __author__ = ("Bart", "Campbell Barton")
 __email__ = ["Bart, bart:neeneenee*de"]
@@ -1196,21 +1213,21 @@ def x3d_export_ui(filename):
 # if __name__ == '__main__':
 # 	Blender.Window.FileSelector(x3d_export_ui,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
 
-class EXPORT_OT_x3d(bpy.types.Operator):
+from bpy.props import *
+
+class ExportX3D(bpy.types.Operator):
 	'''Export selection to Extensible 3D file (.x3d)'''
-	__idname__ = "export.x3d"
-	__label__ = 'Export X3D'
+	bl_idname = "export.x3d"
+	bl_label = 'Export X3D'
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
-
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= ""),
-
-		bpy.props.BoolProperty(attr="apply_modifiers", name="Apply Modifiers", description="Use transformed mesh data from each object.", default=True),
-		bpy.props.BoolProperty(attr="triangulate", name="Triangulate", description="Triangulate quads.", default=False),
-		bpy.props.BoolProperty(attr="compress", name="Compress", description="GZip the resulting file, requires a full python install.", default=False),
-	]
+	path = StringProperty(name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= "")
+	
+	apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object.", default=True)
+	triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
+	compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install.", default=False)
+	
 	
 	def execute(self, context):
 		x3d_export(self.path, context, self.apply_modifiers, self.triangulate, self.compress)
@@ -1218,13 +1235,17 @@ class EXPORT_OT_x3d(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
-bpy.ops.add(EXPORT_OT_x3d)
+bpy.ops.add(ExportX3D)
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.x3d", text="X3D Extensible 3D (.x3d)...")
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".x3d")
+    self.layout.item_stringO(ExportX3D.bl_idname, "path", default_path, text="X3D Extensible 3D (.x3d)...")
+
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 # NOTES

@@ -132,8 +132,8 @@
 
 GHOST_SystemWin32::GHOST_SystemWin32()
 : m_hasPerformanceCounter(false), m_freq(0), m_start(0),
-  m_seperateLeftRight(false),
-  m_seperateLeftRightInitialized(false)
+  m_separateLeftRight(false),
+  m_separateLeftRightInitialized(false)
 {
 	m_displayManager = new GHOST_DisplayManagerWin32 ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
@@ -274,7 +274,7 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) cons
 	It didn't work all that well on some newer hardware, and worked less 
 	well with the passage of time, so it was fully disabled in ME.
 	*/
-	if (m_seperateLeftRight && m_seperateLeftRightInitialized) {
+	if (m_separateLeftRight && m_separateLeftRightInitialized) {
 		bool down = HIBYTE(::GetKeyState(VK_LSHIFT)) != 0;
 		keys.set(GHOST_kModifierKeyLeftShift, down);
 		down = HIBYTE(::GetKeyState(VK_RSHIFT)) != 0;
@@ -581,29 +581,29 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case VK_SHIFT:
 						case VK_CONTROL:
 						case VK_MENU:
-							if (!system->m_seperateLeftRightInitialized) {
+							if (!system->m_separateLeftRightInitialized) {
 								// Check whether this system supports seperate left and right keys
 								switch (wParam) {
 									case VK_SHIFT:
-										system->m_seperateLeftRight = 
+										system->m_separateLeftRight = 
 											(HIBYTE(::GetKeyState(VK_LSHIFT)) != 0) ||
 											(HIBYTE(::GetKeyState(VK_RSHIFT)) != 0) ?
 											true : false;
 										break;
 									case VK_CONTROL:
-										system->m_seperateLeftRight = 
+										system->m_separateLeftRight = 
 											(HIBYTE(::GetKeyState(VK_LCONTROL)) != 0) ||
 											(HIBYTE(::GetKeyState(VK_RCONTROL)) != 0) ?
 											true : false;
 										break;
 									case VK_MENU:
-										system->m_seperateLeftRight = 
+										system->m_separateLeftRight = 
 											(HIBYTE(::GetKeyState(VK_LMENU)) != 0) ||
 											(HIBYTE(::GetKeyState(VK_RMENU)) != 0) ?
 											true : false;
 										break;
 								}
-								system->m_seperateLeftRightInitialized = true;
+								system->m_separateLeftRightInitialized = true;
 							}
 							system->processModifierKeys(window);
 							// Bypass call to DefWindowProc

@@ -199,9 +199,12 @@ void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
 void rna_Mesh_update_draw(struct bContext *C, struct PointerRNA *ptr);
 void rna_TextureSlot_update(struct bContext *C, struct PointerRNA *ptr);
 
+char *rna_TextureSlot_path(struct PointerRNA *ptr);
+
 /* API functions */
 
 void RNA_api_action(StructRNA *srna);
+void RNA_api_drivers(StructRNA *srna);
 void RNA_api_image(struct StructRNA *srna);
 void RNA_api_keyconfig(struct StructRNA *srna);
 void RNA_api_keyingset(struct StructRNA *srna);

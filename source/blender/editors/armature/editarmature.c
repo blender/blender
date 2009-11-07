@@ -64,6 +64,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -186,6 +187,9 @@ void make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent)
 		eBone->rad_tail= curBone->rad_tail;
 		eBone->segments = curBone->segments;		
 		eBone->layer = curBone->layer;
+
+		if(curBone->prop)
+			eBone->prop= IDP_CopyProperty(curBone->prop);
 		
 		BLI_addtail(edbo, eBone);
 		
@@ -251,7 +255,7 @@ void ED_armature_from_edit(Object *obedit)
 	Object *obt;
 	
 	/* armature bones */
-	free_bones(arm);
+	free_bonelist(&arm->bonebase);
 	
 	/* remove zero sized bones, this gives instable restposes */
 	for (eBone=arm->edbo->first; eBone; eBone= neBone) {
@@ -294,6 +298,9 @@ void ED_armature_from_edit(Object *obedit)
 		newBone->rad_tail= eBone->rad_tail;
 		newBone->segments= eBone->segments;
 		newBone->layer = eBone->layer;
+
+		if(eBone->prop)
+			newBone->prop= IDP_CopyProperty(eBone->prop);
 	}
 	
 	/*	Fix parenting in a separate pass to ensure ebone->bone connections
@@ -1902,11 +1909,21 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 void ED_armature_edit_free(struct Object *ob)
 {
 	bArmature *arm= ob->data;
+	EditBone *eBone;
 	
 	/*	Clear the editbones list */
 	if (arm->edbo) {
-		if (arm->edbo->first)
+		if (arm->edbo->first) {
+			for (eBone=arm->edbo->first; eBone; eBone=eBone->next) {
+				if (eBone->prop) {
+					IDP_FreeProperty(eBone->prop);
+					MEM_freeN(eBone->prop);
+				}
+			}
+
 			BLI_freelistN(arm->edbo);
+		}
+
 		MEM_freeN(arm->edbo);
 		arm->edbo= NULL;
 	}
@@ -2225,7 +2242,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 
 	VECCOPY(bone->head, curs);
 	
-	if ( (U.flag & USER_ADD_VIEWALIGNED) )
+	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
 	else
 		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
@@ -2713,17 +2730,6 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int armature_duplicate_selected_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int retv= armature_duplicate_selected_exec(C, op);
-
-	if (retv == OPERATOR_FINISHED) {
-		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-	}
-
-	return retv;
-}
 
 void ARMATURE_OT_duplicate(wmOperatorType *ot)
 {
@@ -2732,15 +2738,11 @@ void ARMATURE_OT_duplicate(wmOperatorType *ot)
 	ot->idname= "ARMATURE_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke = armature_duplicate_selected_invoke;
 	ot->exec = armature_duplicate_selected_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
 
@@ -3385,17 +3387,6 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int armature_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	if (OPERATOR_CANCELLED == armature_extrude_exec(C, op))
-		return OPERATOR_CANCELLED;
-
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-	return OPERATOR_FINISHED;
-}
-
 void ARMATURE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3403,7 +3394,6 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	ot->idname= "ARMATURE_OT_extrude";
 	
 	/* api callbacks */
-	ot->invoke= armature_extrude_invoke;
 	ot->exec= armature_extrude_exec;
 	ot->poll= ED_operator_editarmature;
 	
@@ -3412,8 +3402,6 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 /* ********************** Bone Add ********************/
 
@@ -3435,7 +3423,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	Mat4Invert(obedit->imat, obedit->obmat);
 	Mat4MulVecfl(obedit->imat, curs);
 
-	if (U.flag & USER_ADD_VIEWALIGNED)
+	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		Mat3CpyMat4(obmat, rv3d->viewmat);
 	else Mat3One(obmat);
 	
@@ -3450,7 +3438,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
 	VECCOPY(bone->head, curs);
 	
-	if(U.flag & USER_ADD_VIEWALIGNED)
+	if(rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
 	else
 		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z

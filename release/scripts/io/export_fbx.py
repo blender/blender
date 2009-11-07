@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 __author__ = "Campbell Barton"
 __url__ = ['www.blender.org', 'blenderartists.org']
 __version__ = "1.2"
@@ -219,14 +237,14 @@ def sane_groupname(data):	return sane_name(data, sane_name_mapping_group)
 # 	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
 # 		use when we know the file will be in the basepath.
 # 	'''
-# 	fname = bpy.sys.expandpath(fname_orig)
+# 	fname = bpy.utils.expandpath(fname_orig)
 # # 	fname = Blender.sys.expandpath(fname_orig)
 # 	fname_strip = os.path.basename(fname)
 # # 	fname_strip = strip_path(fname)
 # 	if FORCE_CWD:
 # 		fname_rel = '.' + os.sep + fname_strip
 # 	else:
-# 		fname_rel = bpy.sys.relpath(fname, basepath)
+# 		fname_rel = bpy.utils.relpath(fname, basepath)
 # # 		fname_rel = Blender.sys.relpath(fname, basepath)
 # 	if fname_rel.startswith('//'): fname_rel = '.' + os.sep + fname_rel[2:]
 # 	return fname, fname_strip, fname_rel
@@ -331,7 +349,7 @@ def write(filename, batch_objects = None, \
 		fbxpath = filename
 		
 		# get the path component of filename
-		tmp_exists = bpy.sys.exists(fbxpath)
+		tmp_exists = bpy.utils.exists(fbxpath)
 # 		tmp_exists = Blender.sys.exists(fbxpath)
 		
 		if tmp_exists != 2: # a file, we want a path
@@ -345,7 +363,7 @@ def write(filename, batch_objects = None, \
 # 				Draw.PupMenu('Error%t|Directory does not exist!')
 				return
 
-			tmp_exists = bpy.sys.exists(fbxpath)
+			tmp_exists = bpy.utils.exists(fbxpath)
 # 			tmp_exists = Blender.sys.exists(fbxpath)
 		
 		if tmp_exists != 2:
@@ -380,7 +398,7 @@ def write(filename, batch_objects = None, \
 				# path may alredy exist
 				# TODO - might exist but be a file. unlikely but should probably account for it.
 
-				if bpy.sys.exists(new_fbxpath) == 0:
+				if bpy.utils.exists(new_fbxpath) == 0:
 # 				if Blender.sys.exists(new_fbxpath) == 0:
 					os.mkdir(new_fbxpath)
 				
@@ -3332,44 +3350,44 @@ def write_ui():
 	
 	
 	# GLOBALS.clear()
-
-class EXPORT_OT_fbx(bpy.types.Operator):
+from bpy.props import *
+class ExportFBX(bpy.types.Operator):
 	'''Selection to an ASCII Autodesk FBX'''
-	__idname__ = "export.fbx"
-	__label__ = "Export FBX"
+	bl_idname = "export.fbx"
+	bl_label = "Export FBX"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= ""),
-		
-		bpy.props.BoolProperty(attr="EXP_OBS_SELECTED", name="Selected Objects", description="Export selected objects on visible layers", default=True),
-# 		bpy.props.BoolProperty(attr="EXP_OBS_SCENE", name="Scene Objects", description="Export all objects in this scene", default=True),
-		bpy.props.FloatProperty(attr="_SCALE", name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0),
-		bpy.props.BoolProperty(attr="_XROT90", name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True),
-		bpy.props.BoolProperty(attr="_YROT90", name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False),
-		bpy.props.BoolProperty(attr="_ZROT90", name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False),
-		bpy.props.BoolProperty(attr="EXP_EMPTY", name="Empties", description="Export empty objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_CAMERA", name="Cameras", description="Export camera objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_LAMP", name="Lamps", description="Export lamp objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_ARMATURE", name="Armatures", description="Export armature objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_MESH", name="Meshes", description="Export mesh objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_MESH_APPLY_MOD", name="Modifiers", description="Apply modifiers to mesh objects", default=True),
-		bpy.props.BoolProperty(attr="EXP_MESH_HQ_NORMALS", name="HQ Normals", description="Generate high quality normals", default=True),
-		bpy.props.BoolProperty(attr="EXP_IMAGE_COPY", name="Copy Image Files", description="Copy image files to the destination path", default=False),
-		# armature animation
-		bpy.props.BoolProperty(attr="ANIM_ENABLE", name="Enable Animation", description="Export keyframe animation", default=True),
-		bpy.props.BoolProperty(attr="ANIM_OPTIMIZE", name="Optimize Keyframes", description="Remove double keyframes", default=True),
-		bpy.props.FloatProperty(attr="ANIM_OPTIMIZE_PRECISSION", name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0),
-# 		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True),
-		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="All Actions", description="Use all actions for armatures, if false, use current action", default=False),
-		# batch
-		bpy.props.BoolProperty(attr="BATCH_ENABLE", name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False),
-		bpy.props.BoolProperty(attr="BATCH_GROUP", name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False),
-		bpy.props.BoolProperty(attr="BATCH_OWN_DIR", name="Own Dir", description="Create a dir for each exported file", default=True),
-		bpy.props.StringProperty(attr="BATCH_FILE_PREFIX", name="Prefix", description="Prefix each file with this name", maxlen= 1024, default=""),
-	]
+	
+	path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= "")
+	
+	EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
+# 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
+	_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
+	_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True)
+	_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False)
+	_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False)
+	EXP_EMPTY = BoolProperty(name="Empties", description="Export empty objects", default=True)
+	EXP_CAMERA = BoolProperty(name="Cameras", description="Export camera objects", default=True)
+	EXP_LAMP = BoolProperty(name="Lamps", description="Export lamp objects", default=True)
+	EXP_ARMATURE = BoolProperty(name="Armatures", description="Export armature objects", default=True)
+	EXP_MESH = BoolProperty(name="Meshes", description="Export mesh objects", default=True)
+	EXP_MESH_APPLY_MOD = BoolProperty(name="Modifiers", description="Apply modifiers to mesh objects", default=True)
+	EXP_MESH_HQ_NORMALS = BoolProperty(name="HQ Normals", description="Generate high quality normals", default=True)
+	EXP_IMAGE_COPY = BoolProperty(name="Copy Image Files", description="Copy image files to the destination path", default=False)
+	# armature animation
+	ANIM_ENABLE = BoolProperty(name="Enable Animation", description="Export keyframe animation", default=True)
+	ANIM_OPTIMIZE = BoolProperty(name="Optimize Keyframes", description="Remove double keyframes", default=True)
+	ANIM_OPTIMIZE_PRECISSION = FloatProperty(name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0)
+# 	ANIM_ACTION_ALL = BoolProperty(name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True)
+	ANIM_ACTION_ALL = BoolProperty(name="All Actions", description="Use all actions for armatures, if false, use current action", default=False)
+	# batch
+	BATCH_ENABLE = BoolProperty(name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False)
+	BATCH_GROUP = BoolProperty(name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False)
+	BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
+	BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen= 1024, default="")
+	
 	
 	def poll(self, context):
 		print("Poll")
@@ -3411,11 +3429,11 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 	
 	def invoke(self, context, event):	
 		wm = context.manager
-		wm.add_fileselect(self.__operator__)
+		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
 
-bpy.ops.add(EXPORT_OT_fbx)
+bpy.ops.add(ExportFBX)
 
 # if __name__ == "__main__":
 # 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
@@ -3438,7 +3456,7 @@ bpy.ops.add(EXPORT_OT_fbx)
 # - bpy.data.remove_scene: line 366
 # - bpy.sys.time move to bpy.sys.util?
 # - new scene creation, activation: lines 327-342, 368
-# - uses bpy.sys.expandpath, *.relpath - replace at least relpath
+# - uses bpy.utils.expandpath, *.relpath - replace at least relpath
 
 # SMALL or COSMETICAL
 # - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')
@@ -3446,6 +3464,10 @@ bpy.ops.add(EXPORT_OT_fbx)
 
 # Add to a menu
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.fbx", text="Autodesk FBX...")
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".fbx")
+    self.layout.item_stringO(ExportFBX.bl_idname, "path", default_path, text="Autodesk FBX...")
+
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 

@@ -59,7 +59,7 @@ struct UvVertMap;
 struct UvMapVert;
 struct Material;
 struct Object;
-struct recti;
+struct rcti;
 
 // edge and face flag both
 #define EM_FGON		2

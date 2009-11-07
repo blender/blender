@@ -336,7 +336,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 }
 
 /* create buttons for an item with an RNA array */
-static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int h, int expand, int slider)
+static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int h, int expand, int slider, int toggle, int icon_only)
 {
 	uiStyle *style= layout->root->style;
 	uiBut *but;
@@ -420,7 +420,10 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 				str[0]= RNA_property_array_item_char(prop, a);
 
 				if(str[0]) {
-					if(type == PROP_BOOLEAN) {
+					if (icon_only) {
+						str[0] = '\0';
+					}
+					else if(type == PROP_BOOLEAN) {
 						str[1]= '\0';
 					}
 					else {
@@ -429,9 +432,11 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 					}
 				}
 
-				but= uiDefAutoButR(block, ptr, prop, a, str, 0, 0, 0, w, UI_UNIT_Y);
+				but= uiDefAutoButR(block, ptr, prop, a, str, icon, 0, 0, w, UI_UNIT_Y);
 				if(slider && but->type==NUM)
 					but->type= NUMSLI;
+				if(toggle && but->type==OPTION)
+					but->type= TOG;
 			}
 		}
 		else if(ELEM(subtype, PROP_COLOR, PROP_RGB) && len == 4) {
@@ -893,13 +898,10 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 		name= ui_item_name_add_colon(name, namestr);
 
 	if(layout->root->type == UI_LAYOUT_MENU) {
-		/* whether the property is actually enabled doesn't matter, 
-		 * since the widget code for drawing toggles takes care of the 
-		 * rest (i.e. given the deactivated icon, it finds the active one
-		 * based on the state of the setting)
-		 */
-		if ( (type == PROP_BOOLEAN) || (type==PROP_ENUM && index==RNA_ENUM_VALUE) )
-			icon= ICON_CHECKBOX_DEHLT; /* ICON_CHECKBOX_HLT when on... */
+		if(type == PROP_BOOLEAN)
+			icon= (RNA_property_boolean_get(ptr, prop))? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE)
+			icon= (RNA_property_enum_get(ptr, prop) == value)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
 	}
 
 	slider= (flag & UI_ITEM_R_SLIDER);
@@ -912,7 +914,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 
 	/* array property */
 	if(index == RNA_NO_INDEX && len > 0)
-		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider);
+		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider, toggle, icon_only);
 	/* enum item */
 	else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
 		char *identifier= (char*)RNA_property_identifier(prop);

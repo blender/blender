@@ -715,8 +715,13 @@ static void fcm_noise_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, floa
 	FMod_Noise *data= (FMod_Noise *)fcm->data;
 	float noise;
 	
-	noise = BLI_turbulence(data->size, evaltime, data->phase, 0.f, data->depth);
+	/* generate noise using good ol' Blender Noise
+	 *	- 0.1 is passed as the 'z' value, otherwise evaluation fails for size = phase = 1
+	 *	  with evaltime being an integer (which happens when evaluating on frame by frame basis)
+	 */
+	noise = BLI_turbulence(data->size, evaltime, data->phase, 0.1f, data->depth);
 	
+	/* combine the noise with existing motion data */
 	switch (data->modification) {
 		case FCM_NOISE_MODIF_ADD:
 			*cvalue= *cvalue + noise * data->strength;

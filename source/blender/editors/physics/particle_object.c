@@ -93,11 +93,20 @@ static int particle_system_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
-
+	int mode_orig = ob->mode;
 	if(!scene || !ob)
 		return OPERATOR_CANCELLED;
 
 	object_remove_particle_system(scene, ob);
+
+	/* possible this isn't the active object
+	 * object_remove_particle_system() clears the mode on the last psys
+	 * */
+	if(mode_orig & OB_MODE_PARTICLE_EDIT)
+		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0)
+			if(scene->basact && scene->basact->object==ob)
+				WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
