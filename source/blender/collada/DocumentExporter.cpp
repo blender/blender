@@ -124,6 +124,60 @@ char *CustomData_get_active_layer_name(const CustomData *data, int type)
 	return data->layers[layer_index].name;
 }
 
+/**
+Translation map.
+Used to translate every COLLADA id to a valid id, no matter what "wrong" letters may be
+included. Look at the IDREF XSD declaration for more.
+Follows strictly the COLLADA XSD declaration which explicitly allows non-english chars,
+like special chars (e.g. micro sign), umlauts and so on.
+The COLLADA spec also allows additional chars for member access ('.'), these
+must obviously be removed too, otherwise they would be heavily misinterpreted.
+*/
+const unsigned char translate_map[256] = {
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 45, 95, 95,
+	48, 49, 50, 51, 52, 53, 54, 55,
+	56, 57, 95, 95, 95, 95, 95, 95,
+	95, 65, 66, 67, 68, 69, 70, 71,
+	72, 73, 74, 75, 76, 77, 78, 79,
+	80, 81, 82, 83, 84, 85, 86, 87,
+	88, 89, 90, 95, 95, 95, 95, 95,
+	95, 97, 98, 99, 100, 101, 102, 103,
+	104, 105, 106, 107, 108, 109, 110, 111,
+	112, 113, 114, 115, 116, 117, 118, 119,
+	120, 121, 122, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	95, 95, 95, 95, 95, 95, 95, 183,
+	95, 95, 95, 95, 95, 95, 95, 95,
+	192, 193, 194, 195, 196, 197, 198, 199,
+	200, 201, 202, 203, 204, 205, 206, 207,
+	208, 209, 210, 211, 212, 213, 214, 95,
+	216, 217, 218, 219, 220, 221, 222, 223,
+	224, 225, 226, 227, 228, 229, 230, 231,
+	232, 233, 234, 235, 236, 237, 238, 239,
+	240, 241, 242, 243, 244, 245, 246, 95,
+	248, 249, 250, 251, 252, 253, 254, 255};
+
+/** Look at documentation of translate_map */
+static std::string translate_id(const std::string &id)
+{
+	std::string id_translated = id;
+	for (int i=0; i < id_translated.size(); i++)
+	{
+		id_translated[i] = translate_map[id_translated[i]];
+	}
+	return id_translated;
+}
+
 static std::string id_name(void *id)
 {
 	return ((ID*)id)->name + 2;
@@ -131,28 +185,17 @@ static std::string id_name(void *id)
 
 static std::string get_geometry_id(Object *ob)
 {
-	return id_name(ob) + "-mesh";
+	return translate_id(id_name(ob)) + "-mesh";
 }
 
 static std::string get_light_id(Object *ob)
 {
-	return id_name(ob) + "-light";
+	return translate_id(id_name(ob)) + "-light";
 }
 
 static std::string get_camera_id(Object *ob)
 {
-	return id_name(ob) + "-camera";
-}
-
-static void replace_chars(char *str, char chars[], char with)
-{
-	char *ch, *p;
-
-	for (ch = chars; *ch; ch++) {
-		while ((p = strchr(str, *ch))) {
-			*p = with;
-		}
-	}
+	return translate_id(id_name(ob)) + "-camera";
 }
 
 /*
@@ -236,10 +279,11 @@ public:
 
 			if (!ma) continue;
 
-			if (find(mMat.begin(), mMat.end(), id_name(ma)) == mMat.end()) {
+			std::string translated_id = translate_id(id_name(ma));
+			if (find(mMat.begin(), mMat.end(), translated_id) == mMat.end()) {
 				(*this->f)(ma, ob);
 
-				mMat.push_back(id_name(ma));
+				mMat.push_back(translated_id);
 			}
 		}
 	}
@@ -384,8 +428,9 @@ public:
 		polylist.setCount(faces_in_polylist);
 			
 		// sets material name
-		if (has_material)
-			polylist.setMaterial(id_name(ma));
+		if (has_material) {
+			polylist.setMaterial(translate_id(id_name(ma)));
+		}
 				
 		COLLADASW::InputList &til = polylist.getInputList();
 			
@@ -664,6 +709,7 @@ protected:
 
 			if (ma) {
 				std::string matid(id_name(ma));
+				matid = translate_id(matid);
 				COLLADASW::InstanceMaterial im(matid, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
 				
 				// create <bind_vertex_input> for each uv layer
@@ -807,18 +853,14 @@ private:
 
 	std::string get_joint_id(Bone *bone, Object *ob_arm)
 	{
-		return id_name(ob_arm) + "_" + bone->name;
+		return translate_id(id_name(ob_arm) + "_" + bone->name);
 	}
 
 	std::string get_joint_sid(Bone *bone)
 	{
 		char name[100];
 		BLI_strncpy(name, bone->name, sizeof(name));
-
-		// these chars have special meaning in SID
-		replace_chars(name, ".()", '_');
-
-		return name;
+		return translate_id(name);
 	}
 
 	// parent_mat is armature-space
@@ -872,7 +914,7 @@ private:
 
 	std::string get_controller_id(Object *ob_arm)
 	{
-		return id_name(ob_arm) + SKIN_CONTROLLER_ID_SUFFIX;
+		return translate_id(id_name(ob_arm)) + SKIN_CONTROLLER_ID_SUFFIX;
 	}
 
 	// ob should be of type OB_MESH
@@ -1144,7 +1186,8 @@ public:
 	
 	void exportScene(Scene *sce) {
  		// <library_visual_scenes> <visual_scene>
-		openVisualScene(id_name(sce));
+		std::string id_naming = id_name(sce);
+		openVisualScene(translate_id(id_naming), id_naming);
 
 		// write <node>s
 		//forEachMeshObjectInScene(sce, *this);
@@ -1187,7 +1230,7 @@ public:
 	void writeNodes(Object *ob, Scene *sce)
 	{
 		COLLADASW::Node node(mSW);
-		node.setNodeId(id_name(ob));
+		node.setNodeId(translate_id(id_name(ob)));
 		node.setType(COLLADASW::Node::NODE);
 
 		node.start();
@@ -1296,6 +1339,7 @@ public:
 
 				Image *image = mtex->tex->ima;
 				std::string name(id_name(image));
+				name = translate_id(name);
 				char rel[FILE_MAX];
 				char abs[FILE_MAX];
 				char src[FILE_MAX];
@@ -1350,7 +1394,7 @@ public:
 		std::vector<int> tex_indices;
 		createTextureIndices(ma, tex_indices);
 
-		openEffect(id_name(ma) + "-effect");
+		openEffect(translate_id(id_name(ma)) + "-effect");
 		
 		COLLADASW::EffectProfile ep(mSW);
 		ep.setProfileType(COLLADASW::EffectProfile::COMMON);
@@ -1425,6 +1469,7 @@ public:
 			Image *ima = t->tex->ima;
 			
 			std::string key(id_name(ima));
+			key = translate_id(key);
 
 			// create only one <sampler>/<surface> pair for each unique image
 			if (im_samp_map.find(key) == im_samp_map.end()) {
@@ -1466,6 +1511,7 @@ public:
 			// we assume map input is always TEXCO_UV
 
 			std::string key(id_name(ima));
+			key = translate_id(key);
 			int i = im_samp_map[key];
 			COLLADASW::Sampler *sampler = (COLLADASW::Sampler*)samp_surf[i][0];
 			//COLLADASW::Surface *surface = (COLLADASW::Surface*)samp_surf[i][1];
@@ -1508,7 +1554,7 @@ public:
 											/*COLLADASW::Surface *surface*/)
 	{
 		
-		COLLADASW::Texture texture(id_name(ima));
+		COLLADASW::Texture texture(translate_id(id_name(ima)));
 		texture.setTexcoord(uv_layer_name);
 		//texture.setSurface(*surface);
 		texture.setSampler(*sampler);
@@ -1557,9 +1603,9 @@ public:
 	{
 		std::string name(id_name(ma));
 
-		openMaterial(name);
+		openMaterial(translate_id(name), name);
 
-		std::string efid = name + "-effect";
+		std::string efid = translate_id(name) + "-effect";
 		addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
 
 		closeMaterial();
@@ -1851,16 +1897,21 @@ public:
 		const char *axis_names[] = {"X", "Y", "Z"};
 		const char *axis_name = NULL;
 		char c_anim_id[100]; // careful!
+		char c_anim_name[100]; // careful!
 		
 		if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
 
-		BLI_snprintf(c_anim_id, sizeof(c_anim_id), "%s.%s.%s", (char*)ob_name.c_str(), fcu->rna_path, axis_names[fcu->array_index]);
+		BLI_snprintf(c_anim_id, sizeof(c_anim_id), "%s.%s.%s", (char*)translate_id(ob_name).c_str(),
+			fcu->rna_path, axis_names[fcu->array_index]);
 		std::string anim_id(c_anim_id);
+		BLI_snprintf(c_anim_name, sizeof(c_anim_name), "%s.%s.%s", 
+			(char*)ob_name.c_str(), fcu->rna_path, axis_names[fcu->array_index]);
+		std::string anim_name = c_anim_name;
 
 		// check rna_path is one of: rotation, scale, location
 
-		openAnimation(anim_id);
+		openAnimation(anim_id, anim_name);
 
 		// create input source
 		std::string input_id = create_source(Sampler::INPUT, fcu, anim_id, axis_name);
@@ -1882,7 +1933,8 @@ public:
 
 		addSampler(sampler);
 
-		std::string target = ob_name + "/" + get_transform_sid(fcu->rna_path, axis_name);
+		std::string target = translate_id(ob_name)
+			+ "/" + get_transform_sid(fcu->rna_path, axis_name);
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 		closeAnimation();
@@ -1893,18 +1945,23 @@ public:
 		const char *axis_names[] = {"X", "Y", "Z"};
 		const char *axis_name = NULL;
 		char c_anim_id[100]; // careful!
+		char c_anim_name[100]; // careful!
 
 		if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
 		
 		std::string transform_sid = get_transform_sid(fcu->rna_path, axis_name);
 		
-		BLI_snprintf(c_anim_id, sizeof(c_anim_id), "%s.%s.%s", (char*)ob_name.c_str(), (char*)bone_name.c_str(), (char*)transform_sid.c_str());
+		BLI_snprintf(c_anim_id, sizeof(c_anim_id), "%s.%s.%s", (char*)translate_id(ob_name).c_str(),
+			(char*)translate_id(bone_name).c_str(), (char*)transform_sid.c_str());
 		std::string anim_id(c_anim_id);
+		BLI_snprintf(c_anim_name, sizeof(c_anim_name), "%s.%s.%s",
+			(char*)ob_name.c_str(), (char*)bone_name.c_str(), (char*)transform_sid.c_str());
+		std::string anim_name(c_anim_name);
 
 		// check rna_path is one of: rotation, scale, location
 
-		openAnimation(anim_id);
+		openAnimation(anim_id, anim_name);
 
 		// create input source
 		std::string input_id = create_source(Sampler::INPUT, fcu, anim_id, axis_name);
@@ -1926,7 +1983,7 @@ public:
 
 		addSampler(sampler);
 
-		std::string target = ob_name + "_" + bone_name + "/" + transform_sid;
+		std::string target = translate_id(ob_name + "_" + bone_name) + "/" + transform_sid;
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 		closeAnimation();
@@ -2122,7 +2179,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	se.exportScene(sce);
 	
 	// <scene>
-	std::string scene_name(id_name(sce));
+	std::string scene_name(translate_id(id_name(sce)));
 	COLLADASW::Scene scene(&sw, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
 											   scene_name));
 	scene.add();
