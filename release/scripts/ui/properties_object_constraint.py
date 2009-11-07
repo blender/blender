@@ -88,7 +88,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         col = split.column()
         col.itemR(con, "chain_length")
         col.itemR(con, "targetless")
-    
+
     def CHILD_OF(self, context, layout, con):
         self.target_template(layout, con)
 
@@ -129,7 +129,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row.itemR(con, "target_z")
 
         self.space_template(layout, con)
-    
+
     def IK(self, context, layout, con):
         if context.object.pose.ik_solver == "ITASC":
             layout.itemR(con, "ik_type")
@@ -168,7 +168,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
             sub = col.column()
             sub.active = con.rotation
             sub.itemR(con, "orient_weight", text="Rotation", slider=True)
-    
+
     def IK_COPY_POSE(self, context, layout, con):
         self.target_template(layout, con)
         self.ik_template(layout, con)
@@ -212,7 +212,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         row.itemR(con, "weight", text="Weight", slider=True)
         row.itemR(con, "distance", text="Distance", slider=True)
-    
+
     def FOLLOW_PATH(self, context, layout, con):
         self.target_template(layout, con)
 
@@ -310,7 +310,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         row.itemL(text="Convert:")
         row.itemR(con, "owner_space", text="")
-    
+
     def LIMIT_SCALE(self, context, layout, con):
         split = layout.split()
 
@@ -351,7 +351,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         row.itemL(text="Convert:")
         row.itemR(con, "owner_space", text="")
-    
+
     def COPY_ROTATION(self, context, layout, con):
         self.target_template(layout, con)
 
@@ -378,7 +378,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         layout.itemR(con, "offset")
 
         self.space_template(layout, con)
-    
+
     def COPY_LOCATION(self, context, layout, con):
         self.target_template(layout, con)
 

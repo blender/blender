@@ -190,11 +190,11 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             else:
                 subrow1.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
             subrow.itemR(ob, "shape_key_edit_mode", text="")
-            
+
             subrow = sub.row(align=True)
             subrow.itemO("object.shape_key_mirror", icon='ICON_ARROW_LEFTRIGHT', text="")
             subrow.itemO("object.shape_key_clear", icon='ICON_X', text="")
-            
+
 
             row = layout.row()
             row.itemR(kb, "name")

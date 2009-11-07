@@ -2539,7 +2539,32 @@ PyObject *BPy_GetStructRNA(PyObject *self)
 }
 */
 
-PyObject* pyrna_srna_Subtype(StructRNA *srna)
+static PyObject* pyrna_srna_Subtype(StructRNA *srna);
+
+/* return a borrowed reference */
+static PyObject* pyrna_srna_PyBase(StructRNA *srna) //, PyObject *bpy_types_dict)
+{
+	/* Assume RNA_struct_py_type_get(srna) was already checked */
+	StructRNA *base;
+
+	PyObject *py_base= NULL;
+
+	/* get the base type */
+	base= RNA_struct_base(srna);
+	if(base && base != srna) {
+		/*/printf("debug subtype %s %p\n", RNA_struct_identifier(srna), srna); */
+		py_base= pyrna_srna_Subtype(base); //, bpy_types_dict);
+		Py_DECREF(py_base); /* srna owns, this is only to pass as an arg */
+	}
+
+	if(py_base==NULL) {
+		py_base= (PyObject *)&pyrna_struct_Type;
+	}
+
+	return py_base;
+}
+
+static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 {
 	PyObject *newclass = NULL;
 
@@ -2555,26 +2580,12 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		*/
 
 		/* Assume RNA_struct_py_type_get(srna) was alredy checked */
-		StructRNA *base;
-
-		PyObject *py_base= NULL;
+		PyObject *py_base= pyrna_srna_PyBase(srna);
 
 		const char *idname= RNA_struct_identifier(srna);
 		const char *descr= RNA_struct_ui_description(srna);
 
 		if(!descr) descr= "(no docs)";
-		
-		/* get the base type */
-		base= RNA_struct_base(srna);
-		if(base && base != srna) {
-			/*/printf("debug subtype %s %p\n", RNA_struct_identifier(srna), srna); */
-			py_base= pyrna_srna_Subtype(base);
-			Py_DECREF(py_base); /* srna owns, this is only to pass as an arg */
-		}
-		
-		if(py_base==NULL) {
-			py_base= (PyObject *)&pyrna_struct_Type;
-		}
 		
 		/* always use O not N when calling, N causes refcount errors */
 		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(O){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
@@ -2611,7 +2622,7 @@ static StructRNA *srna_from_ptr(PointerRNA *ptr)
 }
 
 /* always returns a new ref, be sure to decref when done */
-PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
+static PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 {
 	return pyrna_srna_Subtype(srna_from_ptr(ptr));
 }

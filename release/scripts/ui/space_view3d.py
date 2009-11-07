@@ -644,7 +644,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.item_menu_enumO("object.make_links_scene", "type", text="Objects to Scene...")
 
         layout.items_enumO("object.make_links_data", property="type") # inline
@@ -1373,26 +1373,26 @@ class VIEW3D_PT_3dview_item(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Item"
- 
+
     def poll(self, context):
         return (context.active_object or context.bone or context.edit_bone)
- 
+
     def draw(self, context):
         layout = self.layout
-       
+
         ob = context.object
- 
+
         row = layout.row()
         row.itemL(text="", icon='ICON_OBJECT_DATA')
         row.itemR(ob, "name", text="")
-       
+
         if ((context.active_bone or context.active_pchan) and ob.type == 'ARMATURE' and (ob.mode == 'EDIT' or ob.mode == 'POSE')):
             bone = context.active_bone
             if not bone:
                 pchan = context.active_pchan
                 if pchan:
                     bone = pchan.bone
-           
+
             row = layout.row()
             row.itemL(text="", icon='ICON_BONE_DATA')
             row.itemR(bone, "name", text="")
