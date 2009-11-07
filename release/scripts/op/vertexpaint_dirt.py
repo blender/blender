@@ -117,7 +117,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
         active_col_layer = me.vertex_colors[0].data
 
     if not active_col_layer:
-        return("CANCELLED", )
+        return('CANCELLED', )
 
     for i, f in enumerate(me.faces):
         if not me.use_paint_mask or f.selected:

@@ -1592,13 +1592,13 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
 
         col.itemR(toolsettings, "etch_convert_mode")
 
-        if toolsettings.etch_convert_mode == "LENGTH":
+        if toolsettings.etch_convert_mode == 'LENGTH':
             col.itemR(toolsettings, "etch_length_limit")
-        elif toolsettings.etch_convert_mode == "ADAPTIVE":
+        elif toolsettings.etch_convert_mode == 'ADAPTIVE':
             col.itemR(toolsettings, "etch_adaptive_limit")
-        elif toolsettings.etch_convert_mode == "FIXED":
+        elif toolsettings.etch_convert_mode == 'FIXED':
             col.itemR(toolsettings, "etch_subdivision_number")
-        elif toolsettings.etch_convert_mode == "RETARGET":
+        elif toolsettings.etch_convert_mode == 'RETARGET':
             col.itemR(toolsettings, "etch_template")
             col.itemR(toolsettings, "etch_roll_mode")
             col.itemR(toolsettings, "etch_autoname")
