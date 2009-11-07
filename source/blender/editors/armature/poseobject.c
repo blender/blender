@@ -1310,7 +1310,6 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	Object *ob;
 	bArmature *arm;
 	bPose *pose;
-	bPoseChannel *pchan;
 	short done= 0;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
@@ -1334,18 +1333,12 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	
 	/* add selected bones to group then */
 	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
-	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-		// NOTE: sync this view3d_context() in space_view3d.c
-		if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
-				pchan->agrp_index= pose->active_group;
-				done= 1;
-			}
-		}
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		pchan->agrp_index= pose->active_group;
+		done= 1;
 	}
-	
+	CTX_DATA_END;
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	

@@ -26,5 +26,5 @@ def expandpath(path):
     return path
 
 import types
-bpy.sys = types.ModuleType("bpy.sys")
-bpy.sys.expandpath = expandpath
+bpy.utils = types.ModuleType("bpy.utils")
+bpy.utils.expandpath = expandpath

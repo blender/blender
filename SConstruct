@@ -124,7 +124,10 @@ if toolset:
 		#if env:
 		#	btools.SetupSpawn(env)
 else:
-	env = BlenderEnvironment(ENV = os.environ)
+	if bitness==64 and platform=='win32':
+		env = BlenderEnvironment(ENV = os.environ, MSVS_ARCH='amd64')
+	else:
+		env = BlenderEnvironment(ENV = os.environ)
 
 if not env:
 	print "Could not create a build environment"

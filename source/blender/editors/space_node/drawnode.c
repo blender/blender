@@ -315,7 +315,7 @@ static void node_buts_normal(uiLayout *layout, PointerRNA *ptr)
 			  (short)butr->xmin, (short)butr->xmin, butr->xmax-butr->xmin, butr->xmax-butr->xmin, 
 			  sock->ns.vec, 0.0f, 1.0f, 0, 0, "");
 }
-
+#if 0 // not used in 2.5x yet
 static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 {
 	bNodeTree *ntree= ntree_v;
@@ -345,7 +345,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 	
 	node->menunr= 0;
 }
-
+#endif
 static void node_dynamic_update_cb(bContext *C, void *ntree_v, void *node_v)
 {
 	Material *ma;
@@ -1342,9 +1342,9 @@ static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
 	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
-	short sx= (butr->xmax-butr->xmin)/4;
+//	short sx= (butr->xmax-butr->xmin)/4;
 	short cx= (butr->xmax-butr->xmin)/3;
-	NodeChroma *c=node->storage;
+//	NodeChroma *c=node->storage;
 	char *c1, *c2, *c3;
 
 	/*color space selector*/

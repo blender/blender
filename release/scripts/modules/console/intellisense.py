@@ -16,10 +16,11 @@
 """This module provides intellisense features such as:
 
 * autocompletion
-* calltips (not yet implemented)
+* calltips
 
 It unifies all completion plugins and only loads them on demand.
 """
+
 # TODO: file complete if startswith quotes
 import os
 import re
@@ -63,6 +64,9 @@ def complete(line, cursor, namespace, private=True):
     :type private: bool
     :returns: list of completions, word
     :rtype: list, str
+
+    >>> complete('re.sr', 5, {'re': re})
+    (['re.sre_compile', 're.sre_parse'], 're.sr')
     """
     re_unquoted_word = RE_UNQUOTED_WORD.search(line[:cursor])
     if re_unquoted_word:
@@ -99,14 +103,28 @@ def expand(line, cursor, namespace, private=True):
         current expanded line, updated cursor position and scrollback
 
     :rtype: str, int, str
+
+    >>> expand('os.path.isdir(', 14, {'os': os})[-1]
+    'isdir(s)\\nReturn true if the pathname refers to an existing directory.'
+    >>> expand('abs(', 4, {})[-1]
+    'abs(number) -> number\\nReturn the absolute value of the argument.'
     """
-    matches, word = complete(line, cursor, namespace, private)
+    if line[:cursor].strip().endswith('('):
+        import complete_calltip
+        matches, word, scrollback = complete_calltip.complete(line,
+            cursor, namespace)
+        no_calltip = False
+    else:
+        matches, word = complete(line, cursor, namespace, private)
+        if len(matches) == 1:
+            scrollback = ''
+        else:
+            scrollback = '  '.join([m.split('.')[-1] for m in matches])
+        no_calltip = True
     prefix = os.path.commonprefix(matches)[len(word):]
     if prefix:
         line = line[:cursor] + prefix + line[cursor:]
         cursor += len(prefix)
-    if len(matches) == 1:
-        scrollback = ''
-    else:
-        scrollback = '  '.join([m.split('.')[-1] for m in matches])
+        if no_calltip and prefix.endswith('('):
+            return expand(line, cursor, namespace, private)
     return line, cursor, scrollback

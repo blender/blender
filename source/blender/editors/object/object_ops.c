@@ -92,6 +92,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_slow_parent_clear);
 	WM_operatortype_append(OBJECT_OT_make_local);
 	WM_operatortype_append(OBJECT_OT_make_single_user);
+	WM_operatortype_append(OBJECT_OT_make_links_scene);
+	WM_operatortype_append(OBJECT_OT_make_links_data);
 	WM_operatortype_append(OBJECT_OT_move_to_layer);
 
 	WM_operatortype_append(OBJECT_OT_select_inverse);
@@ -224,8 +226,17 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
-	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_posemode_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
+		RNA_boolean_set(kmi->ptr, "toggle", 1);
+
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "mode", OB_MODE_POSE);
+		RNA_boolean_set(kmi->ptr, "toggle", 1);
+
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
+		RNA_boolean_set(kmi->ptr, "toggle", 1);
 	
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
@@ -281,6 +292,9 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_single_user");
+    
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", LKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_links");
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move_linked", DKEY, KM_PRESS, KM_ALT, 0);

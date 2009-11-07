@@ -452,14 +452,25 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 
 /************************** Add Geometry Layers *************************/
 
-static void mesh_calc_edges(Mesh *mesh)
+static void mesh_calc_edges(Mesh *mesh, int update)
 {
 	CustomData edata;
 	EdgeHashIterator *ehi;
 	MFace *mf = mesh->mface;
-	MEdge *med;
+	MEdge *med, *med_orig;
 	EdgeHash *eh = BLI_edgehash_new();
 	int i, *index, totedge, totface = mesh->totface;
+
+	if(mesh->totedge==0)
+		update= 0;
+
+	if(update) {
+		/* assume existing edges are valid
+		 * useful when adding more faces and generating edges from them */
+		med= mesh->medge;
+		for(i= 0; i<mesh->totedge; i++, med++)
+			BLI_edgehash_insert(eh, med->v1, med->v2, med);
+	}
 
 	for (i = 0; i < totface; i++, mf++) {
 		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
@@ -488,9 +499,13 @@ static void mesh_calc_edges(Mesh *mesh)
 	med = CustomData_get_layer(&edata, CD_MEDGE);
 	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
 	    BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
-		BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
 
-		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
+		if(update && (med_orig=BLI_edgehashIterator_getValue(ehi))) {
+			*med= *med_orig; /* copy from the original */
+		} else {
+			BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
+			med->flag = ME_EDGEDRAW|ME_EDGERENDER;
+		}
 	}
 	BLI_edgehashIterator_free(ehi);
 
@@ -507,7 +522,7 @@ static void mesh_calc_edges(Mesh *mesh)
 void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 {
 	if(calc_edges || (mesh->totface && mesh->totedge == 0))
-		mesh_calc_edges(mesh);
+		mesh_calc_edges(mesh, calc_edges);
 
 	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mface, mesh->totface, NULL);
 

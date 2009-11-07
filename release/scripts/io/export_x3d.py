@@ -1215,7 +1215,7 @@ def x3d_export_ui(filename):
 
 from bpy.props import *
 
-class EXPORT_OT_x3d(bpy.types.Operator):
+class ExportX3D(bpy.types.Operator):
 	'''Export selection to Extensible 3D file (.x3d)'''
 	bl_idname = "export.x3d"
 	bl_label = 'Export X3D'
@@ -1238,10 +1238,14 @@ class EXPORT_OT_x3d(bpy.types.Operator):
 		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
-bpy.ops.add(EXPORT_OT_x3d)
+bpy.ops.add(ExportX3D)
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.x3d", text="X3D Extensible 3D (.x3d)...")
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".x3d")
+    self.layout.item_stringO(ExportX3D.bl_idname, "path", default_path, text="X3D Extensible 3D (.x3d)...")
+
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 # NOTES

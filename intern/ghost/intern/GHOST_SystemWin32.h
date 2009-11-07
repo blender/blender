@@ -283,9 +283,9 @@ protected:
 	/** High frequency timer variable. */
 	__int64 m_start;
 	/** Stores the capability of this system to distinguish left and right modifier keys. */
-	bool m_seperateLeftRight;
+	bool m_separateLeftRight;
 	/** Stores the initialization state of the member m_leftRightDistinguishable. */
-	bool m_seperateLeftRightInitialized;
+	bool m_separateLeftRightInitialized;
 	
 };
 

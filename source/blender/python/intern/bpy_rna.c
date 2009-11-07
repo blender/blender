@@ -41,6 +41,7 @@
 
 /* only for keyframing */
 #include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 #include "ED_keyframing.h"
 
 #define USE_MATHUTILS
@@ -1155,7 +1156,7 @@ static PySequenceMethods pyrna_prop_as_sequence = {
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA * self, PyObject *args)
 {
 	char *path, *path_full;
-	int index= 0;
+	int index= -1; /* default to all */
 	float cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
 	PropertyRNA *prop;
 	PyObject *result;
@@ -1192,6 +1193,48 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA * self, PyObject *ar
 
 	return result;
 }
+
+
+static PyObject *pyrna_struct_driver_add(BPy_StructRNA * self, PyObject *args)
+{
+	char *path, *path_full;
+	int index= -1; /* default to all */
+	PropertyRNA *prop;
+	PyObject *result;
+
+	if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index))
+		return NULL;
+
+	if (self->ptr.data==NULL) {
+		PyErr_Format( PyExc_TypeError, "driver_add, this struct has no data, cant be animated", path);
+		return NULL;
+	}
+
+	prop = RNA_struct_find_property(&self->ptr, path);
+
+	if (prop==NULL) {
+		PyErr_Format( PyExc_TypeError, "driver_add, property \"%s\" not found", path);
+		return NULL;
+	}
+
+	if (!RNA_property_animateable(&self->ptr, prop)) {
+		PyErr_Format( PyExc_TypeError, "driver_add, property \"%s\" not animatable", path);
+		return NULL;
+	}
+
+	path_full= RNA_path_from_ID_to_property(&self->ptr, prop);
+
+	if (path_full==NULL) {
+		PyErr_Format( PyExc_TypeError, "driver_add, could not make path to \"%s\"", path);
+		return NULL;
+	}
+
+	result= PyBool_FromLong( ANIM_add_driver((ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON));
+	MEM_freeN(path_full);
+
+	return result;
+}
+
 
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA * self, PyObject *args)
 {
@@ -1410,6 +1453,54 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 		
 	/* pyrna_py_to_prop sets its own exceptions */
 	return pyrna_py_to_prop(&self->ptr, prop, NULL, value, "StructRNA - Attribute (setattr):");
+}
+
+static PyObject *pyrna_prop_getattro( BPy_PropertyRNA * self, PyObject *pyname )
+{
+	char *name = _PyUnicode_AsString(pyname);
+
+	if(strcmp(name, "active")==0) {
+		PropertyRNA *prop_act;
+
+		if (RNA_property_type(self->prop) != PROP_COLLECTION) {
+			PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not a collection");
+			return NULL;
+		}
+
+		prop_act= RNA_property_collection_active(self->prop);
+		if (prop_act==NULL) {
+			PyErr_SetString( PyExc_TypeError, "collection has no active");
+			return NULL;
+		}
+
+		return pyrna_prop_to_py(&self->ptr, prop_act);
+	}
+
+	return PyObject_GenericGetAttr((PyObject *)self, pyname);
+}
+
+//--------------- setattr-------------------------------------------
+static int pyrna_prop_setattro( BPy_PropertyRNA * self, PyObject *pyname, PyObject * value )
+{
+	char *name = _PyUnicode_AsString(pyname);
+	if(strcmp(name, "active")==0) {
+		PropertyRNA *prop_act;
+
+		if (RNA_property_type(self->prop) != PROP_COLLECTION) {
+			PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not a collection");
+			return -1;
+		}
+
+		prop_act= RNA_property_collection_active(self->prop);
+		if (prop_act==NULL) {
+			PyErr_SetString( PyExc_TypeError, "collection has no active");
+			return -1;
+		}
+
+		return pyrna_py_to_prop(&self->ptr, prop_act, NULL, value, "StructRNA - Attribute (setattr):");
+	}
+
+	return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
 }
 
 static PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
@@ -1830,6 +1921,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
+	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, NULL},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},
 
@@ -1850,7 +1942,6 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 	/* array accessor function */
 	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
 	{"foreach_set", (PyCFunction)pyrna_prop_foreach_set, METH_VARARGS, NULL},
-
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2321,8 +2412,10 @@ PyTypeObject pyrna_prop_Type = {
 	NULL,						/* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
-	NULL, /*PyObject_GenericGetAttr - MINGW Complains, assign later */	/* getattrofunc tp_getattro; */ /* will only use these if this is a subtype of a py class */
-	NULL, /*PyObject_GenericSetAttr - MINGW Complains, assign later */	/* setattrofunc tp_setattro; */
+
+	/* will only use these if this is a subtype of a py class */
+	( getattrofunc ) pyrna_prop_getattro,	/* getattrofunc tp_getattro; */
+	( setattrofunc ) pyrna_prop_setattro,	/* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
@@ -2588,10 +2681,6 @@ PyObject *BPY_rna_module( void )
 	mathutils_rna_array_cb_index= Mathutils_RegisterCallback(&mathutils_rna_array_cb);
 	mathutils_rna_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_rna_matrix_cb);
 #endif
-	
-	/* This can't be set in the pytype struct because some compilers complain */
-	pyrna_prop_Type.tp_getattro = PyObject_GenericGetAttr; 
-	pyrna_prop_Type.tp_setattro = PyObject_GenericSetAttr; 
 	
 	if( PyType_Ready( &pyrna_struct_Type ) < 0 )
 		return NULL;

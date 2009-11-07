@@ -4,12 +4,12 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -101,6 +101,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.itemO("mesh.screw")
         col.itemO("mesh.merge")
         col.itemO("mesh.rip_move")
+        col.itemO("mesh.flip_normals")
 
         col = layout.column(align=True)
         col.itemL(text="Shading:")
@@ -109,7 +110,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 
         col = layout.column(align=True)
         col.itemL(text="UV Mapping:")
-        col.itemO("uv.mapping_menu", text="Unwrap")
+        col.item_stringO("wm.call_menu", "name", "VIEW3D_MT_uv_map", text="Unwrap")
+        
         col.itemO("mesh.uvs_rotate")
         col.itemO("mesh.uvs_mirror")
 
@@ -133,10 +135,12 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
     def draw(self, context):
         layout = self.layout
 
-        mesh = context.active_object.data
+        ob = context.active_object
 
-        col = layout.column(align=True)
-        col.itemR(mesh, "use_mirror_x")
+        if ob:
+            mesh = context.active_object.data
+            col = layout.column(align=True)
+            col.itemR(mesh, "use_mirror_x")
 
 # ********** default tools for editmode_curve ****************
 
@@ -521,7 +525,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
                     col.row().itemR(brush, "direction", expand=True)
 
                 if brush.sculpt_tool == 'LAYER':
-                    col.itemR(brush, "persistent")
+                    col.itemR(brush, "use_persistent")
                     col.itemO("sculpt.set_persistent_base")
 
         # Texture Paint Mode #
@@ -825,6 +829,8 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         ob = pe.object
 
         layout.itemR(pe, "type", text="")
+
+        ptcache = None
 
         if pe.type == 'PARTICLES':
             if ob.particle_systems:

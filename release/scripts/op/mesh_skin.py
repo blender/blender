@@ -222,22 +222,6 @@ class edgeLoop(object):
 
 # Returns face edges.
 # face must have edge data.
-
-# Utility funcs for 2.5, make into a module??
-def ord_ind(i1,i2):
-	if i1<i2: return i1,i2
-	return i2,i1
-	
-def edge_key(ed):
-	v1,v2 = tuple(ed.verts)
-	return ord_ind(v1, v2)
-
-def face_edge_keys(f):
-	verts  = tuple(f.verts)
-	if len(verts)==3:
-		return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[0])
-	
-	return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
 	
 def mesh_faces_extend(me, faces, mat_idx = 0):
 	orig_facetot = len(me.faces)
@@ -272,15 +256,15 @@ def getSelectedEdges(context, me, ob):
 	if MESH_MODE == 'FACE':
 		context.scene.tool_settings.mesh_selection_mode = 'EDGE'
 		# value is [edge, face_sel_user_in]
-		edge_dict=  dict((edge_key(ed), [ed, 0]) for ed in me.edges)
+		edge_dict=  dict((ed.key(), [ed, 0]) for ed in me.edges)
 		
 		for f in me.faces:
-			if f.sel:
-				for edkey in face_edge_keys(f):
+			if f.selected:
+				for edkey in f.edge_keys():
 					edge_dict[edkey][1] += 1
 		
 		context.scene.tool_settings.mesh_selection_mode = MESH_MODE
-		return [ ed_data[0] for ed_data in edge_dict.itervalues() if ed_data[1] == 1 ]
+		return [ ed_data[0] for ed_data in edge_dict.values() if ed_data[1] == 1 ]
 	
 	
 
@@ -296,7 +280,7 @@ def getVertLoops(selEdges, me):
 	vert_used = [False] * tot
 	
 	for ed in selEdges:
-		i1, i2 = edge_key(ed)
+		i1, i2 = ed.key()
 		vert_siblings[i1].append(i2)
 		vert_siblings[i2].append(i1)
 	

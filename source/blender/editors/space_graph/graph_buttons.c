@@ -259,7 +259,7 @@ static void driver_delete_var_cb (bContext *C, void *driver_v, void *dtar_v)
 	ChannelDriver *driver= (ChannelDriver *)driver_v;
 	DriverTarget *dtar= (DriverTarget *)dtar_v;
 	
-	/* add a new var */
+	/* remove the active target */
 	driver_free_target(driver, dtar);
 }
 
@@ -341,7 +341,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* add driver target variables */
 	col= uiLayoutColumn(pa->layout, 0);
 	block= uiLayoutGetBlock(col);
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Variable", 0, 0, 10*UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
+		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Target", 0, 0, 10*UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
 		uiButSetFunc(but, driver_add_var_cb, driver, NULL);
 	
 	/* loop over targets, drawing them */

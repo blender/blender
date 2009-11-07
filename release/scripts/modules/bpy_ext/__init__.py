@@ -17,3 +17,4 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy_ext.Object
+import bpy_ext.Mesh

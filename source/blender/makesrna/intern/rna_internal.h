@@ -204,6 +204,7 @@ char *rna_TextureSlot_path(struct PointerRNA *ptr);
 /* API functions */
 
 void RNA_api_action(StructRNA *srna);
+void RNA_api_drivers(StructRNA *srna);
 void RNA_api_image(struct StructRNA *srna);
 void RNA_api_keyconfig(struct StructRNA *srna);
 void RNA_api_keyingset(struct StructRNA *srna);

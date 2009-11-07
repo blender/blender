@@ -537,7 +537,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	int success=0, fileflags;
 	
 	/* This is needed so undoing/redoing doesnt crash with threaded previews going */
-	WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
+	WM_jobs_stop_all(CTX_wm_manager(C));
 	
 	strcpy(scestr, G.sce);	/* temporal store */
 	fileflags= G.fileflags;

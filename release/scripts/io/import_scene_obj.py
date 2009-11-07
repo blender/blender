@@ -1574,7 +1574,7 @@ from bpy.props import *
 
 class IMPORT_OT_obj(bpy.types.Operator):
 	'''Load a Wavefront OBJ File.'''
-	bl_idname = "import.obj"
+	bl_idname = "import_scene.obj"
 	bl_label = "Import OBJ"
 	
 	# List of operator properties, the attributes will be assigned
@@ -1626,7 +1626,7 @@ bpy.ops.add(IMPORT_OT_obj)
 
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("import.obj", text="Wavefront (.obj)...")
+menu_func = lambda self, context: self.layout.itemO(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 

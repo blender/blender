@@ -196,7 +196,7 @@ Object *ED_object_add_type(bContext *C, int type, int view_align, int enter_edit
 	DAG_scene_sort(scene);
 
 	if(enter_editmode)
-		ED_object_enter_editmode(C, 0);
+		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
 
 	return ob;
 }
@@ -264,6 +264,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 
 	if(type==PFIELD_GUIDE) {
 		ob= ED_object_add_type(C, OB_CURVE, view_align, FALSE);
+		rename_id(&ob->id, "CurveGuide");
 
 		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
 		ED_object_enter_editmode(C, 0);
@@ -274,6 +275,8 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 	}
 	else {
 		ob= ED_object_add_type(C, OB_EMPTY, view_align, FALSE);
+		rename_id(&ob->id, "Field");
+
 		switch(type) {
 			case PFIELD_WIND:
 			case PFIELD_VORTEX:
@@ -334,12 +337,13 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	int newob= 0, type= RNA_enum_get(op->ptr, "type");
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		ED_object_add_type(C, OB_CURVE, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_CURVE, view_align, TRUE);
 		newob = 1;
-		obedit= CTX_data_edit_object(C);
 
 		if(type & CU_PRIM_PATH)
 			((Curve*)obedit->data)->flag |= CU_PATH|CU_3D;
@@ -417,15 +421,16 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	int newob= 0;
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
-		ED_object_add_type(C, OB_SURF, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_SURF, view_align, TRUE);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	obedit= CTX_data_edit_object(C);
 	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
 	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
@@ -476,15 +481,16 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	MetaElem *elem;
 	int newob= 0;
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
-		ED_object_add_type(C, OB_MBALL, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_MBALL, view_align, TRUE);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	obedit= CTX_data_edit_object(C);
 	elem= (MetaElem*)add_metaball_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
 	mball= (MetaBall*)obedit->data;
 	BLI_addtail(mball->editelems, elem);
@@ -540,13 +546,14 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit && obedit->type==OB_FONT)
 		return OPERATOR_CANCELLED;
 
-	ED_object_add_type(C, OB_FONT, view_align, enter_editmode);
-	obedit= CTX_data_active_object(C);
+	obedit= ED_object_add_type(C, OB_FONT, view_align, enter_editmode);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
@@ -561,6 +568,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_text_add";
 	
 	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_add_text_exec;
 	ot->poll= ED_operator_scene_editable;
 	
@@ -576,12 +584,13 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= NULL;
 	int newob= 0;
 	int view_align, enter_editmode;
+	
+	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
 		obedit= ED_object_add_type(C, OB_ARMATURE, view_align, TRUE);
 		ED_object_enter_editmode(C, 0);
-		obedit= CTX_data_edit_object(C);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
@@ -615,6 +624,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_armature_add";
 	
 	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_armature_add_exec;
 	ot->poll= ED_operator_scene_editable;
 	
@@ -666,31 +676,8 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, FALSE);
 }
 
-/* add dupligroup */
-static EnumPropertyItem *add_dupligroup_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	EnumPropertyItem *item= NULL, item_tmp;
-	int totitem= 0;
-	int i= 0;
-	Group *group;
-
-	memset(&item_tmp, 0, sizeof(item_tmp));
-
-	for(group= CTX_data_main(C)->group.first; group; group= group->id.next) {
-		item_tmp.identifier= item_tmp.name= group->id.name+2;
-		item_tmp.value= i++;
-		RNA_enum_item_add(&item, &totitem, &item_tmp);
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*free= 1;
-
-	return item;
-}
-
 static int group_instance_add_exec(bContext *C, wmOperator *op)
 {
-	/* XXX, using an enum for library lookups is a bit dodgy */
 	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "type"));
 
 	int view_align, enter_editmode;
@@ -716,9 +703,6 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_group_dummy_types[] = {
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	/* identifiers */
 	ot->name= "Add Group Instance";
@@ -731,11 +715,11 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", prop_group_dummy_types, 0, "Type", "");
-	RNA_def_enum_funcs(prop, add_dupligroup_itemf);
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, RNA_group_itemf);
 	ED_object_add_generic_props(ot, FALSE);
 }
 

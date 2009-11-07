@@ -4,12 +4,12 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -73,8 +73,9 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 
             col = split.column()
             col.itemL(text="Object:")
-            col.itemR(softbody, "mass")
             col.itemR(softbody, "friction")
+            col.itemR(softbody, "mass")
+            col.item_pointerR(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
 
             col = split.column()
             col.itemL(text="Simulation:")
@@ -167,6 +168,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         col.itemR(softbody, "plastic")
         col.itemR(softbody, "bending")
         col.itemR(softbody, "spring_length", text="Length")
+        col.item_pointerR(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
         col = split.column()
         col.itemR(softbody, "stiff_quads")

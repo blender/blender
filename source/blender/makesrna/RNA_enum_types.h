@@ -31,6 +31,8 @@
 
 extern EnumPropertyItem id_type_items[];
 
+/* use in cases where only dynamic types are used */
+extern EnumPropertyItem DummyRNA_NULL_items[];
 
 extern EnumPropertyItem object_mode_items[];
 
@@ -68,6 +70,11 @@ extern EnumPropertyItem space_type_items[];
 struct bContext;
 struct PointerRNA;
 EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+
+/* Generic functions, return an enum from library data, index is the position
+ * in the linked list can add more for different types as needed */
+EnumPropertyItem *RNA_group_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+EnumPropertyItem *RNA_scene_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 
 #endif /* RNA_ENUM_TYPES */
 

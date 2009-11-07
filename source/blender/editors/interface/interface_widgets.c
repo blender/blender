@@ -2368,7 +2368,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	uiFontStyle *fstyle= &style->widget;
 	uiWidgetType *wt= NULL;
 	
-	/* handle menus seperately */
+	/* handle menus separately */
 	if(but->dt==UI_EMBOSSP) {
 		switch (but->type) {
 			case LABEL:

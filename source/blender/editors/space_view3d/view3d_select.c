@@ -1373,38 +1373,38 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	unsigned int buffer[4*MAXPICKBUF];
 	int a, index;
-	short hits, val;
+	short hits, selecting;
 
 	view3d_operator_needs_opengl(C);
 	
 	/* setup view context for argument to callbacks */
 	view3d_set_viewcontext(C, &vc);
 	
-	val= RNA_int_get(op->ptr, "event_type");
+	selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	
 	if(obedit==NULL && (paint_facesel_test(OBACT))) {
-		face_borderselect(C, obact, &rect, (val==LEFTMOUSE));
+		face_borderselect(C, obact, &rect, selecting);
 		return OPERATOR_FINISHED;
 	}
 	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
-		return PE_border_select(C, &rect, (val==LEFTMOUSE));
+		return PE_border_select(C, &rect, selecting);
 	}
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
 			vc.em= me->edit_mesh;
-			do_mesh_box_select(&vc, &rect, (val==LEFTMOUSE));
+			do_mesh_box_select(&vc, &rect, selecting);
 //			if (EM_texFaceCheck())
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			
 		}
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-			do_nurbs_box_select(&vc, &rect, val==LEFTMOUSE);
+			do_nurbs_box_select(&vc, &rect, selecting);
 		}
 		else if(obedit->type==OB_MBALL) {
 			MetaBall *mb = (MetaBall*)obedit->data;
@@ -1416,14 +1416,14 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 				for(a=0; a<hits; a++) {
 					if(ml->selcol1==buffer[ (4 * a) + 3 ]) {
 						ml->flag |= MB_SCALE_RAD;
-						if(val==LEFTMOUSE) ml->flag |= SELECT;
-						else ml->flag &= ~SELECT;
+						if(selecting)	ml->flag |= SELECT;
+						else			ml->flag &= ~SELECT;
 						break;
 					}
 					if(ml->selcol2==buffer[ (4 * a) + 3 ]) {
 						ml->flag &= ~MB_SCALE_RAD;
-						if(val==LEFTMOUSE) ml->flag |= SELECT;
-						else ml->flag &= ~SELECT;
+						if(selecting)	ml->flag |= SELECT;
+						else			ml->flag &= ~SELECT;
 						break;
 					}
 				}
@@ -1447,14 +1447,14 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 					ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 					if (index & BONESEL_TIP) {
 						ebone->flag |= BONE_DONE;
-						if (val==LEFTMOUSE) ebone->flag |= BONE_TIPSEL;
-						else ebone->flag &= ~BONE_TIPSEL;
+						if (selecting)	ebone->flag |= BONE_TIPSEL;
+						else			ebone->flag &= ~BONE_TIPSEL;
 					}
 					
 					if (index & BONESEL_ROOT) {
 						ebone->flag |= BONE_DONE;
-						if (val==LEFTMOUSE) ebone->flag |= BONE_ROOTSEL;
-						else ebone->flag &= ~BONE_ROOTSEL;
+						if (selecting)	ebone->flag |= BONE_ROOTSEL;
+						else			ebone->flag &= ~BONE_ROOTSEL;
 					}
 				}
 			}
@@ -1474,7 +1474,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 					ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 					if (index & BONESEL_BONE) {
 						if(!(ebone->flag & BONE_DONE)) {
-							if (val==LEFTMOUSE)
+							if (selecting)
 								ebone->flag |= (BONE_ROOTSEL|BONE_TIPSEL|BONE_SELECTED);
 							else
 								ebone->flag &= ~(BONE_ROOTSEL|BONE_TIPSEL|BONE_SELECTED);
@@ -1486,7 +1486,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			ED_armature_sync_selection(arm->edbo);
 		}
 		else if(obedit->type==OB_LATTICE) {
-			do_lattice_box_select(&vc, &rect, val==LEFTMOUSE);
+			do_lattice_box_select(&vc, &rect, selecting);
 		}
 	}
 	else {	/* no editmode, unified for bones and objects */
@@ -1494,7 +1494,6 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		Object *ob= OBACT;
 		unsigned int *vbuffer=NULL; /* selection buffer	*/
 		unsigned int *col;			/* color in buffer	*/
-		short selecting = 0;
 		int bone_only;
 		int totobj= MAXPICKBUF;	// XXX solve later
 		
@@ -1502,9 +1501,6 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			bone_only= 1;
 		else
 			bone_only= 0;
-		
-		if (val==LEFTMOUSE)
-			selecting = 1;
 		
 		/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
 		vbuffer = MEM_mallocN(4 * (totobj+MAXPICKBUF) * sizeof(unsigned int), "selection buffer");
@@ -1589,13 +1585,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
 /* ****** Mouse Select ****** */
@@ -1810,6 +1800,79 @@ static void lattice_circle_select(ViewContext *vc, int selecting, short *mval, f
 	lattice_foreachScreenVert(vc, latticecurve_circle_doSelect, &data);
 }
 
+
+static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int x, int y, short head)
+{
+	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
+	int mx = x - data->mval[0], my = y - data->mval[1];
+	float r = sqrt(mx*mx + my*my);
+	
+	if (r <= data->radius) {
+		if (head) {
+			if (data->select)
+				ebone->flag |= BONE_ROOTSEL;
+			else 
+				ebone->flag &= ~BONE_ROOTSEL;
+		}
+		else {
+			if (data->select)
+				ebone->flag |= BONE_TIPSEL;
+			else 
+				ebone->flag &= ~BONE_TIPSEL;
+		}
+		return 1;
+	}
+	return 0;
+}
+static void armature_circle_select(ViewContext *vc, int selecting, short *mval, float rad)
+{
+	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
+	bArmature *arm= vc->obedit->data;
+	EditBone *ebone;
+	
+	/* set vc->edit data */
+	data.select = selecting;
+	data.mval[0] = mval[0];
+	data.mval[1] = mval[1];
+	data.radius = rad;
+
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	
+	/* check each EditBone... */
+	// TODO: could be optimised at some point
+	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
+		short sco1[2], sco2[2], didpoint=0;
+		float vec[3];
+		
+		/* project head location to screenspace */
+		VECCOPY(vec, ebone->head);
+		Mat4MulVecfl(vc->obedit->obmat, vec);
+		project_short(vc->ar, vec, sco1);
+		
+		/* project tail location to screenspace */
+		VECCOPY(vec, ebone->tail);
+		Mat4MulVecfl(vc->obedit->obmat, vec);
+		project_short(vc->ar, vec, sco2);
+		
+		/* check if the head and/or tail is in the circle 
+		 *	- the call to check also does the selection already
+		 */
+		if (armature_circle_doSelectJoint(&data, ebone, sco1[0], sco1[1], 1))
+			didpoint= 1;
+		if (armature_circle_doSelectJoint(&data, ebone, sco2[0], sco2[1], 0))
+			didpoint= 1;
+			
+		/* only if the endpoints didn't get selected, deal with the middle of the bone too */
+		// XXX should we just do this always?
+		if ( (didpoint==0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1]) ) {
+			if (selecting) 
+				ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
+			else 
+				ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL); 
+		}
+	}
+}
+
 /** Callbacks for circle selection in Editmode */
 
 static void obedit_circle_select(ViewContext *vc, short selecting, short *mval, float rad) 
@@ -1824,6 +1887,9 @@ static void obedit_circle_select(ViewContext *vc, short selecting, short *mval, 
 		break;
 	case OB_LATTICE:
 		lattice_circle_select(vc, selecting, mval, rad);
+		break;
+	case OB_ARMATURE:
+		armature_circle_select(vc, selecting, mval, rad);
 		break;
 	default:
 		return;
@@ -1841,17 +1907,20 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int x= RNA_int_get(op->ptr, "x");
 	int y= RNA_int_get(op->ptr, "y");
 	int radius= RNA_int_get(op->ptr, "radius");
+    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+    int selecting;
 	
+    selecting= (gesture_mode==GESTURE_MODAL_SELECT);
+    
 	if(CTX_data_edit_object(C) || (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		ViewContext vc;
-		short mval[2], selecting;
+		short mval[2];
 		
 		view3d_operator_needs_opengl(C);
 		
 		view3d_set_viewcontext(C, &vc);
 		mval[0]= x;
 		mval[1]= y;
-		selecting= LEFTMOUSE==RNA_int_get(op->ptr, "event_type"); // XXX solve
 
 		if(CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
@@ -1862,7 +1931,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		Base *base;
-		
+		selecting= selecting?BA_SELECT:BA_DESELECT;
 		for(base= FIRSTBASE; base; base= base->next) {
 			if(base->lay & v3d->lay) {
 				project_short(ar, base->object->obmat[3], &base->sx);
@@ -1870,7 +1939,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 					int dx= base->sx-x;
 					int dy= base->sy-y;
 					if( dx*dx + dy*dy < radius*radius)
-						ED_base_object_select(base, BA_SELECT);
+						ED_base_object_select(base, selecting);
 				}
 			}
 		}
@@ -1898,5 +1967,5 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
 }

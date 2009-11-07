@@ -389,7 +389,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	
 	vgroup= ob->actdef-1;
 	
-	/* directly copied from weight_paint, should probaby split into a seperate function */
+	/* directly copied from weight_paint, should probaby split into a separate function */
 	/* if mirror painting, find the other group */		
 	if(me->editflag & ME_EDIT_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
@@ -990,7 +990,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 static void do_weight_paint_auto_normalize(MDeformVert *dvert, 
 					   int paint_nr, char *map)
 {
-	MDeformWeight *dw = dvert->dw;
+//	MDeformWeight *dw = dvert->dw;
 	float sum=0.0f, fac=0.0f, paintw=0.0f;
 	int i, tot=0;
 

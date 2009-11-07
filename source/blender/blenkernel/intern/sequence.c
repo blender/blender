@@ -1156,7 +1156,7 @@ static int seq_proxy_get_fname(Scene *scene, Sequence * seq, int cfra, char * na
 		return TRUE;
 	}
 
-	/* generate a seperate proxy directory for each preview size */
+	/* generate a separate proxy directory for each preview size */
 
 	if (seq->type == SEQ_IMAGE) {
 		StripElem * se = give_stripelem(seq, cfra);
@@ -1285,7 +1285,7 @@ static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int re
 		IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
 	}
 
-	/* quality is fixed, otherwise one has to generate seperate
+	/* quality is fixed, otherwise one has to generate separate
 	   directories for every quality...
 
 	   depth = 32 is intentionally left in, otherwise ALPHA channels

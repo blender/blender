@@ -254,7 +254,9 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	else if (obedit->type==OB_ARMATURE){
 		bArmature *arm= obedit->data;
 		int totmalloc= BLI_countlist(arm->edbo);
-		
+
+        totmalloc *= 2;  /* probably overkill but bones can have 2 trans verts each */
+
 		tv=transvmain= MEM_callocN(totmalloc*sizeof(TransVert), "maketransverts armature");
 		
 		for (ebo= arm->edbo->first; ebo; ebo=ebo->next){
