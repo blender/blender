@@ -2669,3 +2669,52 @@ void SEQUENCER_OT_swap_left(wmOperatorType *ot)
 	
 	/* properties */
 }
+
+static int sequencer_rendersize_exec(bContext *C, wmOperator *op)
+{
+	int retval = OPERATOR_CANCELLED;
+	Scene *scene= CTX_data_scene(C);
+	Sequence *active_seq = get_last_seq(scene);
+
+	if(active_seq==NULL) return OPERATOR_CANCELLED;
+
+	printf("got active sequence\n");
+	switch (active_seq->type) {
+		case SEQ_IMAGE:
+		case SEQ_MOVIE:
+			if (active_seq->strip) {
+				// prevent setting the render size if sequence values aren't initialized
+				if ( (active_seq->strip->orx>0) && (active_seq->strip->ory>0) ) {
+					scene->r.xsch= active_seq->strip->orx;
+					scene->r.ysch= active_seq->strip->ory;
+					WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+					retval = OPERATOR_FINISHED;
+				}
+			}
+			break;
+		case SEQ_SCENE:
+		case SEQ_META:
+		case SEQ_RAM_SOUND:
+		case SEQ_HD_SOUND:
+		default:
+			break;
+	}
+	return retval;
+}
+
+void SEQUENCER_OT_rendersize(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Render Size";
+	ot->idname= "SEQUENCER_OT_rendersize";
+	ot->description="Set render size and aspect from active sequence.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_rendersize_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+}
