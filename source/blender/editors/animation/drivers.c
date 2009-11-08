@@ -148,6 +148,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	PropertyRNA *prop;
 	FCurve *fcu;
 	int array_index_max = array_index+1;
+	int done = 0;
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
@@ -198,10 +199,13 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 				}
 			}
 		}
+		
+		/* set the done status */
+		done += (fcu != NULL);
 	}
 	
 	/* done */
-	return (fcu != NULL);
+	return done;
 }
 
 /* Main Driver Management API calls:

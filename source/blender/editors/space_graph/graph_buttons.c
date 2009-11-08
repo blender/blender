@@ -173,31 +173,40 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 {
 	bAnimListElem *ale;
 	FCurve *fcu;
+	PointerRNA fcu_ptr;
+	uiLayout *layout = pa->layout;
+	uiLayout *col, *row, *subrow;
 	uiBlock *block;
-	char name[128];
+	char name[256];
+	int icon = 0;
 
-	if(!graph_panel_context(C, &ale, &fcu))
+	if (!graph_panel_context(C, &ale, &fcu))
 		return;
-
-	block= uiLayoutAbsoluteBlock(pa->layout);
+	
+	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
-
-	/* Info - Active F-Curve */
-	uiDefBut(block, LABEL, 1, "Active F-Curve:",					10, 200, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if (ale->id) { 
-		// icon of active blocktype - is this really necessary?
-		int icon= geticon_anim_blocktype(GS(ale->id->name));
+	/* F-Curve pointer */
+	RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);
+	
+	/* user-friendly 'name' for F-Curve */
+	// TODO: only show the path if this is invalid?
+	col= uiLayoutColumn(layout, 0);
+		icon= getname_anim_fcurve(name, ale->id, fcu);
+		uiItemL(col, name, icon);
 		
-		// xxx type of icon-but is currently "LABEL", as that one is plain...
-		uiDefIconBut(block, LABEL, 1, icon, 10, 180, 20, 19, NULL, 0, 0, 0, 0, "ID-type that F-Curve belongs to");
-	}
-	
-	getname_anim_fcurve(name, ale->id, fcu);
-	uiDefBut(block, LABEL, 1, name,	40, 180, 300, 19, NULL, 0.0, 0.0, 0, 0, "Name of Active F-Curve");
+	/* color settings */
+	col= uiLayoutColumn(layout, 1);
+		uiItemL(col, "Display Color:", 0);
+		
+		row= uiLayoutRow(col, 1);
+			uiItemR(row, "", 0, &fcu_ptr, "color_mode", 0);
+			
+			subrow= uiLayoutRow(row, 1);
+				uiLayoutSetEnabled(subrow, (fcu->color_mode==FCURVE_COLOR_CUSTOM));
+				uiItemR(subrow, "", 0, &fcu_ptr, "color", 0);
 	
 	/* TODO: the following settings could be added here
-	 *	- F-Curve coloring mode - mode selector + color selector
 	 *	- Access details (ID-block + RNA-Path + Array Index)
 	 *	- ...
 	 */
@@ -448,13 +457,13 @@ void graph_buttons_register(ARegionType *art)
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
 	strcpy(pt->idname, "GRAPH_PT_view");
-	strcpy(pt->label, "View");
+	strcpy(pt->label, "View Properties");
 	pt->draw= graph_panel_view;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
 	strcpy(pt->idname, "GRAPH_PT_properties");
-	strcpy(pt->label, "Properties");
+	strcpy(pt->label, "Active F-Curve");
 	pt->draw= graph_panel_properties;
 	pt->poll= graph_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);

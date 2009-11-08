@@ -61,53 +61,24 @@
 
 /* ----------------------- Getter functions ----------------------- */
 
-/* gets the appropriate icon for the given blocktype */
-// XXX some of these will be depreceated?
-int geticon_anim_blocktype(short blocktype)
-{
-	switch (blocktype) {
-		case ID_OB:
-			return ICON_OBJECT_DATA;
-		case ID_PO:
-			return ICON_POSE_HLT;
-		case ID_KE:
-			return ICON_SHAPEKEY_DATA;
-		case ID_MA:
-			return ICON_MATERIAL;
-		case ID_WO:
-			return ICON_WORLD;
-		case ID_CU:
-			return ICON_CURVE_DATA;
-		case ID_CA:
-			return ICON_CAMERA;
-		case ID_LA:
-			return ICON_LAMP;
-		case ID_TE:
-			return ICON_TEXTURE;
-		case ID_CO:
-			return ICON_CONSTRAINT;
-		case ID_FLUIDSIM:
-			return ICON_WORLD; // uggh
-		default:
-			return 0; // what about blank icon?
-	}
-}
-
-/* Write into "name" buffer, the name of the property (retrieved using RNA from the curve's settings) 
+/* Write into "name" buffer, the name of the property (retrieved using RNA from the curve's settings),
+ * and return the icon used for the struct that this property refers to 
  * WARNING: name buffer we're writing to cannot exceed 256 chars (check anim_channels_defines.c for details)
  */
-void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
+int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
+	int icon = 0;
+	
 	/* sanity checks */
 	if (name == NULL)
-		return;
+		return icon;
 	else if ELEM3(NULL, id, fcu, fcu->rna_path) {
 		if (fcu == NULL)
 			sprintf(name, "<invalid>");
 		else if (fcu->rna_path == NULL)
 			sprintf(name, "<no path>");
 		else /* id == NULL */
-			BLI_snprintf(name, 128, "%s[%d]", fcu->rna_path, fcu->array_index);
+			BLI_snprintf(name, 256, "%s[%d]", fcu->rna_path, fcu->array_index);
 	}
 	else {
 		PointerRNA id_ptr, ptr;
@@ -182,17 +153,30 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			
 			/* putting this all together into the buffer */
 			// XXX we need to check for invalid names...
-			BLI_snprintf(name, 128, "%s%s (%s)", arrayname, propname, structname); 
+			BLI_snprintf(name, 256, "%s%s (%s)", arrayname, propname, structname); 
 			
 			/* free temp name if nameprop is set */
 			if (free_structname)
 				MEM_freeN(structname);
+			
+			
+			/* Icon for this property's owner:
+			 *	use the struct's icon if it is set
+			 */
+			icon= RNA_struct_ui_icon(ptr.type);
 		}
 		else {
 			/* invalid path */
-			BLI_snprintf(name, 128, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
+			BLI_snprintf(name, 256, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
+			
+			/* icon for this should be the icon for the base ID */
+			// TODO: or should we just use the error icon?
+			icon= RNA_struct_ui_icon(id_ptr.type);
 		}
 	}
+	
+	/* return the icon that the active data had */
+	return icon;
 }
 
 /* ------------------------------- Color Codes for F-Curve Channels ---------------------------- */
