@@ -141,7 +141,7 @@ static void layerFree_mdeformvert(void *data, int count, int size)
 
 static void linklist_free_simple(void *link)
 {
-	MEM_freeN(link);
+	BLI_cellalloc_free(link);
 }
 
 static void layerInterp_mdeformvert(void **sources, float *weights,
