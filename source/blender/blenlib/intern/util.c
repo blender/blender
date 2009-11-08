@@ -1403,7 +1403,14 @@ void BLI_where_am_i(char *fullname, const char *name)
 		return;
 	}
 #endif
-	
+
+#ifdef _WIN32
+	if(GetModuleFileName(0, fullname, FILE_MAXDIR+FILE_MAXFILE)) {
+		GetShortPathName(fullname, fullname, FILE_MAXDIR+FILE_MAXFILE);
+		return;
+	}
+#endif
+
 	/* unix and non linux */
 	if (name && fullname && strlen(name)) {
 		strcpy(fullname, name);
