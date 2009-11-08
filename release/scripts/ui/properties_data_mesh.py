@@ -159,41 +159,41 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
         col = row.column()
 
-        subcol = col.column(align=True)
-        subcol.itemO("object.shape_key_add", icon='ICON_ZOOMIN', text="")
-        subcol.itemO("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
+        sub = col.column(align=True)
+        sub.itemO("object.shape_key_add", icon='ICON_ZOOMIN', text="")
+        sub.itemO("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
 
         if kb:
             col.itemS()
 
-            subcol = col.column(align=True)
-            subcol.item_enumO("object.shape_key_move", "type", 'UP', icon='ICON_TRIA_UP', text="")
-            subcol.item_enumO("object.shape_key_move", "type", 'DOWN', icon='ICON_TRIA_DOWN', text="")
+            sub = col.column(align=True)
+            sub.item_enumO("object.shape_key_move", "type", 'UP', icon='ICON_TRIA_UP', text="")
+            sub.item_enumO("object.shape_key_move", "type", 'DOWN', icon='ICON_TRIA_DOWN', text="")
 
             split = layout.split(percentage=0.4)
-            sub = split.row()
-            sub.enabled = enable_edit
-            sub.itemR(key, "relative")
+            row = split.row()
+            row.enabled = enable_edit
+            row.itemR(key, "relative")
 
-            sub = split.row()
-            sub.alignment = 'RIGHT'
+            row = split.row()
+            row.alignment = 'RIGHT'
 
-            subrow = sub.row(align=True)
-            subrow1 = subrow.row(align=True)
-            subrow1.active = enable_edit_value
+            sub = row.row(align=True)
+            subsub = sub.row(align=True)
+            subsub.active = enable_edit_value
             if ob.shape_key_lock:
-                subrow1.itemR(ob, "shape_key_lock", icon='ICON_PINNED', text="")
+                subsub.itemR(ob, "shape_key_lock", icon='ICON_PINNED', text="")
             else:
-                subrow1.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
+                subsub.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
             if kb.mute:
-                subrow1.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
+                subsub.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
             else:
-                subrow1.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
-            subrow.itemR(ob, "shape_key_edit_mode", text="")
+                subsub.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
+            sub.itemR(ob, "shape_key_edit_mode", text="")
 
-            subrow = sub.row(align=True)
-            subrow.itemO("object.shape_key_mirror", icon='ICON_ARROW_LEFTRIGHT', text="")
-            subrow.itemO("object.shape_key_clear", icon='ICON_X', text="")
+            sub = row.row(align=True)
+            sub.itemO("object.shape_key_mirror", icon='ICON_ARROW_LEFTRIGHT', text="")
+            sub.itemO("object.shape_key_clear", icon='ICON_X', text="")
 
 
             row = layout.row()
@@ -206,17 +206,18 @@ class DATA_PT_shape_keys(DataButtonsPanel):
                     row.itemR(kb, "value")
 
                     split = layout.split()
-                    sub = split.column(align=True)
-                    sub.active = enable_edit_value
-                    sub.itemL(text="Range:")
-                    sub.itemR(kb, "slider_min", text="Min")
-                    sub.itemR(kb, "slider_max", text="Max")
 
-                    sub = split.column(align=True)
-                    sub.active = enable_edit_value
-                    sub.itemL(text="Blend:")
-                    sub.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
-                    sub.item_pointerR(kb, "relative_key", key, "keys", text="")
+                    col = split.column(align=True)
+                    col.active = enable_edit_value
+                    col.itemL(text="Range:")
+                    col.itemR(kb, "slider_min", text="Min")
+                    col.itemR(kb, "slider_max", text="Max")
+
+                    col = split.column(align=True)
+                    col.active = enable_edit_value
+                    col.itemL(text="Blend:")
+                    col.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
+                    col.item_pointerR(kb, "relative_key", key, "keys", text="")
 
             else:
                 row = layout.row()
