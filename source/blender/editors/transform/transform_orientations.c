@@ -580,8 +580,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	Object *ob = OBACT;
 	int result = ORIENTATION_NONE;
 
-	normal[0] = normal[1] = normal[2] = 0;
-	plane[0] = plane[1] = plane[2] = 0;
+	normal[0] = normal[1] = normal[2] = 0.0f;
+	plane[0] = plane[1] = plane[2] = 0.0f;
 
 	if(obedit)
 	{
@@ -611,13 +611,13 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				
 				switch (ese.type)
 				{
-					case EDITVERT:
+					case BM_VERT:
 						result = ORIENTATION_VERT;
 						break;
-					case EDITEDGE:
+					case BM_EDGE:
 						result = ORIENTATION_EDGE;
 						break;
-					case EDITFACE:
+					case BM_FACE:
 						result = ORIENTATION_FACE;
 						break;
 				}
@@ -734,7 +734,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				else if (em->bm->totvertsel > 3)
 				{
 					BMIter iter;
-					normal[0] = normal[1] = normal[2] = 0;
+					normal[0] = normal[1] = normal[2] = 0.0f;
 
 					BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 						if (BM_TestHFlag(eve, BM_SELECT)) {
@@ -942,7 +942,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	return result;
 }
 
-void getTransformOrientationMatrix(const bContext *C, float twmat[][4], int activeOnly)
+void getTransformOrientationMatrix(const bContext *C, float twmat[][3], int activeOnly)
 {
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
@@ -982,10 +982,10 @@ void getTransformOrientationMatrix(const bContext *C, float twmat[][4], int acti
 
 	if (type == ORIENTATION_NONE)
 	{
-		Mat4One(twmat);
+		Mat3One(twmat);
 	}
 	else
 	{
-		Mat4CpyMat3(twmat, mat);
+		Mat3CpyMat3(twmat, mat);
 	}
 }

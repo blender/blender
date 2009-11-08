@@ -31,6 +31,10 @@
 #ifndef BKE_UTILDEFINES_H
 #define BKE_UTILDEFINES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -211,6 +215,10 @@
 #endif
 
 #define BMEMSET(mem, val, size) {unsigned int _i; char *_c = (char*) mem; for (_i=0; _i<size; _i++) *_c++ = val;}
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
