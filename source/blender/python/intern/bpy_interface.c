@@ -176,35 +176,35 @@ static void bpy_init_modules( void )
 {
 	PyObject *mod;
 	
+	/* Needs to be first since this dir is needed for future modules */
+	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
+	if(modpath) {
+		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
+		PyObject *py_modpath= PyUnicode_FromString(modpath);
+		PyList_Insert(sys_path, 0, py_modpath); /* add first */
+		Py_DECREF(py_modpath);
+	}
+	
 	mod = PyModule_New("bpy");
-	
-	PyModule_AddObject( mod, "data", BPY_rna_module() );
-	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
-	PyModule_AddObject( mod, "types", BPY_rna_types() );
-	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
-	
+
 	/* add the module so we can import it */
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
 
-	/* add our own modules dir */
-	{
-		char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
-		
-		if(modpath) {
-			PyObject *sys_path= PySys_GetObject("path"); /* borrow */
-			PyObject *py_modpath= PyUnicode_FromString(modpath);
-			PyList_Insert(sys_path, 0, py_modpath); /* add first */
-			Py_DECREF(py_modpath);
-		}
-		
-		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
-		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
-		bpy_import_test("bpy_ext"); /* extensions to our existing types */
-	}
-	
+	/* run first, initializes rna types */
+	BPY_rna_init();
+
+	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
+	bpy_import_test("bpy_types");
+	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
+	bpy_import_test("bpy_types");
+	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
+	PyModule_AddObject( mod, "props", BPY_rna_props() );
+	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
+
+
+
 	/* bpy context */
 	{
 		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
@@ -213,11 +213,16 @@ static void bpy_init_modules( void )
 		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 	}
 
-
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
 	BGL_Init();
+
+	/* add our own modules dir */
+	{
+		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
+		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
+	}
 }
 
 void BPY_update_modules( void )

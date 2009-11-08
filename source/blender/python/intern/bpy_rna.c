@@ -1364,16 +1364,6 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	PropertyRNA *prop;
 	FunctionRNA *func;
 	
-	/* Include this incase this instance is a subtype of a python class
-	 * In these instances we may want to return a function or variable provided by the subtype
-	 * 
-	 * Also needed to return methods when its not a subtype
-	 * */
-	ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
-	if (ret)	return ret;
-	else		PyErr_Clear();
-	/* done with subtypes */
-	
   	if ((prop = RNA_struct_find_property(&self->ptr, name))) {
   		ret = pyrna_prop_to_py(&self->ptr, prop);
   	}
@@ -1419,8 +1409,18 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 		}
 	}
 	else {
+#if 0
 		PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%.200s\" not found", name);
 		ret = NULL;
+#endif
+		/* Include this incase this instance is a subtype of a python class
+		 * In these instances we may want to return a function or variable provided by the subtype
+		 *
+		 * Also needed to return methods when its not a subtype
+		 * */
+
+		/* The error raised here will be displayed */
+		ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
 	}
 	
 	return ret;
@@ -2551,6 +2551,7 @@ static PyObject* pyrna_srna_PyBase(StructRNA *srna) //, PyObject *bpy_types_dict
 
 	/* get the base type */
 	base= RNA_struct_base(srna);
+
 	if(base && base != srna) {
 		/*/printf("debug subtype %s %p\n", RNA_struct_identifier(srna), srna); */
 		py_base= pyrna_srna_Subtype(base); //, bpy_types_dict);
@@ -2564,6 +2565,56 @@ static PyObject* pyrna_srna_PyBase(StructRNA *srna) //, PyObject *bpy_types_dict
 	return py_base;
 }
 
+/* check if we have a native python subclass, use it when it exists
+ * return a borrowed reference */
+static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
+{
+	PyObject *bpy_types_dict= NULL;
+	const char *idname= RNA_struct_identifier(srna);
+	PyObject *newclass;
+
+	if(bpy_types_dict==NULL) {
+		PyObject *bpy_types= PyImport_ImportModuleLevel("bpy_types", NULL, NULL, NULL, 0);
+
+		if(bpy_types==NULL) {
+			PyErr_Print();
+			PyErr_Clear();
+			fprintf(stderr, "pyrna_srna_ExternalType: failed to find 'bpy_types' module\n");
+			return NULL;
+		}
+
+		bpy_types_dict = PyModule_GetDict(bpy_types); // borrow
+		Py_DECREF(bpy_types); // fairly safe to assume the dict is kept
+	}
+
+	newclass= PyDict_GetItemString(bpy_types_dict, idname);
+
+	/* sanity check, could skip this unless in debug mode */
+	if(newclass) {
+		PyObject *base_compare= pyrna_srna_PyBase(srna);
+		PyObject *bases= PyObject_GetAttrString(newclass, "__bases__");
+
+		if(PyTuple_GET_SIZE(bases)) {
+			PyObject *base= PyTuple_GET_ITEM(bases, 0);
+
+			if(base_compare != base) {
+				PyLineSpit();
+				fprintf(stderr, "pyrna_srna_ExternalType: incorrect subclassing of SRNA '%s'\n", idname);
+				PyObSpit("Expected! ", base_compare);
+				newclass= NULL;
+			}
+			else {
+				if(G.f & G_DEBUG)
+					fprintf(stderr, "SRNA Subclassed: '%s'\n", idname);
+			}
+		}
+
+		Py_DECREF(bases);
+	}
+
+	return newclass;
+}
+
 static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 {
 	PyObject *newclass = NULL;
@@ -2571,6 +2622,9 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 	if (srna == NULL) {
 		newclass= NULL; /* Nothing to do */
 	} else if ((newclass= RNA_struct_py_type_get(srna))) {
+		Py_INCREF(newclass);
+	} else if ((newclass= pyrna_srna_ExternalType(srna))) {
+		pyrna_subtype_set_rna(newclass, srna);
 		Py_INCREF(newclass);
 	} else {
 		/* subclass equivelents
@@ -2681,23 +2735,26 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 	return ( PyObject * ) pyrna;
 }
 
-/* bpy.data from python */
-static PointerRNA *rna_module_ptr= NULL;
-PyObject *BPY_rna_module( void )
+void BPY_rna_init(void)
 {
-	BPy_StructRNA *pyrna;
-	PointerRNA ptr;
-	
 #ifdef USE_MATHUTILS // register mathutils callbacks, ok to run more then once.
 	mathutils_rna_array_cb_index= Mathutils_RegisterCallback(&mathutils_rna_array_cb);
 	mathutils_rna_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_rna_matrix_cb);
 #endif
-	
+
 	if( PyType_Ready( &pyrna_struct_Type ) < 0 )
-		return NULL;
-	
+		return;
+
 	if( PyType_Ready( &pyrna_prop_Type ) < 0 )
-		return NULL;
+		return;
+}
+
+/* bpy.data from python */
+static PointerRNA *rna_module_ptr= NULL;
+PyObject *BPY_rna_module(void)
+{
+	BPy_StructRNA *pyrna;
+	PointerRNA ptr;
 
 	/* for now, return the base RNA type rather then a real module */
 	RNA_main_pointer_create(G.main, &ptr);
@@ -2735,21 +2792,22 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA * self, PyObject *pyna
 	PointerRNA newptr;
 	PyObject *ret;
 	
-	ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
-	if (ret)	return ret;
-	else		PyErr_Clear();
-	
 	if (RNA_property_collection_lookup_string(&self->ptr, self->prop, _PyUnicode_AsString(pyname), &newptr)) {
 		ret= pyrna_struct_Subtype(&newptr);
 		if (ret==NULL) {
 			PyErr_Format(PyExc_SystemError, "bpy.types.%.200s subtype could not be generated, this is a bug!", _PyUnicode_AsString(pyname));
 		}
-		return ret;
 	}
-	else { /* Override the error */
+	else {
+#if 0
 		PyErr_Format(PyExc_AttributeError, "bpy.types.%.200s RNA_Struct does not exist", _PyUnicode_AsString(pyname));
 		return NULL;
+#endif
+		/* The error raised here will be displayed */
+		ret= PyObject_GenericGetAttr((PyObject *)self, pyname);
 	}
+
+	return ret;
 }
 
 static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self);
