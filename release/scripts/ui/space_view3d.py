@@ -306,11 +306,17 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
 
         layout.itemO("particle.select_all_toggle", text="Select/Deselect All")
         layout.itemO("particle.select_linked")
+        layout.itemO("particle.select_inverse")
 
         layout.itemS()
 
         layout.itemO("particle.select_more")
         layout.itemO("particle.select_less")
+
+        layout.itemS()
+
+        layout.itemO("particle.select_first", text="Roots")
+        layout.itemO("particle.select_last", text="Tips")
 
 
 class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
