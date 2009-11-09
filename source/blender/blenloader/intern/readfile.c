@@ -2367,6 +2367,8 @@ static void direct_link_bones(FileData *fd, Bone* bone)
 	bone->prop= newdataadr(fd, bone->prop);
 	if(bone->prop)
 		IDP_DirectLinkProperty(bone->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
+	bone->flag &= ~BONE_DRAW_ACTIVE;
 
 	link_list(fd, &bone->childbase);
 

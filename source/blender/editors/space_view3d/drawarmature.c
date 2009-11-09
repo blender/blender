@@ -1629,10 +1629,11 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 					flag= bone->flag;
 					if ( (bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)) )
 						flag &= ~BONE_CONNECTED;
-
-					if(bone==arm->act_bone)
+					
+					/* set temporary flag for drawing bone as active */
+					if (bone == arm->act_bone)
 						flag |= BONE_DRAW_ACTIVE;
-
+					
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 					
@@ -1708,6 +1709,10 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 							flag= bone->flag;
 							if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 								flag &= ~BONE_CONNECTED;
+								
+							/* set temporary flag for drawing bone as active */
+							if (bone == arm->act_bone)
+								flag |= BONE_DRAW_ACTIVE;
 							
 							draw_custom_bone(scene, v3d, rv3d, pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
 							
@@ -1800,6 +1805,10 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 					if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 						flag &= ~BONE_CONNECTED;
 					
+					/* set temporary flag for drawing bone as active */
+					if (bone == arm->act_bone)
+						flag |= BONE_DRAW_ACTIVE;
+					
 					/* extra draw service for pose mode */
 					constflag= pchan->constflag;
 					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
@@ -1875,12 +1884,12 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 							Mat4CpyMat4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
 							glMultMatrixf(bmat);
-
+							
 							/* do cached text draw immediate to include transform */
 							view3d_cached_text_draw_begin();
 							drawaxes(pchan->bone->length*0.25f, 0, OB_ARROWS);
 							view3d_cached_text_draw_end(v3d, ar, 1, bmat);
-
+							
 							glPopMatrix();
 						}
 					}
@@ -1959,6 +1968,10 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 					flag= eBone->flag;
 					if ( (eBone->parent) && ((eBone->parent->flag & BONE_HIDDEN_A) || (eBone->parent->layer & arm->layer)==0) )
 						flag &= ~BONE_CONNECTED;
+						
+					/* set temporary flag for drawing bone as active */
+					if (eBone == arm->act_edbone)
+						flag |= BONE_DRAW_ACTIVE;
 					
 					if (arm->drawtype==ARM_ENVELOPE)
 						draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
@@ -1994,6 +2007,10 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 				flag= eBone->flag;
 				if ( (eBone->parent) && ((eBone->parent->flag & BONE_HIDDEN_A) || (eBone->parent->layer & arm->layer)==0) )
 					flag &= ~BONE_CONNECTED;
+					
+				/* set temporary flag for drawing bone as active */
+				if (eBone == arm->act_edbone)
+					flag |= BONE_DRAW_ACTIVE;
 				
 				if (arm->drawtype == ARM_ENVELOPE) {
 					if (dt < OB_SOLID)
@@ -2063,12 +2080,12 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 							get_matrix_editbone(eBone, bmat);
 							bone_matrix_translate_y(bmat, eBone->length);
 							glMultMatrixf(bmat);
-
+							
 							/* do cached text draw immediate to include transform */
 							view3d_cached_text_draw_begin();
 							drawaxes(eBone->length*0.25f, 0, OB_ARROWS);
 							view3d_cached_text_draw_end(v3d, ar, 1, bmat);
-
+							
 							glPopMatrix();
 						}
 						
