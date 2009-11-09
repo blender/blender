@@ -320,8 +320,11 @@ static void pyrna_struct_dealloc( BPy_StructRNA * self )
 {
 	if (self->freeptr && self->ptr.data) {
 		IDP_FreeProperty(self->ptr.data);
-		MEM_freeN(self->ptr.data);
-		self->ptr.data= NULL;
+		if (self->ptr.type != &RNA_Context)
+		{
+			MEM_freeN(self->ptr.data);
+			self->ptr.data= NULL;
+		}
 	}
 
 	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
