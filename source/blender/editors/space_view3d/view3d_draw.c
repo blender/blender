@@ -2009,6 +2009,14 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 		glDisable(GL_DEPTH_TEST);
 	}
 
+	/* draw grease-pencil stuff */
+	draw_gpencil_3dview_ext(scene, ar, 1);
+
+	ED_region_pixelspace(ar);
+
+	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+	draw_gpencil_3dview_ext(scene, ar, 0);
+
 	GPU_free_images();
 
 	/* restore size */
