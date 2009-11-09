@@ -684,10 +684,18 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setOrder(): window invalid")
     if (order == GHOST_kWindowOrderTop) {
-		[m_window orderFront:nil];
+		[m_window makeKeyAndOrderFront:nil];
     }
     else {
+		NSArray *windowsList;
+		
 		[m_window orderBack:nil];
+		
+		//Check for other blender opened windows and make the frontmost key
+		windowsList = [NSApp orderedWindows];
+		if ([windowsList count]) {
+			[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+		}
     }
     return GHOST_kSuccess;
 }

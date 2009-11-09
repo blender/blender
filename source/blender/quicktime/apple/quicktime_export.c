@@ -317,7 +317,7 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 							k32ARGBPixelFormat,
 							trackFrame,
 							NULL, NULL, 0,
-							(unsigned char *)qtexport->ibuf->rect,
+							(Ptr)qtexport->ibuf->rect,
 							rectx * 4 );
 	CheckError (err, "NewGWorldFromPtr error");
 
@@ -438,7 +438,7 @@ void makeqtstring (RenderData *rd, char *string) {
 }
 
 
-void start_qt(struct RenderData *rd, int rectx, int recty) {
+void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty) {
 	OSErr err = noErr;
 
 	char name[2048];
@@ -460,7 +460,7 @@ void start_qt(struct RenderData *rd, int rectx, int recty) {
 
 	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeCodecDataExt");
 
-	if(rd->qtcodecdata == NULL && rd->qtcodecdata->cdParms == NULL) {
+	if(rd->qtcodecdata == NULL || rd->qtcodecdata->cdParms == NULL) {
 		get_qtcodec_settings(rd);
 	} else {
 		qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
@@ -484,7 +484,7 @@ void start_qt(struct RenderData *rd, int rectx, int recty) {
 			/* do something? */
 		}
 		close(myFile);
-		err = FSPathMakeRef(theFullPath, &myRef, 0);
+		err = FSPathMakeRef((const UInt8 *)theFullPath, &myRef, 0);
 		CheckError(err, "FsPathMakeRef error");
 		err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &qtexport->theSpec, NULL);
 		CheckError(err, "FsGetCatalogInfoRef error");
@@ -574,10 +574,13 @@ static void check_renderbutton_framerate(RenderData *rd)
 	if( (rd->frs_sec == 24 || rd->frs_sec == 30 || rd->frs_sec == 60) &&
 		(qtdata->gTemporalSettings.frameRate == 1571553 ||
 		 qtdata->gTemporalSettings.frameRate == 1964113 ||
-		 qtdata->gTemporalSettings.frameRate == 3928227)) {;} else
-	qtdata->gTemporalSettings.frameRate = 
-		(rd->frs_sec << 16) / rd->frs_sec_base ;
-
+		 qtdata->gTemporalSettings.frameRate == 3928227)) {;} 
+	else {
+		if (rd->frs_sec_base > 0)
+			qtdata->gTemporalSettings.frameRate = 
+			(rd->frs_sec << 16) / rd->frs_sec_base ;
+	}
+	
 	err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 	CheckError( err, "SCSetInfo error" );
 
@@ -634,7 +637,7 @@ int get_qtcodec_settings(RenderData *rd)
 
 	check_renderbutton_framerate(rd);
 
-	// put up the dialog box
+	// put up the dialog box - it needs to be called from the main thread
 	err = SCRequestSequenceSettings(qtdata->theComponent);
  
 	if (err == scUserCancelled) {
