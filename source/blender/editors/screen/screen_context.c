@@ -215,7 +215,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-					if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) 
+					if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
 						CTX_data_list_add(result, &obact->id, &RNA_PoseChannel, pchan);
 				}
 			}
@@ -224,21 +224,19 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "active_bone")) {
-		bArmature *arm= (obedit) ? obedit->data : NULL;
-		EditBone *ebone;
-		
-		if (arm && arm->edbo) {
-			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
-				if (EBONE_VISIBLE(arm, ebone)) {
-					if (ebone->flag & BONE_ACTIVE) {
-						CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, ebone);
-						
-						return 1;
-					}
-				}
+		bArmature *arm= (obact) ? obact->data : NULL;
+		if(arm->edbo) {
+			if(arm->act_edbone) {
+				CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, arm->act_edbone);
+				return 1;
 			}
 		}
-		
+		else {
+			if(arm->act_bone) {
+				CTX_data_pointer_set(result, &arm->id, &RNA_Bone, arm->act_bone);
+				return 1;
+			}
+		}
 	}
 	else if(CTX_data_equals(member, "active_pchan")) {
 		bPoseChannel *pchan;

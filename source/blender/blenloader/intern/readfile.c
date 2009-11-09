@@ -2333,7 +2333,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 			rebuild= 1;
 		else if(ob->id.lib==NULL && arm->id.lib) {
 			/* local pose selection copied to armature, bit hackish */
-			pchan->bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
+			pchan->bone->flag &= ~BONE_SELECTED;
 			pchan->bone->flag |= pchan->selectflag;
 		}
 	}
@@ -2388,6 +2388,9 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 		direct_link_bones(fd, bone);
 		bone=bone->next;
 	}
+
+	arm->act_bone= newdataadr(fd, arm->act_bone);
+	arm->act_edbone= NULL;
 }
 
 /* ************ READ CAMERA ***************** */

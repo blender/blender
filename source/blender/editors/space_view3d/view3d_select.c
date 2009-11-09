@@ -357,7 +357,14 @@ static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves
 		
 		if(lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) pchan->bone->flag |= BONE_SELECTED;
-			else pchan->bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+			else pchan->bone->flag &= ~BONE_SELECTED;
+		}
+	}
+	
+	{
+		bArmature *arm= ob->data;
+		if((arm->act_bone->flag & BONE_SELECTED)==0) {
+			arm->act_bone= NULL;
 		}
 	}
 }
@@ -638,9 +645,11 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 		/* if one of points selected, we skip the bone itself */
 		if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
-			else ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			else ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
+
+	ED_armature_validate_active(arm);
 }
 
 static void do_lasso_select_facemode(ViewContext *vc, short mcords[][2], short moves, short select)
@@ -1534,8 +1543,12 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 // XXX									select_actionchannel_by_name(base->object->action, bone->name, 1);
 								}
 								else {
-									bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+									bArmature *arm= base->object->data;
+									bone->flag &= ~BONE_SELECTED;
 // XXX									select_actionchannel_by_name(base->object->action, bone->name, 0);
+									if(arm->act_bone==bone)
+										arm->act_bone= NULL;
+									
 								}
 							}
 						}
@@ -1868,9 +1881,11 @@ static void armature_circle_select(ViewContext *vc, int selecting, short *mval, 
 			if (selecting) 
 				ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
 			else 
-				ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL); 
+				ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
+
+	ED_armature_validate_active(arm);
 }
 
 /** Callbacks for circle selection in Editmode */

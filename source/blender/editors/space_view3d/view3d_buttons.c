@@ -575,22 +575,15 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
 //	uiBlock *block= uiLayoutGetBlock(layout);
-	bArmature *arm;
+//	bArmature *arm;
 	bPoseChannel *pchan;
-	Bone *bone= NULL;
 //	TransformProperties *tfp= v3d->properties_storage;
 	PointerRNA pchanptr;
 	uiLayout *col;
 //	uiLayout *row;
 
-	arm = ob->data;
-	if (!arm || !ob->pose) return;
+	pchan= get_active_posechannel(ob);
 
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		bone = pchan->bone;
-		if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
-			break;
-	}
 //	row= uiLayoutRow(layout, 0);
 	
 	if (!pchan)	{
@@ -691,14 +684,9 @@ static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	uiLayout *col;
 	PointerRNA eboneptr;
 	
-	ebone= arm->edbo->first;
+	ebone= arm->act_edbone;
 
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next){
-		if ((ebone->flag & BONE_ACTIVE) && (ebone->layer & arm->layer))
-			break;
-	}
-
-	if (!ebone)
+	if (!ebone || (ebone->layer & arm->layer)==0)
 		return;
 	
 //	row= uiLayoutRow(layout, 0);
@@ -821,19 +809,10 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 
 	case B_ARMATUREPANEL3:  // rotate button on channel
 		{
-			bArmature *arm;
 			bPoseChannel *pchan;
-			Bone *bone;
 			float eul[3];
 			
-			arm = ob->data;
-			if (!arm || !ob->pose) return;
-				
-			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				bone = pchan->bone;
-				if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
-					break;
-			}
+			pchan= get_active_posechannel(ob);
 			if (!pchan) return;
 			
 			/* make a copy to eul[3], to allow TAB on buttons to work */

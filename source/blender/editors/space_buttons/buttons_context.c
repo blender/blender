@@ -243,26 +243,9 @@ static int buttons_context_path_material(ButsContextPath *path)
 	return 0;
 }
 
-static Bone *find_active_bone(Bone *bone)
-{
-	Bone *active;
-
-	for(; bone; bone=bone->next) {
-		if(bone->flag & BONE_ACTIVE)
-			return bone;
-
-		active= find_active_bone(bone->childbase.first);
-		if(active)
-			return active;
-	}
-
-	return NULL;
-}
-
 static int buttons_context_path_bone(ButsContextPath *path)
 {
 	bArmature *arm;
-	Bone *bone;
 	EditBone *edbo;
 
 	/* if we have an armature, get the active bone */
@@ -270,19 +253,16 @@ static int buttons_context_path_bone(ButsContextPath *path)
 		arm= path->ptr[path->len-1].data;
 
 		if(arm->edbo) {
-			for(edbo=arm->edbo->first; edbo; edbo=edbo->next) {
-				if(edbo->flag & BONE_ACTIVE) {
-					RNA_pointer_create(&arm->id, &RNA_EditBone, edbo, &path->ptr[path->len]);
-					path->len++;
-					return 1;
-				}
+			if(arm->act_edbone) {
+				edbo= arm->act_edbone;
+				RNA_pointer_create(&arm->id, &RNA_EditBone, edbo, &path->ptr[path->len]);
+				path->len++;
+				return 1;
 			}
 		}
 		else {
-			bone= find_active_bone(arm->bonebase.first);
-
-			if(bone) {
-				RNA_pointer_create(&arm->id, &RNA_Bone, bone, &path->ptr[path->len]);
+			if(arm->act_bone) {
+				RNA_pointer_create(&arm->id, &RNA_Bone, arm->act_bone, &path->ptr[path->len]);
 				path->len++;
 				return 1;
 			}

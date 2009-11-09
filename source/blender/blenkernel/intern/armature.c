@@ -169,10 +169,13 @@ void make_local_armature(bArmature *arm)
 	}
 }
 
-static void	copy_bonechildren (Bone* newBone, Bone* oldBone)
+static void	copy_bonechildren (Bone* newBone, Bone* oldBone, Bone* actBone, Bone **newActBone)
 {
 	Bone	*curBone, *newChildBone;
 	
+	if(oldBone == actBone)
+		*newActBone= newBone;
+
 	/*	Copy this bone's list*/
 	BLI_duplicatelist(&newBone->childbase, &oldBone->childbase);
 	
@@ -180,7 +183,7 @@ static void	copy_bonechildren (Bone* newBone, Bone* oldBone)
 	newChildBone=newBone->childbase.first;
 	for (curBone=oldBone->childbase.first;curBone;curBone=curBone->next){
 		newChildBone->parent=newBone;
-		copy_bonechildren(newChildBone,curBone);
+		copy_bonechildren(newChildBone, curBone, actBone, newActBone);
 		newChildBone=newChildBone->next;
 	}
 }
@@ -189,6 +192,7 @@ bArmature *copy_armature(bArmature *arm)
 {
 	bArmature *newArm;
 	Bone		*oldBone, *newBone;
+	Bone		*newActBone= NULL;
 	
 	newArm= copy_libblock (arm);
 	BLI_duplicatelist(&newArm->bonebase, &arm->bonebase);
@@ -197,10 +201,11 @@ bArmature *copy_armature(bArmature *arm)
 	newBone=newArm->bonebase.first;
 	for (oldBone=arm->bonebase.first;oldBone;oldBone=oldBone->next){
 		newBone->parent=NULL;
-		copy_bonechildren (newBone, oldBone);
+		copy_bonechildren (newBone, oldBone, arm->act_bone, &newActBone);
 		newBone=newBone->next;
 	};
 	
+	newArm->act_bone= newActBone;
 	return newArm;
 }
 

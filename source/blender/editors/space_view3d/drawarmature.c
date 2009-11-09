@@ -166,7 +166,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 		if (bcolor) {
 			char cp[3];
 			
-			if (boneflag & BONE_ACTIVE) {
+			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
 			}
 			else if (boneflag & BONE_SELECTED) {
@@ -181,7 +181,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 			glColor3ub(cp[0], cp[1], cp[2]);
 		}
 		else {
-			if (boneflag & BONE_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 40);
+			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 40);
 			else if (boneflag & BONE_SELECTED) UI_ThemeColor(TH_BONE_POSE);
 			else UI_ThemeColor(TH_WIRE);
 		}
@@ -225,7 +225,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 		if (bcolor) {
 			char cp[3];
 			
-			if (boneflag & BONE_ACTIVE) {
+			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
 			}
 			else if (boneflag & BONE_SELECTED) {
@@ -238,7 +238,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 			glColor3ub(cp[0], cp[1], cp[2]);
 		}
 		else {
-			if (boneflag & BONE_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 40);
+			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 40);
 			else if (boneflag & BONE_SELECTED) UI_ThemeColor(TH_BONE_POSE);
 			else UI_ThemeColor(TH_BONE_SOLID);
 		}
@@ -251,7 +251,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 		if (bcolor) {
 			char cp[3];
 			
-			if (boneflag & BONE_ACTIVE) {
+			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
 				cp_shade_color3ub(cp, 10);
 			}
@@ -267,7 +267,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 			glColor3ub(cp[0], cp[1], cp[2]);
 		}
 		else {
-			if (boneflag & BONE_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 10);
+			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 10);
 			else if (boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_BONE_POSE, -30);
 			else UI_ThemeColorShade(TH_BONE_SOLID, -30);
 		}
@@ -1151,7 +1151,7 @@ static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsign
 	}
 	else if (armflag & ARM_EDITMODE) {
 		if (dt==OB_WIRE) {
-			if (boneflag & BONE_ACTIVE) UI_ThemeColor(TH_EDGE_SELECT);
+			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColor(TH_EDGE_SELECT);
 			else if (boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_EDGE_SELECT, -20);
 			else UI_ThemeColor(TH_WIRE);
 		}
@@ -1236,7 +1236,7 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 	if (dt <= OB_WIRE) {
 		/* colors */
 		if (armflag & ARM_EDITMODE) {
-			if (boneflag & BONE_ACTIVE) UI_ThemeColor(TH_EDGE_SELECT);
+			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColor(TH_EDGE_SELECT);
 			else if (boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_EDGE_SELECT, -20);
 			else UI_ThemeColor(TH_WIRE);
 		}
@@ -1629,7 +1629,10 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 					flag= bone->flag;
 					if ( (bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)) )
 						flag &= ~BONE_CONNECTED;
-						
+
+					if(bone==arm->act_bone)
+						flag |= BONE_DRAW_ACTIVE;
+
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 					
