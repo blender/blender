@@ -956,13 +956,13 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	
 	prop= RNA_def_property(srna, "pass_reflection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_REFLECT);
-	RNA_def_property_ui_text(prop, "Reflection", "Deliver ratraced reflection pass.");
+	RNA_def_property_ui_text(prop, "Reflection", "Deliver raytraced reflection pass.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "pass_refraction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_REFRACT);
-	RNA_def_property_ui_text(prop, "Refraction", "Deliver ratraced refraction pass.");
+	RNA_def_property_ui_text(prop, "Refraction", "Deliver raytraced refraction pass.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -986,13 +986,13 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	
 	prop= RNA_def_property(srna, "pass_reflection_exclude", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_REFLECT);
-	RNA_def_property_ui_text(prop, "Reflection Exclude", "Exclude ratraced reflection pass from combined.");
+	RNA_def_property_ui_text(prop, "Reflection Exclude", "Exclude raytraced reflection pass from combined.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "pass_refraction_exclude", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_REFRACT);
-	RNA_def_property_ui_text(prop, "Refraction Exclude", "Exclude ratraced refraction pass from combined.");
+	RNA_def_property_ui_text(prop, "Refraction Exclude", "Exclude raytraced refraction pass from combined.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
