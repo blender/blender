@@ -494,9 +494,14 @@ BMEdge *EDBM_findnearestedge(ViewContext *vc, int *dist)
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		int distance;
-		unsigned int index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance,0, NULL, NULL);
-		BMEdge *eed = BMIter_AtIndex(vc->em->bm, BM_EDGES_OF_MESH, NULL, index-1);
-
+		unsigned int index;
+		BMEdge *eed;
+		
+		view3d_validate_backbuf(vc);
+		
+		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance,0, NULL, NULL);
+		eed = BMIter_AtIndex(vc->em->bm, BM_EDGES_OF_MESH, NULL, index-1);
+		
 		if (eed && distance<*dist) {
 			*dist = distance;
 			return eed;

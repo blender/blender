@@ -123,12 +123,55 @@ static void ringsel_draw(const bContext *C, ARegion *ar, void *arg)
 	glEnable(GL_DEPTH_TEST);
 }
 
+/*given two opposite edges in a face, finds the ordering of their vertices so
+  that cut preview lines won't cross each other*/
+static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed, 
+                                BMVert *lastv1, BMVert *v[2][2])
+{
+	BMIter iter, liter;
+	BMLoop *l, *l2;
+	int rev;
+
+	l = eed->loop;
+
+	/*find correct order for v[1]*/
+	if (!(BM_Edge_In_Face(l->f, eed) && BM_Edge_In_Face(l->f, lasteed))) {
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_LOOP, l) {
+			if (BM_Edge_In_Face(l->f, eed) && BM_Edge_In_Face(l->f, lasteed))
+				break;
+		}
+	}
+	
+	/*this should never happen*/
+	if (!l) {
+		v[0][0] = eed->v1;
+		v[0][1] = eed->v2;
+		v[1][0] = lasteed->v1;
+		v[1][1] = lasteed->v2;
+		return;
+	}
+	
+	l2 = BM_OtherFaceLoop(l->e, l->f, eed->v1);
+	rev = (l2 == (BMLoop*)l->head.prev);
+	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
+		l2 = rev ? (BMLoop*)l2->head.prev : (BMLoop*)l2->head.next;
+	}
+
+	if (l2->v == lastv1) {
+		v[0][0] = eed->v1;
+		v[0][1] = eed->v2;
+	} else {
+		v[0][0] = eed->v2;
+		v[0][1] = eed->v1;
+	}
+}
+
 static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 {
 	BMEditMesh *em = lcd->em;
 	BMEdge *startedge = lcd->eed;
 	BMEdge *eed, *lasteed;
-	BMVert *v[2][2];
+	BMVert *v[2][2], *lastv1;
 	BMWalker walker;
 	float (*edges)[2][3] = NULL;
 	BLI_array_declare(edges);
@@ -161,48 +204,25 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 	BMW_Init(&walker, em->bm, BMW_EDGERING, 0, 0);
 	eed = startedge = BMW_Begin(&walker, startedge);
+	lastv1 = NULL;
 	for (lasteed=NULL; eed; eed=BMW_Step(&walker)) {
 		if (lasteed) {
 			BMIter liter;
 			BMLoop *l, *l2;
 			int rev;
 
-			v[0][0] = eed->v1;
-			v[0][1] = eed->v2;
-			v[1][0] = lasteed->v1;
-			v[1][1] = lasteed->v2;
-
-#if 0 //hrm.  this code may be useful later.
-			/*find correct order for v[1]*/
-
-			l = eed->loop;
-			if (!(BM_Edge_In_Face(l->f, eed) && BM_Edge_In_Face(l->f, lasteed))) {
-				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_LOOP, l) {
-					if (BM_Edge_In_Face(l->f, eed) && BM_Edge_In_Face(l->f, lasteed))
-						break;
-				}
-			}
-			
-			/*this should never happen*/
-			if (!l) {
-				lasteed = eed;
-				continue;
-			}
-			
-			l2 = BM_OtherFaceLoop(l->e, l->f, l->v);
-			rev = (l2 == (BMLoop*)l->head.prev);
-			while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
-				l2 = rev ? (BMLoop*)l2->head.prev : (BMLoop*)l2->head.next;
-			}
-
-			if (l2->v == lasteed->v1) {
+			if (lastv1) {
+				v[1][0] = v[0][0];
+				v[1][1] = v[0][1];
+			} else {
 				v[1][0] = lasteed->v1;
 				v[1][1] = lasteed->v2;
-			} else {
-				v[1][0] = lasteed->v2;
-				v[1][1] = lasteed->v1;
+				lastv1 = lasteed->v1;
 			}
-#endif
+
+			edgering_find_order(em, lasteed, eed, lastv1, v);
+			lastv1 = v[0][0];
+
 			for(i=1;i<=previewlines;i++){
 				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
 				co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
@@ -222,10 +242,8 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	}
 	
 	if (BM_Edge_Share_Faces(lasteed, startedge)) {
-		v[0][0] = startedge->v1;
-		v[0][1] = startedge->v2;
-		v[1][0] = lasteed->v1;
-		v[1][1] = lasteed->v2;
+		edgering_find_order(em, lasteed, startedge, lastv1, v);
+
 		for(i=1;i<=previewlines;i++){
 			co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
 			co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
@@ -412,20 +430,6 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
-		case WHEELUPMOUSE:  /* change number of cuts */
-			cuts++;
-			RNA_int_set(op->ptr,"number_cuts",cuts);
-			ringsel_find_edge(lcd, C, lcd->ar, cuts);
-			
-			ED_region_tag_redraw(lcd->ar);
-			break;
-		case WHEELDOWNMOUSE:  /* change number of cuts */
-			cuts=MAX2(cuts-1,1);
-			RNA_int_set(op->ptr,"number_cuts",cuts);
-			ringsel_find_edge(lcd, C, lcd->ar,cuts);
-			
-			ED_region_tag_redraw(lcd->ar);
-			break;
 		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
 			int dist = 75;
 			BMEdge *edge;
@@ -485,14 +489,22 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
+		case PAGEUPKEY:
 		case WHEELUPMOUSE:  /* change number of cuts */
+			if (event->val == KM_RELEASE)
+				break;
+
 			cuts++;
 			RNA_int_set(op->ptr,"number_cuts",cuts);
 			ringsel_find_edge(lcd, C, lcd->ar, cuts);
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
+		case PAGEDOWNKEY:
 		case WHEELDOWNMOUSE:  /* change number of cuts */
+			if (event->val == KM_RELEASE)
+				break;
+
 			cuts=MAX2(cuts-1,1);
 			RNA_int_set(op->ptr,"number_cuts",cuts);
 			ringsel_find_edge(lcd, C, lcd->ar,cuts);
