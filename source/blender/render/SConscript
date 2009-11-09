@@ -5,9 +5,14 @@ if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 	# FIXME: need to set the appropriate flags for msvc, otherwise we get warnings
 	cflags = []
 	cxxflags = []
-else:
-	cflags = ['-O2','-msse2','-mfpmath=sse']
-	cxxflags = ['-O2','-msse2','-mfpmath=sse']
+
+if env['OURPLATFORM'] == 'darwin':
+	if env['MACOSX_ARCHITECTURE'] in ('i386', 'x86_64'):
+		cflags = env['CFLAGS'] + ['-mfpmath=sse']
+		cxxflags = env['CXXFLAGS'] + ['-mfpmath=sse']
+	else:
+		cflags = env['CFLAGS']
+		cxxflags = env['CXXFLAGS']
 
 sources = env.Glob('intern/source/*.c')
 raysources = env.Glob('intern/raytrace/*.cpp')
