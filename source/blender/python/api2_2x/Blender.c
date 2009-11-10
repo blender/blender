@@ -626,13 +626,6 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 			BLI_strncpy( name, G.sce, FILE_MAXDIR );
 	}
 
-	/* We won't let a new .blend file be loaded if there are still other
-	 * scripts running, since loading a new file will close and remove them. */
-
-	if( G.main->script.first != G.main->script.last )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "there are other scripts running at the Scripts win, close them first!" );
-
 	if( fname ) {
 		file = open( fname, O_BINARY | O_RDONLY );
 
@@ -652,6 +645,14 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 	if( is_blend_file ) {
 
 		int during_slink = during_scriptlink(  );
+		
+		
+		/* We won't let a new .blend file be loaded if there are still other
+		 * scripts running, since loading a new file will close and remove them. */
+
+		if( G.main->script.first != G.main->script.last )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+							  "there are other scripts running at the Scripts win, close them first!" );
 
 		/* when loading a .blend file from a scriptlink, the scriptlink pointer
 		 * in BPY_do_pyscript becomes invalid during a loop.  Inform it here.
