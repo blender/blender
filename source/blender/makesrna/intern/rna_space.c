@@ -265,8 +265,8 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
 
 	if(alpha) {
-		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ALPHA);
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_USE_ALPHA);
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ALPHA);
 	}
 	else if(zbuf) {
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ZBUF);
