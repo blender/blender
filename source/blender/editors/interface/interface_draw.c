@@ -656,6 +656,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	float x1, y1, sizex, sizey;
 	float dx, v3[2], v1[2], v2[2], v1a[2], v2a[2];
 	int a;
+	float pos, colf[4];
 		
 	coba= (ColorBand *)(but->editcoba? but->editcoba: but->poin);
 	if(coba==NULL) return;
@@ -676,7 +677,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		v1[0]+= dx;
 	}
 	
-	glShadeModel(GL_SMOOTH);
+	glShadeModel(GL_FLAT);
 	glEnable(GL_BLEND);
 	
 	cbd= coba->data;
@@ -690,16 +691,15 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glColor4fv( &cbd->r );
 	glVertex2fv(v1); glVertex2fv(v2);
 	
-	for(a=0; a<coba->tot; a++, cbd++) {
+	for( a = 1; a < sizex; a++ ) {
+		pos = ((float)a) / (sizex-1);
+		do_colorband( coba, pos, colf );
 		
-		v1[0]=v2[0]= x1+ cbd->pos*sizex;
+		v1[0]=v2[0]= x1 + a;
 		
-		glColor4fv( &cbd->r );
+		glColor4fv( colf );
 		glVertex2fv(v1); glVertex2fv(v2);
 	}
-	
-	v1[0]=v2[0]= x1+ sizex;
-	glVertex2fv(v1); glVertex2fv(v2);
 	
 	glEnd();
 	glShadeModel(GL_FLAT);
