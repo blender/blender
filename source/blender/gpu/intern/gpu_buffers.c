@@ -392,31 +392,6 @@ typedef struct {
 	unsigned short tot_tri;
 } GPU_Buffers;
 
-void GPU_update_buffers2(void *buffers_v, MVert *mvert,
-			int *vert_indices, int totvert)
-{
-	GPU_Buffers *buffers = buffers_v;
-	VertexBufferFormat *vert_data;
-	int i;
-
-	vert_data = MEM_callocN(sizeof(VertexBufferFormat) * totvert, "bad");
-
-	for(i = 0; i < totvert; ++i) {
-		MVert *v = mvert + vert_indices[i];
-		VertexBufferFormat *out = vert_data + i;
-
-		VecCopyf(out->co, v->co);
-		memcpy(out->no, v->no, sizeof(short) * 3);
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, buffers->vert_buf);
-	glBufferData(GL_ARRAY_BUFFER,
-		     sizeof(VertexBufferFormat) * totvert,
-		     vert_data, GL_STATIC_DRAW);
-
-	MEM_freeN(vert_data);
-}
-
 void GPU_update_buffers(void *buffers_v, MVert *mvert,
 			int *vert_indices, int totvert)
 {
@@ -425,11 +400,11 @@ void GPU_update_buffers(void *buffers_v, MVert *mvert,
 	int i;
 
 	/* Build VBO */
-	glBindBuffer(GL_ARRAY_BUFFER, buffers->vert_buf);
-	glBufferData(GL_ARRAY_BUFFER,
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
 		     sizeof(VertexBufferFormat) * totvert,
-		     NULL, GL_STATIC_DRAW);
-	vert_data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		     NULL, GL_STATIC_DRAW_ARB);
+	vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 
 	for(i = 0; i < totvert; ++i) {
 		MVert *v = mvert + vert_indices[i];
@@ -438,7 +413,7 @@ void GPU_update_buffers(void *buffers_v, MVert *mvert,
 		VecCopyf(out->co, v->co);
 		memcpy(out->no, v->no, sizeof(short) * 3);
 	}
-	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
 
 	//printf("node updated %p\n", buffers_v);
 }
@@ -459,13 +434,13 @@ void *GPU_build_buffers(GHash *map, MVert *mvert, MFace *mface,
 		tottri += mface[face_indices[i]].v4 ? 2 : 1;
 
 	/* Generate index buffer object */
-	glGenBuffers(1, &buffers->tri_buf);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers->tri_buf);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-		     sizeof(unsigned short) * tottri * 3, NULL, GL_STATIC_DRAW);
+	glGenBuffersARB(1, &buffers->tri_buf);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->tri_buf);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
+		     sizeof(unsigned short) * tottri * 3, NULL, GL_STATIC_DRAW_ARB);
 
 	/* Fill the triangle buffer */
-	tri_data = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	tri_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 	for(i = 0; i < totface; ++i) {
 		MFace *f = mface + face_indices[i];
 		int v[3] = {f->v1, f->v2, f->v3};
@@ -491,10 +466,10 @@ void *GPU_build_buffers(GHash *map, MVert *mvert, MFace *mface,
 			v[2] = f->v3;
 		}
 	}
-	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);
 
 	/* Build VBO */
-	glGenBuffers(1, &buffers->vert_buf);
+	glGenBuffersARB(1, &buffers->vert_buf);
 	GPU_update_buffers(buffers, mvert, vert_indices, totvert);
 
 	buffers->tot_tri = tottri;
@@ -506,8 +481,8 @@ void GPU_draw_buffers(void *buffers_v)
 {
 	GPU_Buffers *buffers = buffers_v;
 
-	glBindBuffer(GL_ARRAY_BUFFER, buffers->vert_buf);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers->tri_buf);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->tri_buf);
 
 	glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat), 0);
 	glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat), (void*)12);
@@ -520,8 +495,8 @@ void GPU_free_buffers(void *buffers_v)
 	if(buffers_v) {
 		GPU_Buffers *buffers = buffers_v;
 		
-		glDeleteBuffers(1, &buffers->vert_buf);
-		glDeleteBuffers(1, &buffers->tri_buf);
+		glDeleteBuffersARB(1, &buffers->vert_buf);
+		glDeleteBuffersARB(1, &buffers->tri_buf);
 
 		MEM_freeN(buffers);
 	}
