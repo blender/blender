@@ -124,13 +124,83 @@ extern "C" {
 //We need to subclass it to tell that even borderless (fullscreen), it can become key (receive user events)
 @interface CocoaWindow: NSWindow
 {
-
+	GHOST_SystemCocoa *systemCocoa;
+	GHOST_WindowCocoa *associatedWindow;
+	GHOST_TDragnDropTypes m_draggedObjectType;
 }
+- (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 @end
 @implementation CocoaWindow
+- (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
+{
+	systemCocoa = sysCocoa;
+	associatedWindow = winCocoa;
+}
 
 -(BOOL)canBecomeKeyWindow
 {
+	return YES;
+}
+
+//The drag'n'drop dragging destination methods
+- (NSDragOperation)draggingEntered:(id < NSDraggingInfo >)sender
+{
+	NSPoint mouseLocation = [sender draggingLocation];
+	NSPasteboard *draggingPBoard = [sender draggingPasteboard];
+	
+	if ([[draggingPBoard types] containsObject:NSTIFFPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeBitmap;
+	else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeFilenames;
+	else if ([[draggingPBoard types] containsObject:NSStringPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeString;
+	else return NSDragOperationNone;
+	
+	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
+	return NSDragOperationCopy;
+}
+
+
+- (NSDragOperation)draggingUpdated:(id < NSDraggingInfo >)sender
+{
+	NSPoint mouseLocation = [sender draggingLocation];
+	
+	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingUpdated, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
+	return NSDragOperationCopy;
+}
+
+- (void)draggingExited:(id < NSDraggingInfo >)sender
+{
+	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingExited, m_draggedObjectType, associatedWindow, 0, 0, nil);
+	m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
+}
+
+- (BOOL)prepareForDragOperation:(id < NSDraggingInfo >)sender
+{
+	if (systemCocoa->canAcceptDragOperation())
+		return YES;
+	else
+		return NO;
+}
+
+- (BOOL)performDragOperation:(id < NSDraggingInfo >)sender
+{
+	NSPoint mouseLocation = [sender draggingLocation];
+	NSPasteboard *draggingPBoard = [sender draggingPasteboard];
+	id data;
+	
+	switch (m_draggedObjectType) {
+		case GHOST_kDragnDropTypeBitmap:
+			data = [draggingPBoard dataForType:NSTIFFPboardType];
+			break;
+		case GHOST_kDragnDropTypeFilenames:
+			data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
+			break;
+		case GHOST_kDragnDropTypeString:
+			data = [draggingPBoard stringForType:@"public.utf8-plain-text"];
+			break;
+		default:
+			return NO;
+			break;
+	}
+	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingDropDone, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, (void*)data);
 	return YES;
 }
 
@@ -207,6 +277,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		return;
 	}
 	
+	[m_window setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
+	
 	//Forbid to resize the window below the blender defined minimum one
 	minSize.width = 320;
 	minSize.height = 240;
@@ -259,6 +331,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	[m_window setAcceptsMouseMovedEvents:YES];
 	
+	[m_window registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
+										  NSStringPboardType, NSTIFFPboardType, nil]];
+										  
 	if (state == GHOST_kWindowStateFullScreen)
 		setState(GHOST_kWindowStateFullScreen);
 		
