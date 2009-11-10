@@ -2672,7 +2672,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 	
 	if(RNA_boolean_get(op->ptr, "animation"))
-		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
+		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
 		RE_BlenderFrame(re, scene, scene->r.cfra);
 	
@@ -2892,7 +2892,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 	rj->do_update= do_update;
 	
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->frame_step);
+		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
 	else
 		RE_BlenderFrame(rj->re, rj->scene, rj->scene->r.cfra);
 }
@@ -3245,7 +3245,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 	printf("\n");
 	
 	/* go to next frame */
-	oglrender->nfra += scene->frame_step;
+	oglrender->nfra += scene->r.frame_step;
 	scene->r.cfra++;
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);

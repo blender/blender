@@ -9157,15 +9157,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 4)){
-		Scene *sce= main->scene.first;
-		while(sce) {
-			if(sce->frame_step==0)
-				sce->frame_step= 1;
-			sce= sce->id.next;
-		}
-	}
-
 	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 5)) {
 		Lamp *la= main->lamp.first;
 		for(; la; la= la->id.next) {
@@ -10036,6 +10027,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		{
+			Scene *sce= main->scene.first;
+			while(sce) {
+				if(sce->r.frame_step==0)
+					sce->r.frame_step= 1;
+				sce= sce->id.next;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

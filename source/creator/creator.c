@@ -621,7 +621,7 @@ int main(int argc, char **argv)
 
 						frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 						
-						RE_BlenderAnim(re, scene, frame, frame, scene->frame_step);
+						RE_BlenderAnim(re, scene, frame, frame, scene->r.frame_step);
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-f'.\n");
@@ -631,7 +631,7 @@ int main(int argc, char **argv)
 				if (CTX_data_scene(C)) {
 					Scene *scene= CTX_data_scene(C);
 					Render *re= RE_NewRender(scene->id.name);
-					RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
+					RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 				} else {
 					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}
@@ -671,7 +671,7 @@ int main(int argc, char **argv)
 					Scene *scene= CTX_data_scene(C);
 					if (a < argc) {
 						int frame = atoi(argv[a]);
-						(scene->frame_step) = MIN2(MAXFRAME, MAX2(1, frame));
+						(scene->r.frame_step) = MIN2(MAXFRAME, MAX2(1, frame));
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-j'.\n");
