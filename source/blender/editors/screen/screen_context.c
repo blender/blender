@@ -224,17 +224,19 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "active_bone")) {
-		bArmature *arm= (obact) ? obact->data : NULL;
-		if(arm->edbo) {
-			if(arm->act_edbone) {
-				CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, arm->act_edbone);
-				return 1;
+		if(obact && obact->type == OB_ARMATURE) {
+			bArmature *arm= obact->data;
+			if(arm->edbo) {
+				if(arm->act_edbone) {
+					CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, arm->act_edbone);
+					return 1;
+				}
 			}
-		}
-		else {
-			if(arm->act_bone) {
-				CTX_data_pointer_set(result, &arm->id, &RNA_Bone, arm->act_bone);
-				return 1;
+			else {
+				if(arm->act_bone) {
+					CTX_data_pointer_set(result, &arm->id, &RNA_Bone, arm->act_bone);
+					return 1;
+				}
 			}
 		}
 	}
