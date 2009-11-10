@@ -43,8 +43,8 @@ extern "C" {
 					{ 0.0, 1.0, 0.0},\
 					{ 0.0, 0.0, 1.0}}
 
-void zero_m3(float *R); // TODO R[3][3]);
-void zero_m4(float *R); // TODO R[4][4]);
+void zero_m3(float R[3][3]);
+void zero_m4(float R[4][4]);
 
 void unit_m3(float R[3][3]);
 void unit_m4(float R[4][4]);
@@ -62,8 +62,6 @@ void swap_m4m4(float A[4][4], float B[4][4]);
 void add_m3_m3m3(float R[3][3], float A[3][3], float B[3][3]);
 void add_m4_m4m4(float R[4][4], float A[4][4], float B[4][4]);
 
-// TODO review mul order
-
 void mul_m3_m3m3(float R[3][3], float A[3][3], float B[3][3]);
 void mul_m4_m4m4(float R[4][4], float A[4][4], float B[4][4]);
 void mul_m4_m3m4(float R[4][4], float A[3][3], float B[4][4]);
@@ -77,24 +75,24 @@ void mul_serie_m4(float R[4][4],
 	float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
 	float M5[4][4], float M6[4][4], float M7[4][4], float M8[4][4]);
 
-void mul_m4_v3(float M[4][4], float r[3]); // TODO order
+void mul_m4_v3(float M[4][4], float r[3]);
 void mul_v3_m4v3(float r[3], float M[4][4], float v[3]);
-void mul_no_transl_m4v3(float M[4][4], float r[3]);
-void mul_m4_v4(float M[4][4], float r[3]); // TODO order
-void mul_project_m4_v4(float M[4][4], float r[3]); // TODO order
+void mul_mat3_m4_v3(float M[4][4], float r[3]);
+void mul_m4_v4(float M[4][4], float r[3]);
+void mul_project_m4_v4(float M[4][4], float r[3]);
 
-void mul_m3_v3(float M[3][3], float r[3]); // TODO order
-void mul_transposed_m3_v3(float M[3][3], float r[3]); // TODO order
+void mul_m3_v3(float M[3][3], float r[3]);
+void mul_transposed_m3_v3(float M[3][3], float r[3]);
 void mul_m3_v3_double(float M[3][3], double r[3]);
 
-void mul_m3_fl(float *R, float f); // TODO R[3][3], float f);
-void mul_m4_fl(float *R, float f); // TODO R[4][4], float f);
-void mul_no_transl_m4_fl(float *R, float f); // TODO R[4][4], float f);
+void mul_m3_fl(float R[3][3], float f);
+void mul_m4_fl(float R[4][4], float f);
+void mul_mat3_m4_fl(float R[4][4], float f);
 
-void invert_m3(float R[3][3]);
-void invert_m3_m3(float R[3][3], float A[3][3]);
-void invert_m4(float R[4][4]); // TODO does not exist
-int invert_m4_m4(float R[4][4], float A[4][4]); // TODO return int
+int invert_m3(float R[3][3]);
+int invert_m3_m3(float R[3][3], float A[3][3]);
+int invert_m4(float R[4][4]);
+int invert_m4_m4(float R[4][4], float A[4][4]);
 
 /****************************** Linear Algebra *******************************/
 
@@ -112,9 +110,6 @@ int is_orthogonal_m4(float mat[4][4]);
 
 void adjoint_m3_m3(float R[3][3], float A[3][3]);
 void adjoint_m4_m4(float R[4][4], float A[4][4]);
-
-//float determinant_m2(float A[2][2]); // TODO params
-//float determinant_m3(float A[3][3]); // TODO params
 
 float determinant_m2(
 	float a, float b,

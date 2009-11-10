@@ -209,7 +209,7 @@ void quat_to_mat4(float m[][4], float *q)
 	m[3][3]= 1.0f;
 }
 
-void mat3_to_quat(float *q,float wmat[][3])
+void mat3_to_quat(float *q, float wmat[][3])
 {
 	double tr, s;
 	float mat[3][3];
@@ -257,53 +257,9 @@ void mat3_to_quat(float *q,float wmat[][3])
 			q[2]= (float)((mat[2][1] + mat[1][2])*s);
 		}
 	}
+
 	normalize_qt(q);
 }
-
-#if 0
-void Mat3ToQuat_is_ok(float wmat[][3], float *q)
-{
-	float mat[3][3], matr[3][3], matn[3][3], q1[4], q2[4], angle, si, co, nor[3];
-
-	/* work on a copy */
-	copy_m3_m3(mat, wmat);
-	normalize_m3(mat);
-	
-	/* rotate z-axis of matrix to z-axis */
-
-	nor[0] = mat[2][1];		/* cross product with (0,0,1) */
-	nor[1] =  -mat[2][0];
-	nor[2] = 0.0;
-	normalize_v3(nor);
-	
-	co= mat[2][2];
-	angle= 0.5f*saacos(co);
-	
-	co= (float)cos(angle);
-	si= (float)sin(angle);
-	q1[0]= co;
-	q1[1]= -nor[0]*si;		/* negative here, but why? */
-	q1[2]= -nor[1]*si;
-	q1[3]= -nor[2]*si;
-
-	/* rotate back x-axis from mat, using inverse q1 */
-	quat_to_mat3(matr,q1);
-	invert_m3_m3(matn, matr);
-	mul_m3_v3(matn, mat[0]);
-	
-	/* and align x-axes */
-	angle= (float)(0.5*atan2(mat[0][1], mat[0][0]));
-	
-	co= (float)cos(angle);
-	si= (float)sin(angle);
-	q2[0]= co;
-	q2[1]= 0.0f;
-	q2[2]= 0.0f;
-	q2[3]= si;
-	
-	mul_qt_qtqt(q, q1, q2);
-}
-#endif
 
 void mat4_to_quat(float *q, float m[][4])
 {
@@ -311,20 +267,17 @@ void mat4_to_quat(float *q, float m[][4])
 	
 	copy_m3_m4(mat, m);
 	mat3_to_quat(q,mat);
-	
 }
 
 void normalize_qt(float *q)
 {
 	float len;
 	
-	len= (float)sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
+	len= (float)sqrt(dot_qtqt(q, q));
 	if(len!=0.0) {
-		q[0]/= len;
-		q[1]/= len;
-		q[2]/= len;
-		q[3]/= len;
-	} else {
+		mul_qt_fl(q, 1.0f/len);
+	}
+	else {
 		q[1]= 1.0f;
 		q[0]= q[2]= q[3]= 0.0f;			
 	}
@@ -1422,7 +1375,7 @@ void add_weighted_dq_dq(DualQuat *dqsum, DualQuat *dq, float weight)
 			weight= -weight;
 		
 		copy_m4_m4(wmat, dq->scale);
-		mul_m4_fl((float*)wmat, weight);
+		mul_m4_fl(wmat, weight);
 		add_m4_m4m4(dqsum->scale, dqsum->scale, wmat);
 		dqsum->scale_weight += weight;
 	}
@@ -1445,7 +1398,7 @@ void normalize_dq(DualQuat *dq, float totweight)
 			dq->scale[3][3] += addweight;
 		}
 
-		mul_m4_fl((float*)dq->scale, scale);
+		mul_m4_fl(dq->scale, scale);
 		dq->scale_weight= 1.0f;
 	}
 }
@@ -1496,7 +1449,7 @@ void mul_v3m3_dq(float *co, float mat[][3],DualQuat *dq)
 		}
 		else
 			copy_m3_m3(mat, M);
-		mul_m3_fl((float*)mat, len2);
+		mul_m3_fl(mat, len2);
 	}
 }
 

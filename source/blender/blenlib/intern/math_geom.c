@@ -124,7 +124,7 @@ float area_tri_v3(float *v1, float *v2, float *v3)  /* Triangles */
 #define MAX3(x,y,z)		MAX2(MAX2((x),(y)) , (z))
 
 
-float area_poly_v3(int nr, float *verts, float *normal)
+float area_poly_v3(int nr, float verts[][3], float *normal)
 {
 	float x, y, z, area, max;
 	float *cur, *prev;
@@ -142,13 +142,13 @@ float area_poly_v3(int nr, float *verts, float *normal)
 	}
 
 	/* The Trapezium Area Rule */
-	prev= verts+3*(nr-1);
-	cur= verts;
+	prev= verts[nr-1];
+	cur= verts[0];
 	area= 0;
 	for(a=0; a<nr; a++) {
 		area+= (cur[px]-prev[px])*(cur[py]+prev[py]);
-		prev= cur;
-		cur+=3;
+		prev= verts[a];
+		cur= verts[a+1];
 	}
 
 	return (float)fabs(0.5*area/max);
@@ -232,7 +232,7 @@ float dist_to_line_segment_v3(float *v1, float *v2, float *v3)
 /******************************* Intersection ********************************/
 
 /* intersect Line-Line, shorts */
-short isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4)
+int isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4)
 {
 	/* return:
 	-1: colliniar
@@ -257,7 +257,7 @@ short isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4)
 }
 
 /* intersect Line-Line, floats */
-short isect_line_line_v2(float *v1, float *v2, float *v3, float *v4)
+int isect_line_line_v2(float *v1, float *v2, float *v3, float *v4)
 {
 	/* return:
 	-1: colliniar

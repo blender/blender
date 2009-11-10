@@ -32,64 +32,73 @@
 extern "C" {
 #endif
 
-#define MINLINE
+/* add platform/compiler checks here if it is not supported */
+#define BLI_MATH_INLINE
 
-//#define static inline
-//#include "intern/math_vector_inline.h"
+#ifdef BLI_MATH_INLINE
+#ifdef _MSC_VER
+#define MINLINE static __inline
+#else
+#define MINLINE static inline
+#endif
+#include "intern/math_vector_inline.c"
+#else
+#define MINLINE
+#endif
 
 /************************************* Init ***********************************/
 
-void zero_v2(float r[2]);
-void zero_v3(float r[3]);
+MINLINE void zero_v2(float r[2]);
+MINLINE void zero_v3(float r[3]);
 
-void copy_v2_v2(float r[2], float a[2]);
-void copy_v3_v3(float r[3], float a[3]);
+MINLINE void copy_v2_v2(float r[2], float a[2]);
+MINLINE void copy_v3_v3(float r[3], float a[3]);
 
 /********************************* Arithmetic ********************************/
 
-void add_v2_v2(float r[2], float a[2]);
-void add_v2_v2v2(float r[2], float a[2], float b[2]);
-void add_v3_v3(float r[3], float a[3]);
-void add_v3_v3v3(float r[3], float a[3], float b[3]);
+MINLINE void add_v2_v2(float r[2], float a[2]);
+MINLINE void add_v2_v2v2(float r[2], float a[2], float b[2]);
+MINLINE void add_v3_v3(float r[3], float a[3]);
+MINLINE void add_v3_v3v3(float r[3], float a[3], float b[3]);
 
-void sub_v2_v2(float r[2], float a[2]);
-void sub_v2_v2v2(float r[2], float a[2], float b[2]);
-void sub_v3_v3(float r[3], float a[3]);
-void sub_v3_v3v3(float r[3], float a[3], float b[3]);
+MINLINE void sub_v2_v2(float r[2], float a[2]);
+MINLINE void sub_v2_v2v2(float r[2], float a[2], float b[2]);
+MINLINE void sub_v3_v3(float r[3], float a[3]);
+MINLINE void sub_v3_v3v3(float r[3], float a[3], float b[3]);
 
-void mul_v2_fl(float r[2], float f);
-void mul_v3_fl(float r[3], float f);
-void mul_v3_v3fl(float r[3], float a[3], float f);
-void mul_v3_v3(float r[3], float a[3]);
-void mul_v3_v3v3(float r[3], float a[3], float b[3]);
+MINLINE void mul_v2_fl(float r[2], float f);
+MINLINE void mul_v3_fl(float r[3], float f);
+MINLINE void mul_v3_v3fl(float r[3], float a[3], float f);
+MINLINE void mul_v3_v3(float r[3], float a[3]);
+MINLINE void mul_v3_v3v3(float r[3], float a[3], float b[3]);
 
-void negate_v3(float r[3]);
-void negate_v3_v3(float r[3], float a[3]);
+MINLINE void negate_v3(float r[3]);
+MINLINE void negate_v3_v3(float r[3], float a[3]);
 
-float dot_v2v2(float a[2], float b[2]); 
-float dot_v3v3(float a[3], float b[3]);
+MINLINE float dot_v2v2(float a[2], float b[2]); 
+MINLINE float dot_v3v3(float a[3], float b[3]);
 
-float cross_v2v2(float a[2], float b[2]);
-void cross_v3_v3v3(float r[3], float a[3], float b[3]);
+MINLINE float cross_v2v2(float a[2], float b[2]);
+MINLINE void cross_v3_v3v3(float r[3], float a[3], float b[3]);
 
-void star_m3_v3(float R[3][3],float a[3]);
+MINLINE void star_m3_v3(float R[3][3],float a[3]);
 
 /*********************************** Length **********************************/
 
-float len_v2(float a[2]);
-float len_v2v2(float a[2], float b[2]);
-float len_v3(float a[3]);
-float len_v3v3(float a[3], float b[3]);
+MINLINE float len_v2(float a[2]);
+MINLINE float len_v2v2(float a[2], float b[2]);
+MINLINE float len_v3(float a[3]);
+MINLINE float len_v3v3(float a[3], float b[3]);
 
-float normalize_v2(float r[2]);
-float normalize_v3(float r[3]);
+MINLINE float normalize_v2(float r[2]);
+MINLINE float normalize_v3(float r[3]);
 
 /******************************* Interpolation *******************************/
 
-void interp_v2_v2v2(float r[2], const float a[2], const float b[2], const float t); // TODO const
-void interp_v2_v2v2v2(float r[2], const float a[2], const float b[2], const float c[3], const float t[3]); // TODO const
-void interp_v3_v3v3(float r[3], const float a[3], const float b[3], const float t); // TODO const
-void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]); // TODO const
+void interp_v2_v2v2(float r[2], float a[2], float b[2], float t);
+void interp_v2_v2v2v2(float r[2], float a[2], float b[2], float c[3], float t[3]);
+void interp_v3_v3v3(float r[3], float a[3], float b[3], float t);
+void interp_v3_v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float w[3]);
 
 void mid_v3_v3v3(float r[3], float a[3], float b[3]);
 

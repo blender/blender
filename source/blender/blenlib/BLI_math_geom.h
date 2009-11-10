@@ -43,7 +43,7 @@ float normal_quad_v3(float r[3], float a[3], float b[3], float c[3], float d[3])
 float area_tri_v2(float a[2], float b[2], float c[2]);
 float area_tri_v3(float a[3], float b[3], float c[3]);
 float area_quad_v3(float a[3], float b[3], float c[3], float d[3]);
-float area_poly_v3(int nr, float *verts, float normal[3]); // TODO float verts[][3]
+float area_poly_v3(int nr, float verts[][3], float normal[3]);
 
 /********************************* Distance **********************************/
 
@@ -56,7 +56,6 @@ void closest_to_line_segment_v3(float r[3], float p[3], float l1[3], float l2[3]
 
 /******************************* Intersection ********************************/
 
-/* TODO return values are not always first yet */
 /* TODO int return value consistency */
 
 /* line-line */
@@ -65,8 +64,8 @@ void closest_to_line_segment_v3(float r[3], float p[3], float l1[3], float l2[3]
 #define ISECT_LINE_LINE_EXACT		 1
 #define ISECT_LINE_LINE_CROSS		 2
 
-short isect_line_line_v2(float a1[2], float a2[2], float b1[2], float b2[2]); // TODO return int
-short isect_line_line_v2_short(short a1[2], short a2[2], short b1[2], short b2[2]); // TODO return int
+int isect_line_line_v2(float a1[2], float a2[2], float b1[2], float b2[2]);
+int isect_line_line_v2_short(short a1[2], short a2[2], short b1[2], short b2[2]);
 
 /* Returns the number of point of interests
  * 0 - lines are colinear

@@ -44,7 +44,7 @@ void copy_qt_qt(float q[4], float a[4]);
 
 /* arithmetic */
 void mul_qt_qtqt(float q[4], float a[4], float b[4]);
-void mul_qt_v3(float q[4], float r[3]); // TODO order
+void mul_qt_v3(float q[4], float r[3]);
 void mul_qt_fl(float q[4], float f);
 void mul_fac_qt_fl(float q[4], float f);
 
@@ -60,7 +60,7 @@ int is_zero_qt(float q[4]);
 
 /* interpolation */
 void interp_qt_qtqt(float q[4], float a[4], float b[4], float t);
-void add_qt_qtqt(float q[4], float a[4], float b[4], float t); // TODO name
+void add_qt_qtqt(float q[4], float a[4], float b[4], float t);
 
 /* conversion */
 void quat_to_mat3(float mat[3][3], float q[4]);
@@ -71,8 +71,6 @@ void mat4_to_quat(float q[4], float mat[4][4]);
 void tri_to_quat(float q[4], float a[3], float b[3], float c[3]);
 void vec_to_quat(float q[4], float vec[3], short axis, short upflag);
 void rotation_between_vecs_to_quat(float q[4], float v1[3], float v2[3]);
-
-void Mat3ToQuat_is_ok(float wmat[][3], float *q); // TODO what is this?
 
 /* other */
 void print_qt(char *str, float q[4]);
@@ -96,7 +94,7 @@ void mat4_to_axis_angle(float axis[3], float *angle, float M[4][4]);
 void mat3_to_vec_rot(float vec[3], float *phi, float mat[3][3]);
 void mat4_to_vec_rot(float vec[3], float *phi, float mat[4][4]);
 
-void vec_rot_to_quat(float quat[4], float vec[3], float phi); // TODO
+void vec_rot_to_quat(float quat[4], float vec[3], float phi);
 void vec_rot_to_mat3(float mat[3][3], float vec[3], float phi);
 void vec_rot_to_mat4(float mat[4][4], float vec[3], float phi);
 
