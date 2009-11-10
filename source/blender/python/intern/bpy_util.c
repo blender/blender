@@ -162,12 +162,15 @@ void BPY_getFileAndNum(char **filename, int *lineno)
 	
 	getframe = PySys_GetObject("_getframe"); // borrowed
 	if (getframe==NULL) {
+		PyErr_Clear();
 		return;
 	}
 	
 	frame = PyObject_CallObject(getframe, NULL);
-	if (frame==NULL)
+	if (frame==NULL) {
+		PyErr_Clear();
 		return;
+	}
 	
 	if (filename) {
 		co_filename= PyObject_GetAttrStringArgs(frame, 1, "f_code", "co_filename");
