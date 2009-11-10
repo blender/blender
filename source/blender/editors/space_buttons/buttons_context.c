@@ -707,8 +707,11 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		set_pointer_type(path, result, &RNA_Brush);
 		return 1;
 	}
+	else {
+		return 0; /* not found */
+	}
 
-	return 0;
+	return -1; /* found but not available */
 }
 
 /************************* Drawing the Path ************************/

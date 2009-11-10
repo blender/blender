@@ -1376,27 +1376,38 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	else if (self->ptr.type == &RNA_Context) {
 		PointerRNA newptr;
 		ListBase newlb;
+		int done;
 
-		CTX_data_get(self->ptr.data, name, &newptr, &newlb);
+		done= CTX_data_get(self->ptr.data, name, &newptr, &newlb);
 
-        if (newptr.data) {
-            ret = pyrna_struct_CreatePyObject(&newptr);
-		}
-		else if (newlb.first) {
-			CollectionPointerLink *link;
-			PyObject *linkptr;
+		if(done==1) { /* found */
+			if (newptr.data) {
+				ret = pyrna_struct_CreatePyObject(&newptr);
+			}
+			else if (newlb.first) {
+				CollectionPointerLink *link;
+				PyObject *linkptr;
 
-			ret = PyList_New(0);
+				ret = PyList_New(0);
 
-			for(link=newlb.first; link; link=link->next) {
-				linkptr= pyrna_struct_CreatePyObject(&link->ptr);
-				PyList_Append(ret, linkptr);
-				Py_DECREF(linkptr);
+				for(link=newlb.first; link; link=link->next) {
+					linkptr= pyrna_struct_CreatePyObject(&link->ptr);
+					PyList_Append(ret, linkptr);
+					Py_DECREF(linkptr);
+				}
+			}
+			else {
+				ret = Py_None;
+				Py_INCREF(ret);
 			}
 		}
-        else {
-            ret = Py_None;
-            Py_INCREF(ret);
+		else if (done==-1) { /* found but not set */
+			ret = Py_None;
+			Py_INCREF(ret);
+		}
+        else { /* not found in the context */
+        	/* lookup the subclass. raise an error if its not found */
+        	ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
         }
 
 		BLI_freelistN(&newlb);
@@ -1405,10 +1416,11 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 		if(self->ptr.id.data) {
 			PointerRNA id_ptr;
 			RNA_id_pointer_create((ID *)self->ptr.id.data, &id_ptr);
-			return pyrna_struct_CreatePyObject(&id_ptr);
+			ret = pyrna_struct_CreatePyObject(&id_ptr);
 		}
 		else {
-			Py_RETURN_NONE;
+			ret = Py_None;
+			Py_INCREF(ret);
 		}
 	}
 	else {

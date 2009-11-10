@@ -22,6 +22,17 @@ StructRNA = bpy.types.Struct.__bases__[0]
 # StructRNA = bpy.types.Struct
 
 
+class Context(StructRNA):
+    
+    def copy(self):
+        new_context = {}
+        for item in dir(self):
+            if item not in StructRNA.__dict__ and item != "id_data":
+                new_context[item] = getattr(self, item)
+            
+        return new_context
+
+
 class Object(bpy.types.ID):
 
     def _get_children(self):

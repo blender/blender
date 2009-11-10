@@ -747,7 +747,11 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		
 		return 1;
 	}
-	return 0;
+	else {
+		return 0; /* not found */
+	}
+
+	return -1; /* found but not available */
 }
 
 /* only called once, from space/spacetypes.c */

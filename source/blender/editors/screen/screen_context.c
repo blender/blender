@@ -67,7 +67,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			"visible_pchans", "selected_pchans", "active_bone", "active_pchan",
 			"active_base", "active_object", "edit_object",
 			"sculpt_object", "vertex_paint_object", "weight_paint_object",
-			"texture_paint_object", "brush", "particle_edit_object", NULL};
+			"texture_paint_object", "particle_edit_object", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -304,7 +304,10 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 		return 1;
 	}
+	else {
+		return 0; /* not found */
+	}
 
-	return 0;
+	return -1; /* found but not available */
 }
 

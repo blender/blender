@@ -408,6 +408,7 @@ struct bContextDataResult {
 static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
 {
 	int done= 0, recursion= C->data.recursion;
+	int ret= 0;
 
 	memset(result, 0, sizeof(bContextDataResult));
 
@@ -417,7 +418,14 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 
 	/* we check recursion to ensure that we do not get infinite
 	 * loops requesting data from ourselfs in a context callback */
-	if(!done && recursion < 1 && C->wm.store) {
+
+	/* Ok, this looks evil...
+	 * if(ret) done= -(-ret | -done);
+	 *
+	 * Values in order of importance
+	 * (0, -1, 1) - Where 1 is highest priority
+	 * */
+	if(done!=1 && recursion < 1 && C->wm.store) {
 		bContextStoreEntry *entry;
 
 		C->data.recursion= 1;
@@ -429,21 +437,28 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 			}
 		}
 	}
-	if(!done && recursion < 2 && C->wm.region) {
+	if(done!=1 && recursion < 2 && C->wm.region) {
 		C->data.recursion= 2;
-		if(C->wm.region->type && C->wm.region->type->context)
-			done= C->wm.region->type->context(C, member, result);
+		if(C->wm.region->type && C->wm.region->type->context) {
+			ret = C->wm.region->type->context(C, member, result);
+			if(ret) done= -(-ret | -done);
+
+		}
 	}
-	if(!done && recursion < 3 && C->wm.area) {
+	if(done!=1 && recursion < 3 && C->wm.area) {
 		C->data.recursion= 3;
-		if(C->wm.area->type && C->wm.area->type->context)
-			done= C->wm.area->type->context(C, member, result);
+		if(C->wm.area->type && C->wm.area->type->context) {
+			ret = C->wm.area->type->context(C, member, result);
+			if(ret) done= -(-ret | -done);
+		}
 	}
-	if(!done && recursion < 4 && C->wm.screen) {
+	if(done!=1 && recursion < 4 && C->wm.screen) {
 		bContextDataCallback cb= C->wm.screen->context;
 		C->data.recursion= 4;
-		if(cb)
-			done= cb(C, member, result);
+		if(cb) {
+			ret = cb(C, member, result);
+			if(ret) done= -(-ret | -done);
+		}
 	}
 
 	C->data.recursion= recursion;
@@ -455,7 +470,7 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if(C && ctx_data_get((bContext*)C, member, &result))
+	if(C && ctx_data_get((bContext*)C, member, &result)==1)
 		return result.ptr.data;
 
 	return NULL;
@@ -465,7 +480,7 @@ static int ctx_data_pointer_verify(const bContext *C, const char *member, void *
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result)) {
+	if(ctx_data_get((bContext*)C, member, &result)==1) {
 		*pointer= result.ptr.data;
 		return 1;
 	}
@@ -479,7 +494,7 @@ static int ctx_data_collection_get(const bContext *C, const char *member, ListBa
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result)) {
+	if(ctx_data_get((bContext*)C, member, &result)==1) {
 		*list= result.list;
 		return 1;
 	}
@@ -494,7 +509,7 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result))
+	if(ctx_data_get((bContext*)C, member, &result)==1)
 		return result.ptr;
 	else
 		return PointerRNA_NULL;
@@ -514,7 +529,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result)) {
+	if(ctx_data_get((bContext*)C, member, &result)==1) {
 		return result.list;
 	}
 	else {
@@ -524,11 +539,13 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 	}
 }
 
-void CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb)
+/* 1:found,  -1:found but not set,  0:not found */
+int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb)
 {
 	bContextDataResult result;
+	int ret= ctx_data_get((bContext*)C, member, &result);
 
-	if(ctx_data_get((bContext*)C, member, &result)) {
+	if(ret==1) {
 		*r_ptr= result.ptr;
 		*r_lb= result.list;
 	}
@@ -536,6 +553,8 @@ void CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, List
 		memset(r_ptr, 0, sizeof(*r_ptr));
 		memset(r_lb, 0, sizeof(*r_lb));
 	}
+
+	return ret;
 }
 
 static void data_dir_add(ListBase *lb, const char *member)
