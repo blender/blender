@@ -548,6 +548,10 @@ int main(int argc, char **argv)
 		printf("Example: setenv BF_TIFF_LIB /usr/lib/libtiff.so\n");
 	}
 
+	/* initialize Freestyle */
+	FRS_initialize();
+	FRS_set_context(C);
+
 	/* OK we are ready for it */
 
 	for(a=1; a<argc; a++) {
@@ -842,7 +846,6 @@ int main(int argc, char **argv)
 			
 			if (G.background) {
 				int retval = BKE_read_file(C, argv[a], NULL, NULL);
-				FRS_initialize(C);
 				
 				/*we successfully loaded a blend file, get sure that
 				pointcache works */

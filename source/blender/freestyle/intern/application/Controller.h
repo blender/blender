@@ -66,10 +66,11 @@ extern "C" {
 class Controller
 {
 public:
-  Controller(bContext* C) ;
+  Controller() ;
   ~Controller() ;
   
   void setView(AppView *iView);
+  void setContext(bContext *C);
 
   //soc
 	void init_options();

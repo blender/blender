@@ -71,7 +71,7 @@ extern "C" {
 
 
 
-Controller::Controller(bContext* C)
+Controller::Controller()
 {
 	
   const string sep(Config::DIR_SEP.c_str());
@@ -108,7 +108,7 @@ Controller::Controller(bContext* C)
 
   _Canvas = new AppCanvas;
 
-  _inter = new PythonInterpreter(C);
+  _inter = new PythonInterpreter();
   _EnableQI = true;
   _ComputeRidges = true;
   _ComputeSteerableViewMap = false;
@@ -173,6 +173,13 @@ void Controller::setView(AppView *iView)
   
   _pView = iView;
   _Canvas->setViewer(_pView);
+}
+
+void Controller::setContext(bContext *C)
+{
+  PythonInterpreter* py_inter = dynamic_cast<PythonInterpreter*>(_inter);
+  assert(py_inter != 0);
+  py_inter->setContext(C);
 }
 
 int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)

@@ -45,13 +45,13 @@ extern "C" {
 	//   Initialization 
 	//=======================================================
 
-	void FRS_initialize(bContext* C){
+	void FRS_initialize() {
 		
 		if( freestyle_is_initialized )
 			return;
 
 		pathconfig = new Config::Path;
-		controller = new Controller(C);
+		controller = new Controller();
 		view = new AppView;
 		controller->setView(view);
 			
@@ -60,6 +60,11 @@ extern "C" {
 		freestyle_is_initialized = 1;
 	}
 	
+	void FRS_set_context(bContext* C) {
+		cout << "FRS_set_context: context 0x" << C << " scene 0x" << CTX_data_scene(C) << endl;
+		controller->setContext(C);
+	}
+
 	void FRS_exit() {
 		delete pathconfig;
 		delete controller;
@@ -205,7 +210,7 @@ extern "C" {
 				displayed_layer_count(srl) > 0       )
 			{
 				cout << "\n----------------------------------------------------------" << endl;
-				cout << "|  "<< srl->name << endl;
+				cout << "|  " << (re->scene->id.name+2) << "|" << srl->name << endl;
 				cout << "----------------------------------------------------------" << endl;
 				
 				// prepare Freestyle:

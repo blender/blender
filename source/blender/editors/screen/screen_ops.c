@@ -2671,6 +2671,9 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	}
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 	
+	/* inform Freestyle of the context */
+	FRS_set_context(C);
+
 	if(RNA_boolean_get(op->ptr, "animation"))
 		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
 	else
@@ -2944,6 +2947,9 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* handle UI stuff */
 	WM_cursor_wait(1);
+
+	/* inform Freestyle of the context */
+	FRS_set_context(C);
 
 	/* flush multires changes (for sculpt) */
 	multires_force_update(CTX_data_active_object(C));

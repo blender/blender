@@ -16,7 +16,8 @@ extern "C" {
 	extern int freestyle_viewport[4];
 
 	// Rendering
-	void FRS_initialize(bContext* C);
+	void FRS_initialize();
+	void FRS_set_context(bContext* C);
 	void FRS_add_Freestyle( struct Render* re);
 	void FRS_exit();
 	

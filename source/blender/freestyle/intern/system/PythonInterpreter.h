@@ -51,14 +51,18 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 {
  public:
 
-  PythonInterpreter(bContext* C) {
+  PythonInterpreter() {
     _language = "Python";
-	_context = C;
+	_context = 0;
     //Py_Initialize();
   }
 
   virtual ~PythonInterpreter() {
     //Py_Finalize();
+  }
+
+  void setContext(bContext *C) {
+	_context = C;
   }
 
   int interpretFile(const string& filename) {
