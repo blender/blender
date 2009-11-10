@@ -109,6 +109,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_vertex_path);
 	WM_operatortype_append(MESH_OT_loop_to_region);
 	WM_operatortype_append(MESH_OT_region_to_loop);
+	WM_operatortype_append(MESH_OT_select_axis);
 	
 	WM_operatortype_append(MESH_OT_uvs_rotate);
 	WM_operatortype_append(MESH_OT_uvs_mirror);
@@ -291,8 +292,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", VKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_edit_mesh_vertices");
 
-	/* UV's */
-	WM_keymap_add_item(keymap, "UV_OT_mapping_menu", UKEY, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
+    RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_uv_map");
 
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }

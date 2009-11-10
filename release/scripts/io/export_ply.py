@@ -252,7 +252,7 @@ def write(filename, scene, ob, \
 from bpy.props import *
 
 
-class EXPORT_OT_ply(bpy.types.Operator):
+class ExportPLY(bpy.types.Operator):
 	'''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
 	bl_idname = "export.ply"
 	bl_label = "Export PLY"
@@ -292,10 +292,14 @@ class EXPORT_OT_ply(bpy.types.Operator):
 		return ('RUNNING_MODAL',)
 
 
-bpy.ops.add(EXPORT_OT_ply)
+bpy.ops.add(ExportPLY)
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.ply", text="Stanford (.ply)...")
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".ply")
+    self.layout.item_stringO(ExportPLY.bl_idname, "path", default_path, text="Stanford (.ply)...")
+
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 if __name__ == "__main__":

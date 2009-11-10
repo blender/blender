@@ -962,13 +962,13 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	
 	prop= RNA_def_property(srna, "pass_reflection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_REFLECT);
-	RNA_def_property_ui_text(prop, "Reflection", "Deliver ratraced reflection pass.");
+	RNA_def_property_ui_text(prop, "Reflection", "Deliver raytraced reflection pass.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "pass_refraction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_REFRACT);
-	RNA_def_property_ui_text(prop, "Refraction", "Deliver ratraced refraction pass.");
+	RNA_def_property_ui_text(prop, "Refraction", "Deliver raytraced refraction pass.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -992,13 +992,13 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	
 	prop= RNA_def_property(srna, "pass_reflection_exclude", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_REFLECT);
-	RNA_def_property_ui_text(prop, "Reflection Exclude", "Exclude ratraced reflection pass from combined.");
+	RNA_def_property_ui_text(prop, "Reflection Exclude", "Exclude raytraced reflection pass from combined.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "pass_refraction_exclude", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_REFRACT);
-	RNA_def_property_ui_text(prop, "Refraction Exclude", "Exclude ratraced refraction pass from combined.");
+	RNA_def_property_ui_text(prop, "Refraction Exclude", "Exclude raytraced refraction pass from combined.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
@@ -2253,6 +2253,7 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	PropertyRNA *prop_act;
 	FunctionRNA *func;
 	
 	static EnumPropertyItem audio_distance_model_items[] = {
@@ -2284,15 +2285,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
 	RNA_def_property_ui_text(prop, "Set Scene", "Background set scene.");
 
-	prop= RNA_def_property(srna, "active_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Object", "Object to use as projector transform.");
-	/* Could call: ED_base_object_activate(C, scene->basact);
-	 * but would be a bad level call and it seems the notifier is enough */
-	RNA_def_property_update(prop, NC_SCENE|ND_OB_ACTIVE, NULL);
-
 	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene.");
@@ -2310,11 +2302,34 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Base");
 	RNA_def_property_ui_text(prop, "Bases", "");
 
+	{ /* Collection active property */
+		prop_act= RNA_def_property(srna, "base_active", PROP_POINTER, PROP_NONE);
+		RNA_def_property_struct_type(prop_act, "Base");
+		RNA_def_property_pointer_sdna(prop_act, NULL, "basact");
+		RNA_def_property_flag(prop_act, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop_act, "Active Base", "Active object in the scene.");
+		RNA_def_property_update(prop_act, NC_SCENE|ND_OB_ACTIVE, NULL);
+		RNA_def_property_collection_active(prop, prop_act);
+	}
+
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0, 0);
+
+	{ /* Collection active property */
+		prop_act= RNA_def_property(srna, "objects_active", PROP_POINTER, PROP_NONE);
+		RNA_def_property_struct_type(prop_act, "Object");
+		RNA_def_property_pointer_funcs(prop_act, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
+		RNA_def_property_flag(prop_act, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop_act, "Object", "Object to use as projector transform.");
+		/* Could call: ED_base_object_activate(C, scene->basact);
+		 * but would be a bad level call and it seems the notifier is enough */
+		RNA_def_property_update(prop_act, NC_SCENE|ND_OB_ACTIVE, NULL);
+
+		RNA_def_property_collection_active(prop, prop_act);
+	}
 
 	/* Layers */
 	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
@@ -2350,7 +2365,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
-	RNA_def_property_int_sdna(prop, NULL, "frame_step");
+	RNA_def_property_int_sdna(prop, NULL, "r.frame_step");
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
 	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames to skip forward while rendering/playing back each frame");

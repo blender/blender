@@ -56,6 +56,44 @@ static void rna_Armature_update_data(bContext *C, PointerRNA *ptr)
 	//WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 }
 
+
+static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value)
+{
+	bArmature *arm= (bArmature*)ptr->data;
+
+	if(value.id.data==NULL && value.data==NULL) {
+		arm->act_bone= NULL;
+	}
+	else {
+		if(value.id.data != arm) {
+			/* raise an error! */
+		}
+		else {
+			arm->act_bone= value.data;
+			arm->act_bone->flag |= BONE_SELECTED;
+		}
+	}
+}
+
+static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
+{
+	bArmature *arm= (bArmature*)ptr->data;
+
+	if(value.id.data==NULL && value.data==NULL) {
+		arm->act_edbone= NULL;
+	}
+	else {
+		if(value.id.data != arm) {
+			/* raise an error! */
+		}
+		else {
+			arm->act_edbone= value.data;
+			((EditBone *)arm->act_edbone)->flag |= BONE_SELECTED;
+		}
+	}
+}
+
+
 static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
@@ -371,11 +409,6 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Connected", "When bone has a parent, bone's head is struck to the parent's tail.");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ACTIVE);
-	RNA_def_property_ui_text(prop, "Active", "Bone was the last bone clicked on (most operations are applied to only this bone)");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
 	prop= RNA_def_property(srna, "hinge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_HINGE);
 	RNA_def_property_ui_text(prop, "Inherit Rotation", "Bone doesn't inherit rotation or scale from parent bone.");
@@ -593,7 +626,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 static void rna_def_armature(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
+	PropertyRNA *prop, *prop_act;
 	
 	static EnumPropertyItem prop_drawtype_items[] = {
 		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape (default)."},
@@ -634,11 +667,34 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_ui_text(prop, "Bones", "");
 
+	{ /* Collection active property */
+		prop_act= RNA_def_property(srna, "bones_active", PROP_POINTER, PROP_NONE);
+		RNA_def_property_struct_type(prop_act, "Bone");
+		RNA_def_property_pointer_sdna(prop_act, NULL, "act_bone");
+		RNA_def_property_flag(prop_act, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop_act, "Active Bone", "Armatures active bone.");
+		RNA_def_property_pointer_funcs(prop_act, NULL, "rna_Armature_act_bone_set", NULL);
+
+		/* todo, redraw */
+		RNA_def_property_collection_active(prop, prop_act);
+	}
+
 	prop= RNA_def_property(srna, "edit_bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "edbo", NULL);
 	RNA_def_property_struct_type(prop, "EditBone");
 	RNA_def_property_ui_text(prop, "Edit Bones", "");
 	
+	{ /* Collection active property */
+		prop_act= RNA_def_property(srna, "edit_bones_active", PROP_POINTER, PROP_NONE);
+		RNA_def_property_struct_type(prop_act, "EditBone");
+		RNA_def_property_pointer_sdna(prop_act, NULL, "act_edbone");
+		RNA_def_property_flag(prop_act, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop_act, "Active EditBone", "Armatures active edit bone.");
+		//RNA_def_property_update(prop_act, 0, "rna_Armature_act_editbone_update");
+		RNA_def_property_pointer_funcs(prop_act, NULL, "rna_Armature_act_edit_bone_set", NULL);
+		RNA_def_property_collection_active(prop, prop_act);
+	}
+
 	/* Enum values */
 //	prop= RNA_def_property(srna, "rest_position", PROP_BOOLEAN, PROP_NONE);
 //	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_RESTPOS);

@@ -1224,16 +1224,16 @@ class USERPREF_PT_input(bpy.types.Panel):
             row = subcol.row()
 
             if kmi.expanded:
-                row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_DOWN")
+                row.itemR(kmi, "expanded", text="", icon='ICON_TRIA_DOWN')
             else:
-                row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_RIGHT")
+                row.itemR(kmi, "expanded", text="", icon='ICON_TRIA_RIGHT')
 
             itemrow = row.row()
             itemrow.enabled = km.user_defined
             if kmi.active:
-                itemrow.itemR(kmi, "active", text="", icon="ICON_CHECKBOX_HLT")
+                itemrow.itemR(kmi, "active", text="", icon='ICON_CHECKBOX_HLT')
             else:
-                itemrow.itemR(kmi, "active", text="", icon="ICON_CHECKBOX_DEHLT")
+                itemrow.itemR(kmi, "active", text="", icon='ICON_CHECKBOX_DEHLT')
 
             itemcol = itemrow.column()
             itemcol.active = kmi.active
@@ -1290,11 +1290,11 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                 itemcol.itemS()
 
-            itemrow.itemO("wm.keyitem_remove", text="", icon="ICON_ZOOMOUT")
+            itemrow.itemO("wm.keyitem_remove", text="", icon='ICON_ZOOMOUT')
 
         itemrow = col.row()
         itemrow.itemL()
-        itemrow.itemO("wm.keyitem_add", text="", icon="ICON_ZOOMIN")
+        itemrow.itemO("wm.keyitem_add", text="", icon='ICON_ZOOMIN')
         itemrow.enabled = km.user_defined
 
 bpy.types.register(USERPREF_HT_header)
@@ -1439,7 +1439,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         km = wm.active_keymap
-        kmi = km.add_item("", "A", "PRESS")
+        kmi = km.add_item("", 'A', 'PRESS')
         return ('FINISHED',)
 
 

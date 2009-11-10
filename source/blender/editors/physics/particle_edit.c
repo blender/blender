@@ -1347,6 +1347,7 @@ int PE_mouse_particles(bContext *C, short *mval, int extend)
 static void select_root(PEData *data, int point_index)
 {
 	data->edit->points[point_index].keys->flag |= PEK_SELECT;
+	data->edit->points[point_index].flag |= PEP_EDIT_RECALC; /* redraw selection only */
 }
 
 static int select_first_exec(bContext *C, wmOperator *op)
@@ -1355,6 +1356,8 @@ static int select_first_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	foreach_point(&data, select_root);
+
+	PE_update_selection(data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1380,6 +1383,7 @@ static void select_tip(PEData *data, int point_index)
 {
 	PTCacheEditPoint *point = data->edit->points + point_index;
 	point->keys[point->totkey - 1].flag |= PEK_SELECT;
+	point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
 }
 
 static int select_last_exec(bContext *C, wmOperator *op)
@@ -1388,6 +1392,8 @@ static int select_last_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	foreach_point(&data, select_tip);
+
+	PE_update_selection(data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1693,8 +1699,10 @@ static void select_less_keys(PEData *data, int point_index)
 	}
 
 	LOOP_KEYS {
-		if(key->flag&PEK_TAG)
+		if(key->flag&PEK_TAG) {
 			key->flag &= ~(PEK_TAG|PEK_SELECT);
+			point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
+		}
 	}
 }
 
@@ -1704,6 +1712,8 @@ static int select_less_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	foreach_point(&data, select_less_keys);
+
+	PE_update_selection(data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1752,6 +1762,7 @@ static void select_more_keys(PEData *data, int point_index)
 		if(key->flag&PEK_TAG) {
 			key->flag &= ~PEK_TAG;
 			key->flag |= PEK_SELECT;
+			point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
 		}
 	}
 }
@@ -1762,6 +1773,8 @@ static int select_more_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	foreach_point(&data, select_more_keys);
+
+	PE_update_selection(data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1775,6 +1788,43 @@ void PARTICLE_OT_select_more(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_more_exec;
+	ot->poll= PE_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int select_inverse_exec(bContext *C, wmOperator *op)
+{
+	PEData data;
+	PTCacheEdit *edit;
+	POINT_P; KEY_K;
+
+	PE_set_data(C, &data);
+
+	edit= PE_get_current(data.scene, data.ob);
+
+	LOOP_VISIBLE_POINTS {
+		LOOP_KEYS {
+			key->flag ^= PEK_SELECT;
+			point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
+		}
+	}
+
+	PE_update_selection(data.scene, data.ob, 1);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_select_inverse(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Inverse";
+	ot->idname= "PARTICLE_OT_select_inverse";
+
+	/* api callbacks */
+	ot->exec= select_inverse_exec;
 	ot->poll= PE_poll;
 
 	/* flags */

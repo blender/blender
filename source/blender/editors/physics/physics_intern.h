@@ -42,6 +42,7 @@ void PARTICLE_OT_select_last(struct wmOperatorType *ot);
 void PARTICLE_OT_select_linked(struct wmOperatorType *ot);
 void PARTICLE_OT_select_less(struct wmOperatorType *ot);
 void PARTICLE_OT_select_more(struct wmOperatorType *ot);
+void PARTICLE_OT_select_inverse(struct wmOperatorType *ot);
 
 void PARTICLE_OT_hide(struct wmOperatorType *ot);
 void PARTICLE_OT_reveal(struct wmOperatorType *ot);

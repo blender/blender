@@ -81,8 +81,8 @@ ifndef CONFIG_GUESS
     endif
 
     export NAN_MOTO ?= $(LCGDIR)/moto
-	export NAN_ITASC ?= $(LCGDIR)/itasc
-	
+    export NAN_ITASC ?= $(LCGDIR)/itasc
+
     export BF_PROFILE ?= false
     export NAN_USE_BULLET ?= true
     export NAN_BULLET2 ?= $(LCGDIR)/bullet2
@@ -122,6 +122,7 @@ ifndef CONFIG_GUESS
     export WITH_OPENAL ?= false
     export WITH_JACK ?= false
     export WITH_SNDFILE ?= false
+    export WITH_FFTW3 ?= false
 
   ifeq ($(WITH_OPENAL), true)
     export NAN_OPENAL ?= /usr
@@ -195,7 +196,7 @@ ifndef CONFIG_GUESS
     export NAN_OPENEXR ?= $(LCGDIR)/openexr
     export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
     export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
-    
+
     export NAN_NO_KETSJI=false
 
     ifeq ($(CPU), i386)
@@ -348,6 +349,18 @@ ifndef CONFIG_GUESS
       export NAN_OPENEXR ?= $(shell pkg-config --variable=prefix OpenEXR )
       export NAN_OPENEXR_INC ?= $(shell pkg-config --cflags OpenEXR )
       export NAN_OPENEXR_LIBS ?= $(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
+    endif
+
+    ifeq ($(WITH_FFTW3), true)
+      export BF_FFTW3 ?= $(shell pkg-config --variable=prefix fftw3 )
+      export BF_FFTW3_INC ?= $(shell pkg-config --variable=includedir fftw3 )
+      export BF_FFTW3_LIBS ?= $(shell pkg-config --libs fftw3 )
+    endif
+
+    ifeq ($(WITH_OPENJPEG), true)
+      export BF_OPENJPEG ?= /usr
+      export BF_OPENJPEG_INC ?= /usr/include
+      export BF_OPENJPEG_LIBS ?= -lopenjpeg
     endif
 
     # Uncomment the following line to use Mozilla inplace of netscape

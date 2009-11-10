@@ -74,7 +74,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 from bpy.props import *
 
 
-class AddTorusPrimitive(bpy.types.Operator):
+class AddTorus(bpy.types.Operator):
     '''Add a torus mesh.'''
     bl_idname = "mesh.primitive_torus_add"
     bl_label = "Add Torus"
@@ -117,7 +117,7 @@ class AddTorusPrimitive(bpy.types.Operator):
         ob_new = bpy.data.add_object('MESH', "Torus")
         ob_new.data = mesh
         scene.add_object(ob_new)
-        scene.active_object = ob_new
+        scene.objects.active = ob_new
         ob_new.selected = True
 
         ob_new.location = tuple(context.scene.cursor_location)
@@ -125,12 +125,12 @@ class AddTorusPrimitive(bpy.types.Operator):
         return ('FINISHED',)
 
 # Register the operator
-bpy.ops.add(AddTorusPrimitive)
+bpy.ops.add(AddTorus)
 
 # Add to a menu
 import dynamic_menu
 
-menu_func = (lambda self, context: self.layout.itemO("mesh.primitive_torus_add",
+menu_func = (lambda self, context: self.layout.itemO(AddTorus.bl_idname,
                                         text="Torus", icon='ICON_MESH_DONUT'))
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_mesh_add, menu_func)

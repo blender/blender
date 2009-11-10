@@ -1957,6 +1957,26 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 	}
 }
 
+void RNA_def_property_collection_active(PropertyRNA *prop, PropertyRNA *prop_act)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_property_collection_active: only during preprocessing.\n");
+		return;
+	}
+
+	switch(prop->type) {
+		case PROP_COLLECTION: {
+			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+			cprop->active= prop_act;
+			break;
+		}
+		default:
+			fprintf(stderr, "RNA_def_property_collection_active: %s.%s, type is not collection.\n", prop->identifier, prop_act->identifier);
+			DefRNA.error= 1;
+			break;
+	}
+}
+
 /* Compact definitions */
 
 PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_, const char *identifier, int default_value, const char *ui_name, const char *ui_description)

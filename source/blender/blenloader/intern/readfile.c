@@ -2333,7 +2333,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 			rebuild= 1;
 		else if(ob->id.lib==NULL && arm->id.lib) {
 			/* local pose selection copied to armature, bit hackish */
-			pchan->bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
+			pchan->bone->flag &= ~BONE_SELECTED;
 			pchan->bone->flag |= pchan->selectflag;
 		}
 	}
@@ -2367,6 +2367,8 @@ static void direct_link_bones(FileData *fd, Bone* bone)
 	bone->prop= newdataadr(fd, bone->prop);
 	if(bone->prop)
 		IDP_DirectLinkProperty(bone->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
+	bone->flag &= ~BONE_DRAW_ACTIVE;
 
 	link_list(fd, &bone->childbase);
 
@@ -2388,6 +2390,9 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 		direct_link_bones(fd, bone);
 		bone=bone->next;
 	}
+
+	arm->act_bone= newdataadr(fd, arm->act_bone);
+	arm->act_edbone= NULL;
 }
 
 /* ************ READ CAMERA ***************** */
@@ -2882,10 +2887,8 @@ static void lib_link_texture(FileData *fd, Main *main)
 			tex->ima= newlibadr_us(fd, tex->id.lib, tex->ima);
 			tex->ipo= newlibadr_us(fd, tex->id.lib, tex->ipo);
 			if(tex->env) tex->env->object= newlibadr(fd, tex->id.lib, tex->env->object);
-			if(tex->pd) {
+			if(tex->pd)
 				tex->pd->object= newlibadr(fd, tex->id.lib, tex->pd->object);
-				tex->pd->psys= newlibadr(fd, tex->id.lib, tex->pd->psys);
-			}
 			if(tex->vd) tex->vd->object= newlibadr(fd, tex->id.lib, tex->vd->object);
 
 			if(tex->nodetree)
@@ -9159,15 +9162,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 4)){
-		Scene *sce= main->scene.first;
-		while(sce) {
-			if(sce->frame_step==0)
-				sce->frame_step= 1;
-			sce= sce->id.next;
-		}
-	}
-
 	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 5)) {
 		Lamp *la= main->lamp.first;
 		for(; la; la= la->id.next) {
@@ -9529,7 +9523,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
-				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
+				strcpy(sce->nodetree->id.name, "NTCompositing Nodetree");
 
 			/* move to cameras */
 			if(sce->r.mode & R_PANORAMA) {
@@ -10038,6 +10032,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		{
+			Scene *sce= main->scene.first;
+			while(sce) {
+				if(sce->r.frame_step==0)
+					sce->r.frame_step= 1;
+				sce= sce->id.next;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

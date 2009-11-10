@@ -178,8 +178,10 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 			
 		} else if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			/* the returned value could not be converted into a flag */
-			if(op)
+			if(op) {
+				fprintf(stderr, "error using return value from \"%s\"\n", op->idname); // for some reason the error raised doesnt include file:line... this helps
 				BPy_errors_to_report(op->reports);
+			}
 
 			ret_flag = OPERATOR_CANCELLED;
 		}

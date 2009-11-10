@@ -382,7 +382,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 		/* check if available */
 		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
-			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
+			if (pchan->bone->flag & BONE_SELECTED || pchan->bone==arm->act_bone) {
 				/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
 				cks.pchan= pchan;
 				
@@ -762,7 +762,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 				}
 				else if (pchan->bone) {
 					/* only ok if bone is visible and selected */
-					if ( (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) &&
+					if ( (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) &&
 						 (pchan->bone->flag & BONE_HIDDEN_P)==0 &&
 						 (pchan->bone->layer & arm->layer) )
 						ok = 1;

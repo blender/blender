@@ -265,8 +265,8 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
 
 	if(alpha) {
-		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ALPHA);
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_USE_ALPHA);
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ALPHA);
 	}
 	else if(zbuf) {
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ZBUF);
@@ -1440,6 +1440,10 @@ static void rna_def_space_console(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Prompt", "Command line prompt.");
 	RNA_def_struct_name_property(srna, prop);
 	
+	prop= RNA_def_property(srna, "language", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Language", "Command line prompt language.");
+	RNA_def_struct_name_property(srna, prop);
+
 	prop= RNA_def_property(srna, "history", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "history", NULL);
 	RNA_def_property_struct_type(prop, "ConsoleLine");

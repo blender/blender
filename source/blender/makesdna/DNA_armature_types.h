@@ -78,6 +78,9 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
 	
+	Bone		*act_bone;
+	void		*act_edbone;
+
 	void		*sketch;				/* sketch struct for etch-a-ton */
 	
 	int			flag;
@@ -154,7 +157,7 @@ typedef enum eBone_Flag {
 	/* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */	
 	BONE_HIDDEN_P				= (1<<6), 	/* hidden Bones when drawing PoseChannels */	
 	BONE_DONE					= (1<<7),	/* For detecting cyclic dependancies */
-	BONE_ACTIVE					= (1<<8), 	/* active is on mouse clicks only */
+	BONE_DRAW_ACTIVE			= (1<<8), 	/* active is on mouse clicks only - deprecated, ONLY USE FOR DRAWING */
 	BONE_HINGE					= (1<<9),	/* No parent rotation or scale */
 	BONE_HIDDEN_A				= (1<<10), 	/* hidden Bones when drawing Armature Editmode */
 	BONE_MULT_VG_ENV 			= (1<<11), 	/* multiplies vgroup with envelope */

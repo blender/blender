@@ -131,15 +131,15 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	
 	/*convert to colorspace*/
 	switch(node->custom1) {
-	case 1: /*RGB */
+	case CMP_NODE_CHANNEL_MATTE_CS_RGB:
 		break;
-	case 2: /*HSV*/
+	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
 		composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_rgba_to_hsva, CB_RGBA);
 		break;
-	case 3: /*YUV*/
+	case CMP_NODE_CHANNEL_MATTE_CS_YUV: /*YUV*/
 		composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_rgba_to_yuva, CB_RGBA);
 		break;
-	case 4: /*YCC*/
+	case CMP_NODE_CHANNEL_MATTE_CS_YCC: /*YCC*/
 		composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_normalized_rgba_to_ycca2, CB_RGBA);
 		break;
 	default:
@@ -151,15 +151,15 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 
 	/*convert back to RGB colorspace in place*/
 	switch(node->custom1) {
-	case 1: /*RGB*/
+	case CMP_NODE_CHANNEL_MATTE_CS_RGB: /*RGB*/
 		break;
-	case 2: /*HSV*/
+	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
 		composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_hsva_to_rgba, CB_RGBA);
 		break;
-	case 3: /*YUV*/
+	case CMP_NODE_CHANNEL_MATTE_CS_YUV: /*YUV*/
 		composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_yuva_to_rgba, CB_RGBA);
 		break;
-	case 4: /*YCC*/
+	case CMP_NODE_CHANNEL_MATTE_CS_YCC: /*YCC*/
 		composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_normalized_ycca_to_rgba2, CB_RGBA);
 		break;
 	default:

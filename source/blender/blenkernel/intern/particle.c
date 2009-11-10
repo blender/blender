@@ -2276,7 +2276,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 /*	Object *ob= ctx->sim.ob; */
 	ParticleSystem *psys= ctx->sim.psys;
 	ParticleSettings *part = psys->part;
-	ParticleEditSettings *pset = &scene->toolsettings->particle;
+/*	ParticleEditSettings *pset = &scene->toolsettings->particle; */
 	int totparent=0, between=0;
 	int steps = (int)pow(2.0, (double)part->draw_step);
 	int totchild = psys->totchild;
@@ -3334,6 +3334,8 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 
 	if(ob->particlesystem.first)
 		((ParticleSystem *) ob->particlesystem.first)->flag |= PSYS_CURRENT;
+	else
+		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 
 	DAG_scene_sort(scene);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);

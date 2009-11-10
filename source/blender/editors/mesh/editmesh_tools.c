@@ -7197,3 +7197,78 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* TODO - some way to select on an arbitrary axis */
+static int select_axis_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	int axis= RNA_int_get(op->ptr, "axis");
+	int mode= RNA_enum_get(op->ptr, "mode"); /* -1==aligned, 0==neg, 1==pos*/
+
+	EditSelection *ese = em->selected.last;
+
+
+	if(ese==NULL)
+		return OPERATOR_CANCELLED;
+
+	if(ese->type==EDITVERT) {
+		EditVert *ev;
+		EditVert *act_vert= (EditVert*)ese->data;
+		float value= act_vert->co[axis];
+		float limit=  CTX_data_tool_settings(C)->doublimit; // XXX
+
+		if(mode==0)			value -= limit;
+		else if (mode==1)	value += limit;
+
+		for(ev=em->verts.first;ev;ev=ev->next) {
+			if(!ev->h) {
+				switch(mode) {
+				case -1: /* aligned */
+					if(fabs(ev->co[axis] - value) < limit)
+						ev->f |= SELECT;
+					break;
+				case 0: /* neg */
+					if(ev->co[axis] > value)
+						ev->f |= SELECT;
+					break;
+				case 1: /* pos */
+					if(ev->co[axis] < value)
+						ev->f |= SELECT;
+					break;
+				}
+			}
+		}
+	}
+
+	EM_select_flush(em);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_axis(wmOperatorType *ot)
+{
+	static EnumPropertyItem axis_mode_items[] = {
+		{0,  "POSITIVE", 0, "Positive Axis", ""},
+		{1,  "NEGATIVE", 0, "Negative Axis", ""},
+		{-1, "ALIGNED",  0, "Aligned Axis", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Select Axis";
+	ot->description= "Select all data in the mesh on a single axis.";
+	ot->idname= "MESH_OT_select_axis";
+
+	/* api callbacks */
+	ot->exec= select_axis_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "mode", axis_mode_items, 0, "Axis Mode", "Axis side to use when selecting");
+	RNA_def_int(ot->srna, "axis", 0, 0, 2, "Axis", "Select the axis to compare each vertex on", 0, 2);
+}
+

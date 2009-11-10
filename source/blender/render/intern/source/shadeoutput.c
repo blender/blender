@@ -1746,6 +1746,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				shr->combined[0] += shi->r*aodiff[0];
 				shr->combined[1] += shi->g*aodiff[1];
 				shr->combined[2] += shi->b*aodiff[2];
+				
+				if (shr->combined[0] < 0.f) shr->combined[0]= 0.f;
+				if (shr->combined[1] < 0.f) shr->combined[1]= 0.f;
+				if (shr->combined[2] < 0.f) shr->combined[2]= 0.f;
 			}
 		}
 		

@@ -622,6 +622,11 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	vp->data_r = MEM_callocN(sizeof(float)*vp->res[0]*vp->res[1]*vp->res[2], "volume light cache data red channel");
 	vp->data_g = MEM_callocN(sizeof(float)*vp->res[0]*vp->res[1]*vp->res[2], "volume light cache data green channel");
 	vp->data_b = MEM_callocN(sizeof(float)*vp->res[0]*vp->res[1]*vp->res[2], "volume light cache data blue channel");
+	if (vp->data_r==0 || vp->data_g==0 || vp->data_b==0) {
+		MEM_freeN(vp);
+		vp = NULL;
+		return;
+	}
 	obi->volume_precache = vp;
 
 	/* Need a shadeinput to calculate scattering */

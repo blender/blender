@@ -1307,16 +1307,19 @@ void calculateCenter(TransInfo *t)
 	case V3D_ACTIVE:
 		{
 		/* set median, and if if if... do object center */
-#if 0 // TRANSFORM_FIX_ME
-		EditSelection ese;
+		
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
 
-		if (t->obedit && t->obedit->type == OB_MESH && EM_get_actSelection(&ese)) {
-			EM_editselection_center(t->center, &ese);
-			calculateCenter2D(t);
-			break;
+		if (t->obedit && t->obedit->type == OB_MESH) {
+			EditSelection ese;
+			EditMesh *em = BKE_mesh_get_editmesh(t->obedit->data);
+			
+			if (EM_get_actSelection(em, &ese)) {
+				EM_editselection_center(t->center, &ese);
+				calculateCenter2D(t);
+				break;
+			}
 		} /* END EDIT MODE ACTIVE ELEMENT */
-#endif
 		
 		calculateCenterMedian(t);
 		if((t->flag & (T_EDIT|T_POSE))==0)

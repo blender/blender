@@ -555,6 +555,16 @@ IF(APPLE)
 	SET(TIFF_INC ${TIFF}/include)
 
 	SET(EXETYPE MACOSX_BUNDLE)
+
+
+	IF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
+		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
+		SET(CMAKE_C_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
+	ELSEIF(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
+		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+		SET(CMAKE_C_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
+
 ENDIF(APPLE)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")

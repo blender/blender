@@ -65,6 +65,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "ED_armature.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -779,7 +780,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		int mode= mmd->modifier.mode;
 
 		/* force modifier to run, it will call binding routine */
-		mmd->needbind= 1;
+		mmd->bindfunc= harmonic_coordinates_bind;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
 		if(ob->type == OB_MESH) {
@@ -796,7 +797,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 			makeDispListCurveTypes(scene, ob, 0);
 		}
 
-		mmd->needbind= 0;
+		mmd->bindfunc= NULL;
 		mmd->modifier.mode= mode;
 	}
 	

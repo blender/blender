@@ -169,7 +169,7 @@ typedef struct bSplineIKConstraint {
 	
 		/* settings */	
 	short flag;				/* general settings for constraint */
-	short upflag;			/* axis of bone that points up */
+	short xzScaleMode;		/* method used for determining the x & z scaling of the bones */
 } bSplineIKConstraint;
 
 
@@ -551,10 +551,16 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 #define CONSTRAINT_SPLINEIK_NO_ROOT			(1<<1)
 	/* bones in the chain should not scale to fit the curve */
 #define CONSTRAINT_SPLINEIK_SCALE_LIMITED	(1<<2)
-	/* bones in the chain should take their x/z scales from the curve radius */
-#define CONSTRAINT_SPLINEIK_RAD2FAT			(1<<3)
 	/* evenly distribute the bones along the path regardless of length */
-#define CONSTRAINT_SPLINEIK_EVENSPLITS		(1<<4)			
+#define CONSTRAINT_SPLINEIK_EVENSPLITS		(1<<3)	
+
+/* bSplineIKConstraint->xzScaleMode */
+	/* no x/z scaling */
+#define CONSTRAINT_SPLINEIK_XZS_NONE			0
+	/* bones in the chain should take their x/z scales from the curve radius */
+#define CONSTRAINT_SPLINEIK_XZS_RADIUS			1
+	/* bones in the chain should take their x/z scales from the original scaling */
+#define CONSTRAINT_SPLINEIK_XZS_ORIGINAL		2
 
 /* MinMax (floor) flags */
 #define MINMAX_STICKY	0x01

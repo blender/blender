@@ -1317,9 +1317,8 @@ static void make_prim_ext(bContext *C, int view_align, int enter_editmode,
 
 	if(obedit==NULL || obedit->type!=OB_MESH) {
 		/* create editmode */
-		ED_object_add_type(C, OB_MESH, view_align, FALSE);
-		ED_object_enter_editmode(C, EM_DO_UNDO);
-		obedit= CTX_data_edit_object(C);
+		obedit= ED_object_add_type(C, OB_MESH, view_align, FALSE);
+		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);

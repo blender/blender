@@ -236,11 +236,14 @@ static void cache_pointdensity(Render *re, Tex *tex)
 	
 	if (pd->source == TEX_PD_PSYS) {
 		Object *ob = pd->object;
+		ParticleSystem *psys;
 
-		if (!ob) return;
-		if (!pd->psys) return;
+		if (!ob || !pd->psys) return;
+
+		psys= BLI_findlink(&ob->particlesystem, pd->psys-1);
+		if (!psys) return;
 		
-		pointdensity_cache_psys(re, pd, ob, pd->psys);
+		pointdensity_cache_psys(re, pd, ob, psys);
 	}
 	else if (pd->source == TEX_PD_OBJECT) {
 		Object *ob = pd->object;

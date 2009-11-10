@@ -509,7 +509,7 @@ static RigControl *cloneControl(RigGraph *rg, RigGraph *src_rg, RigControl *src_
 
 	renameTemplateBone(name, src_ctrl->bone->name, rg->editbones, side_string, num_string);
 	ctrl->bone = duplicateEditBoneObjects(src_ctrl->bone, name, rg->editbones, src_rg->ob, rg->ob);
-	ctrl->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
+	ctrl->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
 	BLI_ghash_insert(ptr_hash, src_ctrl->bone, ctrl->bone);
 	
 	ctrl->link = src_ctrl->link;
@@ -554,7 +554,7 @@ static RigArc *cloneArc(RigGraph *rg, RigGraph *src_rg, RigArc *src_arc, GHash *
 			char name[32];
 			renameTemplateBone(name, src_edge->bone->name, rg->editbones, side_string, num_string);
 			edge->bone = duplicateEditBoneObjects(src_edge->bone, name, rg->editbones, src_rg->ob, rg->ob);
-			edge->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
+			edge->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
 			BLI_ghash_insert(ptr_hash, src_edge->bone, edge->bone);
 		}
 
@@ -1555,7 +1555,7 @@ RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 	else
 	{
 		rg->editbones = MEM_callocN(sizeof(ListBase), "EditBones");
-		make_boneList(rg->editbones, &arm->bonebase, NULL);
+		make_boneList(rg->editbones, &arm->bonebase, NULL, NULL);
 		rg->flag |= RIG_FREE_BONELIST;
 	}
 	
@@ -1607,7 +1607,7 @@ RigGraph *armatureSelectedToGraph(bContext *C, Object *ob, bArmature *arm)
 	else
 	{
 		rg->editbones = MEM_callocN(sizeof(ListBase), "EditBones");
-		make_boneList(rg->editbones, &arm->bonebase, NULL);
+		make_boneList(rg->editbones, &arm->bonebase, NULL, NULL);
 		rg->flag |= RIG_FREE_BONELIST;
 	}
 
@@ -2947,6 +2947,8 @@ void BIF_retargetArc(bContext *C, ReebArc *earc, RigGraph *template_rigg)
 	}
 	RIG_freeRigGraph((BGraph*)rigg);
 	
+	ED_armature_validate_active(armedit);
+
 //	XXX
 //	allqueue(REDRAWVIEW3D, 0);
 }

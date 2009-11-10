@@ -208,7 +208,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.itemR(settings, "proportional_editing")
+        layout.item_menu_enumR(settings, "proportional_editing")
         layout.item_menu_enumR(settings, "proportional_editing_falloff")
 
         layout.itemS()

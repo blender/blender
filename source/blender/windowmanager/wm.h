@@ -76,5 +76,12 @@ void wm_autosave_delete(void);
 void wm_autosave_read(bContext *C, struct ReportList *reports);
 void wm_autosave_location(char *filename);
 
+/* hack to store circle select size - campbell, must replace with nice operator memory */
+#define GESTURE_MEMORY
+
+#ifdef GESTURE_MEMORY
+extern int circle_select_size;
+#endif
+
 #endif /* WM_H */
 

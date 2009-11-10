@@ -69,7 +69,7 @@ static char *bpy_flag_error_str(BPY_flag_def *flagdef)
 		BLI_dynstr_appendf(dynstr, fd!=flagdef?", '%s'":"'%s'", fd->name);
 		fd++;
 	}
-	
+
 	cstring = BLI_dynstr_get_cstring(dynstr);
 	BLI_dynstr_free(dynstr);
 	return cstring;
@@ -414,7 +414,10 @@ int BPy_errors_to_report(ReportList *reports)
 {
 	PyObject *pystring;
 	char *cstring;
-	
+
+	char *filename;
+	int lineno;
+
 	if (!PyErr_Occurred())
 		return 1;
 	
@@ -432,10 +435,15 @@ int BPy_errors_to_report(ReportList *reports)
 		return 0;
 	}
 	
+	BPY_getFileAndNum(&filename, &lineno);
+	
 	cstring= _PyUnicode_AsString(pystring);
 	
-	BKE_report(reports, RPT_ERROR, cstring);
-	fprintf(stderr, "%s\n", cstring); // not exactly needed. just for testing
+	BKE_reportf(reports, RPT_ERROR, "%s\nlocation:%s:%d\n", cstring, filename, lineno);
+	
+	fprintf(stderr, "%s\nlocation:%s:%d\n", cstring, filename, lineno); // not exactly needed. just for testing
+	
 	Py_DECREF(pystring);
 	return 1;
 }
+

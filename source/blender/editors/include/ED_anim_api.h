@@ -424,12 +424,8 @@ void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, List
 /* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
 /* anim_ipo_utils.c */
 
-/* Get icon for type of setting F-Curve is for */
-// XXX include this in the getname() method via RNA?
-int geticon_anim_blocktype(short blocktype);
-
-/* Get name for channel-list displays for F-Curve */
-void getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
+/* Get icon + name for channel-list displays for F-Curve */
+int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
 /* Automatically determine a color for the nth F-Curve */
 void ipo_rainbow(int cur, int tot, float *out);

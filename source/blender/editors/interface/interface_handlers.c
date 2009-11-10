@@ -4578,7 +4578,8 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 				case WHEELUPMOUSE:
 				case WHEELDOWNMOUSE:
 					/* arrowkeys: only handle for block_loop blocks */
-					if(inside || (block->flag & UI_BLOCK_LOOP)) {
+					if(event->alt || event->shift || event->ctrl || event->oskey);
+					else if(inside || (block->flag & UI_BLOCK_LOOP)) {
 						if(event->val==KM_PRESS) {
 							but= ui_but_find_activated(ar);
 							if(but) {
@@ -4601,9 +4602,10 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 									ui_handle_button_activate(C, ar, bt, BUTTON_ACTIVATE);
 							}
 						}
+
+						retval= WM_UI_HANDLER_BREAK;
 					}
 
-					retval= WM_UI_HANDLER_BREAK;
 					break;
 
 				case ONEKEY: 	case PAD1: 
@@ -4650,9 +4652,10 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 								break;
 							}
 						}
+
+						retval= WM_UI_HANDLER_BREAK;
 					}
 
-					retval= WM_UI_HANDLER_BREAK;
 					break;
 			}
 		}

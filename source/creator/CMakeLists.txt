@@ -381,6 +381,7 @@ IF(UNIX)
 		bf_dds
 		bf_readblenfile
 		bf_collada
+		blender_BSP 
 		blender_bop 
 		bf_kernel 
 		bf_decimation 

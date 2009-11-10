@@ -53,6 +53,7 @@ struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
 struct PointerRNA;
+struct bContext;
 
 /* ************** NODE TYPE DEFINITIONS ***** */
 
@@ -83,7 +84,7 @@ typedef struct bNodeType {
 	void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **);
 	
 	/* this line is set on startup of blender */
-	void (*uifunc)(struct uiLayout *, struct PointerRNA *ptr);
+	void (*uifunc)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
 
 	void (*initfunc)(struct bNode *);
 	void (*freestoragefunc)(struct bNode *);

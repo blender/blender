@@ -697,6 +697,7 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 #define ORIENTATION_FACE	4
 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
+
 int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 

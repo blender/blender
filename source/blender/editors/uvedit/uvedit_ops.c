@@ -2045,7 +2045,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
 	/* figure out what to select/deselect */
-	select= (RNA_int_get(op->ptr, "event_type") == LEFTMOUSE); // XXX hardcoded
+	select= (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
 	pinned= RNA_boolean_get(op->ptr, "pinned");
 	
 	if(ts->uv_flag & UV_SYNC_SELECTION)
@@ -2168,11 +2168,7 @@ void UV_OT_select_border(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only.");
 
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	WM_operator_properties_gesture_border(ot, FALSE);
 }
 
 /* ******************** circle select operator **************** */
@@ -2205,9 +2201,10 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	MTFace *tface;
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
-
+    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+    
 	/* get operator properties */
-	select= (RNA_int_get(op->ptr, "event_type") == LEFTMOUSE); // XXX hardcoded
+	select= (gesture_mode == GESTURE_MODAL_SELECT);
 	x= RNA_int_get(op->ptr, "x");
 	y= RNA_int_get(op->ptr, "y");
 	radius= RNA_int_get(op->ptr, "radius");
@@ -2261,7 +2258,7 @@ void UV_OT_circle_select(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 }
 
 /* ******************** snap cursor operator **************** */
@@ -3090,7 +3087,6 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_cube_project);
 	WM_operatortype_append(UV_OT_cylinder_project);
 	WM_operatortype_append(UV_OT_from_view);
-	WM_operatortype_append(UV_OT_mapping_menu);
 	WM_operatortype_append(UV_OT_minimize_stretch);
 	WM_operatortype_append(UV_OT_pack_islands);
 	WM_operatortype_append(UV_OT_reset);

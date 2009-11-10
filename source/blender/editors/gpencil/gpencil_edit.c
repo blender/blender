@@ -155,6 +155,13 @@ bGPdata *gpencil_data_get_active (bContext *C)
 	return (gpd_ptr) ? *(gpd_ptr) : NULL;
 }
 
+/* needed for offscreen rendering */
+bGPdata *gpencil_data_get_active_v3d (Scene *scene)
+{
+	bGPdata *gpd= scene->basact ? scene->basact->object->gpd : NULL;
+	return gpd ? gpd : scene->gpd;
+}
+
 /* ************************************************ */
 /* Panel Operators */
 

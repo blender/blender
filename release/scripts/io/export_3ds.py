@@ -1109,7 +1109,7 @@ def save_3ds(filename, context):
 #         Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
 # # save_3ds('/test_b.3ds')
 from bpy.props import *
-class EXPORT_OT_autodesk_3ds(bpy.types.Operator):
+class Export3DS(bpy.types.Operator):
 	'''Export to 3DS file format (.3ds).'''
 	bl_idname = "export.autodesk_3ds"
 	bl_label = 'Export 3DS'
@@ -1135,9 +1135,13 @@ class EXPORT_OT_autodesk_3ds(bpy.types.Operator):
 		print("Poll")
 		return context.active_object != None
 
-bpy.ops.add(EXPORT_OT_autodesk_3ds)
+bpy.ops.add(Export3DS)
 
 # Add to a menu
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.autodesk_3ds", text="Autodesk 3DS...")
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".3ds")
+    self.layout.item_stringO(Export3DS.bl_idname, "path", default_path, text="Autodesk 3DS...")
+
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)

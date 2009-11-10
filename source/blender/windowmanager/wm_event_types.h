@@ -261,6 +261,19 @@
 #define EVT_BUT_OPEN	0x5021
 #define EVT_MODAL_MAP	0x5022
 
+/* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
+#define GESTURE_MODAL_CANCEL		1
+#define GESTURE_MODAL_CONFIRM		2
+
+#define GESTURE_MODAL_SELECT		3
+#define GESTURE_MODAL_DESELECT		4
+
+#define GESTURE_MODAL_NOP			5 /* circle select when no mouse button is pressed */
+
+#define GESTURE_MODAL_CIRCLE_ADD	6 /* circle sel: larger brush */
+#define GESTURE_MODAL_CIRCLE_SUB	7 /* circle sel: smaller brush */
+
+#define GESTURE_MODAL_BORDER_BEGIN	8 /* border select, activate, use release to detect which button */
 
 
 #endif	/* WM_EVENT_TYPES_H */

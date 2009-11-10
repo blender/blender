@@ -103,8 +103,6 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 
 	if(py_call_level==1) {
 
-		BPY_update_modules(); /* can give really bad results if this isnt here */
-
 		if(C) { // XXX - should always be true.
 			BPy_SetContext(C);
 			bpy_import_main_set(CTX_data_main(C));
@@ -112,6 +110,8 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 		else {
 			fprintf(stderr, "ERROR: Python context called with a NULL Context. this should not happen!\n");
 		}
+
+		BPY_update_modules(); /* can give really bad results if this isnt here */
 
 #ifdef TIME_PY_RUN
 		if(bpy_timer_count==0) {
@@ -173,44 +173,59 @@ void BPY_free_compiled_text( struct Text *text )
 /*****************************************************************************
 * Description: Creates the bpy module and adds it to sys.modules for importing
 *****************************************************************************/
+static BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
 static void bpy_init_modules( void )
 {
 	PyObject *mod;
 	
+	/* Needs to be first since this dir is needed for future modules */
+	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
+	if(modpath) {
+		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
+		PyObject *py_modpath= PyUnicode_FromString(modpath);
+		PyList_Insert(sys_path, 0, py_modpath); /* add first */
+		Py_DECREF(py_modpath);
+	}
+	
 	mod = PyModule_New("bpy");
-	
-	PyModule_AddObject( mod, "data", BPY_rna_module() );
-	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
-	PyModule_AddObject( mod, "types", BPY_rna_types() );
-	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
-	
+
 	/* add the module so we can import it */
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
 
-	/* add our own modules dir */
+	/* run first, initializes rna types */
+	BPY_rna_init();
+
+	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
+	bpy_import_test("bpy_types");
+	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
+	bpy_import_test("bpy_types");
+	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
+	PyModule_AddObject( mod, "props", BPY_rna_props() );
+	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
+
+
+
+	/* bpy context */
 	{
-		char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
-		
-		if(modpath) {
-			PyObject *sys_path= PySys_GetObject("path"); /* borrow */
-			PyObject *py_modpath= PyUnicode_FromString(modpath);
-			PyList_Insert(sys_path, 0, py_modpath); /* add first */
-			Py_DECREF(py_modpath);
-		}
-		
-		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
-		bpy_import_test("bpy_sys"); /* adds its self to bpy.sys */
-		bpy_import_test("bpy_ext"); /* extensions to our existing types */
+		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+		RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
+
+		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 	}
-	
+
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
 	BGL_Init();
 	Freestyle_Init();
+
+	/* add our own modules dir */
+	{
+		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
+		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
+	}
 }
 
 void BPY_update_modules( void )
@@ -223,7 +238,7 @@ void BPY_update_modules( void )
 
 	/* refreshes the main struct */
 	BPY_update_rna_module();
-
+	bpy_context_module->ptr.data= (void *)BPy_GetContext();
 }
 
 /*****************************************************************************
@@ -610,7 +625,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *file_extension;
 	char *dirname;
 	char path[FILE_MAX];
-	char *dirs[] = {"scripts/ui", "scripts/io", NULL};
+	char *dirs[] = {"scripts/ui", "scripts/op", "scripts/io", NULL};
 	int path_flags[] = {BLI_GETHOME_LOCAL|BLI_GETHOME_SYSTEM, BLI_GETHOME_USER}; /* SYSTEM / NON-SYSTEM */
 	int a, err, flag_iter;
 	

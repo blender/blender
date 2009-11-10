@@ -471,7 +471,7 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	
 	/* find active */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone) && (pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer))
+		if ((pchan->bone) && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer))
 			return pchan;
 	}
 	

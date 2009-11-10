@@ -34,9 +34,11 @@
 #include "DNA_brush_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 #include "DNA_node_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h" /* MAXFRAME only */
 
 #include "BKE_node.h"
@@ -319,6 +321,29 @@ static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *
 	*free= 1;
 
 	return item;
+}
+
+static PointerRNA rna_PointDensity_psys_get(PointerRNA *ptr)
+{
+	PointDensity *pd= ptr->data;
+	Object *ob= pd->object;
+	ParticleSystem *psys= NULL;
+	PointerRNA value;
+
+	if(ob && pd->psys)
+		psys= BLI_findlink(&ob->particlesystem, pd->psys-1);
+
+	RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys, &value);
+	return value;
+}
+
+static void rna_PointDensity_psys_set(PointerRNA *ptr, PointerRNA value)
+{
+	PointDensity *pd= ptr->data;
+	Object *ob= pd->object;
+
+	if(ob && value.id.data == ob)
+		pd->psys= BLI_findindex(&ob->particlesystem, value.data) + 1;
 }
 
 static char *rna_ColorRamp_path(PointerRNA *ptr)
@@ -1552,9 +1577,9 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "psys");
 	RNA_def_property_ui_text(prop, "Particle System", "Particle System to render as points");
 	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_pointer_funcs(prop, "rna_PointDensity_psys_get", "rna_PointDensity_psys_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	

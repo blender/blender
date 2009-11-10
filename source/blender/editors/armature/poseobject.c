@@ -158,12 +158,12 @@ static short pose_has_protected_selected(Object *ob, short only_selected, short 
 	if (ob->proxy) {
 		bPoseChannel *pchan;
 		bArmature *arm= ob->data;
-		
+
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			if (pchan->bone && (pchan->bone->layer & arm->layer)) {
 				if (pchan->bone->layer & arm->layer_protected) {
-					if (only_selected && (pchan->bone->flag & BONE_ACTIVE));
-					else if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) 
+					if (only_selected && (pchan->bone == arm->act_bone));
+					else if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
 					   break;
 				}
 			}
@@ -531,7 +531,7 @@ void pose_select_constraint_target(Scene *scene)
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
 				for (con= pchan->constraints.first; con; con= con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 					ListBase targets = {NULL, NULL};
@@ -570,7 +570,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *op)
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
 				for (con= pchan->constraints.first; con; con= con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 					ListBase targets = {NULL, NULL};
@@ -635,7 +635,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 		curbone= pchan->bone;
 		
 		if ((arm->layer & curbone->layer) && (curbone->flag & BONE_UNSELECTABLE)==0) {
-			if (curbone->flag & (BONE_ACTIVE)) {
+			if (curbone == arm->act_bone) {
 				if (direction == BONE_SELECT_PARENT) {
 				
 					if (pchan->parent == NULL) continue;
@@ -644,8 +644,8 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if ((arm->layer & pabone->layer) && !(pabone->flag & BONE_HIDDEN_P)) {
 						
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
-						curbone->flag &= ~BONE_ACTIVE;
-						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED);
+						pabone->flag |= BONE_SELECTED;
+						arm->act_bone= pabone;
 						
 						found= 1;
 						break;
@@ -658,8 +658,8 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if ((arm->layer & chbone->layer) && !(chbone->flag & BONE_HIDDEN_P)) {
 					
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
-						curbone->flag &= ~BONE_ACTIVE;
-						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED);
+						chbone->flag |= BONE_SELECTED;
+						arm->act_bone= chbone;
 						
 						found= 1;
 						break;
@@ -717,11 +717,7 @@ void pose_copy_menu(Scene *scene)
 	if (ELEM(NULL, ob, ob->pose)) return;
 	if ((ob==obedit) || (ob->mode & OB_MODE_POSE)==0) return;
 	
-	/* find active */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (pchan->bone->flag & BONE_ACTIVE) 
-			break;
-	}
+	pchan= get_active_posechannel(ob);
 	
 	if (pchan==NULL) return;
 	pchanact= pchan;
@@ -1397,7 +1393,7 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *op)
 		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 		// NOTE: sync this view3d_context() in space_view3d.c
 		if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
+			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
 				if (pchan->agrp_index) {
 					pchan->agrp_index= 0;
 					done= 1;
@@ -1444,7 +1440,7 @@ static short pose_select_same_group (Object *ob)
 	/* loop in loop... bad and slow! */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
 				
 				/* only if group matches (and is not selected or current bone) */
 				for (chan= ob->pose->chanbase.first; chan; chan= chan->next) {
@@ -1476,7 +1472,7 @@ static short pose_select_same_layer (Object *ob)
 	/* figure out what bones are selected */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
 				layers |= pchan->bone->layer;
 			}
 		}
@@ -1637,25 +1633,21 @@ void pose_activate_flipped_bone(Scene *scene)
 		ob= modifiers_isDeformedByArmature(ob);
 	}
 	if(ob && (ob->mode & OB_MODE_POSE)) {
-		bPoseChannel *pchan, *pchanf;
+		bPoseChannel *pchanf;
 		
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(arm->layer & pchan->bone->layer) {
-				if(pchan->bone->flag & BONE_ACTIVE)
-					break;
-			}
-		}
-		if(pchan) {
+		if(arm->act_bone) {
 			char name[32];
 			
-			BLI_strncpy(name, pchan->name, 32);
+			BLI_strncpy(name, arm->act_bone->name, 32);
 			bone_flip_name(name, 1);	// 0 = do not strip off number extensions
 			
 			pchanf= get_pose_channel(ob->pose, name);
-			if(pchanf && pchanf!=pchan) {
-				pchan->bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
-				pchanf->bone->flag |= (BONE_SELECTED|BONE_ACTIVE);
-			
+			if(pchanf && pchanf->bone != arm->act_bone) {
+				arm->act_bone->flag &= ~BONE_SELECTED;
+				pchanf->bone->flag |= BONE_SELECTED;
+
+				arm->act_bone= pchanf->bone;
+
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 					ED_vgroup_select_by_name(OBACT, name);

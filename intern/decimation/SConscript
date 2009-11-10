@@ -5,4 +5,4 @@ sources = env.Glob('intern/*.cpp')
 
 incs = '. ../moto/include ../container ../memutil'
 
-env.BlenderLib ('bf_decimation', sources, Split(incs) , [], libtype=['core'], priority = [10] )
+env.BlenderLib ('bf_decimation', sources, Split(incs) , [], libtype=['core'], priority = [200] )

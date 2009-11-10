@@ -2200,6 +2200,9 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		UI_icon_draw(offset, ymid, acf->icon(ale));
 		offset += ICON_WIDTH; 
 	}
+	
+	/* turn off blending, since not needed anymore... */
+	glDisable(GL_BLEND);
 		
 	/* step 4) draw special toggles  .................................
 	 *	- in Graph Editor, checkboxes for visibility in curves area
