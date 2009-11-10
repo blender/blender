@@ -9527,7 +9527,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
-				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
+				strcpy(sce->nodetree->id.name, "NTCompositing Nodetree");
 
 			/* move to cameras */
 			if(sce->r.mode & R_PANORAMA) {

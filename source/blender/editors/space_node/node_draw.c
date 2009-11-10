@@ -259,7 +259,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 		layout= uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 			node->locx+NODE_DYS, dy, node->butr.xmax, 20, U.uistyles.first);
 
-		node->typeinfo->uifunc(layout, &ptr);
+		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
 		uiBlockEndAlign(node->block);
 		uiBlockLayoutResolve(node->block, NULL, &buty);
 

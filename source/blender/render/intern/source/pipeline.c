@@ -95,7 +95,7 @@
 - tiles, rect, baking
 - layers/tiles optionally to disk or directly in Render Result
 
-4) Composit Render Result
+4) Composite Render Result
 - also read external files etc
 
 5) Image Files

@@ -1054,7 +1054,7 @@ bNodeTree *ntreeAddTree(int type)
     if(ntree->type==NTREE_SHADER)
 		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
     else if(ntree->type==NTREE_COMPOSIT)
-		BLI_strncpy(ntree->id.name, "NTComposit Nodetree", sizeof(ntree->id.name));
+		BLI_strncpy(ntree->id.name, "NTCompositing Nodetree", sizeof(ntree->id.name));
     else if(ntree->type==NTREE_TEXTURE)
 		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
 	

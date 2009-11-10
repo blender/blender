@@ -39,6 +39,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_image.h"
+#include "BKE_texture.h"
 
 static EnumPropertyItem node_blend_type_items[] = {
 	{ 0, "MIX",          0, "Mix",         ""},
@@ -106,9 +107,25 @@ static EnumPropertyItem node_filter_items[] = {
 	{6, "SHADOW",  0, "Shadow",  ""},
 	{0, NULL, 0, NULL, NULL}};
 
+static EnumPropertyItem prop_image_layer_items[] = {
+	{ 0, "PLACEHOLDER",          0, "Placeholder",          ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static EnumPropertyItem prop_scene_layer_items[] = {
+	{ 0, "PLACEHOLDER",          0, "Placeholder",          ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static EnumPropertyItem prop_tri_channel_items[] = {
+	{ 1, "R", 0, "R", ""},
+	{ 2, "G", 0, "G", ""},
+	{ 3, "B", 0, "B", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "ED_node.h"
+
+#include "RE_pipeline.h"
 
 static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 {
@@ -237,6 +254,143 @@ static void rna_Node_update_name(bContext *C, PointerRNA *ptr)
 
 	rna_Node_update(C, ptr);
 }
+
+static void rna_Node_mapping_update(bContext *C, PointerRNA *ptr)
+{
+	bNode *node= (bNode*)ptr->data;
+
+	init_mapping((TexMapping *)node->storage);
+	
+	rna_Node_update(C, ptr);
+}
+
+static void rna_Node_image_layer_update(bContext *C, PointerRNA *ptr)
+{
+	bNode *node= (bNode*)ptr->data;
+	Image *ima = (Image *)node->id;
+	ImageUser *iuser= node->storage;
+	
+	BKE_image_multilayer_index(ima->rr, iuser);
+	BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE);
+	
+	rna_Node_update(C, ptr);
+}
+
+static void rna_Node_scene_layer_update(bContext *C, PointerRNA *ptr)
+{
+	bNode *node= (bNode*)ptr->data;
+	Image *ima = (Image *)node->id;
+	ImageUser *iuser= node->storage;
+	
+	BKE_image_multilayer_index(ima->rr, iuser);
+	
+	rna_Node_update(C, ptr);
+}
+
+
+static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
+{
+	EnumPropertyItem *item= NULL;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	int i=0, totitem=0;
+	
+	for (rl; rl; rl=rl->next) {
+		tmp.identifier = rl->name;
+		tmp.name= rl->name;
+		tmp.value = i++;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+
+	return item;
+}
+
+static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	bNode *node= (bNode*)ptr->data;
+	Image *ima = (Image *)node->id;
+	EnumPropertyItem *item= NULL;
+	RenderLayer *rl;
+	
+	if (!ima || !(ima->rr)) return NULL;
+
+	rl = ima->rr->layers.first;
+	item = renderresult_layers_add_enum(rl);
+	
+	*free= 1;
+	
+	return item;
+}
+
+static EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	bNode *node= (bNode*)ptr->data;
+	Scene *sce = (Scene *)node->id;
+	EnumPropertyItem *item= NULL;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	RenderLayer *rl;
+	
+	if (!sce) return NULL;
+	
+	rl = sce->r.layers.first;
+	item = renderresult_layers_add_enum(rl);
+	
+	*free= 1;
+	
+	return item;
+}
+
+static EnumPropertyItem *rna_Node_channel_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	bNode *node= (bNode*)ptr->data;
+	EnumPropertyItem *item= NULL;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	int totitem=0;
+	
+	switch(node->custom1) {
+		case CMP_NODE_CHANNEL_MATTE_CS_RGB:
+			tmp.identifier= "R"; tmp.name= "R"; tmp.value= 1;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			tmp.identifier= "G"; tmp.name= "G"; tmp.value= 2;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			tmp.identifier= "B"; tmp.name= "B"; tmp.value= 3;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			break;
+		case CMP_NODE_CHANNEL_MATTE_CS_HSV:
+			tmp.identifier= "H"; tmp.name= "H"; tmp.value= 1;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			tmp.identifier= "S"; tmp.name= "S"; tmp.value= 2;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			tmp.identifier= "V"; tmp.name= "V"; tmp.value= 3;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			break;
+		case CMP_NODE_CHANNEL_MATTE_CS_YUV:
+			tmp.identifier= "Y"; tmp.name= "Y"; tmp.value= 1;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			tmp.identifier= "G"; tmp.name= "U"; tmp.value= 2;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			tmp.identifier= "V"; tmp.name= "V"; tmp.value= 3;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			break;
+		case CMP_NODE_CHANNEL_MATTE_CS_YCC:
+			tmp.identifier= "Y"; tmp.name= "Y"; tmp.value= 1;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			tmp.identifier= "CB"; tmp.name= "Cr"; tmp.value= 2;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			tmp.identifier= "CR"; tmp.name= "Cb"; tmp.value= 3;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			break;
+		default:
+			break;
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+	
+	return item;
+}
+
 
 #else
 
@@ -416,7 +570,7 @@ static void def_time(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
-static void def_val_to_rgb(StructRNA *srna)
+static void def_colorramp(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -494,10 +648,46 @@ static void def_sh_mapping(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	prop = RNA_def_property(srna, "mapping", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "storage");
-	RNA_def_property_struct_type(prop, "TexMapping");
-	RNA_def_property_ui_text(prop, "Mapping", "");
+	RNA_def_struct_sdna_from(srna, "TexMapping", "storage");
+
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_ui_text(prop, "Location", "Location offset for the input coordinate");
+	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
+	RNA_def_property_update(prop, 0, "rna_Node_mapping_update");
+	
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
+	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation offset for the input coordinate");
+	RNA_def_property_ui_range(prop, -360.f, 360.f, 1.f, 2);
+	RNA_def_property_update(prop, 0, "rna_Node_mapping_update");
+	
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_ui_text(prop, "Scale", "Scale adjustment for the input coordinate");
+	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
+	RNA_def_property_update(prop, 0, "rna_Node_mapping_update");
+	
+	prop = RNA_def_property(srna, "clamp_minimum", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MIN);
+	RNA_def_property_ui_text(prop, "Clamp Minimum", "Clamp the output coordinate to a minimum value");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "min");
+	RNA_def_property_ui_text(prop, "Minimum", "Minimum value to clamp coordinate to");
+	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "clamp_maximum", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MAX);
+	RNA_def_property_ui_text(prop, "Clamp Maximum", "Clamp the output coordinate to a maximum value");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "max");
+	RNA_def_property_ui_text(prop, "Maximum", "Maximum value to clamp coordinate to");
+	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
@@ -593,24 +783,6 @@ static void def_cmp_blur(StructRNA *srna)
 	RNA_def_property_range(prop, 0, 256);
 	RNA_def_property_ui_text(prop, "Size Y", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "samples");
-	RNA_def_property_range(prop, 1, 256);
-	RNA_def_property_ui_text(prop, "Samples", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "max_speed", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "maxspeed");
-	RNA_def_property_range(prop, 1, 1024);
-	RNA_def_property_ui_text(prop, "Max Speed", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "min_speed", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "minspeed");
-	RNA_def_property_range(prop, 1, 1024);
-	RNA_def_property_ui_text(prop, "Min Speed", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "relative", 1);
@@ -650,15 +822,6 @@ static void def_cmp_blur(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gamma", 1);
 	RNA_def_property_ui_text(prop, "Gamma", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
-	
-	/*
-		TODO:
-			curved
-			image_in_width
-			image_in_height
-			
-		Don't know if these need wrapping, can't find them in interface
-	*/
 	
 }
 
@@ -754,18 +917,18 @@ static void def_cmp_levels(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem space_items[] = {
-		{1, "COMNINED_RGB", 0, "C", "Combined RGB"},
+	static EnumPropertyItem channel_items[] = {
+		{1, "COMBINED_RGB", 0, "C", "Combined RGB"},
 		{2, "RED", 0, "R", "Red Channel"},
 		{3, "GREEN", 0, "G", "Green Channel"},
 		{4, "BLUE", 0, "B", "Blue Channel"},
 		{5, "LUMINANCE", 0, "L", "Luminance Channel"},
 		{0, NULL, 0, NULL, NULL}};
 	
-	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, space_items);
-	RNA_def_property_ui_text(prop, "Color Space", "");
+	RNA_def_property_enum_items(prop, channel_items);
+	RNA_def_property_ui_text(prop, "Channel", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
@@ -773,12 +936,14 @@ static void def_cmp_image(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	/*static EnumPropertyItem type_items[] = {
+	/*
+	 static EnumPropertyItem type_items[] = {
 		{IMA_SRC_FILE,      "IMAGE",     0, "Image",     ""},
 		{IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
 		{IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
 		{IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
-		{0, NULL, 0, NULL, NULL}};*/
+		{0, NULL, 0, NULL, NULL}};
+	*/
 	
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
@@ -788,8 +953,6 @@ static void def_cmp_image(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update_name");
 	
 	RNA_def_struct_sdna_from(srna, "ImageUser", "storage");
-
-	/* TODO: if movie or sequence { */
 	
 	prop = RNA_def_property(srna, "frames", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frames");
@@ -819,20 +982,12 @@ static void def_cmp_image(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Auto-Refresh", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 	
-	/* } */
-	
-	/* if type == multilayer { */
-	
-	prop = RNA_def_property(srna, "layer", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "layer");
-	RNA_def_property_range(prop, 0, 10000);
+	prop= RNA_def_property(srna, "layer", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "layer");
+	RNA_def_property_enum_items(prop, prop_image_layer_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_image_layer_itemf");
 	RNA_def_property_ui_text(prop, "Layer", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-	
-	/* } */
-	
-	/* TODO: refresh on change */
-	
+	RNA_def_property_update(prop, 0, "rna_Node_image_layer_update");
 }
 
 static void def_cmp_render_layers(StructRNA *srna)
@@ -846,11 +1001,12 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Scene", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update_name");
 	
-	/* TODO: layers in menu */
-	prop = RNA_def_property(srna, "layer", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "custom1");
+	prop= RNA_def_property(srna, "layer", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, prop_scene_layer_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_scene_layer_itemf");
 	RNA_def_property_ui_text(prop, "Layer", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
+	RNA_def_property_update(prop, 0, "rna_Node_scene_layer_update");
 	
 	/* TODO: comments indicate this might be a hack */
 	prop = RNA_def_property(srna, "re_render", PROP_BOOLEAN, PROP_NONE);
@@ -1107,10 +1263,10 @@ static void def_cmp_channel_matte(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem color_space_items[] = {
-		{1, "RGB", 0, "RGB",   "RGB Color Space"},
-		{2, "HSV", 0, "HSV",   "HSV Color Space"},
-		{3, "YUV", 0, "YUV",   "YUV Color Space"},
-		{4, "YCC", 0, "YCbCr", "YCbCr Color Space"},
+		{CMP_NODE_CHANNEL_MATTE_CS_RGB, "RGB", 0, "RGB",   "RGB Color Space"},
+		{CMP_NODE_CHANNEL_MATTE_CS_HSV, "HSV", 0, "HSV",   "HSV Color Space"},
+		{CMP_NODE_CHANNEL_MATTE_CS_YUV, "YUV", 0, "YUV",   "YUV Color Space"},
+		{CMP_NODE_CHANNEL_MATTE_CS_YCC, "YCC", 0, "YCbCr", "YCbCr Color Space"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
@@ -1119,11 +1275,13 @@ static void def_cmp_channel_matte(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Color Space", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 	
-	/* TODO: channel must be 1, 2 or 3 */
-	prop = RNA_def_property(srna, "channel", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "custom2");
+	
+	prop= RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom2");
+	RNA_def_property_enum_items(prop, prop_tri_channel_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_channel_itemf");
+	RNA_def_property_ui_text(prop, "Channel", "Channel used to determine matte");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
-	RNA_def_property_ui_text(prop, "Channel", "");
 	
 	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
 	
