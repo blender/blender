@@ -2232,7 +2232,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		ScreenAnimData *sad= wt->customdata;
 		ScrArea *sa;
 		int sync;
-
+		
 		/* sync, don't sync, or follow scene setting */
 		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
 		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
@@ -2288,12 +2288,12 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 		}
-
+		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 		ED_update_for_newframe(C, 1);
-
+		
 		sound_update_playing(C);
-
+		
 		for(sa= screen->areabase.first; sa; sa= sa->next) {
 			ARegion *ar;
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {
@@ -2304,6 +2304,12 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 						ED_region_tag_redraw(ar);
 			}
 		}
+		
+		/* recalculate the timestep for the timer now that we've finished calculating this,
+		 * since the frames-per-second value may have been changed
+		 */
+		// TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this?
+		wt->timestep= (1.0/FPS);
 		
 		//WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
