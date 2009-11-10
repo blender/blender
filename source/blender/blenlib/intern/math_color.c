@@ -32,6 +32,7 @@
 
 #include "BLI_math.h"
 
+#if 0
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 {
 	int i;
@@ -310,4 +311,5 @@ int constrain_rgb(float *r, float *g, float *b)
 
     return 0;                         /* Color within RGB gamut */
 }
+#endif
 
