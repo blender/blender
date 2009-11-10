@@ -460,6 +460,24 @@ static void MEM_printmemlist_internal( int pydict )
 	mem_unlock_thread();
 }
 
+void MEM_callbackmemlist(void (*func)(void*)) {
+	MemHead *membl;
+
+	mem_lock_thread();
+
+	membl = membase->first;
+	if (membl) membl = MEMNEXT(membl);
+
+	while(membl) {
+		func(membl+1);
+		if(membl->next)
+			membl= MEMNEXT(membl->next);
+		else break;
+	}
+
+	mem_unlock_thread();
+}
+
 void MEM_printmemlist( void ) {
 	MEM_printmemlist_internal(0);
 }
