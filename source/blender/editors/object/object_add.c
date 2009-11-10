@@ -46,7 +46,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 
 #include "BKE_anim.h"
@@ -126,7 +126,7 @@ void ED_object_base_init_from_view(bContext *C, Base *base, int view_align)
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			if(rv3d) {
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
-				QuatToEul(rv3d->viewquat, ob->rot);
+				quat_to_eul( ob->rot,rv3d->viewquat);
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
 			}
 		}
@@ -928,7 +928,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		ob->disp.first= ob->disp.last= NULL;
 		ob->transflag &= ~OB_DUPLI;	
 		
-		Mat4CpyMat4(ob->obmat, dob->mat);
+		copy_m4_m4(ob->obmat, dob->mat);
 		ED_object_apply_obmat(ob);
 	}
 	

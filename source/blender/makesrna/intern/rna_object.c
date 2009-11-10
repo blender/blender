@@ -83,7 +83,7 @@ EnumPropertyItem object_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_key_types.h"
 
@@ -508,7 +508,7 @@ static void rna_Object_rotation_axis_angle_get(PointerRNA *ptr, float *value)
 	
 	/* for now, assume that rotation mode is axis-angle */
 	value[0]= ob->rotAngle;
-	VecCopyf(&value[1], ob->rotAxis);
+	copy_v3_v3(&value[1], ob->rotAxis);
 }
 
 /* rotation - axis-angle */
@@ -518,7 +518,7 @@ static void rna_Object_rotation_axis_angle_set(PointerRNA *ptr, const float *val
 	
 	/* for now, assume that rotation mode is axis-angle */
 	ob->rotAngle= value[0];
-	VecCopyf(ob->rotAxis, (float *)&value[1]);
+	copy_v3_v3(ob->rotAxis, (float *)&value[1]);
 	
 	// TODO: validate axis?
 }
@@ -543,7 +543,7 @@ static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 	if (bb) {
 		float scale[3];
 		
-		Mat4ToSize(ob->obmat, scale);
+		mat4_to_size( scale,ob->obmat);
 		
 		value[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
 		value[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
@@ -562,7 +562,7 @@ static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 	if (bb) {
 		float scale[3], len[3];
 		
-		Mat4ToSize(ob->obmat, scale);
+		mat4_to_size( scale,ob->obmat);
 		
 		len[0] = bb->vec[4][0] - bb->vec[0][0];
 		len[1] = bb->vec[2][1] - bb->vec[0][1];

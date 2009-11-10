@@ -51,7 +51,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_dlrbTree.h"
 
 #include "BKE_animsys.h"
@@ -510,36 +510,36 @@ static void draw_bone_solid_octahedral(void)
 		
 		glBegin(GL_TRIANGLES);
 		/* bottom */
-		CalcNormFloat(vec[2], vec[1], vec[0], nor);
+		normal_tri_v3( nor,vec[2], vec[1], vec[0]);
 		glNormal3fv(nor);
 		glVertex3fv(vec[2]); glVertex3fv(vec[1]); glVertex3fv(vec[0]);
 		
-		CalcNormFloat(vec[3], vec[2], vec[0], nor);
+		normal_tri_v3( nor,vec[3], vec[2], vec[0]);
 		glNormal3fv(nor);
 		glVertex3fv(vec[3]); glVertex3fv(vec[2]); glVertex3fv(vec[0]);
 		
-		CalcNormFloat(vec[4], vec[3], vec[0], nor);
+		normal_tri_v3( nor,vec[4], vec[3], vec[0]);
 		glNormal3fv(nor);
 		glVertex3fv(vec[4]); glVertex3fv(vec[3]); glVertex3fv(vec[0]);
 
-		CalcNormFloat(vec[1], vec[4], vec[0], nor);
+		normal_tri_v3( nor,vec[1], vec[4], vec[0]);
 		glNormal3fv(nor);
 		glVertex3fv(vec[1]); glVertex3fv(vec[4]); glVertex3fv(vec[0]);
 
 		/* top */
-		CalcNormFloat(vec[5], vec[1], vec[2], nor);
+		normal_tri_v3( nor,vec[5], vec[1], vec[2]);
 		glNormal3fv(nor);
 		glVertex3fv(vec[5]); glVertex3fv(vec[1]); glVertex3fv(vec[2]);
 		
-		CalcNormFloat(vec[5], vec[2], vec[3], nor);
+		normal_tri_v3( nor,vec[5], vec[2], vec[3]);
 		glNormal3fv(nor);
 		glVertex3fv(vec[5]); glVertex3fv(vec[2]); glVertex3fv(vec[3]);
 		
-		CalcNormFloat(vec[5], vec[3], vec[4], nor);
+		normal_tri_v3( nor,vec[5], vec[3], vec[4]);
 		glNormal3fv(nor);
 		glVertex3fv(vec[5]); glVertex3fv(vec[3]); glVertex3fv(vec[4]);
 		
-		CalcNormFloat(vec[5], vec[4], vec[1], nor);
+		normal_tri_v3( nor,vec[5], vec[4], vec[1]);
 		glNormal3fv(nor);
 		glVertex3fv(vec[5]); glVertex3fv(vec[4]); glVertex3fv(vec[1]);
 		
@@ -642,7 +642,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 	/* figure out the sizes of spheres */
 	if (ebone) {
 		/* this routine doesn't call get_matrix_editbone() that calculates it */
-		ebone->length = VecLenf(ebone->head, ebone->tail);
+		ebone->length = len_v3v3(ebone->head, ebone->tail);
 		
 		length= ebone->length;
 		tail= ebone->rad_tail;
@@ -669,19 +669,19 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 	/* ***** draw it ***** */
 	
 	/* move vector to viewspace */
-	VecSubf(dirvec, tailvec, headvec);
-	Mat4Mul3Vecfl(smat, dirvec);
+	sub_v3_v3v3(dirvec, tailvec, headvec);
+	mul_mat3_m4_v3(smat, dirvec);
 	/* clear zcomp */
 	dirvec[2]= 0.0f;
 	/* move vector back */
-	Mat4Mul3Vecfl(imat, dirvec);
+	mul_mat3_m4_v3(imat, dirvec);
 	
-	if (0.0f != Normalize(dirvec)) {
+	if (0.0f != normalize_v3(dirvec)) {
 		float norvec[3], vec1[3], vec2[3], vec[3];
 		int a;
 		
-		//VecMulf(dirvec, head);
-		Crossf(norvec, dirvec, imat[2]);
+		//mul_v3_fl(dirvec, head);
+		cross_v3_v3v3(norvec, dirvec, imat[2]);
 		
 		glBegin(GL_QUAD_STRIP);
 		
@@ -752,7 +752,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 	/* figure out the sizes of spheres */
 	if (ebone) {
 		/* this routine doesn't call get_matrix_editbone() that calculates it */
-		ebone->length = VecLenf(ebone->head, ebone->tail);
+		ebone->length = len_v3v3(ebone->head, ebone->tail);
 		
 		length= ebone->length;
 		tail= ebone->rad_tail;
@@ -807,25 +807,25 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 		else UI_ThemeColor(TH_WIRE);
 	}
 	
-	VecSubf(dirvec, tailvec, headvec);
+	sub_v3_v3v3(dirvec, tailvec, headvec);
 	
 	/* move vector to viewspace */
-	Mat4Mul3Vecfl(smat, dirvec);
+	mul_mat3_m4_v3(smat, dirvec);
 	/* clear zcomp */
 	dirvec[2]= 0.0f;
 	/* move vector back */
-	Mat4Mul3Vecfl(imat, dirvec);
+	mul_mat3_m4_v3(imat, dirvec);
 	
-	if (0.0f != Normalize(dirvec)) {
+	if (0.0f != normalize_v3(dirvec)) {
 		float norvech[3], norvect[3], vec[3];
 		
 		VECCOPY(vec, dirvec);
 		
-		VecMulf(dirvec, head);
-		Crossf(norvech, dirvec, imat[2]);
+		mul_v3_fl(dirvec, head);
+		cross_v3_v3v3(norvech, dirvec, imat[2]);
 		
-		VecMulf(vec, tail);
-		Crossf(norvect, vec, imat[2]);
+		mul_v3_fl(vec, tail);
+		cross_v3_v3v3(norvect, vec, imat[2]);
 		
 		if (id != -1)
 			glLoadName(id | BONESEL_BONE);
@@ -1463,12 +1463,12 @@ static void draw_pose_dofs(Object *ob)
 							glTranslatef(posetrans[0], posetrans[1], posetrans[2]);
 							
 							if (pchan->parent) {
-								Mat4CpyMat4(mat, pchan->parent->pose_mat);
+								copy_m4_m4(mat, pchan->parent->pose_mat);
 								mat[3][0]= mat[3][1]= mat[3][2]= 0.0f;
 								glMultMatrixf(mat);
 							}
 							
-							Mat4CpyMat3(mat, pchan->bone->bone_mat);
+							copy_m4_m3(mat, pchan->bone->bone_mat);
 							glMultMatrixf(mat);
 							
 							scale= bone->length*pchan->size[1];
@@ -1555,8 +1555,8 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 	float trans[3];
 
 	VECCOPY(trans, mat[1]);
-	VecMulf(trans, y);
-	VecAddf(mat[3], mat[3], trans);
+	mul_v3_fl(trans, y);
+	add_v3_v3v3(mat[3], mat[3], trans);
 }
 
 /* assumes object is Armature with pose */
@@ -1582,8 +1582,8 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 	if (arm->drawtype==ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
 		wmGetMatrix(smat);
-		Mat4MulFloat3(smat[0], 1.0f/VecLength(ob->obmat[0]));
-		Mat4Invert(imat, smat);
+		mul_mat3_m4_fl(smat[0], 1.0f/len_v3(ob->obmat[0]));
+		invert_m4_m4(imat, smat);
 		
 		/* and draw blended distances */
 		if (arm->flag & ARM_POSEMODE) {
@@ -1874,14 +1874,14 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 						
 						/* 	Draw names of bone 	*/
 						if (arm->flag & ARM_DRAWNAMES) {
-							VecMidf(vec, pchan->pose_head, pchan->pose_tail);
+							mid_v3_v3v3(vec, pchan->pose_head, pchan->pose_tail);
 							view3d_cached_text_draw_add(vec[0], vec[1], vec[2], pchan->name, 10);
 						}	
 						
 						/*	Draw additional axes on the bone tail  */
 						if ( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ) {
 							glPushMatrix();
-							Mat4CpyMat4(bmat, pchan->pose_mat);
+							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
 							glMultMatrixf(bmat);
 							
@@ -1908,14 +1908,14 @@ static void get_matrix_editbone(EditBone *eBone, float bmat[][4])
 	float		mat[3][3];
 	
 	/* Compose the parent transforms (i.e. their translations) */
-	VecSubf(delta, eBone->tail, eBone->head);	
+	sub_v3_v3v3(delta, eBone->tail, eBone->head);	
 	
 	eBone->length = (float)sqrt(delta[0]*delta[0] + delta[1]*delta[1] +delta[2]*delta[2]);
 	
 	vec_roll_to_mat3(delta, eBone->roll, mat);
-	Mat4CpyMat3(bmat, mat);
+	copy_m4_m3(bmat, mat);
 
-	VecAddf(bmat[3], bmat[3], eBone->head);
+	add_v3_v3v3(bmat[3], bmat[3], eBone->head);
 }
 
 static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
@@ -1931,8 +1931,8 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	if(arm->drawtype==ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
 		wmGetMatrix(smat);
-		Mat4MulFloat3(smat[0], 1.0f/VecLength(ob->obmat[0]));
-		Mat4Invert(imat, smat);
+		mul_mat3_m4_fl(smat[0], 1.0f/len_v3(ob->obmat[0]));
+		invert_m4_m4(imat, smat);
 		
 		/* and draw blended distances */
 		glEnable(GL_BLEND);
@@ -2070,7 +2070,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 						
 						/*	Draw name */
 						if (arm->flag & ARM_DRAWNAMES) {
-							VecMidf(vec, eBone->head, eBone->tail);
+							mid_v3_v3v3(vec, eBone->head, eBone->tail);
 							glRasterPos3fv(vec);
 							view3d_cached_text_draw_add(vec[0], vec[1], vec[2], eBone->name, 10);
 						}					
@@ -2243,7 +2243,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, ARegion *ar, Object *ob)
 							view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 						}
 						else if ((a > stepsize) && (a < len-stepsize)) { 
-							if ((VecEqual(fp, fp-(stepsize*3))==0) || (VecEqual(fp, fp+(stepsize*3))==0)) {
+							if ((equals_v3v3(fp, fp-(stepsize*3))==0) || (equals_v3v3(fp, fp+(stepsize*3))==0)) {
 								sprintf(str, "%d", (a+sfra));
 								view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 							}

@@ -52,7 +52,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 

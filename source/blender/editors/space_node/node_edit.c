@@ -64,7 +64,7 @@
 
 #include "BIF_gl.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
@@ -2154,7 +2154,7 @@ static int cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 
 		for(i=0; i<tot-1; i++)
 			for(b=0; b<LINK_RESOL-1; b++)
-				if(IsectLL2Df(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
+				if(isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
 					return 1;
 	}
 	return 0;

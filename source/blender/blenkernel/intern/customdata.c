@@ -34,7 +34,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_utildefines.h" // CLAMP
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_mempool.h"
@@ -410,21 +410,21 @@ static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, fl
 	vrat = v - y;
 	uopp = 1 - urat;
 
-	VecCopyf(d[0], disps[y * st + x]);
-	VecCopyf(d[1], disps[y * st + x2]);
-	VecCopyf(d[2], disps[y2 * st + x]);
-	VecCopyf(d[3], disps[y2 * st + x2]);
-	VecMulf(d[0], uopp);
-	VecMulf(d[1], urat);
-	VecMulf(d[2], uopp);
-	VecMulf(d[3], urat);
+	copy_v3_v3(d[0], disps[y * st + x]);
+	copy_v3_v3(d[1], disps[y * st + x2]);
+	copy_v3_v3(d[2], disps[y2 * st + x]);
+	copy_v3_v3(d[3], disps[y2 * st + x2]);
+	mul_v3_fl(d[0], uopp);
+	mul_v3_fl(d[1], urat);
+	mul_v3_fl(d[2], uopp);
+	mul_v3_fl(d[3], urat);
 
-	VecAddf(d2[0], d[0], d[1]);
-	VecAddf(d2[1], d[2], d[3]);
-	VecMulf(d2[0], 1 - vrat);
-	VecMulf(d2[1], vrat);
+	add_v3_v3v3(d2[0], d[0], d[1]);
+	add_v3_v3v3(d2[1], d[2], d[3]);
+	mul_v3_fl(d2[0], 1 - vrat);
+	mul_v3_fl(d2[1], vrat);
 
-	VecAddf(out, d2[0], d2[1]);
+	add_v3_v3v3(out, d2[0], d2[1]);
 }
 
 static void layerSwap_mdisps(void *data, int *ci)
@@ -440,7 +440,7 @@ static void layerSwap_mdisps(void *data, int *ci)
 
 	for(y = 0; y < st; ++y) {
 		for(x = 0; x < st; ++x) {
-			VecCopyf(d[(st - y - 1) * st + (st - x - 1)], s->disps[y * st + x]);
+			copy_v3_v3(d[(st - y - 1) * st + (st - x - 1)], s->disps[y * st + x]);
 		}
 	}
 	
@@ -462,7 +462,7 @@ static void layerInterp_mdisps(void **sources, float *weights, float *sub_weight
 	/* Initialize the destination */
 	for(i = 0; i < d->totdisp; ++i) {
 		float z[3] = {0,0,0};
-		VecCopyf(d->disps[i], z);
+		copy_v3_v3(d->disps[i], z);
 	}
 
 	/* For now, some restrictions on the input */
@@ -493,7 +493,7 @@ static void layerInterp_mdisps(void **sources, float *weights, float *sub_weight
 			float srcdisp[3];
 
 			mdisps_bilinear(srcdisp, s->disps, st, mid3[0], mid3[1]);
-			VecCopyf(d->disps[y * st + x], srcdisp);
+			copy_v3_v3(d->disps[y * st + x], srcdisp);
 		}
 	}
 }

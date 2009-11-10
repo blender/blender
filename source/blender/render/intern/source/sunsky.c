@@ -21,7 +21,7 @@
 
 #include "sunsky.h"
 #include "math.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BKE_global.h"
 
 /**
@@ -289,12 +289,12 @@ void GetSkyXYZRadiancef(struct SunSky* sunsky, const float varg[3], float color_
     float	theta, phi;
     float	v[3];
 
-	VecCopyf(v, (float*)varg);
-	Normalize(v);
+	copy_v3_v3(v, (float*)varg);
+	normalize_v3(v);
 
     if (v[2] < 0.001){
         v[2] = 0.001;
-        Normalize(v);
+        normalize_v3(v);
     }
 
     DirectionToThetaPhi(v, &theta, &phi);
@@ -448,7 +448,7 @@ void AtmospherePixleShader( struct SunSky* sunSky, float view[3], float s, float
 	sunDirection[1] = sunSky->toSun[1];
 	sunDirection[2] = sunSky->toSun[2];
 	
-	costheta = Inpf(view, sunDirection); // cos(theta)
+	costheta = dot_v3v3(view, sunDirection); // cos(theta)
 	Phase_1 = 1 + (costheta * costheta); // Phase_1
 	
 	vec3opf(sunSky->atm_BetaRay, sunSky->atm_BetaRay, *, sunSky->atm_BetaRayMultiplier);
@@ -461,7 +461,7 @@ void AtmospherePixleShader( struct SunSky* sunSky, float view[3], float s, float
 	E1[1] = exp(E1[1]);
 	E1[2] = exp(E1[2]);
 
-	VecCopyf(E, E1);
+	copy_v3_v3(E, E1);
 		
 	//Phase2(theta) = (1-g^2)/(1+g-2g*cos(theta))^(3/2)
 	fTemp = 1 + sunSky->atm_HGg - 2 * sunSky->atm_HGg * costheta;

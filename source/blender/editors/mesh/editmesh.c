@@ -49,7 +49,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
@@ -411,12 +411,12 @@ EditFace *addfacelist(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, Ed
 	em->totface++;
 	
 	if(efa->v4) {
-		CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
-		CalcCent4f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+		normal_quad_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+		cent_quad_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 	}
 	else {
-		CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
-		CalcCent3f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
+		normal_tri_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co);
+		cent_tri_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
 	}
 
 	return efa;
@@ -614,13 +614,13 @@ static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 	inp= efa1->n[0]*efa2->n[0] + efa1->n[1]*efa2->n[1] + efa1->n[2]*efa2->n[2];
 	if(inp<0.999 && inp >-0.999) eed->f2= 1;
 		
-	if(efa1->v4) CalcCent4f(cent1, efa1->v1->co, efa1->v2->co, efa1->v3->co, efa1->v4->co);
-	else CalcCent3f(cent1, efa1->v1->co, efa1->v2->co, efa1->v3->co);
-	if(efa2->v4) CalcCent4f(cent2, efa2->v1->co, efa2->v2->co, efa2->v3->co, efa2->v4->co);
-	else CalcCent3f(cent2, efa2->v1->co, efa2->v2->co, efa2->v3->co);
+	if(efa1->v4) cent_quad_v3(cent1, efa1->v1->co, efa1->v2->co, efa1->v3->co, efa1->v4->co);
+	else cent_tri_v3(cent1, efa1->v1->co, efa1->v2->co, efa1->v3->co);
+	if(efa2->v4) cent_quad_v3(cent2, efa2->v1->co, efa2->v2->co, efa2->v3->co, efa2->v4->co);
+	else cent_tri_v3(cent2, efa2->v1->co, efa2->v2->co, efa2->v3->co);
 	
-	VecSubf(cent1, cent2, cent1);
-	Normalize(cent1);
+	sub_v3_v3v3(cent1, cent2, cent1);
+	normalize_v3(cent1);
 	inp= cent1[0]*efa1->n[0] + cent1[1]*efa1->n[1] + cent1[2]*efa1->n[2]; 
 
 	if(inp < -0.001 ) eed->f1= 1;
@@ -1004,7 +1004,7 @@ void load_editMesh(Scene *scene, Object *ob)
 		
 		/* vertex normal */
 		VECCOPY(nor, eve->no);
-		VecMulf(nor, 32767.0);
+		mul_v3_fl(nor, 32767.0);
 		VECCOPY(mvert->no, nor);
 
 		/* note: it used to remove me->dvert when it was not in use, cancelled

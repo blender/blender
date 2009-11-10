@@ -50,7 +50,7 @@
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 
@@ -571,7 +571,7 @@ void ED_mesh_transform(Mesh *me, float *mat)
 	MVert *mvert= me->mvert;
 
 	for(i= 0; i < me->totvert; i++, mvert++)
-		Mat4MulVecfl((float (*)[4])mat, mvert->co);
+		mul_m4_v3((float (*)[4])mat, mvert->co);
 
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }

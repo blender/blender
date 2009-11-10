@@ -34,7 +34,7 @@
 #include <string.h>
 
 /* global includes */
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 /* own includes */

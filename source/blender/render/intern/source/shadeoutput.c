@@ -31,7 +31,7 @@
 #include <string.h>
 
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_colortools.h"
 #include "BKE_material.h"
@@ -168,7 +168,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		p1[0]= shi->co[0]-lar->co[0];
 		p1[1]= shi->co[1]-lar->co[1];
 		p1[2]= -lar->co[2];
-		Mat3MulVecfl(lar->imat, p1);
+		mul_m3_v3(lar->imat, p1);
 		VECCOPY(npos, p1);	// npos is double!
 		
 		/* pre-scale */
@@ -180,7 +180,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	
 	/* rotate view */
 	VECCOPY(nray, shi->view);
-	Mat3MulVecd(lar->imat, nray);
+	mul_m3_v3_double(lar->imat, nray);
 	
 	if(R.wrld.mode & WO_MIST) {
 		/* patchy... */
@@ -311,7 +311,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		
 		a= sqrt(p1[0]*p1[0]+p1[1]*p1[1]+p1[2]*p1[2]);
 		b= sqrt(p2[0]*p2[0]+p2[1]*p2[1]+p2[2]*p2[2]);
-		c= VecLenf(p1, p2);
+		c= len_v3v3(p1, p2);
 		
 		a/= ladist;
 		a= sqrt(a);
@@ -489,7 +489,7 @@ static float area_lamp_energy_multisample(LampRen *lar, float *co, float *vn)
 		vec[0]= jitlamp[0];
 		vec[1]= jitlamp[1];
 		vec[2]= 0.0f;
-		Mat3MulVecfl(lar->mat, vec);
+		mul_m3_v3(lar->mat, vec);
 		
 		VECADD(area[0], lar->area[0], vec);
 		VECADD(area[1], lar->area[1], vec);
@@ -553,7 +553,7 @@ static float Phong_Spec( float *n, float *l, float *v, int hard, int tangent )
 	h[0] = l[0] + v[0];
 	h[1] = l[1] + v[1];
 	h[2] = l[2] + v[2];
-	Normalize(h);
+	normalize_v3(h);
 	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
 	if(tangent) rslt= sasqrt(1.0f - rslt*rslt);
@@ -573,7 +573,7 @@ static float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent)
 	h[0]= v[0]+l[0];
 	h[1]= v[1]+l[1];
 	h[2]= v[2]+l[2];
-	Normalize(h);
+	normalize_v3(h);
 
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2];
 	if(tangent) nh= sasqrt(1.0f - nh*nh);
@@ -606,7 +606,7 @@ static float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_p
 	h[0]= v[0]+l[0];
 	h[1]= v[1]+l[1];
 	h[2]= v[2]+l[2];
-	Normalize(h);
+	normalize_v3(h);
 
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
 	if(tangent) nh= sasqrt(1.0f - nh*nh);
@@ -653,7 +653,7 @@ static float Toon_Spec( float *n, float *l, float *v, float size, float smooth, 
 	h[0] = l[0] + v[0];
 	h[1] = l[1] + v[1];
 	h[2] = l[2] + v[2];
-	Normalize(h);
+	normalize_v3(h);
 	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
 	if(tangent) rslt = sasqrt(1.0f - rslt*rslt);
@@ -677,7 +677,7 @@ static float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
 	h[0] = l[0] + v[0];
 	h[1] = l[1] + v[1];
 	h[2] = l[2] + v[2];
-	Normalize(h);
+	normalize_v3(h);
 
 	nh = n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
 	if(tangent) nh = sasqrt(1.0f - nh*nh);
@@ -728,7 +728,7 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	h[0]= v[0]+l[0];
 	h[1]= v[1]+l[1];
 	h[2]= v[2]+l[2];
-	Normalize(h);
+	normalize_v3(h);
 	
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
 	if(nh<0.0f) nh = 0.0f;
@@ -749,12 +749,12 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	Lit_B[0] = l[0] - (realnl * n[0]);
 	Lit_B[1] = l[1] - (realnl * n[1]);
 	Lit_B[2] = l[2] - (realnl * n[2]);
-	Normalize( Lit_B );
+	normalize_v3( Lit_B );
 	
 	View_B[0] = v[0] - (nv * n[0]);
 	View_B[1] = v[1] - (nv * n[1]);
 	View_B[2] = v[2] - (nv * n[2]);
-	Normalize( View_B );
+	normalize_v3( View_B );
 	
 	t = Lit_B[0]*View_B[0] + Lit_B[1]*View_B[1] + Lit_B[2]*View_B[2];
 	if( t < 0 ) t = 0;
@@ -1143,7 +1143,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 							
 							/* rotate view to lampspace */
 							VECCOPY(lvrot, lv);
-							Mat3MulVecfl(lar->imat, lvrot);
+							mul_m3_v3(lar->imat, lvrot);
 							
 							x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
 							/* 1.0f/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
@@ -1235,27 +1235,27 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		float cross[3], nstrand[3], blend;
 
 		if(ma->mode & MA_STR_SURFDIFF) {
-			Crossf(cross, shi->surfnor, vn);
-			Crossf(nstrand, vn, cross);
+			cross_v3_v3v3(cross, shi->surfnor, vn);
+			cross_v3_v3v3(nstrand, vn, cross);
 
 			blend= INPR(nstrand, shi->surfnor);
 			blend= 1.0f - blend;
 			CLAMP(blend, 0.0f, 1.0f);
 
-			VecLerpf(vnor, nstrand, shi->surfnor, blend);
-			Normalize(vnor);
+			interp_v3_v3v3(vnor, nstrand, shi->surfnor, blend);
+			normalize_v3(vnor);
 		}
 		else {
-			Crossf(cross, lv, vn);
-			Crossf(vnor, cross, vn);
-			Normalize(vnor);
+			cross_v3_v3v3(cross, lv, vn);
+			cross_v3_v3v3(vnor, cross, vn);
+			normalize_v3(vnor);
 		}
 
 		if(ma->strand_surfnor > 0.0f) {
 			if(ma->strand_surfnor > shi->surfdist) {
 				blend= (ma->strand_surfnor - shi->surfdist)/ma->strand_surfnor;
-				VecLerpf(vnor, vnor, shi->surfnor, blend);
-				Normalize(vnor);
+				interp_v3_v3v3(vnor, vnor, shi->surfnor, blend);
+				normalize_v3(vnor);
 			}
 		}
 
@@ -1264,9 +1264,9 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	}
 	else if (ma->mode & MA_TANGENT_V) {
 		float cross[3];
-		Crossf(cross, lv, shi->tang);
-		Crossf(vnor, cross, shi->tang);
-		Normalize(vnor);
+		cross_v3_v3v3(cross, lv, shi->tang);
+		cross_v3_v3v3(vnor, cross, shi->tang);
+		normalize_v3(vnor);
 		vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
 		vn= vnor;
 	}
@@ -1404,7 +1404,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 				lv[1]+= view[1];
 				lv[2]+= view[2];
 				
-				Normalize(lv);
+				normalize_v3(lv);
 				
 				t= vn[0]*lv[0]+vn[1]*lv[1]+vn[2]*lv[2];
 				
@@ -1662,15 +1662,15 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 				if(texfac==0.0f) {
 					VECCOPY(col, shr->col);
-					VecMulf(col, invalpha);
+					mul_v3_fl(col, invalpha);
 				}
 				else if(texfac==1.0f) {
 					col[0]= col[1]= col[2]= 1.0f;
-					VecMulf(col, invalpha);
+					mul_v3_fl(col, invalpha);
 				}
 				else {
 					VECCOPY(col, shr->col);
-					VecMulf(col, invalpha);
+					mul_v3_fl(col, invalpha);
 					col[0]= pow(col[0], 1.0f-texfac);
 					col[1]= pow(col[1], 1.0f-texfac);
 					col[2]= pow(col[2], 1.0f-texfac);

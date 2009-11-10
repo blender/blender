@@ -45,7 +45,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -161,26 +161,26 @@ static void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *di
 	/* Offset */
 	if (ofs) {
 		VECCOPY(ofs, ob->obmat[3]);
-		VecMulf(ofs, -1.0f); /*flip the vector*/
+		mul_v3_fl(ofs, -1.0f); /*flip the vector*/
 	}
 	
 	/* Quat */
 	if (quat) {
-		Mat4CpyMat4(bmat, ob->obmat);
-		Mat4Ortho(bmat);
-		Mat4Invert(imat, bmat);
-		Mat3CpyMat4(tmat, imat);
-		Mat3ToQuat(tmat, quat);
+		copy_m4_m4(bmat, ob->obmat);
+		normalize_m4(bmat);
+		invert_m4_m4(imat, bmat);
+		copy_m3_m4(tmat, imat);
+		mat3_to_quat( quat,tmat);
 	}
 	
 	if (dist) {
 		float vec[3];
-		Mat3CpyMat4(tmat, ob->obmat);
+		copy_m3_m4(tmat, ob->obmat);
 		
 		vec[0]= vec[1] = 0.0;
 		vec[2]= -(*dist);
-		Mat3MulVecfl(tmat, vec);
-		VecSubf(ofs, ofs, vec);
+		mul_m3_v3(tmat, vec);
+		sub_v3_v3v3(ofs, ofs, vec);
 	}
 	
 	/* Lens */
@@ -263,10 +263,10 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				
 			 	VECCOPY(vec1, sms.new_quat);
 			 	VECCOPY(vec2, sms.orig_quat);
-			 	Normalize(vec1);
-			 	Normalize(vec2);
+			 	normalize_v3(vec1);
+			 	normalize_v3(vec2);
 			 	/* scale the time allowed by the rotation */
-			 	sms.time_allowed *= NormalizedVecAngle2(vec1, vec2)/(M_PI/2); 
+			 	sms.time_allowed *= angle_normalized_v3v3(vec1, vec2)/(M_PI/2); 
 			}
 			
 			/* original values */
@@ -361,7 +361,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		for (i=0; i<3; i++)
 			rv3d->ofs[i] = sms->new_ofs[i]*step + sms->orig_ofs[i]*step_inv;
 
-		QuatInterpol(rv3d->viewquat, sms->orig_quat, sms->new_quat, step);
+		interp_qt_qtqt(rv3d->viewquat, sms->orig_quat, sms->new_quat, step);
 		
 		rv3d->dist = sms->new_dist*step + sms->orig_dist*step_inv;
 		v3d->lens = sms->new_lens*step + sms->orig_lens*step_inv;
@@ -395,10 +395,10 @@ static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
 	dvec[2]= rv3d->dist*rv3d->viewinv[2][2];
 	
 	VECCOPY(ob->loc, dvec);
-	VecSubf(ob->loc, ob->loc, rv3d->ofs);
+	sub_v3_v3v3(ob->loc, ob->loc, rv3d->ofs);
 	rv3d->viewquat[0]= -rv3d->viewquat[0];
 
-	QuatToEul(rv3d->viewquat, ob->rot);
+	quat_to_eul( ob->rot,rv3d->viewquat);
 	rv3d->viewquat[0]= -rv3d->viewquat[0];
 	
 	ob->recalc= OB_RECALC_OB;
@@ -493,12 +493,12 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 		vec[2]= -1.0f;
 		vec[3]= 1.0f;
 		
-		Mat4MulVec4fl(rv3d->persinv, vec);
-		VecMulf(vec, 1.0f / vec[3]);
+		mul_m4_v4(rv3d->persinv, vec);
+		mul_v3_fl(vec, 1.0f / vec[3]);
 		
 		VECCOPY(ray_start, rv3d->viewinv[3]);
 		VECSUB(vec, vec, ray_start);
-		Normalize(vec);
+		normalize_v3(vec);
 		
 		VECADDFAC(ray_start, rv3d->viewinv[3], vec, v3d->near);
 		VECADDFAC(ray_end, rv3d->viewinv[3], vec, v3d->far);
@@ -509,7 +509,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 		vec[2] = 0.0f;
 		vec[3] = 1.0f;
 		
-		Mat4MulVec4fl(rv3d->persinv, vec);
+		mul_m4_v4(rv3d->persinv, vec);
 		
 		VECADDFAC(ray_start, vec, rv3d->viewinv[2],  1000.0f);
 		VECADDFAC(ray_end, vec, rv3d->viewinv[2], -1000.0f);
@@ -522,8 +522,8 @@ void viewray(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float 
 	float ray_end[3];
 	
 	viewline(ar, v3d, mval, ray_start, ray_end);
-	VecSubf(ray_normal, ray_end, ray_start);
-	Normalize(ray_normal);
+	sub_v3_v3v3(ray_normal, ray_end, ray_start);
+	normalize_v3(ray_normal);
 }
 
 
@@ -601,8 +601,8 @@ void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4]
 {
 	float vmat[4][4];
 	
-	Mat4MulMat4(vmat, ob->obmat, rv3d->viewmat);
-	Mat4MulMat4(pmat, vmat, rv3d->winmat);
+	mul_m4_m4m4(vmat, ob->obmat, rv3d->viewmat);
+	mul_m4_m4m4(pmat, vmat, rv3d->winmat);
 }
 
 /* Uses window coordinates (x,y) and depth component z to find a point in
@@ -627,7 +627,7 @@ void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(mat, vec4);
+	mul_m4_v4(mat, vec4);
 	
 	if( vec4[3]>FLT_EPSILON ) {
 		adr[0] = (float)(ar->winx/2.0f)+(ar->winx/2.0f)*vec4[0]/vec4[3];	
@@ -648,12 +648,12 @@ int boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 	if(bb==NULL) return 1;
 	if(bb->flag & OB_BB_DISABLED) return 1;
 	
-	Mat4MulMat4(mat, obmat, rv3d->persmat);
+	mul_m4_m4m4(mat, obmat, rv3d->persmat);
 	
 	for(a=0; a<8; a++) {
 		VECCOPY(vec, bb->vec[a]);
 		vec[3]= 1.0;
-		Mat4MulVec4fl(mat, vec);
+		mul_m4_v4(mat, vec);
 		max= vec[3];
 		min= -vec[3];
 		
@@ -686,7 +686,7 @@ void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
 	
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
-	Mat4MulVec4fl(rv3d->persmat, vec4);
+	mul_m4_v4(rv3d->persmat, vec4);
 	
 	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
 		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
@@ -712,7 +712,7 @@ void project_int(ARegion *ar, float *vec, int *adr)
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(rv3d->persmat, vec4);
+	mul_m4_v4(rv3d->persmat, vec4);
 	
 	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
 		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
@@ -736,7 +736,7 @@ void project_int_noclip(ARegion *ar, float *vec, int *adr)
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(rv3d->persmat, vec4);
+	mul_m4_v4(rv3d->persmat, vec4);
 	
 	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
 		fx = (ar->winx/2)*(1 + vec4[0]/vec4[3]);
@@ -761,7 +761,7 @@ void project_short_noclip(ARegion *ar, float *vec, short *adr)
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(rv3d->persmat, vec4);
+	mul_m4_v4(rv3d->persmat, vec4);
 	
 	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
 		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
@@ -787,7 +787,7 @@ void project_float(ARegion *ar, float *vec, float *adr)
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(rv3d->persmat, vec4);
+	mul_m4_v4(rv3d->persmat, vec4);
 	
 	if( vec4[3]>BL_NEAR_CLIP ) {
 		adr[0] = (float)(ar->winx/2.0)+(ar->winx/2.0)*vec4[0]/vec4[3];	
@@ -803,7 +803,7 @@ void project_float_noclip(ARegion *ar, float *vec, float *adr)
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(rv3d->persmat, vec4);
+	mul_m4_v4(rv3d->persmat, vec4);
 	
 	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
 		adr[0] = (float)(ar->winx/2.0)+(ar->winx/2.0)*vec4[0]/vec4[3];	
@@ -1001,12 +1001,12 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 	
 	rv3d->view= 0; /* dont show the grid */
 	
-	Mat4CpyMat4(bmat, ob->obmat);
-	Mat4Ortho(bmat);
-	Mat4Invert(rv3d->viewmat, bmat);
+	copy_m4_m4(bmat, ob->obmat);
+	normalize_m4(bmat);
+	invert_m4_m4(rv3d->viewmat, bmat);
 	
 	/* view quat calculation, needed for add object */
-	Mat3CpyMat4(tmat, rv3d->viewmat);
+	copy_m3_m4(tmat, rv3d->viewmat);
 	if (smooth) {
 		float new_quat[4];
 		if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
@@ -1018,7 +1018,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			VECCOPY(orig_ofs, rv3d->ofs);
 			
 			/* Switch from camera view */
-			Mat3ToQuat(tmat, new_quat);
+			mat3_to_quat( new_quat,tmat);
 			
 			rv3d->persp=RV3D_PERSP;
 			rv3d->dist= 0.0;
@@ -1029,11 +1029,11 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			rv3d->persp=RV3D_CAMOB; /* just to be polite, not needed */
 			
 		} else {
-			Mat3ToQuat(tmat, new_quat);
+			mat3_to_quat( new_quat,tmat);
 			smooth_view(NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
 		}
 	} else {
-		Mat3ToQuat(tmat, rv3d->viewquat);
+		mat3_to_quat( rv3d->viewquat,tmat);
 	}
 }
 
@@ -1077,7 +1077,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 			obmat_to_viewmat(v3d, rv3d, v3d->camera, 0);
 		}
 		else {
-			QuatToMat4(rv3d->viewquat, rv3d->viewmat);
+			quat_to_mat4( rv3d->viewmat,rv3d->viewquat);
 			rv3d->viewmat[3][2]-= rv3d->dist;
 		}
 	}
@@ -1086,7 +1086,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 		if(rv3d->viewlock)
 			view3d_viewlock(rv3d);
 		
-		QuatToMat4(rv3d->viewquat, rv3d->viewmat);
+		quat_to_mat4( rv3d->viewmat,rv3d->viewquat);
 		if(rv3d->persp==RV3D_PERSP) rv3d->viewmat[3][2]-= rv3d->dist;
 		if(v3d->ob_centre) {
 			Object *ob= v3d->ob_centre;
@@ -1097,12 +1097,12 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 				bPoseChannel *pchan= get_pose_channel(ob->pose, v3d->ob_centre_bone);
 				if(pchan) {
 					VECCOPY(vec, pchan->pose_mat[3]);
-					Mat4MulVecfl(ob->obmat, vec);
+					mul_m4_v3(ob->obmat, vec);
 				}
 			}
-			i_translate(-vec[0], -vec[1], -vec[2], rv3d->viewmat);
+			translate_m4( rv3d->viewmat,-vec[0], -vec[1], -vec[2]);
 		}
-		else i_translate(rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2], rv3d->viewmat);
+		else translate_m4( rv3d->viewmat,rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
 	}
 }
 
@@ -1136,7 +1136,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	}
 	
 	setwinmatrixview3d(ar, v3d, &rect);
-	Mat4MulMat4(vc->rv3d->persmat, vc->rv3d->viewmat, vc->rv3d->winmat);
+	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->viewmat, vc->rv3d->winmat);
 	
 	if(v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= TRUE;
@@ -1186,11 +1186,11 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 						
 						for(dob= lb->first; dob; dob= dob->next) {
 							tbase.object= dob->ob;
-							Mat4CpyMat4(dob->ob->obmat, dob->mat);
+							copy_m4_m4(dob->ob->obmat, dob->mat);
 							
 							draw_object(scene, ar, v3d, &tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
 							
-							Mat4CpyMat4(dob->ob->obmat, dob->omat);
+							copy_m4_m4(dob->ob->obmat, dob->omat);
 						}
 						free_object_duplilist(lb);
 					}
@@ -1206,7 +1206,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	
 	G.f &= ~G_PICKSEL;
 	setwinmatrixview3d(ar, v3d, NULL);
-	Mat4MulMat4(vc->rv3d->persmat, vc->rv3d->viewmat, vc->rv3d->winmat);
+	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->viewmat, vc->rv3d->winmat);
 	
 	if(v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= 0;
@@ -1851,8 +1851,8 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 
 	/* detect weather to start with Z locking */
 	upvec[0]=1.0f; upvec[1]=0.0f; upvec[2]=0.0f;
-	Mat3CpyMat4(mat, fly->rv3d->viewinv);
-	Mat3MulVecfl(mat, upvec);
+	copy_m3_m4(mat, fly->rv3d->viewinv);
+	mul_m3_v3(mat, upvec);
 	if (fabs(upvec[2]) < 0.1)
 		fly->zlock = 1;
 	upvec[0]=0; upvec[1]=0; upvec[2]=0;
@@ -1866,7 +1866,7 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 
 		where_is_object(fly->scene, fly->v3d->camera);
 		VECCOPY(fly->rv3d->ofs, fly->v3d->camera->obmat[3]);
-		VecMulf(fly->rv3d->ofs, -1.0f); /*flip the vector*/
+		mul_v3_fl(fly->rv3d->ofs, -1.0f); /*flip the vector*/
 
 		fly->rv3d->dist=0.0;
 		fly->rv3d->viewbut=0;
@@ -1884,8 +1884,8 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 		fly->rv3d->dist= 0.0;
 
 		upvec[2]= fly->dist_backup; /*x and y are 0*/
-		Mat3MulVecfl(mat, upvec);
-		VecSubf(fly->rv3d->ofs, fly->rv3d->ofs, upvec);
+		mul_m3_v3(mat, upvec);
+		sub_v3_v3v3(fly->rv3d->ofs, fly->rv3d->ofs, upvec);
 		/*Done with correcting for the dist*/
 	}
 
@@ -1922,8 +1922,8 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	}
 	else if (fly->persp_backup==RV3D_CAMOB) {	/* camera */
 		float mat3[3][3];
-		Mat3CpyMat4(mat3, v3d->camera->obmat);
-		Mat3ToCompatibleEul(mat3, v3d->camera->rot, fly->rot_backup);
+		copy_m3_m4(mat3, v3d->camera->obmat);
+		mat3_to_compatible_eul( v3d->camera->rot, fly->rot_backup,mat3);
 
 		DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);
 #if 0 //XXX2.5
@@ -1941,9 +1941,9 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		float mat[3][3];
 		upvec[0]= upvec[1]= 0;
 		upvec[2]= fly->dist_backup; /*x and y are 0*/
-		Mat3CpyMat4(mat, rv3d->viewinv);
-		Mat3MulVecfl(mat, upvec);
-		VecAddf(rv3d->ofs, rv3d->ofs, upvec);
+		copy_m3_m4(mat, rv3d->viewinv);
+		mul_m3_v3(mat, upvec);
+		add_v3_v3v3(rv3d->ofs, rv3d->ofs, upvec);
 		/*Done with correcting for the dist */
 	}
 
@@ -2176,7 +2176,7 @@ int flyApply(FlyInfo *fly)
 			if (fly->use_precision)
 				fly->speed= fly->speed * (1.0f-time_redraw_clamped);
 
-			Mat3CpyMat4(mat, rv3d->viewinv);
+			copy_m3_m4(mat, rv3d->viewinv);
 
 			if (fly->pan_view==TRUE) {
 				/* pan only */
@@ -2189,8 +2189,8 @@ int flyApply(FlyInfo *fly)
 					dvec_tmp[1] *= 0.1;
 				}
 
-				Mat3MulVecfl(mat, dvec_tmp);
-				VecMulf(dvec_tmp, time_redraw*200.0 * fly->grid);
+				mul_m3_v3(mat, dvec_tmp);
+				mul_v3_fl(dvec_tmp, time_redraw*200.0 * fly->grid);
 
 			} else {
 				float roll; /* similar to the angle between the camera's up and the Z-up, but its very rough so just roll*/
@@ -2200,9 +2200,9 @@ int flyApply(FlyInfo *fly)
 					upvec[0]=1;
 					upvec[1]=0;
 					upvec[2]=0;
-					Mat3MulVecfl(mat, upvec);
-					VecRotToQuat( upvec, (float)moffset[1]*-time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
-					QuatMul(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+					mul_m3_v3(mat, upvec);
+					axis_angle_to_quat( tmp_quat, upvec, (float)moffset[1]*-time_redraw*20); /* Rotate about the relative up vec */
+					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock) fly->xlock = 2; /*check for rotation*/
 					if (fly->zlock) fly->zlock = 2;
@@ -2216,7 +2216,7 @@ int flyApply(FlyInfo *fly)
 					upvec[0]=0;
 					upvec[1]=1;
 					upvec[2]=0;
-					Mat3MulVecfl(mat, upvec);
+					mul_m3_v3(mat, upvec);
 
 					if(upvec[2] < 0.0f)
 						moffset[0]= -moffset[0];
@@ -2230,11 +2230,11 @@ int flyApply(FlyInfo *fly)
 						upvec[0]=0;
 						upvec[1]=1;
 						upvec[2]=0;
-						Mat3MulVecfl(mat, upvec);
+						mul_m3_v3(mat, upvec);
 					}
 
-					VecRotToQuat( upvec, (float)moffset[0]*time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
-					QuatMul(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+					axis_angle_to_quat( tmp_quat, upvec, (float)moffset[0]*time_redraw*20); /* Rotate about the relative up vec */
+					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock) fly->xlock = 2;/*check for rotation*/
 					if (fly->zlock) fly->zlock = 2;
@@ -2244,7 +2244,7 @@ int flyApply(FlyInfo *fly)
 					upvec[0]=1;
 					upvec[1]=0;
 					upvec[2]=0;
-					Mat3MulVecfl(mat, upvec);
+					mul_m3_v3(mat, upvec);
 
 					/*make sure we have some z rolling*/
 					if (fabs(upvec[2]) > 0.00001f) {
@@ -2253,9 +2253,9 @@ int flyApply(FlyInfo *fly)
 						upvec[1]=0;
 						upvec[2]=1;
 
-						Mat3MulVecfl(mat, upvec);
-						VecRotToQuat( upvec, roll*time_redraw_clamped*fly->zlock_momentum*0.1, tmp_quat); /* Rotate about the relative up vec */
-						QuatMul(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+						mul_m3_v3(mat, upvec);
+						axis_angle_to_quat( tmp_quat, upvec, roll*time_redraw_clamped*fly->zlock_momentum*0.1); /* Rotate about the relative up vec */
+						mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 						fly->zlock_momentum += 0.05f;
 					} else {
@@ -2268,7 +2268,7 @@ int flyApply(FlyInfo *fly)
 					upvec[0]=0;
 					upvec[1]=0;
 					upvec[2]=1;
-					Mat3MulVecfl(mat, upvec);
+					mul_m3_v3(mat, upvec);
 					/*make sure we have some z rolling*/
 					if (fabs(upvec[2]) > 0.00001) {
 						roll= upvec[2] * -5;
@@ -2277,10 +2277,10 @@ int flyApply(FlyInfo *fly)
 						upvec[1]= 0.0f;
 						upvec[2]= 0.0f;
 
-						Mat3MulVecfl(mat, upvec);
+						mul_m3_v3(mat, upvec);
 
-						VecRotToQuat( upvec, roll*time_redraw_clamped*fly->xlock_momentum*0.1f, tmp_quat); /* Rotate about the relative up vec */
-						QuatMul(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+						axis_angle_to_quat( tmp_quat, upvec, roll*time_redraw_clamped*fly->xlock_momentum*0.1f); /* Rotate about the relative up vec */
+						mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 						fly->xlock_momentum += 0.05f;
 					} else {
@@ -2297,14 +2297,14 @@ int flyApply(FlyInfo *fly)
 					/* move along the current axis */
 					dvec_tmp[fly->axis]= 1.0f;
 
-					Mat3MulVecfl(mat, dvec_tmp);
+					mul_m3_v3(mat, dvec_tmp);
 
-					VecMulf(dvec_tmp, fly->speed * time_redraw * 0.25f);
+					mul_v3_fl(dvec_tmp, fly->speed * time_redraw * 0.25f);
 				}
 			}
 
 			/* impose a directional lag */
-			VecLerpf(dvec, dvec_tmp, fly->dvec_prev, (1.0f/(1.0f+(time_redraw*5.0f))));
+			interp_v3_v3v3(dvec, dvec_tmp, fly->dvec_prev, (1.0f/(1.0f+(time_redraw*5.0f))));
 
 			if (rv3d->persp==RV3D_CAMOB) {
 				if (v3d->camera->protectflag & OB_LOCK_LOCX)
@@ -2315,7 +2315,7 @@ int flyApply(FlyInfo *fly)
 					dvec[2] = 0.0;
 			}
 
-			VecAddf(rv3d->ofs, rv3d->ofs, dvec);
+			add_v3_v3v3(rv3d->ofs, rv3d->ofs, dvec);
 #if 0 //XXX2.5
 			if (fly->zlock && fly->xlock)
 				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
@@ -2338,7 +2338,7 @@ int flyApply(FlyInfo *fly)
 
 				{	//XXX - some reason setcameratoview3d doesnt copy, shouldnt not be needed!
 					VECCOPY(v3d->camera->loc, rv3d->ofs);
-					VecNegf(v3d->camera->loc);
+					negate_v3(v3d->camera->loc);
 				}
 
 				rv3d->persp= RV3D_CAMOB;
@@ -2466,11 +2466,11 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	else alignaxis[-axisidx-1]= -1.0;
 	
 	VECCOPY(norm, vec);
-	Normalize(norm);
+	normalize_v3(norm);
 	
-	angle= (float)acos(Inpf(alignaxis, norm));
-	Crossf(axis, alignaxis, norm);
-	VecRotToQuat(axis, -angle, new_quat);
+	angle= (float)acos(dot_v3v3(alignaxis, norm));
+	cross_v3_v3v3(axis, alignaxis, norm);
+	axis_angle_to_quat( new_quat,axis, -angle);
 	
 	rv3d->view= 0;
 	

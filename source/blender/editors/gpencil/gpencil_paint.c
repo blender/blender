@@ -34,7 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_gpencil.h"
 #include "BKE_context.h"
@@ -169,11 +169,11 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 		/* active Object 
 		 * 	- use relative distance of 3D-cursor from object center 
 		 */
-		VecSubf(vec, fp, ob->loc);
+		sub_v3_v3v3(vec, fp, ob->loc);
 	}
 	else {
 		/* use 3D-cursor */
-		VecCopyf(vec, fp);
+		copy_v3_v3(vec, fp);
 	}
 }
 
@@ -228,7 +228,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 		/* method taken from editview.c - mouse_cursor() */
 		project_short_noclip(p->ar, rvec, mval);
 		window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
-		VecSubf(out, rvec, dvec);
+		sub_v3_v3v3(out, rvec, dvec);
 	}
 	
 	/* 2d - on 'canvas' (assume that p->v2d is set) */

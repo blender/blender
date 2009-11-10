@@ -48,7 +48,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_graph.h"
@@ -162,7 +162,7 @@ void getEditBoneRollUpAxis(EditBone *bone, float roll, float up_axis[3])
 {
 	float mat[3][3], nor[3];
 
-	VecSubf(nor, bone->tail, bone->head);
+	sub_v3_v3v3(nor, bone->tail, bone->head);
 	
 	vec_roll_to_mat3(nor, roll, mat);
 	VECCOPY(up_axis, mat[2]);
@@ -173,35 +173,35 @@ float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4],
 	float nor[3], new_up_axis[3], x_axis[3], z_axis[3];
 	
 	VECCOPY(new_up_axis, old_up_axis);
-	QuatMulVecf(qrot, new_up_axis);
+	mul_qt_v3(qrot, new_up_axis);
 	
-	VecSubf(nor, bone->tail, bone->head);
+	sub_v3_v3v3(nor, bone->tail, bone->head);
 	
-	Crossf(x_axis, nor, aligned_axis);
-	Crossf(z_axis, x_axis, nor);
+	cross_v3_v3v3(x_axis, nor, aligned_axis);
+	cross_v3_v3v3(z_axis, x_axis, nor);
 	
-	Normalize(new_up_axis);
-	Normalize(x_axis);
-	Normalize(z_axis);
+	normalize_v3(new_up_axis);
+	normalize_v3(x_axis);
+	normalize_v3(z_axis);
 	
-	if (Inpf(new_up_axis, x_axis) < 0)
+	if (dot_v3v3(new_up_axis, x_axis) < 0)
 	{
-		VecMulf(x_axis, -1);
+		mul_v3_fl(x_axis, -1);
 	}
 	
-	if (Inpf(new_up_axis, z_axis) < 0)
+	if (dot_v3v3(new_up_axis, z_axis) < 0)
 	{
-		VecMulf(z_axis, -1);
+		mul_v3_fl(z_axis, -1);
 	}
 	
-	if (NormalizedVecAngle2(x_axis, new_up_axis) < NormalizedVecAngle2(z_axis, new_up_axis))
+	if (angle_normalized_v3v3(x_axis, new_up_axis) < angle_normalized_v3v3(z_axis, new_up_axis))
 	{
-		RotationBetweenVectorsToQuat(qroll, new_up_axis, x_axis); /* set roll rotation quat */
+		rotation_between_vecs_to_quat(qroll, new_up_axis, x_axis); /* set roll rotation quat */
 		return ED_rollBoneToVector(bone, x_axis);
 	}
 	else
 	{
-		RotationBetweenVectorsToQuat(qroll, new_up_axis, z_axis); /* set roll rotation quat */
+		rotation_between_vecs_to_quat(qroll, new_up_axis, z_axis); /* set roll rotation quat */
 		return ED_rollBoneToVector(bone, z_axis);
 	}
 }
@@ -220,11 +220,11 @@ float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float
 		
 		if (previous->bone)
 		{
-			VecSubf(vec_first, previous->bone->tail, previous->bone->head);
+			sub_v3_v3v3(vec_first, previous->bone->tail, previous->bone->head);
 		} 
 		else if (previous->prev->bone)
 		{
-			VecSubf(vec_first, edge->bone->head, previous->prev->bone->tail);
+			sub_v3_v3v3(vec_first, edge->bone->head, previous->prev->bone->tail);
 		}
 		else
 		{
@@ -232,25 +232,25 @@ float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float
 			return rollBoneByQuatAligned(edge->bone, edge->up_axis, qrot, qroll, up_axis);
 		}
 		
-		VecSubf(vec_second, edge->bone->tail, edge->bone->head);
+		sub_v3_v3v3(vec_second, edge->bone->tail, edge->bone->head);
 	
-		Normalize(vec_first);
-		Normalize(vec_second);
+		normalize_v3(vec_first);
+		normalize_v3(vec_second);
 		
-		Crossf(normal, vec_first, vec_second);
-		Normalize(normal);
+		cross_v3_v3v3(normal, vec_first, vec_second);
+		normalize_v3(normal);
 		
-		AxisAngleToQuat(qroll, vec_second, edge->up_angle);
+		axis_angle_to_quat(qroll, vec_second, edge->up_angle);
 		
-		QuatMulVecf(qroll, normal);
+		mul_qt_v3(qroll, normal);
 			
 		VECCOPY(new_up_axis, edge->up_axis);
-		QuatMulVecf(qrot, new_up_axis);
+		mul_qt_v3(qrot, new_up_axis);
 		
-		Normalize(new_up_axis);
+		normalize_v3(new_up_axis);
 		
 		/* real qroll between normal and up_axis */
-		RotationBetweenVectorsToQuat(qroll, new_up_axis, normal);
+		rotation_between_vecs_to_quat(qroll, new_up_axis, normal);
 
 		return ED_rollBoneToVector(edge->bone, normal);
 	}
@@ -261,9 +261,9 @@ float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4])
 	float new_up_axis[3];
 	
 	VECCOPY(new_up_axis, old_up_axis);
-	QuatMulVecf(qrot, new_up_axis);
+	mul_qt_v3(qrot, new_up_axis);
 	
-	Normalize(new_up_axis);
+	normalize_v3(new_up_axis);
 	
 	return ED_rollBoneToVector(bone, new_up_axis);
 }
@@ -431,7 +431,7 @@ static void RIG_appendEdgeToArc(RigArc *arc, RigEdge *edge)
 		RIG_calculateEdgeAngles(last_edge, edge);
 	}
 	
-	edge->length = VecLenf(edge->head, edge->tail);
+	edge->length = len_v3v3(edge->head, edge->tail);
 	
 	arc->length += edge->length;
 	
@@ -675,22 +675,22 @@ static void RIG_calculateEdgeAngles(RigEdge *edge_first, RigEdge *edge_second)
 {
 	float vec_first[3], vec_second[3];
 	
-	VecSubf(vec_first, edge_first->tail, edge_first->head); 
-	VecSubf(vec_second, edge_second->tail, edge_second->head);
+	sub_v3_v3v3(vec_first, edge_first->tail, edge_first->head); 
+	sub_v3_v3v3(vec_second, edge_second->tail, edge_second->head);
 
-	Normalize(vec_first);
-	Normalize(vec_second);
+	normalize_v3(vec_first);
+	normalize_v3(vec_second);
 	
-	edge_first->angle = NormalizedVecAngle2(vec_first, vec_second);
+	edge_first->angle = angle_normalized_v3v3(vec_first, vec_second);
 	
 	if (edge_second->bone != NULL)
 	{
 		float normal[3];
 
-		Crossf(normal, vec_first, vec_second);
-		Normalize(normal);
+		cross_v3_v3v3(normal, vec_first, vec_second);
+		normalize_v3(normal);
 
-		edge_second->up_angle = NormalizedVecAngle2(normal, edge_second->up_axis);
+		edge_second->up_angle = angle_normalized_v3v3(normal, edge_second->up_axis);
 	}
 }
 
@@ -715,27 +715,27 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *link)
 		float offset[3];
 		int flag = 0;
 		
-		VecSubf(offset, ctrl->bone->head, link->head);
+		sub_v3_v3v3(offset, ctrl->bone->head, link->head);
 
 		/* if root matches, check for direction too */		
-		if (Inpf(offset, offset) < 0.0001)
+		if (dot_v3v3(offset, offset) < 0.0001)
 		{
 			float vbone[3], vparent[3];
 			
 			flag |= RIG_CTRL_FIT_ROOT;
 			
-			VecSubf(vbone, ctrl->bone->tail, ctrl->bone->head);
-			VecSubf(vparent, link->tail, link->head);
+			sub_v3_v3v3(vbone, ctrl->bone->tail, ctrl->bone->head);
+			sub_v3_v3v3(vparent, link->tail, link->head);
 			
 			/* test for opposite direction */
-			if (Inpf(vbone, vparent) > 0)
+			if (dot_v3v3(vbone, vparent) > 0)
 			{
 				float nor[3];
 				float len;
 				
-				Crossf(nor, vbone, vparent);
+				cross_v3_v3v3(nor, vbone, vparent);
 				
-				len = Inpf(nor, nor);
+				len = dot_v3v3(nor, nor);
 				if (len < 0.0001)
 				{
 					flag |= RIG_CTRL_FIT_BONE;
@@ -869,8 +869,8 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 						{
 							int fit = 0;
 							
-							fit = VecLenf(ctrl->bone->head, edge->bone->head) < 0.0001;
-							fit = fit || VecLenf(ctrl->bone->tail, edge->bone->tail) < 0.0001;
+							fit = len_v3v3(ctrl->bone->head, edge->bone->head) < 0.0001;
+							fit = fit || len_v3v3(ctrl->bone->tail, edge->bone->tail) < 0.0001;
 							
 							if (fit)
 							{
@@ -1026,13 +1026,13 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 				/* don't link with parent */
 				if (bone->parent != ctrl->bone)
 				{
-					if (VecLenf(ctrl->bone->tail, bone->head) < 0.01)
+					if (len_v3v3(ctrl->bone->tail, bone->head) < 0.01)
 					{
 						ctrl->tail_mode = TL_HEAD;
 						ctrl->link_tail = bone;
 						break;
 					}
-					else if (VecLenf(ctrl->bone->tail, bone->tail) < 0.01)
+					else if (len_v3v3(ctrl->bone->tail, bone->tail) < 0.01)
 					{
 						ctrl->tail_mode = TL_TAIL;
 						ctrl->link_tail = bone;
@@ -1132,7 +1132,7 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 		
 		if (first_edge->bone == NULL)
 		{
-			if (first_edge->bone == NULL && VecLenf(first_edge->tail, arc->head->p) <= 0.001)
+			if (first_edge->bone == NULL && len_v3v3(first_edge->tail, arc->head->p) <= 0.001)
 			{
 				BLI_remlink(&arc->edges, first_edge);
 				MEM_freeN(first_edge);
@@ -1262,7 +1262,7 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 		
 		if (last_edge->bone == NULL)
 		{
-			if (VecLenf(last_edge->head, arc->tail->p) <= 0.001)
+			if (len_v3v3(last_edge->head, arc->tail->p) <= 0.001)
 			{
 				BLI_remlink(&arc->edges, last_edge);
 				MEM_freeN(last_edge);
@@ -1438,7 +1438,7 @@ void RIG_printNode(RigNode *node, char name[])
 		else if (node->symmetry_flag & SYM_RADIAL)
 			printf("Symmetry RADIAL\n");
 			
-		printvecf("symmetry axis", node->symmetry_axis);
+		print_v3("symmetry axis", node->symmetry_axis);
 	}
 }
 
@@ -1464,7 +1464,7 @@ void RIG_printCtrl(RigControl *ctrl, char *indent)
 	printf("%sLink: %s\n", indent, ctrl->link ? ctrl->link->name : "!NONE!");
 	
 	sprintf(text, "%soffset", indent);
-	printvecf(text, ctrl->offset);
+	print_v3(text, ctrl->offset);
 	
 	printf("%sFlag: %i\n", indent, ctrl->flag);
 }
@@ -1761,15 +1761,15 @@ static void finalizeControl(RigGraph *rigg, RigControl *ctrl, float resize)
 				tail_vec = ctrl->link_tail->head;
 			}
 			
-			VecSubf(v1, ctrl->bone->tail, ctrl->bone->head);
-			VecSubf(v2, tail_vec, ctrl->bone->head);
+			sub_v3_v3v3(v1, ctrl->bone->tail, ctrl->bone->head);
+			sub_v3_v3v3(v2, tail_vec, ctrl->bone->head);
 			
 			VECCOPY(ctrl->bone->tail, tail_vec);
 			
-			RotationBetweenVectorsToQuat(qtail, v1, v2);
-			QuatMul(ctrl->qrot, qtail, ctrl->qrot);
+			rotation_between_vecs_to_quat(qtail, v1, v2);
+			mul_qt_qtqt(ctrl->qrot, qtail, ctrl->qrot);
 			
-			resize = VecLength(v2) / VecLenf(ctrl->head, ctrl->tail);
+			resize = len_v3(v2) / len_v3v3(ctrl->head, ctrl->tail);
 		}
 		
 		ctrl->bone->roll = rollBoneByQuat(ctrl->bone, ctrl->up_axis, ctrl->qrot);
@@ -1801,10 +1801,10 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 	float parent_offset[3], tail_offset[3];
 	
 	VECCOPY(parent_offset, ctrl->offset);
-	VecMulf(parent_offset, resize);
-	QuatMulVecf(qrot, parent_offset);
+	mul_v3_fl(parent_offset, resize);
+	mul_qt_v3(qrot, parent_offset);
 	
-	VecAddf(ctrl->bone->head, head, parent_offset); 
+	add_v3_v3v3(ctrl->bone->head, head, parent_offset); 
 
 	ctrl->flag |= RIG_CTRL_HEAD_DONE;
 
@@ -1812,11 +1812,11 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 
 	if (ctrl->tail_mode == TL_NONE)
 	{
-		VecSubf(tail_offset, ctrl->tail, ctrl->head);
-		VecMulf(tail_offset, resize);
-		QuatMulVecf(qrot, tail_offset);
+		sub_v3_v3v3(tail_offset, ctrl->tail, ctrl->head);
+		mul_v3_fl(tail_offset, resize);
+		mul_qt_v3(qrot, tail_offset);
 
-		VecAddf(ctrl->bone->tail, ctrl->bone->head, tail_offset);
+		add_v3_v3v3(ctrl->bone->tail, ctrl->bone->head, tail_offset);
 		
 		ctrl->flag |= RIG_CTRL_TAIL_DONE;
 	}
@@ -1835,20 +1835,20 @@ static void repositionBone(bContext *C, RigGraph *rigg, RigEdge *edge, float vec
 	
 	bone = edge->bone;
 	
-	VecSubf(v1, edge->tail, edge->head);
-	VecSubf(v2, vec1, vec0);
+	sub_v3_v3v3(v1, edge->tail, edge->head);
+	sub_v3_v3v3(v2, vec1, vec0);
 	
-	l1 = Normalize(v1);
-	l2 = Normalize(v2);
+	l1 = normalize_v3(v1);
+	l2 = normalize_v3(v2);
 
 	resize = l2 / l1;
 	
-	RotationBetweenVectorsToQuat(qrot, v1, v2);
+	rotation_between_vecs_to_quat(qrot, v1, v2);
 	
 	VECCOPY(bone->head, vec0);
 	VECCOPY(bone->tail, vec1);
 	
-	if (!VecIsNull(up_axis))
+	if (!is_zero_v3(up_axis))
 	{
 		float qroll[4];
 
@@ -1862,10 +1862,10 @@ static void repositionBone(bContext *C, RigGraph *rigg, RigEdge *edge, float vec
 		}
 		else
 		{
-			QuatOne(qroll);
+			unit_qt(qroll);
 		}
 		
-		QuatMul(qrot, qroll, qrot);
+		mul_qt_qtqt(qrot, qroll, qrot);
 	}
 	else
 	{
@@ -1979,9 +1979,9 @@ static float costDistance(BArcIterator *iter, float *vec0, float *vec1, int i0, 
 
 	if (distance_weight > 0)
 	{
-		VecSubf(v1, vec0, vec1);
+		sub_v3_v3v3(v1, vec0, vec1);
 		
-		v1_inpf = Inpf(v1, v1);
+		v1_inpf = dot_v3v3(v1, v1);
 		
 		if (v1_inpf > 0)
 		{
@@ -1992,11 +1992,11 @@ static float costDistance(BArcIterator *iter, float *vec0, float *vec1, int i0, 
 				
 				bucket = IT_peek(iter, j);
 	
-				VecSubf(v2, bucket->p, vec1);
+				sub_v3_v3v3(v2, bucket->p, vec1);
 		
-				Crossf(c, v1, v2);
+				cross_v3_v3v3(c, v1, v2);
 				
-				dist = Inpf(c, c) / v1_inpf;
+				dist = dot_v3v3(c, c) / v1_inpf;
 				
 				max_dist = dist > max_dist ? dist : max_dist;
 			}
@@ -2020,9 +2020,9 @@ static float costAngle(float original_angle, float vec_first[3], float vec_secon
 	{
 		float current_angle;
 		
-		if (!VecIsNull(vec_first) && !VecIsNull(vec_second))
+		if (!is_zero_v3(vec_first) && !is_zero_v3(vec_second))
 		{
-			current_angle = saacos(Inpf(vec_first, vec_second));
+			current_angle = saacos(dot_v3v3(vec_first, vec_second));
 
 			return angle_weight * fabs(current_angle - original_angle);
 		}
@@ -2056,8 +2056,8 @@ static float calcCostLengthDistance(BArcIterator *iter, float **vec_cache, RigEd
 	float vec[3];
 	float length;
 
-	VecSubf(vec, vec2, vec1);
-	length = Normalize(vec);
+	sub_v3_v3v3(vec, vec2, vec1);
+	length = normalize_v3(vec);
 
 	return costLength(edge->length, length) + costDistance(iter, vec1, vec2, i1, i2);
 }
@@ -2069,15 +2069,15 @@ static float calcCostAngleLengthDistance(BArcIterator *iter, float **vec_cache, 
 	float length2;
 	float new_cost = 0;
 
-	VecSubf(vec_second, vec2, vec1);
-	length2 = Normalize(vec_second);
+	sub_v3_v3v3(vec_second, vec2, vec1);
+	length2 = normalize_v3(vec_second);
 
 
 	/* Angle cost */	
 	if (edge->prev)
 	{
-		VecSubf(vec_first, vec1, vec0); 
-		Normalize(vec_first);
+		sub_v3_v3v3(vec_first, vec1, vec0); 
+		normalize_v3(vec_first);
 		
 		new_cost += costAngle(edge->prev->angle, vec_first, vec_second, angle_weight);
 	}
@@ -2352,13 +2352,13 @@ static void retargetArctoArcLength(bContext *C, RigGraph *rigg, RigArc *iarc, Ri
 	{
 		vec1 = bucket->p;
 		
-		embedding_length += VecLenf(vec0, vec1);
+		embedding_length += len_v3v3(vec0, vec1);
 		
 		vec0 = vec1;
 		bucket = IT_next(iter);
 	}
 	
-	embedding_length += VecLenf(node_end->p, vec1);
+	embedding_length += len_v3v3(node_end->p, vec1);
 	
 	/* fit bones */
 	initArcIterator(iter, earc, node_start);
@@ -2377,7 +2377,7 @@ static void retargetArctoArcLength(bContext *C, RigGraph *rigg, RigArc *iarc, Ri
 
 		while (bucket && new_bone_length > length)
 		{
-			length += VecLenf(previous_vec, vec1);
+			length += len_v3v3(previous_vec, vec1);
 			bucket = IT_next(iter);
 			previous_vec = vec1;
 			vec1 = bucket->p;

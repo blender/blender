@@ -34,7 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_voxel.h"
 
@@ -85,7 +85,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 		/* trace shadow manually, no good lamp api atm */
 		Isect is;
 		
-		VecCopyf(is.start, co);
+		copy_v3_v3(is.start, co);
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 			is.vec[0] = -lar->vec[0];
 			is.vec[1] = -lar->vec[1];
@@ -93,7 +93,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 			is.labda = R.maxdist;
 		} else {
 			VECSUB( is.vec, lar->co, is.start );
-			is.labda = VecLength( is.vec );
+			is.labda = len_v3( is.vec );
 		}
 
 		is.mode = RE_RAY_MIRROR;
@@ -122,9 +122,9 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	/* XXX TODO - get raytrace max distance from object instance's bounding box */
 	/* need to account for scaling only, but keep coords in camera space...
 	 * below code is WIP and doesn't work!
-	VecSubf(bb_dim, shi->obi->obr->boundbox[1], shi->obi->obr->boundbox[2]);
-	Mat3MulVecfl(shi->obi->nmat, bb_dim);
-	maxsize = VecLength(bb_dim);
+	sub_v3_v3v3(bb_dim, shi->obi->obr->boundbox[1], shi->obi->obr->boundbox[2]);
+	mul_m3_v3(shi->obi->nmat, bb_dim);
+	maxsize = len_v3(bb_dim);
 	*/
 	
 	VECCOPY(isect->start, co);
@@ -184,7 +184,7 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 		shade_ray(is, &shi_new, &shr_new);
 	}
 	
-	VecCopyf(col, shr_new.combined);
+	copy_v3_v3(col, shr_new.combined);
 	col[3] = shr_new.alpha;
 }
 
@@ -225,7 +225,7 @@ static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, fl
 	/* convert input coords to 0.0, 1.0 */
 	VECCOPY(bbmin, shi->obi->obr->boundbox[0]);
 	VECCOPY(bbmax, shi->obi->obr->boundbox[1]);
-	VecSubf(dim, bbmax, bbmin);
+	sub_v3_v3v3(dim, bbmax, bbmin);
 
 	sample_co[0] = ((co[0] - bbmin[0]) / dim[0]);
 	sample_co[1] = ((co[1] - bbmin[1]) / dim[1]);
@@ -246,18 +246,18 @@ static float metadensity(Object* ob, float* co)
 	
 	/* transform co to meta-element */
 	float tco[3] = {co[0], co[1], co[2]};
-	Mat4MulMat4(mat, ob->obmat, R.viewmat);
-	Mat4Invert(imat, mat);
-	Mat4MulVecfl(imat, tco);
+	mul_m4_m4m4(mat, ob->obmat, R.viewmat);
+	invert_m4_m4(imat, mat);
+	mul_m4_v3(imat, tco);
 	
 	for (ml = mb->elems.first; ml; ml=ml->next) {
 		float bmat[3][3], dist2;
 		
 		/* element rotation transform */
 		float tp[3] = {ml->x - tco[0], ml->y - tco[1], ml->z - tco[2]};
-		QuatToMat3(ml->quat, bmat);
-		Mat3Transp(bmat);	// rot.only, so inverse == transpose
-		Mat3MulVecfl(bmat, tp);
+		quat_to_mat3( bmat,ml->quat);
+		transpose_m3(bmat);	// rot.only, so inverse == transpose
+		mul_m3_v3(bmat, tp);
 		
 		/* MB_BALL default */
 		switch (ml->type) {
@@ -379,7 +379,7 @@ float vol_get_phasefunc(ShadeInput *shi, float g, float *w, float *wp)
 		return normalize * 1.f;
 	} else {		/* schlick */
 		const float k = 1.55f * g - .55f * g * g * g;
-		const float kcostheta = k * Inpf(w, wp);
+		const float kcostheta = k * dot_v3v3(w, wp);
 		return normalize * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
 	}
 	
@@ -435,14 +435,14 @@ static void vol_get_transmittance(ShadeInput *shi, float *tr, float *co, float *
 	float tau[3] = {0.f, 0.f, 0.f};
 
 	float t0 = 0.f;
-	float t1 = Normalize(step_vec);
+	float t1 = normalize_v3(step_vec);
 	float pt0 = t0;
 	
 	t0 += shi->mat->vol.stepsize * ((shi->mat->vol.stepsize_type == MA_VOL_STEP_CONSTANT) ? 0.5f : BLI_thread_frand(shi->thread));
 	p[0] += t0 * step_vec[0];
 	p[1] += t0 * step_vec[1];
 	p[2] += t0 * step_vec[2];
-	VecMulf(step_vec, shi->mat->vol.stepsize);
+	mul_v3_fl(step_vec, shi->mat->vol.stepsize);
 
 	for (; t0 < t1; pt0 = t0, t0 += shi->mat->vol.stepsize) {
 		const float d = vol_get_density(shi, p);
@@ -455,7 +455,7 @@ static void vol_get_transmittance(ShadeInput *shi, float *tr, float *co, float *
 		tau[1] += stepd * sigma_t[1];
 		tau[2] += stepd * sigma_t[2];
 		
-		VecAddf(p, p, step_vec);
+		add_v3_v3v3(p, p, step_vec);
 	}
 	
 	/* return transmittance */
@@ -477,34 +477,34 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	
 	if ((visifac= lamp_get_visibility(lar, co, lv, &lampdist)) == 0.f) return;
 	
-	VecCopyf(lacol, &lar->r);
+	copy_v3_v3(lacol, &lar->r);
 	
 	if(lar->mode & LA_TEXTURE) {
 		shi->osatex= 0;
 		do_lamp_tex(lar, lv, shi, lacol, LA_TEXTURE);
 	}
 
-	VecMulf(lacol, visifac);
+	mul_v3_fl(lacol, visifac);
 
 	if (ELEM(lar->type, LA_SUN, LA_HEMI))
 		VECCOPY(lv, lar->vec);
-	VecMulf(lv, -1.0f);
+	mul_v3_fl(lv, -1.0f);
 	
 	if (shi->mat->vol.shade_type == MA_VOL_SHADE_SHADOWED) {
-		VecMulf(lacol, vol_get_shadow(shi, lar, co));
+		mul_v3_fl(lacol, vol_get_shadow(shi, lar, co));
 	}
 	else if (shi->mat->vol.shade_type == MA_VOL_SHADE_SHADED)
 	{
 		Isect is;
 		
 		if (shi->mat->vol.shadeflag & MA_VOL_RECV_EXT_SHADOW) {
-			VecMulf(lacol, vol_get_shadow(shi, lar, co));
+			mul_v3_fl(lacol, vol_get_shadow(shi, lar, co));
 			if (luminance(lacol) < 0.001f) return;
 		}
 		
 		/* find minimum of volume bounds, or lamp coord */
 		if (vol_get_bounds(shi, co, lv, hitco, &is, VOL_BOUNDS_SS)) {
-			float dist = VecLenf(co, hitco);
+			float dist = len_v3v3(co, hitco);
 			VlakRen *vlr = (VlakRen *)is.hit.face;
 			
 			/* simple internal shadowing */
@@ -523,7 +523,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 			
 			vol_get_transmittance(shi, tr, co, atten_co);
 			
-			VecMulVecf(lacol, lacol, tr);
+			mul_v3_v3v3(lacol, lacol, tr);
 		}
 		else {
 			/* Point is on the outside edge of the volume,
@@ -561,7 +561,7 @@ void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co)
 		
 		if (lar) {
 			vol_shade_one_lamp(shi, co, lar, lacol);
-			VecAddf(scatter_col, scatter_col, lacol);
+			add_v3_v3v3(scatter_col, scatter_col, lacol);
 		}
 	}
 }
@@ -594,13 +594,13 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	
 	float t0 = 0.f;
 	float pt0 = t0;
-	float t1 = Normalize(step_vec);	/* returns vector length */
+	float t1 = normalize_v3(step_vec);	/* returns vector length */
 	
 	t0 += stepsize * ((shi->mat->vol.stepsize_type == MA_VOL_STEP_CONSTANT) ? 0.5f : BLI_thread_frand(shi->thread));
 	p[0] += t0 * step_vec[0];
 	p[1] += t0 * step_vec[1];
 	p[2] += t0 * step_vec[2];
-	VecMulf(step_vec, stepsize);
+	mul_v3_fl(step_vec, stepsize);
 	
 	for (; t0 < t1; pt0 = t0, t0 += stepsize) {
 		const float density = vol_get_density(shi, p);
@@ -631,12 +631,12 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			radiance[1] += stepd * tr[1] * (emit_col[1] + scatter_col[1]);
 			radiance[2] += stepd * tr[2] * (emit_col[2] + scatter_col[2]);
 		}
-		VecAddf(p, p, step_vec);
+		add_v3_v3v3(p, p, step_vec);
 	}
 	
 	/* multiply original color (from behind volume) with transmittance over entire distance */
-	VecMulVecf(col, tr, col);
-	VecAddf(col, col, radiance);
+	mul_v3_v3v3(col, tr, col);
+	add_v3_v3v3(col, col, radiance);
 	
 	/* alpha <-- transmission luminance */
 	col[3] = 1.0f - luminance(tr);
@@ -729,7 +729,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	else
 		col[3] = 1.f;
 	
-	VecCopyf(shr->combined, col);
+	copy_v3_v3(shr->combined, col);
 	shr->alpha = col[3];
 	
 	VECCOPY(shr->diff, shr->combined);
@@ -768,7 +768,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	density = vol_get_density(shi, startco);
 	vol_get_transmittance(shi, tr, startco, endco);
 	
-	VecCopyf(shr->combined, tr);
+	copy_v3_v3(shr->combined, tr);
 	shr->combined[3] = 1.0f - luminance(tr);
 }
 

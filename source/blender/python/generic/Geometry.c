@@ -30,7 +30,7 @@
 #include "Geometry.h"
 
 /*  - Not needed for now though other geometry functions will probably need them
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BKE_utildefines.h"
 */
 
@@ -42,7 +42,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
 #include "BLI_boxpack2d.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #define SWAP_FLOAT(a,b,tmp) tmp=a; a=b; b=tmp
 #define eul 0.000001
@@ -346,7 +346,7 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 	else { l2[2]=0.0;	VECCOPY2D(l2, line_2->vec) }
 	
 	/* do the calculation */
-	lambda = lambda_cp_line_ex(pt_in, l1, l2, pt_out);
+	lambda = closest_to_line_v3( pt_out,pt_in, l1, l2);
 	
 	ret = PyTuple_New(2);
 	PyTuple_SET_ITEM( ret, 0, newVectorObject(pt_out, 3, Py_NEW, NULL) );
@@ -371,7 +371,7 @@ static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args 
 	if(!BaseMath_ReadCallback(pt_vec) || !BaseMath_ReadCallback(tri_p1) || !BaseMath_ReadCallback(tri_p2) || !BaseMath_ReadCallback(tri_p3))
 		return NULL;
 	
-	return PyLong_FromLong(IsectPT2Df(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
+	return PyLong_FromLong(isect_point_tri_v2(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
 }
 
 static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
@@ -392,7 +392,7 @@ static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
 	if(!BaseMath_ReadCallback(pt_vec) || !BaseMath_ReadCallback(quad_p1) || !BaseMath_ReadCallback(quad_p2) || !BaseMath_ReadCallback(quad_p3) || !BaseMath_ReadCallback(quad_p4))
 		return NULL;
 	
-	return PyLong_FromLong(IsectPQ2Df(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
+	return PyLong_FromLong(isect_point_quad_v2(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
 }
 
 static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )

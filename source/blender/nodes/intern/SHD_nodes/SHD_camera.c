@@ -45,7 +45,7 @@ static void node_shader_exec_camera(void *data, bNode *node, bNodeStack **in, bN
 		
 		VECCOPY(out[0]->vec, shi->co);		/* get view vector */
 		out[1]->vec[0]= fabs(shi->co[2]);		/* get view z-depth */
-		out[2]->vec[0]= Normalize(out[0]->vec);	/* get view distance */
+		out[2]->vec[0]= normalize_v3(out[0]->vec);	/* get view distance */
 	}
 }
 

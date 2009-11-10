@@ -50,7 +50,7 @@ extern "C"
 #include "BKE_depsgraph.h"
 #include "BLI_util.h"
 #include "BKE_displist.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 }
 #include "BKE_armature.h"
 #include "BKE_mesh.h"
@@ -62,7 +62,7 @@ extern "C"
 #include "BKE_utildefines.h"
 #include "BKE_action.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
@@ -186,7 +186,7 @@ public:
 		float cur[4][4];
 		float copy[4][4];
 
-		Mat4One(mat);
+		unit_m4(mat);
 		
 		for (int i = 0; i < node->getTransformations().getCount(); i++) {
 
@@ -199,7 +199,7 @@ public:
 					COLLADAFW::Translate *tra = (COLLADAFW::Translate*)tm;
 					COLLADABU::Math::Vector3& t = tra->getTranslation();
 
-					Mat4One(cur);
+					unit_m4(cur);
 					cur[3][0] = (float)t[0];
 					cur[3][1] = (float)t[1];
 					cur[3][2] = (float)t[2];
@@ -214,16 +214,16 @@ public:
 					float quat[4];
 					float rot_copy[3][3];
 					float mat[3][3];
-					AxisAngleToQuat(quat, axis, angle);
+					axis_angle_to_quat(quat, axis, angle);
 					
-					QuatToMat4(quat, cur);
+					quat_to_mat4( cur,quat);
 				}
 				break;
 			case COLLADAFW::Transformation::SCALE:
 				{
 					COLLADABU::Math::Vector3& s = ((COLLADAFW::Scale*)tm)->getScale();
 					float size[3] = {(float)s[0], (float)s[1], (float)s[2]};
-					SizeToMat4(size, cur);
+					size_to_mat4( cur,size);
 				}
 				break;
 			case COLLADAFW::Transformation::MATRIX:
@@ -237,8 +237,8 @@ public:
 				break;
 			}
 
-			Mat4CpyMat4(copy, mat);
-			Mat4MulMat4(mat, cur, copy);
+			copy_m4_m4(copy, mat);
+			mul_m4_m4m4(mat, cur, copy);
 
 			if (animation_map) {
 				// AnimationList that drives this Transformation
@@ -346,7 +346,7 @@ private:
 										 ob_arm(skin.ob_arm),
 										 controller_uid(skin.controller_uid)
 		{
-			Mat4CpyMat4(bind_shape_matrix, (float (*)[4])skin.bind_shape_matrix);
+			copy_m4_m4(bind_shape_matrix, (float (*)[4])skin.bind_shape_matrix);
 
 			transfer_uint_array_data_const(skin.joints_per_vertex, joints_per_vertex);
 			transfer_uint_array_data_const(skin.weight_indices, weight_indices);
@@ -438,7 +438,7 @@ private:
 			std::vector<JointData>::iterator it;
 			for (it = joint_data.begin(); it != joint_data.end(); it++) {
 				if ((*it).joint_uid == uid) {
-					Mat4CpyMat4(inv_bind_mat, (*it).inv_bind_mat);
+					copy_m4_m4(inv_bind_mat, (*it).inv_bind_mat);
 					return true;
 				}
 			}
@@ -491,8 +491,8 @@ private:
 			// we need armature matrix here... where do we get it from I wonder...
 			// root node/joint? or node with <instance_controller>?
 			float parmat[4][4];
-			Mat4One(parmat);
-			Mat4Invert(ob->parentinv, parmat);
+			unit_m4(parmat);
+			invert_m4_m4(ob->parentinv, parmat);
 
 			// create all vertex groups
 			std::vector<JointData>::iterator it;
@@ -574,7 +574,7 @@ private:
 
 		if (skin.get_joint_inv_bind_matrix(joint_inv_bind_mat, node)) {
 			// get original world-space matrix
-			Mat4Invert(mat, joint_inv_bind_mat);
+			invert_m4_m4(mat, joint_inv_bind_mat);
 		}
 		// create a bone even if there's no joint data for it (i.e. it has no influence)
 		else {
@@ -585,9 +585,9 @@ private:
 
 			// get world-space
 			if (parent)
-				Mat4MulMat4(mat, obmat, parent_mat);
+				mul_m4_m4m4(mat, obmat, parent_mat);
 			else
-				Mat4CpyMat4(mat, obmat);
+				copy_m4_m4(mat, obmat);
 		}
 
 		// TODO rename from Node "name" attrs later
@@ -597,21 +597,21 @@ private:
 		if (parent) bone->parent = parent;
 
 		// set head
-		VecCopyf(bone->head, mat[3]);
+		copy_v3_v3(bone->head, mat[3]);
 
 		// set tail, don't set it to head because 0-length bones are not allowed
 		float vec[3] = {0.0f, 0.5f, 0.0f};
-		VecAddf(bone->tail, bone->head, vec);
+		add_v3_v3v3(bone->tail, bone->head, vec);
 
 		// set parent tail
 		if (parent && totchild == 1) {
-			VecCopyf(parent->tail, bone->head);
+			copy_v3_v3(parent->tail, bone->head);
 
 			// XXX increase this to prevent "very" small bones?
 			const float epsilon = 0.000001f;
 
 			// derive leaf bone length
-			float length = VecLenf(parent->head, parent->tail);
+			float length = len_v3v3(parent->head, parent->tail);
 			if ((length < leaf_bone_length || totbone == 0) && length > epsilon) {
 				leaf_bone_length = length;
 			}
@@ -625,20 +625,20 @@ private:
 #if 0
 			// and which row in mat is bone direction
 			float vec[3];
-			VecSubf(vec, parent->tail, parent->head);
+			sub_v3_v3v3(vec, parent->tail, parent->head);
 #ifdef COLLADA_DEBUG
-			printvecf("tail - head", vec);
-			printmatrix4("matrix", parent_mat);
+			print_v3("tail - head", vec);
+			print_m4("matrix", parent_mat);
 #endif
 			for (int i = 0; i < 3; i++) {
 #ifdef COLLADA_DEBUG
 				char *axis_names[] = {"X", "Y", "Z"};
-				printf("%s-axis length is %f\n", axis_names[i], VecLength(parent_mat[i]));
+				printf("%s-axis length is %f\n", axis_names[i], len_v3(parent_mat[i]));
 #endif
-				float angle = VecAngle2(vec, parent_mat[i]);
+				float angle = angle_v2v2(vec, parent_mat[i]);
 				if (angle < min_angle) {
 #ifdef COLLADA_DEBUG
-					printvecf("picking", parent_mat[i]);
+					print_v3("picking", parent_mat[i]);
 					printf("^ %s axis of %s's matrix\n", axis_names[i], get_dae_name(node));
 #endif
 					bone_direction_row = i;
@@ -665,7 +665,7 @@ private:
 		LeafBone leaf;
 
 		leaf.bone = bone;
-		Mat4CpyMat4(leaf.mat, mat);
+		copy_m4_m4(leaf.mat, mat);
 		BLI_strncpy(leaf.name, bone->name, sizeof(leaf.name));
 
 		leaf_bones.push_back(leaf);
@@ -682,10 +682,10 @@ private:
 			// pointing up
 			float vec[3] = {0.0f, 0.0f, 1.0f};
 
-			VecMulf(vec, leaf_bone_length);
+			mul_v3_fl(vec, leaf_bone_length);
 
-			VecCopyf(leaf.bone->tail, leaf.bone->head);
-			VecAddf(leaf.bone->tail, leaf.bone->head, vec);
+			copy_v3_v3(leaf.bone->tail, leaf.bone->head);
+			add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
 		}
 	}
 
@@ -2200,7 +2200,7 @@ public:
 
 					float quat[4];
 
-					EulToQuat(eul, quat);
+					eul_to_quat( quat,eul);
 
 					for (int k = 0; k < 4; k++)
 						create_bezt(quatcu[k], frame, quat[k]);

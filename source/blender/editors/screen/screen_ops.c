@@ -31,7 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_dlrbTree.h"
@@ -400,7 +400,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 	for(az= sa->actionzones.first; az; az= az->next) {
 		if(BLI_in_rcti(&az->rect, x, y)) {
 			if(az->type == AZONE_AREA) {
-				if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) 
+				if(isect_point_tri_v2_int(az->x1, az->y1, az->x2, az->y2, x, y)) 
 					break;
 			}
 			else if(az->type == AZONE_REGION) {

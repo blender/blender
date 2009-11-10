@@ -33,7 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
@@ -104,7 +104,7 @@ static void VertexIt_Fill(CSG_IteratorPtr it, CSG_IVertex *vert)
 	float global_pos[3];
 
 	/* boolean happens in global space, transform both with obmat */
-	VecMat4MulVecfl(
+	mul_v3_m4v3(
 		global_pos,
 		iterator->ob->obmat, 
 		verts[iterator->pos].co
@@ -327,11 +327,11 @@ static void InterpCSGFace(
 	for (j = 0; j < nr; j++) {
 		// get coordinate into the space of the original mesh
 		if (mapmat)
-			VecMat4MulVecfl(obco, mapmat, co[j]);
+			mul_v3_m4v3(obco, mapmat, co[j]);
 		else
-			VecCopyf(obco, co[j]);
+			copy_v3_v3(obco, co[j]);
 
-		InterpWeightsQ3Dfl(orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco, w[j]);
+		interp_weights_face_v3( w[j],orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco);
 	}
 
 	CustomData_interp(&orig_dm->faceData, &dm->faceData, &orig_index, NULL, (float*)w, 1, index);
@@ -375,7 +375,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 
 		// we have to map the vertex coordinates back in the coordinate frame
 		// of the resulting object, since it was computed in world space
-		VecMat4MulVecfl(mvert->co, parinv, csgvert.position);
+		mul_v3_m4v3(mvert->co, parinv, csgvert.position);
 	}
 
 	// a hash table to remap materials to indices
@@ -478,9 +478,9 @@ DerivedMesh *NewBooleanDerivedMesh_intern(
 	// we map the final object back into ob's local coordinate space. For this
 	// we need to compute the inverse transform from global to ob (inv_mat),
 	// and the transform from ob to ob_select for use in interpolation (map_mat)
-	Mat4Invert(inv_mat, ob->obmat);
-	Mat4MulMat4(map_mat, ob_select->obmat, inv_mat);
-	Mat4Invert(inv_mat, ob_select->obmat);
+	invert_m4_m4(inv_mat, ob->obmat);
+	mul_m4_m4m4(map_mat, ob_select->obmat, inv_mat);
+	invert_m4_m4(inv_mat, ob_select->obmat);
 
 	{
 		// interface with the boolean module:

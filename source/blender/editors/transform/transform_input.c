@@ -28,7 +28,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "WM_types.h"
 
@@ -45,9 +45,9 @@ void InputVector(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 	{
 		/* calculate the main translation and the precise one separate */
 		convertViewVec(t, dvec, (short)(mval[0] - mi->precision_mval[0]), (short)(mval[1] - mi->precision_mval[1]));
-		VecMulf(dvec, 0.1f);
+		mul_v3_fl(dvec, 0.1f);
 		convertViewVec(t, vec, (short)(mi->precision_mval[0] - t->imval[0]), (short)(mi->precision_mval[1] - t->imval[1]));
-		VecAddf(output, vec, dvec);
+		add_v3_v3v3(output, vec, dvec);
 	}
 	else
 	{
@@ -133,9 +133,9 @@ void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float 
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
-	Projf(vec, vec, t->viewinv[0]);
+	project_v3_v3v3(vec, vec, t->viewinv[0]);
 
-	output[0] = Inpf(t->viewinv[0], vec) * 2.0f;
+	output[0] = dot_v3v3(t->viewinv[0], vec) * 2.0f;
 }
 
 void InputVerticalRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
@@ -158,9 +158,9 @@ void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float ou
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
-	Projf(vec, vec, t->viewinv[1]);
+	project_v3_v3v3(vec, vec, t->viewinv[1]);
 
-	output[0] = Inpf(t->viewinv[1], vec) * 2.0f;
+	output[0] = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 }
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2])

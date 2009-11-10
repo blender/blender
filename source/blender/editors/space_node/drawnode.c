@@ -32,7 +32,7 @@
 #include <string.h>
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_ID.h"
 #include "DNA_node_types.h"

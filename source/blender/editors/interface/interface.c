@@ -38,7 +38,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
@@ -988,7 +988,7 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 					v3[0]= line->to->x1;
 					v3[1]= (line->to->y1+line->to->y2)/2.0;
 					
-					fac= PdistVL2Dfl(v1, v2, v3);
+					fac= dist_to_line_segment_v2(v1, v2, v3);
 					if(fac < mindist) {
 						mindist= fac;
 						act= line;

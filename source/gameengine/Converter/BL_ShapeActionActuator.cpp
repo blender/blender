@@ -46,7 +46,7 @@
 #include "DNA_armature_types.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
 #include "FloatValue.h"

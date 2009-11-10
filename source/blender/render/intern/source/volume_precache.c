@@ -34,7 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_voxel.h"
 
@@ -444,8 +444,8 @@ static void *vol_precache_part(void *data)
 					continue;
 				}
 				
-				VecCopyf(shi->view, co);
-				Normalize(shi->view);
+				copy_v3_v3(shi->view, co);
+				normalize_v3(shi->view);
 				vol_get_scattering(shi, scatter_col, co);
 			
 				obi->volume_precache->data_r[ V_I(x, y, z, res) ] = scatter_col[0];
@@ -495,7 +495,7 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 	parts[0] = parts[1] = parts[2] = totthread;
 	res = vp->res;
 	
-	VecSubf(voxel, bbmax, bbmin);
+	sub_v3_v3v3(voxel, bbmax, bbmin);
 	
 	voxel[0] /= res[0];
 	voxel[1] /= res[1];
@@ -564,7 +564,7 @@ static int precache_resolution(VolumePrecache *vp, float *bbmin, float *bbmax, i
 {
 	float dim[3], div;
 	
-	VecSubf(dim, bbmax, bbmin);
+	sub_v3_v3v3(dim, bbmax, bbmin);
 	
 	div = MAX3(dim[0], dim[1], dim[2]);
 	dim[0] /= div;

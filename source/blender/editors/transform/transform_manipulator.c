@@ -66,7 +66,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 
 #include "BIF_gl.h"
@@ -116,8 +116,8 @@ static int is_mat4_flipped(float mat[][4])
 {
 	float vec[3];
 
-	Crossf(vec, mat[0], mat[1]);
-	if( Inpf(vec, mat[2]) < 0.0 ) return 1;
+	cross_v3_v3v3(vec, mat[0], mat[1]);
+	if( dot_v3v3(vec, mat[2]) < 0.0 ) return 1;
 	return 0;
 }
 
@@ -129,7 +129,7 @@ static void calc_tw_center(Scene *scene, float *co)
 	float *max= scene->twmax;
 
 	DO_MINMAX(co, min, max);
-	VecAddf(twcent, twcent, co);
+	add_v3_v3v3(twcent, twcent, co);
 }
 
 static void protectflag_to_drawflags(short protectflag, short *drawflags)
@@ -191,30 +191,30 @@ void gimbal_axis(Object *ob, float gmat[][3])
 		if(pchan && test_rotmode_euler(pchan->rotmode)) {
 			float mat[3][3], tmat[3][3], obmat[3][3];
 
-			EulToGimbalAxis(mat, pchan->eul, pchan->rotmode);
+			eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
 
 			/* apply bone transformation */
-			Mat3MulMat3(tmat, pchan->bone->bone_mat, mat);
+			mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
 			
 			if (pchan->parent)
 			{
 				float parent_mat[3][3];
 
-				Mat3CpyMat4(parent_mat, pchan->parent->pose_mat);
-				Mat3MulMat3(mat, parent_mat, tmat);
+				copy_m3_m4(parent_mat, pchan->parent->pose_mat);
+				mul_m3_m3m3(mat, parent_mat, tmat);
 
 				/* needed if object transformation isn't identity */
-				Mat3CpyMat4(obmat, ob->obmat);
-				Mat3MulMat3(gmat, obmat, mat);
+				copy_m3_m4(obmat, ob->obmat);
+				mul_m3_m3m3(gmat, obmat, mat);
 			}
 			else
 			{
 				/* needed if object transformation isn't identity */
-				Mat3CpyMat4(obmat, ob->obmat);
-				Mat3MulMat3(gmat, obmat, tmat);
+				copy_m3_m4(obmat, ob->obmat);
+				mul_m3_m3m3(gmat, obmat, tmat);
 			}
 
-			Mat3Ortho(gmat);
+			normalize_m3(gmat);
 		}
 	}
 	else {
@@ -225,14 +225,14 @@ void gimbal_axis(Object *ob, float gmat[][3])
 			{
 				float parent_mat[3][3], amat[3][3];
 				
-				EulToGimbalAxis(amat, ob->rot, ob->rotmode);
-				Mat3CpyMat4(parent_mat, ob->parent->obmat);
-				Mat3Ortho(parent_mat);
-				Mat3MulMat3(gmat, parent_mat, amat);
+				eulO_to_gimbal_axis(amat, ob->rot, ob->rotmode);
+				copy_m3_m4(parent_mat, ob->parent->obmat);
+				normalize_m3(parent_mat);
+				mul_m3_m3m3(gmat, parent_mat, amat);
 			}
 			else
 			{
-				EulToGimbalAxis(gmat, ob->rot, ob->rotmode);
+				eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
 			}
 		}
 	}
@@ -254,7 +254,7 @@ int calc_manipulator_stats(const bContext *C)
 	int a, totsel= 0;
 
 	/* transform widget matrix */
-	Mat4One(rv3d->twmat);
+	unit_m4(rv3d->twmat);
 
 	v3d->twdrawflag= 0xFFFF;
 
@@ -395,10 +395,10 @@ int calc_manipulator_stats(const bContext *C)
 
 		/* selection center */
 		if(totsel) {
-			VecMulf(scene->twcent, 1.0f/(float)totsel);	// centroid!
-			Mat4MulVecfl(obedit->obmat, scene->twcent);
-			Mat4MulVecfl(obedit->obmat, scene->twmin);
-			Mat4MulVecfl(obedit->obmat, scene->twmax);
+			mul_v3_fl(scene->twcent, 1.0f/(float)totsel);	// centroid!
+			mul_m4_v3(obedit->obmat, scene->twcent);
+			mul_m4_v3(obedit->obmat, scene->twmin);
+			mul_m4_v3(obedit->obmat, scene->twmax);
 		}
 	}
 	else if(ob && (ob->mode & OB_MODE_POSE)) {
@@ -415,10 +415,10 @@ int calc_manipulator_stats(const bContext *C)
 				stats_pose(scene, v3d, pchan);
 			}
 
-			VecMulf(scene->twcent, 1.0f/(float)totsel);	// centroid!
-			Mat4MulVecfl(ob->obmat, scene->twcent);
-			Mat4MulVecfl(ob->obmat, scene->twmin);
-			Mat4MulVecfl(ob->obmat, scene->twmax);
+			mul_v3_fl(scene->twcent, 1.0f/(float)totsel);	// centroid!
+			mul_m4_v3(ob->obmat, scene->twcent);
+			mul_m4_v3(ob->obmat, scene->twmin);
+			mul_m4_v3(ob->obmat, scene->twmax);
 		}
 	}
 	else if(ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
@@ -445,7 +445,7 @@ int calc_manipulator_stats(const bContext *C)
 
 			/* selection center */
 			if(totsel)
-				VecMulf(scene->twcent, 1.0f/(float)totsel);	// centroid!
+				mul_v3_fl(scene->twcent, 1.0f/(float)totsel);	// centroid!
 		}
 	}
 	else {
@@ -466,7 +466,7 @@ int calc_manipulator_stats(const bContext *C)
 
 		/* selection center */
 		if(totsel) {
-			VecMulf(scene->twcent, 1.0f/(float)totsel);	// centroid!
+			mul_v3_fl(scene->twcent, 1.0f/(float)totsel);	// centroid!
 		}
 	}
 
@@ -481,37 +481,37 @@ int calc_manipulator_stats(const bContext *C)
 		case V3D_MANIP_GIMBAL:
 		{
 			float mat[3][3];
-			Mat3One(mat);
+			unit_m3(mat);
 			gimbal_axis(ob, mat);
-			Mat4CpyMat3(rv3d->twmat, mat);
+			copy_m4_m3(rv3d->twmat, mat);
 			break;
 		}
 		case V3D_MANIP_NORMAL:
 			if(obedit || ob->mode & OB_MODE_POSE) {
 				float mat[3][3];
 				ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
-				Mat4CpyMat3(rv3d->twmat, mat);
+				copy_m4_m3(rv3d->twmat, mat);
 				break;
 			}
 			/* no break we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
-			Mat4CpyMat4(rv3d->twmat, ob->obmat);
-			Mat4Ortho(rv3d->twmat);
+			copy_m4_m4(rv3d->twmat, ob->obmat);
+			normalize_m4(rv3d->twmat);
 			break;
 
 		case V3D_MANIP_VIEW:
 			{
 				float mat[3][3];
-				Mat3CpyMat4(mat, rv3d->viewinv);
-				Mat3Ortho(mat);
-				Mat4CpyMat3(rv3d->twmat, mat);
+				copy_m3_m4(mat, rv3d->viewinv);
+				normalize_m3(mat);
+				copy_m4_m3(rv3d->twmat, mat);
 			}
 			break;
 		default: /* V3D_MANIP_CUSTOM */
 			{
 				float mat[3][3];
 				applyTransformOrientation(C, mat, NULL);
-				Mat4CpyMat3(rv3d->twmat, mat);
+				copy_m4_m3(rv3d->twmat, mat);
 				break;
 			}
 		}
@@ -528,7 +528,7 @@ static float screen_aligned(RegionView3D *rv3d, float mat[][4])
 	float vec[3], size;
 
 	VECCOPY(vec, mat[0]);
-	size= Normalize(vec);
+	size= normalize_v3(vec);
 
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 
@@ -709,8 +709,8 @@ static void preOrtho(int ortho, float twmat[][4], int axis)
 {
 	if (ortho == 0) {
 		float omat[4][4];
-		Mat4CpyMat4(omat, twmat);
-		Mat4Orthogonal(omat, axis);
+		copy_m4_m4(omat, twmat);
+		orthogonalize_m4(omat, axis);
 		glPushMatrix();
 		wmMultMatrix(omat);
 	}
@@ -720,8 +720,8 @@ static void preOrthoFront(int ortho, float twmat[][4], int axis)
 {
 	if (ortho == 0) {
 		float omat[4][4];
-		Mat4CpyMat4(omat, twmat);
-		Mat4Orthogonal(omat, axis);
+		copy_m4_m4(omat, twmat);
+		orthogonalize_m4(omat, axis);
 		glPushMatrix();
 		wmMultMatrix(omat);
 		glFrontFace( is_mat4_flipped(omat)?GL_CW:GL_CCW);
@@ -753,8 +753,8 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 	glEnable(GL_BLEND);
 
 	/* we need both [4][4] transforms, t->mat seems to be premul, not post for mat[][4] */
-	Mat4CpyMat4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
-// XXX	Mat4MulMat34(matt, t->mat, rv3d->twmat);
+	copy_m4_m4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
+// XXX	mul_m4_m3m4(matt, t->mat, rv3d->twmat);
 
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
@@ -766,7 +766,7 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 		vec[0]= 0; // XXX (float)(t->con.imval[0] - t->center2d[0]);
 		vec[1]= 0; // XXX (float)(t->con.imval[1] - t->center2d[1]);
 		vec[2]= 0.0f;
-		Normalize(vec);
+		normalize_v3(vec);
 
 		startphi= saacos( vec[1] );
 		if(vec[0]<0.0) startphi= -startphi;
@@ -788,16 +788,16 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 		svec[2]= 0.0f;
 
 		/* screen aligned vec transform back to manipulator space */
-		Mat3CpyMat4(ivmat, rv3d->viewinv);
-		Mat3CpyMat4(tmat, rv3d->twmat);
-		Mat3Inv(imat, tmat);
-		Mat3MulMat3(tmat, imat, ivmat);
+		copy_m3_m4(ivmat, rv3d->viewinv);
+		copy_m3_m4(tmat, rv3d->twmat);
+		invert_m3_m3(imat, tmat);
+		mul_m3_m3m3(tmat, imat, ivmat);
 
-		Mat3MulVecfl(tmat, svec);	// tmat is used further on
-		Normalize(svec);
+		mul_m3_v3(tmat, svec);	// tmat is used further on
+		normalize_v3(svec);
 	}
 	
-	ortho = IsMat4Orthogonal(rv3d->twmat);
+	ortho = is_orthogonal_m4(rv3d->twmat);
 
 	if (ortho) {
 		wmMultMatrix(rv3d->twmat);	// aligns with original widget
@@ -812,19 +812,19 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 			/* correct for squeezed arc */
 			svec[0]+= tmat[2][0];
 			svec[1]+= tmat[2][1];
-			Normalize(svec);
+			normalize_v3(svec);
 
 			startphi= (float)atan2(svec[0], svec[1]);
 		}
 		else startphi= 0.5f*(float)M_PI;
 
 		VECCOPY(vec, rv3d->twmat[0]);	// use x axis to detect rotation
-		Normalize(vec);
-		Normalize(matt[0]);
-		phi= saacos( Inpf(vec, matt[0]) );
+		normalize_v3(vec);
+		normalize_v3(matt[0]);
+		phi= saacos( dot_v3v3(vec, matt[0]) );
 		if(phi!=0.0) {
-			Crossf(cross, vec, matt[0]);	// results in z vector
-			if(Inpf(cross, rv3d->twmat[2]) > 0.0) phi= -phi;
+			cross_v3_v3v3(cross, vec, matt[0]);	// results in z vector
+			if(dot_v3v3(cross, rv3d->twmat[2]) > 0.0) phi= -phi;
 			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 180.0*startphi/M_PI, 180.0*(phi)/M_PI);
 		}
 
@@ -838,19 +838,19 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 			/* correct for squeezed arc */
 			svec[1]+= tmat[2][1];
 			svec[2]+= tmat[2][2];
-			Normalize(svec);
+			normalize_v3(svec);
 
 			startphi= (float)(M_PI + atan2(svec[2], -svec[1]));
 		}
 		else startphi= 0.0f;
 
 		VECCOPY(vec, rv3d->twmat[1]);	// use y axis to detect rotation
-		Normalize(vec);
-		Normalize(matt[1]);
-		phi= saacos( Inpf(vec, matt[1]) );
+		normalize_v3(vec);
+		normalize_v3(matt[1]);
+		phi= saacos( dot_v3v3(vec, matt[1]) );
 		if(phi!=0.0) {
-			Crossf(cross, vec, matt[1]);	// results in x vector
-			if(Inpf(cross, rv3d->twmat[0]) > 0.0) phi= -phi;
+			cross_v3_v3v3(cross, vec, matt[1]);	// results in x vector
+			if(dot_v3v3(cross, rv3d->twmat[0]) > 0.0) phi= -phi;
 			glRotatef(90.0, 0.0, 1.0, 0.0);
 			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 180.0*startphi/M_PI, 180.0*phi/M_PI);
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
@@ -866,19 +866,19 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 			/* correct for squeezed arc */
 			svec[0]+= tmat[2][0];
 			svec[2]+= tmat[2][2];
-			Normalize(svec);
+			normalize_v3(svec);
 
 			startphi= (float)(M_PI + atan2(-svec[0], svec[2]));
 		}
 		else startphi= (float)M_PI;
 
 		VECCOPY(vec, rv3d->twmat[2]);	// use z axis to detect rotation
-		Normalize(vec);
-		Normalize(matt[2]);
-		phi= saacos( Inpf(vec, matt[2]) );
+		normalize_v3(vec);
+		normalize_v3(matt[2]);
+		phi= saacos( dot_v3v3(vec, matt[2]) );
 		if(phi!=0.0) {
-			Crossf(cross, vec, matt[2]);	// results in y vector
-			if(Inpf(cross, rv3d->twmat[1]) > 0.0) phi= -phi;
+			cross_v3_v3v3(cross, vec, matt[2]);	// results in y vector
+			if(dot_v3v3(cross, rv3d->twmat[1]) > 0.0) phi= -phi;
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
 			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 180.0*startphi/M_PI, 180.0*phi/M_PI);
 			glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -911,14 +911,14 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 	/* Init stuff */
 	glDisable(GL_DEPTH_TEST);
-	Mat4One(unitmat);
+	unit_m4(unitmat);
 
 	qobj= gluNewQuadric();
 	gluQuadricDrawStyle(qobj, GLU_FILL);
 
 	/* prepare for screen aligned draw */
 	VECCOPY(vec, rv3d->twmat[0]);
-	size= Normalize(vec);
+	size= normalize_v3(vec);
 	glPushMatrix();
 	glTranslatef(rv3d->twmat[3][0], rv3d->twmat[3][1], rv3d->twmat[3][2]);
 
@@ -958,8 +958,8 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			vec[0]= 0; // XXX (float)(t->imval[0] - t->center2d[0]);
 			vec[1]= 0; // XXX (float)(t->imval[1] - t->center2d[1]);
 			vec[2]= 0.0f;
-			Normalize(vec);
-			VecMulf(vec, 1.2f*size);
+			normalize_v3(vec);
+			mul_v3_fl(vec, 1.2f*size);
 			glBegin(GL_LINES);
 			glVertex3f(0.0f, 0.0f, 0.0f);
 			glVertex3fv(vec);
@@ -969,12 +969,12 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 	glPopMatrix();
 
 
-	ortho = IsMat4Orthogonal(rv3d->twmat);
+	ortho = is_orthogonal_m4(rv3d->twmat);
 	
 	/* apply the transform delta */
 	if(moving) {
-		Mat4CpyMat4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
-		// XXX Mat4MulMat34(matt, t->mat, rv3d->twmat);
+		copy_m4_m4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
+		// XXX mul_m4_m3m4(matt, t->mat, rv3d->twmat);
 		if (ortho) {
 			wmMultMatrix(matt);
 			glFrontFace( is_mat4_flipped(matt)?GL_CW:GL_CCW);
@@ -1229,7 +1229,7 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 		manipulator_setcolor(v3d, 'c', colcode);
 		glPushMatrix();
 		size= screen_aligned(rv3d, rv3d->twmat);
-		Mat4One(unitmat);
+		unit_m4(unitmat);
 		drawcircball(GL_LINE_LOOP, unitmat[3], 0.2f*size, unitmat);
 		glPopMatrix();
 
@@ -1240,8 +1240,8 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 	if(moving) {
 		float matt[4][4];
 
-		Mat4CpyMat4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
-		// XXX Mat4MulMat34(matt, t->mat, rv3d->twmat);
+		copy_m4_m4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
+		// XXX mul_m4_m3m4(matt, t->mat, rv3d->twmat);
 		wmMultMatrix(matt);
 		glFrontFace( is_mat4_flipped(matt)?GL_CW:GL_CCW);
 	}
@@ -1347,7 +1347,7 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int movi
 	manipulator_setcolor(v3d, 'c', colcode);
 	glPushMatrix();
 	size= screen_aligned(rv3d, rv3d->twmat);
-	Mat4One(unitmat);
+	unit_m4(unitmat);
 	drawcircball(GL_LINE_LOOP, unitmat[3], 0.2f*size, unitmat);
 	glPopMatrix();
 
@@ -1420,7 +1420,7 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
 		float unitmat[4][4];
-		Mat4One(unitmat);
+		unit_m4(unitmat);
 
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
 		UI_ThemeColor(TH_TRANSFORM);
@@ -1431,8 +1431,8 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 			vec[0]= 0; // XXX (float)(t->imval[0] - t->center2d[0]);
 			vec[1]= 0; // XXX (float)(t->imval[1] - t->center2d[1]);
 			vec[2]= 0.0f;
-			Normalize(vec);
-			VecMulf(vec, 1.2f*size);
+			normalize_v3(vec);
+			mul_v3_fl(vec, 1.2f*size);
 			glBegin(GL_LINES);
 			glVertex3f(0.0, 0.0, 0.0);
 			glVertex3fv(vec);
@@ -1444,9 +1444,9 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 	/* apply the transform delta */
 	if(moving) {
 		float matt[4][4];
-		Mat4CpyMat4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
+		copy_m4_m4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
 		// XXX 		if (t->flag & T_USES_MANIPULATOR) {
-		// XXX 			Mat4MulMat34(matt, t->mat, rv3d->twmat);
+		// XXX 			mul_m4_m3m4(matt, t->mat, rv3d->twmat);
 		// XXX }
 		wmMultMatrix(matt);
 	}
@@ -1563,7 +1563,7 @@ void BIF_draw_manipulator(const bContext *C)
 			break;
 		}
 
-		Mat4MulFloat3((float *)rv3d->twmat, get_manipulator_drawsize(ar));
+		mul_mat3_m4_fl((float *)rv3d->twmat, get_manipulator_drawsize(ar));
 	}
 
 	if(v3d->twflag & V3D_DRAW_MANIPULATOR) {
@@ -1622,7 +1622,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, short *mval, float ho
 	rect.ymax= mval[1]+hotspot;
 
 	setwinmatrixview3d(ar, v3d, &rect);
-	Mat4MulMat4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
 
 	glSelectBuffer( 64, buffer);
 	glRenderMode(GL_SELECT);
@@ -1644,7 +1644,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, short *mval, float ho
 
 	G.f &= ~G_PICKSEL;
 	setwinmatrixview3d(ar, v3d, NULL);
-	Mat4MulMat4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
 
 	if(hits==1) return buffer[3];
 	else if(hits>1) {

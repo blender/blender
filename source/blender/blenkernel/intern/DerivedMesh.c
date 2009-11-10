@@ -52,7 +52,7 @@
 #include "DNA_space_types.h"
 #include "DNA_particle_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
@@ -619,20 +619,20 @@ static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[
 {
 	if (vertexCos) {
 		VECCOPY(cent, vertexCos[(int) efa->v1->tmp.l]);
-		VecAddf(cent, cent, vertexCos[(int) efa->v2->tmp.l]);
-		VecAddf(cent, cent, vertexCos[(int) efa->v3->tmp.l]);
-		if (efa->v4) VecAddf(cent, cent, vertexCos[(int) efa->v4->tmp.l]);
+		add_v3_v3v3(cent, cent, vertexCos[(int) efa->v2->tmp.l]);
+		add_v3_v3v3(cent, cent, vertexCos[(int) efa->v3->tmp.l]);
+		if (efa->v4) add_v3_v3v3(cent, cent, vertexCos[(int) efa->v4->tmp.l]);
 	} else {
 		VECCOPY(cent, efa->v1->co);
-		VecAddf(cent, cent, efa->v2->co);
-		VecAddf(cent, cent, efa->v3->co);
-		if (efa->v4) VecAddf(cent, cent, efa->v4->co);
+		add_v3_v3v3(cent, cent, efa->v2->co);
+		add_v3_v3v3(cent, cent, efa->v3->co);
+		if (efa->v4) add_v3_v3v3(cent, cent, efa->v4->co);
 	}
 
 	if (efa->v4) {
-		VecMulf(cent, 0.25f);
+		mul_v3_fl(cent, 0.25f);
 	} else {
-		VecMulf(cent, 0.33333333333f);
+		mul_v3_fl(cent, 0.33333333333f);
 	}
 }
 static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
@@ -1498,25 +1498,25 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 			if(efa->v4) {
 				float *v4 = vertexCos[(int) efa->v4->tmp.l];
 
-				CalcNormFloat4(v1, v2, v3, v4, no);
-				VecAddf(emdm->vertexNos[(int) efa->v4->tmp.l], emdm->vertexNos[(int) efa->v4->tmp.l], no);
+				normal_quad_v3( no,v1, v2, v3, v4);
+				add_v3_v3v3(emdm->vertexNos[(int) efa->v4->tmp.l], emdm->vertexNos[(int) efa->v4->tmp.l], no);
 			}
 			else {
-				CalcNormFloat(v1, v2, v3, no);
+				normal_tri_v3( no,v1, v2, v3);
 			}
 
-			VecAddf(emdm->vertexNos[(int) efa->v1->tmp.l], emdm->vertexNos[(int) efa->v1->tmp.l], no);
-			VecAddf(emdm->vertexNos[(int) efa->v2->tmp.l], emdm->vertexNos[(int) efa->v2->tmp.l], no);
-			VecAddf(emdm->vertexNos[(int) efa->v3->tmp.l], emdm->vertexNos[(int) efa->v3->tmp.l], no);
+			add_v3_v3v3(emdm->vertexNos[(int) efa->v1->tmp.l], emdm->vertexNos[(int) efa->v1->tmp.l], no);
+			add_v3_v3v3(emdm->vertexNos[(int) efa->v2->tmp.l], emdm->vertexNos[(int) efa->v2->tmp.l], no);
+			add_v3_v3v3(emdm->vertexNos[(int) efa->v3->tmp.l], emdm->vertexNos[(int) efa->v3->tmp.l], no);
 		}
 
 		for(i=0, eve= em->verts.first; eve; i++, eve=eve->next) {
 			float *no = emdm->vertexNos[i];
 			/* following Mesh convention; we use vertex coordinate itself
 			 * for normal in this case */
-			if (Normalize(no)==0.0) {
+			if (normalize_v3(no)==0.0) {
 				VECCOPY(no, vertexCos[i]);
-				Normalize(no);
+				normalize_v3(no);
 			}
 		}
 	}
@@ -2482,7 +2482,7 @@ int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deform
 				defmats= MEM_callocN(sizeof(*defmats)*numVerts, "defmats");
 
 				for(a=0; a<numVerts; a++)
-					Mat3One(defmats[a]);
+					unit_m3(defmats[a]);
 			}
 
 			mti->deformMatricesEM(md, ob, em, dm, deformedVerts, defmats,
@@ -2554,11 +2554,11 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 
 		if (mf->v4) {
 			v4= &mvert[mf->v4];
-			CalcNormFloat4(v4->co, v3->co, v2->co, v1->co, fno);
+			normal_quad_v3( fno,v4->co, v3->co, v2->co, v1->co);
 		}
 		else {
 			v4= NULL;
-			CalcNormFloat(v3->co, v2->co, v1->co, fno);
+			normal_tri_v3( fno,v3->co, v2->co, v1->co);
 		}
 		
 		if(mtface) {
@@ -2569,11 +2569,11 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 		}
 		else {
 			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
-			spheremap(orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2], &uv[0][0], &uv[0][1]);
-			spheremap(orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2], &uv[1][0], &uv[1][1]);
-			spheremap(orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2], &uv[2][0], &uv[2][1]);
+			map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
+			map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
+			map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
 			if(v4)
-				spheremap(orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2], &uv[3][0], &uv[3][1]);
+				map_to_sphere( &uv[3][0], &uv[3][1],orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
 		}
 		
 		tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, fno, tang);
@@ -2603,11 +2603,11 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 		}
 		else {
 			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
-			spheremap(orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2], &uv[0][0], &uv[0][1]);
-			spheremap(orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2], &uv[1][0], &uv[1][1]);
-			spheremap(orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2], &uv[2][0], &uv[2][1]);
+			map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
+			map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
+			map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
 			if(len==4)
-				spheremap(orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2], &uv[3][0], &uv[3][1]);
+				map_to_sphere( &uv[3][0], &uv[3][1],orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
 		}
 		
 		mf_vi[0]= mf->v1;
@@ -2619,7 +2619,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 			vtang= find_vertex_tangent(vtangents[mf_vi[j]], mtface ? tf->uv[j] : uv[j]);
 
 			VECCOPY(tangent[j], vtang);
-			Normalize(tangent[j]);
+			normalize_v3(tangent[j]);
 		}
 	}
 	

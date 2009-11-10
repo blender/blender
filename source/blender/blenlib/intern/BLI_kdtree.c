@@ -34,7 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_kdtree.h"
 
 #define SWAP(type, a, b) { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
@@ -76,8 +76,8 @@ void BLI_kdtree_insert(KDTree *tree, int index, float *co, float *nor)
 	KDTreeNode *node= &tree->nodes[tree->totnode++];
 
 	node->index= index;
-	VecCopyf(node->co, co);
-	if(nor) VecCopyf(node->nor, nor);
+	copy_v3_v3(node->co, co);
+	if(nor) copy_v3_v3(node->nor, nor);
 }
 
 static KDTreeNode *kdtree_balance(KDTreeNode *nodes, int totnode, int axis)
@@ -225,7 +225,7 @@ int	BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *
 	if(nearest) {
 		nearest->index= min_node->index;
 		nearest->dist= sqrt(min_dist);
-		VecCopyf(nearest->co, min_node->co);
+		copy_v3_v3(nearest->co, min_node->co);
 	}
 
 	if(stack != defaultstack)
@@ -249,7 +249,7 @@ static void add_nearest(KDTreeNearest *ptn, int *found, int n, int index, float 
 
 	ptn[i].index= index;
 	ptn[i].dist= dist;
-	VecCopyf(ptn[i].co, co);
+	copy_v3_v3(ptn[i].co, co);
 }
 
 /* finds the nearest n entries in tree to specified coordinates */
@@ -366,7 +366,7 @@ static void add_in_range(KDTreeNearest **ptn, int found, int *totfoundstack, int
 
 	to->index = index;
 	to->dist = sqrt(dist);
-	VecCopyf(to->co, co);
+	copy_v3_v3(to->co, co);
 }
 int BLI_kdtree_range_search(KDTree *tree, float range, float *co, float *nor, KDTreeNearest **nearest)
 {

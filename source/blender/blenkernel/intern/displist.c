@@ -56,7 +56,7 @@
 #include "DNA_key_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 
@@ -220,12 +220,12 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 					
 					for(; b<dl->nr; b++) {
 	
-						CalcNormFloat4(v1, v3, v4, v2, nor);
+						normal_quad_v3( nor,v1, v3, v4, v2);
 	
-						VecAddf(n1, n1, nor);
-						VecAddf(n2, n2, nor);
-						VecAddf(n3, n3, nor);
-						VecAddf(n4, n4, nor);
+						add_v3_v3v3(n1, n1, nor);
+						add_v3_v3v3(n2, n2, nor);
+						add_v3_v3v3(n3, n3, nor);
+						add_v3_v3v3(n4, n4, nor);
 	
 						v2= v1; v1+= 3;
 						v4= v3; v3+= 3;
@@ -236,7 +236,7 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 				a= dl->parts*dl->nr;
 				v1= ndata;
 				while(a--) {
-					Normalize(v1);
+					normalize_v3(v1);
 					v1+= 3;
 				}
 			}
@@ -475,11 +475,11 @@ static void init_fastshade_for_ob(Render *re, Object *ob, int *need_orco_r, floa
 	init_fastshade_shadeinput(re);
 	
 	RE_DataBase_GetView(re, tmat);
-	Mat4MulMat4(mat, ob->obmat, tmat);
+	mul_m4_m4m4(mat, ob->obmat, tmat);
 	
-	Mat4Invert(tmat, mat);
-	Mat3CpyMat4(imat, tmat);
-	if(ob->transflag & OB_NEG_SCALE) Mat3MulFloat((float *)imat, -1.0);
+	invert_m4_m4(tmat, mat);
+	copy_m3_m4(imat, tmat);
+	if(ob->transflag & OB_NEG_SCALE) mul_m3_fl((float *)imat, -1.0);
 	
 	if (need_orco_r) *need_orco_r= 0;
 	for(a=0; a<ob->totcol; a++) {
@@ -563,7 +563,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 		vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-		Normalize(vn);
+		normalize_v3(vn);
 	}		
 
 	for (i=0; i<totface; i++) {
@@ -586,15 +586,15 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 			VECCOPY(nor, &nors[i*3]);
 		} else {
 			if (mf->v4)
-				CalcNormFloat4(mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co, mvert[mf->v4].co, nor);
+				normal_quad_v3( nor,mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co, mvert[mf->v4].co);
 			else
-				CalcNormFloat(mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co, nor);
+				normal_tri_v3( nor,mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co);
 		}
 
 		n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 		n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
 		n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-		Normalize(n1);
+		normalize_v3(n1);
 
 		for (j=0; j<nverts; j++) {
 			MVert *mv= &mvert[vidx[j]];
@@ -603,7 +603,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 			float *vn = (mf->flag & ME_SMOOTH)?&vnors[3*vidx[j]]:n1;
 			
 			VECCOPY(vec, mv->co);
-			Mat4MulVecfl(mat, vec);
+			mul_m4_v3(mat, vec);
 			vec[0]+= 0.001*vn[0];
 			vec[1]+= 0.001*vn[1];
 			vec[2]+= 0.001*vn[2];
@@ -708,14 +708,14 @@ void shadeDispList(Scene *scene, Base *base)
 						n1[0]= imat[0][0]*dl->nors[0]+imat[0][1]*dl->nors[1]+imat[0][2]*dl->nors[2];
 						n1[1]= imat[1][0]*dl->nors[0]+imat[1][1]*dl->nors[1]+imat[1][2]*dl->nors[2];
 						n1[2]= imat[2][0]*dl->nors[0]+imat[2][1]*dl->nors[1]+imat[2][2]*dl->nors[2];
-						Normalize(n1);
+						normalize_v3(n1);
 						
 						fp= dl->verts;
 						
 						a= dl->nr;		
 						while(a--) {
 							VECCOPY(vec, fp);
-							Mat4MulVecfl(mat, vec);
+							mul_m4_v3(mat, vec);
 							
 							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
@@ -731,12 +731,12 @@ void shadeDispList(Scene *scene, Base *base)
 						
 						while(a--) {
 							VECCOPY(vec, fp);
-							Mat4MulVecfl(mat, vec);
+							mul_m4_v3(mat, vec);
 							
 							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
 							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-							Normalize(n1);
+							normalize_v3(n1);
 				
 							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
@@ -769,13 +769,13 @@ void shadeDispList(Scene *scene, Base *base)
 						a= dl->nr;		
 						while(a--) {
 							VECCOPY(vec, fp);
-							Mat4MulVecfl(mat, vec);
+							mul_m4_v3(mat, vec);
 							
 							/* transpose ! */
 							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
 							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-							Normalize(n1);
+							normalize_v3(n1);
 						
 							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
@@ -1612,7 +1612,7 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 										vec[1]= fp1[2];
 										vec[2]= 0.0;
 										
-										QuatMulVecf(bevp->quat, vec);
+										mul_qt_v3(bevp->quat, vec);
 										
 										data[0]= bevp->vec[0] + fac*vec[0];
 										data[1]= bevp->vec[1] + fac*vec[1];

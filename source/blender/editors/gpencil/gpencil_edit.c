@@ -37,7 +37,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "DNA_listBase.h"
@@ -368,7 +368,7 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 	
 	if (gps->flag & GP_STROKE_3DSPACE) {
 		/* directly use 3d-coordinates */
-		VecCopyf(p3d, &pt->x);
+		copy_v3_v3(p3d, &pt->x);
 	}
 	else {
 		float *fp= give_cursor(scene, v3d);
@@ -393,7 +393,7 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 		 */
 		project_short_noclip(ar, fp, mval);
 		window_to_3d(ar, dvec, mval[0]-mx, mval[1]-my);
-		VecSubf(p3d, fp, dvec);
+		sub_v3_v3v3(p3d, fp, dvec);
 	}
 }
 
@@ -424,7 +424,7 @@ static void gp_stroke_to_path (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cur
 		
 		/* get coordinates to add at */
 		gp_strokepoint_convertcoords(C, gps, pt, p3d);
-		VecCopyf(bp->vec, p3d);
+		copy_v3_v3(bp->vec, p3d);
 		
 		/* set settings */
 		bp->f1= SELECT;
@@ -460,9 +460,9 @@ static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, C
 		gp_strokepoint_convertcoords(C, gps, pt, p3d);
 		
 		/* TODO: maybe in future the handles shouldn't be in same place */
-		VecCopyf(bezt->vec[0], p3d);
-		VecCopyf(bezt->vec[1], p3d);
-		VecCopyf(bezt->vec[2], p3d);
+		copy_v3_v3(bezt->vec[0], p3d);
+		copy_v3_v3(bezt->vec[1], p3d);
+		copy_v3_v3(bezt->vec[2], p3d);
 		
 		/* set settings */
 		bezt->h1= bezt->h2= HD_FREE;

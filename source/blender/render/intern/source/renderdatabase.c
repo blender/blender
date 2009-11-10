@@ -60,7 +60,7 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
@@ -448,8 +448,8 @@ int RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, floa
 	if(obi->flag & R_TRANSFORMED) {
 		VECCOPY(nor, vlr->n);
 		
-		Mat3MulVecfl(nmat, nor);
-		Normalize(nor);
+		mul_m3_v3(nmat, nor);
+		normalize_v3(nor);
 	}
 	else
 		VECCOPY(nor, vlr->n);
@@ -462,7 +462,7 @@ int RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, floa
 		else {
 			VECCOPY(v1, vlr->v1->co);
 			if(obi->flag & R_TRANSFORMED)
-				Mat4MulVecfl(obi->mat, v1);
+				mul_m4_v3(obi->mat, v1);
 			if(INPR(v1, nor) < 0.0f) {
 				flipped= 1;
 			}
@@ -995,12 +995,12 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 
 		har->sin= sin(zn);
 		har->cos= cos(zn);
-		zn= VecLenf(vec1, vec);
+		zn= len_v3v3(vec1, vec);
 
 		har->hasize= vectsize*zn + (1.0-vectsize)*hasize;
 		
-		VecSubf(har->no, vec, vec1);
-		Normalize(har->no);
+		sub_v3_v3v3(har->no, vec, vec1);
+		normalize_v3(har->no);
 	}
 
 	if(ma->mode & MA_HALO_XALPHA) har->type |= HA_XALPHA;
@@ -1035,7 +1035,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 				/* texvec[0]+= imatbase->ivec[0]; */
 				/* texvec[1]+= imatbase->ivec[1]; */
 				/* texvec[2]+= imatbase->ivec[2]; */
-				/* Mat3MulVecfl(imatbase->imat, texvec); */
+				/* mul_m3_v3(imatbase->imat, texvec); */
 			}
 			else {
 				if(orco) {
@@ -1108,12 +1108,12 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 
 		har->sin= sin(zn);
 		har->cos= cos(zn);
-		zn= VecLenf(vec1, vec)*0.5;
+		zn= len_v3v3(vec1, vec)*0.5;
 
 		har->hasize= vectsize*zn + (1.0-vectsize)*hasize;
 		
-		VecSubf(har->no, vec, vec1);
-		Normalize(har->no);
+		sub_v3_v3v3(har->no, vec, vec1);
+		normalize_v3(har->no);
 	}
 
 	if(ma->mode & MA_HALO_XALPHA) har->type |= HA_XALPHA;
@@ -1149,13 +1149,13 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				if(mtex->object){
 					float imat[4][4];
 					/* imat should really be cached somewhere before this */
-					Mat4Invert(imat,mtex->object->obmat);
-					Mat4MulVecfl(imat,texvec);
+					invert_m4_m4(imat,mtex->object->obmat);
+					mul_m4_v3(imat,texvec);
 				}
 				/* texvec[0]+= imatbase->ivec[0]; */
 				/* texvec[1]+= imatbase->ivec[1]; */
 				/* texvec[2]+= imatbase->ivec[2]; */
-				/* Mat3MulVecfl(imatbase->imat, texvec); */
+				/* mul_m3_v3(imatbase->imat, texvec); */
 			}
 			else if(mtex->texco & TEXCO_GLOB){
 				VECCOPY(texvec,vec);
@@ -1349,10 +1349,10 @@ ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, 
 	obi->lay= lay;
 
 	if(mat) {
-		Mat4CpyMat4(obi->mat, mat);
-		Mat3CpyMat4(mat3, mat);
-		Mat3Inv(obi->nmat, mat3);
-		Mat3Transp(obi->nmat);
+		copy_m4_m4(obi->mat, mat);
+		copy_m3_m4(mat3, mat);
+		invert_m3_m3(obi->nmat, mat3);
+		transpose_m3(obi->nmat);
 		obi->flag |= R_DUPLI_TRANSFORMED;
 	}
 
@@ -1395,14 +1395,14 @@ int clip_render_object(float boundbox[][3], float *bounds, float winmat[][4])
 	float mat[4][4], vec[4];
 	int a, fl, flag= -1;
 
-	Mat4CpyMat4(mat, winmat);
+	copy_m4_m4(mat, winmat);
 
 	for(a=0; a<8; a++) {
 		vec[0]= (a & 1)? boundbox[0][0]: boundbox[1][0];
 		vec[1]= (a & 2)? boundbox[0][1]: boundbox[1][1];
 		vec[2]= (a & 4)? boundbox[0][2]: boundbox[1][2];
 		vec[3]= 1.0;
-		Mat4MulVec4fl(mat, vec);
+		mul_m4_v4(mat, vec);
 
 		fl= 0;
 		if(bounds) {

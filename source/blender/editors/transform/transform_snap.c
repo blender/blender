@@ -47,7 +47,7 @@
 
 #include "RNA_access.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_blenlib.h"
 
@@ -145,8 +145,8 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			
 			size *= 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
 			
-			Mat4CpyMat4(tmat, rv3d->viewmat);
-			Mat4Invert(imat, tmat);
+			copy_m4_m4(tmat, rv3d->viewmat);
+			invert_m4_m4(imat, tmat);
 
 			drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, size, imat);
 			
@@ -229,7 +229,7 @@ void applyProject(TransInfo *t)
 	
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob = t->obedit?t->obedit:t->poseobj;
-			Mat4Invert(imat, ob->obmat);
+			invert_m4_m4(imat, ob->obmat);
 		}
 
 		for(i = 0 ; i < t->total; i++, td++) {
@@ -247,7 +247,7 @@ void applyProject(TransInfo *t)
 			if (t->flag & (T_EDIT|T_POSE))
 			{
 				Object *ob = t->obedit?t->obedit:t->poseobj;
-				Mat4MulVecfl(ob->obmat, iloc);
+				mul_m4_v3(ob->obmat, iloc);
 			}
 			else if (t->flag & T_OBJECT)
 			{
@@ -259,14 +259,14 @@ void applyProject(TransInfo *t)
 			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.mode))
 			{
 //				if(t->flag & (T_EDIT|T_POSE)) {
-//					Mat4MulVecfl(imat, loc);
+//					mul_m4_v3(imat, loc);
 //				}
 //				
-				VecSubf(tvec, loc, iloc);
+				sub_v3_v3v3(tvec, loc, iloc);
 				
-				Mat3MulVecfl(td->smtx, tvec);
+				mul_m3_v3(td->smtx, tvec);
 				
-				VecAddf(td->loc, td->loc, tvec);
+				add_v3_v3v3(td->loc, td->loc, tvec);
 			}
 			
 			//XXX constraintTransLim(t, td);
@@ -331,7 +331,7 @@ int validSnappingNormal(TransInfo *t)
 {
 	if ((t->tsnap.status & (POINT_INIT|TARGET_INIT)) == (POINT_INIT|TARGET_INIT))
 	{
-		if (Inpf(t->tsnap.snapNormal, t->tsnap.snapNormal) > 0)
+		if (dot_v3v3(t->tsnap.snapNormal, t->tsnap.snapNormal) > 0)
 		{
 			return 1;
 		}
@@ -365,7 +365,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 			{
 				t->tsnap.align = RNA_boolean_get(op->ptr, "snap_align");
 				RNA_float_get_array(op->ptr, "snap_normal", t->tsnap.snapNormal);
-				Normalize(t->tsnap.snapNormal);
+				normalize_v3(t->tsnap.snapNormal);
 			}
 
 			if (RNA_struct_find_property(op->ptr, "snap_project"))
@@ -500,7 +500,7 @@ void setSnappingCallback(TransInfo *t, short snap_target)
 
 void ApplySnapTranslation(TransInfo *t, float vec[3])
 {
-	VecSubf(vec, t->tsnap.snapPoint, t->tsnap.snapTarget);
+	sub_v3_v3v3(vec, t->tsnap.snapPoint, t->tsnap.snapTarget);
 }
 
 void ApplySnapRotation(TransInfo *t, float *vec)
@@ -527,7 +527,7 @@ void ApplySnapResize(TransInfo *t, float vec[3])
 
 float TranslationBetween(TransInfo *t, float p1[3], float p2[3])
 {
-	return VecLenf(p1, p2);
+	return len_v3v3(p1, p2);
 }
 
 float RotationBetween(TransInfo *t, float p1[3], float p2[3])
@@ -537,11 +537,11 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 	VECCOPY(center, t->center);	
 	if(t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= t->obedit?t->obedit:t->poseobj;
-		Mat4MulVecfl(ob->obmat, center);
+		mul_m4_v3(ob->obmat, center);
 	}
 
-	VecSubf(start, p1, center);
-	VecSubf(end, p2, center);	
+	sub_v3_v3v3(start, p1, center);
+	sub_v3_v3v3(end, p2, center);	
 		
 	// Angle around a constraint axis (error prone, will need debug)
 	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
@@ -549,29 +549,29 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 		
 		t->con.applyRot(t, NULL, axis, NULL);
 
-		Projf(tmp, end, axis);
-		VecSubf(end, end, tmp);
+		project_v3_v3v3(tmp, end, axis);
+		sub_v3_v3v3(end, end, tmp);
 		
-		Projf(tmp, start, axis);
-		VecSubf(start, start, tmp);
+		project_v3_v3v3(tmp, start, axis);
+		sub_v3_v3v3(start, start, tmp);
 		
-		Normalize(end);
-		Normalize(start);
+		normalize_v3(end);
+		normalize_v3(start);
 		
-		Crossf(tmp, start, end);
+		cross_v3_v3v3(tmp, start, end);
 		
-		if (Inpf(tmp, axis) < 0.0)
-			angle = -acos(Inpf(start, end));
+		if (dot_v3v3(tmp, axis) < 0.0)
+			angle = -acos(dot_v3v3(start, end));
 		else	
-			angle = acos(Inpf(start, end));
+			angle = acos(dot_v3v3(start, end));
 	}
 	else {
 		float mtx[3][3];
 		
-		Mat3CpyMat4(mtx, t->viewmat);
+		copy_m3_m4(mtx, t->viewmat);
 
-		Mat3MulVecfl(mtx, end);
-		Mat3MulVecfl(mtx, start);
+		mul_m3_v3(mtx, end);
+		mul_m3_v3(mtx, start);
 		
 		angle = atan2(start[1],start[0]) - atan2(end[1],end[0]);
 	}
@@ -593,18 +593,18 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 	VECCOPY(center, t->center);	
 	if(t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= t->obedit?t->obedit:t->poseobj;
-		Mat4MulVecfl(ob->obmat, center);
+		mul_m4_v3(ob->obmat, center);
 	}
 
-	VecSubf(d1, p1, center);
-	VecSubf(d2, p2, center);
+	sub_v3_v3v3(d1, p1, center);
+	sub_v3_v3v3(d2, p2, center);
 	
 	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
-		Mat3MulVecfl(t->con.pmtx, d1);
-		Mat3MulVecfl(t->con.pmtx, d2);
+		mul_m3_v3(t->con.pmtx, d1);
+		mul_m3_v3(t->con.pmtx, d2);
 	}
 	
-	return VecLength(d2) / VecLength(d1);
+	return len_v3(d2) / len_v3(d1);
 }
 
 /********************** CALC **************************/
@@ -685,8 +685,8 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 					{
 						p2->flag = 1;
 						
-						VecAddf(vec, p1->p, p2->p);
-						VecMulf(vec, 0.5f);
+						add_v3_v3v3(vec, p1->p, p2->p);
+						mul_v3_fl(vec, 0.5f);
 					}
 					else
 					{
@@ -700,7 +700,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 						break;
 					}
 					
-					new_dist = VecLenf(last_p, vec);
+					new_dist = len_v3v3(last_p, vec);
 					
 					if (new_dist < dist)
 					{
@@ -727,10 +727,10 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		{
 			float tangent[3];
 			
-			VecSubf(tangent, loc, t->tsnap.snapPoint);
+			sub_v3_v3v3(tangent, loc, t->tsnap.snapPoint);
 			tangent[2] = 0; 
 			
-			if (Inpf(tangent, tangent) > 0)
+			if (dot_v3v3(tangent, tangent) > 0)
 			{
 				VECCOPY(t->tsnap.snapTangent, tangent);
 			}
@@ -759,7 +759,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			t->tsnap.snapPoint[0] *= aspx;
 			t->tsnap.snapPoint[1] *= aspy;
 
-			Mat4MulVecfl(t->obedit->obmat, t->tsnap.snapPoint);
+			mul_m4_v3(t->obedit->obmat, t->tsnap.snapPoint);
 			
 			t->tsnap.status |=  POINT_INIT;
 		}
@@ -780,7 +780,7 @@ void TargetSnapCenter(TransInfo *t)
 		VECCOPY(t->tsnap.snapTarget, t->center);	
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
-			Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
+			mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
 		}
 		
 		t->tsnap.status |= TARGET_INIT;		
@@ -811,7 +811,7 @@ void TargetSnapActive(TransInfo *t)
 				
 			if(t->flag & (T_EDIT|T_POSE)) {
 				Object *ob= t->obedit?t->obedit:t->poseobj;
-				Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
+				mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
 			}
 			
 			t->tsnap.status |= TARGET_INIT;
@@ -840,14 +840,14 @@ void TargetSnapMedian(TransInfo *t)
 		
 		for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 		{
-			VecAddf(t->tsnap.snapTarget, t->tsnap.snapTarget, td->center);
+			add_v3_v3v3(t->tsnap.snapTarget, t->tsnap.snapTarget, td->center);
 		}
 		
-		VecMulf(t->tsnap.snapTarget, 1.0 / i);
+		mul_v3_fl(t->tsnap.snapTarget, 1.0 / i);
 		
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
-			Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
+			mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
 		}
 		
 		t->tsnap.status |= TARGET_INIT;		
@@ -879,7 +879,7 @@ void TargetSnapClosest(TransInfo *t)
 						float dist;
 						
 						VECCOPY(loc, bb->vec[j]);
-						Mat4MulVecfl(td->ext->obmat, loc);
+						mul_m4_v3(td->ext->obmat, loc);
 						
 						dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 						
@@ -922,7 +922,7 @@ void TargetSnapClosest(TransInfo *t)
 				
 				if(t->flag & (T_EDIT|T_POSE)) {
 					Object *ob= t->obedit?t->obedit:t->poseobj;
-					Mat4MulVecfl(ob->obmat, loc);
+					mul_m4_v3(ob->obmat, loc);
 				}
 				
 				dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
@@ -947,7 +947,7 @@ int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], float *v4
 	int result;
 	int retval = 0;
 	
-	result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, v1co, v2co, v3co, &lambda, NULL, 0.001);
+	result = isect_ray_tri_threshold_v3(ray_start_local, ray_normal_local, v1co, v2co, v3co, &lambda, NULL, 0.001);
 	
 	if (result) {
 		float location[3], normal[3];
@@ -957,19 +957,19 @@ int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], float *v4
 		int new_dist;
 		
 		VECCOPY(intersect, ray_normal_local);
-		VecMulf(intersect, lambda);
-		VecAddf(intersect, intersect, ray_start_local);
+		mul_v3_fl(intersect, lambda);
+		add_v3_v3v3(intersect, intersect, ray_start_local);
 		
 		VECCOPY(location, intersect);
 		
 		if (v4co)
-			CalcNormFloat4(v1co, v2co, v3co, v4co, normal);
+			normal_quad_v3( normal,v1co, v2co, v3co, v4co);
 		else
-			CalcNormFloat(v1co, v2co, v3co, normal);
+			normal_tri_v3( normal,v1co, v2co, v3co);
 
-		Mat4MulVecfl(obmat, location);
+		mul_m4_v3(obmat, location);
 		
-		new_depth = VecLenf(location, ray_start);					
+		new_depth = len_v3v3(location, ray_start);					
 		
 		project_int(ar, location, screen_loc);
 		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
@@ -982,8 +982,8 @@ int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], float *v4
 			VECCOPY(loc, location);
 			VECCOPY(no, normal);
 			
-			Mat3MulVecfl(timat, no);
-			Normalize(no);
+			mul_m3_v3(timat, no);
+			normalize_v3(no);
 
 			*dist = new_dist;
 		} 
@@ -999,10 +999,10 @@ int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2n
 	int retval = 0;
 	
 	VECCOPY(ray_end, ray_normal_local);
-	VecMulf(ray_end, 2000);
-	VecAddf(ray_end, ray_start_local, ray_end);
+	mul_v3_fl(ray_end, 2000);
+	add_v3_v3v3(ray_end, ray_start_local, ray_end);
 	
-	result = LineIntersectLine(v1co, v2co, ray_start_local, ray_end, intersect, dvec); /* dvec used but we don't care about result */
+	result = isect_line_line_v3(v1co, v2co, ray_start_local, ray_end, intersect, dvec); /* dvec used but we don't care about result */
 	
 	if (result)
 	{
@@ -1010,12 +1010,12 @@ int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2n
 		float mul;
 	
 		/* check for behind ray_start */
-		VecSubf(dvec, intersect, ray_start_local);
+		sub_v3_v3v3(dvec, intersect, ray_start_local);
 		
-		VecSubf(edge_loc, v1co, v2co);
-		VecSubf(vec, intersect, v2co);
+		sub_v3_v3v3(edge_loc, v1co, v2co);
+		sub_v3_v3v3(vec, intersect, v2co);
 		
-		mul = Inpf(vec, edge_loc) / Inpf(edge_loc, edge_loc);
+		mul = dot_v3v3(vec, edge_loc) / dot_v3v3(edge_loc, edge_loc);
 		
 		if (mul > 1) {
 			mul = 1;
@@ -1026,7 +1026,7 @@ int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2n
 			VECCOPY(intersect, v2co);
 		}
 
-		if (Inpf(ray_normal_local, dvec) > 0)
+		if (dot_v3v3(ray_normal_local, dvec) > 0)
 		{
 			float location[3];
 			float new_depth;
@@ -1035,9 +1035,9 @@ int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2n
 			
 			VECCOPY(location, intersect);
 			
-			Mat4MulVecfl(obmat, location);
+			mul_m4_v3(obmat, location);
 			
-			new_depth = VecLenf(location, ray_start);					
+			new_depth = len_v3v3(location, ray_start);					
 			
 			project_int(ar, location, screen_loc);
 			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
@@ -1053,18 +1053,18 @@ int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2n
 				*depth = new_depth;
 				retval = 1;
 				
-				VecSubf(edge_loc, v1co, v2co);
-				VecSubf(vec, intersect, v2co);
+				sub_v3_v3v3(edge_loc, v1co, v2co);
+				sub_v3_v3v3(vec, intersect, v2co);
 				
-				mul = Inpf(vec, edge_loc) / Inpf(edge_loc, edge_loc);
+				mul = dot_v3v3(vec, edge_loc) / dot_v3v3(edge_loc, edge_loc);
 				
 				if (no)
 				{
-					NormalShortToFloat(n1, v1no);						
-					NormalShortToFloat(n2, v2no);
-					VecLerpf(no, n2, n1, mul);
-					Mat3MulVecfl(timat, no);
-					Normalize(no);
+					normal_short_to_float_v3(n1, v1no);						
+					normal_short_to_float_v3(n2, v2no);
+					interp_v3_v3v3(no, n2, n1, mul);
+					mul_m3_v3(timat, no);
+					normalize_v3(no);
 				}			
 
 				VECCOPY(loc, location);
@@ -1082,9 +1082,9 @@ int snapVertex(ARegion *ar, float vco[3], short vno[3], float mval[2], float ray
 	int retval = 0;
 	float dvec[3];
 	
-	VecSubf(dvec, vco, ray_start_local);
+	sub_v3_v3v3(dvec, vco, ray_start_local);
 	
-	if (Inpf(ray_normal_local, dvec) > 0)
+	if (dot_v3v3(ray_normal_local, dvec) > 0)
 	{
 		float location[3];
 		float new_depth;
@@ -1093,9 +1093,9 @@ int snapVertex(ARegion *ar, float vco[3], short vno[3], float mval[2], float ray
 		
 		VECCOPY(location, vco);
 		
-		Mat4MulVecfl(obmat, location);
+		mul_m4_v3(obmat, location);
 		
-		new_depth = VecLenf(location, ray_start);					
+		new_depth = len_v3v3(location, ray_start);					
 		
 		project_int(ar, location, screen_loc);
 		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
@@ -1109,9 +1109,9 @@ int snapVertex(ARegion *ar, float vco[3], short vno[3], float mval[2], float ray
 			
 			if (no)
 			{
-				NormalShortToFloat(no, vno);
-				Mat3MulVecfl(timat, no);
-				Normalize(no);
+				normal_short_to_float_v3(no, vno);
+				mul_m3_v3(timat, no);
+				normalize_v3(no);
 			}
 
 			*dist = new_dist;
@@ -1127,13 +1127,13 @@ int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float
 	float ray_start_local[3], ray_normal_local[3];
 	int retval = 0;
 
-	Mat4Invert(imat, obmat);
+	invert_m4_m4(imat, obmat);
 
 	VECCOPY(ray_start_local, ray_start);
 	VECCOPY(ray_normal_local, ray_normal);
 	
-	Mat4MulVecfl(imat, ray_start_local);
-	Mat4Mul3Vecfl(imat, ray_normal_local);
+	mul_m4_v3(imat, ray_start_local);
+	mul_mat3_m4_v3(imat, ray_normal_local);
 
 	if(arm->edbo)
 	{
@@ -1198,16 +1198,16 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 		float ray_start_local[3], ray_normal_local[3];
 		int test = 1;
 
-		Mat4Invert(imat, obmat);
+		invert_m4_m4(imat, obmat);
 
-		Mat3CpyMat4(timat, imat);
-		Mat3Transp(timat);
+		copy_m3_m4(timat, imat);
+		transpose_m3(timat);
 		
 		VECCOPY(ray_start_local, ray_start);
 		VECCOPY(ray_normal_local, ray_normal);
 		
-		Mat4MulVecfl(imat, ray_start_local);
-		Mat4Mul3Vecfl(imat, ray_normal_local);
+		mul_m4_v3(imat, ray_start_local);
+		mul_mat3_m4_v3(imat, ray_normal_local);
 		
 		
 		/* If number of vert is more than an arbitrary limit, 
@@ -1587,16 +1587,16 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 		float ray_start_local[3], ray_normal_local[3];
 		int test = 1;
 
-		Mat4Invert(imat, obmat);
+		invert_m4_m4(imat, obmat);
 
-		Mat3CpyMat4(timat, imat);
-		Mat3Transp(timat);
+		copy_m3_m4(timat, imat);
+		transpose_m3(timat);
 		
 		VECCOPY(ray_start_local, ray_start);
 		VECCOPY(ray_normal_local, ray_normal);
 		
-		Mat4MulVecfl(imat, ray_start_local);
-		Mat4Mul3Vecfl(imat, ray_normal_local);
+		mul_m4_v3(imat, ray_start_local);
+		mul_mat3_m4_v3(imat, ray_normal_local);
 		
 		
 		/* If number of vert is more than an arbitrary limit, 
@@ -1618,7 +1618,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 				int result;
 				
 				
-				result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, &lambda, NULL, 0.001);
+				result = isect_ray_tri_threshold_v3(ray_start_local, ray_normal_local, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, &lambda, NULL, 0.001);
 				
 				if (result) {
 					float location[3], normal[3];
@@ -1626,29 +1626,29 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 					float new_depth;
 					
 					VECCOPY(intersect, ray_normal_local);
-					VecMulf(intersect, lambda);
-					VecAddf(intersect, intersect, ray_start_local);
+					mul_v3_fl(intersect, lambda);
+					add_v3_v3v3(intersect, intersect, ray_start_local);
 					
 					VECCOPY(location, intersect);
 					
 					if (f->v4)
-						CalcNormFloat4(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co, normal);
+						normal_quad_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co);
 					else
-						CalcNormFloat(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, normal);
+						normal_tri_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co);
 
-					Mat4MulVecfl(obmat, location);
+					mul_m4_v3(obmat, location);
 					
-					new_depth = VecLenf(location, ray_start);					
+					new_depth = len_v3v3(location, ray_start);					
 					
-					Mat3MulVecfl(timat, normal);
-					Normalize(normal);
+					mul_m3_v3(timat, normal);
+					normalize_v3(normal);
 
 					addDepthPeel(depth_peels, new_depth, location, normal, ob);
 				}
 		
 				if (f->v4 && result == 0)
 				{
-					result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL, 0.001);
+					result = isect_ray_tri_threshold_v3(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL, 0.001);
 					
 					if (result) {
 						float location[3], normal[3];
@@ -1656,22 +1656,22 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						float new_depth;
 						
 						VECCOPY(intersect, ray_normal_local);
-						VecMulf(intersect, lambda);
-						VecAddf(intersect, intersect, ray_start_local);
+						mul_v3_fl(intersect, lambda);
+						add_v3_v3v3(intersect, intersect, ray_start_local);
 						
 						VECCOPY(location, intersect);
 						
 						if (f->v4)
-							CalcNormFloat4(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co, normal);
+							normal_quad_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co);
 						else
-							CalcNormFloat(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, normal);
+							normal_tri_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co);
 
-						Mat4MulVecfl(obmat, location);
+						mul_m4_v3(obmat, location);
 						
-						new_depth = VecLenf(location, ray_start);					
+						new_depth = len_v3v3(location, ray_start);					
 						
-						Mat3MulVecfl(timat, normal);
-						Normalize(normal);
+						mul_m3_v3(timat, normal);
+						normalize_v3(normal);
 	
 						addDepthPeel(depth_peels, new_depth, location, normal, ob);
 					} 

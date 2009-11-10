@@ -49,7 +49,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -120,7 +120,7 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	
 	if(mval[0]!=IS_CLIPPED) {
 		window_to_3d_delta(vc->ar, dvec, mval[0]-mx, mval[1]-my);
-		VecSubf(fp, fp, dvec);
+		sub_v3_v3v3(fp, fp, dvec);
 	}
 }
 
@@ -129,7 +129,7 @@ void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
 	float cpy[4][4];
 	int i, j;
 
-	Mat4MulMat4(cpy, ob->obmat, vc->rv3d->viewmat);
+	mul_m4_m4m4(cpy, ob->obmat, vc->rv3d->viewmat);
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
@@ -326,9 +326,9 @@ int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, in
 	
 	/* no points in lasso, so we have to intersect with lasso edge */
 	
-	if( IsectLL2Ds(mcords[0], mcords[moves-1], v1, v2) > 0) return 1;
+	if( isect_line_line_v2_short(mcords[0], mcords[moves-1], v1, v2) > 0) return 1;
 	for(a=0; a<moves-1; a++) {
-		if( IsectLL2Ds(mcords[a], mcords[a+1], v1, v2) > 0) return 1;
+		if( isect_line_line_v2_short(mcords[a], mcords[a+1], v1, v2) > 0) return 1;
 	}
 	
 	return 0;
@@ -349,10 +349,10 @@ static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		VECCOPY(vec, pchan->pose_head);
-		Mat4MulVecfl(ob->obmat, vec);
+		mul_m4_v3(ob->obmat, vec);
 		project_short(vc->ar, vec, sco1);
 		VECCOPY(vec, pchan->pose_tail);
-		Mat4MulVecfl(ob->obmat, vec);
+		mul_m4_v3(ob->obmat, vec);
 		project_short(vc->ar, vec, sco2);
 		
 		if(lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
@@ -625,10 +625,10 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
 
 		VECCOPY(vec, ebone->head);
-		Mat4MulVecfl(vc->obedit->obmat, vec);
+		mul_m4_v3(vc->obedit->obmat, vec);
 		project_short(vc->ar, vec, sco1);
 		VECCOPY(vec, ebone->tail);
-		Mat4MulVecfl(vc->obedit->obmat, vec);
+		mul_m4_v3(vc->obedit->obmat, vec);
 		project_short(vc->ar, vec, sco2);
 		
 		didpoint= 0;
@@ -1227,7 +1227,7 @@ int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, 
 	v2[0]= x2;
 	v2[1]= y2;
 	
-	if( PdistVL2Dfl(v3, v1, v2) < (float)rad ) return 1;
+	if( dist_to_line_segment_v2(v3, v1, v2) < (float)rad ) return 1;
 	
 	return 0;
 }
@@ -1859,12 +1859,12 @@ static void armature_circle_select(ViewContext *vc, int selecting, short *mval, 
 		
 		/* project head location to screenspace */
 		VECCOPY(vec, ebone->head);
-		Mat4MulVecfl(vc->obedit->obmat, vec);
+		mul_m4_v3(vc->obedit->obmat, vec);
 		project_short(vc->ar, vec, sco1);
 		
 		/* project tail location to screenspace */
 		VECCOPY(vec, ebone->tail);
-		Mat4MulVecfl(vc->obedit->obmat, vec);
+		mul_m4_v3(vc->obedit->obmat, vec);
 		project_short(vc->ar, vec, sco2);
 		
 		/* check if the head and/or tail is in the circle 

@@ -30,7 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "RE_raytrace.h"
 #include "rayobject.h"
 
@@ -79,8 +79,8 @@ RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4],
 	obj->ob = ob;
 	obj->target_ob = target_ob;
 	
-	Mat4CpyMat4(obj->target2global, transform);
-	Mat4Invert(obj->global2target, obj->target2global);
+	copy_m4_m4(obj->target2global, transform);
+	invert_m4_m4(obj->global2target, obj->target2global);
 	
 	return RE_rayobject_unalignRayAPI((RayObject*) obj);
 }
@@ -111,10 +111,10 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 	//Transform to target coordinates system
 	VECADD( isec->vec, isec->vec, isec->start );	
 
-	Mat4MulVecfl(obj->global2target, isec->start);
-	Mat4MulVecfl(obj->global2target, isec->vec  );
+	mul_m4_v3(obj->global2target, isec->start);
+	mul_m4_v3(obj->global2target, isec->vec  );
 
-	isec->dist = VecLenf( isec->start, isec->vec );
+	isec->dist = len_v3v3( isec->start, isec->vec );
 	VECSUB( isec->vec, isec->vec, isec->start );
 	
 	isec->labda *= isec->dist / dist;
@@ -194,7 +194,7 @@ static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max)
 	for(i=0; i<8; i++)
 	{
 		for(j=0; j<3; j++) t[j] = i&(1<<j) ? M[j] : m[j];
-		Mat4MulVecfl(obj->target2global, t);
+		mul_m4_v3(obj->target2global, t);
 		DO_MINMAX(t, min, max);
 	}
 }

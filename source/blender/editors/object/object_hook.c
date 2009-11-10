@@ -30,7 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -77,12 +77,12 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->f & SELECT) {
 			*index= nr; index++;
-			VecAddf(cent, cent, eve->co);
+			add_v3_v3v3(cent, cent, eve->co);
 		}
 		nr++;
 	}
 	
-	VecMulf(cent, 1.0f/(float)totvert);
+	mul_v3_fl(cent, 1.0f/(float)totvert);
 	
 	return totvert;
 }
@@ -105,7 +105,7 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 				for(i=0; i<dvert->totweight; i++){
 					if(dvert->dw[i].def_nr == (obedit->actdef-1)) {
 						totvert++;
-						VecAddf(cent, cent, eve->co);
+						add_v3_v3v3(cent, cent, eve->co);
 					}
 				}
 			}
@@ -113,7 +113,7 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 		if(totvert) {
 			bDeformGroup *defGroup = BLI_findlink(&obedit->defbase, obedit->actdef-1);
 			strcpy(name, defGroup->name);
-			VecMulf(cent, 1.0f/(float)totvert);
+			mul_v3_fl(cent, 1.0f/(float)totvert);
 			return 1;
 		}
 	}
@@ -170,14 +170,14 @@ static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar
 		if(bp->f1 & SELECT) {
 			if(bp->hide==0) {
 				*index= nr; index++;
-				VecAddf(cent, cent, bp->vec);
+				add_v3_v3v3(cent, cent, bp->vec);
 			}
 		}
 		bp++;
 		nr++;
 	}
 	
-	VecMulf(cent, 1.0f/(float)totvert);
+	mul_v3_fl(cent, 1.0f/(float)totvert);
 	
 	return totvert;
 }
@@ -243,17 +243,17 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 			while(a--) {
 				if(bezt->f1 & SELECT) {
 					*index= nr; index++;
-					VecAddf(cent, cent, bezt->vec[0]);
+					add_v3_v3v3(cent, cent, bezt->vec[0]);
 				}
 				nr++;
 				if(bezt->f2 & SELECT) {
 					*index= nr; index++;
-					VecAddf(cent, cent, bezt->vec[1]);
+					add_v3_v3v3(cent, cent, bezt->vec[1]);
 				}
 				nr++;
 				if(bezt->f3 & SELECT) {
 					*index= nr; index++;
-					VecAddf(cent, cent, bezt->vec[2]);
+					add_v3_v3v3(cent, cent, bezt->vec[2]);
 				}
 				nr++;
 				bezt++;
@@ -265,7 +265,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					*index= nr; index++;
-					VecAddf(cent, cent, bp->vec);
+					add_v3_v3v3(cent, cent, bp->vec);
 				}
 				nr++;
 				bp++;
@@ -273,7 +273,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 		}
 	}
 	
-	VecMulf(cent, 1.0f/(float)totvert);
+	mul_v3_fl(cent, 1.0f/(float)totvert);
 	
 	return totvert;
 }
@@ -465,7 +465,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 				ob->lay= newbase->lay;
 				
 				/* transform cent to global coords for loc */
-				VecMat4MulVecfl(ob->loc, obedit->obmat, cent);
+				mul_v3_m4v3(ob->loc, obedit->obmat, cent);
 				
 				/* restore, add_object sets active */
 				BASACT= base;
@@ -489,7 +489,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		
 			hmd->object= ob;
 			hmd->indexar= indexar;
-			VecCopyf(hmd->cent, cent);
+			copy_v3_v3(hmd->cent, cent);
 			hmd->totindex= tot;
 			BLI_strncpy(hmd->name, name, 32);
 			
@@ -501,9 +501,9 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 				
 				where_is_object(scene, ob);
 				
-				Mat4Invert(ob->imat, ob->obmat);
+				invert_m4_m4(ob->imat, ob->obmat);
 				/* apparently this call goes from right to left... */
-				Mat4MulSerie(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
+				mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
 							 NULL, NULL, NULL, NULL, NULL);
 			}
 		}
@@ -520,9 +520,9 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		// FIXME: this is now OBJECT_OT_hook_reset operator
 		where_is_object(scene, ob);	/* ob is hook->parent */
 
-		Mat4Invert(ob->imat, ob->obmat);
+		invert_m4_m4(ob->imat, ob->obmat);
 		/* this call goes from right to left... */
-		Mat4MulSerie(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
+		mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
 					 NULL, NULL, NULL, NULL, NULL);
 	}
 
@@ -577,8 +577,8 @@ void hookmenu(Scene *scene, View3D *v3d)
 					
 					if (event==1) {
 						if(hmd->object) {
-							Mat4Invert(hmd->object->imat, hmd->object->obmat);
-							Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+							invert_m4_m4(hmd->object->imat, hmd->object->obmat);
+							mul_serie_m4(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 							
 							changed= 1;
 							DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -589,14 +589,14 @@ void hookmenu(Scene *scene, View3D *v3d)
 						
 						where_is_object(scene, ob);
 					
-						Mat3CpyMat4(bmat, ob->obmat);
-						Mat3Inv(imat, bmat);
+						copy_m3_m4(bmat, ob->obmat);
+						invert_m3_m3(imat, bmat);
 				
 						curs= give_cursor(scene, v3d);
 						hmd->cent[0]= curs[0]-ob->obmat[3][0];
 						hmd->cent[1]= curs[1]-ob->obmat[3][1];
 						hmd->cent[2]= curs[2]-ob->obmat[3][2];
-						Mat3MulVecfl(imat, hmd->cent);
+						mul_m3_v3(imat, hmd->cent);
 						
 						changed= 1;
 						DAG_id_flush_update(&ob->id, OB_RECALC_DATA);

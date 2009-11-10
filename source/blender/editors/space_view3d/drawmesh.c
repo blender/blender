@@ -31,7 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 
@@ -614,7 +614,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			if (!mf_smooth) {
 				float nor[3];
 
-				CalcNormFloat(v1, v2, v3, nor);
+				normal_tri_v3( nor,v1, v2, v3);
 
 				glNormal3fv(nor);
 			}

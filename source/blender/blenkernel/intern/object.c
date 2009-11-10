@@ -70,7 +70,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 
 #include "BKE_utildefines.h"
@@ -740,13 +740,13 @@ float dof_camera(Object *ob)
 		return 0.0f;
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
-		 * return VecLenf(ob->obmat[3], cam->dof_ob->obmat[3]); */
+		 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
 		float mat[4][4], obmat[4][4];
 		
-		Mat4CpyMat4(obmat, ob->obmat);
-		Mat4Ortho(obmat);
-		Mat4Invert(ob->imat, obmat);
-		Mat4MulMat4(mat, cam->dof_ob->obmat, ob->imat);
+		copy_m4_m4(obmat, ob->obmat);
+		normalize_m4(obmat);
+		invert_m4_m4(ob->imat, obmat);
+		mul_m4_m4m4(mat, cam->dof_ob->obmat, ob->imat);
 		return (float)fabs(mat[3][2]);
 	}
 	return cam->YF_dofdist;
@@ -965,8 +965,8 @@ Object *add_only_object(int type, char *name)
 	/* ob->transflag= OB_QUAT; */
 
 #if 0 /* not used yet */
-	QuatOne(ob->quat);
-	QuatOne(ob->dquat);
+	unit_qt(ob->quat);
+	unit_qt(ob->dquat);
 #endif 
 
 	ob->col[0]= ob->col[1]= ob->col[2]= 1.0;
@@ -976,9 +976,9 @@ Object *add_only_object(int type, char *name)
 	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 	ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 
-	Mat4One(ob->constinv);
-	Mat4One(ob->parentinv);
-	Mat4One(ob->obmat);
+	unit_m4(ob->constinv);
+	unit_m4(ob->parentinv);
+	unit_m4(ob->obmat);
 	ob->dt= OB_SHADED;
 	ob->empty_drawtype= OB_ARROWS;
 	ob->empty_drawsize= 1.0;
@@ -1464,7 +1464,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	}
 	
 	ob->parent= target->parent;	/* libdata */
-	Mat4CpyMat4(ob->parentinv, target->parentinv);
+	copy_m4_m4(ob->parentinv, target->parentinv);
 	
 	/* copy animdata stuff - drivers only for now... */
 	if ((target->adt) && (target->adt->drivers.first)) {
@@ -1588,7 +1588,7 @@ void object_scale_to_mat3(Object *ob, float mat[][3])
 	vec[0]= ob->size[0]+ob->dsize[0];
 	vec[1]= ob->size[1]+ob->dsize[1];
 	vec[2]= ob->size[2]+ob->dsize[2];
-	SizeToMat3(vec, mat);
+	size_to_mat3( mat,vec);
 }
 
 // TODO: this should take rotation orders into account later...
@@ -1599,29 +1599,29 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	/* initialise the delta-rotation matrix, which will get (pre)multiplied 
 	 * with the rotation matrix to yield the appropriate rotation
 	 */
-	Mat3One(dmat);
+	unit_m3(dmat);
 	
 	/* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
 	if (ob->rotmode > 0) {
 		/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
-		EulOToMat3(ob->rot, ob->rotmode, rmat);
-		EulOToMat3(ob->drot, ob->rotmode, dmat);
+		eulO_to_mat3( rmat,ob->rot, ob->rotmode);
+		eulO_to_mat3( dmat,ob->drot, ob->rotmode);
 	}
 	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
 		/* axis-angle -  not really that great for 3D-changing orientations */
-		AxisAngleToMat3(ob->rotAxis, ob->rotAngle, rmat);
-		AxisAngleToMat3(ob->drotAxis, ob->drotAngle, dmat);
+		axis_angle_to_mat3( rmat,ob->rotAxis, ob->rotAngle);
+		axis_angle_to_mat3( dmat,ob->drotAxis, ob->drotAngle);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */
-		NormalQuat(ob->quat);
-		QuatToMat3(ob->quat, rmat);
-		QuatToMat3(ob->dquat, dmat);
+		normalize_qt(ob->quat);
+		quat_to_mat3( rmat,ob->quat);
+		quat_to_mat3( dmat,ob->dquat);
 	}
 	
 	/* combine these rotations */
 	// XXX is this correct? if errors, change the order of multiplication...
-	Mat3MulMat3(mat, dmat, rmat);
+	mul_m3_m3m3(mat, dmat, rmat);
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -1635,7 +1635,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 
 	/* rot */
 	object_rot_to_mat3(ob, rmat);
-	Mat3MulMat3(mat, rmat, smat);
+	mul_m3_m3m3(mat, rmat, smat);
 }
 
 void object_to_mat4(Object *ob, float mat[][4])
@@ -1644,7 +1644,7 @@ void object_to_mat4(Object *ob, float mat[][4])
 	
 	object_to_mat3(ob, tmat);
 	
-	Mat4CpyMat3(mat, tmat);
+	copy_m4_m3(mat, tmat);
 	
 	mat[3][0]= ob->loc[0] + ob->dloc[0];
 	mat[3][1]= ob->loc[1] + ob->dloc[1];
@@ -1659,7 +1659,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	float q[4], vec[4], dir[3], quat[4], radius, x1, ctime;
 	float timeoffs = 0.0, sf_orig = 0.0;
 	
-	Mat4One(mat);
+	unit_m4(mat);
 	
 	cu= par->data;
 	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
@@ -1707,25 +1707,25 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
  	if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
 
 		if(cu->flag & CU_FOLLOW) {
-			vectoquat(dir, ob->trackflag, ob->upflag, quat);
+			vec_to_quat( quat,dir, ob->trackflag, ob->upflag);
 			
 			/* the tilt */
-			Normalize(dir);
+			normalize_v3(dir);
 			q[0]= (float)cos(0.5*vec[3]);
 			x1= (float)sin(0.5*vec[3]);
 			q[1]= -x1*dir[0];
 			q[2]= -x1*dir[1];
 			q[3]= -x1*dir[2];
-			QuatMul(quat, q, quat);
+			mul_qt_qtqt(quat, q, quat);
 			
-			QuatToMat4(quat, mat);
+			quat_to_mat4( mat,quat);
 		}
 		
 		if(cu->flag & CU_PATH_RADIUS) {
 			float tmat[4][4], rmat[4][4];
-			Mat4Scale(tmat, radius);
-			Mat4MulMat4(rmat, mat, tmat);
-			Mat4CpyMat4(mat, rmat);
+			scale_m4_fl(tmat, radius);
+			mul_m4_m4m4(rmat, mat, tmat);
+			copy_m4_m4(mat, rmat);
 		}
 
 		VECCOPY(mat[3], vec);
@@ -1739,7 +1739,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	float vec[3];
 	
 	if (par->type!=OB_ARMATURE) {
-		Mat4One(mat);
+		unit_m4(mat);
 		return;
 	}
 	
@@ -1747,17 +1747,17 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	pchan= get_pose_channel(par->pose, ob->parsubstr);
 	if (!pchan){
 		printf ("Object %s with Bone parent: bone %s doesn't exist\n", ob->id.name+2, ob->parsubstr);
-		Mat4One(mat);
+		unit_m4(mat);
 		return;
 	}
 
 	/* get bone transform */
-	Mat4CpyMat4(mat, pchan->pose_mat);
+	copy_m4_m4(mat, pchan->pose_mat);
 
 	/* but for backwards compatibility, the child has to move to the tail */
 	VECCOPY(vec, mat[1]);
-	VecMulf(vec, pchan->bone->length);
-	VecAddf(mat[3], mat[3], vec);
+	mul_v3_fl(vec, pchan->bone->length);
+	add_v3_v3v3(mat[3], mat[3], vec);
 }
 
 static void give_parvert(Object *par, int nr, float *vec)
@@ -1794,7 +1794,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 				for(i = 0; i < numVerts; ++i, ++index) {
 					if(*index == nr) {
 						dm->getVertCo(dm, i, co);
-						VecAddf(vec, vec, co);
+						add_v3_v3v3(vec, vec, co);
 						count++;
 					}
 				}
@@ -1802,7 +1802,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 				if (count==0) {
 					/* keep as 0,0,0 */
 				} else if(count > 0) {
-					VecMulf(vec, 1.0f / count);
+					mul_v3_fl(vec, 1.0f / count);
 				} else {
 					/* use first index if its out of range */
 					dm->getVertCo(dm, 0, vec);
@@ -1886,7 +1886,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	float cmat[3][3], v1[3], v2[3], v3[3], q[4];
 
 	/* in local ob space */
-	Mat4One(mat);
+	unit_m4(mat);
 	
 	if (ELEM4(par->type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE)) {
 		
@@ -1894,17 +1894,17 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 		give_parvert(par, ob->par2, v2);
 		give_parvert(par, ob->par3, v3);
 				
-		triatoquat(v1, v2, v3, q);
-		QuatToMat3(q, cmat);
-		Mat4CpyMat3(mat, cmat);
+		tri_to_quat( q,v1, v2, v3);
+		quat_to_mat3( cmat,q);
+		copy_m4_m3(mat, cmat);
 		
 		if(ob->type==OB_CURVE) {
 			VECCOPY(mat[3], v1);
 		}
 		else {
-			VecAddf(mat[3], v1, v2);
-			VecAddf(mat[3], mat[3], v3);
-			VecMulf(mat[3], 0.3333333f);
+			add_v3_v3v3(mat[3], v1, v2);
+			add_v3_v3v3(mat[3], mat[3], v3);
+			mul_v3_fl(mat[3], 0.3333333f);
 		}
 	}
 }
@@ -1992,8 +1992,8 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	}
 	
 	/* set negative scale flag in object */
-	Crossf(vec, ob->obmat[0], ob->obmat[1]);
-	if( Inpf(vec, ob->obmat[2]) < 0.0 ) ob->transflag |= OB_NEG_SCALE;
+	cross_v3_v3v3(vec, ob->obmat[0], ob->obmat[1]);
+	if( dot_v3v3(vec, ob->obmat[2]) < 0.0 ) ob->transflag |= OB_NEG_SCALE;
 	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
@@ -2007,7 +2007,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 	
 	object_to_mat4(ob, locmat);
 	
-	if(ob->partype & PARSLOW) Mat4CpyMat4(slowmat, obmat);
+	if(ob->partype & PARSLOW) copy_m4_m4(slowmat, obmat);
 
 	switch(ob->partype & PARTYPE) {
 	case PAROBJECT:
@@ -2019,43 +2019,43 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 			}
 		}
 		
-		if(ok) Mat4MulSerie(totmat, par->obmat, tmat, 
+		if(ok) mul_serie_m4(totmat, par->obmat, tmat, 
 			NULL, NULL, NULL, NULL, NULL, NULL);
-		else Mat4CpyMat4(totmat, par->obmat);
+		else copy_m4_m4(totmat, par->obmat);
 		
 		break;
 	case PARBONE:
 		ob_parbone(ob, par, tmat);
-		Mat4MulSerie(totmat, par->obmat, tmat,         
+		mul_serie_m4(totmat, par->obmat, tmat,         
 			NULL, NULL, NULL, NULL, NULL, NULL);
 		break;
 		
 	case PARVERT1:
-		Mat4One(totmat);
+		unit_m4(totmat);
 		if (simul){
 			VECCOPY(totmat[3], par->obmat[3]);
 		}
 		else{
 			give_parvert(par, ob->par1, vec);
-			VecMat4MulVecfl(totmat[3], par->obmat, vec);
+			mul_v3_m4v3(totmat[3], par->obmat, vec);
 		}
 		break;
 	case PARVERT3:
 		ob_parvert3(ob, par, tmat);
 		
-		Mat4MulSerie(totmat, par->obmat, tmat,         
+		mul_serie_m4(totmat, par->obmat, tmat,         
 			NULL, NULL, NULL, NULL, NULL, NULL);
 		break;
 		
 	case PARSKEL:
-		Mat4CpyMat4(totmat, par->obmat);
+		copy_m4_m4(totmat, par->obmat);
 		break;
 	}
 	
 	// total 
-	Mat4MulSerie(tmat, totmat, ob->parentinv,         
+	mul_serie_m4(tmat, totmat, ob->parentinv,         
 		NULL, NULL, NULL, NULL, NULL, NULL);
-	Mat4MulSerie(obmat, tmat, locmat,         
+	mul_serie_m4(obmat, tmat, locmat,         
 		NULL, NULL, NULL, NULL, NULL, NULL);
 	
 	if (simul) {
@@ -2063,7 +2063,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 	}
 	else{
 		// external usable originmat 
-		Mat3CpyMat4(originmat, tmat);
+		copy_m3_m4(originmat, tmat);
 		
 		// origin, voor help line
 		if( (ob->partype & 15)==PARSKEL ) {
@@ -2082,9 +2082,9 @@ void solve_tracking (Object *ob, float targetmat[][4])
 	float totmat[3][3];
 	float tmat[4][4];
 	
-	VecSubf(vec, ob->obmat[3], targetmat[3]);
-	vectoquat(vec, ob->trackflag, ob->upflag, quat);
-	QuatToMat3(quat, totmat);
+	sub_v3_v3v3(vec, ob->obmat[3], targetmat[3]);
+	vec_to_quat( quat,vec, ob->trackflag, ob->upflag);
+	quat_to_mat3( totmat,quat);
 	
 	if(ob->parent && (ob->transflag & OB_POWERTRACK)) {
 		/* 'temporal' : clear parent info */
@@ -2097,9 +2097,9 @@ void solve_tracking (Object *ob, float targetmat[][4])
 		tmat[3][2]= ob->obmat[3][2];
 		tmat[3][3]= ob->obmat[3][3];
 	}
-	else Mat4CpyMat4(tmat, ob->obmat);
+	else copy_m4_m4(tmat, ob->obmat);
 	
-	Mat4MulMat34(ob->obmat, totmat, tmat);
+	mul_m4_m3m4(ob->obmat, totmat, tmat);
 
 }
 
@@ -2171,9 +2171,9 @@ void what_does_parent(Scene *scene, Object *ob, Object *workob)
 {
 	clear_workob(workob);
 	
-	Mat4One(workob->obmat);
-	Mat4One(workob->parentinv);
-	Mat4One(workob->constinv);
+	unit_m4(workob->obmat);
+	unit_m4(workob->parentinv);
+	unit_m4(workob->constinv);
 	workob->parent= ob->parent;
 	workob->track= ob->track;
 
@@ -2261,7 +2261,7 @@ void minmax_object(Object *ob, float *min, float *max)
 		bb= *(cu->bb);
 		
 		for(a=0; a<8; a++) {
-			Mat4MulVecfl(ob->obmat, bb.vec[a]);
+			mul_m4_v3(ob->obmat, bb.vec[a]);
 			DO_MINMAX(bb.vec[a], min, max);
 		}
 		break;
@@ -2270,10 +2270,10 @@ void minmax_object(Object *ob, float *min, float *max)
 			bPoseChannel *pchan;
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				VECCOPY(vec, pchan->pose_head);
-				Mat4MulVecfl(ob->obmat, vec);
+				mul_m4_v3(ob->obmat, vec);
 				DO_MINMAX(vec, min, max);
 				VECCOPY(vec, pchan->pose_tail);
-				Mat4MulVecfl(ob->obmat, vec);
+				mul_m4_v3(ob->obmat, vec);
 				DO_MINMAX(vec, min, max);
 			}
 			break;
@@ -2286,7 +2286,7 @@ void minmax_object(Object *ob, float *min, float *max)
 			bb = *mesh_get_bb(ob);
 			
 			for(a=0; a<8; a++) {
-				Mat4MulVecfl(ob->obmat, bb.vec[a]);
+				mul_m4_v3(ob->obmat, bb.vec[a]);
 				DO_MINMAX(bb.vec[a], min, max);
 			}
 		}
@@ -2298,11 +2298,11 @@ void minmax_object(Object *ob, float *min, float *max)
 		DO_MINMAX(ob->obmat[3], min, max);
 
 		VECCOPY(vec, ob->obmat[3]);
-		VecAddf(vec, vec, ob->size);
+		add_v3_v3v3(vec, vec, ob->size);
 		DO_MINMAX(vec, min, max);
 
 		VECCOPY(vec, ob->obmat[3]);
-		VecSubf(vec, vec, ob->size);
+		sub_v3_v3v3(vec, vec, ob->size);
 		DO_MINMAX(vec, min, max);
 		break;
 	}
@@ -2353,11 +2353,11 @@ void object_handle_update(Scene *scene, Object *ob)
 				// printf("ob proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
 				if(ob->proxy_from->proxy_group) {/* transform proxy into group space */
 					Object *obg= ob->proxy_from->proxy_group;
-					Mat4Invert(obg->imat, obg->obmat);
-					Mat4MulMat4(ob->obmat, ob->proxy_from->obmat, obg->imat);
+					invert_m4_m4(obg->imat, obg->obmat);
+					mul_m4_m4m4(ob->obmat, ob->proxy_from->obmat, obg->imat);
 				}
 				else
-					Mat4CpyMat4(ob->obmat, ob->proxy_from->obmat);
+					copy_m4_m4(ob->obmat, ob->proxy_from->obmat);
 			}
 			else
 				where_is_object(scene, ob);
@@ -2538,7 +2538,7 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 		v1 = triangle_indexes[i][0];
 		v2 = triangle_indexes[i][1];
 		v3 = triangle_indexes[i][2];
-		result = RayIntersectsTriangle(ray_start, ray_normal, bb->vec[v1], bb->vec[v2], bb->vec[v3], &lambda, NULL);
+		result = isect_ray_tri_v3(ray_start, ray_normal, bb->vec[v1], bb->vec[v2], bb->vec[v3], &lambda, NULL);
 	}
 	
 	return result;

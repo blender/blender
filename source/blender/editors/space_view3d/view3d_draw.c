@@ -48,7 +48,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_anim.h"
@@ -251,7 +251,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
-	Mat4MulVec4fl(rv3d->persmat, vec4);
+	mul_m4_v4(rv3d->persmat, vec4);
 	fx= vec4[0]; 
 	fy= vec4[1]; 
 	fw= vec4[3];
@@ -266,7 +266,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 
 	vec4[2]= 0.0;
 	vec4[3]= 1.0;
-	Mat4MulVec4fl(rv3d->persmat, vec4);
+	mul_m4_v4(rv3d->persmat, vec4);
 	fx= vec4[0]; 
 	fy= vec4[1]; 
 	fw= vec4[3];
@@ -596,7 +596,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	/* X */
 	vec[0] = vec[3] = 1;
 	vec[1] = vec[2] = 0;
-	QuatMulVecf(rv3d->viewquat, vec);
+	mul_qt_v3(rv3d->viewquat, vec);
 	
 	UI_make_axis_color((char *)gridcol, (char *)col, 'x');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
@@ -616,7 +616,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	/* Y */
 	vec[1] = vec[3] = 1;
 	vec[0] = vec[2] = 0;
-	QuatMulVecf(rv3d->viewquat, vec);
+	mul_qt_v3(rv3d->viewquat, vec);
 	
 	UI_make_axis_color((char *)gridcol, (char *)col, 'y');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
@@ -636,7 +636,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	/* Z */
 	vec[2] = vec[3] = 1;
 	vec[1] = vec[0] = 0;
-	QuatMulVecf(rv3d->viewquat, vec);
+	mul_qt_v3(rv3d->viewquat, vec);
 	
 	UI_make_axis_color((char *)gridcol, (char *)col, 'z');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
@@ -1558,7 +1558,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 					/* need this for next part of code */
 					bb= object_get_boundbox(dob->ob);
 					
-					Mat4One(dob->ob->obmat);	/* obmat gets restored */
+					unit_m4(dob->ob->obmat);	/* obmat gets restored */
 					
 					displist= glGenLists(1);
 					glNewList(displist, GL_COMPILE);
@@ -1576,7 +1576,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				wmLoadMatrix(rv3d->viewmat);
 			}
 			else {
-				Mat4CpyMat4(dob->ob->obmat, dob->mat);
+				copy_m4_m4(dob->ob->obmat, dob->mat);
 				draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
 			}
 			
@@ -1689,9 +1689,9 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
 	
-	Mat4MulMat4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
-	Mat4Invert(rv3d->persinv, rv3d->persmat);
-	Mat4Invert(rv3d->viewinv, rv3d->viewmat);
+	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	invert_m4_m4(rv3d->persinv, rv3d->persmat);
+	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
@@ -1899,29 +1899,29 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 
 	/* setup window matrices */
 	if(winmat)
-		Mat4CpyMat4(rv3d->winmat, winmat);
+		copy_m4_m4(rv3d->winmat, winmat);
 	else
 		setwinmatrixview3d(ar, v3d, NULL); /* NULL= no pickrect */
 	
 	/* setup view matrix */
 	if(viewmat)
-		Mat4CpyMat4(rv3d->viewmat, viewmat);
+		copy_m4_m4(rv3d->viewmat, viewmat);
 	else
 		setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
 	
 	/* update utilitity matrices */
-	Mat4MulMat4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
-	Mat4Invert(rv3d->persinv, rv3d->persmat);
-	Mat4Invert(rv3d->viewinv, rv3d->viewmat);
+	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	invert_m4_m4(rv3d->persinv, rv3d->persmat);
+	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
 	
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
 		float len1, len2, vec[3];
 		
 		VECCOPY(vec, rv3d->persinv[0]);
-		len1= Normalize(vec);
+		len1= normalize_v3(vec);
 		VECCOPY(vec, rv3d->persinv[1]);
-		len2= Normalize(vec);
+		len2= normalize_v3(vec);
 		
 		rv3d->pixsize= 2.0f*(len1>len2?len1:len2);
 		

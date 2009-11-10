@@ -45,7 +45,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_linklist.h"
 #include "MEM_guardedalloc.h"
 
@@ -55,7 +55,7 @@ static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, con
 {
 	float dist;
 
-	if(RayIntersectsTriangle((float*)ray->origin, (float*)ray->direction, (float*)v0, (float*)v1, (float*)v2, &dist, NULL))
+	if(isect_ray_tri_v3((float*)ray->origin, (float*)ray->direction, (float*)v0, (float*)v1, (float*)v2, &dist, NULL))
 		return dist;
 
 	return FLT_MAX;
@@ -68,10 +68,10 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
 	float p1[3];
 	float plane_normal[3], hit_point[3];
 
-	CalcNormFloat((float*)v0, (float*)v1, (float*)v2, plane_normal);
+	normal_tri_v3( plane_normal,(float*)v0, (float*)v1, (float*)v2);
 
 	VECADDFAC( p1, ray->origin, ray->direction, m_dist);
-	if(SweepingSphereIntersectsTriangleUV((float*)ray->origin, p1, radius, (float*)v0, (float*)v1, (float*)v2, &idist, hit_point))
+	if(isect_sweeping_sphere_tri_v3((float*)ray->origin, p1, radius, (float*)v0, (float*)v1, (float*)v2, &idist, hit_point))
 	{
 		return idist * m_dist;
 	}
@@ -384,9 +384,9 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 		float w[3], x[3], y[3], z[3];
 		VECCOPY(w, v0);
 		VECCOPY(x, e0);
-		VecMulf(x, S);
+		mul_v3_fl(x, S);
 		VECCOPY(y, e1);
-		VecMulf(y, T);
+		mul_v3_fl(y, T);
 		VECADD(z, w, x);
 		VECADD(z, z, y);
 		//VECSUB(d, p, z);
@@ -430,7 +430,7 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float *co,
 			nearest->index = index;
 			nearest->dist = dist;
 			VECCOPY(nearest->co, nearest_tmp);
-			CalcNormFloat(t0, t1, t2, nearest->no);
+			normal_tri_v3( nearest->no,t0, t1, t2);
 		}
 
 		t1 = t2;
@@ -469,7 +469,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 			hit->dist = dist;
 			VECADDFAC(hit->co, ray->origin, ray->direction, dist);
 
-			CalcNormFloat(t0, t1, t2, hit->no);
+			normal_tri_v3( hit->no,t0, t1, t2);
 		}
 
 		t1 = t2;
@@ -492,16 +492,16 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float *co,
 	t0 = vert[ edge->v1 ].co;
 	t1 = vert[ edge->v2 ].co;
 	
-	PclosestVL3Dfl(nearest_tmp, co, t0, t1);
-	dist = VecLenf(nearest_tmp, co);
+	closest_to_line_segment_v3(nearest_tmp, co, t0, t1);
+	dist = len_v3v3(nearest_tmp, co);
 	
 	if(dist < nearest->dist)
 	{
 		nearest->index = index;
 		nearest->dist = dist;
 		VECCOPY(nearest->co, nearest_tmp);
-		VecSubf(nearest->no, t0, t1);
-		Normalize(nearest->no);
+		sub_v3_v3v3(nearest->no, t0, t1);
+		normalize_v3(nearest->no);
 	}
 }
 

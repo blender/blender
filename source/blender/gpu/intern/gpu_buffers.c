@@ -36,7 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_meshdata_types.h"
 
@@ -545,9 +545,9 @@ void GPU_buffer_copy_normal( DerivedMesh *dm, float *varray, int *index, int *re
 				VECCOPY(&varray[start+6],&nors[i*3]);
 			}
 			if( mface[i].v4 )
-				CalcNormFloat4(mvert[mface[i].v1].co, mvert[mface[i].v2].co, mvert[mface[i].v3].co, mvert[mface[i].v4].co, norm);
+				normal_quad_v3( norm,mvert[mface[i].v1].co, mvert[mface[i].v2].co, mvert[mface[i].v3].co, mvert[mface[i].v4].co);
 			else
-				CalcNormFloat(mvert[mface[i].v1].co, mvert[mface[i].v2].co, mvert[mface[i].v3].co, norm);
+				normal_tri_v3( norm,mvert[mface[i].v1].co, mvert[mface[i].v2].co, mvert[mface[i].v3].co);
 			VECCOPY(&varray[start],norm);
 			VECCOPY(&varray[start+3],norm);
 			VECCOPY(&varray[start+6],norm);

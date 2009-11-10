@@ -38,7 +38,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 
@@ -159,10 +159,10 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 					
 					if (ob->rotmode == ROT_MODE_QUAT) {
 						QUATCOPY(quat1, ob->quat);
-						QuatToEul(ob->quat, oldeul);
+						quat_to_eul( oldeul,ob->quat);
 					}
 					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						AxisAngleToEulO(ob->rotAxis, ob->rotAngle, oldeul, EULER_ORDER_DEFAULT);
+						axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,ob->rotAxis, ob->rotAngle);
 					}
 					else {
 						VECCOPY(oldeul, ob->rot);
@@ -178,14 +178,14 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 						eul[2]= oldeul[2];
 					
 					if (ob->rotmode == ROT_MODE_QUAT) {
-						EulToQuat(eul, ob->quat);
+						eul_to_quat( ob->quat,eul);
 						/* quaternions flip w sign to accumulate rotations correctly */
 						if ((quat1[0]<0.0f && ob->quat[0]>0.0f) || (quat1[0]>0.0f && ob->quat[0]<0.0f)) {
-							QuatMulf(ob->quat, -1.0f);
+							mul_qt_fl(ob->quat, -1.0f);
 						}
 					}
 					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, ob->rotAxis, &ob->rotAngle);
+						eulO_to_axis_angle( ob->rotAxis, &ob->rotAngle,eul, EULER_ORDER_DEFAULT);
 					}
 					else {
 						VECCOPY(ob->rot, eul);
@@ -290,12 +290,12 @@ static int object_origin_clear_exec(bContext *C, wmOperator *op)
 			v1= ob->loc;
 			v3= ob->parentinv[3];
 			
-			Mat3CpyMat4(mat, ob->parentinv);
+			copy_m3_m4(mat, ob->parentinv);
 			VECCOPY(v3, v1);
 			v3[0]= -v3[0];
 			v3[1]= -v3[1];
 			v3[2]= -v3[2];
-			Mat3MulVecfl(mat, v3);
+			mul_m3_v3(mat, v3);
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
@@ -338,7 +338,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 		if(ob_child->parent == ob) {
 			ED_object_apply_obmat(ob_child);
 			what_does_parent(scene, ob_child, &workob);
-			Mat4Invert(ob_child->parentinv, workob.obmat);
+			invert_m4_m4(ob_child->parentinv, workob.obmat);
 		}
 	}
 }
@@ -402,20 +402,20 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		else if(apply_rot)
 			object_rot_to_mat3(ob, rsmat);
 		else
-			Mat3One(rsmat);
+			unit_m3(rsmat);
 
-		Mat4CpyMat3(mat, rsmat);
+		copy_m4_m3(mat, rsmat);
 
 		/* calculate translation */
 		if(apply_loc) {
-			VecCopyf(mat[3], ob->loc);
+			copy_v3_v3(mat[3], ob->loc);
 
 			if(!(apply_scale && apply_rot)) {
 				/* correct for scale and rotation that is still applied */
 				object_to_mat3(ob, obmat);
-				Mat3Inv(iobmat, obmat);
-				Mat3MulMat3(tmat, rsmat, iobmat);
-				Mat3MulVecfl(tmat, mat[3]);
+				invert_m3_m3(iobmat, obmat);
+				mul_m3_m3m3(tmat, rsmat, iobmat);
+				mul_m3_v3(tmat, mat[3]);
 			}
 		}
 
@@ -426,7 +426,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			/* adjust data */
 			mvert= me->mvert;
 			for(a=0; a<me->totvert; a++, mvert++)
-				Mat4MulVecfl(mat, mvert->co);
+				mul_m4_v3(mat, mvert->co);
 			
 			if(me->key) {
 				KeyBlock *kb;
@@ -435,7 +435,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 					float *fp= kb->data;
 					
 					for(a=0; a<kb->totelem; a++, fp+=3)
-						Mat4MulVecfl(mat, fp);
+						mul_m4_v3(mat, fp);
 				}
 			}
 			
@@ -448,15 +448,15 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			cu= ob->data;
 
-			scale = Mat3ToScalef(rsmat);
+			scale = mat3_to_scale(rsmat);
 			
 			for(nu=cu->nurb.first; nu; nu=nu->next) {
 				if(nu->type == CU_BEZIER) {
 					a= nu->pntsu;
 					for(bezt= nu->bezt; a--; bezt++) {
-						Mat4MulVecfl(mat, bezt->vec[0]);
-						Mat4MulVecfl(mat, bezt->vec[1]);
-						Mat4MulVecfl(mat, bezt->vec[2]);
+						mul_m4_v3(mat, bezt->vec[0]);
+						mul_m4_v3(mat, bezt->vec[1]);
+						mul_m4_v3(mat, bezt->vec[2]);
 						bezt->radius *= scale;
 						bezt++;
 					}
@@ -464,7 +464,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				else {
 					a= nu->pntsu*nu->pntsv;
 					for(bp= nu->bp; a--; bp++)
-						Mat4MulVecfl(mat, bp->vec);
+						mul_m4_v3(mat, bp->vec);
 				}
 			}
 		}
@@ -503,8 +503,8 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *op)
 		where_is_object(scene, ob);
 
 		VECCOPY(ob->loc, ob->obmat[3]);
-		Mat4ToSize(ob->obmat, ob->size);
-		Mat4ToEul(ob->obmat, ob->rot);
+		mat4_to_size( ob->size,ob->obmat);
+		mat4_to_eul( ob->rot,ob->obmat);
 		
 		where_is_object(scene, ob);
 		
@@ -709,7 +709,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 			}
 			
 			if(v3d->around==V3D_CENTROID) {
-				VecMulf(cent, 1.0f/(float)total);
+				mul_v3_fl(cent, 1.0f/(float)total);
 			}
 			else {
 				cent[0]= (min[0]+max[0])/2.0f;
@@ -718,7 +718,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 			}
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
-				VecSubf(eve->co, eve->co, cent);			
+				sub_v3_v3v3(eve->co, eve->co, cent);			
 			}
 			
 			recalc_editnormals(em);
@@ -748,8 +748,8 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 				} else {
 					if(centermode==2) {
 						VECCOPY(cent, give_cursor(scene, v3d));
-						Mat4Invert(ob->imat, ob->obmat);
-						Mat4MulVecfl(ob->imat, cent);
+						invert_m4_m4(ob->imat, ob->obmat);
+						mul_m4_v3(ob->imat, cent);
 					} else {
 						INIT_MINMAX(min, max);
 						mvert= me->mvert;
@@ -764,7 +764,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 
 					mvert= me->mvert;
 					for(a=0; a<me->totvert; a++, mvert++) {
-						VecSubf(mvert->co, mvert->co, cent);
+						sub_v3_v3v3(mvert->co, mvert->co, cent);
 					}
 					
 					if (me->key) {
@@ -773,7 +773,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 							float *fp= kb->data;
 							
 							for (a=0; a<kb->totelem; a++, fp+=3) {
-								VecSubf(fp, fp, cent);
+								sub_v3_v3v3(fp, fp, cent);
 							}
 						}
 					}
@@ -781,10 +781,10 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 					me->flag |= ME_ISDONE;
 						
 					if(centermode) {
-						Mat3CpyMat4(omat, ob->obmat);
+						copy_m3_m4(omat, ob->obmat);
 						
 						VECCOPY(centn, cent);
-						Mat3MulVecfl(omat, centn);
+						mul_m3_v3(omat, centn);
 						ob->loc[0]+= centn[0];
 						ob->loc[1]+= centn[1];
 						ob->loc[2]+= centn[2];
@@ -802,9 +802,9 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 									ob_other->flag |= OB_DONE;
 									ob_other->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 
-									Mat3CpyMat4(omat, ob_other->obmat);
+									copy_m3_m4(omat, ob_other->obmat);
 									VECCOPY(centn, cent);
-									Mat3MulVecfl(omat, centn);
+									mul_m3_v3(omat, centn);
 									ob_other->loc[0]+= centn[0];
 									ob_other->loc[1]+= centn[1];
 									ob_other->loc[2]+= centn[2];
@@ -815,7 +815,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 									if(tme && (tme->flag & ME_ISDONE)==0) {
 										mvert= tme->mvert;
 										for(a=0; a<tme->totvert; a++, mvert++) {
-											VecSubf(mvert->co, mvert->co, cent);
+											sub_v3_v3v3(mvert->co, mvert->co, cent);
 										}
 										
 										if (tme->key) {
@@ -824,7 +824,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 												float *fp= kb->data;
 												
 												for (a=0; a<kb->totelem; a++, fp+=3) {
-													VecSubf(fp, fp, cent);
+													sub_v3_v3v3(fp, fp, cent);
 												}
 											}
 										}
@@ -858,8 +858,8 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 				} else {
 					if(centermode==2) {
 						VECCOPY(cent, give_cursor(scene, v3d));
-						Mat4Invert(ob->imat, ob->obmat);
-						Mat4MulVecfl(ob->imat, cent);
+						invert_m4_m4(ob->imat, ob->obmat);
+						mul_m4_v3(ob->imat, cent);
 
 						/* don't allow Z change if curve is 2D */
 						if( !( cu->flag & CU_3D ) )
@@ -884,23 +884,23 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 						if(nu->type == CU_BEZIER) {
 							a= nu->pntsu;
 							while (a--) {
-								VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
-								VecSubf(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
-								VecSubf(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
+								sub_v3_v3v3(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
+								sub_v3_v3v3(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
+								sub_v3_v3v3(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
 							}
 						}
 						else {
 							a= nu->pntsu*nu->pntsv;
 							while (a--)
-								VecSubf(nu->bp[a].vec, nu->bp[a].vec, cent);
+								sub_v3_v3v3(nu->bp[a].vec, nu->bp[a].vec, cent);
 						}
 						nu= nu->next;
 					}
 			
 					if(centermode && obedit==NULL) {
-						Mat3CpyMat4(omat, ob->obmat);
+						copy_m3_m4(omat, ob->obmat);
 						
-						Mat3MulVecfl(omat, cent);
+						mul_m3_v3(omat, cent);
 						ob->loc[0]+= cent[0];
 						ob->loc[1]+= cent[1];
 						ob->loc[2]+= cent[2];

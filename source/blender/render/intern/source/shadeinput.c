@@ -30,7 +30,7 @@
 #include <string.h>
 
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "DNA_curve_types.h"
@@ -212,7 +212,7 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		if(R.r.mode & R_ORTHO)
 			shr->mist= mistfactor(-shi->co[2], shi->co);
 		else
-			shr->mist= mistfactor(VecLength(shi->co), shi->co);
+			shr->mist= mistfactor(len_v3(shi->co), shi->co);
 	}
 	else shr->mist= 0.0f;
 	
@@ -227,7 +227,7 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		shr->combined[3]= fac;
 		
 		if (shi->mat->material_type!= MA_TYPE_VOLUME)
-			VecMulf(shr->combined, fac);
+			mul_v3_fl(shr->combined, fac);
 	}
 	else
 		shr->combined[3]= 1.0f;
@@ -314,9 +314,9 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 		VECCOPY(shi->n3, shi->v3->n);
 
 		if(obi->flag & R_TRANSFORMED) {
-			Mat3MulVecfl(obi->nmat, shi->n1);
-			Mat3MulVecfl(obi->nmat, shi->n2);
-			Mat3MulVecfl(obi->nmat, shi->n3);
+			mul_m3_v3(obi->nmat, shi->n1);
+			mul_m3_v3(obi->nmat, shi->n2);
+			mul_m3_v3(obi->nmat, shi->n3);
 		}
 
 		if(!(vlr->flag & (R_NOPUNOFLIP|R_TANGENT))) {
@@ -384,7 +384,7 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 	/* shade_input_set_viewco equivalent */
 	VECCOPY(shi->co, spoint->co);
 	VECCOPY(shi->view, shi->co);
-	Normalize(shi->view);
+	normalize_v3(shi->view);
 
 	shi->xs= (int)spoint->x;
 	shi->ys= (int)spoint->y;
@@ -407,12 +407,12 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 	else {
 		float cross[3];
 
-		Crossf(cross, spoint->co, spoint->tan);
-		Crossf(shi->vn, cross, spoint->tan);
-		Normalize(shi->vn);
+		cross_v3_v3v3(cross, spoint->co, spoint->tan);
+		cross_v3_v3v3(shi->vn, cross, spoint->tan);
+		normalize_v3(shi->vn);
 
 		if(INPR(shi->vn, shi->view) < 0.0f)
-			VecNegf(shi->vn);
+			negate_v3(shi->vn);
 	}
 
 	VECCOPY(shi->vno, shi->vn);
@@ -450,8 +450,8 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 		if(shi->mat->strand_surfnor > 0.0f) {
 			shi->surfdist= 0.0f;
 			for(sv=strand->vert; sv!=svert; sv++)
-				shi->surfdist+=VecLenf(sv->co, (sv+1)->co);
-			shi->surfdist += spoint->t*VecLenf(sv->co, (sv+1)->co);
+				shi->surfdist+=len_v3v3(sv->co, (sv+1)->co);
+			shi->surfdist += spoint->t*len_v3v3(sv->co, (sv+1)->co);
 		}
 	}
 
@@ -474,13 +474,13 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			Mat4MulVecfl(R.viewinv, shi->gl);
+			mul_m4_v3(R.viewinv, shi->gl);
 			
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
-				Mat3MulVecfl(R.imat, shi->dxco);
+				mul_m3_v3(R.imat, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				Mat3MulVecfl(R.imat, shi->dyco);
+				mul_m3_v3(R.imat, shi->dyco);
 			}
 		}
 
@@ -652,7 +652,7 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 		
 		VECCOPY(v1, shi->v1->co);
 		if(shi->obi->flag & R_TRANSFORMED)
-			Mat4MulVecfl(shi->obi->mat, v1);
+			mul_m4_v3(shi->obi->mat, v1);
 		
 		dface= v1[0]*shi->facenor[0]+v1[1]*shi->facenor[1]+v1[2]*shi->facenor[2];
 		
@@ -731,7 +731,7 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 	shi->camera_co[0] = shi->camera_co[1] = shi->camera_co[2] = 0.0f;
 	
 	/* cannot normalize earlier, code above needs it at viewplane level */
-	Normalize(view);
+	normalize_v3(view);
 }
 
 /* from scanline pixel coordinates to 3d coordinates, requires set_triangle */
@@ -773,17 +773,17 @@ void shade_input_set_uv(ShadeInput *shi)
 		VECCOPY(v3, shi->v3->co);
 
 		if(shi->obi->flag & R_TRANSFORMED) {
-			Mat4MulVecfl(shi->obi->mat, v1);
-			Mat4MulVecfl(shi->obi->mat, v2);
-			Mat4MulVecfl(shi->obi->mat, v3);
+			mul_m4_v3(shi->obi->mat, v1);
+			mul_m4_v3(shi->obi->mat, v2);
+			mul_m4_v3(shi->obi->mat, v3);
 		}
 
 		/* exception case for wire render of edge */
 		if(vlr->v2==vlr->v3) {
 			float lend, lenc;
 			
-			lend= VecLenf(v2, v1);
-			lenc= VecLenf(shi->co, v1);
+			lend= len_v3v3(v2, v1);
+			lenc= len_v3v3(shi->co, v1);
 			
 			if(lend==0.0f) {
 				shi->u=shi->v= 0.0f;
@@ -851,7 +851,7 @@ void shade_input_set_normals(ShadeInput *shi)
 		shi->vn[1]= l*n3[1]-u*n1[1]-v*n2[1];
 		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
 		
-		Normalize(shi->vn);
+		normalize_v3(shi->vn);
 	}
 	else
 		VECCOPY(shi->vn, shi->facenor);
@@ -939,9 +939,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				shi->tang[2]= (tl*s3[2] - tu*s1[2] - tv*s2[2]);
 
 				if(obi->flag & R_TRANSFORMED)
-					Mat3MulVecfl(obi->nmat, shi->tang);
+					mul_m3_v3(obi->nmat, shi->tang);
 
-				Normalize(shi->tang);
+				normalize_v3(shi->tang);
 				VECCOPY(shi->nmaptang, shi->tang);
 			}
 		}
@@ -963,9 +963,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				shi->nmaptang[2]= (tl*s3[2] - tu*s1[2] - tv*s2[2]);
 
 				if(obi->flag & R_TRANSFORMED)
-					Mat3MulVecfl(obi->nmat, shi->nmaptang);
+					mul_m3_v3(obi->nmat, shi->nmaptang);
 
-				Normalize(shi->nmaptang);
+				normalize_v3(shi->nmaptang);
 			}
 		}
 	}
@@ -976,7 +976,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		if(surfnor) {
 			VECCOPY(shi->surfnor, surfnor)
 			if(obi->flag & R_TRANSFORMED)
-				Mat3MulVecfl(obi->nmat, shi->surfnor);
+				mul_m3_v3(obi->nmat, shi->surfnor);
 		}
 		else
 			VECCOPY(shi->surfnor, shi->vn)
@@ -1037,15 +1037,15 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			Mat4MulVecfl(R.viewinv, shi->gl);
+			mul_m4_v3(R.viewinv, shi->gl);
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
 				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
-				//Mat3MulVecfl(R.imat, shi->dxco);
-				Mat4Mul3Vecfl(R.viewinv, shi->dxco);
+				//mul_m3_v3(R.imat, shi->dxco);
+				mul_mat3_m4_v3(R.viewinv, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				//Mat3MulVecfl(R.imat, shi->dyco);
-				Mat4Mul3Vecfl(R.viewinv, shi->dyco);
+				//mul_m3_v3(R.imat, shi->dyco);
+				mul_mat3_m4_v3(R.viewinv, shi->dyco);
 			}
 		}
 		
@@ -1242,9 +1242,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 				zbuf_make_winmat(&R, winmat);
 				if(shi->obi->flag & R_TRANSFORMED)
-					Mat4MulMat4(obwinmat, obi->mat, winmat);
+					mul_m4_m4m4(obwinmat, obi->mat, winmat);
 				else
-					Mat4CpyMat4(obwinmat, winmat);
+					copy_m4_m4(obwinmat, winmat);
 
 				zbuf_render_project(obwinmat, v1->co, ho1);
 				zbuf_render_project(obwinmat, v2->co, ho2);

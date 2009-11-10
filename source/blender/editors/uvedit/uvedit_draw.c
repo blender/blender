@@ -42,7 +42,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 
 #include "BIF_gl.h"
@@ -251,44 +251,44 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 					if(efa->v4) {
 						
 #if 0						/* Simple but slow, better reuse normalized vectors */
-						uvang1 = RAD2DEG(Vec2Angle3(tf_uv[3], tf_uv[0], tf_uv[1]));
-						ang1 = RAD2DEG(VecAngle3(efa->v4->co, efa->v1->co, efa->v2->co));
+						uvang1 = RAD2DEG(angle_v2v2v2(tf_uv[3], tf_uv[0], tf_uv[1]));
+						ang1 = RAD2DEG(angle_v3v3v3(efa->v4->co, efa->v1->co, efa->v2->co));
 						
-						uvang2 = RAD2DEG(Vec2Angle3(tf_uv[0], tf_uv[1], tf_uv[2]));
-						ang2 = RAD2DEG(VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co));
+						uvang2 = RAD2DEG(angle_v2v2v2(tf_uv[0], tf_uv[1], tf_uv[2]));
+						ang2 = RAD2DEG(angle_v3v3v3(efa->v1->co, efa->v2->co, efa->v3->co));
 						
-						uvang3 = RAD2DEG(Vec2Angle3(tf_uv[1], tf_uv[2], tf_uv[3]));
-						ang3 = RAD2DEG(VecAngle3(efa->v2->co, efa->v3->co, efa->v4->co));
+						uvang3 = RAD2DEG(angle_v2v2v2(tf_uv[1], tf_uv[2], tf_uv[3]));
+						ang3 = RAD2DEG(angle_v3v3v3(efa->v2->co, efa->v3->co, efa->v4->co));
 						
-						uvang4 = RAD2DEG(Vec2Angle3(tf_uv[2], tf_uv[3], tf_uv[0]));
-						ang4 = RAD2DEG(VecAngle3(efa->v3->co, efa->v4->co, efa->v1->co));
+						uvang4 = RAD2DEG(angle_v2v2v2(tf_uv[2], tf_uv[3], tf_uv[0]));
+						ang4 = RAD2DEG(angle_v3v3v3(efa->v3->co, efa->v4->co, efa->v1->co));
 #endif
 						
 						/* uv angles */
-						VECSUB2D(av1, tf_uv[3], tf_uv[0]); Normalize2(av1);
-						VECSUB2D(av2, tf_uv[0], tf_uv[1]); Normalize2(av2);
-						VECSUB2D(av3, tf_uv[1], tf_uv[2]); Normalize2(av3);
-						VECSUB2D(av4, tf_uv[2], tf_uv[3]); Normalize2(av4);
+						VECSUB2D(av1, tf_uv[3], tf_uv[0]); normalize_v2(av1);
+						VECSUB2D(av2, tf_uv[0], tf_uv[1]); normalize_v2(av2);
+						VECSUB2D(av3, tf_uv[1], tf_uv[2]); normalize_v2(av3);
+						VECSUB2D(av4, tf_uv[2], tf_uv[3]); normalize_v2(av4);
 						
 						/* This is the correct angle however we are only comparing angles
-						 * uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90);*/
-						uvang1 = NormalizedVecAngle2_2D(av1, av2)*180.0/M_PI;
-						uvang2 = NormalizedVecAngle2_2D(av2, av3)*180.0/M_PI;
-						uvang3 = NormalizedVecAngle2_2D(av3, av4)*180.0/M_PI;
-						uvang4 = NormalizedVecAngle2_2D(av4, av1)*180.0/M_PI;
+						 * uvang1 = 90-((angle_normalized_v2v2(av1, av2) * 180.0/M_PI)-90);*/
+						uvang1 = angle_normalized_v2v2(av1, av2)*180.0/M_PI;
+						uvang2 = angle_normalized_v2v2(av2, av3)*180.0/M_PI;
+						uvang3 = angle_normalized_v2v2(av3, av4)*180.0/M_PI;
+						uvang4 = angle_normalized_v2v2(av4, av1)*180.0/M_PI;
 						
 						/* 3d angles */
-						VECSUB(av1, efa->v4->co, efa->v1->co); Normalize(av1);
-						VECSUB(av2, efa->v1->co, efa->v2->co); Normalize(av2);
-						VECSUB(av3, efa->v2->co, efa->v3->co); Normalize(av3);
-						VECSUB(av4, efa->v3->co, efa->v4->co); Normalize(av4);
+						VECSUB(av1, efa->v4->co, efa->v1->co); normalize_v3(av1);
+						VECSUB(av2, efa->v1->co, efa->v2->co); normalize_v3(av2);
+						VECSUB(av3, efa->v2->co, efa->v3->co); normalize_v3(av3);
+						VECSUB(av4, efa->v3->co, efa->v4->co); normalize_v3(av4);
 						
 						/* This is the correct angle however we are only comparing angles
-						 * ang1 = 90-((NormalizedVecAngle2(av1, av2) * 180.0/M_PI)-90);*/
-						ang1 = NormalizedVecAngle2(av1, av2)*180.0/M_PI;
-						ang2 = NormalizedVecAngle2(av2, av3)*180.0/M_PI;
-						ang3 = NormalizedVecAngle2(av3, av4)*180.0/M_PI;
-						ang4 = NormalizedVecAngle2(av4, av1)*180.0/M_PI;
+						 * ang1 = 90-((angle_normalized_v3v3(av1, av2) * 180.0/M_PI)-90);*/
+						ang1 = angle_normalized_v3v3(av1, av2)*180.0/M_PI;
+						ang2 = angle_normalized_v3v3(av2, av3)*180.0/M_PI;
+						ang3 = angle_normalized_v3v3(av3, av4)*180.0/M_PI;
+						ang4 = angle_normalized_v3v3(av4, av1)*180.0/M_PI;
 						
 						glBegin(GL_QUADS);
 						
@@ -315,36 +315,36 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 					}
 					else {
 #if 0						/* Simple but slow, better reuse normalized vectors */
-						uvang1 = RAD2DEG(Vec2Angle3(tf_uv[2], tf_uv[0], tf_uv[1]));
-						ang1 = RAD2DEG(VecAngle3(efa->v3->co, efa->v1->co, efa->v2->co));
+						uvang1 = RAD2DEG(angle_v2v2v2(tf_uv[2], tf_uv[0], tf_uv[1]));
+						ang1 = RAD2DEG(angle_v3v3v3(efa->v3->co, efa->v1->co, efa->v2->co));
 						
-						uvang2 = RAD2DEG(Vec2Angle3(tf_uv[0], tf_uv[1], tf_uv[2]));
-						ang2 = RAD2DEG(VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co));
+						uvang2 = RAD2DEG(angle_v2v2v2(tf_uv[0], tf_uv[1], tf_uv[2]));
+						ang2 = RAD2DEG(angle_v3v3v3(efa->v1->co, efa->v2->co, efa->v3->co));
 						
 						uvang3 = M_PI-(uvang1+uvang2);
 						ang3 = M_PI-(ang1+ang2);
 #endif						
 						
 						/* uv angles */
-						VECSUB2D(av1, tf_uv[2], tf_uv[0]); Normalize2(av1);
-						VECSUB2D(av2, tf_uv[0], tf_uv[1]); Normalize2(av2);
-						VECSUB2D(av3, tf_uv[1], tf_uv[2]); Normalize2(av3);
+						VECSUB2D(av1, tf_uv[2], tf_uv[0]); normalize_v2(av1);
+						VECSUB2D(av2, tf_uv[0], tf_uv[1]); normalize_v2(av2);
+						VECSUB2D(av3, tf_uv[1], tf_uv[2]); normalize_v2(av3);
 						
 						/* This is the correct angle however we are only comparing angles
-						 * uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90); */
-						uvang1 = NormalizedVecAngle2_2D(av1, av2)*180.0/M_PI;
-						uvang2 = NormalizedVecAngle2_2D(av2, av3)*180.0/M_PI;
-						uvang3 = NormalizedVecAngle2_2D(av3, av1)*180.0/M_PI;
+						 * uvang1 = 90-((angle_normalized_v2v2(av1, av2) * 180.0/M_PI)-90); */
+						uvang1 = angle_normalized_v2v2(av1, av2)*180.0/M_PI;
+						uvang2 = angle_normalized_v2v2(av2, av3)*180.0/M_PI;
+						uvang3 = angle_normalized_v2v2(av3, av1)*180.0/M_PI;
 						
 						/* 3d angles */
-						VECSUB(av1, efa->v3->co, efa->v1->co); Normalize(av1);
-						VECSUB(av2, efa->v1->co, efa->v2->co); Normalize(av2);
-						VECSUB(av3, efa->v2->co, efa->v3->co); Normalize(av3);
+						VECSUB(av1, efa->v3->co, efa->v1->co); normalize_v3(av1);
+						VECSUB(av2, efa->v1->co, efa->v2->co); normalize_v3(av2);
+						VECSUB(av3, efa->v2->co, efa->v3->co); normalize_v3(av3);
 						/* This is the correct angle however we are only comparing angles
-						 * ang1 = 90-((NormalizedVecAngle2(av1, av2) * 180.0/M_PI)-90); */
-						ang1 = NormalizedVecAngle2(av1, av2)*180.0/M_PI;
-						ang2 = NormalizedVecAngle2(av2, av3)*180.0/M_PI;
-						ang3 = NormalizedVecAngle2(av3, av1)*180.0/M_PI;
+						 * ang1 = 90-((angle_normalized_v3v3(av1, av2) * 180.0/M_PI)-90); */
+						ang1 = angle_normalized_v3v3(av1, av2)*180.0/M_PI;
+						ang2 = angle_normalized_v3v3(av2, av3)*180.0/M_PI;
+						ang3 = angle_normalized_v3v3(av3, av1)*180.0/M_PI;
 						
 						/* This simple makes the angles display worse then they really are ;)
 						 * 1.0-pow((1.0-a), 2) */

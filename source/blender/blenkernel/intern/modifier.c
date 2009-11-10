@@ -41,7 +41,7 @@
 #include "float.h"
 #include "ctype.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
@@ -1187,7 +1187,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->end_cap && amd->end_cap != ob)
 		end_cap = amd->end_cap->derivedFinal;
 
-	Mat4One(offset);
+	unit_m4(offset);
 
 	indexMap = MEM_callocN(sizeof(*indexMap) * dm->getNumVerts(dm),
 			       "indexmap");
@@ -1197,7 +1197,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	maxVerts = dm->getNumVerts(dm);
 
 	if(amd->offset_type & MOD_ARR_OFF_CONST)
-		VecAddf(offset[3], offset[3], amd->offset);
+		add_v3_v3v3(offset[3], offset[3], amd->offset);
 	if(amd->offset_type & MOD_ARR_OFF_RELATIVE) {
 		for(j = 0; j < 3; j++)
 			offset[3][j] += amd->scale[j] * vertarray_size(src_mvert,
@@ -1209,14 +1209,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		float result_mat[4][4];
 
 		if(ob)
-			Mat4Invert(obinv, ob->obmat);
+			invert_m4_m4(obinv, ob->obmat);
 		else
-			Mat4One(obinv);
+			unit_m4(obinv);
 
-		Mat4MulSerie(result_mat, offset,
+		mul_serie_m4(result_mat, offset,
 				 obinv, amd->offset_ob->obmat,
      NULL, NULL, NULL, NULL, NULL);
-		Mat4CpyMat4(offset, result_mat);
+		copy_m4_m4(offset, result_mat);
 	}
 
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
@@ -1226,7 +1226,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			float scale;
 			
 			object_to_mat3(amd->curve_ob, tmp_mat);
-			scale = Mat3ToScalef(tmp_mat);
+			scale = mat3_to_scale(tmp_mat);
 				
 			if(!cu->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
@@ -1241,7 +1241,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	prescribed length */
 	if(amd->fit_type == MOD_ARR_FITLENGTH
 		  || amd->fit_type == MOD_ARR_FITCURVE) {
-		float dist = sqrt(Inpf(offset[3], offset[3]));
+		float dist = sqrt(dot_v3v3(offset[3], offset[3]));
 
 		if(dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
@@ -1274,11 +1274,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		  result = CDDM_from_template(dm, finalVerts, finalEdges, finalFaces);
 
 		  /* calculate the offset matrix of the final copy (for merging) */ 
-		  Mat4One(final_offset);
+		  unit_m4(final_offset);
 
 		  for(j=0; j < count - 1; j++) {
-			  Mat4MulMat4(tmp_mat, final_offset, offset);
-			  Mat4CpyMat4(final_offset, tmp_mat);
+			  mul_m4_m4m4(tmp_mat, final_offset, offset);
+			  copy_m4_m4(final_offset, tmp_mat);
 		  }
 
 		  numVerts = numEdges = numFaces = 0;
@@ -1314,7 +1314,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  if((count > 1) && (amd->flags & MOD_ARR_MERGE)) {
 				  float tmp_co[3];
 				  VECCOPY(tmp_co, mv->co);
-				  Mat4MulVecfl(offset, tmp_co);
+				  mul_m4_v3(offset, tmp_co);
 
 				  for(j = 0; j < maxVerts; j++) {
 					  /* if vertex already merged, don't use it */
@@ -1322,15 +1322,15 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 					  inMV = &src_mvert[j];
 					  /* if this vert is within merge limit, merge */
-					  if(VecLenCompare(tmp_co, inMV->co, amd->merge_dist)) {
+					  if(compare_len_v3v3(tmp_co, inMV->co, amd->merge_dist)) {
 						  indexMap[i].merge = j;
 
 						  /* test for merging with final copy of merge target */
 						  if(amd->flags & MOD_ARR_MERGEFINAL) {
 							  VECCOPY(tmp_co, inMV->co);
 							  inMV = &src_mvert[i];
-							  Mat4MulVecfl(final_offset, tmp_co);
-							  if(VecLenCompare(tmp_co, inMV->co, amd->merge_dist))
+							  mul_m4_v3(final_offset, tmp_co);
+							  if(compare_len_v3v3(tmp_co, inMV->co, amd->merge_dist))
 								  indexMap[i].merge_final = 1;
 						  }
 						  break;
@@ -1347,7 +1347,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  *mv2 = *mv;
 					  numVerts++;
 
-					  Mat4MulVecfl(offset, co);
+					  mul_m4_v3(offset, co);
 					  VECCOPY(mv2->co, co);
 				  }
 			  } else if(indexMap[i].merge != i && indexMap[i].merge_final) {
@@ -1504,7 +1504,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  cap_medge = start_cap->getEdgeArray(start_cap);
 			  cap_mface = start_cap->getFaceArray(start_cap);
 
-			  Mat4Invert(startoffset, offset);
+			  invert_m4_m4(startoffset, offset);
 
 			  vert_map = MEM_callocN(sizeof(*vert_map) * capVerts,
 					  "arrayModifier_doArray vert_map");
@@ -1520,12 +1520,12 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  int j;
 
 					  VECCOPY(tmp_co, mv->co);
-					  Mat4MulVecfl(startoffset, tmp_co);
+					  mul_m4_v3(startoffset, tmp_co);
 
 					  for(j = 0; j < maxVerts; j++) {
 						  in_mv = &src_mvert[j];
 						  /* if this vert is within merge limit, merge */
-						  if(VecLenCompare(tmp_co, in_mv->co, amd->merge_dist)) {
+						  if(compare_len_v3v3(tmp_co, in_mv->co, amd->merge_dist)) {
 							  vert_map[i] = calc_mapping(indexMap, j, 0);
 							  merged = 1;
 							  break;
@@ -1536,7 +1536,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  if(!merged) {
 					  DM_copy_vert_data(start_cap, result, i, numVerts, 1);
 					  mvert[numVerts] = *mv;
-					  Mat4MulVecfl(startoffset, mvert[numVerts].co);
+					  mul_m4_v3(startoffset, mvert[numVerts].co);
 					  origindex[numVerts] = ORIGINDEX_NONE;
 
 					  vert_map[i] = numVerts;
@@ -1605,7 +1605,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  cap_medge = end_cap->getEdgeArray(end_cap);
 			  cap_mface = end_cap->getFaceArray(end_cap);
 
-			  Mat4MulMat4(endoffset, final_offset, offset);
+			  mul_m4_m4m4(endoffset, final_offset, offset);
 
 			  vert_map = MEM_callocN(sizeof(*vert_map) * capVerts,
 					  "arrayModifier_doArray vert_map");
@@ -1621,12 +1621,12 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  int j;
 
 					  VECCOPY(tmp_co, mv->co);
-					  Mat4MulVecfl(offset, tmp_co);
+					  mul_m4_v3(offset, tmp_co);
 
 					  for(j = 0; j < maxVerts; j++) {
 						  in_mv = &src_mvert[j];
 						  /* if this vert is within merge limit, merge */
-						  if(VecLenCompare(tmp_co, in_mv->co, amd->merge_dist)) {
+						  if(compare_len_v3v3(tmp_co, in_mv->co, amd->merge_dist)) {
 							  vert_map[i] = calc_mapping(indexMap, j, count - 1);
 							  merged = 1;
 							  break;
@@ -1637,7 +1637,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  if(!merged) {
 					  DM_copy_vert_data(end_cap, result, i, numVerts, 1);
 					  mvert[numVerts] = *mv;
-					  Mat4MulVecfl(endoffset, mvert[numVerts].co);
+					  mul_m4_v3(endoffset, mvert[numVerts].co);
 					  origindex[numVerts] = ORIGINDEX_NONE;
 
 					  vert_map[i] = numVerts;
@@ -1921,9 +1921,9 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	if (mmd->mirror_ob) {
 		float obinv[4][4];
 		
-		Mat4Invert(obinv, mmd->mirror_ob->obmat);
-		Mat4MulMat4(mtx, ob->obmat, obinv);
-		Mat4Invert(imtx, mtx);
+		invert_m4_m4(obinv, mmd->mirror_ob->obmat);
+		mul_m4_m4m4(mtx, ob->obmat, obinv);
+		invert_m4_m4(imtx, mtx);
 	}
 
 	for(i = 0; i < maxVerts; i++) {
@@ -1934,10 +1934,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		
 		dm->getVert(dm, i, &inMV);
 		
-		VecCopyf(co, inMV.co);
+		copy_v3_v3(co, inMV.co);
 		
 		if (mmd->mirror_ob) {
-			VecMat4MulVecfl(co, mtx, co);
+			mul_v3_m4v3(co, mtx, co);
 		}
 		isShared = ABS(co[axis])<=tolerance;
 		
@@ -1955,9 +1955,9 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		if(isShared) {
 			co[axis] = 0;
 			if (mmd->mirror_ob) {
-				VecMat4MulVecfl(co, imtx, co);
+				mul_v3_m4v3(co, imtx, co);
 			}
-			VecCopyf(mv->co, co);
+			copy_v3_v3(mv->co, co);
 			
 			mv->flag |= ME_VERT_MERGED;
 		} else {
@@ -1969,9 +1969,9 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			
 			co[axis] = -co[axis];
 			if (mmd->mirror_ob) {
-				VecMat4MulVecfl(co, imtx, co);
+				mul_v3_m4v3(co, imtx, co);
 			}
-			VecCopyf(mv2->co, co);
+			copy_v3_v3(mv2->co, co);
 			
 			if (mmd->flag & MOD_MIR_VGROUP){
 				dvert = DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
@@ -2477,12 +2477,12 @@ static SmoothMesh *smoothmesh_from_derivedmesh(DerivedMesh *dm)
 			if(face->edges[2]->verts[1]->oldIndex == mf.v3) face->flip[2] = 1;
 			face->edges[3] = BLI_edgehash_lookup(edges, mf.v4, mf.v1);
 			if(face->edges[3]->verts[1]->oldIndex == mf.v4) face->flip[3] = 1;
-			CalcNormFloat4(v1.co, v2.co, v3.co, v4.co, face->normal);
+			normal_quad_v3( face->normal,v1.co, v2.co, v3.co, v4.co);
 		} else {
 			face->edges[2] = BLI_edgehash_lookup(edges, mf.v3, mf.v1);
 			if(face->edges[2]->verts[1]->oldIndex == mf.v3) face->flip[2] = 1;
 			face->edges[3] = NULL;
-			CalcNormFloat(v1.co, v2.co, v3.co, face->normal);
+			normal_tri_v3( face->normal,v1.co, v2.co, v3.co);
 		}
 
 		for(j = 0; j < SMOOTHFACE_MAX_EDGES && face->edges[j]; j++) {
@@ -3179,7 +3179,7 @@ static void tag_and_count_extra_edges(SmoothMesh *mesh, float split_angle,
 							 /* we know the edge has 2 faces, so check the angle */
 							 SmoothFace *face1 = edge->faces->link;
 							 SmoothFace *face2 = edge->faces->next->link;
-							 float edge_angle_cos = Inpf(face1->normal,
+							 float edge_angle_cos = dot_v3v3(face1->normal,
 									 face2->normal);
 
 							 if(edge_angle_cos < threshold) {
@@ -3575,7 +3575,7 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 
 	if(texmapping == MOD_DISP_MAP_OBJECT) {
 		if(dmd->map_object)
-			Mat4Invert(mapob_imat, dmd->map_object->obmat);
+			invert_m4_m4(mapob_imat, dmd->map_object->obmat);
 		else /* if there is no map object, default to local */
 			texmapping = MOD_DISP_MAP_LOCAL;
 	}
@@ -3641,12 +3641,12 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 				break;
 			case MOD_DISP_MAP_GLOBAL:
 				VECCOPY(*texco, *co);
-				Mat4MulVecfl(ob->obmat, *texco);
+				mul_m4_v3(ob->obmat, *texco);
 				break;
 			case MOD_DISP_MAP_OBJECT:
 				VECCOPY(*texco, *co);
-				Mat4MulVecfl(ob->obmat, *texco);
-				Mat4MulVecfl(mapob_imat, *texco);
+				mul_m4_v3(ob->obmat, *texco);
+				mul_m4_v3(mapob_imat, *texco);
 				break;
 		}
 	}
@@ -3917,7 +3917,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
 	/* convert coords to world space */
 	for(i = 0, co = coords; i < numVerts; ++i, ++co)
-		Mat4MulVecfl(ob->obmat, *co);
+		mul_m4_v3(ob->obmat, *co);
 
 	/* calculate a projection matrix and normal for each projector */
 	for(i = 0; i < num_projectors; ++i) {
@@ -3925,7 +3925,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		float offsetmat[4][4];
 		Camera *cam = NULL;
 		/* calculate projection matrix */
-		Mat4Invert(projectors[i].projmat, projectors[i].ob->obmat);
+		invert_m4_m4(projectors[i].projmat, projectors[i].ob->obmat);
 
 		if(projectors[i].ob->type == OB_CAMERA) {
 			cam = (Camera *)projectors[i].ob->data;
@@ -3947,8 +3947,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				xmin = -xmax;
 				ymin = -ymax;
 
-				i_window(xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend, perspmat);
-				Mat4MulMat4(tmpmat, projectors[i].projmat, perspmat);
+				perspective_m4( perspmat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
+				mul_m4_m4m4(tmpmat, projectors[i].projmat, perspmat);
 			} else if(cam->type == CAM_ORTHO) {
 				float orthomat[4][4];
 				float xmax; 
@@ -3966,15 +3966,15 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				xmin = -xmax;
 				ymin = -ymax;
 
-				i_ortho(xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend, orthomat);
-				Mat4MulMat4(tmpmat, projectors[i].projmat, orthomat);
+				orthographic_m4( orthomat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
+				mul_m4_m4m4(tmpmat, projectors[i].projmat, orthomat);
 			}
 		} else {
-			Mat4CpyMat4(tmpmat, projectors[i].projmat);
+			copy_m4_m4(tmpmat, projectors[i].projmat);
 		}
 
-		Mat4One(offsetmat);
-		Mat4MulFloat3(offsetmat[0], 0.5);
+		unit_m4(offsetmat);
+		mul_mat3_m4_fl(offsetmat[0], 0.5);
 		offsetmat[3][0] = offsetmat[3][1] = offsetmat[3][2] = 0.5;
 		
 		if (cam) {
@@ -3990,19 +3990,19 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			}
 		}
 		
-		Mat4MulMat4(projectors[i].projmat, tmpmat, offsetmat);
+		mul_m4_m4m4(projectors[i].projmat, tmpmat, offsetmat);
 
 		/* calculate worldspace projector normal (for best projector test) */
 		projectors[i].normal[0] = 0;
 		projectors[i].normal[1] = 0;
 		projectors[i].normal[2] = 1;
-		Mat4Mul3Vecfl(projectors[i].ob->obmat, projectors[i].normal);
+		mul_mat3_m4_v3(projectors[i].ob->obmat, projectors[i].normal);
 	}
 
 	/* if only one projector, project coords to UVs */
 	if(num_projectors == 1)
 		for(i = 0, co = coords; i < numVerts; ++i, ++co)
-			Mat4MulVec3Project(projectors[0].projmat, *co);
+			mul_project_m4_v4(projectors[0].projmat, *co);
 
 	mface = dm->getFaceArray(dm);
 	numFaces = dm->getNumFaces(dm);
@@ -4039,19 +4039,19 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				/* get the untransformed face normal */
 				if(mf->v4) {
 					VECCOPY(co4, coords[mf->v4]);
-					CalcNormFloat4(co1, co2, co3, co4, face_no);
+					normal_quad_v3( face_no,co1, co2, co3, co4);
 				} else { 
-					CalcNormFloat(co1, co2, co3, face_no);
+					normal_tri_v3( face_no,co1, co2, co3);
 				}
 
 				/* find the projector which the face points at most directly
 				* (projector normal with largest dot product is best)
 				*/
-				best_dot = Inpf(projectors[0].normal, face_no);
+				best_dot = dot_v3v3(projectors[0].normal, face_no);
 				best_projector = &projectors[0];
 
 				for(j = 1; j < num_projectors; ++j) {
-					float tmp_dot = Inpf(projectors[j].normal,
+					float tmp_dot = dot_v3v3(projectors[j].normal,
 							face_no);
 					if(tmp_dot > best_dot) {
 						best_dot = tmp_dot;
@@ -4059,11 +4059,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					}
 				}
 
-				Mat4MulVec3Project(best_projector->projmat, co1);
-				Mat4MulVec3Project(best_projector->projmat, co2);
-				Mat4MulVec3Project(best_projector->projmat, co3);
+				mul_project_m4_v4(best_projector->projmat, co1);
+				mul_project_m4_v4(best_projector->projmat, co2);
+				mul_project_m4_v4(best_projector->projmat, co3);
 				if(mf->v4)
-					Mat4MulVec3Project(best_projector->projmat, co4);
+					mul_project_m4_v4(best_projector->projmat, co4);
 
 				/* apply transformed coords as UVs */
 				tface->uv[0][0] = co1[0];
@@ -4358,11 +4358,11 @@ static void smoothModifier_do(
 
 			if (uctmp[idx1] < 255) {
 				uctmp[idx1]++;
-				VecAddf(v1, v1, fvec);
+				add_v3_v3v3(v1, v1, fvec);
 			}
 			if (uctmp[idx2] < 255) {
 				uctmp[idx2]++;
-				VecAddf(v2, v2, fvec);
+				add_v3_v3v3(v2, v2, fvec);
 			}
 		}
 
@@ -4576,14 +4576,14 @@ static void castModifier_sphere_do(
 	* we use its location, transformed to ob's local space */
 	if (ctrl_ob) {
 		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-			Mat4Invert(ctrl_ob->imat, ctrl_ob->obmat);
-			Mat4MulMat4(mat, ob->obmat, ctrl_ob->imat);
-			Mat4Invert(imat, mat);
+			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
+			mul_m4_m4m4(mat, ob->obmat, ctrl_ob->imat);
+			invert_m4_m4(imat, mat);
 		}
 
-		Mat4Invert(ob->imat, ob->obmat);
+		invert_m4_m4(ob->imat, ob->obmat);
 		VECCOPY(center, ctrl_ob->obmat[3]);
-		Mat4MulVecfl(ob->imat, center);
+		mul_m4_v3(ob->imat, center);
 	}
 
 	/* now we check which options the user wants */
@@ -4618,7 +4618,7 @@ static void castModifier_sphere_do(
 
 	if(len <= 0) {
 		for (i = 0; i < numVerts; i++) {
-			len += VecLenf(center, vertexCos[i]);
+			len += len_v3v3(center, vertexCos[i]);
 		}
 		len /= numVerts;
 
@@ -4640,9 +4640,9 @@ static void castModifier_sphere_do(
 			VECCOPY(tmp_co, vertexCos[i]);
 			if(ctrl_ob) {
 				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-					Mat4MulVecfl(mat, tmp_co);
+					mul_m4_v3(mat, tmp_co);
 				} else {
-					VecSubf(tmp_co, tmp_co, center);
+					sub_v3_v3v3(tmp_co, tmp_co, center);
 				}
 			}
 
@@ -4652,7 +4652,7 @@ static void castModifier_sphere_do(
 				vec[2] = 0.0f;
 
 			if (has_radius) {
-				if (VecLength(vec) > cmd->radius) continue;
+				if (len_v3(vec) > cmd->radius) continue;
 			}
 
 			for (j = 0; j < dvert[i].totweight; ++j) {
@@ -4666,7 +4666,7 @@ static void castModifier_sphere_do(
 			fac = fac_orig * dw->weight;
 			facm = 1.0f - fac;
 
-			Normalize(vec);
+			normalize_v3(vec);
 
 			if (flag & MOD_CAST_X)
 				tmp_co[0] = fac*vec[0]*len + facm*tmp_co[0];
@@ -4677,9 +4677,9 @@ static void castModifier_sphere_do(
 
 			if(ctrl_ob) {
 				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-					Mat4MulVecfl(imat, tmp_co);
+					mul_m4_v3(imat, tmp_co);
 				} else {
-					VecAddf(tmp_co, tmp_co, center);
+					add_v3_v3v3(tmp_co, tmp_co, center);
 				}
 			}
 
@@ -4695,9 +4695,9 @@ static void castModifier_sphere_do(
 		VECCOPY(tmp_co, vertexCos[i]);
 		if(ctrl_ob) {
 			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-				Mat4MulVecfl(mat, tmp_co);
+				mul_m4_v3(mat, tmp_co);
 			} else {
-				VecSubf(tmp_co, tmp_co, center);
+				sub_v3_v3v3(tmp_co, tmp_co, center);
 			}
 		}
 
@@ -4707,10 +4707,10 @@ static void castModifier_sphere_do(
 			vec[2] = 0.0f;
 
 		if (has_radius) {
-			if (VecLength(vec) > cmd->radius) continue;
+			if (len_v3(vec) > cmd->radius) continue;
 		}
 
-		Normalize(vec);
+		normalize_v3(vec);
 
 		if (flag & MOD_CAST_X)
 			tmp_co[0] = fac*vec[0]*len + facm*tmp_co[0];
@@ -4721,9 +4721,9 @@ static void castModifier_sphere_do(
 
 		if(ctrl_ob) {
 			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-				Mat4MulVecfl(imat, tmp_co);
+				mul_m4_v3(imat, tmp_co);
 			} else {
-				VecAddf(tmp_co, tmp_co, center);
+				add_v3_v3v3(tmp_co, tmp_co, center);
 			}
 		}
 
@@ -4778,14 +4778,14 @@ static void castModifier_cuboid_do(
 
 	if (ctrl_ob) {
 		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-			Mat4Invert(ctrl_ob->imat, ctrl_ob->obmat);
-			Mat4MulMat4(mat, ob->obmat, ctrl_ob->imat);
-			Mat4Invert(imat, mat);
+			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
+			mul_m4_m4m4(mat, ob->obmat, ctrl_ob->imat);
+			invert_m4_m4(imat, mat);
 		}
 
-		Mat4Invert(ob->imat, ob->obmat);
+		invert_m4_m4(ob->imat, ob->obmat);
 		VECCOPY(center, ctrl_ob->obmat[3]);
-		Mat4MulVecfl(ob->imat, center);
+		mul_m4_v3(ob->imat, center);
 	}
 
 	if((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {
@@ -4814,7 +4814,7 @@ static void castModifier_cuboid_do(
 			DO_MINMAX(center, min, max);
 
 			for (i = 0; i < numVerts; i++) {
-				VecSubf(vec, vertexCos[i], center);
+				sub_v3_v3v3(vec, vertexCos[i], center);
 				DO_MINMAX(vec, min, max);
 			}
 		}
@@ -4857,9 +4857,9 @@ static void castModifier_cuboid_do(
 			VECCOPY(tmp_co, vertexCos[i]);
 			if(ctrl_ob) {
 				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-					Mat4MulVecfl(mat, tmp_co);
+					mul_m4_v3(mat, tmp_co);
 				} else {
-					VecSubf(tmp_co, tmp_co, center);
+					sub_v3_v3v3(tmp_co, tmp_co, center);
 				}
 			}
 
@@ -4895,7 +4895,7 @@ static void castModifier_cuboid_do(
 			if (tmp_co[2] > 0.0f) octant += 4;
 
 			/* apex is the bb's vertex at the chosen octant */
-			VecCopyf(apex, bb[octant]);
+			copy_v3_v3(apex, bb[octant]);
 
 			/* find which bb plane is closest to this vertex ... */
 			d[0] = tmp_co[0] / apex[0];
@@ -4933,9 +4933,9 @@ static void castModifier_cuboid_do(
 
 			if(ctrl_ob) {
 				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-					Mat4MulVecfl(imat, tmp_co);
+					mul_m4_v3(imat, tmp_co);
 				} else {
-					VecAddf(tmp_co, tmp_co, center);
+					add_v3_v3v3(tmp_co, tmp_co, center);
 				}
 			}
 
@@ -4953,9 +4953,9 @@ static void castModifier_cuboid_do(
 		VECCOPY(tmp_co, vertexCos[i]);
 		if(ctrl_ob) {
 			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-				Mat4MulVecfl(mat, tmp_co);
+				mul_m4_v3(mat, tmp_co);
 			} else {
-				VecSubf(tmp_co, tmp_co, center);
+				sub_v3_v3v3(tmp_co, tmp_co, center);
 			}
 		}
 
@@ -4970,7 +4970,7 @@ static void castModifier_cuboid_do(
 		if (tmp_co[1] > 0.0f) octant += 2;
 		if (tmp_co[2] > 0.0f) octant += 4;
 
-		VecCopyf(apex, bb[octant]);
+		copy_v3_v3(apex, bb[octant]);
 
 		d[0] = tmp_co[0] / apex[0];
 		d[1] = tmp_co[1] / apex[1];
@@ -5001,9 +5001,9 @@ static void castModifier_cuboid_do(
 
 		if(ctrl_ob) {
 			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
-				Mat4MulVecfl(imat, tmp_co);
+				mul_m4_v3(imat, tmp_co);
 			} else {
-				VecAddf(tmp_co, tmp_co, center);
+				add_v3_v3v3(tmp_co, tmp_co, center);
 			}
 		}
 
@@ -5168,7 +5168,7 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 
 	if(texmapping == MOD_WAV_MAP_OBJECT) {
 		if(wmd->map_object)
-			Mat4Invert(wmd->map_object->imat, wmd->map_object->obmat);
+			invert_m4_m4(wmd->map_object->imat, wmd->map_object->obmat);
 		else /* if there is no map object, default to local */
 			texmapping = MOD_WAV_MAP_LOCAL;
 	}
@@ -5234,12 +5234,12 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 				break;
 			case MOD_WAV_MAP_GLOBAL:
 				VECCOPY(*texco, *co);
-				Mat4MulVecfl(ob->obmat, *texco);
+				mul_m4_v3(ob->obmat, *texco);
 				break;
 			case MOD_WAV_MAP_OBJECT:
 				VECCOPY(*texco, *co);
-				Mat4MulVecfl(ob->obmat, *texco);
-				Mat4MulVecfl(wmd->map_object->imat, *texco);
+				mul_m4_v3(ob->obmat, *texco);
+				mul_m4_v3(wmd->map_object->imat, *texco);
 				break;
 		}
 	}
@@ -5265,8 +5265,8 @@ static void waveModifier_do(WaveModifierData *md,
 	if(wmd->objectcenter){
 		float mat[4][4];
 		/* get the control object's location in local coordinates */
-		Mat4Invert(ob->imat, ob->obmat);
-		Mat4MulMat4(mat, wmd->objectcenter->obmat, ob->imat);
+		invert_m4_m4(ob->imat, ob->obmat);
+		mul_m4_m4m4(mat, wmd->objectcenter->obmat, ob->imat);
 
 		wmd->startx = mat[3][0];
 		wmd->starty = mat[3][1];
@@ -5655,14 +5655,14 @@ static void hookModifier_deformVerts(
 	/* get world-space matrix of target, corrected for the space the verts are in */
 	if (hmd->subtarget[0] && pchan) {
 		/* bone target if there's a matching pose-channel */
-		Mat4MulMat4(dmat, pchan->pose_mat, hmd->object->obmat);
+		mul_m4_m4m4(dmat, pchan->pose_mat, hmd->object->obmat);
 	}
 	else {
 		/* just object target */
-		Mat4CpyMat4(dmat, hmd->object->obmat);
+		copy_m4_m4(dmat, hmd->object->obmat);
 	}
-	Mat4Invert(ob->imat, ob->obmat);
-	Mat4MulSerie(mat, ob->imat, dmat, hmd->parentinv,
+	invert_m4_m4(ob->imat, ob->obmat);
+	mul_serie_m4(mat, ob->imat, dmat, hmd->parentinv,
 		     NULL, NULL, NULL, NULL, NULL);
 
 	/* vertex indices? */
@@ -5692,29 +5692,29 @@ static void hookModifier_deformVerts(
 						if(orig_index == index) {
 							co = vertexCos[j];
 							if(hmd->falloff != 0.0) {
-								float len = VecLenf(co, hmd->cent);
+								float len = len_v3v3(co, hmd->cent);
 								if(len > hmd->falloff) fac = 0.0;
 								else if(len > 0.0)
 									fac *= sqrt(1.0 - len / hmd->falloff);
 							}
 
 							if(fac != 0.0) {
-								VecMat4MulVecfl(vec, mat, co);
-								VecLerpf(co, co, vec, fac);
+								mul_v3_m4v3(vec, mat, co);
+								interp_v3_v3v3(co, co, vec, fac);
 							}
 						}
 					}
 				} else {
 					if(hmd->falloff != 0.0) {
-						float len = VecLenf(co, hmd->cent);
+						float len = len_v3v3(co, hmd->cent);
 						if(len > hmd->falloff) fac = 0.0;
 						else if(len > 0.0)
 							fac *= sqrt(1.0 - len / hmd->falloff);
 					}
 
 					if(fac != 0.0) {
-						VecMat4MulVecfl(vec, mat, co);
-						VecLerpf(co, co, vec, fac);
+						mul_v3_m4v3(vec, mat, co);
+						interp_v3_v3v3(co, co, vec, fac);
 					}
 				}
 			}
@@ -5753,14 +5753,14 @@ static void hookModifier_deformVerts(
 							float *co = vertexCos[i];
 						
 							if(hmd->falloff != 0.0) {
-								float len = VecLenf(co, hmd->cent);
+								float len = len_v3v3(co, hmd->cent);
 								if(len > hmd->falloff) fac = 0.0;
 								else if(len > 0.0)
 									fac *= sqrt(1.0 - len / hmd->falloff);
 							}
 						
-							VecMat4MulVecfl(vec, mat, co);
-							VecLerpf(co, co, vec, fac);
+							mul_v3_m4v3(vec, mat, co);
+							interp_v3_v3v3(co, co, vec, fac);
 						}
 					}
 				}
@@ -6096,7 +6096,7 @@ static void collisionModifier_deformVerts(
 				for ( i = 0; i < numverts; i++ )
 				{
 					// we save global positions
-					Mat4MulVecfl ( ob->obmat, collmd->x[i].co );
+					mul_m4_v3( ob->obmat, collmd->x[i].co );
 				}
 				
 				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
@@ -6126,7 +6126,7 @@ static void collisionModifier_deformVerts(
 				for ( i = 0; i < numverts; i++ )
 				{
 					// we save global positions
-					Mat4MulVecfl ( ob->obmat, collmd->xnew[i].co );
+					mul_m4_v3( ob->obmat, collmd->xnew[i].co );
 				}
 				
 				memcpy(collmd->current_xnew, collmd->x, numverts*sizeof(MVert));
@@ -6272,14 +6272,14 @@ static void surfaceModifier_deformVerts(
 		/* convert to global coordinates and calculate velocity */
 		for(i = 0, x = surmd->x, v = surmd->v; i<numverts; i++, x++, v++) {
 			vec = CDDM_get_vert(surmd->dm, i)->co;
-			Mat4MulVecfl(ob->obmat, vec);
+			mul_m4_v3(ob->obmat, vec);
 
 			if(init)
 				v->co[0] = v->co[1] = v->co[2] = 0.0f;
 			else
-				VecSubf(v->co, vec, x->co);
+				sub_v3_v3v3(v->co, vec, x->co);
 			
-			VecCopyf(x->co, vec);
+			copy_v3_v3(x->co, vec);
 		}
 
 		surmd->cfra = md->scene->r.cfra;
@@ -6713,7 +6713,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 
 			psys_get_particle_on_path(&sim, first_particle + i/totvert, &state,1);
 
-			Normalize(state.vel);
+			normalize_v3(state.vel);
 			
 			/* TODO: incremental rotations somehow */
 			if(state.vel[axis] < -0.9999 || state.vel[axis] > 0.9999) {
@@ -6724,10 +6724,10 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 				float temp[3] = {0.0f,0.0f,0.0f};
 				temp[axis] = 1.0f;
 
-				Crossf(cross, temp, state.vel);
+				cross_v3_v3v3(cross, temp, state.vel);
 
 				/* state.vel[axis] is the only component surviving from a dot product with the axis */
-				VecRotToQuat(cross,saacos(state.vel[axis]),state.rot);
+				axis_angle_to_quat(state.rot,cross,saacos(state.vel[axis]));
 			}
 
 		}
@@ -6736,9 +6736,9 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 			psys_get_particle_state(&sim, first_particle + i/totvert, &state,1);
 		}	
 
-		QuatMulVecf(state.rot,mv->co);
+		mul_qt_v3(state.rot,mv->co);
 		if(pimd->flag & eParticleInstanceFlag_UseSize)
-			VecMulf(mv->co, size[i/totvert]);
+			mul_v3_fl(mv->co, size[i/totvert]);
 		VECADD(mv->co,mv->co,state.co);
 	}
 
@@ -6901,14 +6901,14 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 
 	/* set face-particle-indexes to nearest particle to face center */
 	for(i=0,fa=mface; i<totface; i++,fa++){
-		VecAddf(center,mvert[fa->v1].co,mvert[fa->v2].co);
-		VecAddf(center,center,mvert[fa->v3].co);
+		add_v3_v3v3(center,mvert[fa->v1].co,mvert[fa->v2].co);
+		add_v3_v3v3(center,center,mvert[fa->v3].co);
 		if(fa->v4){
-			VecAddf(center,center,mvert[fa->v4].co);
-			VecMulf(center,0.25);
+			add_v3_v3v3(center,center,mvert[fa->v4].co);
+			mul_v3_fl(center,0.25);
 		}
 		else
-			VecMulf(center,0.3333f);
+			mul_v3_fl(center,0.3333f);
 
 		p= BLI_kdtree_find_nearest(tree,center,NULL,NULL);
 
@@ -7080,7 +7080,7 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 		mv=CDDM_get_vert(splitdm,i);
 
 		VECADD(dupve->co,dupve->co,mv->co);
-		VecMulf(dupve->co,0.5);
+		mul_v3_fl(dupve->co,0.5);
 	}
 	BLI_edgehashIterator_free(ehi);
 
@@ -7296,7 +7296,7 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					VECADD(dupve->co,dupve->co,mv->co);
 					mv=CDDM_get_vert(splitdm,mf->v4);
 					VECADD(dupve->co,dupve->co,mv->co);
-					VecMulf(dupve->co,0.25);
+					mul_v3_fl(dupve->co,0.25);
 
 
 					df1=CDDM_get_face(splitdm,curdupface);
@@ -7472,7 +7472,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	/*dupvert= CDDM_get_verts(explode);*/
 
 	/* getting back to object space */
-	Mat4Invert(imat,ob->obmat);
+	invert_m4_m4(imat,ob->obmat);
 
 	psmd->psys->lattice = psys_get_lattice(&sim);
 
@@ -7499,23 +7499,23 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 			/* get particle state */
 			psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
-			Mat4MulVecfl(ob->obmat,loc0);
+			mul_m4_v3(ob->obmat,loc0);
 
 			state.time=cfra;
 			psys_get_particle_state(&sim, i, &state, 1);
 
 			vertco=CDDM_get_vert(explode,v)->co;
 			
-			Mat4MulVecfl(ob->obmat,vertco);
+			mul_m4_v3(ob->obmat,vertco);
 
 			VECSUB(vertco,vertco,loc0);
 
 			/* apply rotation, size & location */
-			QuatMulVecf(state.rot,vertco);
-			VecMulf(vertco,pa->size);
+			mul_qt_v3(state.rot,vertco);
+			mul_v3_fl(vertco,pa->size);
 			VECADD(vertco,vertco,state.co);
 
-			Mat4MulVecfl(imat,vertco);
+			mul_m4_v3(imat,vertco);
 		}
 	}
 	BLI_edgehashIterator_free(ehi);
@@ -7881,11 +7881,11 @@ static void meshdeformModifier_do(
 		return;
 
 	/* compute matrices to go in and out of cage object space */
-	Mat4Invert(imat, mmd->object->obmat);
-	Mat4MulMat4(cagemat, ob->obmat, imat);
-	Mat4MulMat4(cmat, cagemat, mmd->bindmat);
-	Mat4Invert(iobmat, cmat);
-	Mat3CpyMat4(icagemat, iobmat);
+	invert_m4_m4(imat, mmd->object->obmat);
+	mul_m4_m4m4(cagemat, ob->obmat, imat);
+	mul_m4_m4m4(cmat, cagemat, mmd->bindmat);
+	invert_m4_m4(iobmat, cmat);
+	copy_m3_m4(icagemat, iobmat);
 
 	/* bind weights if needed */
 	if(!mmd->bindcos) {
@@ -7919,7 +7919,7 @@ static void meshdeformModifier_do(
 		VECCOPY(co, cagemvert[a].co);
 
 		if(G.rt != 527) {
-			Mat4MulVecfl(mmd->bindmat, co);
+			mul_m4_v3(mmd->bindmat, co);
 			/* compute difference with world space bind coord */
 			VECSUB(dco[a], co, bindcos[a]);
 		}
@@ -7973,7 +7973,7 @@ static void meshdeformModifier_do(
 		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
 			/* transform coordinate into cage's local space */
 			VECCOPY(co, vertexCos[b]);
-			Mat4MulVecfl(cagemat, co);
+			mul_m4_v3(cagemat, co);
 			totweight= meshdeform_dynamic_bind(mmd, dco, co);
 		}
 		else {
@@ -7990,8 +7990,8 @@ static void meshdeformModifier_do(
 		}
 
 		if(totweight > 0.0f) {
-			VecMulf(co, fac/totweight);
-			Mat3MulVecfl(icagemat, co);
+			mul_v3_fl(co, fac/totweight);
+			mul_m3_v3(icagemat, co);
 			if(G.rt != 527)
 				VECADD(vertexCos[b], vertexCos[b], co)
 						else
@@ -8082,7 +8082,7 @@ static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob,
 		int i;
 		MVert *dst = CDDM_get_verts(final);
 		for(i = 0; i < mmd->undo_verts_tot; ++i) {
-			VecCopyf(dst[i].co, mmd->undo_verts[i].co);
+			copy_v3_v3(dst[i].co, mmd->undo_verts[i].co);
 		}
 		CDDM_calc_normals(final);
 
@@ -8363,10 +8363,10 @@ static void shapekeyModifier_deformMatricesEM(
 	int a;
 
 	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
-		Mat3Scale(scale, kb->curval);
+		scale_m3_fl(scale, kb->curval);
 
 		for(a=0; a<numVerts; a++)
-			Mat3CpyMat3(defMats[a], scale);
+			copy_m3_m3(defMats[a], scale);
 	}
 }
 

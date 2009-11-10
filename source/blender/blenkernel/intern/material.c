@@ -46,7 +46,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"		
+#include "BLI_math.h"		
 
 #include "BKE_animsys.h"
 #include "BKE_blender.h"

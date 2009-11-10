@@ -46,7 +46,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
@@ -141,12 +141,12 @@ static void view3d_boxview_clip(ScrArea *sa)
 	}
 
 	/* normals for plane equations */
-	CalcNormFloat(bb->vec[0], bb->vec[1], bb->vec[4], clip[0]);
-	CalcNormFloat(bb->vec[1], bb->vec[2], bb->vec[5], clip[1]);
-	CalcNormFloat(bb->vec[2], bb->vec[3], bb->vec[6], clip[2]);
-	CalcNormFloat(bb->vec[3], bb->vec[0], bb->vec[7], clip[3]);
-	CalcNormFloat(bb->vec[4], bb->vec[5], bb->vec[6], clip[4]);
-	CalcNormFloat(bb->vec[0], bb->vec[2], bb->vec[1], clip[5]);
+	normal_tri_v3( clip[0],bb->vec[0], bb->vec[1], bb->vec[4]);
+	normal_tri_v3( clip[1],bb->vec[1], bb->vec[2], bb->vec[5]);
+	normal_tri_v3( clip[2],bb->vec[2], bb->vec[3], bb->vec[6]);
+	normal_tri_v3( clip[3],bb->vec[3], bb->vec[0], bb->vec[7]);
+	normal_tri_v3( clip[4],bb->vec[4], bb->vec[5], bb->vec[6]);
+	normal_tri_v3( clip[5],bb->vec[0], bb->vec[2], bb->vec[1]);
 
 	/* then plane equations */
 	for(val=0; val<5; val++) {
@@ -299,7 +299,7 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 		/* If there's no selection, lastofs is unmodified and last value since static */
 		calculateTransformCenter(C, event, V3D_CENTROID, lastofs);
 		VECCOPY(vod->obofs, lastofs);
-		VecMulf(vod->obofs, -1.0f);
+		mul_v3_fl(vod->obofs, -1.0f);
 	}
 
 	/* lookup, we dont pass on v3d to prevent confusement */
@@ -422,13 +422,13 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		calctrackballvec(&vod->ar->winrct, x, y, newvec);
 
-		VecSubf(dvec, newvec, vod->trackvec);
+		sub_v3_v3v3(dvec, newvec, vod->trackvec);
 
 		si= sqrt(dvec[0]*dvec[0]+ dvec[1]*dvec[1]+ dvec[2]*dvec[2]);
 		si/= (2.0*TRACKBALLSIZE);
 
-		Crossf(q1+1, vod->trackvec, newvec);
-		Normalize(q1+1);
+		cross_v3_v3v3(q1+1, vod->trackvec, newvec);
+		normalize_v3(q1+1);
 
 		/* Allow for rotation beyond the interval
 			* [-pi, pi] */
@@ -447,19 +447,19 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		q1[1]*= si;
 		q1[2]*= si;
 		q1[3]*= si;
-		QuatMul(rv3d->viewquat, q1, vod->oldquat);
+		mul_qt_qtqt(rv3d->viewquat, q1, vod->oldquat);
 
 		if (use_sel) {
 			/* compute the post multiplication quat, to rotate the offset correctly */
 			QUATCOPY(q1, vod->oldquat);
-			QuatConj(q1);
-			QuatMul(q1, q1, rv3d->viewquat);
+			conjugate_qt(q1);
+			mul_qt_qtqt(q1, q1, rv3d->viewquat);
 
-			QuatConj(q1); /* conj == inv for unit quat */
+			conjugate_qt(q1); /* conj == inv for unit quat */
 			VECCOPY(rv3d->ofs, vod->ofs);
-			VecSubf(rv3d->ofs, rv3d->ofs, vod->obofs);
-			QuatMulVecf(q1, rv3d->ofs);
-			VecAddf(rv3d->ofs, rv3d->ofs, vod->obofs);
+			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			mul_qt_v3(q1, rv3d->ofs);
+			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
 		}
 	}
 	else {
@@ -475,12 +475,12 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		const float sensitivity = 0.0035;
 
 		/* Get the 3x3 matrix and its inverse from the quaternion */
-		QuatToMat3(rv3d->viewquat, m);
-		Mat3Inv(m_inv,m);
+		quat_to_mat3( m,rv3d->viewquat);
+		invert_m3_m3(m_inv,m);
 
 		/* Determine the direction of the x vector (for rotating up and down) */
 		/* This can likely be compuated directly from the quaternion. */
-		Mat3MulVecfl(m_inv,xvec);
+		mul_m3_v3(m_inv,xvec);
 
 		/* Perform the up/down rotation */
 		phi = sensitivity * -(y - vod->oldy);
@@ -489,13 +489,13 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		q1[1] = si * xvec[0];
 		q1[2] = si * xvec[1];
 		q1[3] = si * xvec[2];
-		QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
 		if (use_sel) {
-			QuatConj(q1); /* conj == inv for unit quat */
-			VecSubf(rv3d->ofs, rv3d->ofs, vod->obofs);
-			QuatMulVecf(q1, rv3d->ofs);
-			VecAddf(rv3d->ofs, rv3d->ofs, vod->obofs);
+			conjugate_qt(q1); /* conj == inv for unit quat */
+			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			mul_qt_v3(q1, rv3d->ofs);
+			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
 		}
 
 		/* Perform the orbital rotation */
@@ -503,13 +503,13 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		q1[0] = cos(phi);
 		q1[1] = q1[2] = 0.0;
 		q1[3] = sin(phi);
-		QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
 		if (use_sel) {
-			QuatConj(q1);
-			VecSubf(rv3d->ofs, rv3d->ofs, vod->obofs);
-			QuatMulVecf(q1, rv3d->ofs);
-			VecAddf(rv3d->ofs, rv3d->ofs, vod->obofs);
+			conjugate_qt(q1);
+			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			mul_qt_v3(q1, rv3d->ofs);
+			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
 		}
 	}
 
@@ -519,17 +519,17 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		float viewmat[3][3];
 
 
-		QuatToMat3(rv3d->viewquat, viewmat);
+		quat_to_mat3( viewmat,rv3d->viewquat);
 
 		for (i = 0 ; i < 39; i++){
 			float snapmat[3][3];
 			float view = (int)snapquats[i][4];
 
-			QuatToMat3(snapquats[i], snapmat);
+			quat_to_mat3( snapmat,snapquats[i]);
 
-			if ((Inpf(snapmat[0], viewmat[0]) > thres) &&
-				(Inpf(snapmat[1], viewmat[1]) > thres) &&
-				(Inpf(snapmat[2], viewmat[2]) > thres)){
+			if ((dot_v3v3(snapmat[0], viewmat[0]) > thres) &&
+				(dot_v3v3(snapmat[1], viewmat[1]) > thres) &&
+				(dot_v3v3(snapmat[2], viewmat[2]) > thres)){
 
 				QUATCOPY(rv3d->viewquat, snapquats[i]);
 
@@ -678,7 +678,7 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 		float dvec[3];
 
 		window_to_3d_delta(vod->ar, dvec, x-vod->oldx, y-vod->oldy);
-		VecAddf(vod->rv3d->ofs, vod->rv3d->ofs, dvec);
+		add_v3_v3v3(vod->rv3d->ofs, vod->rv3d->ofs, dvec);
 
 		if(vod->rv3d->viewlock & RV3D_BOXVIEW)
 			view3d_boxview_sync(vod->sa, vod->ar);
@@ -868,9 +868,9 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 		upvec[0] = upvec[1] = 0.0f;
 		upvec[2] = (vod->dist0 - vod->rv3d->dist) * vod->grid;
 		vod->rv3d->dist = vod->dist0;
-		Mat3CpyMat4(mat, vod->rv3d->viewinv);
-		Mat3MulVecfl(mat, upvec);
-		VecAddf(vod->rv3d->ofs, vod->rv3d->ofs, upvec);
+		copy_m3_m4(mat, vod->rv3d->viewinv);
+		mul_m3_v3(mat, upvec);
+		add_v3_v3v3(vod->rv3d->ofs, vod->rv3d->ofs, upvec);
 	} else {
 		/* these limits were in old code too */
 		if(vod->rv3d->dist<0.001*vod->grid) vod->rv3d->dist= 0.001*vod->grid;
@@ -1142,10 +1142,10 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 					if(pchan->bone->layer & arm->layer) {
 						ok= 1;
 						VECCOPY(vec, pchan->pose_head);
-						Mat4MulVecfl(ob->obmat, vec);
+						mul_m4_v3(ob->obmat, vec);
 						DO_MINMAX(vec, min, max);
 						VECCOPY(vec, pchan->pose_tail);
-						Mat4MulVecfl(ob->obmat, vec);
+						mul_m4_v3(ob->obmat, vec);
 						DO_MINMAX(vec, min, max);
 					}
 				}
@@ -1401,7 +1401,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		dvec[1] = p[1]-p_corner[1];
 		dvec[2] = p[2]-p_corner[2];
 
-		new_dist = VecLength(dvec);
+		new_dist = len_v3(dvec);
 		if(new_dist <= v3d->near*1.5) new_dist= v3d->near*1.5;
 
 		new_ofs[0] = -p[0];
@@ -1430,7 +1430,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 			window_to_3d_delta(ar, dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
 			/* center the view to the center of the rectangle */
-			VecSubf(new_ofs, new_ofs, dvec);
+			sub_v3_v3v3(new_ofs, new_ofs, dvec);
 		}
 
 		/* work out the ratios, so that everything selected fits when we zoom */
@@ -1524,9 +1524,9 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 			/* same as transform manipulator when normal is set */
 			ED_getTransformOrientationMatrix(C, twmat, TRUE);
 
-			Mat3ToQuat(twmat, obact_quat);
-			QuatInv(obact_quat);
-			QuatMul(new_quat, new_quat, obact_quat);
+			mat3_to_quat( obact_quat,twmat);
+			invert_qt(obact_quat);
+			mul_qt_qtqt(new_quat, new_quat, obact_quat);
 
 			rv3d->view= view= 0;
 		}
@@ -1704,14 +1704,14 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				q1[0]= (float)cos(phi);
 				q1[1]= q1[2]= 0.0;
 				q1[3]= si;
-				QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 				rv3d->view= 0;
 			}
 			if(orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
 				/* horizontal axis */
 				VECCOPY(q1+1, rv3d->viewinv[0]);
 
-				Normalize(q1+1);
+				normalize_v3(q1+1);
 				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
 				if(orbitdir == V3D_VIEW_STEPDOWN) phi= -phi;
 				si= (float)sin(phi);
@@ -1719,7 +1719,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				q1[1]*= si;
 				q1[2]*= si;
 				q1[3]*= si;
-				QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 				rv3d->view= 0;
 			}
 			ED_region_tag_redraw(ar);
@@ -1881,7 +1881,7 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	/* then plane equations */
 	for(val=0; val<4; val++) {
 
-		CalcNormFloat(rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4], rv3d->clip[val]);
+		normal_tri_v3( rv3d->clip[val],rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4]);
 
 		rv3d->clip[val][3]= - rv3d->clip[val][0]*rv3d->clipbb->vec[val][0]
 			- rv3d->clip[val][1]*rv3d->clipbb->vec[val][1]
@@ -1960,7 +1960,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(mval[0]!=IS_CLIPPED) {
 
 		window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
-		VecSubf(fp, fp, dvec);
+		sub_v3_v3v3(fp, fp, dvec);
 	}
 	else {
 
@@ -2247,9 +2247,9 @@ void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
 		m_dist = rv3d->dist;
 		upvec[0] = upvec[1] = 0;
 		upvec[2] = rv3d->dist;
-		Mat3CpyMat4(mat, rv3d->viewinv);
-		Mat3MulVecfl(mat, upvec);
-		VecSubf(rv3d->ofs, rv3d->ofs, upvec);
+		copy_m3_m4(mat, rv3d->viewinv);
+		mul_m3_v3(mat, upvec);
+		sub_v3_v3v3(rv3d->ofs, rv3d->ofs, upvec);
 		rv3d->dist = 0.0;
 	}
 
@@ -2263,16 +2263,16 @@ void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
 
 	// rotate device x and y by view z
 
-	Mat3CpyMat4(mat, rv3d->viewinv);
+	copy_m3_m4(mat, rv3d->viewinv);
 	mat[2][2] = 0.0f;
-	Mat3MulVecfl(mat, rvec);
+	mul_m3_v3(mat, rvec);
 
 	// rotate the view
 
-	phi = Normalize(rvec);
+	phi = normalize_v3(rvec);
 	if(phi != 0) {
-		VecRotToQuat(rvec,phi,q1);
-		QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+		axis_angle_to_quat(q1,rvec,phi);
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 	}
 
 
@@ -2285,13 +2285,13 @@ void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
 	// the next three lines rotate the x and y translation coordinates
 	// by the current z axis angle
 
-	Mat3CpyMat4(mat, rv3d->viewinv);
+	copy_m3_m4(mat, rv3d->viewinv);
 	mat[2][2] = 0.0f;
-	Mat3MulVecfl(mat, tvec);
+	mul_m3_v3(mat, tvec);
 
 	// translate the view
 
-	VecSubf(rv3d->ofs, rv3d->ofs, tvec);
+	sub_v3_v3v3(rv3d->ofs, rv3d->ofs, tvec);
 
 
 	/*----------------------------------------------------
@@ -2350,9 +2350,9 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 		rv3d->dist = m_dist;
 		upvec[0] = upvec[1] = 0;
 		upvec[2] = rv3d->dist;
-		Mat3CpyMat4(mat, rv3d->viewinv);
-		Mat3MulVecfl(mat, upvec);
-		VecAddf(rv3d->ofs, rv3d->ofs, upvec);
+		copy_m3_m4(mat, rv3d->viewinv);
+		mul_m3_v3(mat, upvec);
+		add_v3_v3v3(rv3d->ofs, rv3d->ofs, upvec);
 	}
 
     /*----------------------------------------------------
@@ -2414,8 +2414,8 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
      d = 1.0f;
 
 /*    if (ob) {
-        VecSubf(diff, obofs, rv3d->ofs);
-        d = VecLength(diff);
+        sub_v3_v3v3(diff, obofs, rv3d->ofs);
+        d = len_v3(diff);
     }
 */
 
@@ -2430,7 +2430,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
     dvec[0] = curareaX * rv3d->persinv[0][0] + curareaY * rv3d->persinv[1][0];
     dvec[1] = curareaX * rv3d->persinv[0][1] + curareaY * rv3d->persinv[1][1];
     dvec[2] = curareaX * rv3d->persinv[0][2] + curareaY * rv3d->persinv[1][2];
-    VecAddf(rv3d->ofs, rv3d->ofs, dvec);
+    add_v3_v3v3(rv3d->ofs, rv3d->ofs, dvec);
 
     /*----------------------------------------------------
      * ndof device dolly
@@ -2455,14 +2455,14 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
      */
 
     /* Get the 3x3 matrix and its inverse from the quaternion */
-    QuatToMat3(rv3d->viewquat, m);
-    Mat3Inv(m_inv,m);
+    quat_to_mat3( m,rv3d->viewquat);
+    invert_m3_m3(m_inv,m);
 
     /* Determine the direction of the x vector (for rotating up and down) */
     /* This can likely be compuated directly from the quaternion. */
-    Mat3MulVecfl(m_inv,xvec);
-    Mat3MulVecfl(m_inv,yvec);
-    Mat3MulVecfl(m_inv,zvec);
+    mul_m3_v3(m_inv,xvec);
+    mul_m3_v3(m_inv,yvec);
+    mul_m3_v3(m_inv,zvec);
 
     /* Perform the up/down rotation */
     phi = sbadjust * rsens * /*0.5f * */ fval[3]; /* spin vertically half as fast as horizontally */
@@ -2471,13 +2471,13 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
     q1[1] = si * xvec[0];
     q1[2] = si * xvec[1];
     q1[3] = si * xvec[2];
-    QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+    mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
     if (use_sel) {
-        QuatConj(q1); /* conj == inv for unit quat */
-        VecSubf(rv3d->ofs, rv3d->ofs, obofs);
-        QuatMulVecf(q1, rv3d->ofs);
-        VecAddf(rv3d->ofs, rv3d->ofs, obofs);
+        conjugate_qt(q1); /* conj == inv for unit quat */
+        sub_v3_v3v3(rv3d->ofs, rv3d->ofs, obofs);
+        mul_qt_v3(q1, rv3d->ofs);
+        add_v3_v3v3(rv3d->ofs, rv3d->ofs, obofs);
     }
 
     /* Perform the orbital rotation */
@@ -2496,13 +2496,13 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
     q1[0] = cos(phi);
     q1[1] = q1[2] = 0.0;
     q1[3] = sin(phi);
-    QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+    mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
     if (use_sel) {
-        QuatConj(q1);
-        VecSubf(rv3d->ofs, rv3d->ofs, obofs);
-        QuatMulVecf(q1, rv3d->ofs);
-        VecAddf(rv3d->ofs, rv3d->ofs, obofs);
+        conjugate_qt(q1);
+        sub_v3_v3v3(rv3d->ofs, rv3d->ofs, obofs);
+        mul_qt_v3(q1, rv3d->ofs);
+        add_v3_v3v3(rv3d->ofs, rv3d->ofs, obofs);
     }
 
     /*----------------------------------------------------

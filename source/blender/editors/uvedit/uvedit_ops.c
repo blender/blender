@@ -41,7 +41,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
@@ -359,9 +359,9 @@ void uv_center(float uv[][2], float cent[2], int quad)
 float uv_area(float uv[][2], int quad)
 {
 	if(quad)
-		return AreaF2Dfl(uv[0], uv[1], uv[2]) + AreaF2Dfl(uv[0], uv[2], uv[3]); 
+		return area_tri_v2(uv[0], uv[1], uv[2]) + area_tri_v2(uv[0], uv[2], uv[3]); 
 	else
-		return AreaF2Dfl(uv[0], uv[1], uv[2]); 
+		return area_tri_v2(uv[0], uv[1], uv[2]); 
 }
 
 void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy)
@@ -473,7 +473,7 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, EditMesh *em, float c
 			nverts= efa->v4? 4: 3;
 
 			for(i=0; i<nverts; i++) {
-				dist= PdistVL2Dfl(co, tf->uv[i], tf->uv[(i+1)%nverts]);
+				dist= dist_to_line_segment_v2(co, tf->uv[i], tf->uv[(i+1)%nverts]);
 
 				if(dist < mindist) {
 					hit->tf= tf;
@@ -534,8 +534,8 @@ static int nearest_uv_between(MTFace *tf, int nverts, int id, float co[2], float
 
 	m[0]= co[0]-uv[0];
 	m[1]= co[1]-uv[1];
-	Vec2Subf(v1, tf->uv[id1], tf->uv[id]);
-	Vec2Subf(v2, tf->uv[id2], tf->uv[id]);
+	sub_v2_v2v2(v1, tf->uv[id1], tf->uv[id]);
+	sub_v2_v2v2(v2, tf->uv[id2], tf->uv[id]);
 
 	/* m and v2 on same side of v-v1? */
 	c1= v1[0]*m[1] - v1[1]*m[0];

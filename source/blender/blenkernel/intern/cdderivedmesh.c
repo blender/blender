@@ -45,7 +45,7 @@
 #include "BKE_multires.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
@@ -405,9 +405,9 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *a
 						/* TODO make this better (cache facenormals as layer?) */
 						float nor[3];
 						if(mface->v4) {
-							CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, nor);
+							normal_quad_v3( nor,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co);
 						} else {
-							CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, nor);
+							normal_tri_v3( nor,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co);
 						}
 						glNormal3fv(nor);
 					}
@@ -576,9 +576,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					else {
 						float nor[3];
 						if(mf->v4) {
-							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, nor);
+							normal_quad_v3( nor,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
 						} else {
-							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, nor);
+							normal_tri_v3( nor,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
 						}
 						glNormal3fv(nor);
 					}
@@ -748,9 +748,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					else {
 						float nor[3];
 						if(mf->v4) {
-							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, nor);
+							normal_quad_v3( nor,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
 						} else {
-							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, nor);
+							normal_tri_v3( nor,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
 						}
 						glNormal3fv(nor);
 					}
@@ -920,9 +920,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					/* TODO ideally a normal layer should always be available */
 					float nor[3];
 					if(mface->v4) {
-						CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, nor);
+						normal_quad_v3( nor,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co);
 					} else {
-						CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, nor);
+						normal_tri_v3( nor,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co);
 					}
 					glNormal3fv(nor);
 				}
@@ -1259,16 +1259,16 @@ static void cdDM_foreachMappedFaceCenter(
 			orig = i;
 
 		VECCOPY(cent, mv[mf->v1].co);
-		VecAddf(cent, cent, mv[mf->v2].co);
-		VecAddf(cent, cent, mv[mf->v3].co);
+		add_v3_v3v3(cent, cent, mv[mf->v2].co);
+		add_v3_v3v3(cent, cent, mv[mf->v3].co);
 
 		if (mf->v4) {
-			CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, no);
-			VecAddf(cent, cent, mv[mf->v4].co);
-			VecMulf(cent, 0.25f);
+			normal_quad_v3( no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
+			add_v3_v3v3(cent, cent, mv[mf->v4].co);
+			mul_v3_fl(cent, 0.25f);
 		} else {
-			CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, no);
-			VecMulf(cent, 0.33333333333f);
+			normal_tri_v3( no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
+			mul_v3_fl(cent, 0.33333333333f);
 		}
 
 		func(userData, orig, cent, no);
@@ -1616,24 +1616,24 @@ void CDDM_calc_normals(DerivedMesh *dm)
 		float *f_no = face_nors[i];
 
 		if(mf->v4)
-			CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, f_no);
+			normal_quad_v3( f_no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
 		else
-			CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, f_no);
+			normal_tri_v3( f_no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
 		
-		VecAddf(temp_nors[mf->v1], temp_nors[mf->v1], f_no);
-		VecAddf(temp_nors[mf->v2], temp_nors[mf->v2], f_no);
-		VecAddf(temp_nors[mf->v3], temp_nors[mf->v3], f_no);
+		add_v3_v3v3(temp_nors[mf->v1], temp_nors[mf->v1], f_no);
+		add_v3_v3v3(temp_nors[mf->v2], temp_nors[mf->v2], f_no);
+		add_v3_v3v3(temp_nors[mf->v3], temp_nors[mf->v3], f_no);
 		if(mf->v4)
-			VecAddf(temp_nors[mf->v4], temp_nors[mf->v4], f_no);
+			add_v3_v3v3(temp_nors[mf->v4], temp_nors[mf->v4], f_no);
 	}
 
 	/* normalize vertex normals and assign */
 	for(i = 0; i < numVerts; i++, mv++) {
 		float *no = temp_nors[i];
 		
-		if (Normalize(no) == 0.0) {
+		if (normalize_v3(no) == 0.0) {
 			VECCOPY(no, mv->co);
-			Normalize(no);
+			normalize_v3(no);
 		}
 
 		mv->no[0] = (short)(no[0] * 32767.0);
@@ -1844,7 +1844,7 @@ DerivedMesh *MultiresDM_new(MultiresSubsurf *ms, DerivedMesh *orig, int numVerts
 		mvert = CustomData_get_layer(&orig->vertData, CD_MVERT);
 		mrdm->orco = MEM_callocN(sizeof(float) * 3 * orig->getNumVerts(orig), "multires orco");
 		for(i = 0; i < orig->getNumVerts(orig); ++i)
-			VecCopyf(mrdm->orco[i], mvert[i].co);
+			copy_v3_v3(mrdm->orco[i], mvert[i].co);
 	}
 	else
 		DM_init(dm, numVerts, numEdges, numFaces);
