@@ -64,6 +64,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_text.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 
 #include "BPY_extern.h"
 
@@ -1019,8 +1020,11 @@ int BPY_context_get(bContext *C, const char *member, bContextDataResult *result)
 	}
 
 	if(done==0) {
-		if (item)	printf("Context '%s' not found\n", member);
-		else		printf("Context '%s' not a valid type\n", member);
+		if (item)	printf("Context '%s' not a valid type\n", member);
+		else		printf("Context '%s' not found\n", member);
+	}
+	else if (G.f & G_DEBUG) {
+		printf("Context '%s' found\n", member);
 	}
 
 	return done;
