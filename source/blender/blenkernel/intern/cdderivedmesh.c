@@ -405,12 +405,9 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *a
 						/* TODO make this better (cache facenormals as layer?) */
 						float nor[3];
 						if(mface->v4) {
-							CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
-										   mvert[mface->v3].co, mvert[mface->v4].co,
-										   nor);
+							CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, nor);
 						} else {
-							CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
-										  mvert[mface->v3].co, nor);
+							CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, nor);
 						}
 						glNormal3fv(nor);
 					}
@@ -579,12 +576,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					else {
 						float nor[3];
 						if(mf->v4) {
-							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
-										   mv[mf->v3].co, mv[mf->v4].co,
-										   nor);
+							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, nor);
 						} else {
-							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
-										  mv[mf->v3].co, nor);
+							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, nor);
 						}
 						glNormal3fv(nor);
 					}
@@ -754,12 +748,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					else {
 						float nor[3];
 						if(mf->v4) {
-							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
-										   mv[mf->v3].co, mv[mf->v4].co,
-										   nor);
+							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, nor);
 						} else {
-							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
-										  mv[mf->v3].co, nor);
+							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, nor);
 						}
 						glNormal3fv(nor);
 					}
@@ -929,12 +920,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					/* TODO ideally a normal layer should always be available */
 					float nor[3];
 					if(mface->v4) {
-						CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
-									   mvert[mface->v3].co, mvert[mface->v4].co,
-									   nor);
+						CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, nor);
 					} else {
-						CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
-									  mvert[mface->v3].co, nor);
+						CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, nor);
 					}
 					glNormal3fv(nor);
 				}
@@ -1275,13 +1263,11 @@ static void cdDM_foreachMappedFaceCenter(
 		VecAddf(cent, cent, mv[mf->v3].co);
 
 		if (mf->v4) {
-			CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
-			               mv[mf->v3].co, mv[mf->v4].co, no);
+			CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, no);
 			VecAddf(cent, cent, mv[mf->v4].co);
 			VecMulf(cent, 0.25f);
 		} else {
-			CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
-			              mv[mf->v3].co, no);
+			CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, no);
 			VecMulf(cent, 0.33333333333f);
 		}
 
@@ -1630,11 +1616,9 @@ void CDDM_calc_normals(DerivedMesh *dm)
 		float *f_no = face_nors[i];
 
 		if(mf->v4)
-			CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
-			               mv[mf->v3].co, mv[mf->v4].co, f_no);
+			CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, f_no);
 		else
-			CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
-			              mv[mf->v3].co, f_no);
+			CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, f_no);
 		
 		VecAddf(temp_nors[mf->v1], temp_nors[mf->v1], f_no);
 		VecAddf(temp_nors[mf->v2], temp_nors[mf->v2], f_no);

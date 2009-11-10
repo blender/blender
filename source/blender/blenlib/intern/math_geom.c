@@ -1533,7 +1533,6 @@ void map_to_sphere(float *u, float *v,float x, float y, float z)
 /* from BKE_mesh.h */
 #define STD_UV_CONNECT_LIMIT	0.0001f
 
-#if 0
 void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, float *tang, float *uv)
 {
 	VertexTangent *vt;
@@ -1594,5 +1593,4 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
 		negate_v3(tang);
 }
-#endif
 

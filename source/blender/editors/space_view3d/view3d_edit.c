@@ -1881,8 +1881,7 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	/* then plane equations */
 	for(val=0; val<4; val++) {
 
-		CalcNormFloat(rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4],
-					  rv3d->clip[val]);
+		CalcNormFloat(rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4], rv3d->clip[val]);
 
 		rv3d->clip[val][3]= - rv3d->clip[val][0]*rv3d->clipbb->vec[val][0]
 			- rv3d->clip[val][1]*rv3d->clipbb->vec[val][1]

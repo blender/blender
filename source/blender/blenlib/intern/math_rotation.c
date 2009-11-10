@@ -269,6 +269,50 @@ void mat4_to_quat(float *q, float m[][4])
 	mat3_to_quat(q,mat);
 }
 
+void mat3_to_quat_is_ok(float q[4], float wmat[3][3])
+{
+	float mat[3][3], matr[3][3], matn[3][3], q1[4], q2[4], angle, si, co, nor[3];
+
+	/* work on a copy */
+	copy_m3_m3(mat, wmat);
+	normalize_m3(mat);
+	
+	/* rotate z-axis of matrix to z-axis */
+
+	nor[0] = mat[2][1];		/* cross product with (0,0,1) */
+	nor[1] =  -mat[2][0];
+	nor[2] = 0.0;
+	normalize_v3(nor);
+	
+	co= mat[2][2];
+	angle= 0.5f*saacos(co);
+	
+	co= (float)cos(angle);
+	si= (float)sin(angle);
+	q1[0]= co;
+	q1[1]= -nor[0]*si;		/* negative here, but why? */
+	q1[2]= -nor[1]*si;
+	q1[3]= -nor[2]*si;
+
+	/* rotate back x-axis from mat, using inverse q1 */
+	quat_to_mat3( matr,q1);
+	invert_m3_m3(matn, matr);
+	mul_m3_v3(matn, mat[0]);
+	
+	/* and align x-axes */
+	angle= (float)(0.5*atan2(mat[0][1], mat[0][0]));
+	
+	co= (float)cos(angle);
+	si= (float)sin(angle);
+	q2[0]= co;
+	q2[1]= 0.0f;
+	q2[2]= 0.0f;
+	q2[3]= si;
+	
+	mul_qt_qtqt(q, q1, q2);
+}
+
+
 void normalize_qt(float *q)
 {
 	float len;
@@ -891,7 +935,6 @@ void rotate_eul(float *beul, char axis, float ang)
 	
 }
 
-#if 0
 /* exported to transform.c */
 /* order independent! */
 void compatible_eul(float *eul, float *oldrot)
@@ -955,7 +998,6 @@ void compatible_eul(float *eul, float *oldrot)
 	}
 #endif	
 }
-#endif
 
 /* uses 2 methods to retrieve eulers, and picks the closest */
 /* XYZ order */

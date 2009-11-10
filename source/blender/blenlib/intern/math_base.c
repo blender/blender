@@ -35,14 +35,12 @@
 /* A few small defines. Keep'em local! */
 #define SMALL_NUMBER	1.e-8
 
-#if 0
 float sqrt3f(float f)
 {
 	if(f==0.0) return 0;
 	if(f<0) return (float)(-exp(log(-f)/3));
 	else return (float)(exp(log(f)/3));
 }
-#endif
 
 double sqrt3d(double d)
 {
@@ -51,7 +49,6 @@ double sqrt3d(double d)
 	else return exp(log(d)/3);
 }
 
-#if 0
 float saacos(float fac)
 {
 	if(fac<= -1.0f) return (float)M_PI;
@@ -96,7 +93,6 @@ float interpf(float target, float origin, float fac)
 {
 	return (fac*target) + (1.0f-fac)*origin;
 }
-#endif
 
 /* useful to calculate an even width shell, by taking the angle between 2 planes.
  * The return value is a scale on the offset.
@@ -107,11 +103,9 @@ float shell_angle_to_dist(const float angle)
 	return (angle < SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle * (M_PI/180.0f)));
 }
 
-#if 0
 /* used for zoom values*/
 float power_of_2(float val)
 {
 	return (float)pow(2, ceil(log(val) / log(2)));
 }
-#endif
 

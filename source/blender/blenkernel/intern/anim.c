@@ -704,7 +704,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						
 						/* scale */
 						if(par->transflag & OB_DUPLIFACES_SCALE) {
-							float size= v4?AreaQ3Dfl(v1, v2, v3, v4):AreaT3Dfl(v1, v2, v3);
+							float size= v4? AreaQ3Dfl(v1, v2, v3, v4): AreaT3Dfl(v1, v2, v3);
 							size= sqrt(size) * par->dupfacesca;
 							Mat3MulFloat(mat[0], size);
 						}

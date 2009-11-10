@@ -821,11 +821,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			float fno[3];
 
 			if(mface->v4)
-				CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
-					mvert[mface->v3].co, mvert[mface->v4].co, fno);
+				CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, fno);
 			else
-				CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
-					mvert[mface->v3].co, fno);
+				CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, fno);
 
 			no0 = no1 = no2 = no3 = MT_Vector3(fno);
 		}
