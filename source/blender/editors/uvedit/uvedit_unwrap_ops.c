@@ -605,8 +605,8 @@ static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object
 	for(k=0; k<4; k++)
 		rotobj[3][k] =0.0f;
 
-	zero_m4(*rotup);
-	zero_m4(*rotside);
+	zero_m4(rotup);
+	zero_m4(rotside);
 
 	/* compensate front/side.. against opengl x,y,z world definition */
 	/* this is "kanonen gegen spatzen", a few plus minus 1 will do here */

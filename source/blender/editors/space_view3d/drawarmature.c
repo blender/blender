@@ -1582,7 +1582,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 	if (arm->drawtype==ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
 		wmGetMatrix(smat);
-		mul_mat3_m4_fl(smat[0], 1.0f/len_v3(ob->obmat[0]));
+		mul_mat3_m4_fl(smat, 1.0f/len_v3(ob->obmat[0]));
 		invert_m4_m4(imat, smat);
 		
 		/* and draw blended distances */
@@ -1931,7 +1931,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	if(arm->drawtype==ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
 		wmGetMatrix(smat);
-		mul_mat3_m4_fl(smat[0], 1.0f/len_v3(ob->obmat[0]));
+		mul_mat3_m4_fl(smat, 1.0f/len_v3(ob->obmat[0]));
 		invert_m4_m4(imat, smat);
 		
 		/* and draw blended distances */

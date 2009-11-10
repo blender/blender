@@ -1356,7 +1356,7 @@ static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const 
 		uvCo3 =  (float *)tf_other->uv[2];
 	}
 	
-	interp_v2_v2v2v2(uv_other, uvCo1, uvCo2, uvCo3, w);
+	interp_v2_v2v2v2(uv_other, uvCo1, uvCo2, uvCo3, (float*)w);
 	
 	/* use */
 	uvco_to_wrapped_pxco(uv_other, ibuf_other->x, ibuf_other->y, &x, &y);

@@ -813,7 +813,7 @@ static void pchan_deform_mat_add(bPoseChannel *pchan, float weight, float bbonem
 	else
 		copy_m3_m4(wmat, pchan->chan_mat);
 
-	mul_m3_fl((float*)wmat, weight);
+	mul_m3_fl(wmat, weight);
 	add_m3_m3m3(mat, mat, wmat);
 }
 
@@ -1013,7 +1013,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			vec= sumvec;
 
 			if(defMats) {
-				zero_m3((float*)summat);
+				zero_m3(summat);
 				smat = summat;
 			}
 		}
@@ -1123,7 +1123,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 				copy_m3_m3(tmpmat, defMats[i]);
 
 				if(!use_quaternion) /* quaternion already is scale corrected */
-					mul_m3_fl((float*)smat, armature_weight/contrib);
+					mul_m3_fl(smat, armature_weight/contrib);
 
 				mul_serie_m3(defMats[i], tmpmat, pre, smat, post,
 					NULL, NULL, NULL, NULL);

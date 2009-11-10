@@ -3974,7 +3974,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		}
 
 		unit_m4(offsetmat);
-		mul_mat3_m4_fl(offsetmat[0], 0.5);
+		mul_mat3_m4_fl(offsetmat, 0.5);
 		offsetmat[3][0] = offsetmat[3][1] = offsetmat[3][2] = 0.5;
 		
 		if (cam) {
