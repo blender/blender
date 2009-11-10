@@ -46,6 +46,8 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 
+#include "BPY_extern.h"
+
 #include <string.h>
 
 /* struct */
@@ -413,7 +415,9 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	memset(result, 0, sizeof(bContextDataResult));
 
 	if(CTX_py_dict_get(C)) {
-		return bpy_context_get(C, member, result);
+		return BPY_context_get(C, member, result);
+//		if (BPY_context_get(C, member, result))
+//			return 1;
 	}
 
 	/* we check recursion to ensure that we do not get infinite

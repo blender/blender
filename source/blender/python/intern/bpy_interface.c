@@ -966,7 +966,7 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 
 
 
-int bpy_context_get(bContext *C, const char *member, bContextDataResult *result)
+int BPY_context_get(bContext *C, const char *member, bContextDataResult *result)
 {
 	PyObject *pyctx= (PyObject *)CTX_py_dict_get(C);
 	PyObject *item= PyDict_GetItemString(pyctx, member);

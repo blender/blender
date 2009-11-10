@@ -49,6 +49,7 @@ struct bConstraintTarget; /* DNA_constraint_types.h*/
 struct Script;				/* DNA_screen_types.h */
 struct BPyMenu;
 struct bContext;
+struct bContextDataResult;
 struct ReportList;
 
 #ifdef __cplusplus
@@ -104,7 +105,7 @@ extern "C" {
 //	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
 	void BPY_update_modules( void ); // XXX - annoying, need this for pointers that get out of date
 	
-	
+	int BPY_context_get(struct bContext *C, const char *member, struct bContextDataResult *result);
 	
 	int BPY_run_script(struct Script *script);
 	void BPY_free_compiled_text( struct Text *text );
