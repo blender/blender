@@ -764,7 +764,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 		ptr= &path->ptr[a];
 
 		if(a != 0)
-			uiDefIconBut(block, LABEL, 0, VICON_SMALL_TRI_RIGHT, 0, 0, 10, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			uiItemL(row, "", VICON_SMALL_TRI_RIGHT);
 
 		if(ptr->data) {
 			icon= RNA_struct_ui_icon(ptr->type);

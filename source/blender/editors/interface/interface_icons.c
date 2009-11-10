@@ -705,7 +705,7 @@ int UI_icon_get_width(int icon_id)
 	}
 
 	if (di)
-		return ICON_DEFAULT_HEIGHT;
+		return ICON_DEFAULT_WIDTH;
 
 	return 0;
 }
