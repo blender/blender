@@ -38,6 +38,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
@@ -62,6 +63,8 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_view3d.h"
+
+#include "RE_render_ext.h"
 
 #include "mesh_intern.h"
 
@@ -389,13 +392,15 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 
 static int sticky_add_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Mesh *me= ob->data;
 
-	if(me->msticky)
-		return OPERATOR_CANCELLED;
+	/*if(me->msticky)
+		return OPERATOR_CANCELLED;*/
 
-	// XXX RE_make_sticky();
+	RE_make_sticky(scene, v3d);
 
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
