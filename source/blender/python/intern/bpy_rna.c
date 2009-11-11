@@ -519,7 +519,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const cha
 
 static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw);
 
-PyObject *pyrna_func_to_py(BPy_StructRNA *pyrna, FunctionRNA *func)
+PyObject *pyrna_func_to_py(BPy_DummyPointerRNA *pyrna, FunctionRNA *func)
 {
 	static PyMethodDef func_meth = {"<generic rna function>", (PyCFunction)pyrna_func_call, METH_VARARGS|METH_KEYWORDS, "python rna function"};
 	PyObject *self;
@@ -595,7 +595,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		case PROP_INT:
 		{
 			int param = PyLong_AsSsize_t(value);
-			if (PyErr_Occurred()) {
+			if (param==-1 && PyErr_Occurred()) {
 				PyErr_Format(PyExc_TypeError, "%.200s expected an int type", error_prefix);
 				return -1;
 			} else {
@@ -816,7 +816,7 @@ static int pyrna_py_to_prop_index(BPy_PropertyRNA *self, int index, PyObject *va
 		case PROP_INT:
 			{
 				int param = PyLong_AsSsize_t(value);
-				if (PyErr_Occurred()) {
+				if (param==-1 && PyErr_Occurred()) {
 					PyErr_SetString(PyExc_TypeError, "expected an int type");
 					ret = -1;
 				} else {
@@ -1371,7 +1371,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
   		ret = pyrna_prop_to_py(&self->ptr, prop);
   	}
 	else if ((func = RNA_struct_find_function(&self->ptr, name))) {
-		ret = pyrna_func_to_py(self, func);
+		ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
 	}
 	else if (self->ptr.type == &RNA_Context) {
 		PointerRNA newptr;
@@ -1470,53 +1470,129 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 	return pyrna_py_to_prop(&self->ptr, prop, NULL, value, "StructRNA - Attribute (setattr):");
 }
 
-static PyObject *pyrna_prop_getattro( BPy_PropertyRNA * self, PyObject *pyname )
+static PyObject *pyrna_prop_get_active( BPy_PropertyRNA * self )
 {
-	char *name = _PyUnicode_AsString(pyname);
+	PropertyRNA *prop_act;
 
-	if(strcmp(name, "active")==0) {
-		PropertyRNA *prop_act;
+	if (RNA_property_type(self->prop) != PROP_COLLECTION) {
+		PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not a collection");
+		return NULL;
+	}
 
-		if (RNA_property_type(self->prop) != PROP_COLLECTION) {
-			PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not a collection");
+	prop_act= RNA_property_collection_active(self->prop);
+	if (prop_act==NULL) {
+		PyErr_SetString( PyExc_TypeError, "collection has no active");
+		return NULL;
+	}
+
+	return pyrna_prop_to_py(&self->ptr, prop_act);
+}
+
+static int pyrna_prop_set_active( BPy_PropertyRNA * self, PyObject * value )
+{
+	PropertyRNA *prop_act;
+
+	if (RNA_property_type(self->prop) != PROP_COLLECTION) {
+		PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not a collection");
+		return -1;
+	}
+
+	prop_act= RNA_property_collection_active(self->prop);
+	if (prop_act==NULL) {
+		PyErr_SetString( PyExc_TypeError, "collection has no active");
+		return -1;
+	}
+
+	return pyrna_py_to_prop(&self->ptr, prop_act, NULL, value, "StructRNA - Attribute (setattr):");
+}
+
+/* odd case, we need to be able return a python method from a tp_getset */
+static PyObject *pyrna_prop_add(BPy_PropertyRNA *self);
+static PyMethodDef pyrna_prop_add_meth[] = {{"add", (PyCFunction)pyrna_prop_add, METH_NOARGS, NULL}};
+static PyObject *pyrna_prop_add(BPy_PropertyRNA *self)
+{
+	PointerRNA r_ptr;
+
+	RNA_property_collection_add(&self->ptr, self->prop, &r_ptr);
+	if(!r_ptr.data) {
+		PyErr_SetString( PyExc_TypeError, "add() not supported for this collection");
+		return NULL;
+	}
+	else {
+		return pyrna_struct_CreatePyObject(&r_ptr);
+	}
+}
+
+
+static PyObject *pyrna_prop_remove(BPy_PropertyRNA *self, PyObject *value);
+static PyMethodDef pyrna_prop_remove_meth[] = {{"remove", (PyCFunction)pyrna_prop_remove, METH_O, NULL}};
+static PyObject *pyrna_prop_remove(BPy_PropertyRNA *self, PyObject *value)
+{
+	PyObject *ret;
+	int key= PyLong_AsSsize_t(value);
+
+	if (key==-1 && PyErr_Occurred()) {
+		PyErr_SetString( PyExc_TypeError, "remove() expected one int argument");
+		return NULL;
+	}
+
+	if(!RNA_property_collection_remove(&self->ptr, self->prop, key)) {
+		PyErr_SetString( PyExc_TypeError, "remove() not supported for this collection");
+		return NULL;
+	}
+
+	ret = Py_None;
+	Py_INCREF(ret);
+
+	return ret;
+}
+
+static PyObject *pyrna_prop_get_add_func( BPy_PropertyRNA * self )
+{
+	FunctionRNA *func;
+
+	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+		func = RNA_property_collection_add_func(self->prop);
+		if (func==NULL) {
+			PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA collection has no add() function");
 			return NULL;
 		}
 
-		prop_act= RNA_property_collection_active(self->prop);
-		if (prop_act==NULL) {
-			PyErr_SetString( PyExc_TypeError, "collection has no active");
+		return pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
+	}
+	else {
+		return PyCFunction_New(pyrna_prop_add_meth, (PyObject *)self);
+	}
+}
+
+static PyObject *pyrna_prop_get_remove_func( BPy_PropertyRNA * self )
+{
+	FunctionRNA *func;
+
+	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+		func = RNA_property_collection_remove_func(self->prop);
+		if (func==NULL) {
+			PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA collection has no add() function");
 			return NULL;
 		}
 
-		return pyrna_prop_to_py(&self->ptr, prop_act);
+		return pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
 	}
-
-	return PyObject_GenericGetAttr((PyObject *)self, pyname);
+	else {
+		return PyCFunction_New(pyrna_prop_remove_meth, (PyObject *)self);
+	}
 }
 
-//--------------- setattr-------------------------------------------
-static int pyrna_prop_setattro( BPy_PropertyRNA * self, PyObject *pyname, PyObject * value )
-{
-	char *name = _PyUnicode_AsString(pyname);
-	if(strcmp(name, "active")==0) {
-		PropertyRNA *prop_act;
-
-		if (RNA_property_type(self->prop) != PROP_COLLECTION) {
-			PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not a collection");
-			return -1;
-		}
-
-		prop_act= RNA_property_collection_active(self->prop);
-		if (prop_act==NULL) {
-			PyErr_SetString( PyExc_TypeError, "collection has no active");
-			return -1;
-		}
-
-		return pyrna_py_to_prop(&self->ptr, prop_act, NULL, value, "StructRNA - Attribute (setattr):");
-	}
-
-	return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
-}
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef pyrna_prop_getseters[] = {
+	{"active", (getter)pyrna_prop_get_active, (setter)pyrna_prop_set_active, "", NULL},
+	/* rna functions */
+	{"add", (getter)pyrna_prop_get_add_func, NULL, "", NULL},
+	{"remove", (getter)pyrna_prop_get_remove_func, NULL, "", NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
 
 static PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 {
@@ -1628,40 +1704,6 @@ static PyObject *pyrna_prop_get(BPy_PropertyRNA *self, PyObject *args)
 	
 	Py_INCREF(def);
 	return def;
-}
-
-
-static PyObject *pyrna_prop_add(BPy_PropertyRNA *self, PyObject *args)
-{
-	PointerRNA newptr;
-
-	RNA_property_collection_add(&self->ptr, self->prop, &newptr);
-	if(!newptr.data) {
-		PyErr_SetString( PyExc_TypeError, "add() not supported for this collection");
-		return NULL;
-	}
-	else {
-		return pyrna_struct_CreatePyObject(&newptr);
-	}
-}
-
-static PyObject *pyrna_prop_remove(BPy_PropertyRNA *self, PyObject *args)
-{
-	PyObject *ret;
-	int key= 0;
-
-	if (!PyArg_ParseTuple(args, "i:remove", &key))
-		return NULL;
-
-	if(!RNA_property_collection_remove(&self->ptr, self->prop, key)) {
-		PyErr_SetString( PyExc_TypeError, "remove() not supported for this collection");
-		return NULL;
-	}
-
-	ret = Py_None;
-	Py_INCREF(ret);
-
-	return ret;
 }
 
 static void foreach_attr_type(	BPy_PropertyRNA *self, char *attr,
@@ -1951,8 +1993,11 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 	
 	{"get", (PyCFunction)pyrna_prop_get, METH_VARARGS, NULL},
 
-	{"add", (PyCFunction)pyrna_prop_add, METH_VARARGS, NULL},
-	{"remove", (PyCFunction)pyrna_prop_remove, METH_VARARGS, NULL},
+	/* moved into a getset */
+#if 0
+	{"add", (PyCFunction)pyrna_prop_add, METH_NOARGS, NULL},
+	{"remove", (PyCFunction)pyrna_prop_remove, METH_O, NULL},
+#endif
 
 	/* array accessor function */
 	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
@@ -2123,7 +2168,8 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 
 static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 {
-	PointerRNA *self_ptr= &(((BPy_StructRNA *)PyTuple_GET_ITEM(self, 0))->ptr);
+	/* Note, both BPy_StructRNA and BPy_PropertyRNA can be used here */
+	PointerRNA *self_ptr= &(((BPy_DummyPointerRNA *)PyTuple_GET_ITEM(self, 0))->ptr);
 	FunctionRNA *self_func=  PyCObject_AsVoidPtr(PyTuple_GET_ITEM(self, 1));
 
 	PointerRNA funcptr;
@@ -2429,8 +2475,8 @@ PyTypeObject pyrna_prop_Type = {
 	NULL,                       /* reprfunc tp_str; */
 
 	/* will only use these if this is a subtype of a py class */
-	( getattrofunc ) pyrna_prop_getattro,	/* getattrofunc tp_getattro; */
-	( setattrofunc ) pyrna_prop_setattro,	/* setattrofunc tp_setattro; */
+	( getattrofunc ) NULL,	/* getattrofunc tp_getattro; */
+	( setattrofunc ) NULL,	/* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
@@ -2461,7 +2507,7 @@ PyTypeObject pyrna_prop_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	pyrna_prop_methods,			/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,      					/* struct PyGetSetDef *tp_getset; */
+	pyrna_prop_getseters,      	/* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */

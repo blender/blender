@@ -1262,9 +1262,8 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 			Group *group;
 			for(group= G.main->group.first; group; group= group->id.next) {
 				if(object_in_group(ob, group))
-					add_to_group(group, obn);
+					add_to_group(group, obn, scene, basen);
 			}
-			obn->flag |= OB_FROMGROUP; /* this flag is unset with copy_object() */
 		}
 		
 		/* duplicates using userflags */

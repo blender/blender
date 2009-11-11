@@ -95,7 +95,7 @@ void unlink_group(Group *group)
 		
 		/* ensure objects are not in this group */
 		for(; base; base= base->next) {
-			if(rem_from_group(group, base->object) && find_group(base->object, NULL)==NULL) {
+			if(rem_from_group(group, base->object, sce, base) && find_group(base->object, NULL)==NULL) {
 				base->object->flag &= ~OB_FROMGROUP;
 				base->flag &= ~OB_FROMGROUP;
 			}
@@ -153,15 +153,15 @@ Group *copy_group(Group *group)
 }
 
 /* external */
-void add_to_group(Group *group, Object *ob)
+static int add_to_group_internal(Group *group, Object *ob)
 {
 	GroupObject *go;
 	
-	if(group==NULL || ob==NULL) return;
+	if(group==NULL || ob==NULL) return 0;
 	
 	/* check if the object has been added already */
 	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob==ob) return;
+		if(go->ob==ob) return 0;
 	}
 	
 	go= MEM_callocN(sizeof(GroupObject), "groupobject");
@@ -169,10 +169,31 @@ void add_to_group(Group *group, Object *ob)
 	
 	go->ob= ob;
 	
+	return 1;
+}
+
+int add_to_group(Group *group, Object *object, Scene *scene, Base *base)
+{
+	if(add_to_group_internal(group, object)) {
+		if((object->flag & OB_FROMGROUP)==0) {
+
+			if(scene && base==NULL)
+				base= object_in_scene(object, scene);
+
+			object->flag |= OB_FROMGROUP;
+
+			if(base)
+				base->flag |= OB_FROMGROUP;
+		}
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 /* also used for ob==NULL */
-int rem_from_group(Group *group, Object *ob)
+static int rem_from_group_internal(Group *group, Object *ob)
 {
 	GroupObject *go, *gon;
 	int removed = 0;
@@ -190,6 +211,26 @@ int rem_from_group(Group *group, Object *ob)
 		go= gon;
 	}
 	return removed;
+}
+
+int rem_from_group(Group *group, Object *object, Scene *scene, Base *base)
+{
+	if(rem_from_group_internal(group, object)) {
+
+		if(find_group(object, NULL) == NULL) {
+			if(scene && base==NULL)
+				base= object_in_scene(object, scene);
+
+			object->flag &= ~OB_FROMGROUP;
+
+			if(base)
+				base->flag &= ~OB_FROMGROUP;
+		}
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 int object_in_group(Object *ob, Group *group)

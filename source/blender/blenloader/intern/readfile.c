@@ -5261,7 +5261,7 @@ static void lib_link_group(FileData *fd, Main *main)
 				go= go->next;
 			}
 			if(add_us) group->id.us++;
-			rem_from_group(group, NULL);	/* removes NULL entries */
+			rem_from_group(group, NULL, NULL, NULL);	/* removes NULL entries */
 		}
 		group= group->id.next;
 	}

@@ -33,12 +33,27 @@
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+
+#include "BKE_group.h"
+
 static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 
 	/* we are actually iterating a GroupObject list, so override get */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((GroupObject*)internal->link)->ob);
+}
+
+static int rna_Group_objects_add(Group *group, bContext *C, Object *object)
+{
+	return add_to_group(group, object, CTX_data_scene(C), NULL);
+}
+
+static int rna_Group_objects_remove(Group *group, bContext *C, Object *object)
+{
+	return rem_from_group(group, object, CTX_data_scene(C), NULL);
 }
 
 #else
@@ -57,16 +72,41 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the center to use when instancing as DupliGroup.");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 	
+	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER);
+	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
+	RNA_def_property_array(prop, 20);
+	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this groups is instanced as a dupli.");
+
+
+	/* add object */
+	FunctionRNA *func;
+	PropertyRNA *parm;
+	func= RNA_def_function(srna, "add_object", "rna_Group_objects_add");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add this object to a group");
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "Newly created Group Target.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	/* remove object */
+	func= RNA_def_function(srna, "remove_object", "rna_Group_objects_remove");
+	RNA_def_function_ui_description(func, "Remove this object to a group");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "Newly created Group Target.");
+	RNA_def_function_return(func, parm);
+	/* object to remove */
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0, 0, 0);
-	
-	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER);
-	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
-	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this groups is instanced as a dupli.");	
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0, "add_object", "remove_object");
 }
 
 #endif

@@ -1567,7 +1567,7 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop)
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
 	IDProperty *idprop;
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+//	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDPropertyTemplate val = {0};
@@ -1593,6 +1593,9 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 			MEM_freeN(item);
 		}
 	}
+
+	/* py api calls directly */
+#if 0
 	else if(cprop->add){
 		if(!(cprop->add->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
 			ParameterList params;
@@ -1603,6 +1606,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 	}
 	/*else
 		printf("RNA_property_collection_add %s.%s: not implemented for this property.\n", ptr->type->identifier, prop->identifier);*/
+#endif
 
 	if(r_ptr) {
 		if(idprop) {
@@ -1620,7 +1624,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 {
 	IDProperty *idprop;
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+//	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDProperty tmp, *array;
@@ -1644,6 +1648,9 @@ int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 	}
 	else if(prop->flag & PROP_IDPROPERTY)
 		return 1;
+
+	/* py api calls directly */
+#if 0
 	else if(cprop->remove){
 		if(!(cprop->remove->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
 			ParameterList params;
@@ -1656,7 +1663,7 @@ int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 	}
 	/*else
 		printf("RNA_property_collection_remove %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);*/
-	
+#endif
 	return 0;
 }
 
@@ -1765,6 +1772,18 @@ PropertyRNA *RNA_property_collection_active(PropertyRNA *prop)
 {
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 	return cprop->active;
+}
+
+FunctionRNA *RNA_property_collection_add_func(PropertyRNA *prop)
+{
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	return cprop->add;
+}
+
+FunctionRNA *RNA_property_collection_remove_func(PropertyRNA *prop)
+{
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	return cprop->remove;
 }
 
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array)

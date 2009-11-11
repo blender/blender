@@ -60,7 +60,7 @@
 static int objects_add_active_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= OBACT, *obt;
+	Object *ob= OBACT;
 	Group *group;
 	int ok = 0;
 	
@@ -73,11 +73,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 		if(object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
 			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-				obt= base->object;
-				add_to_group(group, obt);
-				obt->flag |= OB_FROMGROUP;
-				base->flag |= OB_FROMGROUP;
-				base->object->recalc= OB_RECALC_OB;
+				add_to_group(group, base->object, scene, base);
 				ok = 1;
 			}
 			CTX_DATA_END;
@@ -110,7 +106,7 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 static int objects_remove_active_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= OBACT, *obt;
+	Object *ob= OBACT;
 	Group *group;
 	int ok = 0;
 	
@@ -123,11 +119,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 		if(object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
 			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-				obt= base->object;
-				rem_from_group(group, obt);
-				obt->flag &= ~OB_FROMGROUP;
-				base->flag &= ~OB_FROMGROUP;
-				base->object->recalc= OB_RECALC_OB;
+				rem_from_group(group, base->object, scene, base);
 				ok = 1;
 			}
 			CTX_DATA_END;
@@ -165,11 +157,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		group = NULL;
 		while((group = find_group(base->object, group)))
-			rem_from_group(group, base->object);
-
-		base->object->flag &= ~OB_FROMGROUP;
-		base->flag &= ~OB_FROMGROUP;
-		base->object->recalc= OB_RECALC_OB;
+			rem_from_group(group, base->object, scene, base);
 	}
 	CTX_DATA_END;
 
@@ -205,10 +193,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	group= add_group(name);
 		
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		add_to_group(group, base->object);
-		base->object->flag |= OB_FROMGROUP;
-		base->flag |= OB_FROMGROUP;
-		base->object->recalc= OB_RECALC_OB;
+		add_to_group(group, base->object, scene, base);
 	}
 	CTX_DATA_END;
 
@@ -259,9 +244,7 @@ static int group_add_exec(bContext *C, wmOperator *op)
 		group= BLI_findlink(&bmain->group, value);
 
 	if(group) {
-		add_to_group(group, ob);
-		ob->flag |= OB_FROMGROUP;
-		base->flag |= OB_FROMGROUP;
+		add_to_group(group, ob, scene, NULL); /* base will be used if found */
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -323,21 +306,11 @@ static int group_remove_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Group *group= CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
-	Base *base;
 
 	if(!ob || !group)
 		return OPERATOR_CANCELLED;
 
-	base= object_in_scene(ob, scene);
-	if(!base)
-		return OPERATOR_CANCELLED;
-
-	rem_from_group(group, ob);
-
-	if(find_group(ob, NULL) == NULL) {
-		ob->flag &= ~OB_FROMGROUP;
-		base->flag &= ~OB_FROMGROUP;
-	}
+	rem_from_group(group, ob, scene, NULL); /* base will be used if found */
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	

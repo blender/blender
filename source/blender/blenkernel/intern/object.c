@@ -622,7 +622,7 @@ void unlink_object(Scene *scene, Object *ob)
 	/* groups */
 	group= G.main->group.first;
 	while(group) {
-		rem_from_group(group, ob);
+		rem_from_group(group, ob, NULL, NULL);
 		group= group->id.next;
 	}
 	
