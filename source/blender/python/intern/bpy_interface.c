@@ -417,24 +417,32 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 			py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
 		
 	} else {
-#if 0
-		char *pystring;
-		pystring= malloc(strlen(fn) + 32);
-		pystring[0]= '\0';
-		sprintf(pystring, "exec(open(r'%s').read())", fn);
-		py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
-		free(pystring);
-#else
 		FILE *fp= fopen(fn, "r");		
 		if(fp) {
+#ifdef _WIN32
+			/* Previously we used PyRun_File to run directly the code on a FILE 
+			 * object, but as written in the Python/C API Ref Manual, chapter 2,
+			 * 'FILE structs for different C libraries can be different and 
+			 * incompatible'.
+			 * So now we load the script file data to a buffer */
+			char *pystring;
+
+			fclose(fp);
+
+			pystring= malloc(strlen(fn) + 32);
+			pystring[0]= '\0';
+			sprintf(pystring, "exec(open(r'%s').read())", fn);
+			py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
+			free(pystring);
+#else
 			py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
 			fclose(fp);
+#endif
 		}
 		else {
 			PyErr_Format(PyExc_SystemError, "Python file \"%s\" could not be opened: %s", fn, strerror(errno));
 			py_result= NULL;
 		}
-#endif
 	}
 	
 	if (!py_result) {
