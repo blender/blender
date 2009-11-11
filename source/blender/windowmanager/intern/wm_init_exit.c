@@ -108,8 +108,10 @@ static void wm_free_reports(bContext *C)
 void WM_init(bContext *C)
 {
 	
-	wm_ghost_init(C);	/* note: it assigns C to ghost! */
-	wm_init_cursor_data();
+	if (!G.background) {
+		wm_ghost_init(C);	/* note: it assigns C to ghost! */
+		wm_init_cursor_data();
+	}
 	wm_operatortype_init();
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
@@ -130,10 +132,12 @@ void WM_init(bContext *C)
 	WM_read_homefile(C, NULL);
 	
 	wm_init_reports(C); /* reports cant be initialized before the wm */
-	
-	GPU_extensions_init();
 
-	UI_init();
+	if (!G.background) {
+		GPU_extensions_init();
+	
+		UI_init();
+	}
 	
 	//	clear_matcopybuf(); /* XXX */
 	

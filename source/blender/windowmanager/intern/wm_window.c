@@ -335,7 +335,7 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 
 /* for wmWindows without ghostwin, open these and clear */
 /* window size is read from window, if 0 it uses prefsize */
-/* called in wm_check, also inits stuff after file read */
+/* called in WM_check, also inits stuff after file read */
 void wm_window_add_ghostwindows(wmWindowManager *wm)
 {
 	wmKeyMap *keymap;
@@ -403,7 +403,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	win->drawmethod= -1;
 	win->drawdata= NULL;
 	
-	wm_check(C);
+	WM_check(C);
 	
 	return win;
 }
@@ -448,7 +448,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	
 	/* make window active, and validate/resize */
 	CTX_wm_window_set(C, win);
-	wm_check(C);
+	WM_check(C);
 	
 	/* ensure it shows the right spacetype editor */
 	sa= win->screen->areabase.first;
@@ -480,7 +480,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 int wm_window_duplicate_op(bContext *C, wmOperator *op)
 {
 	wm_window_copy(C, CTX_wm_window(C));
-	wm_check(C);
+	WM_check(C);
 	
 	return OPERATOR_FINISHED;
 }

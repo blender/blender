@@ -256,8 +256,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		G.save_over = 1;
 
 		/* match the read WM with current WM */
-		wm_window_match_do(C, &wmbase); 
-		wm_check(C); /* opens window(s), checks keymaps */
+		wm_window_match_do(C, &wmbase);
+		WM_check(C); /* opens window(s), checks keymaps */
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
 
@@ -322,7 +322,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
-	wm_check(C); /* opens window(s), checks keymaps */
+	WM_check(C); /* opens window(s), checks keymaps */
 
 	strcpy(G.sce, scestr); /* restore */
 	

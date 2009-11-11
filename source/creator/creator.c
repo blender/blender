@@ -508,6 +508,27 @@ int main(int argc, char **argv)
 #endif
 	}
 	else {
+		for(a=1; a<argc; a++) {
+			if(argv[a][0] == '-') {
+				switch(argv[a][1]) {
+				case 'd':
+					G.f |= G_DEBUG;		/* std output printf's */
+					printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+					MEM_set_memory_debug();
+#ifdef NAN_BUILDINFO
+					printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);
+
+#endif // NAN_BUILDINFO
+					for (i = 0; i < argc; i++) {
+						printf("argv[%d] = %s\n", i, argv[i]);
+					}
+					break;
+				}
+			}
+		}
+
+		WM_init(C);
+
 #ifndef DISABLE_PYTHON
 		BPY_start_python(argc, argv);
 #endif		
@@ -524,13 +545,11 @@ int main(int argc, char **argv)
 	 */
 	BPY_post_start_python();
 
-	if(!G.background)
-		BPY_run_ui_scripts(C, 0); /* dont need to reload the first time */
+	BPY_run_ui_scripts(C, 0); /* dont need to reload the first time */
 #endif
 	
 	CTX_py_init_set(C, 1);
-	if(!G.background)
-		WM_keymap_init(C); /* after BPY_run_ui_scripts() */
+	WM_keymap_init(C); /* after BPY_run_ui_scripts() */
 
 #ifdef WITH_QUICKTIME
 
@@ -843,7 +862,11 @@ int main(int argc, char **argv)
 				
 				/*we successfully loaded a blend file, get sure that
 				pointcache works */
-				if (retval!=0) G.relbase_valid = 1;
+				if (retval!=0) {
+					CTX_wm_manager_set(C, NULL); /* remove wm to force check */
+					WM_check(C);
+					G.relbase_valid = 1;
+				}
 
 				/* happens for the UI on file reading too (huh? (ton))*/
 // XXX			BKE_reset_undo();

@@ -52,6 +52,9 @@ void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
+
+void		WM_check			(struct bContext *C);
+
 struct wmWindow	*WM_window_open	(struct bContext *C, struct rcti *rect);
 
 			/* defines for 'type' WM_window_open_temp */
