@@ -363,7 +363,7 @@ static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves
 	
 	{
 		bArmature *arm= ob->data;
-		if((arm->act_bone->flag & BONE_SELECTED)==0) {
+		if(arm->act_bone && (arm->act_bone->flag & BONE_SELECTED)==0) {
 			arm->act_bone= NULL;
 		}
 	}
