@@ -177,6 +177,8 @@ typedef struct bNodeTree {
 	int stacksize;					/* amount of elements in stack */
 	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always 
 									   will increase this counter */
+	int flag, pad;					
+	
 	ListBase alltypes;				/* type definitions */
 	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
 
@@ -200,6 +202,9 @@ typedef struct bNodeTree {
 /* ntree->init, flag */
 #define NTREE_TYPE_INIT	1
 #define NTREE_EXEC_INIT	2
+
+/* ntree->flag */
+#define NTREE_DS_EXPAND	1	/* for animation editors */
 
 /* data structs, for node->storage */
 

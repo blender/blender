@@ -58,6 +58,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
@@ -683,6 +684,15 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 		/* world animdata */
 		if ((sce->world) && (sce->world->adt) && !(filterflag & ADS_FILTER_NOWOR)) {
 			adt= sce->world->adt;
+			
+			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
+			if (adt->action) 
+				action_to_keylist(adt, adt->action, keys, blocks);
+		}
+		
+		/* nodetree animdata */
+		if ((sce->nodetree) && (sce->nodetree->adt) && !(filterflag & ADS_FILTER_NONTREE)) {
+			adt= sce->nodetree->adt;
 			
 			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
 			if (adt->action) 

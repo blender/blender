@@ -44,6 +44,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -304,6 +305,7 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 static short scene_keys_bezier_loop(BeztEditData *bed, Scene *sce, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
 {
 	World *wo= (sce) ? sce->world : NULL;
+	bNodeTree *ntree= (sce) ? sce->nodetree : NULL;
 	
 	/* sanity check */
 	if (sce == NULL)
@@ -320,6 +322,13 @@ static short scene_keys_bezier_loop(BeztEditData *bed, Scene *sce, BeztEditFunc 
 		if (adt_keys_bezier_loop(bed, wo->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
 			return 1;
 	}
+	
+	/* NodeTree */
+	if (ntree && ntree->adt) {
+		if (adt_keys_bezier_loop(bed, ntree->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
+	
 	
 	return 0;
 }
