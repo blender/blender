@@ -972,3 +972,17 @@ void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 	prefsizy= sizy;
 }
 
+/* This function requires access to the GHOST_SystemHandle (g_system) */
+void WM_cursor_warp(wmWindow *win, int x, int y)
+{
+	if (win && win->ghostwin) {
+		int oldx=x, oldy=y;
+
+		y= win->sizey -y - 1;
+		GHOST_ClientToScreen(win->ghostwin, x, y, &x, &y);
+		GHOST_SetCursorPosition(g_system, x, y);
+
+		win->eventstate->prevx= oldx;
+		win->eventstate->prevy= oldy;
+	}
+}

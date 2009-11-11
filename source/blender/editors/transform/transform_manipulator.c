@@ -1563,7 +1563,7 @@ void BIF_draw_manipulator(const bContext *C)
 			break;
 		}
 
-		mul_mat3_m4_fl((float *)rv3d->twmat, get_manipulator_drawsize(ar));
+		mul_mat3_m4_fl(rv3d->twmat, get_manipulator_drawsize(ar));
 	}
 
 	if(v3d->twflag & V3D_DRAW_MANIPULATOR) {

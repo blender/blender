@@ -86,6 +86,8 @@ void		WM_timecursor		(struct wmWindow *win, int nr);
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
+void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
+
 			/* keyconfig and keymap */
 wmKeyConfig *WM_keyconfig_add	(struct wmWindowManager *wm, char *idname);
 void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
