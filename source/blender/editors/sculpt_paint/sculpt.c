@@ -140,6 +140,7 @@ typedef struct StrokeCache {
 	float flip;
 	float pressure;
 	float mouse[2];
+	float tex_mouse[2];
 
 	/* The rest is temporary storage that isn't saved as a property */
 
@@ -777,8 +778,8 @@ static float tex_strength(Sculpt *sd, SculptSession *ss, float *point, const flo
 			avg= get_texcache_pixel_bilinear(ss, ss->texcache_side*px/sx, ss->texcache_side*py/sy);
 		}
 		else if(tex->brush_map_mode == MTEX_MAP_MODE_FIXED) {
-			float fx= (point_2d[0] - ss->cache->mouse[0]) / bsize;
-			float fy= (point_2d[1] - ss->cache->mouse[1]) / bsize;
+			float fx= (point_2d[0] - ss->cache->tex_mouse[0]) / bsize;
+			float fy= (point_2d[1] - ss->cache->tex_mouse[1]) / bsize;
 
 			float angle= atan2(fy, fx) - rot;
 			float flen= sqrtf(fx*fx + fy*fy);
@@ -1096,7 +1097,7 @@ char sculpt_modifiers_active(Object *ob)
 	ModifierData *md;
 	
 	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
-		if(md->mode & eModifierMode_Realtime && md->type != eModifierType_Multires)
+		if(modifier_isEnabled(md, eModifierMode_Realtime) && md->type != eModifierType_Multires)
 			return 1;
 	}
 	
@@ -1292,8 +1293,8 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 	RNA_float_get_array(op->ptr, "initial_mouse", cache->initial_mouse);
 	cache->depth = RNA_float_get(op->ptr, "depth");
 
-	cache->mouse[0] = cache->initial_mouse[0];
-	cache->mouse[1] = cache->initial_mouse[1];
+	copy_v2_v2(cache->mouse, cache->initial_mouse);
+	copy_v2_v2(cache->tex_mouse, cache->initial_mouse);
 
 	/* Truly temporary data that isn't stored in properties */
 
@@ -1370,6 +1371,9 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, PointerR
 	}
 	else
 		cache->radius = cache->initial_radius;
+
+	if(!(brush->flag & BRUSH_ANCHORED))
+		copy_v2_v2(cache->tex_mouse, cache->mouse);
 
 	if(brush->flag & BRUSH_ANCHORED) {
 		dx = cache->mouse[0] - cache->initial_mouse[0];
@@ -1526,6 +1530,9 @@ static void sculpt_flush_update(bContext *C)
 		mmd->undo_verts_tot = ss->totvert;
 		multires_mark_as_modified(ob);
 	}
+
+	if(sculpt_modifiers_active(ob))
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	ED_region_tag_redraw(ar);
 }
