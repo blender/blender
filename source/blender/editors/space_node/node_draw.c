@@ -567,6 +567,8 @@ static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, sock->locx, sock->locy-8, 140, 20, U.uistyles.first), 0);
 	
 	uiItemR(layout, "", 0, &ptr, "default_value", UI_ITEM_R_EXPAND);
+	
+	return block;
 }
 
 /* not a callback */
@@ -764,8 +766,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
 			
 			if(node->block && sock->link==NULL) {
-				float *butpoin= sock->ns.vec;
-				
+			
 				if(sock->type==SOCK_VALUE) {
 					bt=uiDefButR(node->block, NUM, B_NODE_EXEC, sock->name,
 							 (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 

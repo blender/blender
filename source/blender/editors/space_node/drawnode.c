@@ -94,48 +94,6 @@
 
 #include "node_intern.h"
 
-
-/* autocomplete callback for buttons */
-static void autocomplete_vcol(bContext *C, char *str, void *arg_v)
-{
-	Mesh *me;
-	CustomDataLayer *layer;
-	AutoComplete *autocpl;
-	int a;
-
-	if(str[0]==0)
-		return;
-
-	autocpl= autocomplete_begin(str, 32);
-		
-	/* search if str matches the beginning of name */
-	for(me= G.main->mesh.first; me; me=me->id.next)
-		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
-			if(layer->type == CD_MCOL)
-				autocomplete_do_name(autocpl, layer->name);
-	
-	autocomplete_end(autocpl, str);
-}
-
-static int verify_valid_vcol_name(char *str)
-{
-	Mesh *me;
-	CustomDataLayer *layer;
-	int a;
-	
-	if(str[0]==0)
-		return 1;
-
-	/* search if str matches the name */
-	for(me= G.main->mesh.first; me; me=me->id.next)
-		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
-			if(layer->type == CD_MCOL)
-				if(strcmp(layer->name, str)==0)
-					return 1;
-	
-	return 0;
-}
-
 /* ****************** GENERAL CALLBACKS FOR NODES ***************** */
 
 static void node_ID_title_cb(bContext *C, void *node_v, void *unused_v)
@@ -197,7 +155,6 @@ static void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	bNode *node= ptr->data;
 	PointerRNA sockptr;
 	PropertyRNA *prop;
 	
@@ -211,7 +168,6 @@ static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
 static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiLayout *col;
-	bNode *node= ptr->data;
 	PointerRNA sockptr;
 	PropertyRNA *prop;
 	
@@ -411,11 +367,6 @@ static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 	// allqueue(REDRAWNODE, 0);
 
 	node->menunr= 0;
-}
-
-static void node_texmap_cb(bContext *C, void *texmap_v, void *unused_v)
-{
-	init_mapping(texmap_v);
 }
 
 static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA *ptr)
