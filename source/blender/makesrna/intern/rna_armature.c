@@ -668,7 +668,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bones", "");
 
 	{ /* Collection active property */
-		prop_act= RNA_def_property(srna, "bones_active", PROP_POINTER, PROP_NONE);
+		prop_act= RNA_def_property(srna, "bones__active", PROP_POINTER, PROP_NONE);
 		RNA_def_property_struct_type(prop_act, "Bone");
 		RNA_def_property_pointer_sdna(prop_act, NULL, "act_bone");
 		RNA_def_property_flag(prop_act, PROP_EDITABLE);
@@ -685,7 +685,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edit Bones", "");
 	
 	{ /* Collection active property */
-		prop_act= RNA_def_property(srna, "edit_bones_active", PROP_POINTER, PROP_NONE);
+		prop_act= RNA_def_property(srna, "edit_bones__active", PROP_POINTER, PROP_NONE);
 		RNA_def_property_struct_type(prop_act, "EditBone");
 		RNA_def_property_pointer_sdna(prop_act, NULL, "act_edbone");
 		RNA_def_property_flag(prop_act, PROP_EDITABLE);

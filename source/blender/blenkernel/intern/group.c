@@ -51,6 +51,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_scene.h" /* object_in_scene */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

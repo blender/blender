@@ -611,7 +611,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "targets", NULL);
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "add_target", "remove_target");
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "targets__add", "targets__remove");
 	RNA_def_property_struct_type(prop, "DriverTarget");
 	RNA_def_property_ui_text(prop, "Target Variables", "Properties acting as targets for this driver.");
 	

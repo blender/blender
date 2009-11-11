@@ -71,7 +71,7 @@ void RNA_api_drivers(StructRNA *srna)
 	PropertyRNA *parm;
 
 	/* add target */
-	func= RNA_def_function(srna, "add_target", "rna_Driver_add_target");
+	func= RNA_def_function(srna, "targets__add", "rna_Driver_add_target");
 	RNA_def_function_ui_description(func, "Add a new target for the driver.");
 		/* return type */
 	parm= RNA_def_pointer(func, "target", "DriverTarget", "", "Newly created Driver Target.");
@@ -80,7 +80,7 @@ void RNA_api_drivers(StructRNA *srna)
 	parm= RNA_def_string(func, "name", "", 64, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
 	
 	/* remove target */
-	func= RNA_def_function(srna, "remove_target", "rna_Driver_remove_target");
+	func= RNA_def_function(srna, "targets__remove", "rna_Driver_remove_target");
 		RNA_def_function_ui_description(func, "Remove an existing target from the driver.");
 		/* target to remove*/
 	parm= RNA_def_pointer(func, "target", "DriverTarget", "", "Target to remove from the driver.");

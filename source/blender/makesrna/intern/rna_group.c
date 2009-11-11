@@ -38,6 +38,9 @@
 
 #include "BKE_group.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
@@ -48,11 +51,13 @@ static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 
 static int rna_Group_objects_add(Group *group, bContext *C, Object *object)
 {
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, &object->id);
 	return add_to_group(group, object, CTX_data_scene(C), NULL);
 }
 
 static int rna_Group_objects_remove(Group *group, bContext *C, Object *object)
 {
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, &object->id);
 	return rem_from_group(group, object, CTX_data_scene(C), NULL);
 }
 
@@ -62,6 +67,9 @@ void RNA_def_group(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	srna= RNA_def_struct(brna, "Group", "ID");
 	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks.");
@@ -79,9 +87,7 @@ void RNA_def_group(BlenderRNA *brna)
 
 
 	/* add object */
-	FunctionRNA *func;
-	PropertyRNA *parm;
-	func= RNA_def_function(srna, "add_object", "rna_Group_objects_add");
+	func= RNA_def_function(srna, "objects__add", "rna_Group_objects_add");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add this object to a group");
 	/* return type */
@@ -92,7 +98,7 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* remove object */
-	func= RNA_def_function(srna, "remove_object", "rna_Group_objects_remove");
+	func= RNA_def_function(srna, "objects__remove", "rna_Group_objects_remove");
 	RNA_def_function_ui_description(func, "Remove this object to a group");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	/* return type */
@@ -106,7 +112,7 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0, "add_object", "remove_object");
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0, "objects__add", "objects__remove");
 }
 
 #endif

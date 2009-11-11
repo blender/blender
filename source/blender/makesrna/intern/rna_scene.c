@@ -2225,7 +2225,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bases", "");
 
 	{ /* Collection active property */
-		prop_act= RNA_def_property(srna, "base_active", PROP_POINTER, PROP_NONE);
+		prop_act= RNA_def_property(srna, "bases__active", PROP_POINTER, PROP_NONE);
 		RNA_def_property_struct_type(prop_act, "ObjectBase");
 		RNA_def_property_pointer_sdna(prop_act, NULL, "basact");
 		RNA_def_property_flag(prop_act, PROP_EDITABLE);
@@ -2241,7 +2241,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0, 0);
 
 	{ /* Collection active property */
-		prop_act= RNA_def_property(srna, "objects_active", PROP_POINTER, PROP_NONE);
+		prop_act= RNA_def_property(srna, "objects__active", PROP_POINTER, PROP_NONE);
 		RNA_def_property_struct_type(prop_act, "Object");
 		RNA_def_property_pointer_funcs(prop_act, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
 		RNA_def_property_flag(prop_act, PROP_EDITABLE);

@@ -1306,10 +1306,11 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 			nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name));
 
 			if(nameptr) {
-				pystring = PyUnicode_FromString(nameptr);
-				PyList_Append(ret, pystring);
-				Py_DECREF(pystring);
-				
+				if(strstr(nameptr, "__")==NULL) { /* __ for hidden props, used for active object for eg. */
+					pystring = PyUnicode_FromString(nameptr);
+					PyList_Append(ret, pystring);
+					Py_DECREF(pystring);
+				}
 				if(name != nameptr)
 					MEM_freeN(nameptr);
 			}
@@ -1323,14 +1324,19 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 		 * Collect RNA function items
 		 */
 		PointerRNA tptr;
+		const char *idname;
 
 		RNA_pointer_create(NULL, &RNA_Struct, self->ptr.type, &tptr);
 		iterprop= RNA_struct_find_property(&tptr, "functions");
 
 		RNA_PROP_BEGIN(&tptr, itemptr, iterprop) {
-			pystring = PyUnicode_FromString(RNA_function_identifier(itemptr.data));
-			PyList_Append(ret, pystring);
-			Py_DECREF(pystring);
+			idname= RNA_function_identifier(itemptr.data);
+
+			if(strstr(idname, "__")==NULL) { /* __ for hidden function members, used for collection add/remove for eg. */
+				pystring = PyUnicode_FromString(idname);
+				PyList_Append(ret, pystring);
+				Py_DECREF(pystring);
+			}
 		}
 		RNA_PROP_END;
 	}
