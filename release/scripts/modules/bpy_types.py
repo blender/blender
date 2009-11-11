@@ -26,8 +26,9 @@ class Context(StructRNA):
     
     def copy(self):
         new_context = {}
+        generic_keys = StructRNA.__dict__.keys()
         for item in dir(self):
-            if item not in StructRNA.__dict__ and item != "id_data":
+            if item not in generic_keys:
                 new_context[item] = getattr(self, item)
             
         return new_context

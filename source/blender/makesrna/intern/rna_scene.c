@@ -2221,12 +2221,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Bases/Objects */
 	prop= RNA_def_property(srna, "bases", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
-	RNA_def_property_struct_type(prop, "Base");
+	RNA_def_property_struct_type(prop, "ObjectBase");
 	RNA_def_property_ui_text(prop, "Bases", "");
 
 	{ /* Collection active property */
 		prop_act= RNA_def_property(srna, "base_active", PROP_POINTER, PROP_NONE);
-		RNA_def_property_struct_type(prop_act, "Base");
+		RNA_def_property_struct_type(prop_act, "ObjectBase");
 		RNA_def_property_pointer_sdna(prop_act, NULL, "basact");
 		RNA_def_property_flag(prop_act, PROP_EDITABLE);
 		RNA_def_property_ui_text(prop_act, "Active Base", "Active object in the scene.");

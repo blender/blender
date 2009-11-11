@@ -1763,7 +1763,7 @@ static void rna_def_base(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Base", NULL);
+	srna= RNA_def_struct(brna, "ObjectBase", NULL);
 	RNA_def_struct_sdna(srna, "Base");
 	RNA_def_struct_ui_text(srna, "Object Base", "An objects instance in a scene.");
 	RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);

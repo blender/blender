@@ -676,7 +676,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(selected_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -693,7 +693,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 						if(selected_editable_objects)
 							CTX_data_id_list_add(result, &base->object->id);
 						else
-							CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+							CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 					}
 				}
 			}
@@ -710,7 +710,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(visible_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -726,7 +726,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(selectable_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -736,7 +736,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	else if(CTX_data_equals(member, "active_base")) {
 		if(scene->basact && (scene->basact->lay & lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
-				CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, scene->basact);
+				CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, scene->basact);
 		
 		return 1;
 	}

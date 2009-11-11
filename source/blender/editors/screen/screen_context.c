@@ -84,7 +84,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				if(selected_objects)
 					CTX_data_id_list_add(result, &base->object->id);
 				else
-					CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 			}
 		}
 
@@ -100,7 +100,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 						if(selected_editable_objects)
 							CTX_data_id_list_add(result, &base->object->id);
 						else
-							CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+							CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 					}
 				}
 			}
@@ -131,18 +131,18 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					if (editable_bones) {
 						/* only selected + editable */
 						if (EBONE_EDITABLE(ebone)) {
-							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
+							CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 						
 							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-								CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
+								CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 						}
 					}
 					else {
 						/* only include bones if visible */
-						CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
+						CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 						
 						if ((flipbone) && EBONE_VISIBLE(arm, flipbone)==0)
-							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
+							CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 					}
 				}
 			}	
@@ -173,18 +173,18 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					if (selected_editable_bones) {
 						/* only selected + editable */
 						if (EBONE_EDITABLE(ebone)) {
-							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
+							CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 						
 							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-								CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
+								CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 						}
 					}
 					else {
 						/* only include bones if selected */
-						CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
+						CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 						
 						if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
+							CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 					}
 				}
 			}	
@@ -251,7 +251,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if(CTX_data_equals(member, "active_base")) {
 		if(base)
-			CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, base);
+			CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, base);
 
 		return 1;
 	}

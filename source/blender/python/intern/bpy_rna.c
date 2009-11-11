@@ -1349,7 +1349,7 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 	}
 	
 	/* Hard coded names */
-	{
+	if(self->ptr.id.data) {
 		pystring = PyUnicode_FromString("id_data");
 		PyList_Append(ret, pystring);
 		Py_DECREF(pystring);
