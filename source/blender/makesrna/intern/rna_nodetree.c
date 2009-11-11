@@ -2051,12 +2051,21 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_NODETREE);
 	
+	/* AnimData */
 	rna_def_animdata_common(srna);
-
+	
+	/* Nodes Collection */
 	prop = RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
 	RNA_def_property_struct_type(prop, "Node");
 	RNA_def_property_ui_text(prop, "Nodes", "");
+	
+	/* Grease Pencil */
+	prop= RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
 }
 
 static void define_specific_node(BlenderRNA *brna, int id, void (*func)(StructRNA*))

@@ -1983,6 +1983,8 @@ static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 	
 	if(ntree->adt) lib_link_animdata(fd, &ntree->id, ntree->adt);
 	
+	ntree->gpd= newlibadr_us(fd, id->lib, ntree->gpd);
+	
 	for(node= ntree->nodes.first; node; node= node->next)
 		node->id= newlibadr_us(fd, id->lib, node->id);
 }

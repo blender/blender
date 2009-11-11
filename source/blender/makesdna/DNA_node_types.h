@@ -40,6 +40,7 @@ struct bNodeLink;
 struct bNodeType;
 struct bNodeGroup;
 struct AnimData;
+struct bGPdata;
 struct uiBlock;
 
 #define NODE_MAXSTR 32
@@ -167,6 +168,8 @@ typedef struct bNodeLink {
 typedef struct bNodeTree {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
+	
+	struct bGPdata *gpd;		/* grease pencil data */
 	
 	ListBase nodes, links;
 	

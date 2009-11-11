@@ -65,6 +65,35 @@
 
 #include "node_intern.h"	// own include
 
+/* ******************** manage regions ********************* */
+
+ARegion *node_has_buttons_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_UI)
+			return ar;
+	
+	/* add subdiv level; after header */
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_HEADER)
+			break;
+	
+	/* is error! */
+	if(ar==NULL) return NULL;
+	
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for node");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype= RGN_TYPE_UI;
+	arnew->alignment= RGN_ALIGN_RIGHT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
 /* ******************** default callbacks for node space ***************** */
 
 static SpaceLink *node_new(const bContext *C)
@@ -82,16 +111,13 @@ static SpaceLink *node_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
-#if 0
-	/* channels */
-	ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
+	/* buttons/list view */
+	ar= MEM_callocN(sizeof(ARegion), "buttons for node");
 	
 	BLI_addtail(&snode->regionbase, ar);
-	ar->regiontype= RGN_TYPE_CHANNELS;
-	ar->alignment= RGN_ALIGN_LEFT;
-	
-	//ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
-#endif
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_ALIGN_RIGHT;
+	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for node");
@@ -128,9 +154,7 @@ static SpaceLink *node_new(const bContext *C)
 /* not spacelink itself */
 static void node_free(SpaceLink *sl)
 {	
-//	SpaceNode *snode= (SpaceNode*) sl;
 	
-// XXX	if(snode->gpd) free_gpencil_data(snode->gpd);
 }
 
 
@@ -210,41 +234,26 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 	
 	/* clear or remove stuff from old */
 	snoden->nodetree= NULL;
-// XXX	snoden->gpd= gpencil_data_duplicate(snode->gpd);
 	
 	return (SpaceLink *)snoden;
 }
 
-#if 0
-static void node_channel_area_init(wmWindowManager *wm, ARegion *ar)
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void node_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+	wmKeyMap *keymap;
+
+	ED_region_panels_init(wm, ar);
+	
+	keymap= WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void node_channel_area_draw(const bContext *C, ARegion *ar)
+static void node_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	View2D *v2d= &ar->v2d;
-	View2DScrollers *scrollers;
-	float col[3];
-	
-	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	UI_view2d_view_ortho(C, v2d);
-	
-	/* data... */
-	
-	/* reset view matrix */
-	UI_view2d_view_restore(C);
-	
-	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
-	UI_view2d_scrollers_draw(C, v2d, scrollers);
-	UI_view2d_scrollers_free(scrollers);
+	ED_region_panels(C, ar, 1, NULL, -1);
 }
-#endif
 
 /* Initialise main area, setting handlers. */
 static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
@@ -253,7 +262,10 @@ static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
-	/* own keymap */
+	/* own keymaps */
+	keymap= WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
 	keymap= WM_keymap_find(wm->defaultconf, "Node", SPACE_NODE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
@@ -343,7 +355,7 @@ void ED_spacetype_node(void)
 	art->init= node_main_area_init;
 	art->draw= node_main_area_draw;
 	art->listener= node_region_listener;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_GPENCIL;
 
 	BLI_addhead(&st->regiontypes, art);
 	
@@ -360,19 +372,17 @@ void ED_spacetype_node(void)
 
 	node_menus_register(art);
 	
-#if 0
-	/* regions: channels */
+	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
-	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 100;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-	
-	art->init= node_channel_area_init;
-	art->draw= node_channel_area_draw;
-	
+	art->regionid = RGN_TYPE_UI;
+	art->minsizex= 180; // XXX
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
+	art->listener= node_region_listener;
+	art->init= node_buttons_area_init;
+	art->draw= node_buttons_area_draw;
 	BLI_addhead(&st->regiontypes, art);
-#endif
 	
+	node_buttons_register(art);
 	
 	BKE_spacetype_register(st);
 }

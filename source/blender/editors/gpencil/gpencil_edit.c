@@ -45,6 +45,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -113,9 +114,18 @@ bGPdata **gpencil_data_get_pointers (bContext *C, PointerRNA *ptr)
 			
 			case SPACE_NODE: /* Nodes Editor */
 			{
-				//SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
+				SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
 				
 				/* return the GP data for the active node block/node */
+				if (snode && snode->nodetree) {
+					/* for now, as long as there's an active node tree, default to using that in the Nodes Editor */
+					if (ptr) RNA_id_pointer_create(&snode->nodetree->id, ptr);
+					return &snode->nodetree->gpd;
+				}
+				else {
+					/* even when there is no node-tree, don't allow this to flow to scene */
+					return NULL;
+				}
 			}
 				break;
 				

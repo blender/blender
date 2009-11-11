@@ -808,16 +808,17 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 #endif
 		}
 			break;
-#if 0 // XXX these other spaces will come over time...
+
 		case SPACE_NODE:
 		{
-			SpaceNode *snode= curarea->spacedata.first;
+			//SpaceNode *snode= curarea->spacedata.first;
 			
 			/* set current area */
 			p->sa= curarea;
 			p->ar= ar;
 			p->v2d= &ar->v2d;
 			
+#if 0 // XXX will this sort of antiquated stuff be restored?
 			/* check that gpencil data is allowed to be drawn */
 			if ((snode->flag & SNODE_DISPGP)==0) {
 				p->status= GP_STATUS_ERROR;
@@ -825,8 +826,10 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 					printf("Error: In active view, Grease Pencil not shown \n");
 				return;
 			}
+#endif
 		}
 			break;
+#if 0 // XXX these other spaces will come over time...
 		case SPACE_SEQ:
 		{
 			SpaceSeq *sseq= curarea->spacedata.first;
@@ -983,12 +986,13 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				p->gpd->sbuffer_sflag |= GP_STROKE_3DSPACE;
 			}
 				break;
-#if 0 // XXX other spacetypes to be restored in due course
+			
 			case SPACE_NODE:
 			{
 				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
 				break;
+#if 0 // XXX other spacetypes to be restored in due course
 			case SPACE_SEQ:
 			{
 				SpaceSeq *sseq= (SpaceSeq *)p->sa->spacedata.first;
@@ -1298,12 +1302,15 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	tGPsdata *p = NULL;
 	wmWindow *win= CTX_wm_window(C);
 	
-	//printf("GPencil - Starting Drawing \n");
+	if (G.f & G_DEBUG)
+		printf("GPencil - Starting Drawing \n");
 	
 	/* try to initialise context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
-		if (op->customdata) MEM_freeN(op->customdata);
-		printf("\tGP - no valid data \n");
+		if (op->customdata) 
+			MEM_freeN(op->customdata);
+		if (G.f & G_DEBUG)
+			printf("\tGP - no valid data \n");
 		return OPERATOR_CANCELLED;
 	}
 	else

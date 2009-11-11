@@ -66,14 +66,13 @@
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 
-/* #include "BDR_gpencil.h" XXX */
-
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_types.h"
@@ -1102,37 +1101,15 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	}
 	
 	/* draw grease-pencil ('canvas' strokes) */
-	/*if ((snode->flag & SNODE_DISPGP) && (snode->nodetree))
-		draw_gpencil_2dview(sa, 1);*/
-	
-	/* restore viewport (not needed yet) */
-	/*mywinset(sa->win);*/
-
-	/* ortho at pixel level curarea */
-	/*myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);*/
-	
-	/* draw grease-pencil (screen strokes) */
-	/*if ((snode->flag & SNODE_DISPGP) && (snode->nodetree))
-		draw_gpencil_2dview(sa, 0);*/
-
-	//draw_area_emboss(sa);
-	
-	/* it is important to end a view in a transform compatible with buttons */
-	/*bwin_scalematrix(sa->win, snode->blockscale, snode->blockscale, snode->blockscale);
-	nodes_blockhandlers(sa);*/
-	
-	//curarea->win_swap= WIN_BACK_OK;
-	
-	/* in the end, this is a delayed previewrender test, to allow buttons to be first */
-	/*if(snode->flag & SNODE_DO_PREVIEW) {
-		addafterqueue(sa->win, RENDERPREVIEW, 1);
-		snode->flag &= ~SNODE_DO_PREVIEW;
-	}*/
-	
-	
+	if (/*(snode->flag & SNODE_DISPGP) &&*/ (snode->nodetree))
+		draw_gpencil_2dview((bContext*)C, 1);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
+	
+	/* draw grease-pencil (screen strokes, and also paintbuffer) */
+	if (/*(snode->flag & SNODE_DISPGP) && */(snode->nodetree))
+		draw_gpencil_2dview((bContext*)C, 0);
 	
 	/* scrollers */
 	scrollers= UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

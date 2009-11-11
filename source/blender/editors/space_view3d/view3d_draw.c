@@ -2176,7 +2176,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		glDisable(GL_DEPTH_TEST);
 	}
 	
-	/* draw grease-pencil stuff */
+	/* draw grease-pencil stuff (3d-space strokes) */
 	//if (v3d->flag2 & V3D_DISPGP)
 		draw_gpencil_3dview((bContext *)C, 1);
 	
