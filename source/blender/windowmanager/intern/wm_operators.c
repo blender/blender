@@ -1810,8 +1810,11 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 			}
 			break;
 		default:
-			WM_gesture_end(C, gesture);
-			window->tweak= NULL;
+			if(!ISTIMER(event->type)) {
+				WM_gesture_end(C, gesture);
+				window->tweak= NULL;
+			}
+			break;
 	}
 }
 
