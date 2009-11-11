@@ -123,7 +123,8 @@ class INFO_MT_file_import(dynamic_menu.DynMenu):
     bl_label = "Import"
 
     def draw(self, context):
-        self.layout.itemO("WM_OT_collada_import", text="COLLADA (.dae)...")
+        if "collada_import" in dir(bpy.ops.wm):
+            self.layout.itemO("wm.collada_import", text="COLLADA (.dae)...")
 
 
 class INFO_MT_file_export(dynamic_menu.DynMenu):
@@ -131,7 +132,8 @@ class INFO_MT_file_export(dynamic_menu.DynMenu):
     bl_label = "Export"
 
     def draw(self, context):
-        self.layout.itemO("WM_OT_collada_export", text="COLLADA (.dae)...")
+        if "collada_export" in dir(bpy.ops.wm):
+            self.layout.itemO("wm.collada_export", text="COLLADA (.dae)...")
 
 
 class INFO_MT_file_external_data(bpy.types.Menu):
