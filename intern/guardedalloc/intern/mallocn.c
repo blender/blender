@@ -478,6 +478,29 @@ void MEM_callbackmemlist(void (*func)(void*)) {
 	mem_unlock_thread();
 }
 
+short MEM_testN(void *vmemh) {
+	MemHead *membl;
+
+	mem_lock_thread();
+
+	membl = membase->first;
+	if (membl) membl = MEMNEXT(membl);
+
+	while(membl) {
+		if (vmemh == membl+1)
+			return 1;
+
+		if(membl->next)
+			membl= MEMNEXT(membl->next);
+		else break;
+	}
+
+	mem_unlock_thread();
+
+	print_error("Memoryblock %p: pointer not in memlist\n", vmemh);
+	return 0;
+}
+
 void MEM_printmemlist( void ) {
 	MEM_printmemlist_internal(0);
 }
@@ -518,7 +541,6 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	}
 
 	mem_lock_thread();
-
 	if ((memh->tag1 == MEMTAG1) && (memh->tag2 == MEMTAG2) && ((memh->len & 0x3) == 0)) {
 		memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + memh->len);
 		if (memt->tag3 == MEMTAG3){

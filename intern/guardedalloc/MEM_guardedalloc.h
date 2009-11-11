@@ -73,6 +73,12 @@ extern "C" {
 	 */
 	short MEM_freeN(void *vmemh);
 
+
+	/**
+	 * Return zero if memory is not in allocated list
+	 */
+	short MEM_testN(void *vmemh);
+
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
