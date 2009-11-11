@@ -110,7 +110,7 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 }
 
 /* ID Search browse menu, open */
-static uiBlock *search_menu(bContext *C, ARegion *ar, void *arg_litem)
+static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 {
 	static char search[256];
 	static TemplateID template;
@@ -262,7 +262,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 		type= idptr.type;
 
 	if(flag & UI_ID_BROWSE) {
-		but= uiDefBlockButN(block, search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
+		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
 		if(type) {
 			but->icon= RNA_struct_ui_icon(type);
 			but->flag|= UI_HAS_ICON;
@@ -447,6 +447,8 @@ void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 }
 
 /********************* RNA Path Builder Template ********************/
+
+/* ---------- */
 
 /* This is creating/editing RNA-Paths 
  *

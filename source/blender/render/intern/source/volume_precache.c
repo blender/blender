@@ -175,6 +175,7 @@ static void lightcache_filter(VolumePrecache *vp)
 	}
 }
 
+#if 0
 static void lightcache_filter2(VolumePrecache *vp)
 {
 	int x, y, z;
@@ -211,6 +212,7 @@ static void lightcache_filter2(VolumePrecache *vp)
 	if (new_g) { MEM_freeN(new_g); new_g=NULL; }
 	if (new_b) { MEM_freeN(new_b); new_b=NULL; }
 }
+#endif
 
 static inline int ms_I(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
 { 

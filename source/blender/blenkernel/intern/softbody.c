@@ -593,7 +593,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
 	
 	if (ob->soft){
 		int nofquads;
-		float s_shear = ob->soft->shearstiff*ob->soft->shearstiff;
+		//float s_shear = ob->soft->shearstiff*ob->soft->shearstiff;
 		
 		nofquads = count_mesh_quads(me);
 		if (nofquads) {

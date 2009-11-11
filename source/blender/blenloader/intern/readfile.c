@@ -10485,6 +10485,9 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 	
 	if(ntree->adt)
 		expand_animdata(fd, mainvar, ntree->adt);
+		
+	if(ntree->gpd)
+		expand_doit(fd, mainvar, ntree->gpd);
 	
 	for(node= ntree->nodes.first; node; node= node->next)
 		if(node->id && node->type!=CMP_NODE_R_LAYERS)

@@ -726,6 +726,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 	return collpair;
 }
 
+#if 0
 static int cloth_collision_response_moving( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
 {
 	int result = 0;
@@ -834,6 +835,7 @@ static int cloth_collision_response_moving( ClothModifierData *clmd, CollisionMo
 	}
 	return result;
 }
+#endif
 
 static float projectPointOntoLine(float *p, float *a, float *b) 
 {
@@ -1065,6 +1067,7 @@ static float edgedge_distance(float np11[3], float np12[3], float np21[3], float
 	return 0;
 }
 
+#if 0
 static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
 {
 	EdgeCollPair edgecollpair;
@@ -1292,6 +1295,7 @@ static int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierDa
 
 	return 1;
 }
+#endif
 
 
 // return all collision objects in scene

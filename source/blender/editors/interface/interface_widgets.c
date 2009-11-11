@@ -1666,7 +1666,6 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 {
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->ymax - rect->ymin);
-	int textoffs;
 	
 	widget_init(&wtb);
 	

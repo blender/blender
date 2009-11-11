@@ -190,7 +190,6 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 	int i;
 	DerivedMesh *dm;
 	MVert *mvert = NULL;
-	float cam_mat[4][4];
 	
 	dm = mesh_create_derived_render(re->scene, ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 	mvert= dm->getVertArray(dm);	/* local object space */

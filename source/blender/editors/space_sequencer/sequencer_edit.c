@@ -2718,3 +2718,4 @@ void SEQUENCER_OT_rendersize(wmOperatorType *ot)
 	
 	/* properties */
 }
+
