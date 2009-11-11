@@ -1717,6 +1717,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 
 		vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
 
+		data.vc = vc;
 		data.select = selecting;
 		data.mval[0] = mval[0];
 		data.mval[1] = mval[1];
