@@ -1248,8 +1248,12 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 	int i;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
-		if(prop->arraydimension == 0)
-			IDP_Double(idprop)= values[0];
+		if(prop->arraydimension == 0) {
+			if(idprop->type == IDP_FLOAT)
+				IDP_Float(idprop)= values[0];
+			else
+				IDP_Double(idprop)= values[0];
+		}
 		else if(idprop->subtype == IDP_FLOAT) {
 			memcpy(IDP_Array(idprop), values, sizeof(float)*idprop->len);
 		}
