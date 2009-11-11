@@ -329,7 +329,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	wm_init_userdef();
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
-	GPU_default_lights();
+	if (!G.background) GPU_default_lights();
 	
 	/* XXX */
 	G.save_over = 0;	// start with save preference untitled.blend
