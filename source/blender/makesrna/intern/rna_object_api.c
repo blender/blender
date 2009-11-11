@@ -57,7 +57,7 @@
 #include "BKE_font.h"
 #include "BKE_mball.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"

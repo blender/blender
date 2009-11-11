@@ -67,7 +67,7 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
@@ -161,16 +161,16 @@ void ED_object_apply_obmat(Object *ob)
 	/* from obmat to loc rot size */
 	
 	if(ob==NULL) return;
-	Mat3CpyMat4(mat, ob->obmat);
+	copy_m3_m4(mat, ob->obmat);
 	
 	VECCOPY(ob->loc, ob->obmat[3]);
 
-	Mat3ToEul(mat, ob->rot);
-	EulToMat3(ob->rot, tmat);
+	mat3_to_eul( ob->rot,mat);
+	eul_to_mat3( tmat,ob->rot);
 
-	Mat3Inv(imat, tmat);
+	invert_m3_m3(imat, tmat);
 	
-	Mat3MulMat3(tmat, imat, mat);
+	mul_m3_m3m3(tmat, imat, mat);
 	
 	ob->size[0]= tmat[0][0];
 	ob->size[1]= tmat[1][1];
@@ -371,25 +371,31 @@ void ED_object_exit_editmode(bContext *C, int flag)
 void ED_object_enter_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
-	Base *base= CTX_data_active_base(C);
+	Base *base= NULL;
 	Object *ob;
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= NULL;
 	int ok= 0;
 	
 	if(scene->id.lib) return;
-	if(base==NULL) return;
 	
 	if(sa && sa->spacetype==SPACE_VIEW3D)
 		v3d= sa->spacedata.first;
 	
-	if(v3d && (base->lay & v3d->lay)==0) return;
-	else if(!v3d && (base->lay & scene->lay)==0) return;
+	if((flag & EM_IGNORE_LAYER)==0) {
+		base= CTX_data_active_base(C); /* active layer checked here for view3d */
+
+		if(base==NULL) return;
+		else if(v3d && (base->lay & v3d->lay)==0) return;
+		else if(!v3d && (base->lay & scene->lay)==0) return;
+	}
+	else {
+		base= scene->basact;
+	}
+
+	if (ELEM3(NULL, base, base->object, base->object->data)) return;
 
 	ob = base->object;
-
-	if(ob==NULL) return;
-	if(ob->data==NULL) return;
 	
 	if (object_data_is_libdata(ob)) {
 		error_libdata();

@@ -39,7 +39,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
@@ -109,6 +109,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_vertex_path);
 	WM_operatortype_append(MESH_OT_loop_to_region);
 	WM_operatortype_append(MESH_OT_region_to_loop);
+	WM_operatortype_append(MESH_OT_select_axis);
 	
 	WM_operatortype_append(MESH_OT_uvs_rotate);
 	WM_operatortype_append(MESH_OT_uvs_mirror);

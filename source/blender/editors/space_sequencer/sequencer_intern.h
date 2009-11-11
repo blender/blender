@@ -95,6 +95,7 @@ void SEQUENCER_OT_previous_edit(struct wmOperatorType *ot);
 void SEQUENCER_OT_next_edit(struct wmOperatorType *ot);
 void SEQUENCER_OT_swap_right(struct wmOperatorType *ot);
 void SEQUENCER_OT_swap_left(struct wmOperatorType *ot);
+void SEQUENCER_OT_rendersize(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);

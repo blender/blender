@@ -48,7 +48,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_linklist.h"
 
@@ -135,8 +135,8 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 					if (tv) {
 						float diffvec[3];
 						
-						VecSubf(diffvec, tv->loc, tv->oldloc);
-						VecAddf(ebo->tail, ebo->tail, diffvec);
+						sub_v3_v3v3(diffvec, tv->loc, tv->oldloc);
+						add_v3_v3v3(ebo->tail, ebo->tail, diffvec);
 						
 						a++;
 						if (a<tottrans) tv++;
@@ -454,21 +454,21 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
-		Mat3CpyMat4(bmat, obedit->obmat);
-		Mat3Inv(imat, bmat);
+		copy_m3_m4(bmat, obedit->obmat);
+		invert_m3_m3(imat, bmat);
 		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
 			
 			VECCOPY(vec, tv->loc);
-			Mat3MulVecfl(bmat, vec);
-			VecAddf(vec, vec, obedit->obmat[3]);
+			mul_m3_v3(bmat, vec);
+			add_v3_v3v3(vec, vec, obedit->obmat[3]);
 			vec[0]= v3d->gridview*floor(.5+ vec[0]/gridf);
 			vec[1]= v3d->gridview*floor(.5+ vec[1]/gridf);
 			vec[2]= v3d->gridview*floor(.5+ vec[2]/gridf);
-			VecSubf(vec, vec, obedit->obmat[3]);
+			sub_v3_v3v3(vec, vec, obedit->obmat[3]);
 			
-			Mat3MulVecfl(imat, vec);
+			mul_m3_v3(imat, vec);
 			VECCOPY(tv->loc, vec);
 		}
 		
@@ -525,8 +525,8 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 				if(ob->parent) {
 					where_is_object(scene, ob);
 					
-					Mat3Inv(imat, originmat);
-					Mat3MulVecfl(imat, vec);
+					invert_m3_m3(imat, originmat);
+					mul_m3_v3(imat, vec);
 					ob->loc[0]+= vec[0];
 					ob->loc[1]+= vec[1];
 					ob->loc[2]+= vec[2];
@@ -586,8 +586,8 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
-		Mat3CpyMat4(bmat, obedit->obmat);
-		Mat3Inv(imat, bmat);
+		copy_m3_m4(bmat, obedit->obmat);
+		invert_m3_m3(imat, bmat);
 		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
@@ -595,7 +595,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 			vec[1]= curs[1]-obedit->obmat[3][1];
 			vec[2]= curs[2]-obedit->obmat[3][2];
 			
-			Mat3MulVecfl(imat, vec);
+			mul_m3_v3(imat, vec);
 			VECCOPY(tv->loc, vec);
 		}
 		
@@ -612,9 +612,9 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 				bArmature *arm= ob->data;
 				float cursp[3];
 				
-				Mat4Invert(ob->imat, ob->obmat);
+				invert_m4_m4(ob->imat, ob->obmat);
 				VECCOPY(cursp, curs);
-				Mat4MulVecfl(ob->imat, cursp);
+				mul_m4_v3(ob->imat, cursp);
 				
 				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 					if(pchan->bone->flag & BONE_SELECTED) {
@@ -650,8 +650,8 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 				if(ob->parent) {
 					where_is_object(scene, ob);
 					
-					Mat3Inv(imat, originmat);
-					Mat3MulVecfl(imat, vec);
+					invert_m3_m3(imat, originmat);
+					mul_m3_v3(imat, vec);
 					ob->loc[0]+= vec[0];
 					ob->loc[1]+= vec[1];
 					ob->loc[2]+= vec[2];
@@ -749,19 +749,19 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 			make_trans_verts(obedit, bmat[0], bmat[1], 2);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
-		Mat3CpyMat4(bmat, obedit->obmat);
+		copy_m3_m4(bmat, obedit->obmat);
 		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
 			VECCOPY(vec, tv->loc);
-			Mat3MulVecfl(bmat, vec);
-			VecAddf(vec, vec, obedit->obmat[3]);
-			VecAddf(centroid, centroid, vec);
+			mul_m3_v3(bmat, vec);
+			add_v3_v3v3(vec, vec, obedit->obmat[3]);
+			add_v3_v3v3(centroid, centroid, vec);
 			DO_MINMAX(vec, min, max);
 		}
 		
 		if(v3d->around==V3D_CENTROID) {
-			VecMulf(centroid, 1.0/(float)tottrans);
+			mul_v3_fl(centroid, 1.0/(float)tottrans);
 			VECCOPY(curs, centroid);
 		}
 		else {
@@ -782,8 +782,8 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 				if(arm->layer & pchan->bone->layer) {
 					if(pchan->bone->flag & BONE_SELECTED) {
 						VECCOPY(vec, pchan->pose_head);
-						Mat4MulVecfl(ob->obmat, vec);
-						VecAddf(centroid, centroid, vec);
+						mul_m4_v3(ob->obmat, vec);
+						add_v3_v3v3(centroid, centroid, vec);
 						DO_MINMAX(vec, min, max);
 						count++;
 					}
@@ -793,7 +793,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 		else {
 			CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 				VECCOPY(vec, ob->obmat[3]);
-				VecAddf(centroid, centroid, vec);
+				add_v3_v3v3(centroid, centroid, vec);
 				DO_MINMAX(vec, min, max);
 				count++;
 			}
@@ -801,7 +801,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 		}
 		if(count) {
 			if(v3d->around==V3D_CENTROID) {
-				VecMulf(centroid, 1.0/(float)count);
+				mul_v3_fl(centroid, 1.0/(float)count);
 				VECCOPY(curs, centroid);
 			}
 			else {
@@ -854,7 +854,7 @@ static int snap_curs_to_active(bContext *C, wmOperator *op)
 				EM_editselection_center(curs, &ese);
 			}
 			
-			Mat4MulVecfl(obedit->obmat, curs);
+			mul_m4_v3(obedit->obmat, curs);
 		}
 	}
 	else {
@@ -908,20 +908,20 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
-		Mat3CpyMat4(bmat, obedit->obmat);
-		Mat3Inv(imat, bmat);
+		copy_m3_m4(bmat, obedit->obmat);
+		invert_m3_m3(imat, bmat);
 		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
 			VECCOPY(vec, tv->loc);
-			Mat3MulVecfl(bmat, vec);
-			VecAddf(vec, vec, obedit->obmat[3]);
-			VecAddf(centroid, centroid, vec);
+			mul_m3_v3(bmat, vec);
+			add_v3_v3v3(vec, vec, obedit->obmat[3]);
+			add_v3_v3v3(centroid, centroid, vec);
 			DO_MINMAX(vec, min, max);
 		}
 		
 		if(v3d->around==V3D_CENTROID) {
-			VecMulf(centroid, 1.0/(float)tottrans);
+			mul_v3_fl(centroid, 1.0/(float)tottrans);
 			VECCOPY(snaploc, centroid);
 		}
 		else {
@@ -944,7 +944,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
 							VECCOPY(vec, pchan->pose_mat[3]);
-							VecAddf(centroid, centroid, vec);
+							add_v3_v3v3(centroid, centroid, vec);
 							DO_MINMAX(vec, min, max);
 							count++;
 						}
@@ -954,7 +954,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 			else {
 				/* not armature bones (i.e. objects) */
 				VECCOPY(vec, ob->obmat[3]);
-				VecAddf(centroid, centroid, vec);
+				add_v3_v3v3(centroid, centroid, vec);
 				DO_MINMAX(vec, min, max);
 				count++;
 			}
@@ -963,7 +963,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 
 		if(count) {
 			if(v3d->around==V3D_CENTROID) {
-				VecMulf(centroid, 1.0/(float)count);
+				mul_v3_fl(centroid, 1.0/(float)count);
 				VECCOPY(snaploc, centroid);
 			}
 			else {
@@ -982,8 +982,8 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
-		Mat3CpyMat4(bmat, obedit->obmat);
-		Mat3Inv(imat, bmat);
+		copy_m3_m4(bmat, obedit->obmat);
+		invert_m3_m3(imat, bmat);
 		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
@@ -991,7 +991,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 			vec[1]= snaploc[1]-obedit->obmat[3][1];
 			vec[2]= snaploc[2]-obedit->obmat[3][2];
 			
-			Mat3MulVecfl(imat, vec);
+			mul_m3_v3(imat, vec);
 			VECCOPY(tv->loc, vec);
 		}
 		
@@ -1040,8 +1040,8 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 				if(ob->parent) {
 					where_is_object(scene, ob);
 					
-					Mat3Inv(imat, originmat);
-					Mat3MulVecfl(imat, vec);
+					invert_m3_m3(imat, originmat);
+					mul_m3_v3(imat, vec);
 					ob->loc[0]+= vec[0];
 					ob->loc[1]+= vec[1];
 					ob->loc[2]+= vec[2];
@@ -1093,14 +1093,14 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	
 	if(tottrans==0) return 0;
 
-	Mat3CpyMat4(bmat, obedit->obmat);
+	copy_m3_m4(bmat, obedit->obmat);
 	
 	tv= transvmain;
 	for(a=0; a<tottrans; a++, tv++) {		
 		VECCOPY(vec, tv->loc);
-		Mat3MulVecfl(bmat, vec);
-		VecAddf(vec, vec, obedit->obmat[3]);
-		VecAddf(centroid, centroid, vec);
+		mul_m3_v3(bmat, vec);
+		add_v3_v3v3(vec, vec, obedit->obmat[3]);
+		add_v3_v3v3(centroid, centroid, vec);
 		DO_MINMAX(vec, min, max);		
 	}
 	

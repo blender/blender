@@ -46,7 +46,7 @@
 extern "C" {
 #include "BIK_api.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_global.h"
 #include "BKE_armature.h"
@@ -550,15 +550,15 @@ static bool target_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Fram
 		if (pchan->parent) {
 			pchan = pchan->parent;
 			float chanmat[4][4];
-			Mat4CpyMat4(chanmat, pchan->pose_mat);
+			copy_m4_m4(chanmat, pchan->pose_mat);
 			VECCOPY(chanmat[3], pchan->pose_tail);
-			Mat4MulSerie(restmat, target->owner->obmat, chanmat, target->eeRest, NULL, NULL, NULL, NULL, NULL);
+			mul_serie_m4(restmat, target->owner->obmat, chanmat, target->eeRest, NULL, NULL, NULL, NULL, NULL);
 		} 
 		else {
-			Mat4MulMat4(restmat, target->eeRest, target->owner->obmat);
+			mul_m4_m4m4(restmat, target->eeRest, target->owner->obmat);
 		}
 		// blend the target
-		Mat4BlendMat4(tarmat, restmat, tarmat, constraint->enforce);
+		blend_m4_m4m4(tarmat, restmat, tarmat, constraint->enforce);
 	}
 	next.setValue(&tarmat[0][0]);
 	return true;
@@ -577,15 +577,15 @@ static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame&
 	if (pchan->parent) {
 		pchan = pchan->parent;
 		float chanmat[4][4];
-		Mat4CpyMat4(chanmat, pchan->pose_mat);
+		copy_m4_m4(chanmat, pchan->pose_mat);
 		VECCOPY(chanmat[3], pchan->pose_tail);
 		// save the base as a frame too so that we can compute deformation
 		// after simulation
 		ikscene->baseFrame.setValue(&chanmat[0][0]);
-		Mat4MulMat4(rootmat, chanmat, ikscene->blArmature->obmat);
+		mul_m4_m4m4(rootmat, chanmat, ikscene->blArmature->obmat);
 	} 
 	else {
-		Mat4CpyMat4(rootmat, ikscene->blArmature->obmat);
+		copy_m4_m4(rootmat, ikscene->blArmature->obmat);
 		ikscene->baseFrame = iTaSC::F_identity;
 	}
 	next.setValue(&rootmat[0][0]);
@@ -598,7 +598,7 @@ static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame&
 		float mat[4][4];		// temp matrix
 		bKinematicConstraint* poledata = (bKinematicConstraint*)ikscene->polarConstraint->data;
 
-		Mat4Invert(imat, rootmat);
+		invert_m4_m4(imat, rootmat);
 		// polar constraint imply only one target
 		IK_Target *iktarget = ikscene->targets[0];
 		// root channel from which we take the bone initial orientation
@@ -607,11 +607,11 @@ static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame&
 		// get polar target matrix in world space
 		get_constraint_target_matrix(ikscene->blscene, ikscene->polarConstraint, 1, CONSTRAINT_OBTYPE_OBJECT, ikscene->blArmature, mat, 1.0);
 		// convert to armature space
-		Mat4MulMat4(polemat, mat, imat);
+		mul_m4_m4m4(polemat, mat, imat);
 		// get the target in world space (was computed before as target object are defined before base object)
 		iktarget->target->getPose().getValue(mat[0]);
 		// convert to armature space
-		Mat4MulMat4(goalmat, mat, imat);
+		mul_m4_m4m4(goalmat, mat, imat);
 		// take position of target, polar target, end effector, in armature space
 		KDL::Vector goalpos(goalmat[3]);
 		KDL::Vector polepos(polemat[3]);
@@ -787,16 +787,16 @@ static bool joint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintV
 
 		if (chan->rotmode > 0) {
 			/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
-			EulOToMat3(chan->eul, chan->rotmode, rmat);
+			eulO_to_mat3( rmat,chan->eul, chan->rotmode);
 		}
 		else if (chan->rotmode == ROT_MODE_AXISANGLE) {
 			/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
-			AxisAngleToMat3(&chan->quat[1], chan->quat[0], rmat);
+			axis_angle_to_mat3( rmat,&chan->quat[1], chan->quat[0]);
 		}
 		else {
 			/* quats are normalised before use to eliminate scaling issues */
-			NormalQuat(chan->quat);
-			QuatToMat3(chan->quat, rmat);
+			normalize_qt(chan->quat);
+			quat_to_mat3( rmat,chan->quat);
 		}
 		KDL::Rotation jointRot(
 			rmat[0][0], rmat[1][0], rmat[2][0],
@@ -977,26 +977,26 @@ static void convert_pose(IK_Scene *ikscene)
 	int a, joint;
 
 	// assume uniform scaling and take Y scale as general scale for the armature
-	scale = VecLength(ikscene->blArmature->obmat[1]);
+	scale = len_v3(ikscene->blArmature->obmat[1]);
 	rot = &ikscene->jointArray(0);
 	for(joint=a=0, ikchan = ikscene->channels; a<ikscene->numchan && joint<ikscene->numjoint; ++a, ++ikchan) {
 		pchan= ikchan->pchan;
 		bone= pchan->bone;
 		
 		if (pchan->parent) {
-			Mat4One(bmat);
-			Mat4MulMat43(bmat, pchan->parent->pose_mat, bone->bone_mat);
+			unit_m4(bmat);
+			mul_m4_m4m3(bmat, pchan->parent->pose_mat, bone->bone_mat);
 		} else {
-			Mat4CpyMat4(bmat, bone->arm_mat);
+			copy_m4_m4(bmat, bone->arm_mat);
 		}
-		Mat4Invert(rmat, bmat);
-		Mat4MulMat4(bmat, pchan->pose_mat, rmat);
-		Mat4Ortho(bmat);
+		invert_m4_m4(rmat, bmat);
+		mul_m4_m4m4(bmat, pchan->pose_mat, rmat);
+		normalize_m4(bmat);
 		boneRot.setValue(bmat[0]);
 		GetJointRotation(boneRot, ikchan->jointType, rot);
 		if (ikchan->jointType & IK_TRANSY) {
 			// compute actual length 
-			rot[ikchan->ndof-1] = VecLenf(pchan->pose_tail, pchan->pose_head) * scale;
+			rot[ikchan->ndof-1] = len_v3v3(pchan->pose_tail, pchan->pose_head) * scale;
 		} 
 		rot += ikchan->ndof;
 		joint += ikchan->ndof;
@@ -1014,7 +1014,7 @@ static void rest_pose(IK_Scene *ikscene)
 	int a, joint;
 
 	// assume uniform scaling and take Y scale as general scale for the armature
-	scale = VecLength(ikscene->blArmature->obmat[1]);
+	scale = len_v3(ikscene->blArmature->obmat[1]);
 	// rest pose is 0 
 	KDL::SetToZero(ikscene->jointArray);
 	// except for transY joints
@@ -1103,7 +1103,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 	std::vector<double> weights;
 	double weight[3];
 	// assume uniform scaling and take Y scale as general scale for the armature
-	float scale = VecLength(ob->obmat[1]);
+	float scale = len_v3(ob->obmat[1]);
 	// build the array of joints corresponding to the IK chain
 	convert_channels(ikscene, tree);
 	if (ingame) {
@@ -1379,12 +1379,12 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		// it has a parent, get the pose matrix from it 
 		float baseFrame[4][4];
 		pchan = pchan->parent;	
-		Mat4CpyMat4(baseFrame, pchan->bone->arm_mat);
+		copy_m4_m4(baseFrame, pchan->bone->arm_mat);
 		// move to the tail and scale to get rest pose of armature base
-		VecCopyf(baseFrame[3], pchan->bone->arm_tail);
-		Mat4Invert(invBaseFrame, baseFrame);
+		copy_v3_v3(baseFrame[3], pchan->bone->arm_tail);
+		invert_m4_m4(invBaseFrame, baseFrame);
 	} else {
-		Mat4One(invBaseFrame);
+		unit_m4(invBaseFrame);
 	}
 	// finally add the constraint
 	for (t=0; t<ikscene->targets.size(); t++) {
@@ -1403,10 +1403,10 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		bonelen /= bonecnt;		
 
 		// store the rest pose of the end effector to compute enforce target
-		Mat4CpyMat4(mat, pchan->bone->arm_mat);
-		VecCopyf(mat[3], pchan->bone->arm_tail);
+		copy_m4_m4(mat, pchan->bone->arm_mat);
+		copy_v3_v3(mat[3], pchan->bone->arm_tail);
 		// get the rest pose relative to the armature base
-		Mat4MulMat4(iktarget->eeRest, mat, invBaseFrame);
+		mul_m4_m4m4(iktarget->eeRest, mat, invBaseFrame);
 		iktarget->eeBlend = (!ikscene->polarConstraint && condata->type==CONSTRAINT_IK_COPYPOSE) ? true : false;
 		// use target_callback to make sure the initPose includes enforce coefficient
 		target_callback(iTaSC::Timestamp(), iTaSC::F_identity, initPose, iktarget);
@@ -1660,13 +1660,13 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 		VECCOPY(pchan->pose_tail, pchan->pose_mat[3]);
 		// shift to head
 		VECCOPY(yaxis, pchan->pose_mat[1]);
-		VecMulf(yaxis, length);
-		VecSubf(pchan->pose_mat[3], pchan->pose_mat[3], yaxis);
+		mul_v3_fl(yaxis, length);
+		sub_v3_v3v3(pchan->pose_mat[3], pchan->pose_mat[3], yaxis);
 		VECCOPY(pchan->pose_head, pchan->pose_mat[3]);
 		// add scale
-		VecMulf(pchan->pose_mat[0], scale);
-		VecMulf(pchan->pose_mat[1], scale);
-		VecMulf(pchan->pose_mat[2], scale);
+		mul_v3_fl(pchan->pose_mat[0], scale);
+		mul_v3_fl(pchan->pose_mat[1], scale);
+		mul_v3_fl(pchan->pose_mat[2], scale);
 	}
 	if (i<ikscene->numchan) {
 		// big problem

@@ -73,7 +73,7 @@
 #include "ED_image.h"
 #include "ED_view3d.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 //#include "blendef.h"
 //
@@ -157,7 +157,7 @@ void constraintNumInput(TransInfo *t, float vec[3])
 static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 	int i = 0;
 
-	Mat3MulVecfl(t->con.imtx, vec);
+	mul_m3_v3(t->con.imtx, vec);
 
 	snapGrid(t, vec);
 
@@ -194,7 +194,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 		pvec[i++] = vec[2];
 	}
 
-	Mat3MulVecfl(t->con.mtx, vec);
+	mul_m3_v3(t->con.mtx, vec);
 }
 
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
@@ -206,16 +206,16 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	   So we take vertical motion in 3D space and apply it to the
 	   constraint axis. Nice for camera grab + MMB */
-	if(1.0f - fabs(Inpf(axis, t->viewinv[2])) < 0.000001f) {
-		Projf(vec, in, t->viewinv[1]);
-		factor = Inpf(t->viewinv[1], vec) * 2.0f;
+	if(1.0f - fabs(dot_v3v3(axis, t->viewinv[2])) < 0.000001f) {
+		project_v3_v3v3(vec, in, t->viewinv[1]);
+		factor = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 		/* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
 		if(factor<0.0f) factor*= -factor;
 		else factor*= factor;
 
 		VECCOPY(out, axis);
-		Normalize(out);
-		VecMulf(out, -factor);	/* -factor makes move down going backwards */
+		normalize_v3(out);
+		mul_v3_fl(out, -factor);	/* -factor makes move down going backwards */
 	}
 	else {
 		float v[3], i1[3], i2[3];
@@ -224,32 +224,32 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 		float plane[3];
 
 		getViewVector(t, t->con.center, norm_center);
-		Crossf(plane, norm_center, axis);
+		cross_v3_v3v3(plane, norm_center, axis);
 
-		Projf(vec, in, plane);
-		VecSubf(vec, in, vec);
+		project_v3_v3v3(vec, in, plane);
+		sub_v3_v3v3(vec, in, vec);
 		
-		VecAddf(v, vec, t->con.center);
+		add_v3_v3v3(v, vec, t->con.center);
 		getViewVector(t, v, norm);
 
 		/* give arbitrary large value if projection is impossible */
-		factor = Inpf(axis, norm);
+		factor = dot_v3v3(axis, norm);
 		if (1 - fabs(factor) < 0.0002f) {
 			VECCOPY(out, axis);
 			if (factor > 0) {
-				VecMulf(out, 1000000000);
+				mul_v3_fl(out, 1000000000);
 			} else {
-				VecMulf(out, -1000000000);
+				mul_v3_fl(out, -1000000000);
 			}
 		} else {
-			VecAddf(v2, t->con.center, axis);
-			VecAddf(v4, v, norm);
+			add_v3_v3v3(v2, t->con.center, axis);
+			add_v3_v3v3(v4, v, norm);
 			
-			LineIntersectLine(t->con.center, v2, v, v4, i1, i2);
+			isect_line_line_v3(t->con.center, v2, v, v4, i1, i2);
 			
-			VecSubf(v, i2, v);
+			sub_v3_v3v3(v, i2, v);
 	
-			VecSubf(out, i1, t->con.center);
+			sub_v3_v3v3(out, i1, t->con.center);
 		}
 	}
 }
@@ -257,21 +257,21 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 static void planeProjection(TransInfo *t, float in[3], float out[3]) {
 	float vec[3], factor, norm[3];
 
-	VecAddf(vec, in, t->con.center);
+	add_v3_v3v3(vec, in, t->con.center);
 	getViewVector(t, vec, norm);
 
-	VecSubf(vec, out, in);
+	sub_v3_v3v3(vec, out, in);
 
-	factor = Inpf(vec, norm);
+	factor = dot_v3v3(vec, norm);
 	if (fabs(factor) <= 0.001) {
 		return; /* prevent divide by zero */
 	}
-	factor = Inpf(vec, vec) / factor;
+	factor = dot_v3v3(vec, vec) / factor;
 
 	VECCOPY(vec, norm);
-	VecMulf(vec, factor);
+	mul_v3_fl(vec, factor);
 
-	VecAddf(out, in, vec);
+	add_v3_v3v3(out, in, vec);
 }
 
 /*
@@ -287,7 +287,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 {
 	VECCOPY(out, in);
 	if (!td && t->con.mode & CON_APPLY) {
-		Mat3MulVecfl(t->con.pmtx, out);
+		mul_m3_v3(t->con.pmtx, out);
 
 		// With snap, a projection is alright, no need to correct for view alignment
 		if ((t->tsnap.status & SNAP_ON) == 0) {
@@ -331,7 +331,7 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, float in[3], f
 	VECCOPY(out, in);
 	if (t->con.mode & CON_APPLY) {
 		if (!td) {
-			Mat3MulVecfl(t->con.pmtx, out);
+			mul_m3_v3(t->con.pmtx, out);
 			if (getConstraintSpaceDimension(t) == 2) {
 				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 					planeProjection(t, in, out);
@@ -367,7 +367,7 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, float in[3], f
 			if (t->con.mode & CON_AXIS2) {
 				out[2] = in[i++];
 			}
-			Mat3MulVecfl(td->axismtx, out);
+			mul_m3_v3(td->axismtx, out);
 		}
 	}
 }
@@ -393,8 +393,8 @@ static void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3
 			smat[2][2] = 1.0f;
 		}
 
-		Mat3MulMat3(tmat, smat, t->con.imtx);
-		Mat3MulMat3(smat, t->con.mtx, tmat);
+		mul_m3_m3m3(tmat, smat, t->con.imtx);
+		mul_m3_m3m3(smat, t->con.mtx, tmat);
 	}
 }
 
@@ -410,7 +410,7 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 		float tmat[3][3];
 		float imat[3][3];
 
-		Mat3Inv(imat, td->axismtx);
+		invert_m3_m3(imat, td->axismtx);
 
 		if (!(t->con.mode & CON_AXIS0)) {
 			smat[0][0] = 1.0f;
@@ -422,8 +422,8 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 			smat[2][2] = 1.0f;
 		}
 
-		Mat3MulMat3(tmat, smat, imat);
-		Mat3MulMat3(smat, td->axismtx, tmat);
+		mul_m3_m3m3(tmat, smat, imat);
+		mul_m3_m3m3(smat, td->axismtx, tmat);
 	}
 }
 
@@ -462,7 +462,7 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], fl
 		}
 		/* don't flip axis if asked to or if num input */
 		if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
-			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
+			if (dot_v3v3(vec, t->viewinv[2]) > 0.0f) {
 				*angle = -(*angle);
 			}
 		}
@@ -508,7 +508,7 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], 
 			break;
 		}
 		if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
-			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
+			if (dot_v3v3(vec, t->viewinv[2]) > 0.0f) {
 				*angle = -(*angle);
 			}
 		}
@@ -519,7 +519,7 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], 
 
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]) {
 	strncpy(t->con.text + 1, text, 48);
-	Mat3CpyMat3(t->con.mtx, space);
+	copy_m3_m3(t->con.mtx, space);
 	t->con.mode = mode;
 	getConstraintMatrix(t);
 
@@ -535,7 +535,7 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
-		Mat3CpyMat4(obmat, t->scene->obedit->obmat);
+		copy_m3_m4(obmat, t->scene->obedit->obmat);
 		setConstraint(t, obmat, mode, text);
 	}
 	else {
@@ -544,7 +544,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 		}
 		else {
 			strncpy(t->con.text + 1, text, 48);
-			Mat3CpyMat3(t->con.mtx, t->data->axismtx);
+			copy_m3_m3(t->con.mtx, t->data->axismtx);
 			t->con.mode = mode;
 			getConstraintMatrix(t);
 
@@ -573,7 +573,7 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 		{
 			float mtx[3][3];
 			sprintf(text, ftext, "global");
-			Mat3One(mtx);
+			unit_m3(mtx);
 			setConstraint(t, mtx, mode, text);
 		}
 		break;
@@ -630,7 +630,7 @@ void drawConstraint(const struct bContext *C, TransInfo *t)
 			float vec[3];
 			char col2[3] = {255,255,255};
 			convertViewVec(t, vec, (short)(t->mval[0] - t->con.imval[0]), (short)(t->mval[1] - t->con.imval[1]));
-			VecAddf(vec, vec, tc->center);
+			add_v3_v3v3(vec, vec, tc->center);
 
 			drawLine(t, tc->center, tc->mtx[0], 'x', 0);
 			drawLine(t, tc->center, tc->mtx[1], 'y', 0);
@@ -673,13 +673,13 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
 		if(t->spacetype == SPACE_VIEW3D && rv3d != NULL)
 		{
-			Mat4CpyMat4(tmat, rv3d->viewmat);
-			Mat4Invert(imat, tmat);
+			copy_m4_m4(tmat, rv3d->viewmat);
+			invert_m4_m4(imat, tmat);
 		}
 		else
 		{
-			Mat4One(tmat);
-			Mat4One(imat);
+			unit_m4(tmat);
+			unit_m4(imat);
 		}
 
 		glPushMatrix();
@@ -756,8 +756,8 @@ void stopConstraint(TransInfo *t) {
 void getConstraintMatrix(TransInfo *t)
 {
 	float mat[3][3];
-	Mat3Inv(t->con.imtx, t->con.mtx);
-	Mat3One(t->con.pmtx);
+	invert_m3_m3(t->con.imtx, t->con.mtx);
+	unit_m3(t->con.pmtx);
 
 	if (!(t->con.mode & CON_AXIS0)) {
 		t->con.pmtx[0][0]		=
@@ -777,15 +777,15 @@ void getConstraintMatrix(TransInfo *t)
 			t->con.pmtx[2][2]	= 0.0f;
 	}
 
-	Mat3MulMat3(mat, t->con.pmtx, t->con.imtx);
-	Mat3MulMat3(t->con.pmtx, t->con.mtx, mat);
+	mul_m3_m3m3(mat, t->con.pmtx, t->con.imtx);
+	mul_m3_m3m3(t->con.pmtx, t->con.mtx, mat);
 }
 
 /*------------------------- MMB Select -------------------------------*/
 
 void initSelectConstraint(TransInfo *t, float mtx[3][3])
 {
-	Mat3CpyMat3(t->con.mtx, mtx);
+	copy_m3_m3(t->con.mtx, mtx);
 	t->con.mode |= CON_APPLY;
 	t->con.mode |= CON_SELECT;
 
@@ -852,24 +852,24 @@ static void setNearestAxis3d(TransInfo *t)
 	   projecting them with window_to_3d_delta and then get the length of that vector.
 	*/
 	zfac= t->persmat[0][3]*t->center[0]+ t->persmat[1][3]*t->center[1]+ t->persmat[2][3]*t->center[2]+ t->persmat[3][3];
-	zfac = VecLength(t->persinv[0]) * 2.0f/t->ar->winx * zfac * 30.0f;
+	zfac = len_v3(t->persinv[0]) * 2.0f/t->ar->winx * zfac * 30.0f;
 
 	for (i = 0; i<3; i++) {
 		VECCOPY(axis, t->con.mtx[i]);
 
-		VecMulf(axis, zfac);
+		mul_v3_fl(axis, zfac);
 		/* now we can project to get window coordinate */
-		VecAddf(axis, axis, t->con.center);
+		add_v3_v3v3(axis, axis, t->con.center);
 		projectIntView(t, axis, icoord);
 
 		axis[0] = (float)(icoord[0] - t->center2d[0]);
 		axis[1] = (float)(icoord[1] - t->center2d[1]);
 		axis[2] = 0.0f;
 
- 		if (Normalize(axis) != 0.0f) {
-			Projf(proj, mvec, axis);
-			VecSubf(axis, mvec, proj);
-			len[i] = Normalize(axis);
+ 		if (normalize_v3(axis) != 0.0f) {
+			project_v3_v3v3(proj, mvec, axis);
+			sub_v3_v3v3(axis, mvec, proj);
+			len[i] = normalize_v3(axis);
 		}
 		else {
 			len[i] = 10000000000.0f;

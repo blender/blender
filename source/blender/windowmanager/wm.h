@@ -44,7 +44,6 @@ extern void wm_close_and_free(bContext *C, wmWindowManager *);
 extern void wm_close_and_free_all(bContext *C, ListBase *);
 
 extern void wm_add_default(bContext *C);
-extern void wm_check(bContext *C);
 extern void wm_clear_default_size(bContext *C);
 			
 			/* register to windowmanager for redo or macro */
@@ -75,6 +74,13 @@ void wm_autosave_timer_ended(wmWindowManager *wm);
 void wm_autosave_delete(void);
 void wm_autosave_read(bContext *C, struct ReportList *reports);
 void wm_autosave_location(char *filename);
+
+/* hack to store circle select size - campbell, must replace with nice operator memory */
+#define GESTURE_MEMORY
+
+#ifdef GESTURE_MEMORY
+extern int circle_select_size;
+#endif
 
 #endif /* WM_H */
 

@@ -412,6 +412,19 @@ static void rna_SoftBodySettings_goal_vgroup_set(PointerRNA *ptr, const char *va
 	rna_object_vgroup_name_index_set(ptr, value, &sb->vertgroup);
 }
 
+static void rna_SoftBodySettings_mass_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	SoftBody *sb= (SoftBody*)ptr->data;
+	rna_object_vgroup_name_set(ptr, value, sb->namedVG_Mass, sizeof(sb->namedVG_Mass));
+}
+
+static void rna_SoftBodySettings_spring_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	SoftBody *sb= (SoftBody*)ptr->data;
+	rna_object_vgroup_name_set(ptr, value, sb->namedVG_Spring_K, sizeof(sb->namedVG_Spring_K));
+}
+
+
 static char *rna_SoftBodySettings_path(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -1392,6 +1405,12 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mass", "");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
+	prop= RNA_def_property(srna, "mass_vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "namedVG_Mass");
+	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Control point mass values.");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoftBodySettings_mass_vgroup_set");
+	RNA_def_property_update(prop, 0, "rna_softbody_update");
+	
 	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "grav");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
@@ -1489,6 +1508,12 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "shearstiff");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Shear", "Shear Stiffness");
+	
+	prop= RNA_def_property(srna, "spring_vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "namedVG_Spring_K");
+	RNA_def_property_ui_text(prop, "Spring Vertex Group", "Control point spring strength values.");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoftBodySettings_spring_vgroup_set");
+	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	/* Collision */
 	

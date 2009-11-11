@@ -242,10 +242,9 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 
 	rcti rect;
 	//rctf rectf, rq;
-	int val;
+	short selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
 	//short mval[2];
 
-	val= RNA_int_get(op->ptr, "event_type");
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
@@ -265,7 +264,7 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 
 	/* get the first report if none found */
 	if(report_min==NULL) {
-		printf("find_min\n");
+		// printf("find_min\n");
 		for(report=reports->list.first; report; report=report->next) {
 			if(report->type & report_mask) {
 				report_min= report;
@@ -275,7 +274,7 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	}
 
 	if(report_max==NULL) {
-		printf("find_max\n");
+		// printf("find_max\n");
 		for(report=reports->list.last; report; report=report->prev) {
 			if(report->type & report_mask) {
 				report_max= report;
@@ -292,8 +291,10 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 		if((report->type & report_mask)==0)
 			continue;
 
-		if(val==LEFTMOUSE)	report->flag |= SELECT;
-		else				report->flag &= ~SELECT;
+		if(selecting)
+			report->flag |= SELECT;
+		else
+			report->flag &= ~SELECT;
 	}
 
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -321,11 +322,7 @@ void CONSOLE_OT_select_border(wmOperatorType *ot)
 	/* ot->flag= OPTYPE_REGISTER; */
 
 	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	WM_operator_properties_gesture_border(ot, FALSE);
 }
 
 

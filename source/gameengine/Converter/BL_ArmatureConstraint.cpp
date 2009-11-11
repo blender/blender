@@ -34,7 +34,7 @@
 #include "DNA_action_types.h"
 #include "BL_ArmatureConstraint.h"
 #include "BL_ArmatureObject.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 
 #ifndef DISABLE_PYTHON
@@ -82,12 +82,12 @@ BL_ArmatureConstraint::BL_ArmatureConstraint(
 	m_blendsubtarget = (subtarget) ? subtarget->GetBlenderObject() : NULL;
 	m_pose = m_subpose = NULL;
 	if (m_blendtarget) {
-		Mat4CpyMat4(m_blendmat, m_blendtarget->obmat);
+		copy_m4_m4(m_blendmat, m_blendtarget->obmat);
 		if (m_blendtarget->type == OB_ARMATURE)
 			m_pose = m_blendtarget->pose;
 	}
 	if (m_blendsubtarget) {
-		Mat4CpyMat4(m_blendsubmat, m_blendsubtarget->obmat);
+		copy_m4_m4(m_blendsubmat, m_blendsubtarget->obmat);
 		if (m_blendsubtarget->type == OB_ARMATURE)
 			m_subpose = m_blendsubtarget->pose;
 	}
@@ -198,12 +198,12 @@ void BL_ArmatureConstraint::RestoreTarget()
 {
 	if (m_constraint && !(m_constraint->flag&CONSTRAINT_OFF) && (!m_blendtarget || m_target)) {
 		if (m_blendtarget) {
-			Mat4CpyMat4(m_blendtarget->obmat, m_blendmat);
+			copy_m4_m4(m_blendtarget->obmat, m_blendmat);
 			if (m_pose)
 				m_blendtarget->pose = m_pose;
 		}
 		if (m_blendsubtarget && m_subtarget) {
-			Mat4CpyMat4(m_blendsubtarget->obmat, m_blendsubmat);
+			copy_m4_m4(m_blendsubtarget->obmat, m_blendsubmat);
 			if (m_subpose)
 				m_blendsubtarget->pose = m_subpose;
 		}

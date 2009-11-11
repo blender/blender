@@ -53,10 +53,10 @@ SET(INC
   ../makesrna
   ../editors/include
   ../../../intern/guardedalloc
-  ${OPENCOLLADA}/COLLADAStreamWriter/include
-  ${OPENCOLLADA}/COLLADABaseUtils/include
-  ${OPENCOLLADA}/COLLADAFramework/include
-  ${OPENCOLLADA}/COLLADASaxFrameworkLoader/include 
+  ${OPENCOLLADA_INC}/COLLADAStreamWriter/include
+  ${OPENCOLLADA_INC}/COLLADABaseUtils/include
+  ${OPENCOLLADA_INC}/COLLADAFramework/include
+  ${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader/include 
 )
 
 ENDIF(APPLE)

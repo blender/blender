@@ -64,6 +64,7 @@ typedef struct {
 /* cheap trick */
 #define BPy_BaseTypeRNA BPy_PropertyRNA
 
+void      BPY_rna_init( void );
 PyObject *BPY_rna_module( void );
 void	  BPY_update_rna_module( void );
 /*PyObject *BPY_rna_doc( void );*/

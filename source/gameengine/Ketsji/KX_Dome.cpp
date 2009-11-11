@@ -33,7 +33,7 @@ Developed as part of a Research and Development project for SAT - La Soci�t�
 
 #include "DNA_scene_types.h"
 #include "RAS_CameraData.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "GL/glew.h"
 

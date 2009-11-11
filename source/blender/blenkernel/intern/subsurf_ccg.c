@@ -54,7 +54,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 #include "BLI_edgehash.h"
@@ -561,7 +561,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 		}
 
 		DM_interp_vert_data(dm, result, vertIdx, weight[0][0], numVerts, i);
-		VecCopyf(mvert->co, ccgSubSurf_getFaceCenterData(f));
+		copy_v3_v3(mvert->co, ccgSubSurf_getFaceCenterData(f));
 		*origIndex = ORIGINDEX_NONE;
 		++mvert;
 		++origIndex;
@@ -579,7 +579,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 				w[nextS]  = weight[x][0][2];
 				w[otherS] = weight[x][0][3];
 				DM_interp_vert_data(dm, result, vertIdx, w, numVerts, i);
-				VecCopyf(mvert->co,
+				copy_v3_v3(mvert->co,
 				         ccgSubSurf_getFaceGridEdgeData(ss, f, S, x));
 
 				*origIndex = ORIGINDEX_NONE;
@@ -602,7 +602,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 					w[nextS]  = weight[y * gridFaces + x][0][2];
 					w[otherS] = weight[y * gridFaces + x][0][3];
 					DM_interp_vert_data(dm, result, vertIdx, w, numVerts, i);
-					VecCopyf(mvert->co,
+					copy_v3_v3(mvert->co,
 					         ccgSubSurf_getFaceGridData(ss, f, S, x, y));
 					*origIndex = ORIGINDEX_NONE;
 					++mvert;
@@ -633,7 +633,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 			w[1] = (float) x / (edgeSize - 1);
 			w[0] = 1 - w[1];
 			DM_interp_vert_data(dm, result, vertIdx, w, 2, i);
-			VecCopyf(mvert->co, ccgSubSurf_getEdgeData(ss, e, x));
+			copy_v3_v3(mvert->co, ccgSubSurf_getEdgeData(ss, e, x));
 			*origIndex = ORIGINDEX_NONE;
 			++mvert;
 			++origIndex;
@@ -651,7 +651,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 		vertIdx = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));
 
 		DM_copy_vert_data(dm, result, vertIdx, i, 1);
-		VecCopyf(mvert->co, ccgSubSurf_getVertData(ss, v));
+		copy_v3_v3(mvert->co, ccgSubSurf_getVertData(ss, v));
 
 		*((int*)ccgSubSurf_getVertUserData(ss, v)) = i;
 		*origIndex = ccgDM_getVertMapIndex(ss, v);
@@ -1016,19 +1016,19 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 
 		offset = vertNum - ccgdm->faceMap[i].startVert;
 		if(offset < 1) {
-			VecCopyf(mv->co, ccgSubSurf_getFaceCenterData(f));
+			copy_v3_v3(mv->co, ccgSubSurf_getFaceCenterData(f));
 		} else if(offset < gridSideEnd) {
 			offset -= 1;
 			grid = offset / gridSideVerts;
 			x = offset % gridSideVerts + 1;
-			VecCopyf(mv->co, ccgSubSurf_getFaceGridEdgeData(ss, f, grid, x));
+			copy_v3_v3(mv->co, ccgSubSurf_getFaceGridEdgeData(ss, f, grid, x));
 		} else if(offset < gridInternalEnd) {
 			offset -= gridSideEnd;
 			grid = offset / gridInternalVerts;
 			offset %= gridInternalVerts;
 			y = offset / gridSideVerts + 1;
 			x = offset % gridSideVerts + 1;
-			VecCopyf(mv->co, ccgSubSurf_getFaceGridData(ss, f, grid, x, y));
+			copy_v3_v3(mv->co, ccgSubSurf_getFaceGridData(ss, f, grid, x, y));
 		}
 	} else if((vertNum < ccgdm->vertMap[0].startVert) && (ccgSubSurf_getNumEdges(ss) > 0)) {
 		/* this vert comes from edge data */
@@ -1043,14 +1043,14 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 		e = ccgdm->edgeMap[i].edge;
 
 		x = vertNum - ccgdm->edgeMap[i].startVert + 1;
-		VecCopyf(mv->co, ccgSubSurf_getEdgeData(ss, e, x));
+		copy_v3_v3(mv->co, ccgSubSurf_getEdgeData(ss, e, x));
 	} else {
 		/* this vert comes from vert data */
 		CCGVert *v;
 		i = vertNum - ccgdm->vertMap[0].startVert;
 
 		v = ccgdm->vertMap[i].vert;
-		VecCopyf(mv->co, ccgSubSurf_getVertData(ss, v));
+		copy_v3_v3(mv->co, ccgSubSurf_getVertData(ss, v));
 	}
 }
 
@@ -1188,11 +1188,11 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		CCGFace *f = ccgdm->faceMap[index].face;
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
 
-		VecCopyf(mvert[i++].co, ccgSubSurf_getFaceCenterData(f));
+		copy_v3_v3(mvert[i++].co, ccgSubSurf_getFaceCenterData(f));
 		
 		for(S = 0; S < numVerts; S++) {
 			for(x = 1; x < gridSize - 1; x++) {
-				VecCopyf(mvert[i++].co,
+				copy_v3_v3(mvert[i++].co,
 				         ccgSubSurf_getFaceGridEdgeData(ss, f, S, x));
 			}
 		}
@@ -1200,7 +1200,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		for(S = 0; S < numVerts; S++) {
 			for(y = 1; y < gridSize - 1; y++) {
 				for(x = 1; x < gridSize - 1; x++) {
-					VecCopyf(mvert[i++].co,
+					copy_v3_v3(mvert[i++].co,
 					         ccgSubSurf_getFaceGridData(ss, f, S, x, y));
 				}
 			}
@@ -1213,7 +1213,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		int x;
 
 		for(x = 1; x < edgeSize - 1; x++) {
-			VecCopyf(mvert[i++].co, ccgSubSurf_getEdgeData(ss, e, x));
+			copy_v3_v3(mvert[i++].co, ccgSubSurf_getEdgeData(ss, e, x));
 		}
 	}
 
@@ -1221,7 +1221,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 	for(index = 0; index < totvert; index++) {
 		CCGVert *v = ccgdm->vertMap[index].vert;
 
-		VecCopyf(mvert[i].co, ccgSubSurf_getVertData(ss, v));
+		copy_v3_v3(mvert[i].co, ccgSubSurf_getVertData(ss, v));
 
 		i++;
 	}
@@ -1397,18 +1397,18 @@ static void ccgdm_getVertCos(DerivedMesh *dm, float (*cos)[3]) {
 		CCGFace *f = faceMap2[index];
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
 
-		VecCopyf(cos[i++], ccgSubSurf_getFaceCenterData(f));
+		copy_v3_v3(cos[i++], ccgSubSurf_getFaceCenterData(f));
 		
 		for (S=0; S<numVerts; S++) {
 			for (x=1; x<gridSize-1; x++) {
-				VecCopyf(cos[i++], ccgSubSurf_getFaceGridEdgeData(ss, f, S, x));
+				copy_v3_v3(cos[i++], ccgSubSurf_getFaceGridEdgeData(ss, f, S, x));
 			}
 		}
 
 		for (S=0; S<numVerts; S++) {
 			for (y=1; y<gridSize-1; y++) {
 				for (x=1; x<gridSize-1; x++) {
-					VecCopyf(cos[i++], ccgSubSurf_getFaceGridData(ss, f, S, x, y));
+					copy_v3_v3(cos[i++], ccgSubSurf_getFaceGridData(ss, f, S, x, y));
 				}
 			}
 		}
@@ -1419,13 +1419,13 @@ static void ccgdm_getVertCos(DerivedMesh *dm, float (*cos)[3]) {
 		int x;
 
 		for (x=1; x<edgeSize-1; x++) {
-			VecCopyf(cos[i++], ccgSubSurf_getEdgeData(ss, e, x));
+			copy_v3_v3(cos[i++], ccgSubSurf_getEdgeData(ss, e, x));
 		}
 	}
 
 	for (index=0; index<totvert; index++) {
 		CCGVert *v = vertMap2[index];
-		VecCopyf(cos[i++], ccgSubSurf_getVertData(ss, v));
+		copy_v3_v3(cos[i++], ccgSubSurf_getVertData(ss, v));
 	}
 
 	MEM_freeN(vertMap2);
@@ -2709,17 +2709,17 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 
 		for (i=0; i<N; i++) {
 			CCGEdge *e = ccgSubSurf_getVertEdge(v, i);
-			VecAddf(edge_sum, edge_sum, ccgSubSurf_getEdgeData(ss, e, 1));
+			add_v3_v3v3(edge_sum, edge_sum, ccgSubSurf_getEdgeData(ss, e, 1));
 		}
 		for (i=0; i<numFaces; i++) {
 			CCGFace *f = ccgSubSurf_getVertFace(v, i);
-			VecAddf(face_sum, face_sum, ccgSubSurf_getFaceCenterData(f));
+			add_v3_v3v3(face_sum, face_sum, ccgSubSurf_getFaceCenterData(f));
 		}
 
 		/* ad-hoc correction for boundary vertices, to at least avoid them
 		   moving completely out of place (brecht) */
 		if(numFaces && numFaces != N)
-			VecMulf(face_sum, (float)N/(float)numFaces);
+			mul_v3_fl(face_sum, (float)N/(float)numFaces);
 
 		co = ccgSubSurf_getVertData(ss, v);
 		positions_r[idx][0] = (co[0]*N*N + edge_sum[0]*4 + face_sum[0])/(N*(N+5));

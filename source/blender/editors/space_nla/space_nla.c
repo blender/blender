@@ -39,7 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_animsys.h"
@@ -428,6 +428,13 @@ static void nla_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_SELECT:
 				case ND_KEYS:
 				case ND_TRANSFORM:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_NODE:
+			switch(wmn->action) {
+				case NA_EDITED:
 					ED_region_tag_redraw(ar);
 					break;
 			}

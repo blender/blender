@@ -107,7 +107,7 @@ void SCA_ExpressionController::Trigger(SCA_LogicManager* logicmgr)
 		{
 			if (value->IsError())
 			{
-				printf(value->GetText());
+				printf("%s\n", value->GetText().ReadPtr());
 			} else
 			{
 				float num = (float)value->GetNumber();

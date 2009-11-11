@@ -343,6 +343,7 @@ short ANIM_headerUI_standard_buttons (const bContext *C, bDopeSheet *ads, uiBloc
 		uiBlockBeginAlign(block);
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSCE, B_REDR, ICON_SCENE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Scene Animation");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOWOR, B_REDR, ICON_WORLD_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display World Animation");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NONTREE, B_REDR, ICON_NODETREE,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Node Tree Animation");
 			if (mainptr && mainptr->key.first)
 				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSHAPEKEYS, B_REDR, ICON_SHAPEKEY_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display ShapeKeys");
 			if (mainptr && mainptr->mat.first)

@@ -498,12 +498,25 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 	int retval;
 
 	/* dummie test */
-	if(ot && C && window) {
-		event= window->eventstate;
+	if(ot && C) {
+		switch(context) {
+			case WM_OP_INVOKE_DEFAULT:
+			case WM_OP_INVOKE_REGION_WIN:
+			case WM_OP_INVOKE_AREA:
+			case WM_OP_INVOKE_SCREEN:
+				/* window is needed for invoke, cancel operator */
+				if (window == NULL)
+					return 0;
+				else
+					event= window->eventstate;
+				break;
+			default:
+				event = NULL;
+		}
+
 		switch(context) {
 			
 			case WM_OP_EXEC_REGION_WIN:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_REGION_WIN: 
 			{
 				/* forces operator to go to the region window, for header menus */
@@ -527,7 +540,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_AREA:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_AREA:
 			{
 					/* remove region from context */
@@ -540,7 +552,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_SCREEN:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_SCREEN:
 			{
 				/* remove region + area from context */
@@ -556,7 +567,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_DEFAULT:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_DEFAULT:
 				return wm_operator_invoke(C, ot, event, properties, reports);
 		}

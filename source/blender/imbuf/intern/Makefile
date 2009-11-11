@@ -39,7 +39,7 @@ include nan_definitions.mk
 DIRS = cineon
 
 ifeq ($(WITH_OPENEXR), true)
-    DIRS += openexr 
+    DIRS += openexr
     CFLAGS += -DWITH_OPENEXR
 endif
 
@@ -49,7 +49,11 @@ ifeq ($(WITH_DDS), true)
 endif
 
 ifeq ($(WITH_OPENJPEG), true)
-    CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
+    ifndef BF_OPENJPEG_INC
+        CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
+    else
+        CFLAGS += -DWITH_OPENJPEG -I$(BF_OPENJPEG_INC)
+    endif
 endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)

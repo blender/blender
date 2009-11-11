@@ -64,6 +64,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
@@ -599,6 +600,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
+			case ANIMTYPE_DSARM:
+			{
+				bArmature *arm= (bArmature *)data;
+				AnimData *adt= arm->adt;
+				
+				ale->flag= FILTER_ARM_OBJD(arm);
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
 			case ANIMTYPE_DSSKEY:
 			{
 				Key *key= (Key *)data;
@@ -618,6 +632,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				AnimData *adt= wo->adt;
 				
 				ale->flag= FILTER_WOR_SCED(wo); 
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
+			case ANIMTYPE_DSNTREE:
+			{
+				bNodeTree *ntree= (bNodeTree *)data;
+				AnimData *adt= ntree->adt;
+				
+				ale->flag= FILTER_NTREE_SCED(ntree); 
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
@@ -1485,6 +1512,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
 {
 	World *wo= sce->world;
+	bNodeTree *ntree= sce->nodetree;
 	AnimData *adt= NULL;
 	bAnimListElem *ale;
 	int items = 0;
@@ -1590,6 +1618,50 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 			}
 		)
 	}
+	/* nodetree */
+	if ((ntree && ntree->adt) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
+		/* Action, Drivers, or NLA for Nodetree */
+		adt= ntree->adt;
+		ANIMDATA_FILTER_CASES(ntree,
+			{ /* AnimData blocks - do nothing... */ },
+			{ /* nla */
+				/* add NLA tracks */
+				items += animdata_filter_nla(anim_data, ads, adt, filter_mode, ntree, ANIMTYPE_DSNTREE, (ID *)ntree);
+			},
+			{ /* drivers */
+				/* include nodetree-expand widget? */
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+					ale= make_new_animlistelem(ntree, ANIMTYPE_DSNTREE, sce, ANIMTYPE_SCENE, (ID *)ntree);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+				
+				/* add F-Curve channels (drivers are F-Curves) */
+				if (FILTER_NTREE_SCED(ntree)/*EXPANDED_DRVD(adt)*/ || !(filter_mode & ANIMFILTER_CHANNELS)) {
+					// XXX owner info is messed up now...
+					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, ntree, ANIMTYPE_DSNTREE, filter_mode, (ID *)ntree);
+				}
+			},
+			{ /* action */
+				/* include nodetree-expand widget? */
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+					ale= make_new_animlistelem(ntree, ANIMTYPE_DSNTREE, sce, ANIMTYPE_SCENE, (ID *)sce);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+				
+				/* add channels */
+				if (FILTER_NTREE_SCED(ntree) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+					items += animdata_filter_action(anim_data, ads, adt->action, filter_mode, ntree, ANIMTYPE_DSNTREE, (ID *)ntree); 
+				}
+			}
+		)
+	}
+
 	
 	// TODO: scene compositing nodes (these aren't standard node-trees)
 	
@@ -1616,7 +1688,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 	/* scene-linked animation */
 	// TODO: sequencer, composite nodes - are we to include those here too?
 	{
-		short sceOk= 0, worOk= 0;
+		short sceOk= 0, worOk= 0, nodeOk=0;
 		
 		/* check filtering-flags if ok */
 		ANIMDATA_FILTER_CASES(sce, 
@@ -1643,17 +1715,30 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);, 
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);)
 		}
+		if (sce->nodetree) {
+			ANIMDATA_FILTER_CASES(sce->nodetree, 
+				{
+					/* for the special AnimData blocks only case, we only need to add
+					 * the block if it is valid... then other cases just get skipped (hence ok=0)
+					 */
+					ANIMDATA_ADD_ANIMDATA(sce->nodetree);
+					nodeOk=0;
+				},
+				nodeOk= !(ads->filterflag & ADS_FILTER_NONTREE);, 
+				nodeOk= !(ads->filterflag & ADS_FILTER_NONTREE);, 
+				nodeOk= !(ads->filterflag & ADS_FILTER_NONTREE);)
+		}
 		
 		/* if only F-Curves with visible flags set can be shown, check that 
 		 * datablocks haven't been set to invisible 
 		 */
 		if (filter_mode & ANIMFILTER_CURVEVISIBLE) {
 			if ((sce->adt) && (sce->adt->flag & ADT_CURVES_NOT_VISIBLE))
-				sceOk= worOk= 0;
+				sceOk= worOk= nodeOk= 0;
 		}
 		
 		/* check if not all bad (i.e. so there is something to show) */
-		if ( !(!sceOk && !worOk) ) {
+		if ( !(!sceOk && !worOk && !nodeOk) ) {
 			/* add scene data to the list of filtered channels */
 			items += animdata_filter_dopesheet_scene(anim_data, ads, sce, filter_mode);
 		}

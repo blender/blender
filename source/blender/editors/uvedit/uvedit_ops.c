@@ -41,7 +41,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
@@ -359,9 +359,9 @@ void uv_center(float uv[][2], float cent[2], int quad)
 float uv_area(float uv[][2], int quad)
 {
 	if(quad)
-		return AreaF2Dfl(uv[0], uv[1], uv[2]) + AreaF2Dfl(uv[0], uv[2], uv[3]); 
+		return area_tri_v2(uv[0], uv[1], uv[2]) + area_tri_v2(uv[0], uv[2], uv[3]); 
 	else
-		return AreaF2Dfl(uv[0], uv[1], uv[2]); 
+		return area_tri_v2(uv[0], uv[1], uv[2]); 
 }
 
 void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy)
@@ -473,7 +473,7 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, EditMesh *em, float c
 			nverts= efa->v4? 4: 3;
 
 			for(i=0; i<nverts; i++) {
-				dist= PdistVL2Dfl(co, tf->uv[i], tf->uv[(i+1)%nverts]);
+				dist= dist_to_line_segment_v2(co, tf->uv[i], tf->uv[(i+1)%nverts]);
 
 				if(dist < mindist) {
 					hit->tf= tf;
@@ -534,8 +534,8 @@ static int nearest_uv_between(MTFace *tf, int nverts, int id, float co[2], float
 
 	m[0]= co[0]-uv[0];
 	m[1]= co[1]-uv[1];
-	Vec2Subf(v1, tf->uv[id1], tf->uv[id]);
-	Vec2Subf(v2, tf->uv[id2], tf->uv[id]);
+	sub_v2_v2v2(v1, tf->uv[id1], tf->uv[id]);
+	sub_v2_v2v2(v2, tf->uv[id2], tf->uv[id]);
 
 	/* m and v2 on same side of v-v1? */
 	c1= v1[0]*m[1] - v1[1]*m[0];
@@ -2045,7 +2045,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
 	/* figure out what to select/deselect */
-	select= (RNA_int_get(op->ptr, "event_type") == LEFTMOUSE); // XXX hardcoded
+	select= (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
 	pinned= RNA_boolean_get(op->ptr, "pinned");
 	
 	if(ts->uv_flag & UV_SYNC_SELECTION)
@@ -2168,11 +2168,7 @@ void UV_OT_select_border(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only.");
 
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	WM_operator_properties_gesture_border(ot, FALSE);
 }
 
 /* ******************** circle select operator **************** */
@@ -2205,9 +2201,10 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	MTFace *tface;
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
-
+    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+    
 	/* get operator properties */
-	select= (RNA_int_get(op->ptr, "event_type") == LEFTMOUSE); // XXX hardcoded
+	select= (gesture_mode == GESTURE_MODAL_SELECT);
 	x= RNA_int_get(op->ptr, "x");
 	y= RNA_int_get(op->ptr, "y");
 	radius= RNA_int_get(op->ptr, "radius");
@@ -2261,7 +2258,7 @@ void UV_OT_circle_select(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 }
 
 /* ******************** snap cursor operator **************** */

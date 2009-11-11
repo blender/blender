@@ -336,7 +336,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 }
 
 /* create buttons for an item with an RNA array */
-static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int h, int expand, int slider)
+static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int h, int expand, int slider, int toggle, int icon_only)
 {
 	uiStyle *style= layout->root->style;
 	uiBut *but;
@@ -420,7 +420,10 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 				str[0]= RNA_property_array_item_char(prop, a);
 
 				if(str[0]) {
-					if(type == PROP_BOOLEAN) {
+					if (icon_only) {
+						str[0] = '\0';
+					}
+					else if(type == PROP_BOOLEAN) {
 						str[1]= '\0';
 					}
 					else {
@@ -429,9 +432,11 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 					}
 				}
 
-				but= uiDefAutoButR(block, ptr, prop, a, str, 0, 0, 0, w, UI_UNIT_Y);
+				but= uiDefAutoButR(block, ptr, prop, a, str, icon, 0, 0, w, UI_UNIT_Y);
 				if(slider && but->type==NUM)
 					but->type= NUMSLI;
+				if(toggle && but->type==OPTION)
+					but->type= TOG;
 			}
 		}
 		else if(ELEM(subtype, PROP_COLOR, PROP_RGB) && len == 4) {
@@ -909,7 +914,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 
 	/* array property */
 	if(index == RNA_NO_INDEX && len > 0)
-		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider);
+		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider, toggle, icon_only);
 	/* enum item */
 	else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
 		char *identifier= (char*)RNA_property_identifier(prop);

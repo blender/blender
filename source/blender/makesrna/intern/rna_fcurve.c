@@ -83,6 +83,7 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 
 /* ****************************** */
 
+#include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
 
 static void rna_ChannelDriver_update_data(bContext *C, PointerRNA *ptr)
@@ -610,8 +611,12 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "targets", NULL);
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "add_target", "remove_target");
 	RNA_def_property_struct_type(prop, "DriverTarget");
 	RNA_def_property_ui_text(prop, "Target Variables", "Properties acting as targets for this driver.");
+	
+	/* Functions */
+	RNA_api_drivers(srna);
 }
 
 /* *********************** */
@@ -647,8 +652,8 @@ static void rna_def_fcurve(BlenderRNA *brna)
 		{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear", ""},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_mode_color_items[] = {
-		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", 0, "Automatic Rainbow", ""},
-		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", 0, "Automatic XYZ to RGB", ""},
+		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", 0, "Auto Rainbow", ""},
+		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", 0, "Auto XYZ to RGB", ""},
 		{FCURVE_COLOR_CUSTOM, "CUSTOM", 0, "User Defined", ""},
 		{0, NULL, 0, NULL, NULL}};
 

@@ -44,12 +44,19 @@ struct wmWindowManager;
 #define NODE_EXTEND				1
 #define NODE_EXCLUSIVE			3
 
+/* space_node.c */
+ARegion *node_has_buttons_region(ScrArea *sa);
+
 /* node_header.c */
 void node_header_buttons(const bContext *C, ARegion *ar);
 void node_menus_register(struct ARegionType *art);
 
 /* node_draw.c */
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
+
+/* node_buttons.c */
+void node_buttons_register(struct ARegionType *art);
+void NODE_OT_properties(struct wmOperatorType *ot);
 
 /* node_ops.c */
 void node_operatortypes(void);
@@ -121,6 +128,6 @@ enum {
 	B_MATPRV,
 	B_NODE_LOADIMAGE,
 	B_NODE_SETIMAGE,
-} eActHeader_ButEvents;
+} eNodeSpace_ButEvents;
 
 #endif /* ED_NODE_INTERN_H */

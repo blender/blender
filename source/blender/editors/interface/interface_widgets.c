@@ -35,7 +35,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 
@@ -1666,7 +1666,6 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 {
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->ymax - rect->ymin);
-	int textoffs;
 	
 	widget_init(&wtb);
 	
@@ -1681,15 +1680,8 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	if(!(state & UI_TEXTINPUT)) {
-		rect->xmin += (rect->ymax-rect->ymin);
-		rect->xmax -= (rect->ymax-rect->ymin);
-	}
-	else {
-		textoffs= rad;
-		rect->xmin += textoffs;
-		rect->xmax -= textoffs;
-	}
+	rect->xmin += rad*0.75f;
+	rect->xmax -= rad*0.75f;
 }
 
 

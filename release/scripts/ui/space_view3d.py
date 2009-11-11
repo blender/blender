@@ -191,9 +191,39 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.itemM("VIEW3D_MT_view_align_selected")
+
+        layout.itemS()
+
         layout.item_booleanO("view3d.view_all", "center", True, text="Center Cursor and View All")
         layout.itemO("view3d.camera_to_view", text="Align Active Camera to View")
         layout.itemO("view3d.view_center")
+
+
+class VIEW3D_MT_view_align_selected(bpy.types.Menu):
+    bl_label = "Align View to Selected"
+
+    def draw(self, context):
+        layout = self.layout
+
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Top")
+        props.align_active = True
+        props.type = 'TOP'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Bottom")
+        props.align_active = True
+        props.type = 'BOTTOM'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Front")
+        props.align_active = True
+        props.type = 'FRONT'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Back")
+        props.align_active = True
+        props.type = 'BACK'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Right")
+        props.align_active = True
+        props.type = 'RIGHT'
+        props = layout.itemO("view3d.viewnumpad", properties=True, text="Left")
+        props.align_active = True
+        props.type = 'LEFT'
 
 
 class VIEW3D_MT_view_cameras(bpy.types.Menu):
@@ -276,11 +306,17 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
 
         layout.itemO("particle.select_all_toggle", text="Select/Deselect All")
         layout.itemO("particle.select_linked")
+        layout.itemO("particle.select_inverse")
 
         layout.itemS()
 
         layout.itemO("particle.select_more")
         layout.itemO("particle.select_less")
+
+        layout.itemS()
+
+        layout.itemO("particle.select_first", text="Roots")
+        layout.itemO("particle.select_last", text="Tips")
 
 
 class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
@@ -302,6 +338,8 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
         layout.itemO("mesh.select_random", text="Random...")
         layout.itemO("mesh.edges_select_sharp", text="Sharp Edges")
         layout.itemO("mesh.faces_select_linked_flat", text="Linked Flat Faces")
+        layout.itemO("mesh.faces_select_interior", text="Interior Faces")
+        layout.itemO("mesh.select_axis", text="Side of Active")
 
         layout.itemS()
 
@@ -612,7 +650,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.item_menu_enumO("object.make_links_scene", "type", text="Objects to Scene...")
 
         layout.items_enumO("object.make_links_data", property="type") # inline
@@ -1338,6 +1376,29 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 
         layout.column().itemR(scene, "cursor_location", text="3D Cursor:")
 
+class VIEW3D_PT_3dview_item(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Item"
+
+    def poll(self, context):
+        return (context.active_object or context.active_bone or context.active_pchan)
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.active_object
+
+        row = layout.row()
+        row.itemL(text="", icon='ICON_OBJECT_DATA')
+        row.itemR(ob, "name", text="")
+
+        if ob.type == 'ARMATURE' and ob.mode in ('EDIT', 'POSE'):
+            bone = context.active_bone
+            if bone:
+                row = layout.row()
+                row.itemL(text="", icon='ICON_BONE_DATA')
+                row.itemR(bone, "name", text="")
 
 class VIEW3D_PT_3dview_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -1534,13 +1595,13 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
 
         col.itemR(toolsettings, "etch_convert_mode")
 
-        if toolsettings.etch_convert_mode == "LENGTH":
+        if toolsettings.etch_convert_mode == 'LENGTH':
             col.itemR(toolsettings, "etch_length_limit")
-        elif toolsettings.etch_convert_mode == "ADAPTIVE":
+        elif toolsettings.etch_convert_mode == 'ADAPTIVE':
             col.itemR(toolsettings, "etch_adaptive_limit")
-        elif toolsettings.etch_convert_mode == "FIXED":
+        elif toolsettings.etch_convert_mode == 'FIXED':
             col.itemR(toolsettings, "etch_subdivision_number")
-        elif toolsettings.etch_convert_mode == "RETARGET":
+        elif toolsettings.etch_convert_mode == 'RETARGET':
             col.itemR(toolsettings, "etch_template")
             col.itemR(toolsettings, "etch_roll_mode")
             col.itemR(toolsettings, "etch_autoname")
@@ -1593,6 +1654,7 @@ bpy.types.register(VIEW3D_HT_header) # Header
 bpy.types.register(VIEW3D_MT_view) #View Menus
 bpy.types.register(VIEW3D_MT_view_navigation)
 bpy.types.register(VIEW3D_MT_view_align)
+bpy.types.register(VIEW3D_MT_view_align_selected)
 bpy.types.register(VIEW3D_MT_view_cameras)
 
 bpy.types.register(VIEW3D_MT_select_object) # Select Menus
@@ -1664,7 +1726,8 @@ bpy.types.register(VIEW3D_MT_edit_armature)
 bpy.types.register(VIEW3D_MT_edit_armature_parent)
 bpy.types.register(VIEW3D_MT_edit_armature_roll)
 
-bpy.types.register(VIEW3D_PT_3dview_properties) # Panels
+bpy.types.register(VIEW3D_PT_3dview_item) # Panels
+bpy.types.register(VIEW3D_PT_3dview_properties)
 bpy.types.register(VIEW3D_PT_3dview_display)
 bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
 bpy.types.register(VIEW3D_PT_3dview_curvedisplay)

@@ -37,7 +37,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -164,7 +164,7 @@ int multiresModifier_reshape(MultiresModifierData *mmd, Object *dst, Object *src
 		int i;
 
 		for(i = 0; i < src_me->totvert; ++i)
-			VecCopyf(mvert[i].co, src_me->mvert[i].co);
+			copy_v3_v3(mvert[i].co, src_me->mvert[i].co);
 		mrdm->needsFree = 1;
 		MultiresDM_mark_as_modified(mrdm);
 		mrdm->release(mrdm);
@@ -178,9 +178,9 @@ int multiresModifier_reshape(MultiresModifierData *mmd, Object *dst, Object *src
 
 static void Mat3FromColVecs(float mat[][3], float v1[3], float v2[3], float v3[3])
 {
-	VecCopyf(mat[0], v1);
-	VecCopyf(mat[1], v2);
-	VecCopyf(mat[2], v3);
+	copy_v3_v3(mat[0], v1);
+	copy_v3_v3(mat[1], v2);
+	copy_v3_v3(mat[2], v3);
 }
 
 static DerivedMesh *multires_subdisp_pre(DerivedMesh *mrdm, int distance, int simple)
@@ -233,7 +233,7 @@ static void multires_subdisp(DerivedMesh *orig, Object *ob, DerivedMesh *final, 
 	if(!addverts) {
 		for(i = 0; i < totvert; ++i) {
 			float z[3] = {0,0,0};
-			VecCopyf(mvd[i].co, z);
+			copy_v3_v3(mvd[i].co, z);
 		}
 	}
 
@@ -424,7 +424,7 @@ void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Object
 			
 			for(j = 0, y = 0; y < st; y += skip) {
 				for(x = 0; x < st; x += skip) {
-					VecCopyf(disps[j], mdisps[i].disps[y * st + x]);
+					copy_v3_v3(disps[j], mdisps[i].disps[y * st + x]);
 					++j;
 				}
 			}
@@ -998,27 +998,27 @@ static void calc_disp_mat(MultiresDisplacer *d, float mat[3][3])
 
 	if(u < 0) {
 		u = multires_index_at_loc(d->face_index, d->x - 1, d->y, d, &d->edges_primary);
-		VecSubf(t1, base->co, d->subco[u].co);
+		sub_v3_v3v3(t1, base->co, d->subco[u].co);
 	}
 	else
-		VecSubf(t1, d->subco[u].co, base->co);
+		sub_v3_v3v3(t1, d->subco[u].co, base->co);
 
 	if(v < 0) {
 		v = multires_index_at_loc(d->face_index, d->x, d->y - 1, d, &d->edges_primary);
-		VecSubf(t2, base->co, d->subco[v].co);
+		sub_v3_v3v3(t2, base->co, d->subco[v].co);
 	}
 	else
-		VecSubf(t2, d->subco[v].co, base->co);
+		sub_v3_v3v3(t2, d->subco[v].co, base->co);
 
 	//printf("uu=%d, vv=%d\n", u, v);
 
-	Normalize(t1);
-	Normalize(t2);
+	normalize_v3(t1);
+	normalize_v3(t2);
 	Mat3FromColVecs(mat, t1, t2, norm);
 
 	if(d->invert) {
-		Mat3Inv(inv, mat);
-		Mat3CpyMat3(mat, inv);
+		invert_m3_m3(inv, mat);
+		copy_m3_m3(mat, inv);
 	}
 }
 
@@ -1033,23 +1033,23 @@ static void multires_displace(MultiresDisplacer *d, float co[3])
 	data = d->grid->disps[(d->y * d->spacing) * d->disp_st + (d->x * d->spacing)];
 
 	if(d->invert)
-		VecSubf(disp, co, subco->co);
+		sub_v3_v3v3(disp, co, subco->co);
 	else
-		VecCopyf(disp, data);
+		copy_v3_v3(disp, data);
 
 
 	/* Apply ts matrix to displacement */
 	calc_disp_mat(d, mat);
-	Mat3MulVecfl(mat, disp);
+	mul_m3_v3(mat, disp);
 
 	if(d->invert) {
-		VecCopyf(data, disp);
+		copy_v3_v3(data, disp);
 		
 	}
 	else {
 		if(d->type == 4 || d->type == 5)
-			VecMulf(disp, d->weight);
-		VecAddf(co, co, disp);
+			mul_v3_fl(disp, d->weight);
+		add_v3_v3v3(co, co, disp);
 	}
 
 	if(d->type == 2) {
@@ -1200,7 +1200,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			/* Subtract the original vertex cos from the new vertex cos */
 			verts_new = CDDM_get_verts(dm);
 			for(i = 0; i < dm->getNumVerts(dm); ++i)
-				VecSubf(verts_new[i].co, verts_new[i].co, cur_lvl_orig_verts[i].co);
+				sub_v3_v3v3(verts_new[i].co, verts_new[i].co, cur_lvl_orig_verts[i].co);
 
 			final = multires_subdisp_pre(dm, totlvl - lvl, 0);
 
@@ -1579,7 +1579,7 @@ void multires_load_old(DerivedMesh *dm, Multires *mr)
 
 	/* Transfer verts */
 	for(i = 0; i < totvert; ++i)
-		VecCopyf(vdst[i].co, vsrc[vvmap[i]].co);
+		copy_v3_v3(vdst[i].co, vsrc[vvmap[i]].co);
 
 	MEM_freeN(vvmap);
 }

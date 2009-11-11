@@ -46,7 +46,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 
 #include "BKE_anim.h"
@@ -126,7 +126,7 @@ void ED_object_base_init_from_view(bContext *C, Base *base, int view_align)
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			if(rv3d) {
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
-				QuatToEul(rv3d->viewquat, ob->rot);
+				quat_to_eul( ob->rot,rv3d->viewquat);
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
 			}
 		}
@@ -196,7 +196,7 @@ Object *ED_object_add_type(bContext *C, int type, int view_align, int enter_edit
 	DAG_scene_sort(scene);
 
 	if(enter_editmode)
-		ED_object_enter_editmode(C, 0);
+		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
 
 	return ob;
 }
@@ -264,6 +264,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 
 	if(type==PFIELD_GUIDE) {
 		ob= ED_object_add_type(C, OB_CURVE, view_align, FALSE);
+		rename_id(&ob->id, "CurveGuide");
 
 		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
 		ED_object_enter_editmode(C, 0);
@@ -274,6 +275,8 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 	}
 	else {
 		ob= ED_object_add_type(C, OB_EMPTY, view_align, FALSE);
+		rename_id(&ob->id, "Field");
+
 		switch(type) {
 			case PFIELD_WIND:
 			case PFIELD_VORTEX:
@@ -339,9 +342,8 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		ED_object_add_type(C, OB_CURVE, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_CURVE, view_align, TRUE);
 		newob = 1;
-		obedit= CTX_data_edit_object(C);
 
 		if(type & CU_PRIM_PATH)
 			((Curve*)obedit->data)->flag |= CU_PATH|CU_3D;
@@ -424,12 +426,11 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
-		ED_object_add_type(C, OB_SURF, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_SURF, view_align, TRUE);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	obedit= CTX_data_edit_object(C);
 	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
 	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
@@ -485,12 +486,11 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
-		ED_object_add_type(C, OB_MBALL, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_MBALL, view_align, TRUE);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	obedit= CTX_data_edit_object(C);
 	elem= (MetaElem*)add_metaball_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
 	mball= (MetaBall*)obedit->data;
 	BLI_addtail(mball->editelems, elem);
@@ -553,8 +553,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	if(obedit && obedit->type==OB_FONT)
 		return OPERATOR_CANCELLED;
 
-	ED_object_add_type(C, OB_FONT, view_align, enter_editmode);
-	obedit= CTX_data_active_object(C);
+	obedit= ED_object_add_type(C, OB_FONT, view_align, enter_editmode);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
@@ -590,9 +589,8 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		ED_object_add_type(C, OB_ARMATURE, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_ARMATURE, view_align, TRUE);
 		ED_object_enter_editmode(C, 0);
-		obedit= CTX_data_edit_object(C);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
@@ -717,7 +715,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
@@ -930,7 +928,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		ob->disp.first= ob->disp.last= NULL;
 		ob->transflag &= ~OB_DUPLI;	
 		
-		Mat4CpyMat4(ob->obmat, dob->mat);
+		copy_m4_m4(ob->obmat, dob->mat);
 		ED_object_apply_obmat(ob);
 	}
 	

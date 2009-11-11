@@ -170,4 +170,8 @@ ifeq ($(WITH_BF_OPENMP),true)
    LLIBS += -lgomp
 endif
 
+ifeq ($(WITH_FFTW3),true)
+    LLIBS += $(BF_FFTW3_LIBS)
+endif
+
 LLIBS += $(NAN_PYTHON_LIB)

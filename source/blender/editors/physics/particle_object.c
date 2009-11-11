@@ -37,7 +37,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"
@@ -93,11 +93,20 @@ static int particle_system_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
-
+	int mode_orig = ob->mode;
 	if(!scene || !ob)
 		return OPERATOR_CANCELLED;
 
 	object_remove_particle_system(scene, ob);
+
+	/* possible this isn't the active object
+	 * object_remove_particle_system() clears the mode on the last psys
+	 * */
+	if(mode_orig & OB_MODE_PARTICLE_EDIT)
+		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0)
+			if(scene->basact && scene->basact->object==ob)
+				WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
@@ -539,7 +548,7 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
 
 		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
-			Mat4MulVecfl(hairmat,key->co);
+			mul_m4_v3(hairmat,key->co);
 			
 			if(ekey) {
 				ekey->flag &= ~PEK_USE_WCO;
@@ -629,7 +638,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	/* convert to global coordinates */
 	for (i=0; i<numverts; i++)
-		Mat4MulVecfl (ob->obmat, CDDM_get_vert(dm, i)->co);
+		mul_m4_v3(ob->obmat, CDDM_get_vert(dm, i)->co);
 
 	bvhtree_from_mesh_faces(&bvhtree, dm, 0.0, 2, 6);
 
@@ -648,21 +657,21 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 		mface = CDDM_get_face(dm,nearest.index);
 
-		VecCopyf(v[0], CDDM_get_vert(dm,mface->v1)->co);
-		VecCopyf(v[1], CDDM_get_vert(dm,mface->v2)->co);
-		VecCopyf(v[2], CDDM_get_vert(dm,mface->v3)->co);
+		copy_v3_v3(v[0], CDDM_get_vert(dm,mface->v1)->co);
+		copy_v3_v3(v[1], CDDM_get_vert(dm,mface->v2)->co);
+		copy_v3_v3(v[2], CDDM_get_vert(dm,mface->v3)->co);
 		if(mface->v4) {
-			VecCopyf(v[3], CDDM_get_vert(dm,mface->v4)->co);
-			MeanValueWeights(v, 4, nearest.co, pa->fuv);
+			copy_v3_v3(v[3], CDDM_get_vert(dm,mface->v4)->co);
+			interp_weights_poly_v3( pa->fuv,v, 4, nearest.co);
 		}
 		else
-			MeanValueWeights(v, 3, nearest.co, pa->fuv);
+			interp_weights_poly_v3( pa->fuv,v, 3, nearest.co);
 
 		pa->num = nearest.index;
 		pa->num_dmcache = psys_particle_dm_face_lookup(ob,psmd->dm,pa->num,pa->fuv,NULL);
 		
 		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
-		Mat4Invert(imat,hairmat);
+		invert_m4_m4(imat,hairmat);
 
 		VECSUB(vec, nearest.co, key->co);
 
@@ -673,7 +682,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
 			VECADD(key->co, key->co, vec);
-			Mat4MulVecfl(imat,key->co);
+			mul_m4_v3(imat,key->co);
 
 			if(ekey) {
 				ekey->flag |= PEK_USE_WCO;

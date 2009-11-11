@@ -85,7 +85,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
@@ -635,7 +635,7 @@ void do_view3d_transform_moveaxismenu(bContext *C, void *arg, int event)
 #if 0
 	float mat[3][3];
 	
-	Mat3One(mat);
+	unit_m3(mat);
 	
 	switch(event)
 	{
@@ -702,7 +702,7 @@ void do_view3d_transform_rotateaxismenu(bContext *C, void *arg, int event)
 #if 0
 	float mat[3][3];
 	
-	Mat3One(mat);
+	unit_m3(mat);
 	
 	switch(event)
 	{
@@ -769,7 +769,7 @@ void do_view3d_transform_scaleaxismenu(bContext *C, void *arg, int event)
 #if 0
 	float mat[3][3];
 	
-	Mat3One(mat);
+	unit_m3(mat);
 	
 	switch(event)
 	{
@@ -1778,6 +1778,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		WM_operator_properties_free(&props_ptr);
 		break;		
 	case B_AROUND:
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, 0);
 // XXX		handle_view3d_around(); /* copies to other 3d windows */
 		break;
 		

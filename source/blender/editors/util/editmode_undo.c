@@ -240,6 +240,7 @@ static void undo_clean_stack(bContext *C)
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
 void undo_editmode_step(bContext *C, int step)
 {
+	Object *obedit= CTX_data_edit_object(C);
 	
 	/* prevent undo to happen on wrong object, stack can be a mix */
 	undo_clean_stack(C);
@@ -266,8 +267,9 @@ void undo_editmode_step(bContext *C, int step)
 			if(G.f & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
 	}
+	
+	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 
-//	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	/* XXX notifiers */
 }
 

@@ -105,7 +105,7 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 
 /* property update functions */
@@ -593,7 +593,7 @@ static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int i
 		psys->vgroup[index]= 0;
 	}
 	else {
-		int vgroup_num = get_named_vertexgroup_num(ob, value);
+		int vgroup_num = get_named_vertexgroup_num(ob, (char*)value);
 
 		if(vgroup_num == -1)
 			return;

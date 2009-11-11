@@ -42,7 +42,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
@@ -308,8 +308,10 @@ void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
-	/* draw the two handles first (if they're shown, and if curve is being edited) */
-	if ((fcu->flag & FCURVE_PROTECTED)==0 && (fcu->flag & FCURVE_INT_VALUES)==0 && (sipo->flag & SIPO_NOHANDLES)==0) {
+	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
+	if ((fcu->flag & FCURVE_PROTECTED)==0 && (fcu->flag & FCURVE_INT_VALUES)==0 && 
+		(sipo->flag & SIPO_NOHANDLES)==0 && (fcu->totvert > 1)) 
+	{
 		set_fcurve_vertex_color(sipo, fcu, 0);
 		draw_fcurve_vertices_handles(fcu, v2d, 0);
 		

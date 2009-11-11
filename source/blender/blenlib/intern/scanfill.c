@@ -40,7 +40,7 @@
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "BLI_editVert.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_scanfill.h"
 #include "BLI_callbacks.h"
 
@@ -432,13 +432,13 @@ static void testvertexnearedge(void)
 			eed= filledgebase.first;
 			while(eed) {
 				if(eve!=eed->v1 && eve!=eed->v2 && eve->xs==eed->f1) {
-					if(FloatCompare(eve->co,eed->v1->co, COMPLIMIT)) {
+					if(compare_v3v3(eve->co,eed->v1->co, COMPLIMIT)) {
 						ed1->v2= eed->v1;
 						eed->v1->h++;
 						eve->h= 0;
 						break;
 					}
-					else if(FloatCompare(eve->co,eed->v2->co, COMPLIMIT)) {
+					else if(compare_v3v3(eve->co,eed->v2->co, COMPLIMIT)) {
 						ed1->v2= eed->v2;
 						eed->v2->h++;
 						eve->h= 0;
@@ -450,7 +450,7 @@ static void testvertexnearedge(void)
 						vec2[0]= eed->v2->co[cox];
 						vec2[1]= eed->v2->co[coy];
 						if(boundinsideEV(eed,eve)) {
-							dist= DistVL2Dfl(vec1,vec2,vec3);
+							dist= dist_to_line_v2(vec1,vec2,vec3);
 							if(dist<COMPLIMIT) {
 								/* new edge */
 								ed1= BLI_addfilledge(eed->v1, eve);
@@ -819,12 +819,12 @@ int BLI_edgefill(int mode, int mat_nr)
 	eve= fillvertbase.first;
 	while(eve) {
 		if(v2) {
-			if( FloatCompare(v2, eve->co, COMPLIMIT)==0) {
-				len= CalcNormFloat(v1, v2, eve->co, norm);
+			if( compare_v3v3(v2, eve->co, COMPLIMIT)==0) {
+				len= normal_tri_v3( norm,v1, v2, eve->co);
 				if(len != 0.0) break;
 			}
 		}
-		else if(FloatCompare(v1, eve->co, COMPLIMIT)==0) {
+		else if(compare_v3v3(v1, eve->co, COMPLIMIT)==0) {
 			v2= eve->co;
 		}
 		eve= eve->next;

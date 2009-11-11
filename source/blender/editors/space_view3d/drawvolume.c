@@ -66,7 +66,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_rand.h"
@@ -191,7 +191,7 @@ static int convex(float *p0, float *up, float *a, float *b)
 	float va[3], vb[3], tmp[3];
 	VECSUB(va, a, p0);
 	VECSUB(vb, b, p0);
-	Crossf(tmp, va, vb);
+	cross_v3_v3v3(tmp, va, vb);
 	return INPR(up, tmp) >= 0;
 }
 
@@ -363,7 +363,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	// get view vector
 	VECCOPY(viewnormal, rv3d->viewinv[2]);
-	Normalize(viewnormal);
+	normalize_v3(viewnormal);
 
 	// find cube vertex that is closest to the viewer
 	for (i=0; i<8; i++) {
@@ -433,7 +433,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 			break;
 
 		VECCOPY(tmp_point, viewnormal);
-		VecMulf(tmp_point, -dd*((ds/dd)-(float)n));
+		mul_v3_fl(tmp_point, -dd*((ds/dd)-(float)n));
 		VECADD(tmp_point2, cv[good_index], tmp_point);
 		d = INPR(tmp_point2, viewnormal);
 

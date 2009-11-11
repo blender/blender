@@ -28,7 +28,7 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_ghash.h"
 #include "BLI_pbvh.h"
 
@@ -698,11 +698,11 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 				int sides= (f->v4)? 4: 3;
 
 				if(f->v4)
-					CalcNormFloat4(bvh->verts[f->v1].co, bvh->verts[f->v2].co,
-								   bvh->verts[f->v3].co, bvh->verts[f->v4].co, fn);
+					normal_quad_v3(fn, bvh->verts[f->v1].co, bvh->verts[f->v2].co,
+								   bvh->verts[f->v3].co, bvh->verts[f->v4].co);
 				else
-					CalcNormFloat(bvh->verts[f->v1].co, bvh->verts[f->v2].co,
-								  bvh->verts[f->v3].co, fn);
+					normal_tri_v3(fn, bvh->verts[f->v1].co, bvh->verts[f->v2].co,
+								  bvh->verts[f->v3].co);
 
 				for(j = 0; j < sides; ++j) {
 					int v= fv[j];
@@ -720,7 +720,7 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 				}
 
 				if(face_nors)
-					VECCOPY(face_nors[faces[i]], fn);
+					copy_v3_v3(face_nors[faces[i]], fn);
 			}
 		}
 	}
@@ -742,8 +742,8 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 				if(mvert->flag & ME_VERT_PBVH_UPDATE) {
 					float no[3];
 
-					VECCOPY(no, vnor[v]);
-					Normalize(no);
+					copy_v3_v3(no, vnor[v]);
+					normalize_v3(no);
 					
 					mvert->no[0] = (short)(no[0]*32767.0f);
 					mvert->no[1] = (short)(no[1]*32767.0f);
@@ -873,8 +873,8 @@ void BLI_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3])
 
 	pbvh_iter_end(&iter);
 
-	VecCopyf(bb_min, bb.bmin);
-	VecCopyf(bb_max, bb.bmax);
+	copy_v3_v3(bb_min, bb.bmin);
+	copy_v3_v3(bb_max, bb.bmax);
 }
 
 /***************************** Node Access ***********************************/
@@ -905,14 +905,14 @@ void *BLI_pbvh_node_get_draw_buffers(PBVHNode *node)
 
 void BLI_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3])
 {
-	VecCopyf(bb_min, node->vb.bmin);
-	VecCopyf(bb_max, node->vb.bmax);
+	copy_v3_v3(bb_min, node->vb.bmin);
+	copy_v3_v3(bb_max, node->vb.bmax);
 }
 
 void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3])
 {
-	VecCopyf(bb_min, node->orig_vb.bmin);
-	VecCopyf(bb_max, node->orig_vb.bmax);
+	copy_v3_v3(bb_min, node->orig_vb.bmin);
+	copy_v3_v3(bb_max, node->orig_vb.bmax);
 }
 
 /********************************* Raycast ***********************************/
@@ -937,8 +937,8 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 	else
 		BLI_pbvh_node_get_BB(node, bb_min, bb_max);
 
-	VecCopyf(bbox[0], bb_min);
-	VecCopyf(bbox[1], bb_max);
+	copy_v3_v3(bbox[0], bb_min);
+	copy_v3_v3(bbox[1], bb_max);
 
 	tmin = (bbox[ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
 	tmax = (bbox[1-ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
@@ -976,7 +976,7 @@ void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
 {
 	RaycastData rcd;
 
-	VecCopyf(rcd.start, ray_start);
+	copy_v3_v3(rcd.start, ray_start);
 	rcd.inv_dir[0] = 1.0f / ray_normal[0];
 	rcd.inv_dir[1] = 1.0f / ray_normal[1];
 	rcd.inv_dir[2] = 1.0f / ray_normal[2];

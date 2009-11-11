@@ -1679,6 +1679,12 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	
+	static EnumPropertyItem splineik_xz_scale_mode[] = {
+		{CONSTRAINT_SPLINEIK_XZS_NONE, "NONE", 0, "None", "Don't scale the x and z axes, giving a volume preservation effect. (Default)"},
+		{CONSTRAINT_SPLINEIK_XZS_RADIUS, "CURVE_RADIUS", 0, "Curve Radius", "Use the radius of the curve."},
+		{CONSTRAINT_SPLINEIK_XZS_ORIGINAL, "ORIGINAL", 0, "Original", "Use the original scaling of the bones."},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SplineIKConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Spline IK Constraint", "Align 'n' bones along a curve.");
@@ -1715,9 +1721,10 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Keep Max Length", "Maintain the maximum length of the chain when spline is stretched.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "radius_to_thickness", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_RAD2FAT);
-	RNA_def_property_ui_text(prop, "Radius to Thickness", "Radius of the spline affects the x/z scaling of the bones.");
+	prop= RNA_def_property(srna, "xz_scaling_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "xzScaleMode");
+	RNA_def_property_enum_items(prop, splineik_xz_scale_mode);
+	RNA_def_property_ui_text(prop, "XZ Scale Mode", "Method used for determining the scaling of the X and Z axes of the bone.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 

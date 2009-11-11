@@ -32,7 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
@@ -306,9 +306,9 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		for(i=0; i<totvert; i++) {
 			float tmp[3];
 
-			VECCOPY(tmp, mvert[index[i]].co);
-			VECCOPY(mvert[index[i]].co, unode->co[i])
-			VECCOPY(unode->co[i], tmp);
+			copy_v3_v3(tmp, mvert[index[i]].co);
+			copy_v3_v3(mvert[index[i]].co, unode->co[i]);
+			copy_v3_v3(unode->co[i], tmp);
 
 			mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
 		}
@@ -399,8 +399,8 @@ static SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 	/* copy threaded, hopefully this is the performance critical part */
 	memcpy(unode->index, verts, sizeof(int)*allvert);
 	for(i=0; i<allvert; i++) {
-		VECCOPY(unode->co[i], ss->mvert[verts[i]].co)
-		VECCOPY(unode->no[i], ss->mvert[verts[i]].no)
+		copy_v3_v3(unode->co[i], ss->mvert[verts[i]].co);
+		VECCOPY(unode->no[i], ss->mvert[verts[i]].no);
 	}
 	
 	return unode;
@@ -449,7 +449,7 @@ static void sculpt_node_verts_init(Sculpt *sd, SculptSession *ss,
 	PBVHNode *node, float (*origvert)[3], SculptVertexData *vd)
 {
 	vd->radius_squared= ss->cache->radius*ss->cache->radius;
-	VecCopyf(vd->location, ss->cache->location);
+	copy_v3_v3(vd->location, ss->cache->location);
 
 	vd->mvert= ss->mvert;
 	vd->origvert= origvert;
@@ -468,7 +468,7 @@ static int sculpt_node_verts_next(SculptVertexData *vd)
 		vd->co= vd->mvert[vd->index].co;
 		vd->origco= (vd->origvert)? vd->origvert[vd->i]: vd->co;
 		vd->no= vd->mvert[vd->index].no;
-		VECSUB(delta, vd->origco, vd->location);
+		sub_v3_v3v3(delta, vd->origco, vd->location);
 		dsq = INPR(delta, delta);
 
 		if(dsq < vd->radius_squared) {
@@ -603,7 +603,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float *point, const floa
 		/* If the active area is being applied for symmetry, flip it
 		   across the symmetry axis in order to project it. This insures
 		   that the brush texture will be oriented correctly. */
-		VecCopyf(flip, point);
+		copy_v3_v3(flip, point);
 		flip_coord(flip, flip, ss->cache->symmetry);
 		projectf(ss->cache->mats, flip, point_2d);
 
@@ -679,7 +679,7 @@ static int sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 			nearest[i] = center[i]; 
 	}
 	
-	VecSubf(t, center, nearest);
+	sub_v3_v3v3(t, center, nearest);
 
 	return t[0] * t[0] + t[1] * t[1] + t[2] * t[2] < data->radius_squared;
 }
@@ -704,12 +704,12 @@ static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], cons
 {
 	float fno[3] = {no[0], no[1], no[2]};
 
-	Normalize(fno);
+	normalize_v3(fno);
 
-	if((Inpf(view_vec, fno)) > 0) {
-		VecAddf(out, out, fno);
+	if((dot_v3v3(view_vec, fno)) > 0) {
+		add_v3_v3v3(out, out, fno);
 	} else {
-		VecAddf(out_flip, out_flip, fno); /* out_flip is used when out is {0,0,0} */
+		add_v3_v3v3(out_flip, out_flip, fno); /* out_flip is used when out is {0,0,0} */
 	}
 }
 
@@ -723,7 +723,7 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 	float out_dir[3];
 	int n;
 
-	VecCopyf(out_dir, cache->view_normal_symmetry);
+	copy_v3_v3(out_dir, cache->view_normal_symmetry);
 
 	/* threaded loop over nodes */
 	#pragma omp parallel for private(n) schedule(static)
@@ -750,23 +750,23 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 		{
 			/* we sum per node and add together later for threads */
 			#pragma omp critical
-			VecAddf(out, out, nout);
-			VecAddf(out_flip, out_flip, nout_flip);
+			add_v3_v3v3(out, out, nout);
+			add_v3_v3v3(out_flip, out_flip, nout_flip);
 		}
 	}
 
 	if (out[0]==0.0 && out[1]==0.0 && out[2]==0.0) {
-		VECCOPY(out, out_flip);
+		copy_v3_v3(out, out_flip);
 	}
 	
-	Normalize(out);
+	normalize_v3(out);
 
 	out[0] = out_dir[0] * view + out[0] * (10-view);
 	out[1] = out_dir[1] * view + out[1] * (10-view);
 	out[2] = out_dir[2] * view + out[2] * (10-view);
 	
-	Normalize(out);
-	VecCopyf(area_normal, out);
+	normalize_v3(out);
+	copy_v3_v3(area_normal, out);
 }
 
 static void do_draw_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int totnode)
@@ -821,7 +821,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 		
 	/* Don't modify corner vertices */
 	if(ncount==1) {
-		VecCopyf(avg, ss->mvert[vert].co);
+		copy_v3_v3(avg, ss->mvert[vert].co);
 		return;
 	}
 
@@ -837,7 +837,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 
 		for(i=0; i<(f->v4?4:3); ++i) {
 			if(i != skip && (ncount!=2 || BLI_countlist(&ss->fmap[(&f->v1)[i]]) <= 2)) {
-				VecAddf(avg, avg, ss->mvert[(&f->v1)[i]].co);
+				add_v3_v3v3(avg, avg, ss->mvert[(&f->v1)[i]].co);
 				++total;
 			}
 		}
@@ -846,9 +846,9 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 	}
 
 	if(total>0)
-		VecMulf(avg, 1.0f / total);
+		mul_v3_fl(avg, 1.0f / total);
 	else
-		VecCopyf(avg, ss->mvert[vert].co);
+		copy_v3_v3(avg, ss->mvert[vert].co);
 }
 
 static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int totnode)
@@ -917,7 +917,7 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 	float grab_delta[3];
 	int n;
 	
-	VecCopyf(grab_delta, ss->cache->grab_delta_symmetry);
+	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
 	#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
@@ -1021,11 +1021,11 @@ static void do_inflate_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, in
 			add[0]= vd.no[0]/32767.0f;
 			add[1]= vd.no[1]/32767.0f;
 			add[2]= vd.no[2]/32767.0f;
-			VecMulf(add, fade * ss->cache->radius);
+			mul_v3_fl(add, fade * ss->cache->radius);
 			add[0]*= ss->cache->scale[0];
 			add[1]*= ss->cache->scale[1];
 			add[2]*= ss->cache->scale[2];
-			VecAddf(add, add, vd.co);
+			add_v3_v3v3(add, add, vd.co);
 			
 			sculpt_clip(sd, ss, vd.co, add);
 			ss->mvert[vd.index].flag |= ME_VERT_PBVH_UPDATE;
@@ -1066,8 +1066,8 @@ static void calc_flatten_center(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 	
 	co[0] = co[1] = co[2] = 0.0f;
 	for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i)
-		VecAddf(co, co, ss->mvert[outer_index[i]].co);
-	VecMulf(co, 1.0f / FLATTEN_SAMPLE_SIZE);
+		add_v3_v3v3(co, co, ss->mvert[outer_index[i]].co);
+	mul_v3_fl(co, 1.0f / FLATTEN_SAMPLE_SIZE);
 }
 
 /* Projects a point onto a plane along the plane's normal */
@@ -1076,12 +1076,12 @@ static void point_plane_project(float intr[3], float co[3], float plane_normal[3
 	float p1[3], sub1[3], sub2[3];
 
 	/* Find the intersection between squash-plane and vertex (along the area normal) */
-	VecSubf(p1, co, plane_normal);
-	VecSubf(sub1, plane_center, p1);
-	VecSubf(sub2, co, p1);
-	VecSubf(intr, co, p1);
-	VecMulf(intr, Inpf(plane_normal, sub1) / Inpf(plane_normal, sub2));
-	VecAddf(intr, intr, p1);
+	sub_v3_v3v3(p1, co, plane_normal);
+	sub_v3_v3v3(sub1, plane_center, p1);
+	sub_v3_v3v3(sub2, co, p1);
+	sub_v3_v3v3(intr, co, p1);
+	mul_v3_fl(intr, dot_v3v3(plane_normal, sub1) / dot_v3v3(plane_normal, sub2));
+	add_v3_v3v3(intr, intr, p1);
 }
 
 static int plane_point_side(float co[3], float plane_normal[3], float plane_center[3], int flip)
@@ -1089,8 +1089,8 @@ static int plane_point_side(float co[3], float plane_normal[3], float plane_cent
 	float delta[3];
 	float d;
 
-	VecSubf(delta, co, plane_center);
-	d = Inpf(plane_normal, delta);
+	sub_v3_v3v3(delta, co, plane_center);
+	d = dot_v3v3(plane_normal, delta);
 
 	if(flip)
 		d = -d;
@@ -1135,22 +1135,22 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, PBVHNode **node
 				/* Find the intersection between squash-plane and vertex (along the area normal) */		
 				point_plane_project(intr, vd.co, area_normal, cntr);
 
-				VecSubf(val, intr, vd.co);
+				sub_v3_v3v3(val, intr, vd.co);
 
 				if(clay) {
 					if(bstr > FLT_EPSILON)
-						VecMulf(val, fade / bstr);
+						mul_v3_fl(val, fade / bstr);
 					else
-						VecMulf(val, fade);
+						mul_v3_fl(val, fade);
 					/* Clay displacement */
 					val[0]+=area_normal[0] * ss->cache->scale[0]*fade;
 					val[1]+=area_normal[1] * ss->cache->scale[1]*fade;
 					val[2]+=area_normal[2] * ss->cache->scale[2]*fade;
 				}
 				else
-					VecMulf(val, fabs(fade));
+					mul_v3_fl(val, fabs(fade));
 
-				VecAddf(val, val, vd.co);
+				add_v3_v3v3(val, val, vd.co);
 
 				sculpt_clip(sd, ss, vd.co, val);
 				ss->mvert[vd.index].flag |= ME_VERT_PBVH_UPDATE;
@@ -1184,12 +1184,12 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 			
 			ss->cache->grab_active_nodes[ss->cache->symmetry]= nodes;
 			ss->cache->grab_active_totnode[ss->cache->symmetry]= totnode;
-			VecCopyf(ss->cache->grab_active_location[ss->cache->symmetry], ss->cache->location);
+			copy_v3_v3(ss->cache->grab_active_location[ss->cache->symmetry], ss->cache->location);
 		}
 		else {
 			nodes= ss->cache->grab_active_nodes[ss->cache->symmetry];
 			totnode= ss->cache->grab_active_totnode[ss->cache->symmetry];
-			VecCopyf(ss->cache->location, ss->cache->grab_active_location[ss->cache->symmetry]);
+			copy_v3_v3(ss->cache->location, ss->cache->grab_active_location[ss->cache->symmetry]);
 		}
 	}
 	else {
@@ -1239,7 +1239,7 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 
 				for(; adata; adata= adata->next)
 					if(adata->Index < keyblock->totelem)
-						VecCopyf(&co[adata->Index*3], me->mvert[adata->Index].co);
+						copy_v3_v3(&co[adata->Index*3], me->mvert[adata->Index].co);
 			}
 		}
 
@@ -1272,8 +1272,8 @@ static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 	const char symm = sd->flags & 7;
 	int i;
 
-	VecCopyf(cache->location, cache->true_location);
-	VecCopyf(cache->grab_delta_symmetry, cache->grab_delta);
+	copy_v3_v3(cache->location, cache->true_location);
+	copy_v3_v3(cache->grab_delta_symmetry, cache->grab_delta);
 	cache->symmetry = 0;
 	cache->bstrength = brush_strength(sd, cache);
 	do_brush_action(sd, ss, cache);
@@ -1460,7 +1460,7 @@ static float unproject_brush_radius(ViewContext *vc, float center[3], float offs
 
 	initgrabz(vc->rv3d, center[0], center[1], center[2]);
 	window_to_3d_delta(vc->ar, delta, offset, 0);
-       	return VecLength(delta);
+	return len_v3(delta);
 }
 
 static void sculpt_cache_free(StrokeCache *cache)
@@ -1515,7 +1515,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 				ss->layer_co= MEM_mallocN(sizeof(float) * 3 * ss->totvert,
 								       "sculpt mesh vertices copy");
 			for(i = 0; i < ss->totvert; ++i)
-				VecCopyf(ss->layer_co[i], ss->mvert[i].co);
+				copy_v3_v3(ss->layer_co[i], ss->mvert[i].co);
 		}
 	}
 
@@ -1525,7 +1525,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 			float *fn = ss->face_normals;
 			cache->face_norms= MEM_mallocN(sizeof(float) * 3 * ss->totface, "Sculpt face norms");
 			for(i = 0; i < ss->totface; ++i, fn += 3)
-				VecCopyf(cache->face_norms[i], fn);
+				copy_v3_v3(cache->face_norms[i], fn);
 		}
 
 		cache->original = 1;
@@ -1602,8 +1602,8 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 		window_to_3d_delta(cache->vc->ar, grab_location, cache->mouse[0], cache->mouse[1]);
 
 		if(!cache->first_time)
-			VecSubf(cache->grab_delta, grab_location, cache->old_grab_location);
-		VecCopyf(cache->old_grab_location, grab_location);
+			sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
+		copy_v3_v3(cache->old_grab_location, grab_location);
 	}
 }
 
@@ -1619,7 +1619,7 @@ static int ray_face_intersection(float ray_start[3], float ray_normal[3],
 	{	
 		float dist = FLT_MAX;
 			
-		if(!RayIntersectsTriangle(ray_start, ray_normal, t0, t1, t2,
+		if(!isect_ray_tri_v3(ray_start, ray_normal, t0, t1, t2,
 					 &dist, NULL))
 			dist = FLT_MAX;
 
@@ -1722,9 +1722,9 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	BLI_pbvh_raycast(ss->tree, sculpt_raycast_cb, &srd,
 		     ray_start, ray_normal, srd.original);
 	
-	VecCopyf(out, ray_normal);
-	VecMulf(out, srd.dist);
-	VecAddf(out, out, ray_start);
+	copy_v3_v3(out, ray_normal);
+	mul_v3_fl(out, srd.dist);
+	add_v3_v3v3(out, out, ray_start);
 
 	return srd.hit != -1;
 }
@@ -1802,7 +1802,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 			int totvert= unode->totvert;
 
 			for(i = 0; i < totvert; ++i) {
-				VECCOPY(ss->mvert[index[i]].co, co[i]);
+				copy_v3_v3(ss->mvert[index[i]].co, co[i]);
 				VECCOPY(ss->mvert[index[i]].no, no[i]);
 			}
 		}
@@ -1810,7 +1810,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 		if(ss->face_normals) {
 			float *fn = ss->face_normals;
 			for(i = 0; i < ss->totface; ++i, fn += 3)
-				VecCopyf(fn, cache->face_norms[i]);
+				copy_v3_v3(fn, cache->face_norms[i]);
 		}
 
 		if(brush->sculpt_tool == SCULPT_TOOL_LAYER)

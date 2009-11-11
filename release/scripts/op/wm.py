@@ -277,13 +277,12 @@ class WM_OT_doc_view(bpy.types.Operator):
         elif len(id_split) == 2: # rna, class.prop
             class_name, class_prop = id_split
 
-            # It so happens that epydoc nests these
-            class_name_full = self._nested_class_string(class_name)
-
             if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
                 url = '%s/bpy.ops.%s-module.html#%s' % \
-                        (self._prefix, class_name_full, class_prop)
+                        (self._prefix, class_name, class_prop)
             else:
+                # It so happens that epydoc nests these
+                class_name_full = self._nested_class_string(class_name)
                 url = '%s/bpy.types.%s-class.html#%s' % \
                         (self._prefix, class_name_full, class_prop)
 
@@ -321,7 +320,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
         class_name, class_prop = self.doc_id.split('.')
 
         if not self.doc_new:
-            return 'OPERATOR_CANCELLED'
+            return ('RUNNING_MODAL',)
 
         # check if this is an operator
         op_name = class_name.upper() + '_OT_' + class_prop
@@ -334,7 +333,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
             rna = op_class.bl_rna
             doc_orig = rna.description
             if doc_orig == self.doc_new:
-                return 'OPERATOR_CANCELLED'
+                return ('RUNNING_MODAL',)
 
             print("op - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
             upload["title"] = 'OPERATOR %s:%s' % (self.doc_id, doc_orig)
@@ -346,10 +345,10 @@ class WM_OT_doc_edit(bpy.types.Operator):
             rna = getattr(bpy.types, class_name).bl_rna
             doc_orig = rna.properties[class_prop].description
             if doc_orig == self.doc_new:
-                return 'OPERATOR_CANCELLED'
+                return ('RUNNING_MODAL',)
 
             print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
-            upload["title"] = 'RNA %s:%s' % s(self.doc_id, doc_orig)
+            upload["title"] = 'RNA %s:%s' % (self.doc_id, doc_orig)
 
         upload["description"] = self.doc_new
 

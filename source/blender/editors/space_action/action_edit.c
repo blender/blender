@@ -39,7 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"

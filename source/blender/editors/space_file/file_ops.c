@@ -124,12 +124,11 @@ static void clamp_to_filelist(int numfiles, int *first_file, int *last_file)
 	}
 }
 
-static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short val)
+static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short selecting)
 {
 	int first_file = -1;
 	int last_file = -1;
 	int act_file;
-	short selecting = (val == LEFTMOUSE);
 	FileSelect retval = FILE_SELECT_FILE;
 
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
@@ -198,10 +197,10 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
-	short val;
+	short selecting;
 	rcti rect;
 
-	val= RNA_int_get(op->ptr, "event_type");
+	selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
@@ -209,7 +208,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 
 	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 	
-	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, val )) {
+	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, selecting)) {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	} else {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
@@ -228,15 +227,10 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= file_border_select_exec;
 	ot->modal= WM_border_select_modal;
+	ot->poll= ED_operator_file_active;
 
 	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-
-	ot->poll= ED_operator_file_active;
+	WM_operator_properties_gesture_border(ot, 0);
 }
 
 static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -259,7 +253,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* single select, deselect all selected first */
 	file_deselect_all(sfile);
 
-	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, val ))
+	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, val==LEFTMOUSE )) //LEFTMOUSE XXX, fixme
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	else
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);

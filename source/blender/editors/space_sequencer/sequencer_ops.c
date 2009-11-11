@@ -38,7 +38,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
@@ -81,6 +81,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_previous_edit);
 	WM_operatortype_append(SEQUENCER_OT_swap_right);
 	WM_operatortype_append(SEQUENCER_OT_swap_left);
+	WM_operatortype_append(SEQUENCER_OT_rendersize);
 
 	WM_operatortype_append(SEQUENCER_OT_view_all);
 	WM_operatortype_append(SEQUENCER_OT_view_selected);

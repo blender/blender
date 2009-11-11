@@ -40,7 +40,7 @@
 
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "rayobject.h"
 
@@ -226,7 +226,7 @@ static int face_in_node(RayFace *face, short x, short y, short z, float rtf[][3]
 	
 	// init static vars 
 	if(face) {
-		CalcNormFloat(rtf[0], rtf[1], rtf[2], nor);
+		normal_tri_v3( nor,rtf[0], rtf[1], rtf[2]);
 		d= -nor[0]*rtf[0][0] - nor[1]*rtf[0][1] - nor[2]*rtf[0][2];
 		return 0;
 	}

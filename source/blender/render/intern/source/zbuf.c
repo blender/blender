@@ -37,7 +37,7 @@
 #include <limits.h>
 #include <string.h>
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 #include "BLI_threads.h"
@@ -1808,16 +1808,16 @@ void zbuf_make_winmat(Render *re, float winmat[][4])
 	float panomat[4][4];
 
 	if(re->r.mode & R_PANORAMA) {
-		Mat4One(panomat);
+		unit_m4(panomat);
 		panomat[0][0]= re->panoco;
 		panomat[0][2]= re->panosi;
 		panomat[2][0]= -re->panosi;
 		panomat[2][2]= re->panoco;
 
-		Mat4MulMat4(winmat, panomat, re->winmat);
+		mul_m4_m4m4(winmat, panomat, re->winmat);
 	}
 	else
-		Mat4CpyMat4(winmat, re->winmat);
+		copy_m4_m4(winmat, re->winmat);
 }
 
 /* do zbuffering and clip, f1 f2 f3 are hocos, c1 c2 c3 are clipping flags */
@@ -2133,9 +2133,9 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 				continue;
 			
 			if(obi->flag & R_TRANSFORMED)
-				Mat4MulMat4(obwinmat, obi->mat, winmat);
+				mul_m4_m4m4(obwinmat, obi->mat, winmat);
 			else
-				Mat4CpyMat4(obwinmat, winmat);
+				copy_m4_m4(obwinmat, winmat);
 
 			if(clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 				continue;
@@ -2312,9 +2312,9 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
-			Mat4MulMat4(obwinmat, obi->mat, winmat);
+			mul_m4_m4m4(obwinmat, obi->mat, winmat);
 		else
-			Mat4CpyMat4(obwinmat, winmat);
+			copy_m4_m4(obwinmat, winmat);
 
 		if(clip_render_object(obi->obr->boundbox, NULL, obwinmat))
 			continue;
@@ -2551,9 +2551,9 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
-			Mat4MulMat4(obwinmat, obi->mat, winmat);
+			mul_m4_m4m4(obwinmat, obi->mat, winmat);
 		else
-			Mat4CpyMat4(obwinmat, winmat);
+			copy_m4_m4(obwinmat, winmat);
 
 		if(clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 			continue;
@@ -3297,9 +3297,9 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
-			Mat4MulMat4(obwinmat, obi->mat, winmat);
+			mul_m4_m4m4(obwinmat, obi->mat, winmat);
 		else
-			Mat4CpyMat4(obwinmat, winmat);
+			copy_m4_m4(obwinmat, winmat);
 
 		if(clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 			continue;

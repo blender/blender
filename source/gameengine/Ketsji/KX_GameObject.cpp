@@ -79,7 +79,7 @@ typedef unsigned long uint_ptr;
 
 #include "KX_SG_NodeRelationships.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
 static MT_Vector3 dummy_scaling = MT_Vector3(1.0, 1.0, 1.0);
@@ -474,9 +474,9 @@ void KX_GameObject::UpdateBlenderObjectMatrix(Object* blendobj)
 		const MT_Vector3& pos = NodeGetWorldPosition();
 		rot.getValue(blendobj->obmat[0]);
 		pos.getValue(blendobj->obmat[3]);
-		VecMulf(blendobj->obmat[0], scale[0]);
-		VecMulf(blendobj->obmat[1], scale[1]);
-		VecMulf(blendobj->obmat[2], scale[2]);
+		mul_v3_fl(blendobj->obmat[0], scale[0]);
+		mul_v3_fl(blendobj->obmat[1], scale[1]);
+		mul_v3_fl(blendobj->obmat[2], scale[2]);
 	}
 }
 

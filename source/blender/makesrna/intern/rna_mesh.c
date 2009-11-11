@@ -39,7 +39,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_editVert.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -123,9 +123,9 @@ static void rna_MeshFace_normal_get(PointerRNA *ptr, float *values)
 	MFace *mface= (MFace*)ptr->data;
 	
 	if(mface->v4)
-		CalcNormFloat4(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co, values);
+		normal_quad_v3( values,me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co);
 	else
-		CalcNormFloat(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, values);
+		normal_tri_v3( values,me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co);
 }
 
 static float rna_MeshFace_area_get(PointerRNA *ptr)
@@ -134,9 +134,9 @@ static float rna_MeshFace_area_get(PointerRNA *ptr)
 	MFace *mface= (MFace*)ptr->data;
 
 	if(mface->v4)
-		return AreaQ3Dfl(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co);
+		return area_quad_v3(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co);
 	else
-		return AreaT3Dfl(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co);
+		return area_tri_v3(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co);
 }
 
 /* notice red and blue are swapped */
@@ -493,9 +493,10 @@ static void rna_MeshTextureFaceLayer_active_set(PointerRNA *ptr, int value)
 static void rna_MeshTextureFaceLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
+	CustomData *fdata= rna_mesh_fdata(me);
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
 	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(&me->fdata, cdl - me->fdata.layers);
+	CustomData_set_layer_unique_name(fdata, cdl - fdata->layers);
 }
 
 static int rna_vertex_color_check(CollectionPropertyIterator *iter, void *data)
@@ -604,9 +605,10 @@ static void rna_MeshColorLayer_active_set(PointerRNA *ptr, int value)
 static void rna_MeshColorLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
+	CustomData *fdata= rna_mesh_fdata(me);
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
 	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(&me->fdata, cdl - me->fdata.layers);
+	CustomData_set_layer_unique_name(fdata, cdl - fdata->layers);
 }
 
 static void rna_MeshFloatPropertyLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

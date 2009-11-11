@@ -31,7 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_dlrbTree.h"
@@ -400,7 +400,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 	for(az= sa->actionzones.first; az; az= az->next) {
 		if(BLI_in_rcti(&az->rect, x, y)) {
 			if(az->type == AZONE_AREA) {
-				if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) 
+				if(isect_point_tri_v2_int(az->x1, az->y1, az->x2, az->y2, x, y)) 
 					break;
 			}
 			else if(az->type == AZONE_REGION) {
@@ -2232,7 +2232,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		ScreenAnimData *sad= wt->customdata;
 		ScrArea *sa;
 		int sync;
-
+		
 		/* sync, don't sync, or follow scene setting */
 		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
 		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
@@ -2288,12 +2288,12 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 		}
-
+		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 		ED_update_for_newframe(C, 1);
-
+		
 		sound_update_playing(C);
-
+		
 		for(sa= screen->areabase.first; sa; sa= sa->next) {
 			ARegion *ar;
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {
@@ -2304,6 +2304,12 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 						ED_region_tag_redraw(ar);
 			}
 		}
+		
+		/* recalculate the timestep for the timer now that we've finished calculating this,
+		 * since the frames-per-second value may have been changed
+		 */
+		// TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this?
+		wt->timestep= (1.0/FPS);
 		
 		//WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
@@ -2672,7 +2678,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 	
 	if(RNA_boolean_get(op->ptr, "animation"))
-		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
+		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
 		RE_BlenderFrame(re, scene, scene->r.cfra);
 	
@@ -2892,7 +2898,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 	rj->do_update= do_update;
 	
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->frame_step);
+		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
 	else
 		RE_BlenderFrame(rj->re, rj->scene, rj->scene->r.cfra);
 }
@@ -3245,7 +3251,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 	printf("\n");
 	
 	/* go to next frame */
-	oglrender->nfra += scene->frame_step;
+	oglrender->nfra += scene->r.frame_step;
 	scene->r.cfra++;
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);

@@ -351,6 +351,11 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
 
+	
+	/***************************************************************************************
+	 ** Access to clipboard.
+	 ***************************************************************************************/
+	
 	/**
 	 * Returns the selection buffer
 	 * @return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer
@@ -363,6 +368,22 @@ public:
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
+	
+	/***************************************************************************************
+	 ** Drag'n'drop operations
+	 ***************************************************************************************/
+	
+	/**
+	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
+	 */
+	virtual void setAcceptDragOperation(bool canAccept) = 0;
+	
+	/**
+	 * Returns acceptance of the dropped object
+	 * Usually called by the "object dropped" event handling function
+	 */
+	virtual bool canAcceptDragOperation() const = 0;
+	
 protected:
 	/**
 	 * Initialize the system.

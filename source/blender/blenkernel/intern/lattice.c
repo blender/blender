@@ -39,7 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
@@ -155,10 +155,10 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 			/* prevent using deformed locations */
 		freedisplist(&ltOb->disp);
 
-		Mat4CpyMat4(mat, ltOb->obmat);
-		Mat4One(ltOb->obmat);
+		copy_m4_m4(mat, ltOb->obmat);
+		unit_m4(ltOb->obmat);
 		lattice_deform_verts(ltOb, NULL, NULL, vertexCos, uNew*vNew*wNew, NULL);
-		Mat4CpyMat4(ltOb->obmat, mat);
+		copy_m4_m4(ltOb->obmat, mat);
 
 		lt->typeu = typeu;
 		lt->typev = typev;
@@ -310,18 +310,18 @@ void init_latt_deform(Object *oblatt, Object *ob)
 		/* for example with a particle system: ob==0 */
 	if(ob==NULL) {
 		/* in deformspace, calc matrix  */
-		Mat4Invert(lt->latmat, oblatt->obmat);
+		invert_m4_m4(lt->latmat, oblatt->obmat);
 	
 		/* back: put in deform array */
-		Mat4Invert(imat, lt->latmat);
+		invert_m4_m4(imat, lt->latmat);
 	}
 	else {
 		/* in deformspace, calc matrix */
-		Mat4Invert(imat, oblatt->obmat);
-		Mat4MulMat4(lt->latmat, ob->obmat, imat);
+		invert_m4_m4(imat, oblatt->obmat);
+		mul_m4_m4m4(lt->latmat, ob->obmat, imat);
 	
 		/* back: put in deform array */
-		Mat4Invert(imat, lt->latmat);
+		invert_m4_m4(imat, lt->latmat);
 	}
 	
 	for(w=0,fw=lt->fw; w<lt->pntsw; w++,fw+=lt->dw) {
@@ -337,7 +337,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 					fp[2] = bp->vec[2] - fw;
 				}
 
-				Mat4Mul3Vecfl(imat, fp);
+				mul_mat3_m4_v3(imat, fp);
 			}
 		}
 	}
@@ -356,7 +356,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 	/* co is in local coords, treat with latmat */
 	
 	VECCOPY(vec, co);
-	Mat4MulVecfl(lt->latmat, vec);
+	mul_m4_v3(lt->latmat, vec);
 	
 	/* u v w coords */
 	
@@ -456,15 +456,15 @@ typedef struct {
 
 static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd, int dloc)
 {
-	Mat4Invert(ob->imat, ob->obmat);
-	Mat4MulMat4(cd->objectspace, par->obmat, ob->imat);
-	Mat4Invert(cd->curvespace, cd->objectspace);
-	Mat3CpyMat4(cd->objectspace3, cd->objectspace);
+	invert_m4_m4(ob->imat, ob->obmat);
+	mul_m4_m4m4(cd->objectspace, par->obmat, ob->imat);
+	invert_m4_m4(cd->curvespace, cd->objectspace);
+	copy_m3_m4(cd->objectspace3, cd->objectspace);
 	
 	// offset vector for 'no smear'
 	if(dloc) {
-		Mat4Invert(par->imat, par->obmat);
-		VecMat4MulVecfl(cd->dloc, par->imat, ob->obmat[3]);
+		invert_m4_m4(par->imat, par->obmat);
+		mul_v3_m4v3(cd->dloc, par->imat, ob->obmat[3]);
 	}
 	else cd->dloc[0]=cd->dloc[1]=cd->dloc[2]= 0.0f;
 	
@@ -497,15 +497,15 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 			float dvec[3];
 			
 			if(ctime < 0.0) {
-				VecSubf(dvec, path->data[1].vec, path->data[0].vec);
-				VecMulf(dvec, ctime*(float)path->len);
+				sub_v3_v3v3(dvec, path->data[1].vec, path->data[0].vec);
+				mul_v3_fl(dvec, ctime*(float)path->len);
 				VECADD(vec, vec, dvec);
 				if(quat) QUATCOPY(quat, path->data[0].quat);
 				if(radius) *radius= path->data[0].radius;
 			}
 			else if(ctime > 1.0) {
-				VecSubf(dvec, path->data[path->len-1].vec, path->data[path->len-2].vec);
-				VecMulf(dvec, (ctime-1.0)*(float)path->len);
+				sub_v3_v3v3(dvec, path->data[path->len-1].vec, path->data[path->len-2].vec);
+				mul_v3_fl(dvec, (ctime-1.0)*(float)path->len);
 				VECADD(vec, vec, dvec);
 				if(quat) QUATCOPY(quat, path->data[path->len-1].quat);
 				if(radius) *radius= path->data[path->len-1].radius;
@@ -570,28 +570,28 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 			dir[cd->no_rot_axis-1]= 0.0f;
 		
 		/* -1 for compatibility with old track defines */
-		vectoquat(dir, axis-1, upflag, quat);
+		vec_to_quat( quat,dir, axis-1, upflag);
 		
 		/* the tilt */
 		if(loc[3]!=0.0) {
-			Normalize(dir);
+			normalize_v3(dir);
 			q[0]= (float)cos(0.5*loc[3]);
 			fac= (float)sin(0.5*loc[3]);
 			q[1]= -fac*dir[0];
 			q[2]= -fac*dir[1];
 			q[3]= -fac*dir[2];
-			QuatMul(quat, q, quat);
+			mul_qt_qtqt(quat, q, quat);
 		}
 #endif
 
 
-		static float q_x90d[4] = {0.70710676908493, 0.70710676908493, 0.0, 0.0};	// float rot_axis[3]= {1,0,0}; AxisAngleToQuat(q, rot_axis, 90 * (M_PI / 180));
-		static float q_y90d[4] = {0.70710676908493, 0.0, 0.70710676908493, 0.0};	// float rot_axis[3]= {0,1,0}; AxisAngleToQuat(q, rot_axis, 90 * (M_PI / 180));
-		static float q_z90d[4] = {0.70710676908493, 0.0, 0.0, 0.70710676908493};	// float rot_axis[3]= {0,0,2}; AxisAngleToQuat(q, rot_axis, 90 * (M_PI / 180));
+		static float q_x90d[4] = {0.70710676908493, 0.70710676908493, 0.0, 0.0};	// float rot_axis[3]= {1,0,0}; axis_angle_to_quat(q, rot_axis, 90 * (M_PI / 180));
+		static float q_y90d[4] = {0.70710676908493, 0.0, 0.70710676908493, 0.0};	// float rot_axis[3]= {0,1,0}; axis_angle_to_quat(q, rot_axis, 90 * (M_PI / 180));
+		static float q_z90d[4] = {0.70710676908493, 0.0, 0.0, 0.70710676908493};	// float rot_axis[3]= {0,0,2}; axis_angle_to_quat(q, rot_axis, 90 * (M_PI / 180));
 
-		static float q_nx90d[4] = {0.70710676908493, -0.70710676908493, 0.0, 0.0};	// float rot_axis[3]= {1,0,0}; AxisAngleToQuat(q, rot_axis, -90 * (M_PI / 180));
-		static float q_ny90d[4] = {0.70710676908493, 0.0, -0.70710676908493, 0.0};	// float rot_axis[3]= {0,1,0}; AxisAngleToQuat(q, rot_axis, -90 * (M_PI / 180));
-		static float q_nz90d[4] = {0.70710676908493, 0.0, 0.0, -0.70710676908493};	// float rot_axis[3]= {0,0,2}; AxisAngleToQuat(q, rot_axis, -90 * (M_PI / 180));
+		static float q_nx90d[4] = {0.70710676908493, -0.70710676908493, 0.0, 0.0};	// float rot_axis[3]= {1,0,0}; axis_angle_to_quat(q, rot_axis, -90 * (M_PI / 180));
+		static float q_ny90d[4] = {0.70710676908493, 0.0, -0.70710676908493, 0.0};	// float rot_axis[3]= {0,1,0}; axis_angle_to_quat(q, rot_axis, -90 * (M_PI / 180));
+		static float q_nz90d[4] = {0.70710676908493, 0.0, 0.0, -0.70710676908493};	// float rot_axis[3]= {0,0,2}; axis_angle_to_quat(q, rot_axis, -90 * (M_PI / 180));
 
 
 		if(cd->no_rot_axis) {	/* set by caller */
@@ -602,12 +602,12 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 			VECCOPY(dir_flat, dir);
 			dir_flat[cd->no_rot_axis-1]= 0.0f;
 
-			Normalize(dir);
-			Normalize(dir_flat);
+			normalize_v3(dir);
+			normalize_v3(dir_flat);
 
-			RotationBetweenVectorsToQuat(q, dir, dir_flat); /* Could this be done faster? */
+			rotation_between_vecs_to_quat(q, dir, dir_flat); /* Could this be done faster? */
 
-			QuatMul(new_quat, q, new_quat);
+			mul_qt_qtqt(new_quat, q, new_quat);
 		}
 
 
@@ -624,14 +624,14 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 
 		switch(axis) {
 		case MOD_CURVE_POSX:
-			QuatMul(quat, new_quat, q_y90d);
+			mul_qt_qtqt(quat, new_quat, q_y90d);
 
 			cent[0]=  0.0;
 			cent[1]=  co[2];
 			cent[2]=  co[1];
 			break;
 		case MOD_CURVE_NEGX:
-			QuatMul(quat, new_quat, q_ny90d);
+			mul_qt_qtqt(quat, new_quat, q_ny90d);
 
 			cent[0]=  0.0;
 			cent[1]= -co[1];
@@ -639,28 +639,28 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 
 			break;
 		case MOD_CURVE_POSY:
-			QuatMul(quat, new_quat, q_x90d);
+			mul_qt_qtqt(quat, new_quat, q_x90d);
 
 			cent[0]=  co[2];
 			cent[1]=  0.0;
 			cent[2]= -co[0];
 			break;
 		case MOD_CURVE_NEGY:
-			QuatMul(quat, new_quat, q_nx90d);
+			mul_qt_qtqt(quat, new_quat, q_nx90d);
 
 			cent[0]= -co[0];
 			cent[1]=  0.0;
 			cent[2]= -co[2];
 			break;
 		case MOD_CURVE_POSZ:
-			QuatMul(quat, new_quat, q_z90d);
+			mul_qt_qtqt(quat, new_quat, q_z90d);
 
 			cent[0]=  co[1];
 			cent[1]= -co[0];
 			cent[2]=  0.0;
 			break;
 		case MOD_CURVE_NEGZ:
-			QuatMul(quat, new_quat, q_nz90d);
+			mul_qt_qtqt(quat, new_quat, q_nz90d);
 
 			cent[0]=  co[0];
 			cent[1]= -co[1];
@@ -670,11 +670,11 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 
 		/* scale if enabled */
 		if(cu->flag & CU_PATH_RADIUS)
-			VecMulf(cent, radius);
+			mul_v3_fl(cent, radius);
 		
 		/* local rotation */
-		NormalQuat(quat);
-		QuatMulVecf(quat, cent);
+		normalize_qt(quat);
+		mul_qt_v3(quat, cent);
 
 		/* translation */
 		VECADD(co, cent, loc);
@@ -739,7 +739,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 
 				for(j = 0; j < dvert->totweight; j++) {
 					if(dvert->dw[j].def_nr == index) {
-						Mat4MulVecfl(cd.curvespace, vertexCos[a]);
+						mul_m4_v3(cd.curvespace, vertexCos[a]);
 						DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
 						break;
 					}
@@ -754,9 +754,9 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 					if(dvert->dw[j].def_nr == index) {
 						VECCOPY(vec, vertexCos[a]);
 						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
-						VecLerpf(vertexCos[a], vertexCos[a], vec,
+						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec,
 						         dvert->dw[j].weight);
-						Mat4MulVecfl(cd.objectspace, vertexCos[a]);
+						mul_m4_v3(cd.objectspace, vertexCos[a]);
 						break;
 					}
 				}
@@ -766,13 +766,13 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 		INIT_MINMAX(cd.dmin, cd.dmax);
 			
 		for(a = 0; a < numVerts; a++) {
-			Mat4MulVecfl(cd.curvespace, vertexCos[a]);
+			mul_m4_v3(cd.curvespace, vertexCos[a]);
 			DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
 		}
 
 		for(a = 0; a < numVerts; a++) {
 			calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
-			Mat4MulVecfl(cd.objectspace, vertexCos[a]);
+			mul_m4_v3(cd.objectspace, vertexCos[a]);
 		}
 	}
 	cu->flag = flag;
@@ -787,7 +787,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco
 	float quat[4];
 	
 	if(cuOb->type != OB_CURVE) {
-		Mat3One(mat);
+		unit_m3(mat);
 		return;
 	}
 
@@ -797,18 +797,18 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco
 	VECCOPY(cd.dmin, orco);
 	VECCOPY(cd.dmax, orco);
 
-	Mat4MulVecfl(cd.curvespace, vec);
+	mul_m4_v3(cd.curvespace, vec);
 	
 	if(calc_curve_deform(scene, cuOb, vec, target->trackflag+1, &cd, quat)) {
 		float qmat[3][3];
 		
-		QuatToMat3(quat, qmat);
-		Mat3MulMat3(mat, qmat, cd.objectspace3);
+		quat_to_mat3( qmat,quat);
+		mul_m3_m3m3(mat, qmat, cd.objectspace3);
 	}
 	else
-		Mat3One(mat);
+		unit_m3(mat);
 	
-	Mat4MulVecfl(cd.objectspace, vec);
+	mul_m4_v3(cd.objectspace, vec);
 
 }
 
@@ -939,7 +939,7 @@ void outside_lattice(Lattice *lt)
 						bp->vec[1]+= (1.0f-fac1)*bp1->vec[1] + fac1*bp2->vec[1];
 						bp->vec[2]+= (1.0f-fac1)*bp1->vec[2] + fac1*bp2->vec[2];
 						
-						VecMulf(bp->vec, 0.3333333f);
+						mul_v3_fl(bp->vec, 0.3333333f);
 						
 					}
 				}

@@ -191,7 +191,8 @@ typedef struct RenderData {
 	float edgeR, edgeG, edgeB;
 	
 	short fullscreen, xplay, yplay, freqplay;	/* standalone player */  //  XXX deprecated since 2.5
-	short depth, attrib, rt1, rt2;			/* standalone player */  //  XXX deprecated since 2.5
+	short depth, attrib, rt2;			/* standalone player */  //  XXX deprecated since 2.5
+	short frame_step;		/* frames to jump during render/playback */
 
 	short stereomode;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
 	
@@ -738,10 +739,8 @@ typedef struct Scene {
 	short recalc;				/* recalc = counterpart of ob->recalc */
 
 	short jumpframe;
+	int pad5;
 
-	/* frame step. */
-	int frame_step;
-	
 	/* User-Defined KeyingSets */
 	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1, 'none' active is 0, 'add new' is -1 */
 	ListBase keyingsets;			/* KeyingSets for the given frame */

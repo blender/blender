@@ -70,7 +70,7 @@ static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in,
 		out[0]->vec[1]= vec1[1] + vec2[1];
 		out[0]->vec[2]= vec1[2] + vec2[2];
 		
-		out[1]->vec[0] = Normalize( out[0]->vec );
+		out[1]->vec[0] = normalize_v3( out[0]->vec );
 	}
 	else if(node->custom1 == 3) {	/* Dot product */
 		out[1]->vec[0]= (vec1[0] * vec2[0]) + (vec1[1] * vec2[1]) + (vec1[2] * vec2[2]);
@@ -80,7 +80,7 @@ static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in,
 		out[0]->vec[1]= (vec1[2] * vec2[0]) - (vec1[0] * vec2[2]);
 		out[0]->vec[2]= (vec1[0] * vec2[1]) - (vec1[1] * vec2[0]);
 		
-		out[1]->vec[0] = Normalize( out[0]->vec );
+		out[1]->vec[0] = normalize_v3( out[0]->vec );
 	}
 	else if(node->custom1 == 5) {	/* Normalize */
 		if(in[0]->hasinput || !in[1]->hasinput) {	/* This one only takes one input, so we've got to choose. */
@@ -94,7 +94,7 @@ static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in,
 			out[0]->vec[2]= vec2[2];
 		}
 		
-		out[1]->vec[0] = Normalize( out[0]->vec );
+		out[1]->vec[0] = normalize_v3( out[0]->vec );
 	}
 	
 }

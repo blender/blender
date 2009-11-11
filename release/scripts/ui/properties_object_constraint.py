@@ -88,7 +88,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         col = split.column()
         col.itemR(con, "chain_length")
         col.itemR(con, "targetless")
-    
+
     def CHILD_OF(self, context, layout, con):
         self.target_template(layout, con)
 
@@ -129,11 +129,11 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row.itemR(con, "target_z")
 
         self.space_template(layout, con)
-    
+
     def IK(self, context, layout, con):
         if context.object.pose.ik_solver == "ITASC":
             layout.itemR(con, "ik_type")
-            getattr(self, "IK_" + con.ik_type)(context, layout, con)
+            getattr(self, 'IK_' + con.ik_type)(context, layout, con)
         else:
             # Legacy IK constraint
             self.target_template(layout, con)
@@ -168,7 +168,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
             sub = col.column()
             sub.active = con.rotation
             sub.itemR(con, "orient_weight", text="Rotation", slider=True)
-    
+
     def IK_COPY_POSE(self, context, layout, con):
         self.target_template(layout, con)
         self.ik_template(layout, con)
@@ -212,7 +212,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         row.itemR(con, "weight", text="Weight", slider=True)
         row.itemR(con, "distance", text="Distance", slider=True)
-    
+
     def FOLLOW_PATH(self, context, layout, con):
         self.target_template(layout, con)
 
@@ -310,7 +310,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         row.itemL(text="Convert:")
         row.itemR(con, "owner_space", text="")
-    
+
     def LIMIT_SCALE(self, context, layout, con):
         split = layout.split()
 
@@ -351,7 +351,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         row.itemL(text="Convert:")
         row.itemR(con, "owner_space", text="")
-    
+
     def COPY_ROTATION(self, context, layout, con):
         self.target_template(layout, con)
 
@@ -378,7 +378,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         layout.itemR(con, "offset")
 
         self.space_template(layout, con)
-    
+
     def COPY_LOCATION(self, context, layout, con):
         self.target_template(layout, con)
 
@@ -607,7 +607,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         col = layout.column()
         col.itemL(text="Chain Scaling:")
         col.itemR(con, "keep_max_length")
-        col.itemR(con, "radius_to_thickness")
+        col.itemR(con, "xz_scaling_mode")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
@@ -702,7 +702,7 @@ class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
         split.itemR(pchan, "ik_stretch", text="Stretch", slider=True)
         split.itemL()
 
-        if ob.pose.ik_solver == "ITASC":
+        if ob.pose.ik_solver == 'ITASC':
             row = layout.row()
             row.itemR(pchan, "ik_rot_control", text="Control Rotation")
             row.itemR(pchan, "ik_rot_weight", text="Weight", slider=True)
@@ -723,7 +723,7 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
 
         if ob and bone:
             pchan = ob.pose.pose_channels[bone.name]
-            return pchan.has_ik and ob.pose.ik_solver == "ITASC" and ob.pose.ik_param
+            return pchan.has_ik and ob.pose.ik_solver == 'ITASC' and ob.pose.ik_param
 
         return False
 
@@ -734,7 +734,7 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
         itasc = ob.pose.ik_param
 
         layout.itemR(itasc, "mode", expand=True)
-        simulation = itasc.mode == "SIMULATION"
+        simulation = itasc.mode == 'SIMULATION'
         if simulation:
             layout.itemL(text="Reiteration:")
             layout.itemR(itasc, "reiteration", expand=True)
@@ -742,7 +742,7 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
         flow = layout.column_flow()
         flow.itemR(itasc, "precision", text="Prec")
         flow.itemR(itasc, "num_iter", text="Iter")
-        flow.active = not simulation or itasc.reiteration != "NEVER"
+        flow.active = not simulation or itasc.reiteration != 'NEVER'
 
         if simulation:
             layout.itemR(itasc, "auto_step")
@@ -757,7 +757,7 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
         if simulation:
             layout.itemR(itasc, "feedback")
             layout.itemR(itasc, "max_velocity")
-        if itasc.solver == "DLS":
+        if itasc.solver == 'DLS':
             row = layout.row()
             row.itemR(itasc, "dampmax", text="Damp", slider=True)
             row.itemR(itasc, "dampeps", text="Eps", slider=True)

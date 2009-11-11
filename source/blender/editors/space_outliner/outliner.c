@@ -2025,6 +2025,7 @@ static int tree_element_active_posegroup(bContext *C, Scene *scene, TreeElement 
 static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	Object *ob= (Object *)tselem->id;
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan= te->directdata;
 	
 	if(set) {
@@ -2033,10 +2034,14 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 			if(set==2) ED_pose_deselectall(ob, 2, 0);	// 2 = clear active tag
 			else ED_pose_deselectall(ob, 0, 0);	// 0 = deselect 
 			
-			if(set==2 && (pchan->bone->flag & BONE_SELECTED))
-				pchan->bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
-			else
-				pchan->bone->flag |= BONE_SELECTED|BONE_ACTIVE;
+			if(set==2 && (pchan->bone->flag & BONE_SELECTED)) {
+				pchan->bone->flag &= ~BONE_SELECTED;
+				if(arm->act_bone==pchan->bone)
+					arm->act_bone= NULL;
+			} else {
+				pchan->bone->flag |= BONE_SELECTED;
+				arm->act_bone= pchan->bone;
+			}
 			
 			WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, ob);
 
@@ -2060,10 +2065,14 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 			if(set==2) ED_pose_deselectall(OBACT, 2, 0);	// 2 is clear active tag
 			else ED_pose_deselectall(OBACT, 0, 0);
 			
-			if(set==2 && (bone->flag & BONE_SELECTED))
-				bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
-			else
-				bone->flag |= BONE_SELECTED|BONE_ACTIVE;
+			if(set==2 && (bone->flag & BONE_SELECTED)) {
+				bone->flag &= ~BONE_SELECTED;
+				if(arm->act_bone==bone)
+					arm->act_bone= NULL;
+			} else {
+				bone->flag |= BONE_SELECTED;
+				arm->act_bone= bone;
+			}
 			
 			WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, OBACT);
 		}
@@ -2086,11 +2095,13 @@ static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te,
 	
 	if(set) {
 		if(!(ebone->flag & BONE_HIDDEN_A)) {
-			
+			bArmature *arm= scene->obedit->data;
 			if(set==2) ED_armature_deselectall(scene->obedit, 2, 0);	// only clear active tag
 			else ED_armature_deselectall(scene->obedit, 0, 0);	// deselect
 
-			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL|BONE_ACTIVE;
+			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
+			arm->act_edbone= ebone;
+
 			// flush to parent?
 			if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag |= BONE_TIPSEL;
 			

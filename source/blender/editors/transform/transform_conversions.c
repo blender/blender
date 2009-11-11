@@ -135,7 +135,7 @@
 //#include "BDR_editobject.h"		// reset_slowparents()
 //#include "BDR_gpencil.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
@@ -263,9 +263,9 @@ static void set_prop_dist(TransInfo *t, short with_dist)
 
 			for (i = 0, td= t->data; i < t->total; i++, td++) {
 				if(td->flag & TD_SELECTED) {
-					VecSubf(vec, tob->center, td->center);
-					Mat3MulVecfl(tob->mtx, vec);
-					dist = Normalize(vec);
+					sub_v3_v3v3(vec, tob->center, td->center);
+					mul_m3_v3(tob->mtx, vec);
+					dist = normalize_v3(vec);
 					if (tob->rdist == -1.0f) {
 						tob->rdist = dist;
 					}
@@ -315,10 +315,10 @@ static void createTransTexspace(bContext *C, TransInfo *t)
 	VECCOPY(td->center, ob->obmat[3]);
 	td->ob = ob;
 
-	Mat3CpyMat4(td->mtx, ob->obmat);
-	Mat3CpyMat4(td->axismtx, ob->obmat);
-	Mat3Ortho(td->axismtx);
-	Mat3Inv(td->smtx, td->mtx);
+	copy_m3_m4(td->mtx, ob->obmat);
+	copy_m3_m4(td->axismtx, ob->obmat);
+	normalize_m3(td->axismtx);
+	invert_m3_m3(td->smtx, td->mtx);
 
 	if (give_obdata_texspace(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
 		*texflag &= ~AUTOSPACE;
@@ -358,14 +358,14 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 
 	td= t->data= MEM_callocN(t->total * sizeof(TransData), "TransCrease");
 
-	Mat3CpyMat4(mtx, t->obedit->obmat);
-	Mat3Inv(smtx, mtx);
+	copy_m3_m4(mtx, t->obedit->obmat);
+	invert_m3_m3(smtx, mtx);
 
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->h==0 && (eed->f & SELECT || propmode)) {
 			/* need to set center for center calculations */
-			VecAddf(td->center, eed->v1->co, eed->v2->co);
-			VecMulf(td->center, 0.5f);
+			add_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
+			mul_v3_fl(td->center, 0.5f);
 
 			td->loc= NULL;
 			if (eed->f & SELECT)
@@ -374,8 +374,8 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 				td->flag= 0;
 
 
-			Mat3CpyMat3(td->smtx, smtx);
-			Mat3CpyMat3(td->mtx, mtx);
+			copy_m3_m3(td->smtx, smtx);
+			copy_m3_m3(td->mtx, mtx);
 
 			td->ext = NULL;
 			if (t->mode == TFM_BWEIGHT) {
@@ -460,7 +460,7 @@ static short apply_targetless_ik(Object *ob)
 					float offs_bone[4][4];
 
 					/* offs_bone =  yoffs(b-1) + root(b) + bonemat(b) */
-					Mat4CpyMat3(offs_bone, bone->bone_mat);
+					copy_m4_m3(offs_bone, bone->bone_mat);
 
 					/* The bone's root offset (is in the parent's coordinate system) */
 					VECCOPY(offs_bone[3], bone->head);
@@ -471,60 +471,60 @@ static short apply_targetless_ik(Object *ob)
 					/* pose_mat(b-1) * offs_bone */
 					if(parchan->bone->flag & BONE_HINGE) {
 						/* the rotation of the parent restposition */
-						Mat4CpyMat4(rmat, parbone->arm_mat);	/* rmat used as temp */
+						copy_m4_m4(rmat, parbone->arm_mat);	/* rmat used as temp */
 
 						/* the location of actual parent transform */
 						VECCOPY(rmat[3], offs_bone[3]);
 						offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
-						Mat4MulVecfl(parchan->parent->pose_mat, rmat[3]);
+						mul_m4_v3(parchan->parent->pose_mat, rmat[3]);
 
-						Mat4MulMat4(tmat, offs_bone, rmat);
+						mul_m4_m4m4(tmat, offs_bone, rmat);
 					}
 					else if(parchan->bone->flag & BONE_NO_SCALE) {
-						Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
-						Mat4Ortho(tmat);
+						mul_m4_m4m4(tmat, offs_bone, parchan->parent->pose_mat);
+						normalize_m4(tmat);
 					}
 					else
-						Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
+						mul_m4_m4m4(tmat, offs_bone, parchan->parent->pose_mat);
 
-					Mat4Invert(imat, tmat);
+					invert_m4_m4(imat, tmat);
 				}
 				else {
-					Mat4CpyMat3(tmat, bone->bone_mat);
+					copy_m4_m3(tmat, bone->bone_mat);
 
 					VECCOPY(tmat[3], bone->head);
-					Mat4Invert(imat, tmat);
+					invert_m4_m4(imat, tmat);
 				}
 				/* result matrix */
-				Mat4MulMat4(rmat, parchan->pose_mat, imat);
+				mul_m4_m4m4(rmat, parchan->pose_mat, imat);
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
 					float rmat3[3][3], qrmat[3][3], imat[3][3], smat[3][3];
 
-					Mat3CpyMat4(rmat3, rmat);
+					copy_m3_m4(rmat3, rmat);
 					
 					/* rotation */
 					if (parchan->rotmode > 0) 
-						Mat3ToEulO(rmat3, parchan->eul, parchan->rotmode);
+						mat3_to_eulO( parchan->eul, parchan->rotmode,rmat3);
 					else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-						Mat3ToAxisAngle(rmat3, parchan->rotAxis, &pchan->rotAngle);
+						mat3_to_axis_angle( parchan->rotAxis, &pchan->rotAngle,rmat3);
 					else
-						Mat3ToQuat(rmat3, parchan->quat);
+						mat3_to_quat( parchan->quat,rmat3);
 					
 					/* for size, remove rotation */
 					/* causes problems with some constraints (so apply only if needed) */
 					if (data->flag & CONSTRAINT_IK_STRETCH) {
 						if (parchan->rotmode > 0)
-							EulOToMat3(parchan->eul, parchan->rotmode, qrmat);
+							eulO_to_mat3( qrmat,parchan->eul, parchan->rotmode);
 						else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-							AxisAngleToMat3(parchan->rotAxis, parchan->rotAngle, qrmat);
+							axis_angle_to_mat3( qrmat,parchan->rotAxis, parchan->rotAngle);
 						else
-							QuatToMat3(parchan->quat, qrmat);
+							quat_to_mat3( qrmat,parchan->quat);
 						
-						Mat3Inv(imat, qrmat);
-						Mat3MulMat3(smat, rmat3, imat);
-						Mat3ToSize(smat, parchan->size);
+						invert_m3_m3(imat, qrmat);
+						mul_m3_m3m3(smat, rmat3, imat);
+						mat3_to_size( parchan->size,smat);
 					}
 					
 					/* causes problems with some constraints (e.g. childof), so disable this */
@@ -602,38 +602,38 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	
 
 	/* proper way to get parent transform + own transform + constraints transform */
-	Mat3CpyMat4(omat, ob->obmat);
+	copy_m3_m4(omat, ob->obmat);
 
 	if (pchan->parent) {
 		if(pchan->bone->flag & BONE_HINGE)
-			Mat3CpyMat4(pmat, pchan->parent->bone->arm_mat);
+			copy_m3_m4(pmat, pchan->parent->bone->arm_mat);
 		else
-			Mat3CpyMat4(pmat, pchan->parent->pose_mat);
+			copy_m3_m4(pmat, pchan->parent->pose_mat);
 
 		if (constraints_list_needinv(t, &pchan->constraints)) {
-			Mat3CpyMat4(tmat, pchan->constinv);
-			Mat3Inv(cmat, tmat);
-			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, cmat, 0,0,0,0);    // dang mulserie swaps args
+			copy_m3_m4(tmat, pchan->constinv);
+			invert_m3_m3(cmat, tmat);
+			mul_serie_m3(td->mtx, pchan->bone->bone_mat, pmat, omat, cmat, 0,0,0,0);    // dang mulserie swaps args
 		}
 		else
-			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
 	}
 	else {
 		if (constraints_list_needinv(t, &pchan->constraints)) {
-			Mat3CpyMat4(tmat, pchan->constinv);
-			Mat3Inv(cmat, tmat);
-			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
+			copy_m3_m4(tmat, pchan->constinv);
+			invert_m3_m3(cmat, tmat);
+			mul_serie_m3(td->mtx, pchan->bone->bone_mat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
 		}
 		else
-			Mat3MulMat3(td->mtx, omat, pchan->bone->bone_mat);  // Mat3MulMat3 has swapped args!
+			mul_m3_m3m3(td->mtx, omat, pchan->bone->bone_mat);  // Mat3MulMat3 has swapped args!
 	}
 
-	Mat3Inv(td->smtx, td->mtx);
+	invert_m3_m3(td->smtx, td->mtx);
 
 	/* for axismat we use bone's own transform */
-	Mat3CpyMat4(pmat, pchan->pose_mat);
-	Mat3MulMat3(td->axismtx, omat, pmat);
-	Mat3Ortho(td->axismtx);
+	copy_m3_m4(pmat, pchan->pose_mat);
+	mul_m3_m3m3(td->axismtx, omat, pmat);
+	normalize_m3(td->axismtx);
 
 	if (t->mode==TFM_BONESIZE) {
 		bArmature *arm= t->poseobj->data;
@@ -666,8 +666,8 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 			data->flag |= CONSTRAINT_IK_AUTO;
 
 			/* only object matrix correction */
-			Mat3CpyMat3 (td->mtx, omat);
-			Mat3Inv (td->smtx, td->mtx);
+			copy_m3_m3(td->mtx, omat);
+			invert_m3_m3(td->smtx, td->mtx);
 		}
 	}
 
@@ -1080,8 +1080,8 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
     if (!t->total) return;
 
-	Mat3CpyMat4(mtx, t->obedit->obmat);
-	Mat3Inv(smtx, mtx);
+	copy_m3_m4(mtx, t->obedit->obmat);
+	invert_m3_m3(smtx, mtx);
 
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
 
@@ -1100,8 +1100,8 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					VECCOPY (td->center, ebo->head);
 					td->flag= TD_SELECTED;
 
-					Mat3CpyMat3(td->smtx, smtx);
-					Mat3CpyMat3(td->mtx, mtx);
+					copy_m3_m3(td->smtx, smtx);
+					copy_m3_m3(td->mtx, mtx);
 
 					td->loc = NULL;
 					td->ext = NULL;
@@ -1115,8 +1115,8 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					VECCOPY (td->center, ebo->tail);
 					td->flag= TD_SELECTED;
 
-					Mat3CpyMat3(td->smtx, smtx);
-					Mat3CpyMat3(td->mtx, mtx);
+					copy_m3_m3(td->smtx, smtx);
+					copy_m3_m3(td->mtx, mtx);
 
 					td->loc = NULL;
 					td->ext = NULL;
@@ -1145,13 +1145,13 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td->flag= TD_SELECTED;
 
 					/* use local bone matrix */
-					VecSubf(delta, ebo->tail, ebo->head);
+					sub_v3_v3v3(delta, ebo->tail, ebo->head);
 					vec_roll_to_mat3(delta, ebo->roll, bonemat);
-					Mat3MulMat3(td->mtx, mtx, bonemat);
-					Mat3Inv(td->smtx, td->mtx);
+					mul_m3_m3m3(td->mtx, mtx, bonemat);
+					invert_m3_m3(td->smtx, td->mtx);
 
-					Mat3CpyMat3(td->axismtx, td->mtx);
-					Mat3Ortho(td->axismtx);
+					copy_m3_m3(td->axismtx, td->mtx);
+					normalize_m3(td->axismtx);
 
 					td->ext = NULL;
 
@@ -1185,10 +1185,10 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					if (ebo->flag & BONE_EDITMODE_LOCKED)
 						td->protectflag = OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE;
 
-					Mat3CpyMat3(td->smtx, smtx);
-					Mat3CpyMat3(td->mtx, mtx);
+					copy_m3_m3(td->smtx, smtx);
+					copy_m3_m3(td->mtx, mtx);
 
-					VecSubf(delta, ebo->tail, ebo->head);
+					sub_v3_v3v3(delta, ebo->tail, ebo->head);
 					vec_roll_to_mat3(delta, ebo->roll, td->axismtx);
 
 					if ((ebo->flag & BONE_ROOTSEL) == 0)
@@ -1210,10 +1210,10 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					if (ebo->flag & BONE_EDITMODE_LOCKED)
 						td->protectflag = OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE;
 
-					Mat3CpyMat3(td->smtx, smtx);
-					Mat3CpyMat3(td->mtx, mtx);
+					copy_m3_m3(td->smtx, smtx);
+					copy_m3_m3(td->mtx, mtx);
 
-					VecSubf(delta, ebo->tail, ebo->head);
+					sub_v3_v3v3(delta, ebo->tail, ebo->head);
 					vec_roll_to_mat3(delta, ebo->roll, td->axismtx);
 
 					td->extra = ebo; /* to fix roll */
@@ -1255,8 +1255,8 @@ static void createTransMBallVerts(bContext *C, TransInfo *t)
 	td = t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(MBall EditMode)");
 	tx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "MetaElement_TransExtension");
 
-	Mat3CpyMat4(mtx, t->obedit->obmat);
-	Mat3Inv(smtx, mtx);
+	copy_m3_m4(mtx, t->obedit->obmat);
+	invert_m3_m3(smtx, mtx);
 
 	for(ml= mb->editelems->first; ml; ml= ml->next) {
 		if(propmode || (ml->flag & SELECT)) {
@@ -1267,8 +1267,8 @@ static void createTransMBallVerts(bContext *C, TransInfo *t)
 			if(ml->flag & SELECT) td->flag= TD_SELECTED | TD_USEQUAT | TD_SINGLESIZE;
 			else td->flag= TD_USEQUAT;
 
-			Mat3CpyMat3(td->smtx, smtx);
-			Mat3CpyMat3(td->mtx, mtx);
+			copy_m3_m3(td->smtx, smtx);
+			copy_m3_m3(td->mtx, mtx);
 
 			td->ext = tx;
 
@@ -1311,7 +1311,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 		}
 		else if(td_near) {
 			float dist;
-			dist = VecLenf(td_near->center, td->center);
+			dist = len_v3v3(td_near->center, td->center);
 			if (dist < (td-1)->dist) {
 				td->dist = (td-1)->dist;
 			}
@@ -1332,7 +1332,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 		}
 		else if(td_near) {
 			float dist;
-			dist = VecLenf(td_near->center, td->center);
+			dist = len_v3v3(td_near->center, td->center);
 			if (td->flag & TD_NOTCONNECTED || dist < td->dist || (td+1)->dist < td->dist) {
 				td->flag &= ~TD_NOTCONNECTED;
 				if (dist < (td+1)->dist) {
@@ -1408,8 +1408,8 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	else t->total = countsel;
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Curve EditMode)");
 
-	Mat3CpyMat4(mtx, t->obedit->obmat);
-	Mat3Inv(smtx, mtx);
+	copy_m3_m4(mtx, t->obedit->obmat);
+	invert_m3_m3(smtx, mtx);
 
     td = t->data;
 	for(nu= cu->editnurb->first; nu; nu= nu->next) {
@@ -1439,8 +1439,8 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 						hdata = initTransDataCurveHandles(td, bezt);
 
-						Mat3CpyMat3(td->smtx, smtx);
-						Mat3CpyMat3(td->mtx, mtx);
+						copy_m3_m3(td->smtx, smtx);
+						copy_m3_m3(td->mtx, mtx);
 
 						td++;
 						count++;
@@ -1466,8 +1466,8 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							td->val = NULL;
 						}
 
-						Mat3CpyMat3(td->smtx, smtx);
-						Mat3CpyMat3(td->mtx, mtx);
+						copy_m3_m3(td->smtx, smtx);
+						copy_m3_m3(td->mtx, mtx);
 
 						if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0)
 						/* If the middle is selected but the sides arnt, this is needed */
@@ -1500,8 +1500,8 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							hdata = initTransDataCurveHandles(td, bezt);
 						}
 
-						Mat3CpyMat3(td->smtx, smtx);
-						Mat3CpyMat3(td->mtx, mtx);
+						copy_m3_m3(td->smtx, smtx);
+						copy_m3_m3(td->mtx, mtx);
 
 						td++;
 						count++;
@@ -1542,8 +1542,8 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							td->ival = bp->alfa;
 						}
 
-						Mat3CpyMat3(td->smtx, smtx);
-						Mat3CpyMat3(td->mtx, mtx);
+						copy_m3_m3(td->smtx, smtx);
+						copy_m3_m3(td->mtx, mtx);
 
 						td++;
 						count++;
@@ -1590,8 +1590,8 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 	else t->total = countsel;
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Lattice EditMode)");
 
-	Mat3CpyMat4(mtx, t->obedit->obmat);
-	Mat3Inv(smtx, mtx);
+	copy_m3_m4(mtx, t->obedit->obmat);
+	invert_m3_m3(smtx, mtx);
 
 	td = t->data;
 	bp = latt->def;
@@ -1604,8 +1604,8 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 				VECCOPY(td->center, td->loc);
 				if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 				else td->flag= 0;
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
+				copy_m3_m3(td->smtx, smtx);
+				copy_m3_m3(td->mtx, mtx);
 
 				td->ext = NULL;
 				td->val = NULL;
@@ -1679,9 +1679,9 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	else
 		tx = t->ext = NULL;
 
-	Mat4One(mat);
+	unit_m4(mat);
 
-	Mat4Invert(ob->imat,ob->obmat);
+	invert_m4_m4(ob->imat,ob->obmat);
 
 	for(i=0, point=edit->points; i<edit->totpoint; i++, point++) {
 		TransData *head, *tail;
@@ -1695,7 +1695,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 		for(k=0, key=point->keys; k<point->totkey; k++, key++) {
 			if(key->flag & PEK_USE_WCO) {
 				VECCOPY(key->world_co, key->co);
-				Mat4MulVecfl(mat, key->world_co);
+				mul_m4_v3(mat, key->world_co);
 				td->loc = key->world_co;
 			}
 			else
@@ -1709,8 +1709,8 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 			else if(!propmode)
 				td->flag |= TD_SKIP;
 
-			Mat3One(td->mtx);
-			Mat3One(td->smtx);
+			unit_m3(td->mtx);
+			unit_m3(td->smtx);
 
 			/* don't allow moving roots */
 			if(k==0 && pset->flag & PE_LOCK_FIRST && (!psys || !(psys->flag & PSYS_GLOBAL_HAIR)))
@@ -1764,15 +1764,15 @@ void flushTransParticles(TransInfo *t)
 
 		if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
-			Mat4Invert(imat,mat);
+			invert_m4_m4(imat,mat);
 
 			for(k=0, key=point->keys; k<point->totkey; k++, key++) {
 				VECCOPY(co, key->world_co);
-				Mat4MulVecfl(imat, co);
+				mul_m4_v3(imat, co);
 
 
 				/* optimization for proportional edit */
-				if(!propmode || !FloatCompare(key->co, co, 0.0001f)) {
+				if(!propmode || !compare_v3v3(key->co, co, 0.0001f)) {
 					VECCOPY(key->co, co);
 					point->flag |= PEP_EDIT_RECALC;
 				}
@@ -1838,13 +1838,13 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 				if (v1->f2) {
 					if (v2->f2) {
 						float nvec[3];
-						float len1 = VecLength(vec1);
-						float len2 = VecLength(vec2);
+						float len1 = len_v3(vec1);
+						float len2 = len_v3(vec2);
 						float lenn;
 						/* for v2 if not selected */
 						if (v2->f2 != 2) {
-							VecSubf(nvec, v2->co, E_NEAR(v1)->co);
-							lenn = VecLength(nvec);
+							sub_v3_v3v3(nvec, v2->co, E_NEAR(v1)->co);
+							lenn = len_v3(nvec);
 							/* 1 < n < 2 */
 							if (lenn - len1 > THRESHOLD && len2 - lenn > THRESHOLD) {
 								VECCOPY(vec2, nvec);
@@ -1860,8 +1860,8 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 						}
 						/* for v1 if not selected */
 						if (v1->f2 != 2) {
-							VecSubf(nvec, v1->co, E_NEAR(v2)->co);
-							lenn = VecLength(nvec);
+							sub_v3_v3v3(nvec, v1->co, E_NEAR(v2)->co);
+							lenn = len_v3(nvec);
 							/* 2 < n < 1 */
 							if (lenn - len2 > THRESHOLD && len1 - lenn > THRESHOLD) {
 								VECCOPY(vec1, nvec);
@@ -1878,9 +1878,9 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 					}
 					else {
 						v2->f2 = 1;
-						VecSubf(vec2, v2->co, E_NEAR(v1)->co);
+						sub_v3_v3v3(vec2, v2->co, E_NEAR(v1)->co);
 						/* 2 < 1 */
-						if (VecLength(vec1) - VecLength(vec2) > THRESHOLD) {
+						if (len_v3(vec1) - len_v3(vec2) > THRESHOLD) {
 							VECCOPY(vec2, vec1);
 						}
 						E_NEAR(v2) = E_NEAR(v1);
@@ -1889,9 +1889,9 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 				}
 				else if (v2->f2) {
 					v1->f2 = 1;
-					VecSubf(vec1, v1->co, E_NEAR(v2)->co);
+					sub_v3_v3v3(vec1, v1->co, E_NEAR(v2)->co);
 					/* 2 < 1 */
-					if (VecLength(vec2) - VecLength(vec1) > THRESHOLD) {
+					if (len_v3(vec2) - len_v3(vec1) > THRESHOLD) {
 						VECCOPY(vec1, vec2);
 					}
 					E_NEAR(v1) = E_NEAR(v2);
@@ -2009,13 +2009,13 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 
 	TAN_MAKE_VEC(vecu, v1, v2);
 	TAN_MAKE_VEC(vecv, v1, v3);
-	triatoquat(v1, vecu, vecv, q1);
+	tri_to_quat( q1,v1, vecu, vecv);
 
 	TAN_MAKE_VEC(vecu, def1, def2);
 	TAN_MAKE_VEC(vecv, def1, def3);
-	triatoquat(def1, vecu, vecv, q2);
+	tri_to_quat( q2,def1, vecu, vecv);
 
-	QuatSub(quat, q2, q1);
+	sub_qt_qtqt(quat, q2, q1);
 }
 #undef TAN_MAKE_VEC
 
@@ -2192,8 +2192,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	else t->total = countsel;
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
 
-	Mat3CpyMat4(mtx, t->obedit->obmat);
-	Mat3Inv(smtx, mtx);
+	copy_m3_m4(mtx, t->obedit->obmat);
+	invert_m3_m3(smtx, mtx);
 
 	if(propmode) editmesh_set_connectivity_distance(em, t->total, vectors, nears);
 
@@ -2251,8 +2251,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 					if (eve->f2) {
 						float vec[3];
 						VECCOPY(vec, E_VEC(eve));
-						Mat3MulVecfl(mtx, vec);
-						tob->dist= VecLength(vec);
+						mul_m3_v3(mtx, vec);
+						tob->dist= len_v3(vec);
 					}
 					else {
 						tob->flag |= TD_NOTCONNECTED;
@@ -2266,25 +2266,25 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 					/* use both or either quat and defmat correction */
 					if(quats && eve->tmp.f) {
-						QuatToMat3(eve->tmp.p, qmat);
+						quat_to_mat3( qmat,eve->tmp.p);
 
 						if(defmats)
-							Mat3MulSerie(mat, mtx, qmat, defmats[a],
+							mul_serie_m3(mat, mtx, qmat, defmats[a],
 								NULL, NULL, NULL, NULL, NULL);
 						else
-							Mat3MulMat3(mat, mtx, qmat);
+							mul_m3_m3m3(mat, mtx, qmat);
 					}
 					else
-						Mat3MulMat3(mat, mtx, defmats[a]);
+						mul_m3_m3m3(mat, mtx, defmats[a]);
 
-					Mat3Inv(imat, mat);
+					invert_m3_m3(imat, mat);
 
-					Mat3CpyMat3(tob->smtx, imat);
-					Mat3CpyMat3(tob->mtx, mat);
+					copy_m3_m3(tob->smtx, imat);
+					copy_m3_m3(tob->mtx, mat);
 				}
 				else {
-					Mat3CpyMat3(tob->smtx, smtx);
-					Mat3CpyMat3(tob->mtx, mtx);
+					copy_m3_m3(tob->smtx, smtx);
+					copy_m3_m3(tob->mtx, mtx);
 				}
 
 				/* Mirror? */
@@ -2459,8 +2459,8 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 	else {
 		td->dist= MAXFLOAT;
 	}
-	Mat3One(td->mtx);
-	Mat3One(td->smtx);
+	unit_m3(td->mtx);
+	unit_m3(td->smtx);
 }
 
 static void createTransUVs(bContext *C, TransInfo *t)
@@ -2755,8 +2755,8 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								td->flag |= TD_SELECTED;
 								td->dist= 0.0f;
 								
-								Mat3One(td->mtx);
-								Mat3One(td->smtx);
+								unit_m3(td->mtx);
+								unit_m3(td->smtx);
 							}
 							else {
 								td->val= &tdn->h1[0];
@@ -2786,8 +2786,8 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								td->flag |= TD_SELECTED;
 								td->dist= 0.0f;
 								
-								Mat3One(td->mtx);
-								Mat3One(td->smtx);
+								unit_m3(td->mtx);
+								unit_m3(td->smtx);
 							}
 							else {
 								td->val= &tdn->h2[0];
@@ -3351,8 +3351,8 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	if (intvals)
 		td->flag |= TD_INTVALUES;
 	
-	Mat3One(td->mtx);
-	Mat3One(td->smtx);
+	unit_m3(td->mtx);
+	unit_m3(td->smtx);
 }
 
 static void createTransGraphEditData(bContext *C, TransInfo *t)
@@ -3986,8 +3986,8 @@ static TransData *SeqToTransData(TransInfo *t, TransData *td, TransData2D *td2d,
 	td->flag |= TD_SELECTED;
 	td->dist= 0.0;
 
-	Mat3One(td->mtx);
-	Mat3One(td->smtx);
+	unit_m3(td->mtx);
+	unit_m3(td->smtx);
 
 	/* Time Transform (extend) */
 	td->val= td2d->loc;
@@ -4200,8 +4200,8 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 	short skip_invert = 0;
 
 	/* axismtx has the real orientation */
-	Mat3CpyMat4(td->axismtx, ob->obmat);
-	Mat3Ortho(td->axismtx);
+	copy_m3_m4(td->axismtx, ob->obmat);
+	normalize_m3(td->axismtx);
 
 	td->con= ob->constraints.first;
 
@@ -4280,7 +4280,7 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 
 	VECCOPY(td->center, ob->obmat[3]);
 
-	Mat4CpyMat4(td->ext->obmat, ob->obmat);
+	copy_m4_m4(td->ext->obmat, ob->obmat);
 
 	/* is there a need to set the global<->data space conversion matrices? */
 	if (ob->parent || constinv) {
@@ -4291,15 +4291,15 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 		 *		done, as it doesn't work well.
 		 */
 		object_to_mat3(ob, obmtx);
-		Mat3CpyMat4(totmat, ob->obmat);
-		Mat3Inv(obinv, totmat);
-		Mat3MulMat3(td->smtx, obmtx, obinv);
-		Mat3Inv(td->mtx, td->smtx);
+		copy_m3_m4(totmat, ob->obmat);
+		invert_m3_m3(obinv, totmat);
+		mul_m3_m3m3(td->smtx, obmtx, obinv);
+		invert_m3_m3(td->mtx, td->smtx);
 	}
 	else {
 		/* no conversion to/from dataspace */
-		Mat3One(td->smtx);
-		Mat3One(td->mtx);
+		unit_m3(td->smtx);
+		unit_m3(td->mtx);
 	}
 
 	/* set active flag */
@@ -5152,8 +5152,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	td->flag |= TD_SELECTED;
 	td->dist= 0.0;
 
-	Mat3One(td->mtx);
-	Mat3One(td->smtx);
+	unit_m3(td->mtx);
+	unit_m3(td->smtx);
 }
 
 void createTransNodeData(bContext *C, TransInfo *t)

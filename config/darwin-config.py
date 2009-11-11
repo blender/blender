@@ -31,7 +31,7 @@ elif cmd_res[0]=='9':
 elif cmd_res[0]=='10':
 	MAC_CUR_VER='10.6'
 
-if MAC_PROC == 'powerpc':
+if MACOSX_ARCHITECTURE == 'ppc':
 	LCGDIR = '#../lib/darwin-6.1-powerpc'
 else :
 	LCGDIR = '#../lib/darwin-9.x.universal'
@@ -39,7 +39,7 @@ LIBDIR = '${LCGDIR}'
 
 BF_PYTHON_VERSION = '3.1'
 
-if MAC_PROC == 'powerpc' and BF_PYTHON_VERSION == '2.3':
+if MACOSX_ARCHITECTURE == 'ppc' and BF_PYTHON_VERSION == '2.3':
 	MAC_MIN_VERS = '10.3'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
 	CC = 'gcc'
@@ -247,7 +247,20 @@ BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
 #OpenCollada flags
-WITH_BF_COLLADA = False
+WITH_BF_COLLADA = True
+BF_COLLADA = '#source/blender/collada'
+BF_COLLADA_INC = '${BF_COLLADA}'
+BF_COLLADA_LIB = 'bf_collada'
+BF_OPENCOLLADA = LIBDIR + '/opencollada'
+BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2'
+BF_OPENCOLLADA_LIBPATH = LIBDIR + '/opencollada'
+BF_PCRE = LIBDIR + '/opencollada'
+BF_PCRE_LIB = 'pcre'
+BF_PCRE_LIBPATH = '${BF_PCRE}/lib'
+#BF_EXPAT = '/usr'
+#BF_EXPAT_LIB = 'expat'
+#BF_EXPAT_LIBPATH = '/usr/lib'
 
 #############################################################################
 ###################  various compile settings and flags    ##################

@@ -101,6 +101,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.itemO("mesh.screw")
         col.itemO("mesh.merge")
         col.itemO("mesh.rip_move")
+        col.itemO("mesh.flip_normals")
 
         col = layout.column(align=True)
         col.itemL(text="Shading:")
@@ -110,7 +111,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col = layout.column(align=True)
         col.itemL(text="UV Mapping:")
         col.item_stringO("wm.call_menu", "name", "VIEW3D_MT_uv_map", text="Unwrap")
-        
+
         col.itemO("mesh.uvs_rotate")
         col.itemO("mesh.uvs_mirror")
 
@@ -830,6 +831,8 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         ob = pe.object
 
         layout.itemR(pe, "type", text="")
+
+        ptcache = None
 
         if pe.type == 'PARTICLES':
             if ob.particle_systems:
