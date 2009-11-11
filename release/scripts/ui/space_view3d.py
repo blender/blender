@@ -1381,27 +1381,23 @@ class VIEW3D_PT_3dview_item(bpy.types.Panel):
     bl_label = "Item"
 
     def poll(self, context):
-        return (context.active_object or context.bone or context.edit_bone)
+        return (context.active_object or context.active_bone or context.active_pchan)
 
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
+        ob = context.active_object
 
         row = layout.row()
         row.itemL(text="", icon='ICON_OBJECT_DATA')
         row.itemR(ob, "name", text="")
 
-        if ((context.active_bone or context.active_pchan) and ob.type == 'ARMATURE' and (ob.mode == 'EDIT' or ob.mode == 'POSE')):
+        if ob.type == 'ARMATURE' and ob.mode in ('EDIT', 'POSE'):
             bone = context.active_bone
-            if not bone:
-                pchan = context.active_pchan
-                if pchan:
-                    bone = pchan.bone
-
-            row = layout.row()
-            row.itemL(text="", icon='ICON_BONE_DATA')
-            row.itemR(bone, "name", text="")
+            if bone:
+                row = layout.row()
+                row.itemL(text="", icon='ICON_BONE_DATA')
+                row.itemR(bone, "name", text="")
 
 class VIEW3D_PT_3dview_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
