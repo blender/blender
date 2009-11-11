@@ -1251,6 +1251,8 @@ void NODE_OT_resize(wmOperatorType *ot)
 
 /* ******************** rename ******************* */
 
+
+/* should go through RNA */
 void node_rename(SpaceNode *snode)
 {
 	bNode *node, *rename_node;
@@ -1266,7 +1268,7 @@ void node_rename(SpaceNode *snode)
 
 	if(found_node) {
 		rename_node= nodeGetActive(snode->edittree);
-		node_rename_but((char *)rename_node->username);
+		node_rename_but((char *)rename_node->name);
 	
 		// allqueue(REDRAWNODE, 1);
 	}

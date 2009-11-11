@@ -32,6 +32,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "DNA_ID.h"
@@ -903,7 +904,11 @@ void nodeAddSockets(bNode *node, bNodeType *ntype)
 		}
 	}
 }
-
+/* Find the first available, non-duplicate name for a given node */
+void nodeUniqueName(bNodeTree *ntree, bNode *node)
+{
+	BLI_uniquename(&ntree->nodes, node, "Node", '.', offsetof(bNode, name), 32);
+}
 
 bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 {
@@ -937,6 +942,9 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	}
 	else
 		BLI_strncpy(node->name, ntype->name, NODE_MAXSTR);
+
+	nodeUniqueName(ntree, node);
+	
 	node->type= ntype->type;
 	node->flag= NODE_SELECT|ntype->flag;
 	node->width= ntype->width;
@@ -989,6 +997,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	bNodeSocket *sock, *oldsock;
 
 	*nnode= *node;
+	nodeUniqueName(ntree, nnode);
+	
 	BLI_addtail(&ntree->nodes, nnode);
 	
 	BLI_duplicatelist(&nnode->inputs, &node->inputs);

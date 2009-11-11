@@ -10037,6 +10037,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce= sce->id.next;
 			}
 		}
+		{
+			/* ensure all nodes have unique names */
+			bNodeTree *ntree= main->nodetree.first;
+			while(ntree) {
+				bNode *node=ntree->nodes.first;
+				
+				while(node) {
+					nodeUniqueName(ntree, node);
+					node= node->next;
+				}
+				
+				ntree= ntree->id.next;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

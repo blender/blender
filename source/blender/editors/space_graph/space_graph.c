@@ -417,6 +417,13 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_NODE:
+			switch(wmn->action) {
+				case NA_EDITED:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);

@@ -110,7 +110,6 @@ typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 	
 	char name[32];
-	char username[32];	/* custom name defined by user */
 	short type, flag;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
@@ -152,6 +151,7 @@ typedef struct bNode {
 #define NODE_TEST			256
 		/* composite: don't do node but pass on buffer(s) */
 #define NODE_MUTED			512
+#define NODE_CUSTOM_NAME		1024
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;

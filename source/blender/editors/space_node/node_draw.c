@@ -719,12 +719,14 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_ThemeColor(TH_TEXT);
 	
-	if(node->flag & NODE_MUTED)
-		sprintf(showname, "[%s]", node->name);
-	else if(node->username[0])
-		sprintf(showname, "(%s) %s", node->username, node->name);
+	if(node->flag & NODE_CUSTOM_NAME)
+		BLI_strncpy(showname, node->name, 32);
 	else
-		BLI_strncpy(showname, node->name, 128);
+		/* todo: auto name display for node types */
+		BLI_strncpy(showname, node->name, 32);
+
+	//if(node->flag & NODE_MUTED)
+	//	sprintf(showname, "[%s]", showname);
 	
 	uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
 			 (int)(iconofs - rct->xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
@@ -878,12 +880,15 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	
 	if(node->miniwidth>0.0f) {
 
-		if(node->flag & NODE_MUTED)
-			sprintf(showname, "[%s]", node->name);
-		else if(node->username[0])
-			sprintf(showname, "(%s)%s", node->username, node->name);
-		else
+
+		if(node->flag & NODE_CUSTOM_NAME)
 			BLI_strncpy(showname, node->name, 128);
+		else
+			/* todo: auto name display */
+			BLI_strncpy(showname, node->name, 128);
+	
+		//if(node->flag & NODE_MUTED)
+		//	sprintf(showname, "[%s]", showname);
 
 		uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 
 				 (int)(rct->xmax - rct->xmin-18.0f -12.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
@@ -1021,12 +1026,8 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* backdrop title */
 	UI_ThemeColor(TH_TEXT_HI);
 
-	if(gnode->username[0]) {
-		strcpy(showname,"(");
-		strcat(showname, gnode->username);
-		strcat(showname,") ");
-		strcat(showname, ngroup->id.name+2);
-	}
+	if (gnode->flag & NODE_CUSTOM_NAME)
+		strcat(showname, gnode->name);
 	else
 		strcpy(showname, ngroup->id.name+2);
 

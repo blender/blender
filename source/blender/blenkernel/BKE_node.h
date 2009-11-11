@@ -162,6 +162,7 @@ void			nodeVerifyType(struct bNodeTree *ntree, struct bNode *node);
 void			nodeAddToPreview(struct bNode *, float *, int, int);
 
 void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
+void			nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
 void			nodeAddSockets(struct bNode *node, struct bNodeType *ntype);
 struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type, struct bNodeTree *ngroup, struct ID *id);
 void			nodeRegisterType(struct ListBase *typelist, const struct bNodeType *ntype) ;
