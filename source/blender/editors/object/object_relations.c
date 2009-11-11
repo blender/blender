@@ -608,13 +608,10 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					bFollowPathConstraint *data;
 					float cmat[4][4], vec[3];
 					
-					con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
-					strcpy (con->name, "AutoPath");
+					con = add_ob_constraint(ob, "AutoPath", CONSTRAINT_TYPE_FOLLOWPATH);
 					
 					data = con->data;
 					data->tar = par;
-					
-					add_constraint_to_object(con, ob);
 					
 					get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(ob));
 					sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
@@ -923,8 +920,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob!=obact) {
-				con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
-				strcpy (con->name, "AutoTrack");
+				con = add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
 
 				data = con->data;
 				data->tar = obact;
@@ -935,8 +931,6 @@ static int track_set_exec(bContext *C, wmOperator *op)
 					data->reserved1 = TRACK_nZ;
 					data->reserved2 = UP_Y;
 				}
-
-				add_constraint_to_object(con, ob);
 			}
 		}
 		CTX_DATA_END;
@@ -947,8 +941,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob!=obact) {
-				con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
-				strcpy (con->name, "AutoTrack");
+				con = add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_LOCKTRACK);
 
 				data = con->data;
 				data->tar = obact;
@@ -959,8 +952,6 @@ static int track_set_exec(bContext *C, wmOperator *op)
 					data->trackflag = TRACK_nZ;
 					data->lockflag = LOCK_Y;
 				}
-
-				add_constraint_to_object(con, ob);
 			}
 		}
 		CTX_DATA_END;

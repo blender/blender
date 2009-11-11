@@ -102,6 +102,9 @@ typedef struct bConstraintTypeInfo {
 bConstraintTypeInfo *constraint_get_typeinfo(struct bConstraint *con);
 bConstraintTypeInfo *get_constraint_typeinfo(int type);
 
+struct bConstraint *add_ob_constraint(struct Object *ob, const char *name, short type);
+struct bConstraint *add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
+
 /* ---------------------------------------------------------------------------- */
 /* Useful macros for testing various common flag combinations */
 

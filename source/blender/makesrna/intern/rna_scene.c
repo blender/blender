@@ -2229,7 +2229,7 @@ void RNA_def_scene(BlenderRNA *brna)
 		RNA_def_property_struct_type(prop_act, "ObjectBase");
 		RNA_def_property_pointer_sdna(prop_act, NULL, "basact");
 		RNA_def_property_flag(prop_act, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop_act, "Active Base", "Active object in the scene.");
+		RNA_def_property_ui_text(prop_act, "Active Base", "Active object base in the scene.");
 		RNA_def_property_update(prop_act, NC_SCENE|ND_OB_ACTIVE, NULL);
 		RNA_def_property_collection_active(prop, prop_act);
 	}
@@ -2245,7 +2245,7 @@ void RNA_def_scene(BlenderRNA *brna)
 		RNA_def_property_struct_type(prop_act, "Object");
 		RNA_def_property_pointer_funcs(prop_act, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
 		RNA_def_property_flag(prop_act, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop_act, "Object", "Object to use as projector transform.");
+		RNA_def_property_ui_text(prop_act, "Active Object", "Active object for this scene.");
 		/* Could call: ED_base_object_activate(C, scene->basact);
 		 * but would be a bad level call and it seems the notifier is enough */
 		RNA_def_property_update(prop_act, NC_SCENE|ND_OB_ACTIVE, NULL);

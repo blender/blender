@@ -33,6 +33,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "DNA_object_types.h"
 
@@ -50,6 +51,7 @@
 #include "BKE_mesh.h"
 #include "BKE_DerivedMesh.h"
 
+#include "BKE_constraint.h"
 #include "BKE_customdata.h"
 #include "BKE_anim.h"
 #include "BKE_depsgraph.h"
@@ -64,6 +66,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_constraint_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -349,6 +352,30 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 }
 */
 
+static bConstraint *rna_Object_constraints_add(Object *object, bContext *C, int type)
+{
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	return add_ob_constraint(object, NULL, type);
+}
+
+static int rna_Object_constraints_remove(Object *object, bContext *C, int index)
+{
+	bConstraint *con= BLI_findlink(&object->constraints, index);
+
+	if(con) {
+		free_constraint_data(con);
+		BLI_freelinkN(&object->constraints, con);
+
+		ED_object_constraint_set_active(object, NULL);
+		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 #else
 
 void RNA_api_object(StructRNA *srna)
@@ -424,6 +451,27 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_boolean(func, "is_visible", 0, "", "Object visibility.");
 	RNA_def_function_return(func, parm);
+
+	/* Constraint collection */
+	func= RNA_def_function(srna, "constraints__add", "rna_Object_constraints_add");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a constraint to this object");
+	/* return type */
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "constraints__remove", "rna_Object_constraints_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

@@ -86,6 +86,7 @@ EnumPropertyItem object_type_items[] = {
 #include "BLI_math.h"
 
 #include "DNA_key_types.h"
+#include "DNA_constraint_types.h"
 
 #include "BKE_armature.h"
 #include "BKE_bullet.h"
@@ -859,6 +860,30 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
 }
 
+static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bConstraint *con;
+	for(con= ob->constraints.first; con; con= con->next) {
+		if(con->flag & CONSTRAINT_ACTIVE)
+			break;
+	}
+
+	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
+}
+
+static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bConstraint *con;
+	for(con= ob->constraints.first; con; con= con->next) {
+		if(value.data==con)
+			con->flag |= CONSTRAINT_ACTIVE;
+		else
+			con->flag &= ~CONSTRAINT_ACTIVE;
+	}
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -1428,6 +1453,16 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints of the object.");
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove");
+
+	{ /* Collection active property */
+		PropertyRNA *prop_act= RNA_def_property(srna, "constraints__active", PROP_POINTER, PROP_NONE);
+		RNA_def_property_struct_type(prop_act, "Constraint");
+		RNA_def_property_pointer_funcs(prop_act, "rna_Object_active_constraint_get", "rna_Object_active_constraint_set", NULL);
+		RNA_def_property_flag(prop_act, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop_act, "Active Constraint", "Active Object constraint.");
+		RNA_def_property_collection_active(prop, prop_act);
+	}
 
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");

@@ -414,6 +414,32 @@ static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *r
 }
 #endif
 
+static PointerRNA rna_PoseChannel_active_constraint_get(PointerRNA *ptr)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+
+	bConstraint *con;
+	for(con= pchan->constraints.first; con; con= con->next) {
+		if(con->flag & CONSTRAINT_ACTIVE)
+			break;
+	}
+
+	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
+}
+
+static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA value)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+
+	bConstraint *con;
+	for(con= pchan->constraints.first; con; con= con->next) {
+		if(value.data==con)
+			con->flag |= CONSTRAINT_ACTIVE;
+		else
+			con->flag &= ~CONSTRAINT_ACTIVE;
+	}
+}
+
 #else
 
 static void rna_def_bone_group(BlenderRNA *brna)
@@ -512,7 +538,17 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	/* Bone Constraints */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
-	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel."); 
+	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel.");
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove");
+
+	{ /* Collection active property */
+		PropertyRNA *prop_act= RNA_def_property(srna, "constraints__active", PROP_POINTER, PROP_NONE);
+		RNA_def_property_struct_type(prop_act, "Constraint");
+		RNA_def_property_pointer_funcs(prop_act, "rna_PoseChannel_active_constraint_get", "rna_PoseChannel_active_constraint_set", NULL);
+		RNA_def_property_flag(prop_act, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop_act, "Active Constraint", "Active PoseChannel constraint.");
+		RNA_def_property_collection_active(prop, prop_act);
+	}
 
 	/* Name + Selection Status */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -791,6 +827,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+
+	RNA_api_pose_channel(srna);
 }
 
 static void rna_def_pose_itasc(BlenderRNA *brna)

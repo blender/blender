@@ -91,9 +91,6 @@ int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
 
 /* constraints */
-struct bConstraint *add_new_constraint(short type);
-void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
-
 struct ListBase *get_active_constraints(struct Object *ob);
 struct bConstraint *get_active_constraint(struct Object *ob);
 
