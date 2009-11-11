@@ -284,18 +284,6 @@ static void rna_Node_image_layer_update(bContext *C, PointerRNA *ptr)
 	rna_Node_update(C, ptr);
 }
 
-static void rna_Node_scene_layer_update(bContext *C, PointerRNA *ptr)
-{
-	bNode *node= (bNode*)ptr->data;
-	Image *ima = (Image *)node->id;
-	ImageUser *iuser= node->storage;
-	
-	BKE_image_multilayer_index(ima->rr, iuser);
-	
-	rna_Node_update(C, ptr);
-}
-
-
 static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 {
 	EnumPropertyItem *item= NULL;
@@ -1089,7 +1077,7 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_enum_items(prop, prop_scene_layer_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_scene_layer_itemf");
 	RNA_def_property_ui_text(prop, "Layer", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_scene_layer_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	/* TODO: comments indicate this might be a hack */
 	prop = RNA_def_property(srna, "re_render", PROP_BOOLEAN, PROP_NONE);
