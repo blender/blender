@@ -1757,7 +1757,7 @@ static int foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, cons
 static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 {
 	PyObject *item = NULL;
-	int i=0, ok, buffer_is_compat;
+	int i=0, ok=0, buffer_is_compat;
 	void *array= NULL;
 
 	/* get/set both take the same args currently */

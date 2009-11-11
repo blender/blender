@@ -49,6 +49,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_object.h"
+#include "BKE_node.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -78,7 +79,6 @@
 #define B_NOP		1
 #define B_REDR		2
 
-#if 0 // XXX not used...
 static void do_node_region_buttons(bContext *C, void *arg, int event)
 {
 	//SpaceNode *snode= CTX_wm_space_node(C);
@@ -89,7 +89,44 @@ static void do_node_region_buttons(bContext *C, void *arg, int event)
 		return; /* no notifier! */
 	}
 }
-#endif
+
+/* poll callback for active node */
+static int active_node_poll(const bContext *C, PanelType *pt)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	
+	// TODO: include check for whether there is an active node...
+	return (snode && snode->nodetree);
+}
+
+/* active node */
+static void active_node_panel(const bContext *C, Panel *pa)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeTree *ntree= (snode) ? snode->nodetree : NULL; // XXX what's up with edittree then?
+	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL;
+	uiLayout *layout= pa->layout;
+	uiBlock *block;
+	PointerRNA ptr;
+	
+	/* verify pointers, and create RNA pointer for the node */
+	if ELEM(NULL, ntree, node)
+		return;
+	RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
+	
+	/* set update callback */
+	// xxx is this really needed
+	block= uiLayoutGetBlock(layout);
+	uiBlockSetHandleFunc(block, do_node_region_buttons, NULL);
+	
+	/* draw this node's name, etc. */
+	uiItemR(layout, NULL, ICON_NODE, &ptr, "name", 0);
+	// TODO: a separator would be nice...
+	
+	/* draw this node's settings */
+	if (node->typeinfo && node->typeinfo->uifunc)
+		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
+}
 
 /* ******************* node buttons registration ************** */
 
@@ -97,7 +134,12 @@ void node_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 	
-	// XXX active node
+	pt= MEM_callocN(sizeof(PanelType), "spacetype node panel active node");
+	strcpy(pt->idname, "NODE_PT_item");
+	strcpy(pt->label, "Active Node");
+	pt->draw= active_node_panel;
+	pt->poll= active_node_poll;
+	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype node panel gpencil");
 	strcpy(pt->idname, "NODE_PT_gpencil");

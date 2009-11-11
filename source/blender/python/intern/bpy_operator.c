@@ -153,7 +153,7 @@ static PyObject *pyop_as_string( PyObject * self, PyObject * args)
 	int all_args = 1;
 	int error_val= 0;
 
-	char *buf;
+	char *buf = NULL;
 	PyObject *pybuf;
 
 	bContext *C = BPy_GetContext();
