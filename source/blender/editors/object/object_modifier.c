@@ -174,6 +174,9 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 
         DAG_scene_sort(scene);
 	}
+	else if(md->type == eModifierType_Smoke) {
+		ob->dt = OB_SHADED;
+	}
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
