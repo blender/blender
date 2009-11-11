@@ -1408,6 +1408,16 @@ KeyBlock *ob_get_keyblock(Object *ob)
 	return NULL;
 }
 
+KeyBlock *ob_get_reference_keyblock(Object *ob)
+{
+	Key *key= ob_get_key(ob);
+	
+	if (key)
+		return key->refkey;
+
+	return NULL;
+}
+
 /* get the appropriate KeyBlock given an index */
 KeyBlock *key_get_keyblock(Key *key, int index)
 {
