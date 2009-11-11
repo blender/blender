@@ -3259,7 +3259,7 @@ void join_triangles(EditMesh *em)
 	EVPtr *efaa = NULL;
 	float *creases = NULL;
 	float measure; /*Used to set tolerance*/
-	float limit = 0.0f; // XXX scene->toolsettings->jointrilimit;
+	float limit = 0.8f; // XXX scene->toolsettings->jointrilimit;
 	int i, ok, totedge=0, totseledge=0, complexedges, vindex[4];
 
 	/*if we take a long time on very dense meshes we want waitcursor to display*/
