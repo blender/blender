@@ -145,13 +145,57 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 	}
 }
 
+static StructRNA *rna_NodeSocketType_refine(struct PointerRNA *ptr)
+{
+	bNodeSocket *ns= (bNodeSocket*)ptr->data;
+	
+	switch(ns->type) {
+		case SOCK_VALUE:
+			return &RNA_ValueNodeSocket;
+		case SOCK_VECTOR:
+			return &RNA_VectorNodeSocket;
+		case SOCK_RGBA:
+			return &RNA_RGBANodeSocket;
+		default:
+			return &RNA_UnknownType;
+	}
+}		
+
 static char *rna_Node_path(PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNode *node= (bNode*)ptr->data;
 	int index = BLI_findindex(&ntree->nodes, node);
 	
+	/* XXX: node index (and therefore path) gets changed around depending on order of nodetree!
+	 * This means that node animation can switch from one node to another if you rearrange them. 
+	 * Needs a fix to make the path based on unique names/ids! */
 	return BLI_sprintfN("nodes[%d]", index);
+}
+
+static char *rna_NodeSocket_path(PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNodeSocket *sock= (bNodeSocket*)ptr->data;
+	bNode *node;
+	
+	int socketindex, nodeindex;
+	
+	if (!nodeFindNode(ntree, sock, &node, NULL)) return;
+	
+	/* XXX: node index (and therefore path) gets changed around depending on order of nodetree!
+	 * This means that node animation can switch from one node to another if you rearrange them. 
+	 * Needs a fix to make the path based on unique names/ids! */
+	nodeindex = BLI_findindex(&ntree->nodes, node);
+	
+	socketindex = BLI_findindex(&node->inputs, sock);
+	if (socketindex != -1)
+		return BLI_sprintfN("nodes[%d].inputs[%d]", nodeindex, socketindex);
+	
+	socketindex = BLI_findindex(&node->outputs, sock);
+	if (socketindex != -1)
+		return BLI_sprintfN("nodes[%d].outputs[%d]", nodeindex, socketindex);
+	
 }
 
 static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
@@ -192,27 +236,33 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
 	chroma->t2 = value;
 }
 
-static void rna_Node_update(bContext *C, PointerRNA *ptr)
+static void node_update(bContext *C, bNodeTree *ntree, bNode *node)
 {
 	Main *bmain= CTX_data_main(C);
-	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
-	bNode *node= (bNode*)ptr->data;
 	Material *ma;
 	Tex *tex;
 	Scene *sce;
-
+	
 	/* look through all datablocks, to support groups */
 	for(ma=bmain->mat.first; ma; ma=ma->id.next)
 		if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
 			ED_node_changed_update(&ma->id, node);
-
+	
 	for(tex=bmain->tex.first; tex; tex=tex->id.next)
 		if(tex->nodetree && tex->use_nodes && has_nodetree(tex->nodetree, ntree))
 			ED_node_changed_update(&tex->id, node);
-
+	
 	for(sce=bmain->scene.first; sce; sce=sce->id.next)
 		if(sce->nodetree && sce->use_nodes && has_nodetree(sce->nodetree, ntree))
 			ED_node_changed_update(&sce->id, node);
+}
+
+static void rna_Node_update(bContext *C, PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNode *node= (bNode*)ptr->data;
+
+	node_update(C, ntree, node);
 }
 
 static void rna_Node_update_name(bContext *C, PointerRNA *ptr)
@@ -253,6 +303,24 @@ static void rna_Node_update_name(bContext *C, PointerRNA *ptr)
 	}
 
 	rna_Node_update(C, ptr);
+}
+
+static void rna_NodeSocket_update(bContext *C, PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNodeSocket *sock= (bNodeSocket*)ptr->data;
+	bNode *node;
+	
+	if (nodeFindNode(ntree, sock, &node, NULL))
+		node_update(C, ntree, node);
+}
+
+static void rna_NodeSocket_defvalue_range(PointerRNA *ptr, float *min, float *max)
+{
+	bNodeSocket *sock= (bNodeSocket*)ptr->data;
+
+	*min = sock->ns.min;
+	*max = sock->ns.max;
 }
 
 static void rna_Node_mapping_update(bContext *C, PointerRNA *ptr)
@@ -418,15 +486,9 @@ typedef struct NodeInfo
 
 static NodeInfo nodes[MaxNodes];
 
-static void reg_node(
-	int ID, 
-	int category,
-	const char *enum_name,
-	const char *struct_name,
-	const char *base_name,
-	const char *ui_name,
-	const char *ui_desc
-){
+static void reg_node(int ID, int category, const char *enum_name, const char *struct_name,
+					 const char *base_name, const char *ui_name, const char *ui_desc)
+{
 	NodeInfo *ni = nodes + ID;
 	
 	ni->defined = 1;
@@ -1861,6 +1923,91 @@ static void rna_def_texture_node(BlenderRNA *brna)
 
 /* -------------------------------------------------------------------------- */
 
+static void rna_def_node_socket(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	srna = RNA_def_struct(brna, "NodeSocket", NULL);
+	RNA_def_struct_ui_text(srna, "Node Socket", "Input or output socket of a node");
+	RNA_def_struct_refine_func(srna, "rna_NodeSocketType_refine");
+	RNA_def_struct_sdna(srna, "bNodeSocket");
+	RNA_def_struct_ui_icon(srna, ICON_PLUG);
+	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
+
+}
+
+static void rna_def_node_socket_value(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "ValueNodeSocket", NULL);
+	RNA_def_struct_ui_text(srna, "Value Node Socket", "Input or output socket of a node");
+	RNA_def_struct_sdna(srna, "bNodeSocket");
+	RNA_def_struct_ui_icon(srna, ICON_PLUG);
+	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
+	
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "Socket name.");
+	RNA_def_struct_name_property(srna, prop);
+	
+	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
+	RNA_def_property_array(prop, 1);
+	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached.");
+	RNA_def_property_update(prop, 0, "rna_NodeSocket_update");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocket_defvalue_range");
+}
+
+static void rna_def_node_socket_vector(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "VectorNodeSocket", NULL);
+	RNA_def_struct_ui_text(srna, "Vector Node Socket", "Input or output socket of a node");
+	RNA_def_struct_sdna(srna, "bNodeSocket");
+	RNA_def_struct_ui_icon(srna, ICON_PLUG);
+	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
+	
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "Socket name.");
+	RNA_def_struct_name_property(srna, prop);
+	
+	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached.");
+	RNA_def_property_update(prop, 0, "rna_NodeSocket_update");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocket_defvalue_range");
+}
+
+static void rna_def_node_socket_rgba(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "RGBANodeSocket", NULL);
+	RNA_def_struct_ui_text(srna, "RGBA Node Socket", "Input or output socket of a node");
+	RNA_def_struct_sdna(srna, "bNodeSocket");
+	RNA_def_struct_ui_icon(srna, ICON_PLUG);
+	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
+	
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "Socket name.");
+	RNA_def_struct_name_property(srna, prop);
+	
+	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached.");
+	RNA_def_property_update(prop, 0, "rna_NodeSocket_update");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocket_defvalue_range");
+}
+
 static void rna_def_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1869,6 +2016,7 @@ static void rna_def_node(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Node", NULL);
 	RNA_def_struct_ui_text(srna, "Node", "Node in a node tree.");
 	RNA_def_struct_sdna(srna, "bNode");
+	RNA_def_struct_ui_icon(srna, ICON_NODE);
 	RNA_def_struct_refine_func(srna, "rna_Node_refine");
 	RNA_def_struct_path_func(srna, "rna_Node_path");
 	
@@ -1881,6 +2029,16 @@ static void rna_def_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Node name.");
 	RNA_def_struct_name_property(srna, prop);
+	
+	prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "inputs", NULL);
+	RNA_def_property_struct_type(prop, "NodeSocket");
+	RNA_def_property_ui_text(prop, "Inputs", "");
+	
+	prop = RNA_def_property(srna, "outputs", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "outputs", NULL);
+	RNA_def_property_struct_type(prop, "NodeSocket");
+	RNA_def_property_ui_text(prop, "Outputs", "");
 }
 
 static void rna_def_nodetree(BlenderRNA *brna)
@@ -1891,7 +2049,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "NodeTree", "ID");
 	RNA_def_struct_ui_text(srna, "Node Tree", "Node tree consisting of linked nodes used for materials, textures and compositing.");
 	RNA_def_struct_sdna(srna, "bNodeTree");
-	RNA_def_struct_ui_icon(srna, ICON_NODE);
+	RNA_def_struct_ui_icon(srna, ICON_NODETREE);
 	
 	rna_def_animdata_common(srna);
 
@@ -1913,6 +2071,10 @@ void RNA_def_nodetree(BlenderRNA *brna)
 {
 	init();
 	rna_def_nodetree(brna);
+	rna_def_node_socket(brna);
+	rna_def_node_socket_value(brna);
+	rna_def_node_socket_vector(brna);
+	rna_def_node_socket_rgba(brna);
 	rna_def_node(brna);
 	rna_def_shader_node(brna);
 	rna_def_compositor_node(brna);

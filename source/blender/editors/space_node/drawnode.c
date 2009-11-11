@@ -197,40 +197,30 @@ static void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
+	PointerRNA sockptr;
+	PropertyRNA *prop;
 	
-	uiDefButF(block, NUM, B_NODE_EXEC, "", 
-			  (short)butr->xmin, (short)butr->ymin, butr->xmax-butr->xmin, 20, 
-			  sock->ns.vec, sock->ns.min, sock->ns.max, 10, 2, "");
+	/* first socket stores value */
+	prop = RNA_struct_find_property(ptr, "outputs");
+	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
+	
+	uiItemR(layout, "", 0, &sockptr, "default_value", 0);
 }
 
 static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
+	uiLayout *col;
 	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
-
-	if(sock) {
-		/* enforce square box drawing */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
-		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-				  (short)butr->xmin, (short)butr->ymin, butr->xmax-butr->xmin, 12, 
-				  sock->ns.vec, 0.0f, 1.0f, 3, 0, "");
-		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-				  (short)butr->xmin, (short)butr->ymin+15, butr->xmax-butr->xmin, butr->xmax-butr->xmin -15 -15, 
-				  sock->ns.vec, 0.0f, 1.0f, 2, 0, "");
-		uiDefButF(block, COL, B_NOP, "",		
-				  (short)butr->xmin, (short)butr->ymax-12, butr->xmax-butr->xmin, 12, 
-				  sock->ns.vec, 0.0, 0.0, -1, 0, "");
-		/* the -1 above prevents col button to popup a color picker */
-		
-		uiBlockSetEmboss(block, UI_EMBOSS);
-	}
+	PointerRNA sockptr;
+	PropertyRNA *prop;
+	
+	/* first socket stores value */
+	prop = RNA_struct_find_property(ptr, "outputs");
+	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
+	
+	col = uiLayoutColumn(layout, 0);
+	uiItemR(col, "", 0, &sockptr, "default_value", 0);
 }
 
 static void node_buts_mix_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)

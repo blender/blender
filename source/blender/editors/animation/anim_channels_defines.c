@@ -1867,7 +1867,7 @@ static void dummy_olddraw_gpencil ()
 						strcpy(treetype, "Material");
 					sprintf(name, "Nodes:%s", treetype);
 					
-					special= ICON_NODE;
+					special= ICON_NODETREE;
 				}
 					break;
 				case SPACE_SEQ:

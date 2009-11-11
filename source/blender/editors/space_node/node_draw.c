@@ -548,55 +548,25 @@ static void node_sync_cb(bContext *C, void *snode_v, void *node_v)
 
 /* **************  Socket callbacks *********** */
 
-static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
-{
-	if(node_v && ntree_v) {
-		NodeTagChanged(ntree_v, node_v); 
-		// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC); XXX
-	}
-}
-
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
-	ScrArea *sa= CTX_wm_area(C);
-	bNode *node;
 	bNodeSocket *sock= socket_v;
-	bNodeStack *ns= &sock->ns;
 	uiBlock *block;
-	uiBut *bt;
 	
-	/* a bit ugly... retrieve the node the socket comes from */
-	for(node= snode->nodetree->nodes.first; node; node= node->next) {
-		bNodeSocket *sockt;
-		for(sockt= node->inputs.first; sockt; sockt= sockt->next)
-			if(sockt==sock)
-				break;
-		if(sockt)
-			break;
-	}
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->nodetree;
+	PointerRNA ptr;
+	uiLayout *layout;
+	
+	RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
 	
 	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
-
-	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
 	
-	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, 0, "X ",	 0,40,180,20, ns->vec, ns->min, ns->max, 10, 0, "");
-	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
-	bt= uiDefButF(block, NUMSLI, 0, "Y ",	 0,20,180,20, ns->vec+1, ns->min, ns->max, 10, 0, "");
-	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
-	bt= uiDefButF(block, NUMSLI, 0, "Z ",	 0,0,180,20, ns->vec+2, ns->min, ns->max, 10, 0, "");
-	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
+	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, sock->locx, sock->locy-8, 140, 20, U.uistyles.first), 0);
 	
-	uiBlockSetDirection(block, UI_TOP);
-	uiEndBlock(C, block);
-	
-	ED_area_tag_redraw(sa);
-	
-	return block;
+	uiItemR(layout, "", 0, &ptr, "default_value", UI_ITEM_R_EXPAND);
 }
 
 /* not a callback */
@@ -671,6 +641,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	int /*ofs,*/ color_id= node_get_colorid(node);
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
+	bNodeTree *ntree = snode->nodetree;
+	PointerRNA ptr;
 	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
@@ -705,10 +677,10 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		glEnable(GL_BLEND);
 		if(node->id->lib) {
 			float rgb[3] = {1.0f, 0.7f, 0.3f};
-			UI_icon_draw_aspect_color(iconofs, rct->ymax-NODE_DY, ICON_NODE, snode->aspect, rgb);
+			UI_icon_draw_aspect_color(iconofs, rct->ymax-NODE_DY, ICON_NODETREE, snode->aspect, rgb);
 		}
 		else {
-			UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_NODE, snode->aspect, 0.5f);
+			UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_NODETREE, snode->aspect, 0.5f);
 		}
 		glDisable(GL_BLEND);
 	}
@@ -789,13 +761,15 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
+			RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
+			
 			if(node->block && sock->link==NULL) {
 				float *butpoin= sock->ns.vec;
 				
 				if(sock->type==SOCK_VALUE) {
-					bt= uiDefButF(node->block, NUM, B_NODE_EXEC, sock->name, 
-						  (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
-						  butpoin, sock->ns.min, sock->ns.max, 10, 2, "");
+					bt=uiDefButR(node->block, NUM, B_NODE_EXEC, sock->name,
+							 (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
+							  &ptr, "default_value", 0, sock->ns.min, sock->ns.max, -1, -1, NULL);
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 				}
 				else if(sock->type==SOCK_VECTOR) {
@@ -808,9 +782,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 					
 					if(labelw>0) width= 40; else width= (short)node->width-NODE_DY;
 					
-					bt= uiDefButF(node->block, COL, B_NODE_EXEC, "", 
-						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, width, 15, 
-						   butpoin, 0, 0, 0, 0, "");
+					bt=uiDefButR(node->block, COL, B_NODE_EXEC, "",
+								 (short)sock->locx+NODE_DYS, (short)(sock->locy)-8, width, 15, 
+								 &ptr, "default_value", 0, sock->ns.min, sock->ns.max, -1, -1, NULL);
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 					
 					if(labelw>0) uiDefBut(node->block, LABEL, 0, sock->name, 
@@ -820,7 +794,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			}
 			else {
 				
-				uiDefBut(node->block, LABEL, 0, sock->name, (short)(sock->locx+3.0f), (short)(sock->locy-9.0f), 
+				uiDefBut(node->block, LABEL, 0, sock->name, (short)(sock->locx+7), (short)(sock->locy-9.0f), 
 						 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
 			}
 		}

@@ -1434,7 +1434,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{8, "PROPERTIES", ICON_BUTS, "Properties", ""},
 		{9, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
 		{10, "TIMELINE", ICON_TIME, "Timeline", ""},
-		{11, "NODE_EDITOR", ICON_NODE, "Node Editor", ""},
+		{11, "NODE_EDITOR", ICON_NODETREE, "Node Editor", ""},
 		{12, "LOGIC_EDITOR", ICON_LOGIC, "Logic Editor", ""},
 		{13, "OUTLINER", ICON_OOPS, "Outliner", ""},
 		{14, "INFO", ICON_INFO, "Info", ""},
