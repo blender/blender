@@ -36,7 +36,7 @@ class SCENE_PT_scene(SceneButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        col2 = context.region.width > narrowui
         scene = context.scene
         
         if col2:
