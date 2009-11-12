@@ -137,7 +137,8 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
             sub.active = not mat.shadeless
             sub.itemR(mat, "emit")
             sub.itemR(mat, "ambient")
-            col.itemR(mat, "translucency")
+            sub = col.column()
+            sub.itemR(mat, "translucency")
 
             if col2:
                 col = split.column()

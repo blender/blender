@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -54,16 +55,20 @@ class DATA_PT_context_curve(DataButtonsPanel):
         ob = context.object
         curve = context.curve
         space = context.space_data
+        col2 = context.region.width > narrowui
 
-        split = layout.split(percentage=0.65)
+        
+        if col2:
+            split = layout.split(percentage=0.65)
 
-        if ob:
-            split.template_ID(ob, "data")
-            split.itemS()
-        elif curve:
-            split.template_ID(space, "pin_id")
-            split.itemS()
-
+            if ob:
+                split.template_ID(ob, "data")
+                split.itemS()
+            elif curve:
+                split.template_ID(space, "pin_id")
+                split.itemS()
+        else:
+            layout.template_ID(ob, "data")
 
 class DATA_PT_shape_curve(DataButtonsPanel):
     bl_label = "Shape"
@@ -74,6 +79,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
         ob = context.object
         curve = context.curve
         space = context.space_data
+        col2 = context.region.width > narrowui
         is_surf = (ob.type == 'SURFACE')
 
         if not is_surf:
@@ -96,7 +102,8 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 #		col.itemR(curve, "uv_orco")
         col.itemR(curve, "auto_texspace")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Resolution:")
         sub = col.column(align=True)
         sub.itemR(curve, "resolution_u", text="Preview U")
@@ -108,14 +115,14 @@ class DATA_PT_shape_curve(DataButtonsPanel):
             sub.itemR(curve, "render_resolution_v", text="Render V")
 
         # XXX - put somewhere nicer.
-        row = layout.row()
-        row.itemR(curve, "twist_mode")
-        row.itemR(curve, "twist_smooth") # XXX - may not be kept
+        split = layout.split()
 
-#		col.itemL(text="Display:")
-#		col.itemL(text="HANDLES")
-#		col.itemL(text="NORMALS")
-#		col.itemR(curve, "vertex_normal_flip")
+        col = split.column()
+        col.itemR(curve, "twist_mode", text="Twist")
+        
+        if col2:
+            col = split.column()
+        col.itemR(curve, "twist_smooth") # XXX - may not be kept
 
 
 class DATA_PT_geometry_curve(DataButtonsPanel):
@@ -125,6 +132,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
         layout = self.layout
 
         curve = context.curve
+        col2 = context.region.width > narrowui
 
         split = layout.split()
 
@@ -135,7 +143,8 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
         col.itemL(text="Taper Object:")
         col.itemR(curve, "taper_object", text="")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Bevel:")
         col.itemR(curve, "bevel_depth", text="Depth")
         col.itemR(curve, "bevel_resolution", text="Resolution")
@@ -155,6 +164,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
         layout = self.layout
 
         curve = context.curve
+        col2 = context.region.width > narrowui
 
         layout.active = curve.use_path
 
@@ -164,7 +174,8 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
         col.itemR(curve, "path_length", text="Frames")
         col.itemR(curve, "use_path_follow")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemR(curve, "use_stretch")
         col.itemR(curve, "use_radius")
         col.itemR(curve, "use_time_offset", text="Offset Children")

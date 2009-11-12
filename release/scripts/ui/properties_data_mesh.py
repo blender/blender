@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -57,6 +58,7 @@ class DATA_PT_normals(DataButtonsPanel):
         layout = self.layout
 
         mesh = context.mesh
+        col2 = context.region.width > narrowui
 
         split = layout.split()
 
@@ -66,7 +68,10 @@ class DATA_PT_normals(DataButtonsPanel):
         sub.active = mesh.autosmooth
         sub.itemR(mesh, "autosmooth_angle", text="Angle")
 
-        col = split.column()
+        if col2:
+            col = split.column()
+        else:
+            col.itemS()
         col.itemR(mesh, "vertex_normal_flip")
         col.itemR(mesh, "double_sided")
 
@@ -142,6 +147,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
         ob = context.object
         key = ob.data.shape_keys
         kb = ob.active_shape_key
+        col2 = context.region.width > narrowui
 
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
@@ -173,11 +179,17 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             split = layout.split(percentage=0.4)
             row = split.row()
             row.enabled = enable_edit
-            row.itemR(key, "relative")
+            if col2:
+                row.itemR(key, "relative")
 
             row = split.row()
             row.alignment = 'RIGHT'
-
+            
+            if not col2:
+                layout.itemR(key, "relative")
+                row = layout.row()
+                
+            
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
@@ -213,7 +225,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
                     col.itemR(kb, "slider_min", text="Min")
                     col.itemR(kb, "slider_max", text="Max")
 
-                    col = split.column(align=True)
+                    if col2:
+                        col = split.column(align=True)
                     col.active = enable_edit_value
                     col.itemL(text="Blend:")
                     col.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
