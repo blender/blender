@@ -2017,6 +2017,9 @@ static int manipulator_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!(v3d->twflag & V3D_USE_MANIPULATOR)) return OPERATOR_PASS_THROUGH;
 	if(!(v3d->twflag & V3D_DRAW_MANIPULATOR)) return OPERATOR_PASS_THROUGH;
 
+	/* only no modifier or shift */
+	if(event->keymodifier != 0 && event->keymodifier != KM_SHIFT) return OPERATOR_PASS_THROUGH;
+
 	/* note; otherwise opengl won't work */
 	view3d_operator_needs_opengl(C);
 

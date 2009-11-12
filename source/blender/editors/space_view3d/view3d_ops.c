@@ -115,7 +115,11 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/* only for region 3D window */
 	keymap= WM_keymap_find(keyconf, "View3D", SPACE_VIEW3D, 0);
 	
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, 0, 0); /* manipulator always on left mouse, not on action mouse*/
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
+	/*
+	 * Doesn't work with KM_SHIFT, have to use KM_ANY and filter in invoke
+	 * */
+	// WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
 	
