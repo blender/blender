@@ -205,7 +205,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "name", "SEQUENCER_MT_add");
 	
-	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
 }
