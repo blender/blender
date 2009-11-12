@@ -39,11 +39,9 @@ extern PyTypeObject pyrna_prop_Type;
 #define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
 
 typedef struct {
-	void * _a;
-	void * _b;
-	PyTypeObject *py_type;
-} BPy_StructFakeType;
-
+	PyObject_HEAD /* required python macro   */
+	PointerRNA ptr;
+} BPy_DummyPointerRNA;
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
@@ -64,6 +62,7 @@ typedef struct {
 /* cheap trick */
 #define BPy_BaseTypeRNA BPy_PropertyRNA
 
+void      BPY_rna_init( void );
 PyObject *BPY_rna_module( void );
 void	  BPY_update_rna_module( void );
 /*PyObject *BPY_rna_doc( void );*/

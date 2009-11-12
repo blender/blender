@@ -37,7 +37,7 @@
 
 #include "PIL_time.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 
@@ -562,7 +562,7 @@ void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, flo
 {
 	re->r.cfra= frame;
 	RE_SetCamera(re, camera);
-	Mat4CpyMat4(mat, re->winmat);
+	copy_m4_m4(mat, re->winmat);
 }
 
 /* ~~~~~~~~~~~~~~~~ part (tile) calculus ~~~~~~~~~~~~~~~~~~~~~~ */

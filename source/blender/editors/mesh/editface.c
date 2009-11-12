@@ -32,7 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_heap.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
@@ -453,7 +453,7 @@ int minmax_tface(Scene *scene, float *min, float *max)
 	me= get_mesh(ob);
 	if(me==0 || me->mtface==0) return ok;
 	
-	Mat3CpyMat4(bmat, ob->obmat);
+	copy_m3_m4(bmat, ob->obmat);
 
 	mv= me->mvert;
 	mf= me->mface;
@@ -463,24 +463,24 @@ int minmax_tface(Scene *scene, float *min, float *max)
 			continue;
 
 		VECCOPY(vec, (mv+mf->v1)->co);
-		Mat3MulVecfl(bmat, vec);
-		VecAddf(vec, vec, ob->obmat[3]);
+		mul_m3_v3(bmat, vec);
+		add_v3_v3v3(vec, vec, ob->obmat[3]);
 		DO_MINMAX(vec, min, max);		
 
 		VECCOPY(vec, (mv+mf->v2)->co);
-		Mat3MulVecfl(bmat, vec);
-		VecAddf(vec, vec, ob->obmat[3]);
+		mul_m3_v3(bmat, vec);
+		add_v3_v3v3(vec, vec, ob->obmat[3]);
 		DO_MINMAX(vec, min, max);		
 
 		VECCOPY(vec, (mv+mf->v3)->co);
-		Mat3MulVecfl(bmat, vec);
-		VecAddf(vec, vec, ob->obmat[3]);
+		mul_m3_v3(bmat, vec);
+		add_v3_v3v3(vec, vec, ob->obmat[3]);
 		DO_MINMAX(vec, min, max);		
 
 		if (mf->v4) {
 			VECCOPY(vec, (mv+mf->v4)->co);
-			Mat3MulVecfl(bmat, vec);
-			VecAddf(vec, vec, ob->obmat[3]);
+			mul_m3_v3(bmat, vec);
+			add_v3_v3v3(vec, vec, ob->obmat[3]);
 			DO_MINMAX(vec, min, max);
 		}
 		ok= 1;
@@ -500,11 +500,11 @@ static float edgetag_cut_cost(EditMesh *em, int e1, int e2, int vert)
 	EditVert *v2 = EM_get_vert_for_index( (eed2->v1->tmp.l == vert)? eed2->v2->tmp.l: eed2->v1->tmp.l );
 	float cost, d1[3], d2[3];
 
-	cost = VecLenf(v1->co, v->co);
-	cost += VecLenf(v->co, v2->co);
+	cost = len_v3v3(v1->co, v->co);
+	cost += len_v3v3(v->co, v2->co);
 
-	VecSubf(d1, v->co, v1->co);
-	VecSubf(d2, v2->co, v->co);
+	sub_v3_v3v3(d1, v->co, v1->co);
+	sub_v3_v3v3(d2, v2->co, v->co);
 
 	cost = cost + 0.5f*cost*(2.0f - fabs(d1[0]*d2[0] + d1[1]*d2[1] + d1[2]*d2[2]));
 

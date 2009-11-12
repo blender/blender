@@ -28,9 +28,9 @@ def main(context):
     mesh = ob.data
     
     face_list = [face for face in mesh.faces]
-    face_edge_keys = [face.edge_keys() for face in face_list]
+    face_edge_keys = [face.edge_keys for face in face_list]
 
-    edge_face_count = mesh.edge_face_count_dict(face_edge_keys)
+    edge_face_count = mesh.edge_face_count_dict
     
     def test_interior(index):
         for key in face_edge_keys[index]:

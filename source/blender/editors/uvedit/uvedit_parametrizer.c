@@ -2,7 +2,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_memarena.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_heap.h"
 #include "BLI_boxpack2d.h"
@@ -333,8 +333,8 @@ static float p_vec_angle_cos(float *v1, float *v2, float *v3)
 	d2[1] = v3[1] - v2[1];
 	d2[2] = v3[2] - v2[2];
 
-	Normalize(d1);
-	Normalize(d2);
+	normalize_v3(d1);
+	normalize_v3(d2);
 
 	return d1[0]*d2[0] + d1[1]*d2[1] + d1[2]*d2[2];
 }
@@ -382,7 +382,7 @@ static float p_face_area(PFace *f)
 	PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
 	PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
 
-	return AreaT3Dfl(v1->co, v2->co, v3->co);
+	return area_tri_v3(v1->co, v2->co, v3->co);
 }
 
 static float p_area_signed(float *v1, float *v2, float *v3)
@@ -1099,7 +1099,7 @@ static PFace *p_face_add_fill(PChart *chart, PVert *v1, PVert *v2, PVert *v3)
 
 static PBool p_quad_split_direction(PHandle *handle, float **co, PHashKey *vkeys)
 {
-	float fac= VecLenf(co[0], co[2]) - VecLenf(co[1], co[3]);
+	float fac= len_v3v3(co[0], co[2]) - len_v3v3(co[1], co[3]);
 	PBool dir = (fac <= 0.0f);
 
 	/* the face exists check is there because of a special case: when
@@ -1414,16 +1414,16 @@ static float p_vert_cotan(float *v1, float *v2, float *v3)
 {
 	float a[3], b[3], c[3], clen;
 
-	VecSubf(a, v2, v1);
-	VecSubf(b, v3, v1);
-	Crossf(c, a, b);
+	sub_v3_v3v3(a, v2, v1);
+	sub_v3_v3v3(b, v3, v1);
+	cross_v3_v3v3(c, a, b);
 
-	clen = VecLength(c);
+	clen = len_v3(c);
 
 	if (clen == 0.0f)
 		return 0.0f;
 	
-	return Inpf(a, b)/clen;
+	return dot_v3v3(a, b)/clen;
 }
 	
 static PBool p_vert_flipped_wheel_triangle(PVert *v)
@@ -1752,15 +1752,15 @@ static PBool p_collapse_normal_flipped(float *v1, float *v2, float *vold, float 
 {
 	float nold[3], nnew[3], sub1[3], sub2[3];
 
-	VecSubf(sub1, vold, v1);
-	VecSubf(sub2, vold, v2);
-	Crossf(nold, sub1, sub2);
+	sub_v3_v3v3(sub1, vold, v1);
+	sub_v3_v3v3(sub2, vold, v2);
+	cross_v3_v3v3(nold, sub1, sub2);
 
-	VecSubf(sub1, vnew, v1);
-	VecSubf(sub2, vnew, v2);
-	Crossf(nnew, sub1, sub2);
+	sub_v3_v3v3(sub1, vnew, v1);
+	sub_v3_v3v3(sub2, vnew, v2);
+	cross_v3_v3v3(nnew, sub1, sub2);
 
-	return (Inpf(nold, nnew) <= 0.0f);
+	return (dot_v3v3(nold, nnew) <= 0.0f);
 }
 
 static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
@@ -1866,7 +1866,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
 	oldf1 = (edge)? edge->face: NULL;
 	oldf2 = (pair)? pair->face: NULL;
 
-	VecSubf(edgevec, keepv->co, oldv->co);
+	sub_v3_v3v3(edgevec, keepv->co, oldv->co);
 
 	e = oldv->edge;
 	do {
@@ -1878,16 +1878,16 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
 			float tetrav2[3], tetrav3[3], c[3];
 
 			/* tetrahedron volume = (1/3!)*|a.(b x c)| */
-			VecSubf(tetrav2, co1, oldv->co);
-			VecSubf(tetrav3, co2, oldv->co);
-			Crossf(c, tetrav2, tetrav3);
+			sub_v3_v3v3(tetrav2, co1, oldv->co);
+			sub_v3_v3v3(tetrav3, co2, oldv->co);
+			cross_v3_v3v3(c, tetrav2, tetrav3);
 
-			volumecost += fabs(Inpf(edgevec, c)/6.0f);
+			volumecost += fabs(dot_v3v3(edgevec, c)/6.0f);
 #if 0
-			shapecost += Inpf(co1, keepv->co);
+			shapecost += dot_v3v3(co1, keepv->co);
 
 			if (p_wheel_edge_next(e) == NULL)
-				shapecost += Inpf(co2, keepv->co);
+				shapecost += dot_v3v3(co2, keepv->co);
 #endif
 
 			p_triangle_angles(oldv->co, co1, co2, &a1, &a2, &a3);
@@ -1915,10 +1915,10 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
 		PVert *v1 = p_boundary_edge_prev(oldv->edge)->vert;
 		PVert *v2 = p_boundary_edge_next(oldv->edge)->vert;
 
-		areacost = AreaT3Dfl(oldv->co, v1->co, v2->co);
+		areacost = area_tri_v3(oldv->co, v1->co, v2->co);
 	}
 
-	elen = VecLength(edgevec);
+	elen = len_v3(edgevec);
 	weight = 1.0f; /* 0.2f */
 	cost = weight*volumecost*volumecost + elen*elen*areacost*areacost;
 #if 0
@@ -2750,7 +2750,7 @@ static void p_chart_pin_positions(PChart *chart, PVert **pin1, PVert **pin2)
 		int diru, dirv, dirx, diry;
 		float sub[3];
 
-		VecSubf(sub, (*pin1)->co, (*pin2)->co);
+		sub_v3_v3v3(sub, (*pin1)->co, (*pin2)->co);
 		sub[0] = fabs(sub[0]);
 		sub[1] = fabs(sub[1]);
 		sub[2] = fabs(sub[2]);
@@ -3185,35 +3185,35 @@ static float p_face_stretch(PFace *f)
 	w= 1.0f/(2.0f*area);
 
 	/* compute derivatives */
-	VecCopyf(Ps, v1->co);
-	VecMulf(Ps, (v2->uv[1] - v3->uv[1]));
+	copy_v3_v3(Ps, v1->co);
+	mul_v3_fl(Ps, (v2->uv[1] - v3->uv[1]));
 
-	VecCopyf(tmp, v2->co);
-	VecMulf(tmp, (v3->uv[1] - v1->uv[1]));
-	VecAddf(Ps, Ps, tmp);
+	copy_v3_v3(tmp, v2->co);
+	mul_v3_fl(tmp, (v3->uv[1] - v1->uv[1]));
+	add_v3_v3v3(Ps, Ps, tmp);
 
-	VecCopyf(tmp, v3->co);
-	VecMulf(tmp, (v1->uv[1] - v2->uv[1]));
-	VecAddf(Ps, Ps, tmp);
+	copy_v3_v3(tmp, v3->co);
+	mul_v3_fl(tmp, (v1->uv[1] - v2->uv[1]));
+	add_v3_v3v3(Ps, Ps, tmp);
 
-	VecMulf(Ps, w);
+	mul_v3_fl(Ps, w);
 
-	VecCopyf(Pt, v1->co);
-	VecMulf(Pt, (v3->uv[0] - v2->uv[0]));
+	copy_v3_v3(Pt, v1->co);
+	mul_v3_fl(Pt, (v3->uv[0] - v2->uv[0]));
 
-	VecCopyf(tmp, v2->co);
-	VecMulf(tmp, (v1->uv[0] - v3->uv[0]));
-	VecAddf(Pt, Pt, tmp);
+	copy_v3_v3(tmp, v2->co);
+	mul_v3_fl(tmp, (v1->uv[0] - v3->uv[0]));
+	add_v3_v3v3(Pt, Pt, tmp);
 
-	VecCopyf(tmp, v3->co);
-	VecMulf(tmp, (v2->uv[0] - v1->uv[0]));
-	VecAddf(Pt, Pt, tmp);
+	copy_v3_v3(tmp, v3->co);
+	mul_v3_fl(tmp, (v2->uv[0] - v1->uv[0]));
+	add_v3_v3v3(Pt, Pt, tmp);
 
-	VecMulf(Pt, w);
+	mul_v3_fl(Pt, w);
 
 	/* Sander Tensor */
-	a= Inpf(Ps, Ps);
-	c= Inpf(Pt, Pt);
+	a= dot_v3v3(Ps, Ps);
+	c= dot_v3v3(Pt, Pt);
 
 	T =  sqrt(0.5f*(a + c));
 	if (f->flag & PFACE_FILLED)
@@ -3273,7 +3273,7 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 		low = 0;
 		stretch_low = orig_stretch;
 
-		Vec2Addf(v->uv, orig_uv, dir);
+		add_v2_v2v2(v->uv, orig_uv, dir);
 		high = 1;
 		stretch = stretch_high = p_stretch_compute_vertex(v);
 
@@ -3296,7 +3296,7 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 
 		/* no luck, stretch has increased, reset to old values */
 		if(stretch >= orig_stretch)
-			Vec2Copyf(v->uv, orig_uv);
+			copy_v2_v2(v->uv, orig_uv);
 	}
 }
 
@@ -3404,7 +3404,7 @@ static float p_rectangle_area(float *p1, float *dir, float *p2, float *p3, float
 	if (!p_intersect_line_2d_dir(p3, dir, p4, orthodir, corner3))
 		return 1e10;
 
-	return Vec2Lenf(corner1, corner2)*Vec2Lenf(corner2, corner3);
+	return len_v2v2(corner1, corner2)*len_v2v2(corner2, corner3);
 }
 
 static float p_chart_minimum_area_angle(PChart *chart)
@@ -3499,7 +3499,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 		p3 = points[idx[(mini+2)%4]];
 		p4 = points[idx[(mini+3)%4]];
 
-		len = Vec2Lenf(p1->uv, p1n->uv);
+		len = len_v2v2(p1->uv, p1n->uv);
 
 		if (len > 0.0f) {
 			len = 1.0/len;

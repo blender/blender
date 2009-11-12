@@ -64,7 +64,7 @@
 
 #include "BIF_gl.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
@@ -395,21 +395,6 @@ static void composit_node_event(SpaceNode *snode, short event)
 		case B_REDR:
 			// allqueue(REDRAWNODE, 1);
 			break;
-		case B_NODE_LOADIMAGE:
-		{
-			bNode *node= nodeGetActive(snode->edittree);
-			char name[FILE_MAXDIR+FILE_MAXFILE];
-			
-			if(node->id)
-				strcpy(name, ((Image *)node->id)->name);
-			else strcpy(name, U.textudir);
-			if (G.qual & LR_CTRLKEY) {
-				activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
-			} else {
-				activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
-			}
-			break;
-		}
 		case B_NODE_SETIMAGE:
 		{
 			bNode *node= nodeGetActive(snode->edittree);
@@ -1266,6 +1251,8 @@ void NODE_OT_resize(wmOperatorType *ot)
 
 /* ******************** rename ******************* */
 
+
+/* should go through RNA */
 void node_rename(SpaceNode *snode)
 {
 	bNode *node, *rename_node;
@@ -1281,7 +1268,7 @@ void node_rename(SpaceNode *snode)
 
 	if(found_node) {
 		rename_node= nodeGetActive(snode->edittree);
-		node_rename_but((char *)rename_node->username);
+		node_rename_but((char *)rename_node->name);
 	
 		// allqueue(REDRAWNODE, 1);
 	}
@@ -2169,7 +2156,7 @@ static int cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 
 		for(i=0; i<tot-1; i++)
 			for(b=0; b<LINK_RESOL-1; b++)
-				if(IsectLL2Df(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
+				if(isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
 					return 1;
 	}
 	return 0;

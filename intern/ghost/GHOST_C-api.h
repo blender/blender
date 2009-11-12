@@ -406,6 +406,17 @@ extern GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
 										   GHOST_TButtonMask mask,
 										   int* isDown);
 
+
+/***************************************************************************************
+ ** Drag'n'drop operations
+ ***************************************************************************************/
+
+/**
+ * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
+ */
+extern void GHOST_setAcceptDragOperation(GHOST_SystemHandle systemhandle, GHOST_TInt8 canAccept);
+	
+	
 /**
  * Returns the event type.
  * @param eventhandle The handle to the event

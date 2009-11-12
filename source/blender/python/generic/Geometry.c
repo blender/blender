@@ -30,7 +30,7 @@
 #include "Geometry.h"
 
 /*  - Not needed for now though other geometry functions will probably need them
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BKE_utildefines.h"
 */
 
@@ -42,10 +42,10 @@
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
 #include "BLI_boxpack2d.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #define SWAP_FLOAT(a,b,tmp) tmp=a; a=b; b=tmp
-#define eul 0.000001
+#define eps 0.000001
 
 /*-- forward declarations -- */
 static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq );
@@ -252,18 +252,18 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		Py_RETURN_NONE;
 	}
 	/* Make sure the hoz/vert line comes first. */
-	if (fabs(b1x - b2x) < eul || fabs(b1y - b2y) < eul) {
+	if (fabs(b1x - b2x) < eps || fabs(b1y - b2y) < eps) {
 		SWAP_FLOAT(a1x, b1x, xi); /*abuse xi*/
 		SWAP_FLOAT(a1y, b1y, xi);
 		SWAP_FLOAT(a2x, b2x, xi);
 		SWAP_FLOAT(a2y, b2y, xi);
 	}
 	
-	if (fabs(a1x-a2x) < eul) { /* verticle line */
-		if (fabs(b1x-b2x) < eul){ /*verticle second line */
+	if (fabs(a1x-a2x) < eps) { /* verticle line */
+		if (fabs(b1x-b2x) < eps){ /*verticle second line */
 			Py_RETURN_NONE; /* 2 verticle lines dont intersect. */
 		}
-		else if (fabs(b1y-b2y) < eul) {
+		else if (fabs(b1y-b2y) < eps) {
 			/*X of vert, Y of hoz. no calculation needed */
 			newvec[0]= a1x;
 			newvec[1]= b1y;
@@ -280,8 +280,8 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		newvec[0]= a1x;
 		newvec[1]= yi;
 		return newVectorObject(newvec, 2, Py_NEW, NULL);
-	} else if (fabs(a2y-a1y) < eul) {  /* hoz line1 */
-		if (fabs(b2y-b1y) < eul) { /*hoz line2*/
+	} else if (fabs(a2y-a1y) < eps) {  /* hoz line1 */
+		if (fabs(b2y-b1y) < eps) { /*hoz line2*/
 			Py_RETURN_NONE; /*2 hoz lines dont intersect*/
 		}
 		
@@ -346,7 +346,7 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 	else { l2[2]=0.0;	VECCOPY2D(l2, line_2->vec) }
 	
 	/* do the calculation */
-	lambda = lambda_cp_line_ex(pt_in, l1, l2, pt_out);
+	lambda = closest_to_line_v3( pt_out,pt_in, l1, l2);
 	
 	ret = PyTuple_New(2);
 	PyTuple_SET_ITEM( ret, 0, newVectorObject(pt_out, 3, Py_NEW, NULL) );
@@ -371,7 +371,7 @@ static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args 
 	if(!BaseMath_ReadCallback(pt_vec) || !BaseMath_ReadCallback(tri_p1) || !BaseMath_ReadCallback(tri_p2) || !BaseMath_ReadCallback(tri_p3))
 		return NULL;
 	
-	return PyLong_FromLong(IsectPT2Df(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
+	return PyLong_FromLong(isect_point_tri_v2(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
 }
 
 static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
@@ -392,7 +392,7 @@ static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
 	if(!BaseMath_ReadCallback(pt_vec) || !BaseMath_ReadCallback(quad_p1) || !BaseMath_ReadCallback(quad_p2) || !BaseMath_ReadCallback(quad_p3) || !BaseMath_ReadCallback(quad_p4))
 		return NULL;
 	
-	return PyLong_FromLong(IsectPQ2Df(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
+	return PyLong_FromLong(isect_point_quad_v2(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
 }
 
 static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )

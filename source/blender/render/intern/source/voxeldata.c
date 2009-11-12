@@ -32,7 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_voxel.h"
 
@@ -277,9 +277,9 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 	/* scale lookup from 0.0-1.0 (original location) to -1.0, 1.0, consistent with image texture tex coords */
 	/* in implementation this works backwards, bringing sample locations from -1.0, 1.0
 	 * to the range 0.0, 1.0, before looking up in the voxel structure. */
-	VecCopyf(co, texvec);
-	VecMulf(co, 0.5f);
-	VecAddf(co, co, offset);
+	copy_v3_v3(co, texvec);
+	mul_v3_fl(co, 0.5f);
+	add_v3_v3v3(co, co, offset);
 
 	/* co is now in the range 0.0, 1.0 */
 	switch (tex->extend) {

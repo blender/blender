@@ -49,7 +49,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -120,7 +120,7 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	
 	if(mval[0]!=IS_CLIPPED) {
 		window_to_3d_delta(vc->ar, dvec, mval[0]-mx, mval[1]-my);
-		VecSubf(fp, fp, dvec);
+		sub_v3_v3v3(fp, fp, dvec);
 	}
 }
 
@@ -129,7 +129,7 @@ void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
 	float cpy[4][4];
 	int i, j;
 
-	Mat4MulMat4(cpy, ob->obmat, vc->rv3d->viewmat);
+	mul_m4_m4m4(cpy, ob->obmat, vc->rv3d->viewmat);
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
@@ -326,9 +326,9 @@ int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, in
 	
 	/* no points in lasso, so we have to intersect with lasso edge */
 	
-	if( IsectLL2Ds(mcords[0], mcords[moves-1], v1, v2) > 0) return 1;
+	if( isect_line_line_v2_short(mcords[0], mcords[moves-1], v1, v2) > 0) return 1;
 	for(a=0; a<moves-1; a++) {
-		if( IsectLL2Ds(mcords[a], mcords[a+1], v1, v2) > 0) return 1;
+		if( isect_line_line_v2_short(mcords[a], mcords[a+1], v1, v2) > 0) return 1;
 	}
 	
 	return 0;
@@ -349,15 +349,22 @@ static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		VECCOPY(vec, pchan->pose_head);
-		Mat4MulVecfl(ob->obmat, vec);
+		mul_m4_v3(ob->obmat, vec);
 		project_short(vc->ar, vec, sco1);
 		VECCOPY(vec, pchan->pose_tail);
-		Mat4MulVecfl(ob->obmat, vec);
+		mul_m4_v3(ob->obmat, vec);
 		project_short(vc->ar, vec, sco2);
 		
 		if(lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) pchan->bone->flag |= BONE_SELECTED;
-			else pchan->bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+			else pchan->bone->flag &= ~BONE_SELECTED;
+		}
+	}
+	
+	{
+		bArmature *arm= ob->data;
+		if(arm->act_bone && (arm->act_bone->flag & BONE_SELECTED)==0) {
+			arm->act_bone= NULL;
 		}
 	}
 }
@@ -618,10 +625,10 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
 
 		VECCOPY(vec, ebone->head);
-		Mat4MulVecfl(vc->obedit->obmat, vec);
+		mul_m4_v3(vc->obedit->obmat, vec);
 		project_short(vc->ar, vec, sco1);
 		VECCOPY(vec, ebone->tail);
-		Mat4MulVecfl(vc->obedit->obmat, vec);
+		mul_m4_v3(vc->obedit->obmat, vec);
 		project_short(vc->ar, vec, sco2);
 		
 		didpoint= 0;
@@ -638,9 +645,11 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 		/* if one of points selected, we skip the bone itself */
 		if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
-			else ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			else ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
+
+	ED_armature_validate_active(arm);
 }
 
 static void do_lasso_select_facemode(ViewContext *vc, short mcords[][2], short moves, short select)
@@ -1218,7 +1227,7 @@ int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, 
 	v2[0]= x2;
 	v2[1]= y2;
 	
-	if( PdistVL2Dfl(v3, v1, v2) < (float)rad ) return 1;
+	if( dist_to_line_segment_v2(v3, v1, v2) < (float)rad ) return 1;
 	
 	return 0;
 }
@@ -1534,8 +1543,12 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 // XXX									select_actionchannel_by_name(base->object->action, bone->name, 1);
 								}
 								else {
-									bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+									bArmature *arm= base->object->data;
+									bone->flag &= ~BONE_SELECTED;
 // XXX									select_actionchannel_by_name(base->object->action, bone->name, 0);
+									if(arm->act_bone==bone)
+										arm->act_bone= NULL;
+									
 								}
 							}
 						}
@@ -1704,6 +1717,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 
 		vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
 
+		data.vc = vc;
 		data.select = selecting;
 		data.mval[0] = mval[0];
 		data.mval[1] = mval[1];
@@ -1846,12 +1860,12 @@ static void armature_circle_select(ViewContext *vc, int selecting, short *mval, 
 		
 		/* project head location to screenspace */
 		VECCOPY(vec, ebone->head);
-		Mat4MulVecfl(vc->obedit->obmat, vec);
+		mul_m4_v3(vc->obedit->obmat, vec);
 		project_short(vc->ar, vec, sco1);
 		
 		/* project tail location to screenspace */
 		VECCOPY(vec, ebone->tail);
-		Mat4MulVecfl(vc->obedit->obmat, vec);
+		mul_m4_v3(vc->obedit->obmat, vec);
 		project_short(vc->ar, vec, sco2);
 		
 		/* check if the head and/or tail is in the circle 
@@ -1868,9 +1882,11 @@ static void armature_circle_select(ViewContext *vc, int selecting, short *mval, 
 			if (selecting) 
 				ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
 			else 
-				ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL); 
+				ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
+
+	ED_armature_validate_active(arm);
 }
 
 /** Callbacks for circle selection in Editmode */

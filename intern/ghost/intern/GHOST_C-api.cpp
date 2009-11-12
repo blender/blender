@@ -404,6 +404,13 @@ GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
 }
 
 
+void GHOST_setAcceptDragOperation(GHOST_SystemHandle systemhandle, GHOST_TInt8 canAccept)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+
+	system->setAcceptDragOperation(canAccept);
+}
+
 
 GHOST_TEventType GHOST_GetEventType(GHOST_EventHandle eventhandle)
 {

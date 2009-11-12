@@ -403,7 +403,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 
 		/* Get the current position. */
 		VECCOPY(verts->xconst, mvert[i].co);
-		Mat4MulVecfl(ob->obmat, verts->xconst);
+		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
 	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights);
@@ -723,7 +723,7 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *
 
 	if (clmd->clothObject) {
 		/* inverse matrix is not uptodate... */
-		Mat4Invert (ob->imat, ob->obmat);
+		invert_m4_m4(ob->imat, ob->obmat);
 
 		mvert = CDDM_get_verts(dm);
 		numverts = dm->getNumVerts(dm);
@@ -731,7 +731,7 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *
 		for (i = 0; i < numverts; i++)
 		{
 			VECCOPY (mvert[i].co, cloth->verts[i].x);
-			Mat4MulVecfl (ob->imat, mvert[i].co);	/* cloth is in global coords */
+			mul_m4_v3(ob->imat, mvert[i].co);	/* cloth is in global coords */
 		}
 	}
 }
@@ -867,7 +867,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		if(first)
 		{
 			VECCOPY ( verts->x, mvert[i].co );
-			Mat4MulVecfl ( ob->obmat, verts->x );
+			mul_m4_v3( ob->obmat, verts->x );
 		}
 		
 		/* no GUI interface yet */
@@ -884,7 +884,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		VECCOPY ( verts->xconst, verts->x );
 		VECCOPY ( verts->txold, verts->x );
 		VECCOPY ( verts->tx, verts->x );
-		VecMulf ( verts->v, 0.0f );
+		mul_v3_fl( verts->v, 0.0f );
 
 		verts->impulse_count = 0;
 		VECCOPY ( verts->impulse, tnull );

@@ -800,7 +800,7 @@ class thickface(object):
 			
 		self.no = face.normal
 		self.area = face.area
-		self.edge_keys = face.edge_keys()
+		self.edge_keys = face.edge_keys
 
 global ob
 ob = None

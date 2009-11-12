@@ -64,6 +64,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_text.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 
 #include "BPY_extern.h"
 
@@ -176,35 +177,35 @@ static void bpy_init_modules( void )
 {
 	PyObject *mod;
 	
+	/* Needs to be first since this dir is needed for future modules */
+	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
+	if(modpath) {
+		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
+		PyObject *py_modpath= PyUnicode_FromString(modpath);
+		PyList_Insert(sys_path, 0, py_modpath); /* add first */
+		Py_DECREF(py_modpath);
+	}
+	
 	mod = PyModule_New("bpy");
-	
-	PyModule_AddObject( mod, "data", BPY_rna_module() );
-	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
-	PyModule_AddObject( mod, "types", BPY_rna_types() );
-	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
-	
+
 	/* add the module so we can import it */
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
 
-	/* add our own modules dir */
-	{
-		char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
-		
-		if(modpath) {
-			PyObject *sys_path= PySys_GetObject("path"); /* borrow */
-			PyObject *py_modpath= PyUnicode_FromString(modpath);
-			PyList_Insert(sys_path, 0, py_modpath); /* add first */
-			Py_DECREF(py_modpath);
-		}
-		
-		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
-		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
-		bpy_import_test("bpy_ext"); /* extensions to our existing types */
-	}
-	
+	/* run first, initializes rna types */
+	BPY_rna_init();
+
+	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
+	bpy_import_test("bpy_types");
+	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
+	bpy_import_test("bpy_types");
+	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
+	PyModule_AddObject( mod, "props", BPY_rna_props() );
+	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
+
+
+
 	/* bpy context */
 	{
 		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
@@ -213,11 +214,16 @@ static void bpy_init_modules( void )
 		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 	}
 
-
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
 	BGL_Init();
+
+	/* add our own modules dir */
+	{
+		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
+		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
+	}
 }
 
 void BPY_update_modules( void )
@@ -411,24 +417,32 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 			py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
 		
 	} else {
-#if 0
-		char *pystring;
-		pystring= malloc(strlen(fn) + 32);
-		pystring[0]= '\0';
-		sprintf(pystring, "exec(open(r'%s').read())", fn);
-		py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
-		free(pystring);
-#else
 		FILE *fp= fopen(fn, "r");		
 		if(fp) {
+#ifdef _WIN32
+			/* Previously we used PyRun_File to run directly the code on a FILE 
+			 * object, but as written in the Python/C API Ref Manual, chapter 2,
+			 * 'FILE structs for different C libraries can be different and 
+			 * incompatible'.
+			 * So now we load the script file data to a buffer */
+			char *pystring;
+
+			fclose(fp);
+
+			pystring= malloc(strlen(fn) + 32);
+			pystring[0]= '\0';
+			sprintf(pystring, "exec(open(r'%s').read())", fn);
+			py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
+			free(pystring);
+#else
 			py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
 			fclose(fp);
+#endif
 		}
 		else {
 			PyErr_Format(PyExc_SystemError, "Python file \"%s\" could not be opened: %s", fn, strerror(errno));
 			py_result= NULL;
 		}
-#endif
 	}
 	
 	if (!py_result) {
@@ -961,7 +975,7 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 
 
 
-int bpy_context_get(bContext *C, const char *member, bContextDataResult *result)
+int BPY_context_get(bContext *C, const char *member, bContextDataResult *result)
 {
 	PyObject *pyctx= (PyObject *)CTX_py_dict_get(C);
 	PyObject *item= PyDict_GetItemString(pyctx, member);
@@ -1014,8 +1028,11 @@ int bpy_context_get(bContext *C, const char *member, bContextDataResult *result)
 	}
 
 	if(done==0) {
-		if (item)	printf("Context '%s' not found\n", member);
-		else		printf("Context '%s' not a valid type\n", member);
+		if (item)	printf("Context '%s' not a valid type\n", member);
+		else		printf("Context '%s' not found\n", member);
+	}
+	else if (G.f & G_DEBUG) {
+		printf("Context '%s' found\n", member);
 	}
 
 	return done;

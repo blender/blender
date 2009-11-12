@@ -123,7 +123,8 @@ class INFO_MT_file_import(dynamic_menu.DynMenu):
     bl_label = "Import"
 
     def draw(self, context):
-        self.layout.itemO("WM_OT_collada_import", text="COLLADA (.dae)...")
+        if "collada_import" in dir(bpy.ops.wm):
+            self.layout.itemO("wm.collada_import", text="COLLADA (.dae)...")
 
 
 class INFO_MT_file_export(dynamic_menu.DynMenu):
@@ -131,7 +132,8 @@ class INFO_MT_file_export(dynamic_menu.DynMenu):
     bl_label = "Export"
 
     def draw(self, context):
-        self.layout.itemO("WM_OT_collada_export", text="COLLADA (.dae)...")
+        if "collada_export" in dir(bpy.ops.wm):
+            self.layout.itemO("wm.collada_export", text="COLLADA (.dae)...")
 
 
 class INFO_MT_file_external_data(bpy.types.Menu):
@@ -187,9 +189,9 @@ class INFO_MT_add(bpy.types.Menu):
         layout.itemO("object.text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
 
         layout.itemS()
-        
+
         layout.operator_context = "INVOKE_SCREEN"
-        
+
         layout.itemO("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
         layout.item_enumO("object.add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
         layout.item_enumO("object.add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
@@ -197,9 +199,9 @@ class INFO_MT_add(bpy.types.Menu):
         layout.itemS()
 
         layout.item_enumO("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
-        
+
         layout.operator_context = "EXEC_SCREEN"
-        
+
         layout.item_menu_enumO("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
 
         layout.itemS()

@@ -91,18 +91,6 @@ IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
-IF (WITH_OPENCOLLADA AND NOT APPLE)
-SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
-SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA})
-SET(OPENCOLLADA_LIB OpenCollada)
-SET(PCRE /usr CACHE FILEPATH "PCRE Directory")
-SET(PCRE_LIBPATH ${PCRE}/lib)
-SET(PCRE_LIB pcre)
-SET(EXPAT /usr CACHE FILEPATH "Expat Directory")
-SET(EXPAT_LIBPATH ${EXPAT}/lib)
-SET(EXPAT_LIB expat)
-ENDIF (WITH_OPENCOLLADA AND NOT APPLE)
-
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
 #   cmake -D PYTHON_LIB=/usr/local/lib/python2.3/config/libpython2.3.so -D PYTHON_INC=/usr/local/include/python2.3 -D PYTHON_BINARY=/usr/local/bin/python2.3 -G "Unix Makefiles" ../blender
@@ -119,6 +107,8 @@ INCLUDE(CMake/macros.cmake)
 #Platform specifics
 
 IF(UNIX AND NOT APPLE)
+
+
 	IF(WITH_OPENAL)
 		FIND_PACKAGE(OpenAL)
 		IF(OPENAL_FOUND)
@@ -216,6 +206,20 @@ IF(UNIX AND NOT APPLE)
 	FIND_PACKAGE(PNG REQUIRED)
 
 	FIND_PACKAGE(ZLIB REQUIRED)
+
+	IF (WITH_OPENCOLLADA)
+		SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
+		SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA})
+		SET(OPENCOLLADA_LIB OpenCollada)
+		SET(OPENCOLLADA_INC ${OPENCOLLADA})
+		SET(PCRE /usr CACHE FILEPATH "PCRE Directory")
+		SET(PCRE_LIBPATH ${PCRE}/lib)
+		SET(PCRE_LIB pcre)
+		SET(EXPAT /usr CACHE FILEPATH "Expat Directory")
+		SET(EXPAT_LIBPATH ${EXPAT}/lib)
+		SET(EXPAT_LIB expat)
+	ENDIF (WITH_OPENCOLLADA)
+
 
 	# Could use ${X11_Xinput_LIB} ${X11_X11_LIB} too
 	SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11")
@@ -400,6 +404,16 @@ IF(WIN32)
   
 	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
+	SET(OPENCOLLADA ${LIBDIR}/opencollada)
+	SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
+	SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
+	SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 )
+	#pcre is bundled with openCollada
+	#SET(PCRE ${LIBDIR}/pcre)
+	#SET(PCRE_LIBPATH ${PCRE}/lib)
+	SET(PCRE_LIB pcre)
+
+
 	IF(CMAKE_CL_64)
 		SET(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
 	ELSE(CMAKE_CL_64)
@@ -532,10 +546,10 @@ IF(APPLE)
 		#SET(PCRE ${LIBDIR}/pcre)
 		#SET(PCRE_LIBPATH ${PCRE}/lib)
 		SET(PCRE_LIB pcre)
-		#native OSX libxml2 is used
+		#libxml2 is used
 		#SET(EXPAT ${LIBDIR}/expat)
 		#SET(EXPAT_LIBPATH ${EXPAT}/lib)
-		#SET(EXPAT_LIB expat)
+		SET(EXPAT_LIB)
 	ENDIF (WITH_OPENCOLLADA)
 
 	SET(SDL ${LIBDIR}/sdl)

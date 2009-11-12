@@ -101,7 +101,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		/* retrieve normal */
 		if(in[MAT_IN_NORMAL]->hasinput) {
 			nodestack_get_vec(shi->vn, SOCK_VECTOR, in[MAT_IN_NORMAL]);
-			Normalize(shi->vn);
+			normalize_v3(shi->vn);
 		}
 		else
 			VECCOPY(shi->vn, shi->vno);
@@ -138,7 +138,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		if(node->custom1 & SH_NODE_MAT_DIFF) {
 			VECCOPY(col, shrnode.combined);
 			if(!(node->custom1 & SH_NODE_MAT_SPEC)) {
-				VecSubf(col, col, shrnode.spec);
+				sub_v3_v3v3(col, col, shrnode.spec);
 			}
 		}
 		else if(node->custom1 & SH_NODE_MAT_SPEC) {

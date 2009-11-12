@@ -83,9 +83,10 @@ EnumPropertyItem object_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_key_types.h"
+#include "DNA_constraint_types.h"
 
 #include "BKE_armature.h"
 #include "BKE_bullet.h"
@@ -508,7 +509,7 @@ static void rna_Object_rotation_axis_angle_get(PointerRNA *ptr, float *value)
 	
 	/* for now, assume that rotation mode is axis-angle */
 	value[0]= ob->rotAngle;
-	VecCopyf(&value[1], ob->rotAxis);
+	copy_v3_v3(&value[1], ob->rotAxis);
 }
 
 /* rotation - axis-angle */
@@ -518,7 +519,7 @@ static void rna_Object_rotation_axis_angle_set(PointerRNA *ptr, const float *val
 	
 	/* for now, assume that rotation mode is axis-angle */
 	ob->rotAngle= value[0];
-	VecCopyf(ob->rotAxis, (float *)&value[1]);
+	copy_v3_v3(ob->rotAxis, (float *)&value[1]);
 	
 	// TODO: validate axis?
 }
@@ -543,7 +544,7 @@ static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 	if (bb) {
 		float scale[3];
 		
-		Mat4ToSize(ob->obmat, scale);
+		mat4_to_size( scale,ob->obmat);
 		
 		value[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
 		value[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
@@ -562,7 +563,7 @@ static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 	if (bb) {
 		float scale[3], len[3];
 		
-		Mat4ToSize(ob->obmat, scale);
+		mat4_to_size( scale,ob->obmat);
 		
 		len[0] = bb->vec[4][0] - bb->vec[0][0];
 		len[1] = bb->vec[2][1] - bb->vec[0][1];
@@ -857,6 +858,30 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 		ob->pd= object_add_collision_fields(0);
 	
 	return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
+}
+
+static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bConstraint *con;
+	for(con= ob->constraints.first; con; con= con->next) {
+		if(con->flag & CONSTRAINT_ACTIVE)
+			break;
+	}
+
+	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
+}
+
+static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bConstraint *con;
+	for(con= ob->constraints.first; con; con= con->next) {
+		if(value.data==con)
+			con->flag |= CONSTRAINT_ACTIVE;
+		else
+			con->flag &= ~CONSTRAINT_ACTIVE;
+	}
 }
 
 #else
@@ -1428,6 +1453,16 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints of the object.");
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove");
+
+	{ /* Collection active property */
+		PropertyRNA *prop_act= RNA_def_property(srna, "constraints__active", PROP_POINTER, PROP_NONE);
+		RNA_def_property_struct_type(prop_act, "Constraint");
+		RNA_def_property_pointer_funcs(prop_act, "rna_Object_active_constraint_get", "rna_Object_active_constraint_set", NULL);
+		RNA_def_property_flag(prop_act, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop_act, "Active Constraint", "Active Object constraint.");
+		RNA_def_property_collection_active(prop, prop_act);
+	}
 
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
@@ -1763,7 +1798,7 @@ static void rna_def_base(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Base", NULL);
+	srna= RNA_def_struct(brna, "ObjectBase", NULL);
 	RNA_def_struct_sdna(srna, "Base");
 	RNA_def_struct_ui_text(srna, "Object Base", "An objects instance in a scene.");
 	RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);

@@ -231,6 +231,21 @@ public:
 	 * @return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const;
+	
+	/***************************************************************************************
+	 ** Drag'n'drop operations
+	 ***************************************************************************************/
+	
+	/**
+	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
+	 */
+	virtual void setAcceptDragOperation(bool canAccept);
+	
+	/**
+	 * Returns acceptance of the dropped object
+	 * Usually called by the "object dropped" event handling function
+	 */
+	virtual bool canAcceptDragOperation() const;
 
 	/***************************************************************************************
 	 ** Other (internal) functionality.
@@ -332,6 +347,9 @@ protected:
 
     /** The N-degree of freedom device manager */
     GHOST_NDOFManager* m_ndofManager;
+	
+	/** The acceptance of the "drop candidate" of the current drag'n'drop operation */
+	bool m_canAcceptDragOperation;
 
 	/** Prints all the events. */
 #ifdef GHOST_DEBUG

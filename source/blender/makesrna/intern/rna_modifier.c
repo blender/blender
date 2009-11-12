@@ -216,8 +216,17 @@ static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
 	smokeModifier_free(smd); // XXX TODO: completely free all 3 pointers
 	smokeModifier_createType(smd); // create regarding of selected type
 
-	if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
-		ob->dt = OB_WIRE;
+	switch (smd->type) {
+		case MOD_SMOKE_TYPE_DOMAIN:
+			ob->dt = OB_WIRE;
+			break;
+		case MOD_SMOKE_TYPE_FLOW:
+		case MOD_SMOKE_TYPE_COLL:
+		case 0:
+		default:
+			ob->dt = OB_SHADED;
+			break;
+	}
 	
 	// update dependancy since a domain - other type switch could have happened
 	rna_Modifier_dependency_update(C, ptr);

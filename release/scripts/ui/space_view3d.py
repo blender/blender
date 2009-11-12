@@ -306,11 +306,17 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
 
         layout.itemO("particle.select_all_toggle", text="Select/Deselect All")
         layout.itemO("particle.select_linked")
+        layout.itemO("particle.select_inverse")
 
         layout.itemS()
 
         layout.itemO("particle.select_more")
         layout.itemO("particle.select_less")
+
+        layout.itemS()
+
+        layout.itemO("particle.select_first", text="Roots")
+        layout.itemO("particle.select_last", text="Tips")
 
 
 class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
@@ -644,7 +650,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.item_menu_enumO("object.make_links_scene", "type", text="Objects to Scene...")
 
         layout.items_enumO("object.make_links_data", property="type") # inline
@@ -1373,29 +1379,25 @@ class VIEW3D_PT_3dview_item(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Item"
- 
+
     def poll(self, context):
-        return (context.active_object or context.bone or context.edit_bone)
- 
+        return (context.active_object or context.active_bone or context.active_pchan)
+
     def draw(self, context):
         layout = self.layout
-       
-        ob = context.object
- 
+
+        ob = context.active_object
+
         row = layout.row()
         row.itemL(text="", icon='ICON_OBJECT_DATA')
         row.itemR(ob, "name", text="")
-       
-        if ((context.active_bone or context.active_pchan) and ob.type == 'ARMATURE' and (ob.mode == 'EDIT' or ob.mode == 'POSE')):
+
+        if ob.type == 'ARMATURE' and ob.mode in ('EDIT', 'POSE'):
             bone = context.active_bone
-            if not bone:
-                pchan = context.active_pchan
-                if pchan:
-                    bone = pchan.bone
-           
-            row = layout.row()
-            row.itemL(text="", icon='ICON_BONE_DATA')
-            row.itemR(bone, "name", text="")
+            if bone:
+                row = layout.row()
+                row.itemL(text="", icon='ICON_BONE_DATA')
+                row.itemR(bone, "name", text="")
 
 class VIEW3D_PT_3dview_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -1592,13 +1594,13 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
 
         col.itemR(toolsettings, "etch_convert_mode")
 
-        if toolsettings.etch_convert_mode == "LENGTH":
+        if toolsettings.etch_convert_mode == 'LENGTH':
             col.itemR(toolsettings, "etch_length_limit")
-        elif toolsettings.etch_convert_mode == "ADAPTIVE":
+        elif toolsettings.etch_convert_mode == 'ADAPTIVE':
             col.itemR(toolsettings, "etch_adaptive_limit")
-        elif toolsettings.etch_convert_mode == "FIXED":
+        elif toolsettings.etch_convert_mode == 'FIXED':
             col.itemR(toolsettings, "etch_subdivision_number")
-        elif toolsettings.etch_convert_mode == "RETARGET":
+        elif toolsettings.etch_convert_mode == 'RETARGET':
             col.itemR(toolsettings, "etch_template")
             col.itemR(toolsettings, "etch_roll_mode")
             col.itemR(toolsettings, "etch_autoname")

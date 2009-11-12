@@ -52,6 +52,9 @@ void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
+
+void		WM_check			(struct bContext *C);
+
 struct wmWindow	*WM_window_open	(struct bContext *C, struct rcti *rect);
 
 			/* defines for 'type' WM_window_open_temp */
@@ -82,6 +85,8 @@ void		WM_timecursor		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
+
+void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 
 			/* keyconfig and keymap */
 wmKeyConfig *WM_keyconfig_add	(struct wmWindowManager *wm, char *idname);

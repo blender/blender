@@ -140,6 +140,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSCUR,
 	ANIMTYPE_DSSKEY,
 	ANIMTYPE_DSWOR,
+	ANIMTYPE_DSNTREE,
 	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
 	ANIMTYPE_DSARM,
@@ -202,6 +203,7 @@ typedef enum eAnimFilter_Flags {
 #define EXPANDED_SCEC(sce) ((sce->flag & SCE_DS_COLLAPSED)==0)
 	/* 'Sub-Scene' channels (flags stored in Data block) */
 #define FILTER_WOR_SCED(wo) ((wo->flag & WO_DS_EXPAND))
+#define FILTER_NTREE_SCED(ntree) ((ntree->flag & NTREE_DS_EXPAND))
 	/* 'Object' channels */
 #define SEL_OBJC(base) ((base->flag & SELECT))
 #define EXPANDED_OBJC(ob) ((ob->nlaflag & OB_ADS_COLLAPSED)==0)
@@ -424,12 +426,8 @@ void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, List
 /* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
 /* anim_ipo_utils.c */
 
-/* Get icon for type of setting F-Curve is for */
-// XXX include this in the getname() method via RNA?
-int geticon_anim_blocktype(short blocktype);
-
-/* Get name for channel-list displays for F-Curve */
-void getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
+/* Get icon + name for channel-list displays for F-Curve */
+int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
 /* Automatically determine a color for the nth F-Curve */
 void ipo_rainbow(int cur, int tot, float *out);

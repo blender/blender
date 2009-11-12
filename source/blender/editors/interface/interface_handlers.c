@@ -38,7 +38,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "PIL_time.h"
 
@@ -2652,7 +2652,7 @@ static int ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, i
 			fp[2]= -sqrt( radsq-dx*dx-dy*dy );
 		}
 	}
-	Normalize(fp);
+	normalize_v3(fp);
 
 	data->draglastx= mx;
 	data->draglasty= my;
@@ -4486,14 +4486,14 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *men
 	newp[0]= mx;
 	newp[1]= my;
 
-	if(Vec2Lenf(oldp, newp) < 4.0f)
+	if(len_v2v2(oldp, newp) < 4.0f)
 		return menu->dotowards;
 
 	closer= 0;
-	closer |= IsectPT2Df(newp, oldp, p1, p2);
-	closer |= IsectPT2Df(newp, oldp, p2, p3);
-	closer |= IsectPT2Df(newp, oldp, p3, p4);
-	closer |= IsectPT2Df(newp, oldp, p4, p1);
+	closer |= isect_point_tri_v2(newp, oldp, p1, p2);
+	closer |= isect_point_tri_v2(newp, oldp, p2, p3);
+	closer |= isect_point_tri_v2(newp, oldp, p3, p4);
+	closer |= isect_point_tri_v2(newp, oldp, p4, p1);
 
 	if(!closer)
 		menu->dotowards= 0;

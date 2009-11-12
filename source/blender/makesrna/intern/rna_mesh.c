@@ -39,7 +39,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_editVert.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -123,9 +123,9 @@ static void rna_MeshFace_normal_get(PointerRNA *ptr, float *values)
 	MFace *mface= (MFace*)ptr->data;
 	
 	if(mface->v4)
-		CalcNormFloat4(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co, values);
+		normal_quad_v3( values,me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co);
 	else
-		CalcNormFloat(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, values);
+		normal_tri_v3( values,me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co);
 }
 
 static float rna_MeshFace_area_get(PointerRNA *ptr)
@@ -134,9 +134,9 @@ static float rna_MeshFace_area_get(PointerRNA *ptr)
 	MFace *mface= (MFace*)ptr->data;
 
 	if(mface->v4)
-		return AreaQ3Dfl(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co);
+		return area_quad_v3(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co);
 	else
-		return AreaT3Dfl(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co);
+		return area_tri_v3(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co);
 }
 
 /* notice red and blue are swapped */

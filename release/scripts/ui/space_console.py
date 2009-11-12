@@ -89,16 +89,16 @@ class CONSOLE_MT_language(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.column()
-        
+
         mod = bpy.ops.console
         languages = []
         for opname in dir(mod):
             # execute_python, execute_shell etc.
             if opname.startswith("execute_"):
                 languages.append(opname.split('_', 1)[-1])
-        
+
         languages.sort()
-        
+
         for language in languages:
             layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
 
@@ -155,13 +155,13 @@ class ConsoleBanner(bpy.types.Operator):
 
     def execute(self, context):
         sc = context.space_data
-        
+
         # default to python
         if not sc.language:
             sc.language = 'python'
 
         banner = getattr(bpy.ops.console, "banner_" + sc.language, None)
-        
+
         if banner:
             banner()
         else:
@@ -178,12 +178,12 @@ class ConsoleLanguage(bpy.types.Operator):
 
     def execute(self, context):
         sc = context.space_data
-        
+
         # defailt to python
         sc.language = self.language
-        
+
         bpy.ops.console.banner()
-        
+
         # insert a new blank line
         bpy.ops.console.history_append(text="", current_character=0,
             remove_duplicates=True)

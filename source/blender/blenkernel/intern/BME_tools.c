@@ -42,7 +42,7 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 /*split this all into a seperate bevel.c file in src*/
@@ -88,7 +88,7 @@ BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BME_Mesh *bm, BME_Ve
 	else if (org != NULL) VECCOPY(vtd->org,org);
 	if (vec != NULL) {
 		VECCOPY(vtd->vec,vec);
-		Normalize(vtd->vec);
+		normalize_v3(vtd->vec);
 	}
 	vtd->loc = loc;
 
@@ -261,7 +261,7 @@ static BME_Vert *BME_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Edge
 	nv = BME_SEMV(bm,v,e,ne);
 	if (nv == NULL) return NULL;
 	VECSUB(nv->co,v2->co,v->co);
-	len = VecLength(nv->co);
+	len = len_v3(nv->co);
 	VECADDFAC(nv->co,v->co,nv->co,len*percent);
 	nv->flag = v->flag;
 	nv->bweight = v->bweight;
@@ -335,17 +335,17 @@ static int BME_bevel_get_vec(float *vec, BME_Vert *v1, BME_Vert *v2, BME_TransDa
 	/* compare the transform origins to see if we can use the vert co's;
 	 * if they belong to different origins, then we will use the origins to determine
 	 * the vector */
-	if (VecCompare(vtd1->org,vtd2->org,0.000001f)) {
+	if (compare_v3v3(vtd1->org,vtd2->org,0.000001f)) {
 		VECSUB(vec,v2->co,v1->co);
-		if (VecLength(vec) < 0.000001f) {
-			VecMulf(vec,0);
+		if (len_v3(vec) < 0.000001f) {
+			mul_v3_fl(vec,0);
 		}
 		return 0;
 	}
 	else {
 		VECSUB(vec,vtd2->org,vtd1->org);
-		if (VecLength(vec) < 0.000001f) {
-			VecMulf(vec,0);
+		if (len_v3(vec) < 0.000001f) {
+			mul_v3_fl(vec,0);
 		}
 		return 1;
 	}
@@ -363,18 +363,18 @@ static int BME_bevel_get_vec(float *vec, BME_Vert *v1, BME_Vert *v2, BME_TransDa
 static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int is_forward, BME_TransData_Head *td) {
 	float factor, vec3[3], tmp[3],c1,c2;
 
-	Crossf(tmp,vec1,vec2);
-	Normalize(tmp);
-	factor = Inpf(up_vec,tmp);
+	cross_v3_v3v3(tmp,vec1,vec2);
+	normalize_v3(tmp);
+	factor = dot_v3v3(up_vec,tmp);
 	if ((factor > 0 && is_forward) || (factor < 0 && !is_forward)) {
-		Crossf(vec3,vec2,tmp); /* hmm, maybe up_vec should be used instead of tmp */
+		cross_v3_v3v3(vec3,vec2,tmp); /* hmm, maybe up_vec should be used instead of tmp */
 	}
 	else {
-		Crossf(vec3,tmp,vec2); /* hmm, maybe up_vec should be used instead of tmp */
+		cross_v3_v3v3(vec3,tmp,vec2); /* hmm, maybe up_vec should be used instead of tmp */
 	}
-	Normalize(vec3);
-	c1 = Inpf(vec3,vec1);
-	c2 = Inpf(vec1,vec1);
+	normalize_v3(vec3);
+	c1 = dot_v3v3(vec3,vec1);
+	c2 = dot_v3v3(vec1,vec1);
 	if (fabs(c1) < 0.000001f || fabs(c2) < 0.000001f) {
 		factor = 0.0f;
 	}
@@ -435,8 +435,8 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 		ne->tflag1 = BME_BEVEL_ORIG; /* mark edge as original, even though it isn't */
 		BME_bevel_get_vec(vec1,v1,v,td);
 		BME_bevel_get_vec(vec2,v2,v,td);
-		Crossf(t_up_vec,vec1,vec2);
-		Normalize(t_up_vec);
+		cross_v3_v3v3(t_up_vec,vec1,vec2);
+		normalize_v3(t_up_vec);
 		up_vec = t_up_vec;
 	}
 	else {
@@ -486,8 +486,8 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 
 	is_edge = BME_bevel_get_vec(vec1,v,v1,td); /* get the vector we will be projecting onto */
 	BME_bevel_get_vec(vec2,v,v2,td); /* get the vector we will be projecting parallel to */
-	len = VecLength(vec1);
-	Normalize(vec1);
+	len = len_v3(vec1);
+	normalize_v3(vec1);
 
 	vtd = BME_get_transdata(td, sv);
 	vtd1 = BME_get_transdata(td, v);
@@ -525,8 +525,8 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 	}
 	VECADDFAC(sv->co,v->co,vec1,dis);
 	VECSUB(vec1,sv->co,vtd1->org);
-	dis = VecLength(vec1);
-	Normalize(vec1);
+	dis = len_v3(vec1);
+	normalize_v3(vec1);
 	BME_assign_transdata(td, bm, sv, vtd1->org, vtd1->org, vec1, sv->co, dis, scale, maxfactor, vtd->max);
 
 	return sv;
@@ -545,10 +545,10 @@ static float BME_bevel_set_max(BME_Vert *v1, BME_Vert *v2, float value, BME_Tran
 	}
 	else {
 		VECCOPY(vec2,vtd1->vec);
-		VecMulf(vec2,vtd1->factor);
-		if (Inpf(vec1, vec1)) {
-			Projf(vec2,vec2,vec1);
-			fac1 = VecLength(vec2)/value;
+		mul_v3_fl(vec2,vtd1->factor);
+		if (dot_v3v3(vec1, vec1)) {
+			project_v3_v3v3(vec2,vec2,vec1);
+			fac1 = len_v3(vec2)/value;
 		}
 		else {
 			fac1 = 0;
@@ -560,10 +560,10 @@ static float BME_bevel_set_max(BME_Vert *v1, BME_Vert *v2, float value, BME_Tran
 	}
 	else {
 		VECCOPY(vec3,vtd2->vec);
-		VecMulf(vec3,vtd2->factor);
-		if (Inpf(vec1, vec1)) {
-			Projf(vec2,vec3,vec1);
-			fac2 = VecLength(vec2)/value;
+		mul_v3_fl(vec3,vtd2->factor);
+		if (dot_v3v3(vec1, vec1)) {
+			project_v3_v3v3(vec2,vec3,vec1);
+			fac2 = len_v3(vec2)/value;
 		}
 		else {
 			fac2 = 0;
@@ -571,7 +571,7 @@ static float BME_bevel_set_max(BME_Vert *v1, BME_Vert *v2, float value, BME_Tran
 	}
 
 	if (fac1 || fac2) {
-		max = VecLength(vec1)/(fac1 + fac2);
+		max = len_v3(vec1)/(fac1 + fac2);
 		if (vtd1->max && (*vtd1->max < 0 || max < *vtd1->max)) {
 			*vtd1->max = max;
 		}
@@ -760,12 +760,12 @@ static BME_Poly *BME_bevel_poly(BME_Mesh *bm, BME_Poly *f, float value, int opti
 	for (i=0,ol=f->loopbase,l=ol->next; l->next!=ol; l=l->next) {
 		BME_bevel_get_vec(vec1,l->next->v,ol->v,td);
 		BME_bevel_get_vec(vec2,l->v,ol->v,td);
-		Crossf(vec3,vec2,vec1);
+		cross_v3_v3v3(vec3,vec2,vec1);
 		VECADD(up_vec,up_vec,vec3);
 		i++;
 	}
-	VecMulf(up_vec,1.0f/i);
-	Normalize(up_vec);
+	mul_v3_fl(up_vec,1.0f/i);
+	normalize_v3(up_vec);
 
 	for (i=0,len=f->len; i<len; i++,l=l->next) {
 		if ((l->e->tflag1 & BME_BEVEL_BEVEL) && (l->e->tflag1 & BME_BEVEL_ORIG)) {
@@ -791,10 +791,10 @@ static BME_Poly *BME_bevel_poly(BME_Mesh *bm, BME_Poly *f, float value, int opti
 				}
 				else {
 					VECCOPY(vec2,vtd1->vec);
-					VecMulf(vec2,vtd1->factor);
-					if (Inpf(vec1, vec1)) {
-						Projf(vec2,vec2,vec1);
-						fac1 = VecLength(vec2)/value;
+					mul_v3_fl(vec2,vtd1->factor);
+					if (dot_v3v3(vec1, vec1)) {
+						project_v3_v3v3(vec2,vec2,vec1);
+						fac1 = len_v3(vec2)/value;
 					}
 					else {
 						fac1 = 0;
@@ -805,17 +805,17 @@ static BME_Poly *BME_bevel_poly(BME_Mesh *bm, BME_Poly *f, float value, int opti
 				}
 				else {
 					VECCOPY(vec3,vtd2->vec);
-					VecMulf(vec3,vtd2->factor);
-					if (Inpf(vec1, vec1)) {
-						Projf(vec2,vec3,vec1);
-						fac2 = VecLength(vec2)/value;
+					mul_v3_fl(vec3,vtd2->factor);
+					if (dot_v3v3(vec1, vec1)) {
+						project_v3_v3v3(vec2,vec3,vec1);
+						fac2 = len_v3(vec2)/value;
 					}
 					else {
 						fac2 = 0;
 					}
 				}
 				if (fac1 || fac2) {
-					max = VecLength(vec1)/(fac1 + fac2);
+					max = len_v3(vec1)/(fac1 + fac2);
 					if (vtd1->max && (*vtd1->max < 0 || max < *vtd1->max)) {
 						*vtd1->max = max;
 					}
@@ -880,7 +880,7 @@ static float BME_bevel_get_angle(BME_Mesh *bm, BME_Edge *e, BME_Vert *v) {
 	}
 	VECSUB(vec1,v1->co,v->co);
 	VECSUB(vec2,v2->co,v->co);
-	Crossf(vec3,vec1,vec2);
+	cross_v3_v3v3(vec3,vec1,vec2);
 
 	l1 = l2;
 	if (l1->v == v) {
@@ -893,12 +893,12 @@ static float BME_bevel_get_angle(BME_Mesh *bm, BME_Edge *e, BME_Vert *v) {
 	}
 	VECSUB(vec1,v1->co,v->co);
 	VECSUB(vec2,v2->co,v->co);
-	Crossf(vec4,vec2,vec1);
+	cross_v3_v3v3(vec4,vec2,vec1);
 
-	Normalize(vec3);
-	Normalize(vec4);
+	normalize_v3(vec3);
+	normalize_v3(vec4);
 
-	return Inpf(vec3,vec4);
+	return dot_v3v3(vec3,vec4);
 }
 static int BME_face_sharededges(BME_Poly *f1, BME_Poly *f2){
 	BME_Loop *l;

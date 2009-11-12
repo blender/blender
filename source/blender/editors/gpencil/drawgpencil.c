@@ -37,7 +37,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "DNA_gpencil_types.h"
@@ -326,7 +326,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 			/* calculate gradient and normal - 'angle'=(ny/nx) */
 			m1[1]= s1[1] - s0[1];		
 			m1[0]= s1[0] - s0[0];
-			Normalize2(m1);
+			normalize_v2(m1);
 			m2[1]= -m1[0];
 			m2[0]= m1[1];
 			
@@ -374,7 +374,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				/* calculate gradient of bisector (as average of normals) */
 				mb[0]= (pm[0] + m2[0]) / 2;
 				mb[1]= (pm[1] + m2[1]) / 2;
-				Normalize2(mb);
+				normalize_v2(mb);
 				
 				/* calculate gradient to apply 
 				 * 	- as basis, use just pthick * bisector gradient
@@ -382,7 +382,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				 */
 				mt[0]= mb[0] * pthick;
 				mt[1]= mb[1] * pthick;
-				athick= Vec2Length(mt);
+				athick= len_v2(mt);
 				dfac= pthick - (athick * 2);
 				if ( ((athick * 2) < pthick) && (IS_EQ(athick, pthick)==0) ) 
 				{
@@ -442,7 +442,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 			}
 			
 			/* store stroke's 'natural' normal for next stroke to use */
-			Vec2Copyf(pm, m2);
+			copy_v2_v2(pm, m2);
 		}
 		
 		glEnd();
@@ -744,47 +744,25 @@ void draw_gpencil_2dview (bContext *C, short onlyv2d)
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes, second time with only3d=0 for screen-aligned strokes
  */
-void draw_gpencil_3dview (bContext *C, short only3d)
+void draw_gpencil_3dview_ext (Scene *scene, ARegion *ar, short only3d)
 {
-	ARegion *ar= CTX_wm_region(C);
-	Scene *scene= CTX_data_scene(C);
 	bGPdata *gpd;
 	int dflag = 0;
-	
+
 	/* check that we have grease-pencil stuff to draw */
-	gpd= gpencil_data_get_active(C); // XXX
-	if (gpd == NULL) return;
-	
+	gpd= gpencil_data_get_active_v3d(scene); // XXX
+	if(gpd == NULL) return;
+
 	/* draw it! */
 	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_NOSTATUS);
 	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag);
 }
 
-/* draw grease-pencil sketches to opengl render window assuming that matrices are already set correctly */
-// XXX porting note, ogl render will probably be a window with one 3d region
-void draw_gpencil_oglrender (bContext *C)
+void draw_gpencil_3dview (bContext *C, short only3d)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= (View3D *)sa->spacedata.first;
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
-	bGPdata *gpd;
-	
-	/* assume gpencil data comes from v3d */
-	if (v3d == NULL) return;
-	gpd= gpencil_data_get_active(C);
-	if (gpd == NULL) return;
-	
-	/* pass 1: draw 3d-strokes ------------ > */
-	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, (GP_DRAWDATA_NOSTATUS|GP_DRAWDATA_ONLY3D));
-	
-	/* pass 2: draw 2d-strokes ------------ > */
-		/* adjust view matrices */
-	wmOrtho2(-0.375f, (float)(ar->winx)-0.375f, -0.375f, (float)(ar->winy)-0.375f); // XXX may not be correct anymore
-	glLoadIdentity();
-	
-		/* draw it! */
-	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, GP_DRAWDATA_NOSTATUS);
+	draw_gpencil_3dview_ext(scene, ar, only3d);
 }
 
 /* ************************************************** */

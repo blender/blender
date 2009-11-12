@@ -67,7 +67,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			"visible_pchans", "selected_pchans", "active_bone", "active_pchan",
 			"active_base", "active_object", "edit_object",
 			"sculpt_object", "vertex_paint_object", "weight_paint_object",
-			"texture_paint_object", "brush", "particle_edit_object", NULL};
+			"texture_paint_object", "particle_edit_object", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -84,7 +84,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				if(selected_objects)
 					CTX_data_id_list_add(result, &base->object->id);
 				else
-					CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 			}
 		}
 
@@ -100,7 +100,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 						if(selected_editable_objects)
 							CTX_data_id_list_add(result, &base->object->id);
 						else
-							CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+							CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 					}
 				}
 			}
@@ -131,18 +131,18 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					if (editable_bones) {
 						/* only selected + editable */
 						if (EBONE_EDITABLE(ebone)) {
-							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
+							CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 						
 							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-								CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
+								CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 						}
 					}
 					else {
 						/* only include bones if visible */
-						CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
+						CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 						
 						if ((flipbone) && EBONE_VISIBLE(arm, flipbone)==0)
-							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
+							CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 					}
 				}
 			}	
@@ -173,18 +173,18 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					if (selected_editable_bones) {
 						/* only selected + editable */
 						if (EBONE_EDITABLE(ebone)) {
-							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
+							CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 						
 							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-								CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
+								CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 						}
 					}
 					else {
 						/* only include bones if selected */
-						CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
+						CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 						
 						if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
+							CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 					}
 				}
 			}	
@@ -215,7 +215,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-					if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) 
+					if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
 						CTX_data_list_add(result, &obact->id, &RNA_PoseChannel, pchan);
 				}
 			}
@@ -224,21 +224,21 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "active_bone")) {
-		bArmature *arm= (obedit) ? obedit->data : NULL;
-		EditBone *ebone;
-		
-		if (arm && arm->edbo) {
-			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
-				if (EBONE_VISIBLE(arm, ebone)) {
-					if (ebone->flag & BONE_ACTIVE) {
-						CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, ebone);
-						
-						return 1;
-					}
+		if(obact && obact->type == OB_ARMATURE) {
+			bArmature *arm= obact->data;
+			if(arm->edbo) {
+				if(arm->act_edbone) {
+					CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, arm->act_edbone);
+					return 1;
+				}
+			}
+			else {
+				if(arm->act_bone) {
+					CTX_data_pointer_set(result, &arm->id, &RNA_Bone, arm->act_bone);
+					return 1;
 				}
 			}
 		}
-		
 	}
 	else if(CTX_data_equals(member, "active_pchan")) {
 		bPoseChannel *pchan;
@@ -251,7 +251,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if(CTX_data_equals(member, "active_base")) {
 		if(base)
-			CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, base);
+			CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, base);
 
 		return 1;
 	}
@@ -304,7 +304,10 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 		return 1;
 	}
+	else {
+		return 0; /* not found */
+	}
 
-	return 0;
+	return -1; /* found but not available */
 }
 

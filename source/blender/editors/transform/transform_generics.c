@@ -100,7 +100,7 @@
 
 //#include "BDR_unwrapper.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -131,20 +131,20 @@ void getViewVector(TransInfo *t, float coord[3], float vec[3])
 		p1[3] = 1.0f;
 		VECCOPY(p2, p1);
 		p2[3] = 1.0f;
-		Mat4MulVec4fl(t->viewmat, p2);
+		mul_m4_v4(t->viewmat, p2);
 		
 		p2[0] = 2.0f * p2[0];
 		p2[1] = 2.0f * p2[1];
 		p2[2] = 2.0f * p2[2];
 		
-		Mat4MulVec4fl(t->viewinv, p2);
+		mul_m4_v4(t->viewinv, p2);
 		
-		VecSubf(vec, p1, p2);
+		sub_v3_v3v3(vec, p1, p2);
 	}
 	else {
 		VECCOPY(vec, t->viewinv[2]);
 	}
-	Normalize(vec);
+	normalize_v3(vec);
 }
 
 /* ************************** GENERICS **************************** */
@@ -181,9 +181,9 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 					if (mmd->mirror_ob) {
 						float obinv[4][4];
 						
-						Mat4Invert(obinv, mmd->mirror_ob->obmat);
-						Mat4MulMat4(mtx, ob->obmat, obinv);
-						Mat4Invert(imtx, mtx);
+						invert_m4_m4(obinv, mmd->mirror_ob->obmat);
+						mul_m4_m4m4(mtx, ob->obmat, obinv);
+						invert_m4_m4(imtx, mtx);
 					}
 					
 					for(i = 0 ; i < t->total; i++, td++) {
@@ -198,12 +198,12 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						if (td->flag & TD_SKIP)
 							continue;
 						
-						VecCopyf(loc,  td->loc);
-						VecCopyf(iloc, td->iloc);
+						copy_v3_v3(loc,  td->loc);
+						copy_v3_v3(iloc, td->iloc);
 						
 						if (mmd->mirror_ob) {
-							VecMat4MulVecfl(loc, mtx, loc);
-							VecMat4MulVecfl(iloc, mtx, iloc);
+							mul_v3_m4v3(loc, mtx, loc);
+							mul_v3_m4v3(iloc, mtx, iloc);
 						}
 						
 						clip = 0;
@@ -231,9 +231,9 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						}
 						if (clip) {
 							if (mmd->mirror_ob) {
-								VecMat4MulVecfl(loc, imtx, loc);
+								mul_v3_m4v3(loc, imtx, loc);
 							}
-							VecCopyf(td->loc, loc);
+							copy_v3_v3(td->loc, loc);
 						}
 					}
 				}
@@ -692,7 +692,7 @@ void recalcData(TransInfo *t)
 					}
 					
 					/* on extrude bones, oldlength==0.0f, so we scale radius of points */
-					ebo->length= VecLenf(ebo->head, ebo->tail);
+					ebo->length= len_v3v3(ebo->head, ebo->tail);
 					if(ebo->oldlength==0.0f) {
 						ebo->rad_head= 0.25f*ebo->length;
 						ebo->rad_tail= 0.10f*ebo->length;
@@ -727,14 +727,14 @@ void recalcData(TransInfo *t)
 							
 							if (t->mode != TFM_ROTATION)
 							{
-								VecSubf(vec, ebo->tail, ebo->head);
-								Normalize(vec);
-								RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
-								QuatMulVecf(qrot, up_axis);
+								sub_v3_v3v3(vec, ebo->tail, ebo->head);
+								normalize_v3(vec);
+								rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
+								mul_qt_v3(qrot, up_axis);
 							}
 							else
 							{
-								Mat3MulVecfl(t->mat, up_axis);
+								mul_m3_v3(t->mat, up_axis);
 							}
 							
 							ebo->roll = ED_rollBoneToVector(ebo, up_axis);
@@ -835,11 +835,11 @@ void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 		//if(t->obedit) glLoadMatrixf(t->obedit->obmat);	// sets opengl viewing
 		
 		
-		VecCopyf(v3, dir);
-		VecMulf(v3, v3d->far);
+		copy_v3_v3(v3, dir);
+		mul_v3_fl(v3, v3d->far);
 		
-		VecSubf(v2, center, v3);
-		VecAddf(v1, center, v3);
+		sub_v3_v3v3(v2, center, v3);
+		add_v3_v3v3(v1, center, v3);
 		
 		if (options & DRAWLIGHT) {
 			col[0] = col[1] = col[2] = 220;
@@ -928,7 +928,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->center[1]	=
 		t->center[2]	= 0.0f;
 	
-	Mat3One(t->mat);
+	unit_m3(t->mat);
 	
 	t->spacetype = sa->spacetype;
 	if(t->spacetype == SPACE_VIEW3D)
@@ -1155,7 +1155,7 @@ void restoreTransObjects(TransInfo *t)
 		restoreElement(td);
 	}
 	
-	Mat3One(t->mat);
+	unit_m3(t->mat);
 	
 	recalcData(t);
 }
@@ -1167,7 +1167,7 @@ void calculateCenter2D(TransInfo *t)
 		float vec[3];
 		
 		VECCOPY(vec, t->center);
-		Mat4MulVecfl(ob->obmat, vec);
+		mul_m4_v3(ob->obmat, vec);
 		projectIntView(t, vec, t->center2d);
 	}
 	else {
@@ -1187,10 +1187,10 @@ void calculateCenterCursor(TransInfo *t)
 		Object *ob = t->obedit?t->obedit:t->poseobj;
 		float mat[3][3], imat[3][3];
 		
-		VecSubf(t->center, t->center, ob->obmat[3]);
-		Mat3CpyMat4(mat, ob->obmat);
-		Mat3Inv(imat, mat);
-		Mat3MulVecfl(imat, t->center);
+		sub_v3_v3v3(t->center, t->center, ob->obmat[3]);
+		copy_m3_m4(mat, ob->obmat);
+		invert_m3_m3(imat, mat);
+		mul_m3_v3(imat, t->center);
 	}
 	
 	calculateCenter2D(t);
@@ -1234,7 +1234,7 @@ void calculateCenterMedian(TransInfo *t)
 		if (t->data[i].flag & TD_SELECTED) {
 			if (!(t->data[i].flag & TD_NOCENTER))
 			{
-				VecAddf(partial, partial, t->data[i].center);
+				add_v3_v3v3(partial, partial, t->data[i].center);
 				total++;
 			}
 		}
@@ -1247,7 +1247,7 @@ void calculateCenterMedian(TransInfo *t)
 		}
 	}
 	if(i)
-		VecMulf(partial, 1.0f / total);
+		mul_v3_fl(partial, 1.0f / total);
 	VECCOPY(t->center, partial);
 	
 	calculateCenter2D(t);
@@ -1262,7 +1262,7 @@ void calculateCenterBound(TransInfo *t)
 		if (i) {
 			if (t->data[i].flag & TD_SELECTED) {
 				if (!(t->data[i].flag & TD_NOCENTER))
-					MinMax3(min, max, t->data[i].center);
+					minmax_v3_v3v3(min, max, t->data[i].center);
 			}
 			else {
 				/*
@@ -1277,8 +1277,8 @@ void calculateCenterBound(TransInfo *t)
 			VECCOPY(min, t->data[i].center);
 		}
 	}
-	VecAddf(t->center, min, max);
-	VecMulf(t->center, 0.5);
+	add_v3_v3v3(t->center, min, max);
+	mul_v3_fl(t->center, 0.5);
 	
 	calculateCenter2D(t);
 }
@@ -1341,7 +1341,7 @@ void calculateCenter(TransInfo *t)
 	if(t->flag & (T_EDIT|T_POSE))
 	{
 		Object *ob= t->obedit?t->obedit:t->poseobj;
-		Mat4MulVecfl(ob->obmat, t->con.center);
+		mul_m4_v3(ob->obmat, t->con.center);
 	}
 	
 	/* for panning from cameraview */
@@ -1358,7 +1358,7 @@ void calculateCenter(TransInfo *t)
 				float axis[3];
 				/* persinv is nasty, use viewinv instead, always right */
 				VECCOPY(axis, t->viewinv[2]);
-				Normalize(axis);
+				normalize_v3(axis);
 				
 				/* 6.0 = 6 grid units */
 				axis[0]= t->center[0]- 6.0f*axis[0];
@@ -1385,7 +1385,7 @@ void calculateCenter(TransInfo *t)
 			float vec[3];
 			
 			VECCOPY(vec, t->center);
-			Mat4MulVecfl(ob->obmat, vec);
+			mul_m4_v3(ob->obmat, vec);
 			initgrabz(t->ar->regiondata, vec[0], vec[1], vec[2]);
 		}
 		else {
@@ -1509,9 +1509,9 @@ float get_drawsize(ARegion *ar, float *co)
 	size= rv3d->persmat[0][3]*co[0]+ rv3d->persmat[1][3]*co[1]+ rv3d->persmat[2][3]*co[2]+ rv3d->persmat[3][3];
 	
 	VECCOPY(vec, rv3d->persinv[0]);
-	len1= Normalize(vec);
+	len1= normalize_v3(vec);
 	VECCOPY(vec, rv3d->persinv[1]);
-	len2= Normalize(vec);
+	len2= normalize_v3(vec);
 	
 	size*= 0.01f*(len1>len2?len1:len2);
 	

@@ -245,12 +245,14 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
             elif stype == 'IMAGE':
                 layout.itemS()
                 layout.itemO("sequencer.image_change")
+                layout.itemO("sequencer.rendersize")
             elif stype == 'SCENE':
                 layout.itemS()
                 layout.itemO("sequencer.scene_change", text="Change Scene")
             elif stype == 'MOVIE':
                 layout.itemS()
                 layout.itemO("sequencer.movie_change")
+                layout.itemO("sequencer.rendersize")
 
         layout.itemS()
 

@@ -36,7 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
@@ -617,7 +617,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			else if (strstr(identifier, "rotation")) {
 				float eul[3];
 				
-				Mat4ToEul(ob->obmat, eul);
+				mat4_to_eul( eul,ob->obmat);
 				return eul[array_index];
 			}
 		}
@@ -632,7 +632,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 		 * be safe. Therefore, the active object is passed here, and in many cases, this
 		 * will be what owns the pose-channel that is getting this anyway.
 		 */
-		Mat4CpyMat4(tmat, pchan->pose_mat);
+		copy_m4_m4(tmat, pchan->pose_mat);
 		constraint_mat_convertspace(ob, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
 		
 		/* Loc, Rot/Quat keyframes are supported... */
@@ -647,14 +647,14 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			float eul[3];
 			
 			/* euler-rotation test before standard rotation, as standard rotation does quats */
-			Mat4ToEulO(tmat, eul, pchan->rotmode);
+			mat4_to_eulO( eul, pchan->rotmode,tmat);
 			return eul[array_index];
 		}
 		else if (strstr(identifier, "rotation_quaternion")) {
 			float trimat[3][3], quat[4];
 			
-			Mat3CpyMat4(trimat, tmat);
-			Mat3ToQuat_is_ok(trimat, quat);
+			copy_m3_m4(trimat, tmat);
+			mat3_to_quat_is_ok( quat,trimat);
 			
 			return quat[array_index];
 		}

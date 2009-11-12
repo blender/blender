@@ -52,7 +52,7 @@ typedef struct bConstraintOb {
 	float startmat[4][4];		/* original matrix (before constraint solving) */
 	
 	short type;					/* type of owner  */
-	short rotOrder;				/* rotation order for constraint owner (as defined in eEulerRotationOrders in BLI_arithb.h) */
+	short rotOrder;				/* rotation order for constraint owner (as defined in eEulerRotationOrders in BLI_math.h) */
 } bConstraintOb;
 
 /* ---------------------------------------------------------------------------- */
@@ -101,6 +101,9 @@ typedef struct bConstraintTypeInfo {
 /* Function Prototypes for bConstraintTypeInfo's */
 bConstraintTypeInfo *constraint_get_typeinfo(struct bConstraint *con);
 bConstraintTypeInfo *get_constraint_typeinfo(int type);
+
+struct bConstraint *add_ob_constraint(struct Object *ob, const char *name, short type);
+struct bConstraint *add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
 
 /* ---------------------------------------------------------------------------- */
 /* Useful macros for testing various common flag combinations */

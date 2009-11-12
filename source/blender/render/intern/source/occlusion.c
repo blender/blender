@@ -36,7 +36,7 @@
 
 #include "DNA_material_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
@@ -165,7 +165,7 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 
 	/* set up view vector */
 	VECCOPY(shi->view, shi->co);
-	Normalize(shi->view);
+	normalize_v3(shi->view);
 	
 	/* cache for shadow */
 	shi->samplenr++;
@@ -181,8 +181,8 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 
 	/* not a pretty solution, but fixes common cases */
 	if(shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
-		VecNegf(shi->vn);
-		VecNegf(shi->vno);
+		negate_v3(shi->vn);
+		negate_v3(shi->vno);
 	}
 
 	/* init material vars */
@@ -311,12 +311,12 @@ static void occ_face(const OccFace *face, float *co, float *normal, float *area)
 	
 	if(co) {
 		if(vlr->v4)
-			VecLerpf(co, vlr->v1->co, vlr->v3->co, 0.5f);
+			interp_v3_v3v3(co, vlr->v1->co, vlr->v3->co, 0.5f);
 		else
-			CalcCent3f(co, vlr->v1->co, vlr->v2->co, vlr->v3->co);
+			cent_tri_v3(co, vlr->v1->co, vlr->v2->co, vlr->v3->co);
 
 		if(obi->flag & R_TRANSFORMED)
-			Mat4MulVecfl(obi->mat, co);
+			mul_m4_v3(obi->mat, co);
 	}
 	
 	if(normal) {
@@ -325,7 +325,7 @@ static void occ_face(const OccFace *face, float *co, float *normal, float *area)
 		normal[2]= -vlr->n[2];
 
 		if(obi->flag & R_TRANSFORMED)
-			Mat3MulVecfl(obi->nmat, normal);
+			mul_m3_v3(obi->nmat, normal);
 	}
 
 	if(area) {
@@ -335,17 +335,17 @@ static void occ_face(const OccFace *face, float *co, float *normal, float *area)
 		if(vlr->v4) VECCOPY(v4, vlr->v4->co);
 
 		if(obi->flag & R_TRANSFORMED) {
-			Mat4MulVecfl(obi->mat, v1);
-			Mat4MulVecfl(obi->mat, v2);
-			Mat4MulVecfl(obi->mat, v3);
-			if(vlr->v4) Mat4MulVecfl(obi->mat, v4);
+			mul_m4_v3(obi->mat, v1);
+			mul_m4_v3(obi->mat, v2);
+			mul_m4_v3(obi->mat, v3);
+			if(vlr->v4) mul_m4_v3(obi->mat, v4);
 		}
 
 		/* todo: correct area for instances */
 		if(vlr->v4)
-			*area= AreaQ3Dfl(v1, v2, v3, v4);
+			*area= area_quad_v3(v1, v2, v3, v4);
 		else
-			*area= AreaT3Dfl(v1, v2, v3);
+			*area= area_tri_v3(v1, v2, v3);
 	}
 }
 
@@ -591,7 +591,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 	}
 
 	if(node->area != 0.0f)
-		VecMulf(node->co, 1.0f/node->area);
+		mul_v3_fl(node->co, 1.0f/node->area);
 
 	/* compute maximum distance from center */
 	node->dco= 0.0f;
@@ -1116,10 +1116,10 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 	normalizef(r2);
 	normalizef(r3);
 
-	Crossf(g0, r1, r0); normalizef(g0);
-	Crossf(g1, r2, r1); normalizef(g1);
-	Crossf(g2, r3, r2); normalizef(g2);
-	Crossf(g3, r0, r3); normalizef(g3);
+	cross_v3_v3v3(g0, r1, r0); normalizef(g0);
+	cross_v3_v3v3(g1, r2, r1); normalizef(g1);
+	cross_v3_v3v3(g2, r3, r2); normalizef(g2);
+	cross_v3_v3v3(g3, r0, r3); normalizef(g3);
 
 	a1= saacosf(INPR(r0, r1));
 	a2= saacosf(INPR(r1, r2));
@@ -1151,9 +1151,9 @@ static float occ_form_factor(OccFace *face, float *p, float *n)
 	VECCOPY(v3, vlr->v3->co);
 
 	if(obi->flag & R_TRANSFORMED) {
-		Mat4MulVecfl(obi->mat, v1);
-		Mat4MulVecfl(obi->mat, v2);
-		Mat4MulVecfl(obi->mat, v3);
+		mul_m4_v3(obi->mat, v1);
+		mul_m4_v3(obi->mat, v2);
+		mul_m4_v3(obi->mat, v3);
 	}
 
 	if(occ_visible_quad(p, n, v1, v2, v3, q0, q1, q2, q3))
@@ -1162,7 +1162,7 @@ static float occ_form_factor(OccFace *face, float *p, float *n)
 	if(vlr->v4) {
 		VECCOPY(v4, vlr->v4->co);
 		if(obi->flag & R_TRANSFORMED)
-			Mat4MulVecfl(obi->mat, v4);
+			mul_m4_v3(obi->mat, v4);
 
 		if(occ_visible_quad(p, n, v1, v3, v4, q0, q1, q2, q3))
 			contrib += occ_quad_form_factor(p, n, q0, q1, q2, q3);
@@ -1269,7 +1269,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 	}
 
 	if(occ) *occ= resultocc;
-	if(bentn) Normalize(bentn);
+	if(bentn) normalize_v3(bentn);
 }
 
 static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
@@ -1282,7 +1282,7 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 	for(pass=0; pass<totpass; pass++) {
 		for(i=0; i<tree->totface; i++) {
 			occ_face(&tree->face[i], co, n, NULL);
-			VecNegf(n);
+			negate_v3(n);
 			VECADDFAC(co, co, n, 1e-8f);
 
 			occ_lookup(tree, 0, &tree->face[i], co, n, &occ[i], NULL);
@@ -1315,7 +1315,7 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 		aocolor= WO_AOPLAIN;
 
 	VECCOPY(nn, n);
-	VecNegf(nn);
+	negate_v3(nn);
 
 	occ_lookup(tree, thread, exclude, co, nn, &occ, (aocolor)? bn: NULL);
 
@@ -1347,7 +1347,7 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 		}
 #endif
 
-		VecMulf(skycol, occlusion);
+		mul_v3_fl(skycol, occlusion);
 	}
 	else {
 		skycol[0]= occlusion;
@@ -1477,7 +1477,7 @@ static void sample_occ_surface(ShadeInput *shi)
 		co3= mesh->co[face[2]];
 		co4= (face[3])? mesh->co[face[3]]: NULL;
 
-		InterpWeightsQ3Dfl(co1, co2, co3, co4, strand->vert->co, w);
+		interp_weights_face_v3( w,co1, co2, co3, co4, strand->vert->co);
 
 		shi->ao[0]= shi->ao[1]= shi->ao[2]= 0.0f;
 		VECADDFAC(shi->ao, shi->ao, mesh->col[face[0]], w[0]);
@@ -1512,14 +1512,14 @@ static void *exec_strandsurface_sample(void *data)
 		if(face[3]) {
 			co4= mesh->co[face[3]];
 
-			VecLerpf(co, co1, co3, 0.5f);
-			CalcNormFloat4(co1, co2, co3, co4, n);
+			interp_v3_v3v3(co, co1, co3, 0.5f);
+			normal_quad_v3( n,co1, co2, co3, co4);
 		}
 		else {
-			CalcCent3f(co, co1, co2, co3);
-			CalcNormFloat(co1, co2, co3, n);
+			cent_tri_v3(co, co1, co2, co3);
+			normal_tri_v3( n,co1, co2, co3);
 		}
-		VecNegf(n);
+		negate_v3(n);
 
 		sample_occ_tree(re, re->occlusiontree, NULL, co, n, othread->thread, 0, col);
 		VECCOPY(othread->facecol[a], col);
@@ -1597,7 +1597,7 @@ void make_occ_tree(Render *re)
 
 			for(a=0; a<mesh->totvert; a++)
 				if(count[a])
-					VecMulf(mesh->col[a], 1.0f/count[a]);
+					mul_v3_fl(mesh->col[a], 1.0f/count[a]);
 
 			MEM_freeN(count);
 			MEM_freeN(facecol);

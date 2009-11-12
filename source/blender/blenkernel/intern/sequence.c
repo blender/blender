@@ -63,8 +63,8 @@
 /* **** XXX ******** */
 static int seqrectx= 0;	/* bad bad global! */
 static int seqrecty= 0;
-static void waitcursor(int val) {}
-static int blender_test_break() {return 0;}
+//static void waitcursor(int val) {}
+//static int blender_test_break() {return 0;}
 
 /* **** XXX ******** */
 
@@ -1230,6 +1230,7 @@ static struct ImBuf * seq_proxy_fetch(Scene *scene, Sequence * seq, int cfra, in
 	}
 }
 
+#if 0
 static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int cfra,
 			      int build_proxy_run, int render_size);
 
@@ -1360,6 +1361,7 @@ static void seq_proxy_rebuild(Scene *scene, Sequence * seq)
 	}
 	waitcursor(0);
 }
+#endif
 
 
 /* **********************************************************************
@@ -2631,6 +2633,7 @@ ImBuf *give_ibuf_seq(Scene *scene, int rectx, int recty, int cfra, int chanshown
 	return i;
 }
 
+#if 0
 /* check used when we need to change seq->blend_mode but not to effect or audio strips */
 static int seq_can_blend(Sequence *seq)
 {
@@ -2640,6 +2643,7 @@ static int seq_can_blend(Sequence *seq)
 		return 0;
 	}
 }
+#endif
 
 /* *********************** threading api ******************* */
 
@@ -2651,8 +2655,8 @@ static pthread_mutex_t queue_lock          = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t wakeup_lock         = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  wakeup_cond         = PTHREAD_COND_INITIALIZER;
 
-static pthread_mutex_t prefetch_ready_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t  prefetch_ready_cond = PTHREAD_COND_INITIALIZER;
+//static pthread_mutex_t prefetch_ready_lock = PTHREAD_MUTEX_INITIALIZER;
+//static pthread_cond_t  prefetch_ready_cond = PTHREAD_COND_INITIALIZER;
 
 static pthread_mutex_t frame_done_lock     = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  frame_done_cond     = PTHREAD_COND_INITIALIZER;
@@ -2685,6 +2689,7 @@ typedef struct PrefetchQueueElem {
 	struct ImBuf * ibuf;
 } PrefetchQueueElem;
 
+#if 0
 static void *seq_prefetch_thread(void * This_)
 {
 	PrefetchThread * This = This_;
@@ -2833,6 +2838,7 @@ static void seq_stop_threads()
 	/* deinit malloc mutex */
 	BLI_end_threads(0);
 }
+#endif
 
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown,
 				int render_size)
@@ -2859,6 +2865,7 @@ void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown,
 	pthread_mutex_unlock(&wakeup_lock);
 }
 
+#if 0
 static void seq_wait_for_prefetch_ready()
 {
 	PrefetchThread *tslot;
@@ -2887,6 +2894,7 @@ static void seq_wait_for_prefetch_ready()
 
 	fprintf(stderr, "SEQ-THREAD: prefetch done\n");
 }
+#endif
 
 ImBuf *give_ibuf_seq_threaded(Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size)
 {
@@ -2993,6 +3001,7 @@ static void free_anim_seq(Sequence *seq)
 	}
 }
 
+#if 0
 static void free_imbuf_seq_except(Scene *scene, int cfra)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -3042,6 +3051,7 @@ static void free_imbuf_seq_except(Scene *scene, int cfra)
 	}
 	SEQ_END
 }
+#endif
 
 void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
 {
@@ -3187,6 +3197,7 @@ void free_imbuf_seq()
 }
 #endif 
 
+#if 0 // XXX old animation system
 static void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 {
 	/* force update of all sequences with this ipo, on ipo changes */
@@ -3206,6 +3217,7 @@ static void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 	}
 	SEQ_END
 }
+#endif
 
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.

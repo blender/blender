@@ -54,7 +54,7 @@
 
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
@@ -405,7 +405,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 		min[2]-=d/2.0f;
 
 		for(i=0,mv=mvert; i<totvert; i++,mv++){
-			VecSubf(vec,mv->co,min);
+			sub_v3_v3v3(vec,mv->co,min);
 			vec[0]/=delta[0];
 			vec[1]/=delta[1];
 			vec[2]/=delta[2];
@@ -447,7 +447,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 						VECCOPY(v2,mvert[mface->v2].co);
 						VECCOPY(v3,mvert[mface->v3].co);
 
-						if(AxialLineIntersectsTriangle(a,co1, co2, v2, v3, v1, &lambda)){
+						if(isect_axial_line_tri_v3(a,co1, co2, v2, v3, v1, &lambda)){
 							if(from==PART_FROM_FACE)
 								(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 							else /* store number of intersections */
@@ -457,7 +457,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 						if(mface->v4){
 							VECCOPY(v4,mvert[mface->v4].co);
 
-							if(AxialLineIntersectsTriangle(a,co1, co2, v4, v1, v3, &lambda)){
+							if(isect_axial_line_tri_v3(a,co1, co2, v4, v1, v3, &lambda)){
 								if(from==PART_FROM_FACE)
 									(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 								else
@@ -577,10 +577,10 @@ static void psys_uv_to_w(float u, float v, int quad, float *w)
 
 	if(quad) {
 		vert[3][0]= 0.0f; vert[3][1]= 1.0f; vert[3][2]= 0.0f;
-		MeanValueWeights(vert, 4, co, w);
+		interp_weights_poly_v3( w,vert, 4, co);
 	}
 	else {
-		MeanValueWeights(vert, 3, co, w);
+		interp_weights_poly_v3( w,vert, 3, co);
 		w[3]= 0.0f;
 	}
 }
@@ -669,8 +669,8 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 
 			psys_interpolate_face(mvert,mface,0,0,pa->fuv,co1,nor,0,0,0,0);
 
-			Normalize(nor);
-			VecMulf(nor,-100.0);
+			normalize_v3(nor);
+			mul_v3_fl(nor,-100.0);
 
 			VECADD(co2,co1,nor);
 
@@ -684,7 +684,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 				v2=mvert[mface->v2].co;
 				v3=mvert[mface->v3].co;
 
-				if(LineIntersectsTriangle(co1, co2, v2, v3, v1, &cur_d, 0)){
+				if(isect_line_tri_v3(co1, co2, v2, v3, v1, &cur_d, 0)){
 					if(cur_d<min_d){
 						min_d=cur_d;
 						pa->foffset=cur_d*50.0f; /* to the middle of volume */
@@ -694,7 +694,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 				if(mface->v4){
 					v4=mvert[mface->v4].co;
 
-					if(LineIntersectsTriangle(co1, co2, v4, v1, v3, &cur_d, 0)){
+					if(isect_line_tri_v3(co1, co2, v4, v1, v3, &cur_d, 0)){
 						if(cur_d<min_d){
 							min_d=cur_d;
 							pa->foffset=cur_d*50.0f; /* to the middle of volume */
@@ -776,18 +776,18 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 			//	int min_seam=0, near_vert=0;
 			//	/* find closest seam */
 			//	for(i=0; i<ctx->totseam; i++, seam++){
-			//		VecSubf(temp,co1,seam->v0);
-			//		inp=Inpf(temp,seam->dir)/seam->length2;
+			//		sub_v3_v3v3(temp,co1,seam->v0);
+			//		inp=dot_v3v3(temp,seam->dir)/seam->length2;
 			//		if(inp<0.0f){
-			//			cur_len=VecLenf(co1,seam->v0);
+			//			cur_len=len_v3v3(co1,seam->v0);
 			//		}
 			//		else if(inp>1.0f){
-			//			cur_len=VecLenf(co1,seam->v1);
+			//			cur_len=len_v3v3(co1,seam->v1);
 			//		}
 			//		else{
-			//			VecCopyf(temp2,seam->dir);
-			//			VecMulf(temp2,inp);
-			//			cur_len=VecLenf(temp,temp2);
+			//			copy_v3_v3(temp2,seam->dir);
+			//			mul_v3_fl(temp2,inp);
+			//			cur_len=len_v3v3(temp,temp2);
 			//		}
 			//		if(cur_len<min_len){
 			//			min_len=cur_len;
@@ -799,27 +799,27 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 			//	}
 			//	seam=ctx->seams+min_seam;
 			//	
-			//	VecCopyf(temp,seam->v0);
+			//	copy_v3_v3(temp,seam->v0);
 			//	
 			//	if(near_vert){
 			//		if(near_vert==-1)
-			//			VecSubf(tan,co1,seam->v0);
+			//			sub_v3_v3v3(tan,co1,seam->v0);
 			//		else{
-			//			VecSubf(tan,co1,seam->v1);
-			//			VecCopyf(temp,seam->v1);
+			//			sub_v3_v3v3(tan,co1,seam->v1);
+			//			copy_v3_v3(temp,seam->v1);
 			//		}
 
-			//		Normalize(tan);
+			//		normalize_v3(tan);
 			//	}
 			//	else{
-			//		VecCopyf(tan,seam->tan);
-			//		VecSubf(temp2,co1,temp);
-			//		if(Inpf(tan,temp2)<0.0f)
-			//			VecNegf(tan);
+			//		copy_v3_v3(tan,seam->tan);
+			//		sub_v3_v3v3(temp2,co1,temp);
+			//		if(dot_v3v3(tan,temp2)<0.0f)
+			//			negate_v3(tan);
 			//	}
 			//	for(w=0; w<maxw; w++){
-			//		VecSubf(temp2,ptn[w].co,temp);
-			//		if(Inpf(tan,temp2)<0.0f){
+			//		sub_v3_v3v3(temp2,ptn[w].co,temp);
+			//		if(dot_v3v3(tan,temp2)<0.0f){
 			//			parent[w]=-1;
 			//			pweight[w]=0.0f;
 			//		}
@@ -989,12 +989,12 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 
 			//		for(p=0, ed=medge; p<totedge; p++,ed++){
 			//			if(ed->flag&ME_SEAM){
-			//				VecCopyf(cur_seam->v0,(mvert+ed->v1)->co);
-			//				VecCopyf(cur_seam->v1,(mvert+ed->v2)->co);
+			//				copy_v3_v3(cur_seam->v0,(mvert+ed->v1)->co);
+			//				copy_v3_v3(cur_seam->v1,(mvert+ed->v2)->co);
 
-			//				VecSubf(cur_seam->dir,cur_seam->v1,cur_seam->v0);
+			//				sub_v3_v3v3(cur_seam->dir,cur_seam->v1,cur_seam->v0);
 
-			//				cur_seam->length2=VecLength(cur_seam->dir);
+			//				cur_seam->length2=len_v3(cur_seam->dir);
 			//				cur_seam->length2*=cur_seam->length2;
 
 			//				temp[0]=(float)((mvert+ed->v1)->no[0]);
@@ -1004,12 +1004,12 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 			//				temp2[1]=(float)((mvert+ed->v2)->no[1]);
 			//				temp2[2]=(float)((mvert+ed->v2)->no[2]);
 
-			//				VecAddf(cur_seam->nor,temp,temp2);
-			//				Normalize(cur_seam->nor);
+			//				add_v3_v3v3(cur_seam->nor,temp,temp2);
+			//				normalize_v3(cur_seam->nor);
 
-			//				Crossf(cur_seam->tan,cur_seam->dir,cur_seam->nor);
+			//				cross_v3_v3v3(cur_seam->tan,cur_seam->dir,cur_seam->nor);
 
-			//				Normalize(cur_seam->tan);
+			//				normalize_v3(cur_seam->tan);
 
 			//				cur_seam++;
 			//			}
@@ -1035,7 +1035,7 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 						cpa->fuv[0]=2.0f*BLI_frand()-1.0f;
 						cpa->fuv[1]=2.0f*BLI_frand()-1.0f;
 						cpa->fuv[2]=2.0f*BLI_frand()-1.0f;
-						length=VecLength(cpa->fuv);
+						length=len_v3(cpa->fuv);
 					}
 
 					cpa->num=-1;
@@ -1176,10 +1176,10 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 					v4= (MVert*)dm->getVertData(dm,mf->v4,CD_MVERT);
 					VECCOPY(co4, v4->co);
 				}
-				cur= AreaQ3Dfl(co1, co2, co3, co4);
+				cur= area_quad_v3(co1, co2, co3, co4);
 			}
 			else
-				cur= AreaT3Dfl(co1, co2, co3);
+				cur= area_tri_v3(co1, co2, co3);
 			
 			if(cur>maxweight)
 				maxweight=cur;
@@ -1682,7 +1682,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	r_rot[1] = 2.0f * (PSYS_FRAND(p + 17) - 0.5f);
 	r_rot[2] = 2.0f * (PSYS_FRAND(p + 18) - 0.5f);
 	r_rot[3] = 2.0f * (PSYS_FRAND(p + 19) - 0.5f);
-	NormalQuat(r_rot);
+	normalize_qt(r_rot);
 
 	r_phase = PSYS_FRAND(p + 20);
 	
@@ -1699,15 +1699,15 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 			psys_get_particle_state(&tsim, pa->num, &state, 1);
 		psys_get_from_key(&state, loc, nor, rot, 0);
 
-		QuatMulVecf(rot, vtan);
-		QuatMulVecf(rot, utan);
+		mul_qt_v3(rot, vtan);
+		mul_qt_v3(rot, utan);
 
 		VECCOPY(p_vel, state.vel);
-		speed=Normalize(p_vel);
-		VecMulf(p_vel, Inpf(r_vel, p_vel));
+		speed=normalize_v3(p_vel);
+		mul_v3_fl(p_vel, dot_v3v3(r_vel, p_vel));
 		VECSUB(p_vel, r_vel, p_vel);
-		Normalize(p_vel);
-		VecMulf(p_vel, speed);
+		normalize_v3(p_vel);
+		mul_v3_fl(p_vel, speed);
 
 		VECCOPY(pa->fuv, loc); /* abusing pa->fuv (not used for "from particle") for storing emit location */
 	}
@@ -1731,46 +1731,46 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		/* particles live in global space so	*/
 		/* let's convert:						*/
 		/* -location							*/
-		Mat4MulVecfl(ob->obmat,loc);
+		mul_m4_v3(ob->obmat,loc);
 		
 		/* -normal								*/
-		Mat4Mul3Vecfl(ob->obmat,nor);
-		Normalize(nor);
+		mul_mat3_m4_v3(ob->obmat,nor);
+		normalize_v3(nor);
 
 		/* -tangent								*/
 		if(part->tanfac!=0.0){
 			//float phase=vg_rot?2.0f*(psys_particle_value_from_verts(sim->psmd->dm,part->from,pa,vg_rot)-0.5f):0.0f;
 			float phase=0.0f;
-			VecMulf(vtan,-(float)cos(M_PI*(part->tanphase+phase)));
+			mul_v3_fl(vtan,-(float)cos(M_PI*(part->tanphase+phase)));
 			fac=-(float)sin(M_PI*(part->tanphase+phase));
 			VECADDFAC(vtan,vtan,utan,fac);
 
-			Mat4Mul3Vecfl(ob->obmat,vtan);
+			mul_mat3_m4_v3(ob->obmat,vtan);
 
 			VECCOPY(utan,nor);
-			VecMulf(utan,Inpf(vtan,nor));
+			mul_v3_fl(utan,dot_v3v3(vtan,nor));
 			VECSUB(vtan,vtan,utan);
 			
-			Normalize(vtan);
+			normalize_v3(vtan);
 		}
 		
 
 		/* -velocity							*/
 		if(part->randfac!=0.0){
-			Mat4Mul3Vecfl(ob->obmat,r_vel);
-			Normalize(r_vel);
+			mul_mat3_m4_v3(ob->obmat,r_vel);
+			normalize_v3(r_vel);
 		}
 
 		/* -angular velocity					*/
 		if(part->avemode==PART_AVE_RAND){
-			Mat4Mul3Vecfl(ob->obmat,r_ave);
-			Normalize(r_ave);
+			mul_mat3_m4_v3(ob->obmat,r_ave);
+			normalize_v3(r_ave);
 		}
 		
 		/* -rotation							*/
 		if(part->randrotfac != 0.0f){
-			Mat4ToQuat(ob->obmat,rot);
-			QuatMul(r_rot,r_rot,rot);
+			mat4_to_quat(rot,ob->obmat);
+			mul_qt_qtqt(r_rot,r_rot,rot);
 		}
 	}
 
@@ -1785,8 +1785,8 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 
 		/* boids store direction in ave */
 		if(fabs(nor[2])==1.0f) {
-			VecSubf(pa->state.ave, loc, ob->obmat[3]);
-			Normalize(pa->state.ave);
+			sub_v3_v3v3(pa->state.ave, loc, ob->obmat[3]);
+			normalize_v3(pa->state.ave);
 		}
 		else {
 			VECCOPY(pa->state.ave, nor);
@@ -1799,17 +1799,17 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 			bpa->gravity[2] = sim->scene->physics_settings.gravity[2];
 
 		/* calculate rotation matrix */
-		Projf(dvec, r_vel, pa->state.ave);
-		VecSubf(mat[0], pa->state.ave, dvec);
-		Normalize(mat[0]);
+		project_v3_v3v3(dvec, r_vel, pa->state.ave);
+		sub_v3_v3v3(mat[0], pa->state.ave, dvec);
+		normalize_v3(mat[0]);
 		VECCOPY(mat[2], r_vel);
-		VecMulf(mat[2], -1.0f);
-		Normalize(mat[2]);
-		Crossf(mat[1], mat[2], mat[0]);
+		mul_v3_fl(mat[2], -1.0f);
+		normalize_v3(mat[2]);
+		cross_v3_v3v3(mat[1], mat[2], mat[0]);
 		
 		/* apply rotation */
-		Mat3ToQuat_is_ok(mat, q);
-		QuatCopy(pa->state.rot, q);
+		mat3_to_quat_is_ok( q,mat);
+		copy_qt_qt(pa->state.rot, q);
 
 		bpa->data.health = part->boids->health;
 		bpa->data.mode = eBoidMode_InAir;
@@ -1828,7 +1828,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		/*		*emitter velocity				*/
 		if(dtime!=0.0 && part->obfac!=0.0){
 			VECSUB(vel,loc,pa->state.co);
-			VecMulf(vel,part->obfac/dtime);
+			mul_v3_fl(vel,part->obfac/dtime);
 		}
 		
 		/*		*emitter normal					*/
@@ -1843,17 +1843,17 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		/*		*emitter object orientation		*/
 		if(part->ob_vel[0]!=0.0) {
 			VECCOPY(vec, ob->obmat[0]);
-			Normalize(vec);
+			normalize_v3(vec);
 			VECADDFAC(vel, vel, vec, part->ob_vel[0]);
 		}
 		if(part->ob_vel[1]!=0.0) {
 			VECCOPY(vec, ob->obmat[1]);
-			Normalize(vec);
+			normalize_v3(vec);
 			VECADDFAC(vel, vel, vec, part->ob_vel[1]);
 		}
 		if(part->ob_vel[2]!=0.0) {
 			VECCOPY(vec, ob->obmat[2]);
-			Normalize(vec);
+			normalize_v3(vec);
 			VECADDFAC(vel, vel, vec, part->ob_vel[2]);
 		}
 
@@ -1874,7 +1874,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		//	ptex.ivel*=icu->curval;
 		//}
 
-		VecMulf(vel,ptex.ivel);
+		mul_v3_fl(vel,ptex.ivel);
 		
 		VECCOPY(pa->state.vel,vel);
 
@@ -1889,10 +1889,10 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 			/* create vector into which rotation is aligned */
 			switch(part->rotmode){
 				case PART_ROT_NOR:
-					VecCopyf(rot_vec, nor);
+					copy_v3_v3(rot_vec, nor);
 					break;
 				case PART_ROT_VEL:
-					VecCopyf(rot_vec, vel);
+					copy_v3_v3(rot_vec, vel);
 					break;
 				case PART_ROT_GLOB_X:
 				case PART_ROT_GLOB_Y:
@@ -1902,28 +1902,28 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 				case PART_ROT_OB_X:
 				case PART_ROT_OB_Y:
 				case PART_ROT_OB_Z:
-					VecCopyf(rot_vec, ob->obmat[part->rotmode - PART_ROT_OB_X]);
+					copy_v3_v3(rot_vec, ob->obmat[part->rotmode - PART_ROT_OB_X]);
 					break;
 			}
 			
 			/* create rotation quat */
-			VecNegf(rot_vec);
-			vectoquat(rot_vec, OB_POSX, OB_POSZ, q2);
+			negate_v3(rot_vec);
+			vec_to_quat( q2,rot_vec, OB_POSX, OB_POSZ);
 
 			/* randomize rotation quat */
 			if(part->randrotfac!=0.0f)
-				QuatInterpol(rot, q2, r_rot, part->randrotfac);
+				interp_qt_qtqt(rot, q2, r_rot, part->randrotfac);
 			else
-				QuatCopy(rot,q2);
+				copy_qt_qt(rot,q2);
 
 			/* rotation phase */
 			phasefac = part->phasefac;
 			if(part->randphasefac != 0.0f)
 				phasefac += part->randphasefac * r_phase;
-			VecRotToQuat(x_vec, phasefac*(float)M_PI, q_phase);
+			axis_angle_to_quat( q_phase,x_vec, phasefac*(float)M_PI);
 
 			/* combine base rotation & phase */
-			QuatMul(pa->state.rot, rot, q_phase);
+			mul_qt_qtqt(pa->state.rot, rot, q_phase);
 		}
 
 		/* -angular velocity					*/
@@ -1939,13 +1939,13 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 					VECCOPY(pa->state.ave,r_ave);
 					break;
 			}
-			Normalize(pa->state.ave);
-			VecMulf(pa->state.ave,part->avefac);
+			normalize_v3(pa->state.ave);
+			mul_v3_fl(pa->state.ave,part->avefac);
 
 			//icu=find_ipocurve(psys->part->ipo,PART_EMIT_AVE);
 			//if(icu){
 			//	calc_icu(icu,100*((pa->time-part->sta)/(part->end-part->sta)));
-			//	VecMulf(pa->state.ave,icu->curval);
+			//	mul_v3_fl(pa->state.ave,icu->curval);
 			//}
 		}
 	}
@@ -2157,7 +2157,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 //			}
 //		}
 //		else{
-//			dist=VecLenf(pa->state.co, re->state.co);
+//			dist=len_v3v3(pa->state.co, re->state.co);
 //			if(dist <= re->size){
 //				if(pa->alive==PARS_UNBORN){
 //					pa->time=re->time;
@@ -2168,12 +2168,12 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 //					float vec[3];
 //					VECSUB(vec,pa->state.co, re->state.co);
 //					if(birth==0)
-//						VecMulf(vec,(float)pow(1.0f-dist/re->size,part->reactshape));
+//						mul_v3_fl(vec,(float)pow(1.0f-dist/re->size,part->reactshape));
 //					VECADDFAC(pa->state.vel,pa->state.vel,vec,part->reactfac);
 //					VECADDFAC(pa->state.vel,pa->state.vel,re->state.vel,part->partfac);
 //				}
 //				if(birth)
-//					VecMulf(pa->state.vel,(float)pow(1.0f-dist/re->size,part->reactshape));
+//					mul_v3_fl(pa->state.vel,(float)pow(1.0f-dist/re->size,part->reactshape));
 //			}
 //		}
 //	}
@@ -2301,7 +2301,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 
 		/* calculate air-particle interaction */
 		if(part->dragfac!=0.0f){
-			fac=-part->dragfac*pa->size*pa->size*VecLength(states[i].vel);
+			fac=-part->dragfac*pa->size*pa->size*len_v3(states[i].vel);
 			VECADDFAC(force,force,states[i].vel,fac);
 		}
 
@@ -2313,7 +2313,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 		}
 
 		/* force to acceleration*/
-		VecMulf(force,1.0f/pa_mass);
+		mul_v3_fl(force,1.0f/pa_mass);
 
 		/* add global acceleration (gravitation) */
 		if(sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY
@@ -2321,7 +2321,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 			&& (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR)) {
 			float gravity[3];
 			VECCOPY(gravity, sim->scene->physics_settings.gravity);
-			VecMulf(gravity, part->effector_weights->global_gravity);
+			mul_v3_fl(gravity, part->effector_weights->global_gravity);
 			VECADD(force,force,gravity);
 		}
 		
@@ -2348,9 +2348,9 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 				switch(i){
 					case 0:
 						VECCOPY(dx[0],states->vel);
-						VecMulf(dx[0],dtime);
+						mul_v3_fl(dx[0],dtime);
 						VECCOPY(dv[0],force);
-						VecMulf(dv[0],dtime);
+						mul_v3_fl(dv[0],dtime);
 
 						VECADDFAC(states[1].co,states->co,dx[0],0.5f);
 						VECADDFAC(states[1].vel,states->vel,dv[0],0.5f);
@@ -2358,18 +2358,18 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 						break;
 					case 1:
 						VECADDFAC(dx[1],states->vel,dv[0],0.5f);
-						VecMulf(dx[1],dtime);
+						mul_v3_fl(dx[1],dtime);
 						VECCOPY(dv[1],force);
-						VecMulf(dv[1],dtime);
+						mul_v3_fl(dv[1],dtime);
 
 						VECADDFAC(states[2].co,states->co,dx[1],0.5f);
 						VECADDFAC(states[2].vel,states->vel,dv[1],0.5f);
 						break;
 					case 2:
 						VECADDFAC(dx[2],states->vel,dv[1],0.5f);
-						VecMulf(dx[2],dtime);
+						mul_v3_fl(dx[2],dtime);
 						VECCOPY(dv[2],force);
-						VecMulf(dv[2],dtime);
+						mul_v3_fl(dv[2],dtime);
 
 						VECADD(states[3].co,states->co,dx[2]);
 						VECADD(states[3].vel,states->vel,dv[2]);
@@ -2377,9 +2377,9 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 						break;
 					case 3:
 						VECADD(dx[3],states->vel,dv[2]);
-						VecMulf(dx[3],dtime);
+						mul_v3_fl(dx[3],dtime);
 						VECCOPY(dv[3],force);
-						VecMulf(dv[3],dtime);
+						mul_v3_fl(dv[3],dtime);
 
 						VECADDFAC(pa->state.co,states->co,dx[0],1.0f/6.0f);
 						VECADDFAC(pa->state.co,pa->state.co,dx[1],1.0f/3.0f);
@@ -2397,7 +2397,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 
 	/* damp affects final velocity */
 	if(part->dampfac!=0.0)
-		VecMulf(pa->state.vel,1.0f-part->dampfac);
+		mul_v3_fl(pa->state.vel,1.0f-part->dampfac);
 
 	VECCOPY(pa->state.ave, states->ave);
 
@@ -2414,7 +2414,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 			VECCOPY(pa->state.co,tkey.co);
 			/* guides don't produce valid velocity */
 			VECSUB(pa->state.vel,tkey.co,pa->prev_state.co);
-			VecMulf(pa->state.vel,1.0f/dtime);
+			mul_v3_fl(pa->state.vel,1.0f/dtime);
 			pa->state.time=tkey.time;
 		}
 	}
@@ -2426,35 +2426,35 @@ static void rotate_particle(ParticleSettings *part, ParticleData *pa, float dfra
 	if((part->flag & PART_ROT_DYN)==0){
 		if(part->avemode==PART_AVE_SPIN){
 			float angle;
-			float len1 = VecLength(pa->prev_state.vel);
-			float len2 = VecLength(pa->state.vel);
+			float len1 = len_v3(pa->prev_state.vel);
+			float len2 = len_v3(pa->state.vel);
 
 			if(len1==0.0f || len2==0.0f)
 				pa->state.ave[0]=pa->state.ave[1]=pa->state.ave[2]=0.0f;
 			else{
-				Crossf(pa->state.ave,pa->prev_state.vel,pa->state.vel);
-				Normalize(pa->state.ave);
-				angle=Inpf(pa->prev_state.vel,pa->state.vel)/(len1*len2);
-				VecMulf(pa->state.ave,saacos(angle)/dtime);
+				cross_v3_v3v3(pa->state.ave,pa->prev_state.vel,pa->state.vel);
+				normalize_v3(pa->state.ave);
+				angle=dot_v3v3(pa->prev_state.vel,pa->state.vel)/(len1*len2);
+				mul_v3_fl(pa->state.ave,saacos(angle)/dtime);
 			}
 
-			VecRotToQuat(pa->state.vel,dtime*part->avefac,rot2);
+			axis_angle_to_quat(rot2,pa->state.vel,dtime*part->avefac);
 		}
 	}
 
-	rotfac=VecLength(pa->state.ave);
-	if(rotfac==0.0){ /* QuatOne (in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
+	rotfac=len_v3(pa->state.ave);
+	if(rotfac==0.0){ /* unit_qt(in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
 		rot1[0]=1.0;
 		rot1[1]=rot1[2]=rot1[3]=0;
 	}
 	else{
-		VecRotToQuat(pa->state.ave,rotfac*dtime,rot1);
+		axis_angle_to_quat(rot1,pa->state.ave,rotfac*dtime);
 	}
-	QuatMul(pa->state.rot,rot1,pa->prev_state.rot);
-	QuatMul(pa->state.rot,rot2,pa->state.rot);
+	mul_qt_qtqt(pa->state.rot,rot1,pa->prev_state.rot);
+	mul_qt_qtqt(pa->state.rot,rot2,pa->state.rot);
 
 	/* keep rotation quat in good health */
-	NormalQuat(pa->state.rot);
+	normalize_qt(pa->state.rot);
 }
 
 /* convert from triangle barycentric weights to quad mean value weights */
@@ -2471,7 +2471,7 @@ static void intersect_dm_quad_weights(float *v1, float *v2, float *v3, float *v4
 	co[1]= v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2] + v4[1]*w[3];
 	co[2]= v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2] + v4[2]*w[3];
 
-	MeanValueWeights(vert, 4, co, w);
+	interp_weights_poly_v3( w,vert, 4, co);
 }
 
 /* check intersection with a derivedmesh */
@@ -2537,18 +2537,18 @@ int psys_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm, float *vert_cos
 			DO_MINMAX(v3,min,max);
 			if(mface->v4)
 				DO_MINMAX(v4,min,max)
-			if(AabbIntersectAabb(min,max,p_min,p_max)==0)
+			if(isect_aabb_aabb_v3(min,max,p_min,p_max)==0)
 				continue;
 		}
 		else{
 			VECCOPY(min, face_minmax+6*i);
 			VECCOPY(max, face_minmax+6*i+3);
-			if(AabbIntersectAabb(min,max,p_min,p_max)==0)
+			if(isect_aabb_aabb_v3(min,max,p_min,p_max)==0)
 				continue;
 		}
 
 		if(radius>0.0f){
-			if(SweepingSphereIntersectsTriangleUV(co1, co2, radius, v2, v3, v1, &cur_d, cur_ipoint)){
+			if(isect_sweeping_sphere_tri_v3(co1, co2, radius, v2, v3, v1, &cur_d, cur_ipoint)){
 				if(cur_d<*min_d){
 					*min_d=cur_d;
 					VECCOPY(ipoint,cur_ipoint);
@@ -2557,7 +2557,7 @@ int psys_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm, float *vert_cos
 				}
 			}
 			if(mface->v4){
-				if(SweepingSphereIntersectsTriangleUV(co1, co2, radius, v4, v1, v3, &cur_d, cur_ipoint)){
+				if(isect_sweeping_sphere_tri_v3(co1, co2, radius, v4, v1, v3, &cur_d, cur_ipoint)){
 					if(cur_d<*min_d){
 						*min_d=cur_d;
 						VECCOPY(ipoint,cur_ipoint);
@@ -2568,7 +2568,7 @@ int psys_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm, float *vert_cos
 			}
 		}
 		else{
-			if(LineIntersectsTriangle(co1, co2, v1, v2, v3, &cur_d, cur_uv)){
+			if(isect_line_tri_v3(co1, co2, v1, v2, v3, &cur_d, cur_uv)){
 				if(cur_d<*min_d){
 					*min_d=cur_d;
 					min_w[0]= 1.0 - cur_uv[0] - cur_uv[1];
@@ -2582,7 +2582,7 @@ int psys_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm, float *vert_cos
 				}
 			}
 			if(mface->v4){
-				if(LineIntersectsTriangle(co1, co2, v1, v3, v4, &cur_d, cur_uv)){
+				if(isect_line_tri_v3(co1, co2, v1, v3, v4, &cur_d, cur_uv)){
 					if(cur_d<*min_d){
 						*min_d=cur_d;
 						min_w[0]= 1.0 - cur_uv[0] - cur_uv[1];
@@ -2618,7 +2618,7 @@ void particle_intersect_face(void *userdata, int index, const BVHTreeRay *ray, B
 	VECCOPY(vel, v[ face->v1 ].co);
 	VECADD(vel, vel, v[ face->v2 ].co);
 	VECADD(vel, vel, v[ face->v3 ].co);
-	VecMulf(vel, 0.33334f);
+	mul_v3_fl(vel, 0.33334f);
 
 	/* substract face velocity, in other words convert to 
 	   a coordinate system where only the particle moves */
@@ -2628,16 +2628,16 @@ void particle_intersect_face(void *userdata, int index, const BVHTreeRay *ray, B
 	do
 	{	
 		if(ray->radius == 0.0f) {
-			if(LineIntersectsTriangle(co1, co2, t0, t1, t2, &t, uv)) {
+			if(isect_line_tri_v3(co1, co2, t0, t1, t2, &t, uv)) {
 				if(t >= 0.0f && t < hit->dist/col->ray_len) {
 					hit->dist = col->ray_len * t;
 					hit->index = index;
 
 					/* calculate normal that's facing the particle */
-					CalcNormFloat(t0, t1, t2, col->nor);
+					normal_tri_v3( col->nor,t0, t1, t2);
 					VECSUB(temp, co2, co1);
-					if(Inpf(col->nor, temp) > 0.0f)
-						VecNegf(col->nor);
+					if(dot_v3v3(col->nor, temp) > 0.0f)
+						negate_v3(col->nor);
 
 					VECCOPY(col->vel,vel);
 
@@ -2647,15 +2647,15 @@ void particle_intersect_face(void *userdata, int index, const BVHTreeRay *ray, B
 			}
 		}
 		else {
-			if(SweepingSphereIntersectsTriangleUV(co1, co2, ray->radius, t0, t1, t2, &t, ipoint)) {
+			if(isect_sweeping_sphere_tri_v3(co1, co2, ray->radius, t0, t1, t2, &t, ipoint)) {
 				if(t >=0.0f && t < hit->dist/col->ray_len) {
 					hit->dist = col->ray_len * t;
 					hit->index = index;
 
-					VecLerpf(temp, co1, co2, t);
+					interp_v3_v3v3(temp, co1, co2, t);
 					
 					VECSUB(col->nor, temp, ipoint);
-					Normalize(col->nor);
+					normalize_v3(col->nor);
 
 					VECCOPY(col->vel,vel);
 
@@ -2706,7 +2706,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 
 		VECSUB(ray_dir, col.co2, col.co1);
 		hit.index = -1;
-		hit.dist = col.ray_len = VecLength(ray_dir);
+		hit.dist = col.ray_len = len_v3(ray_dir);
 
 		/* even if particle is stationary we want to check for moving colliders */
 		/* if hit.dist is zero the bvhtree_ray_cast will just ignore everything */
@@ -2738,10 +2738,10 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 			float t = hit.dist/col.ray_len; /* time of collision between this iteration */
 			float dt = col.t + t * (1.0f - col.t); /* time of collision between frame change*/
 
-			VecLerpf(co, col.co1, col.co2, t);
+			interp_v3_v3v3(co, col.co1, col.co2, t);
 			VECSUB(vec, col.co2, col.co1);
 
-			VecMulf(col.vel, 1.0f-col.t);
+			mul_v3_fl(col.vel, 1.0f-col.t);
 
 			/* particle dies in collision */
 			if(through == 0 && (part->flag & PART_DIE_ON_COL || pd->flag & PDEFLE_KILL_PART)) {
@@ -2752,9 +2752,9 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
 
 				VECCOPY(pa->state.co, co);
-				VecLerpf(pa->state.vel, pa->prev_state.vel, pa->state.vel, dt);
-				QuatInterpol(pa->state.rot, pa->prev_state.rot, pa->state.rot, dt);
-				VecLerpf(pa->state.ave, pa->prev_state.ave, pa->state.ave, dt);
+				interp_v3_v3v3(pa->state.vel, pa->prev_state.vel, pa->state.vel, dt);
+				interp_qt_qtqt(pa->state.rot, pa->prev_state.rot, pa->state.rot, dt);
+				interp_v3_v3v3(pa->state.ave, pa->prev_state.ave, pa->state.ave, dt);
 
 				/* particle is dead so we don't need to calculate further */
 				deflections=max_deflections;
@@ -2772,13 +2772,13 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				CLAMP(frict,0.0,1.0);
 
 				/* treat normal & tangent components separately */
-				inp = Inpf(col.nor, vec);
-				inp_v = Inpf(col.nor, col.vel);
+				inp = dot_v3v3(col.nor, vec);
+				inp_v = dot_v3v3(col.nor, col.vel);
 
 				VECADDFAC(tan_vec, vec, col.nor, -inp);
 				VECADDFAC(tan_vel, col.vel, col.nor, -inp_v);
 				if((part->flag & PART_ROT_DYN)==0)
-					VecLerpf(tan_vec, tan_vec, tan_vel, frict);
+					interp_v3_v3v3(tan_vec, tan_vec, tan_vel, frict);
 
 				VECCOPY(nor_vec, col.nor);
 				inp *= 1.0f - damp;
@@ -2788,9 +2788,9 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 
 				/* special case for object hitting the particle from behind */
 				if(through==0 && ((inp_v>0 && inp>0 && inp_v>inp) || (inp_v<0 && inp<0 && inp_v<inp)))
-					VecMulf(nor_vec, inp_v);
+					mul_v3_fl(nor_vec, inp_v);
 				else
-					VecMulf(nor_vec, inp_v + (through ? 1.0f : -1.0f) * inp);
+					mul_v3_fl(nor_vec, inp_v + (through ? 1.0f : -1.0f) * inp);
 
 				/* angular <-> linear velocity - slightly more physical and looks even nicer than before */
 				if(part->flag & PART_ROT_DYN) {
@@ -2800,37 +2800,37 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 					VECSUB(surface_vel, tan_vec, tan_vel);
 
 					/* direction of rolling friction */
-					Crossf(rot_vel, pa->state.ave, col.nor);
+					cross_v3_v3v3(rot_vel, pa->state.ave, col.nor);
 					/* convert to current dt */
-					VecMulf(rot_vel, (timestep*dfra) * (1.0f - col.t));
-					VecMulf(rot_vel, pa->size);
+					mul_v3_fl(rot_vel, (timestep*dfra) * (1.0f - col.t));
+					mul_v3_fl(rot_vel, pa->size);
 
 					/* apply sliding friction */
 					VECSUB(surface_vel, surface_vel, rot_vel);
 					VECCOPY(friction, surface_vel);
 
-					VecMulf(surface_vel, 1.0 - frict);
-					VecMulf(friction, frict);
+					mul_v3_fl(surface_vel, 1.0 - frict);
+					mul_v3_fl(friction, frict);
 
 					/* sliding changes angular velocity */
-					Crossf(dave, col.nor, friction);
-					VecMulf(dave, 1.0f/MAX2(pa->size, 0.001));
+					cross_v3_v3v3(dave, col.nor, friction);
+					mul_v3_fl(dave, 1.0f/MAX2(pa->size, 0.001));
 
 					/* we assume rolling friction is around 0.01 of sliding friction */
-					VecMulf(rot_vel, 1.0 - frict*0.01);
+					mul_v3_fl(rot_vel, 1.0 - frict*0.01);
 
 					/* change in angular velocity has to be added to the linear velocity too */
-					Crossf(dvel, dave, col.nor);
-					VecMulf(dvel, pa->size);
+					cross_v3_v3v3(dvel, dave, col.nor);
+					mul_v3_fl(dvel, pa->size);
 					VECADD(rot_vel, rot_vel, dvel);
 
 					VECADD(surface_vel, surface_vel, rot_vel);
 					VECADD(tan_vec, surface_vel, tan_vel);
 
 					/* convert back to normal time */
-					VecMulf(dave, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
+					mul_v3_fl(dave, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
 
-					VecMulf(pa->state.ave, 1.0 - frict*0.01);
+					mul_v3_fl(pa->state.ave, 1.0 - frict*0.01);
 					VECADD(pa->state.ave, pa->state.ave, dave);
 				}
 
@@ -2839,7 +2839,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 
 				/* calculate velocity from collision vector */
 				VECCOPY(vel, vec);
-				VecMulf(vel, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
+				mul_v3_fl(vel, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
 
 				/* make sure we don't hit the current face again */
 				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
@@ -2854,15 +2854,15 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 
 				/* store state for reactors */
 				//VECCOPY(reaction_state.co, co);
-				//VecLerpf(reaction_state.vel, pa->prev_state.vel, pa->state.vel, dt);
-				//QuatInterpol(reaction_state.rot, pa->prev_state.rot, pa->state.rot, dt);
+				//interp_v3_v3v3(reaction_state.vel, pa->prev_state.vel, pa->state.vel, dt);
+				//interp_qt_qtqt(reaction_state.rot, pa->prev_state.rot, pa->state.rot, dt);
 
 				/* set coordinates for next iteration */
 				VECCOPY(col.co1, co);
 				VECADDFAC(col.co2, co, vec, 1.0f - t);
 				col.t = dt;
 
-				if(VecLength(vec) < 0.001 && VecLength(pa->state.vel) < 0.001) {
+				if(len_v3(vec) < 0.001 && len_v3(pa->state.vel) < 0.001) {
 					/* kill speed to stop slipping */
 					VECCOPY(pa->state.vel,zerovec);
 					VECCOPY(pa->state.co, co);
@@ -3011,7 +3011,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 				VECSUB(temp, key->co, (key+1)->co);
 				VECCOPY(mvert->co, key->co);
 				VECADD(mvert->co, mvert->co, temp);
-				Mat4MulVecfl(hairmat, mvert->co);
+				mul_m4_v3(hairmat, mvert->co);
 				mvert++;
 
 				medge->v1 = pa->hair_index - 1;
@@ -3030,7 +3030,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 			}
 
 			VECCOPY(mvert->co, key->co);
-			Mat4MulVecfl(hairmat, mvert->co);
+			mul_m4_v3(hairmat, mvert->co);
 			mvert++;
 			
 			if(k) {
@@ -3105,7 +3105,7 @@ static void save_hair(ParticleSimulationData *sim, float cfra){
 	PARTICLE_P;
 	int totpart;
 
-	Mat4Invert(ob->imat, ob->obmat);
+	invert_m4_m4(ob->imat, ob->obmat);
 	
 	psys->lattice= psys_get_lattice(sim);
 
@@ -3125,8 +3125,8 @@ static void save_hair(ParticleSimulationData *sim, float cfra){
 		key += pa->totkey;
 
 		/* convert from global to geometry space */
-		VecCopyf(key->co, pa->state.co);
-		Mat4MulVecfl(ob->imat, key->co);
+		copy_v3_v3(key->co, pa->state.co);
+		mul_m4_v3(ob->imat, key->co);
 
 		if(pa->totkey) {
 			VECSUB(key->co, key->co, root->co);
@@ -3941,6 +3941,6 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	system_step(&sim, cfra);
 
 	/* save matrix for duplicators */
-	Mat4Invert(psys->imat, ob->obmat);
+	invert_m4_m4(psys->imat, ob->obmat);
 }
 

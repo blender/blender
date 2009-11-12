@@ -34,7 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_voxel.h"
 
@@ -175,6 +175,7 @@ static void lightcache_filter(VolumePrecache *vp)
 	}
 }
 
+#if 0
 static void lightcache_filter2(VolumePrecache *vp)
 {
 	int x, y, z;
@@ -211,6 +212,7 @@ static void lightcache_filter2(VolumePrecache *vp)
 	if (new_g) { MEM_freeN(new_g); new_g=NULL; }
 	if (new_b) { MEM_freeN(new_b); new_b=NULL; }
 }
+#endif
 
 static inline int ms_I(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
 { 
@@ -444,8 +446,8 @@ static void *vol_precache_part(void *data)
 					continue;
 				}
 				
-				VecCopyf(shi->view, co);
-				Normalize(shi->view);
+				copy_v3_v3(shi->view, co);
+				normalize_v3(shi->view);
 				vol_get_scattering(shi, scatter_col, co);
 			
 				obi->volume_precache->data_r[ V_I(x, y, z, res) ] = scatter_col[0];
@@ -495,7 +497,7 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 	parts[0] = parts[1] = parts[2] = totthread;
 	res = vp->res;
 	
-	VecSubf(voxel, bbmax, bbmin);
+	sub_v3_v3v3(voxel, bbmax, bbmin);
 	
 	voxel[0] /= res[0];
 	voxel[1] /= res[1];
@@ -564,7 +566,7 @@ static int precache_resolution(VolumePrecache *vp, float *bbmin, float *bbmax, i
 {
 	float dim[3], div;
 	
-	VecSubf(dim, bbmax, bbmin);
+	sub_v3_v3v3(dim, bbmax, bbmin);
 	
 	div = MAX3(dim[0], dim[1], dim[2]);
 	dim[0] /= div;

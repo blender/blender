@@ -46,7 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
@@ -160,8 +160,8 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *reports, char *
 
 	ob = base->object;
 	
-	Mat3CpyMat4(mat, ob->obmat);
-	Mat3Ortho(mat);
+	copy_m3_m4(mat, ob->obmat);
+	normalize_m3(mat);
 
 	/* use object name if no name is given */
 	if (name[0] == 0)
@@ -246,20 +246,20 @@ int createSpaceNormal(float mat[3][3], float normal[3])
 	float tangent[3] = {0.0f, 0.0f, 1.0f};
 	
 	VECCOPY(mat[2], normal);
-	if (Normalize(mat[2]) == 0.0f) {
+	if (normalize_v3(mat[2]) == 0.0f) {
 		return 0; /* error return */
 	}
 
-	Crossf(mat[0], mat[2], tangent);
-	if (Inpf(mat[0], mat[0]) == 0.0f) {
+	cross_v3_v3v3(mat[0], mat[2], tangent);
+	if (dot_v3v3(mat[0], mat[0]) == 0.0f) {
 		tangent[0] = 1.0f;
 		tangent[1] = tangent[2] = 0.0f;
-		Crossf(mat[0], tangent, mat[2]);
+		cross_v3_v3v3(mat[0], tangent, mat[2]);
 	}
 
-	Crossf(mat[1], mat[2], mat[0]);
+	cross_v3_v3v3(mat[1], mat[2], mat[0]);
 
-	Mat3Ortho(mat);
+	normalize_m3(mat);
 	
 	return 1;
 }
@@ -267,7 +267,7 @@ int createSpaceNormal(float mat[3][3], float normal[3])
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 {
 	VECCOPY(mat[2], normal);
-	if (Normalize(mat[2]) == 0.0f) {
+	if (normalize_v3(mat[2]) == 0.0f) {
 		return 0; /* error return */
 	}
 	
@@ -277,14 +277,14 @@ int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 		tangent[2] = 1;
 	}
 
-	Crossf(mat[0], mat[2], tangent);
-	if (Normalize(mat[0]) == 0.0f) {
+	cross_v3_v3v3(mat[0], mat[2], tangent);
+	if (normalize_v3(mat[0]) == 0.0f) {
 		return 0; /* error return */
 	}
 	
-	Crossf(mat[1], mat[2], mat[0]);
+	cross_v3_v3v3(mat[1], mat[2], mat[0]);
 
-	Mat3Ortho(mat);
+	normalize_m3(mat);
 	
 	return 1;
 }
@@ -311,7 +311,7 @@ TransformOrientation* addMatrixSpace(bContext *C, float mat[3][3], char name[], 
 	}
 
 	/* copy matrix into transform space */
-	Mat3CpyMat3(ts->mat, mat);
+	copy_m3_m3(ts->mat, mat);
 
 	return ts;
 }
@@ -479,7 +479,7 @@ void applyTransformOrientation(const bContext *C, float mat[3][3], char *name) {
 				if (name)
 					strcpy(name, ts->name);
 				
-				Mat3CpyMat3(mat, ts->mat);
+				copy_m3_m3(mat, ts->mat);
 				break;
 			}
 		}
@@ -522,7 +522,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		break;
 
 	case V3D_MANIP_GIMBAL:
-		Mat3One(t->spacemtx);
+		unit_m3(t->spacemtx);
 		if(ob)
 			gimbal_axis(ob, t->spacemtx);
 		break;
@@ -537,10 +537,10 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		strcpy(t->spacename, "local");
 		
 		if(ob) {
-			Mat3CpyMat4(t->spacemtx, ob->obmat);
-			Mat3Ortho(t->spacemtx);
+			copy_m3_m4(t->spacemtx, ob->obmat);
+			normalize_m3(t->spacemtx);
 		} else {
-			Mat3One(t->spacemtx);
+			unit_m3(t->spacemtx);
 		}
 		
 		break;
@@ -552,13 +552,13 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 			float mat[3][3];
 
 			strcpy(t->spacename, "view");
-			Mat3CpyMat4(mat, rv3d->viewinv);
-			Mat3Ortho(mat);
-			Mat3CpyMat3(t->spacemtx, mat);
+			copy_m3_m4(mat, rv3d->viewinv);
+			normalize_m3(mat);
+			copy_m3_m3(t->spacemtx, mat);
 		}
 		else
 		{
-			Mat3One(t->spacemtx);
+			unit_m3(t->spacemtx);
 		}
 		break;
 	default: /* V3D_MANIP_CUSTOM */
@@ -584,10 +584,10 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		float imat[3][3], mat[3][3];
 		
 		/* we need the transpose of the inverse for a normal... */
-		Mat3CpyMat4(imat, ob->obmat);
+		copy_m3_m4(imat, ob->obmat);
 		
-		Mat3Inv(mat, imat);
-		Mat3Transp(mat);
+		invert_m3_m3(mat, imat);
+		transpose_m3(mat);
 
 		ob= obedit;
 
@@ -629,7 +629,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 						if(efa->f & SELECT)
 						{
 							VECADD(normal, normal, efa->n);
-							VecSubf(vec, efa->v2->co, efa->v1->co);
+							sub_v3_v3v3(vec, efa->v2->co, efa->v1->co);
 							VECADD(plane, plane, vec);
 						}
 					}
@@ -653,9 +653,9 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 							else {
 								v3 = eve;
 
-								VecSubf(plane, v2->co, v1->co);
-								VecSubf(cotangent, v3->co, v2->co);
-								Crossf(normal, cotangent, plane);
+								sub_v3_v3v3(plane, v2->co, v1->co);
+								sub_v3_v3v3(cotangent, v3->co, v2->co);
+								cross_v3_v3v3(normal, cotangent, plane);
 								break;
 							}
 						}
@@ -668,7 +668,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	
 						for(eed= em->edges.first; eed; eed= eed->next) {
 							if(eed->f & SELECT) {
-								VecSubf(plane, eed->v2->co, eed->v1->co);
+								sub_v3_v3v3(plane, eed->v2->co, eed->v1->co);
 								break;
 							}
 						}
@@ -685,7 +685,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 							/* use average vert normals as plane and edge vector as normal */
 							VECCOPY(plane, eed->v1->no);
 							VECADD(plane, plane, eed->v2->no);
-							VecSubf(normal, eed->v2->co, eed->v1->co);
+							sub_v3_v3v3(normal, eed->v2->co, eed->v1->co);
 							break;
 						}
 					}
@@ -706,7 +706,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 								
 								VECCOPY(plane, v1->no);
 								VECADD(plane, plane, v2->no);
-								VecSubf(normal, v2->co, v1->co);
+								sub_v3_v3v3(normal, v2->co, v1->co);
 								break; 
 							}
 						}
@@ -731,10 +731,10 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					for (eve = em->verts.first; eve; eve = eve->next)
 					{
 						if ( eve->f & SELECT ) {
-							VecAddf(normal, normal, eve->no);
+							add_v3_v3v3(normal, normal, eve->no);
 						}
 					}
-					Normalize(normal);
+					normalize_v3(normal);
 					result = ORIENTATION_VERT;
 				}
 			}
@@ -758,21 +758,21 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 						/* exception */
 						if ( (bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT )
 						{
-							VecSubf(normal, bezt->vec[0], bezt->vec[2]);
+							sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[2]);
 						}
 						else
 						{
 							if(bezt->f1)
 							{
-								VecSubf(normal, bezt->vec[0], bezt->vec[1]);
+								sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[1]);
 							}
 							if(bezt->f2)
 							{
-								VecSubf(normal, bezt->vec[0], bezt->vec[2]);
+								sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[2]);
 							}
 							if(bezt->f3)
 							{
-								VecSubf(normal, bezt->vec[1], bezt->vec[2]);
+								sub_v3_v3v3(normal, bezt->vec[1], bezt->vec[2]);
 							}
 						}
 						bezt++;
@@ -813,12 +813,12 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				float mat[4][4];
 
 				/* Rotation of MetaElem is stored in quat */
- 				QuatToMat4(ml_sel->quat, mat);
+ 				quat_to_mat4( mat,ml_sel->quat);
 
 				VECCOPY(normal, mat[2]);
 				VECCOPY(plane, mat[1]);
 
-				VecMulf(plane, -1.0);
+				mul_v3_fl(plane, -1.0);
 				
 				result = ORIENTATION_NORMAL;
 			}
@@ -837,18 +837,18 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					{
 						float mat[3][3];
 						float vec[3];
-						VecSubf(vec, ebone->tail, ebone->head);
-						Normalize(vec);
-						VecAddf(normal, normal, vec);
+						sub_v3_v3v3(vec, ebone->tail, ebone->head);
+						normalize_v3(vec);
+						add_v3_v3v3(normal, normal, vec);
 						
 						vec_roll_to_mat3(vec, ebone->roll, mat);
-						VecAddf(plane, plane, mat[2]);
+						add_v3_v3v3(plane, plane, mat[2]);
 					}
 				}
 			}
 			
-			Normalize(normal);
-			Normalize(plane);
+			normalize_v3(normal);
+			normalize_v3(plane);
 
 			if (plane[0] != 0 || plane[1] != 0 || plane[2] != 0)
 			{
@@ -860,13 +860,13 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		/* Vectors from edges don't need the special transpose inverse multiplication */
 		if (result == ORIENTATION_EDGE)
 		{
-			Mat4Mul3Vecfl(ob->obmat, normal);
-			Mat4Mul3Vecfl(ob->obmat, plane);
+			mul_mat3_m4_v3(ob->obmat, normal);
+			mul_mat3_m4_v3(ob->obmat, plane);
 		}
 		else
 		{
-			Mat3MulVecfl(mat, normal);
-			Mat3MulVecfl(mat, plane);
+			mul_m3_v3(mat, normal);
+			mul_m3_v3(mat, plane);
 		}
 	}
 	else if(ob && (ob->mode & OB_MODE_POSE))
@@ -882,19 +882,19 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			/* use channels to get stats */
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
-					VecAddf(normal, normal, pchan->pose_mat[2]);
-					VecAddf(plane, plane, pchan->pose_mat[1]);
+					add_v3_v3v3(normal, normal, pchan->pose_mat[2]);
+					add_v3_v3v3(plane, plane, pchan->pose_mat[1]);
 				}
 			}
-			VecMulf(plane, -1.0);
+			mul_v3_fl(plane, -1.0);
 			
 			/* we need the transpose of the inverse for a normal... */
-			Mat3CpyMat4(imat, ob->obmat);
+			copy_m3_m4(imat, ob->obmat);
 			
-			Mat3Inv(mat, imat);
-			Mat3Transp(mat);
-			Mat3MulVecfl(mat, normal);
-			Mat3MulVecfl(mat, plane);
+			invert_m3_m3(mat, imat);
+			transpose_m3(mat);
+			mul_m3_v3(mat, normal);
+			mul_m3_v3(mat, plane);
 			
 			result = ORIENTATION_EDGE;
 		}
@@ -963,6 +963,6 @@ void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[]
 
 	if (type == ORIENTATION_NONE)
 	{
-		Mat3One(orientation_mat);
+		unit_m3(orientation_mat);
 	}
 }

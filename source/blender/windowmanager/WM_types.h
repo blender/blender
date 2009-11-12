@@ -133,8 +133,8 @@ typedef struct wmNotifier {
 #define NC_WORLD			(13<<24)
 #define NC_ANIMATION		(14<<24)
 #define NC_SPACE			(15<<24)
-#define NC_NODE				(15<<24)
 #define	NC_GEOM				(16<<24)
+#define NC_NODE				(17<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -210,6 +210,10 @@ typedef struct wmNotifier {
 	/* Mesh, Curve, MetaBall, Armature, .. */
 #define ND_SELECT			(80<<16)
 #define ND_DATA				(81<<16)
+
+	/* NC_NODE Nodes */
+#define ND_NODE_SELECT			(1<<16)
+
 
 	/* NC_SPACE */
 #define ND_SPACE_CONSOLE		(1<<16) /* general redraw */

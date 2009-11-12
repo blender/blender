@@ -32,7 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
@@ -65,6 +65,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_colortools.h"
@@ -74,6 +75,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
@@ -140,6 +142,7 @@ typedef struct StrokeCache {
 	float flip;
 	float pressure;
 	float mouse[2];
+	float tex_mouse[2];
 
 	/* The rest is temporary storage that isn't saved as a property */
 
@@ -256,12 +259,12 @@ static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], cons
 {
 	float fno[3] = {no[0], no[1], no[2]};
 
-	Normalize(fno);
+	normalize_v3(fno);
 
-	if((Inpf(view_vec, fno)) > 0) {
-		VecAddf(out, out, fno);
+	if((dot_v3v3(view_vec, fno)) > 0) {
+		add_v3_v3v3(out, out, fno);
 	} else {
-		VecAddf(out_flip, out_flip, fno); /* out_flip is used when out is {0,0,0} */
+		add_v3_v3v3(out_flip, out_flip, fno); /* out_flip is used when out is {0,0,0} */
 	}
 }
 
@@ -291,7 +294,7 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float out[3], const 
 		VECCOPY(out, out_flip);
 	}
 	
-	Normalize(out);
+	normalize_v3(out);
 
 	if(out_dir) {
 		out[0] = out_dir[0] * view + out[0] * (10-view);
@@ -299,7 +302,7 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float out[3], const 
 		out[2] = out_dir[2] * view + out[2] * (10-view);
 	}
 	
-	Normalize(out);
+	normalize_v3(out);
 }
 
 static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_verts)
@@ -349,7 +352,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 		
 	/* Don't modify corner vertices */
 	if(ncount==1) {
-		VecCopyf(avg, ss->mvert[vert].co);
+		copy_v3_v3(avg, ss->mvert[vert].co);
 		return;
 	}
 
@@ -365,7 +368,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 
 		for(i=0; i<(f->v4?4:3); ++i) {
 			if(i != skip && (ncount!=2 || BLI_countlist(&ss->fmap[(&f->v1)[i]]) <= 2)) {
-				VecAddf(avg, avg, ss->mvert[(&f->v1)[i]].co);
+				add_v3_v3v3(avg, avg, ss->mvert[(&f->v1)[i]].co);
 				++total;
 			}
 		}
@@ -374,9 +377,9 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 	}
 
 	if(total>0)
-		VecMulf(avg, 1.0f / total);
+		mul_v3_fl(avg, 1.0f / total);
 	else
-		VecCopyf(avg, ss->mvert[vert].co);
+		copy_v3_v3(avg, ss->mvert[vert].co);
 }
 
 static void do_smooth_brush(Sculpt *s, SculptSession *ss, const ListBase* active_verts)
@@ -443,14 +446,14 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss)
 	float grab_delta[3];
 	float *buffer = ss->drawobject!=0?(float *)GPU_buffer_lock( ss->drawobject->vertices ):0;
 	
-	VecCopyf(grab_delta, ss->cache->grab_delta_symmetry);
+	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 	
 	while(node) {
 		float *co= ss->mvert[node->Index].co;
 		
-		VecCopyf(add, grab_delta);
-		VecMulf(add, node->Fade);
-		VecAddf(add, add, co);
+		copy_v3_v3(add, grab_delta);
+		mul_v3_fl(add, node->Fade);
+		add_v3_v3v3(add, add, co);
 
 		if( buffer != 0 ) {
 			IndexLink *cur = &ss->drawobject->indices[node->Index];
@@ -526,11 +529,11 @@ static void do_inflate_brush(Sculpt *s, SculptSession *ss, const ListBase *activ
 		add[0]= no[0]/ 32767.0f;
 		add[1]= no[1]/ 32767.0f;
 		add[2]= no[2]/ 32767.0f;
-		VecMulf(add, node->Fade * ss->cache->radius);
+		mul_v3_fl(add, node->Fade * ss->cache->radius);
 		add[0]*= ss->cache->scale[0];
 		add[1]*= ss->cache->scale[1];
 		add[2]*= ss->cache->scale[2];
-		VecAddf(add, add, co);
+		add_v3_v3v3(add, add, co);
 		
 		if( buffer != 0 ) {
 			IndexLink *cur = &ss->drawobject->indices[node->Index];
@@ -567,8 +570,8 @@ static void calc_flatten_center(SculptSession *ss, ActiveData *node, float co[3]
 	
 	co[0] = co[1] = co[2] = 0.0f;
 	for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i)
-		VecAddf(co, co, ss->mvert[outer[i]->Index].co);
-	VecMulf(co, 1.0f / FLATTEN_SAMPLE_SIZE);
+		add_v3_v3v3(co, co, ss->mvert[outer[i]->Index].co);
+	mul_v3_fl(co, 1.0f / FLATTEN_SAMPLE_SIZE);
 }
 
 /* Projects a point onto a plane along the plane's normal */
@@ -577,12 +580,12 @@ static void point_plane_project(float intr[3], float co[3], float plane_normal[3
 	float p1[3], sub1[3], sub2[3];
 
 	/* Find the intersection between squash-plane and vertex (along the area normal) */
-	VecSubf(p1, co, plane_normal);
-	VecSubf(sub1, plane_center, p1);
-	VecSubf(sub2, co, p1);
-	VecSubf(intr, co, p1);
-	VecMulf(intr, Inpf(plane_normal, sub1) / Inpf(plane_normal, sub2));
-	VecAddf(intr, intr, p1);
+	sub_v3_v3v3(p1, co, plane_normal);
+	sub_v3_v3v3(sub1, plane_center, p1);
+	sub_v3_v3v3(sub2, co, p1);
+	sub_v3_v3v3(intr, co, p1);
+	mul_v3_fl(intr, dot_v3v3(plane_normal, sub1) / dot_v3v3(plane_normal, sub2));
+	add_v3_v3v3(intr, intr, p1);
 }
 
 static int plane_point_side(float co[3], float plane_normal[3], float plane_center[3], int flip)
@@ -590,8 +593,8 @@ static int plane_point_side(float co[3], float plane_normal[3], float plane_cent
 	float delta[3];
 	float d;
 
-	VecSubf(delta, co, plane_center);
-	d = Inpf(plane_normal, delta);
+	sub_v3_v3v3(delta, co, plane_center);
+	d = dot_v3v3(plane_normal, delta);
 
 	if(flip)
 		d = -d;
@@ -629,22 +632,22 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase 
 			/* Find the intersection between squash-plane and vertex (along the area normal) */		
 			point_plane_project(intr, co, area_normal, cntr);
 
-			VecSubf(val, intr, co);
+			sub_v3_v3v3(val, intr, co);
 
 			if(clay) {
 				if(bstr > FLT_EPSILON)
-					VecMulf(val, node->Fade / bstr);
+					mul_v3_fl(val, node->Fade / bstr);
 				else
-					VecMulf(val, node->Fade);
+					mul_v3_fl(val, node->Fade);
 				/* Clay displacement */
 				val[0]+=area_normal[0] * ss->cache->scale[0]*node->Fade;
 				val[1]+=area_normal[1] * ss->cache->scale[1]*node->Fade;
 				val[2]+=area_normal[2] * ss->cache->scale[2]*node->Fade;
 			}
 			else
-				VecMulf(val, fabs(node->Fade));
+				mul_v3_fl(val, fabs(node->Fade));
 
-			VecAddf(val, val, co);
+			add_v3_v3v3(val, val, co);
 
 			if( buffer != 0 ) {
 				IndexLink *cur = &ss->drawobject->indices[node->Index];
@@ -747,7 +750,7 @@ static float tex_strength(Sculpt *sd, SculptSession *ss, float *point, const flo
 		/* If the active area is being applied for symmetry, flip it
 		   across the symmetry axis in order to project it. This insures
 		   that the brush texture will be oriented correctly. */
-		VecCopyf(flip, point);
+		copy_v3_v3(flip, point);
 		flip_coord(flip, flip, ss->cache->symmetry);
 		projectf(ss->cache->mats, flip, point_2d);
 
@@ -777,8 +780,8 @@ static float tex_strength(Sculpt *sd, SculptSession *ss, float *point, const flo
 			avg= get_texcache_pixel_bilinear(ss, ss->texcache_side*px/sx, ss->texcache_side*py/sy);
 		}
 		else if(tex->brush_map_mode == MTEX_MAP_MODE_FIXED) {
-			float fx= (point_2d[0] - ss->cache->mouse[0]) / bsize;
-			float fy= (point_2d[1] - ss->cache->mouse[1]) / bsize;
+			float fx= (point_2d[0] - ss->cache->tex_mouse[0]) / bsize;
+			float fy= (point_2d[1] - ss->cache->tex_mouse[1]) / bsize;
 
 			float angle= atan2(fy, fx) - rot;
 			float flen= sqrtf(fx*fx + fy*fy);
@@ -836,9 +839,7 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 	ListBase *grab_active_verts = &ss->cache->grab_active_verts[ss->cache->symmetry];
 	ActiveData *adata= 0;
 	float *vert;
-	Mesh *me= NULL; /*XXX: get_mesh(OBACT); */
 	const float bstrength= brush_strength(sd, cache);
-	KeyBlock *keyblock= NULL; /*XXX: ob_get_keyblock(OBACT); */
 	Brush *b = brush;
 	int i;
 
@@ -852,7 +853,7 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 			if(ss->multires || ss->projverts[i].inside) {
 				//vert= ss->vertexcosnos ? &ss->vertexcosnos[i*6] : a->verts[i].co;
 				vert= ss->mvert[i].co;
-				av_dist= VecLenf(ss->cache->location, vert);
+				av_dist= len_v3v3(ss->cache->location, vert);
 				if(av_dist < cache->radius) {
 					adata= (ActiveData*)MEM_mallocN(sizeof(ActiveData), "ActiveData");
 
@@ -901,19 +902,7 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 		}
 	
 		/* Copy the modified vertices from mesh to the active key */
-		if(keyblock && !ss->multires) {
-			float *co= keyblock->data;
-			if(co) {
-				if(b->sculpt_tool == SCULPT_TOOL_GRAB)
-					adata = grab_active_verts->first;
-				else
-					adata = active_verts.first;
-
-				for(; adata; adata= adata->next)
-					if(adata->Index < keyblock->totelem)
-						VecCopyf(&co[adata->Index*3], me->mvert[adata->Index].co);
-			}
-		}
+		if(ss->kb) mesh_to_key(ss->ob->data, ss->kb);
 
 		if(ss->vertexcosnos && !ss->multires)
 			BLI_freelistN(&active_verts);
@@ -940,8 +929,8 @@ static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 	const char symm = sd->flags & 7;
 	int i;
 
-	VecCopyf(cache->location, cache->true_location);
-	VecCopyf(cache->grab_delta_symmetry, cache->grab_delta);
+	copy_v3_v3(cache->location, cache->true_location);
+	copy_v3_v3(cache->grab_delta_symmetry, cache->grab_delta);
 	cache->symmetry = 0;
 	do_brush_action(sd, ss, cache);
 
@@ -963,15 +952,15 @@ static void add_face_normal(vec3f *norm, MVert *mvert, const MFace* face, float 
 	vec3f s1, s2;
 	float final[3];
 
-	VecSubf(&s1.x,&a.x,&b.x);
-	VecSubf(&s2.x,&c.x,&b.x);
+	sub_v3_v3v3(&s1.x,&a.x,&b.x);
+	sub_v3_v3v3(&s2.x,&c.x,&b.x);
 
 	final[0] = s1.y * s2.z - s1.z * s2.y;
 	final[1] = s1.z * s2.x - s1.x * s2.z;
 	final[2] = s1.x * s2.y - s1.y * s2.x;
 
 	if(fn)
-		VecCopyf(fn, final);
+		copy_v3_v3(fn, final);
 
 	norm->x+= final[0];
 	norm->y+= final[1];
@@ -994,7 +983,7 @@ static void update_damaged_vert(SculptSession *ss, ListBase *lb)
 			add_face_normal(&norm, ss->mvert, &ss->mface[face->index], fn);
 			face= face->next;
 		}
-		Normalize(&norm.x);
+		normalize_v3(&norm.x);
 		
 		ss->mvert[vert->Index].no[0]=norm.x*32767;
 		ss->mvert[vert->Index].no[1]=norm.y*32767;
@@ -1010,9 +999,9 @@ static void update_damaged_vert(SculptSession *ss, ListBase *lb)
 				else {
 					float norm[3];
 					if( ss->mface[i].v4 )
-						CalcNormFloat4(ss->mvert[ss->mface[i].v1].co, ss->mvert[ss->mface[i].v2].co, ss->mvert[ss->mface[i].v3].co, ss->mvert[ss->mface[i].v4].co, norm);
+						normal_quad_v3( norm,ss->mvert[ss->mface[i].v1].co, ss->mvert[ss->mface[i].v2].co, ss->mvert[ss->mface[i].v3].co, ss->mvert[ss->mface[i].v4].co);
 					else
-						CalcNormFloat(ss->mvert[ss->mface[i].v1].co, ss->mvert[ss->mface[i].v2].co, ss->mvert[ss->mface[i].v3].co, norm);
+						normal_tri_v3( norm,ss->mvert[ss->mface[i].v1].co, ss->mvert[ss->mface[i].v2].co, ss->mvert[ss->mface[i].v3].co);
 					VECCOPY(&buffer[(cur->element-cur->element%3)*3],norm);
 					VECCOPY(&buffer[(cur->element-cur->element%3+1)*3],norm);
 					VECCOPY(&buffer[(cur->element-cur->element%3+2)*3],norm);
@@ -1096,7 +1085,7 @@ char sculpt_modifiers_active(Object *ob)
 	ModifierData *md;
 	
 	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
-		if(md->mode & eModifierMode_Realtime && md->type != eModifierType_Multires)
+		if(modifier_isEnabled(md, eModifierMode_Realtime) && md->type != eModifierType_Multires)
 			return 1;
 	}
 	
@@ -1134,6 +1123,8 @@ static void sculpt_update_mesh_elements(bContext *C)
 	int oldtotvert = ss->totvert;
 	DerivedMesh *dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
 
+	ss->ob= ob;
+
 	if((ss->multires = sculpt_multires_active(ob))) {
 		//DerivedMesh *dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
 		ss->totvert = dm->getNumVerts(dm);
@@ -1165,6 +1156,15 @@ static void sculpt_update_mesh_elements(bContext *C)
 		if(ss->fmap_mem) MEM_freeN(ss->fmap_mem);
 		create_vert_face_map(&ss->fmap, &ss->fmap_mem, ss->mface, ss->totvert, ss->totface);
 		ss->fmap_size = ss->totvert;
+	}
+
+	if((ob->shapeflag & OB_SHAPE_LOCK) && !sculpt_multires_active(ob)) {
+		ss->kb= ob_get_keyblock(ob);
+		ss->refkb= ob_get_reference_keyblock(ob);
+	}
+	else {
+		ss->kb= NULL;
+		ss->refkb= NULL;
 	}
 }
 
@@ -1259,7 +1259,7 @@ static float unproject_brush_radius(SculptSession *ss, float offset)
 	view3d_unproject(ss->cache->mats, brush_edge, ss->cache->initial_mouse[0] + offset,
 		  ss->cache->initial_mouse[1], ss->cache->depth);
 
-	return VecLenf(ss->cache->true_location, brush_edge);
+	return len_v3v3(ss->cache->true_location, brush_edge);
 }
 
 static void sculpt_cache_free(StrokeCache *cache)
@@ -1292,8 +1292,8 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 	RNA_float_get_array(op->ptr, "initial_mouse", cache->initial_mouse);
 	cache->depth = RNA_float_get(op->ptr, "depth");
 
-	cache->mouse[0] = cache->initial_mouse[0];
-	cache->mouse[1] = cache->initial_mouse[1];
+	copy_v2_v2(cache->mouse, cache->initial_mouse);
+	copy_v2_v2(cache->tex_mouse, cache->initial_mouse);
 
 	/* Truly temporary data that isn't stored in properties */
 
@@ -1318,7 +1318,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 				ss->mesh_co_orig= MEM_mallocN(sizeof(float) * 3 * ss->totvert,
 								       "sculpt mesh vertices copy");
 			for(i = 0; i < ss->totvert; ++i)
-				VecCopyf(ss->mesh_co_orig[i], ss->mvert[i].co);
+				copy_v3_v3(ss->mesh_co_orig[i], ss->mvert[i].co);
 		}
 
 		if(brush->flag & BRUSH_ANCHORED) {
@@ -1333,7 +1333,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 				float *fn = ss->face_normals;
 				cache->face_norms= MEM_mallocN(sizeof(float) * 3 * ss->totface, "Sculpt face norms");
 				for(i = 0; i < ss->totface; ++i, fn += 3)
-					VecCopyf(cache->face_norms[i], fn);
+					copy_v3_v3(cache->face_norms[i], fn);
 			}
 		}
 	}
@@ -1371,6 +1371,9 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, PointerR
 	else
 		cache->radius = cache->initial_radius;
 
+	if(!(brush->flag & BRUSH_ANCHORED))
+		copy_v2_v2(cache->tex_mouse, cache->mouse);
+
 	if(brush->flag & BRUSH_ANCHORED) {
 		dx = cache->mouse[0] - cache->initial_mouse[0];
 		dy = cache->mouse[1] - cache->initial_mouse[1];
@@ -1400,8 +1403,8 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, PointerR
 	if(brush->sculpt_tool == SCULPT_TOOL_GRAB) {
 		view3d_unproject(cache->mats, grab_location, cache->mouse[0], cache->mouse[1], cache->depth);
 		if(!cache->first_time)
-			VecSubf(cache->grab_delta, grab_location, cache->old_grab_location);
-		VecCopyf(cache->old_grab_location, grab_location);
+			sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
+		copy_v3_v3(cache->old_grab_location, grab_location);
 	}
 }
 
@@ -1448,10 +1451,16 @@ static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmE
 	sculpt_update_cache_invariants(sd, ss, C, op);
 }
 
-static void sculpt_brush_stroke_init(bContext *C)
+static int sculpt_brush_stroke_init(bContext *C, ReportList *reports)
 {
+	Object *ob= CTX_data_active_object(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
+
+	if(ob_get_key(ob) && !(ob->shapeflag & OB_SHAPE_LOCK)) {
+		BKE_report(reports, RPT_ERROR, "Shape key sculpting requires a locked shape.");
+		return 0;
+	}
 
 	view3d_operator_needs_opengl(C);
 
@@ -1461,6 +1470,10 @@ static void sculpt_brush_stroke_init(bContext *C)
 	sculpt_update_tex(sd, ss);
 
 	sculpt_update_mesh_elements(C);
+
+	if(ss->kb) key_to_mesh(ss->kb, ss->ob->data);
+
+	return 1;
 }
 
 static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
@@ -1477,7 +1490,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 			buffer= (float *)GPU_buffer_lock(ss->drawobject->normals);
 
 		for(i = 0; i < ss->totvert; ++i) {
-			VecCopyf(ss->mvert[i].co, ss->mesh_co_orig[i]);
+			copy_v3_v3(ss->mvert[i].co, ss->mesh_co_orig[i]);
 			ss->mvert[i].no[0] = cache->orig_norms[i][0];
 			ss->mvert[i].no[1] = cache->orig_norms[i][1];
 			ss->mvert[i].no[2] = cache->orig_norms[i][2];
@@ -1495,7 +1508,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 		if(ss->face_normals) {
 			float *fn = ss->face_normals;
 			for(i = 0; i < ss->totface; ++i, fn += 3)
-				VecCopyf(fn, cache->face_norms[i]);
+				copy_v3_v3(fn, cache->face_norms[i]);
 		}
 
 		if(brush->sculpt_tool == SCULPT_TOOL_LAYER)
@@ -1526,6 +1539,9 @@ static void sculpt_flush_update(bContext *C)
 		mmd->undo_verts_tot = ss->totvert;
 		multires_mark_as_modified(ob);
 	}
+
+	if(sculpt_modifiers_active(ob))
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	ED_region_tag_redraw(ar);
 }
@@ -1567,11 +1583,14 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 {
-	SculptSession *ss = CTX_data_active_object(C)->sculpt;
+	Object *ob= CTX_data_active_object(C);
+	SculptSession *ss = ob->sculpt;
 
 	/* Finished */
 	if(ss->cache) {
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;		
+
+		if(ss->refkb) key_to_mesh(ss->refkb, ob->data);
 
 		request_depth_update(paint_stroke_view_context(stroke)->rv3d);
 		sculpt_cache_free(ss->cache);
@@ -1582,7 +1601,8 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	sculpt_brush_stroke_init(C);
+	if(!sculpt_brush_stroke_init(C, op->reports))
+		return OPERATOR_CANCELLED;
 
 	op->customdata = paint_stroke_new(C, sculpt_stroke_test_start,
 					  sculpt_stroke_update_step,
@@ -1601,9 +1621,10 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
-	op->customdata = paint_stroke_new(C, sculpt_stroke_test_start, sculpt_stroke_update_step, sculpt_stroke_done);
+	if(!sculpt_brush_stroke_init(C, op->reports))
+		return OPERATOR_CANCELLED;
 
-	sculpt_brush_stroke_init(C);
+	op->customdata = paint_stroke_new(C, sculpt_stroke_test_start, sculpt_stroke_update_step, sculpt_stroke_done);
 
 	sculpt_update_cache_invariants(sd, ss, C, op);
 	sculptmode_update_all_projverts(ss);
@@ -1694,7 +1715,8 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 
 	if(ob->mode & OB_MODE_SCULPT) {
-		multires_force_update(ob);
+		if(sculpt_multires_active(ob))
+			multires_force_update(ob);
 
 		/* Leave sculptmode */
 		ob->mode &= ~OB_MODE_SCULPT;

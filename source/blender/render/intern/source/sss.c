@@ -47,7 +47,7 @@
 /* external modules: */
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
@@ -443,8 +443,8 @@ static void compute_radiance(ScatterTree *tree, float *co, float *rad)
 	   of the mesh not visible from the camera. this can not only make
 	   it darker, but also lead to ugly color shifts */
 
-	VecMulf(result.rad, tree->ss[0]->frontweight);
-	VecMulf(result.backrad, tree->ss[0]->backweight);
+	mul_v3_fl(result.rad, tree->ss[0]->frontweight);
+	mul_v3_fl(result.backrad, tree->ss[0]->backweight);
 
 	VECCOPY(rad, result.rad);
 	VECADD(backrad, result.rad, result.backrad);
@@ -760,7 +760,7 @@ ScatterTree *scatter_tree_new(ScatterSettings *ss[3], float scale, float error,
 		points[i].area= fabs(area[i])/(tree->scale*tree->scale);
 		points[i].back= (area[i] < 0.0f);
 
-		VecMulf(points[i].co, 1.0f/tree->scale);
+		mul_v3_fl(points[i].co, 1.0f/tree->scale);
 		DO_MINMAX(points[i].co, tree->min, tree->max);
 
 		refpoints[i]= points + i;
@@ -813,7 +813,7 @@ void scatter_tree_sample(ScatterTree *tree, float *co, float *color)
 	float sco[3];
 
 	VECCOPY(sco, co);
-	VecMulf(sco, 1.0f/tree->scale);
+	mul_v3_fl(sco, 1.0f/tree->scale);
 
 	compute_radiance(tree, sco, color);
 }

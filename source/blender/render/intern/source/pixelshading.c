@@ -27,7 +27,7 @@
 #include <float.h>
 #include <math.h>
 #include <string.h>
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 /* External modules: */
 #include "IMB_imbuf_types.h"
@@ -155,7 +155,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 					
 					/* rotate view to lampspace */
 					VECCOPY(lvrot, lv);
-					Mat3MulVecfl(lar->imat, lvrot);
+					mul_m3_v3(lar->imat, lvrot);
 					
 					x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
 					/* 1.0/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
@@ -553,7 +553,7 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short th
 		VECCOPY(lo, view);
 		if(R.wrld.skytype & WO_SKYREAL) {
 			
-			Mat3MulVecfl(R.imat, lo);
+			mul_m3_v3(R.imat, lo);
 			
 			SWAP(float, lo[1],  lo[2]);
 			
@@ -594,11 +594,11 @@ void shadeSunView(float *colf, float *view)
 			if(do_init) {
 				
 				VECCOPY(sview, view);
-				Normalize(sview);
-				Mat3MulVecfl(R.imat, sview);
+				normalize_v3(sview);
+				mul_m3_v3(R.imat, sview);
 				if (sview[2] < 0.0)
 					sview[2] = 0.0;
-				Normalize(sview);
+				normalize_v3(sview);
 				do_init= 0;
 			}
 			
@@ -654,7 +654,7 @@ void shadeSkyPixel(float *collector, float fx, float fy, short thread)
 		}
 		else {
 			calc_view_vector(view, fx, fy);
-			fac= Normalize(view);
+			fac= normalize_v3(view);
 			
 			if(R.wrld.skytype & WO_SKYTEX) {
 				dxyview[0]= -R.viewdx/fac;
@@ -677,8 +677,8 @@ void shadeAtmPixel(struct SunSky *sunsky, float *collector, float fx, float fy, 
 	float view[3];
 		
 	calc_view_vector(view, fx, fy);
-	Normalize(view);
-	/*Mat3MulVecfl(R.imat, view);*/
+	normalize_v3(view);
+	/*mul_m3_v3(R.imat, view);*/
 	AtmospherePixleShader(sunsky, view, distance, collector);
 }
 

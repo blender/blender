@@ -52,7 +52,7 @@ extern "C"{
  #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
@@ -70,7 +70,7 @@ BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 							m_poseApplied(false),
 							m_recalcNormal(true)
 {
-	Mat4CpyMat4(m_obmat, bmeshobj->obmat);
+	copy_m4_m4(m_obmat, bmeshobj->obmat);
 };
 
 BL_SkinDeformer::BL_SkinDeformer(
@@ -93,7 +93,7 @@ BL_SkinDeformer::BL_SkinDeformer(
 		// that takes an object as parameter and not a mesh. The object matrice is used
 		// in the calculation, so we must use the matrix of the original object to
 		// simulate a pure replacement of the mesh.
-		Mat4CpyMat4(m_obmat, bmeshobj_new->obmat);
+		copy_m4_m4(m_obmat, bmeshobj_new->obmat);
 	}
 
 BL_SkinDeformer::~BL_SkinDeformer()
@@ -194,14 +194,14 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 		m_armobj->ApplyPose();
 
 		// save matrix first
-		Mat4CpyMat4(obmat, m_objMesh->obmat);
+		copy_m4_m4(obmat, m_objMesh->obmat);
 		// set reference matrix
-		Mat4CpyMat4(m_objMesh->obmat, m_obmat);
+		copy_m4_m4(m_objMesh->obmat, m_obmat);
 
 		armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, NULL, m_bmesh->totvert, ARM_DEF_VGROUP, NULL, NULL );
 		
 		// restore matrix 
-		Mat4CpyMat4(m_objMesh->obmat, obmat);
+		copy_m4_m4(m_objMesh->obmat, obmat);
 
 #ifdef __NLA_DEFNORMALS
 		if (m_recalcNormal)

@@ -67,7 +67,7 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
@@ -161,16 +161,16 @@ void ED_object_apply_obmat(Object *ob)
 	/* from obmat to loc rot size */
 	
 	if(ob==NULL) return;
-	Mat3CpyMat4(mat, ob->obmat);
+	copy_m3_m4(mat, ob->obmat);
 	
 	VECCOPY(ob->loc, ob->obmat[3]);
 
-	Mat3ToEul(mat, ob->rot);
-	EulToMat3(ob->rot, tmat);
+	mat3_to_eul( ob->rot,mat);
+	eul_to_mat3( tmat,ob->rot);
 
-	Mat3Inv(imat, tmat);
+	invert_m3_m3(imat, tmat);
 	
-	Mat3MulMat3(tmat, imat, mat);
+	mul_m3_m3m3(tmat, imat, mat);
 	
 	ob->size[0]= tmat[0][0];
 	ob->size[1]= tmat[1][1];

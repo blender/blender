@@ -194,10 +194,24 @@ public:
 
 	/**
      * Handles a window event. Called by GHOST_WindowCocoa window delegate
-     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
+     * @param eventType The type of window event
+	 * @param window The window on which the event occured
      * @return Indication whether the event was handled. 
      */
     GHOST_TSuccess handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa* window);
+	
+	
+	/**
+     * Handles a drag'n'drop destination event. Called by GHOST_WindowCocoa window subclass
+     * @param eventType The type of drag'n'drop event
+	 * @param draggedObjectType The type object concerned (currently array of file names, string, TIFF image)
+	 * @param mouseX x mouse coordinate (in cocoa base window coordinates)
+	 * @param mouseY y mouse coordinate
+	 * @param window The window on which the event occured
+     * @return Indication whether the event was handled. 
+     */
+	GHOST_TSuccess handleDraggingEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,
+									   GHOST_WindowCocoa* window, int mouseX, int mouseY, void* data);
 	
 protected:
 	/**

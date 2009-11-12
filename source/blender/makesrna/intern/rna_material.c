@@ -1393,13 +1393,13 @@ static void rna_def_material_strand(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "root_size", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "strand_sta");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_MaterialStrand_start_size_range");
-	RNA_def_property_ui_text(prop, "Root Size", "Start size of strands in pixels Blender units.");
+	RNA_def_property_ui_text(prop, "Root Size", "Start size of strands in pixels or Blender units.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "tip_size", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "strand_end");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_MaterialStrand_end_size_range");
-	RNA_def_property_ui_text(prop, "Tip Size", "Start size of strands in pixels or Blender units.");
+	RNA_def_property_ui_text(prop, "Tip Size", "End size of strands in pixels or Blender units.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "min_size", PROP_FLOAT, PROP_UNSIGNED);

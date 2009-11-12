@@ -136,7 +136,7 @@ struct bArmature;
 struct EditBone;
 struct ListBase;
 
-void make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent);
+EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent, struct Bone *actBone);
 struct EditBone *addEditBone(struct bArmature *arm, char *name);
 void BIF_sk_selectStroke(struct bContext *C, short mval[2], short extend);
 

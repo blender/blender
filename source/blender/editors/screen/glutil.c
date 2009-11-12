@@ -37,7 +37,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_colortools.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_threads.h"
 
 #include "BIF_gl.h"

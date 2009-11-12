@@ -72,6 +72,9 @@ class NODE_MT_view(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
+        
+        layout.itemO("node.properties", icon='ICON_MENU_PANEL')
+        layout.itemS()
 
         # layout.itemO("grease_pencil..")
         # layout.itemS()

@@ -167,6 +167,12 @@ typedef enum {
 	GHOST_kEventWindowUpdate,
 	GHOST_kEventWindowSize,
 	GHOST_kEventWindowMove,
+	
+	GHOST_kEventDraggingEntered,
+	GHOST_kEventDraggingUpdated,
+	GHOST_kEventDraggingExited,
+	GHOST_kEventDraggingDropDone,
+	GHOST_kEventDraggingDropOnIcon,
 
 	GHOST_kEventTimer,
 
@@ -366,6 +372,30 @@ typedef struct {
 	/** Displacement of a mouse wheel. */
 	GHOST_TInt32 z;	
 } GHOST_TEventWheelData;
+
+
+typedef enum {
+	GHOST_kDragnDropTypeUnknown =0,
+	GHOST_kDragnDropTypeFilenames, /*Array of strings representing file names (full path) */
+	GHOST_kDragnDropTypeString, /* Unformatted text UTF-8 string */
+	GHOST_kDragnDropTypeBitmap /*Bitmap image data */
+} GHOST_TDragnDropTypes;
+
+typedef struct {
+	/** The x-coordinate of the cursor position. */
+	GHOST_TInt32 x;
+	/** The y-coordinate of the cursor position. */
+	GHOST_TInt32 y;
+	/** The dropped item type */
+	GHOST_TDragnDropTypes dataType;
+	/** The "dropped content" */
+	GHOST_TEventDataPtr data;
+} GHOST_TEventDragnDropData;
+
+typedef struct {
+	int count;
+	GHOST_TUns8 **strings;
+} GHOST_TStringArray;
 
 
 /* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */

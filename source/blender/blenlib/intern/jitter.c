@@ -34,7 +34,7 @@
 #include <string.h>
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
 

@@ -37,7 +37,7 @@
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
@@ -99,10 +99,10 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	VECCOPY(p[3], sseg->v[3]->co);
 
 	if(sseg->obi->flag & R_TRANSFORMED) {
-		Mat4MulVecfl(sseg->obi->mat, p[0]);
-		Mat4MulVecfl(sseg->obi->mat, p[1]);
-		Mat4MulVecfl(sseg->obi->mat, p[2]);
-		Mat4MulVecfl(sseg->obi->mat, p[3]);
+		mul_m4_v3(sseg->obi->mat, p[0]);
+		mul_m4_v3(sseg->obi->mat, p[1]);
+		mul_m4_v3(sseg->obi->mat, p[2]);
+		mul_m4_v3(sseg->obi->mat, p[3]);
 	}
 
 	if(t == 0.0f) {
@@ -135,11 +135,11 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	spoint->dtco[2]= data[0]*p[0][2] + data[1]*p[1][2] + data[2]*p[2][2] + data[3]*p[3][2];
 
 	VECCOPY(spoint->tan, spoint->dtco);
-	Normalize(spoint->tan);
+	normalize_v3(spoint->tan);
 
 	VECCOPY(spoint->nor, spoint->co);
 	VECMUL(spoint->nor, -1.0f);
-	Normalize(spoint->nor);
+	normalize_v3(spoint->nor);
 
 	spoint->width= strand_eval_width(ma, spoint->strandco);
 	
@@ -148,7 +148,7 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	spoint->alpha= (simplify)? simplify[1]: 1.0f;
 
 	/* outer points */
-	Crossf(cross, spoint->co, spoint->tan);
+	cross_v3_v3v3(cross, spoint->co, spoint->tan);
 
 	w= spoint->co[2]*strandbuf->winmat[2][3] + strandbuf->winmat[3][3];
 	dx= strandbuf->winx*cross[0]*strandbuf->winmat[0][0]/w;
@@ -157,7 +157,7 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 
 	if(w > 0.0f) {
 		if(strandbuf->flag & R_STRAND_B_UNITS) {
-			crosslen= VecLength(cross);
+			crosslen= len_v3(cross);
 			w= 2.0f*crosslen*strandbuf->minwidth/w;
 
 			if(spoint->width < w) {
@@ -169,14 +169,14 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 				/* squared because we only change width, not length */
 				spoint->width *= simplify[0]*simplify[0];
 
-			VecMulf(cross, spoint->width*0.5f/crosslen);
+			mul_v3_fl(cross, spoint->width*0.5f/crosslen);
 		}
 		else
-			VecMulf(cross, spoint->width/w);
+			mul_v3_fl(cross, spoint->width/w);
 	}
 
-	VecSubf(spoint->co1, spoint->co, cross);
-	VecAddf(spoint->co2, spoint->co, cross);
+	sub_v3_v3v3(spoint->co1, spoint->co, cross);
+	add_v3_v3v3(spoint->co2, spoint->co, cross);
 
 	VECCOPY(spoint->dsco, cross);
 }
@@ -220,7 +220,7 @@ void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, Sha
 			interpolate_vec4(shr1->col, shr2->col, t, negt, shr->col);
 		if(addpassflag & SCE_PASS_NORMAL) {
 			interpolate_vec3(shr1->nor, shr2->nor, t, negt, shr->nor);
-			Normalize(shr->nor);
+			normalize_v3(shr->nor);
 		}
 		if(addpassflag & SCE_PASS_DIFFUSE)
 			interpolate_vec3(shr1->diff, shr2->diff, t, negt, shr->diff);
@@ -825,9 +825,9 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 		/* compute matrix and try clipping whole object */
 		if(obi->flag & R_TRANSFORMED)
-			Mat4MulMat4(obwinmat, obi->mat, winmat);
+			mul_m4_m4m4(obwinmat, obi->mat, winmat);
 		else
-			Mat4CpyMat4(obwinmat, winmat);
+			copy_m4_m4(obwinmat, winmat);
 
 		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
 			continue;
@@ -903,9 +903,9 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 			obr= obi->obr;
 
 			if(obi->flag & R_TRANSFORMED)
-				Mat4MulMat4(obwinmat, obi->mat, winmat);
+				mul_m4_m4m4(obwinmat, obi->mat, winmat);
 			else
-				Mat4CpyMat4(obwinmat, winmat);
+				copy_m4_m4(obwinmat, winmat);
 
 			sseg.obi= obi;
 			sseg.strand= RE_findOrAddStrand(obr, sortseg->strand);
@@ -975,7 +975,7 @@ StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm,
 	mvert= dm->getVertArray(dm);
 	for(a=0; a<mesh->totvert; a++, mvert++) {
 		VECCOPY(co[a], mvert->co);
-		Mat4MulVecfl(mat, co[a]);
+		mul_m4_v3(mat, co[a]);
 	}
 
 	mface= dm->getFaceArray(dm);

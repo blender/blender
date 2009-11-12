@@ -53,7 +53,7 @@ EnumPropertyItem id_type_items[] = {
 	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
 	{ID_MB, "META", ICON_META_DATA, "MetaBall", ""},
 	{ID_ME, "MESH", ICON_MESH_DATA, "Mesh", ""},
-	{ID_NT, "NODETREE", ICON_NODE, "NodeTree", ""},
+	{ID_NT, "NODETREE", ICON_NODETREE, "NodeTree", ""},
 	{ID_OB, "OBJECT", ICON_OBJECT_DATA, "Object", ""},
 	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
 	{ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},

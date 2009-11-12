@@ -68,6 +68,9 @@ typedef struct SculptSession {
 	struct MFace *mface;
 	int totvert, totface;
 	float *face_normals;
+
+	struct Object *ob;
+	struct KeyBlock *kb, *refkb;
 	
 	/* Mesh connectivity */
 	struct ListBase *fmap;

@@ -41,7 +41,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -155,6 +155,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 			case ANIMTYPE_DSCUR:
 			case ANIMTYPE_DSSKEY:
 			case ANIMTYPE_DSWOR:
+			case ANIMTYPE_DSNTREE:
 			case ANIMTYPE_DSPART:
 			case ANIMTYPE_DSMBALL:
 			case ANIMTYPE_DSARM:

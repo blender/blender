@@ -102,7 +102,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_storage_types.h" // for relname flags
 
 #include "BKE_animsys.h"
@@ -1983,6 +1983,8 @@ static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 	
 	if(ntree->adt) lib_link_animdata(fd, &ntree->id, ntree->adt);
 	
+	ntree->gpd= newlibadr_us(fd, id->lib, ntree->gpd);
+	
 	for(node= ntree->nodes.first; node; node= node->next)
 		node->id= newlibadr_us(fd, id->lib, node->id);
 }
@@ -2333,7 +2335,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 			rebuild= 1;
 		else if(ob->id.lib==NULL && arm->id.lib) {
 			/* local pose selection copied to armature, bit hackish */
-			pchan->bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
+			pchan->bone->flag &= ~BONE_SELECTED;
 			pchan->bone->flag |= pchan->selectflag;
 		}
 	}
@@ -2367,6 +2369,8 @@ static void direct_link_bones(FileData *fd, Bone* bone)
 	bone->prop= newdataadr(fd, bone->prop);
 	if(bone->prop)
 		IDP_DirectLinkProperty(bone->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
+	bone->flag &= ~BONE_DRAW_ACTIVE;
 
 	link_list(fd, &bone->childbase);
 
@@ -2388,6 +2392,9 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 		direct_link_bones(fd, bone);
 		bone=bone->next;
 	}
+
+	arm->act_bone= newdataadr(fd, arm->act_bone);
+	arm->act_edbone= NULL;
 }
 
 /* ************ READ CAMERA ***************** */
@@ -5254,7 +5261,7 @@ static void lib_link_group(FileData *fd, Main *main)
 				go= go->next;
 			}
 			if(add_us) group->id.us++;
-			rem_from_group(group, NULL);	/* removes NULL entries */
+			rem_from_group(group, NULL, NULL, NULL);	/* removes NULL entries */
 		}
 		group= group->id.next;
 	}
@@ -5983,13 +5990,38 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_UI;
 				ar->alignment= RGN_ALIGN_TOP;
 				break;
+			case SPACE_VIEW3D:
+				/* toolbar */
+				ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
+				
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_LEFT;
+				ar->flag = RGN_FLAG_HIDDEN;
+				
+				/* tool properties */
+				ar= MEM_callocN(sizeof(ARegion), "tool properties for view3d");
+				
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+				ar->flag = RGN_FLAG_HIDDEN;
+				
+				/* buttons/list view */
+				ar= MEM_callocN(sizeof(ARegion), "buttons for view3d");
+				
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_RIGHT;
+				ar->flag = RGN_FLAG_HIDDEN;
 #if 0
 			case SPACE_BUTS:
 				/* context UI region */
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_CHANNELS;
-				ar->alignment= RGN_ALIGN_TOP;
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_RIGHT;
+				
 				break;
 #endif
 		}
@@ -8459,7 +8491,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 				
 				/* correctly initialise constinv matrix */
-				Mat4One(ob->constinv);
+				unit_m4(ob->constinv);
 				
 				if (ob->type == OB_ARMATURE) {
 					if (ob->pose) {
@@ -8489,7 +8521,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 							
 							/* correctly initialise constinv matrix */
-							Mat4One(pchan->constinv);
+							unit_m4(pchan->constinv);
 						}
 					}
 				}
@@ -9152,15 +9184,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 4)){
-		Scene *sce= main->scene.first;
-		while(sce) {
-			if(sce->frame_step==0)
-				sce->frame_step= 1;
-			sce= sce->id.next;
-		}
-	}
-
 	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 5)) {
 		Lamp *la= main->lamp.first;
 		for(; la; la= la->id.next) {
@@ -9522,7 +9545,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
-				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
+				strcpy(sce->nodetree->id.name, "NTCompositing Nodetree");
 
 			/* move to cameras */
 			if(sce->r.mode & R_PANORAMA) {
@@ -9903,7 +9926,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Add default gravity to scenes */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if((sce->physics_settings.flag & PHYS_GLOBAL_GRAVITY) == 0
-				&& VecLength(sce->physics_settings.gravity) == 0.0f) {
+				&& len_v3(sce->physics_settings.gravity) == 0.0f) {
 
 				sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
 				sce->physics_settings.gravity[2] = -9.81f;
@@ -10031,6 +10054,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		{
+			Scene *sce= main->scene.first;
+			while(sce) {
+				if(sce->r.frame_step==0)
+					sce->r.frame_step= 1;
+				sce= sce->id.next;
+			}
+		}
+		{
+			/* ensure all nodes have unique names */
+			bNodeTree *ntree= main->nodetree.first;
+			while(ntree) {
+				bNode *node=ntree->nodes.first;
+				
+				while(node) {
+					nodeUniqueName(ntree, node);
+					node= node->next;
+				}
+				
+				ntree= ntree->id.next;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10465,6 +10510,9 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 	
 	if(ntree->adt)
 		expand_animdata(fd, mainvar, ntree->adt);
+		
+	if(ntree->gpd)
+		expand_doit(fd, mainvar, ntree->gpd);
 	
 	for(node= ntree->nodes.first; node; node= node->next)
 		if(node->id && node->type!=CMP_NODE_R_LAYERS)

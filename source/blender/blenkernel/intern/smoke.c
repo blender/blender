@@ -44,7 +44,7 @@
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
@@ -150,7 +150,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			float tmp[3];
 
 			VECCOPY(tmp, verts[i].co);
-			Mat4MulVecfl(ob->obmat, tmp);
+			mul_m4_v3(ob->obmat, tmp);
 
 			// min BB
 			min[0] = MIN2(min[0], tmp[0]);
@@ -262,8 +262,8 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			// bvhtree_from_mesh_faces(smd->flow->bvh, dm, 0.0, 2, 6);
 
 			// copy obmat
-			// Mat4CpyMat4(smd->flow->mat, ob->obmat);
-			// Mat4CpyMat4(smd->flow->mat_old, ob->obmat);
+			// copy_m4_m4(smd->flow->mat, ob->obmat);
+			// copy_m4_m4(smd->flow->mat_old, ob->obmat);
 		}
 */
 
@@ -283,8 +283,8 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			SmokeCollSettings *scs = smd->coll;
 
 			// copy obmat
-			Mat4CpyMat4(scs->mat, ob->obmat);
-			Mat4CpyMat4(scs->mat_old, ob->obmat);
+			copy_m4_m4(scs->mat, ob->obmat);
+			copy_m4_m4(scs->mat_old, ob->obmat);
 
 			fill_scs_points(ob, dm, scs);
 		}
@@ -332,7 +332,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 	{
 		float tmpvec[3];
 		VECCOPY(tmpvec, mvert[i].co);
-		Mat4MulVecfl (ob->obmat, tmpvec);
+		mul_m4_v3(ob->obmat, tmpvec);
 		VECCOPY(&scs->points[i * 3], tmpvec);
 	}
 	
@@ -358,10 +358,10 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 				VECSUB(side2,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
 			}
 
-			Crossf(trinormorg, side1, side2);
-			Normalize(trinormorg);
+			cross_v3_v3v3(trinormorg, side1, side2);
+			normalize_v3(trinormorg);
 			VECCOPY(trinorm, trinormorg);
-			VecMulf(trinorm, 0.25 * cell_len);
+			mul_v3_fl(trinorm, 0.25 * cell_len);
 
 			for(j = 0; j <= divs1; j++)
 			{
@@ -390,9 +390,9 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 						VECCOPY(p3, mvert[ mface[i].v3 ].co);
 					}
 
-					VecMulf(p1, (1.0-uf-vf));
-					VecMulf(p2, uf);
-					VecMulf(p3, vf);
+					mul_v3_fl(p1, (1.0-uf-vf));
+					mul_v3_fl(p2, uf);
+					mul_v3_fl(p3, vf);
 					
 					VECADD(p, p1, p2);
 					VECADD(p, p, p3);
@@ -403,7 +403,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 					// mMovPoints.push_back(p + trinorm);
 					VECCOPY(tmpvec, p);
 					VECADD(tmpvec, tmpvec, trinorm);
-					Mat4MulVecfl (ob->obmat, tmpvec);
+					mul_m4_v3(ob->obmat, tmpvec);
 					VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
 					newdivs++;
 
@@ -413,7 +413,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 					// mMovPoints.push_back(p - trinorm);
 					VECCOPY(tmpvec, p);
 					VECSUB(tmpvec, tmpvec, trinorm);
-					Mat4MulVecfl (ob->obmat, tmpvec);
+					mul_m4_v3(ob->obmat, tmpvec);
 					VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
 					newdivs++;
 				}
@@ -466,11 +466,11 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 		int divs1=0, divs2=0, divs3=0;
 
 		VECCOPY(p0, verts[faces[i].v1].co);
-		Mat4MulVecfl (ob->obmat, p0);
+		mul_m4_v3(ob->obmat, p0);
 		VECCOPY(p1, verts[faces[i].v2].co);
-		Mat4MulVecfl (ob->obmat, p1);
+		mul_m4_v3(ob->obmat, p1);
 		VECCOPY(p2, verts[faces[i].v3].co);
-		Mat4MulVecfl (ob->obmat, p2);
+		mul_m4_v3(ob->obmat, p2);
 
 		VECSUB(side1, p1, p0);
 		VECSUB(side2, p2, p0);
@@ -478,12 +478,12 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 
 		if(INPR(side1, side1) > fsTri*fsTri) 
 		{ 
-			float tmp = Normalize(side1);
+			float tmp = normalize_v3(side1);
 			divs1 = (int)ceil(tmp/fsTri); 
 		}
 		if(INPR(side2, side2) > fsTri*fsTri) 
 		{ 
-			float tmp = Normalize(side2);
+			float tmp = normalize_v3(side2);
 			divs2 = (int)ceil(tmp/fsTri); 
 			
 			/*
@@ -505,11 +505,11 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 			facecounter++;
 			
 			VECCOPY(p0, verts[faces[i].v3].co);
-			Mat4MulVecfl (ob->obmat, p0);
+			mul_m4_v3(ob->obmat, p0);
 			VECCOPY(p1, verts[faces[i].v4].co);
-			Mat4MulVecfl (ob->obmat, p1);
+			mul_m4_v3(ob->obmat, p1);
 			VECCOPY(p2, verts[faces[i].v1].co);
-			Mat4MulVecfl (ob->obmat, p2);
+			mul_m4_v3(ob->obmat, p2);
 
 			VECSUB(side1, p1, p0);
 			VECSUB(side2, p2, p0);
@@ -517,12 +517,12 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 
 			if(INPR(side1, side1) > fsTri*fsTri) 
 			{ 
-				float tmp = Normalize(side1);
+				float tmp = normalize_v3(side1);
 				divs1 = (int)ceil(tmp/fsTri); 
 			}
 			if(INPR(side2, side2) > fsTri*fsTri) 
 			{ 
-				float tmp = Normalize(side2);
+				float tmp = normalize_v3(side2);
 				divs2 = (int)ceil(tmp/fsTri); 
 			}
 
@@ -849,7 +849,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 							else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0) continue;									
 							else if(pa->flag & (PARS_UNEXIST+PARS_NO_DISP)) continue;																		
 							// VECCOPY(pos, pa->state.co);									
-							// Mat4MulVecfl (ob->imat, pos);																		
+							// mul_m4_v3(ob->imat, pos);																		
 							// 1. get corresponding cell	
 							get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, pa->state.co, cell, 0);																	
 							// check if cell is valid (in the domain boundary)									
@@ -1105,8 +1105,8 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 			// rigid movement support
 			/*
-			Mat4CpyMat4(smd->flow->mat_old, smd->flow->mat);
-			Mat4CpyMat4(smd->flow->mat, ob->obmat);
+			copy_m4_m4(smd->flow->mat_old, smd->flow->mat);
+			copy_m4_m4(smd->flow->mat, ob->obmat);
 			*/
 		}
 		else if(scene->r.cfra < smd->time)
@@ -1131,8 +1131,8 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			smd->coll->dm = CDDM_copy(dm);
 
 			// rigid movement support
-			Mat4CpyMat4(smd->coll->mat_old, smd->coll->mat);
-			Mat4CpyMat4(smd->coll->mat, ob->obmat);
+			copy_m4_m4(smd->coll->mat_old, smd->coll->mat);
+			copy_m4_m4(smd->coll->mat, ob->obmat);
 		}
 		else if(scene->r.cfra < smd->time)
 		{
@@ -1378,7 +1378,7 @@ static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int
 	float tmp[3];
 
 	VECSUB(tmp, pos, p0);
-	VecMulf(tmp, 1.0 / dx);
+	mul_v3_fl(tmp, 1.0 / dx);
 
 	if(correct)
 	{

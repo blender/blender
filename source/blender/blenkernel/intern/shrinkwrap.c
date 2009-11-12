@@ -51,7 +51,7 @@
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_editVert.h"
@@ -116,31 +116,31 @@ DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDat
 void space_transform_from_matrixs(SpaceTransform *data, float local[4][4], float target[4][4])
 {
 	float itarget[4][4];
-	Mat4Invert(itarget, target);
-	Mat4MulSerie(data->local2target, itarget, local, 0, 0, 0, 0, 0, 0);
-	Mat4Invert(data->target2local, data->local2target);
+	invert_m4_m4(itarget, target);
+	mul_serie_m4(data->local2target, itarget, local, 0, 0, 0, 0, 0, 0);
+	invert_m4_m4(data->target2local, data->local2target);
 }
 
 void space_transform_apply(const SpaceTransform *data, float *co)
 {
-	VecMat4MulVecfl(co, ((SpaceTransform*)data)->local2target, co);
+	mul_v3_m4v3(co, ((SpaceTransform*)data)->local2target, co);
 }
 
 void space_transform_invert(const SpaceTransform *data, float *co)
 {
-	VecMat4MulVecfl(co, ((SpaceTransform*)data)->target2local, co);
+	mul_v3_m4v3(co, ((SpaceTransform*)data)->target2local, co);
 }
 
 static void space_transform_apply_normal(const SpaceTransform *data, float *no)
 {
-	Mat4Mul3Vecfl( ((SpaceTransform*)data)->local2target, no);
-	Normalize(no); // TODO: could we just determine de scale value from the matrix?
+	mul_mat3_m4_v3( ((SpaceTransform*)data)->local2target, no);
+	normalize_v3(no); // TODO: could we just determine de scale value from the matrix?
 }
 
 static void space_transform_invert_normal(const SpaceTransform *data, float *no)
 {
-	Mat4Mul3Vecfl(((SpaceTransform*)data)->target2local, no);
-	Normalize(no); // TODO: could we just determine de scale value from the matrix?
+	mul_mat3_m4_v3(((SpaceTransform*)data)->target2local, no);
+	normalize_v3(no); // TODO: could we just determine de scale value from the matrix?
 }
 
 /*
@@ -223,7 +223,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 			VECCOPY(tmp_co, nearest.co);
 			space_transform_invert(&calc->local2target, tmp_co);
 
-			VecLerpf(co, co, tmp_co, weight);	//linear interpolation
+			interp_v3_v3v3(co, co, tmp_co, weight);	//linear interpolation
 		}
 	}
 
@@ -258,7 +258,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 		space_transform_apply_normal( transf, tmp_no );
 		no = tmp_no;
 
-		hit_tmp.dist *= Mat4ToScalef( ((SpaceTransform*)transf)->local2target );
+		hit_tmp.dist *= mat4_to_scale( ((SpaceTransform*)transf)->local2target );
 	}
 	else
 	{
@@ -285,7 +285,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 			space_transform_invert( transf, hit_tmp.co );
 			space_transform_invert_normal( transf, hit_tmp.no );
 
-			hit_tmp.dist = VecLenf( (float*)vert, hit_tmp.co );
+			hit_tmp.dist = len_v3v3( (float*)vert, hit_tmp.co );
 		}
 
 		memcpy(hit, &hit_tmp, sizeof(hit_tmp) );
@@ -331,7 +331,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) proj_axis[1] = 1.0f;
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) proj_axis[2] = 1.0f;
 
-		Normalize(proj_axis);
+		normalize_v3(proj_axis);
 
 		//Invalid projection direction
 		if(INPR(proj_axis, proj_axis) < FLT_EPSILON)
@@ -364,7 +364,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 			{
 				VECCOPY(tmp_co, calc->vert[i].co);
 				if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
-					NormalShortToFloat(tmp_no, calc->vert[i].no);
+					normal_short_to_float_v3(tmp_no, calc->vert[i].no);
 				else
 					VECCOPY(tmp_no, proj_axis);
 			}
@@ -403,7 +403,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 
 			if(hit.index != -1)
 			{
-				VecLerpf(co, co, hit.co, weight);
+				interp_v3_v3v3(co, co, hit.co, weight);
 			}
 		}
 	}
@@ -486,14 +486,14 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 				//Adjusting the vertex weight, so that after interpolating it keeps a certain distance from the nearest position
 				float dist = sasqrt( nearest.dist );
 				if(dist > FLT_EPSILON)
-					VecLerpf(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist)/dist);	//linear interpolation
+					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist)/dist);	//linear interpolation
 				else
 					VECCOPY( tmp_co, nearest.co );
 			}
 
 			//Convert the coordinates back to mesh coordinates
 			space_transform_invert(&calc->local2target, tmp_co);
-			VecLerpf(co, co, tmp_co, weight);	//linear interpolation
+			interp_v3_v3v3(co, co, tmp_co, weight);	//linear interpolation
 		}
 	}
 

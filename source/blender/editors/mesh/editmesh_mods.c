@@ -53,7 +53,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
@@ -488,7 +488,7 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 	v2[0] = x1;
 	v2[1] = y1;
 		
-	distance= PdistVL2Dfl(data->mval, v1, v2);
+	distance= dist_to_line_segment_v2(data->mval, v1, v2);
 		
 	if(eed->f & SELECT) distance+=5;
 	if(distance < data->dist) {
@@ -499,7 +499,7 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 			vec[0]= eed->v1->co[0] + labda*(eed->v2->co[0] - eed->v1->co[0]);
 			vec[1]= eed->v1->co[1] + labda*(eed->v2->co[1] - eed->v1->co[1]);
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
-			Mat4MulVecfl(data->vc.obedit->obmat, vec);
+			mul_m4_v3(data->vc.obedit->obmat, vec);
 
 			if(view3d_test_clipping(data->vc.rv3d, vec)==0) {
 				data->dist = distance;
@@ -825,7 +825,7 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 				float angle;
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						angle= RAD2DEG(VecAngle2(base_efa->n, efa->n));
+						angle= RAD2DEG(angle_v2v2(base_efa->n, efa->n));
 						if (angle/180.0<=thresh) {
 							EM_select_face(efa, 1);
 							selcount++;
@@ -837,12 +837,12 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 				}
 			} else if (mode==SIMFACE_COPLANAR) { /* same planer */
 				float angle, base_dot, dot;
-				base_dot= Inpf(base_efa->cent, base_efa->n);
+				base_dot= dot_v3v3(base_efa->cent, base_efa->n);
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						angle= RAD2DEG(VecAngle2(base_efa->n, efa->n));
+						angle= RAD2DEG(angle_v2v2(base_efa->n, efa->n));
 						if (angle/180.0<=thresh) {
-							dot=Inpf(efa->cent, base_efa->n);
+							dot=dot_v3v3(efa->cent, base_efa->n);
 							if (fabs(base_dot-dot) <= thresh) {
 								EM_select_face(efa, 1);
 								selcount++;
@@ -916,7 +916,7 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 	if (mode==SIMEDGE_LENGTH) { /*store length*/
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if (!eed->h) /* dont calc data for hidden edges*/
-				eed->tmp.fp= VecLenf(eed->v1->co, eed->v2->co);
+				eed->tmp.fp= len_v3v3(eed->v1->co, eed->v2->co);
 		}
 	} else if (mode==SIMEDGE_FACE) { /*store face users*/
 		EditFace *efa;
@@ -959,7 +959,7 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 					else if (eed->f2==0) /* first access, assign the face */
 						eed->tmp.f= efa;
 					else if (eed->f2==1) /* second, we assign the angle*/
-						eed->tmp.fp= RAD2DEG(VecAngle2(eed->tmp.f->n, efa->n))/180;
+						eed->tmp.fp= RAD2DEG(angle_v2v2(eed->tmp.f->n, efa->n))/180;
 					eed->f2++; /* f2==0 no face assigned. f2==1 one face found. f2==2 angle calculated.*/
 				}
 				j++;
@@ -985,11 +985,11 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 				}
 			} else if (mode==SIMEDGE_DIR) { /* same direction */
 				float base_dir[3], dir[3], angle;
-				VecSubf(base_dir, base_eed->v1->co, base_eed->v2->co);
+				sub_v3_v3v3(base_dir, base_eed->v1->co, base_eed->v2->co);
 				for(eed= em->edges.first; eed; eed= eed->next) {
 					if (!(eed->f & SELECT) && !eed->h) {
-						VecSubf(dir, eed->v1->co, eed->v2->co);
-						angle= RAD2DEG(VecAngle2(base_dir, dir));
+						sub_v3_v3v3(dir, eed->v1->co, eed->v2->co);
+						angle= RAD2DEG(angle_v2v2(base_dir, dir));
 						
 						if (angle>90) /* use the smallest angle between the edges */
 							angle= fabs(angle-180.0f);
@@ -1161,7 +1161,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 				float angle;
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if (!(eve->f & SELECT) && !eve->h) {
-						angle= RAD2DEG(VecAngle2(base_eve->no, eve->no));
+						angle= RAD2DEG(angle_v2v2(base_eve->no, eve->no));
 						if (angle/180.0<=thresh) {
 							eve->f |= SELECT;
 							selcount++;
@@ -1388,34 +1388,34 @@ void EM_mesh_copy_edge(EditMesh *em, short type)
 		break;
 
 	case 3: /* copy length */
-		eed_len_act = VecLenf(eed_act->v1->co, eed_act->v2->co);
+		eed_len_act = len_v3v3(eed_act->v1->co, eed_act->v2->co);
 		for(eed=em->edges.first; eed; eed=eed->next) {
 			if (eed->f & SELECT && eed != eed_act) {
 
-				eed_len = VecLenf(eed->v1->co, eed->v2->co);
+				eed_len = len_v3v3(eed->v1->co, eed->v2->co);
 
 				if (eed_len == eed_len_act) continue;
 				/* if this edge is zero length we cont do anything with it*/
 				if (eed_len == 0.0f) continue;
 				if (eed_len_act == 0.0f) {
-					VecAddf(vec_mid, eed->v1->co, eed->v2->co);
-					VecMulf(vec_mid, 0.5);
+					add_v3_v3v3(vec_mid, eed->v1->co, eed->v2->co);
+					mul_v3_fl(vec_mid, 0.5);
 					VECCOPY(eed->v1->co, vec_mid);
 					VECCOPY(eed->v2->co, vec_mid);
 				} else {
 					/* copy the edge length */
-					VecAddf(vec_mid, eed->v1->co, eed->v2->co);
-					VecMulf(vec_mid, 0.5);
+					add_v3_v3v3(vec_mid, eed->v1->co, eed->v2->co);
+					mul_v3_fl(vec_mid, 0.5);
 
 					/* SCALE 1 */
-					VecSubf(vec, eed->v1->co, vec_mid);
-					VecMulf(vec, eed_len_act/eed_len);
-					VecAddf(eed->v1->co, vec, vec_mid);
+					sub_v3_v3v3(vec, eed->v1->co, vec_mid);
+					mul_v3_fl(vec, eed_len_act/eed_len);
+					add_v3_v3v3(eed->v1->co, vec, vec_mid);
 
 					/* SCALE 2 */
-					VecSubf(vec, eed->v2->co, vec_mid);
-					VecMulf(vec, eed_len_act/eed_len);
-					VecAddf(eed->v2->co, vec, vec_mid);
+					sub_v3_v3v3(vec, eed->v2->co, vec_mid);
+					mul_v3_fl(vec, eed_len_act/eed_len);
+					add_v3_v3v3(eed->v2->co, vec, vec_mid);
 				}
 				change = 1;
 			}
@@ -3873,7 +3873,7 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 
 		while(efa) {
 			if(efa->f1) {
-				CalcCent3f(cent, efa->v1->co, efa->v2->co, efa->v3->co);
+				cent_tri_v3(cent, efa->v1->co, efa->v2->co, efa->v3->co);
 				cent[0]= cent[0]*cent[0] + cent[1]*cent[1] + cent[2]*cent[2];
 				
 				if(cent[0]>maxx) {
@@ -3882,7 +3882,7 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 					tria_nr= 0;
 				}
 				if(efa->v4) {
-					CalcCent3f(cent, efa->v1->co, efa->v3->co, efa->v4->co);
+					cent_tri_v3(cent, efa->v1->co, efa->v3->co, efa->v4->co);
 					cent[0]= cent[0]*cent[0] + cent[1]*cent[1] + cent[2]*cent[2];
 					
 					if(cent[0]>maxx) {
@@ -3901,11 +3901,11 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 		/* set first face correct: calc normal */
 		
 		if(tria_nr==1) {
-			CalcNormFloat(startvl->v1->co, startvl->v3->co, startvl->v4->co, nor);
-			CalcCent3f(cent, startvl->v1->co, startvl->v3->co, startvl->v4->co);
+			normal_tri_v3( nor,startvl->v1->co, startvl->v3->co, startvl->v4->co);
+			cent_tri_v3(cent, startvl->v1->co, startvl->v3->co, startvl->v4->co);
 		} else {
-			CalcNormFloat(startvl->v1->co, startvl->v2->co, startvl->v3->co, nor);
-			CalcCent3f(cent, startvl->v1->co, startvl->v2->co, startvl->v3->co);
+			normal_tri_v3( nor,startvl->v1->co, startvl->v2->co, startvl->v3->co);
+			cent_tri_v3(cent, startvl->v1->co, startvl->v2->co, startvl->v3->co);
 		}
 		/* first normal is oriented this way or the other */
 		if(select) {
@@ -4115,9 +4115,9 @@ void faceselect_align_view_to_selected(View3D *v3d, RegionView3D *rv3d, Mesh *me
 			v3= me->mvert[mf->v3].co;
 			if (mf->v4) {
 				float *v4= me->mvert[mf->v4].co;
-				CalcNormFloat4(v1, v2, v3, v4, fno);
+				normal_quad_v3( fno,v1, v2, v3, v4);
 			} else {
-				CalcNormFloat(v1, v2, v3, fno);
+				normal_tri_v3( fno,v1, v2, v3);
 			}
 
 			norm[0]+= fno[0];
@@ -4140,18 +4140,18 @@ static void face_getnormal_obspace(Object *obedit, EditFace *efa, float *fno)
 	float vec[4][3];
 	
 	VECCOPY(vec[0], efa->v1->co);
-	Mat4Mul3Vecfl(obedit->obmat, vec[0]);
+	mul_mat3_m4_v3(obedit->obmat, vec[0]);
 	VECCOPY(vec[1], efa->v2->co);
-	Mat4Mul3Vecfl(obedit->obmat, vec[1]);
+	mul_mat3_m4_v3(obedit->obmat, vec[1]);
 	VECCOPY(vec[2], efa->v3->co);
-	Mat4Mul3Vecfl(obedit->obmat, vec[2]);
+	mul_mat3_m4_v3(obedit->obmat, vec[2]);
 	if(efa->v4) {
 		VECCOPY(vec[3], efa->v4->co);
-		Mat4Mul3Vecfl(obedit->obmat, vec[3]);
+		mul_mat3_m4_v3(obedit->obmat, vec[3]);
 		
-		CalcNormFloat4(vec[0], vec[1], vec[2], vec[3], fno);
+		normal_quad_v3( fno,vec[0], vec[1], vec[2], vec[3]);
 	}
-	else CalcNormFloat(vec[0], vec[1], vec[2], fno);
+	else normal_tri_v3( fno,vec[0], vec[1], vec[2]);
 }
 
 
@@ -4187,7 +4187,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *o
 			if (eve->f & SELECT) {
 				if (leve) {
 					float tno[3];
-					CalcNormFloat(cent, leve->co, eve->co, tno);
+					normal_tri_v3( tno,cent, leve->co, eve->co);
 					
 						/* XXX, fixme, should be flipped intp a 
 						 * consistent direction. -zr
@@ -4200,7 +4200,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *o
 			}
 		}
 
-		Mat4Mul3Vecfl(obedit->obmat, norm);
+		mul_mat3_m4_v3(obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 	} 
 	else if (nselverts==2) { /* Align view to edge (or 2 verts) */ 
@@ -4217,7 +4217,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *o
 				leve= eve;
 			}
 		}
-		Mat4Mul3Vecfl(obedit->obmat, norm);
+		mul_mat3_m4_v3(obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 	} 
 	else if (nselverts==1) { /* Align view to vert normal */ 
@@ -4231,7 +4231,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *o
 				break; /* we know this is the only selected vert, so no need to keep looking */
 			}
 		}
-		Mat4Mul3Vecfl(obedit->obmat, norm);
+		mul_mat3_m4_v3(obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 	}
 } 
@@ -4312,11 +4312,11 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 			
 			if((eed->v1->f & SELECT) && eed->v1->f1<255) {
 				eed->v1->f1++;
-				VecAddf(eed->v1->tmp.p, eed->v1->tmp.p, fvec);
+				add_v3_v3v3(eed->v1->tmp.p, eed->v1->tmp.p, fvec);
 			}
 			if((eed->v2->f & SELECT) && eed->v2->f1<255) {
 				eed->v2->f1++;
-				VecAddf(eed->v2->tmp.p, eed->v2->tmp.p, fvec);
+				add_v3_v3v3(eed->v2->tmp.p, eed->v2->tmp.p, fvec);
 			}
 		}
 		eed= eed->next;
@@ -4435,7 +4435,7 @@ void vertexnoise(Object *obedit, EditMesh *em)
 				vec[1]= 0.2*(b2-BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1]+ofs, eve->co[2]));
 				vec[2]= 0.2*(b2-BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]+ofs));
 				
-				VecAddf(eve->co, eve->co, vec);
+				add_v3_v3v3(eve->co, eve->co, vec);
 			}
 			else {
 				float tin, dum;
@@ -4466,8 +4466,8 @@ void flipface(EditMesh *em, EditFace *efa)
 		EM_data_interp_from_faces(em, efa, NULL, efa, 0, 2, 1, 3);
 	}
 
-	if(efa->v4) CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
-	else CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
+	if(efa->v4) normal_quad_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+	else normal_tri_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co);
 }
 
 

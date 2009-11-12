@@ -39,7 +39,7 @@
 #include "DNA_armature_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_graph.h"
  
 #include "BKE_utildefines.h"
@@ -52,18 +52,18 @@
 
 void setBoneRollFromNormal(EditBone *bone, float *no, float invmat[][4], float tmat[][3])
 {
-	if (no != NULL && !VecIsNull(no))
+	if (no != NULL && !is_zero_v3(no))
 	{
 		float tangent[3], vec[3], normal[3];
 
 		VECCOPY(normal, no);	
-		Mat3MulVecfl(tmat, normal);
+		mul_m3_v3(tmat, normal);
 
-		VecSubf(tangent, bone->tail, bone->head);
-		Projf(vec, tangent, normal);
-		VecSubf(normal, normal, vec);
+		sub_v3_v3v3(tangent, bone->tail, bone->head);
+		project_v3_v3v3(vec, tangent, normal);
+		sub_v3_v3v3(normal, normal, vec);
 		
-		Normalize(normal);
+		normalize_v3(normal);
 		
 		bone->roll = ED_rollBoneToVector(bone, normal);
 	}
@@ -86,11 +86,11 @@ float calcArcCorrelation(BArcIterator *iter, int start, int end, float v0[3], fl
 			float v[3];
 			
 			IT_peek(iter, i);
-			VecSubf(v, iter->p, v0);
-			avg_t += Inpf(v, n);
+			sub_v3_v3v3(v, iter->p, v0);
+			avg_t += dot_v3v3(v, n);
 		}
 		
-		avg_t /= Inpf(n, n);
+		avg_t /= dot_v3v3(n, n);
 		avg_t += 1.0f; /* adding start (0) and end (1) values */
 		avg_t /= len;
 		
@@ -101,14 +101,14 @@ float calcArcCorrelation(BArcIterator *iter, int start, int end, float v0[3], fl
 			float dt;
 			
 			IT_peek(iter, i);
-			VecSubf(v, iter->p, v0);
-			Projf(d, v, n);
-			VecSubf(v, v, d);
+			sub_v3_v3v3(v, iter->p, v0);
+			project_v3_v3v3(d, v, n);
+			sub_v3_v3v3(v, v, d);
 			
-			dt = VecLength(d) - avg_t;
+			dt = len_v3(d) - avg_t;
 			
 			s_t += dt * dt;
-			s_xyz += Inpf(v, v);
+			s_xyz += dot_v3v3(v, v);
 		}
 		
 		/* adding start(0) and end(1) values to s_t */
@@ -143,7 +143,7 @@ int nextFixedSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int sta
 			IT_peek(iter, i);
 			v2 = iter->p;
 
-			stroke_length += VecLenf(v1, v2);
+			stroke_length += len_v3v3(v1, v2);
 			
 			v1 = v2;
 		}
@@ -165,7 +165,7 @@ int nextFixedSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int sta
 		IT_peek(iter, i);
 		v2 = iter->p;
 
-		current_length += VecLenf(v1, v2);
+		current_length += len_v3v3(v1, v2);
 
 		if (current_length >= length_threshold)
 		{
@@ -194,7 +194,7 @@ int nextAdaptativeSubdivision(ToolSettings *toolsettings, BArcIterator *iter, in
 	{
 		/* Calculate normal */
 		IT_peek(iter, i);
-		VecSubf(n, iter->p, head);
+		sub_v3_v3v3(n, iter->p, head);
 
 		if (calcArcCorrelation(iter, start, i, start_p, n) < correlation_threshold)
 		{
@@ -226,7 +226,7 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 		vec1 = iter->p;
 		
 		/* If lengthLimit hits the current segment */
-		if (VecLenf(vec1, head) > lengthLimit)
+		if (len_v3v3(vec1, head) > lengthLimit)
 		{
 			if (same == 0)
 			{
@@ -234,13 +234,13 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 				float a, b, c, f;
 				
 				/* Solve quadratic distance equation */
-				VecSubf(dv, vec1, vec0);
-				a = Inpf(dv, dv);
+				sub_v3_v3v3(dv, vec1, vec0);
+				a = dot_v3v3(dv, dv);
 				
-				VecSubf(off, vec0, head);
-				b = 2 * Inpf(dv, off);
+				sub_v3_v3v3(off, vec0, head);
+				b = 2 * dot_v3v3(dv, off);
 				
-				c = Inpf(off, off) - (lengthLimit * lengthLimit);
+				c = dot_v3v3(off, off) - (lengthLimit * lengthLimit);
 				
 				f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
 				
@@ -249,8 +249,8 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 				if (isnan(f) == 0 && f < 1.0f)
 				{
 					VECCOPY(p, dv);
-					VecMulf(p, f);
-					VecAddf(p, p, vec0);
+					mul_v3_fl(p, f);
+					add_v3_v3v3(p, p, vec0);
 				}
 				else
 				{
@@ -261,12 +261,12 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 			{
 				float dv[3];
 				
-				VecSubf(dv, vec1, vec0);
-				Normalize(dv);
+				sub_v3_v3v3(dv, vec1, vec0);
+				normalize_v3(dv);
 				 
 				VECCOPY(p, dv);
-				VecMulf(p, lengthLimit);
-				VecAddf(p, p, head);
+				mul_v3_fl(p, lengthLimit);
+				add_v3_v3v3(p, p, head);
 			}
 			
 			return i - 1; /* restart at lower bound */
@@ -321,8 +321,8 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 		}
 
 		/* going to next bone, fix parent */
-		Mat4MulVecfl(invmat, parent->tail);
-		Mat4MulVecfl(invmat, parent->head);
+		mul_m4_v3(invmat, parent->tail);
+		mul_m4_v3(invmat, parent->head);
 		setBoneRollFromNormal(parent, normal, invmat, tmat);
 
 		parent = child; // new child is next parent
@@ -342,8 +342,8 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	}
 		
 	/* fix last bone */
-	Mat4MulVecfl(invmat, parent->tail);
-	Mat4MulVecfl(invmat, parent->head);
+	mul_m4_v3(invmat, parent->tail);
+	mul_m4_v3(invmat, parent->head);
 	setBoneRollFromNormal(parent, iter->no, invmat, tmat);
 	lastBone = parent;
 	

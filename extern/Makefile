@@ -34,7 +34,7 @@ DIRS = glew/src
 
 # Cloth requires it
 ifeq ($(NAN_USE_BULLET), true)
-	DIRS += bullet2
+    DIRS += bullet2
 endif
 
 ifeq ($(WITH_BINRELOC), true)
@@ -42,7 +42,9 @@ ifeq ($(WITH_BINRELOC), true)
 endif
 
 ifeq ($(WITH_OPENJPEG), true)
-    DIRS += libopenjpeg
+    ifndef BF_OPENJPEG
+        DIRS += libopenjpeg
+    endif
 endif
 
 ifeq ($(WITH_LZO), true)

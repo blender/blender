@@ -1706,9 +1706,9 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	// TODO: add access to the positions array to allow more flexible aligning?
 	
 	/* settings */
-	prop= RNA_def_property(srna, "affect_root", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_NO_ROOT);
-	RNA_def_property_ui_text(prop, "Affect Root", "Include the root joint in the calculations.");
+	prop= RNA_def_property(srna, "chain_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_NO_ROOT);
+	RNA_def_property_ui_text(prop, "Chain Offset", "Offset the entire chain relative to the root joint.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
 	prop= RNA_def_property(srna, "even_divisions", PROP_BOOLEAN, PROP_NONE);
@@ -1716,9 +1716,9 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Even Divisions", "Ignore the relative lengths of the bones when fitting to the curve.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "keep_max_length", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_SCALE_LIMITED);
-	RNA_def_property_ui_text(prop, "Keep Max Length", "Maintain the maximum length of the chain when spline is stretched.");
+	prop= RNA_def_property(srna, "y_scaling", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_SCALE_LIMITED);
+	RNA_def_property_ui_text(prop, "Y Scaling", "Stretch the Y axis of the bones to fit the curve.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
 	prop= RNA_def_property(srna, "xz_scaling_mode", PROP_ENUM, PROP_NONE);

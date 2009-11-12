@@ -40,7 +40,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
@@ -148,7 +148,7 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 	
 	if(rv3d==NULL) {
 		ScrArea *sa =CTX_wm_area(C);
-		if(sa->spacetype==SPACE_VIEW3D) {
+		if(sa && sa->spacetype==SPACE_VIEW3D) {
 			ARegion *ar;
 			for(ar= sa->regionbase.first; ar; ar= ar->next)
 				if(ar->regiontype==RGN_TYPE_WINDOW)
@@ -367,6 +367,9 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	keymap= WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* own keymap, last so modes can override it */
@@ -676,7 +679,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(selected_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -693,7 +696,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 						if(selected_editable_objects)
 							CTX_data_id_list_add(result, &base->object->id);
 						else
-							CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+							CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 					}
 				}
 			}
@@ -710,7 +713,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(visible_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -726,7 +729,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(selectable_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -736,7 +739,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	else if(CTX_data_equals(member, "active_base")) {
 		if(scene->basact && (scene->basact->lay & lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
-				CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, scene->basact);
+				CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, scene->basact);
 		
 		return 1;
 	}
@@ -747,7 +750,11 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		
 		return 1;
 	}
-	return 0;
+	else {
+		return 0; /* not found */
+	}
+
+	return -1; /* found but not available */
 }
 
 /* only called once, from space/spacetypes.c */
@@ -769,7 +776,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
+	art->keymapflag= ED_KEYMAP_GPENCIL;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
 	art->free= view3d_main_area_free;

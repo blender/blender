@@ -1192,11 +1192,11 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 #endif // XXX old animation system
 		
 			flag= setkeys(ctime, &key->block, k, t, 0);
-
+			
 			if(flag==0)
-				; /* do_key(a, a+step, tot, (char *)out, key, k, t, 0); */
+				do_key(a, a+step, tot, (char *)out, key, actkb, k, t, 0);
 			else
-				; /* cp_key(a, a+step, tot, (char *)out, key, k[2],0); */
+				cp_key(a, a+step, tot, (char *)out, key, actkb, k[2], NULL, 0);
 		}
 	}
 	else {
@@ -1404,6 +1404,16 @@ KeyBlock *ob_get_keyblock(Object *ob)
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 		return kb;
 	}
+
+	return NULL;
+}
+
+KeyBlock *ob_get_reference_keyblock(Object *ob)
+{
+	Key *key= ob_get_key(ob);
+	
+	if (key)
+		return key->refkey;
 
 	return NULL;
 }

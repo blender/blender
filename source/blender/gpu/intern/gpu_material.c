@@ -54,7 +54,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "GPU_extensions.h"
@@ -290,7 +290,7 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float v
 			GPU_shader_uniform_vector(shader, material->obmatloc, 16, 1, (float*)obmat);
 		}
 		if(material->builtins & GPU_INVERSE_OBJECT_MATRIX) {
-			Mat4Invert(invmat, obmat);
+			invert_m4_m4(invmat, obmat);
 			GPU_shader_uniform_vector(shader, material->invobmatloc, 16, 1, (float*)invmat);
 		}
 		if(material->builtins & GPU_OBCOLOR) {
@@ -305,20 +305,20 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float v
 
 			if(material->dynproperty & DYN_LAMP_VEC) {
 				VECCOPY(lamp->dynvec, lamp->vec);
-				Normalize(lamp->dynvec);
-				VecNegf(lamp->dynvec);
-				Mat4Mul3Vecfl(viewmat, lamp->dynvec);
+				normalize_v3(lamp->dynvec);
+				negate_v3(lamp->dynvec);
+				mul_mat3_m4_v3(viewmat, lamp->dynvec);
 			}
 
 			if(material->dynproperty & DYN_LAMP_CO) {
 				VECCOPY(lamp->dynco, lamp->co);
-				Mat4MulVecfl(viewmat, lamp->dynco);
+				mul_m4_v3(viewmat, lamp->dynco);
 			}
 
 			if(material->dynproperty & DYN_LAMP_IMAT)
-				Mat4MulMat4(lamp->dynimat, viewinv, lamp->imat);
+				mul_m4_m4m4(lamp->dynimat, viewinv, lamp->imat);
 			if(material->dynproperty & DYN_LAMP_PERSMAT)
-				Mat4MulMat4(lamp->dynpersmat, viewinv, lamp->persmat);
+				mul_m4_m4m4(lamp->dynpersmat, viewinv, lamp->persmat);
 		}
 
 		GPU_pass_update_uniforms(material->pass);
@@ -782,7 +782,7 @@ static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
 				Object *ob = dob->ob;
 				
 				if(ob->type==OB_LAMP) {
-					Mat4CpyMat4(ob->obmat, dob->mat);
+					copy_m4_m4(ob->obmat, dob->mat);
 
 					lamp = GPU_lamp_from_blender(shi->gpumat->scene, ob, base->object);
 					if(lamp)
@@ -1318,13 +1318,13 @@ void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4])
 
 	lamp->lay = lay;
 
-	Mat4CpyMat4(mat, obmat);
-	Mat4Ortho(mat);
+	copy_m4_m4(mat, obmat);
+	normalize_m4(mat);
 
 	VECCOPY(lamp->vec, mat[2]);
 	VECCOPY(lamp->co, mat[3]);
-	Mat4CpyMat4(lamp->obmat, mat);
-	Mat4Invert(lamp->imat, mat);
+	copy_m4_m4(lamp->obmat, mat);
+	invert_m4_m4(lamp->imat, mat);
 }
 
 void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy)
@@ -1388,7 +1388,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	pixsize= (lamp->d)/temp;
 	wsize= pixsize*0.5f*lamp->size;
 		
-	i_window(-wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend, lamp->winmat);
+	perspective_m4( lamp->winmat,-wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
 }
 
 static void gpu_lamp_shadow_free(GPULamp *lamp)
@@ -1489,16 +1489,16 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[][4], int *winsize
 	float rangemat[4][4], persmat[4][4];
 
 	/* initshadowbuf */
-	Mat4Invert(lamp->viewmat, lamp->obmat);
-	Normalize(lamp->viewmat[0]);
-	Normalize(lamp->viewmat[1]);
-	Normalize(lamp->viewmat[2]);
+	invert_m4_m4(lamp->viewmat, lamp->obmat);
+	normalize_v3(lamp->viewmat[0]);
+	normalize_v3(lamp->viewmat[1]);
+	normalize_v3(lamp->viewmat[2]);
 
 	/* makeshadowbuf */
-	Mat4MulMat4(persmat, lamp->viewmat, lamp->winmat);
+	mul_m4_m4m4(persmat, lamp->viewmat, lamp->winmat);
 
 	/* opengl depth buffer is range 0.0..1.0 instead of -1.0..1.0 in blender */
-	Mat4One(rangemat);
+	unit_m4(rangemat);
 	rangemat[0][0] = 0.5f;
 	rangemat[1][1] = 0.5f;
 	rangemat[2][2] = 0.5f;
@@ -1506,15 +1506,15 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[][4], int *winsize
 	rangemat[3][1] = 0.5f;
 	rangemat[3][2] = 0.5f;
 
-	Mat4MulMat4(lamp->persmat, persmat, rangemat);
+	mul_m4_m4m4(lamp->persmat, persmat, rangemat);
 
 	/* opengl */
 	glDisable(GL_SCISSOR_TEST);
 	GPU_framebuffer_texture_bind(lamp->fb, lamp->tex);
 
 	/* set matrices */
-	Mat4CpyMat4(viewmat, lamp->viewmat);
-	Mat4CpyMat4(winmat, lamp->winmat);
+	copy_m4_m4(viewmat, lamp->viewmat);
+	copy_m4_m4(winmat, lamp->winmat);
 	*winsize = lamp->size;
 }
 

@@ -49,7 +49,7 @@
 #include "RNA_access.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 
 #include "BKE_context.h"
@@ -147,40 +147,40 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		done= 0;
 		for(eed= vc.em->edges.first; eed; eed= eed->next) {
 			if( (eed->v1->f & SELECT)+(eed->v2->f & SELECT) == SELECT ) {
-				if(eed->v1->f & SELECT) VecSubf(vec, eed->v1->co, eed->v2->co);
-				else VecSubf(vec, eed->v2->co, eed->v1->co);
-				VecAddf(nor, nor, vec);
+				if(eed->v1->f & SELECT) sub_v3_v3v3(vec, eed->v1->co, eed->v2->co);
+				else sub_v3_v3v3(vec, eed->v2->co, eed->v1->co);
+				add_v3_v3v3(nor, nor, vec);
 				done= 1;
 			}
 		}
-		if(done) Normalize(nor);
+		if(done) normalize_v3(nor);
 		
 		/* center */
-		VecAddf(cent, min, max);
-		VecMulf(cent, 0.5f);
+		add_v3_v3v3(cent, min, max);
+		mul_v3_fl(cent, 0.5f);
 		VECCOPY(min, cent);
 		
-		Mat4MulVecfl(vc.obedit->obmat, min);	// view space
+		mul_m4_v3(vc.obedit->obmat, min);	// view space
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
-		Mat4Invert(vc.obedit->imat, vc.obedit->obmat); 
-		Mat4MulVecfl(vc.obedit->imat, min); // back in object space
+		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
+		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
-		VecSubf(min, min, cent);
+		sub_v3_v3v3(min, min, cent);
 		
 		/* calculate rotation */
-		Mat3One(mat);
+		unit_m3(mat);
 		if(done) {
 			float dot;
 			
 			VECCOPY(vec, min);
-			Normalize(vec);
+			normalize_v3(vec);
 			dot= INPR(vec, nor);
 
 			if( fabs(dot)<0.999) {
 				float cross[3], si, q1[4];
 				
-				Crossf(cross, nor, vec);
-				Normalize(cross);
+				cross_v3_v3v3(cross, nor, vec);
+				normalize_v3(cross);
 				dot= 0.5f*saacos(dot);
 				si= (float)sin(dot);
 				q1[0]= (float)cos(dot);
@@ -188,7 +188,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				q1[2]= cross[1]*si;
 				q1[3]= cross[2]*si;
 				
-				QuatToMat3(q1, mat);
+				quat_to_mat3( mat,q1);
 			}
 		}
 		
@@ -207,12 +207,12 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		
 		eve= addvertlist(vc.em, 0, NULL);
 
-		Mat3CpyMat4(mat, vc.obedit->obmat);
-		Mat3Inv(imat, mat);
+		copy_m3_m4(mat, vc.obedit->obmat);
+		invert_m3_m3(imat, mat);
 		
 		VECCOPY(eve->co, min);
-		Mat3MulVecfl(imat, eve->co);
-		VecSubf(eve->co, eve->co, vc.obedit->obmat[3]);
+		mul_m3_v3(imat, eve->co);
+		sub_v3_v3v3(eve->co, eve->co, vc.obedit->obmat[3]);
 		
 		eve->f= SELECT;
 	}
@@ -1011,7 +1011,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			vec[0]= dia*phi;
 			vec[1]= - dia;
 			vec[2]= 0.0f;
-			Mat4MulVecfl(mat,vec);
+			mul_m4_v3(mat,vec);
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
 			if (a) {
@@ -1022,7 +1022,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
 		vec[1]= dia*phid;
-		Mat4Mul3Vecfl(mat, vec);
+		mul_mat3_m4_v3(mat, vec);
 		
 		for(a=0;a<seg-1;a++) {
 			extrudeflag_vert(obedit, em, 2, nor);	// nor unused
@@ -1057,7 +1057,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		q[0]= cos(phi);
 		q[3]= sin(phi);
 		q[1]=q[2]= 0;
-		QuatToMat3(q, cmat);
+		quat_to_mat3( cmat,q);
 		
 		for(a=0; a<seg; a++) {
 			extrudeflag_vert(obedit, em, 2, nor); // nor unused
@@ -1070,7 +1070,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & SELECT) {
-				Mat4MulVecfl(mat,eve->co);
+				mul_m4_v3(mat,eve->co);
 			}
 			eve= eve->next;
 		}
@@ -1111,7 +1111,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			eve= em->verts.first;
 			while(eve) {
 				if(eve->f & 2) {
-					Mat4MulVecfl(mat,eve->co);
+					mul_m4_v3(mat,eve->co);
 				}
 				eve= eve->next;
 			}
@@ -1150,7 +1150,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			/* and now do imat */
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->f & SELECT) {
-					Mat4MulVecfl(mat,eve->co);
+					mul_m4_v3(mat,eve->co);
 				}
 			}
 			recalc_editnormals(em);
@@ -1170,7 +1170,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 				vec[1]= dia*cos(phi);
 				vec[2]= b?depth:-depth;
 				
-				Mat4MulVecfl(mat, vec);
+				mul_m4_v3(mat, vec);
 				eve= addvertlist(em, vec, NULL);
 				eve->f= SELECT;
 				if(a==0) {
@@ -1187,12 +1187,12 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		if(type == PRIM_CONE || (fill && !ELEM(type, PRIM_PLANE, PRIM_CUBE))) {
 			vec[0]= vec[1]= 0.0f;
 			vec[2]= type==PRIM_CONE ? depth : -depth;
-			Mat4MulVecfl(mat, vec);
+			mul_m4_v3(mat, vec);
 			vdown= addvertlist(em, vec, NULL);
 			if((ext || type==PRIM_CONE) && fill) {
 				vec[0]= vec[1]= 0.0f;
 				vec[2]= type==PRIM_CONE ? -depth : depth;
-				Mat4MulVecfl(mat,vec);
+				mul_m4_v3(mat,vec);
 				vtop= addvertlist(em, vec, NULL);
 			}
 		} else {
@@ -1281,25 +1281,25 @@ static float new_primitive_matrix(bContext *C, int view_align, float primmat[][4
 	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 	float *curs, mat[3][3], vmat[3][3], cmat[3][3], imat[3][3];
 	
-	Mat4One(primmat);
+	unit_m4(primmat);
 	
 	if(rv3d && view_align) {
-		Mat3CpyMat4(vmat, rv3d->viewmat);
+		copy_m3_m4(vmat, rv3d->viewmat);
 	} else
-		Mat3One(vmat);
+		unit_m3(vmat);
 	
 	/* inverse transform for view and object */
-	Mat3CpyMat4(mat, obedit->obmat);
-	Mat3MulMat3(cmat, vmat, mat);
-	Mat3Inv(imat, cmat);
-	Mat4CpyMat3(primmat, imat);
+	copy_m3_m4(mat, obedit->obmat);
+	mul_m3_m3m3(cmat, vmat, mat);
+	invert_m3_m3(imat, cmat);
+	copy_m4_m3(primmat, imat);
 
 	/* center */
 	curs= give_cursor(scene, v3d);
 	VECCOPY(primmat[3], curs);
 	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
-	Mat3Inv(imat, mat);
-	Mat3MulVecfl(imat, primmat[3]);
+	invert_m3_m3(imat, mat);
+	mul_m3_v3(imat, primmat[3]);
 	
 	if(v3d) return v3d->grid;
 	return 1.0f;

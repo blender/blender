@@ -36,7 +36,7 @@
 /* External modules: */
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
@@ -1498,13 +1498,13 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 
 	VECCOPY(nor, shi->facenor);
 	calc_view_vector(shi->facenor, sx, sy);
-	Normalize(shi->facenor);
+	normalize_v3(shi->facenor);
 	shade_input_set_viewco(shi, x, y, sx, sy, z);
-	orthoarea= VecLength(shi->dxco)*VecLength(shi->dyco);
+	orthoarea= len_v3(shi->dxco)*len_v3(shi->dyco);
 
 	VECCOPY(shi->facenor, nor);
 	shade_input_set_viewco(shi, x, y, sx, sy, z);
-	*area= VecLength(shi->dxco)*VecLength(shi->dyco);
+	*area= len_v3(shi->dxco)*len_v3(shi->dyco);
 	*area= MIN2(*area, 2.0f*orthoarea);
 
 	shade_input_set_uv(shi);
@@ -1516,8 +1516,8 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 
 	/* not a pretty solution, but fixes common cases */
 	if(shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
-		VecNegf(shi->vn);
-		VecNegf(shi->vno);
+		negate_v3(shi->vn);
+		negate_v3(shi->vno);
 	}
 
 	/* if nodetree, use the material that we are currently preprocessing
@@ -2148,24 +2148,24 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 				/* bitangent */
 				if(tvn && ttang) {
 					VECCOPY(mat[0], ttang);
-					Crossf(mat[1], tvn, ttang);
+					cross_v3_v3v3(mat[1], tvn, ttang);
 					VECCOPY(mat[2], tvn);
 				}
 				else {
 					VECCOPY(mat[0], shi->nmaptang);
-					Crossf(mat[1], shi->vn, shi->nmaptang);
+					cross_v3_v3v3(mat[1], shi->vn, shi->nmaptang);
 					VECCOPY(mat[2], shi->vn);
 				}
 
-				Mat3Inv(imat, mat);
-				Mat3MulVecfl(imat, nor);
+				invert_m3_m3(imat, mat);
+				mul_m3_v3(imat, nor);
 			}
 			else if(R.r.bake_normal_space == R_BAKE_SPACE_OBJECT)
-				Mat4Mul3Vecfl(ob->imat, nor); /* ob->imat includes viewinv! */
+				mul_mat3_m4_v3(ob->imat, nor); /* ob->imat includes viewinv! */
 			else if(R.r.bake_normal_space == R_BAKE_SPACE_WORLD)
-				Mat4Mul3Vecfl(R.viewinv, nor);
+				mul_mat3_m4_v3(R.viewinv, nor);
 
-			Normalize(nor); /* in case object has scaling */
+			normalize_v3(nor); /* in case object has scaling */
 
 			shr.combined[0]= nor[0]/2.0f + 0.5f;
 			shr.combined[1]= 0.5f - nor[1]/2.0f;
@@ -2278,7 +2278,7 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
 		hitco[2] = isect->start[2] + isect->labda*isect->vec[2];
 
-		*dist= VecLenf(start, hitco);
+		*dist= len_v3v3(start, hitco);
 	}
 
 	return hit;
@@ -2330,8 +2330,8 @@ static void bake_set_vlr_dxyco(BakeShade *bs, float *uv1, float *uv2, float *uv3
 	}
 
 	if(bs->obi->flag & R_TRANSFORMED) {
-		Mat3MulVecfl(bs->obi->nmat, bs->dxco);
-		Mat3MulVecfl(bs->obi->nmat, bs->dyco);
+		mul_m3_v3(bs->obi->nmat, bs->dxco);
+		mul_m3_v3(bs->obi->nmat, bs->dyco);
 	}
 }
 
@@ -2370,7 +2370,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	shi->co[2]= l*v3[2]+u*v1[2]+v*v2[2];
 	
 	if(obi->flag & R_TRANSFORMED)
-		Mat4MulVecfl(obi->mat, shi->co);
+		mul_m4_v3(obi->mat, shi->co);
 	
 	VECCOPY(shi->dxco, bs->dxco);
 	VECCOPY(shi->dyco, bs->dyco);
@@ -2406,7 +2406,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			isec.userdata= bs;
 			
 			if(bake_intersect_tree(R.raytree, &isec, shi->co, shi->vn, sign, co, &dist)) {
-				if(!hit || VecLenf(shi->co, co) < VecLenf(shi->co, minco)) {
+				if(!hit || len_v3v3(shi->co, co) < len_v3v3(shi->co, minco)) {
 					minisec= isec;
 					mindist= dist;
 					VECCOPY(minco, co);

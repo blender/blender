@@ -256,11 +256,11 @@ def getSelectedEdges(context, me, ob):
 	if MESH_MODE == 'FACE':
 		context.scene.tool_settings.mesh_selection_mode = 'EDGE'
 		# value is [edge, face_sel_user_in]
-		edge_dict=  dict((ed.key(), [ed, 0]) for ed in me.edges)
+		edge_dict=  dict((ed.key, [ed, 0]) for ed in me.edges)
 		
 		for f in me.faces:
 			if f.selected:
-				for edkey in f.edge_keys():
+				for edkey in f.edge_keys:
 					edge_dict[edkey][1] += 1
 		
 		context.scene.tool_settings.mesh_selection_mode = MESH_MODE
@@ -280,7 +280,7 @@ def getVertLoops(selEdges, me):
 	vert_used = [False] * tot
 	
 	for ed in selEdges:
-		i1, i2 = ed.key()
+		i1, i2 = ed.key
 		vert_siblings[i1].append(i2)
 		vert_siblings[i2].append(i1)
 	

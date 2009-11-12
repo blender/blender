@@ -30,7 +30,7 @@
 
 #include "BLI_graph.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_utildefines.h"
 
@@ -267,7 +267,7 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 	{
 		for(node_replaced = graph->nodes.first; node_replaced; node_replaced = node_replaced->next)
 		{
-			if (node_replaced != node_src && VecLenf(node_replaced->p, node_src->p) <= limit)
+			if (node_replaced != node_src && len_v3v3(node_replaced->p, node_src->p) <= limit)
 			{
 				BLI_replaceNode(graph, node_src, node_replaced);
 			}
@@ -283,7 +283,7 @@ BNode * BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
 	
 	for(node = graph->nodes.first; node; node = node->next)
 	{
-		float distance = VecLenf(p, node->p); 
+		float distance = len_v3v3(p, node->p); 
 		if (distance <= limit && (closest_node == NULL || distance < min_distance))
 		{
 			closest_node = node;
@@ -526,10 +526,10 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3])
 {
 	float dv[3], pv[3];
 	
-	VecSubf(dv, v, center);
-	Projf(pv, dv, axis);
-	VecMulf(pv, -2);
-	VecAddf(v, v, pv);
+	sub_v3_v3v3(dv, v, center);
+	project_v3_v3v3(pv, dv, axis);
+	mul_v3_fl(pv, -2);
+	add_v3_v3v3(v, v, pv);
 }
 
 static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring, int total, float axis[3], float limit, int group)
@@ -546,7 +546,7 @@ static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring,
 
 		for (j = i + 1; j < total; j++)
 		{
-			float angle = Inpf(ring[i].n, ring[j].n);
+			float angle = dot_v3v3(ring[i].n, ring[j].n);
 
 			/* map negative values to 1..2 */
 			if (angle < 0)
@@ -579,8 +579,8 @@ static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring,
 		float p[3];
 		int j = (i + 1) % total; /* next arc in the circular list */
 
-		VecAddf(tangent, ring[i].n, ring[j].n);
-		Crossf(normal, tangent, axis);
+		add_v3_v3v3(tangent, ring[i].n, ring[j].n);
+		cross_v3_v3v3(normal, tangent, axis);
 		
 		node1 = BLI_otherNode(ring[i].arc, root_node);
 		node2 = BLI_otherNode(ring[j].arc, root_node);
@@ -589,7 +589,7 @@ static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring,
 		BLI_mirrorAlongAxis(p, root_node->p, normal);
 		
 		/* check if it's within limit before continuing */
-		if (VecLenf(node1->p, p) > limit)
+		if (len_v3v3(node1->p, p) > limit)
 		{
 			symmetric = 0;
 		}
@@ -658,11 +658,11 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 			unit->arc = connectedArc;
 
 			/* project the node to node vector on the symmetry plane */
-			VecSubf(unit->n, otherNode->p, root_node->p);
-			Projf(vec, unit->n, axis);
-			VecSubf(unit->n, unit->n, vec);
+			sub_v3_v3v3(unit->n, otherNode->p, root_node->p);
+			project_v3_v3v3(vec, unit->n, axis);
+			sub_v3_v3v3(unit->n, unit->n, vec);
 
-			Normalize(unit->n);
+			normalize_v3(unit->n);
 
 			unit++;
 		}
@@ -780,9 +780,9 @@ static void flagAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc, int 
 	
 	arc->symmetry_group = group;
 	
-	VecSubf(vec, end_node->p, root_node->p);
+	sub_v3_v3v3(vec, end_node->p, root_node->p);
 	
-	if (Inpf(vec, root_node->symmetry_axis) < 0)
+	if (dot_v3v3(vec, root_node->symmetry_axis) < 0)
 	{
 		arc->symmetry_flag |= SYM_SIDE_NEGATIVE;
 	}
@@ -796,26 +796,26 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 {
 	float nor[3], vec[3], p[3];
 
-	VecSubf(p, node1->p, root_node->p);
-	Crossf(nor, p, axis);
+	sub_v3_v3v3(p, node1->p, root_node->p);
+	cross_v3_v3v3(nor, p, axis);
 
-	VecSubf(p, root_node->p, node2->p);
-	Crossf(vec, p, axis);
-	VecAddf(vec, vec, nor);
+	sub_v3_v3v3(p, root_node->p, node2->p);
+	cross_v3_v3v3(vec, p, axis);
+	add_v3_v3v3(vec, vec, nor);
 	
-	Crossf(nor, vec, axis);
+	cross_v3_v3v3(nor, vec, axis);
 	
 	if (abs(nor[0]) > abs(nor[1]) && abs(nor[0]) > abs(nor[2]) && nor[0] < 0)
 	{
-		VecNegf(nor);
+		negate_v3(nor);
 	}
 	else if (abs(nor[1]) > abs(nor[0]) && abs(nor[1]) > abs(nor[2]) && nor[1] < 0)
 	{
-		VecNegf(nor);
+		negate_v3(nor);
 	}
 	else if (abs(nor[2]) > abs(nor[1]) && abs(nor[2]) > abs(nor[0]) && nor[2] < 0)
 	{
-		VecNegf(nor);
+		negate_v3(nor);
 	}
 	
 	/* mirror node2 along axis */
@@ -823,7 +823,7 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 	BLI_mirrorAlongAxis(p, root_node->p, nor);
 	
 	/* check if it's within limit before continuing */
-	if (VecLenf(node1->p, p) <= limit)
+	if (len_v3v3(node1->p, p) <= limit)
 	{
 		/* mark node as symmetric physically */
 		VECCOPY(root_node->symmetry_axis, nor);
@@ -905,12 +905,12 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 		/* If arc is on the axis */
 		else if (connectedArc->symmetry_level == level)
 		{
-			VecAddf(axis, axis, connectedArc->head->p);
-			VecSubf(axis, axis, connectedArc->tail->p);
+			add_v3_v3v3(axis, axis, connectedArc->head->p);
+			sub_v3_v3v3(axis, axis, connectedArc->tail->p);
 		}
 	}
 
-	Normalize(axis);
+	normalize_v3(axis);
 
 	/* Split between axial and radial symmetry */
 	if (count == 2)

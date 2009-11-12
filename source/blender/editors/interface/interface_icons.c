@@ -40,7 +40,7 @@
 
 #include "GPU_extensions.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
@@ -705,7 +705,7 @@ int UI_icon_get_width(int icon_id)
 	}
 
 	if (di)
-		return ICON_DEFAULT_HEIGHT;
+		return ICON_DEFAULT_WIDTH;
 
 	return 0;
 }

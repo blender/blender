@@ -32,6 +32,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "DNA_ID.h"
@@ -53,7 +54,7 @@
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
@@ -903,7 +904,11 @@ void nodeAddSockets(bNode *node, bNodeType *ntype)
 		}
 	}
 }
-
+/* Find the first available, non-duplicate name for a given node */
+void nodeUniqueName(bNodeTree *ntree, bNode *node)
+{
+	BLI_uniquename(&ntree->nodes, node, "Node", '.', offsetof(bNode, name), 32);
+}
 
 bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 {
@@ -937,6 +942,9 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	}
 	else
 		BLI_strncpy(node->name, ntype->name, NODE_MAXSTR);
+
+	nodeUniqueName(ntree, node);
+	
 	node->type= ntype->type;
 	node->flag= NODE_SELECT|ntype->flag;
 	node->width= ntype->width;
@@ -989,6 +997,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	bNodeSocket *sock, *oldsock;
 
 	*nnode= *node;
+	nodeUniqueName(ntree, nnode);
+	
 	BLI_addtail(&ntree->nodes, nnode);
 	
 	BLI_duplicatelist(&nnode->inputs, &node->inputs);
@@ -1054,7 +1064,7 @@ bNodeTree *ntreeAddTree(int type)
     if(ntree->type==NTREE_SHADER)
 		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
     else if(ntree->type==NTREE_COMPOSIT)
-		BLI_strncpy(ntree->id.name, "NTComposit Nodetree", sizeof(ntree->id.name));
+		BLI_strncpy(ntree->id.name, "NTCompositing Nodetree", sizeof(ntree->id.name));
     else if(ntree->type==NTREE_TEXTURE)
 		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
 	
@@ -1662,7 +1672,8 @@ void ntreeSocketUseFlags(bNodeTree *ntree)
 	/* tag all thats in use */
 	for(link= ntree->links.first; link; link= link->next) {
 		link->fromsock->flag |= SOCK_IN_USE;
-		link->tosock->flag |= SOCK_IN_USE;
+		if(link->tosock) // FIXME This can be NULL, when dragging a new link in the UI, should probably copy the node tree for preview render - campbell
+			link->tosock->flag |= SOCK_IN_USE;
 	}
 }
 

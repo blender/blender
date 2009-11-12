@@ -47,7 +47,7 @@
 
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_utildefines.h"
 
@@ -436,7 +436,7 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 void calc_mballco(MetaElem *ml, float *vec)
 {
 	if(ml->mat) {
-		Mat4MulVecfl((float ( * )[4])ml->mat, vec);
+		mul_m4_v3((float ( * )[4])ml->mat, vec);
 	}
 }
 
@@ -448,7 +448,7 @@ float densfunc(MetaElem *ball, float x, float y, float z)
 	vec[0]= x;
 	vec[1]= y;
 	vec[2]= z;
-	Mat4MulVecfl((float ( * )[4])ball->imat, vec);
+	mul_m4_v3((float ( * )[4])ball->imat, vec);
 	dx= vec[0];
 	dy= vec[1];
 	dz= vec[2];
@@ -1508,8 +1508,8 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	int a, obnr, zero_size=0;
 	char obname[32];
 	
-	Mat4CpyMat4(obmat, ob->obmat);	/* to cope with duplicators from next_object */
-	Mat4Invert(obinv, ob->obmat);
+	copy_m4_m4(obmat, ob->obmat);	/* to cope with duplicators from next_object */
+	invert_m4_m4(obinv, ob->obmat);
 	a= 0;
 	
 	splitIDname(ob->id.name+2, obname, &obnr);
@@ -1581,15 +1581,15 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					if(ml->s > 10.0) ml->s = 10.0;
 					
 					/* Rotation of MetaElem is stored in quat */
- 					QuatToMat4(ml->quat, temp3);
+ 					quat_to_mat4( temp3,ml->quat);
 
 					/* Translation of MetaElem */
-					Mat4One(temp2);
+					unit_m4(temp2);
 					temp2[3][0]= ml->x;
 					temp2[3][1]= ml->y;
 					temp2[3][2]= ml->z;
 
-					Mat4MulMat4(temp1, temp3, temp2);
+					mul_m4_m4m4(temp1, temp3, temp2);
 				
 					/* make a copy because of duplicates */
 					mainb[a]= new_pgn_element(sizeof(MetaElem));
@@ -1600,12 +1600,12 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					imat= new_pgn_element(4*4*sizeof(float));
 					
 					/* mat is the matrix to transform from mball into the basis-mball */
-					Mat4Invert(obinv, obmat);
-					Mat4MulMat4(temp2, bob->obmat, obinv);
+					invert_m4_m4(obinv, obmat);
+					mul_m4_m4m4(temp2, bob->obmat, obinv);
 					/* MetaBall transformation */
-					Mat4MulMat4(mat, temp1, temp2);
+					mul_m4_m4m4(mat, temp1, temp2);
         
-					Mat4Invert(imat,mat);				
+					invert_m4_m4(imat,mat);				
         
 					mainb[a]->rad2= ml->rad*ml->rad;
         
@@ -1648,7 +1648,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 
 					/* transformation of Metalem bb */
 					for(i=0; i<8; i++)
-						Mat4MulVecfl((float ( * )[4])mat, mainb[a]->bb->vec[i]);
+						mul_m4_v3((float ( * )[4])mat, mainb[a]->bb->vec[i]);
 
 					/* find max and min of transformed bb */
 					for(i=0; i<8; i++){

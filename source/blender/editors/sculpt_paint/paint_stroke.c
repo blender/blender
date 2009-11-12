@@ -41,7 +41,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "PIL_time.h"
 

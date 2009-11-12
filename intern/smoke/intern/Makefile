@@ -41,6 +41,11 @@ ifeq ($(WITH_BF_OPENMP),true)
    CPPFLAGS += -DPARALLEL
 endif
 
+ifeq ($(WITH_FFTW3),true)
+    CPPFLAGS += -DFFTW3=1
+    CPPFLAGS += $(BF_FFTW3_INC)
+endif
+
 CPPFLAGS += -I.
 CPPFLAGS += -I../extern
 CPPFLAGS += -I$(NAN_PNG)/include

@@ -47,7 +47,7 @@
 #include "BKE_library.h"
 #include "BKE_material.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 /**
  * Implementation of boolean ops mesh interface.
@@ -151,7 +151,7 @@ CSG_AddMeshToBlender(
 	if (mesh == NULL) return 0;
 	if (mesh->base == NULL) return 0;
 
-	Mat4Invert(inv_mat,mesh->base->object->obmat);
+	invert_m4_m4(inv_mat,mesh->base->object->obmat);
 
 	// Create a new blender mesh object - using 'base' as 
 	// a template for the new object.

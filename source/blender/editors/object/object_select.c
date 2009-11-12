@@ -40,7 +40,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
 #include "BLI_string.h"
@@ -524,7 +524,7 @@ static short select_grouped_color(bContext *C, Object *ob)
 	char changed = 0;
 
 	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
-		if (!(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005f))) {
+		if (!(base->flag & SELECT) && (compare_v3v3(base->object->col, ob->col, 0.005f))) {
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
 		}

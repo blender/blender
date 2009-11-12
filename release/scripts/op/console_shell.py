@@ -18,7 +18,10 @@
 
 # <pep8 compliant>
 import sys
+import os
+
 import bpy
+
 
 language_id = 'shell'
 
@@ -27,10 +30,17 @@ def add_scrollback(text, text_type):
         bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
             type=text_type)
 
-
 def shell_run(text):
-    import os
-    add_scrollback(os.popen(text).read(), 'OUTPUT')
+    import subprocess
+    val, output= subprocess.getstatusoutput(text)
+
+    if not val:
+        style= 'OUTPUT'
+    else:
+        style= 'ERROR'
+
+    add_scrollback(output, style)
+
 
 class ShellConsoleExec(bpy.types.Operator):
     '''Execute the current console line as a python expression.'''
@@ -64,6 +74,7 @@ class ShellConsoleExec(bpy.types.Operator):
         bpy.ops.console.history_append(text="", current_character=0,
             remove_duplicates=True)
 
+        sc.prompt = os.getcwd()+ShellConsoleExec.PROMPT
         return ('FINISHED',)
 
 
@@ -93,7 +104,7 @@ class ShellConsoleBanner(bpy.types.Operator):
         sc = context.space_data
         
         shell_run("bash --version")
-        sc.prompt = ShellConsoleExec.PROMPT
+        sc.prompt = os.getcwd()+ShellConsoleExec.PROMPT
 
         return ('FINISHED',)
 
