@@ -477,7 +477,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
                 else:
                     sub = row.row()
                     #doesn't work yet
-                    #subrow.red_alert = key.valid
+                    #sub.red_alert = key.valid
                     sub.itemR(key, "object", text="")
                     sub.itemR(key, "system", text="System")
 
@@ -508,12 +508,12 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
         #row = layout.row()
         #row.template_list(boids, "states", boids, "active_boid_state_index", compact="True")
         #col = row.row()
-        #subrow = col.row(align=True)
-        #subrow.itemO("boid.state_add", icon='ICON_ZOOMIN', text="")
-        #subrow.itemO("boid.state_del", icon='ICON_ZOOMOUT', text="")
-        #subrow = row.row(align=True)
-        #subrow.itemO("boid.state_move_up", icon='VICON_MOVE_UP', text="")
-        #subrow.itemO("boid.state_move_down", icon='VICON_MOVE_DOWN', text="")
+        #sub = col.row(align=True)
+        #sub.itemO("boid.state_add", icon='ICON_ZOOMIN', text="")
+        #sub.itemO("boid.state_del", icon='ICON_ZOOMOUT', text="")
+        #sub = row.row(align=True)
+        #sub.itemO("boid.state_move_up", icon='VICON_MOVE_UP', text="")
+        #sub.itemO("boid.state_move_down", icon='VICON_MOVE_DOWN', text="")
 
         state = boids.active_boid_state
 
@@ -535,7 +535,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
         subsub.item_menu_enumO("boid.rule_add", "type", icon='ICON_ZOOMIN', text="")
         subsub.itemO("boid.rule_del", icon='ICON_ZOOMOUT', text="")
         sub = col.row()
-        subcol = sub.column(align=True)
+        subsub = sub.column(align=True)
         subsub.itemO("boid.rule_move_up", icon='VICON_MOVE_UP', text="")
         subsub.itemO("boid.rule_move_down", icon='VICON_MOVE_DOWN', text="")
 
@@ -570,9 +570,9 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
                 row.itemR(rule, "distance")
                 row = layout.row()
                 row.itemR(rule, "line")
-                subrow = row.row()
-                subrow.active = rule.line
-                subrow.itemR(rule, "queue_size")
+                sub = row.row()
+                sub.active = rule.line
+                sub.itemR(rule, "queue_size")
             elif rule.type == 'AVERAGE_SPEED':
                 row.itemR(rule, "speed", slider=True)
                 row.itemR(rule, "wander", slider=True)

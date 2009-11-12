@@ -450,9 +450,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 
         row = col.row()
         row.itemR(rd, "use_border", text="Border")
-        rowsub = row.row()
-        rowsub.active = rd.use_border
-        rowsub.itemR(rd, "crop_to_border", text="Crop")
+        sub = row.row()
+        sub.active = rd.use_border
+        sub.itemR(rd, "crop_to_border", text="Crop")
 
         if col2:
             col = split.column()
