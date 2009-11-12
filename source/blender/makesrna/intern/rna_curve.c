@@ -67,6 +67,8 @@ EnumPropertyItem beztriple_keyframe_type_items[] = {
 
 #include "WM_api.h"
 
+#include "MEM_guardedalloc.h"
+
 static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
@@ -227,6 +229,38 @@ static void rna_Curve_update_deps(bContext *C, PointerRNA *ptr)
 	rna_Curve_update_data(C, ptr);
 }
 
+/* name functions that ignore the first two ID characters */
+void rna_Curve_body_get(PointerRNA *ptr, char *value)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	strcpy(value, cu->str);
+}
+
+int rna_Curve_body_length(PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	return strlen(cu->str);
+}
+
+/* TODO - check UTF & python play nice */
+void rna_Curve_body_set(PointerRNA *ptr, const char *value)
+{
+	int len= strlen(value);
+	Curve *cu= (Curve*)ptr->id.data;
+
+	cu->pos = len;
+	cu->len = len;
+
+	if(cu->str)		MEM_freeN(cu->str);
+	if(cu->strinfo)	MEM_freeN(cu->strinfo);
+
+	cu->str = MEM_callocN(len + sizeof(wchar_t), "str");
+	cu->strinfo = MEM_callocN( (len+4) *sizeof(CharInfo), "strinfo"); /* don't know why this is +4, just duplicating load_editText() */
+
+	//wcs2utf8s(cu->str, value); // value is not wchar_t
+	BLI_strncpy(cu->str, value, len+1);
+}
+
 static void rna_Nurb_update_handle_data(bContext *C, PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
@@ -256,8 +290,6 @@ static void rna_Nurb_update_knot_v(bContext *C, PointerRNA *ptr)
 
 	rna_Curve_update_data(C, ptr);
 }
-
-
 
 #else
 
@@ -546,12 +578,13 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Object Font", "Use Blender Objects as font characters. Give font objects a common name followed by the character it represents, eg. familya, familyb etc, and turn on Verts Duplication");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	prop= RNA_def_property(srna, "str", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "str");
-	RNA_def_property_ui_text(prop, "String", "");
-	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
+	RNA_def_property_ui_text(prop, "Body Text", "contence of this text object");
+	RNA_def_property_string_funcs(prop, "rna_Curve_body_get", "rna_Curve_body_length", "rna_Curve_body_set");
 	RNA_def_property_string_maxlength(prop, 8192); /* note that originally str did not have a limit! */
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	/* pointers */
 	prop= RNA_def_property(srna, "text_on_curve", PROP_POINTER, PROP_NONE);
