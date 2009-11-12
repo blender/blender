@@ -1722,7 +1722,7 @@ public:
 		
 		read_faces(mesh, me, new_tris);
 
-		// make_edges(me, 0);
+		make_edges(me, 0);
 		
  		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 
