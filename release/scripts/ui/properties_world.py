@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class WorldButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -71,11 +72,17 @@ class WORLD_PT_world(WorldButtonsPanel):
         layout = self.layout
 
         world = context.world
-
-        row = layout.row()
-        row.itemR(world, "paper_sky")
-        row.itemR(world, "blend_sky")
-        row.itemR(world, "real_sky")
+        
+        if (context.region.width > narrowui):
+            row = layout.row()
+            row.itemR(world, "paper_sky")
+            row.itemR(world, "blend_sky")
+            row.itemR(world, "real_sky")
+        else:
+            col = layout.column()
+            col.itemR(world, "paper_sky")
+            col.itemR(world, "blend_sky")
+            col.itemR(world, "real_sky")
 
         row = layout.row()
         row.column().itemR(world, "horizon_color")
@@ -100,12 +107,17 @@ class WORLD_PT_mist(WorldButtonsPanel):
         world = context.world
 
         layout.active = world.mist.enabled
+        
+        split = layout.split()
+        
+        col = split.column()
+        col.itemR(world.mist, "intensity", slider=True)
+        col.itemR(world.mist, "start")
 
-        flow = layout.column_flow()
-        flow.itemR(world.mist, "intensity", slider=True)
-        flow.itemR(world.mist, "start")
-        flow.itemR(world.mist, "depth")
-        flow.itemR(world.mist, "height")
+        if (context.region.width > narrowui):
+            col = split.column()
+        col.itemR(world.mist, "depth")
+        col.itemR(world.mist, "height")
 
         layout.itemR(world.mist, "falloff")
 
@@ -126,11 +138,16 @@ class WORLD_PT_stars(WorldButtonsPanel):
 
         layout.active = world.stars.enabled
 
-        flow = layout.column_flow()
-        flow.itemR(world.stars, "size")
-        flow.itemR(world.stars, "color_randomization", text="Colors")
-        flow.itemR(world.stars, "min_distance", text="Min. Dist")
-        flow.itemR(world.stars, "average_separation", text="Separation")
+        split = layout.split()
+        
+        col = split.column()
+        col.itemR(world.stars, "size")
+        col.itemR(world.stars, "color_randomization", text="Colors")
+
+        if (context.region.width > narrowui):
+            col = split.column()
+        col.itemR(world.stars, "min_distance", text="Min. Dist")
+        col.itemR(world.stars, "average_separation", text="Separation")
 
 
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
@@ -163,7 +180,8 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
         sub.itemR(ao, "falloff_strength", text="Strength")
 
         if ao.gather_method == 'RAYTRACE':
-            col = split.column()
+            if (context.region.width > narrowui):
+                col = split.column()
 
             col.itemL(text="Sampling:")
             col.itemR(ao, "sample_method", text="")
@@ -178,7 +196,8 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
                 sub.itemR(ao, "bias")
 
         if ao.gather_method == 'APPROXIMATE':
-            col = split.column()
+            if (context.region.width > narrowui):
+                col = split.column()
 
             col.itemL(text="Sampling:")
             col.itemR(ao, "passes")
@@ -196,10 +215,9 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
         col = split.column()
         col.itemR(ao, "energy")
 
-        col = split.column()
-        sub = col.split(percentage=0.3)
-        sub.itemL(text="Color:")
-        sub.itemR(ao, "color", text="")
+        if (context.region.width > narrowui):
+            col = split.column()
+        col.itemR(ao, "color")
 
 bpy.types.register(WORLD_PT_context_world)
 bpy.types.register(WORLD_PT_preview)

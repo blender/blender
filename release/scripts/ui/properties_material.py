@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
@@ -89,22 +90,28 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
                 row.itemO("object.material_slot_select", text="Select")
                 row.itemO("object.material_slot_deselect", text="Deselect")
 
-        split = layout.split(percentage=0.65)
-
-        if ob:
-            split.template_ID(ob, "active_material", new="material.new")
-            row = split.row()
-            if slot:
-                row.itemR(slot, "link", text="")
-            else:
-                row.itemL()
-        elif mat:
-            split.template_ID(space, "pin_id")
-            split.itemS()
+        if (context.region.width > narrowui):
+            split = layout.split(percentage=0.65)
+    
+            if ob:
+                split.template_ID(ob, "active_material", new="material.new")
+                row = split.row()
+                if slot:
+                    row.itemR(slot, "link", text="")
+                else:
+                    row.itemL()
+            elif mat:
+                split.template_ID(space, "pin_id")
+                split.itemS()
+        else:
+            layout.template_ID(ob, "active_material", new="material.new")
 
         if mat:
-            layout.itemR(mat, "type", expand=True)
-
+            if (context.region.width > narrowui):
+                layout.itemR(mat, "type", expand=True)
+            else:
+                layout.itemR(mat, "type", text="")
+                
 
 class MATERIAL_PT_shading(MaterialButtonsPanel):
     bl_label = "Shading"
@@ -131,7 +138,8 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
             sub = col.column()
             sub.itemR(mat, "translucency")
 
-            col = split.column()
+            if (context.region.width > narrowui):
+                col = split.column()
             col.itemR(mat, "shadeless")
             sub = col.column()
             sub.active = not mat.shadeless
@@ -160,18 +168,20 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 
         split = layout.split()
 
-        col = split.column(align=True)
-        col.itemL(text="Size:")
-        col.itemR(tan, "root_size", text="Root")
-        col.itemR(tan, "tip_size", text="Tip")
-        col.itemR(tan, "min_size", text="Minimum")
-        col.itemR(tan, "blender_units")
+        col = split.column()
+        sub = col.column(align=True)
+        sub.itemL(text="Size:")
+        sub.itemR(tan, "root_size", text="Root")
+        sub.itemR(tan, "tip_size", text="Tip")
+        sub.itemR(tan, "min_size", text="Minimum")
+        sub.itemR(tan, "blender_units")
         sub = col.column()
         sub.active = (not mat.shadeless)
         sub.itemR(tan, "tangent_shading")
         col.itemR(tan, "shape")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemL(text="Shading:")
         col.itemR(tan, "width_fade")
         ob = context.object
@@ -204,7 +214,8 @@ class MATERIAL_PT_physics(MaterialButtonsPanel):
         col.itemR(phys, "friction")
         col.itemR(phys, "align_to_normal")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemR(phys, "force", slider=True)
         col.itemR(phys, "elasticity", slider=True)
         col.itemR(phys, "damp", slider=True)
@@ -242,7 +253,8 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
         row.active = mat.light_group
         row.itemR(mat, "light_group_exclusive", text="Exclusive")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemR(mat, "face_texture")
         sub = col.column()
         sub.active = mat.face_texture
@@ -277,7 +289,8 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel):
         col.itemR(mat, "cast_shadows_only", text="Cast Only")
         col.itemR(mat, "shadow_casting_alpha", text="Casting Alpha")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemR(mat, "cast_buffer_shadows")
         sub = col.column()
         sub.active = mat.cast_buffer_shadows
@@ -310,7 +323,8 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
         sub.active = (not mat.shadeless)
         sub.itemR(mat, "diffuse_intensity", text="Intensity")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.active = (not mat.shadeless)
         col.itemR(mat, "diffuse_shader", text="")
         col.itemR(mat, "use_diffuse_ramp", text="Ramp")
@@ -322,25 +336,37 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
         elif mat.diffuse_shader == 'MINNAERT':
             col.itemR(mat, "darkness")
         elif mat.diffuse_shader == 'TOON':
-            row = col.row()
-            row.itemR(mat, "diffuse_toon_size", text="Size")
-            row.itemR(mat, "diffuse_toon_smooth", text="Smooth")
+            split = col.split()
+            
+            col = split.column()
+            col.itemR(mat, "diffuse_toon_size", text="Size")
+            
+            if (context.region.width > narrowui):
+                col = split.column()
+            col.itemR(mat, "diffuse_toon_smooth", text="Smooth")
         elif mat.diffuse_shader == 'FRESNEL':
-            row = col.row()
-            row.itemR(mat, "diffuse_fresnel", text="Fresnel")
-            row.itemR(mat, "diffuse_fresnel_factor", text="Factor")
+            split = col.split()
+            
+            col = split.column()
+            col.itemR(mat, "diffuse_fresnel", text="Fresnel")
+            
+            if (context.region.width > narrowui):
+                col = split.column()
+            col.itemR(mat, "diffuse_fresnel_factor", text="Factor")
 
         if mat.use_diffuse_ramp:
             layout.itemS()
             layout.template_color_ramp(mat, "diffuse_ramp", expand=True)
             layout.itemS()
-            row = layout.row()
-            split = row.split(percentage=0.3)
-            split.itemL(text="Input:")
-            split.itemR(mat, "diffuse_ramp_input", text="")
-            split = row.split(percentage=0.3)
-            split.itemL(text="Blend:")
-            split.itemR(mat, "diffuse_ramp_blend", text="")
+            
+            split = layout.split()
+            
+            col = split.column()
+            col.itemR(mat, "diffuse_ramp_input", text="Input")
+            
+            if (context.region.width > narrowui):
+                col = split.column()
+            col.itemR(mat, "diffuse_ramp_blend", text="Blend")
             row = layout.row()
             row.itemR(mat, "diffuse_ramp_factor", text="Factor")
 
@@ -367,7 +393,8 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
         col.itemR(mat, "specular_color", text="")
         col.itemR(mat, "specular_intensity", text="Intensity")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemR(mat, "specular_shader", text="")
         col.itemR(mat, "use_specular_ramp", text="Ramp")
 
@@ -375,27 +402,39 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
         if mat.specular_shader in ('COOKTORR', 'PHONG'):
             col.itemR(mat, "specular_hardness", text="Hardness")
         elif mat.specular_shader == 'BLINN':
-            row = col.row()
-            row.itemR(mat, "specular_hardness", text="Hardness")
-            row.itemR(mat, "specular_ior", text="IOR")
+            split = layout.split()
+            
+            col = split.column()
+            col.itemR(mat, "specular_hardness", text="Hardness")
+            
+            if (context.region.width > narrowui):
+                col = split.column()
+            col.itemR(mat, "specular_ior", text="IOR")
         elif mat.specular_shader == 'WARDISO':
             col.itemR(mat, "specular_slope", text="Slope")
         elif mat.specular_shader == 'TOON':
-            row = col.row()
-            row.itemR(mat, "specular_toon_size", text="Size")
-            row.itemR(mat, "specular_toon_smooth", text="Smooth")
+            split = layout.split()
+            
+            col = split.column()
+            col.itemR(mat, "specular_toon_size", text="Size")
+            
+            if (context.region.width > narrowui):
+                col = split.column()
+            col.itemR(mat, "specular_toon_smooth", text="Smooth")
 
         if mat.use_specular_ramp:
             layout.itemS()
             layout.template_color_ramp(mat, "specular_ramp", expand=True)
             layout.itemS()
-            row = layout.row()
-            split = row.split(percentage=0.3)
-            split.itemL(text="Input:")
-            split.itemR(mat, "specular_ramp_input", text="")
-            split = row.split(percentage=0.3)
-            split.itemL(text="Blend:")
-            split.itemR(mat, "specular_ramp_blend", text="")
+            split = layout.split()
+            
+            col = split.column()
+            col.itemR(mat, "specular_ramp_input", text="Input")
+            
+            if (context.region.width > narrowui):
+                col = split.column()
+            col.itemR(mat, "specular_ramp_blend", text="Blend")
+            
             row = layout.row()
             row.itemR(mat, "specular_ramp_factor", text="Factor")
 
@@ -434,7 +473,8 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         col.itemR(sss, "color", text="")
         col.itemR(sss, "radius", text="RGB Radius")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         sub = col.column(align=True)
         sub.itemL(text="Blend:")
         sub.itemR(sss, "color_factor", text="Color")
@@ -475,7 +515,8 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
         col.itemR(raym, "reflect_factor")
         col.itemR(mat, "mirror_color", text="")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemR(raym, "fresnel")
         sub = col.column()
         sub.active = raym.fresnel > 0
@@ -492,7 +533,8 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
         sub.itemL(text="Fade To:")
         sub.itemR(raym, "fade_to", text="")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemL(text="Gloss:")
         col.itemR(raym, "gloss_factor", text="Amount")
         sub = col.column()
@@ -525,7 +567,10 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 
         row = layout.row()
         row.active = mat.transparency and (not mat.shadeless)
-        row.itemR(mat, "transparency_method", expand=True)
+        if (context.region.width > narrowui):
+            row.itemR(mat, "transparency_method", expand=True)
+        else:
+            row.itemR(mat, "transparency_method", text="")
 
         split = layout.split()
 
@@ -535,7 +580,8 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
         row.active = mat.transparency and (not mat.shadeless)
         row.itemR(mat, "specular_alpha", text="Specular")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.active = (not mat.shadeless)
         col.itemR(rayt, "fresnel")
         sub = col.column()
@@ -554,7 +600,8 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
             col.itemR(rayt, "limit")
             col.itemR(rayt, "depth")
 
-            col = split.column()
+            if (context.region.width > narrowui):
+                col = split.column()
             col.itemL(text="Gloss:")
             col.itemR(rayt, "gloss_factor", text="Amount")
             sub = col.column()
@@ -592,7 +639,8 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
         col.itemR(halo, "shaded")
         col.itemR(halo, "soft")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemR(halo, "ring")
         sub = col.column()
         sub.active = halo.ring
@@ -639,7 +687,8 @@ class MATERIAL_PT_flare(MaterialButtonsPanel):
         col.itemR(halo, "flare_size", text="Size")
         col.itemR(halo, "flare_boost", text="Boost")
         col.itemR(halo, "flare_seed", text="Seed")
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemR(halo, "flares_sub", text="Subflares")
         col.itemR(halo, "flare_subsize", text="Subsize")
 
@@ -681,9 +730,12 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel):
         vol = context.material.volume # dont use node material
 
         split = layout.split()
-        row = split.row()
-        row.itemR(vol, "density")
-        row.itemR(vol, "density_scale")
+        col = split.column()
+        col.itemR(vol, "density")
+        
+        if (context.region.width > narrowui):
+            col = split.column()
+        col.itemR(vol, "density_scale")
 
 
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
@@ -703,7 +755,8 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
         col.itemR(vol, "asymmetry")
         col.itemR(vol, "transmission_color")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         sub = col.column(align=True)
         sub.itemR(vol, "emission")
         sub.itemR(vol, "emission_color", text="")
@@ -727,7 +780,8 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
         col = split.column()
         col.itemR(vol, "lighting_mode", text="")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
 
         if vol.lighting_mode == 'SHADED':
             col.itemR(vol, "external_shadows")
@@ -757,7 +811,10 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
 
         mat = context.material # dont use node material
 
-        layout.itemR(mat, "transparency_method", expand=True)
+        if (context.region.width > narrowui):
+            layout.itemR(mat, "transparency_method", expand=True)
+        else:
+            layout.itemR(mat, "transparency_method", text="")
 
 
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
@@ -778,7 +835,8 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
         col = col.column(align=True)
         col.itemR(vol, "step_size")
 
-        col = split.column()
+        if (context.region.width > narrowui):
+            col = split.column()
         col.itemL()
         col.itemR(vol, "depth_cutoff")
 

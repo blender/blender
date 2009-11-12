@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class SceneButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -37,9 +38,13 @@ class SCENE_PT_scene(SceneButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-
-        layout.itemR(scene, "camera")
-        layout.itemR(scene, "set", text="Background")
+        
+        if (context.region.width > narrowui):
+            layout.itemR(scene, "camera")
+            layout.itemR(scene, "set", text="Background")
+        else:
+            layout.itemR(scene, "camera", text="")
+            layout.itemR(scene, "set", text="")
 
 
 class SCENE_PT_unit(SceneButtonsPanel):
@@ -54,10 +59,15 @@ class SCENE_PT_unit(SceneButtonsPanel):
         col = layout.column()
         col.row().itemR(unit, "system", expand=True)
 
-        row = layout.row()
-        row.active = (unit.system != 'NONE')
-        row.itemR(unit, "scale_length", text="Scale")
-        row.itemR(unit, "use_separate")
+        split = layout.split()
+        split.active = (unit.system != 'NONE')
+        
+        col = split.column()
+        col.itemR(unit, "scale_length", text="Scale")
+        
+        if (context.region.width > narrowui):
+            col = split.column()
+        col.itemR(unit, "use_separate")
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel):
@@ -85,7 +95,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
             col.itemR(ks, "name")
             col.itemR(ks, "absolute")
 
-            col = row.column()
+            if (context.region.width > narrowui):
+                col = row.column()
             col.itemL(text="Keyframing Settings:")
             col.itemR(ks, "insertkey_needed", text="Needed")
             col.itemR(ks, "insertkey_visual", text="Visual")
@@ -131,7 +142,8 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
             if ksp.entire_array == False:
                 col.itemR(ksp, "array_index")
 
-            col = row.column()
+            if (context.region.width > narrowui):
+                col = row.column()
             col.itemL(text="F-Curve Grouping:")
             col.itemR(ksp, "grouping")
             if ksp.grouping == 'NAMED':
@@ -151,8 +163,11 @@ class SCENE_PT_physics(SceneButtonsPanel):
         scene = context.scene
 
         layout.active = scene.use_gravity
-
-        layout.itemR(scene, "gravity", text="")
+        
+        if (context.region.width > narrowui):
+            layout.itemR(scene, "gravity", text="")
+        else:
+            layout.column().itemR(scene, "gravity", text="")
 
 bpy.types.register(SCENE_PT_scene)
 bpy.types.register(SCENE_PT_unit)
