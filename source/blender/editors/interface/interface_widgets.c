@@ -811,7 +811,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	int border= (but->flag & UI_BUT_ALIGN_RIGHT)? 8: 10;
 	int okwidth= rect->xmax-rect->xmin - border;
 	char *cpoin=NULL;
-	char *end = but->drawstr + strlen(but->drawstr);
+	char *cpend = but->drawstr + strlen(but->drawstr);
 	
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
@@ -820,19 +820,32 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	but->ofs= 0;
 	
 	/* find the space after ':' separator */
-	cpoin= strchr(but->drawstr, ':');
-	cpoin += 2;
-	if (cpoin >= end) cpoin = NULL;
+	cpoin= strrchr(but->drawstr, ':');
 	
-	/* chop off the text label, with ofs */
-	if (cpoin) {
-		while ((but->drawstr + but->ofs < cpoin) && (but->strwidth > okwidth))
+	if (cpoin && (cpoin < cpend-2)) {
+		char *cp2 = cpoin;
+		
+		/* chop off the leading text, starting from the right */
+		while (but->strwidth > okwidth && cp2 > but->drawstr) {
+			/* shift the text after and including cp2 back by 1 char, +1 to include null terminator */
+			memmove(cp2-1, cp2, strlen(cp2)+1);
+			cp2--;
+			
+			but->strwidth= BLF_width(but->drawstr+but->ofs);
+			if(but->strwidth < 10) break;
+		}
+	
+	
+		/* after the leading text is gone, chop off the : and following space, with ofs */
+		while ((but->strwidth > okwidth) && (but->ofs < 2))
 		{
 			but->ofs++;
 			but->strwidth= BLF_width(but->drawstr+but->ofs);
+			if(but->strwidth < 10) break;
 		}
+		
 	}
-	
+
 	/* once the label's gone, chop off the least significant digits */
 	while(but->strwidth > okwidth ) {
 		int pos= strlen(but->drawstr);
@@ -843,6 +856,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		but->strwidth= BLF_width(but->drawstr+but->ofs);
 		if(but->strwidth < 10) break;
 	}
+	
 }
 
 
@@ -1709,6 +1723,7 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 {
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->ymax - rect->ymin);
+	float textofs = rad*0.75;
 
 	widget_init(&wtb);
 	
@@ -1719,12 +1734,13 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	if(!(state & UI_TEXTINPUT)) {
 		widget_num_tria(&wtb.tria1, rect, 0.6f, 'l');
 		widget_num_tria(&wtb.tria2, rect, 0.6f, 'r');
-	}	
+	}
+
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	rect->xmin += rad*0.75f;
-	rect->xmax -= rad*0.75f;
+	rect->xmin += textofs;
+	rect->xmax -= textofs;
 }
 
 
