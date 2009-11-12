@@ -1632,7 +1632,7 @@ typedef struct tSplineIK_Tree {
 /* ----------- */
 
 /* Tag the bones in the chain formed by the given bone for IK */
-static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
+static void splineik_init_tree_from_pchan(Scene *scene, Object *ob, bPoseChannel *pchan_tip)
 {
 	bPoseChannel *pchan, *pchanRoot=NULL;
 	bPoseChannel *pchanChain[255];
@@ -1661,6 +1661,21 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 	}
 	if (con == NULL)
 		return;
+		
+	/* make sure that the constraint targets are ok 
+	 *	- this is a workaround for a depsgraph bug...
+	 */
+	if (ikData->tar) {
+		Curve *cu= ikData->tar->data;
+		
+		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
+		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
+		 */
+		
+		/* only happens on reload file, but violates depsgraph still... fix! */
+		if ((cu->path==NULL) || (cu->path->data==NULL))
+			makeDispListCurveTypes(scene, ikData->tar, 0);
+	}
 	
 	/* find the root bone and the chain of bones from the root to the tip 
 	 * NOTE: this assumes that the bones are connected, but that may not be true...
@@ -1743,7 +1758,7 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 		
 		/* get the current length of the curve */
 		// NOTE: this is assumed to be correct even after the curve was resized
-		splineLen= (cu->path)? cu->path->totdist: 1.0f;
+		splineLen= cu->path->totdist;
 		
 		/* calculate the scale factor to multiply all the path values by so that the 
 		 * bone chain retains its current length, such that
@@ -1800,7 +1815,7 @@ static void splineik_init_tree(Scene *scene, Object *ob, float ctime)
 	/* find the tips of Spline IK chains, which are simply the bones which have been tagged as such */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (pchan->constflag & PCHAN_HAS_SPLINEIK)
-			splineik_init_tree_from_pchan(ob, pchan);
+			splineik_init_tree_from_pchan(scene, ob, pchan);
 	}
 }
 
