@@ -433,7 +433,9 @@ int isect_ray_tri_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2
 	
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	/* note: these values were 0.000001 in 2.4x but for projection snapping on
+	 * a human head (1BU==1m), subsurf level 2, this gave many errors */
+	if ((a > -0.00000001) && (a < 0.00000001)) return 0;
 	f = 1.0f/a;
 	
 	sub_v3_v3v3(s, p1, v0);
