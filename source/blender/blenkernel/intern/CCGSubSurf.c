@@ -3,11 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <float.h>
 
 #include "CCGSubSurf.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
+
+/* used for normalize_v3 in BLI_math_vector
+ * float.h's FLT_EPSILON causes trouble with subsurf normals - campbell */
+#define EPSILON (1.0e-35f)
 
 /***/
 
@@ -593,7 +596,7 @@ void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, int lev
 
 	length = sqrt(no[0]*no[0] + no[1]*no[1] + no[2]*no[2]);
 
-	if (length>FLT_EPSILON) {
+	if (length>EPSILON) {
 		float invLength = 1.f/length;
 
 		no[0] *= invLength;
@@ -1934,7 +1937,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 			length = sqrt(no[0]*no[0] + no[1]*no[1] + no[2]*no[2]);
 
-			if (length>FLT_EPSILON) {
+			if (length>EPSILON) {
 				float invLength = 1.0f/length;
 				no[0] *= invLength;
 				no[1] *= invLength;
@@ -1993,7 +1996,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 						float *no = FACE_getIFNo(f, lvl, S, x, y);
 						float length = sqrt(no[0]*no[0] + no[1]*no[1] + no[2]*no[2]);
 
-						if (length>FLT_EPSILON) {
+						if (length>EPSILON) {
 							float invLength = 1.0f/length;
 							no[0] *= invLength;
 							no[1] *= invLength;
