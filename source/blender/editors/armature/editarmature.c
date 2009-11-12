@@ -5083,9 +5083,9 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int	sel=1;
 
-	/*	Determine if there are any selected bones
-	And therefore whether we are selecting or deselecting */
-	if (CTX_DATA_COUNT(C, selected_pchans) > 0)	sel=0;
+	/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
+	// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
+	if (CTX_DATA_COUNT(C, selected_pchans) > 1)	sel=0;
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
