@@ -1743,7 +1743,7 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 		
 		/* get the current length of the curve */
 		// NOTE: this is assumed to be correct even after the curve was resized
-		splineLen= cu->path->totdist;
+		splineLen= (cu->path)? cu->path->totdist: 1.0f;
 		
 		/* calculate the scale factor to multiply all the path values by so that the 
 		 * bone chain retains its current length, such that
