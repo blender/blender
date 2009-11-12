@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class BoneButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -53,42 +54,65 @@ class BONE_PT_transform(BoneButtonsPanel):
 
         ob = context.object
         bone = context.bone
+        col2 = context.region.width > narrowui
+        
         if not bone:
             bone = context.edit_bone
-
-            row = layout.row()
-            row.column().itemR(bone, "head")
-            row.column().itemR(bone, "tail")
-
-            col = row.column()
-            sub = col.column(align=True)
-            sub.itemL(text="Roll:")
-            sub.itemR(bone, "roll", text="")
-            sub.itemL()
-            sub.itemR(bone, "locked")
+            if col2:
+                row = layout.row()
+                row.column().itemR(bone, "head")
+                row.column().itemR(bone, "tail")
+    
+                col = row.column()
+                sub = col.column(align=True)
+                sub.itemL(text="Roll:")
+                sub.itemR(bone, "roll", text="")
+                sub.itemL()
+                sub.itemR(bone, "locked")
+            else:
+                col = layout.column()
+                col.itemR(bone, "head")
+                col.itemR(bone, "tail")
+                col.itemR(bone, "roll")
+                col.itemR(bone, "locked")
 
         else:
             pchan = ob.pose.pose_channels[context.bone.name]
-
-            row = layout.row()
-            col = row.column()
-            col.itemR(pchan, "location")
-            col.active = not (bone.parent and bone.connected)
-
-            col = row.column()
-            if pchan.rotation_mode == 'QUATERNION':
-                col.itemR(pchan, "rotation_quaternion", text="Rotation")
-            elif pchan.rotation_mode == 'AXIS_ANGLE':
-                #col.itemL(text="Rotation")
-                #col.itemR(pchan, "rotation_angle", text="Angle")
-                #col.itemR(pchan, "rotation_axis", text="Axis")
-                col.itemR(pchan, "rotation_axis_angle", text="Rotation")
+            
+            if col2:
+                row = layout.row()
+                col = row.column()
+                col.itemR(pchan, "location")
+                col.active = not (bone.parent and bone.connected)
+    
+                col = row.column()
+                if pchan.rotation_mode == 'QUATERNION':
+                    col.itemR(pchan, "rotation_quaternion", text="Rotation")
+                elif pchan.rotation_mode == 'AXIS_ANGLE':
+                    #col.itemL(text="Rotation")
+                    #col.itemR(pchan, "rotation_angle", text="Angle")
+                    #col.itemR(pchan, "rotation_axis", text="Axis")
+                    col.itemR(pchan, "rotation_axis_angle", text="Rotation")
+                else:
+                    col.itemR(pchan, "rotation_euler", text="Rotation")
+    
+                row.column().itemR(pchan, "scale")
+    
+                layout.itemR(pchan, "rotation_mode")
             else:
-                col.itemR(pchan, "rotation_euler", text="Rotation")
-
-            row.column().itemR(pchan, "scale")
-
-            layout.itemR(pchan, "rotation_mode")
+                col = layout.column()
+                sub = col.column()
+                sub.active = not (bone.parent and bone.connected)
+                sub.itemR(pchan, "location")
+                col.itemL(text="Rotation:")
+                col.itemR(pchan, "rotation_mode", text="")
+                if pchan.rotation_mode == 'QUATERNION':
+                    col.itemR(pchan, "rotation_quaternion", text="")
+                elif pchan.rotation_mode == 'AXIS_ANGLE':
+                    col.itemR(pchan, "rotation_axis_angle", text="")
+                else:
+                    col.itemR(pchan, "rotation_euler", text="")
+                col.itemR(pchan, "scale")
 
 
 class BONE_PT_transform_locks(BoneButtonsPanel):
@@ -131,6 +155,7 @@ class BONE_PT_relations(BoneButtonsPanel):
         ob = context.object
         bone = context.bone
         arm = context.armature
+        col2 = context.region.width > narrowui
 
         if not bone:
             bone = context.edit_bone
@@ -150,7 +175,8 @@ class BONE_PT_relations(BoneButtonsPanel):
             col.itemL(text="Bone Group:")
             col.item_pointerR(pchan, "bone_group", ob.pose, "bone_groups", text="")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Parent:")
         if context.bone:
             col.itemR(bone, "parent", text="")
@@ -176,6 +202,7 @@ class BONE_PT_display(BoneButtonsPanel):
         ob = context.object
         bone = context.bone
         arm = context.armature
+        col2 = context.region.width > narrowui
 
         if not bone:
             bone = context.edit_bone
@@ -188,12 +215,11 @@ class BONE_PT_display(BoneButtonsPanel):
             split = layout.split()
 
             col = split.column()
-
             col.itemR(bone, "draw_wire", text="Wireframe")
             col.itemR(bone, "hidden", text="Hide")
 
-            col = split.column()
-
+            if col2:
+                col = split.column()
             col.itemL(text="Custom Shape:")
             col.itemR(pchan, "custom_shape", text="")
 
@@ -214,6 +240,7 @@ class BONE_PT_deform(BoneButtonsPanel):
         layout = self.layout
 
         bone = context.bone
+        col2 = context.region.width > narrowui
 
         if not bone:
             bone = context.edit_bone
@@ -235,7 +262,8 @@ class BONE_PT_deform(BoneButtonsPanel):
         sub.itemR(bone, "head_radius", text="Head")
         sub.itemR(bone, "tail_radius", text="Tail")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Curved Bones:")
 
         sub = col.column(align=True)

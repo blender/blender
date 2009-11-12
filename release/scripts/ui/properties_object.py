@@ -70,13 +70,14 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
         else:
             col = layout.column()
             col.itemR(ob, "location")
+            col.itemL(text="Rotation:")
             col.itemR(ob, "rotation_mode", text="")
             if ob.rotation_mode == 'QUATERNION':
-                col.itemR(ob, "rotation_quaternion")
+                col.itemR(ob, "rotation_quaternion", text="")
             elif ob.rotation_mode == 'AXIS_ANGLE':
-                col.itemR(ob, "rotation_axis_angle", text="Rotation")
+                col.itemR(ob, "rotation_axis_angle", text="")
             else:
-                col.itemR(ob, "rotation_euler", text="Rotation")
+                col.itemR(ob, "rotation_euler", text="")
             col.itemR(ob, "scale")
 
 

@@ -55,14 +55,17 @@ class WORLD_PT_context_world(WorldButtonsPanel):
         scene = context.scene
         world = context.world
         space = context.space_data
+        col2 = context.region.width > narrowui
 
-        split = layout.split(percentage=0.65)
-
-        if scene:
-            split.template_ID(scene, "world", new="world.new")
-        elif world:
-            split.template_ID(space, "pin_id")
-
+        
+        if col2:
+            split = layout.split(percentage=0.65)
+            if scene:
+                split.template_ID(scene, "world", new="world.new")
+            elif world:
+                split.template_ID(space, "pin_id")
+        else:
+            layout.template_ID(scene, "world", new="world.new")
 
 class WORLD_PT_world(WorldButtonsPanel):
     bl_label = "World"

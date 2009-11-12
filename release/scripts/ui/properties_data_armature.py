@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -39,15 +40,18 @@ class DATA_PT_context_arm(DataButtonsPanel):
         ob = context.object
         arm = context.armature
         space = context.space_data
-
-        split = layout.split(percentage=0.65)
-
-        if ob:
-            split.template_ID(ob, "data")
-            split.itemS()
-        elif arm:
-            split.template_ID(space, "pin_id")
-            split.itemS()
+        col2 = context.region.width > narrowui
+        
+        if col2:
+            split = layout.split(percentage=0.65)
+            if ob:
+                split.template_ID(ob, "data")
+                split.itemS()
+            elif arm:
+                split.template_ID(space, "pin_id")
+                split.itemS()
+        else:
+            layout.template_ID(ob, "data")
 
 
 class DATA_PT_skeleton(DataButtonsPanel):
@@ -59,6 +63,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
         ob = context.object
         arm = context.armature
         space = context.space_data
+        col2 = context.region.width > narrowui
 
         layout.itemR(arm, "pose_position", expand=True)
 
@@ -70,7 +75,8 @@ class DATA_PT_skeleton(DataButtonsPanel):
         col.itemL(text="Protected Layers:")
         col.itemR(arm, "layer_protection", text="")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Deform:")
         col.itemR(arm, "deform_vertexgroups", text="Vertex Groups")
         col.itemR(arm, "deform_envelope", text="Envelopes")
@@ -85,15 +91,24 @@ class DATA_PT_display(DataButtonsPanel):
         layout = self.layout
 
         arm = context.armature
+        col2 = context.region.width > narrowui
 
-        layout.row().itemR(arm, "drawtype", expand=True)
+        if col2:
+            layout.row().itemR(arm, "drawtype", expand=True)
+        else:
+            layout.row().itemR(arm, "drawtype", text="")
 
-        flow = layout.column_flow()
-        flow.itemR(arm, "draw_names", text="Names")
-        flow.itemR(arm, "draw_axes", text="Axes")
-        flow.itemR(arm, "draw_custom_bone_shapes", text="Shapes")
-        flow.itemR(arm, "draw_group_colors", text="Colors")
-        flow.itemR(arm, "delay_deform", text="Delay Refresh")
+        split = layout.split()
+
+        col = split.column()
+        col.itemR(arm, "draw_names", text="Names")
+        col.itemR(arm, "draw_axes", text="Axes")
+        col.itemR(arm, "draw_custom_bone_shapes", text="Shapes")
+        
+        if col2:
+            col = split.column()
+        col.itemR(arm, "draw_group_colors", text="Colors")
+        col.itemR(arm, "delay_deform", text="Delay Refresh")
 
 
 class DATA_PT_bone_groups(DataButtonsPanel):
@@ -107,6 +122,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 
         ob = context.object
         pose = ob.pose
+        col2 = context.region.width > narrowui
 
         row = layout.row()
         row.template_list(pose, "bone_groups", pose, "active_bone_group_index", rows=2)
@@ -122,11 +138,15 @@ class DATA_PT_bone_groups(DataButtonsPanel):
             col.active = (ob.proxy == None)
             col.itemR(group, "name")
 
-            split = layout.split(0.5)
+            split = layout.split()
             split.active = (ob.proxy == None)
-            split.itemR(group, "color_set")
+            
+            col = split.column()
+            col.itemR(group, "color_set")
             if group.color_set:
-                split.template_triColorSet(group, "colors")
+                if col2:
+                    col = split.column()
+                col.template_triColorSet(group, "colors")
 
         row = layout.row(align=True)
         row.active = (ob.proxy == None)
@@ -144,8 +164,12 @@ class DATA_PT_paths(DataButtonsPanel):
         layout = self.layout
 
         arm = context.armature
+        col2 = context.region.width > narrowui
 
-        layout.itemR(arm, "paths_type", expand=True)
+        if col2:
+            layout.itemR(arm, "paths_type", expand=True)
+        else:
+            layout.itemR(arm, "paths_type", text="")
 
         split = layout.split()
 
@@ -161,7 +185,8 @@ class DATA_PT_paths(DataButtonsPanel):
         sub.itemR(arm, "path_size", text="Step")
         col.row().itemR(arm, "paths_location", expand=True)
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Display:")
         col.itemR(arm, "paths_show_frame_numbers", text="Frame Numbers")
         col.itemR(arm, "paths_highlight_keyframes", text="Keyframes")
@@ -169,9 +194,14 @@ class DATA_PT_paths(DataButtonsPanel):
 
         layout.itemS()
 
-        row = layout.row()
-        row.itemO("pose.paths_calculate", text="Calculate Paths")
-        row.itemO("pose.paths_clear", text="Clear Paths")
+        split = layout.split()
+
+        col = split.column()
+        col.itemO("pose.paths_calculate", text="Calculate Paths")
+        
+        if col2:
+            col = split.column()
+        col.itemO("pose.paths_clear", text="Clear Paths")
 
 
 class DATA_PT_ghost(DataButtonsPanel):
@@ -181,8 +211,12 @@ class DATA_PT_ghost(DataButtonsPanel):
         layout = self.layout
 
         arm = context.armature
+        col2 = context.region.width > narrowui
 
-        layout.itemR(arm, "ghost_type", expand=True)
+        if col2:
+            layout.itemR(arm, "ghost_type", expand=True)
+        else:
+            layout.itemR(arm, "ghost_type", text="")
 
         split = layout.split()
 
@@ -197,7 +231,8 @@ class DATA_PT_ghost(DataButtonsPanel):
             sub.itemR(arm, "ghost_step", text="Range")
             sub.itemR(arm, "ghost_size", text="Step")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Display:")
         col.itemR(arm, "ghost_only_selected", text="Selected Only")
 
