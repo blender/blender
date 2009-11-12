@@ -602,11 +602,11 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         col.itemL(text="Spline Fitting:")
         col.itemR(con, "chain_length")
         col.itemR(con, "even_divisions")
-        #col.itemR(con, "affect_root") # XXX: this is not that useful yet
+        col.itemR(con, "chain_offset")
 
         col = layout.column()
         col.itemL(text="Chain Scaling:")
-        col.itemR(con, "keep_max_length")
+        col.itemR(con, "y_scaling")
         col.itemR(con, "xz_scaling_mode")
 
 

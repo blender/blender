@@ -1732,7 +1732,7 @@ static bAnimChannelType ACF_DSARM=
 	acf_dsarm_icon,				/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
-	acf_dsarm_setting_flag,				/* flag for setting */
+	acf_dsarm_setting_flag,					/* flag for setting */
 	acf_dsarm_setting_ptr					/* pointer for setting */
 };
 
@@ -1794,19 +1794,19 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale, int setting, short *typ
 	}
 }
 
-/* metaball expander type define */
+/* node tree expander type define */
 static bAnimChannelType ACF_DSNTREE= 
 {
-acf_generic_dataexpand_backdrop,/* backdrop */
-acf_generic_indention_1,		/* indent level */
-acf_generic_basic_offset,		/* offset */
-
-acf_generic_idblock_name,		/* name */
-acf_dsntree_icon,				/* icon */
-
-acf_generic_dataexpand_setting_valid,	/* has setting */
-acf_dsntree_setting_flag,				/* flag for setting */
-acf_dsntree_setting_ptr					/* pointer for setting */
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
+	acf_generic_basic_offset,		/* offset */
+	
+	acf_generic_idblock_name,		/* name */
+	acf_dsntree_icon,				/* icon */
+	
+	acf_generic_dataexpand_setting_valid,	/* has setting */
+	acf_dsntree_setting_flag,				/* flag for setting */
+	acf_dsntree_setting_ptr					/* pointer for setting */
 };
 
 

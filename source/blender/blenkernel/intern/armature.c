@@ -1707,7 +1707,7 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 				 */
 				if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
 					/* 1) equi-spaced joints */
-					ikData->points[i]= segmentLen;
+					ikData->points[i]= ikData->points[i-1] - segmentLen;
 				}
 				else {
 					 /*	2) to find this point on the curve, we take a step from the previous joint
@@ -1811,9 +1811,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 {
 	bSplineIKConstraint *ikData= tree->ikData;
 	float poseHead[3], poseTail[3], poseMat[4][4]; 
-	float splineVec[3], scaleFac;
-	float rad, radius=1.0f;
-	float vec[4], dir[3];
+	float splineVec[3], scaleFac, radius=1.0f;
 	
 	/* firstly, calculate the bone matrix the standard way, since this is needed for roll control */
 	where_is_pose_bone(scene, ob, pchan, ctime);
@@ -1821,24 +1819,41 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	VECCOPY(poseHead, pchan->pose_head);
 	VECCOPY(poseTail, pchan->pose_tail);
 	
-	/* step 1a: get xyz positions for the tail endpoint of the bone */
-	if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad) ) {
-		/* convert the position to pose-space, then store it */
-		mul_m4_v3(ob->imat, vec);
-		VECCOPY(poseTail, vec);
+	/* step 1: determine the positions for the endpoints of the bone */
+	{
+		float vec[4], dir[3], rad;
+		float tailBlendFac= 1.0f;
 		
-		/* set the new radius */
-		radius= rad;
-	}
-	
-	/* step 1b: get xyz positions for the head endpoint of the bone */
-	if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
-		/* store the position, and convert it to pose space */
-		mul_m4_v3(ob->imat, vec);
-		VECCOPY(poseHead, vec);
+		/* determine if the bone should still be affected by SplineIK */
+		if (tree->points[index+1] >= 1.0f) {
+			/* spline doesn't affect the bone anymore, so done... */
+			pchan->flag |= POSE_DONE;
+			return;
+		}
+		else if ((tree->points[index] >= 1.0f) && (tree->points[index+1] < 1.0f)) {
+			/* blending factor depends on the amount of the bone still left on the chain */
+			tailBlendFac= (1.0f - tree->points[index+1]) / (tree->points[index] - tree->points[index+1]);
+		}
 		
-		/* set the new radius (it should be the average value) */
-		radius = (radius+rad) / 2;
+		/* tail endpoint */
+		if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad) ) {
+			/* convert the position to pose-space, then store it */
+			mul_m4_v3(ob->imat, vec);
+			interp_v3_v3v3(poseTail, pchan->pose_tail, vec, tailBlendFac);
+			
+			/* set the new radius */
+			radius= rad;
+		}
+		
+		/* head endpoint */
+		if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
+			/* store the position, and convert it to pose space */
+			mul_m4_v3(ob->imat, vec);
+			VECCOPY(poseHead, vec);
+			
+			/* set the new radius (it should be the average value) */
+			radius = (radius+rad) / 2;
+		}
 	}
 	
 	/* step 2: determine the implied transform from these endpoints 
@@ -1918,8 +1933,16 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		}
 	}
 	
-	/* step 5: set the location of the bone in the matrix */
-	VECCOPY(poseMat[3], poseHead);
+	/* step 5: set the location of the bone in the matrix 
+	 *	- when the 'no-root' option is affected, the chain can retain
+	 *	  the shape but be moved elsewhere
+	 */
+	if (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) {
+		VECCOPY(poseMat[3], pchan->pose_head);
+	}
+	else {
+		VECCOPY(poseMat[3], poseHead);
+	}
 	
 	/* finally, store the new transform */
 	copy_m4_m4(pchan->pose_mat, poseMat);

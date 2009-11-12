@@ -351,9 +351,7 @@ static void test_constraints (Object *owner, const char substring[])
 				/* if the number of points does not match the amount required by the chain length,
 				 * free the points array and request a rebind...
 				 */
-				if ( (data->points == NULL) ||
-					 (!(data->flag & CONSTRAINT_SPLINEIK_NO_ROOT) && (data->numpoints != data->chainlen+1)) ||
-					 ( (data->flag & CONSTRAINT_SPLINEIK_NO_ROOT) && (data->numpoints != data->chainlen)) )
+				if ((data->points == NULL) || (data->numpoints != data->chainlen+1))
 				{
 					/* free the points array */
 					if (data->points) {
