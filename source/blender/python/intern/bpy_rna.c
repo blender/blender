@@ -419,10 +419,19 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 				ret = PyUnicode_FromString( item->identifier );
 			}
 			else {
+    			char *ptr_name= RNA_struct_name_get_alloc(ptr, NULL, FALSE);
+			
 				/* prefer not fail silently incase of api errors, maybe disable it later */
-				char error_str[128];
-				sprintf(error_str, "RNA Warning: Current value \"%d\" matches no enum", val);
+				printf("RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'\n", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
+
+#if 0           // gives python decoding errors while generating docs :(
+				char error_str[256];
+				snprintf(error_str, sizeof(error_str), "RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
 				PyErr_Warn(PyExc_RuntimeWarning, error_str);
+#endif
+
+	            if(ptr_name) 
+		            MEM_freeN(ptr_name);
 
 				ret = PyUnicode_FromString( "" );
 			}
