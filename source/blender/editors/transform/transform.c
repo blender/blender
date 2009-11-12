@@ -509,6 +509,7 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_RESIZE			5
 #define TFM_MODAL_SNAP_GEARS		6
 #define TFM_MODAL_SNAP_GEARS_OFF	7
+#define TFM_MODAL_SNAP_GEARS_TOGGLE	8
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 void transform_modal_keymap(wmKeyConfig *keyconf)
@@ -521,6 +522,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
 	{TFM_MODAL_SNAP_GEARS, "SNAP_GEARS", 0, "Snap On", ""},
 	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
+	{TFM_MODAL_SNAP_GEARS_TOGGLE, "SNAP_GEARS_TOGGLE", 0, "Snap Toggle", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -532,7 +534,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 
@@ -540,8 +542,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
 	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
 	
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS);
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_OFF);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_TOGGLE);
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
@@ -572,6 +573,10 @@ void transformEvent(TransInfo *t, wmEvent *event)
 
 		t->redraw = 1;
 
+		if (t->state == TRANS_STARTING) {
+		    t->state = TRANS_RUNNING;
+		}
+
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
@@ -584,7 +589,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			case TFM_MODAL_CONFIRM:
 				t->state = TRANS_CONFIRM;
 				break;
-				
 			case TFM_MODAL_TRANSLATE:
 				/* only switch when... */
 				if( ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
@@ -632,6 +636,10 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				t->modifiers &= ~MOD_SNAP_GEARS;
 				t->redraw = 1;
 				break;
+			case TFM_MODAL_SNAP_GEARS_TOGGLE:
+				t->modifiers ^= MOD_SNAP_GEARS;
+				t->redraw = 1;
+				break;
 		}
 	}
 	/* else do non-mapped events */
@@ -641,12 +649,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			t->state = TRANS_CANCEL;
 			break;
 		/* enforce redraw of transform when modifiers are used */
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-			t->modifiers |= MOD_SNAP_GEARS;
-			t->redraw = 1;
-			break;
-
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers |= MOD_CONSTRAINT_PLANE;
@@ -940,24 +942,14 @@ void transformEvent(TransInfo *t, wmEvent *event)
 
 		//arrows_move_cursor(event->type);
 	}
-	else {
+	else if (event->val==KM_RELEASE) {
 		switch (event->type){
-		case LEFTMOUSE:
-			t->state = TRANS_CONFIRM;
-			break;
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers &= ~MOD_CONSTRAINT_PLANE;
 			t->redraw = 1;
 			break;
 
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-			t->modifiers &= ~MOD_SNAP_GEARS;
-			/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still
-			   after releasing modifer key */
-			//t->redraw = 1;
-			break;
 		case MIDDLEMOUSE:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
 				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
@@ -971,6 +963,13 @@ void transformEvent(TransInfo *t, wmEvent *event)
 ////			if (t->options & CTX_TWEAK)
 //				t->state = TRANS_CONFIRM;
 //			break;
+		}
+
+		/* confirm transform if launch key is released after mouse move */
+		/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
+		if (event->type == LEFTMOUSE /*t->launch_event*/ && t->state != TRANS_STARTING)
+		{
+			t->state = TRANS_CONFIRM;
 		}
 	}
 
@@ -1348,11 +1347,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
-	t->state = TRANS_RUNNING;
+	t->state = TRANS_STARTING;
 
 	t->options = options;
 
 	t->mode = mode;
+
+	t->launch_event = event ? event->type : -1;
 
 	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
 	{
@@ -1557,7 +1558,7 @@ int transformEnd(bContext *C, TransInfo *t)
 {
 	int exit_code = OPERATOR_RUNNING_MODAL;
 
-	if (t->state != TRANS_RUNNING)
+	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING)
 	{
 		/* handle restoring objects */
 		if(t->state == TRANS_CANCEL)
