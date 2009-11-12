@@ -152,12 +152,12 @@ static void rna_def_region(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "winx");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Width", "Area width.");
+	RNA_def_property_ui_text(prop, "Width", "Region width.");
 
 	prop= RNA_def_property(srna, "height", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "winy");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Height", "Area height.");
+	RNA_def_property_ui_text(prop, "Height", "Region height.");
 }
 
 static void rna_def_screen(BlenderRNA *brna)

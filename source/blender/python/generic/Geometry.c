@@ -45,7 +45,7 @@
 #include "BLI_math.h"
 
 #define SWAP_FLOAT(a,b,tmp) tmp=a; a=b; b=tmp
-#define eul 0.000001
+#define eps 0.000001
 
 /*-- forward declarations -- */
 static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq );
@@ -252,18 +252,18 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		Py_RETURN_NONE;
 	}
 	/* Make sure the hoz/vert line comes first. */
-	if (fabs(b1x - b2x) < eul || fabs(b1y - b2y) < eul) {
+	if (fabs(b1x - b2x) < eps || fabs(b1y - b2y) < eps) {
 		SWAP_FLOAT(a1x, b1x, xi); /*abuse xi*/
 		SWAP_FLOAT(a1y, b1y, xi);
 		SWAP_FLOAT(a2x, b2x, xi);
 		SWAP_FLOAT(a2y, b2y, xi);
 	}
 	
-	if (fabs(a1x-a2x) < eul) { /* verticle line */
-		if (fabs(b1x-b2x) < eul){ /*verticle second line */
+	if (fabs(a1x-a2x) < eps) { /* verticle line */
+		if (fabs(b1x-b2x) < eps){ /*verticle second line */
 			Py_RETURN_NONE; /* 2 verticle lines dont intersect. */
 		}
-		else if (fabs(b1y-b2y) < eul) {
+		else if (fabs(b1y-b2y) < eps) {
 			/*X of vert, Y of hoz. no calculation needed */
 			newvec[0]= a1x;
 			newvec[1]= b1y;
@@ -280,8 +280,8 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		newvec[0]= a1x;
 		newvec[1]= yi;
 		return newVectorObject(newvec, 2, Py_NEW, NULL);
-	} else if (fabs(a2y-a1y) < eul) {  /* hoz line1 */
-		if (fabs(b2y-b1y) < eul) { /*hoz line2*/
+	} else if (fabs(a2y-a1y) < eps) {  /* hoz line1 */
+		if (fabs(b2y-b1y) < eps) { /*hoz line2*/
 			Py_RETURN_NONE; /*2 hoz lines dont intersect*/
 		}
 		

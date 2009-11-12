@@ -31,7 +31,7 @@
  * The defined Below are for internal use only */
 
 /* free vert flags */
-#define eul 0.0000001f
+#define eps 0.0000001f
 #define BLF 1
 #define TRF 2
 #define TLF 4
@@ -68,10 +68,10 @@
 							b->v[TR]->y = f;\
 							UPDATE_V34Y(b)
 #define BOXINTERSECT(b1, b2)\
-	(!( BOXLEFT(b1)+eul>=BOXRIGHT(b2) ||\
-		BOXBOTTOM(b1)+eul>=BOXTOP(b2) ||\
-		BOXRIGHT(b1)-eul<=BOXLEFT(b2) ||\
-		BOXTOP(b1)-eul<=BOXBOTTOM(b2) ))
+	(!( BOXLEFT(b1)+eps>=BOXRIGHT(b2) ||\
+		BOXBOTTOM(b1)+eps>=BOXTOP(b2) ||\
+		BOXRIGHT(b1)-eps<=BOXLEFT(b2) ||\
+		BOXTOP(b1)-eps<=BOXBOTTOM(b2) ))
 
 #define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
 #define MAX2(x,y)               ( (x)>(y) ? (x) : (y) )
