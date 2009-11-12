@@ -48,8 +48,9 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
+        col2 = context.region.width > narrowui
 
-        if (context.region.width > narrowui):
+        if col2:
             row = layout.row()
             
             row.column().itemR(ob, "location")
@@ -87,6 +88,7 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
+        col2 = context.region.width > narrowui
 
         row = layout.row()
 
@@ -112,6 +114,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
+        col2 = context.region.width > narrowui
 
         split = layout.split()
 
@@ -120,7 +123,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
         col.itemS()
         col.itemR(ob, "pass_index")
 
-        if (context.region.width > narrowui):
+        if col2:
             col = split.column()
         col.itemL(text="Parent:")
         col.itemR(ob, "parent", text="")
@@ -140,8 +143,9 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
+        col2 = context.region.width > narrowui
         
-        if (context.region.width > narrowui):
+        if col2:
             split = layout.split()
             split.item_menu_enumO("object.group_add", "group", text="Add to Group")
             split.itemL()
@@ -163,7 +167,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 col = split.column()
                 col.itemR(group, "layer", text="Dupli")
                 
-                if (context.region.width > narrowui):
+                if col2:
                     col = split.column()
                 col.itemR(group, "dupli_offset", text="")
 
@@ -175,12 +179,13 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-
+        col2 = context.region.width > narrowui
+        
         split = layout.split()
         col = split.column()
         col.itemR(ob, "max_draw_type", text="Type")
         
-        if (context.region.width > narrowui):
+        if col2:
             col = split.column()
         row = col.row()
         row.itemR(ob, "draw_bounds", text="Bounds")
@@ -195,7 +200,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         col.itemR(ob, "draw_axis", text="Axis")
         col.itemR(ob, "draw_wire", text="Wire")
         
-        if (context.region.width > narrowui):
+        if col2:
             col = split.column()
         col.itemR(ob, "draw_texture_space", text="Texture Space")
         col.itemR(ob, "x_ray", text="X-Ray")
@@ -209,8 +214,9 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
+        col2 = context.region.width > narrowui
         
-        if (context.region.width > narrowui):
+        if col2:
             layout.itemR(ob, "dupli_type", expand=True)
         else:
             layout.itemR(ob, "dupli_type", text="")
@@ -222,7 +228,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
             col.itemR(ob, "dupli_frames_start", text="Start")
             col.itemR(ob, "dupli_frames_end", text="End")
 
-            if (context.region.width > narrowui):
+            if col2:
                 col = split.column(align=True)
             col.itemR(ob, "dupli_frames_on", text="On")
             col.itemR(ob, "dupli_frames_off", text="Off")
@@ -238,12 +244,12 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
             col = split.column()
             col.itemR(ob, "dupli_faces_scale", text="Scale")
             
-            if (context.region.width > narrowui):
+            if col2:
                 col = split.column()
             col.itemR(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'GROUP':
-            if (context.region.width > narrowui):
+            if col2:
                 layout.itemR(ob, "dupli_group", text="Group")
             else:
                 layout.itemR(ob, "dupli_group", text="")
@@ -256,7 +262,8 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-
+        col2 = context.region.width > narrowui
+        
         split = layout.split()
 
         col = split.column()
@@ -273,7 +280,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.active = ob.parent != None
         col.itemR(ob, "time_offset", text="Offset")
 
-        if (context.region.width > narrowui):
+        if col2:
             col = split.column()
         col.itemL(text="Track:")
         col.itemR(ob, "track", text="")
