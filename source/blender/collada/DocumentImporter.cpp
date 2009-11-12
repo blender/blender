@@ -1095,6 +1095,8 @@ private:
 #endif
 	}
 
+	// not used anymore, test_index_face from blenkernel is better
+#if 0
 	// change face indices order so that v4 is not 0
 	void rotate_face_indices(MFace *mface) {
 		mface->v4 = mface->v1;
@@ -1102,6 +1104,7 @@ private:
 		mface->v2 = mface->v3;
 		mface->v3 = 0;
 	}
+#endif
 	
 	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
 					 COLLADAFW::IndexList& index_list, unsigned int *tris_indices)
@@ -1263,9 +1266,9 @@ private:
 		}
 	}
 	
-	int triangulate(int *indices, int vcount, MVert *verts, std::vector<unsigned int>& tri)
+	int triangulate_poly(unsigned int *indices, int totvert, MVert *verts, std::vector<unsigned int>& tri)
 	{
-		ListBase dispbase = {NULL, NULL};
+		ListBase dispbase;
 		DispList *dl;
 		float *vert;
 		int i = 0;
@@ -1273,31 +1276,32 @@ private:
 		dispbase.first = dispbase.last = NULL;
 		
 		dl = (DispList*)MEM_callocN(sizeof(DispList), "poly disp");
-		BLI_addtail(&dispbase, dl);
-		dl->type = DL_INDEX3;
-		dl->nr = vcount;
+		dl->nr = totvert;
 		dl->type = DL_POLY;
 		dl->parts = 1;
-		dl->col = 0;
-		dl->verts = vert = (float*)MEM_callocN( sizeof(float) * 3 * vcount, "dl verts");
-		dl->index = (int*)MEM_callocN(sizeof(int) * 3 * vcount, "dl index");
+		dl->verts = vert = (float*)MEM_callocN(totvert * 3 * sizeof(float), "poly verts");
+		dl->index = (int*)MEM_callocN(sizeof(int) * 3 * totvert, "dl index");
+
+		BLI_addtail(&dispbase, dl);
 		
-		for (i = 0; i < vcount; ++i, vert += 3) {
-			MVert *mvert = &verts[indices[i]];
-			vert[0] = mvert->co[0];
-			vert[1] = mvert->co[1];
-			vert[2] = mvert->co[2];
-			//fprintf(stderr, "%.1f %.1f %.1f \n", mvert->co[0], mvert->co[1], mvert->co[2]);
+		for (i = 0; i < totvert; i++) {
+			copy_v3_v3(vert, verts[indices[i]].co);
+			vert += 3;
 		}
 		
 		filldisplist(&dispbase, &dispbase);
 
-		dl = (DispList*)dispbase.first;
-		int tottri = dl->parts;
-		int *index = dl->index;
-		
-		for (i = 0; i < tottri * 3; i++, index++) {
-			tri.push_back(*index);
+		int tottri = 0;
+		dl= (DispList*)dispbase.first;
+
+		if (dl->type == DL_INDEX3) {
+			tottri = dl->parts;
+
+			int *index = dl->index;
+			for (i = 0; i < tottri * 3; i++) {
+				tri.push_back(*index);
+				index++;
+			}
 		}
 
 		freedisplist(&dispbase);
@@ -1305,10 +1309,11 @@ private:
 		return tottri;
 	}
 	
-	int count_new_tris(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
+	int count_new_tris(COLLADAFW::Mesh *mesh, Mesh *me)
 	{
 		COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 		int i, j, k;
+		int tottri = 0;
 		
 		for (i = 0; i < prim_arr.getCount(); i++) {
 			
@@ -1324,31 +1329,20 @@ private:
 				COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
 				
 				for (j = 0; j < prim_totface; j++) {
-					
 					int vcount = vcounta[j];
 					
 					if (vcount > 4) {
-						// create triangles using PolyFill
-						int *temp_indices = (int*)MEM_callocN(sizeof(int) * vcount, "face_index");
-						
-						for (k = 0; k < vcount; k++) {
-							temp_indices[k] = indices[k];
-						}
-						
 						std::vector<unsigned int> tri;
 						
-						int totri = triangulate(temp_indices, vcount, me->mvert, tri);
-						new_tris += totri - 1;
-						MEM_freeN(temp_indices);
-						indices += vcount;
+						// tottri += triangulate_poly(indices, vcount, me->mvert, tri) - 1; // XXX why - 1?!
+						tottri += triangulate_poly(indices, vcount, me->mvert, tri);
 					}
-					else if (vcount == 4 || vcount == 3) {
-						indices += vcount;
-					}
+
+					indices += vcount;
 				}
 			}
 		}
-		return new_tris;
+		return tottri;
 	}
 	
 	// TODO: import uv set names
@@ -1438,12 +1432,7 @@ private:
 					if (vcount == 3 || vcount == 4) {
 						
 						set_face_indices(mface, indices, vcount == 4);
-						indices += vcount;
-						
-						// do the trick if needed
-						if (vcount == 4 && mface->v4 == 0)
-							rotate_face_indices(mface);
-						
+						indices += vcount;						
 						
 						// set mtface for each uv set
 						// it is assumed that all primitives have equal number of UV sets
@@ -1453,6 +1442,8 @@ private:
 							MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
 							set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
 						}
+
+						test_index_face(mface, &me->fdata, face_index, vcount);
 						
 						index += mface->v4 ? 4 : 3;
 						mface++;
@@ -1461,37 +1452,32 @@ private:
 						
 					}
 					else {
-						// create triangles using PolyFill
-						int *temp_indices = (int*)MEM_callocN(sizeof(int) *vcount, "face_index");
-						int *temp_uv_indices = (int*)MEM_callocN(sizeof(int) *vcount, "uv_index");
-						
-						for (k = 0; k < vcount; k++) {
-							temp_indices[k] = indices[k];
-							temp_uv_indices[k] = index + k;
-						}
-						
 						std::vector<unsigned int> tri;
 						
-						int totri = triangulate(temp_indices, vcount, me->mvert, tri);
+						triangulate_poly(indices, vcount, me->mvert, tri);
 						
 						for (k = 0; k < tri.size() / 3; k++) {
-							unsigned int tris_indices[3];
-							unsigned int uv_indices[3];
-							tris_indices[0] = temp_indices[tri[k * 3]];
-							tris_indices[1] = temp_indices[tri[k * 3 + 1]];
-							tris_indices[2] = temp_indices[tri[k * 3 + 2]];
-							uv_indices[0] = temp_uv_indices[tri[k * 3]];
-							uv_indices[1] = temp_uv_indices[tri[k * 3 + 1]];
-							uv_indices[2] = temp_uv_indices[tri[k * 3 + 2]];
-							//fprintf(stderr, "%u %u %u \n", tris_indices[0], tris_indices[1], tris_indices[2]);
-							set_face_indices(mface, tris_indices, false);
+							int v = k * 3;
+							unsigned int uv_indices[3] = {
+								index + tri[v],
+								index + tri[v + 1],
+								index + tri[v + 2]
+							};
+							unsigned int tri_indices[3] = {
+								indices[tri[v]],
+								indices[tri[v + 1]],
+								indices[tri[v + 2]]
+							};
+
+							set_face_indices(mface, tri_indices, false);
 							
 							for (int l = 0; l < totuvset; l++) {
 								// get mtface by face index and uv set index
 								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
 								set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], uv_indices);
-								
 							}
+
+							test_index_face(mface, &me->fdata, face_index, 3);
 							
 							mface++;
 							face_index++;
@@ -1500,8 +1486,6 @@ private:
 						
 						index += vcount;
 						indices += vcount;
-						MEM_freeN(temp_indices);
-						MEM_freeN(temp_uv_indices);
 					}
 				}
 			}
@@ -1718,7 +1702,7 @@ public:
 		
 		read_vertices(mesh, me);
 
-		new_tris = count_new_tris(mesh, me, new_tris);
+		new_tris = count_new_tris(mesh, me);
 		
 		read_faces(mesh, me, new_tris);
 
