@@ -489,11 +489,12 @@ int main(int argc, char **argv)
 			}
 		}
 
-#ifndef DISABLE_PYTHON		
-		BPY_start_python(argc, argv);
-#endif		
-
 		WM_init(C);
+
+#ifndef DISABLE_PYTHON
+		BPY_set_context(C); /* necessary evil */
+		BPY_start_python(argc, argv);
+#endif
 		
 		// XXX BRECHT SOLVE
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
@@ -530,6 +531,7 @@ int main(int argc, char **argv)
 		WM_init(C);
 
 #ifndef DISABLE_PYTHON
+		BPY_set_context(C); /* necessary evil */
 		BPY_start_python(argc, argv);
 #endif		
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
@@ -543,13 +545,13 @@ int main(int argc, char **argv)
 	 * Update: now this function also inits the bpymenus, which also depend
 	 * on U.pythondir.
 	 */
-	BPY_post_start_python();
+	
+	// TODO - U.pythondir
 
-	BPY_run_ui_scripts(C, 0); /* dont need to reload the first time */
 #endif
 	
 	CTX_py_init_set(C, 1);
-	WM_keymap_init(C); /* after BPY_run_ui_scripts() */
+	WM_keymap_init(C);
 
 #ifdef WITH_QUICKTIME
 

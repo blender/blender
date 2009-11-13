@@ -19,12 +19,14 @@
 # <pep8-80 compliant>
 
 # for slightly faster access
-from bpy.__ops__ import add        as op_add
-from bpy.__ops__ import remove     as op_remove
-from bpy.__ops__ import dir        as op_dir
-from bpy.__ops__ import call       as op_call
-from bpy.__ops__ import as_string  as op_as_string
-from bpy.__ops__ import get_rna    as op_get_rna
+from _bpy import ops as ops_module
+
+op_add = ops_module.add
+op_remove = ops_module.remove
+op_dir = ops_module.dir
+op_call = ops_module.call
+op_as_string = ops_module.as_string
+op_get_rna = ops_module.get_rna
 
 # Keep in sync with WM_types.h
 context_dict = {
@@ -192,3 +194,4 @@ class bpy_ops_submodule_op(object):
 
 import bpy
 bpy.ops = bpy_ops()
+

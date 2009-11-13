@@ -16,10 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy
+from _bpy import types as bpy_types
 
-StructRNA = bpy.types.Struct.__bases__[0]
-# StructRNA = bpy.types.Struct
+StructRNA = bpy_types.Struct.__bases__[0]
+# StructRNA = bpy_types.Struct
 
 
 class Context(StructRNA):
@@ -34,7 +34,7 @@ class Context(StructRNA):
         return new_context
 
 
-class Object(bpy.types.ID):
+class Object(bpy_types.ID):
 
     def _get_children(self):
         return [child for child in bpy.data.objects if child.parent == self]
@@ -46,7 +46,7 @@ def ord_ind(i1,i2):
     if i1<i2: return i1,i2
     return i2,i1
 
-class Mesh(bpy.types.ID):
+class Mesh(bpy_types.ID):
     
     def _get_edge_keys(self):
         return [edge_key for face in self.faces for edge_key in face.edge_keys]

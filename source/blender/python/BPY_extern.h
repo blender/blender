@@ -84,7 +84,6 @@ extern "C" {
 	
 	void BPY_start_python( int argc, char **argv );
 	void BPY_end_python( void );
-	void BPY_post_start_python( void );
 	void init_syspath( int first_time );
 	void syspath_append( char *dir );
 	void BPY_rebuild_syspath( void );
@@ -101,7 +100,6 @@ extern "C" {
 	/* 2.5 UI Scripts */
 	int BPY_run_python_script( struct bContext *C, const char *filename, struct Text *text, struct ReportList *reports ); // 2.5 working
 	int BPY_run_script_space_draw(const struct bContext *C, struct SpaceScript * sc); // 2.5 working
-	void BPY_run_ui_scripts(struct bContext *C, int reload);
 //	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
 	void BPY_update_modules( void ); // XXX - annoying, need this for pointers that get out of date
 	
@@ -137,7 +135,7 @@ extern "C" {
 	
 	void error_pyscript( void );
 	void BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
-
+	void BPY_set_context(struct bContext *C);
 /* void BPY_Err_Handle(struct Text *text); */
 /* int BPY_spacetext_is_pywin(struct SpaceText *st); */
 

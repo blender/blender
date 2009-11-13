@@ -186,10 +186,10 @@ static void bpy_init_modules( void )
 		Py_DECREF(py_modpath);
 	}
 	
-	mod = PyModule_New("bpy");
+	mod = PyModule_New("_bpy");
 
 	/* add the module so we can import it */
-	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
+	PyDict_SetItemString(PySys_GetObject("modules"), "_bpy", mod);
 	Py_DECREF(mod);
 
 	/* run first, initializes rna types */
@@ -201,7 +201,7 @@ static void bpy_init_modules( void )
 	bpy_import_test("bpy_types");
 	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
 	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject( mod, "ops", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
 	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
 
 
@@ -219,11 +219,8 @@ static void bpy_init_modules( void )
 	Mathutils_Init();
 	BGL_Init();
 
-	/* add our own modules dir */
-	{
-		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
-		bpy_import_test("bpy_utils"); /* adds its self to bpy.sys */
-	}
+	/* add our own modules dir, this is a python package */
+	bpy_import_test("bpy");
 }
 
 void BPY_update_modules( void )
@@ -303,6 +300,13 @@ void BPY_start_python_path(void)
 }
 
 
+
+void BPY_set_context(bContext *C)
+{
+	BPy_SetContext(C);
+}
+
+/* call BPY_set_context first */
 void BPY_start_python( int argc, char **argv )
 {
 	PyThreadState *py_tstate = NULL;
@@ -599,117 +603,6 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #ifdef TIME_REGISTRATION
 #include "PIL_time.h"
 #endif
-
-/* for use by BPY_run_ui_scripts only */
-static int bpy_import_module(char *modname, int reload)
-{
-	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
-	if (mod) {
-		if (reload) {
-			PyObject *mod_orig= mod;
-			mod= PyImport_ReloadModule(mod);
-			Py_DECREF(mod_orig);
-		}
-	}
-
-	if(mod) {
-		Py_DECREF(mod); /* could be NULL from reloading */
-		return 0;
-	} else {
-		return -1;
-	}
-}
-
-/* XXX this is temporary, need a proper script registration system for 2.5 */
-void BPY_run_ui_scripts(bContext *C, int reload)
-{
-#ifdef TIME_REGISTRATION
-	double time = PIL_check_seconds_timer();
-#endif
-	DIR *dir; 
-	struct dirent *de;
-	char *file_extension;
-	char *dirname;
-	char path[FILE_MAX];
-	char *dirs[] = {"scripts/ui", "scripts/op", "scripts/io", NULL};
-	int path_flags[] = {BLI_GETHOME_LOCAL|BLI_GETHOME_SYSTEM, BLI_GETHOME_USER}; /* SYSTEM / NON-SYSTEM */
-	int a, err, flag_iter;
-	
-	PyGILState_STATE gilstate;
-	PyObject *sys_path;
-
-	bpy_context_set(C, &gilstate);
-
-	sys_path= PySys_GetObject("path"); /* borrow */
-	PyList_Insert(sys_path, 0, Py_None); /* place holder, resizes the list */
-
-	/* Scan system scripts first, then local/user */
-	for(flag_iter=0; flag_iter < sizeof(path_flags)/sizeof(int); flag_iter++) {
-		
-		for(a=0; dirs[a]; a++) {
-			dirname= BLI_gethome_folder(dirs[a], path_flags[flag_iter]);
-
-			if(!dirname)
-				continue;
-
-			dir = opendir(dirname);
-
-			if(!dir)
-				continue;
-			
-			/* set the first dir in the sys.path for fast importing of modules */
-			PyList_SetItem(sys_path, 0, PyUnicode_FromString(dirname)); /* steals the ref */
-				
-			while((de = readdir(dir)) != NULL) {
-				/* We could stat the file but easier just to let python
-				 * import it and complain if theres a problem */
-				err = 0;
-
-				if (de->d_name[0] == '.') {
-					/* do nothing, probably .svn */
-				}
-				else if ((file_extension = strstr(de->d_name, ".py"))) {
-					/* normal py files? */
-					if(file_extension && file_extension[3] == '\0') {
-						de->d_name[(file_extension - de->d_name)] = '\0';
-						err= bpy_import_module(de->d_name, reload);
-					}
-				}
-#ifndef __linux__
-				else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exist(path))) {
-#else
-				else if(de->d_type==DT_DIR) {
-					BLI_join_dirfile(path, dirname, de->d_name);
-#endif
-					/* support packages */
-					BLI_join_dirfile(path, path, "__init__.py");
-
-					if(BLI_exists(path)) {
-						err= bpy_import_module(de->d_name, reload);
-					}
-				}
-
-				if(err==-1) {
-					BPy_errors_to_report(NULL);
-					fprintf(stderr, "unable to import %s/%s\n", dirname, de->d_name);
-				}
-			}
-
-			closedir(dir);
-		}
-	}
-	
-	PyList_SetSlice(sys_path, 0, 1, NULL); /* remove the first item */
-
-	bpy_context_clear(C, &gilstate);
-	
-#ifdef TIME_REGISTRATION
-	printf("script time %f\n", (PIL_check_seconds_timer()-time));
-#endif
-
-	/* reset the timer so as not to take loading into the stats */
-	bpy_timer_count = 0;
-}
 
 /* ****************************************** */
 /* Drivers - PyExpression Evaluation */

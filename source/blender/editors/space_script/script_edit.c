@@ -92,7 +92,7 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 static int run_ui_scripts_exec(bContext *C, wmOperator *op)
 {
 #ifndef DISABLE_PYTHON
-	BPY_run_ui_scripts(C, 1); /* reload */
+//	TODO
 #endif
 	return OPERATOR_FINISHED;
 }
