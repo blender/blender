@@ -156,11 +156,10 @@ class ExportMDD(bpy.types.Operator):
 
     # get first scene to get min and max properties for frames, fps
 
-    sce = bpy.data.scenes[bpy.data.scenes.keys()[0]]
-    minframe = sce.rna_type.properties["current_frame"].soft_min
-    maxframe = sce.rna_type.properties["current_frame"].soft_max
-    minfps = sce.render_data.rna_type.properties["fps"].soft_min
-    maxfps = sce.render_data.rna_type.properties["fps"].soft_max
+    minframe = 1
+    maxframe = 300000
+    minfps = 1
+    maxfps = 120
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
@@ -197,5 +196,4 @@ def menu_func(self, context):
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 if __name__=='__main__':
-    #Blender.Window.FileSelector(mdd_export_ui, 'EXPORT MDD', sys.makename(ext='.mdd'))
-    bpy.ops.EXPORT_OT_mdd(path="/tmp/test.mdd")
+    bpy.ops.export.mdd(path="/tmp/test.mdd")
