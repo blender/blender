@@ -180,8 +180,10 @@ void ED_operatormacros_mesh(void)
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
+#if 0	// works in SOME cases but when extruding verts its very annoying, temp disable
 		RNA_enum_set(otmacro->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 		RNA_boolean_set_array(otmacro->ptr, "constraint_axis", constraint_axis);
+#endif
 }
 
 /* note mesh keymap also for other space? */
