@@ -362,6 +362,37 @@ class WM_OT_doc_edit(bpy.types.Operator):
         return ('RUNNING_MODAL',)
 
 
+class WM_OT_reload_scripts(bpy.types.Operator):
+    '''Load online reference docs'''
+    bl_idname = "wm.reload_scripts"
+    bl_label = "Reload Scripts"
+
+    def execute(self, context):
+        MOD = type(bpy)
+        import sys
+        bpy.load_scripts(True)
+        '''
+        prefix = bpy.base_path
+        items = list(sys.modules.items())
+        items.sort()
+        items.reverse()
+        for mod_name, mod in items:
+            mod_file = getattr(mod, "__file__", "")
+            if mod_file.startswith(prefix) and "__init__" not in mod_file:
+                print(mod_file)
+                reload(mod)
+                """
+                for submod_name in dir(mod):
+                    submod = getattr(mod, submod_name)
+                    if isinstance(submod, MOD):
+                        reload(submod)
+                """
+            else:
+                print("Ignoring:", mod, mod_file)
+        '''
+        return ('FINISHED',)
+
+
 bpy.ops.add(MESH_OT_delete_edgeloop)
 
 bpy.ops.add(WM_OT_context_set_boolean)
@@ -376,3 +407,5 @@ bpy.ops.add(WM_OT_context_cycle_int)
 
 bpy.ops.add(WM_OT_doc_view)
 bpy.ops.add(WM_OT_doc_edit)
+
+bpy.ops.add(WM_OT_reload_scripts)

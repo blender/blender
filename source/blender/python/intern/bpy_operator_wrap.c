@@ -341,7 +341,11 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 
 	// in python would be...
 	//PyObject *optype = PyObject_GetAttrString(PyObject_GetAttrString(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), "types"), "Operator");
-	base_class = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Operator");
+
+	//PyObject bpy_mod= PyDict_GetItemString(PyEval_GetGlobals(), "bpy");
+	PyObject *bpy_mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
+	base_class = PyObject_GetAttrStringArgs(bpy_mod, 2, "types", "Operator");
+	Py_DECREF(bpy_mod);
 
 	if(BPY_class_validate("Operator", py_class, base_class, pyop_class_attr_values, NULL) < 0) {
 		return NULL; /* BPY_class_validate sets the error */

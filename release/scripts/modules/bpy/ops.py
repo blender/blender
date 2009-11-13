@@ -192,6 +192,4 @@ class bpy_ops_submodule_op(object):
         return "<function bpy.ops.%s.%s at 0x%x'>" % \
                 (self.module, self.func, id(self))
 
-import bpy
-bpy.ops = bpy_ops()
-
+ops_fake_module = bpy_ops()

@@ -24,27 +24,44 @@ data = _bpy.data
 context = _bpy.context
 
 # python modules
-from bpy import utils, ops
+from bpy import utils
+from bpy import ops as ops_module
 
 # fake operator module
-ops = ops.bpy_ops()
+ops = ops_module.ops_fake_module
 
 # load all scripts
 import os
 import sys
 
-base_path = os.path.join(os.path.dirname(__file__), "..", "..")
-base_path = os.path.normpath(base_path) # clean
+def load_scripts(reload_scripts=False):
+    import traceback
+    
+    def test_import(module_name):
+        try:
+            return __import__(module_name)
+        except:
+            traceback.print_exc()
+            return None
+    
+    base_path = os.path.join(os.path.dirname(__file__), "..", "..")
+    base_path = os.path.normpath(base_path) # clean
 
-# print(base_path, base_path_ui)
+    for path_subdir in ("ui", "op", "io"):
+        path = os.path.join(base_path, path_subdir)
+        sys.path.insert(0, path)
+        for f in sorted(os.listdir(path)):
+            if f.endswith(".py"):
+                # python module
+                mod = test_import(f[0:-3])
+            elif "." not in f:
+                # python package
+                mod = test_import(f)
+            else:
+                mod = None
+            
+            if reload_scripts and mod:
+                print("Reloading:", mod)
+                reload(mod)
 
-for path_subdir in ("ui", "op", "io"):
-    path = os.path.join(base_path, path_subdir)
-    sys.path.insert(0, path)
-    for f in sorted(os.listdir(path)):
-        if f.endswith(".py"):
-            # python module
-            __import__(f[0:-3])
-        elif "." not in f:
-            # python package
-            __import__(f)
+load_scripts()
