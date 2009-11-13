@@ -157,6 +157,7 @@ void ED_operatormacros_mesh(void)
 {
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
+	int constraint_axis[3] = {0, 0, 1};
 
 	/*combining operators with invoke and exec portions doesn't work yet.
 	
@@ -168,17 +169,19 @@ void ED_operatormacros_mesh(void)
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "proportional", 0);
+		RNA_enum_set(otmacro->ptr, "proportional", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_rip");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "proportional", 0);
+		RNA_enum_set(otmacro->ptr, "proportional", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "proportional", 0);
+		RNA_enum_set(otmacro->ptr, "proportional", 0);
+		RNA_enum_set(otmacro->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
+		RNA_boolean_set_array(otmacro->ptr, "constraint_axis", constraint_axis);
 }
 
 /* note mesh keymap also for other space? */
