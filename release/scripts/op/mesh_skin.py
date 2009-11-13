@@ -233,9 +233,12 @@ def mesh_faces_extend(me, faces, mat_idx = 0):
 	while i < new_facetot:
 		
 		f = [v.index for v in faces[i]]
-		if len(f)==4 and f[3]==0:
-			f = f[1], f[2], f[3], f[0]
-		
+		if len(f)==4:
+			if f[3]==0:
+				f = f[1], f[2], f[3], f[0]
+		else:
+			f = f[0], f[1], f[2], 0
+
 		mf = me_faces[orig_facetot+i]
 		mf.verts_raw =  f
 		mf.material_index = mat_idx
@@ -536,10 +539,15 @@ def main(context):
 	
 	# The line below checks if any of the vert loops are differenyt in length.
 	if False in [len(v[0]) == len(vertLoops[0][0]) for v in vertLoops]:
-		CULL_METHOD = PupMenu('Small to large edge loop distrobution method%t|remove edges evenly|remove smallest edges')
-		if CULL_METHOD == -1:
-			if is_editmode: Window.EditMode(1)
-			return
+#XXX		CULL_METHOD = PupMenu('Small to large edge loop distrobution method%t|remove edges evenly|remove smallest edges')
+#XXX		if CULL_METHOD == -1:
+#XXX			if is_editmode: Window.EditMode(1)
+#XXX			return
+
+		CULL_METHOD = 1 # XXX FIXME
+		
+		
+		
 		
 		if CULL_METHOD ==1: # RESET CULL_METHOD
 			CULL_METHOD = 0 # shortest
