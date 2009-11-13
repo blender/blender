@@ -85,6 +85,7 @@ extern "C"
 
 #include <string>
 #include <map>
+#include <algorithm> // sort()
 
 #include <math.h>
 #include <float.h>
@@ -1298,9 +1299,16 @@ private:
 			tottri = dl->parts;
 
 			int *index = dl->index;
-			for (i = 0; i < tottri * 3; i++) {
-				tri.push_back(*index);
-				index++;
+			for (i= 0; i < tottri; i++) {
+				int t[3]= {*index, *(index + 1), *(index + 2)};
+
+				std::sort(t, t + 3);
+
+				tri.push_back(t[0]);
+				tri.push_back(t[1]);
+				tri.push_back(t[2]);
+
+				index += 3;
 			}
 		}
 
@@ -1414,6 +1422,8 @@ private:
 						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
 						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, false);
 					}
+
+					test_index_face(mface, &me->fdata, face_index, 3);
 					
 					index += 3;
 					mface++;
@@ -1432,7 +1442,6 @@ private:
 					if (vcount == 3 || vcount == 4) {
 						
 						set_face_indices(mface, indices, vcount == 4);
-						indices += vcount;						
 						
 						// set mtface for each uv set
 						// it is assumed that all primitives have equal number of UV sets
@@ -1445,7 +1454,6 @@ private:
 
 						test_index_face(mface, &me->fdata, face_index, vcount);
 						
-						index += mface->v4 ? 4 : 3;
 						mface++;
 						face_index++;
 						prim.totface++;
@@ -1483,10 +1491,10 @@ private:
 							face_index++;
 							prim.totface++;
 						}
-						
-						index += vcount;
-						indices += vcount;
 					}
+
+					index += vcount;
+					indices += vcount;
 				}
 			}
 			
