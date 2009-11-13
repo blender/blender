@@ -406,6 +406,13 @@ static int rna_Property_subtype_get(PointerRNA *ptr)
 	return prop->subtype;
 }
 
+static PointerRNA rna_Property_srna_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return rna_pointer_inherit_refine(ptr, &RNA_Struct, prop->srna);
+}
+
 static int rna_Property_unit_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -899,6 +906,12 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, subtype_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
+
+	prop= RNA_def_property(srna, "srna", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "Struct");
+	RNA_def_property_pointer_funcs(prop, "rna_Property_srna_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Base", "Struct definition used for properties assigned to this item.");
 
 	prop= RNA_def_property(srna, "unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
