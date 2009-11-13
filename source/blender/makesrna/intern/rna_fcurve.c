@@ -111,6 +111,16 @@ static int rna_DriverTarget_id_editable(PointerRNA *ptr)
 	return (dtar->idtype)? PROP_EDITABLE : 0;
 }
 
+static void rna_DriverTarget_id_type_set(PointerRNA *ptr, int value)
+{
+	DriverTarget *data= (DriverTarget*)(ptr->data);
+	
+	/* set the driver type, then clear the id-block if the type is invalid */
+	data->idtype= value;
+	if ((data->id) && (GS(data->id->name) != data->idtype))
+		data->id= NULL;
+}
+
 static void rna_DriverTarget_RnaPath_get(PointerRNA *ptr, char *value)
 {
 	DriverTarget *dtar= (DriverTarget *)ptr->data;
@@ -568,6 +578,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
 	RNA_def_property_enum_items(prop, id_type_items);
 	RNA_def_property_enum_default(prop, ID_OB);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_DriverTarget_id_type_set", NULL);
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
 	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
 	

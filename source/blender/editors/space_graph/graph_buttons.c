@@ -279,6 +279,7 @@ static void driver_update_flags_cb (bContext *C, void *fcu_v, void *dummy_v)
 	ChannelDriver *driver= fcu->driver;
 	
 	/* clear invalid flags */
+	fcu->flag &= ~FCURVE_DISABLED; // XXX?
 	driver->flag &= ~DRIVER_FLAG_INVALID;
 }
 

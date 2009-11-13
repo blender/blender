@@ -801,8 +801,13 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 				break;
 		}
 	}
-	else if (G.f & G_DEBUG)
-		printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, path);
+	else {
+		if (G.f & G_DEBUG)
+			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, path);
+		
+		driver->flag |= DRIVER_FLAG_INVALID;
+		return 0.0f;
+	}
 	
 	return value;
 }
@@ -924,8 +929,8 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			}			
 			
 			/* use the final posed locations */
-			mat4_to_quat( q1,pchan->pose_mat);
-			mat4_to_quat( q2,pchan2->pose_mat);
+			mat4_to_quat(q1, pchan->pose_mat);
+			mat4_to_quat(q2, pchan2->pose_mat);
 			
 			invert_qt(q1);
 			mul_qt_qtqt(quat, q1, q2);
