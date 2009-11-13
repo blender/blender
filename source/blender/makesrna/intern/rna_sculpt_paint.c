@@ -158,7 +158,7 @@ static void rna_def_paint(BlenderRNA *brna)
 					  "rna_iterator_array_next",
 					  "rna_iterator_array_end",
 					  "rna_iterator_array_dereference_get", 
-					  "rna_Paint_brushes_length", 0, 0, 0, 0);
+					  "rna_Paint_brushes_length", 0, 0);
 	RNA_def_property_ui_text(prop, "Brushes", "Brushes selected for this paint mode.");
 
 	prop= RNA_def_property(srna, "active_brush_index", PROP_INT, PROP_NONE);

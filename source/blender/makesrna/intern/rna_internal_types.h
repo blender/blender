@@ -154,6 +154,11 @@ struct PropertyRNA {
 	/* raw access */
 	int rawoffset;
 	RawPropertyType rawtype;
+
+	/* This is used for accessing props/functions of this property
+	 * any property can have this but should only be used for collections and arrays
+	 * since python will convert int/bool/pointer's */
+	struct StructRNA *srna;	/* attributes attached directly to this collection */
 };
 
 /* Property Types */
@@ -255,11 +260,8 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLengthFunc length;				/* optional */
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
-	FunctionRNA *add, *remove;
 
-	PropertyRNA *active;
-
-	struct StructRNA *type;
+	struct StructRNA *item_type;			/* the type of this item */
 } CollectionPropertyRNA;
 
 

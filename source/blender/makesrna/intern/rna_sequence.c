@@ -578,7 +578,7 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0);
 	
 	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");

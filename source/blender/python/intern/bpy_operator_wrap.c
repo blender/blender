@@ -125,11 +125,11 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		}
 
 		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
-		
+
 		if (mode==PYOP_INVOKE) {
 			item= PyObject_GetAttrString(py_class, "invoke");
 			args = PyTuple_New(3);
-			
+
 			RNA_pointer_create(NULL, &RNA_Event, event, &ptr_event);
 
 			// PyTuple_SET_ITEM "steals" object reference, it is
@@ -149,9 +149,9 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
 		}
 		PyTuple_SET_ITEM(args, 0, py_class_instance);
-	
+
 		ret = PyObject_Call(item, args, NULL);
-		
+
 		Py_DECREF(args);
 		Py_DECREF(item);
 		Py_DECREF(class_dict);

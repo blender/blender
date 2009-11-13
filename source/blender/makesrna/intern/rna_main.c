@@ -238,35 +238,35 @@ void RNA_def_main(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	const char *lists[][7]= {
-		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks.", NULL, NULL},
-		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks.", NULL, NULL},
-		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks.", NULL, NULL},
-		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material datablocks.", NULL, NULL},
-		{"nodegroups", "NodeTree", "rna_Main_nodetree_begin", "Node Groups", "Node group datablocks.", NULL, NULL},
-		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks.", "add_mesh", "remove_mesh"}, 
-		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks.", NULL, NULL},
-		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks.", NULL, NULL},
-		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen datablocks.", NULL, NULL},
-		{"windowmanagers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks.", NULL, NULL},
-		{"images", "Image", "rna_Main_image_begin", "Images", "Image datablocks.", NULL, NULL},
-		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks.", NULL, NULL},
-		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks.", NULL, NULL} ,
-		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks.", NULL, NULL},
-		{"vfonts", "VectorFont", "rna_Main_vfont_begin", "Vector Fonts", "Vector font datablocks.", NULL, NULL},
-		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks.", NULL, NULL},
-		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks.", NULL, NULL},
-		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks.", NULL, NULL},
-		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks.", NULL, NULL},
-		{"keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks.", NULL, NULL},
-		{"scripts", "ID", "rna_Main_script_begin", "Scripts", "Script datablocks (DEPRECATED).", NULL, NULL},
-		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks.", NULL, NULL},
-		{"sounds", "Sound", "rna_Main_sound_begin", "Sounds", "Sound datablocks.", NULL, NULL},
-		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks.", NULL, NULL},
-		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks.", NULL, NULL},
-		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle datablocks.", NULL, NULL},
-		{"gpencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks.", NULL, NULL},
-		{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
+	const char *lists[][5]= {
+		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks."},
+		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks."},
+		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks."},
+		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material datablocks."},
+		{"nodegroups", "NodeTree", "rna_Main_nodetree_begin", "Node Groups", "Node group datablocks."},
+		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks."}, // "add_mesh", "remove_mesh"
+		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks."},
+		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks."},
+		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen datablocks."},
+		{"windowmanagers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks."},
+		{"images", "Image", "rna_Main_image_begin", "Images", "Image datablocks."},
+		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks."},
+		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks."} ,
+		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."},
+		{"vfonts", "VectorFont", "rna_Main_vfont_begin", "Vector Fonts", "Vector font datablocks."},
+		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
+		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks."},
+		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks."},
+		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks."},
+		{"keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks."},
+		{"scripts", "ID", "rna_Main_script_begin", "Scripts", "Script datablocks (DEPRECATED)."},
+		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks."},
+		{"sounds", "Sound", "rna_Main_sound_begin", "Sounds", "Sound datablocks."},
+		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks."},
+		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks."},
+		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle datablocks."},
+		{"gpencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks."},
+		{NULL, NULL, NULL, NULL, NULL}};
 	int i;
 	
 	srna= RNA_def_struct(brna, "Main", NULL);
@@ -283,7 +283,7 @@ void RNA_def_main(BlenderRNA *brna)
 	{
 		prop= RNA_def_property(srna, lists[i][0], PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i][1]);
-		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, lists[i][5], lists[i][6]);
+		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 		RNA_def_property_ui_text(prop, lists[i][3], lists[i][4]);
 	}
 

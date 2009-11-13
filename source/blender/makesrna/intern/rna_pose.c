@@ -27,6 +27,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -48,6 +49,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
+#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 
@@ -440,6 +442,32 @@ static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA va
 	}
 }
 
+static bConstraint *rna_PoseChannel_constraints_add(bPoseChannel *pchan, bContext *C, int type)
+{
+	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	// TODO, pass object also
+	// TODO, new pose bones don't have updated draw flags
+	return add_pose_constraint(NULL, pchan, NULL, type);
+}
+
+static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, bContext *C, int index)
+{
+	bConstraint *con= BLI_findlink(&pchan->constraints, index);
+
+	if(con) {
+		free_constraint_data(con);
+		BLI_freelinkN(&pchan->constraints, con);
+
+		//ED_object_constraint_set_active(object, NULL);
+		//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 #else
 
 static void rna_def_bone_group(BlenderRNA *brna)
@@ -512,6 +540,51 @@ static EnumPropertyItem prop_solver_items[] = {
 	{ITASC_SOLVER_DLS, "DLS", 0, "DLS", "Damped Least Square with Numerical Filtering"},
 	{0, NULL, 0, NULL, NULL}};
 
+
+static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	srna= RNA_def_struct(brna, "PoseChannelConstraints", NULL);
+	RNA_def_struct_sdna(srna, "bPoseChannel");
+	RNA_def_struct_ui_text(srna, "PoseChannel Constraints", "Collection of object constraints.");
+
+	RNA_def_property_srna(cprop, "PoseChannelConstraints");
+
+	/* Collection active property */
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Constraint");
+	RNA_def_property_pointer_funcs(prop, "rna_PoseChannel_active_constraint_get", "rna_PoseChannel_active_constraint_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Constraint", "Active PoseChannel constraint.");
+
+
+	/* Constraint collection */
+	func= RNA_def_function(srna, "add", "rna_PoseChannel_constraints_add");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a constraint to this object");
+	/* return type */
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_pose_channel(BlenderRNA *brna)
 {
 	// XXX: this RNA enum define is currently duplicated for objects, since there is some text here which is not applicable
@@ -539,16 +612,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove");
 
-	{ /* Collection active property */
-		PropertyRNA *prop_act= RNA_def_property(srna, "constraints__active", PROP_POINTER, PROP_NONE);
-		RNA_def_property_struct_type(prop_act, "Constraint");
-		RNA_def_property_pointer_funcs(prop_act, "rna_PoseChannel_active_constraint_get", "rna_PoseChannel_active_constraint_set", NULL);
-		RNA_def_property_flag(prop_act, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop_act, "Active Constraint", "Active PoseChannel constraint.");
-		RNA_def_property_collection_active(prop, prop_act);
-	}
+	rna_def_pose_channel_constraints(brna, prop);
 
 	/* Name + Selection Status */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);

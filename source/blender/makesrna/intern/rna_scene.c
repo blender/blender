@@ -2171,6 +2171,57 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine.");
 }
 
+
+/* scene.objects */
+static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	srna= RNA_def_struct(brna, "SceneObjects", NULL);
+	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects.");
+
+	RNA_def_property_srna(cprop, "SceneObjects");
+
+#if 0
+	/* add object */
+	func= RNA_def_function(srna, "link", "rna_Scene_objects_link");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add this object to this scene");
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	/* remove object */
+	func= RNA_def_function(srna, "unlink", "rna_Scene_objects_unlink");
+	RNA_def_function_ui_description(func, "Remove this object to a scene");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "");
+	RNA_def_function_return(func, parm);
+	/* object to remove */
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+#endif
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Object", "Active object for this scene.");
+	/* Could call: ED_base_object_activate(C, scene->basact);
+	 * but would be a bad level call and it seems the notifier is enough */
+	RNA_def_property_update(prop, NC_SCENE|ND_OB_ACTIVE, NULL);
+}
+
+
 void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2231,27 +2282,15 @@ void RNA_def_scene(BlenderRNA *brna)
 		RNA_def_property_flag(prop_act, PROP_EDITABLE);
 		RNA_def_property_ui_text(prop_act, "Active Base", "Active object base in the scene.");
 		RNA_def_property_update(prop_act, NC_SCENE|ND_OB_ACTIVE, NULL);
-		RNA_def_property_collection_active(prop, prop_act);
+//		RNA_def_property_collection_active(prop, prop_act);
 	}
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0, 0);
-
-	{ /* Collection active property */
-		prop_act= RNA_def_property(srna, "objects__active", PROP_POINTER, PROP_NONE);
-		RNA_def_property_struct_type(prop_act, "Object");
-		RNA_def_property_pointer_funcs(prop_act, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
-		RNA_def_property_flag(prop_act, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop_act, "Active Object", "Active object for this scene.");
-		/* Could call: ED_base_object_activate(C, scene->basact);
-		 * but would be a bad level call and it seems the notifier is enough */
-		RNA_def_property_update(prop_act, NC_SCENE|ND_OB_ACTIVE, NULL);
-
-		RNA_def_property_collection_active(prop, prop_act);
-	}
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0);
+	rna_def_scene_objects(brna, prop);
 
 	/* Layers */
 	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);

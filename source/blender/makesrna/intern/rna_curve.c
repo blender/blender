@@ -889,7 +889,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bp", NULL);
 	RNA_def_property_struct_type(prop, "CurvePoint");
-	RNA_def_property_collection_funcs(prop, "rna_BPoint_array_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_Nurb_length", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_BPoint_array_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_Nurb_length", 0, 0);
 	RNA_def_property_ui_text(prop, "Points", "Collection of points that make up this poly or nurbs spline.");
 
 	prop= RNA_def_property(srna, "bezier_points", PROP_COLLECTION, PROP_NONE);

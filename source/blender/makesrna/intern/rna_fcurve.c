@@ -190,6 +190,26 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 		fcu->rna_path= NULL;
 }
 
+DriverTarget *rna_Driver_add_target(ChannelDriver *driver, char *name)
+{
+	DriverTarget *dtar= driver_add_new_target(driver);
+
+	/* set the name if given */
+	if (name && name[0]) {
+		BLI_strncpy(dtar->name, name, 64);
+		BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);
+	}
+
+	/* return this target for the users to play with */
+	return dtar;
+}
+
+void rna_Driver_remove_target(ChannelDriver *driver, DriverTarget *dtar)
+{
+	/* call the API function for this */
+	driver_free_target(driver, dtar);
+}
+
 #else
 
 
@@ -593,6 +613,41 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
 }
 
+
+/* channeldriver.targets.* */
+static void rna_def_channeldriver_targets(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+//	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	srna= RNA_def_struct(brna, "ChannelDriverTargets", NULL);
+	RNA_def_struct_sdna(srna, "ChannelDriver");
+	RNA_def_struct_ui_text(srna, "ChannelDriver Targets", "Collection of channel driver Targets.");
+
+	RNA_def_property_srna(cprop, "ChannelDriverTargets");
+
+
+	/* add target */
+	func= RNA_def_function(srna, "add", "rna_Driver_add_target");
+	RNA_def_function_ui_description(func, "Add a new target for the driver.");
+		/* return type */
+	parm= RNA_def_pointer(func, "target", "DriverTarget", "", "Newly created Driver Target.");
+		RNA_def_function_return(func, parm);
+		/* optional name parameter */
+	parm= RNA_def_string(func, "name", "", 64, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
+
+	/* remove target */
+	func= RNA_def_function(srna, "remove", "rna_Driver_remove_target");
+		RNA_def_function_ui_description(func, "Remove an existing target from the driver.");
+		/* target to remove*/
+	parm= RNA_def_pointer(func, "target", "DriverTarget", "", "Target to remove from the driver.");
+		RNA_def_property_flag(parm, PROP_REQUIRED);
+
+}
+
 static void rna_def_channeldriver(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -622,9 +677,9 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "targets", NULL);
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "targets__add", "targets__remove");
 	RNA_def_property_struct_type(prop, "DriverTarget");
 	RNA_def_property_ui_text(prop, "Target Variables", "Properties acting as targets for this driver.");
+	rna_def_channeldriver_targets(brna, prop);
 	
 	/* Functions */
 	RNA_api_drivers(srna);

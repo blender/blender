@@ -1748,7 +1748,7 @@ void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeg
 	/* mtex */
 	prop= RNA_def_property(srna, "textures", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, structname);
-	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures.");
 
 	prop= RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);

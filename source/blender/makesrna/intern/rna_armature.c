@@ -663,7 +663,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bonebase", NULL);
-	RNA_def_property_collection_funcs(prop, 0, "rna_Armature_bones_next", 0, 0, 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, "rna_Armature_bones_next", 0, 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_ui_text(prop, "Bones", "");
 
@@ -676,7 +676,7 @@ static void rna_def_armature(BlenderRNA *brna)
 		RNA_def_property_pointer_funcs(prop_act, NULL, "rna_Armature_act_bone_set", NULL);
 
 		/* todo, redraw */
-		RNA_def_property_collection_active(prop, prop_act);
+//		RNA_def_property_collection_active(prop, prop_act);
 	}
 
 	prop= RNA_def_property(srna, "edit_bones", PROP_COLLECTION, PROP_NONE);
@@ -692,7 +692,7 @@ static void rna_def_armature(BlenderRNA *brna)
 		RNA_def_property_ui_text(prop_act, "Active EditBone", "Armatures active edit bone.");
 		//RNA_def_property_update(prop_act, 0, "rna_Armature_act_editbone_update");
 		RNA_def_property_pointer_funcs(prop_act, NULL, "rna_Armature_act_edit_bone_set", NULL);
-		RNA_def_property_collection_active(prop, prop_act);
+//		RNA_def_property_collection_active(prop, prop_act);
 	}
 
 	/* Enum values */

@@ -727,8 +727,8 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 	else if(prop->type == PROP_COLLECTION) {
 		CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
-		if(cprop->type)
-			return cprop->type;
+		if(cprop->item_type)
+			return cprop->item_type;
 	}
 
 	return &RNA_UnknownType;
@@ -1490,8 +1490,8 @@ static void rna_property_collection_get_idp(CollectionPropertyIterator *iter)
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)iter->prop;
 
 	iter->ptr.data= rna_iterator_array_get(iter);
-	iter->ptr.type= cprop->type;
-	rna_pointer_inherit_id(cprop->type, &iter->parent, &iter->ptr);
+	iter->ptr.type= cprop->item_type;
+	rna_pointer_inherit_id(cprop->item_type, &iter->parent, &iter->ptr);
 }
 
 void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, CollectionPropertyIterator *iter)
@@ -1617,7 +1617,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 			r_ptr->data= IDP_GetIndexArray(idprop, idprop->len-1);
-			r_ptr->type= cprop->type;
+			r_ptr->type= cprop->item_type;
 			rna_pointer_inherit_id(NULL, ptr, r_ptr);
 		}
 		else
@@ -1772,22 +1772,10 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 	}
 }
 
-PropertyRNA *RNA_property_collection_active(PropertyRNA *prop)
+int RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-	return cprop->active;
-}
-
-FunctionRNA *RNA_property_collection_add_func(PropertyRNA *prop)
-{
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-	return cprop->add;
-}
-
-FunctionRNA *RNA_property_collection_remove_func(PropertyRNA *prop)
-{
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-	return cprop->remove;
+	*r_ptr= *ptr;
+	return ((r_ptr->type = prop->srna));
 }
 
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array)

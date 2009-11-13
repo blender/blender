@@ -28,6 +28,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -90,6 +91,7 @@ EnumPropertyItem object_type_items[] = {
 
 #include "BKE_armature.h"
 #include "BKE_bullet.h"
+#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -884,6 +886,31 @@ static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+
+static bConstraint *rna_Object_constraints_add(Object *object, bContext *C, int type)
+{
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	return add_ob_constraint(object, NULL, type);
+}
+
+static int rna_Object_constraints_remove(Object *object, bContext *C, int index)
+{
+	bConstraint *con= BLI_findlink(&object->constraints, index);
+
+	if(con) {
+		free_constraint_data(con);
+		BLI_freelinkN(&object->constraints, con);
+
+		ED_object_constraint_set_active(object, NULL);
+		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -1152,6 +1179,51 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine.");
 }
 
+static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+//	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	srna= RNA_def_struct(brna, "ObjectConstraints", NULL);
+	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_ui_text(srna, "Object Constraints", "Collection of object constraints.");
+
+	RNA_def_property_srna(cprop, "ObjectConstraints");
+
+
+	/* Collection active property */
+	PropertyRNA *prop_act= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop_act, "Constraint");
+	RNA_def_property_pointer_funcs(prop_act, "rna_Object_active_constraint_get", "rna_Object_active_constraint_set", NULL);
+	RNA_def_property_flag(prop_act, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop_act, "Active Constraint", "Active Object constraint.");
+
+
+	/* Constraint collection */
+	func= RNA_def_function(srna, "add", "rna_Object_constraints_add");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a constraint to this object");
+	/* return type */
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "remove", "rna_Object_constraints_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1326,7 +1398,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "MaterialSlot");
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", 0, 0, 0, 0, 0); /* don't dereference pointer! */
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", 0, 0, 0); /* don't dereference pointer! */
 	RNA_def_property_ui_text(prop, "Materials", "Material slots in the object.");
 
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
@@ -1453,16 +1525,8 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints of the object.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove");
-
-	{ /* Collection active property */
-		PropertyRNA *prop_act= RNA_def_property(srna, "constraints__active", PROP_POINTER, PROP_NONE);
-		RNA_def_property_struct_type(prop_act, "Constraint");
-		RNA_def_property_pointer_funcs(prop_act, "rna_Object_active_constraint_get", "rna_Object_active_constraint_set", NULL);
-		RNA_def_property_flag(prop_act, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop_act, "Active Constraint", "Active Object constraint.");
-		RNA_def_property_collection_active(prop, prop_act);
-	}
+//	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove");
+	rna_def_object_constraints(brna, prop);
 
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
