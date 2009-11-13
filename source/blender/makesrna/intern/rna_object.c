@@ -1195,11 +1195,11 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 
 
 	/* Collection active property */
-	PropertyRNA *prop_act= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop_act, "Constraint");
-	RNA_def_property_pointer_funcs(prop_act, "rna_Object_active_constraint_get", "rna_Object_active_constraint_set", NULL);
-	RNA_def_property_flag(prop_act, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop_act, "Active Constraint", "Active Object constraint.");
+	PropertyRNA *prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Constraint");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_constraint_get", "rna_Object_active_constraint_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Constraint", "Active Object constraint.");
 
 
 	/* Constraint collection */
