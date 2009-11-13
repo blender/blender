@@ -2222,6 +2222,29 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 }
 
 
+/* scene.bases.* */
+static void rna_def_scene_bases(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
+
+	srna= RNA_def_struct(brna, "SceneBases", NULL);
+	RNA_def_struct_sdna(srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Scene Bases", "Collection of scene bases.");
+
+	RNA_def_property_srna(cprop, "SceneBases");
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ObjectBase");
+	RNA_def_property_pointer_sdna(prop, NULL, "basact");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Base", "Active object base in the scene.");
+	RNA_def_property_update(prop, NC_SCENE|ND_OB_ACTIVE, NULL);
+}
+
 void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2274,16 +2297,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "ObjectBase");
 	RNA_def_property_ui_text(prop, "Bases", "");
-
-	{ /* Collection active property */
-		prop_act= RNA_def_property(srna, "bases__active", PROP_POINTER, PROP_NONE);
-		RNA_def_property_struct_type(prop_act, "ObjectBase");
-		RNA_def_property_pointer_sdna(prop_act, NULL, "basact");
-		RNA_def_property_flag(prop_act, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop_act, "Active Base", "Active object base in the scene.");
-		RNA_def_property_update(prop_act, NC_SCENE|ND_OB_ACTIVE, NULL);
-//		RNA_def_property_collection_active(prop, prop_act);
-	}
+	rna_def_scene_bases(brna, prop);
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);

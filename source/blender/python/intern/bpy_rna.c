@@ -1494,14 +1494,16 @@ static PyObject *pyrna_prop_getattro( BPy_PropertyRNA *self, PyObject *pyname )
 		if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
 			if ((prop = RNA_struct_find_property(&r_ptr, name))) {
 				ret = pyrna_prop_to_py(&r_ptr, prop);
+
+				return ret;
 			}
 			else if ((func = RNA_struct_find_function(&r_ptr, name))) {
 				PyObject *self_collection= pyrna_struct_CreatePyObject(&r_ptr);
 				ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self_collection, func);
 				Py_DECREF(self_collection);
-			}
 
-			return ret;
+				return ret;
+			}
 		}
 	}
 
