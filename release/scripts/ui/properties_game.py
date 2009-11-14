@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class PhysicsButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -40,8 +41,12 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
         ob = context.active_object
         game = ob.game
         soft = ob.game.soft_body
+        col2 = context.region.width > narrowui
 
-        layout.itemR(game, "physics_type")
+        if col2:
+            layout.itemR(game, "physics_type")
+        else:
+            layout.itemR(game, "physics_type", text="")
         layout.itemS()
 
         #if game.physics_type == 'DYNAMIC':
@@ -53,7 +58,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col.itemR(game, "ghost")
             col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
 
-            col = split.column()
+            if col2:
+                col = split.column()
             col.itemR(game, "material_physics")
             col.itemR(game, "rotate_from_normal")
             col.itemR(game, "no_sleeping")
@@ -68,7 +74,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col.itemR(game, "radius")
             col.itemR(game, "form_factor")
 
-            col = split.column()
+            if col2:
+                col = split.column()
             sub = col.column()
             sub.active = (game.physics_type == 'RIGID_BODY')
             sub.itemR(game, "anisotropic_friction")
@@ -84,7 +91,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             sub.itemR(game, "minimum_velocity", text="Minimum")
             sub.itemR(game, "maximum_velocity", text="Maximum")
 
-            col = split.column()
+            if col2:
+                col = split.column()
             col.itemL(text="Damping:")
             sub = col.column(align=True)
             sub.itemR(game, "damping", text="Translation", slider=True)
@@ -126,7 +134,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col.itemR(soft, "margin", slider=True)
             col.itemR(soft, "bending_const", text="Bending Constraints")
 
-            col = split.column()
+            if col2:
+                col = split.column()
             col.itemR(soft, "shape_match")
             sub = col.column()
             sub.active = soft.shape_match
@@ -168,13 +177,23 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
         layout = self.layout
 
         game = context.active_object.game
+        col2 = context.region.width > narrowui
 
         layout.active = game.use_collision_bounds
-        layout.itemR(game, "collision_bounds", text="Bounds")
+        if col2:
+            layout.itemR(game, "collision_bounds", text="Bounds")
+        else:
+            layout.itemR(game, "collision_bounds", text="")
 
-        row = layout.row()
-        row.itemR(game, "collision_compound", text="Compound")
-        row.itemR(game, "collision_margin", text="Margin", slider=True)
+        split = layout.split()
+        
+        col = split.column()
+        col.itemR(game, "collision_margin", text="Margin", slider=True)
+        
+        if col2:
+            col = split.column()
+        col.itemR(game, "collision_compound", text="Compound")
+        
 
 bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
@@ -208,6 +227,7 @@ class RENDER_PT_game_player(RenderButtonsPanel):
         layout = self.layout
 
         gs = context.scene.game_data
+        col2 = context.region.width > narrowui
 
         layout.itemR(gs, "fullscreen")
 
@@ -219,7 +239,8 @@ class RENDER_PT_game_player(RenderButtonsPanel):
         sub.itemR(gs, "resolution_x", slider=False, text="X")
         sub.itemR(gs, "resolution_y", slider=False, text="Y")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Quality:")
         sub = col.column(align=True)
         sub.itemR(gs, "depth", text="Bit Depth", slider=False)
@@ -228,7 +249,10 @@ class RENDER_PT_game_player(RenderButtonsPanel):
         # framing:
         col = layout.column()
         col.itemL(text="Framing:")
-        col.row().itemR(gs, "framing_type", expand=True)
+        if col2:
+            col.row().itemR(gs, "framing_type", expand=True)
+        else:
+            col.itemR(gs, "framing_type", text="")
         if gs.framing_type == 'LETTERBOX':
             col.itemR(gs, "framing_color", text="")
 
@@ -241,6 +265,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
 
         gs = context.scene.game_data
         stereo_mode = gs.stereo
+        col2 = context.region.width > narrowui
 
         # stereo options:
         layout.itemR(gs, "stereo", expand=True)
@@ -253,7 +278,10 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
 
         # dome:
         elif stereo_mode == 'DOME':
-            layout.itemR(gs, "dome_mode", text="Dome Type")
+            if col2:
+                layout.itemR(gs, "dome_mode", text="Dome Type")
+            else:
+                layout.itemR(gs, "dome_mode", text="")
 
             dome_type = gs.dome_mode
 
@@ -264,21 +292,27 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
                dome_type == 'TRUNCATED_FRONT':
 
                 col = split.column()
-                col.itemR(gs, "dome_angle", slider=True)
-                col.itemR(gs, "dome_tilt")
-
-                col = split.column()
-                col.itemR(gs, "dome_tesselation", text="Tesselation")
                 col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+                col.itemR(gs, "dome_angle", slider=True)
+
+                if col2:
+                    col = split.column()
+                col.itemR(gs, "dome_tesselation", text="Tesselation")
+                col.itemR(gs, "dome_tilt")
 
             elif dome_type == 'PANORAM_SPH':
                 col = split.column()
-                col.itemR(gs, "dome_tesselation", text="Tesselation")
+                
                 col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+                if col2:
+                    col = split.column()
+                col.itemR(gs, "dome_tesselation", text="Tesselation")
 
             else: # cube map
                 col = split.column()
                 col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+                if col2:
+                    col = split.column()
 
             layout.itemR(gs, "dome_text")
 
@@ -290,7 +324,12 @@ class RENDER_PT_game_shading(RenderButtonsPanel):
         layout = self.layout
 
         gs = context.scene.game_data
-        layout.itemR(gs, "material_mode", expand=True)
+        col2 = context.region.width > narrowui
+        
+        if col2:
+            layout.itemR(gs, "material_mode", expand=True)
+        else:
+            layout.itemR(gs, "material_mode", text="")
 
         if gs.material_mode == 'GLSL':
             split = layout.split()
@@ -313,7 +352,8 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
         layout = self.layout
 
         gs = context.scene.game_data
-
+        col2 = context.region.width > narrowui
+        
         split = layout.split()
 
         col = split.column()
@@ -323,7 +363,8 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
         col.itemR(gs, "show_physics_visualization", text="Physics Visualization")
         col.itemR(gs, "deprecation_warnings")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Render:")
         col.itemR(gs, "all_frames")
         col.itemR(gs, "display_lists")
@@ -336,8 +377,12 @@ class RENDER_PT_game_sound(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
+        col2 = context.region.width > narrowui
 
-        layout.itemR(scene, "distance_model")
+        if col2:
+            layout.itemR(scene, "distance_model")
+        else:
+            layout.itemR(scene, "distance_model", text="")
         layout.itemR(scene, "speed_of_sound", text="Speed")
         layout.itemR(scene, "doppler_factor")
 
@@ -373,14 +418,19 @@ class WORLD_PT_game_context_world(WorldButtonsPanel):
         scene = context.scene
         world = context.world
         space = context.space_data
+        col2 = context.region.width > narrowui
 
-        split = layout.split(percentage=0.65)
-
-        if scene:
-            split.template_ID(scene, "world", new="world.new")
-        elif world:
-            split.template_ID(space, "pin_id")
-
+        if col2:
+            split = layout.split(percentage=0.65)
+            if scene:
+                split.template_ID(scene, "world", new="world.new")
+            elif world:
+                split.template_ID(space, "pin_id")
+        else:   
+            if scene:
+                layout.template_ID(scene, "world", new="world.new")
+            elif world:
+                layout.template_ID(space, "pin_id")
 
 class WORLD_PT_game_world(WorldButtonsPanel):
     bl_label = "World"
@@ -389,18 +439,40 @@ class WORLD_PT_game_world(WorldButtonsPanel):
         layout = self.layout
 
         world = context.world
+        col2 = context.region.width > narrowui
 
-        row = layout.row()
-        row.column().itemR(world, "horizon_color")
-        row.column().itemR(world, "ambient_color")
+        split = layout.split()
+        
+        col = split.column()
+        col.itemR(world, "horizon_color")
+        
+        if col2:
+            col = split.column()
+        col.itemR(world, "ambient_color")
 
-        layout.itemR(world.mist, "enabled", text="Mist")
+class WORLD_PT_game_mist(WorldButtonsPanel):
+    bl_label = "Mist"
+    
+    def draw_header(self, context):
+        world = context.world
+        
+        self.layout.itemR(world.mist, "enabled", text="")
+    
+    def draw(self, context):
+        layout = self.layout
 
-        row = layout.column_flow()
-        row.active = world.mist.enabled
-        row.itemR(world.mist, "start")
-        row.itemR(world.mist, "depth")
-
+        world = context.world
+        col2 = context.region.width > narrowui
+        
+        layout.active = world.mist.enabled
+        split = layout.split()
+        
+        col = split.column()
+        col.itemR(world.mist, "start")
+        
+        if col2:
+            col = split.column()
+        col.itemR(world.mist, "depth")
 
 class WORLD_PT_game_physics(WorldButtonsPanel):
     bl_label = "Physics"
@@ -409,6 +481,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
         layout = self.layout
 
         gs = context.scene.game_data
+        col2 = context.region.width > narrowui
 
         layout.itemR(gs, "physics_engine")
         if gs.physics_engine != 'NONE':
@@ -423,7 +496,8 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
             sub.itemR(gs, "physics_step_sub", text="Substeps")
             col.itemR(gs, "fps", text="FPS")
 
-            col = split.column()
+            if col2:
+                col = split.column()
             col.itemL(text="Logic Steps:")
             col.itemR(gs, "logic_step_max", text="Max")
 
@@ -446,4 +520,5 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
 
 bpy.types.register(WORLD_PT_game_context_world)
 bpy.types.register(WORLD_PT_game_world)
+bpy.types.register(WORLD_PT_game_mist)
 bpy.types.register(WORLD_PT_game_physics)

@@ -45,7 +45,6 @@ class DATA_PT_context_camera(DataButtonsPanel):
 
         if col2:
             split = layout.split(percentage=0.65)
-
             if ob:
                 split.template_ID(ob, "data")
                 split.itemS()
@@ -53,7 +52,10 @@ class DATA_PT_context_camera(DataButtonsPanel):
                 split.template_ID(space, "pin_id")
                 split.itemS()
         else:
-            layout.template_ID(ob, "data")
+            if ob:
+                layout.template_ID(ob, "data")
+            elif cam:
+                layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_camera(DataButtonsPanel):

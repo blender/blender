@@ -60,7 +60,10 @@ class DATA_PT_context_lamp(DataButtonsPanel):
                 split.template_ID(space, "pin_id")
                 split.itemS()
         else:
-            layout.template_ID(ob, "data")
+            if ob:
+                layout.template_ID(ob, "data")
+            elif lamp:
+                layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_lamp(DataButtonsPanel):

@@ -41,15 +41,21 @@ class DATA_PT_context_mesh(DataButtonsPanel):
         ob = context.object
         mesh = context.mesh
         space = context.space_data
+        col2 = context.region.width > narrowui
 
-        split = layout.split(percentage=0.65)
-
-        if ob:
-            split.template_ID(ob, "data")
-            split.itemS()
-        elif mesh:
-            split.template_ID(space, "pin_id")
-            split.itemS()
+        if col2:
+            split = layout.split(percentage=0.65)
+            if ob:
+                split.template_ID(ob, "data")
+                split.itemS()
+            elif mesh:
+                split.template_ID(space, "pin_id")
+                split.itemS()
+        else:
+            if ob:
+                layout.template_ID(ob, "data")
+            elif mesh:
+                layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_normals(DataButtonsPanel):

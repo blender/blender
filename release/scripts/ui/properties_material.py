@@ -106,7 +106,10 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
                 split.template_ID(space, "pin_id")
                 split.itemS()
         else:
-            layout.template_ID(ob, "active_material", new="material.new")
+            if ob:
+                layout.template_ID(ob, "active_material", new="material.new")
+            elif mat:
+                layout.template_ID(space, "pin_id")
 
         if mat:
             if col2:

@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -39,15 +40,21 @@ class DATA_PT_context_metaball(DataButtonsPanel):
         ob = context.object
         mball = context.meta_ball
         space = context.space_data
+        col2 = context.region.width > narrowui
 
-        split = layout.split(percentage=0.65)
-
-        if ob:
-            split.template_ID(ob, "data")
-            split.itemS()
-        elif mball:
-            split.template_ID(space, "pin_id")
-            split.itemS()
+        if col2:
+            split = layout.split(percentage=0.65)
+            if ob:
+                split.template_ID(ob, "data")
+                split.itemS()
+            elif mball:
+                split.template_ID(space, "pin_id")
+                split.itemS()
+        else:
+            if ob:
+                layout.template_ID(ob, "data")
+            elif mball:
+                layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_metaball(DataButtonsPanel):
@@ -57,6 +64,7 @@ class DATA_PT_metaball(DataButtonsPanel):
         layout = self.layout
 
         mball = context.meta_ball
+        col2 = context.region.width > narrowui
 
         split = layout.split()
 
@@ -66,12 +74,16 @@ class DATA_PT_metaball(DataButtonsPanel):
         sub.itemR(mball, "wire_size", text="View")
         sub.itemR(mball, "render_size", text="Render")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Settings:")
         col.itemR(mball, "threshold", text="Threshold")
 
         layout.itemL(text="Update:")
-        layout.itemR(mball, "flag", expand=True)
+        if col2:
+            layout.itemR(mball, "flag", expand=True)
+        else:
+            layout.itemR(mball, "flag", text="")
 
 
 class DATA_PT_metaball_element(DataButtonsPanel):
@@ -84,42 +96,40 @@ class DATA_PT_metaball_element(DataButtonsPanel):
         layout = self.layout
 
         metaelem = context.meta_ball.active_element
+        col2 = context.region.width > narrowui
 
-        split = layout.split(percentage=0.3)
-        split.itemL(text="Type:")
-        split.itemR(metaelem, "type", text="")
+        if col2:
+            layout.itemR(metaelem, "type")
+        else:
+            layout.itemR(metaelem, "type", text="")
 
         split = layout.split()
 
-        col = split.column()
+        col = split.column(align=True)
         col.itemL(text="Settings:")
         col.itemR(metaelem, "stiffness", text="Stiffness")
         col.itemR(metaelem, "negative", text="Negative")
         col.itemR(metaelem, "hide", text="Hide")
-
-        if metaelem.type == 'BALL':
+        
+        if col2:
             col = split.column(align=True)
 
-        elif metaelem.type == 'CUBE':
-            col = split.column(align=True)
+        if metaelem.type == 'CUBE':
             col.itemL(text="Size:")
             col.itemR(metaelem, "size_x", text="X")
             col.itemR(metaelem, "size_y", text="Y")
             col.itemR(metaelem, "size_z", text="Z")
 
         elif metaelem.type == 'TUBE':
-            col = split.column(align=True)
             col.itemL(text="Size:")
             col.itemR(metaelem, "size_x", text="X")
 
         elif metaelem.type == 'PLANE':
-            col = split.column(align=True)
             col.itemL(text="Size:")
             col.itemR(metaelem, "size_x", text="X")
             col.itemR(metaelem, "size_y", text="Y")
 
         elif metaelem.type == 'ELLIPSOID':
-            col = split.column(align=True)
             col.itemL(text="Size:")
             col.itemR(metaelem, "size_x", text="X")
             col.itemR(metaelem, "size_y", text="Y")

@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -39,15 +40,21 @@ class DATA_PT_context_lattice(DataButtonsPanel):
         ob = context.object
         lat = context.lattice
         space = context.space_data
+        col2 = context.region.width > narrowui
 
-        split = layout.split(percentage=0.65)
-
-        if ob:
-            split.template_ID(ob, "data")
-            split.itemS()
-        elif lat:
-            split.template_ID(space, "pin_id")
-            split.itemS()
+        if col2:
+            split = layout.split(percentage=0.65)
+            if ob:
+                split.template_ID(ob, "data")
+                split.itemS()
+            elif lat:
+                split.template_ID(space, "pin_id")
+                split.itemS()
+        else:
+            if ob:
+                layout.template_ID(ob, "data")
+            elif lat:
+                layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_lattice(DataButtonsPanel):
@@ -57,21 +64,30 @@ class DATA_PT_lattice(DataButtonsPanel):
         layout = self.layout
 
         lat = context.lattice
+        col2 = context.region.width > narrowui
+
+        split = layout.split()
+        col = split.column()
+        col.itemR(lat, "points_u")
+        if col2:
+            col = split.column()
+        col.itemR(lat, "interpolation_type_u", text="")
+        
+        split = layout.split()
+        col = split.column()
+        col.itemR(lat, "points_v")
+        if col2:
+            col = split.column()
+        col.itemR(lat, "interpolation_type_v", text="")
+        
+        split = layout.split()
+        col = split.column()
+        col.itemR(lat, "points_w")
+        if col2:
+            col = split.column()
+        col.itemR(lat, "interpolation_type_w", text="")
 
         row = layout.row()
-        row.itemR(lat, "points_u")
-        row.itemR(lat, "interpolation_type_u", expand=True)
-
-        row = layout.row()
-        row.itemR(lat, "points_v")
-        row.itemR(lat, "interpolation_type_v", expand=True)
-
-        row = layout.row()
-        row.itemR(lat, "points_w")
-        row.itemR(lat, "interpolation_type_w", expand=True)
-
-        row = layout.row()
-        row.itemO("lattice.make_regular")
         row.itemR(lat, "outside")
 
 bpy.types.register(DATA_PT_context_lattice)
