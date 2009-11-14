@@ -128,6 +128,40 @@ static void select_active_side(ListBase *seqbase, int sel_side, int channel, int
 	}
 }
 
+/* used for mouse selection and for SEQUENCER_OT_select_active_side() */
+static void select_linked_time(ListBase *seqbase, Sequence *seq_link)
+{
+	Sequence *seq;
+
+	for(seq= seqbase->first; seq; seq=seq->next) {
+		if(seq_link->machine != seq->machine) {
+			int left_match = (seq->startdisp == seq_link->startdisp) ? 1:0;
+			int right_match = (seq->enddisp == seq_link->enddisp) ? 1:0;
+
+			if(left_match && right_match) {
+				/* a direct match, copy the selection settinhs */
+				seq->flag &= ~(SELECT|SEQ_LEFTSEL|SEQ_RIGHTSEL);
+				seq->flag |= seq_link->flag & (SELECT|SEQ_LEFTSEL|SEQ_RIGHTSEL);
+
+				recurs_sel_seq(seq);
+			}
+			else if(seq_link->flag & SELECT && (left_match || right_match)) {
+
+				/* clear for reselection */
+				seq->flag &= ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+
+				if(left_match && seq_link->flag & SEQ_LEFTSEL)
+					seq->flag |= SELECT|SEQ_LEFTSEL;
+
+				if(right_match && seq_link->flag & SEQ_RIGHTSEL)
+					seq->flag |= SELECT|SEQ_RIGHTSEL;
+
+				recurs_sel_seq(seq);
+			}
+		}
+	}
+}
+
 #if 0 // BRING BACK
 void select_surround_from_last(Scene *scene)
 {
@@ -293,6 +327,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short extend= RNA_boolean_get(op->ptr, "extend");
 	short linked_handle= RNA_boolean_get(op->ptr, "linked_handle");
 	short left_right= RNA_boolean_get(op->ptr, "left_right");
+	short linked_time= RNA_boolean_get(op->ptr, "linked_time");
 
 	short mval[2];	
 	
@@ -308,6 +343,13 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
 	
+	seq= find_nearest_seq(scene, v2d, &hand, mval);
+
+	// XXX - not nice, Ctrl+RMB needs to do left_right only when not over a strip
+	if(seq && linked_time && left_right)
+		left_right= FALSE;
+
+
 	if (marker) {
 		int oldflag;
 		/* select timeline marker */
@@ -342,12 +384,11 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					recurs_sel_seq(seq);
 				}
 			}
-
 		}
 		SEQ_END
 	} else {
-	
-		seq= find_nearest_seq(scene, v2d, &hand, mval);
+		// seq= find_nearest_seq(scene, v2d, &hand, mval);
+
 		act_orig= ed->act_seq;
 
 		if(extend == 0 && linked_handle==0)
@@ -442,6 +483,10 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			recurs_sel_seq(seq);
+
+			if(linked_time) {
+				select_linked_time(ed->seqbasep, seq);
+			}
 		}
 	}
 	
@@ -487,6 +532,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip.");
 	/* for animation this is an enum but atm having an enum isnt useful for us */
 	RNA_def_boolean(ot->srna, "left_right", 0, "Left/Right", "select based on the frame side the cursor is on.");
+	RNA_def_boolean(ot->srna, "linked_time", 0, "Linked Time", "Select other strips at the same time.");
 }
 
 
