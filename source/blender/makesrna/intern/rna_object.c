@@ -1182,7 +1182,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
-//	PropertyRNA *prop;
+	PropertyRNA *prop;
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
@@ -1195,7 +1195,7 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 
 
 	/* Collection active property */
-	PropertyRNA *prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_constraint_get", "rna_Object_active_constraint_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
