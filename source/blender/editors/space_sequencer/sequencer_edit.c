@@ -1701,7 +1701,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	free_imbuf_seq(&ed->seqbase, FALSE);
+	free_imbuf_seq(scene, &ed->seqbase, FALSE);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 

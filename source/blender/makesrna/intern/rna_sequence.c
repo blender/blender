@@ -545,6 +545,17 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blend Opacity", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
+	/* generic factors, should these be exposed some other way? */
+	prop= RNA_def_property(srna, "factor_0", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "facf0");
+	RNA_def_property_ui_text(prop, "Generic Factor 0", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+
+	prop= RNA_def_property(srna, "factor_1", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "facf1");
+	RNA_def_property_ui_text(prop, "Generic Factor 0", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+
 	/* functions */
 	func= RNA_def_function(srna, "getStripElem", "give_stripelem");
 	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None.");
@@ -1054,6 +1065,7 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "global_speed", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "globalSpeed");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Global Speed", "");
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 0);
 	

@@ -426,6 +426,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             col.itemR(strip, "rotation_start", text="Start")
             col.itemR(strip, "rotation_end", text="End")
 
+        col = layout.column(align=True)
+        col.itemR(strip, "factor_0", text="Anim0")
+        col.itemR(strip, "factor_1", text="Anim1")
+
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
     bl_label = "Strip Input"

@@ -34,6 +34,7 @@ struct ChannelDriver;
 struct DriverTarget;
 
 struct BezTriple;
+struct StructRNA;
 
 #include "DNA_curve_types.h"
 
@@ -154,6 +155,9 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
+
+/* high level function to get an fcurve from C without having the rna */
+struct FCurve *id_data_find_fcurve(ID* id, void *data, struct StructRNA *type, char *prop_name, int index);
 
 /* Binary search algorithm for finding where to 'insert' BezTriple with given frame number.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)

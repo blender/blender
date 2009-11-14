@@ -2226,7 +2226,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 	TStripElem * se1 = 0;
 	TStripElem * se2 = 0;
 	
-	sequence_effect_speed_rebuild_map(seq, 0);
+	sequence_effect_speed_rebuild_map(scene, seq, 0);
 	
 	f_cfra = seq->start + s->frameMap[nr];
 	
@@ -3053,7 +3053,7 @@ static void free_imbuf_seq_except(Scene *scene, int cfra)
 }
 #endif
 
-void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
+void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage)
 {
 	Sequence *seq;
 	TStripElem *se;
@@ -3111,11 +3111,11 @@ void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
 			if(seq->type==SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type==SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(seq, 1);
+				sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		if(seq->type==SEQ_META) {
-			free_imbuf_seq(&seq->seqbase, FALSE);
+			free_imbuf_seq(scene, &seq->seqbase, FALSE);
 		}
 		if(seq->type==SEQ_SCENE) {
 			/* FIXME: recurs downwards, 
@@ -3164,7 +3164,7 @@ static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *chan
 			if(seq->type == SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type == SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(seq, 1);
+				sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		

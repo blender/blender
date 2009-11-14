@@ -47,6 +47,8 @@
 #include "BLI_noise.h"
 
 #include "BKE_fcurve.h"
+#include "BKE_animsys.h"
+
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -176,6 +178,49 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 #endif
 
 /* --------------------- Finding -------------------------- */
+
+FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, char *prop_name, int index)
+{
+	/* anim vars */
+	AnimData *adt;
+	FCurve *fcu= NULL;
+
+	/* rna vars */
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	char *path;
+
+	adt= BKE_animdata_from_id(id);
+
+	/* only use the current action ??? */
+	if(adt==NULL || adt->action==NULL)
+		return NULL;
+
+	RNA_pointer_create(id, type, data, &ptr);
+	prop = RNA_struct_find_property(&ptr, prop_name);
+
+	if(prop) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+
+		if(path) {
+			/* animation takes priority over drivers */
+			if(adt->action && adt->action->curves.first)
+				fcu= list_find_fcurve(&adt->action->curves, path, index);
+
+			/* if not animated, check if driven */
+#if 0
+			if(!fcu && (adt->drivers.first)) {
+				fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
+			}
+#endif
+
+			MEM_freeN(path);
+		}
+	}
+
+	return fcu;
+}
+
 
 /* Find the F-Curve affecting the given RNA-access path + index, in the list of F-Curves provided */
 FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array_index)
