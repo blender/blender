@@ -230,6 +230,10 @@ EnumPropertyItem event_type_items[] = {
 	{TIMER2, "TIMER2", 0, "Timer 2", ""},
 	{0, NULL, 0, NULL, NULL}};	
 
+EnumPropertyItem keymap_propvalue_items[] = {
+		{0, "NONE", 0, "", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 #define KMI_TYPE_KEYBOARD	0
 #define KMI_TYPE_MOUSE		1
 #define KMI_TYPE_TWEAK		2
@@ -401,6 +405,30 @@ static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr
 	if(map_type == KMI_TYPE_MOUSE || map_type == KMI_TYPE_KEYBOARD) return event_keymouse_value_items;
 	if(map_type == KMI_TYPE_TWEAK) return event_tweak_value_items;
 	else return event_value_items;
+}
+
+static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmKeyConfig *kc;
+
+	for(kc=wm->keyconfigs.first; kc; kc=kc->next) {
+		wmKeyMap *km;
+
+		for(km=kc->keymaps.first; km; km=km->next) {
+			/* only check if it's a modal keymap */
+			if (km->modal_items) {
+				wmKeyMapItem *ki;
+				for (ki=km->items.first; ki; ki=ki->next) {
+					if (ki == ptr->data) {
+						return km->modal_items;
+					}
+				}
+			}
+		}
+	}
+
+	return keymap_propvalue_items;
 }
 
 static PointerRNA rna_WindowManager_active_keyconfig_get(PointerRNA *ptr)
@@ -794,6 +822,12 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Expanded in the user interface.");
+
+	prop= RNA_def_property(srna, "propvalue", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "propvalue");
+	RNA_def_property_enum_items(prop, keymap_propvalue_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_propvalue_itemf");
+	RNA_def_property_ui_text(prop, "Property Value", "The value this event translates to in a modal keymap.");
 
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", KMI_INACTIVE);
