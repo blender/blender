@@ -1379,7 +1379,10 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	PropertyRNA *prop;
 	FunctionRNA *func;
 	
-  	if ((prop = RNA_struct_find_property(&self->ptr, name))) {
+	if(name[0]=='_') { // rna can't start with a "_", so for __dict__ and similar we can skip using rna lookups
+		ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+	}
+	else if ((prop = RNA_struct_find_property(&self->ptr, name))) {
   		ret = pyrna_prop_to_py(&self->ptr, prop);
   	}
 	else if ((func = RNA_struct_find_function(&self->ptr, name))) {
@@ -1485,24 +1488,27 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 static PyObject *pyrna_prop_getattro( BPy_PropertyRNA *self, PyObject *pyname )
 {
 	char *name = _PyUnicode_AsString(pyname);
-	PyObject *ret;
-	PropertyRNA *prop;
-	FunctionRNA *func;
 
-	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
-		PointerRNA r_ptr;
-		if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
-			if ((prop = RNA_struct_find_property(&r_ptr, name))) {
-				ret = pyrna_prop_to_py(&r_ptr, prop);
+	if(name[0] != '_') {
+		if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+			PyObject *ret;
+			PropertyRNA *prop;
+			FunctionRNA *func;
 
-				return ret;
-			}
-			else if ((func = RNA_struct_find_function(&r_ptr, name))) {
-				PyObject *self_collection= pyrna_struct_CreatePyObject(&r_ptr);
-				ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self_collection, func);
-				Py_DECREF(self_collection);
+			PointerRNA r_ptr;
+			if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
+				if ((prop = RNA_struct_find_property(&r_ptr, name))) {
+					ret = pyrna_prop_to_py(&r_ptr, prop);
 
-				return ret;
+					return ret;
+				}
+				else if ((func = RNA_struct_find_function(&r_ptr, name))) {
+					PyObject *self_collection= pyrna_struct_CreatePyObject(&r_ptr);
+					ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self_collection, func);
+					Py_DECREF(self_collection);
+
+					return ret;
+				}
 			}
 		}
 	}

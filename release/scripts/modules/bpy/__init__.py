@@ -64,4 +64,14 @@ def load_scripts(reload_scripts=False):
                 print("Reloading:", mod)
                 reload(mod)
 
-load_scripts()
+
+if "-d" in sys.argv and False: # Enable this to measure startup speed
+    import cProfile
+    cProfile.run('import bpy; bpy.load_scripts()', 'blender.prof')
+    
+    import pstats
+    p = pstats.Stats('blender.prof')
+    p.sort_stats('cumulative').print_stats(100)
+
+else:
+    load_scripts()
