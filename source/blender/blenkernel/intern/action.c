@@ -1045,7 +1045,9 @@ void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, 
 	copy_m4_m4(workob->constinv, ob->constinv);
 	workob->parent= ob->parent;
 	workob->track= ob->track;
-
+	
+	workob->rotmode= ob->rotmode;
+	
 	workob->trackflag= ob->trackflag;
 	workob->upflag= ob->upflag;
 	

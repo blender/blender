@@ -1925,7 +1925,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		 */
 		if (data->type < 10) {
 			/* extract rotation (is in whatever space target should be in) */
-			mat4_to_eul( vec,tempmat);
+			mat4_to_eul(vec, tempmat);
 			vec[0] *= (float)(180.0/M_PI);
 			vec[1] *= (float)(180.0/M_PI);
 			vec[2] *= (float)(180.0/M_PI);
@@ -1933,7 +1933,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		}
 		else if (data->type < 20) {
 			/* extract scaling (is in whatever space target should be in) */
-			mat4_to_size( vec,tempmat);
+			mat4_to_size(vec, tempmat);
 			axis= data->type - 10;
 		}
 		else {
@@ -1945,7 +1945,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		/* Target defines the animation */
 		s = (vec[axis]-data->min) / (data->max-data->min);
 		CLAMP(s, 0, 1);
-		t = ( s * (data->end-data->start)) + data->start;
+		t = (s * (data->end-data->start)) + data->start;
 		
 		if (G.f & G_DEBUG)
 			printf("do Action Constraint %s - Ob %s Pchan %s \n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
@@ -1959,9 +1959,13 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			/* make a temporary pose and evaluate using that */
 			pose = MEM_callocN(sizeof(bPose), "pose");
 			
-			/* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set */
+			/* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set 
+			 *	- we need to manually copy over a few settings, including rotation order, otherwise this fails
+			 */
 			pchan = cob->pchan;
+			
 			tchan= verify_pose_channel(pose, pchan->name);
+			tchan->rotmode= pchan->rotmode;
 			
 			/* evaluate action using workob (it will only set the PoseChannel in question) */
 			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, pchan->name, t);
