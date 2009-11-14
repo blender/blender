@@ -3510,3 +3510,193 @@ void seq_update_sound(struct Sequence *seq)
 		seq->sound_handle->changed = -1;
 	}
 }
+
+Sequence *active_seq_get(Scene *scene)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	if(ed==NULL) return NULL;
+	return ed->act_seq;
+}
+
+void active_seq_set(Scene *scene, Sequence *seq)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	if(ed==NULL) return;
+
+	ed->act_seq= seq;
+}
+
+/* api like funcs for adding */
+
+void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
+{
+	if(seq) {
+		strcpy(seq->name, seq_load->name);
+
+		if(seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
+			seq_load->start_frame += (seq->enddisp - seq->startdisp);
+		}
+
+		if(seq_load->flag & SEQ_LOAD_REPLACE_SEL) {
+			seq_load->flag |= 1; /* SELECT */
+			active_seq_set(scene, seq);
+		}
+
+		if(seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
+			if(seq->sound)
+				sound_cache(seq->sound, 0);
+		}
+
+		seq_load->tot_success++;
+	}
+	else {
+		seq_load->tot_error++;
+	}
+}
+
+Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
+{
+	Sequence *seq;
+
+	seq= MEM_callocN( sizeof(Sequence), "addseq");
+	BLI_addtail(lb, seq);
+
+	*( (short *)seq->name )= ID_SEQ;
+	seq->name[2]= 0;
+
+	seq->flag= 1; /* SELECT */
+	seq->start= cfra;
+	seq->machine= machine;
+	seq->mul= 1.0;
+	seq->blend_opacity = 100.0;
+
+	return seq;
+}
+
+/* NOTE: this function doesn't fill in iamge names */
+Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for active seq */
+	Sequence *seq;
+	Strip *strip;
+	StripElem *se;
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+	seq->type= SEQ_IMAGE;
+
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+
+	strip->len = seq->len = seq_load->len ? seq_load->len : 1;
+	strip->us= 1;
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
+}
+
+Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for sound */
+	Editing *ed= seq_give_editing(scene, TRUE);
+	bSound *sound;
+
+	Sequence *seq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+
+	AUD_SoundInfo info;
+
+	sound = sound_new_file(CTX_data_main(C), seq_load->path);
+
+	if (sound==NULL || sound->handle == NULL) {
+		//if(op)
+		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return NULL;
+	}
+
+	info = AUD_getInfo(sound->handle);
+
+	if (info.specs.format == AUD_FORMAT_INVALID) {
+		sound_delete(C, sound);
+		//if(op)
+		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return NULL;
+	}
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+
+	seq->type= SEQ_SOUND;
+	seq->sound= sound;
+
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = (int) (info.length * FPS);
+	strip->us= 1;
+
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+
+	seq->sound_handle = sound_new_handle(scene, sound, seq_load->start_frame, seq_load->start_frame + strip->len, 0);
+
+	calc_sequence_disp(seq);
+
+	/* last active name */
+	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
+
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
+}
+
+Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for sound */
+
+	Sequence *seq, *soundseq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+
+	struct anim *an;
+
+	an = openanim(seq_load->path, IB_rect);
+
+	if(an==NULL)
+		return NULL;
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+
+	seq->type= SEQ_MOVIE;
+	seq->anim= an;
+	seq->anim_preseek = IMB_anim_get_preseek(an);
+
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = IMB_anim_get_duration( an );
+	strip->us= 1;
+
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+
+	calc_sequence_disp(seq);
+
+
+	if(seq_load->flag & SEQ_LOAD_MOVIE_SOUND) {
+		int start_frame_back= seq_load->start_frame;
+		seq_load->channel++;
+
+		soundseq = sequencer_add_sound_strip(C, seqbasep, seq_load);
+
+		seq_load->start_frame= start_frame_back;
+		seq_load->channel--;
+	}
+
+	/* can be NULL */
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
+}

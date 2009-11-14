@@ -940,7 +940,7 @@ void drawseqspace(const bContext *C, ARegion *ar)
 
 	/* sequences: first deselect */
 	if(ed) {
-		Sequence *last_seq = get_last_seq(scene);
+		Sequence *last_seq = active_seq_get(scene);
 		int sel = 0, j;
 		int outline_tint;
 		float pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);

@@ -100,6 +100,7 @@
 /* avoid passing multiple args and be more verbose */
 #define SEQPROP_STARTFRAME	1<<0
 #define SEQPROP_ENDFRAME	1<<1
+#define SEQPROP_FILES		1<<2
 
 static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
@@ -114,6 +115,9 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
 	
 	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "replace the current selection");
+
+	if(flag & SEQPROP_FILES)
+		RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }
 
 static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, wmEvent *event, int flag)
@@ -136,6 +140,31 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 	if ((flag & SEQPROP_ENDFRAME) && RNA_property_is_set(op->ptr, "end_frame")==0)
 		RNA_int_set(op->ptr, "end_frame", (int)mval_v2d[0] + 25); // XXX arbitary but ok for now.
 	
+}
+
+static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
+{
+	memset(seq_load, 0, sizeof(SeqLoadInfo));
+
+	seq_load->start_frame=	RNA_int_get(op->ptr, "start_frame");
+	seq_load->channel=		RNA_int_get(op->ptr, "channel");
+	seq_load->len=			1; // images only!
+
+	RNA_string_get(op->ptr, "name", seq_load->name);
+
+	RNA_string_get(op->ptr, "path", seq_load->path); /* full path, file is set by the caller */
+
+	if (RNA_struct_find_property(op->ptr, "replace_sel") && RNA_boolean_get(op->ptr, "replace_sel"))
+		seq_load->flag |= SEQ_LOAD_REPLACE_SEL;
+
+	if (RNA_struct_find_property(op->ptr, "cache") && RNA_boolean_get(op->ptr, "cache"))
+		seq_load->flag |= SEQ_LOAD_SOUND_CACHE;
+
+	if (RNA_struct_find_property(op->ptr, "sound") && RNA_boolean_get(op->ptr, "sound"))
+		seq_load->flag |= SEQ_LOAD_MOVIE_SOUND;
+
+	/* always use this for ops */
+	seq_load->flag |= SEQ_LOAD_FRAME_ADVANCE;
 }
 
 /* add scene operator */
@@ -185,7 +214,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
-		set_last_seq(scene, seq);
+		active_seq_set(scene, seq);
 		seq->flag |= SELECT;
 	}
 	
@@ -227,127 +256,57 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene Name", "Scene name to add as a strip");
 }
 
-static Sequence* sequencer_add_sound_strip(bContext *C, wmOperator *op, int start_frame, int channel, char* filename)
+static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoadFunc seq_load_func)
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C); /* only for sound */
 	Editing *ed= seq_give_editing(scene, TRUE);
+	SeqLoadInfo seq_load;
+	Sequence *seq;
+	int tot_files;
 
-	bSound *sound;
+	seq_load_operator_info(&seq_load, op);
 
-	Sequence *seq;	/* generic strip vars */
-	Strip *strip;
-	StripElem *se;
+	if (seq_load.flag & SEQ_LOAD_REPLACE_SEL)
+		deselect_all_seq(scene);
 
-	AUD_SoundInfo info;
+	tot_files= RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
 
-	sound = sound_new_file(CTX_data_main(C), filename);
+	if(tot_files) {
+		/* multiple files */
+		char dir_only[FILE_MAX];
+		char file_only[FILE_MAX];
 
-	if (sound==NULL || sound->handle == NULL) {
-		if(op)
-			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
-		return NULL;
+		BLI_split_dirfile_basic(seq_load.path, dir_only, NULL);
+
+		RNA_BEGIN(op->ptr, itemptr, "files") {
+			RNA_string_get(&itemptr, "name", file_only);
+			BLI_join_dirfile(seq_load.path, dir_only, file_only);
+
+			seq= seq_load_func(C, ed->seqbasep, &seq_load);
+		}
+		RNA_END;
+	}
+	else {
+		/* single file */
+		seq= seq_load_func(C, ed->seqbasep, &seq_load);
 	}
 
-	info = AUD_getInfo(sound->handle);
-
-	if (info.specs.format == AUD_FORMAT_INVALID) {
-		sound_delete(C, sound);
-		if(op)
-			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
-		return NULL;
+	if (seq_load.tot_success==0) {
+		BKE_reportf(op->reports, RPT_ERROR, "File \"%s\" could not be loaded", seq_load.path);
+		return OPERATOR_CANCELLED;
 	}
 
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-
-	seq->type= SEQ_SOUND;
-	seq->sound= sound;
-
-	/* basic defaults */
-	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = (int) (info.length * FPS);
-	strip->us= 1;
-
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-
-	BLI_split_dirfile_basic(filename, strip->dir, se->name);
-
-	seq->sound_handle = sound_new_handle(scene, sound, start_frame, start_frame + strip->len, 0);
-
-	calc_sequence_disp(seq);
 	sort_seq(scene);
 
-	/* last active name */
-	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
+	ED_area_tag_redraw(CTX_wm_area(C));
 
-	return seq;
+	return OPERATOR_FINISHED;
 }
 
 /* add movie operator */
 static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Editing *ed= seq_give_editing(scene, TRUE);
-
-	struct anim *an;
-	char path[FILE_MAX];
-
-	Sequence *seq, *soundseq=NULL;	/* generic strip vars */
-	Strip *strip;
-	StripElem *se;
-
-	int start_frame, channel, sound; /* operator props */
-
-	start_frame= RNA_int_get(op->ptr, "start_frame");
-	channel= RNA_int_get(op->ptr, "channel");
-	sound = RNA_boolean_get(op->ptr, "sound");
-
-	RNA_string_get(op->ptr, "path", path);
-	
-	an = openanim(path, IB_rect);
-
-	if (an==NULL) {
-		BKE_reportf(op->reports, RPT_ERROR, "File \"%s\" could not be loaded as a movie", path);
-		return OPERATOR_CANCELLED;
-	}
-	
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-	
-	seq->type= SEQ_MOVIE;
-	seq->anim= an;
-	seq->anim_preseek = IMB_anim_get_preseek(an);
-	
-	/* basic defaults */
-	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = IMB_anim_get_duration( an ); 
-	strip->us= 1;
-	
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-	
-	BLI_split_dirfile_basic(path, strip->dir, se->name);
-
-	RNA_string_get(op->ptr, "name", seq->name);
-	
-	calc_sequence_disp(seq);
-	sort_seq(scene);
-
-	if(sound)
-	{
-		soundseq = sequencer_add_sound_strip(C, NULL, start_frame, channel+1, path);
-		if(soundseq != NULL)
-			RNA_string_get(op->ptr, "name", soundseq->name);
-	}
-
-	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		deselect_all_seq(scene);
-		set_last_seq(scene, seq);
-		seq->flag |= SELECT;
-		if(soundseq)
-			soundseq->flag |= SELECT;
-	}
-	
-	ED_area_tag_redraw(CTX_wm_area(C));
-	
-	return OPERATOR_FINISHED;
+	return sequencer_add_generic_strip_exec(C, op, sequencer_add_movie_strip);
 }
 
 
@@ -377,45 +336,16 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE, FILE_SPECIAL);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILES);
 	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load sound with the movie");
 }
 
 /* add sound operator */
+
 static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 {
-	char path[FILE_MAX];
-	Scene *scene= CTX_data_scene(C);
-	Sequence *seq;	/* generic strip vars */
-	int start_frame, channel; /* operator props */
-	
-	start_frame= RNA_int_get(op->ptr, "start_frame");
-	channel= RNA_int_get(op->ptr, "channel");
-	
-	RNA_string_get(op->ptr, "path", path);
-
-	seq = sequencer_add_sound_strip(C, op, start_frame, channel, path);
-
-	if(seq == NULL)
-		return OPERATOR_CANCELLED;
-
-	RNA_string_get(op->ptr, "name", seq->name);
-
-	if (RNA_boolean_get(op->ptr, "cache")) {
-		sound_cache(seq->sound, 0);
-	}
-
-	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		deselect_all_seq(scene);
-		set_last_seq(scene, seq);
-		seq->flag |= SELECT;
-	}
-
-	ED_area_tag_redraw(CTX_wm_area(C));
-	
-	return OPERATOR_FINISHED;
+	return sequencer_add_generic_strip_exec(C, op, sequencer_add_sound_strip);
 }
-
 
 static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {	
@@ -443,46 +373,40 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILES);
 	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
 }
 
 /* add image operator */
 static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
+	/* cant use the generic function for this */
+
+	Scene *scene= CTX_data_scene(C); /* only for sound */
 	Editing *ed= seq_give_editing(scene, TRUE);
+	SeqLoadInfo seq_load;
+	Sequence *seq;
 
-	int tot_images;
-
-	char path[FILE_MAX];
-
-	Sequence *seq;	/* generic strip vars */
 	Strip *strip;
 	StripElem *se;
-	
-	int start_frame, channel; /* operator props */
-	
-	start_frame= RNA_int_get(op->ptr, "start_frame");
-	channel= RNA_int_get(op->ptr, "channel");
-	
-	RNA_string_get(op->ptr, "path", path);
 
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);	
-	seq->type= SEQ_IMAGE;
+	seq_load_operator_info(&seq_load, op);
+
+	/* images are unique in how they handle this - 1 per strip elem */
+	seq_load.len= RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+
+	if(seq_load.len==0)
+		seq_load.len= 1;
+
+	if(seq_load.flag & SEQ_LOAD_REPLACE_SEL)
+		deselect_all_seq(scene);
+
 	
-	/* basic defaults */
-	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	BLI_split_dirfile_basic(path, strip->dir, NULL);
-	
-	tot_images= RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
-	
-	strip->len = seq->len = tot_images?tot_images:1;
-	strip->us= 1;
-	
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-	
-	if(tot_images) {
+	/* main adding function */
+	seq= sequencer_add_image_strip(C, ed->seqbasep, &seq_load);
+	se= seq->strip->stripdata;
+
+	if(seq_load.len > 1) {
 		RNA_BEGIN(op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", se->name);
 			se++;
@@ -490,28 +414,20 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 		RNA_END;
 	}
 	else {
-		BLI_split_dirfile_basic(path, NULL, se->name);
+		BLI_split_dirfile_basic(seq_load.path, NULL, se->name);
 	}
-
-	RNA_string_get(op->ptr, "name", seq->name);
 	
 	calc_sequence_disp(seq);
+
 	sort_seq(scene);
-	
+
 	/* last active name */
 	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR-1);
 	
-	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		deselect_all_seq(scene);
-		set_last_seq(scene, seq);
-		seq->flag |= SELECT;
-	}
-
 	ED_area_tag_redraw(CTX_wm_area(C));
-	
+
 	return OPERATOR_FINISHED;
 }
-
 
 static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -539,9 +455,7 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	
-	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILES);
 }
 
 
@@ -634,7 +548,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
-		set_last_seq(scene, seq);
+		active_seq_set(scene, seq);
 		seq->flag |= SELECT;
 	}
 
