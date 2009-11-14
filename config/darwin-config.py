@@ -31,29 +31,31 @@ elif cmd_res[0]=='9':
 elif cmd_res[0]=='10':
 	MAC_CUR_VER='10.6'
 
-if MACOSX_ARCHITECTURE == 'ppc':
-	LCGDIR = '#../lib/darwin-6.1-powerpc'
-else :
-	LCGDIR = '#../lib/darwin-9.x.universal'
-LIBDIR = '${LCGDIR}'
-
 BF_PYTHON_VERSION = '3.1'
 
-if MACOSX_ARCHITECTURE == 'ppc' and BF_PYTHON_VERSION == '2.3':
+# Default target OSX settings per architecture
+# Can be customized
+
+if MACOSX_ARCHITECTURE == 'ppc':
 	MAC_MIN_VERS = '10.3'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-	CC = 'gcc'
-	CXX = 'g++'
-elif MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'ppc':
+	LCGDIR = '#../lib/darwin-6.1-powerpc'
+	CC = 'gcc-3.3'
+	CXX = 'g++-3.3'
+elif MACOSX_ARCHITECTURE == 'i386':
 	MAC_MIN_VERS = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
+	LCGDIR = '#../lib/darwin-8.x.i386'
 	CC = 'gcc-4.0'
 	CXX = 'g++-4.0'
 else :
 	MAC_MIN_VERS = '10.5'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
+	LCGDIR = '#../lib/darwin-9.x.universal'
 	CC = 'gcc-4.2'
 	CXX = 'g++-4.2'
+
+LIBDIR = '${LCGDIR}'
 
 #############################################################################
 ###################          Dependency settings           ##################

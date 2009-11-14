@@ -914,6 +914,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 			switch (draggedObjectType) {
 				case GHOST_kDragnDropTypeBitmap:
 					//TODO: implement bitmap conversion to a blender friendly format
+					return GHOST_kFailure;
 					break;
 				case GHOST_kDragnDropTypeFilenames:
 					droppedArray = (NSArray*)data;
