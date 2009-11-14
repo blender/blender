@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import sys
 import bpy
 from bpy.props import *
 
@@ -83,6 +82,7 @@ class CONSOLE_MT_report(bpy.types.Menu):
         layout.itemO("console.report_delete")
         layout.itemO("console.report_copy")
 
+
 class CONSOLE_MT_language(bpy.types.Menu):
     bl_label = "Languages..."
 
@@ -101,6 +101,7 @@ class CONSOLE_MT_language(bpy.types.Menu):
 
         for language in languages:
             layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
+
 
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
@@ -170,11 +171,10 @@ class ConsoleBanner(bpy.types.Operator):
         return ('FINISHED',)
 
 
-
 class ConsoleLanguage(bpy.types.Operator):
     '''Set the current language for this console'''
     bl_idname = "console.language"
-    language = StringProperty(name="Language", maxlen= 32, default= "")
+    language = StringProperty(name="Language", maxlen=32, default="")
 
     def execute(self, context):
         sc = context.space_data

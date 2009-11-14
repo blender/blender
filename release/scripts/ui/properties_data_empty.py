@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

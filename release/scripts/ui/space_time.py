@@ -26,7 +26,6 @@ class TIME_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
         scene = context.scene
         tools = context.tool_settings
         screen = context.screen
@@ -103,7 +102,7 @@ class TIME_MT_frame(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        tools = context.tool_settings
+        # tools = context.tool_settings
 
         layout.itemO("marker.add", text="Add Marker")
         layout.itemO("marker.duplicate", text="Duplicate Marker")

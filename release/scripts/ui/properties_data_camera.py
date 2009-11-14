@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -44,7 +45,7 @@ class DATA_PT_context_camera(DataButtonsPanel):
 
         if col2:
             split = layout.split(percentage=0.65)
-    
+
             if ob:
                 split.template_ID(ob, "data")
                 split.itemS()
@@ -70,7 +71,7 @@ class DATA_PT_camera(DataButtonsPanel):
             layout.itemR(cam, "type", text="")
 
         split = layout.split()
-        
+
         col = split.column()
         if cam.type == 'PERSP':
             if cam.lens_unit == 'MILLIMETERS':
@@ -82,7 +83,7 @@ class DATA_PT_camera(DataButtonsPanel):
             col.itemR(cam, "lens_unit", text="")
 
         elif cam.type == 'ORTHO':
-            row.itemR(cam, "ortho_scale")
+            col.itemR(cam, "ortho_scale")
 
         layout.itemR(cam, "panorama")
 
@@ -105,7 +106,7 @@ class DATA_PT_camera(DataButtonsPanel):
 
         col = split.column()
         col.itemR(cam, "dof_object", text="")
-        
+
         if col2:
             col = split.column()
         col.itemR(cam, "dof_distance", text="Distance")

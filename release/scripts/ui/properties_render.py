@@ -21,19 +21,17 @@ import bpy
 
 narrowui = 180
 
+
 class RenderButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
-    
-
     def poll(self, context):
         rd = context.scene.render_data
         return (context.scene and rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
-   
-    
+
 
 class RENDER_PT_render(RenderButtonsPanel):
     bl_label = "Render"
@@ -44,12 +42,12 @@ class RENDER_PT_render(RenderButtonsPanel):
 
         rd = context.scene.render_data
         col2 = context.region.width > narrowui
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.itemO("screen.render", text="Image", icon='ICON_RENDER_STILL')
-        
+
         if col2:
             col = split.column()
         col.item_booleanO("screen.render", "animation", True, text="Animation", icon='ICON_RENDER_ANIMATION')
@@ -68,7 +66,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
         scene = context.scene
         rd = scene.render_data
         col2 = context.region.width > narrowui
-        
+
         row = layout.row()
         row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
@@ -164,7 +162,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 
         rd = context.scene.render_data
         col2 = context.region.width > narrowui
-        
+
         split = layout.split()
 
         col = split.column()
@@ -172,7 +170,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
         col.itemR(rd, "render_shadows", text="Shadows")
         col.itemR(rd, "render_sss", text="Subsurface Scattering")
         col.itemR(rd, "render_envmaps", text="Environment Map")
-        
+
         if col2:
             col = split.column()
         col.itemR(rd, "render_raytracing", text="Ray Tracing")
@@ -190,7 +188,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
 
         rd = context.scene.render_data
         col2 = context.region.width > narrowui
-        
+
         split = layout.split()
 
         col = split.column(align=True)
@@ -230,10 +228,10 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         rd = context.scene.render_data
         col2 = context.region.width > narrowui
-        
+
         split = layout.split()
 
         col = split.column()
@@ -273,10 +271,10 @@ class RENDER_PT_output(RenderButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         rd = context.scene.render_data
         col2 = context.region.width > narrowui
-        
+
         layout.itemR(rd, "output_path", text="")
 
         split = layout.split()
@@ -300,13 +298,13 @@ class RENDER_PT_output(RenderButtonsPanel):
             col = split.column()
             col.itemL(text="Codec:")
             col.itemR(rd, "exr_codec", text="")
-            
+
             if col2:
                 subsplit = split.split()
                 col = subsplit.column()
             col.itemR(rd, "exr_half")
             col.itemR(rd, "exr_zbuf")
-            
+
             if col2:
                 col = subsplit.column()
             col.itemR(rd, "exr_preview")
@@ -389,7 +387,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col = split.column()
         col.itemR(rd, "ffmpeg_audio_bitrate")
         col.itemR(rd, "ffmpeg_audio_mixrate")
-        
+
         if col2:
             col = split.column()
         col.itemR(rd, "ffmpeg_multiplex_audio")
@@ -411,7 +409,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
         rd = context.scene.render_data
         col2 = context.region.width > narrowui
         layout.active = rd.antialiasing
-        
+
         split = layout.split()
 
         col = split.column()
@@ -434,7 +432,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         scene = context.scene
         rd = scene.render_data
         col2 = context.region.width > narrowui
-        
+
         split = layout.split()
 
         col = split.column()
@@ -461,7 +459,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         sub.itemR(scene, "start_frame", text="Start")
         sub.itemR(scene, "end_frame", text="End")
         sub.itemR(scene, "frame_step", text="Step")
-        
+
         sub = col.column(align=True)
         sub.itemL(text="Frame Rate:")
         sub.itemR(rd, "fps")

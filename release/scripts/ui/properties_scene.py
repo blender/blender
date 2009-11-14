@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class SceneButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -38,7 +39,7 @@ class SCENE_PT_scene(SceneButtonsPanel):
         layout = self.layout
         col2 = context.region.width > narrowui
         scene = context.scene
-        
+
         if col2:
             layout.itemR(scene, "camera")
             layout.itemR(scene, "set", text="Background")
@@ -61,10 +62,10 @@ class SCENE_PT_unit(SceneButtonsPanel):
 
         split = layout.split()
         split.active = (unit.system != 'NONE')
-        
+
         col = split.column()
         col.itemR(unit, "scale_length", text="Scale")
-        
+
         if col2:
             col = split.column()
         col.itemR(unit, "use_separate")
@@ -163,9 +164,9 @@ class SCENE_PT_physics(SceneButtonsPanel):
 
         scene = context.scene
         col2 = context.region.width > narrowui
-        
+
         layout.active = scene.use_gravity
-        
+
         if col2:
             layout.itemR(scene, "gravity", text="")
         else:

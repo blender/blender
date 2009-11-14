@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class BoneButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -55,14 +56,14 @@ class BONE_PT_transform(BoneButtonsPanel):
         ob = context.object
         bone = context.bone
         col2 = context.region.width > narrowui
-        
+
         if not bone:
             bone = context.edit_bone
             if col2:
                 row = layout.row()
                 row.column().itemR(bone, "head")
                 row.column().itemR(bone, "tail")
-    
+
                 col = row.column()
                 sub = col.column(align=True)
                 sub.itemL(text="Roll:")
@@ -78,13 +79,13 @@ class BONE_PT_transform(BoneButtonsPanel):
 
         else:
             pchan = ob.pose.pose_channels[context.bone.name]
-            
+
             if col2:
                 row = layout.row()
                 col = row.column()
                 col.itemR(pchan, "location")
                 col.active = not (bone.parent and bone.connected)
-    
+
                 col = row.column()
                 if pchan.rotation_mode == 'QUATERNION':
                     col.itemR(pchan, "rotation_quaternion", text="Rotation")
@@ -95,9 +96,9 @@ class BONE_PT_transform(BoneButtonsPanel):
                     col.itemR(pchan, "rotation_axis_angle", text="Rotation")
                 else:
                     col.itemR(pchan, "rotation_euler", text="Rotation")
-    
+
                 row.column().itemR(pchan, "scale")
-    
+
                 layout.itemR(pchan, "rotation_mode")
             else:
                 col = layout.column()
@@ -201,7 +202,6 @@ class BONE_PT_display(BoneButtonsPanel):
 
         ob = context.object
         bone = context.bone
-        arm = context.armature
         col2 = context.region.width > narrowui
 
         if not bone:

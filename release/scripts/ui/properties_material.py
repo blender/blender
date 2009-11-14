@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
     # which settings from node-materials are used
@@ -93,7 +94,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 
         if col2:
             split = layout.split(percentage=0.65)
-    
+
             if ob:
                 split.template_ID(ob, "active_material", new="material.new")
                 row = split.row()
@@ -112,7 +113,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
                 layout.itemR(mat, "type", expand=True)
             else:
                 layout.itemR(mat, "type", text="")
-                
+
 
 class MATERIAL_PT_shading(MaterialButtonsPanel):
     bl_label = "Shading"
@@ -210,7 +211,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel):
 
         phys = context.material.physics # dont use node material
         col2 = context.region.width > narrowui
-        
+
         split = layout.split()
 
         col = split.column()
@@ -344,19 +345,19 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
             col.itemR(mat, "darkness")
         elif mat.diffuse_shader == 'TOON':
             split = col.split()
-            
+
             col = split.column()
             col.itemR(mat, "diffuse_toon_size", text="Size")
-            
+
             if col2:
                 col = split.column()
             col.itemR(mat, "diffuse_toon_smooth", text="Smooth")
         elif mat.diffuse_shader == 'FRESNEL':
             split = col.split()
-            
+
             col = split.column()
             col.itemR(mat, "diffuse_fresnel", text="Fresnel")
-            
+
             if col2:
                 col = split.column()
             col.itemR(mat, "diffuse_fresnel_factor", text="Factor")
@@ -365,12 +366,12 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
             layout.itemS()
             layout.template_color_ramp(mat, "diffuse_ramp", expand=True)
             layout.itemS()
-            
+
             split = layout.split()
-            
+
             col = split.column()
             col.itemR(mat, "diffuse_ramp_input", text="Input")
-            
+
             if col2:
                 col = split.column()
             col.itemR(mat, "diffuse_ramp_blend", text="Blend")
@@ -411,10 +412,10 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
             col.itemR(mat, "specular_hardness", text="Hardness")
         elif mat.specular_shader == 'BLINN':
             split = layout.split()
-            
+
             col = split.column()
             col.itemR(mat, "specular_hardness", text="Hardness")
-            
+
             if col2:
                 col = split.column()
             col.itemR(mat, "specular_ior", text="IOR")
@@ -422,10 +423,10 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
             col.itemR(mat, "specular_slope", text="Slope")
         elif mat.specular_shader == 'TOON':
             split = layout.split()
-            
+
             col = split.column()
             col.itemR(mat, "specular_toon_size", text="Size")
-            
+
             if col2:
                 col = split.column()
             col.itemR(mat, "specular_toon_smooth", text="Smooth")
@@ -435,14 +436,14 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
             layout.template_color_ramp(mat, "specular_ramp", expand=True)
             layout.itemS()
             split = layout.split()
-            
+
             col = split.column()
             col.itemR(mat, "specular_ramp_input", text="Input")
-            
+
             if col2:
                 col = split.column()
             col.itemR(mat, "specular_ramp_blend", text="Blend")
-            
+
             row = layout.row()
             row.itemR(mat, "specular_ramp_factor", text="Factor")
 
@@ -746,7 +747,7 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel):
         split = layout.split()
         col = split.column()
         col.itemR(vol, "density")
-        
+
         if col2:
             col = split.column()
         col.itemR(vol, "density_scale")

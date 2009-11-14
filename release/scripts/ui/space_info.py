@@ -29,7 +29,6 @@ class INFO_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
         scene = context.scene
         rd = scene.render_data
 
@@ -237,7 +236,7 @@ class INFO_MT_render(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        # rd = context.scene.render_data
 
         layout.itemO("screen.render", text="Render Image", icon='ICON_RENDER_STILL')
         layout.item_booleanO("screen.render", "animation", True, text="Render Animation", icon='ICON_RENDER_ANIMATION')
@@ -377,3 +376,4 @@ bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
 bpy.ops.add(HELP_OT_report_bug)
 bpy.ops.add(HELP_OT_operator_cheat_sheet)
+

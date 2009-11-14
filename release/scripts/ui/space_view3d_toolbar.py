@@ -514,11 +514,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
                 row.itemR(brush, "strength", slider=True)
                 row.itemR(brush, "use_strength_pressure", text="")
 
-                ''' # XXX - TODO
-                row = col.row(align=True)
-                row.itemR(brush, "jitter", slider=True)
-                row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
-                '''
+                # XXX - TODO
+                #row = col.row(align=True)
+                #row.itemR(brush, "jitter", slider=True)
+                #row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
+
                 col = layout.column()
 
                 if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
@@ -587,11 +587,10 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             row.itemR(brush, "strength", slider=True)
             row.itemR(brush, "use_strength_pressure", toggle=True, text="")
 
-            ''' # XXX - TODO
-            row = col.row(align=True)
-            row.itemR(brush, "jitter", slider=True)
-            row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
-            '''
+            # XXX - TODO
+            #row = col.row(align=True)
+            #row.itemR(brush, "jitter", slider=True)
+            #row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
 
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
@@ -693,8 +692,6 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
 
     def draw(self, context):
         layout = self.layout
-
-        wpaint = context.tool_settings.weight_paint
 
         col = layout.column()
         # col.itemL(text="Blend:")

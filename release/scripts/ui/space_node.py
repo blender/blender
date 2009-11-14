@@ -43,27 +43,27 @@ class NODE_HT_header(bpy.types.Header):
 
         if snode.tree_type == 'MATERIAL':
             ob = snode.id_from
-            id = snode.id
+            snode_id = snode.id
             if ob:
                 layout.template_ID(ob, "active_material", new="material.new")
-            if id:
-                layout.itemR(id, "use_nodes")
+            if snode_id:
+                layout.itemR(snode_id, "use_nodes")
 
         elif snode.tree_type == 'TEXTURE':
             row.itemR(snode, "texture_type", text="", expand=True)
 
-            id = snode.id
+            snode_id = snode.id
             id_from = snode.id_from
             if id_from:
                 layout.template_ID(id_from, "active_texture", new="texture.new")
-            if id:
-                layout.itemR(id, "use_nodes")
+            if snode_id:
+                layout.itemR(snode_id, "use_nodes")
 
         elif snode.tree_type == 'COMPOSITING':
-            id = snode.id
+            snode_id = snode.id
 
-            layout.itemR(id, "use_nodes")
-            layout.itemR(id.render_data, "free_unused_nodes", text="Free Unused")
+            layout.itemR(snode_id, "use_nodes")
+            layout.itemR(snode_id.render_data, "free_unused_nodes", text="Free Unused")
             layout.itemR(snode, "backdrop")
 
 
@@ -72,7 +72,7 @@ class NODE_MT_view(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.itemO("node.properties", icon='ICON_MENU_PANEL')
         layout.itemS()
 

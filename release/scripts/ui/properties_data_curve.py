@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -57,7 +58,7 @@ class DATA_PT_context_curve(DataButtonsPanel):
         space = context.space_data
         col2 = context.region.width > narrowui
 
-        
+
         if col2:
             split = layout.split(percentage=0.65)
 
@@ -70,6 +71,7 @@ class DATA_PT_context_curve(DataButtonsPanel):
         else:
             layout.template_ID(ob, "data")
 
+
 class DATA_PT_shape_curve(DataButtonsPanel):
     bl_label = "Shape"
 
@@ -78,7 +80,6 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
         ob = context.object
         curve = context.curve
-        space = context.space_data
         col2 = context.region.width > narrowui
         is_surf = (ob.type == 'SURFACE')
 
@@ -119,7 +120,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
         col = split.column()
         col.itemR(curve, "twist_mode", text="Twist")
-        
+
         if col2:
             col = split.column()
         col.itemR(curve, "twist_smooth") # XXX - may not be kept

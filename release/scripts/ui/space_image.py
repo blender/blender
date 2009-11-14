@@ -27,7 +27,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         layout = self.layout
 
         sima = context.space_data
-        uv = sima.uv_editor
+        # uv = sima.uv_editor
         settings = context.tool_settings
 
         show_uvedit = sima.show_uvedit
@@ -227,8 +227,8 @@ class IMAGE_HT_header(bpy.types.Header):
         iuser = sima.image_user
         settings = context.tool_settings
 
-        show_render = sima.show_render
-        show_paint = sima.show_paint
+        # show_render = sima.show_render
+        # show_paint = sima.show_paint
         show_uvedit = sima.show_uvedit
 
         row = layout.row(align=True)
@@ -264,17 +264,14 @@ class IMAGE_HT_header(bpy.types.Header):
             else:
                 layout.itemR(settings, "uv_selection_mode", text="", expand=True)
                 layout.itemR(uvedit, "sticky_selection_mode", text="", icon_only=True)
-            pass
 
             row = layout.row(align=True)
             row.itemR(settings, "snap", text="")
             if settings.snap:
                 row.itemR(settings, "snap_mode", text="")
 
-            """
-            mesh = context.edit_object.data
-            row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_textures")
-            """
+            # mesh = context.edit_object.data
+            # row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_textures")
 
         if ima:
             # layers
@@ -310,7 +307,7 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
         layout = self.layout
 
         sima = context.space_data
-        ima = sima.image
+        # ima = sima.image
         iuser = sima.image_user
 
         layout.template_image(sima, "image", iuser, compact=True)

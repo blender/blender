@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -41,7 +42,7 @@ class DATA_PT_context_arm(DataButtonsPanel):
         arm = context.armature
         space = context.space_data
         col2 = context.region.width > narrowui
-        
+
         if col2:
             split = layout.split(percentage=0.65)
             if ob:
@@ -60,9 +61,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
         arm = context.armature
-        space = context.space_data
         col2 = context.region.width > narrowui
 
         layout.itemR(arm, "pose_position", expand=True)
@@ -104,7 +103,7 @@ class DATA_PT_display(DataButtonsPanel):
         col.itemR(arm, "draw_names", text="Names")
         col.itemR(arm, "draw_axes", text="Axes")
         col.itemR(arm, "draw_custom_bone_shapes", text="Shapes")
-        
+
         if col2:
             col = split.column()
         col.itemR(arm, "draw_group_colors", text="Colors")
@@ -140,7 +139,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 
             split = layout.split()
             split.active = (ob.proxy == None)
-            
+
             col = split.column()
             col.itemR(group, "color_set")
             if group.color_set:
@@ -198,7 +197,7 @@ class DATA_PT_paths(DataButtonsPanel):
 
         col = split.column()
         col.itemO("pose.paths_calculate", text="Calculate Paths")
-        
+
         if col2:
             col = split.column()
         col.itemO("pose.paths_clear", text="Clear Paths")

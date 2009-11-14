@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import bpy
 
 
 def point_cache_ui(self, cache, enabled, particles, smoke):
@@ -88,29 +87,29 @@ def point_cache_ui(self, cache, enabled, particles, smoke):
 
 
 def effector_weights_ui(self, weights):
-        layout = self.layout
+    layout = self.layout
 
-        layout.itemR(weights, "group")
+    layout.itemR(weights, "group")
 
-        split = layout.split()
-        split.itemR(weights, "gravity", slider=True)
-        split.itemR(weights, "all", slider=True)
+    split = layout.split()
+    split.itemR(weights, "gravity", slider=True)
+    split.itemR(weights, "all", slider=True)
 
-        layout.itemS()
+    layout.itemS()
 
-        flow = layout.column_flow()
-        flow.itemR(weights, "force", slider=True)
-        flow.itemR(weights, "vortex", slider=True)
-        flow.itemR(weights, "magnetic", slider=True)
-        flow.itemR(weights, "wind", slider=True)
-        flow.itemR(weights, "curveguide", slider=True)
-        flow.itemR(weights, "texture", slider=True)
-        flow.itemR(weights, "harmonic", slider=True)
-        flow.itemR(weights, "charge", slider=True)
-        flow.itemR(weights, "lennardjones", slider=True)
-        flow.itemR(weights, "turbulence", slider=True)
-        flow.itemR(weights, "drag", slider=True)
-        flow.itemR(weights, "boid", slider=True)
+    flow = layout.column_flow()
+    flow.itemR(weights, "force", slider=True)
+    flow.itemR(weights, "vortex", slider=True)
+    flow.itemR(weights, "magnetic", slider=True)
+    flow.itemR(weights, "wind", slider=True)
+    flow.itemR(weights, "curveguide", slider=True)
+    flow.itemR(weights, "texture", slider=True)
+    flow.itemR(weights, "harmonic", slider=True)
+    flow.itemR(weights, "charge", slider=True)
+    flow.itemR(weights, "lennardjones", slider=True)
+    flow.itemR(weights, "turbulence", slider=True)
+    flow.itemR(weights, "drag", slider=True)
+    flow.itemR(weights, "boid", slider=True)
 
 
 def basic_force_field_settings_ui(self, field):

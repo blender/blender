@@ -208,7 +208,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
         layout = self.layout
 
         psys = context.particle_system
-        part = psys.settings
+        #part = psys.settings
         cloth = psys.cloth.settings
 
         layout.enabled = psys.hair_dynamics
@@ -250,7 +250,6 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
         return psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)
 
     def draw(self, context):
-        layout = self.layout
 
         psys = context.particle_system
 
@@ -932,7 +931,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
 
         ob = context.object
         psys = context.particle_system
-        part = psys.settings
+        # part = psys.settings
 
         # layout.itemL(text="Nothing here yet.")
 

@@ -56,9 +56,7 @@ class DATA_PT_shape_text(DataButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
         curve = context.curve
-        space = context.space_data
 
         split = layout.split()
 

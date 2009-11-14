@@ -38,7 +38,6 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
         layout = self.layout
 
         md = context.fluid
-        ob = context.object
 
         split = layout.split()
         split.operator_context = 'EXEC_DEFAULT'

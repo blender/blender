@@ -204,7 +204,6 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 
         md = context.soft_body
         softbody = md.settings
-        ob = context.object
 
         layout.active = softbody.self_collision and softbody_panel_enabled(md)
 
@@ -230,7 +229,6 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 
         md = context.soft_body
         softbody = md.settings
-        ob = context.object
 
         layout.active = softbody_panel_enabled(md)
 

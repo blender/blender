@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -184,12 +185,12 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
             row = split.row()
             row.alignment = 'RIGHT'
-            
+
             if not col2:
                 layout.itemR(key, "relative")
                 row = layout.row()
-                
-            
+
+
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value

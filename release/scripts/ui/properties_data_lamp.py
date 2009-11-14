@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -229,7 +230,7 @@ class DATA_PT_shadow(DataButtonsPanel):
                 split = layout.split()
 
                 col = split.column()
-                
+
                 if lamp.shape == 'SQUARE':
                     col.itemR(lamp, "shadow_ray_samples_x", text="Samples")
                 elif lamp.shape == 'RECTANGLE':
@@ -250,7 +251,7 @@ class DATA_PT_shadow(DataButtonsPanel):
                 else:
                     if col2:
                         col = split.column()
-                
+
 
         elif lamp.shadow_method == 'BUFFER_SHADOW':
             col = layout.column()

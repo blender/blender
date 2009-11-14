@@ -143,8 +143,6 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
         return md and (md.smoke_type == 'TYPE_DOMAIN')
 
     def draw(self, context):
-        layout = self.layout
-
         md = context.smoke.domain_settings
         cache = md.point_cache_low
 
@@ -191,8 +189,6 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
         return md and (md.smoke_type == 'TYPE_DOMAIN') and md.domain_settings.highres
 
     def draw(self, context):
-        layout = self.layout
-
         md = context.smoke.domain_settings
         cache = md.point_cache_high
 

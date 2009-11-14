@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class WorldButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -57,7 +58,7 @@ class WORLD_PT_context_world(WorldButtonsPanel):
         space = context.space_data
         col2 = context.region.width > narrowui
 
-        
+
         if col2:
             split = layout.split(percentage=0.65)
             if scene:
@@ -67,6 +68,7 @@ class WORLD_PT_context_world(WorldButtonsPanel):
         else:
             layout.template_ID(scene, "world", new="world.new")
 
+
 class WORLD_PT_world(WorldButtonsPanel):
     bl_label = "World"
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
@@ -75,7 +77,7 @@ class WORLD_PT_world(WorldButtonsPanel):
         layout = self.layout
         col2 = context.region.width > narrowui
         world = context.world
-        
+
         if col2:
             row = layout.row()
             row.itemR(world, "paper_sky")
@@ -110,9 +112,9 @@ class WORLD_PT_mist(WorldButtonsPanel):
         world = context.world
 
         layout.active = world.mist.enabled
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(world.mist, "intensity", slider=True)
         col.itemR(world.mist, "start")
@@ -142,7 +144,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
         layout.active = world.stars.enabled
 
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(world.stars, "size")
         col.itemR(world.stars, "color_randomization", text="Colors")

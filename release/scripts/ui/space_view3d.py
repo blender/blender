@@ -27,7 +27,7 @@ class VIEW3D_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
-        view = context.space_data
+        # view = context.space_data
         mode_string = context.mode
         edit_object = context.edit_object
         object = context.active_object
@@ -48,8 +48,6 @@ class VIEW3D_HT_header(bpy.types.Header):
             if edit_object:
                 sub.itemM("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif object:
-                ob_mode_string = object.mode
-
                 if mode_string not in ['PAINT_WEIGHT', 'PAINT_TEXTURE']:
                     sub.itemM("VIEW3D_MT_%s" % mode_string.lower())
             else:
@@ -89,6 +87,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.itemO("view3d.snap_cursor_to_selected", text="Cursor to Selected")
         layout.itemO("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.itemO("view3d.snap_cursor_to_active", text="Cursor to Active")
+
 
 class VIEW3D_MT_uv_map(dynamic_menu.DynMenu):
     bl_label = "UV Mapping"
@@ -665,8 +664,6 @@ class VIEW3D_MT_paint_vertex(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        sculpt = context.tool_settings.sculpt
-
         layout.itemO("paint.vertex_color_set")
         props = layout.itemO("paint.vertex_color_set", text="Set Selected Vertex Colors", properties=True)
         props.selected = True
@@ -694,16 +691,18 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
         layout.item_menu_enumO("brush.curve_preset", property="shape")
         layout.itemS()
 
-        if brush.sculpt_tool != 'GRAB':
+        sculpt_tool = brush.sculpt_tool
+
+        if sculpt_tool != 'GRAB':
             layout.itemR(brush, "use_airbrush")
 
-            if brush.sculpt_tool != 'LAYER':
+            if sculpt_tool != 'LAYER':
                 layout.itemR(brush, "use_anchor")
 
-            if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
+            if sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
                 layout.itemR(brush, "flip_direction")
 
-            if brush.sculpt_tool == 'LAYER':
+            if sculpt_tool == 'LAYER':
                 layout.itemR(brush, "use_persistent")
                 layout.itemO("sculpt.set_persistent_base")
 
@@ -1375,6 +1374,7 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 
         layout.column().itemR(scene, "cursor_location", text="3D Cursor:")
 
+
 class VIEW3D_PT_3dview_item(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -1398,6 +1398,7 @@ class VIEW3D_PT_3dview_item(bpy.types.Panel):
                 row = layout.row()
                 row.itemL(text="", icon='ICON_BONE_DATA')
                 row.itemR(bone, "name", text="")
+
 
 class VIEW3D_PT_3dview_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -1508,7 +1509,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 
     def poll(self, context):
         view = context.space_data
-        bg = context.space_data.background_image
+        # bg = context.space_data.background_image
         return (view)
 
     def draw_header(self, context):

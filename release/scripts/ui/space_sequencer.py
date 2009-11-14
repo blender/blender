@@ -133,8 +133,6 @@ class SEQUENCER_MT_select(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
-
         layout.column()
         layout.item_enumO("sequencer.select_active_side", "side", 'LEFT', text="Strips to the Left")
         layout.item_enumO("sequencer.select_active_side", "side", 'RIGHT', text="Strips to the Right")
@@ -154,8 +152,6 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
-
         layout.column()
         layout.itemO("marker.add", text="Add Marker")
         layout.itemO("marker.duplicate", text="Duplicate Marker")
@@ -174,8 +170,6 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        st = context.space_data
-
         layout.column()
         layout.itemO("sequencer.scene_strip_add", text="Scene")
         layout.itemO("sequencer.movie_strip_add", text="Movie")
@@ -191,7 +185,6 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        st = context.space_data
 
         layout.column()
         layout.item_enumO("sequencer.effect_strip_add", 'type', 'ADD')
@@ -214,8 +207,6 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        st = context.space_data
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
