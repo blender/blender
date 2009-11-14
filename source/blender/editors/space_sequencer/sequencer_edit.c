@@ -2103,10 +2103,6 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	while(seq) {
 		if(seq->flag & SELECT) {
 			tot++;
-			if (seq->type == SEQ_SOUND) {
-				BKE_report(op->reports, RPT_ERROR, "Can't make Meta Strip from audio");
-				return OPERATOR_CANCELLED;;
-			}
 		}
 		seq= seq->next;
 	}
