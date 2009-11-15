@@ -805,12 +805,13 @@ static int wm_event_always_pass(wmEvent *event)
 }
 
 /* operator exists */
-static void wm_event_modalkeymap(wmOperator *op, wmEvent *event)
+static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
 {
 	if(op->type->modalkeymap) {
+		wmKeyMap *keymap= WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
-		
-		for(kmi= op->type->modalkeymap->items.first; kmi; kmi= kmi->next) {
+
+		for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
 			if(wm_eventmatch(event, kmi)) {
 					
 				event->type= EVT_MODAL_MAP;
@@ -837,7 +838,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			wm_handler_op_context(C, handler);
 			wm_region_mouse_co(C, event);
-			wm_event_modalkeymap(op, event);
+			wm_event_modalkeymap(C, op, event);
 			
 			retval= ot->modal(C, op, event);
 

@@ -1197,7 +1197,11 @@ class USERPREF_PT_input(bpy.types.Panel):
             itemcol = itemrow.column()
             itemcol.active = kmi.active
             row = itemcol.row()
-            row.itemR(kmi, "idname", text="")
+            
+            if km.modal:
+                row.itemR(kmi, "propvalue", text="")
+            else:
+                row.itemR(kmi, "idname", text="")
 
             sub = row.row()
             sub.scale_x = 0.6
@@ -1233,6 +1237,7 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                     subrow = sub.row()
                     subrow.scale_x = 0.75
+                    subrow.itemR(kmi, "any")
                     subrow.itemR(kmi, "shift")
                     subrow.itemR(kmi, "ctrl")
                     subrow.itemR(kmi, "alt")

@@ -105,6 +105,7 @@ char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 
 wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
+int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
 
