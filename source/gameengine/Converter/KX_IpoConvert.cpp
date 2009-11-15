@@ -53,6 +53,7 @@
 #endif
 
 #include "DNA_object_types.h"
+#include "DNA_action_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_world_types.h"
@@ -120,6 +121,21 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 			)
 		);
 
+		char *rotmode, *drotmode;
+
+		switch(blenderobject->rotmode)
+		{
+		case ROT_MODE_AXISANGLE:
+			rotmode = "rotation_axis_angle";
+			drotmode = "delta_rotation_axis_angle";
+		case ROT_MODE_QUAT:
+			rotmode = "rotation_quaternion";
+			drotmode = "delta_rotation_quaternion";
+		default:
+			rotmode = "rotation_euler";
+			drotmode = "delta_rotation_euler";
+		}
+
 		BL_InterpolatorList *adtList= GetAdtList(blenderobject->adt, converter);
 		
 		// For each active channel in the adtList add an
@@ -143,14 +159,14 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 			}
 		}
 		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator("rotation", i))) {
+			if ((interp = adtList->GetScalarInterpolator(rotmode, i))) {
 				interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetEulerAngles()[i]), interp);
 				ipocontr->AddInterpolator(interpolator);
 				ipocontr->SetIPOChannelActive(OB_ROT_X+i, true);
 			}
 		}
 		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator("delta_rotation", i))) {
+			if ((interp = adtList->GetScalarInterpolator(drotmode, i))) {
 				interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaEulerAngles()[i]), interp);
 				ipocontr->AddInterpolator(interpolator);
 				ipocontr->SetIPOChannelActive(OB_DROT_X+i, true);
