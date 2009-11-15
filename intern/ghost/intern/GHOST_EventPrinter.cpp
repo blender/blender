@@ -33,6 +33,7 @@
 #include "GHOST_EventPrinter.h"
 #include <iostream>
 #include "GHOST_EventKey.h"
+#include "GHOST_EventDragnDrop.h"
 #include "GHOST_Debug.h"
 
 #ifdef HAVE_CONFIG_H
@@ -97,7 +98,77 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 		std::cout << "GHOST_kEventKeyDown, key: " << str.Ptr();
 		}
 		break;
+			
+	case GHOST_kEventDraggingEntered:
+		{
+			GHOST_TEventDragnDropData* dragnDropData = (GHOST_TEventDragnDropData*)((GHOST_IEvent*)event)->getData();
+			std::cout << "GHOST_kEventDraggingEntered, dragged object type : " << dragnDropData->dataType;
+			std::cout << " mouse at x=" << dragnDropData->x << " y=" << dragnDropData->y;
+		}
+		break;
+			
+	case GHOST_kEventDraggingUpdated:
+		{
+			GHOST_TEventDragnDropData* dragnDropData = (GHOST_TEventDragnDropData*)((GHOST_IEvent*)event)->getData();
+			std::cout << "GHOST_kEventDraggingUpdated, dragged object type : " << dragnDropData->dataType;
+			std::cout << " mouse at x=" << dragnDropData->x << " y=" << dragnDropData->y;
+		}
+		break;
 
+	case GHOST_kEventDraggingExited:
+		{
+			GHOST_TEventDragnDropData* dragnDropData = (GHOST_TEventDragnDropData*)((GHOST_IEvent*)event)->getData();
+			std::cout << "GHOST_kEventDraggingExited, dragged object type : " << dragnDropData->dataType;
+		}
+		break;
+	
+	case GHOST_kEventDraggingDropDone:
+		{
+			GHOST_TEventDragnDropData* dragnDropData = (GHOST_TEventDragnDropData*)((GHOST_IEvent*)event)->getData();
+			std::cout << "GHOST_kEventDraggingDropDone, dragged object type : " << dragnDropData->dataType;
+			std::cout << " mouse at x=" << dragnDropData->x << " y=" << dragnDropData->y;
+			switch (dragnDropData->dataType) {
+				case GHOST_kDragnDropTypeString:
+					std::cout << " string received = " << (char*)dragnDropData->data;
+					break;
+				case GHOST_kDragnDropTypeFilenames:
+				{
+					GHOST_TStringArray *strArray = (GHOST_TStringArray*)dragnDropData->data;
+					int i;
+					std::cout << "\nReceived " << strArray->count << " filenames";
+					for (i=0;i<strArray->count;i++)
+						std::cout << " Filename #" << i << ": " << strArray->strings[i];
+				}
+					break;
+				default:
+					break;
+			}
+		}
+		break;
+
+	case GHOST_kEventDraggingDropOnIcon:
+		{
+			GHOST_TEventDragnDropData* dragnDropData = (GHOST_TEventDragnDropData*)((GHOST_IEvent*)event)->getData();
+			std::cout << "GHOST_kEventDraggingDropOnIcon, dragged object type : " << dragnDropData->dataType;
+			switch (dragnDropData->dataType) {
+				case GHOST_kDragnDropTypeString:
+					std::cout << " string received = " << (char*)dragnDropData->data;
+					break;
+				case GHOST_kDragnDropTypeFilenames:
+				{
+					GHOST_TStringArray *strArray = (GHOST_TStringArray*)dragnDropData->data;
+					int i;
+					std::cout << "\nReceived " << strArray->count << " filenames";
+					for (i=0;i<strArray->count;i++)
+						std::cout << " Filename #" << i << ": " << strArray->strings[i];
+				}
+					break;
+				default:
+					break;
+			}
+		}
+		break;
+			
 	case GHOST_kEventQuit:
 		std::cout << "GHOST_kEventQuit"; 
 		break;

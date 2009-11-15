@@ -157,6 +157,10 @@ extern "C" {
 	return NSDragOperationCopy;
 }
 
+- (BOOL)wantsPeriodicDraggingUpdates
+{
+	return NO; //No need to overflow blender event queue. Events shall be sent only on changes
+}
 
 - (NSDragOperation)draggingUpdated:(id < NSDraggingInfo >)sender
 {

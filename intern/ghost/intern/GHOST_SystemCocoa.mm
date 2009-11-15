@@ -449,12 +449,12 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	m_pressedMouseButtons =0;
 	m_cursorDelta_x=0;
 	m_cursorDelta_y=0;
+	m_outsideLoopEventProcessed = false;
 	m_displayManager = new GHOST_DisplayManagerCocoa ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemCocoa::GHOST_SystemCocoa(): m_displayManager==0\n");
 	m_displayManager->initialize();
 
 	//NSEvent timeStamp is given in system uptime, state start date is boot time
-	//FIXME : replace by Cocoa equivalent
 	int mib[2];
 	struct timeval boottime;
 	size_t len;
@@ -560,17 +560,13 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
 {
 	//Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
-	int mib[2];
-	struct timeval boottime;
-	size_t len;
+	struct timeval currentTime;
 	
-	mib[0] = CTL_KERN;
-	mib[1] = KERN_BOOTTIME;
-	len = sizeof(struct timeval);
+	gettimeofday(&currentTime, NULL);
 	
-	sysctl(mib, 2, &boottime, &len, NULL, 0);
-
-	return ((boottime.tv_sec*1000)+(boottime.tv_usec/1000));
+	//Return timestamp of system uptime
+	
+	return ((currentTime.tv_sec*1000)+(currentTime.tv_usec/1000)-m_start_time);
 }
 
 
@@ -744,6 +740,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	bool anyProcessed = false;
 	NSEvent *event;
 	
+	m_outsideLoopEventProcessed = false;
+	
 	//	SetMouseCoalescingEnabled(false, NULL);
 	//TODO : implement timer ??
 	
@@ -842,7 +840,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	
 	
 	
-    return anyProcessed;
+    return anyProcessed || m_outsideLoopEventProcessed;
 }
 
 //Note: called from NSWindow delegate
@@ -879,6 +877,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 				return GHOST_kFailure;
 				break;
 		}
+	
+	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
 }
 
@@ -895,7 +895,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 			setAcceptDragOperation(FALSE); //Drag operation needs to be accepted explicitely by the event manager
 		case GHOST_kEventDraggingUpdated:
 		case GHOST_kEventDraggingExited:
-			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),GHOST_kEventDraggingEntered,draggedObjectType,window,mouseX,mouseY,NULL));
+			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),eventType,draggedObjectType,window,mouseX,mouseY,NULL));
 			break;
 			
 		case GHOST_kEventDraggingDropDone:
@@ -969,12 +969,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					return GHOST_kFailure;
 					break;
 			}
-			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),GHOST_kEventDraggingEntered,draggedObjectType,window,mouseX,mouseY,eventData));
+			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),eventType,draggedObjectType,window,mouseX,mouseY,eventData));
 		}
 			break;
 		default:
 			return GHOST_kFailure;
 	}
+	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
 }
 
@@ -1007,6 +1008,7 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	}
 	else {
 		pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
+		m_outsideLoopEventProcessed = true;
 		return GHOST_kExitNow;
 	}
 	
@@ -1079,7 +1081,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSLeftMouseDown:
 		case NSRightMouseDown:
 		case NSOtherMouseDown:
-			pushEvent(new GHOST_EventButton([event timestamp], GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
+			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
 			//Handle tablet events combined with mouse events
 			switch ([event subtype]) {
 				case NX_SUBTYPE_TABLET_POINT:
@@ -1097,7 +1099,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSLeftMouseUp:
 		case NSRightMouseUp:
 		case NSOtherMouseUp:
-			pushEvent(new GHOST_EventButton([event timestamp], GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
+			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
 			//Handle tablet events combined with mouse events
 			switch ([event subtype]) {
 				case NX_SUBTYPE_TABLET_POINT:
@@ -1141,7 +1143,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						y_accum += -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
 						window->setCursorGrabAccum(x_accum, y_accum);
 						
-						pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
+						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
 					}
 						break;
 					case GHOST_kGrabWrap: //Wrap cursor at area/window boundaries
@@ -1185,14 +1187,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						//Post event
 						window->getCursorGrabInitPos(x_cur, y_cur);
-						pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, x_cur + x_accum, y_cur + y_accum));
+						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_cur + x_accum, y_cur + y_accum));
 					}
 						break;
 					default:
 					{
 						//Normal cursor operation: send mouse position in window
 						NSPoint mousePos = [event locationInWindow];
-						pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
+						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
 						m_cursorDelta_x=0;
 						m_cursorDelta_y=0; //Mouse motion occured between two cursor warps, so we can reset the delta counter
 					}
@@ -1208,7 +1210,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				if (deltaF == 0.0) break; //discard trackpad delta=0 events
 				
 				delta = deltaF > 0.0 ? 1 : -1;
-				pushEvent(new GHOST_EventWheel([event timestamp], window, delta));
+				pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
 			}
 			break;
 			
@@ -1267,26 +1269,26 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				break; //Cmd-Q is directly handled by Cocoa
 
 			if ([event type] == NSKeyDown) {
-				pushEvent( new GHOST_EventKey([event timestamp], GHOST_kEventKeyDown, window, keyCode, ascii) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii) );
 				//printf("\nKey pressed keyCode=%u ascii=%i %c",keyCode,ascii,ascii);
 			} else {
-				pushEvent( new GHOST_EventKey([event timestamp], GHOST_kEventKeyUp, window, keyCode, ascii) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, ascii) );
 			}
 			break;
 	
 		case NSFlagsChanged: 
 			modifiers = [event modifierFlags];
 			if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
-				pushEvent( new GHOST_EventKey([event timestamp], (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
 			}
 			if ((modifiers & NSControlKeyMask) != (m_modifierMask & NSControlKeyMask)) {
-				pushEvent( new GHOST_EventKey([event timestamp], (modifiers & NSControlKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSControlKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl) );
 			}
 			if ((modifiers & NSAlternateKeyMask) != (m_modifierMask & NSAlternateKeyMask)) {
-				pushEvent( new GHOST_EventKey([event timestamp], (modifiers & NSAlternateKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSAlternateKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
 			}
 			if ((modifiers & NSCommandKeyMask) != (m_modifierMask & NSCommandKeyMask)) {
-				pushEvent( new GHOST_EventKey([event timestamp], (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
 			}
 			
 			m_modifierMask = modifiers;
