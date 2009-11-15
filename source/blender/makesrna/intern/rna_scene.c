@@ -1026,9 +1026,9 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
  	static EnumPropertyItem stereo_items[] ={
-		{STEREO_NOSTEREO, "NONE", 0, "None", "Disable Stereo and Dome enviroments"},
-		{STEREO_ENABLED, "STEREO", 0, "Stereo", "Enable Stereo enviroment"},
-		{STEREO_DOME, "DOME", 0, "Dome", "Enable Dome enviroment"},
+		{STEREO_NOSTEREO, "NONE", 0, "None", "Disable Stereo and Dome environments"},
+		{STEREO_ENABLED, "STEREO", 0, "Stereo", "Enable Stereo environment"},
+		{STEREO_DOME, "DOME", 0, "Dome", "Enable Dome environment"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem physics_engine_items[] = {

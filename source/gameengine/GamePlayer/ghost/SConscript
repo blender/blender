@@ -43,7 +43,7 @@ incs = ['.',
 defs = []
 
 if env['WITH_BF_PYTHON']:
-	incs += ' ' + env['BF_PYTHON_INC']
+	incs += Split(env['BF_PYTHON_INC'])
 else:
 	defs.append('DISABLE_PYTHON')
 
