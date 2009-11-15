@@ -64,6 +64,7 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameAdtList;
 	
 	Main*					m_maggie;
+	vector<struct Main*>	m_DynamicMaggie;
 
 	STR_String				m_newfilename;
 	class KX_KetsjiEngine*	m_ketsjiEngine;
@@ -140,7 +141,39 @@ public:
 
 	struct Scene* GetBlenderSceneForName(const STR_String& name);
 
-	struct Main* GetMain() { return m_maggie; };
+//	struct Main* GetMain() { return m_maggie; };
+	struct Main*		  GetMainDynamicPath(const char *path);
+	vector<struct Main*> &GetMainDynamic();
+	
+	bool LinkBlendFile(const char *path, char *group, KX_Scene *scene_merge, char **err_str);
+	bool MergeScene(KX_Scene *to, KX_Scene *from);
+	RAS_MeshObject *ConvertMeshSpecial(KX_Scene* kx_scene, Main *maggie, const char *name);
+	bool FreeBlendFile(struct Main *maggie);
+	bool FreeBlendFile(const char *path);
+ 
+	void PrintStats() {
+		printf("BGE STATS!\n");
+
+		printf("\nAssets...\n");
+		printf("\t m_worldinfos: %d\n", m_worldinfos.size());
+		printf("\t m_polymaterials: %d\n", m_polymaterials.size());
+		printf("\t m_meshobjects: %d\n", m_meshobjects.size());
+		printf("\t m_materials: %d\n", m_materials.size());
+
+		printf("\nMappings...\n");
+		printf("\t m_map_blender_to_gameobject: %d\n", m_map_blender_to_gameobject.size());
+		printf("\t m_map_mesh_to_gamemesh: %d\n", m_map_mesh_to_gamemesh.size());
+		printf("\t m_map_blender_to_gameactuator: %d\n", m_map_blender_to_gameactuator.size());
+		printf("\t m_map_blender_to_gamecontroller: %d\n", m_map_blender_to_gamecontroller.size());
+		printf("\t m_map_blender_to_gameAdtList: %d\n", m_map_blender_to_gameAdtList.size());
+
+#ifdef WITH_CXX_GUARDEDALLOC
+		MEM_printmemlist_pydict();
+#endif
+//		/printf("\t m_ketsjiEngine->m_scenes: %d\n", m_ketsjiEngine->CurrentScenes()->size());
+	}
+
+
 
 #ifndef DISABLE_PYTHON
 	PyObject *GetPyNamespace();

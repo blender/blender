@@ -124,6 +124,21 @@ PHY_IGraphicController* CcdGraphicController::GetReplica(class PHY_IMotionState*
 	return replica;
 }
 
+void CcdGraphicController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* env)
+{
+	CcdPhysicsEnvironment* phyEnv = static_cast<CcdPhysicsEnvironment*>(env);
+	/* Updates the m_phyEnv's m_cullingTree & m_cullingCache */
+	if(getBroadphaseHandle()) {
+		/* insert into the new physics scene */
+		Activate(false);
+		m_phyEnv= phyEnv;
+		Activate(true);
+	}
+	else {
+		m_phyEnv= phyEnv;
+	}
+}
+
 void CcdGraphicController::Activate(bool active)
 {
 	if (active)

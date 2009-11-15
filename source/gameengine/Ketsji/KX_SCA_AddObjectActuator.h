@@ -43,6 +43,8 @@
 
 #include "MT_Vector3.h"
 
+
+
 class SCA_IScene;
 
 class KX_SCA_AddObjectActuator : public SCA_IActuator
@@ -99,6 +101,11 @@ public:
 
 	virtual void 
 	ProcessReplica();
+
+	virtual void Replace_IScene(SCA_IScene *val)
+	{
+		m_scene= val;
+	};
 
 	virtual bool 
 	UnlinkObject(SCA_IObject* clientobj);

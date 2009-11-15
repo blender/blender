@@ -32,6 +32,7 @@
 #include "PHY_IController.h"
 
 class PHY_IMotionState;
+class PHY_IPhysicsEnvironment;
 
 /**
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.

@@ -34,6 +34,8 @@
 #define __KX_SCENEACTUATOR
 
 #include "SCA_IActuator.h"
+#include "SCA_IScene.h" /* Replace_IScene only */
+#include "KX_Scene.h" /* Replace_IScene only */
 
 class KX_SceneActuator : public SCA_IActuator
 {
@@ -88,6 +90,11 @@ class KX_SceneActuator : public SCA_IActuator
 	virtual bool Update();
 	
 #ifndef DISABLE_PYTHON
+
+	virtual void Replace_IScene(SCA_IScene *val)
+	{
+		m_scene= static_cast<KX_Scene *>(val);
+	};
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

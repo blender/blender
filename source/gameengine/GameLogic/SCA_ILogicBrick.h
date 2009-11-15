@@ -35,6 +35,9 @@
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
 
+class NG_NetworkScene;
+class SCA_IScene;
+
 class SCA_ILogicBrick : public CValue
 {
 	Py_Header;
@@ -122,8 +125,13 @@ public:
 
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
 
+	/* runtime variable, set when Triggering the python controller */
 	static class SCA_LogicManager*	m_sCurrentLogicManager;
 
+
+	/* for moving logic bricks between scenes */
+	virtual void		Replace_IScene(SCA_IScene *val) {};
+	virtual void		Replace_NetworkScene(NG_NetworkScene *val) {};
 
 #ifndef DISABLE_PYTHON
 	// python methods

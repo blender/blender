@@ -73,7 +73,6 @@ class KX_Camera;
 class KX_GameObject;
 class KX_LightObject;
 class RAS_BucketManager;
-class RAS_BucketManager;
 class RAS_MaterialBucket;
 class RAS_IPolyMaterial;
 class RAS_IRasterizer;
@@ -82,6 +81,9 @@ class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
 struct KX_ClientObjectInfo;
+
+/* for ID freeing */
+#define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
 
 /**
  * The KX_Scene holds all data for an independent scene. It relates
@@ -99,6 +101,7 @@ class KX_Scene : public PyObjectPlus, public SCA_IScene
 		int m_layer;
 		CullingInfo(int layer) : m_layer(layer) {}
 	};
+
 
 protected:
 	RAS_BucketManager*	m_bucketmanager;
@@ -321,6 +324,10 @@ public:
 	);
 
 		CListValue*				
+	GetTempObjectList(
+	);
+
+		CListValue*
 	GetObjectList(
 	);
 
@@ -471,6 +478,7 @@ public:
 	KX_Camera* GetpCamera();
 	NG_NetworkDeviceInterface* GetNetworkDeviceInterface();
 	NG_NetworkScene* GetNetworkScene();
+	KX_BlenderSceneConverter *GetSceneConverter() { return m_sceneConverter; }
 
 	/**
 	 * Replicate the logic bricks associated to this object.
@@ -567,6 +575,15 @@ public:
 	 * Returns the Blender scene this was made from
 	 */
 	struct Scene *GetBlenderScene() { return m_blenderScene; }
+
+	bool MergeScene(KX_Scene *other);
+
+
+	//void PrintStats(int verbose_level) {
+	//	m_bucketmanager->PrintStats(verbose_level)
+	//}
+
+
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

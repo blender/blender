@@ -30,9 +30,6 @@
 
 #include "GL/glew.h"
 
-// directory header for py function getBlendFileList
-#include <stdlib.h>
-
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif //WIN32
@@ -50,6 +47,16 @@ extern "C" {
 #endif
 
 #include "KX_PythonInit.h"
+
+// directory header for py function getBlendFileList
+#ifndef WIN32
+  #include <dirent.h>
+  #include <stdlib.h>
+#else
+  #include <io.h>
+  #include "BLI_winstuff.h"
+#endif
+
 //python physics binding
 #include "KX_PyConstraintBinding.h"
 
@@ -82,6 +89,8 @@ extern "C" {
 #include "InputParser.h"
 #include "KX_Scene.h"
 
+#include "NG_NetworkScene.h" //Needed for sendMessage()
+
 #include "BL_Shader.h"
 
 #include "KX_PyMath.h"
@@ -100,12 +109,16 @@ extern "C" {
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
+#include "MEM_guardedalloc.h"
 
-#ifndef WIN32
-  #include <dirent.h>
-#else
-  #include "BLI_winstuff.h"
-#endif
+/* for converting new scenes */
+#include "KX_BlenderSceneConverter.h"
+#include "KX_MeshProxy.h" /* for creating a new library of mesh objects */
+extern "C" {
+	#include "BLO_readfile.h"
+}
+
+
 #include "NG_NetworkScene.h" //Needed for sendMessage()
 
 static void setSandbox(TPythonSecurityLevel level);
@@ -509,8 +522,14 @@ static PyObject* gPyGetSceneList(PyObject* self)
 		KX_Scene* scene = scenes->at(i);
 		PyList_SET_ITEM(list, i, scene->GetProxy());
 	}
-	
+
 	return list;
+}
+
+static PyObject *pyPrintStats(PyObject *,PyObject *,PyObject *)
+{
+	gp_KetsjiScene->GetSceneConverter()->PrintStats();
+	Py_RETURN_NONE;
 }
 
 static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
@@ -584,6 +603,116 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	Py_RETURN_NONE;
 }
 
+static PyObject *gLibLoad(PyObject*, PyObject* args)
+{
+	KX_Scene *kx_scene= gp_KetsjiScene;
+	char *path;
+	char *group;
+	char *err_str= NULL;
+	
+	if (!PyArg_ParseTuple(args,"ss:LibLoad",&path, &group))
+		return NULL;
+
+	if(kx_scene->GetSceneConverter()->LinkBlendFile(path, group, kx_scene, &err_str)) {
+		Py_RETURN_TRUE;
+	}
+	
+	if(err_str) {
+		PyErr_SetString(PyExc_ValueError, err_str);
+		return NULL;
+	}
+	
+	Py_RETURN_FALSE;
+}
+
+static PyObject *gLibNew(PyObject*, PyObject* args)
+{
+	KX_Scene *kx_scene= gp_KetsjiScene;
+	char *path;
+	char *group;
+	char *name;
+	PyObject *names;
+	int idcode;
+
+	if (!PyArg_ParseTuple(args,"ssO!:LibNew",&path, &group, &PyList_Type, &names))
+		return NULL;
+	
+	if(kx_scene->GetSceneConverter()->GetMainDynamicPath(path))
+	{
+		PyErr_SetString(PyExc_KeyError, "the name of the path given exists");
+		return NULL;
+	}
+	
+	idcode= BLO_idcode_from_name(group);
+	if(idcode==0) {
+		PyErr_Format(PyExc_ValueError, "invalid group given \"%s\"", group);
+		return NULL;
+	}
+	
+	Main *maggie= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
+	kx_scene->GetSceneConverter()->GetMainDynamic().push_back(maggie);
+	strncpy(maggie->name, path, sizeof(maggie->name)-1);
+	
+	/* Copy the object into main */
+	if(idcode==ID_ME) {
+		PyObject *ret= PyList_New(0);
+		PyObject *item;
+		for(int i= 0; i < PyList_GET_SIZE(names); i++) {
+			name= _PyUnicode_AsString(PyList_GET_ITEM(names, i));
+			if(name) {
+				RAS_MeshObject *meshobj= kx_scene->GetSceneConverter()->ConvertMeshSpecial(kx_scene, maggie, name);
+				if(meshobj) {
+					KX_MeshProxy* meshproxy = new KX_MeshProxy(meshobj);
+					item= meshproxy->NewProxy(true);
+					PyList_Append(ret, item);
+					Py_DECREF(item);
+				}
+			}
+			else {
+				PyErr_Clear(); /* wasnt a string, ignore for now */
+			}
+		}
+		
+		return ret;
+	}
+	else {
+		PyErr_Format(PyExc_ValueError, "only \"Mesh\" group currently supported");
+		return NULL;
+	}
+	
+	Py_RETURN_NONE;
+}
+
+static PyObject *gLibFree(PyObject*, PyObject* args)
+{
+	KX_Scene *kx_scene= gp_KetsjiScene;
+	char *path;
+
+	if (!PyArg_ParseTuple(args,"s:LibFree",&path))
+		return NULL;
+
+	if (kx_scene->GetSceneConverter()->FreeBlendFile(path))
+	{
+		Py_RETURN_TRUE;
+	}
+	else {
+		Py_RETURN_FALSE;
+	}
+}
+
+static PyObject *gLibList(PyObject*, PyObject* args)
+{
+	vector<Main*> &dynMaggie = gp_KetsjiScene->GetSceneConverter()->GetMainDynamic();
+	int i= 0;
+	PyObject *list= PyList_New(dynMaggie.size());
+	
+	for (vector<Main*>::iterator it=dynMaggie.begin(); !(it==dynMaggie.end()); it++)
+	{
+		PyList_SET_ITEM(list, i++, PyUnicode_FromString( (*it)->name) );
+	}
+	
+	return list;
+}
 
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (const char *)gPyExpandPath_doc},
@@ -616,6 +745,14 @@ static struct PyMethodDef game_methods[] = {
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (const char *)"Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (const char *)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (const char *)"Prints GL Extension Info"},
+	{"PrintMemInfo", (PyCFunction)pyPrintStats, METH_NOARGS, (const char *)"Print engine stastics"},
+	
+	/* library functions */
+	{"LibLoad", (PyCFunction)gLibLoad, METH_VARARGS, (const char *)""},
+	{"LibNew", (PyCFunction)gLibNew, METH_VARARGS, (const char *)""},
+	{"LibFree", (PyCFunction)gLibFree, METH_VARARGS, (const char *)""},
+	{"LibList", (PyCFunction)gLibList, METH_VARARGS, (const char *)""},
+	
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 

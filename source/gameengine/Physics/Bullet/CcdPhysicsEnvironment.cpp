@@ -420,7 +420,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 		
 
-void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
+bool	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	//also remove constraint
 	btRigidBody* body = ctrl->GetRigidBody();
@@ -445,13 +445,13 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			m_dynamicsWorld->removeCollisionObject(ctrl->GetCollisionObject());
 		}
 	}
-	m_controllers.erase(ctrl);
-
 	if (ctrl->m_registerCount != 0)
 		printf("Warning: removing controller with non-zero m_registerCount: %d\n", ctrl->m_registerCount);
 
 	//remove it from the triggers
 	m_triggerControllers.erase(ctrl);
+
+	return (m_controllers.erase(ctrl) != 0);
 }
 
 void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
@@ -1736,10 +1736,19 @@ btDispatcher*	CcdPhysicsEnvironment::getDispatcher()
 	return m_dynamicsWorld->getDispatcher();
 }
 
+void CcdPhysicsEnvironment::MergeEnvironment(CcdPhysicsEnvironment *other)
+{
+	std::set<CcdPhysicsController*>::iterator it;
 
+	while (other->m_controllers.begin() != other->m_controllers.end())
+	{
+		it= other->m_controllers.begin();
+		CcdPhysicsController* ctrl= (*it);
 
-
-
+		other->removeCcdPhysicsController(ctrl);
+		this->addCcdPhysicsController(ctrl);
+	}
+}
 
 CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 {

@@ -282,6 +282,11 @@ void SCA_LogicManager::RegisterMeshName(const STR_String& meshname,void* mesh)
 	m_mapStringToMeshes.insert(mn,mesh);
 }
 
+void SCA_LogicManager::UnregisterMeshName(const STR_String& meshname,void* mesh)
+{
+	STR_HashedString mn = meshname;
+	m_mapStringToMeshes.remove(mn);
+}
 
 
 void SCA_LogicManager::RegisterActionName(const STR_String& actname,void* action)

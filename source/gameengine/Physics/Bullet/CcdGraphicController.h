@@ -47,6 +47,8 @@ public:
 	virtual void setBroadphaseHandle(btBroadphaseProxy* handle) { m_handle = handle; }
 	virtual btBroadphaseProxy* getBroadphaseHandle() { return m_handle; }
 
+	virtual void SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* env);
+
 	////////////////////////////////////
 	// PHY_IGraphicController interface
 	////////////////////////////////////

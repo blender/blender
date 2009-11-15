@@ -46,6 +46,7 @@ class RAS_IRasterizer;
 struct MTFace;
 struct Material;
 struct Scene;
+class SCA_IScene;
 
 enum MaterialProps
 {
@@ -164,6 +165,9 @@ public:
 	virtual void		GetMaterialRGBAColor(unsigned char *rgba) const;
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	virtual bool		UsesObjectColor() const;
+
+	virtual void		Replace_IScene(SCA_IScene *val) {}; /* overridden by KX_BlenderMaterial */
+
 	/*
 	 * PreCalculate texture gen
 	 */

@@ -40,6 +40,10 @@
 #include "KX_KetsjiEngine.h"
 #include "KX_IPhysicsController.h"
 #include "BL_Material.h"
+#include "KX_BlenderMaterial.h"
+#include "KX_PolygonMaterial.h"
+
+
 #include "SYS_System.h"
 
 #include "DummyPhysicsEnvironment.h"
@@ -72,27 +76,48 @@ extern "C"
 {
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_material_types.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
 //XXX #include "BSE_editipo.h"
 //XXX #include "BSE_editipo_types.h"
 #include "DNA_ipo_types.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_ipo.h" // eval_icu
+#include "BKE_material.h" // copy_material
+#include "BKE_mesh.h" // copy_mesh
 #include "DNA_space_types.h"
 }
 
+/* Only for dynamic loading and merging */
+#include "RAS_BucketManager.h" // XXX cant stay
+#include "KX_BlenderSceneConverter.h"
+#include "BL_BlenderDataConversion.h"
+#include "KX_MeshProxy.h"
+#include "RAS_MeshObject.h"
+extern "C" {
+	#include "BKE_context.h"
+	#include "BLO_readfile.h"
+	#include "BKE_report.h"
+	#include "DNA_space_types.h"
+	#include "DNA_windowmanager_types.h" /* report api */
+	#include "../../blender/blenlib/BLI_linklist.h"
+}
 
 KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							struct Main* maggie,
 							class KX_KetsjiEngine* engine
 							)
 							: m_maggie(maggie),
+							/*m_maggie_dyn(NULL),*/
 							m_ketsjiEngine(engine),
 							m_alwaysUseExpandFraming(false),
 							m_usemat(false),
 							m_useglslmat(false)
 {
+	tag_main(maggie, 0); /* avoid re-tagging later on */
 	m_newfilename = "";
 }
 
@@ -141,9 +166,14 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	KX_ClearBulletSharedShapes();
 #endif
 
+	/* free any data that was dynamically loaded */
+	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
+		Main *main= *it;
+		free_main(main);
+	}
+
+	m_DynamicMaggie.clear();
 }
-
-
 
 void KX_BlenderSceneConverter::SetNewFileName(const STR_String& filename)
 {
@@ -182,6 +212,14 @@ Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
 	for (sce= (Scene*) m_maggie->scene.first; sce; sce= (Scene*) sce->id.next)
 		if (name == (sce->id.name+2))
 			return sce;
+
+	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
+		Main *main= *it;
+
+		for (sce= (Scene*) main->scene.first; sce; sce= (Scene*) sce->id.next)
+			if (name == (sce->id.name+2))
+				return sce;
+	}
 
 	return (Scene*)m_maggie->scene.first;
 
@@ -490,7 +528,9 @@ void KX_BlenderSceneConverter::RegisterGameMesh(
 									RAS_MeshObject *gamemesh,
 									struct Mesh *for_blendermesh)
 {
-	m_map_mesh_to_gamemesh.insert(CHashedPtr(for_blendermesh),gamemesh);
+	if(for_blendermesh) { /* dynamically loaded meshes we dont want to keep lookups for */
+		m_map_mesh_to_gamemesh.insert(CHashedPtr(for_blendermesh),gamemesh);
+	}
 	m_meshobjects.push_back(pair<KX_Scene*,RAS_MeshObject*>(m_currentScene,gamemesh));
 }
 
@@ -925,3 +965,480 @@ PyObject *KX_BlenderSceneConverter::GetPyNamespace()
 	return m_ketsjiEngine->GetPyNamespace();
 }
 #endif
+
+vector<Main*> &KX_BlenderSceneConverter::GetMainDynamic()
+{
+	return m_DynamicMaggie;
+}
+
+Main* KX_BlenderSceneConverter::GetMainDynamicPath(const char *path)
+{
+	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++)
+		if(strcmp((*it)->name, path)==0)
+			return *it;
+	
+	return NULL;
+}
+
+bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_Scene *scene_merge, char **err_str)
+{
+	bContext *C;
+	Main *main_newlib; /* stored as a dynamic 'main' until we free it */
+	Main *main_tmp= NULL; /* created only for linking, then freed */
+	LinkNode *names = NULL;
+	BlendHandle *bpy_openlib = NULL;	/* ptr to the open .blend file */	
+	int idcode= BLO_idcode_from_name(group);
+	short flag= 0; /* dont need any special options */
+	ReportList reports;
+	static char err_local[255];
+	
+	/* only scene and mesh supported right now */
+	if(idcode!=ID_SCE && idcode!=ID_ME) {
+		snprintf(err_local, sizeof(err_local), "invalid ID type given \"%s\"\n", group);
+		return false;
+	}
+	
+	if(GetMainDynamicPath(path)) {
+		snprintf(err_local, sizeof(err_local), "blend file alredy open \"%s\"\n", path);
+		*err_str= err_local;
+		return false;
+	}
+
+	bpy_openlib = BLO_blendhandle_from_file( (char *)path );
+	if(bpy_openlib==NULL) {
+		snprintf(err_local, sizeof(err_local), "could not open blendfile \"%s\"\n", path);
+		*err_str= err_local;
+		return false;
+	}
+	
+	main_newlib= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
+	C= CTX_create();
+	CTX_data_main_set(C, main_newlib);
+	BKE_reports_init(&reports, RPT_STORE);	
+
+	/* here appending/linking starts */
+	main_tmp = BLO_library_append_begin(C, &bpy_openlib, (char *)path);
+	
+	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode);
+	
+	int i=0;
+	LinkNode *n= names;
+	while(n) {
+		BLO_library_append_named_part(C, main_tmp, &bpy_openlib, (char *)n->link, idcode, 0);
+		n= (LinkNode *)n->next;
+		i++;
+	}
+	BLI_linklist_free(names, free);	/* free linklist *and* each node's data */
+	
+	BLO_library_append_end(C, main_tmp, &bpy_openlib, idcode, flag);
+	BLO_blendhandle_close(bpy_openlib);
+	
+	CTX_free(C);
+	BKE_reports_clear(&reports);
+	/* done linking */	
+	
+	/* needed for lookups*/
+	GetMainDynamic().push_back(main_newlib);
+	strncpy(main_newlib->name, path, sizeof(main_newlib->name));	
+	
+	
+	if(idcode==ID_ME) {
+		/* Convert all new meshes into BGE meshes */
+		ID* mesh;
+		KX_Scene *kx_scene= m_currentScene;
+	
+		for(mesh= (ID *)main_newlib->mesh.first; mesh; mesh= (ID *)mesh->next ) {
+			RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)mesh, NULL, scene_merge, this);
+			kx_scene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
+		}
+	}
+	else if(idcode==ID_SCE) {		
+		/* Merge all new linked in scene into the existing one */
+		ID *scene;
+		for(scene= (ID *)main_newlib->scene.first; scene; scene= (ID *)scene->next ) {
+			printf("SceneName: %s\n", scene->name);
+			
+			/* merge into the base  scene */
+			KX_Scene* other= m_ketsjiEngine->CreateScene((Scene *)scene);
+			scene_merge->MergeScene(other);
+			
+			// RemoveScene(other); // Dont run this, it frees the entire scene converter data, just delete the scene
+			delete other;
+		}
+	}
+	
+	return true;
+}
+
+/* Note m_map_*** are all ok and dont need to be freed
+ * most are temp and NewRemoveObject frees m_map_gameobject_to_blender */
+bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
+{
+	int maggie_index;
+	int i=0;
+
+	if(maggie==NULL)
+		return false;
+	
+	/* tag all false except the one we remove */
+	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
+		Main *main= *it;
+		if(main != maggie) {
+			tag_main(main, 0);
+		}
+		else {
+			maggie_index= i;
+		}
+		i++;
+	}
+
+	m_DynamicMaggie.erase(m_DynamicMaggie.begin() + maggie_index);
+	tag_main(maggie, 1);
+
+
+	/* free all tagged objects */
+	KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
+	int numScenes = scenes->size();
+
+
+	for (int scene_idx=0;scene_idx<numScenes;scene_idx++)
+	{
+		KX_Scene* scene = scenes->at(scene_idx);
+		if(IS_TAGGED(scene->GetBlenderScene())) {
+			RemoveScene(scene); // XXX - not tested yet
+			scene_idx--;
+			numScenes--;
+		}
+		else {
+			
+			/* incase the mesh might be refered to later */
+			{
+				GEN_Map<STR_HashedString,void*> &mapStringToMeshes = scene->GetLogicManager()->GetMeshMap();
+				
+				for(int i=0; i<mapStringToMeshes.size(); i++)
+				{
+					RAS_MeshObject *meshobj= (RAS_MeshObject *) *mapStringToMeshes.at(i);
+					if(meshobj && IS_TAGGED(meshobj->GetMesh()))
+					{	
+						STR_HashedString mn = meshobj->GetName();
+						mapStringToMeshes.remove(mn);
+						i--;
+					}
+				}
+			}
+			
+			//scene->FreeTagged(); /* removed tagged objects and meshes*/
+			CListValue *obj_lists[] = {scene->GetObjectList(), scene->GetInactiveList(), NULL};
+
+			for(int ob_ls_idx=0; obj_lists[ob_ls_idx]; ob_ls_idx++)
+			{
+				CListValue *obs= obj_lists[ob_ls_idx];
+				RAS_MeshObject* mesh;
+
+				for (int ob_idx = 0; ob_idx < obs->GetCount(); ob_idx++)
+				{
+					KX_GameObject* gameobj = (KX_GameObject*)obs->GetValue(ob_idx);
+					if(IS_TAGGED(gameobj->GetBlenderObject())) {
+
+						int size_before = obs->GetCount();
+
+						/* Eventually calls RemoveNodeDestructObject
+						 * frees m_map_gameobject_to_blender from UnregisterGameObject */
+						scene->RemoveObject(gameobj);
+
+						if(size_before != obs->GetCount())
+							ob_idx--;
+						else {
+							printf("ERROR COULD NOT REMOVE \"%s\"\n", gameobj->GetName().ReadPtr());
+						}
+					}
+					else {
+						/* free the mesh, we could be referecing a linked one! */
+						int mesh_index= gameobj->GetMeshCount();
+						while(mesh_index--) {
+							mesh= gameobj->GetMesh(mesh_index);
+							if(IS_TAGGED(mesh->GetMesh())) {
+								gameobj->RemoveMeshes(); /* XXX - slack, should only remove meshes that are library items but mostly objects only have 1 mesh */
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	int size;
+
+	// delete the entities of this scene
+	/* TODO - */
+	/*
+	vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator worldit;
+	size = m_worldinfos.size();
+	for (i=0, worldit=m_worldinfos.begin(); i<size; ) {
+		if ((*worldit).second) {
+			delete (*worldit).second;
+			*worldit = m_worldinfos.back();
+			m_worldinfos.pop_back();
+			size--;
+		} else {
+			i++;
+			worldit++;
+		}
+	}*/
+
+
+	/* Worlds dont reference original blender data so we need to make a set from them */
+	typedef std::set<KX_WorldInfo*> KX_WorldInfoSet;
+	KX_WorldInfoSet worldset;
+	for (int scene_idx=0;scene_idx<numScenes;scene_idx++)
+	{
+		KX_Scene* scene = scenes->at(scene_idx);
+		if(scene->GetWorldInfo())
+			worldset.insert( scene->GetWorldInfo() );
+	}
+
+	vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator worldit;
+	size = m_worldinfos.size();
+	for (i=0, worldit=m_worldinfos.begin(); i<size; ) {
+		if ((*worldit).second && (worldset.count((*worldit).second)) == 0) {
+			delete (*worldit).second;
+			*worldit = m_worldinfos.back();
+			m_worldinfos.pop_back();
+			size--;
+		} else {
+			i++;
+			worldit++;
+		}
+	}
+	worldset.clear();
+	/* done freeing the worlds */
+
+
+
+
+	vector<pair<KX_Scene*,RAS_IPolyMaterial*> >::iterator polymit;
+	size = m_polymaterials.size();
+
+
+
+	for (i=0, polymit=m_polymaterials.begin(); i<size; ) {
+		RAS_IPolyMaterial *mat= (*polymit).second;
+		Material *bmat= NULL;
+
+		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject*)? - Campbell */
+		if(mat->GetFlag() & RAS_BLENDERMAT) {
+			KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
+			bmat= bl_mat->GetBlenderMaterial();
+
+		} else {
+			KX_PolygonMaterial *kx_mat = static_cast<KX_PolygonMaterial*>(mat);
+			bmat= kx_mat->GetBlenderMaterial();
+		}
+
+		if (IS_TAGGED(bmat)) {
+			/* only remove from bucket */
+			((*polymit).first)->GetBucketManager()->RemoveMaterial(mat);
+		}
+
+		i++;
+		polymit++;
+	}
+
+
+
+	for (i=0, polymit=m_polymaterials.begin(); i<size; ) {
+		RAS_IPolyMaterial *mat= (*polymit).second;
+		Material *bmat= NULL;
+
+		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject*)? - Campbell */
+		if(mat->GetFlag() & RAS_BLENDERMAT) {
+			KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
+			bmat= bl_mat->GetBlenderMaterial();
+
+		} else {
+			KX_PolygonMaterial *kx_mat = static_cast<KX_PolygonMaterial*>(mat);
+			bmat= kx_mat->GetBlenderMaterial();
+		}
+
+		if(bmat) {
+			//printf("FOUND MAT '%s' !!! ", ((ID*)bmat)->name+2);
+		}
+		else {
+			//printf("LOST MAT  !!!");
+		}
+
+		if (IS_TAGGED(bmat)) {
+
+			delete (*polymit).second;
+			*polymit = m_polymaterials.back();
+			m_polymaterials.pop_back();
+			size--;
+			//printf("tagged !\n");
+		} else {
+			i++;
+			polymit++;
+			//printf("(un)tagged !\n");
+		}
+	}
+
+	vector<pair<KX_Scene*,BL_Material*> >::iterator matit;
+	size = m_materials.size();
+	for (i=0, matit=m_materials.begin(); i<size; ) {
+		BL_Material *mat= (*matit).second;
+		if (IS_TAGGED(mat->material)) {
+			delete (*matit).second;
+			*matit = m_materials.back();
+			m_materials.pop_back();
+			size--;
+		} else {
+			i++;
+			matit++;
+		}
+	}
+
+	vector<pair<KX_Scene*,RAS_MeshObject*> >::iterator meshit;
+	size = m_meshobjects.size();
+	for (i=0, meshit=m_meshobjects.begin(); i<size; ) {
+		RAS_MeshObject *me= (*meshit).second;
+		if (IS_TAGGED(me->GetMesh())) {
+			delete (*meshit).second;
+			*meshit = m_meshobjects.back();
+			m_meshobjects.pop_back();
+			size--;
+		} else {
+			i++;
+			meshit++;
+		}
+	}
+
+	free_main(maggie);
+
+	return true;
+}
+
+bool KX_BlenderSceneConverter::FreeBlendFile(const char *path)
+{
+	return FreeBlendFile(GetMainDynamicPath(path));
+}
+
+bool KX_BlenderSceneConverter::MergeScene(KX_Scene *to, KX_Scene *from)
+{
+
+	{
+		vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator itp = m_worldinfos.begin();
+		while (itp != m_worldinfos.end()) {
+			if ((*itp).first==from)
+				(*itp).first= to;
+			itp++;
+		}
+	}
+
+	{
+		vector<pair<KX_Scene*,RAS_IPolyMaterial*> >::iterator itp = m_polymaterials.begin();
+		while (itp != m_polymaterials.end()) {
+			if ((*itp).first==from) {
+				(*itp).first= to;
+
+				/* also switch internal data */
+				RAS_IPolyMaterial*mat= (*itp).second;
+				mat->Replace_IScene(to);
+			}
+			itp++;
+		}
+	}
+
+	{
+		vector<pair<KX_Scene*,RAS_MeshObject*> >::iterator itp = m_meshobjects.begin();
+		while (itp != m_meshobjects.end()) {
+			if ((*itp).first==from)
+				(*itp).first= to;
+			itp++;
+		}
+	}
+
+	{
+		vector<pair<KX_Scene*,BL_Material*> >::iterator itp = m_materials.begin();
+		while (itp != m_materials.end()) {
+			if ((*itp).first==from)
+				(*itp).first= to;
+			itp++;
+		}
+	}
+	
+	return true;
+}
+
+/* This function merges a mesh from the current scene into another main
+ * it does not convert */
+RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene, Main *maggie, const char *name)
+{
+	ID *me;
+	
+	/* Find a mesh in the current main */
+	for(me = (ID *)m_maggie->mesh.first; me; me= (ID *)me->next)
+		if(strcmp(name, me->name+2)==0)
+			break;
+	
+	if(me==NULL) {
+		printf("Could not be found \"%s\"\n", name);
+		return NULL;
+	}
+	
+	/* Watch this!, if its used in the original scene can cause big troubles */
+	if(me->us > 0) {
+		printf("Mesh has a user \"%s\"\n", name);
+		me = (ID*)copy_mesh((Mesh*)me);
+		me->us--;
+	}
+	BLI_remlink(&m_maggie->mesh, me); /* even if we made the copy it needs to be removed */
+	BLI_addtail(&maggie->mesh, me);
+
+	
+	/* Must copy the materials this uses else we cant free them */
+	{
+		Mesh *mesh= (Mesh *)me;
+		
+		/* ensure all materials are tagged */
+		for(int i=0; i<mesh->totcol; i++)
+			if(mesh->mat[i])
+				mesh->mat[i]->id.flag &= ~LIB_DOIT;
+		
+		for(int i=0; i<mesh->totcol; i++)
+		{
+			Material *mat_old= mesh->mat[i];
+			
+			/* if its tagged its a replaced material */
+			if(mat_old && (mat_old->id.flag & LIB_DOIT)==0)
+			{
+				Material *mat_old= mesh->mat[i];
+				Material *mat_new= copy_material( mat_old );
+				
+				mat_new->id.flag |= LIB_DOIT;
+				mat_old->id.us--;
+				
+				BLI_remlink(&m_maggie->mat, mat_new);
+				BLI_addtail(&maggie->mat, mat_new);
+				
+				mesh->mat[i]= mat_new;
+				
+				/* the same material may be used twice */
+				for(int j=i+1; j<mesh->totcol; j++)
+				{
+					if(mesh->mat[j]==mat_old)
+					{
+						mesh->mat[j]= mat_new;
+						mat_new->id.us++;
+						mat_old->id.us--;
+					}
+				}
+			}
+		}
+	}
+	
+	RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)me, NULL, kx_scene, this);
+	kx_scene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
+	m_map_mesh_to_gamemesh.clear(); /* This is at runtime so no need to keep this, BL_ConvertMesh adds */
+	return meshobj;
+}

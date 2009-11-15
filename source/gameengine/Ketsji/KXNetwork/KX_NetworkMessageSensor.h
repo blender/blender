@@ -66,6 +66,11 @@ public:
 	virtual void Init();
 	void EndFrame();
 	
+	virtual void Replace_NetworkScene(NG_NetworkScene *val)
+	{
+		m_NetworkScene= val;
+	};
+
 #ifndef DISABLE_PYTHON
 
 	/* ------------------------------------------------------------- */
