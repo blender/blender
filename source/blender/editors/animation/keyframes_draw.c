@@ -92,10 +92,41 @@
 
 /* *************************** Keyframe Processing *************************** */
 
-/* Create a ActKeyColumn from a BezTriple */
-static ActKeyColumn *bezt_to_new_actkeycolumn(BezTriple *bezt)
+/* Comparator callback used for ActKeyColumns and cframe float-value pointer */
+short compare_ak_cfraPtr (void *node, void *data)
+{
+	ActKeyColumn *ak= (ActKeyColumn *)node;
+	float *cframe= data;
+	
+	if (*cframe < ak->cfra)
+		return -1;
+	else if (*cframe > ak->cfra)
+		return 1;
+	else
+		return 0;
+}
+
+/* .... */
+
+/* Comparator callback used for ActKeyColumns and BezTriple */
+static short compare_ak_bezt (void *node, void *data)
+{
+	ActKeyColumn *ak= (ActKeyColumn *)node;
+	BezTriple *bezt= (BezTriple *)data;
+	
+	if (bezt->vec[1][0] < ak->cfra)
+		return -1;
+	else if (bezt->vec[1][0] > ak->cfra)
+		return 1;
+	else
+		return 0;
+}
+
+/* New node callback used for building ActKeyColumns from BezTriples */
+static DLRBT_Node *nalloc_ak_bezt (void *data)
 {
 	ActKeyColumn *ak= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
+	BezTriple *bezt= (BezTriple *)data;
 	
 	/* store settings based on state of BezTriple */
 	ak->cfra= bezt->vec[1][0];
@@ -105,67 +136,33 @@ static ActKeyColumn *bezt_to_new_actkeycolumn(BezTriple *bezt)
 	/* set 'modified', since this is used to identify long keyframes */
 	ak->modified = 1;
 	
-	return ak;
+	return (DLRBT_Node *)ak;
 }
+
+/* Node updater callback used for building ActKeyColumns from BezTriples */
+static void nupdate_ak_bezt (void *node, void *data)
+{
+	ActKeyColumn *ak= (ActKeyColumn *)node;
+	BezTriple *bezt= (BezTriple *)data;
+	
+	/* set selection status and 'touched' status */
+	if (BEZSELECTED(bezt)) ak->sel = SELECT;
+	ak->modified += 1;
+	
+	/* for keyframe type, 'proper' keyframes have priority over breakdowns (and other types for now) */
+	if (BEZKEYTYPE(bezt) == BEZT_KEYTYPE_KEYFRAME)
+		ak->key_type= BEZT_KEYTYPE_KEYFRAME;
+}
+
+/* --------------- */
 
 /* Add the given BezTriple to the given 'list' of Keyframes */
 static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 {
-	ActKeyColumn *new_ak=NULL;
-	
-	if ELEM(NULL, keys, bezt) return;
-	
-	/* if there are no keys already, just add as root */
-	if (keys->root == NULL) {
-		/* just add this as the root, then call the tree-balancing functions to validate */
-		new_ak= bezt_to_new_actkeycolumn(bezt);
-		keys->root= (DLRBT_Node *)new_ak;
-	}
-	else {
-		ActKeyColumn *ak, *akp=NULL, *akn=NULL;
-		
-		/* traverse tree to find an existing entry to update the status of, 
-		 * or a suitable point to add at
-		 */
-		for (ak= keys->root; ak; akp= ak, ak= akn) {
-			/* check if this is a match, or whether we go left or right */
-			if (ak->cfra == bezt->vec[1][0]) {
-				/* set selection status and 'touched' status */
-				if (BEZSELECTED(bezt)) ak->sel = SELECT;
-				ak->modified += 1;
-				
-				/* for keyframe type, 'proper' keyframes have priority over breakdowns (and other types for now) */
-				if (BEZKEYTYPE(bezt) == BEZT_KEYTYPE_KEYFRAME)
-					ak->key_type= BEZT_KEYTYPE_KEYFRAME;
-				
-				/* done... no need to insert */
-				return;
-			}
-			else {
-				ActKeyColumn **aknp= NULL; 
-				
-				/* check if go left or right, but if not available, add new node */
-				if (ak->cfra < bezt->vec[1][0]) 
-					aknp= &ak->right;
-				else
-					aknp= &ak->left;
-					
-				/* if this does not exist, add a new node, otherwise continue... */
-				if (*aknp == NULL) {
-					/* add a new node representing this, and attach it to the relevant place */
-					new_ak= bezt_to_new_actkeycolumn(bezt);
-					new_ak->parent= ak;
-					*aknp= new_ak;
-					break;
-				}
-				else
-					akn= *aknp;
-			}
-		}
-	}
-	
-	/* now, balance the tree taking into account this newly added node */
-	BLI_dlrbTree_insert(keys, (DLRBT_Node *)new_ak);
+	if ELEM(NULL, keys, bezt) 
+		return;
+	else
+		BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
 }
 
 
@@ -317,47 +314,6 @@ static void set_touched_actkeyblock (ActKeyBlock *ab)
 
 /* *************************** Keyframe Drawing *************************** */
 
-/* helper function - find actkeycolumn that occurs on cframe */
-ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
-{
-	/* sanity checks */
-	if (ak == NULL)
-		return NULL;
-	
-	/* check if this is a match, or whether it is in some subtree */
-	if (cframe < ak->cfra)
-		return cfra_find_actkeycolumn(ak->left, cframe);
-	else if (cframe > ak->cfra)
-		return cfra_find_actkeycolumn(ak->right, cframe);
-	else
-		return ak; /* match */
-}
-
-/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
-// FIXME: this is buggy... next() is ignored completely...
-ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
-{
-	ActKeyColumn *akn= NULL;
-	
-	/* sanity checks */
-	if (ak == NULL)
-		return NULL;
-	
-	/* check if this is a match, or whether it is in some subtree */
-	if (cframe < ak->cfra)
-		akn= cfra_find_nearest_next_ak(ak->left, cframe, next);
-	else if (cframe > ak->cfra)
-		akn= cfra_find_nearest_next_ak(ak->right, cframe, next);
-		
-	/* if no match found (or found match), just use the current one */
-	if (akn == NULL)
-		return ak;
-	else
-		return akn;
-}
-
-/* -------- */
-
 /* coordinates for diamond shape */
 static const float _unit_diamond_shape[4][2] = {
 	{0.0f, 1.0f},	/* top vert */
@@ -471,10 +427,10 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 			short startCurves, endCurves, totCurves;
 			
 			/* find out how many curves occur at each keyframe */
-			ak= cfra_find_actkeycolumn((ActKeyColumn *)keys->root, ab->start);
+			ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(keys, compare_ak_cfraPtr, &ab->start);
 			startCurves = (ak)? ak->totcurve: 0;
 			
-			ak= cfra_find_actkeycolumn((ActKeyColumn *)keys->root, ab->end);
+			ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(keys, compare_ak_cfraPtr, &ab->end);
 			endCurves = (ak)? ak->totcurve: 0;
 			
 			/* only draw keyblock if it appears in at all of the keyframes at lowest end */
@@ -676,7 +632,6 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 		if ((sce->adt) && !(filterflag & ADS_FILTER_NOSCE)) {
 			adt= sce->adt;
 			
-			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
 			if (adt->action) 
 				action_to_keylist(adt, adt->action, keys, blocks);
 		}
@@ -685,7 +640,6 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 		if ((sce->world) && (sce->world->adt) && !(filterflag & ADS_FILTER_NOWOR)) {
 			adt= sce->world->adt;
 			
-			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
 			if (adt->action) 
 				action_to_keylist(adt, adt->action, keys, blocks);
 		}
@@ -694,7 +648,6 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 		if ((sce->nodetree) && (sce->nodetree->adt) && !(filterflag & ADS_FILTER_NONTREE)) {
 			adt= sce->nodetree->adt;
 			
-			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
 			if (adt->action) 
 				action_to_keylist(adt, adt->action, keys, blocks);
 		}
@@ -810,7 +763,6 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree 
 		}
 		
 		/* update the number of curves that elements have appeared in  */
-		// FIXME: this is broken with the new tree structure for now...
 		if (keys)
 			set_touched_actkeycolumn(keys->root);
 		if (blocks)

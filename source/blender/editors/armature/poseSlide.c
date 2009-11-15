@@ -614,12 +614,12 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 		ActKeyColumn *ak;
 		
 		/* firstly, check if the current frame is a keyframe... */
-		ak= cfra_find_actkeycolumn(pso->keys.root, pso->cframe);
+		ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(&pso->keys, compare_ak_cfraPtr, &pso->cframe);
 		
 		if (ak == NULL) {
 			/* current frame is not a keyframe, so search */
-			ActKeyColumn *pk= cfra_find_nearest_next_ak(pso->keys.root, pso->cframe, 0);
-			ActKeyColumn *nk= cfra_find_nearest_next_ak(pso->keys.root, pso->cframe, 1);
+			ActKeyColumn *pk= (ActKeyColumn *)BLI_dlrbTree_search_prev(&pso->keys, compare_ak_cfraPtr, &pso->cframe);
+			ActKeyColumn *nk= (ActKeyColumn *)BLI_dlrbTree_search_next(&pso->keys, compare_ak_cfraPtr, &pso->cframe);
 			
 			/* check if we found good keyframes */
 			if ((pk == nk) && (pk != NULL)) {

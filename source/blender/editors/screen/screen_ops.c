@@ -1468,6 +1468,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
+	float cfra= (scene)? (float)(CFRA) : 0.0f;
 	short next= RNA_boolean_get(op->ptr, "next");
 	
 	/* sanity checks */
@@ -1486,21 +1487,18 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	/* build linked-list for searching */
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-	/* find nearest keyframe in the right direction */
-	ak= cfra_find_nearest_next_ak(keys.root, (float)scene->r.cfra, next);
+	/* find matching keyframe in the right direction */
+	if (next)
+		ak= (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
+	else
+		ak= (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
 	
 	/* set the new frame (if keyframe found) */
-	if (ak) {
-		if (next && ak->next)
-			scene->r.cfra= (int)ak->next->cfra;
-		else if (!next && ak->prev)
-			scene->r.cfra= (int)ak->prev->cfra;
-		else {
-			printf("ERROR: no suitable keyframe found. Using %f as new frame \n", ak->cfra);
-			scene->r.cfra= (int)ak->cfra; // XXX
-		}
-	}
-		
+	if (ak) 
+		CFRA= (int)ak->cfra;
+	else
+		BKE_report(op->reports, RPT_ERROR, "No more keyframes to jump to in this direction");
+	
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
 	
