@@ -1017,20 +1017,18 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
  	static EnumPropertyItem stereo_modes_items[] ={
-//		{STEREO_NOSTEREO, "NO_STEREO", 0, "No Stereo", ""},
 		{STEREO_QUADBUFFERED, "QUADBUFFERED", 0, "Quad-Buffer", ""},
 		{STEREO_ABOVEBELOW, "ABOVEBELOW", 0, "Above-Below", ""},
 		{STEREO_INTERLACED, "INTERLACED", 0, "Interlaced", ""},
 		{STEREO_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph", ""},
 		{STEREO_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-side", ""},
 		{STEREO_VINTERLACE, "VINTERLACE", 0, "Vinterlace", ""},
-//		{STEREO_DOME, "DOME", 0, "Dome", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
  	static EnumPropertyItem stereo_items[] ={
-		{STEREO_NOSTEREO, "NONE", 0, "None", ""},
-		{STEREO_ENABLED, "STEREO", 0, "Stereo", ""},
-		{STEREO_DOME, "DOME", 0, "Dome", ""},
+		{STEREO_NOSTEREO, "NONE", 0, "None", "Disable Stereo and Dome enviroments"},
+		{STEREO_ENABLED, "STEREO", 0, "Stereo", "Enable Stereo enviroment"},
+		{STEREO_DOME, "DOME", 0, "Dome", "Enable Dome enviroment"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem physics_engine_items[] = {
@@ -1093,7 +1091,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "framing_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "framing.col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "", "");
+	RNA_def_property_ui_text(prop, "Framing Color", "Set colour of the bars");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	/* Stereo */
@@ -1106,14 +1104,14 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "stereo_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stereomode");
 	RNA_def_property_enum_items(prop, stereo_modes_items);
-	RNA_def_property_ui_text(prop, "Stereo Mode", "");
+	RNA_def_property_ui_text(prop, "Stereo Mode", "Stereographic techniques");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* Dome */
 	prop= RNA_def_property(srna, "dome_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "dome.mode");
 	RNA_def_property_enum_items(prop, dome_modes_items);
-	RNA_def_property_ui_text(prop, "Dome Mode", "");
+	RNA_def_property_ui_text(prop, "Dome Mode", "Dome physical configurations");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop= RNA_def_property(srna, "dome_tesselation", PROP_INT, PROP_NONE);
