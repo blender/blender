@@ -1169,13 +1169,15 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 			UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
 									 &mx, &my);
 			
-			if(node->flag & NODE_HIDDEN) {
-				node->miniwidth= nsw->oldwidth + mx - nsw->mxstart;
-				CLAMP(node->miniwidth, 0.0f, 100.0f);
-			}
-			else {
-				node->width= nsw->oldwidth + mx - nsw->mxstart;
-				CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
+			if (node) {
+				if(node->flag & NODE_HIDDEN) {
+					node->miniwidth= nsw->oldwidth + mx - nsw->mxstart;
+					CLAMP(node->miniwidth, 0.0f, 100.0f);
+				}
+				else {
+					node->width= nsw->oldwidth + mx - nsw->mxstart;
+					CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
+				}
 			}
 				
 			ED_region_tag_redraw(ar);
