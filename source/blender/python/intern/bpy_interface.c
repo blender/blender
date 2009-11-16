@@ -74,6 +74,7 @@
 #include "../generic/Mathutils.h"
 #include "../generic/Geometry.h"
 #include "../generic/BGL.h"
+#include "../generic/IDProp.h"
 
 
 /* for internal use, when starting and ending python scripts */
@@ -176,12 +177,6 @@ static BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
 static void bpy_init_modules( void )
 {
 	PyObject *mod;
-	
-	/* stand alone utility modules not related to blender directly */
-	Geometry_Init();
-	Mathutils_Init();
-	BGL_Init();
-	IDProp_Init_Types();
 
 	/* Needs to be first since this dir is needed for future modules */
 	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
@@ -192,6 +187,13 @@ static void bpy_init_modules( void )
 		Py_DECREF(py_modpath);
 	}
 	
+	/* stand alone utility modules not related to blender directly */
+	Geometry_Init();
+	Mathutils_Init();
+	BGL_Init();
+	IDProp_Init_Types();
+
+
 	mod = PyModule_New("_bpy");
 
 	/* add the module so we can import it */
