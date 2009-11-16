@@ -51,6 +51,7 @@ CPPFLAGS += -I../../blender/makesrna
 CPPFLAGS += -I../../blender/editors/include
 CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel
+CPPFLAGS += -I../../blender/blenloader
 CPPFLAGS += -I../../blender/render/extern/include
 CPPFLAGS += -I../../blender/gpu
 CPPFLAGS += -I../../blender/ikplugin
