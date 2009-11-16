@@ -2114,8 +2114,11 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 				if(RNA_struct_is_ID(type)) {
 					RNA_id_pointer_create(*(void**)data, &newptr);
 				} else {
-					/* XXX this is missing the ID part! */
-					RNA_pointer_create(NULL, type, *(void**)data, &newptr);
+					/* note: this is taken from the function's ID pointer
+					 * and will break if a function returns a pointer from
+					 * another ID block, watch this! - it should at least be
+					 * easy to debug since they are all ID's */
+					RNA_pointer_create(ptr->id.data, type, *(void**)data, &newptr);
 				}
 			}
 
@@ -2179,8 +2182,10 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 	
-	/* setup */
-	RNA_pointer_create(NULL, &RNA_Function, self_func, &funcptr);
+	/* include the ID pointer for pyrna_param_to_py() so we can include the
+	 * ID pointer on return values, this only works when returned values have
+	 * the same ID as the functions. */
+	RNA_pointer_create(self_ptr->id.data, &RNA_Function, self_func, &funcptr);
 
 	pret= RNA_function_return(self_func);
 	args_len= PyTuple_GET_SIZE(args);
