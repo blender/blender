@@ -106,6 +106,8 @@ void OBJECT_OT_convert(struct wmOperatorType *ot);
 int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r);
 void object_hook_select(Object *obedit, struct HookModifierData *hmd);
 
+void OBJECT_OT_hook_add(struct wmOperatorType *ot);
+
 /* object_lattice.c */
 void free_editLatt(Object *ob);
 void make_editLatt(Object *obedit);

@@ -157,7 +157,7 @@ void ED_operatormacros_mesh(void)
 {
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
-	int constraint_axis[3] = {0, 0, 1};
+//	int constraint_axis[3] = {0, 0, 1};
 
 	/*combining operators with invoke and exec portions doesn't work yet.
 	
@@ -231,7 +231,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 	WM_keymap_add_item(keymap, "MESH_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-	
+
 	/* tools */
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
@@ -296,6 +296,9 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", VKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_edit_mesh_vertices");
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", HKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_hook");
 
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
     RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_uv_map");

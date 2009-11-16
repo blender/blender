@@ -43,17 +43,25 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
+#include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
+#include "RNA_define.h"
+#include "RNA_access.h"
+
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_view3d.h"
+
+#include "WM_types.h"
+#include "WM_api.h"
 
 #include "object_intern.h"
 
@@ -608,5 +616,44 @@ void hookmenu(Scene *scene, View3D *v3d)
 	
 	if (changed) {
 	}	
+}
+
+static int object_add_hook_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+
+	int mode= RNA_enum_get(op->ptr, "type");
+
+	// XXX - todo, break up this function for different operators
+	// and detect if this finished correctly or not,
+	add_hook(scene, v3d, mode);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_add(wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_new_hook_types[] = {
+		{1, "NEW", 0, "New Object", "Create a new object and assign the verts to it."},
+		{2, "SELECTED", 0, "Selection", "Add the hook to the selected object."},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Add Hook";
+	ot->description= "Add hook to selected verts.";
+	ot->idname= "OBJECT_OT_hook_add";
+
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_add_hook_exec;
+//	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "type", prop_new_hook_types, 0, "Type", "");
 }
 

@@ -188,6 +188,8 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_group_add);
 	WM_operatortype_append(OBJECT_OT_group_remove);
+
+	WM_operatortype_append(OBJECT_OT_hook_add);
 }
 
 void ED_operatormacros_object(void)

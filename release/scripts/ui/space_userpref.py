@@ -29,11 +29,11 @@ class USERPREF_HT_header(bpy.types.Header):
 
         userpref = context.user_preferences
 
-        layout.operator_context = "EXEC_AREA"
+        layout.operator_context = 'EXEC_AREA'
         layout.itemO("wm.save_homefile", text="Save As Default")
 
         if userpref.active_section == 'INPUT':
-            layout.operator_context = "INVOKE_DEFAULT"
+            layout.operator_context = 'INVOKE_DEFAULT'
             layout.itemO("wm.keyconfig_export", "Export Key Configuration...")
 
 

@@ -49,7 +49,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
         ob = context.object
 
         split = layout.split()
-        split.operator_context = "EXEC_DEFAULT"
+        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings

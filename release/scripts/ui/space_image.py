@@ -154,7 +154,7 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator_context = "EXEC_REGION_WIN"
+        layout.operator_context = 'EXEC_REGION_WIN'
 
         props = layout.itemO("tfm.mirror", text="X Axis", properties=True)
         props.constraint_axis[0] = True

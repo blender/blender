@@ -137,7 +137,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.operator_context = "INVOKE_REGION_WIN"
+        layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.itemO("view3d.clip_border", text="Clipping Border...")
         layout.itemO("view3d.zoom_border", text="Zoom Border...")
@@ -668,6 +668,18 @@ class VIEW3D_MT_paint_vertex(bpy.types.Menu):
         props = layout.itemO("paint.vertex_color_set", text="Set Selected Vertex Colors", properties=True)
         props.selected = True
 
+
+class VIEW3D_MT_hook(bpy.types.Menu):
+    bl_label = "Hooks"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'EXEC_AREA'
+        layout.items_enumO("object.hook_add", "type")
+        # layout.itemS()
+        # Other operators still need porting
+
+
 # ********** Sculpt menu **********
 
 
@@ -782,7 +794,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.operator_context = "EXEC_AREA"
+        layout.operator_context = 'EXEC_AREA'
         layout.item_enumO("pose.autoside_names", "axis", 'XAXIS', text="AutoName Left/Right")
         layout.item_enumO("pose.autoside_names", "axis", 'YAXIS', text="AutoName Front/Back")
         layout.item_enumO("pose.autoside_names", "axis", 'ZAXIS', text="AutoName Top/Bottom")
@@ -791,7 +803,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.operator_context = "INVOKE_AREA"
+        layout.operator_context = 'INVOKE_AREA'
         layout.itemO("pose.armature_layers", text="Change Armature Layers...")
         layout.itemO("pose.bone_layers", text="Change Bone Layers...")
 
@@ -973,6 +985,10 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
         layout.itemO("object.vertex_group_blend")
         layout.itemO("mesh.shape_propagate_to_all")
 
+        layout.itemS()
+
+        layout.itemM("VIEW3D_MT_hook")
+
 
 class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
     bl_label = "Edges"
@@ -1127,6 +1143,10 @@ class VIEW3D_MT_edit_curve_ctrlpoints(bpy.types.Menu):
             layout.itemS()
 
             layout.item_menu_enumO("curve.handle_type_set", "type")
+
+            layout.itemS()
+
+            layout.itemM("VIEW3D_MT_hook")
 
 
 class VIEW3D_MT_edit_curve_segments(bpy.types.Menu):
@@ -1294,7 +1314,7 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.operator_context = "EXEC_AREA"
+        layout.operator_context = 'EXEC_AREA'
         layout.item_enumO("armature.autoside_names", "type", 'XAXIS', text="AutoName Left/Right")
         layout.item_enumO("armature.autoside_names", "type", 'YAXIS', text="AutoName Front/Back")
         layout.item_enumO("armature.autoside_names", "type", 'ZAXIS', text="AutoName Top/Bottom")
@@ -1302,7 +1322,7 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.operator_context = "INVOKE_DEFAULT"
+        layout.operator_context = 'INVOKE_DEFAULT'
         layout.itemO("armature.armature_layers")
         layout.itemO("armature.bone_layers")
 
@@ -1679,6 +1699,7 @@ bpy.types.register(VIEW3D_MT_object_showhide)
 bpy.types.register(VIEW3D_MT_make_single_user)
 bpy.types.register(VIEW3D_MT_make_links)
 
+bpy.types.register(VIEW3D_MT_hook)
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
 
