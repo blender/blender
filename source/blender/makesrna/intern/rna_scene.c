@@ -2178,12 +2178,11 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
-
+	
+	RNA_def_property_srna(cprop, "SceneObjects");
 	srna= RNA_def_struct(brna, "SceneObjects", NULL);
 	RNA_def_struct_sdna(srna, "Object");
 	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects.");
-
-	RNA_def_property_srna(cprop, "SceneObjects");
 
 #if 0
 	/* add object */
@@ -2229,11 +2228,10 @@ static void rna_def_scene_bases(BlenderRNA *brna, PropertyRNA *cprop)
 //	FunctionRNA *func;
 //	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "SceneBases");
 	srna= RNA_def_struct(brna, "SceneBases", NULL);
 	RNA_def_struct_sdna(srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Scene Bases", "Collection of scene bases.");
-
-	RNA_def_property_srna(cprop, "SceneBases");
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ObjectBase");

@@ -101,18 +101,7 @@ ListBase *get_active_constraints (Object *ob)
 /* single constraint */
 bConstraint *get_active_constraint (Object *ob)
 {
-	ListBase *lb= get_active_constraints(ob);
-
-	if (lb) {
-		bConstraint *con;
-		
-		for (con= lb->first; con; con=con->next) {
-			if (con->flag & CONSTRAINT_ACTIVE)
-				return con;
-		}
-	}
-	
-	return NULL;
+	return find_active_constraint(get_active_constraints(ob));
 }
 /* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
 /* ------------- PyConstraints ------------------ */
@@ -655,22 +644,12 @@ void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
 
 
 void ED_object_constraint_set_active(Object *ob, bConstraint *con)
-{
-	ListBase *lb;
-	bConstraint *origcon= con;
-	
+{	
 	/* lets be nice and escape if its active already */
 	if(con && (con->flag & CONSTRAINT_ACTIVE))
 		return ;
 	
-	lb= get_active_constraints(ob);
-	if(lb == NULL)
-		return;
-	
-	for(con= lb->first; con; con= con->next) {
-		if(con==origcon) con->flag |= CONSTRAINT_ACTIVE;
-		else con->flag &= ~CONSTRAINT_ACTIVE;
-	}
+	set_active_constraint(get_active_constraints(ob), con);
 }
 
 void ED_object_constraint_update(Object *ob)
@@ -1373,8 +1352,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *op)
 		for (con= pchan->constraints.first; con; con= next) {
 			next= con->next;
 			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
-				free_constraint_data(con);
-				BLI_freelinkN(&pchan->constraints, con);
+				remove_constraint(&pchan->constraints, con);
 			}
 		}
 		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);

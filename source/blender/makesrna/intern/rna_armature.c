@@ -633,11 +633,11 @@ static void rna_def_armature_bones(BlenderRNA *brna, PropertyRNA *cprop)
 //	FunctionRNA *func;
 //	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "ArmatureBones");
 	srna= RNA_def_struct(brna, "ArmatureBones", NULL);
 	RNA_def_struct_sdna(srna, "bArmature");
 	RNA_def_struct_ui_text(srna, "Armature Bones", "Collection of armature bones.");
 
-	RNA_def_property_srna(cprop, "ArmatureBones");
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Bone");
@@ -659,11 +659,10 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 //	FunctionRNA *func;
 //	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "ArmatureEditBones");
 	srna= RNA_def_struct(brna, "ArmatureEditBones", NULL);
 	RNA_def_struct_sdna(srna, "bArmature");
 	RNA_def_struct_ui_text(srna, "Armature EditBones", "Collection of armature edit bones.");
-
-	RNA_def_property_srna(cprop, "ArmatureEditBones");
 
 	prop= RNA_def_property(srna, "edit_bones", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "EditBone");

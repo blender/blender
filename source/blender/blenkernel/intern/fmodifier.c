@@ -992,13 +992,13 @@ void copy_fmodifiers (ListBase *dst, ListBase *src)
 }
 
 /* Remove and free the given F-Modifier from the given stack  */
-void remove_fmodifier (ListBase *modifiers, FModifier *fcm)
+int remove_fmodifier (ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 	
 	/* sanity check */
 	if (fcm == NULL)
-		return;
+		return 0;
 	
 	/* free modifier's special data (stored inside fcm->data) */
 	if (fcm->data) {
@@ -1010,12 +1010,24 @@ void remove_fmodifier (ListBase *modifiers, FModifier *fcm)
 	}
 	
 	/* remove modifier from stack */
-	if (modifiers)
+	if (modifiers) {
 		BLI_freelinkN(modifiers, fcm);
-	else {
+		return 1;
+	} else {
 		// XXX this case can probably be removed some day, as it shouldn't happen...
 		printf("remove_fmodifier() - no modifier stack given \n");
 		MEM_freeN(fcm);
+		return 0;
+	}
+}
+int remove_fmodifier_index (ListBase *modifiers, int index)
+{
+	FModifier *fcm= BLI_findlink(modifiers, index);
+	if(fcm) {
+		return remove_fmodifier(modifiers, fcm);
+	}
+	else {
+		return 0;
 	}
 }
 

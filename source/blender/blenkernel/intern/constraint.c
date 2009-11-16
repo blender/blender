@@ -3690,6 +3690,52 @@ bConstraint *add_ob_constraint(Object *ob, const char *name, short type)
 	return add_new_constraint(ob, NULL, name, type);
 }
 
+struct bConstraint *find_active_constraint(ListBase *constraints)
+{
+	bConstraint *con;
+	if (constraints==NULL)
+		return NULL;
+
+	for(con= constraints->first; con; con= con->next) {
+		if(con->flag & CONSTRAINT_ACTIVE)
+			return con;
+	}
+
+	return NULL;
+}
+
+void set_active_constraint(ListBase *constraints, struct bConstraint *con)
+{
+	bConstraint *con_i;
+	for(con_i= constraints->first; con_i; con_i= con_i->next) {
+		if(con_i==con) con->flag |= CONSTRAINT_ACTIVE;
+		else con->flag &= ~CONSTRAINT_ACTIVE;
+	}
+}
+
+int remove_constraint(ListBase *constraints, struct bConstraint *con)
+{
+	if(con) {
+		free_constraint_data(con);
+		BLI_freelinkN(constraints, con);
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+int remove_constraint_index(ListBase *constraints, int index)
+{
+	bConstraint *con= BLI_findlink(constraints, index);
+	if(con) {
+		return remove_constraint(constraints, con);
+	}
+	else {
+		return 0;
+	}
+}
+
 /* ************************* General Constraints API ************************** */
 /* The functions here are called by various parts of Blender. Very few (should be none if possible)
  * constraint-specific code should occur here.

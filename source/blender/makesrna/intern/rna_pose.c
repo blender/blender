@@ -419,30 +419,17 @@ static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *r
 static PointerRNA rna_PoseChannel_active_constraint_get(PointerRNA *ptr)
 {
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
-
-	bConstraint *con;
-	for(con= pchan->constraints.first; con; con= con->next) {
-		if(con->flag & CONSTRAINT_ACTIVE)
-			break;
-	}
-
+	bConstraint *con= find_active_constraint(&pchan->constraints);
 	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
 }
 
 static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 {
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
-
-	bConstraint *con;
-	for(con= pchan->constraints.first; con; con= con->next) {
-		if(value.data==con)
-			con->flag |= CONSTRAINT_ACTIVE;
-		else
-			con->flag &= ~CONSTRAINT_ACTIVE;
-	}
+	set_active_constraint(&pchan->constraints, (bConstraint *)value.data);
 }
 
-static bConstraint *rna_PoseChannel_constraints_add(bPoseChannel *pchan, bContext *C, int type)
+static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, bContext *C, int type)
 {
 	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	// TODO, pass object also
@@ -452,20 +439,10 @@ static bConstraint *rna_PoseChannel_constraints_add(bPoseChannel *pchan, bContex
 
 static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, bContext *C, int index)
 {
-	bConstraint *con= BLI_findlink(&pchan->constraints, index);
-
-	if(con) {
-		free_constraint_data(con);
-		BLI_freelinkN(&pchan->constraints, con);
-
-		//ED_object_constraint_set_active(object, NULL);
-		//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
-
-		return 1;
-	}
-	else {
-		return 0;
-	}
+	// TODO
+	//ED_object_constraint_set_active(object, NULL);
+	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+	return remove_constraint_index(&pchan->constraints, index);
 }
 
 #else
@@ -549,11 +526,10 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "PoseChannelConstraints");
 	srna= RNA_def_struct(brna, "PoseChannelConstraints", NULL);
 	RNA_def_struct_sdna(srna, "bPoseChannel");
 	RNA_def_struct_ui_text(srna, "PoseChannel Constraints", "Collection of object constraints.");
-
-	RNA_def_property_srna(cprop, "PoseChannelConstraints");
 
 	/* Collection active property */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -564,7 +540,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 
 
 	/* Constraint collection */
-	func= RNA_def_function(srna, "add", "rna_PoseChannel_constraints_add");
+	func= RNA_def_function(srna, "new", "rna_PoseChannel_constraints_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a constraint to this object");
 	/* return type */

@@ -865,29 +865,17 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	bConstraint *con;
-	for(con= ob->constraints.first; con; con= con->next) {
-		if(con->flag & CONSTRAINT_ACTIVE)
-			break;
-	}
-
+	bConstraint *con= find_active_constraint(&ob->constraints);
 	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
 }
 
 static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob= (Object*)ptr->id.data;
-	bConstraint *con;
-	for(con= ob->constraints.first; con; con= con->next) {
-		if(value.data==con)
-			con->flag |= CONSTRAINT_ACTIVE;
-		else
-			con->flag &= ~CONSTRAINT_ACTIVE;
-	}
+	set_active_constraint(&ob->constraints, (bConstraint *)value.data);
 }
 
-
-static bConstraint *rna_Object_constraints_add(Object *object, bContext *C, int type)
+static bConstraint *rna_Object_constraints_new(Object *object, bContext *C, int type)
 {
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	return add_ob_constraint(object, NULL, type);
@@ -895,20 +883,13 @@ static bConstraint *rna_Object_constraints_add(Object *object, bContext *C, int 
 
 static int rna_Object_constraints_remove(Object *object, bContext *C, int index)
 {
-	bConstraint *con= BLI_findlink(&object->constraints, index);
-
-	if(con) {
-		free_constraint_data(con);
-		BLI_freelinkN(&object->constraints, con);
-
+	int ok = remove_constraint_index(&object->constraints, index);
+	if(ok) {
 		ED_object_constraint_set_active(object, NULL);
 		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+	}
 
-		return 1;
-	}
-	else {
-		return 0;
-	}
+	return ok;
 }
 
 #else
@@ -1187,11 +1168,10 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "ObjectConstraints");
 	srna= RNA_def_struct(brna, "ObjectConstraints", NULL);
 	RNA_def_struct_sdna(srna, "Object");
 	RNA_def_struct_ui_text(srna, "Object Constraints", "Collection of object constraints.");
-
-	RNA_def_property_srna(cprop, "ObjectConstraints");
 
 
 	/* Collection active property */
@@ -1203,9 +1183,9 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 
 
 	/* Constraint collection */
-	func= RNA_def_function(srna, "add", "rna_Object_constraints_add");
+	func= RNA_def_function(srna, "new", "rna_Object_constraints_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Add a constraint to this object");
+	RNA_def_function_ui_description(func, "Add a new constraint to this object");
 	/* return type */
 	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
 	RNA_def_function_return(func, parm);

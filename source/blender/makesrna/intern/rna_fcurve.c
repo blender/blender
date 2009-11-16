@@ -190,18 +190,9 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 		fcu->rna_path= NULL;
 }
 
-DriverTarget *rna_Driver_add_target(ChannelDriver *driver, char *name)
+DriverTarget *rna_Driver_new_target(ChannelDriver *driver)
 {
-	DriverTarget *dtar= driver_add_new_target(driver);
-
-	/* set the name if given */
-	if (name && name[0]) {
-		BLI_strncpy(dtar->name, name, 64);
-		BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);
-	}
-
-	/* return this target for the users to play with */
-	return dtar;
+	return driver_add_new_target(driver);
 }
 
 void rna_Driver_remove_target(ChannelDriver *driver, DriverTarget *dtar)
@@ -210,8 +201,31 @@ void rna_Driver_remove_target(ChannelDriver *driver, DriverTarget *dtar)
 	driver_free_target(driver, dtar);
 }
 
-#else
 
+static PointerRNA rna_FCurve_active_modifier_get(PointerRNA *ptr)
+{
+	FCurve *fcu= (FCurve*)ptr->data;
+	FModifier *fcm= find_active_fmodifier(&fcu->modifiers);
+	return rna_pointer_inherit_refine(ptr, &RNA_FModifier, fcm);
+}
+
+static void rna_FCurve_active_modifier_set(PointerRNA *ptr, PointerRNA value)
+{
+	FCurve *fcu= (FCurve*)ptr->data;
+	set_active_fmodifier(&fcu->modifiers, (FModifier *)value.data);
+}
+
+static FModifier *rna_FCurve_modifiers_new(FCurve *fcu, bContext *C, int type)
+{
+	return add_fmodifier(&fcu->modifiers, type);
+}
+
+static int rna_FCurve_modifiers_remove(FCurve *fcu, bContext *C, int index)
+{
+	return remove_fmodifier_index(&fcu->modifiers, index);
+}
+
+#else
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
 {
@@ -623,21 +637,18 @@ static void rna_def_channeldriver_targets(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "ChannelDriverTargets");
 	srna= RNA_def_struct(brna, "ChannelDriverTargets", NULL);
 	RNA_def_struct_sdna(srna, "ChannelDriver");
 	RNA_def_struct_ui_text(srna, "ChannelDriver Targets", "Collection of channel driver Targets.");
 
-	RNA_def_property_srna(cprop, "ChannelDriverTargets");
-
 
 	/* add target */
-	func= RNA_def_function(srna, "add", "rna_Driver_add_target");
+	func= RNA_def_function(srna, "new", "rna_Driver_new_target");
 	RNA_def_function_ui_description(func, "Add a new target for the driver.");
 		/* return type */
 	parm= RNA_def_pointer(func, "target", "DriverTarget", "", "Newly created Driver Target.");
 		RNA_def_function_return(func, parm);
-		/* optional name parameter */
-	parm= RNA_def_string(func, "name", "", 64, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
 
 	/* remove target */
 	func= RNA_def_function(srna, "remove", "rna_Driver_remove_target");
@@ -708,6 +719,52 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
 }
 
+/* channeldriver.targets.* */
+static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	/* add target */
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "FCurveModifiers");
+	srna= RNA_def_struct(brna, "FCurveModifiers", NULL);
+	RNA_def_struct_sdna(srna, "FCurve");
+	RNA_def_struct_ui_text(srna, "FCurve Modifiers", "Collection of fcurve modifiers.");
+
+
+	/* Collection active property */
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "FModifier");
+	RNA_def_property_pointer_funcs(prop, "rna_FCurve_active_modifier_get", "rna_FCurve_active_modifier_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active fcurve modifier", "Active fcurve modifier.");
+
+
+	/* Constraint collection */
+	func= RNA_def_function(srna, "new", "rna_FCurve_modifiers_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a constraint to this object");
+	/* return type */
+	parm= RNA_def_pointer(func, "fmodifier", "FModifier", "", "New fmodifier.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_enum(func, "type", fmodifier_type_items, 1, "", "Constraint type to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "remove", "rna_FCurve_modifiers_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove a modifier from this fcurve.");
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_fcurve(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -769,6 +826,8 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FModifier");
 	RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting the shape of the F-Curve.");
+
+	rna_def_fcurve_modifiers(brna, prop);
 }
 
 /* *********************** */

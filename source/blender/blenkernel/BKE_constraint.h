@@ -105,6 +105,13 @@ bConstraintTypeInfo *get_constraint_typeinfo(int type);
 struct bConstraint *add_ob_constraint(struct Object *ob, const char *name, short type);
 struct bConstraint *add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
 
+struct bConstraint *find_active_constraint(ListBase *constraints);
+void set_active_constraint(ListBase *constraints, struct bConstraint *con);
+
+
+int remove_constraint(ListBase *constraints, struct bConstraint *con);
+int remove_constraint_index(ListBase *constraints, int index);
+
 /* ---------------------------------------------------------------------------- */
 /* Useful macros for testing various common flag combinations */
 
