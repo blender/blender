@@ -17,14 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * Contributor(s): Joseph Eagar
+ * Contributor(s): Joseph Eagar, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #include <Python.h>
 
 struct ID;
@@ -52,6 +49,8 @@ typedef struct BPy_IDGroup_Iter {
 } BPy_IDGroup_Iter;
 
 PyObject *BPy_Wrap_IDProperty(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
+PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop );
+char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObject *ob);
 void IDProp_Init_Types(void);
 
 #define IDPROP_ITER_KEYS	0

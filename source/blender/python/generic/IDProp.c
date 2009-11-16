@@ -17,20 +17,18 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
  *
- * Contributor(s): Joseph Eagar
+ * Contributor(s): Joseph Eagar, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #include "DNA_ID.h"
 
 #include "BKE_idprop.h"
 
 #include "IDProp.h"
-#include "gen_utils.h"
+// #include "gen_utils.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -46,7 +44,7 @@ extern PyTypeObject IDGroup_Iter_Type;
 
 PyObject *IDGroup_repr( BPy_IDProperty *self )
 {
-	return PyString_FromString( "(ID Property)" );
+	return PyUnicode_FromFormat( "<bpy ID property from \"%s\">", self->id->name);
 }
 
 extern PyTypeObject IDGroup_Type;
@@ -55,9 +53,9 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 {
 	switch ( prop->type ) {
 		case IDP_STRING:
-			return PyString_FromString( prop->data.pointer );
+			return PyUnicode_FromString( prop->data.pointer );
 		case IDP_INT:
-			return PyInt_FromLong( (long)prop->data.val );
+			return PyLong_FromLong( (long)prop->data.val );
 		case IDP_FLOAT:
 			return PyFloat_FromDouble( (double)(*(float*)(&prop->data.val)) );
 		case IDP_DOUBLE:
@@ -66,10 +64,11 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 			/*blegh*/
 			{
 				BPy_IDProperty *group = PyObject_New(BPy_IDProperty, &IDGroup_Type);
-				if (!group)
-					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					   "PyObject_New() failed" );
-			
+				if (!group) {
+					PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
+					return NULL;
+				}
+
 				group->id = id;
 				group->prop = prop;
 				return (PyObject*) group;
@@ -77,10 +76,10 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 		case IDP_ARRAY:
 			{
 				BPy_IDProperty *array = PyObject_New(BPy_IDProperty, &IDArray_Type);
-				if (!array)
-					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					   "PyObject_New() failed" );
-					   
+				if (!array) {
+					PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
+					return NULL;
+				}
 				array->id = id;
 				array->prop = prop;
 				return (PyObject*) array;
@@ -95,10 +94,12 @@ int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 		case IDP_STRING:
 		{
 			char *st;
-			if (!PyString_Check(value))
-				return EXPP_ReturnIntError(PyExc_TypeError, "expected a string!");
+			if (!PyUnicode_Check(value)) {
+				PyErr_SetString(PyExc_TypeError, "expected a string!");
+				return -1;
+			}
 
-			st = PyString_AsString(value);
+			st = _PyUnicode_AsString(value);
 			IDP_ResizeArray(prop, strlen(st)+1);
 			strcpy(prop->data.pointer, st);
 			return 0;
@@ -106,72 +107,70 @@ int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 
 		case IDP_INT:
 		{
-			int ivalue;
-			if (!PyNumber_Check(value))
-				return EXPP_ReturnIntError(PyExc_TypeError, "expected an int!");
-			value = PyNumber_Int(value);
-			if (!value)
-				return EXPP_ReturnIntError(PyExc_TypeError, "expected an int!");
-			ivalue = (int) PyInt_AsLong(value);
+			int ivalue= PyLong_AsSsize_t(value);
+			if (ivalue==-1 && PyErr_Occurred()) {
+				PyErr_SetString(PyExc_TypeError, "expected an int type");
+				return -1;
+			}
 			prop->data.val = ivalue;
-			Py_XDECREF(value);
 			break;
 		}
 		case IDP_FLOAT:
 		{
-			float fvalue;
-			if (!PyNumber_Check(value))
-				return EXPP_ReturnIntError(PyExc_TypeError, "expected a float!");
-			value = PyNumber_Float(value);
-			if (!value)
-				return EXPP_ReturnIntError(PyExc_TypeError, "expected a float!");
-			fvalue = (float) PyFloat_AsDouble(value);
+			float fvalue= (float)PyFloat_AsDouble(value);
+			if (fvalue==-1 && PyErr_Occurred()) {
+				PyErr_SetString(PyExc_TypeError, "expected a float");
+				return -1;
+			}
 			*(float*)&self->prop->data.val = fvalue;
-			Py_XDECREF(value);
 			break;
 		}
 		case IDP_DOUBLE:
 		{
-			double dvalue;
-			if (!PyNumber_Check(value))
-				return EXPP_ReturnIntError(PyExc_TypeError, "expected a float!");
-			value = PyNumber_Float(value);
-			if (!value)
-				return EXPP_ReturnIntError(PyExc_TypeError, "expected a float!");
-			dvalue = (float) PyFloat_AsDouble(value);
+			double dvalue= PyFloat_AsDouble(value);
+			if (dvalue==-1 && PyErr_Occurred()) {
+				PyErr_SetString(PyExc_TypeError, "expected a float");
+				return -1;
+			}
 			*(double*)&self->prop->data.val = dvalue;
-			Py_XDECREF(value);
 			break;
 		}
 		default:
-			return EXPP_ReturnIntError(PyExc_AttributeError, "attempt to set read-only attribute!");
+			PyErr_SetString(PyExc_AttributeError, "attempt to set read-only attribute!");
+			return -1;
 	}
 	return 0;
 }
 
 PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self, void *bleh)
 {
-	return PyString_FromString(self->prop->name);
+	return PyUnicode_FromString(self->prop->name);
 }
 
 static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *bleh)
 {
 	char *st;
-	if (!PyString_Check(value))
-		return EXPP_ReturnIntError(PyExc_TypeError, "expected a string!");
+	if (!PyUnicode_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "expected a string!");
+		return -1;
+	}
 
-	st = PyString_AsString(value);
-	if (strlen(st) >= MAX_IDPROP_NAME)
-		return EXPP_ReturnIntError(PyExc_TypeError, "string length cannot exceed 31 characters!");
+	st = _PyUnicode_AsString(value);
+	if (strlen(st) >= MAX_IDPROP_NAME) {
+		PyErr_SetString(PyExc_TypeError, "string length cannot exceed 31 characters!");
+		return -1;
+	}
 
 	strcpy(self->prop->name, st);
 	return 0;
 }
 
+#if 0
 static PyObject *BPy_IDGroup_GetType(BPy_IDProperty *self)
 {
-	return PyInt_FromLong((long)self->prop->type);
+	return PyLong_FromSsize_t(self->prop->type);
 }
+#endif
 
 static PyGetSetDef BPy_IDGroup_getseters[] = {
 	{"name",
@@ -180,56 +179,67 @@ static PyGetSetDef BPy_IDGroup_getseters[] = {
 	 NULL},
 	 {NULL, NULL, NULL, NULL, NULL}
 };
-	 
-static int BPy_IDGroup_Map_Len(BPy_IDProperty *self)
+
+static Py_ssize_t BPy_IDGroup_Map_Len(BPy_IDProperty *self)
 {
-	if (self->prop->type != IDP_GROUP)
-		return EXPP_ReturnIntError( PyExc_TypeError,
-			"len() of unsized object");
-			
+	if (self->prop->type != IDP_GROUP) {
+		PyErr_SetString( PyExc_TypeError, "len() of unsized object");
+		return -1;
+	}
+
 	return self->prop->len;
 }
 
 static PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
 {
-	IDProperty *loop;
-	char *st;
-	
-	if (self->prop->type  != IDP_GROUP)
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"unsubscriptable object");
-			
-	if (!PyString_Check(item)) 
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"only strings are allowed as keys of ID properties");
-	
-	st = PyString_AsString(item);
-	for (loop=self->prop->data.group.first; loop; loop=loop->next) {
-		if (BSTR_EQ(loop->name, st)) return BPy_IDGroup_WrapData(self->id, loop);
+	IDProperty *idprop;
+	char *name;
+
+	if (self->prop->type  != IDP_GROUP) {
+		PyErr_SetString( PyExc_TypeError, "unsubscriptable object");
+		return NULL;
 	}
-	return EXPP_ReturnPyObjError( PyExc_KeyError,
-		"key not in subgroup dict");
+
+	name= _PyUnicode_AsString(item);
+
+	if (name == NULL) {
+		PyErr_SetString( PyExc_TypeError, "only strings are allowed as keys of ID properties");
+		return NULL;
+	}
+
+	idprop= IDP_GetPropertyFromGroup(self->prop, name);
+
+	if(idprop==NULL) {
+		PyErr_SetString( PyExc_KeyError, "key not in subgroup dict");
+		return NULL;
+	}
+
+	return BPy_IDGroup_WrapData(self->id, idprop);
+
 }
 
 /*returns NULL on success, error string on failure*/
-static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObject *ob)
+char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObject *ob)
 {
 	IDProperty *prop = NULL;
 	IDPropertyTemplate val = {0};
-	
+
+	if(strlen(name) >= sizeof(group->name))
+		return "the length of IDProperty names is limited to 31 characters";
+
 	if (PyFloat_Check(ob)) {
 		val.d = PyFloat_AsDouble(ob);
 		prop = IDP_New(IDP_DOUBLE, val, name);
-	} else if (PyInt_Check(ob)) {
-		val.i = (int) PyInt_AsLong(ob);
+	} else if (PyLong_Check(ob)) {
+		val.i = (int) PyLong_AsSsize_t(ob);
 		prop = IDP_New(IDP_INT, val, name);
-	} else if (PyString_Check(ob)) {
-		val.str = PyString_AsString(ob);
+	} else if (PyUnicode_Check(ob)) {
+		val.str = _PyUnicode_AsString(ob);
 		prop = IDP_New(IDP_STRING, val, name);
 	} else if (PySequence_Check(ob)) {
 		PyObject *item;
 		int i;
-		
+
 		/*validate sequence and derive type.
 		we assume IDP_INT unless we hit a float
 		number; then we assume it's */
@@ -238,21 +248,21 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 		for (i=0; i<val.array.len; i++) {
 			item = PySequence_GetItem(ob, i);
 			if (PyFloat_Check(item)) val.array.type = IDP_DOUBLE;
-			else if (!PyInt_Check(item)) return "only floats and ints are allowed in ID property arrays";
+			else if (!PyLong_Check(item)) {
+				Py_XDECREF(item);
+				return "only floats and ints are allowed in ID property arrays";
+			}
 			Py_XDECREF(item);
 		}
-		
+
 		prop = IDP_New(IDP_ARRAY, val, name);
 		for (i=0; i<val.array.len; i++) {
 			item = PySequence_GetItem(ob, i);
 			if (val.array.type == IDP_INT) {
-				item = PyNumber_Int(item);
-				((int*)prop->data.pointer)[i] = (int)PyInt_AsLong(item);
+				((int*)prop->data.pointer)[i] = (int)PyLong_AsSsize_t(item);
 			} else {
-				item = PyNumber_Float(item);
 				((double*)prop->data.pointer)[i] = (float)PyFloat_AsDouble(item);
 			}
-			Py_XDECREF(item);
 		}
 	} else if (PyMapping_Check(ob)) {
 		PyObject *keys, *vals, *key, *pval;
@@ -260,7 +270,7 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 		/*yay! we get into recursive stuff now!*/
 		keys = PyMapping_Keys(ob);
 		vals = PyMapping_Values(ob);
-		
+
 		/*we allocate the group first; if we hit any invalid data,
 		  we can delete it easily enough.*/
 		prop = IDP_New(IDP_GROUP, val, name);
@@ -268,7 +278,7 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 		for (i=0; i<len; i++) {
 			key = PySequence_GetItem(keys, i);
 			pval = PySequence_GetItem(vals, i);
-			if (!PyString_Check(key)) {
+			if (!PyUnicode_Check(key)) {
 				IDP_FreeProperty(prop);
 				MEM_freeN(prop);
 				Py_XDECREF(keys);
@@ -277,7 +287,7 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 				Py_XDECREF(pval);
 				return "invalid element in subgroup dict template!";
 			}
-			if (BPy_IDProperty_Map_ValidateAndCreate(PyString_AsString(key), prop, pval)) {
+			if (BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), prop, pval)) {
 				IDP_FreeProperty(prop);
 				MEM_freeN(prop);
 				Py_XDECREF(keys);
@@ -292,7 +302,7 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 		Py_XDECREF(keys);
 		Py_XDECREF(vals);
 	} else return "invalid property value";
-	
+
 	IDP_ReplaceInGroup(group, prop);
 	return NULL;
 }
@@ -300,38 +310,47 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject *val)
 {
 	char *err;
-	
-	if (self->prop->type  != IDP_GROUP)
-		return EXPP_ReturnIntError( PyExc_TypeError,
-			"unsubscriptable object");
-			
-	if (!PyString_Check(key))
-		return EXPP_ReturnIntError( PyExc_TypeError,
-		   "only strings are allowed as subgroup keys" );
+
+	if (self->prop->type  != IDP_GROUP) {
+		PyErr_SetString( PyExc_TypeError, "unsubscriptable object");
+		return -1;
+	}
+
+	if (!PyUnicode_Check(key)) {
+		PyErr_SetString( PyExc_TypeError, "only strings are allowed as subgroup keys" );
+		return -1;
+	}
 
 	if (val == NULL) {
-		IDProperty *pkey = IDP_GetPropertyFromGroup(self->prop, PyString_AsString(key));
+		IDProperty *pkey = IDP_GetPropertyFromGroup(self->prop, _PyUnicode_AsString(key));
 		if (pkey) {
 			IDP_RemFromGroup(self->prop, pkey);
 			IDP_FreeProperty(pkey);
 			MEM_freeN(pkey);
 			return 0;
-		} else return EXPP_ReturnIntError( PyExc_RuntimeError, "property not found in group" );
+		} else {
+			PyErr_SetString( PyExc_RuntimeError, "property not found in group" );
+			return -1;
+		}
 	}
-	
-	err = BPy_IDProperty_Map_ValidateAndCreate(PyString_AsString(key), self->prop, val);
-	if (err) return EXPP_ReturnIntError( PyExc_RuntimeError, err );
-	
+
+	err = BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), self->prop, val);
+	if (err) {
+		PyErr_SetString( PyExc_RuntimeError, err );
+		return -1;
+	}
+
 	return 0;
 }
 
 static PyObject *BPy_IDGroup_SpawnIterator(BPy_IDProperty *self)
 {
 	BPy_IDGroup_Iter *iter = PyObject_New(BPy_IDGroup_Iter, &IDGroup_Iter_Type);
-	
-	if (!iter)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		   "PyObject_New() failed" );
+
+	if (!iter) {
+		PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
+		return NULL;
+	}
 	iter->group = self;
 	iter->mode = IDPROP_ITER_KEYS;
 	iter->cur = self->prop->data.group.first;
@@ -343,7 +362,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 {
 	switch (prop->type) {
 		case IDP_STRING:
-			return PyString_FromString(prop->data.pointer);
+			return PyUnicode_FromString(prop->data.pointer);
 			break;
 		case IDP_FLOAT:
 			return PyFloat_FromDouble(*((float*)&prop->data.val));
@@ -352,26 +371,27 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 			return PyFloat_FromDouble(*((double*)&prop->data.val));
 			break;
 		case IDP_INT:
-			return PyInt_FromLong( (long)prop->data.val );
+			return PyLong_FromSsize_t( prop->data.val );
 			break;
 		case IDP_ARRAY:
 		{
 			PyObject *seq = PyList_New(prop->len);
 			int i;
-			
-			if (!seq) 
-				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					   "PyList_New() failed" );
-			
+
+			if (!seq) {
+				PyErr_SetString( PyExc_RuntimeError, "PyList_New() failed" );
+				return NULL;
+			}
+
 			for (i=0; i<prop->len; i++) {
 				if (prop->subtype == IDP_FLOAT) {
 						PyList_SetItem(seq, i,
 						PyFloat_FromDouble(((float*)prop->data.pointer)[i]));
 				} else if (prop->subtype == IDP_DOUBLE) {
 						PyList_SetItem(seq, i,
-						PyFloat_FromDouble(((double*)prop->data.pointer)[i]));				
+						PyFloat_FromDouble(((double*)prop->data.pointer)[i]));
 				} else 	{ PyList_SetItem(seq, i,
-						  PyInt_FromLong(((int*)prop->data.pointer)[i]));
+						  PyLong_FromLong(((int*)prop->data.pointer)[i]));
 				}
 			}
 			return seq;
@@ -380,65 +400,69 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 		{
 			PyObject *dict = PyDict_New(), *wrap;
 			IDProperty *loop;
-			
-			if (!dict)
-				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					   "PyDict_New() failed" );
-					   
+
+			if (!dict) {
+				PyErr_SetString( PyExc_RuntimeError, "PyDict_New() failed" );
+				return NULL;
+			}
+
 			for (loop=prop->data.group.first; loop; loop=loop->next) {
 				wrap = BPy_IDGroup_MapDataToPy(loop);
-				if (!wrap) 
-					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					   "BPy_IDGroup_MapDataToPy() failed" );
-					   
+				if (!wrap) {
+					PyErr_SetString( PyExc_RuntimeError, "BPy_IDGroup_MapDataToPy() failed" );
+					return NULL;
+				}
+
 				PyDict_SetItemString(dict, loop->name, wrap);
 			}
 			return dict;
 		}
 	}
-	
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					   "eek!! a property exists with a bad type code!!!" );
+
+	PyErr_SetString( PyExc_RuntimeError, "eek!! a property exists with a bad type code!!!" );
+	return NULL;
 }
 
 static PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 {
-	IDProperty *loop;
+	IDProperty *idprop;
 	PyObject *pyform;
-	char *name = PyString_AsString(value);
-	
-	if (!name) {
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-		   "pop expected at least 1 argument, got 0" );
-	}
-	
-	for (loop=self->prop->data.group.first; loop; loop=loop->next) {
-		if (BSTR_EQ(loop->name, name)) {
-			pyform = BPy_IDGroup_MapDataToPy(loop);
-			
-			if (!pyform)
-				/*ok something bad happened with the pyobject,
-				  so don't remove the prop from the group.  if pyform is
-				  NULL, then it already should have raised an exception.*/
-				  return NULL;
+	char *name = _PyUnicode_AsString(value);
 
-			IDP_RemFromGroup(self->prop, loop);
-			return pyform;
-		}
+	if (!name) {
+		PyErr_SetString( PyExc_TypeError, "pop expected at least 1 argument, got 0" );
+		return NULL;
 	}
-	
-	return EXPP_ReturnPyObjError( PyExc_KeyError,
-		   "item not in group" );
+
+	idprop= IDP_GetPropertyFromGroup(self->prop, name);
+
+	if(idprop) {
+		pyform = BPy_IDGroup_MapDataToPy(idprop);
+
+		if (!pyform) {
+			/*ok something bad happened with the pyobject,
+			  so don't remove the prop from the group.  if pyform is
+			  NULL, then it already should have raised an exception.*/
+			  return NULL;
+		}
+
+		IDP_RemFromGroup(self->prop, idprop);
+		return pyform;
+	}
+
+	PyErr_SetString( PyExc_KeyError, "item not in group" );
+	return NULL;
 }
 
 static PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
 {
 	BPy_IDGroup_Iter *iter = PyObject_New(BPy_IDGroup_Iter, &IDGroup_Iter_Type);
-	
-	if (!iter)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		   "PyObject_New() failed" );
-	
+
+	if (!iter) {
+		PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
+		return NULL;
+	}
+
 	iter->group = self;
 	iter->mode = IDPROP_ITER_ITEMS;
 	iter->cur = self->prop->data.group.first;
@@ -452,32 +476,33 @@ static PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 	IDProperty *loop;
 	int i, j;
 
-	if (!seq) 
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		   "PyList_New() failed" );
-		   
+	if (!seq) {
+		PyErr_SetString( PyExc_RuntimeError, "PyList_New() failed" );
+		return NULL;
+	}
+
 	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++)
-		PyList_SetItem(seq, i, PyString_FromString(loop->name));
-	
+		PyList_SetItem(seq, i, PyUnicode_FromString(loop->name));
+
 	if (i != self->prop->len) {
 		printf("ID Property Error found and corrected in BPy_IDGroup_GetKeys!\n");
-		
+
 		/*fill rest of list with valid references to None*/
 		for (j=i; j<self->prop->len; j++) {
 			Py_INCREF(Py_None);
 			PyList_SetItem(seq, j, Py_None);
 		}
-		
+
 		/*set correct group length*/
 		self->prop->len = i;
-		
+
 		/*free the list*/
 		Py_DECREF(seq);
-		
+
 		/*call self again*/
-		return BPy_IDGroup_GetKeys(self);		
+		return BPy_IDGroup_GetKeys(self);
 	}
-	
+
 	return seq;
 }
 
@@ -487,66 +512,64 @@ static PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
 	IDProperty *loop;
 	int i, j;
 
-	if (!seq) 
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		   "PyList_New() failed" );
-	
+	if (!seq) {
+		PyErr_SetString( PyExc_RuntimeError, "PyList_New() failed" );
+		return NULL;
+	}
+
 	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++) {
 		PyList_SetItem(seq, i, BPy_IDGroup_WrapData(self->id, loop));
 	}
 
 	if (i != self->prop->len) {
 		printf("ID Property Error found and corrected in BPy_IDGroup_GetValues!\n");
-		
+
 		/*fill rest of list with valid references to None*/
 		for (j=i; j<self->prop->len; j++) {
 			Py_INCREF(Py_None);
 			PyList_SetItem(seq, j, Py_None);
 		}
-		
+
 		/*set correct group length*/
 		self->prop->len = i;
-		
+
 		/*free the old list*/
 		Py_DECREF(seq);
-		
+
 		/*call self again*/
-		return BPy_IDGroup_GetValues(self);		
+		return BPy_IDGroup_GetValues(self);
 	}
-		
+
 	return seq;
 }
 
-static PyObject *BPy_IDGroup_HasKey(BPy_IDProperty *self, PyObject *value)
+static int BPy_IDGroup_Contains(BPy_IDProperty *self, PyObject *value)
 {
-	IDProperty *loop;
-	char *name = PyString_AsString(value);
-	
-	if (!name)
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-		   "expected a string");
-		   
-	for (loop=self->prop->data.group.first; loop; loop=loop->next) {
-		if (BSTR_EQ(loop->name, name)) Py_RETURN_TRUE;
+	char *name = _PyUnicode_AsString(value);
+
+	if (!name) {
+		PyErr_SetString( PyExc_TypeError, "expected a string");
+		return -1;
 	}
-	
-	Py_RETURN_FALSE;
+
+	return IDP_GetPropertyFromGroup(self->prop, name) ? 1:0;
 }
 
 static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *value)
 {
 	PyObject *pkey, *pval;
 	Py_ssize_t i=0;
-	
-	if (!PyDict_Check(value))
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-		   "expected an object derived from dict.");
-		   
+
+	if (!PyDict_Check(value)) {
+		PyErr_SetString( PyExc_TypeError, "expected an object derived from dict.");
+		return NULL;
+	}
+
 	while (PyDict_Next(value, &i, &pkey, &pval)) {
 		BPy_IDGroup_Map_SetItem(self, pkey, pval);
 		if (PyErr_Occurred()) return NULL;
 	}
-	
+
 	Py_RETURN_NONE;
 }
 
@@ -564,24 +587,34 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 		"get the keys associated with this group as a list of strings."},
 	{"values", (PyCFunction)BPy_IDGroup_GetValues, METH_NOARGS,
 		"get the values associated with this group."},
-	{"has_key", (PyCFunction)BPy_IDGroup_HasKey, METH_O,
-		"returns true if the group contains a key, false if not."},
 	{"update", (PyCFunction)BPy_IDGroup_Update, METH_O,
 		"updates the values in the group with the values of another or a dict."},
 	{"convert_to_pyobject", (PyCFunction)BPy_IDGroup_ConvertToPy, METH_NOARGS,
 		"return a purely python version of the group."},
 	{0, NULL, 0, NULL}
 };
-		
+
+static PySequenceMethods BPy_IDGroup_Seq = {
+	(lenfunc) BPy_IDGroup_Map_Len,			/* lenfunc sq_length */
+	0,									/* binaryfunc sq_concat */
+	0,									/* ssizeargfunc sq_repeat */
+	0,									/* ssizeargfunc sq_item */ /* TODO - setting this will allow PySequence_Check to return True */
+	0,									/* intintargfunc ***was_sq_slice*** */
+	0,									/* intobjargproc sq_ass_item */
+	0,									/* ssizeobjargproc ***was_sq_ass_slice*** */
+	(objobjproc) BPy_IDGroup_Contains,	/* objobjproc sq_contains */
+	0,									/* binaryfunc sq_inplace_concat */
+	0,									/* ssizeargfunc sq_inplace_repeat */
+};
+
 PyMappingMethods BPy_IDGroup_Mapping = {
-	(inquiry)BPy_IDGroup_Map_Len, 			/*inquiry mp_length */
+	(lenfunc)BPy_IDGroup_Map_Len, 			/*inquiry mp_length */
 	(binaryfunc)BPy_IDGroup_Map_GetItem,		/*binaryfunc mp_subscript */
 	(objobjargproc)BPy_IDGroup_Map_SetItem,	/*objobjargproc mp_ass_subscript */
 };
 
 PyTypeObject IDGroup_Type = {
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
 	"Blender IDProperty",           /* char *tp_name; */
 	sizeof( BPy_IDProperty ),       /* int tp_basicsize; */
@@ -599,8 +632,8 @@ PyTypeObject IDGroup_Type = {
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,	        			/* PySequenceMethods *tp_as_sequence; */
-	&BPy_IDGroup_Mapping,     /* PyMappingMethods *tp_as_mapping; */
+	&BPy_IDGroup_Seq,			/* PySequenceMethods *tp_as_sequence; */
+	&BPy_IDGroup_Mapping,		/* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
 
@@ -645,11 +678,12 @@ PyTypeObject IDGroup_Type = {
 PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent)
 {
 	BPy_IDProperty *wrap = PyObject_New(BPy_IDProperty, &IDGroup_Type);
-	
-	if (!wrap)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		   "PyObject_New() failed" );
-						   
+
+	if (!wrap) {
+		PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
+		return NULL;
+	}
+
 	wrap->prop = prop;
 	wrap->parent = parent;
 	wrap->id = id;
@@ -662,18 +696,18 @@ PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent)
 
 static PyObject *IDArray_repr(BPy_IDArray *self)
 {
-	return PyString_FromString("(ID Array)");
+	return PyUnicode_FromString("(ID Array)");
 }
 
 
 static PyObject *BPy_IDArray_GetType(BPy_IDArray *self)
 {
-	return PyInt_FromLong( (long)self->prop->subtype );
+	return PyLong_FromSsize_t( self->prop->subtype );
 }
 
 static PyObject *BPy_IDArray_GetLen(BPy_IDArray *self)
 {
-	return PyInt_FromLong( (long)self->prop->len );
+	return PyLong_FromSsize_t( self->prop->len );
 }
 
 static PyGetSetDef BPy_IDArray_getseters[] = {
@@ -684,7 +718,7 @@ static PyGetSetDef BPy_IDArray_getseters[] = {
 	{"type",
 	 (getter)BPy_IDArray_GetType, (setter)NULL,
 	 "The type of the data in the array, is an ant.",
-	 NULL},	
+	 NULL},
 	{NULL, NULL, NULL, NULL, NULL},
 };
 
@@ -695,9 +729,10 @@ static int BPy_IDArray_Len(BPy_IDArray *self)
 
 static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, int index)
 {
-	if (index < 0 || index >= self->prop->len)
-		return EXPP_ReturnPyObjError( PyExc_IndexError,
-				"index out of range!");
+	if (index < 0 || index >= self->prop->len) {
+		PyErr_SetString( PyExc_IndexError, "index out of range!");
+		return NULL;
+	}
 
 	switch (self->prop->subtype) {
 		case IDP_FLOAT:
@@ -705,70 +740,64 @@ static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, int index)
 			break;
 		case IDP_DOUBLE:
 			return PyFloat_FromDouble( (((double*)self->prop->data.pointer)[index]));
-			break;		
+			break;
 		case IDP_INT:
-			return PyInt_FromLong( (long)((int*)self->prop->data.pointer)[index] );
+			return PyLong_FromLong( (long)((int*)self->prop->data.pointer)[index] );
 			break;
 	}
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"invalid/corrupt array type!");
+
+	PyErr_SetString( PyExc_RuntimeError, "invalid/corrupt array type!");
+	return NULL;
 }
 
-static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *val)
+static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *value)
 {
 	int i;
 	float f;
 	double d;
-	
-	if (index < 0 || index >= self->prop->len)
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"index out of range!");
+
+	if (index < 0 || index >= self->prop->len) {
+		PyErr_SetString( PyExc_RuntimeError, "index out of range!");
+		return -1;
+	}
 
 	switch (self->prop->subtype) {
 		case IDP_FLOAT:
-			if (!PyNumber_Check(val)) return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected a float");
-			val = PyNumber_Float(val);
-			if (!val) return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected a float");
-
-			f = (float) PyFloat_AsDouble(val);
+			f= (float)PyFloat_AsDouble(value);
+			if (f==-1 && PyErr_Occurred()) {
+				PyErr_SetString(PyExc_TypeError, "expected a float");
+				return -1;
+			}
 			((float*)self->prop->data.pointer)[index] = f;
-			Py_XDECREF(val);
 			break;
 		case IDP_DOUBLE:
-			if (!PyNumber_Check(val)) return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected a float");
-			val = PyNumber_Float(val);
-			if (!val) return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected a float");
-
-			d = (double) PyFloat_AsDouble(val);
+			d= PyFloat_AsDouble(value);
+			if (d==-1 && PyErr_Occurred()) {
+				PyErr_SetString(PyExc_TypeError, "expected a float");
+				return -1;
+			}
 			((double*)self->prop->data.pointer)[index] = d;
-			Py_XDECREF(val);
 			break;
 		case IDP_INT:
-			if (!PyNumber_Check(val)) return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected an int");
-			val = PyNumber_Int(val);
-			if (!val) return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected an int");
+			i= PyLong_AsSsize_t(value);
+			if (i==-1 && PyErr_Occurred()) {
+				PyErr_SetString(PyExc_TypeError, "expected an int type");
+				return -1;
+			}
 
-			i = (int) PyInt_AsLong(val);
 			((int*)self->prop->data.pointer)[index] = i;
-			Py_XDECREF(val);
 			break;
 	}
 	return 0;
 }
 
 static PySequenceMethods BPy_IDArray_Seq = {
-	(inquiry) BPy_IDArray_Len,			/* inquiry sq_length */
+	(lenfunc) BPy_IDArray_Len,			/* inquiry sq_length */
 	0,									/* binaryfunc sq_concat */
 	0,									/* intargfunc sq_repeat */
-	(intargfunc)BPy_IDArray_GetItem,	/* intargfunc sq_item */
+	(ssizeargfunc)BPy_IDArray_GetItem,	/* intargfunc sq_item */
 	0,									/* intintargfunc sq_slice */
-	(intobjargproc)BPy_IDArray_SetItem,	/* intobjargproc sq_ass_item */
+	(ssizeobjargproc)BPy_IDArray_SetItem,	/* intobjargproc sq_ass_item */
 	0,									/* intintobjargproc sq_ass_slice */
 	0,									/* objobjproc sq_contains */
 				/* Added in release 2.0 */
@@ -777,8 +806,7 @@ static PySequenceMethods BPy_IDArray_Seq = {
 };
 
 PyTypeObject IDArray_Type = {
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
 	"Blender IDArray",           /* char *tp_name; */
 	sizeof( BPy_IDArray ),       /* int tp_basicsize; */
@@ -868,7 +896,7 @@ static PyObject *IDGroup_Iter_iterself(PyObject *self)
 
 static PyObject *IDGroup_Iter_repr(BPy_IDGroup_Iter *self)
 {
-	return PyString_FromString("(ID Property Group)");
+	return PyUnicode_FromString("(ID Property Group)");
 }
 
 static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
@@ -886,17 +914,16 @@ static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 			Py_DECREF(tmpval);
 			return ret;
 		} else {
-			return PyString_FromString(cur->name);
+			return PyUnicode_FromString(cur->name);
 		}
 	} else {
-		return EXPP_ReturnPyObjError( PyExc_StopIteration,
-				"iterator at end" );
+		PyErr_SetString( PyExc_StopIteration, "iterator at end" );
+		return NULL;
 	}
 }
 
 PyTypeObject IDGroup_Iter_Type = {
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
 	"Blender IDGroup_Iter",           /* char *tp_name; */
 	sizeof( BPy_IDGroup_Iter ),       /* int tp_basicsize; */
@@ -914,7 +941,7 @@ PyTypeObject IDGroup_Iter_Type = {
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,	        			/* PySequenceMethods *tp_as_sequence; */
+	NULL,						/* PySequenceMethods *tp_as_sequence; */
 	NULL,                       /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
