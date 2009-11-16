@@ -1262,6 +1262,58 @@ static PyMappingMethods pyrna_struct_as_mapping = {
 	( objobjargproc ) pyrna_struct_ass_subscript,	/* mp_ass_subscript */
 };
 
+static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
+{
+	IDProperty *group;
+
+	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+		PyErr_SetString( PyExc_TypeError, "this type doesnt support IDProperties");
+		return NULL;
+	}
+
+	group= RNA_struct_idproperties(&self->ptr, 0);
+
+	if(group==NULL)
+		return PyList_New(0);
+
+	return BPy_Wrap_GetKeys(group);
+}
+
+static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
+{
+	IDProperty *group;
+
+	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+		PyErr_SetString( PyExc_TypeError, "this type doesnt support IDProperties");
+		return NULL;
+	}
+
+	group= RNA_struct_idproperties(&self->ptr, 0);
+
+	if(group==NULL)
+		return PyList_New(0);
+
+	return BPy_Wrap_GetItems(self->ptr.id.data, group);
+}
+
+
+static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
+{
+	IDProperty *group;
+
+	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+		PyErr_SetString( PyExc_TypeError, "this type doesnt support IDProperties");
+		return NULL;
+	}
+
+	group= RNA_struct_idproperties(&self->ptr, 0);
+
+	if(group==NULL)
+		return PyList_New(0);
+
+	return BPy_Wrap_GetValues(self->ptr.id.data, group);
+}
+
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args)
 {
 	char *path, *path_full;
@@ -2061,6 +2113,11 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 }
 
 static struct PyMethodDef pyrna_struct_methods[] = {
+
+	/* only for PointerRNA's with ID'props */
+	{"keys", (PyCFunction)pyrna_struct_keys, METH_NOARGS, NULL},
+	{"values", (PyCFunction)pyrna_struct_values, METH_NOARGS, NULL},
+	{"items", (PyCFunction)pyrna_struct_items, METH_NOARGS, NULL},
 
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},

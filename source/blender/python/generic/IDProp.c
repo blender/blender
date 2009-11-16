@@ -385,12 +385,13 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 
 			for (i=0; i<prop->len; i++) {
 				if (prop->subtype == IDP_FLOAT) {
-						PyList_SetItem(seq, i,
+					PyList_SET_ITEM(seq, i,
 						PyFloat_FromDouble(((float*)prop->data.pointer)[i]));
 				} else if (prop->subtype == IDP_DOUBLE) {
-						PyList_SetItem(seq, i,
+					PyList_SET_ITEM(seq, i,
 						PyFloat_FromDouble(((double*)prop->data.pointer)[i]));
-				} else 	{ PyList_SetItem(seq, i,
+				} else 	{
+					PyList_SET_ITEM(seq, i,
 						  PyLong_FromLong(((int*)prop->data.pointer)[i]));
 				}
 			}
@@ -470,77 +471,99 @@ static PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
 	return (PyObject*) iter;
 }
 
-static PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
+/* utility function */
+static BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len)
 {
-	PyObject *seq = PyList_New(self->prop->len);
-	IDProperty *loop;
 	int i, j;
 
-	if (!seq) {
-		PyErr_SetString( PyExc_RuntimeError, "PyList_New() failed" );
-		return NULL;
+	printf("ID Property Error found and corrected in BPy_IDGroup_GetKeys/Values/Items!\n");
+
+	/*fill rest of list with valid references to None*/
+	for (j=i; j<prop->len; j++) {
+		Py_INCREF(Py_None);
+		PyList_SET_ITEM(seq, j, Py_None);
 	}
 
-	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++)
-		PyList_SetItem(seq, i, PyUnicode_FromString(loop->name));
+	/*set correct group length*/
+	prop->len = i;
+}
 
-	if (i != self->prop->len) {
-		printf("ID Property Error found and corrected in BPy_IDGroup_GetKeys!\n");
+PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
+{
+	PyObject *seq = PyList_New(prop->len);
+	IDProperty *loop;
+	int i;
 
-		/*fill rest of list with valid references to None*/
-		for (j=i; j<self->prop->len; j++) {
-			Py_INCREF(Py_None);
-			PyList_SetItem(seq, j, Py_None);
-		}
+	for (i=0, loop=prop->data.group.first; loop; loop=loop->next, i++)
+		PyList_SET_ITEM(seq, i, PyUnicode_FromString(loop->name));
 
-		/*set correct group length*/
-		self->prop->len = i;
-
-		/*free the list*/
-		Py_DECREF(seq);
-
+	if (i != prop->len) {
+		BPy_IDGroup_CorrectListLen(prop, seq, i);
+		Py_DECREF(seq); /*free the list*/
 		/*call self again*/
-		return BPy_IDGroup_GetKeys(self);
+		return BPy_Wrap_GetKeys(prop);
 	}
 
 	return seq;
 }
 
-static PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
+PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop)
 {
-	PyObject *seq = PyList_New(self->prop->len);
+	PyObject *seq = PyList_New(prop->len);
 	IDProperty *loop;
-	int i, j;
+	int i;
 
-	if (!seq) {
-		PyErr_SetString( PyExc_RuntimeError, "PyList_New() failed" );
-		return NULL;
+	for (i=0, loop=prop->data.group.first; loop; loop=loop->next, i++) {
+		PyList_SET_ITEM(seq, i, BPy_IDGroup_WrapData(id, loop));
 	}
 
-	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++) {
-		PyList_SetItem(seq, i, BPy_IDGroup_WrapData(self->id, loop));
-	}
-
-	if (i != self->prop->len) {
-		printf("ID Property Error found and corrected in BPy_IDGroup_GetValues!\n");
-
-		/*fill rest of list with valid references to None*/
-		for (j=i; j<self->prop->len; j++) {
-			Py_INCREF(Py_None);
-			PyList_SetItem(seq, j, Py_None);
-		}
-
-		/*set correct group length*/
-		self->prop->len = i;
-
-		/*free the old list*/
-		Py_DECREF(seq);
-
+	if (i != prop->len) {
+		BPy_IDGroup_CorrectListLen(prop, seq, i);
+		Py_DECREF(seq); /*free the list*/
 		/*call self again*/
-		return BPy_IDGroup_GetValues(self);
+		return BPy_Wrap_GetValues(id, prop);
 	}
 
 	return seq;
+}
+
+PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
+{
+	PyObject *seq = PyList_New(prop->len);
+	IDProperty *loop;
+	int i;
+
+	for (i=0, loop=prop->data.group.first; loop; loop=loop->next, i++) {
+		PyObject *item= PyTuple_New(2);
+		PyTuple_SET_ITEM(item, 0, PyUnicode_FromString(loop->name));
+		PyTuple_SET_ITEM(item, 1, BPy_IDGroup_WrapData(id, loop));
+		PyList_SET_ITEM(seq, i, item);
+	}
+
+	if (i != prop->len) {
+		BPy_IDGroup_CorrectListLen(prop, seq, i);
+		Py_DECREF(seq); /*free the list*/
+		/*call self again*/
+		return BPy_Wrap_GetItems(id, prop);
+	}
+
+	return seq;
+}
+
+
+static PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
+{
+	return BPy_Wrap_GetKeys(self->prop);
+}
+
+static PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
+{
+	return BPy_Wrap_GetValues(self->id, self->prop);
+}
+
+static PyObject *BPy_IDGroup_GetItems(BPy_IDProperty *self)
+{
+	return BPy_Wrap_GetItems(self->id, self->prop);
 }
 
 static int BPy_IDGroup_Contains(BPy_IDProperty *self, PyObject *value)
@@ -587,6 +610,8 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 		"get the keys associated with this group as a list of strings."},
 	{"values", (PyCFunction)BPy_IDGroup_GetValues, METH_NOARGS,
 		"get the values associated with this group."},
+	{"items", (PyCFunction)BPy_IDGroup_GetItems, METH_NOARGS,
+		"get the items associated with this group."},
 	{"update", (PyCFunction)BPy_IDGroup_Update, METH_O,
 		"updates the values in the group with the values of another or a dict."},
 	{"convert_to_pyobject", (PyCFunction)BPy_IDGroup_ConvertToPy, METH_NOARGS,
@@ -902,16 +927,15 @@ static PyObject *IDGroup_Iter_repr(BPy_IDGroup_Iter *self)
 static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 {
 	IDProperty *cur=NULL;
-	PyObject *tmpval;
 	PyObject *ret;
 
 	if (self->cur) {
 		cur = self->cur;
 		self->cur = self->cur->next;
 		if (self->mode == IDPROP_ITER_ITEMS) {
-			tmpval = BPy_IDGroup_WrapData(self->group->id, cur);
-			ret = Py_BuildValue("[s, O]", cur->name, tmpval);
-			Py_DECREF(tmpval);
+			ret = PyTuple_New(2);
+			PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(cur->name));
+			PyTuple_SET_ITEM(ret, 1, BPy_IDGroup_WrapData(self->group->id, cur));
 			return ret;
 		} else {
 			return PyUnicode_FromString(cur->name);
