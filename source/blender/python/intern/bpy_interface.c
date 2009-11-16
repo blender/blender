@@ -177,6 +177,12 @@ static void bpy_init_modules( void )
 {
 	PyObject *mod;
 	
+	/* stand alone utility modules not related to blender directly */
+	Geometry_Init();
+	Mathutils_Init();
+	BGL_Init();
+	IDProp_Init_Types();
+
 	/* Needs to be first since this dir is needed for future modules */
 	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
 	if(modpath) {
@@ -213,11 +219,6 @@ static void bpy_init_modules( void )
 
 		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 	}
-
-	/* stand alone utility modules not related to blender directly */
-	Geometry_Init();
-	Mathutils_Init();
-	BGL_Init();
 
 	/* add our own modules dir, this is a python package */
 	bpy_import_test("bpy");
