@@ -1506,7 +1506,7 @@ void *cgdm_faceIterCData(void *self, int type, int layer)
 void cgdm_loopIterStep(void *self)
 {
 	cgdm_loopIter *liter = self;
-	MFace *mf = &liter->fiter->mface;
+	MFace *mf = liter->fiter->mface;
 	int i, v1, v2;
 
 	liter->head.index++;
@@ -1638,10 +1638,12 @@ static void cgdm_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
 					                      edgeSize, gridSize);
 					mf->v4 = getFaceIndex(ss, f, S, x + 1, y + 0,
 					                      edgeSize, gridSize);
-					mf->mat_nr = mat_nr;
-					if(faceFlags) mf->flag = faceFlags[index*4];
-					else mf->flag = flag;
+					if (faceFlags) {
+						mat_nr = faceFlags[index*4+1];
+						mf->flag = faceFlags[index*4];
+					} else mf->flag = flag;
 
+					mf->mat_nr = mat_nr;
 					i++;
 				}
 			}
