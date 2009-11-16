@@ -999,7 +999,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_S
 	}
 	
 	if(GetMainDynamicPath(path)) {
-		snprintf(err_local, sizeof(err_local), "blend file alredy open \"%s\"\n", path);
+		snprintf(err_local, sizeof(err_local), "blend file already open \"%s\"\n", path);
 		*err_str= err_local;
 		return false;
 	}

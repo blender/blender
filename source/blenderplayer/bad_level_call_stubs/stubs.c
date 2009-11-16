@@ -108,7 +108,7 @@ struct wmKeyMap *WM_keymap_copy_to_user(struct wmKeyMap *kemap){return (struct w
 struct wmKeyConfig *WM_keyconfig_add(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
 void WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap){}
-
+int WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap) {return 0;}
 
 
 /* rna editors */
@@ -270,10 +270,9 @@ void CSG_FreeVertexDescriptor(struct CSG_VertexIteratorDescriptor * v_descriptor
 int CSG_OutputFaceDescriptor(struct CSG_BooleanOperation * operation, struct CSG_FaceIteratorDescriptor * output){return 0;}
 int CSG_OutputVertexDescriptor(struct CSG_BooleanOperation * operation, struct CSG_VertexIteratorDescriptor *output){return 0;}
 
-
-typedef struct CSG_VertexIteratorDescriptor {int a;} CSG_VertexIteratorDescriptor; 
-typedef struct CSG_FaceIteratorDescriptor {int a;} CSG_FaceIteratorDescriptor;
-typedef struct CSG_OperationType {int a;} CSG_OperationType;
+typedef struct CSG_VertexIteratorDescriptor {int a;} CSG_VertexIteratorDescriptor; //workaround to build CSG_PerformanceBoolean Operation
+typedef struct CSG_FaceIteratorDescriptor {int a;} CSG_FaceIteratorDescriptor; //workaround to build CSG_PerformanceBoolean Operation
+typedef struct CSG_OperationType {int a;} CSG_OperationType; //workaround to build CSG_PerformanceBoolean Operation
 
 int CSG_PerformBooleanOperation(
 	struct CSG_BooleanOperation			*operation,
