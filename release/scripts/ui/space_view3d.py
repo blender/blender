@@ -1381,7 +1381,7 @@ class VIEW3D_PT_3dview_item(bpy.types.Panel):
     bl_label = "Item"
 
     def poll(self, context):
-        return (context.active_object or context.active_bone or context.active_pchan)
+        return (context.active_object and (context.active_bone or context.active_pchan))
 
     def draw(self, context):
         layout = self.layout
