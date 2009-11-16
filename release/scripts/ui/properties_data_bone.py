@@ -274,9 +274,22 @@ class BONE_PT_deform(BoneButtonsPanel):
         col.itemL(text="Offset:")
         col.itemR(bone, "cyclic_offset")
 
+class BONE_PT_properties(BoneButtonsPanel):
+    bl_label = "Properties"
+    bl_default_closed = True
+
+    def draw(self, context):
+        import rna_prop_ui
+        # reload(rna_prop_ui)
+        
+        rna_prop_ui.draw(self.layout, context, "active_bone")
+        
+        
+
 bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)
 bpy.types.register(BONE_PT_transform_locks)
 bpy.types.register(BONE_PT_relations)
 bpy.types.register(BONE_PT_display)
 bpy.types.register(BONE_PT_deform)
+bpy.types.register(BONE_PT_properties)

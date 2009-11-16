@@ -292,6 +292,17 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.itemR(ob, "track_override_parent", text="Override Parent")
         row.active = ob.parent != None
 
+
+class OBJECT_PT_properties(ObjectButtonsPanel):
+    bl_label = "Properties"
+    bl_default_closed = True
+
+    def draw(self, context):
+        import rna_prop_ui
+        # reload(rna_prop_ui)
+        
+        rna_prop_ui.draw(self.layout, context, "object")
+
 bpy.types.register(OBJECT_PT_context_object)
 bpy.types.register(OBJECT_PT_transform)
 bpy.types.register(OBJECT_PT_transform_locks)
@@ -300,3 +311,4 @@ bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)
 bpy.types.register(OBJECT_PT_duplication)
 bpy.types.register(OBJECT_PT_animation)
+bpy.types.register(OBJECT_PT_properties)

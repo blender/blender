@@ -392,7 +392,6 @@ class WM_OT_reload_scripts(bpy.types.Operator):
         '''
         return ('FINISHED',)
 
-
 bpy.ops.add(MESH_OT_delete_edgeloop)
 
 bpy.ops.add(WM_OT_context_set_boolean)
@@ -409,3 +408,10 @@ bpy.ops.add(WM_OT_doc_view)
 bpy.ops.add(WM_OT_doc_edit)
 
 bpy.ops.add(WM_OT_reload_scripts)
+
+# experemental!
+import rna_prop_ui
+bpy.ops.add(rna_prop_ui.WM_OT_properties_edit_begin)
+bpy.ops.add(rna_prop_ui.WM_OT_properties_edit_end)
+bpy.ops.add(rna_prop_ui.WM_OT_properties_add)
+bpy.ops.add(rna_prop_ui.WM_OT_properties_remove)
