@@ -307,24 +307,17 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 	return NULL;
 }
 
-static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject *val)
+int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 {
-	char *err;
-
-	if (self->prop->type  != IDP_GROUP) {
+	if (prop->type  != IDP_GROUP) {
 		PyErr_SetString( PyExc_TypeError, "unsubscriptable object");
 		return -1;
 	}
 
-	if (!PyUnicode_Check(key)) {
-		PyErr_SetString( PyExc_TypeError, "only strings are allowed as subgroup keys" );
-		return -1;
-	}
-
-	if (val == NULL) {
-		IDProperty *pkey = IDP_GetPropertyFromGroup(self->prop, _PyUnicode_AsString(key));
+	if (val == NULL) { /* del idprop[key] */
+		IDProperty *pkey = IDP_GetPropertyFromGroup(prop, _PyUnicode_AsString(key));
 		if (pkey) {
-			IDP_RemFromGroup(self->prop, pkey);
+			IDP_RemFromGroup(prop, pkey);
 			IDP_FreeProperty(pkey);
 			MEM_freeN(pkey);
 			return 0;
@@ -333,14 +326,27 @@ static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject
 			return -1;
 		}
 	}
+	else {
+		char *err;
 
-	err = BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), self->prop, val);
-	if (err) {
-		PyErr_SetString( PyExc_RuntimeError, err );
-		return -1;
+		if (!PyUnicode_Check(key)) {
+			PyErr_SetString( PyExc_TypeError, "only strings are allowed as subgroup keys" );
+			return -1;
+		}
+
+		err = BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), prop, val);
+		if (err) {
+			PyErr_SetString( PyExc_RuntimeError, err );
+			return -1;
+		}
+
+		return 0;
 	}
+}
 
-	return 0;
+static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject *val)
+{
+	BPy_Wrap_SetMapItem(self->prop, key, val);
 }
 
 static PyObject *BPy_IDGroup_SpawnIterator(BPy_IDProperty *self)

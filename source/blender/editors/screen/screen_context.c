@@ -65,7 +65,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			"selected_editable_objects", "selected_editable_bases",
 			"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
 			"visible_pchans", "selected_pchans", "active_bone", "active_pchan",
-			"active_base", "active_object", "edit_object",
+			"active_base", "active_object", "object", "edit_object",
 			"sculpt_object", "vertex_paint_object", "weight_paint_object",
 			"texture_paint_object", "particle_edit_object", NULL};
 

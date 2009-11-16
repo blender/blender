@@ -52,6 +52,7 @@ PyObject *BPy_Wrap_IDProperty(struct ID *id, struct IDProperty *prop, struct IDP
 PyObject *BPy_Wrap_GetKeys(IDProperty *prop);
 PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop);
 PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop);
+int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val);
 
 
 PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop );

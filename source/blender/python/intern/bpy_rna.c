@@ -1225,35 +1225,18 @@ static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
 	}
 
 	return BPy_IDGroup_WrapData(self->ptr.id.data, idprop);
-
-
 }
 
 static int pyrna_struct_ass_subscript( BPy_StructRNA *self, PyObject *key, PyObject *value )
 {
-	IDProperty *group;
-	char *name= _PyUnicode_AsString(key);
-	char *err;
-
-	if(name==NULL) {
-		PyErr_SetString( PyExc_TypeError, "only strings are allowed as keys of ID properties");
-		return -1;
-	}
-
-	group= RNA_struct_idproperties(&self->ptr, 1);
+	IDProperty *group= RNA_struct_idproperties(&self->ptr, 1);
 
 	if(group==NULL) {
 		PyErr_SetString(PyExc_TypeError, "id properties not supported for this type");
 		return -1;
 	}
 
-	err = BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), group, value);
-	if (err) {
-		PyErr_SetString( PyExc_RuntimeError, err );
-		return -1;
-	}
-
-	return 0;
+	return BPy_Wrap_SetMapItem(group, key, value);
 }
 
 static PyMappingMethods pyrna_struct_as_mapping = {
