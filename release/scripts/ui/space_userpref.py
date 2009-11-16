@@ -1325,18 +1325,25 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         f.write("kc = wm.add_keyconfig(\'%s\')\n\n" % kc.name)
 
         for km in kc.keymaps:
+            km = km.active()
             f.write("# Map %s\n" % km.name)
-            f.write("km = kc.add_keymap(\'%s\', space_type=\'%s\', region_type=\'%s\')\n\n" % (km.name, km.space_type, km.region_type))
+            f.write("km = kc.add_keymap(\'%s\', space_type=\'%s\', region_type=\'%s\', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.modal))
             for kmi in km.items:
-                f.write("kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value))
-                if kmi.shift:
-                    f.write(", shift=True")
-                if kmi.ctrl:
-                    f.write(", ctrl=True")
-                if kmi.alt:
-                    f.write(", alt=True")
-                if kmi.oskey:
-                    f.write(", oskey=True")
+                if km.modal:
+                    f.write("kmi = km.add_modal_item(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value))
+                else:
+                    f.write("kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value))
+                if kmi.any:
+                    f.write(", any=True")
+                else:
+                    if kmi.shift:
+                        f.write(", shift=True")
+                    if kmi.ctrl:
+                        f.write(", ctrl=True")
+                    if kmi.alt:
+                        f.write(", alt=True")
+                    if kmi.oskey:
+                        f.write(", oskey=True")
                 if kmi.key_modifier and kmi.key_modifier != 'NONE':
                     f.write(", key_modifier=\'%s\'" % kmi.key_modifier)
                 f.write(")\n")
@@ -1403,7 +1410,10 @@ class WM_OT_keyitem_add(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         km = wm.active_keymap
-        km.add_item("", 'A', 'PRESS') # kmi
+        if km.modal:
+            km.add_modal_item("", 'A', 'PRESS') # kmi
+        else:
+            km.add_item("", 'A', 'PRESS') # kmi
         return ('FINISHED',)
 
 

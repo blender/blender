@@ -263,7 +263,7 @@ wmKeyMap *WM_modalkeymap_get(wmKeyConfig *keyconf, char *idname)
 }
 
 
-void WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value)
+wmKeyMapItem *WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value)
 {
 	wmKeyMapItem *kmi= MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 	
@@ -271,6 +271,8 @@ void WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modifier, int 
 	kmi->propvalue= value;
 	
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
+
+	return kmi;
 }
 
 void WM_modalkeymap_assign(wmKeyMap *km, char *opname)
