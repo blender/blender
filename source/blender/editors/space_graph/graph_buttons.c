@@ -324,7 +324,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
 		
 		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Remove Driver", 0, 0, 10*UI_UNIT_X, 18, NULL, 0.0, 0.0, 0, 0, "Remove this driver");
-		uiButSetFunc(but, driver_remove_cb, ale, NULL);
+		uiButSetNFunc(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
 		
 	/* driver-level settings - type, expressions, and errors */
 	RNA_pointer_create(ale->id, &RNA_Driver, driver, &driver_ptr);
