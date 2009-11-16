@@ -404,7 +404,8 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	
 	/* main adding function */
 	seq= sequencer_add_image_strip(C, ed->seqbasep, &seq_load);
-	se= seq->strip->stripdata;
+	strip= seq->strip;
+	se= strip->stripdata;
 
 	if(seq_load.len > 1) {
 		RNA_BEGIN(op->ptr, itemptr, "files") {
