@@ -287,7 +287,6 @@ static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float
 	}
 }
 
-
 #else
 
 EnumPropertyItem constraint_distance_items[] = {
@@ -1681,9 +1680,9 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem splineik_xz_scale_mode[] = {
-		{CONSTRAINT_SPLINEIK_XZS_NONE, "NONE", 0, "None", "Don't scale the x and z axes, giving a volume preservation effect. (Default)"},
+		{CONSTRAINT_SPLINEIK_XZS_NONE, "NONE", 0, "Volume Preserve", "Don't scale the x and z axes, giving a volume preservation effect. (Default)"},
 		{CONSTRAINT_SPLINEIK_XZS_RADIUS, "CURVE_RADIUS", 0, "Curve Radius", "Use the radius of the curve."},
-		{CONSTRAINT_SPLINEIK_XZS_ORIGINAL, "ORIGINAL", 0, "Original", "Use the original scaling of the bones."},
+		{CONSTRAINT_SPLINEIK_XZS_ORIGINAL, "BONE_ORIGINAL", 0, "Bone Original", "Use the original scaling of the bones."},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SplineIKConstraint", "Constraint");
@@ -1703,7 +1702,11 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Chain Length", "How many bones are included in the chain");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 	
-	// TODO: add access to the positions array to allow more flexible aligning?
+	/* direct access to bindings */
+	// NOTE: only to be used by experienced users
+	//prop= RNA_def_property(srna, "joint_bindings", PROP_FLOAT, PROP_FACTOR);
+	//RNA_def_property_collection_sdna(prop, NULL, "points", "numpoints");
+	//RNA_def_property_ui_text(prop, "Joint Bindings", "(EXPERIENCED USERS ONLY) The relative positions of the joints along the chain as percentages.");
 	
 	/* settings */
 	prop= RNA_def_property(srna, "chain_offset", PROP_BOOLEAN, PROP_NONE);

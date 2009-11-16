@@ -102,22 +102,11 @@ typedef struct bConstraintTypeInfo {
 bConstraintTypeInfo *constraint_get_typeinfo(struct bConstraint *con);
 bConstraintTypeInfo *get_constraint_typeinfo(int type);
 
-struct bConstraint *add_ob_constraint(struct Object *ob, const char *name, short type);
-struct bConstraint *add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
-
-struct bConstraint *find_active_constraint(ListBase *constraints);
-void set_active_constraint(ListBase *constraints, struct bConstraint *con);
-
-
-int remove_constraint(ListBase *constraints, struct bConstraint *con);
-int remove_constraint_index(ListBase *constraints, int index);
-
 /* ---------------------------------------------------------------------------- */
 /* Useful macros for testing various common flag combinations */
 
 /* Constraint Target Macros */
 #define VALID_CONS_TARGET(ct) ((ct) && (ct->tar))
-
 
 /* ---------------------------------------------------------------------------- */
 
@@ -129,7 +118,15 @@ void copy_constraints(struct ListBase *dst, struct ListBase *src);
 void relink_constraints(struct ListBase *list);
 void free_constraint_data(struct bConstraint *con);
 
+/* Constraint API function prototypes */
 struct bConstraint *constraints_get_active(struct ListBase *list);
+void constraints_set_active(ListBase *list, struct bConstraint *con);
+
+struct bConstraint *add_ob_constraint(struct Object *ob, const char *name, short type);
+struct bConstraint *add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
+
+int remove_constraint(ListBase *list, struct bConstraint *con);
+int remove_constraint_index(ListBase *list, int index);
 
 /* Constraints + Proxies function prototypes */
 void extract_proxylocal_constraints(struct ListBase *dst, struct ListBase *src);

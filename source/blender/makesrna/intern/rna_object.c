@@ -865,14 +865,14 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	bConstraint *con= find_active_constraint(&ob->constraints);
+	bConstraint *con= constraints_get_active(&ob->constraints);
 	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
 }
 
 static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob= (Object*)ptr->id.data;
-	set_active_constraint(&ob->constraints, (bConstraint *)value.data);
+	constraints_set_active(&ob->constraints, (bConstraint *)value.data);
 }
 
 static bConstraint *rna_Object_constraints_new(Object *object, bContext *C, int type)

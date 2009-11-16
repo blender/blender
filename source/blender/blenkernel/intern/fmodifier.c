@@ -1013,22 +1013,20 @@ int remove_fmodifier (ListBase *modifiers, FModifier *fcm)
 	if (modifiers) {
 		BLI_freelinkN(modifiers, fcm);
 		return 1;
-	} else {
+	} 
+	else {
 		// XXX this case can probably be removed some day, as it shouldn't happen...
 		printf("remove_fmodifier() - no modifier stack given \n");
 		MEM_freeN(fcm);
 		return 0;
 	}
 }
+
+/* Remove and free the nth F-Modifier from the given stack */
 int remove_fmodifier_index (ListBase *modifiers, int index)
 {
 	FModifier *fcm= BLI_findlink(modifiers, index);
-	if(fcm) {
-		return remove_fmodifier(modifiers, fcm);
-	}
-	else {
-		return 0;
-	}
+	return remove_fmodifier(modifiers, fcm);
 }
 
 /* Remove all of a given F-Curve's modifiers */

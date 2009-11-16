@@ -377,7 +377,7 @@ typedef struct bShrinkwrapConstraint {
  * 	- Do not ever change the order of these, or else files could get
  * 	  broken as their correct value cannot be resolved
  */
-typedef enum B_CONSTAINT_TYPES {
+typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_NULL = 0,			/* Invalid/legacy constraint */
 	CONSTRAINT_TYPE_CHILDOF,			/* Unimplemented non longer :) - during constraints recode, Aligorith */
 	CONSTRAINT_TYPE_TRACKTO,
@@ -404,12 +404,12 @@ typedef enum B_CONSTAINT_TYPES {
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES
-} B_CONSTRAINT_TYPES; 
+} eBConstraint_Types; 
 
 /* bConstraint->flag */
 /* flags 0x2 (1<<1) and 0x8 (1<<3) were used in past */
 /* flag 0x20 (1<<5) was used to indicate that a constraint was evaluated using a 'local' hack for posebones only  */
-typedef enum B_CONSTRAINT_FLAG {
+typedef enum eBConstraint_Flags {
 		/* expand for UI */
 	CONSTRAINT_EXPAND =		(1<<0), 
 		/* pre-check for illegal object name or bone name */
@@ -424,10 +424,10 @@ typedef enum B_CONSTRAINT_FLAG {
 	CONSTRAINT_PROXY_LOCAL = (1<<8),
 		/* indicates that constraint is temporarily disabled (only used in GE) */
 	CONSTRAINT_OFF = (1<<9)
-} B_CONSTRAINT_FLAG;
+} eBConstraint_Flags;
 
 /* bConstraint->ownspace/tarspace */
-typedef enum B_CONSTRAINT_SPACETYPES {
+typedef enum eBConstraint_SpaceTypes {
 		/* default for all - worldspace */
 	CONSTRAINT_SPACE_WORLD = 0,
 		/* for objects (relative to parent/without parent influence), 
@@ -440,13 +440,14 @@ typedef enum B_CONSTRAINT_SPACETYPES {
 	CONSTRAINT_SPACE_PARLOCAL, /* = 3 */
 		/* for files from between 2.43-2.46 (should have been parlocal) */
 	CONSTRAINT_SPACE_INVALID, /* = 4. do not exchange for anything! */
-} B_CONSTRAINT_SPACETYPES;
+} eBConstraint_SpaceTypes;
 
 /* bConstraintChannel.flag */
-typedef enum B_CONSTRAINTCHANNEL_FLAG {
+// XXX depreceated... old AnimSys
+typedef enum eConstraintChannel_Flags {
 	CONSTRAINT_CHANNEL_SELECT =		(1<<0),
 	CONSTRAINT_CHANNEL_PROTECTED =	(1<<1)
-} B_CONSTRAINTCHANNEL_FLAG;
+} eConstraintChannel_Flags;
 
 /* -------------------------------------- */
 
@@ -456,167 +457,219 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
  */
 
 /* bRotateLikeConstraint.flag */
-#define ROTLIKE_X		0x01
-#define ROTLIKE_Y		0x02
-#define ROTLIKE_Z		0x04
-#define ROTLIKE_X_INVERT	0x10
-#define ROTLIKE_Y_INVERT	0x20
-#define ROTLIKE_Z_INVERT	0x40
-#define ROTLIKE_OFFSET	0x80
+typedef enum eCopyRotation_Flags {
+	ROTLIKE_X			= (1<<0),
+	ROTLIKE_Y			= (1<<1),
+	ROTLIKE_Z			= (1<<2),
+	ROTLIKE_X_INVERT	= (1<<4),
+	ROTLIKE_Y_INVERT	= (1<<5),
+	ROTLIKE_Z_INVERT 	= (1<<6),
+	ROTLIKE_OFFSET		= (1<<7),
+} eCopyRotation_Flags;
 
 /* bLocateLikeConstraint.flag */
-#define LOCLIKE_X			0x01
-#define LOCLIKE_Y			0x02
-#define LOCLIKE_Z			0x04
-	/* LOCLIKE_TIP is a depreceated option... use headtail=1.0f instead */
-#define LOCLIKE_TIP			0x08
-#define LOCLIKE_X_INVERT	0x10
-#define LOCLIKE_Y_INVERT	0x20
-#define LOCLIKE_Z_INVERT	0x40
-#define LOCLIKE_OFFSET		0x80
+typedef enum eCopyLocation_Flags {
+	LOCLIKE_X			= (1<<0),
+	LOCLIKE_Y			= (1<<1),
+	LOCLIKE_Z			= (1<<2),
+		/* LOCLIKE_TIP is a depreceated option... use headtail=1.0f instead */
+	LOCLIKE_TIP			= (1<<3),
+	LOCLIKE_X_INVERT	= (1<<4),
+	LOCLIKE_Y_INVERT	= (1<<5),
+	LOCLIKE_Z_INVERT	= (1<<6),
+	LOCLIKE_OFFSET		= (1<<7),
+} eCopyLocation_Flags;
  
 /* bSizeLikeConstraint.flag */
-#define SIZELIKE_X		0x01
-#define SIZELIKE_Y		0x02
-#define SIZELIKE_Z		0x04
-#define SIZELIKE_OFFSET 0x80
+typedef enum eCopyScale_Flags {
+	SIZELIKE_X		= (1<<0),
+	SIZELIKE_Y		= (1<<1),
+	SIZELIKE_Z		= (1<<2), 
+	SIZELIKE_OFFSET = (1<<3),
+} eCopyScale_Flags;
 
-/* Axis flags */
-#define LOCK_X		0x00
-#define LOCK_Y		0x01
-#define LOCK_Z		0x02
+/* Locked-Axis Values (Locked Track) */
+typedef enum eLockAxis_Modes {
+	LOCK_X	= 0,
+	LOCK_Y,
+	LOCK_Z,
+} eLockAxis_Modes;
 
-#define UP_X		0x00
-#define UP_Y		0x01
-#define UP_Z		0x02
+/* Up-Axis Values (TrackTo and Locked Track) */
+typedef enum eUpAxis_Modes {
+	UP_X	= 0,
+	UP_Y,
+	UP_Z,
+} eUpAxis_Modes;
 
-#define TRACK_X		0x00
-#define TRACK_Y		0x01
-#define TRACK_Z		0x02
-#define TRACK_nX	0x03
-#define TRACK_nY	0x04
-#define TRACK_nZ	0x05
+/* Tracking axis (TrackTo, Locked Track, Damped Track) */
+typedef enum eTrackToAxis_Modes {
+	TRACK_X		= 0,
+	TRACK_Y,
+	TRACK_Z,
+	TRACK_nX,
+	TRACK_nY,
+	TRACK_nZ,
+} eTrackToAxis_Modes;
 
 /* FollowPath flags */
-#define FOLLOWPATH_FOLLOW	0x01
-#define FOLLOWPATH_STATIC	0x02
-#define FOLLOWPATH_RADIUS	0x04
+typedef enum eFollowPath_Flags {
+	FOLLOWPATH_FOLLOW	= (1<<0),
+	FOLLOWPATH_STATIC	= (1<<1),
+	FOLLOWPATH_RADIUS	= (1<<2),
+} eFollowPath_Flags;
 
 /* bTrackToConstraint->flags */
-#define TARGET_Z_UP 0x01
+typedef enum eTrackTo_Flags {
+	TARGET_Z_UP 	= (1<<0),
+} eTrackTo_Flags;
 
-#define VOLUME_XZ	0x00
-#define VOLUME_X	0x01
-#define VOLUME_Z	0x02
-#define NO_VOLUME	0x03
+/* Strech To Constraint -> volmode */
+typedef enum eStretchTo_VolMode {
+	VOLUME_XZ	= 0,
+	VOLUME_X,
+	VOLUME_Z,
+	NO_VOLUME,
+} eStretchTo_VolMode;
 
-#define PLANE_X		0x00
-#define PLANE_Y		0x01
-#define PLANE_Z		0x02
+/* Stretch To Constraint -> plane mode */
+typedef enum eStretchTo_PlaneMode {
+	PLANE_X		= 0,
+	PLANE_Y,
+	PLANE_Z,
+} eStretchTo_PlaneMode;
 
 /* Clamp-To Constraint ->flag */
-#define CLAMPTO_AUTO	0
-#define CLAMPTO_X		1
-#define	CLAMPTO_Y		2
-#define CLAMPTO_Z		3
+typedef enum eClampTo_Modes {
+	CLAMPTO_AUTO = 0,
+	CLAMPTO_X,
+	CLAMPTO_Y,
+	CLAMPTO_Z,
+} eClampTo_Modes;
 
 /* ClampTo Constraint ->flag2 */
-#define CLAMPTO_CYCLIC	1
+typedef enum eClampTo_Flags {
+	CLAMPTO_CYCLIC	= (1<<0),
+} eClampTo_Flags;
 
 /* bKinematicConstraint->flag */
-#define CONSTRAINT_IK_TIP		1
-#define CONSTRAINT_IK_ROT		2
+typedef enum eKinematic_Flags {
+	CONSTRAINT_IK_TIP			= (1<<0),
+	CONSTRAINT_IK_ROT			= (1<<1),
 	/* targetless */
-#define CONSTRAINT_IK_AUTO		4
+	CONSTRAINT_IK_AUTO			= (1<<2),
 	/* autoik */
-#define CONSTRAINT_IK_TEMP		8
-#define CONSTRAINT_IK_STRETCH	16
-#define CONSTRAINT_IK_POS		32
-#define CONSTRAINT_IK_SETANGLE	64
-#define CONSTRAINT_IK_GETANGLE	128
+	CONSTRAINT_IK_TEMP			= (1<<3),
+	CONSTRAINT_IK_STRETCH		= (1<<4),
+	CONSTRAINT_IK_POS			= (1<<5),
+	CONSTRAINT_IK_SETANGLE		= (1<<6),
+	CONSTRAINT_IK_GETANGLE		= (1<<7),
 	/* limit axis */
-#define CONSTRAINT_IK_NO_POS_X	256
-#define CONSTRAINT_IK_NO_POS_Y	512
-#define CONSTRAINT_IK_NO_POS_Z	1024
-#define CONSTRAINT_IK_NO_ROT_X	2048
-#define CONSTRAINT_IK_NO_ROT_Y	4096
-#define CONSTRAINT_IK_NO_ROT_Z	8192
+	CONSTRAINT_IK_NO_POS_X		= (1<<8),
+	CONSTRAINT_IK_NO_POS_Y		= (1<<9),
+	CONSTRAINT_IK_NO_POS_Z		= (1<<10),
+	CONSTRAINT_IK_NO_ROT_X		= (1<<11),
+	CONSTRAINT_IK_NO_ROT_Y		= (1<<12),
+	CONSTRAINT_IK_NO_ROT_Z		= (1<<13),
 	/* axis relative to target */
-#define CONSTRAINT_IK_TARGETAXIS	16384
+	CONSTRAINT_IK_TARGETAXIS	= (1<<14),
+} eKinematic_Flags;
 
 /* bSplineIKConstraint->flag */
+typedef enum eSplineIK_Flags {
 	/* chain has been attached to spline */
-#define CONSTRAINT_SPLINEIK_BOUND			(1<<0)
+	CONSTRAINT_SPLINEIK_BOUND			= (1<<0),
 	/* root of chain is not influenced by the constraint */
-#define CONSTRAINT_SPLINEIK_NO_ROOT			(1<<1)
+	CONSTRAINT_SPLINEIK_NO_ROOT			= (1<<1),
 	/* bones in the chain should not scale to fit the curve */
-#define CONSTRAINT_SPLINEIK_SCALE_LIMITED	(1<<2)
+	CONSTRAINT_SPLINEIK_SCALE_LIMITED	= (1<<2),
 	/* evenly distribute the bones along the path regardless of length */
-#define CONSTRAINT_SPLINEIK_EVENSPLITS		(1<<3)	
+	CONSTRAINT_SPLINEIK_EVENSPLITS		= (1<<3),	
+} eSplineIK_Flags;
 
 /* bSplineIKConstraint->xzScaleMode */
+typedef enum eSplineIK_XZScaleModes {
 	/* no x/z scaling */
-#define CONSTRAINT_SPLINEIK_XZS_NONE			0
+	CONSTRAINT_SPLINEIK_XZS_NONE			= 0,
 	/* bones in the chain should take their x/z scales from the curve radius */
-#define CONSTRAINT_SPLINEIK_XZS_RADIUS			1
+	CONSTRAINT_SPLINEIK_XZS_RADIUS,
 	/* bones in the chain should take their x/z scales from the original scaling */
-#define CONSTRAINT_SPLINEIK_XZS_ORIGINAL		2
+	CONSTRAINT_SPLINEIK_XZS_ORIGINAL,
+} eSplineIK_XZScaleModes;
 
 /* MinMax (floor) flags */
-#define MINMAX_STICKY	0x01
-#define MINMAX_STUCK	0x02
-#define MINMAX_USEROT	0x04
+typedef enum eFloor_Flags {
+	MINMAX_STICKY	= (1<<0),
+	MINMAX_STUCK	= (1<<1),
+	MINMAX_USEROT	= (1<<2),
+} eFloor_Flags;
 
-/* transform limiting constraints -> flag  */
-#define LIMIT_XMIN 0x01
-#define LIMIT_XMAX 0x02
-#define LIMIT_YMIN 0x04
-#define LIMIT_YMAX 0x08
-#define LIMIT_ZMIN 0x10
-#define LIMIT_ZMAX 0x20
-
-#define LIMIT_XROT 0x01
-#define LIMIT_YROT 0x02
-#define LIMIT_ZROT 0x04
-
+/* transform limiting constraints -> flag2 */
+typedef enum eTransformLimits_Flags2 {
 	/* not used anymore - for older Limit Location constraints only */
-#define LIMIT_NOPARENT 0x01
+	LIMIT_NOPARENT 	= (1<<0),
 	/* for all Limit constraints - allow to be used during transform? */
-#define LIMIT_TRANSFORM 0x02
+	LIMIT_TRANSFORM = (1<<1),
+} eTransformLimits_Flags2;
+
+/* transform limiting constraints -> flag (own flags)  */
+typedef enum eTransformLimits_Flags {
+	LIMIT_XMIN = (1<<0),
+	LIMIT_XMAX = (1<<1),
+	LIMIT_YMIN = (1<<2),
+	LIMIT_YMAX = (1<<3),
+	LIMIT_ZMIN = (1<<4),
+	LIMIT_ZMAX = (1<<5),
+} eTransformLimits_Flags;
+
+/* limit rotation constraint -> flag (own flags) */
+typedef enum eRotLimit_Flags {
+	LIMIT_XROT = (1<<0),
+	LIMIT_YROT = (1<<1),
+	LIMIT_ZROT = (1<<2),
+} eRotLimit_Flags;
 
 /* distance limit constraint */
 	/* bDistLimitConstraint->flag */
-#define LIMITDIST_USESOFT		(1<<0)
+typedef enum eDistLimit_Flag {
+	LIMITDIST_USESOFT	= (1<<0),
+} eDistLimit_Flag;
 
 	/* bDistLimitConstraint->mode */
-#define LIMITDIST_INSIDE		0
-#define LIMITDIST_OUTSIDE		1
-#define LIMITDIST_ONSURFACE		2
+typedef enum eDistLimit_Modes {
+	LIMITDIST_INSIDE = 0,
+	LIMITDIST_OUTSIDE,
+	LIMITDIST_ONSURFACE,
+} eDistLimit_Modes;
 	
 /* python constraint -> flag */
-#define PYCON_USETARGETS	0x01
-#define PYCON_SCRIPTERROR	0x02
+typedef enum ePyConstraint_Flags {
+	PYCON_USETARGETS	= (1<<0),
+	PYCON_SCRIPTERROR	= (1<<1),
+} ePyConstraint_Flags;
 
 /* ChildOf Constraint -> flag */
-#define CHILDOF_LOCX 	0x001
-#define CHILDOF_LOCY	0x002
-#define CHILDOF_LOCZ	0x004
-#define CHILDOF_ROTX	0x008
-#define CHILDOF_ROTY	0x010
-#define CHILDOF_ROTZ	0x020
-#define CHILDOF_SIZEX	0x040
-#define CHILDOF_SIZEY	0x080
-#define CHILDOF_SIZEZ	0x100
+typedef enum eChildOf_Flags {
+	CHILDOF_LOCX 	= (1<<0),
+	CHILDOF_LOCY	= (1<<1),
+	CHILDOF_LOCZ	= (1<<2),
+	CHILDOF_ROTX	= (1<<3),
+	CHILDOF_ROTY	= (1<<4),
+	CHILDOF_ROTZ	= (1<<5),
+	CHILDOF_SIZEX	= (1<<6),
+	CHILDOF_SIZEY	= (1<<7),
+	CHILDOF_SIZEZ	= (1<<8),
+} eChildOf_Flags;
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40
-#define CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
+#define 	CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
 
 /* important: these defines need to match up with PHY_DynamicTypes headerfile */
-#define CONSTRAINT_RB_BALL		1
-#define CONSTRAINT_RB_HINGE		2
-#define CONSTRAINT_RB_CONETWIST 4
-#define CONSTRAINT_RB_VEHICLE	11
-#define CONSTRAINT_RB_GENERIC6DOF 12
+#define 	CONSTRAINT_RB_BALL		1
+#define 	CONSTRAINT_RB_HINGE		2
+#define 	CONSTRAINT_RB_CONETWIST 4
+#define 	CONSTRAINT_RB_VEHICLE	11
+#define 	CONSTRAINT_RB_GENERIC6DOF 12
 
 #endif

@@ -101,7 +101,7 @@ ListBase *get_active_constraints (Object *ob)
 /* single constraint */
 bConstraint *get_active_constraint (Object *ob)
 {
-	return find_active_constraint(get_active_constraints(ob));
+	return constraints_get_active(get_active_constraints(ob));
 }
 /* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
 /* ------------- PyConstraints ------------------ */
@@ -646,10 +646,11 @@ void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
 void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 {	
 	/* lets be nice and escape if its active already */
-	if(con && (con->flag & CONSTRAINT_ACTIVE))
+	// NOTE: this assumes that the stack doesn't have other active ones set...
+	if (con && (con->flag & CONSTRAINT_ACTIVE))
 		return ;
 	
-	set_active_constraint(get_active_constraints(ob), con);
+	constraints_set_active(get_active_constraints(ob), con);
 }
 
 void ED_object_constraint_update(Object *ob)

@@ -3605,137 +3605,6 @@ bConstraintTypeInfo *constraint_get_typeinfo (bConstraint *con)
 		return NULL;
 }
 
-/* Creates a new constraint, initialises its data, and returns it */
-static bConstraint *add_new_constraint_internal(const char *name, short type)
-{
-	bConstraint *con;
-	bConstraintTypeInfo *cti;
-
-	con = MEM_callocN(sizeof(bConstraint), "Constraint");
-
-	/* Set up a generic constraint datablock */
-	con->type = type;
-	con->flag |= CONSTRAINT_EXPAND;
-	con->enforce = 1.0f;
-
-	/* Load the data for it */
-	cti = constraint_get_typeinfo(con);
-	if (cti) {
-		con->data = MEM_callocN(cti->size, cti->structName);
-
-		/* only constraints that change any settings need this */
-		if (cti->new_data)
-			cti->new_data(con->data);
-
-		/* set the name based on the type of constraint */
-		name= name ? name : cti->name;
-	}
-	else
-		name= name ? name : "Const";
-
-	strcpy(con->name, name);
-
-	return con;
-}
-
-/* if pchan is not NULL then assume we're adding a pose constraint */
-static bConstraint *add_new_constraint(Object *ob, bPoseChannel *pchan, const char *name, short type)
-{
-	bConstraint *con;
-	ListBase *list;
-
-	con= add_new_constraint_internal(name, type);
-
-	if(pchan)	list= &pchan->constraints;
-	else		list= &ob->constraints;
-
-	if (list) {
-		bConstraint *coniter;
-
-		/* add new constraint to end of list of constraints before ensuring that it has a unique name
-		 * (otherwise unique-naming code will fail, since it assumes element exists in list)
-		 */
-		BLI_addtail(list, con);
-		unique_constraint_name(con, list);
-
-		/* if the target list is a list on some PoseChannel belonging to a proxy-protected
-		 * Armature layer, we must tag newly added constraints with a flag which allows them
-		 * to persist after proxy syncing has been done
-		 */
-		if (proxylocked_constraints_owner(ob, pchan))
-			con->flag |= CONSTRAINT_PROXY_LOCAL;
-
-		/* make this constraint the active one
-		 * 	- since constraint was added at end of stack, we can just go
-		 * 	  through deactivating all previous ones
-		 */
-		con->flag |= CONSTRAINT_ACTIVE;
-		for (coniter= con->prev; coniter; coniter= coniter->prev)
-			coniter->flag &= ~CONSTRAINT_ACTIVE;
-	}
-
-	return con;
-}
-
-bConstraint *add_pose_constraint(Object *ob, bPoseChannel *pchan, const char *name, short type)
-{
-	if(pchan==NULL)
-		return NULL;
-
-	return add_new_constraint(ob, pchan, name, type);
-}
-
-bConstraint *add_ob_constraint(Object *ob, const char *name, short type)
-{
-	return add_new_constraint(ob, NULL, name, type);
-}
-
-struct bConstraint *find_active_constraint(ListBase *constraints)
-{
-	bConstraint *con;
-	if (constraints==NULL)
-		return NULL;
-
-	for(con= constraints->first; con; con= con->next) {
-		if(con->flag & CONSTRAINT_ACTIVE)
-			return con;
-	}
-
-	return NULL;
-}
-
-void set_active_constraint(ListBase *constraints, struct bConstraint *con)
-{
-	bConstraint *con_i;
-	for(con_i= constraints->first; con_i; con_i= con_i->next) {
-		if(con_i==con) con->flag |= CONSTRAINT_ACTIVE;
-		else con->flag &= ~CONSTRAINT_ACTIVE;
-	}
-}
-
-int remove_constraint(ListBase *constraints, struct bConstraint *con)
-{
-	if(con) {
-		free_constraint_data(con);
-		BLI_freelinkN(constraints, con);
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-
-int remove_constraint_index(ListBase *constraints, int index)
-{
-	bConstraint *con= BLI_findlink(constraints, index);
-	if(con) {
-		return remove_constraint(constraints, con);
-	}
-	else {
-		return 0;
-	}
-}
-
 /* ************************* General Constraints API ************************** */
 /* The functions here are called by various parts of Blender. Very few (should be none if possible)
  * constraint-specific code should occur here.
@@ -3771,6 +3640,121 @@ void free_constraints (ListBase *list)
 	BLI_freelistN(list);
 }
 
+
+/* Remove the specified constraint from the given constraint stack */
+int remove_constraint (ListBase *list, bConstraint *con)
+{
+	if (con) {
+		free_constraint_data(con);
+		BLI_freelinkN(list, con);
+		return 1;
+	}
+	else
+		return 0;
+}
+
+/* Remove the nth constraint from the given constraint stack */
+int remove_constraint_index (ListBase *list, int index)
+{
+	bConstraint *con= BLI_findlink(list, index);
+	
+	if (con)
+		return remove_constraint(list, con);
+	else 
+		return 0;
+}
+
+/* ......... */
+
+/* Creates a new constraint, initialises its data, and returns it */
+static bConstraint *add_new_constraint_internal (const char *name, short type)
+{
+	bConstraint *con= MEM_callocN(sizeof(bConstraint), "Constraint");
+	bConstraintTypeInfo *cti= get_constraint_typeinfo(type);
+	const char *newName;
+
+	/* Set up a generic constraint datablock */
+	con->type = type;
+	con->flag |= CONSTRAINT_EXPAND;
+	con->enforce = 1.0f;
+
+	/* Determine a basic name, and info */
+	if (cti) {
+		/* initialise constraint data */
+		con->data = MEM_callocN(cti->size, cti->structName);
+		
+		/* only constraints that change any settings need this */
+		if (cti->new_data)
+			cti->new_data(con->data);
+		
+		/* if no name is provided, use the type of the constraint as the name */
+		newName= (name && name[0]) ? name : cti->name;
+	}
+	else {
+		/* if no name is provided, use the generic "Const" name */
+		// NOTE: any constraint type that gets here really shouldn't get added...
+		newName= (name && name[0]) ? name : "Const";
+	}
+	
+	/* copy the name */
+	BLI_strncpy(con->name, newName, sizeof(con->name));
+	
+	/* return the new constraint */
+	return con;
+}
+
+/* if pchan is not NULL then assume we're adding a pose constraint */
+static bConstraint *add_new_constraint (Object *ob, bPoseChannel *pchan, const char *name, short type)
+{
+	bConstraint *con;
+	ListBase *list;
+	
+	/* add the constraint */
+	con= add_new_constraint_internal(name, type);
+	
+	/* find the constraint stack - bone or object? */
+	list = (pchan) ? (&pchan->constraints) : (&ob->constraints);
+	
+	if (list) {
+		/* add new constraint to end of list of constraints before ensuring that it has a unique name
+		 * (otherwise unique-naming code will fail, since it assumes element exists in list)
+		 */
+		BLI_addtail(list, con);
+		unique_constraint_name(con, list);
+		
+		/* if the target list is a list on some PoseChannel belonging to a proxy-protected
+		 * Armature layer, we must tag newly added constraints with a flag which allows them
+		 * to persist after proxy syncing has been done
+		 */
+		if (proxylocked_constraints_owner(ob, pchan))
+			con->flag |= CONSTRAINT_PROXY_LOCAL;
+		
+		/* make this constraint the active one */
+		constraints_set_active(list, con);
+	}
+	
+	return con;
+}
+
+/* ......... */
+
+/* Add new constraint for the given bone */
+bConstraint *add_pose_constraint (Object *ob, bPoseChannel *pchan, const char *name, short type)
+{
+	if (pchan == NULL)
+		return NULL;
+	
+	return add_new_constraint(ob, pchan, name, type);
+}
+
+/* Add new constraint for the given object */
+bConstraint *add_ob_constraint(Object *ob, const char *name, short type)
+{
+	return add_new_constraint(ob, NULL, name, type);
+}
+
+/* ......... */
+
 /* Reassign links that constraints have to other data (called during file loading?) */
 void relink_constraints (ListBase *conlist)
 {
@@ -3801,6 +3785,8 @@ void relink_constraints (ListBase *conlist)
 	}
 }
 
+/* ......... */
+
 /* duplicate all of the constraints in a constraint stack */
 void copy_constraints (ListBase *dst, ListBase *src)
 {
@@ -3815,6 +3801,7 @@ void copy_constraints (ListBase *dst, ListBase *src)
 		/* make a new copy of the constraint's data */
 		con->data = MEM_dupallocN(con->data);
 		
+		// NOTE: depreceated... old animation system
 		id_us_plus((ID *)con->ipo);
 		
 		/* only do specific constraints if required */
@@ -3822,6 +3809,8 @@ void copy_constraints (ListBase *dst, ListBase *src)
 			cti->copy_data(con, srccon);
 	}
 }
+
+/* ......... */
 
 /* finds the 'active' constraint in a constraint stack */
 bConstraint *constraints_get_active (ListBase *list)
@@ -3838,6 +3827,19 @@ bConstraint *constraints_get_active (ListBase *list)
 	
 	/* no active constraint found */
 	return NULL;
+}
+
+/* Set the given constraint as the active one (clearing all the others) */
+void constraints_set_active (ListBase *list, bConstraint *con)
+{
+	bConstraint *c;
+	
+	for (c= list->first; c; c= c->next) {
+		if (c == con) 
+			c->flag |= CONSTRAINT_ACTIVE;
+		else 
+			c->flag &= ~CONSTRAINT_ACTIVE;
+	}
 }
 
 /* -------- Constraints and Proxies ------- */
