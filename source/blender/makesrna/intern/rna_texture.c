@@ -71,36 +71,36 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 	Tex *tex= (Tex*)ptr->data;
 
 	switch(tex->type) {
-		case TEX_CLOUDS:
-			return &RNA_CloudsTexture;
-		case TEX_WOOD:
-			return &RNA_WoodTexture;
-		case TEX_MARBLE:
-			return &RNA_MarbleTexture;
-		case TEX_MAGIC:
-			return &RNA_MagicTexture;
 		case TEX_BLEND:
 			return &RNA_BlendTexture; 
-		case TEX_STUCCI:
-			return &RNA_StucciTexture;
-		case TEX_NOISE:
-			return &RNA_NoiseTexture;
-		case TEX_IMAGE:
-			return &RNA_ImageTexture;
-		case TEX_PLUGIN:
-			return &RNA_PluginTexture;
-		case TEX_ENVMAP:
-			return &RNA_EnvironmentMapTexture;
-		case TEX_MUSGRAVE:
-			return &RNA_MusgraveTexture;
-		case TEX_VORONOI:
-			return &RNA_VoronoiTexture;
+		case TEX_CLOUDS:
+			return &RNA_CloudsTexture;
 		case TEX_DISTNOISE:
 			return &RNA_DistortedNoiseTexture;
+		case TEX_ENVMAP:
+			return &RNA_EnvironmentMapTexture;
+		case TEX_IMAGE:
+			return &RNA_ImageTexture;
+		case TEX_MAGIC:
+			return &RNA_MagicTexture;
+		case TEX_MARBLE:
+			return &RNA_MarbleTexture;
+		case TEX_MUSGRAVE:
+			return &RNA_MusgraveTexture;
+		case TEX_NOISE:
+			return &RNA_NoiseTexture;
+		case TEX_PLUGIN:
+			return &RNA_PluginTexture;
 		case TEX_POINTDENSITY:
 			return &RNA_PointDensityTexture;
+		case TEX_STUCCI:
+			return &RNA_StucciTexture;
+		case TEX_VORONOI:
+			return &RNA_VoronoiTexture;
 		case TEX_VOXELDATA:
 			return &RNA_VoxelDataTexture;
+		case TEX_WOOD:
+			return &RNA_WoodTexture;
 		default:
 			return &RNA_Texture;
 	}
@@ -1780,21 +1780,21 @@ static void rna_def_texture(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
-		{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
-		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
+        {TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
 		{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
-		{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
-		{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
-		{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", ""},
-		{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
-		{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
-		{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
-		{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
-		{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
 		{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", ""},
+		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
+		{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
+		{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", ""},
+		{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
+		{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
+		{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
+		{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
 		{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
+		{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
+		{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
 		{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", ""},
+		{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Texture", "ID");
