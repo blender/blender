@@ -70,6 +70,8 @@ def draw(layout, context, context_member):
     for key, val in items:
         row = layout.row()
         convert_to_pyobject = getattr(val, "convert_to_pyobject", None)
+        
+        val_orig = val
         if convert_to_pyobject:
             val_draw = val = val.convert_to_pyobject()
             val_draw = str(val_draw)
@@ -96,7 +98,9 @@ def draw(layout, context, context_member):
             split = box.split(percentage=0.75)
             row = split.row()
             row.itemL(text=key)
-            if convert_to_pyobject:
+            
+            # explicit exception for arrays
+            if convert_to_pyobject and not hasattr(val_orig, "len"):
                 row.itemL(text=val_draw)
             else:
                 row.itemR(rna_item, key, text="")

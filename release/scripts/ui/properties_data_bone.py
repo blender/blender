@@ -281,10 +281,13 @@ class BONE_PT_properties(BoneButtonsPanel):
     def draw(self, context):
         import rna_prop_ui
         # reload(rna_prop_ui)
+        obj = context.object
+        if obj and obj.mode == 'POSE':
+            item = "active_pchan"
+        else:
+            item = "active_bone"
         
-        rna_prop_ui.draw(self.layout, context, "active_bone")
-        
-        
+        rna_prop_ui.draw(self.layout, context, item)
 
 bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)

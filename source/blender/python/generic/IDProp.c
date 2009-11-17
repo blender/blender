@@ -346,7 +346,7 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 
 static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject *val)
 {
-	BPy_Wrap_SetMapItem(self->prop, key, val);
+	return BPy_Wrap_SetMapItem(self->prop, key, val);
 }
 
 static PyObject *BPy_IDGroup_SpawnIterator(BPy_IDProperty *self)
@@ -478,7 +478,7 @@ static PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
 }
 
 /* utility function */
-static BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len)
+static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len)
 {
 	int i, j;
 
@@ -753,6 +753,17 @@ static PyGetSetDef BPy_IDArray_getseters[] = {
 	{NULL, NULL, NULL, NULL, NULL},
 };
 
+static PyObject *BPy_IDArray_ConvertToPy(BPy_IDArray *self)
+{
+	return BPy_IDGroup_MapDataToPy(self->prop);
+}
+
+static PyMethodDef BPy_IDArray_methods[] = {
+	{"convert_to_pyobject", (PyCFunction)BPy_IDArray_ConvertToPy, METH_NOARGS,
+		"return a purely python version of the group."},
+	{0, NULL, 0, NULL}
+};
+
 static int BPy_IDArray_Len(BPy_IDArray *self)
 {
 	return self->prop->len;
@@ -893,7 +904,7 @@ PyTypeObject IDArray_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,                       /* struct PyMethodDef *tp_methods; */
+	BPy_IDArray_methods,		/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	BPy_IDArray_getseters,       /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
