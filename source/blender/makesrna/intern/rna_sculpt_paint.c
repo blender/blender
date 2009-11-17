@@ -142,6 +142,21 @@ static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 
 	return (edit && edit->psys);
 }
+
+static void rna_Paint_active_brush_index_set(PointerRNA *ptr, int value)
+{
+	Paint *p= ptr->data;
+	CLAMP(value, 0, p->brush_count-1);
+	p->active_brush_index= value;
+}
+
+static void rna_Paint_active_brush_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	Paint *p= ptr->data;
+	*min= 0;
+	*max= MAX2(p->brush_count-1, 0);
+}
+
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -162,7 +177,8 @@ static void rna_def_paint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Brushes", "Brushes selected for this paint mode.");
 
 	prop= RNA_def_property(srna, "active_brush_index", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, INT_MAX);       
+	RNA_def_property_int_funcs(prop, NULL, "rna_Paint_active_brush_index_set", "rna_Paint_active_brush_index_range");
+	RNA_def_property_range(prop, 0, INT_MAX);
 
 	/* Fake property to get active brush directly, rather than integer index */
 	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
