@@ -45,6 +45,11 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+/* flush updates */
+#include "DNA_object_types.h"
+#include "BKE_depsgraph.h"
+#include "WM_types.h"
+
 #include "rna_internal.h"
 
 /* Init/Exit */
@@ -886,12 +891,21 @@ int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
+	int is_rna = (prop->magic == RNA_MAGIC);
 	prop= rna_ensure_property(prop);
 
-	if(prop->update)
-		prop->update(C, ptr);
-	if(prop->noteflag)
-		WM_event_add_notifier(C, prop->noteflag, ptr->id.data);
+	if(is_rna) {
+		if(prop->update)
+			prop->update(C, ptr);
+		if(prop->noteflag)
+			WM_event_add_notifier(C, prop->noteflag, ptr->id.data);
+	}
+	else {
+		/* WARNING! This is so property drivers update the display!
+		 * not especially nice  */
+		DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+	}
 }
 
 /* Property Data */
