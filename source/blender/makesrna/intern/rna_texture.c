@@ -1780,7 +1780,7 @@ static void rna_def_texture(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-        {TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
+		{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
 		{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
 		{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", ""},
 		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
