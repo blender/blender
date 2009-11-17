@@ -311,8 +311,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "POSE_OT_ik_add", IKEY, KM_PRESS, /*KM_CTRL|*/KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_ik_clear", IKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", GKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_pose_group");
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_group", GKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* set flags */
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);

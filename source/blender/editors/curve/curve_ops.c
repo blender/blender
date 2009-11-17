@@ -251,8 +251,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
 
 	/* menus */
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", HKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_hook");
+	WM_keymap_add_item(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }

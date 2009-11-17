@@ -211,8 +211,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "name", "SEQUENCER_MT_add");
+	WM_keymap_add_menu(keymap, "SEQUENCER_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
 }

@@ -100,6 +100,8 @@ wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, char *idname, int t
 								 int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type, 
 								 int val, int modifier, int keymodifier);
+wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, char *idname, int type,
+								 int val, int modifier, int keymodifier);
 void         WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 

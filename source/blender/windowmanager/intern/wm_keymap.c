@@ -193,6 +193,14 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, char *idname, int type, int v
 	return kmi;
 }
 
+/* menu wrapper for WM_keymap_add_item */
+wmKeyMapItem *WM_keymap_add_menu(wmKeyMap *keymap, char *idname, int type, int val, int modifier, int keymodifier)
+{
+	wmKeyMapItem *kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", type, val, modifier, keymodifier);
+	RNA_string_set(kmi->ptr, "name", idname);
+	return kmi;
+}
+
 void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
 	if(BLI_findindex(&keymap->items, kmi) != -1) {
