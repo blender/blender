@@ -1781,7 +1781,7 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 int RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
 	*r_ptr= *ptr;
-	return ((r_ptr->type = prop->srna));
+	return ((r_ptr->type = prop->srna) ? 1:0);
 }
 
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array)

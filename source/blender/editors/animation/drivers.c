@@ -160,7 +160,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	/* key entire array convenience method */
 	if (array_index == -1) {
 		array_index= 0;
-		array_index_max= RNA_property_array_length(&ptr, prop) + 1;
+		array_index_max= RNA_property_array_length(&ptr, prop);
 	}
 	
 	/* will only loop once unless the array index was -1 */
