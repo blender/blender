@@ -2400,6 +2400,15 @@ static int select_linked_limited_invoke(ViewContext *vc, short all, short sel)
 #undef is_face_tag
 #undef face_tag
 
+static void linked_limit_default(bContext *C, wmOperator *op) {
+	if(!RNA_property_is_set(op->ptr, "limit")) {
+		Object *obedit= CTX_data_edit_object(C);
+		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
+		if(em->selectmode == SCE_SELECT_FACE)
+			RNA_boolean_set(op->ptr, "limit", TRUE);
+	}
+}
+
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -2409,8 +2418,12 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	EditFace *efa;
 	short done=1, toggle=0;
 	int sel= !RNA_boolean_get(op->ptr, "deselect");
-	int limit= RNA_boolean_get(op->ptr, "limit");
+	int limit;
 	
+	linked_limit_default(C, op);
+
+	limit = RNA_boolean_get(op->ptr, "limit");
+
 	/* unified_finednearest needs ogl */
 	view3d_operator_needs_opengl(C);
 	
@@ -2571,6 +2584,12 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
+static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	linked_limit_default(C, op);
+	return select_linked_exec(C, op);
+}
+
 void MESH_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2580,6 +2599,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_linked_exec;
+	ot->invoke= select_linked_invoke;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
