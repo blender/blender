@@ -425,8 +425,9 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
         
         col = layout.column(align=True)
         col.itemL(text="In-Between:")
-        col.itemO("pose.relax", text="Relax")
-        col.itemO("pose.push", text="Push")
+        row = col.row()
+        row.itemO("pose.push", text="Push")
+        row.itemO("pose.relax", text="Relax")
         col.itemO("pose.breakdown", text="Breakdowner")
         
         col = layout.column(align=True)

@@ -195,6 +195,12 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 		icon= getname_anim_fcurve(name, ale->id, fcu);
 		uiItemL(col, name, icon);
 		
+	/* RNA-Path Editing - only really should be enabled when things aren't working */
+	col= uiLayoutColumn(layout, 1);
+		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)); 
+		uiItemR(col, "", ICON_RNA, &fcu_ptr, "rna_path", 0);
+		uiItemR(col, NULL, 0, &fcu_ptr, "array_index", 0);
+		
 	/* color settings */
 	col= uiLayoutColumn(layout, 1);
 		uiItemL(col, "Display Color:", 0);
