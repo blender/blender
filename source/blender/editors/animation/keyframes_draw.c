@@ -92,7 +92,10 @@
 
 /* *************************** Keyframe Processing *************************** */
 
+/* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
+
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */
+// NOTE: this is exported to other modules that use the ActKeyColumns for finding keyframes
 short compare_ak_cfraPtr (void *node, void *data)
 {
 	ActKeyColumn *ak= (ActKeyColumn *)node;
@@ -106,7 +109,7 @@ short compare_ak_cfraPtr (void *node, void *data)
 		return 0;
 }
 
-/* .... */
+/* --------------- */
 
 /* Comparator callback used for ActKeyColumns and BezTriple */
 static short compare_ak_bezt (void *node, void *data)
@@ -165,6 +168,107 @@ static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 		BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
 }
 
+/* ActBeztColumns (Helpers for Long Keyframes) ------------------------------ */
+
+/* BezTriple Container Node */
+// NOTE: only used internally while building Long Keyframes for now, but may be useful externally?
+typedef struct ActBeztColumn {
+	/* Tree Node interface ---------------- */
+		/* ListBase linkage */
+	struct ActBeztColumn *next, *prev;
+	
+		/* sorting-tree linkage */
+	struct ActBeztColumn *left, *right;	/* 'children' of this node, less than and greater than it (respectively) */
+	struct ActBeztColumn *parent;		/* parent of this node in the tree */
+	char tree_col;						/* DLRB_BLACK or DLRB_RED */
+	char pad;
+	
+	/* BezTriple Store -------------------- */
+	short numBezts;						/* number of BezTriples on this frame */
+	float cfra;							/* frame that the BezTriples occur on */
+	
+	BezTriple *bezts[4];				/* buffer of pointers to BezTriples on the same frame */
+	//BezTriple **bezts_extra;			/* secondary buffer of pointers if need be */
+} ActBeztColumn;
+
+/* --------------- */
+
+/* Comparator callback used for ActBeztColumns and BezTriple */
+static short compare_abk_bezt (void *node, void *data)
+{
+	ActBeztColumn *abk= (ActBeztColumn *)node;
+	BezTriple *bezt= (BezTriple *)data;
+	
+	if (bezt->vec[1][0] < abk->cfra)
+		return -1;
+	else if (bezt->vec[1][0] > abk->cfra)
+		return 1;
+	else
+		return 0;
+}
+
+/* New node callback used for building ActBeztColumns from BezTriples */
+static DLRBT_Node *nalloc_abk_bezt (void *data)
+{
+	ActBeztColumn *abk= MEM_callocN(sizeof(ActBeztColumn), "ActKeyColumn");
+	BezTriple *bezt= (BezTriple *)data;
+	
+	/* store the BeztTriple in the buffer, and keep track of its frame number */
+	abk->cfra= bezt->vec[1][0];
+	abk->bezts[abk->numBezts++]= bezt;
+	
+	return (DLRBT_Node *)abk;
+}
+
+/* Node updater callback used for building ActBeztColumns from BezTriples */
+static void nupdate_abk_bezt (void *node, void *data)
+{
+	ActBeztColumn *abk= (ActBeztColumn *)node;
+	BezTriple *bezt= (BezTriple *)data;
+	
+	/* just add the BezTriple to the buffer if there's space, or allocate a new one */
+	if (abk->numBezts >= sizeof(abk->bezts)/sizeof(BezTriple)) {
+		// TODO: need to allocate new array to cater...
+		//bezts_extra= MEM_callocN(...);
+		printf("FIXME: nupdate_abk_bezt() missing case for too many overlapping BezTriples \n");
+	}
+	else {
+		/* just store an extra one */
+		abk->bezts[abk->numBezts++]= bezt;
+	}
+}
+
+/* --------------- */
+
+/* Return the BezTriple in the given ActBeztColumn that matches the requested value */
+static BezTriple *abk_get_bezt_with_value (ActBeztColumn *abk, float value)
+{
+	BezTriple *bezt;
+	int i;
+	
+	/* sanity checks */
+	if (abk == NULL)
+		return NULL;
+	
+	/* look over each BezTriple in this container */
+	for (i = 0; i < abk->numBezts; i++) {		
+		/* only do exact match for now... */
+		if (i >= sizeof(abk->bezts)/sizeof(BezTriple)) {
+			// TODO: this case needs special handling
+		}
+		else {
+			/* just use the default buffer */
+			bezt= abk->bezts[i];
+			
+			if (bezt->vec[1][1] == value)
+				return bezt;
+		}
+	}
+	
+	return NULL;
+}
+
+/* ActKeyBlocks (Long Keyframes) ------------------------------------------ */
 
 /* Create a ActKeyColumn for a pair of BezTriples */
 static ActKeyBlock *bezts_to_new_actkeyblock(BezTriple *prev, BezTriple *beztn)
@@ -181,35 +285,18 @@ static ActKeyBlock *bezts_to_new_actkeyblock(BezTriple *prev, BezTriple *beztn)
 	return ab;
 }
 
-static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, FCurve *fcu, int index)
+static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree, BezTriple *beztn)
 {
 	ActKeyBlock *new_ab= NULL;
-	BezTriple *beztn=NULL, *prev=NULL;
-	BezTriple *bezt;
-	int v;
+	ActBeztColumn *abk;
+	BezTriple *prev;
 	
-	/* get beztriples */
-	beztn= (fcu->bezt + index);
-	
-	/* we need to go through all beztriples, as they may not be in order (i.e. during transform) */
-	// TODO: this seems to be a bit of a bottleneck
-	for (v=0, bezt=fcu->bezt; v < fcu->totvert; v++, bezt++) {
-		/* skip if beztriple is current */
-		if (v != index) {
-			/* check if beztriple is immediately before */
-			if (beztn->vec[1][0] > bezt->vec[1][0]) {
-				/* check if closer than previous was */
-				if (prev) {
-					if (prev->vec[1][0] < bezt->vec[1][0])
-						prev= bezt;
-				}
-				else {
-					prev= bezt;
-				}
-			}
-		}
-	}
-	
+	/* get the BezTriple immediately before the given one which has the same value */
+		/* the keyframes immediately before the ones containing the specified keyframe */
+	abk= (ActBeztColumn *)BLI_dlrbTree_search_prev(beztTree, compare_abk_bezt, beztn);
+		/* if applicable, the BezTriple with the same value */
+	prev= (abk) ? abk_get_bezt_with_value(abk, beztn->vec[1][1]) : NULL;
+
 	/* check if block needed - same value(s)?
 	 *	-> firstly, handles must have same central value as each other
 	 *	-> secondly, handles which control that section of the curve must be constant
@@ -746,6 +833,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 
 void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
+	DLRBT_Tree *beztTree = NULL;
 	BezTriple *bezt;
 	int v;
 	
@@ -754,12 +842,25 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree 
 		if (adt)	
 			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
 		
-		/* loop through beztriples, making ActKeys and ActKeyBlocks */
-		bezt= fcu->bezt;
+		/* if getting long keyframes too, grab the BezTriples in a BST for 
+		 * accelerated searching...
+		 */
+		if (blocks) {
+			/* init new tree */
+			beztTree= BLI_dlrbTree_new();
+			
+			/* populate tree with the BezTriples */
+			for (v=0, bezt=fcu->bezt; v < fcu->totvert; v++, bezt++)
+				BLI_dlrbTree_add(beztTree, compare_abk_bezt, nalloc_abk_bezt, nupdate_abk_bezt, bezt);
+			
+			/* make sure that it is suitable for linked-list searching too */
+			BLI_dlrbTree_linkedlist_sync(beztTree);
+		}
 		
-		for (v=0; v < fcu->totvert; v++, bezt++) {
+		/* loop through beztriples, making ActKeysColumns and ActKeyBlocks */
+		for (v=0, bezt=fcu->bezt; v < fcu->totvert; v++, bezt++) {
 			add_bezt_to_keycolumns_list(keys, bezt);
-			if (blocks) add_bezt_to_keyblocks_list(blocks, fcu, v);
+			if (blocks) add_bezt_to_keyblocks_list(blocks, beztTree, bezt);
 		}
 		
 		/* update the number of curves that elements have appeared in  */
@@ -767,6 +868,12 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree 
 			set_touched_actkeycolumn(keys->root);
 		if (blocks)
 			set_touched_actkeyblock(blocks->root);
+			
+		/* free temp data for building long keyframes */
+		if (blocks && beztTree) {
+			BLI_dlrbTree_free(beztTree);
+			MEM_freeN(beztTree);
+		}
 		
 		/* unapply NLA-mapping if applicable */
 		ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
