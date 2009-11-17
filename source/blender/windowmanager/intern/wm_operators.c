@@ -207,6 +207,10 @@ static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		else if(opm->type->exec)
 			retval= opm->type->exec(C, opm);
 		
+		/* if modal, pass operator flags to macro, they may be needed later */
+		if(retval & OPERATOR_RUNNING_MODAL)
+			op->flag = opm->flag;
+
 		if(!(retval & OPERATOR_FINISHED))
 			break;
 	}

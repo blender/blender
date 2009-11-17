@@ -176,7 +176,7 @@ void ED_operatormacros_mesh(void)
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 
-	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER|OPTYPE_BLOCKING);
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
