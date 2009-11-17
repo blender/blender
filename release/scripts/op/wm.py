@@ -62,7 +62,6 @@ def context_path_validate(context, path):
 def execute_context_assign(self, context):
     if context_path_validate(context, self.path) == NullPathMember:
         return ('PASS_THROUGH',)
-
     exec("context.%s=self.value" % self.path)
     return ('FINISHED',)
 
@@ -92,7 +91,7 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
 
 class WM_OT_context_set_float(bpy.types.Operator): # same as enum
     '''Set a context value.'''
-    bl_idname = "wm.context_set_int"
+    bl_idname = "wm.context_set_float"
     bl_label = "Context Set"
 
     path = rna_path_prop

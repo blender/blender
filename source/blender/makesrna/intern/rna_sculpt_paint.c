@@ -179,6 +179,7 @@ static void rna_def_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_brush_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_funcs(prop, NULL, "rna_Paint_active_brush_index_set", "rna_Paint_active_brush_index_range");
 	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
 
 	/* Fake property to get active brush directly, rather than integer index */
 	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
@@ -186,6 +187,7 @@ static void rna_def_paint(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Paint_active_brush_get", "rna_Paint_active_brush_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Brush", "Active paint brush.");
+	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
 }
 
 static void rna_def_sculpt(BlenderRNA  *brna)

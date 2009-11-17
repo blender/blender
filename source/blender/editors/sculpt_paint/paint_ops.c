@@ -140,6 +140,42 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_face_deselect_all);
 }
 
+static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
+{
+	wmKeyMapItem *kmi;
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", ONEKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 0);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", TWOKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 1);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", THREEKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 2);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", FOURKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 3);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", FIVEKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 4);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", SIXKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 5);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", SEVENKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 6);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", EIGHTKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 7);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", NINEKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 8);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", ZEROKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 10);
+}
+
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
@@ -155,6 +191,8 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 
+	ed_keymap_paint_brush_switch(keymap, "tool_settings.sculpt.active_brush_index");
+
 	/* Vertex Paint mode */
 	keymap= WM_keymap_find(keyconf, "Vertex Paint", 0, 0);
 	keymap->poll= vertex_paint_poll;
@@ -166,6 +204,8 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap,
 			"PAINT_OT_vertex_color_set",KKEY, KM_PRESS, KM_SHIFT, 0);
+
+	ed_keymap_paint_brush_switch(keymap, "tool_settings.vertex_paint.active_brush_index");
 
 	/* Weight Paint mode */
 	keymap= WM_keymap_find(keyconf, "Weight Paint", 0, 0);
@@ -179,6 +219,8 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap,
 			"PAINT_OT_weight_set", KKEY, KM_PRESS, KM_SHIFT, 0);
 
+	ed_keymap_paint_brush_switch(keymap, "tool_settings.weight_paint.active_brush_index");
+
 	/* Image/Texture Paint mode */
 	keymap= WM_keymap_find(keyconf, "Image Paint", 0, 0);
 	keymap->poll= image_texture_paint_poll;
@@ -189,6 +231,8 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_clone_cursor_set", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+
+	ed_keymap_paint_brush_switch(keymap, "tool_settings.image_paint.active_brush_index");
 
 	/* face-mask mode */
 	keymap= WM_keymap_find(keyconf, "Face Mask", 0, 0);
