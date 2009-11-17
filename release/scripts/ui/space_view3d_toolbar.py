@@ -125,9 +125,9 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col = layout.column(align=True)
         col.itemL(text="UV Mapping:")
         col.item_stringO("wm.call_menu", "name", "VIEW3D_MT_uv_map", text="Unwrap")
-
-        col.itemO("mesh.uvs_rotate")
-        col.itemO("mesh.uvs_mirror")
+        col.itemO("mesh.mark_seam")
+        col.item_booleanO("mesh.mark_seam", "clear", True, text="Clear Seam")
+        
         
         col = layout.column(align=True)
         col.itemL(text="Shading:")
