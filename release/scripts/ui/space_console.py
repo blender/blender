@@ -87,15 +87,16 @@ class CONSOLE_MT_language(bpy.types.Menu):
     bl_label = "Languages..."
 
     def draw(self, context):
+        import sys
+        
         layout = self.layout
         layout.column()
 
-        mod = bpy.ops.console
+        # Collect modules with 'console_*.execute'
         languages = []
-        for opname in dir(mod):
-            # execute_python, execute_shell etc.
-            if opname.startswith("execute_"):
-                languages.append(opname.split('_', 1)[-1])
+        for modname, mod in sys.modules.items():
+            if modname.startswith("console_") and hasattr(mod, "execute"):
+                languages.append(modname.split('_', 1)[-1])
 
         languages.sort()
 
@@ -118,14 +119,14 @@ class ConsoleExec(bpy.types.Operator):
     def execute(self, context):
         sc = context.space_data
 
-        execute = getattr(bpy.ops.console, "execute_" + sc.language, None)
+        module =  __import__("console_" + sc.language)
+        execute = getattr(module, "execute", None)
 
         if execute:
-            execute()
+            return execute(context)
         else:
             print("Error: bpy.ops.console.execute_" + sc.language + " - not found")
-
-        return ('FINISHED',)
+            return ('FINISHED',)
 
 
 class ConsoleAutocomplete(bpy.types.Operator):
@@ -140,15 +141,14 @@ class ConsoleAutocomplete(bpy.types.Operator):
 
     def execute(self, context):
         sc = context.space_data
-
-        autocomplete = getattr(bpy.ops.console, "autocomplete_" + sc.language, None)
+        module =  __import__("console_" + sc.language)
+        autocomplete = getattr(module, "autocomplete", None)
 
         if autocomplete:
-            autocomplete()
+            return autocomplete(context)
         else:
             print("Error: bpy.ops.console.autocomplete_" + sc.language + " - not found")
-
-        return ('FINISHED',)
+            return ('FINISHED',)
 
 
 class ConsoleBanner(bpy.types.Operator):
@@ -161,14 +161,14 @@ class ConsoleBanner(bpy.types.Operator):
         if not sc.language:
             sc.language = 'python'
 
-        banner = getattr(bpy.ops.console, "banner_" + sc.language, None)
+        module =  __import__("console_" + sc.language)
+        banner = getattr(module, "banner", None)
 
         if banner:
-            banner()
+            return banner(context)
         else:
             print("Error: bpy.ops.console.banner_" + sc.language + " - not found")
-
-        return ('FINISHED',)
+            return ('FINISHED',)
 
 
 class ConsoleLanguage(bpy.types.Operator):

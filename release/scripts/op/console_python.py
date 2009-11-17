@@ -66,160 +66,130 @@ def get_console(console_id):
     return console, stdout, stderr
 
 
-class PyConsoleExec(bpy.types.Operator):
-    '''Execute the current console line as a python expression.'''
-    bl_idname = "console.execute_" + language_id
-    bl_label = "Console Execute"
-    bl_register = False
+# Both prompts must be the same length
+PROMPT = '>>> '
+PROMPT_MULTI = '... '
 
-    # Both prompts must be the same length
-    PROMPT = '>>> '
-    PROMPT_MULTI = '... '
+def execute(context):
+    sc = context.space_data
 
-    # is this working???
-    '''
-    def poll(self, context):
-        return (context.space_data.type == 'PYTHON')
-    '''
-    # its not :|
+    try:
+        line = sc.history[-1].line
+    except:
+        return ('CANCELLED',)
 
-    def execute(self, context):
-        sc = context.space_data
+    if sc.console_type != 'PYTHON':
+        return ('CANCELLED',)
 
-        try:
-            line = sc.history[-1].line
-        except:
-            return ('CANCELLED',)
+    console, stdout, stderr = get_console(hash(context.region))
 
-        if sc.console_type != 'PYTHON':
-            return ('CANCELLED',)
+    # Hack, useful but must add some other way to access
+    #if "C" not in console.locals:
+    console.locals["C"] = context
 
-        console, stdout, stderr = get_console(hash(context.region))
+    # redirect output
+    sys.stdout = stdout
+    sys.stderr = stderr
 
-        # Hack, useful but must add some other way to access
-        #if "C" not in console.locals:
-        console.locals["C"] = context
+    # run the console
+    if not line.strip():
+        line_exec = '\n'  # executes a multiline statement
+    else:
+        line_exec = line
 
-        # redirect output
-        sys.stdout = stdout
-        sys.stderr = stderr
+    is_multiline = console.push(line_exec)
 
-        # run the console
-        if not line.strip():
-            line_exec = '\n'  # executes a multiline statement
-        else:
-            line_exec = line
+    stdout.seek(0)
+    stderr.seek(0)
 
-        is_multiline = console.push(line_exec)
+    output = stdout.read()
+    output_err = stderr.read()
 
-        stdout.seek(0)
-        stderr.seek(0)
+    # cleanup
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+    sys.last_traceback = None
 
-        output = stdout.read()
-        output_err = stderr.read()
+    # So we can reuse, clear all data
+    stdout.truncate(0)
+    stderr.truncate(0)
 
-        # cleanup
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-        sys.last_traceback = None
+    bpy.ops.console.scrollback_append(text=sc.prompt + line, type='INPUT')
 
-        # So we can reuse, clear all data
-        stdout.truncate(0)
-        stderr.truncate(0)
+    if is_multiline:
+        sc.prompt = PROMPT_MULTI
+    else:
+        sc.prompt = PROMPT
 
-        bpy.ops.console.scrollback_append(text=sc.prompt + line, type='INPUT')
+    # insert a new blank line
+    bpy.ops.console.history_append(text="", current_character=0,
+        remove_duplicates=True)
 
-        if is_multiline:
-            sc.prompt = self.PROMPT_MULTI
-        else:
-            sc.prompt = self.PROMPT
+    # Insert the output into the editor
+    # not quite correct because the order might have changed,
+    # but ok 99% of the time.
+    if output:
+        add_scrollback(output, 'OUTPUT')
+    if output_err:
+        add_scrollback(output_err, 'ERROR')
 
-        # insert a new blank line
-        bpy.ops.console.history_append(text="", current_character=0,
-            remove_duplicates=True)
-
-        # Insert the output into the editor
-        # not quite correct because the order might have changed,
-        # but ok 99% of the time.
-        if output:
-            add_scrollback(output, 'OUTPUT')
-        if output_err:
-            add_scrollback(output_err, 'ERROR')
-
-        return ('FINISHED',)
+    return ('FINISHED',)
 
 
-class PyConsoleAutocomplete(bpy.types.Operator):
-    '''Evaluate the namespace up until the cursor and give a list of
-    options or complete the name if there is only one.'''
-    bl_idname = "console.autocomplete_" + language_id
-    bl_label = "Python Console Autocomplete"
-    bl_register = False
+def autocomplete(context):
+    from console import intellisense
 
-    def poll(self, context):
-        return context.space_data.console_type == 'PYTHON'
+    sc = context.space_data
 
-    def execute(self, context):
-        from console import intellisense
+    console = get_console(hash(context.region))[0]
+    
+    current_line = sc.history[-1]
+    line = current_line.line
 
-        sc = context.space_data
+    if not console:
+        return ('CANCELLED',)
 
-        console = get_console(hash(context.region))[0]
-        
-        current_line = sc.history[-1]
-        line = current_line.line
+    if sc.console_type != 'PYTHON':
+        return ('CANCELLED',)
 
-        if not console:
-            return ('CANCELLED',)
+    # This function isnt aware of the text editor or being an operator
+    # just does the autocomp then copy its results back
+    current_line.line, current_line.current_character, scrollback = \
+        intellisense.expand(
+            line=current_line.line,
+            cursor=current_line.current_character,
+            namespace=console.locals,
+            private='-d' in sys.argv)
 
-        if sc.console_type != 'PYTHON':
-            return ('CANCELLED',)
+    # Now we need to copy back the line from blender back into the
+    # text editor. This will change when we dont use the text editor
+    # anymore
+    if scrollback:
+        add_scrollback(scrollback, 'INFO')
 
-        # This function isnt aware of the text editor or being an operator
-        # just does the autocomp then copy its results back
-        current_line.line, current_line.current_character, scrollback = \
-            intellisense.expand(
-                line=current_line.line,
-                cursor=current_line.current_character,
-                namespace=console.locals,
-                private='-d' in sys.argv)
+    context.area.tag_redraw()
 
-        # Now we need to copy back the line from blender back into the
-        # text editor. This will change when we dont use the text editor
-        # anymore
-        if scrollback:
-            add_scrollback(scrollback, 'INFO')
-
-        context.area.tag_redraw()
-
-        return ('FINISHED',)
+    return ('FINISHED',)
 
 
-class PyConsoleBanner(bpy.types.Operator):
-    bl_idname = "console.banner_" + language_id
+def banner(context):
+    sc = context.space_data
+    version_string = sys.version.strip().replace('\n', ' ')
 
-    def execute(self, context):
-        sc = context.space_data
-        version_string = sys.version.strip().replace('\n', ' ')
+    add_scrollback(" * Python Interactive Console %s *" % version_string, 'OUTPUT')
+    add_scrollback("Command History:  Up/Down Arrow", 'OUTPUT')
+    add_scrollback("Cursor:           Left/Right Home/End", 'OUTPUT')
+    add_scrollback("Remove:           Backspace/Delete", 'OUTPUT')
+    add_scrollback("Execute:          Enter", 'OUTPUT')
+    add_scrollback("Autocomplete:     Ctrl+Space", 'OUTPUT')
+    add_scrollback("Ctrl +/-  Wheel:  Zoom", 'OUTPUT')
+    add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, Mathutils, Geometry, BGL", 'OUTPUT')
+    add_scrollback("", 'OUTPUT')
+    add_scrollback("", 'OUTPUT')
+    sc.prompt = PROMPT
 
-        add_scrollback(" * Python Interactive Console %s *" % version_string, 'OUTPUT')
-        add_scrollback("Command History:  Up/Down Arrow", 'OUTPUT')
-        add_scrollback("Cursor:           Left/Right Home/End", 'OUTPUT')
-        add_scrollback("Remove:           Backspace/Delete", 'OUTPUT')
-        add_scrollback("Execute:          Enter", 'OUTPUT')
-        add_scrollback("Autocomplete:     Ctrl+Space", 'OUTPUT')
-        add_scrollback("Ctrl +/-  Wheel:  Zoom", 'OUTPUT')
-        add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, Mathutils, Geometry, BGL", 'OUTPUT')
-        add_scrollback("", 'OUTPUT')
-        add_scrollback("", 'OUTPUT')
-        sc.prompt = PyConsoleExec.PROMPT
+    # Add context into the namespace for quick access
+    console = get_console(hash(context.region))[0]
+    console.locals["C"] = bpy.context
 
-        # Add context into the namespace for quick access
-        console = get_console(hash(context.region))[0]
-        console.locals["C"] = bpy.context
-
-        return ('FINISHED',)
-
-bpy.ops.add(PyConsoleExec)
-bpy.ops.add(PyConsoleAutocomplete)
-bpy.ops.add(PyConsoleBanner)
+    return ('FINISHED',)

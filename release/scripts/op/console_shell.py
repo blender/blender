@@ -41,73 +41,40 @@ def shell_run(text):
 
     add_scrollback(output, style)
 
-
-class ShellConsoleExec(bpy.types.Operator):
-    '''Execute the current console line as a python expression.'''
-    bl_idname = "console.execute_" + language_id
-    bl_label = "Console Execute"
-    bl_register = False
-
-    # Both prompts must be the same length
-    PROMPT = '$ '
-
-    # is this working???
-    '''
-    def poll(self, context):
-        return (context.space_data.type == 'PYTHON')
-    '''
-    # its not :|
-
-    def execute(self, context):
-        sc = context.space_data
-
-        try:
-            line = sc.history[-1].line
-        except:
-            return ('CANCELLED',)
-            
-        bpy.ops.console.scrollback_append(text=sc.prompt + line, type='INPUT')
-        
-        shell_run(line)
-        
-        # insert a new blank line
-        bpy.ops.console.history_append(text="", current_character=0,
-            remove_duplicates=True)
-
-        sc.prompt = os.getcwd()+ShellConsoleExec.PROMPT
-        return ('FINISHED',)
+PROMPT = '$ '
 
 
-class ShellConsoleAutocomplete(bpy.types.Operator):
-    '''Evaluate the namespace up until the cursor and give a list of
-    options or complete the name if there is only one.'''
-    bl_idname = "console.autocomplete_" + language_id
-    bl_label = "Python Console Autocomplete"
-    bl_register = False
+def execute(context):
+    sc = context.space_data
 
-    def poll(self, context):
-        return context.space_data.console_type == 'PYTHON'
-
-    def execute(self, context):
-        from console import intellisense
-
-        sc = context.space_data
-        
-        # TODO
+    try:
+        line = sc.history[-1].line
+    except:
         return ('CANCELLED',)
-
-
-class ShellConsoleBanner(bpy.types.Operator):
-    bl_idname = "console.banner_" + language_id
-
-    def execute(self, context):
-        sc = context.space_data
         
-        shell_run("bash --version")
-        sc.prompt = os.getcwd()+ShellConsoleExec.PROMPT
+    bpy.ops.console.scrollback_append(text=sc.prompt + line, type='INPUT')
+    
+    shell_run(line)
+    
+    # insert a new blank line
+    bpy.ops.console.history_append(text="", current_character=0,
+        remove_duplicates=True)
 
-        return ('FINISHED',)
+    sc.prompt = os.getcwd()+PROMPT
+    return ('FINISHED',)
 
-bpy.ops.add(ShellConsoleExec)
-bpy.ops.add(ShellConsoleAutocomplete)
-bpy.ops.add(ShellConsoleBanner)
+
+def autocomplete(context):
+    # sc = context.space_data
+    # TODO
+    return ('CANCELLED',)
+
+
+def banner(context):
+    sc = context.space_data
+    
+    shell_run("bash --version")
+    sc.prompt = os.getcwd()+PROMPT
+
+    return ('FINISHED',)
+

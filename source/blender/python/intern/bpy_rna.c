@@ -1205,6 +1205,11 @@ static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
 	IDProperty *group, *idprop;
 	char *name= _PyUnicode_AsString(key);
 
+	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+		PyErr_SetString( PyExc_TypeError, "this type doesn't support IDProperties");
+		return NULL;
+	}
+
 	if(name==NULL) {
 		PyErr_SetString( PyExc_TypeError, "only strings are allowed as keys of ID properties");
 		return NULL;
@@ -1512,7 +1517,14 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	FunctionRNA *func;
 	
 	if(name[0]=='_') { // rna can't start with a "_", so for __dict__ and similar we can skip using rna lookups
-		ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+		/* annoying exception, maybe we need to have different types for this... */
+		if((strcmp(name, "__getitem__")==0 || strcmp(name, "__setitem__")==0) && !RNA_struct_idproperties_check(&self->ptr)) {
+			PyErr_SetString(PyExc_AttributeError, "StructRNA - no __getitem__ support for this type");
+			ret = NULL;
+		}
+		else {
+			ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+		}
 	}
 	else if ((prop = RNA_struct_find_property(&self->ptr, name))) {
   		ret = pyrna_prop_to_py(&self->ptr, prop);
