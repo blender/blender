@@ -170,13 +170,10 @@ void ED_operatormacros_mesh(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	int constraint_axis[3] = {0, 0, 1};
-
-	/*combining operators with invoke and exec portions doesn't work yet.
 	
-	ot= WM_operatortype_append_macro("MESH_OT_loopcut", "Loopcut", OPTYPE_UNDO|OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "MESH_OT_edgering_select");
-	WM_operatortype_macro_define(ot, "MESH_OT_subdivide");
-	*/
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loopcut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
+	WM_operatortype_macro_define(ot, "TFM_OT_edge_slide");
 
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
@@ -211,7 +208,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "EditMesh", 0, 0);
 	keymap->poll= ED_operator_editmesh;
 	
-	WM_keymap_add_item(keymap, "MESH_OT_loopcut", RKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */

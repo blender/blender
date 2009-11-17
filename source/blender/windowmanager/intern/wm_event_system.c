@@ -621,7 +621,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 /* ********************* handlers *************** */
 
 /* future extra customadata free? */
-static void wm_event_free_handler(wmEventHandler *handler)
+void wm_event_free_handler(wmEventHandler *handler)
 {
 	MEM_freeN(handler);
 }

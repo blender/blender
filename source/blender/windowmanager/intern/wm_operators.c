@@ -193,20 +193,20 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 	return retval;
 }
 
-static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event, wmOperator *opm)
 {
-	wmOperator *opm;
 	int retval= OPERATOR_FINISHED;
-	
+
 //	printf("macro invoke %s\n", op->type->idname);
-	
-	for(opm= op->macro.first; opm; opm= opm->next) {
-		
+
+	/* start from operator received as argument */
+	for( ; opm; opm= opm->next) {
+
 		if(opm->type->invoke)
 			retval= opm->type->invoke(C, opm, event);
 		else if(opm->type->exec)
 			retval= opm->type->exec(C, opm);
-		
+
 		/* if modal, pass operator flags to macro, they may be needed later */
 		if(retval & OPERATOR_RUNNING_MODAL)
 			op->flag = opm->flag;
@@ -214,28 +214,58 @@ static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if(!(retval & OPERATOR_FINISHED))
 			break;
 	}
-	
+
 //	if(opm)
 //		printf("macro ended not finished\n");
 //	else
 //		printf("macro end\n");
-	
-	
+
+
 	return retval;
+}
+
+static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return wm_macro_invoke_internal(C, op, event, op->macro.first);
 }
 
 static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	wmOperator *opm = op->opm;
+	int retval= OPERATOR_FINISHED;
 //	printf("macro modal %s\n", op->type->idname);
 	
-	if(op->opm==NULL)
+	if(opm==NULL)
 		printf("macro error, calling NULL modal()\n");
 	else {
 //		printf("macro modal %s\n", op->opm->type->idname);
-		return op->opm->type->modal(C, op->opm, event);
+		retval = opm->type->modal(C, opm, event);
+
+		/* if this one is done but it's not the last operator in the macro */
+		if ((retval & OPERATOR_FINISHED) && opm->next) {
+			retval = wm_macro_invoke_internal(C, op, event, opm->next);
+
+			/* if new operator is modal and also added its own handler */
+			if (retval & OPERATOR_RUNNING_MODAL && op->opm != opm) {
+				wmWindow *win = CTX_wm_window(C);
+				wmEventHandler *handler = NULL;
+
+				for (handler = win->modalhandlers.first; handler; handler = handler->next) {
+					/* first handler in list is the new one */
+					if (handler->op == op)
+						break;
+				}
+
+				if (handler) {
+					BLI_remlink(&win->modalhandlers, handler);
+					wm_event_free_handler(handler);
+				}
+			}
+
+		}
 	}	
 	
-	return OPERATOR_FINISHED;
+	return retval;
 }
 
 /* Names have to be static for now */
