@@ -592,7 +592,7 @@ class VIEW3D_MT_object_group(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("group.group_create")
+        layout.itemO("group.create")
         layout.itemO("group.objects_remove")
 
         layout.itemS()
