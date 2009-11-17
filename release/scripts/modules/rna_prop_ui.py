@@ -76,10 +76,7 @@ def draw(layout, context, context_member):
             val_draw = val = val.convert_to_pyobject()
             val_draw = str(val_draw)
         else:
-            if type(val)==str:
-                val_draw = '"' + val + '"'
-            else:
-                val_draw = val
+            val_draw = val
 
         box = row.box()
         
@@ -170,7 +167,10 @@ class WM_OT_properties_edit_end(bpy.types.Operator):
         try:
             value = eval(global_value)
         except:
-            value = '"' + global_value + '"' # keep as a string
+            value = global_value
+        
+        if type(value) == str:
+            value = '"' + value + '"'
         
         
         # First remove
