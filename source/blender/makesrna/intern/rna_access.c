@@ -470,11 +470,21 @@ int RNA_struct_is_a(StructRNA *type, StructRNA *srna)
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 {
-	PropertyRNA *iterprop= RNA_struct_iterator_property(ptr->type);
-	PointerRNA propptr;
+	if(identifier[0]=='[' && identifier[1]=='"') {
+		/* id prop lookup, not so common */
+		PropertyRNA *r_prop= NULL;
+		PointerRNA r_ptr; /* only support single level props */
+		if(RNA_path_resolve(ptr, identifier, &r_ptr, &r_prop) && r_ptr.type==ptr->type && r_ptr.data==ptr->data)
+			return r_prop;
+	}
+	else {
+		/* most common case */
+		PropertyRNA *iterprop= RNA_struct_iterator_property(ptr->type);
+		PointerRNA propptr;
 
-	if(RNA_property_collection_lookup_string(ptr, iterprop, identifier, &propptr))
-		return propptr.data;
+		if(RNA_property_collection_lookup_string(ptr, iterprop, identifier, &propptr))
+			return propptr.data;
+	}
 	
 	return NULL;
 }
@@ -2293,6 +2303,19 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 	return buf;
 }
 
+static int rna_token_strip_quotes(char *token)
+{
+	if(token[0]=='"') {
+		int len = strlen(token);
+		if (len >= 2 && token[len-1]=='"') {
+			/* strip away "" */
+			token[len-1]= '\0';
+			return 1;
+		}
+	}
+	return 0;
+}
+
 /* Resolve the given RNA path to find the pointer+property indicated at the end of the path */
 int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
@@ -2304,17 +2327,34 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 	prop= NULL;
 	curptr= *ptr;
 
-	if(path==NULL)
+	if(path==NULL || *path=='\0')
 		return 0;
 
 	while(*path) {
+		int use_id_prop = (*path=='[') ? 1:0;
+		/* custom property lookup ?
+		 * C.object["someprop"]
+		 */
+
 		/* look up property name in current struct */
-		token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
+		token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), use_id_prop);
 
 		if(!token)
 			return 0;
 
-		prop= RNA_struct_find_property(&curptr, token);
+		if(use_id_prop) { /* look up property name in current struct */
+			IDProperty *group= RNA_struct_idproperties(ptr, 0);
+			if(!group)
+				return 0;
+
+			if(rna_token_strip_quotes(token))
+				prop= (PropertyRNA *)IDP_GetPropertyFromGroup(group, token+1);
+			else
+				prop= NULL;
+		}
+		else {
+			prop= RNA_struct_find_property(&curptr, token);
+		}
 
 		if(token != fixedbuf)
 			MEM_freeN(token);
@@ -2343,9 +2383,7 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 			len= strlen(token);
 			
 			/* check for "" to see if it is a string */
-			if(len >= 2 && token[0] == '"' && token[len-1] == '"') {
-				/* strip away "" */
-				token[len-1]= 0;
+			if(rna_token_strip_quotes(token)) {
 				RNA_property_collection_lookup_string(&curptr, prop, token+1, &nextptr);
 			}
 			else {
@@ -2369,6 +2407,7 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 
 	return 1;
 }
+
 
 char *RNA_path_append(const char *path, PointerRNA *ptr, PropertyRNA *prop, int intkey, const char *strkey)
 {
@@ -2504,6 +2543,7 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 {
+	int is_rna = (prop->magic == RNA_MAGIC);
 	const char *propname;
 	char *ptrpath, *path;
 
@@ -2516,12 +2556,15 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 	propname= RNA_property_identifier(prop);
 
 	if(ptrpath) {
-		path= BLI_sprintfN("%s.%s", ptrpath, propname);
-		MEM_freeN(ptrpath);
+		path= BLI_sprintfN(is_rna ? "%s.%s":"%s[\"%s\"]", ptrpath, propname);
 	}
-	else
-		path= BLI_strdup(propname);
-	
+	else {
+		if(is_rna)
+			path= BLI_strdup(propname);
+		else
+			path= BLI_sprintfN("[\"%s\"]", propname);
+	}
+
 	return path;
 }
 
@@ -2727,8 +2770,6 @@ int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **ident
 
 	return 0;
 }
-
-
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
 {

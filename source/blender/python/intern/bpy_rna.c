@@ -1410,6 +1410,23 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *
 	return PyBool_FromLong(hidden);
 }
 
+static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *value)
+{
+	char *path= _PyUnicode_AsString(value);
+	PointerRNA r_ptr;
+	PropertyRNA *r_prop;
+
+	if(path==NULL) {
+		PyErr_SetString( PyExc_TypeError, "items() is only valid for collection types" );
+		return NULL;
+	}
+
+	if (RNA_path_resolve(&self->ptr, path, &r_ptr, &r_prop))
+		return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
+
+	Py_RETURN_NONE;
+}
+
 static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 {
 	PyObject *ret, *dict;
@@ -1506,7 +1523,6 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 
 	return ret;
 }
-
 
 //---------------getattr--------------------------------------------
 static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
@@ -2119,6 +2135,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, NULL},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},
+	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_O, NULL},
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
