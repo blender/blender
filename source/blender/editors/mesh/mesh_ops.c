@@ -153,11 +153,23 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_loopcut);
 }
 
+int ED_operator_editmesh_face_select(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_MESH) {
+		EditMesh *em = ((Mesh *)obedit->data)->edit_mesh;
+		if (em && em->selectmode & SCE_SELECT_FACE) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void ED_operatormacros_mesh(void)
 {
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
-//	int constraint_axis[3] = {0, 0, 1};
+	int constraint_axis[3] = {0, 0, 1};
 
 	/*combining operators with invoke and exec portions doesn't work yet.
 	
@@ -169,21 +181,25 @@ void ED_operatormacros_mesh(void)
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
-		RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_rip");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
-		RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_move_along_normals", "Extrude Along Normals", OPTYPE_UNDO|OPTYPE_REGISTER|OPTYPE_BLOCKING);
+	ot->poll = ED_operator_editmesh_face_select; /* restrict extrude along normals to face select */
+	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_enum_set(otmacro->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
+	RNA_boolean_set_array(otmacro->ptr, "constraint_axis", constraint_axis);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER|OPTYPE_BLOCKING);
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
-		RNA_enum_set(otmacro->ptr, "proportional", 0);
-#if 0	// works in SOME cases but when extruding verts its very annoying, temp disable
-		RNA_enum_set(otmacro->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
-		RNA_boolean_set_array(otmacro->ptr, "constraint_axis", constraint_axis);
-#endif
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
 }
 
 /* note mesh keymap also for other space? */
@@ -236,6 +252,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
 	
+	WM_keymap_add_item(keymap, "MESH_OT_extrude_move_along_normals", EKEY, KM_PRESS, 0, 0); /* this first so it's selected if possible */
 	WM_keymap_add_item(keymap, "MESH_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
