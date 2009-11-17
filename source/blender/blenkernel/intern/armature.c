@@ -1907,7 +1907,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		/* construct rotation matrix from the axis-angle rotation found above 
 		 *	- this call takes care to make sure that the axis provided is a unit vector first
 		 */
-		axis_angle_to_mat3( dmat,raxis, rangle);
+		axis_angle_to_mat3(dmat, raxis, rangle);
 		
 		/* combine these rotations so that the y-axis of the bone is now aligned as the spline dictates,
 		 * while still maintaining roll control from the existing bone animation

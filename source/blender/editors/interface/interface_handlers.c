@@ -3403,7 +3403,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	if(but->rnapoin.data && but->rnaprop) {
 
 		length= RNA_property_array_length(&but->rnapoin, but->rnaprop);
-
+		
+		/* Keyframes */
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {
 				uiItemBooleanO(layout, "Replace Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
@@ -3425,7 +3426,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			else
 				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
 		}
-
+		
+		/* Drivers */
 		if(but->flag & UI_BUT_DRIVEN) {
 			uiItemS(layout);
 
@@ -3454,7 +3456,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			if (ANIM_driver_can_paste())
 				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
 		}
-
+		
+		/* Keying Sets */
 		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			uiItemS(layout);
 
@@ -3468,14 +3471,19 @@ static int ui_but_menu(bContext *C, uiBut *but)
 				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
 			}
 		}
-
+		
 		uiItemS(layout);
-
+		
+		/* Property Operators */
+		
+		//Copy Property Value
+		//Paste Property Value
+		
+		//uiItemO(layout, "Reset to Default Value", 0, "WM_OT_property_value_reset_button");
+		
 		uiItemO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button");
 
 		uiItemS(layout);
-
-
 	}
 
 

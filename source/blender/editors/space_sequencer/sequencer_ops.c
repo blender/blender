@@ -153,6 +153,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_left", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_right", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
 	
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	
 
 	/* Mouse selection, a bit verbose :/ */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
@@ -212,8 +214,6 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "name", "SEQUENCER_MT_add");
 	
-	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
-
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
 }
 

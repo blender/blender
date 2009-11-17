@@ -2474,6 +2474,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_border");
+	WM_modalkeymap_assign(keymap, "ANIM_OT_previewrange_set");
 	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "ACT_OT_select_border");

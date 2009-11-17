@@ -978,6 +978,10 @@ void drawseqspace(const bContext *C, ARegion *ar)
 	/* Draw markers */
 //	draw_markers_timespace(SCE_MARKERS, DRAW_MARKERS_LINES);
 	
+	/* preview range */
+	UI_view2d_view_ortho(C, v2d);
+	ANIM_draw_previewrange(C, v2d);
+	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 
