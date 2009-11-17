@@ -69,41 +69,45 @@ def draw(layout, context, context_member):
     
     for key, val in items:
         row = layout.row()
-        
-        try:
+        convert_to_pyobject = getattr(val, "convert_to_pyobject", None)
+        if convert_to_pyobject:
             val_draw = val = val.convert_to_pyobject()
-        except:
+            val_draw = str(val_draw)
+        else:
             if type(val)==str:
                 val_draw = '"' + val + '"'
             else:
                 val_draw = val
-        
+
         box = row.box()
         
-        
         if key == global_prop_orig and context_member == global_path:
-            split = box.split(percentage=0.7)
+            split = box.split(percentage=0.75)
             
-            col = split.row()
-            col.itemR(scene, EVIL_PROP_PROP)
-            col.itemR(scene, EVIL_PROP_VALUE)
+            row = split.row()
+            row.itemR(scene, EVIL_PROP_PROP)
+            row.itemR(scene, EVIL_PROP_VALUE)
             
-            col = split.column()
-            prop = col.itemO("wm.properties_edit_end", properties=True, text="done")
-            assign_props(prop, val, key)
+            row = split.column()
+            prop = row.itemO("wm.properties_edit_end", properties=True, text="done")
+            assign_props(prop, val_draw, key)
             
         else:
-            split = box.split(percentage=0.5)
-            col = split.column()
-            col.itemL(text="%s = %s" % (key, str(val_draw)))
+            split = box.split(percentage=0.75)
+            row = split.row()
+            row.itemL(text=key)
+            if convert_to_pyobject:
+                row.itemL(text=val_draw)
+            else:
+                row.itemR(rna_item, key, text="")
+                
             
-            col = split.column()
-            prop = col.itemO("wm.properties_edit_begin", properties=True, text="edit")
-            assign_props(prop, val, key)
+            row = split.row(align=True)
+            prop = row.itemO("wm.properties_edit_begin", properties=True, text="edit")
+            assign_props(prop, val_draw, key)
             
-            col = split.column()
-            prop = col.itemO("wm.properties_remove", properties=True, text="del")
-            assign_props(prop, val, key)
+            prop = row.itemO("wm.properties_remove", properties=True, text="", icon='ICON_ZOOMOUT')
+            assign_props(prop, val_draw, key)
     
 
 from bpy.props import *
