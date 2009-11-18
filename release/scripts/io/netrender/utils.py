@@ -78,9 +78,10 @@ def clientScan():
 
 def clientConnection(address, port):
 		if address == "[default]":
-			if bpy:
-				bpy.ops.render.netclientscan()
-			else:
+#            calling operator from python is fucked, scene isn't in context
+#			if bpy:
+#				bpy.ops.render.netclientscan()
+#			else:
 				address, port = clientScan()
 		
 		conn = http.client.HTTPConnection(address, port)

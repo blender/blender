@@ -28,11 +28,7 @@ from netrender import utils
 from netrender import balancing
 from netrender import ui
 
-# store temp data in bpy module
-
-import bpy
-
-bpy.netrender_jobs = []
-bpy.netrender_slaves = []
-bpy.netrender_blacklist = []
+jobs = []
+slaves = []
+blacklist = []
 

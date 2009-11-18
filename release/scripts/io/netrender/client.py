@@ -21,6 +21,7 @@ import sys, os, re
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
 
+import netrender
 import netrender.model
 import netrender.slave as slave
 import netrender.master as master
@@ -113,7 +114,7 @@ def clientSendJob(conn, scene, anim = False):
 	# LIBRARIES
 	###########################
 	for lib in bpy.data.libraries:
-		job.addFile(bpy.utils.expandpath(lib_path))
+		job.addFile(bpy.utils.expandpath(lib.filename))
 		
 	###########################
 	# IMAGES
@@ -150,7 +151,7 @@ def clientSendJob(conn, scene, anim = False):
 	
 	job.name = job_name
 	
-	for slave in scene.network_render.slaves_blacklist:
+	for slave in netrender.blacklist:
 		job.blacklist.append(slave.id)
 	
 	job.chunks = netsettings.chunks
