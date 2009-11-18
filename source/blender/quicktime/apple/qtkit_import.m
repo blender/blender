@@ -1,5 +1,5 @@
 /**
- * $Id: qtkit_import.m 19323 2009-03-17 21:44:58Z blendix $
+ * $Id$
  *
  * qtkit_import.m
  *

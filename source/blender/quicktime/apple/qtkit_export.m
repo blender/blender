@@ -1,5 +1,5 @@
 /**
- * $Id: qtkit_export.m 24424 2009-11-09 17:06:48Z damien78 $
+ * $Id$
  *
  * qtkit_export.m
  *
