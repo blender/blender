@@ -1285,6 +1285,13 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_PASS_THROUGH;
 			}			
 		}
+		/* zone is also inappropriate if scroller is not visible... */
+		if ( ((vsm->scroller=='h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE)) ||
+			 ((vsm->scroller=='v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE)) )
+		{
+			/* can't catch this event for ourselves, so let it go to someone else? */
+			return OPERATOR_PASS_THROUGH;
+		}
 		
 		if(vsm->scroller=='h')
 			v2d->scroll_ui |= V2D_SCROLL_H_ACTIVE;
