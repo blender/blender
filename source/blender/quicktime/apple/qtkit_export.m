@@ -187,7 +187,9 @@ void end_qt(void)
 	if (qtexport->movie) {
 		/* Flush update of the movie file */
 		[qtexport->movie updateMovieFile];
-				
+		
+		[qtexport->movie invalidate];
+		
 		/* Clean up movie structure */
 		[qtexport->filename release];
 		[qtexport->frameAttributes release];
