@@ -2343,7 +2343,7 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 			return 0;
 
 		if(use_id_prop) { /* look up property name in current struct */
-			IDProperty *group= RNA_struct_idproperties(ptr, 0);
+			IDProperty *group= RNA_struct_idproperties(&curptr, 0);
 			if(group && rna_token_strip_quotes(token))
 				prop= (PropertyRNA *)IDP_GetPropertyFromGroup(group, token+1);
 		}
