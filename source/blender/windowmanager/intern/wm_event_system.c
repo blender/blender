@@ -807,6 +807,10 @@ static int wm_event_always_pass(wmEvent *event)
 /* operator exists */
 static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
 {
+	/* support for modal keymap in macros */
+	if (op->opm)
+		op = op->opm;
+
 	if(op->type->modalkeymap) {
 		wmKeyMap *keymap= WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
