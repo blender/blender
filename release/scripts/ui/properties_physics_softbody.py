@@ -91,7 +91,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 
     def draw(self, context):
         md = context.soft_body
-        point_cache_ui(self, md.point_cache, softbody_panel_enabled(md), 0, 0)
+        point_cache_ui(self, context, md.point_cache, softbody_panel_enabled(md), 0, 0)
 
 
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
@@ -261,7 +261,7 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):
     def draw(self, context):
         md = context.soft_body
         softbody = md.settings
-        effector_weights_ui(self, softbody.effector_weights)
+        effector_weights_ui(self, context, softbody.effector_weights)
 
 bpy.types.register(PHYSICS_PT_softbody)
 bpy.types.register(PHYSICS_PT_softbody_cache)

@@ -97,14 +97,14 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "root_coordinates")
             col.itemR(field, "force_2d")
         else:
-            basic_force_field_settings_ui(self, field)
+            basic_force_field_settings_ui(self, context, field)
 
         if field.type not in ('NONE', 'GUIDE'):
 
             layout.itemL(text="Falloff:")
             layout.itemR(field, "falloff_type", expand=True)
 
-            basic_force_field_falloff_ui(self, field)
+            basic_force_field_falloff_ui(self, context, field)
 
             if field.falloff_type == 'CONE':
                 layout.itemS()

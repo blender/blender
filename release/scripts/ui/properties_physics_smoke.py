@@ -146,7 +146,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
         md = context.smoke.domain_settings
         cache = md.point_cache_low
 
-        point_cache_ui(self, cache, cache.baked == False, 0, 1)
+        point_cache_ui(self, context, cache, cache.baked == False, 0, 1)
 
 
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
@@ -192,7 +192,7 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
         md = context.smoke.domain_settings
         cache = md.point_cache_high
 
-        point_cache_ui(self, cache, cache.baked == False, 0, 1)
+        point_cache_ui(self, context, cache, cache.baked == False, 0, 1)
 
 
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
@@ -205,7 +205,7 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
 
     def draw(self, context):
         domain = context.smoke.domain_settings
-        effector_weights_ui(self, domain.effector_weights)
+        effector_weights_ui(self, context, domain.effector_weights)
 
 bpy.types.register(PHYSICS_PT_smoke)
 bpy.types.register(PHYSICS_PT_smoke_field_weights)

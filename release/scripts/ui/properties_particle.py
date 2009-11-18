@@ -253,7 +253,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 
         psys = context.particle_system
 
-        point_cache_ui(self, psys.point_cache, particle_panel_enabled(context, psys), not psys.hair_dynamics, 0)
+        point_cache_ui(self, context, psys.point_cache, particle_panel_enabled(context, psys), not psys.hair_dynamics, 0)
 
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel):
@@ -889,7 +889,7 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel):
 
     def draw(self, context):
         part = context.particle_system.settings
-        effector_weights_ui(self, part.effector_weights)
+        effector_weights_ui(self, context, part.effector_weights)
 
         if part.type == 'HAIR':
             self.layout.itemR(part.effector_weights, "do_growing_hair")
@@ -909,8 +909,8 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel):
         split = layout.split(percentage=0.2)
         split.itemL(text="Type 1:")
         split.itemR(part.force_field_1, "type", text="")
-        basic_force_field_settings_ui(self, part.force_field_1)
-        basic_force_field_falloff_ui(self, part.force_field_1)
+        basic_force_field_settings_ui(self, context, part.force_field_1)
+        basic_force_field_falloff_ui(self, context, part.force_field_1)
 
         if part.force_field_1.type != 'NONE':
             layout.itemL(text="")
@@ -918,8 +918,8 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel):
         split = layout.split(percentage=0.2)
         split.itemL(text="Type 2:")
         split.itemR(part.force_field_2, "type", text="")
-        basic_force_field_settings_ui(self, part.force_field_2)
-        basic_force_field_falloff_ui(self, part.force_field_2)
+        basic_force_field_settings_ui(self, context, part.force_field_2)
+        basic_force_field_falloff_ui(self, context, part.force_field_2)
 
 
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):

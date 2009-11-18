@@ -18,9 +18,13 @@
 
 # <pep8 compliant>
 
+narrowui = 180
 
-def point_cache_ui(self, cache, enabled, particles, smoke):
+
+def point_cache_ui(self, context, cache, enabled, particles, smoke):
     layout = self.layout
+    
+    col2 = context.region.width > narrowui
     layout.set_context_pointer("PointCache", cache)
 
     row = layout.row()
@@ -86,34 +90,49 @@ def point_cache_ui(self, cache, enabled, particles, smoke):
         layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
 
 
-def effector_weights_ui(self, weights):
+def effector_weights_ui(self, context, weights):
     layout = self.layout
+    
+    col2 = context.region.width > narrowui
 
     layout.itemR(weights, "group")
 
     split = layout.split()
-    split.itemR(weights, "gravity", slider=True)
-    split.itemR(weights, "all", slider=True)
+    
+    col = split.column()
+    col.itemR(weights, "gravity", slider=True)
+    
+    if col2:
+        col = split.column()
+    col.itemR(weights, "all", slider=True)
 
     layout.itemS()
+    
+    split = layout.split()
 
-    flow = layout.column_flow()
-    flow.itemR(weights, "force", slider=True)
-    flow.itemR(weights, "vortex", slider=True)
-    flow.itemR(weights, "magnetic", slider=True)
-    flow.itemR(weights, "wind", slider=True)
-    flow.itemR(weights, "curveguide", slider=True)
-    flow.itemR(weights, "texture", slider=True)
-    flow.itemR(weights, "harmonic", slider=True)
-    flow.itemR(weights, "charge", slider=True)
-    flow.itemR(weights, "lennardjones", slider=True)
-    flow.itemR(weights, "turbulence", slider=True)
-    flow.itemR(weights, "drag", slider=True)
-    flow.itemR(weights, "boid", slider=True)
+    col = split.column()
+    col.itemR(weights, "force", slider=True)
+    col.itemR(weights, "vortex", slider=True)
+    col.itemR(weights, "magnetic", slider=True)
+    col.itemR(weights, "wind", slider=True)
+    col.itemR(weights, "curveguide", slider=True)
+    col.itemR(weights, "texture", slider=True)
+
+    if col2:
+        col = split.column()
+    col.itemR(weights, "harmonic", slider=True)
+    col.itemR(weights, "charge", slider=True)
+    col.itemR(weights, "lennardjones", slider=True)
+    col.itemR(weights, "turbulence", slider=True)
+    col.itemR(weights, "drag", slider=True)
+    col.itemR(weights, "boid", slider=True)
 
 
-def basic_force_field_settings_ui(self, field):
+def basic_force_field_settings_ui(self, context, field):
     layout = self.layout
+    
+    col2 = context.region.width > narrowui
+    
     split = layout.split()
 
     if not field or field.type == 'NONE':
@@ -128,7 +147,7 @@ def basic_force_field_settings_ui(self, field):
 
     if field.type == 'TURBULENCE':
         col.itemR(field, "size")
-        col.itemR(field, "flow")
+        col.itemR(field, "col")
     elif field.type == 'HARMONIC':
         col.itemR(field, "harmonic_damping", text="Damping")
     elif field.type == 'VORTEX' and field.shape != 'POINT':
@@ -137,8 +156,9 @@ def basic_force_field_settings_ui(self, field):
         col.itemR(field, "quadratic_drag", text="Quadratic")
     else:
         col.itemR(field, "flow")
-
-    col = split.column()
+    
+    if col2:
+        col = split.column()
     col.itemR(field, "noise")
     col.itemR(field, "seed")
     if field.type == 'TURBULENCE':
@@ -150,14 +170,22 @@ def basic_force_field_settings_ui(self, field):
     col.itemL(text="Effect point:")
     col.itemR(field, "do_location")
     col.itemR(field, "do_rotation")
+    
+    if col2:
+        col = split.column()
+    col.itemL(text="Collision:")
+    col.itemR(field, "do_absorption")
 
-    sub = split.column()
-    sub.itemL(text="Collision:")
-    sub.itemR(field, "do_absorption")
 
-
-def basic_force_field_falloff_ui(self, field):
+def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
+    
+    col2 = context.region.width > narrowui
+    
+    # XXX: This doesn't update for some reason. 
+    #if col2:
+    #    split = layout.split()
+    #else:
     split = layout.split(percentage=0.35)
 
     if not field or field.type == 'NONE':
@@ -168,7 +196,8 @@ def basic_force_field_falloff_ui(self, field):
     col.itemR(field, "use_min_distance", text="Use Minimum")
     col.itemR(field, "use_max_distance", text="Use Maximum")
 
-    col = split.column()
+    if col2:
+        col = split.column()
     col.itemR(field, "falloff_power", text="Power")
 
     sub = col.column()
