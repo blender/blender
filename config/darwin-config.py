@@ -13,7 +13,6 @@ USE_SDK=True
 #############################################################################
 ###################     Cocoa & architecture settings      ##################
 #############################################################################
-
 WITH_GHOST_COCOA=True
 MACOSX_ARCHITECTURE = 'i386' # valid archs: ppc, i386, ppc64, x86_64
 
@@ -32,6 +31,10 @@ elif cmd_res[0]=='10':
 	MAC_CUR_VER='10.6'
 
 BF_PYTHON_VERSION = '3.1'
+
+if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
+	USE_QTKIT=True # Carbon quicktime is not available for 64bit
+
 
 # Default target OSX settings per architecture
 # Can be customized
@@ -231,10 +234,7 @@ BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
-	WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME ( disable for 64bit atm )
-else:
-	WITH_BF_QUICKTIME = True
+WITH_BF_QUICKTIME = True
 
 WITH_BF_ICONV = True
 BF_ICONV = '/usr'
@@ -287,7 +287,10 @@ else:
 	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 
 if WITH_BF_QUICKTIME == True:
-	PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
+	if USE_QTKIT == True:
+		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
+	else:
+		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 LLIBS = ['stdc++', 'SystemStubs']
