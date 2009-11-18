@@ -1395,19 +1395,19 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         layout.column().itemR(scene, "cursor_location", text="3D Cursor:")
 
 
-class VIEW3D_PT_3dview_item(bpy.types.Panel):
+class VIEW3D_PT_3dview_name(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Item"
-
+    
     def poll(self, context):
-        return (context.active_object and (context.active_bone or context.active_pchan))
+        view = context.space_data
+        return (view)
 
     def draw(self, context):
         layout = self.layout
 
         ob = context.active_object
-
         row = layout.row()
         row.itemL(text="", icon='ICON_OBJECT_DATA')
         row.itemR(ob, "name", text="")
@@ -1747,9 +1747,10 @@ bpy.types.register(VIEW3D_MT_edit_armature)
 bpy.types.register(VIEW3D_MT_edit_armature_parent)
 bpy.types.register(VIEW3D_MT_edit_armature_roll)
 
-bpy.types.register(VIEW3D_PT_3dview_item) # Panels
+ # Panels
 bpy.types.register(VIEW3D_PT_3dview_properties)
 bpy.types.register(VIEW3D_PT_3dview_display)
+bpy.types.register(VIEW3D_PT_3dview_name)
 bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
 bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
 bpy.types.register(VIEW3D_PT_background_image)
