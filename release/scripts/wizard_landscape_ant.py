@@ -8,10 +8,10 @@ Tip: 'Create landscape mesh.'
 
 __author__ = "Jimmy Hazevoet"
 __url__     = ('http://wiki.blender.org/index.php/Scripts/Manual/Wizards/ANTLandscape','elysiun')
-__version__ = "v.1.05 03-2007"
+__version__ = "v.1.06 10-2009"
 __bpydoc__ = """\
 
-Another Noise Tool 'Landscape' v.1.05
+Another Noise Tool 'Landscape' v.1.06
 
 This script uses noise functions to create a terrain from a grid mesh.
 
@@ -46,7 +46,17 @@ The mesh Will be Overwritten.
 To create Multiple Landscapes you Must Re-Name or save the Mesh
 in Blender's F7 menu Links & Materials Panel.
 
+
 Readme:
+
+version.1.06: Oktober 2009
+_ New mesh option: Generate triangle faces
+_ New Height/Filter option: Thermal Erosion
+_ Option: Vert/Face select by slope, adjust limit to select steeper slopes, create vertexgroups for particlesystems etc..
+_ Option: VertexColour Slope Map, for use with MaterialNodes
+
+
+
 v.1.04:
 _ New G.U.I.
 _ New noise types like: 
@@ -203,6 +213,21 @@ _ and more...
 ###############################################################################################################
 
 
+#-----------------------------
+# Updates 2009:
+################################################################################################################
+# June 2009 v.1.05a
+# _ Mesh Option: Generate Triangle Faces
+#-----------------------------
+# Oktober 2009  v.1.06
+# _ Height/Filter Option: Thermal Erosion
+# _ Option: Vert/Face select by slope, adjust limit to select steeper slopes
+# _ Option: VertexColour Slope Map
+#
+################################################################################################################
+
+
+
 ###############################################################################################################
 #
 ##  Execute Script: Alt P 
@@ -219,13 +244,13 @@ from Blender import Image
 import string
 from string import strip
 import BPyMathutils
-from BPyMathutils import genrand
+from BPyMathutils import *
 from random import choice
 scene = Scene.GetCurrent()
 
 ###---------------------------------------------------------------------------
 
-CurVersion = 'A.N.T.Landscape v.1.05'
+CurVersion = 'A.N.T.Landscape v.1.06'
 
 ##---------------------------------------------------------------------------
 # Customise default settings: ----------------------------------------------
@@ -298,6 +323,10 @@ gt4_Evt  = 24
 Ipo_Evt  = 17
 New_Ipo_Evt=700
 
+VCol_Evt = 84
+VSel_Evt = 85
+FSel_Evt = 86
+
 ###---------------------------------------------------------------------------
 # menus
 noisetypemenu  = "Noise type: %t|multiFractal %x0|ridgedMFractal %x1|hybridMFractal %x2|heteroTerrain %x3|fBm %x4|turbulence %x5|Voronoi turb. %x6|vlNoise turb. %x7|noise %x8|cellNoise %x9|Marble %x10|lava_multiFractal %x11|slopey_noise %x12|duo_multiFractal %x13|distorted_heteroTerrain %x14|slickRock %x15|terra_turbulence %x16|rocky_fBm %x17|StatsByAlt_Terrain %x18|Double_Terrain %x19|Shattered_hTerrain %x20|vlhTerrain %x21"
@@ -318,14 +347,17 @@ def Set_ReSet_Values():
 	global fileinfo, filemessage
 	global iScale, Offset, Invert, NSize, Sx, Sy, Lx, Ly, WorldSpaceCo
 	global NType, Basis, musgr, vlnoi, vlnoiTwo, voron, turbOne, turbTwo, marbleOne, marbleTwo, tBasismod, musgrTwo
-	global CustomFX, effect_image, Effect_Ctrl, Min, Max, Falloff, CustomFilt, Filter_Mode, Def_Filter_Ctrl, Ipo_Filter_Ctrl, Filter_Order
-	global RandMod, RSeed, rand_H, rand_S, rand_L, rand_I, AutoUpd, PreView, DefaultIpoName
+	global CustomFX, effect_image, Effect_Ctrl, Min, Max, Falloff, CustomFilt, Filter_Mode, Def_Filter_Ctrl, Ipo_Filter_Ctrl, Filter_Order, Erosion
+	global RandMod, RSeed, rand_H, rand_S, rand_L, rand_I, AutoUpd, PreView, DefaultIpoName, selLimit
 
 	filemessage = ''
 	fileinfo    = ''
 	effect_image = 'Load and Select image.'
 	AutoUpd  = Create( 0 )
 	PreView = [ Create( 0 ), Create( 1.0 ), Create( 0.0 ) ]
+
+	selLimit= Create( 0.96 )
+
 	## Coords controls:
 	WorldSpaceCo = Create(0)
 	iScale = [ Create( 1.0 ), Create( 1.0 ), Create( 0.25) ]
@@ -337,7 +369,7 @@ def Set_ReSet_Values():
 	Lx = [ Create( 0.0 ), Create( 0.0 ) ]
 	Ly = [ Create( 0.0 ), Create( 0.0 ) ]
 	## Noise controls:
-	NType = Create( 3 )
+	NType = Create( 20 )
 	Basis = [ Create( 0 ), Create( 0 ) ]
 	musgr = [ Create( 1.0 ), Create( 2.0 ), Create( 8 ), Create( 1.0 ), Create( 1.0 ), Create( 0.5 ) ]
 	vlnoi = [ Create( 1.0 ), Create( 0 ) ]
@@ -361,6 +393,10 @@ def Set_ReSet_Values():
 	Ipo_Filter_Ctrl = [ Create( DefaultIpoName ), Create( 0 ), Create( 100.0 ), Create( 100.0 ) ]
 	Filter_Order =  Create( 0 )
 	CustomFilt = [ Create('sqrt(h*h)**2'), Create('0'), Create('a') ]
+
+	Erosion = [ Create( 0 ), Create( 1 ), Create( 2 ), Create( 2.5 ) ]
+
+
 	## Randomise noise buttons:
 	RandMod = Create( 1 )
 	RSeed   = Create( 0 )
@@ -577,19 +613,31 @@ def EffectButtons( col, row, width, height ):
 #
 def FilterButtons( col, row, width, height ):
 	global iScale, Offset, Invert, Min, Max, Falloff, CustomFilt
-	global Filter_Mode, Def_Filter_Ctrl, Ipo_Filter_Ctrl, DefaultIpoName, Filter_Order
+	global Filter_Mode, Def_Filter_Ctrl, Ipo_Filter_Ctrl, DefaultIpoName, Filter_Order, Erosion
 
 	iScale[2] = Number("Height:", Btn_Evt, col[5], row[2], width[3], height[2], iScale[2].val,   -10.0, 10.0 , "Terrain Height:  Scale" )
 	Invert[2] = Toggle("Inv.",    Btn_Evt, col[9], row[2], width[0], height[2], Invert[2].val, "Terrain Height:  Invert")
 	Offset[2] = Number("Offset:", Btn_Evt, col[5], row[3], width[4], height[1], Offset[2].val,   -10.0, 10.0 , "Terrain Height:  Offset" )
-	Max = Number(    "Plateau:",  Btn_Evt, col[5], row[5], width[4], height[1], Max.val, Min.val, 1.0 , "Terrain Height:  Clamp Max. ( Plateau )" )
-	Min = Number(    "Sealevel:", Btn_Evt, col[5], row[6], width[4], height[1], Min.val, -1.0, Max.val , "Terrain Height:  Clamp Min. ( Sealevel )" )
-	Falloff[0] = Menu( falloftypemenu, Btn_Evt ,col[5], row[9], width[4], height[2], Falloff[0].val, "Terrain Height:  Edge falloff")
+	Max = Number(    "Plateau:",  Btn_Evt, col[5], row[4], width[4], height[1], Max.val, Min.val, 1.0 , "Terrain Height:  Clamp Max. ( Plateau )" )
+	Min = Number(    "Sealevel:", Btn_Evt, col[5], row[5], width[4], height[1], Min.val, -1.0, Max.val , "Terrain Height:  Clamp Min. ( Sealevel )" )
+
+	Falloff[0] = Menu( falloftypemenu, Btn_Evt ,col[5], row[7], width[4], height[1], Falloff[0].val, "Terrain Height:  Edge falloff")
 	if Falloff[0].val !=0:
-		Falloff[1] = Number("X:",   Btn_Evt, col[5], row[10], width[1], height[1], Falloff[1].val , 0.01, 100.0 , "Edge falloff:  X Size" )		
-		Falloff[2] = Number("Y:",   Btn_Evt, col[8], row[10], width[1], height[1], Falloff[2].val , 0.01, 100.0 , "Edge falloff:  Y Size" )
-		Falloff[4] = Toggle("Inv.", Btn_Evt, col[7], row[10], width[0], height[1], Falloff[4].val, "Edge falloff:  Invert")
-		Falloff[3] = Toggle("Edge At Sealevel", Btn_Evt, col[5], row[7], width[4], height[1], Falloff[3].val, "Edge falloff:  Edge at Sealevel")
+		Falloff[1] = Number("X:",   Btn_Evt, col[5], row[8], width[1], height[1], Falloff[1].val , 0.01, 100.0 , "Edge falloff:  X Size" )		
+		Falloff[2] = Number("Y:",   Btn_Evt, col[8], row[8], width[1], height[1], Falloff[2].val , 0.01, 100.0 , "Edge falloff:  Y Size" )
+		Falloff[4] = Toggle("Inv.", Btn_Evt, col[7], row[8], width[0], height[1], Falloff[4].val, "Edge falloff:  Invert")
+		Falloff[3] = Toggle("Edge At Sealevel", Btn_Evt, col[5], row[6], width[4], height[1], Falloff[3].val, "Edge falloff:  Edge at Sealevel")
+
+
+	##########
+	Erosion[0] = Toggle("ThemalErosion", Btn_Evt, col[5], row[9], width[2], height[1], Erosion[0].val, "Thermal Erosion")
+	if Erosion[0].val !=0:
+		neighbormenu = "Neighborhood %t|Moore %x0|Neumann %x1|Inv. Neumann %x2"
+		Erosion[1] = Menu( neighbormenu, Btn_Evt ,col[5], row[10], width[1], height[1], Erosion[1].val, "Neighborhood calculation type")
+		Erosion[2] = Number("Passes:",   Btn_Evt, col[8],  row[9], width[1], height[1], Erosion[2].val , 1,   100,   "Number of erosion passes" )		
+		Erosion[3] = Number("Factor:",   Btn_Evt, col[7], row[10], width[2], height[1], Erosion[3].val , 0.01,100.0, "Erosion factor amount" )
+
+
 
 	Filter_Mode = Menu( filtermodemenu,               No_Evt, col[0], row[2], width[4], height[2], Filter_Mode.val, "Filter:  Mode")
 	if Filter_Mode.val ==1:
@@ -615,11 +663,13 @@ def FilterButtons( col, row, width, height ):
 	if Filter_Mode.val !=0:
 		Filter_Order = Toggle("Change Filter Order",   Btn_Evt, col[0], row[3], width[4], height[1], Filter_Order.val, "Filter Order: OFF = Noise+Effect+Falloff+FILTER / ON = Noise+FILTER+Effect+Falloff.")
 
+
+
 ###-------------------------
-## Option / Generate Image Buttons:
+## Options / Generate Image Buttons:
 #
 def OptionButtons( col, row, width, height ):
-	global PreView, previewname
+	global PreView, previewname, selLimit
 
 	PreView[0] = Toggle("Make Image", No_Evt, col[0], row[2], width[4], height[2], PreView[0].val, "Image: On/Off (Make a new Image in UV/ImageEditor Window, and give a name to it)")
 	if PreView[0].val !=0:
@@ -632,12 +682,28 @@ def OptionButtons( col, row, width, height ):
 		draw_Text( ( col[5], row[3] ), 'give it a name,', black, 0 )
 		draw_Text( ( col[5], row[4] ), 'and save it manualy.', black, 0 )
 
+	
+
+	PushButton( "Slope Select Vertices",  VSel_Evt, col[0], row[9], width[4], height[1] , "Select Vertices by slope (MeshEditMode) ")
+	PushButton( "Slope Select Faces",  FSel_Evt, col[5], row[9], width[4], height[1] , "Select Faces by slope (MeshEditMode) ")
+	selLimit = Slider("Slope Selection Limit ",     No_Evt, col[0], row[10], width[9], height[1], selLimit.val, 0.0, 1.0, 0, "Vertice/Face selection limit")
+	PushButton( "Generate VertexColour Slope Map",  VCol_Evt, col[0], row[8], width[9], height[1] , "Make vertex colour slope map (MeshVertexPaintMode) (Use with MaterialNodes) ")
+
+
+
+
+
+
+
+
+
+
 ####--------------------------------------------------------------------------
 ###--------------------------------------------------------------------------
 ## Draw G.U.I. -------------------------------------------------------------
 #--------------------------------------------------------------------------
 def drawgui():
-	global guitabs, ledcolor, FullScreen, AutoUpd, RandMod, RSeed, filemessage
+	global guitabs, ledcolor, FullScreen, AutoUpd, RandMod, RSeed, filemessage, CurVersion
 	global Effect_Ctrl, Filter_Mode, Falloff, PreView, rand_H, rand_S, rand_L, rand_I
 
 	glClearColor(background[0],background[1],background[2],background[3])
@@ -666,17 +732,17 @@ def drawgui():
 	xpart = ( ( guiwidth-xstart ) / columns )
 	ypart = ( ( guiheight-ystart ) / rows )
 	width = []
-	for c in xrange( columns ):
+	for c in range( columns ):
 		col.append( xgap + xpart * c + xstart )
 		width.append( xpart*(c+1)-xgap )
 	height = [ (ypart-ygap)/2 , ypart-ygap, (ypart*3-ygap)/2, ypart*2-ygap, (ypart*5-ygap)/2  ]
-	for r in xrange( rows ):
+	for r in range( rows ):
 		row.append( ygap + ypart * r + ystart )
 	row.reverse()
 
 	###-------------------------
 	## Draw G.U.I.:
-	draw_BackPanel( 'Another Noise Tool 1.05', xstart, ystart, guiwidth, guiheight + ygap, lightgrey )
+	draw_BackPanel( CurVersion, xstart, ystart, guiwidth, guiheight + ygap, lightgrey )
 
 	FullScreen = Toggle("", Scrn_Evt, guiwidth-32, guiheight+ygap+3, 15, 15, FullScreen.val ,"FullScreen" )
 	PushButton( "X",         End_Evt, guiwidth-16, guiheight+ygap+3, 15, 15, "Exit" )
@@ -780,9 +846,9 @@ def events(evt, val):
 
 def bevents(evt):
 	global txtFile, effect_image, PreView, fileinfo, filemessage
-	global Filter_Mode, Ipo_Filter_Ctrl, iponame, thiscurve, selectedcurve
+	global Filter_Mode, Ipo_Filter_Ctrl, iponame, thiscurve, selectedcurve, Erosion
 	global antfilename, terrainname
-	global actob, actme
+	global actob, actme, selLimit
 
 	# quit/reset event
 	if (evt == End_Evt ):
@@ -856,7 +922,7 @@ def bevents(evt):
 	if (evt == New_Ipo_Evt ):
 		objname = Create("ANT_Ipo_Empty")
 		iponame = Create("ANT_IPO")
-		block = []
+ 		block = []
 		block.append("Enter new names")
 		block.append("and hit OK button")
 		block.append(("OB: ", objname, 0, 30, "New Ipo Object Name. (Object type = 'Empty')"))
@@ -959,14 +1025,16 @@ def bevents(evt):
 		scn = Blender.Scene.GetCurrent()
 		gridname = Create("Terrain")
 		gridres = Create(256)
+		triangles = Create(0)
 		curspos = Create(0)
-		block = []
+ 		block = []
 		block.append(("OB: ", gridname, 0, 30, "New Object Name."))
 		block.append(("Resol: ", gridres, 4, 1024, "New grid resolution"))
-		block.append(("At Cursor", curspos, "New grid at cursor position"))			
+		block.append(("Triangles", triangles, "Triangle faces instead of Quads"))
+		block.append(("At Cursor", curspos, "New grid at cursor position"))
 		retval = PupBlock("New Grid Mesh", block)
 		if retval !=0:
-			MakeGridMesh( gridres.val, gridname.val, curspos.val, scn )
+			MakeGridMesh( gridres.val, gridname.val, curspos.val, triangles.val, scn )
 			obj = scn.objects.active
 			if obj.type == 'Mesh':
 				actob=[]
@@ -993,6 +1061,49 @@ def bevents(evt):
 	if (evt not in [LoadFile_Evt,SaveFile_Evt] ):
 		filemessage = ''
 		#Draw()
+
+
+	###---------------------------------------------------------
+	# Mesh options
+	###-------------------------
+	if (evt == VCol_Evt):
+		if actme !=[]:
+			is_editmode = Window.EditMode()
+			if is_editmode: Window.EditMode(0)
+			weight = []
+			weight = Weight_from_Normal( actme[0], normals=(0.0,0.0,1.0) )
+			Weight_to_VCol( actme[0], weight, color=(1.0,1.0,1.0) )
+			if is_editmode: Window.EditMode(1)
+			Window.RedrawAll()
+
+	if (evt == VSel_Evt):
+		if actme !=[]:
+			is_editmode = Window.EditMode()
+			if is_editmode: Window.EditMode(0)
+			weight = []
+			weight = Weight_from_Normal( actme[0], normals=(0.0,0.0,1.0) )
+			Weight_to_VertSelect( actme[0], weight, selLimit.val, 1 )
+			if is_editmode: Window.EditMode(1)
+			Window.RedrawAll()
+		
+	if (evt == FSel_Evt):
+		if actme !=[]:
+			is_editmode = Window.EditMode()
+			if is_editmode: Window.EditMode(0)
+			weight = []
+			weight = Weight_from_Normal( actme[0], normals=(0.0,0.0,1.0) )
+			Weight_to_FaceSelect( actme[0], weight, selLimit.val, 1 )
+			if is_editmode: Window.EditMode(1)
+			Window.RedrawAll()
+
+
+
+
+
+
+
+
+
 
 	### end events. -------------------------
 
@@ -1089,7 +1200,7 @@ def Image_Menu():
 		for numbers, obnames in enumerate( imagelist ):
 			n = obnames.getName()
 			names.append( n )
-		imlistText = string.join( [ '|' + str(names[key]) + '%x' + str(key)  for key in xrange(numbers+1) ], '' )
+		imlistText = string.join( [ '|' + str(names[key]) + '%x' + str(key)  for key in range(numbers+1) ], '' )
 		image_menu = Blender.Draw.PupMenu( "Images: %t" + imlistText )
 		if image_menu == -1:
 			return ''
@@ -1467,7 +1578,7 @@ def rocky_fBm((x,y,z), H, lacunarity, octaves, basis ):
 
 ## Shattered_hTerrain:
 def Shattered_hTerrain((x,y,z), H, lacunarity, octaves, offset, distort, basis ):
-	d = ( turbulence( ( x, y, z ), 6, 0, 0, 0.5, 2.0 ) * 0.5 + 0.5 )*distort*0.25
+	d = ( turbulence( ( x, y, z ), 6, 0, 0, 0.5, 2.0 ) * 0.5 + 0.5 )*distort*0.5
 	t0 = ( turbulence( ( x+d, y+d, z ), 0, 0, 7, 0.5, 2.0 ) + 0.5 )
 	t2 = ( heteroTerrain(( x*2, y*2, t0*0.5 ), H, lacunarity, octaves, offset, basis ) )
 	return (( t0*t2 )+t2*0.5)*0.75
@@ -1733,33 +1844,6 @@ def Combine_Functions( (i,j),(x,y,z) ):
 	return height
 
 
-#------------------------------------------------------------
-##------------------------------------------------------------
-###  Render Noise to a Image('NAME') (you must create one first)
-##------------------------------------------------------------
-#------------------------------------------------------------
-
-def HeightFieldImage():
-	global PreView, previewname
-
-	iname = previewname.val
-	try: 
-		pic = Image.Get( iname )
-	except:
-		#print iname, ' No Image with this name'
-		PupMenu( 'No Image with this name' )
-		return
-	res = pic.getMaxXY()
-	for i in xrange( res[0] ):
-		x = i - (res[0]) / 2.0
-		x = (x*2.0) / (res[0])
-		for j in xrange( res[1] ):
-			y = j - (res[1]) / 2.0
-			y = (y*2.0) / (res[1])
-			height = PreView[2].val + PreView[1].val * Combine_Functions( (i,j),(x,y,0) )
-			if height > 1.0: height = 1.0
-			if height < 0.0: height = 0.0
-			pic.setPixelF( i, j, ( height,height,height, 1.0 ) )
 
 
 #------------------------------------------------------------
@@ -1768,11 +1852,12 @@ def HeightFieldImage():
 ##------------------------------------------------------------
 #------------------------------------------------------------
 
+
 #------------------------------------------------------------
 ## Mesh: make new grid
 ###------------------------------------------------------------
 
-def MakeGridMesh( RESOL=32, NAME='GridMesh', CURSORPOS=0, SCENE=None ):
+def MakeGridMesh( RESOL=32, NAME='GridMesh', CURSORPOS=0, TRI=0, SCENE=None ):
 	# scene, object, mesh ---------------------------------------
 	if not SCENE:
 		SCENE = Blender.Scene.GetCurrent()
@@ -1794,12 +1879,15 @@ def MakeGridMesh( RESOL=32, NAME='GridMesh', CURSORPOS=0, SCENE=None ):
 	f=[]
 	for i in xrange( n-1 ):
 		for j in xrange( n-1 ):
-			f.append( [	i*n+j,\
-						(i+1)*n+j,\
-						(i+1)*n+j+1,\
-						i*n+j+1 ] )
-	
-	newme.faces.extend(f, smooth=True)
+			v0=newme.verts[i*n+j]
+			v1=newme.verts[(i+1)*n+j]
+			v2=newme.verts[(i+1)*n+j+1]
+			v3=newme.verts[i*n+j+1]
+			f.append( [v0,v1,v2,v3] )
+	newme.faces.extend(f)
+	#---------------------------------------
+	if TRI !=0:
+		newme.quadToTriangle(0)
 	#---------------------------------------
 	newme.calcNormals()
 	#---------------------------------------
@@ -1807,26 +1895,221 @@ def MakeGridMesh( RESOL=32, NAME='GridMesh', CURSORPOS=0, SCENE=None ):
 		newob.loc = Window.GetCursorPos()
 	newob.select(1)
 
+
+
+
+
+##########################
+#
+
+def MakeArray(wx,wy,wz,resol=256):
+	myArray = []
+	for i in xrange( resol ):
+		x = i - (resol / 2.0)
+		x = (x*2.0) / (resol) + wx
+		myArray.append( [] )
+		for j in xrange( resol ):
+			y = j - (resol / 2.0)
+			y = (y*2.0) / (resol) + wy
+			myArray[int(i)].append( Combine_Functions( (x,y),(x,y,0+wz) ) )
+
+	return myArray
+
+
+def WrapCoordinates(x,y,size):
+	if (x < 0): x *= -1
+	if (y < 0): y *= -1
+	if (x >= size): x = size - 1
+	if (y >= size): y = size - 1
+	return x,y
+
+def GetPointWrap(x,y,size,PointArray):
+	x1,y1 = WrapCoordinates(x,y,size)
+	return PointArray[x1][y1]
+
+
+def AddErosion( pArray, vNeighborhood, nPasses, fFactor ):
+
+	if vNeighborhood == 1: ValNeighborhood = [(0,1),(-1,0),(1,0),(0,-1)]	
+	elif vNeighborhood == 2: ValNeighborhood = [(-1,1),(1,1),(-1,-1),(1,-1)]
+	else: ValNeighborhood = [(-1,1),(0,1),(1,1),(-1,0),(1,0),(-1,-1),(0,-1),(1,-1)]
+
+	numNeighbors = len(ValNeighborhood)
+	numb = len(pArray)
+	T = ( fFactor / (numb+1) )
+
+	for i in xrange(nPasses):
+		for x in xrange(numb):
+			for y in xrange(numb):
+				l,n,dMax = 0,0,0.0
+				h = pArray[x][y]
+				while n < numNeighbors:
+					di = h - GetPointWrap( x+ValNeighborhood[n][0], y+ValNeighborhood[n][1], numb, pArray )
+					if (di > dMax):
+						dMax,l = di,n
+					n+=1
+				if ( dMax > 0.0 and dMax <= T ):
+					hi = (0.5*dMax)
+					pArray[x][y] = h-hi
+					px,py = WrapCoordinates( x+ValNeighborhood[l][0], y+ValNeighborhood[l][1], numb )
+					pArray[px][py] += hi
+	return pArray
+
+
+
+
+def ErosionOrNot( OffOn, resol ):
+	global actme, actob, WorldSpaceCo
+	
+	if WorldSpaceCo.val == 1:
+		wx,wy,wz = actob[0].getLocation( 'worldspace' )
+	elif WorldSpaceCo.val ==2:
+		l = actob[0].getLocation( 'worldspace' )
+		w = Window.GetCursorPos()
+		wx,wy,wz = l[0]-w[0], l[1]-w[1], l[2]-w[2]
+	else:
+		wx,wy,wz = 0,0,0	
+	
+	eArray = MakeArray(wx,wy,wz,resol)
+	if OffOn !=0:
+		return AddErosion( eArray, Erosion[1].val, Erosion[2].val, Erosion[3].val )
+	else:
+		return eArray
+		
+
 #------------------------------------------------------------
 ## Mesh: Grid vert displace / update terrain
 ###------------------------------------------------------------
 
 def displace( OB, ME, WORLD=0  ):
-	if WORLD == 1:
-		wx,wy,wz = OB.getLocation( 'worldspace' )
-	elif WORLD ==2:
-		l = OB.getLocation( 'worldspace' )
-		w = Window.GetCursorPos()
-		wx,wy,wz = l[0]-w[0], l[1]-w[1], l[2]-w[2]
-	else:
-		wx,wy,wz = 0,0,0
+	global Erosion
+
+ 	resol = int( len( ME.verts )**0.5 ) - 1	
+	NewArray = ErosionOrNot( Erosion[0].val, resol )
 
 	for v in ME.verts:
-		co = v.co
-		co[2] = Combine_Functions( (co[0]+wx,co[1]+wy),(co[0]+wx, co[1]+wy, 0.0+wz) )
+			x = int( (v.co[0]+1)*(resol-1)/2.0 )
+			y = int( (v.co[1]+1)*(resol-1)/2.0 )
+			v.co[2] = NewArray[x][y]
+
 	ME.update()
 	ME.calcNormals()	
 	#OB.makeDisplayList()
+
+
+
+#------------------------------------------------------#
+
+def Weight_from_Normal( me, invert=0, normals=(0.0,0.0,1.0) ):
+	#------------------------------------------------------#
+	# Weight from vertex normal  --------------------------#
+	#------------------------------------------------------#
+	
+	normals = Mathutils.Vector( normals )
+	#
+	# Generate weights once
+	weights = [[] for i in range(len(me.verts)) ]
+	#
+	for f in me.faces:
+		for i, v in enumerate(f.v):
+			weight = ( v.no * normals )
+			if invert:
+				weight = 1-weight
+			weights[v.index].append(weight)
+
+	return weights
+
+
+#------------------------------------------------------#
+
+def Weight_to_VertSelect( me, weight, limit=0.5, deselect=1 ):
+	#------------------------------------------------------#
+	# select verts
+	#------------------------------------------------------#
+	#Mesh.Mode(0) #	edit select mode: verts
+	for v in me.verts:
+		if deselect==1:
+			v.sel=0
+		i=v.index
+		for w in weight[i]:
+			if w > limit:
+				v.sel=1
+
+
+#------------------------------------------------------#
+
+def Weight_to_FaceSelect( me, weight, limit=0.5, deselect=0 ):
+	#------------------------------------------------------#
+	# select faces 
+	#------------------------------------------------------#
+	#Mesh.Mode(4) #	edit select mode: faces
+	for f in me.faces:
+		if deselect==1:
+			f.sel=0
+		for v in f.v:
+			i=v.index
+			for w in weight[i]:
+				if w > limit:
+					f.sel=1
+
+
+
+#------------------------------------------------------#
+
+def Weight_to_VCol( me, weight, color=(1.0,1.0,1.0) ):
+	#------------------------------------------------------#
+	# make vertex colours from weights        -------------#
+	#------------------------------------------------------#
+
+	if not me.faceUV:
+		me.faceUV=1
+	if not me.vertexColors:
+		me.vertexColors=1
+	for f in me.faces:
+		for i, v in enumerate(f.v):
+			for w in weight[v.index]:
+				col = f.col[i]
+				col.r = int( w * color[0] * 256 )
+				col.g = int( w * color[1] * 256 )
+				col.b = int( w * color[2] * 256 )
+
+
+
+
+
+#------------------------------------------------------------
+##------------------------------------------------------------
+###  Render Noise to a Image('NAME') (you must create one first)
+##------------------------------------------------------------
+#------------------------------------------------------------
+
+def HeightFieldImage():
+	global PreView, previewname, Erosion
+
+	iname = previewname.val
+	try: 
+		pic = Image.Get( iname )
+	except:
+		#print iname, ' No Image with this name'
+		PupMenu( 'No Image with this name' )
+		return
+	res = pic.getMaxXY()
+
+	NewArray = ErosionOrNot( Erosion[0].val, res[0] )
+
+	for i in range( res[0] ):
+		x = i - (res[0]) / 2.0
+		x = (x*2.0) / (res[0])
+		for j in range( res[1] ):
+			y = j - (res[1]) / 2.0
+			y = (y*2.0) / (res[1])
+			height = PreView[2].val + PreView[1].val * NewArray[i][j] ## Combine_Functions( (i,j),(x,y,0) )
+			
+			if height > 1.0: height = 1.0
+			if height < 0.0: height = 0.0
+			pic.setPixelF( i, j, ( height,height,height, 1.0 ) )
+
+
 
 
 #----------------------------------------------------------------------------------------------------
@@ -1913,7 +2196,7 @@ def readstr(f):
 def SavePreset(FName):
 	global iScale, Offset, Invert, NSize, Sx, Sy, Lx, Ly
 	global NType, Basis, musgr, tBasismod, vlnoi, vlnoiTwo, voron, turbOne, turbTwo, marbleOne, marbleTwo, musgrTwo
-	global CustomFX, effect_image, Effect_Ctrl, Min, Max, Falloff, CustomFilt, Filter_Mode, Def_Filter_Ctrl, Ipo_Filter_Ctrl, Filter_Order
+	global CustomFX, effect_image, Effect_Ctrl, Min, Max, Falloff, CustomFilt, Filter_Mode, Def_Filter_Ctrl, Ipo_Filter_Ctrl, Filter_Order, Erosion
 	global RandMod, RSeed, rand_H, rand_S, rand_L, rand_I, filemessage, fileinfo
 
 	try:
@@ -2021,6 +2304,10 @@ def SavePreset(FName):
 	writeln(f,rand_I.val)
 	writeln(f,rand_S.val)
 	writeln(f,rand_L.val)
+	writeln(f,Erosion[0].val)
+	writeln(f,Erosion[1].val)
+	writeln(f,Erosion[2].val)
+	writeln(f,Erosion[3].val)
 	filemessage = 'Settings saved to file.'
 	f.close()
 
@@ -2029,7 +2316,7 @@ def SavePreset(FName):
 def LoadPreset(FName):
 	global iScale, Offset, Invert, NSize, Sx, Sy, Lx, Ly
 	global NType, Basis, musgr, tBasismod, vlnoi, vlnoiTwo, voron, turbOne, turbTwo, marbleOne, marbleTwo, musgrTwo
-	global CustomFX, effect_image, Effect_Ctrl, Min, Max, Falloff, CustomFilt, Filter_Mode, Def_Filter_Ctrl, Ipo_Filter_Ctrl, Filter_Order
+	global CustomFX, effect_image, Effect_Ctrl, Min, Max, Falloff, CustomFilt, Filter_Mode, Def_Filter_Ctrl, Ipo_Filter_Ctrl, Filter_Order, Erosion
 	global RandMod, RSeed, rand_H, rand_S, rand_L, rand_I, filemessage, fileinfo
 
 	try:
@@ -2137,6 +2424,10 @@ def LoadPreset(FName):
 	rand_I.val = readint(f)	
 	rand_S.val = readint(f)
 	rand_L.val = readint(f)
+	Erosion[0].val = readint(f)
+	Erosion[1].val = readint(f)
+	Erosion[2].val = readint(f)
+	Erosion[3].val = readfloat(f)
 	filemessage = 'Settings loaded from file.'
 	f.close()
 
@@ -2144,5 +2435,5 @@ def LoadPreset(FName):
 # Register:
 
 Register( drawgui, events, bevents )
+
 ###--------------------------------------------------------------------------
-		
