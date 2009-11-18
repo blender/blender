@@ -164,7 +164,7 @@ void ED_operatortypes_curve(void)
 void ED_keymap_curve(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
+//	wmKeyMapItem *kmi;
 	
 	keymap= WM_keymap_find(keyconf, "Font", 0, 0);
 	keymap->poll= ED_operator_editfont;
@@ -251,7 +251,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
 
 	/* menus */
-	WM_keymap_add_item(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }

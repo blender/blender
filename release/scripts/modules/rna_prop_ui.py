@@ -100,7 +100,7 @@ def draw(layout, context, context_member):
             if convert_to_pyobject and not hasattr(val_orig, "len"):
                 row.itemL(text=val_draw)
             else:
-                row.itemR(rna_item, '["' + key + '"]', text="")
+                row.itemR(rna_item, '["%s"]' % key, text="")
                 
             
             row = split.row(align=True)

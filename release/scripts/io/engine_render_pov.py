@@ -285,7 +285,7 @@ def write_pov(filename, scene=None, info_callback = None):
 		for ob in sel:
 			ob_num+= 1
 			
-			if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META'):
+			if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE'):
 				continue
 			
 			me = ob.data
@@ -722,26 +722,26 @@ class PovrayRender(bpy.types.RenderEngine):
 	def _export(self, scene):
 		import tempfile
 		
-		self.temp_file_in = tempfile.mktemp(suffix='.pov')
-		self.temp_file_out = tempfile.mktemp(suffix='.tga')
-		self.temp_file_ini = tempfile.mktemp(suffix='.ini')
+		self._temp_file_in = tempfile.mktemp(suffix='.pov')
+		self._temp_file_out = tempfile.mktemp(suffix='.tga')
+		self._temp_file_ini = tempfile.mktemp(suffix='.ini')
 		'''
-		self.temp_file_in = '/test.pov'
-		self.temp_file_out = '/test.tga'
-		self.temp_file_ini = '/test.ini'
+		self._temp_file_in = '/test.pov'
+		self._temp_file_out = '/test.tga'
+		self._temp_file_ini = '/test.ini'
 		'''
 		
 		def info_callback(txt):
 			self.update_stats("", "POVRAY: " + txt)
 			
-		write_pov(self.temp_file_in, scene, info_callback)
+		write_pov(self._temp_file_in, scene, info_callback)
 		
 	def _render(self):
 		
-		try:		os.remove(self.temp_file_out) # so as not to load the old file
+		try:		os.remove(self._temp_file_out) # so as not to load the old file
 		except:	pass
 		
-		write_pov_ini(self.temp_file_ini, self.temp_file_in, self.temp_file_out)
+		write_pov_ini(self._temp_file_ini, self._temp_file_in, self._temp_file_out)
 		
 		print ("***-STARTING-***")
 		
@@ -757,15 +757,15 @@ class PovrayRender(bpy.types.RenderEngine):
 				pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine'
 			
 		if 1:
-			self.process = subprocess.Popen([pov_binary, self.temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
+			self._process = subprocess.Popen([pov_binary, self._temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
 		else:
 			# This works too but means we have to wait until its done
-			os.system('%s %s' % (pov_binary, self.temp_file_ini))
+			os.system('%s %s' % (pov_binary, self._temp_file_ini))
 		
 		print ("***-DONE-***")
 	
 	def _cleanup(self):
-		for f in (self.temp_file_in, self.temp_file_ini, self.temp_file_out):
+		for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
 			try:		os.remove(f)
 			except:	pass
 		
@@ -785,19 +785,19 @@ class PovrayRender(bpy.types.RenderEngine):
 		y= int(r.resolution_y*r.resolution_percentage*0.01)
 
 		# Wait for the file to be created
-		while not os.path.exists(self.temp_file_out):
+		while not os.path.exists(self._temp_file_out):
 			if self.test_break():
-				try:		self.process.terminate()
+				try:		self._process.terminate()
 				except:	pass
 				break
 			
-			if self.process.poll() != None:
+			if self._process.poll() != None:
 				self.update_stats("", "POVRAY: Failed")
 				break
 			
 			time.sleep(self.DELAY)
 		
-		if os.path.exists(self.temp_file_out):
+		if os.path.exists(self._temp_file_out):
 			
 			self.update_stats("", "POVRAY: Rendering")
 			
@@ -807,7 +807,7 @@ class PovrayRender(bpy.types.RenderEngine):
 				result = self.begin_result(0, 0, x, y)
 				lay = result.layers[0]
 				# possible the image wont load early on.
-				try:		lay.load_from_file(self.temp_file_out)
+				try:		lay.load_from_file(self._temp_file_out)
 				except:	pass
 				self.end_result(result)
 			
@@ -815,23 +815,23 @@ class PovrayRender(bpy.types.RenderEngine):
 			while True:
 				
 				# test if povray exists
-				if self.process.poll() != None:
+				if self._process.poll() != None:
 					update_image();
 					break
 				
 				# user exit
 				if self.test_break():
-					try:		self.process.terminate()
+					try:		self._process.terminate()
 					except:	pass
 					
 					break
 				
 				# Would be nice to redirect the output
-				# stdout_value, stderr_value = self.process.communicate() # locks
+				# stdout_value, stderr_value = self._process.communicate() # locks
 				
 				
 				# check if the file updated
-				new_size = os.path.getsize(self.temp_file_out)
+				new_size = os.path.getsize(self._temp_file_out)
 				
 				if new_size != prev_size:
 					update_image()
