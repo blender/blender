@@ -131,6 +131,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->avg_spring_len = 0.0;
 	clmd->sim_parms->presets = 2; /* cotton as start setting */
 	clmd->sim_parms->timescale = 1.0f; /* speed factor, describes how fast cloth moves */
+	clmd->sim_parms->reset = 0;
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 5.0;
@@ -450,6 +451,18 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		cache->last_exact= 0;
 		return dm;
 	}
+
+	if(clmd->sim_parms->reset || (framenr == (startframe - clmd->sim_parms->preroll)))
+	{
+		clmd->sim_parms->reset = 0;
+		cache->flag |= PTCACHE_REDO_NEEDED;
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+		cache->simframe= 0;
+		cache->last_exact= 0;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->flag &= ~PTCACHE_REDO_NEEDED;
+		return result;
+	}
 	
 	/* verify we still have the same number of vertices, if not do nothing.
 	 * note that this should only happen if the number of vertices changes
@@ -468,7 +481,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	clmd->sim_parms->dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 
 	/* handle continuous simulation with the play button */
-	if(BKE_ptcache_get_continue_physics()) {
+	if(BKE_ptcache_get_continue_physics() || ((clmd->sim_parms->preroll > 0) && (framenr > startframe - clmd->sim_parms->preroll) && (framenr < startframe))) {
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
 		cache->last_exact= 0;
@@ -503,7 +516,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	if(!do_init_cloth(ob, clmd, result, framenr))
 		return result;
 
-	if(framenr == startframe) {
+	if((framenr == startframe) && (clmd->sim_parms->preroll == 0)) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 		do_init_cloth(ob, clmd, result, framenr);
 		cache->simframe= framenr;

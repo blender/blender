@@ -3781,6 +3781,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if(clmd->sim_parms) {
 				if(clmd->sim_parms->presets > 10)
 					clmd->sim_parms->presets = 0;
+
+				clmd->sim_parms->reset = 0;
 			}
 
 			if(clmd->sim_parms->effector_weights)
@@ -3863,7 +3865,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_x = NULL;
 			collmd->current_xnew = NULL;
 			collmd->current_v = NULL;
-			collmd->time = -1;
+			collmd->time = -1000;
 			collmd->numverts = 0;
 			collmd->bvhtree = NULL;
 			collmd->mfaces = NULL;

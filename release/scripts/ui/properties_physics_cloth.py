@@ -83,8 +83,9 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 
             col = split.column()
 
-            col.itemL(text="Presets:")
-            col.itemL(text="TODO!")
+            col.itemL(text="Presets: TODO")
+            # col.itemL(text="TODO!")
+            col.itemR(cloth, "pre_roll")
 
             col.itemL(text="Damping:")
             sub = col.column(align=True)
