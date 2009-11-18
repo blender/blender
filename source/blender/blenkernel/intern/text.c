@@ -2368,6 +2368,16 @@ int txt_add_char (Text *text, char add)
 		return 1;
 	}
 	
+	/* insert spaces rather then tabs
+	 * TODO, this will run an undo push each time (not nice) */
+	if (add == '\t') {
+		int totspace = 4 - (text->curl->len % 4);
+		while(totspace--) {
+			txt_add_char(text, ' ');
+		}
+		return 1;
+	}
+
 	txt_delete_sel(text);
 	
 	mrk= txt_find_marker_region(text, text->curl, text->curc-1, text->curl->len, 0, 0);
