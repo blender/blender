@@ -2183,7 +2183,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiBlockBeginAlign(block);
 
 			if (ts->snap_flag & SCE_SNAP) {
-				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap with Ctrl during transform (Shift Tab)");
 				xco+= XIC;
 				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
 				xco+= XIC;
