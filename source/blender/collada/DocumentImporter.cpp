@@ -989,7 +989,7 @@ public:
 
 	void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count)
 	{
-		BLI_snprintf(joint_path, count, "pose.pose_channels[\"%s\"]", get_joint_name(node));
+		BLI_snprintf(joint_path, count, "pose.bones[\"%s\"]", get_joint_name(node));
 	}
 	
 	void fix_animation()
@@ -1979,7 +1979,7 @@ public:
 			return true;
 		}
 
-		// for bones rna_path is like: pose.pose_channels["bone-name"].rotation
+		// for bones rna_path is like: pose.bones["bone-name"].rotation
 		
 		// what does this AnimationList animate?
 		Animation& animated = uid_animated_map[anim_list_id];
@@ -2165,7 +2165,7 @@ public:
 			char joint_path[100];
 			char rna_path[100];
 
-			BLI_snprintf(joint_path, sizeof(joint_path), "pose.pose_channels[\"%s\"]", grp->name);
+			BLI_snprintf(joint_path, sizeof(joint_path), "pose.bones[\"%s\"]", grp->name);
 			BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_euler", joint_path);
 
 			FCurve *quatcu[4] = {

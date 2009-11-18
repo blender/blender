@@ -193,7 +193,7 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 	
 	/* if constraint is in the list, the list is for the active bone... */
 	if ((inList) && (actlist != &ob->constraints) && (pchan))
-		return BLI_sprintfN("pose.pose_channels[\"%s\"].constraints[\"%s\"]", pchan->name, con->name);
+		return BLI_sprintfN("pose.bones[\"%s\"].constraints[\"%s\"]", pchan->name, con->name);
 	else
 		return BLI_sprintfN("constraints[\"%s\"]", con->name);
 }

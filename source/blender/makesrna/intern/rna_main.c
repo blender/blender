@@ -129,11 +129,13 @@ static void rna_Main_camera_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->camera, NULL);
 }
 
+#if 0
 static void rna_Main_key_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->key, NULL);
 }
+#endif
 
 static void rna_Main_world_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {

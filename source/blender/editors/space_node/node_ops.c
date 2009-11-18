@@ -72,7 +72,7 @@ void node_operatortypes(void)
 void node_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
+//	wmKeyMapItem *kmi;
 	
 	/* Entire Editor only ----------------- */
 	keymap= WM_keymap_find(keyconf, "Node Generic", SPACE_NODE, 0);

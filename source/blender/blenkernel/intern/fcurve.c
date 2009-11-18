@@ -881,7 +881,7 @@ static void driver_get_target_pchans2 (ChannelDriver *driver, bPoseChannel **pch
 		/* resolve path so that we have pointer to the right posechannel */
 		if (RNA_path_resolve(&id_ptr, dtar->rna_path, &ptr, &prop)) {
 			/* is pointer valid (i.e. pointing to an actual posechannel */
-			if ((ptr.type == &RNA_PoseChannel) && (ptr.data)) {
+			if ((ptr.type == &RNA_PoseBone) && (ptr.data)) {
 				/* first or second target? */
 				if (i)
 					*pchan1= ptr.data;

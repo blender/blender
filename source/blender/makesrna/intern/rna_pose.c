@@ -74,9 +74,9 @@ static void rna_Pose_IK_update(bContext *C, PointerRNA *ptr)
 	BIK_clear_data(ob->pose);
 }
 
-static char *rna_PoseChannel_path(PointerRNA *ptr)
+static char *rna_PoseBone_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("pose.pose_channels[\"%s\"]", ((bPoseChannel*)ptr->data)->name);
+	return BLI_sprintfN("pose.bones[\"%s\"]", ((bPoseChannel*)ptr->data)->name);
 }
 
 static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
@@ -114,7 +114,7 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 	}
 }
 
-static IDProperty *rna_PoseChannel_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_PoseBone_idproperties(PointerRNA *ptr, int create)
 {
 	bPoseChannel *pchan= ptr->data;
 
@@ -578,11 +578,11 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "PoseChannel", NULL);
+	srna= RNA_def_struct(brna, "PoseBone", NULL);
 	RNA_def_struct_sdna(srna, "bPoseChannel");
-	RNA_def_struct_ui_text(srna, "Pose Channel", "Channel defining pose data for a bone in a Pose.");
-	RNA_def_struct_path_func(srna, "rna_PoseChannel_path");
-	RNA_def_struct_idproperties_func(srna, "rna_PoseChannel_idproperties");
+	RNA_def_struct_ui_text(srna, "Pose Bone", "Channel defining pose data for a bone in a Pose.");
+	RNA_def_struct_path_func(srna, "rna_PoseBone_path");
+	RNA_def_struct_idproperties_func(srna, "rna_PoseBone_idproperties");
 	
 	/* Bone Constraints */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
@@ -619,17 +619,17 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Bone", "Bone associated with this Pose Channel.");
+	RNA_def_property_ui_text(prop, "Bone", "Bone associated with this PoseBone.");
 
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "PoseChannel");
+	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Parent", "Parent of this pose channel.");
+	RNA_def_property_ui_text(prop, "Parent", "Parent of this pose bone.");
 
 	prop= RNA_def_property(srna, "child", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "PoseChannel");
+	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Child", "Child of this pose channel.");
+	RNA_def_property_ui_text(prop, "Child", "Child of this pose bone.");
 	
 	/* Transformation settings */
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
@@ -997,10 +997,10 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Pose", "A collection of pose channels, including settings for animating bones.");
 
 	/* pose channels */
-	prop= RNA_def_property(srna, "pose_channels", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
-	RNA_def_property_struct_type(prop, "PoseChannel");
-	RNA_def_property_ui_text(prop, "Pose Channels", "Individual pose channels for the armature.");
+	RNA_def_property_struct_type(prop, "PoseBone");
+	RNA_def_property_ui_text(prop, "Pose Bones", "Individual pose bones for the armature.");
 
 	/* bone groups */
 	prop= RNA_def_property(srna, "bone_groups", PROP_COLLECTION, PROP_NONE);

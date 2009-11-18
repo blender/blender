@@ -195,7 +195,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 			pfl->pchan= pchan;
 			
 			/* get the RNA path to this pchan - this needs to be freed! */
-			RNA_pointer_create((ID *)pso->ob, &RNA_PoseChannel, pchan, &ptr);
+			RNA_pointer_create((ID *)pso->ob, &RNA_PoseBone, pchan, &ptr);
 			pfl->pchan_path= RNA_path_from_ID_to_struct(&ptr);
 			
 			/* add linkage data to operator data */

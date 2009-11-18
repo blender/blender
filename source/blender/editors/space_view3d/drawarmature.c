@@ -1560,7 +1560,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 }
 
 /* assumes object is Armature with pose */
-static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt)
+static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Object *ob= base->object;
@@ -2380,7 +2380,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 		
 		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
-		draw_pose_channels(scene, v3d, ar, base, OB_WIRE);
+		draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2459,7 +2459,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 		
 		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
-		draw_pose_channels(scene, v3d, ar, base, OB_WIRE);
+		draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2529,7 +2529,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
-				draw_pose_channels(scene, v3d, ar, base, OB_WIRE);
+				draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
 			}
 		}
 		
@@ -2544,7 +2544,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
-				draw_pose_channels(scene, v3d, ar, base, OB_WIRE);
+				draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
 			}
 		}
 	}
@@ -2627,7 +2627,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 					}
 				}	
 			}
-			draw_pose_channels(scene, v3d, ar, base, dt);
+			draw_pose_bones(scene, v3d, ar, base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 			
 			if(ob->mode & OB_MODE_POSE)

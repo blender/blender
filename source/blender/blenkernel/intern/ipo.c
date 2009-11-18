@@ -919,11 +919,11 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 	/* append preceeding bits to path */
 	if ((actname && actname[0]) && (constname && constname[0])) {
 		/* Constraint in Pose-Channel */
-		sprintf(buf, "pose.pose_channels[\"%s\"].constraints[\"%s\"]", actname, constname);
+		sprintf(buf, "pose.bones[\"%s\"].constraints[\"%s\"]", actname, constname);
 	}
 	else if (actname && actname[0]) {
 		/* Pose-Channel */
-		sprintf(buf, "pose.pose_channels[\"%s\"]", actname);
+		sprintf(buf, "pose.bones[\"%s\"]", actname);
 	}
 	else if (constname && constname[0]) {
 		/* Constraint in Object */

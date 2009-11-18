@@ -868,7 +868,7 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 	
 	/* build PointerRNA from provided data to obtain the paths to use */
 	if (pchan)
-		RNA_pointer_create((ID *)ob, &RNA_PoseChannel, pchan, &ptr);
+		RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan, &ptr);
 	else if (ob)
 		RNA_id_pointer_create((ID *)ob, &ptr);
 	else	

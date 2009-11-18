@@ -200,7 +200,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-					CTX_data_list_add(result, &obact->id, &RNA_PoseChannel, pchan);
+					CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
 				}
 			}
 			
@@ -216,7 +216,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
 					if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
-						CTX_data_list_add(result, &obact->id, &RNA_PoseChannel, pchan);
+						CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
 				}
 			}
 			
@@ -245,7 +245,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		
 		pchan= get_active_posechannel(obact);
 		if (pchan) {
-			CTX_data_pointer_set(result, &obact->id, &RNA_PoseChannel, pchan);
+			CTX_data_pointer_set(result, &obact->id, &RNA_PoseBone, pchan);
 			return 1;
 		}
 	}

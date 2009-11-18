@@ -347,7 +347,7 @@ extern StructRNA RNA_PointDensityTexture;
 extern StructRNA RNA_PointLamp;
 extern StructRNA RNA_PointerProperty;
 extern StructRNA RNA_Pose;
-extern StructRNA RNA_PoseChannel;
+extern StructRNA RNA_PoseBone;
 extern StructRNA RNA_Property;
 extern StructRNA RNA_PropertySensor;
 extern StructRNA RNA_PythonConstraint;
