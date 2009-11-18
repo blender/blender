@@ -1156,7 +1156,7 @@ static struct uiWidgetColors wcol_radio= {
 // buttons in the toolbar
 static struct uiWidgetColors wcol_toolbar= {
 	{25, 25, 25, 255},
-	{140, 140, 140, 255},
+	{153, 153, 153, 255},
 	{100, 100, 100, 255},
 	{25, 25, 25, 255},
 	
