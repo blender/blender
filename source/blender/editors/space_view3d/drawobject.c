@@ -2234,7 +2234,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	if(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))
 		return;
 
-	/* make the precission of the pronted value proportionate to the gridsize */
+	/* make the precision of the pronted value proportionate to the gridsize */
 
 	if (grid < 0.01f)
 		strcpy(conv_float, "%.6f");

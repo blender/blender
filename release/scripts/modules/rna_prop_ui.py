@@ -36,7 +36,7 @@ def evil_prop_init():
         Scene.StringProperty(attr=EVIL_PROP_PROP_ORIG)
 
 
-def draw(layout, context, context_member):
+def draw(layout, context, context_member, use_edit = True):
     
     def assign_props(prop, val, key):
         prop.path = context_member
@@ -63,11 +63,17 @@ def draw(layout, context, context_member):
     items = rna_item.items()
     items.sort()
     
-    row = layout.row()
-    props = row.itemO("wm.properties_add", properties=True, text="Add")
-    props.path = context_member
-    
+    if use_edit:
+        row = layout.row()
+        props = row.itemO("wm.properties_add", properties=True, text="Add")
+        props.path = context_member
+        del row
+
     for key, val in items:
+        
+        if key == '_RNA_UI':
+            continue
+        
         row = layout.row()
         convert_to_pyobject = getattr(val, "convert_to_pyobject", None)
         
@@ -80,7 +86,7 @@ def draw(layout, context, context_member):
 
         box = row.box()
         
-        if key == global_prop_orig and context_member == global_path:
+        if use_edit and key == global_prop_orig and context_member == global_path:
             split = box.split(percentage=0.75)
             
             row = split.row()
@@ -92,8 +98,12 @@ def draw(layout, context, context_member):
             assign_props(prop, val_draw, key)
             
         else:
-            split = box.split(percentage=0.75)
-            row = split.row()
+            if use_edit:
+                split = box.split(percentage=0.75)
+                row = split.row()
+            else:
+                row = box.row()
+            
             row.itemL(text=key)
             
             # explicit exception for arrays
@@ -102,13 +112,13 @@ def draw(layout, context, context_member):
             else:
                 row.itemR(rna_item, '["%s"]' % key, text="")
                 
-            
-            row = split.row(align=True)
-            prop = row.itemO("wm.properties_edit_begin", properties=True, text="edit")
-            assign_props(prop, val_draw, key)
-            
-            prop = row.itemO("wm.properties_remove", properties=True, text="", icon='ICON_ZOOMOUT')
-            assign_props(prop, val_draw, key)
+            if use_edit:
+                row = split.row(align=True)
+                prop = row.itemO("wm.properties_edit_begin", properties=True, text="edit")
+                assign_props(prop, val_draw, key)
+                
+                prop = row.itemO("wm.properties_remove", properties=True, text="", icon='ICON_ZOOMOUT')
+                assign_props(prop, val_draw, key)
     
 
 from bpy.props import *

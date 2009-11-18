@@ -47,6 +47,10 @@ struct GHash;
 
 #define RNA_MAX_ARRAY_DIMENSION 3
 
+
+/* store local properties here */
+#define RNA_IDP_UI "_RNA_UI"
+
 /* Function Callbacks */
 
 typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);

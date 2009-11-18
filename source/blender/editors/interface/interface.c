@@ -1355,15 +1355,15 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
 	int do_split= scene->unit.flag & USER_UNIT_OPT_SPLIT;
 	int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
-	int precission= but->a2;
+	int precision= but->a2;
 
 	if(scene->unit.scale_length<0.0001) scene->unit.scale_length= 1.0; // XXX do_versions
 
 	/* Sanity checks */
-	if(precission>4)		precission= 4;
-	else if(precission==0)	precission= 2;
+	if(precision>4)		precision= 4;
+	else if(precision==0)	precision= 2;
 
-	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precission, scene->unit.system, unit_type, do_split, pad);
+	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision, scene->unit.system, unit_type, do_split, pad);
 }
 
 static float ui_get_but_step_unit(uiBut *but, double value, float step_default)

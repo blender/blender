@@ -3252,9 +3252,10 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
+	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "step", "precision", "default", NULL};
 	char *id=NULL, *name="", *description="";
-	float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, def=0.0f;
+	float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
+	int precision= 1;
 	PropertyRNA *prop;
 	StructRNA *srna;
 	
@@ -3269,10 +3270,11 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	}
 	else if(srna) {
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssfffff:FloatProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssfffffif:FloatProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &step, &precision, &def))
 			return NULL;
 
 		prop= RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
+		RNA_def_property_ui_range(prop, min, max, step, precision);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}

@@ -1629,6 +1629,29 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
             col.itemR(toolsettings, "etch_side")
 
 
+class VIEW3D_PT_context_properties(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Properties"
+    bl_default_closed = True
+
+    def draw(self, context):
+        import rna_prop_ui
+        # reload(rna_prop_ui)
+        obj = context.object
+        if obj:
+            mode = obj.mode
+            if mode == 'POSE':
+                item = "active_pchan"
+            elif mode == 'EDIT' and obj.type == 'ARMATURE':
+                item = "active_bone"
+            else:
+                item = "object"
+
+            # Draw with no edit button
+            rna_prop_ui.draw(self.layout, context, item, False)
+
+
 # Operators
 from bpy.props import *
 
@@ -1756,5 +1779,7 @@ bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
 bpy.types.register(VIEW3D_PT_background_image)
 bpy.types.register(VIEW3D_PT_transform_orientations)
 bpy.types.register(VIEW3D_PT_etch_a_ton)
+
+bpy.types.register(VIEW3D_PT_context_properties)
 
 bpy.ops.add(OBJECT_OT_select_pattern)
