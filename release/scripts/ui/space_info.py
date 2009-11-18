@@ -376,4 +376,3 @@ bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
 bpy.ops.add(HELP_OT_report_bug)
 bpy.ops.add(HELP_OT_operator_cheat_sheet)
-

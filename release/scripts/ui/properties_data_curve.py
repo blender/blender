@@ -317,6 +317,7 @@ class DATA_PT_font(DataButtonsPanel):
 
 class DATA_PT_paragraph(DataButtonsPanel):
     bl_label = "Paragraph"
+
     def poll(self, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 

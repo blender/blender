@@ -274,6 +274,7 @@ class BONE_PT_deform(BoneButtonsPanel):
         col.itemL(text="Offset:")
         col.itemR(bone, "cyclic_offset")
 
+
 class BONE_PT_properties(BoneButtonsPanel):
     bl_label = "Properties"
     bl_default_closed = True
@@ -286,7 +287,7 @@ class BONE_PT_properties(BoneButtonsPanel):
             item = "active_pchan"
         else:
             item = "active_bone"
-        
+
         rna_prop_ui.draw(self.layout, context, item)
 
 bpy.types.register(BONE_PT_context_bone)

@@ -34,7 +34,7 @@ class USERPREF_HT_header(bpy.types.Header):
 
         if userpref.active_section == 'INPUT':
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.itemO("wm.keyconfig_export", "Export Key Configuration...")
+            layout.item_stringO("wm.keyconfig_export", "path", "keymap.py", "Export Key Configuration...")
 
 
 class USERPREF_MT_view(bpy.types.Menu):
