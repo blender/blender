@@ -2911,6 +2911,11 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name)
 	}
 }
 
+int RNA_property_is_idprop(PropertyRNA *prop)
+{
+	return (prop->magic!=RNA_MAGIC);
+}
+
 /* string representation of a property, python
  * compatible but can be used for display too*/
 char *RNA_pointer_as_string(PointerRNA *ptr)

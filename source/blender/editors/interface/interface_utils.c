@@ -46,7 +46,14 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 {
 	uiBut *but=NULL;
 	const char *propname= RNA_property_identifier(prop);
+	char prop_item[sizeof(((IDProperty *)NULL)->name)+4]; /**/
 	int arraylen= RNA_property_array_length(ptr, prop);
+
+	/* support for custom props */
+	if(RNA_property_is_idprop(prop)) {
+		sprintf(prop_item, "[\"%s\"]", propname);
+		propname= prop_item;
+	}
 
 	switch(RNA_property_type(prop)) {
 		case PROP_BOOLEAN: {
