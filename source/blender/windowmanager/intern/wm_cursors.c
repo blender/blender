@@ -174,7 +174,7 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 	else if(wrap)	mode = GHOST_kGrabWrap;
 
 	if ((G.f & G_DEBUG) == 0)
-		if(win)
+		if(win && (GHOST_GetTabletData(win->ghostwin)->Active == GHOST_kTabletModeNone))
 			GHOST_SetCursorGrab(win->ghostwin, mode, bounds);
 }
 
