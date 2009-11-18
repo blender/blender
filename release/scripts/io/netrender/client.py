@@ -200,14 +200,14 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
 
 	def render_slave(self, scene):
-		slave.render_slave(self, scene)
+		slave.render_slave(self, scene.network_render)
 	
 	def render_client(self, scene):
 		netsettings = scene.network_render
 		self.update_stats("", "Network render client initiation")
 		
 		
-		conn = clientConnection(scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
 			# Sending file

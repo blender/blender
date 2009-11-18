@@ -16,13 +16,17 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy
 import sys, os
 import re
-import http, http.client, http.server, urllib
+import http, http.client, http.server, urllib, socket
 import subprocess, shutil, time, hashlib
 
 import netrender.model
+
+try:
+  import bpy
+except:
+  bpy = None
 
 VERSION = b"0.5"
 
@@ -39,27 +43,47 @@ DONE = 2
 ERROR = 3
 
 STATUS_TEXT = {
-								QUEUED: "Queued",
-								DISPATCHED: "Dispatched",
-								DONE: "Done",
-								ERROR: "Error"
-							}
+		QUEUED: "Queued",
+		DISPATCHED: "Dispatched",
+		DONE: "Done",
+		ERROR: "Error"
+		}
 
 def rnaType(rna_type):
-	bpy.types.register(rna_type)
+	if bpy: bpy.types.register(rna_type)
 	return rna_type
 
 def rnaOperator(rna_op):
-	bpy.ops.add(rna_op)
+	if bpy: bpy.ops.add(rna_op)
 	return rna_op
 
-def clientConnection(scene):
-		netsettings = scene.network_render
+def clientScan():
+	try:
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		s.settimeout(30)
+
+		s.bind(('', 8000))
 		
-		if netsettings.server_address == "[default]":
-			bpy.ops.render.netclientscan()
+		buf, address = s.recvfrom(64)
 		
-		conn = http.client.HTTPConnection(netsettings.server_address, netsettings.server_port)
+		print("received:", buf)
+		
+		address = address[0]
+		port = int(str(buf, encoding='utf8'))
+		return (address, port)
+	except socket.timeout:
+		print("no server info")
+		return ("", 8000) # return default values
+
+def clientConnection(address, port):
+		if address == "[default]":
+			if bpy:
+				bpy.ops.render.netclientscan()
+			else:
+				address, port = clientScan()
+		
+		conn = http.client.HTTPConnection(address, port)
 		
 		if clientVerifyVersion(conn):
 			return conn
