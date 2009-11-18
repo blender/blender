@@ -555,7 +555,8 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "TFM_OT_shrink_fatten");
 	WM_modalkeymap_assign(keymap, "TFM_OT_tilt");
 	WM_modalkeymap_assign(keymap, "TFM_OT_trackball");
-	
+	WM_modalkeymap_assign(keymap, "TFM_OT_mirror");
+	WM_modalkeymap_assign(keymap, "TFM_OT_edge_slide");
 }
 
 
@@ -4445,8 +4446,9 @@ void initEdgeSlide(TransInfo *t)
 
 	t->customFree = freeSlideVerts;
 
-	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
+	/* set custom point first if you want value to be initialized by init */
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
+	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
