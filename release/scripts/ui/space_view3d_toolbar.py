@@ -52,15 +52,13 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 
             col = layout.column(align=True)
             col.itemL(text="Shading:")
-            row = col.row()
-            row.itemO("object.shade_smooth", text="Smooth")
-            row.itemO("object.shade_flat", text="Flat")
+            col.itemO("object.shade_smooth", text="Smooth")
+            col.itemO("object.shade_flat", text="Flat")
 
         col = layout.column(align=True)
         col.itemL(text="Keyframes:")
-        row = col.row()
-        row.itemO("anim.insert_keyframe_menu", text="Insert")
-        row.itemO("anim.delete_keyframe_v3d", text="Remove")
+        col.itemO("anim.insert_keyframe_menu", text="Insert")
+        col.itemO("anim.delete_keyframe_v3d", text="Remove")
 
         col = layout.column(align=True)
         col.itemL(text="Repeat:")
@@ -131,9 +129,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         
         col = layout.column(align=True)
         col.itemL(text="Shading:")
-        row = col.row()
-        row.itemO("mesh.faces_shade_smooth", text="Smooth")
-        row.itemO("mesh.faces_shade_flat", text="Flat")
+        col.itemO("mesh.faces_shade_smooth", text="Smooth")
+        col.itemO("mesh.faces_shade_flat", text="Flat")
         
         col = layout.column(align=True)
         col.itemL(text="Repeat:")
@@ -273,11 +270,6 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
         col.itemO("font.text_paste", text="Paste")
         
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        
-        col = layout.column(align=True)
         col.itemL(text="Set Case:")
         col.item_enumO("font.case_set", "case", 'UPPER', text="To Upper")
         col.item_enumO("font.case_set", "case", 'LOWER', text="To Lower")
@@ -287,6 +279,11 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
         col.item_enumO("font.style_toggle", "style", 'BOLD')
         col.item_enumO("font.style_toggle", "style", 'ITALIC')
         col.item_enumO("font.style_toggle", "style", 'UNDERLINE')
+        
+        col = layout.column(align=True)
+        col.itemL(text="Repeat:")
+        col.itemO("screen.repeat_last")
+        col.itemO("screen.repeat_history", text="History...")
 
 
 # ********** default tools for editmode_armature ****************
@@ -441,9 +438,9 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 
         col = layout.column(align=True)
         col.itemL(text="Keyframes:")
-        row = col.row()
-        row.itemO("anim.insert_keyframe_menu", text="Insert")
-        row.itemO("anim.delete_keyframe_v3d", text="Remove")
+        
+        col.itemO("anim.insert_keyframe_menu", text="Insert")
+        col.itemO("anim.delete_keyframe_v3d", text="Remove")
 
         col = layout.column(align=True)
         col.itemL(text="Repeat:")

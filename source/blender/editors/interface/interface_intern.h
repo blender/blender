@@ -63,6 +63,7 @@ typedef enum {
 	UI_WTYPE_NUMBER,
 	UI_WTYPE_SLIDER,
 	UI_WTYPE_EXEC,
+	UI_WTYPE_TOOL,
 	
 	/* strings */
 	UI_WTYPE_NAME,

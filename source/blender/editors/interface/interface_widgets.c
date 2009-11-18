@@ -1153,9 +1153,10 @@ static struct uiWidgetColors wcol_radio= {
 	15, -15
 };
 
-static struct uiWidgetColors wcol_regular= {
+// buttons in the toolbar
+static struct uiWidgetColors wcol_toolbar= {
 	{25, 25, 25, 255},
-	{153, 153, 153, 255},
+	{140, 140, 140, 255},
 	{100, 100, 100, 255},
 	{25, 25, 25, 255},
 	
@@ -1166,6 +1167,7 @@ static struct uiWidgetColors wcol_regular= {
 	0, 0
 };
 
+// other action buttons
 static struct uiWidgetColors wcol_tool= {
 	{25, 25, 25, 255},
 	{153, 153, 153, 255},
@@ -1249,8 +1251,9 @@ static struct uiWidgetColors wcol_tmp= {
 /* called for theme init (new theme) and versions */
 void ui_widget_color_init(ThemeUI *tui)
 {
-	tui->wcol_regular= wcol_regular;
+	tui->wcol_regular= wcol_toggle;
 	tui->wcol_tool= wcol_tool;
+	tui->wcol_toolbar= wcol_toolbar;
 	tui->wcol_text= wcol_text;
 	tui->wcol_radio= wcol_radio;
 	tui->wcol_option= wcol_option;
@@ -2277,6 +2280,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme= &btheme->tui.wcol_tool;
 			wt.draw= widget_roundbut;
 			break;
+	   
+	   case UI_WTYPE_TOOL:
+			wt.wcol_theme= &btheme->tui.wcol_toolbar;
+			wt.draw= widget_roundbut;
+			break;
 			
 			
 			/* strings */
@@ -2450,9 +2458,12 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case BUT:
-				wt= widget_type(UI_WTYPE_EXEC);
 				if (!(but->flag & UI_HAS_ICON)) {
+				    wt= widget_type(UI_WTYPE_TOOL);
 					but->flag |= UI_TEXT_LEFT;
+				}
+				else {
+				wt= widget_type(UI_WTYPE_EXEC);
 				}
 				break;
 
