@@ -2344,13 +2344,8 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 
 		if(use_id_prop) { /* look up property name in current struct */
 			IDProperty *group= RNA_struct_idproperties(ptr, 0);
-			if(!group)
-				return 0;
-
-			if(rna_token_strip_quotes(token))
+			if(group && rna_token_strip_quotes(token))
 				prop= (PropertyRNA *)IDP_GetPropertyFromGroup(group, token+1);
-			else
-				prop= NULL;
 		}
 		else {
 			prop= RNA_struct_find_property(&curptr, token);

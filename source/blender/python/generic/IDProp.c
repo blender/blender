@@ -322,7 +322,7 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 			MEM_freeN(pkey);
 			return 0;
 		} else {
-			PyErr_SetString( PyExc_RuntimeError, "property not found in group" );
+			PyErr_SetString( PyExc_KeyError, "property not found in group" );
 			return -1;
 		}
 	}
@@ -336,7 +336,7 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 
 		err = BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), prop, val);
 		if (err) {
-			PyErr_SetString( PyExc_RuntimeError, err );
+			PyErr_SetString( PyExc_KeyError, err );
 			return -1;
 		}
 

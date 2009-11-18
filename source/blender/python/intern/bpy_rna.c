@@ -1218,14 +1218,14 @@ static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
 	group= RNA_struct_idproperties(&self->ptr, 0);
 
 	if(group==NULL) {
-		PyErr_Format( PyExc_TypeError, "key \"%s\" not found", name);
+		PyErr_Format( PyExc_KeyError, "key \"%s\" not found", name);
 		return NULL;
 	}
 
 	idprop= IDP_GetPropertyFromGroup(group, name);
 
 	if(idprop==NULL) {
-		PyErr_Format( PyExc_TypeError, "key \"%s\" not found", name);
+		PyErr_Format( PyExc_KeyError, "key \"%s\" not found", name);
 		return NULL;
 	}
 
