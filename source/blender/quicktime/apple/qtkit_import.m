@@ -98,7 +98,8 @@ int anim_is_quicktime (char *name)
 
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	if([QTMovie canInitWithFile:[NSString stringWithUTF8String:name]])
+	if([QTMovie canInitWithFile:[NSString stringWithCString:name 
+								 encoding:[NSString defaultCStringEncoding]]])
 	{
 		[pool drain];
 		return true;
@@ -163,7 +164,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 		for (y = 0; y < height; y++) {
 			to_i = (height-y-1)*width;
 			from_i = y*width;
-				memcpy(toIBuf+4*to_i, rasterRGB+4*from_i, 4*width);
+			memcpy(toIBuf+4*to_i, rasterRGB+4*from_i, 4*width);
 		}
 	}
 	else {
@@ -225,8 +226,8 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 
 		/*Copy the image to ibuf, flipping it vertically*/
 		toIBuf = (uchar*)ibuf->rect;
-		for (x = 0; x < width; x++) {
-			for (y = 0; y < height; y++) {
+		for (y = 0; y < height; y++) {
+			for (x = 0; x < width; x++) {
 				to_i = (height-y-1)*width + x;
 				from_i = y*width + x;
 				
@@ -300,7 +301,8 @@ int startquicktime (struct anim *anim)
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-				 [NSString stringWithUTF8String:anim->name], QTMovieFileNameAttribute,
+				  [NSString stringWithCString:anim->name 
+									 encoding:[NSString defaultCStringEncoding]], QTMovieFileNameAttribute,
 				 [NSNumber numberWithBool:NO], QTMovieEditableAttribute,
 				 nil];
 	
@@ -332,7 +334,7 @@ int startquicktime (struct anim *anim)
 	[anim->qtime->media retain];
 	
 	
-	frameSize = [[anim->qtime->movie attributeForKey:QTMovieCurrentSizeAttribute] sizeValue];
+	frameSize = [[anim->qtime->movie attributeForKey:QTMovieNaturalSizeAttribute] sizeValue];
 	anim->x = frameSize.width;
 	anim->y = frameSize.height;
 
