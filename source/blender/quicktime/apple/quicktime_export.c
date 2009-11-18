@@ -620,12 +620,13 @@ int get_qtcodec_settings(RenderData *rd)
 		check_renderbutton_framerate(rd);
 	} else {
 		// configure the standard image compression dialog box
-		// set some default settings
+		// set some default settings: codec=jpeg, quality = max
+		qtdata->gSpatialSettings.codecType = kJPEGCodecType;
 		qtdata->gSpatialSettings.codec = anyCodec;         
 		qtdata->gSpatialSettings.spatialQuality = codecMaxQuality;
 		qtdata->gTemporalSettings.temporalQuality = codecMaxQuality;
 		qtdata->gTemporalSettings.keyFrameRate = 25;   
-		qtdata->aDataRateSetting.dataRate = 90 * 1024;          
+		qtdata->aDataRateSetting.dataRate = 5 * 1024 * 1024;          
 
 		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 		CheckError(err, "SCSetInfo1 error");
@@ -637,6 +638,8 @@ int get_qtcodec_settings(RenderData *rd)
 
 	check_renderbutton_framerate(rd);
 
+	/* Remove this dialog box pop up as this function is called from the render thread
+	 Anyway, all config should be done inside blender ui before starting render.
 	// put up the dialog box - it needs to be called from the main thread
 	err = SCRequestSequenceSettings(qtdata->theComponent);
  
@@ -648,7 +651,7 @@ int get_qtcodec_settings(RenderData *rd)
 	// get user selected data
 	SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 	SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
-	SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
+	SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);*/
 
 	QT_SaveCodecSettingsToScene(rd);
 
