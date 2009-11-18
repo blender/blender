@@ -498,8 +498,7 @@ def write(filename, batch_objects = None, \
 			# not public
 			pose = fbxArm.blenObject.pose
 # 			pose = fbxArm.blenObject.getPose()
-			self.__pose_bone =		pose.pose_channels[self.blenName]
-# 			self.__pose_bone =		pose.bones[self.blenName]
+			self.__pose_bone =		pose.bones[self.blenName]
 			
 			# store a list if matricies here, (poseMatrix, head, tail)
 			# {frame:posematrix, frame:posematrix, ...}

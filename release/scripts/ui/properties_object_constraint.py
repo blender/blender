@@ -744,7 +744,7 @@ class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
         bone = context.bone
 
         if ob and bone:
-            pchan = ob.pose.pose_channels[bone.name]
+            pchan = ob.pose.bones[bone.name]
             return pchan.has_ik
 
         return False
@@ -754,7 +754,7 @@ class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
 
         ob = context.object
         bone = context.bone
-        pchan = ob.pose.pose_channels[bone.name]
+        pchan = ob.pose.bones[bone.name]
         col2 = context.region.width > narrowui
 
         row = layout.row()
@@ -844,7 +844,7 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
         bone = context.bone
 
         if ob and bone:
-            pchan = ob.pose.pose_channels[bone.name]
+            pchan = ob.pose.bones[bone.name]
             return pchan.has_ik and ob.pose.ik_solver == 'ITASC' and ob.pose.ik_param
 
         return False
@@ -903,7 +903,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        pchan = ob.pose.pose_channels[context.bone.name]
+        pchan = ob.pose.bones[context.bone.name]
         col2 = context.region.width > narrowui
 
         row = layout.row()

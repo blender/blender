@@ -460,7 +460,7 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 	bpy.ops.object.mode_set(mode='POSE', toggle=False)
 	
 	pose= arm_ob.pose
-	pose_bones= pose.pose_channels
+	pose_bones= pose.bones
 	
 	
 	if ROT_STYLE=='NATIVE':

@@ -78,7 +78,7 @@ class BONE_PT_transform(BoneButtonsPanel):
                 col.itemR(bone, "locked")
 
         else:
-            pchan = ob.pose.pose_channels[context.bone.name]
+            pchan = ob.pose.bones[context.bone.name]
 
             if col2:
                 row = layout.row()
@@ -128,7 +128,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel):
 
         ob = context.object
         bone = context.bone
-        pchan = ob.pose.pose_channels[context.bone.name]
+        pchan = ob.pose.bones[context.bone.name]
 
         row = layout.row()
         col = row.column()
@@ -162,7 +162,7 @@ class BONE_PT_relations(BoneButtonsPanel):
             bone = context.edit_bone
             pchan = None
         else:
-            pchan = ob.pose.pose_channels[context.bone.name]
+            pchan = ob.pose.bones[context.bone.name]
 
         split = layout.split()
 
@@ -208,7 +208,7 @@ class BONE_PT_display(BoneButtonsPanel):
             bone = context.edit_bone
             pchan = None
         else:
-            pchan = ob.pose.pose_channels[context.bone.name]
+            pchan = ob.pose.bones[context.bone.name]
 
         if ob and pchan:
 
