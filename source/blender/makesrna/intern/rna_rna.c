@@ -283,7 +283,6 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	IDProperty *group, *idp;
 	PointerRNA propptr;
 
 	memset(&propptr, 0, sizeof(propptr));
@@ -309,7 +308,13 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 		}
 	} while((srna=srna->base));
 
+	/* this was used pre 2.5beta0, now ID property access uses python's
+	 * getitem style access
+	 * - ob["foo"] rather then ob.foo */
+#if 0
 	if(ptr->data) {
+		IDProperty *group, *idp;
+
 		group= RNA_struct_idproperties(ptr, 0);
 
 		if(group) {
@@ -322,7 +327,7 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 			}
 		}
 	}
-
+#endif
 	return propptr;
 }
 
