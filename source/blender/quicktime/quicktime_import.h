@@ -42,6 +42,7 @@
 #include "../imbuf/IMB_imbuf.h"
 #include "../imbuf/IMB_imbuf_types.h"
 
+#ifndef USE_QTKIT
 #ifndef __MOVIES__
 #ifdef _WIN32
 #include <Movies.h>
@@ -50,7 +51,8 @@
 #import <Carbon/Carbon.h>
 #include <QuickTime/Movies.h>
 #endif
-#endif
+#endif //__MOVIES__
+#endif //USE_QTKIT
 
 #ifdef _WIN32
 #ifndef __FIXMATH__
@@ -58,31 +60,6 @@
 #endif /* __FIXMATH__ */
 #endif /* _WIN32 _ */
 
-// quicktime structure definition
-// this structure is part of the anim struct
-
-typedef struct _QuicktimeMovie {
-	GWorldPtr	offscreenGWorld;
-	PixMapHandle	offscreenPixMap;
-
-	Movie		movie;
-	short		movieRefNum;
-	short		movieResId;
-	int			movWidth, movHeight;
-	Rect		movieBounds;
-
-	int			framecount;
-
-	TimeValue	*frameIndex;
-	ImBuf		*ibuf;
-
-	Media		theMedia;
-	Track		theTrack;
-	long		trackIndex;
-	short		depth;
-
-	int			have_gw;	//ugly
-} QuicktimeMovie;
 
 char *get_valid_qtname(char *name);
 
