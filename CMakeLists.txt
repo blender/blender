@@ -70,7 +70,6 @@ OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
 OPTION(WITH_SDL           "Enable SDL for sound and joystick support" ON)
 OPTION(WITH_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org/)" OFF)
 OPTION(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
-OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 OPTION(WITH_FFTW3         "Enable FFTW3 support" OFF)
 OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
@@ -82,10 +81,17 @@ OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 
+# Unix defaults to OpenMP On
+IF (UNIX)
+	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+ELSE(UNIX)
+	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
+ENDIF(UNIX)
+
 IF (APPLE)
-OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
-OPTION(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
-OPTION(WITH_LIBS10.5	  "Use 10.5 libs (needed for 64bit builds)" OFF)
+	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
+	OPTION(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
+	OPTION(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 ENDIF (APPLE)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
@@ -237,7 +243,7 @@ IF(UNIX AND NOT APPLE)
 	ENDIF(WITH_OPENMP)
 
 
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -DXP_UNIX -Wno-char-subscripts")
+	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
 
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
