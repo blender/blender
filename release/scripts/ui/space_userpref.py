@@ -1309,10 +1309,10 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         return result
 
     def execute(self, context):
-        if not self.path:
+        if not self.properties.path:
             raise Exception("File path not set.")
 
-        f = open(self.path, "w")
+        f = open(self.properties.path, "w")
         if not f:
             raise Exception("Could not open file.")
 
@@ -1392,7 +1392,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
 
-        if self.all:
+        if self.properties.all:
             for km in wm.default_keyconfig.keymaps:
                 km.restore_to_default()
         else:

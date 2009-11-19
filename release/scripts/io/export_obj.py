@@ -972,24 +972,24 @@ class ExportOBJ(bpy.types.Operator):
 	
 	def execute(self, context):
 
-		do_export(self.path, context,
-				  EXPORT_TRI=self.use_triangles,
-				  EXPORT_EDGES=self.use_edges,
-				  EXPORT_NORMALS=self.use_normals,
-				  EXPORT_NORMALS_HQ=self.use_hq_normals,
-				  EXPORT_UV=self.use_uvs,
-				  EXPORT_MTL=self.use_materials,
-				  EXPORT_COPY_IMAGES=self.copy_images,
-				  EXPORT_APPLY_MODIFIERS=self.use_modifiers,
-				  EXPORT_ROTX90=self.use_rotate90,
-				  EXPORT_BLEN_OBS=self.use_blen_objects,
-				  EXPORT_GROUP_BY_OB=self.group_by_object,
-				  EXPORT_GROUP_BY_MAT=self.group_by_material,
-				  EXPORT_KEEP_VERT_ORDER=self.keep_vertex_order,
-				  EXPORT_POLYGROUPS=self.use_vertex_groups,
-				  EXPORT_CURVE_AS_NURBS=self.use_nurbs,
-				  EXPORT_SEL_ONLY=self.use_selection,
-				  EXPORT_ALL_SCENES=self.use_all_scenes)
+		do_export(self.properties.path, context,
+				  EXPORT_TRI=self.properties.use_triangles,
+				  EXPORT_EDGES=self.properties.use_edges,
+				  EXPORT_NORMALS=self.properties.use_normals,
+				  EXPORT_NORMALS_HQ=self.properties.use_hq_normals,
+				  EXPORT_UV=self.properties.use_uvs,
+				  EXPORT_MTL=self.properties.use_materials,
+				  EXPORT_COPY_IMAGES=self.properties.copy_images,
+				  EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
+				  EXPORT_ROTX90=self.properties.use_rotate90,
+				  EXPORT_BLEN_OBS=self.properties.use_blen_objects,
+				  EXPORT_GROUP_BY_OB=self.properties.group_by_object,
+				  EXPORT_GROUP_BY_MAT=self.properties.group_by_material,
+				  EXPORT_KEEP_VERT_ORDER=self.properties.keep_vertex_order,
+				  EXPORT_POLYGROUPS=self.properties.use_vertex_groups,
+				  EXPORT_CURVE_AS_NURBS=self.properties.use_nurbs,
+				  EXPORT_SEL_ONLY=self.properties.use_selection,
+				  EXPORT_ALL_SCENES=self.properties.use_all_scenes)
 
 		return ('FINISHED',)
 	

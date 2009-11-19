@@ -60,9 +60,9 @@ def context_path_validate(context, path):
 
 
 def execute_context_assign(self, context):
-    if context_path_validate(context, self.path) == NullPathMember:
+    if context_path_validate(context, self.properties.path) == NullPathMember:
         return ('PASS_THROUGH',)
-    exec("context.%s=self.value" % self.path)
+    exec("context.%s=self.properties.value" % self.properties.path)
     return ('FINISHED',)
 
 
@@ -134,10 +134,10 @@ class WM_OT_context_toggle(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.path) == NullPathMember:
+        if context_path_validate(context, self.properties.path) == NullPathMember:
             return ('PASS_THROUGH',)
 
-        exec("context.%s=not (context.%s)" % (self.path, self.path))
+        exec("context.%s=not (context.%s)" % (self.properties.path, self.properties.path))
         return ('FINISHED',)
 
 
@@ -155,11 +155,11 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.path) == NullPathMember:
+        if context_path_validate(context, self.properties.path) == NullPathMember:
             return ('PASS_THROUGH',)
 
         exec("context.%s = ['%s', '%s'][context.%s!='%s']" % \
-            (self.path, self.value_1, self.value_2, self.path, self.value_2))
+            (self.properties.path, self.properties.value_1, self.properties.value_2, self.properties.path, self.properties.value_2))
 
         return ('FINISHED',)
 
@@ -174,23 +174,23 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
 
     def execute(self, context):
 
-        value = context_path_validate(context, self.path)
+        value = context_path_validate(context, self.properties.path)
         if value == NullPathMember:
             return ('PASS_THROUGH',)
 
-        self.value = value
-        if self.reverse:
-            self.value -= 1
+        self.properties.value = value
+        if self.properties.reverse:
+            self.properties.value -= 1
         else:
-            self.value += 1
+            self.properties.value += 1
         execute_context_assign(self, context)
 
-        if self.value != eval("context.%s" % self.path):
+        if self.properties.value != eval("context.%s" % self.properties.path):
             # relies on rna clamping int's out of the range
-            if self.reverse:
-                self.value = (1 << 32)
+            if self.properties.reverse:
+                self.properties.value = (1 << 32)
             else:
-                self.value = - (1 << 32)
+                self.properties.value = - (1 << 32)
             execute_context_assign(self, context)
 
         return ('FINISHED',)
@@ -206,14 +206,14 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 
     def execute(self, context):
 
-        value = context_path_validate(context, self.path)
+        value = context_path_validate(context, self.properties.path)
         if value == NullPathMember:
             return ('PASS_THROUGH',)
 
         orig_value = value
 
         # Have to get rna enum values
-        rna_struct_str, rna_prop_str = self.path.rsplit('.', 1)
+        rna_struct_str, rna_prop_str = self.properties.path.rsplit('.', 1)
         i = rna_prop_str.find('[')
 
         # just incse we get "context.foo.bar[0]"
@@ -231,7 +231,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
         orig_index = enums.index(orig_value)
 
         # Have the info we need, advance to the next item
-        if self.reverse:
+        if self.properties.reverse:
             if orig_index == 0:
                 advance_enum = enums[-1]
             else:
@@ -243,7 +243,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
                 advance_enum = enums[orig_index + 1]
 
         # set the new value
-        exec("context.%s=advance_enum" % self.path)
+        exec("context.%s=advance_enum" % self.properties.path)
         return ('FINISHED',)
 
 doc_id = StringProperty(name="Doc ID",
@@ -270,7 +270,7 @@ class WM_OT_doc_view(bpy.types.Operator):
         return '.'.join([class_obj.identifier for class_obj in ls])
 
     def execute(self, context):
-        id_split = self.doc_id.split('.')
+        id_split = self.properties.doc_id.split('.')
         if len(id_split) == 1: # rna, class
             url = '%s/bpy.types.%s-class.html' % (self._prefix, id_split[0])
         elif len(id_split) == 2: # rna, class.prop
@@ -316,9 +316,9 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def execute(self, context):
 
-        class_name, class_prop = self.doc_id.split('.')
+        class_name, class_prop = self.properties.doc_id.split('.')
 
-        if not self.doc_new:
+        if not self.properties.doc_new:
             return ('RUNNING_MODAL',)
 
         # check if this is an operator
@@ -331,25 +331,25 @@ class WM_OT_doc_edit(bpy.types.Operator):
         if op_class:
             rna = op_class.bl_rna
             doc_orig = rna.description
-            if doc_orig == self.doc_new:
+            if doc_orig == self.properties.doc_new:
                 return ('RUNNING_MODAL',)
 
-            print("op - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
-            upload["title"] = 'OPERATOR %s:%s' % (self.doc_id, doc_orig)
-            upload["description"] = self.doc_new
+            print("op - old:'%s' -> new:'%s'" % (doc_orig, self.properties.doc_new))
+            upload["title"] = 'OPERATOR %s:%s' % (self.properties.doc_id, doc_orig)
+            upload["description"] = self.properties.doc_new
 
             self._send_xmlrpc(upload)
 
         else:
             rna = getattr(bpy.types, class_name).bl_rna
             doc_orig = rna.properties[class_prop].description
-            if doc_orig == self.doc_new:
+            if doc_orig == self.properties.doc_new:
                 return ('RUNNING_MODAL',)
 
-            print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.doc_new))
-            upload["title"] = 'RNA %s:%s' % (self.doc_id, doc_orig)
+            print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.properties.doc_new))
+            upload["title"] = 'RNA %s:%s' % (self.properties.doc_id, doc_orig)
 
-        upload["description"] = self.doc_new
+        upload["description"] = self.properties.doc_new
 
         self._send_xmlrpc(upload)
 
@@ -410,7 +410,6 @@ bpy.ops.add(WM_OT_reload_scripts)
 
 # experemental!
 import rna_prop_ui
-bpy.ops.add(rna_prop_ui.WM_OT_properties_edit_begin)
-bpy.ops.add(rna_prop_ui.WM_OT_properties_edit_end)
+bpy.ops.add(rna_prop_ui.WM_OT_properties_edit)
 bpy.ops.add(rna_prop_ui.WM_OT_properties_add)
 bpy.ops.add(rna_prop_ui.WM_OT_properties_remove)

@@ -3393,36 +3393,36 @@ class ExportFBX(bpy.types.Operator):
 		return context.active_object != None
 	
 	def execute(self, context):
-		if not self.path:
+		if not self.properties.path:
 			raise Exception("path not set")
 
 		GLOBAL_MATRIX = mtx4_identity
-		GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self._SCALE
-		if self._XROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
-		if self._YROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
-		if self._ZROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
+		GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties._SCALE
+		if self.properties._XROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
+		if self.properties._YROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
+		if self.properties._ZROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
 			
-		write(self.path,
+		write(self.properties.path,
 			  None, # XXX
 			  context,
-			  self.EXP_OBS_SELECTED,
-			  self.EXP_MESH,
-			  self.EXP_MESH_APPLY_MOD,
-# 			  self.EXP_MESH_HQ_NORMALS,
-			  self.EXP_ARMATURE,
-			  self.EXP_LAMP,
-			  self.EXP_CAMERA,
-			  self.EXP_EMPTY,
-			  self.EXP_IMAGE_COPY,
+			  self.properties.EXP_OBS_SELECTED,
+			  self.properties.EXP_MESH,
+			  self.properties.EXP_MESH_APPLY_MOD,
+# 			  self.properties.EXP_MESH_HQ_NORMALS,
+			  self.properties.EXP_ARMATURE,
+			  self.properties.EXP_LAMP,
+			  self.properties.EXP_CAMERA,
+			  self.properties.EXP_EMPTY,
+			  self.properties.EXP_IMAGE_COPY,
 			  GLOBAL_MATRIX,
-			  self.ANIM_ENABLE,
-			  self.ANIM_OPTIMIZE,
-			  self.ANIM_OPTIMIZE_PRECISSION,
-			  self.ANIM_ACTION_ALL,
-			  self.BATCH_ENABLE,
-			  self.BATCH_GROUP,
-			  self.BATCH_FILE_PREFIX,
-			  self.BATCH_OWN_DIR)		
+			  self.properties.ANIM_ENABLE,
+			  self.properties.ANIM_OPTIMIZE,
+			  self.properties.ANIM_OPTIMIZE_PRECISSION,
+			  self.properties.ANIM_ACTION_ALL,
+			  self.properties.BATCH_ENABLE,
+			  self.properties.BATCH_GROUP,
+			  self.properties.BATCH_FILE_PREFIX,
+			  self.properties.BATCH_OWN_DIR)		
 
 		return ('FINISHED',)
 	

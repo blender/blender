@@ -180,7 +180,7 @@ class ConsoleLanguage(bpy.types.Operator):
         sc = context.space_data
 
         # defailt to python
-        sc.language = self.language
+        sc.language = self.properties.language
 
         bpy.ops.console.banner()
 

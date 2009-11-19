@@ -106,24 +106,6 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 	Py_DECREF(args);
 	
 	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
-		PyObject *class_dict= PyObject_GetAttrString(py_class_instance, "__dict__");
-		
-		/* Assign instance attributes from operator properties */
-		if(op) {
-			const char *arg_name;
-
-			RNA_STRUCT_BEGIN(op->ptr, prop) {
-				arg_name= RNA_property_identifier(prop);
-
-				if (strcmp(arg_name, "rna_type")==0) continue;
-
-				item = pyrna_prop_to_py(op->ptr, prop);
-				PyDict_SetItemString(class_dict, arg_name, item);
-				Py_DECREF(item);
-			}
-			RNA_STRUCT_END;
-		}
-
 		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
 
 		if (mode==PYOP_INVOKE) {
@@ -154,7 +136,6 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 
 		Py_DECREF(args);
 		Py_DECREF(item);
-		Py_DECREF(class_dict);
 	}
 	else {
 		PyErr_Print();

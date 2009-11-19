@@ -863,7 +863,7 @@ class BvhImporter(bpy.types.Operator):
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
 
-		read_bvh(context, self.path)
+		read_bvh(context, self.properties.path)
 
 		return ('FINISHED',)
 	

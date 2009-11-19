@@ -166,7 +166,7 @@ class VertexPaintDirt(bpy.types.Operator):
 
         t = time.time()
 
-        applyVertexDirt(me, self.blur_iterations, self.blur_strength, math.radians(self.dirt_angle), math.radians(self.clean_angle), self.dirt_only)
+        applyVertexDirt(me, self.properties.blur_iterations, self.properties.blur_strength, math.radians(self.properties.dirt_angle), math.radians(self.properties.clean_angle), self.properties.dirt_only)
 
         print('Dirt calculated in %.6f' % (time.time()-t))
 

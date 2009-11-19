@@ -1601,18 +1601,18 @@ class IMPORT_OT_obj(bpy.types.Operator):
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
 
-		load_obj(self.path,
+		load_obj(self.properties.path,
 				 context,
-				 self.CLAMP_SIZE,
-				 self.CREATE_FGONS,
-				 self.CREATE_SMOOTH_GROUPS,
-				 self.CREATE_EDGES,
-				 self.SPLIT_OBJECTS,
-				 self.SPLIT_GROUPS,
-				 self.SPLIT_MATERIALS,
-				 self.ROTATE_X90,
-				 self.IMAGE_SEARCH,
-				 self.POLYGROUPS)
+				 self.properties.CLAMP_SIZE,
+				 self.properties.CREATE_FGONS,
+				 self.properties.CREATE_SMOOTH_GROUPS,
+				 self.properties.CREATE_EDGES,
+				 self.properties.SPLIT_OBJECTS,
+				 self.properties.SPLIT_GROUPS,
+				 self.properties.SPLIT_MATERIALS,
+				 self.properties.ROTATE_X90,
+				 self.properties.IMAGE_SEARCH,
+				 self.properties.POLYGROUPS)
 
 		return ('FINISHED',)
 	

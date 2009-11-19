@@ -1671,15 +1671,15 @@ class OBJECT_OT_select_pattern(bpy.types.Operator):
 
         import fnmatch
 
-        if self.case_sensitive:
+        if self.properties.case_sensitive:
             pattern_match = fnmatch.fnmatchcase
         else:
             pattern_match = lambda a, b: fnmatch.fnmatchcase(a.upper(), b.upper())
 
         for ob in context.visible_objects:
-            if pattern_match(ob.name, self.pattern):
+            if pattern_match(ob.name, self.properties.pattern):
                 ob.selected = True
-            elif not self.extend:
+            elif not self.properties.extend:
                 ob.selected = False
 
         return ('FINISHED',)

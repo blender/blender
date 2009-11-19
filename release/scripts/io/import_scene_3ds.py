@@ -1156,7 +1156,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 # 	apply_matrix = BoolProperty(name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
 	
 	def execute(self, context):
-		load_3ds(self.path, context, 0.0, False, False)
+		load_3ds(self.properties.path, context, 0.0, False, False)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):

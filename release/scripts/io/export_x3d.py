@@ -1230,7 +1230,7 @@ class ExportX3D(bpy.types.Operator):
 	
 	
 	def execute(self, context):
-		x3d_export(self.path, context, self.apply_modifiers, self.triangulate, self.compress)
+		x3d_export(self.properties.path, context, self.properties.apply_modifiers, self.properties.triangulate, self.properties.compress)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):
