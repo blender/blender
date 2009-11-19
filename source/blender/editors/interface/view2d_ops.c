@@ -1165,14 +1165,15 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	/* type of movement */
 	switch (vsm->zone) {
 		case SCROLLHANDLE_MIN:
-		case SCROLLHANDLE_MAX:
-			
 			/* only expand view on axis if zoom is allowed */
 			if ((vsm->scroller == 'h') && !(v2d->keepzoom & V2D_LOCKZOOM_X))
 				v2d->cur.xmin -= temp;
 			if ((vsm->scroller == 'v') && !(v2d->keepzoom & V2D_LOCKZOOM_Y))
 				v2d->cur.ymin -= temp;
-		
+			break;
+			
+		case SCROLLHANDLE_MAX:
+			
 			/* only expand view on axis if zoom is allowed */
 			if ((vsm->scroller == 'h') && !(v2d->keepzoom & V2D_LOCKZOOM_X))
 				v2d->cur.xmax += temp;
