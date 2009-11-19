@@ -19,6 +19,8 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
@@ -47,6 +49,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 
         md = context.soft_body
         ob = context.object
+        col2 = context.region.width > narrowui
 
         split = layout.split()
         split.operator_context = 'EXEC_DEFAULT'
@@ -62,7 +65,8 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
         else:
             # add modifier
             split.item_enumO("object.modifier_add", "type", 'SOFT_BODY', text="Add")
-            split.itemL("")
+            if col2:
+                split.column()
 
         if md:
             softbody = md.settings

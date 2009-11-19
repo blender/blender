@@ -19,6 +19,8 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
@@ -43,6 +45,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 
         md = context.smoke
         ob = context.object
+        col2 = context.region.width > narrowui
 
         split = layout.split()
         split.operator_context = 'EXEC_DEFAULT'
@@ -59,10 +62,14 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
         else:
             # add modifier
             split.item_enumO("object.modifier_add", "type", 'SMOKE', text="Add")
-            split.itemL()
+            if col2:
+                split.itemL()
 
         if md:
-            layout.itemR(md, "smoke_type", expand=True)
+            if col2:
+                layout.itemR(md, "smoke_type", expand=True)
+            else:
+                layout.itemR(md, "smoke_type", text="")
 
             if md.smoke_type == 'TYPE_DOMAIN':
 
@@ -74,7 +81,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col.itemL(text="Resolution:")
                 col.itemR(domain, "maxres", text="Divisions")
 
-                col = split.column()
+                if col2:
+                     col = split.column()
                 col.itemL(text="Behavior:")
                 col.itemR(domain, "alpha")
                 col.itemR(domain, "beta")
@@ -96,9 +104,11 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col.item_pointerR(flow, "psys", ob, "particle_systems", text="")
 
                 if md.flow_settings.outflow:
-                    col = split.column()
+                    if col2:
+                        col = split.column()
                 else:
-                    col = split.column()
+                    if col2:
+                       col = split.column()
                     col.itemL(text="Behavior:")
                     col.itemR(flow, "temperature")
                     col.itemR(flow, "density")
@@ -119,6 +129,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
         layout = self.layout
 
         group = context.smoke.domain_settings
+        col2 = context.region.width > narrowui
 
         split = layout.split()
 
@@ -129,7 +140,8 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
         #col.itemL(text="Effector Group:")
         #col.itemR(group, "eff_group", text="")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Collision Group:")
         col.itemR(group, "coll_group", text="")
 
@@ -166,18 +178,20 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
         layout = self.layout
 
         md = context.smoke.domain_settings
+        col2 = context.region.width > narrowui
 
         split = layout.split()
 
         col = split.column()
         col.itemL(text="Resolution:")
         col.itemR(md, "amplify", text="Divisions")
+        col.itemR(md, "viewhighres")
 
-        col = split.column()
+        if col2:
+            col = split.column()
         col.itemL(text="Noise Method:")
         col.row().itemR(md, "noise_type", text="")
         col.itemR(md, "strength")
-        col.itemR(md, "viewhighres")
 
 
 class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
