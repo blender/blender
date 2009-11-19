@@ -424,8 +424,10 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
 
 		if(idp_ui) { /* TODO, type checking on ID props */
+
 			IDProperty *item= IDP_GetPropertyFromGroup(idp_ui, "description");
-			return item ? ((IDProperty*)prop)->name : item->data.pointer;
+			if(item)
+				return (char *)item->data.pointer ;
 		}
 
 		return ((IDProperty*)prop)->name; /* XXX - not correct */
@@ -955,7 +957,7 @@ const char *RNA_property_ui_name(PropertyRNA *prop)
 
 const char *RNA_property_ui_description(PropertyRNA *prop)
 {
-	return rna_ensure_property(prop)->description;
+	return rna_ensure_property_description(prop);
 }
 
 int RNA_property_ui_icon(PropertyRNA *prop)

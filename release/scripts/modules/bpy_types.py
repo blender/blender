@@ -15,7 +15,6 @@
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
 from _bpy import types as bpy_types
 
 StructRNA = bpy_types.Struct.__bases__[0]
@@ -37,6 +36,7 @@ class Context(StructRNA):
 class Object(bpy_types.ID):
 
     def _get_children(self):
+        import bpy
         return [child for child in bpy.data.objects if child.parent == self]
 
     children = property(_get_children)

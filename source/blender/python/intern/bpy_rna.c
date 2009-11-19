@@ -1443,18 +1443,22 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 	if (BPy_StructRNA_CheckExact(self)) {
 		ret = PyList_New(0);
 	} else {
-		pystring = PyUnicode_FromString("__dict__");
-		dict = PyObject_GenericGetAttr((PyObject *)self, pystring);
-		Py_DECREF(pystring);
+		PyObject *list;
+		/* class instances */
+		dict = *_PyObject_GetDictPtr((PyObject *)self);
 
 		if (dict==NULL) {
-			PyErr_Clear();
 			ret = PyList_New(0);
 		}
 		else {
 			ret = PyDict_Keys(dict);
-			Py_DECREF(dict);
 		}
+
+		/* classes dict */
+		dict= ((PyTypeObject *)Py_TYPE(self))->tp_dict;
+		list = PyDict_Keys(dict);
+		PyList_SetSlice(ret, INT_MAX, INT_MAX, list);
+		Py_DECREF(list);
 	}
 	
 	/* Collect RNA items*/
@@ -1617,6 +1621,17 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	return ret;
 }
 
+#if 0
+static int pyrna_struct_pydict_contains(PyObject *self, PyObject *pyname)
+{
+	 PyObject *dict= *(_PyObject_GetDictPtr((PyObject *)self));
+	 if (dict==NULL) /* unlikely */
+		 return 0;
+
+	return PyDict_Contains(dict, pyname);
+}
+#endif
+
 //--------------- setattr-------------------------------------------
 static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObject *value )
 {
@@ -1627,7 +1642,10 @@ static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObjec
 		// XXX - This currently allows anything to be assigned to an rna prop, need to see how this should be used
 		// but for now it makes porting scripts confusing since it fails silently.
 		// edit: allowing this for setting classes internal attributes.
-		if (name[0]=='_' && !BPy_StructRNA_CheckExact(self) && PyObject_GenericSetAttr((PyObject *)self, pyname, value) >= 0) {
+		// edit: allow this for any attribute that alredy exists as a python attr
+		if (	(name[0]=='_' /* || pyrna_struct_pydict_contains(self, pyname) */ ) &&
+				!BPy_StructRNA_CheckExact(self) &&
+				PyObject_GenericSetAttr((PyObject *)self, pyname, value) >= 0) {
 			return 0;
 		} else
 		{
