@@ -48,10 +48,10 @@ class DATA_PT_context_lamp(DataButtonsPanel):
         ob = context.object
         lamp = context.lamp
         space = context.space_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.65)
             if ob:
                 split.template_ID(ob, "data")
@@ -73,9 +73,9 @@ class DATA_PT_lamp(DataButtonsPanel):
         layout = self.layout
 
         lamp = context.lamp
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             layout.itemR(lamp, "type", expand=True)
         else:
             layout.itemR(lamp, "type", text="")
@@ -104,7 +104,7 @@ class DATA_PT_lamp(DataButtonsPanel):
             col.itemR(lamp, "distance")
             col.itemR(lamp, "gamma")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(lamp, "negative")
         col.itemR(lamp, "layer", text="This Layer Only")
@@ -123,7 +123,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
         layout = self.layout
 
         lamp = context.lamp.sky
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.itemR(lamp, "sky")
 
@@ -145,7 +145,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
         sub.row().itemR(lamp, "sky_color_space", expand=True)
         sub.itemR(lamp, "sky_exposure", text="Exposure")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.active = lamp.sky
         col.itemL(text="Horizon:")
@@ -171,7 +171,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
         col.itemR(lamp, "sun_intensity", text="Sun")
         col.itemR(lamp, "atmosphere_distance_factor", text="Distance")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.active = lamp.atmosphere
         col.itemL(text="Scattering:")
@@ -191,9 +191,9 @@ class DATA_PT_shadow(DataButtonsPanel):
         layout = self.layout
 
         lamp = context.lamp
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             layout.itemR(lamp, "shadow_method", expand=True)
         else:
             layout.itemR(lamp, "shadow_method", text="")
@@ -204,7 +204,7 @@ class DATA_PT_shadow(DataButtonsPanel):
             col = split.column()
             col.itemR(lamp, "shadow_color", text="")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(lamp, "shadow_layer", text="This Layer Only")
             col.itemR(lamp, "only_shadow")
@@ -212,7 +212,7 @@ class DATA_PT_shadow(DataButtonsPanel):
         if lamp.shadow_method == 'RAY_SHADOW':
             col = layout.column()
             col.itemL(text="Sampling:")
-            if col2:
+            if wide_ui:
                 col.row().itemR(lamp, "shadow_ray_sampling_method", expand=True)
             else:
                 col.itemR(lamp, "shadow_ray_sampling_method", text="")
@@ -226,7 +226,7 @@ class DATA_PT_shadow(DataButtonsPanel):
                 col.itemR(lamp, "shadow_ray_samples", text="Samples")
                 if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
                     col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
-                if col2:
+                if wide_ui:
                     col = split.column()
 
             elif lamp.type == 'AREA':
@@ -242,24 +242,24 @@ class DATA_PT_shadow(DataButtonsPanel):
 
                 if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
                     col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
-                    if col2:
+                    if wide_ui:
                         col = split.column()
 
                 elif lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
-                    if col2:
+                    if wide_ui:
                         col = split.column()
                     col.itemR(lamp, "umbra")
                     col.itemR(lamp, "dither")
                     col.itemR(lamp, "jitter")
                 else:
-                    if col2:
+                    if wide_ui:
                         col = split.column()
 
 
         elif lamp.shadow_method == 'BUFFER_SHADOW':
             col = layout.column()
             col.itemL(text="Buffer Type:")
-            if col2:
+            if wide_ui:
                 col.row().itemR(lamp, "shadow_buffer_type", expand=True)
             else:
                 col.row().itemR(lamp, "shadow_buffer_type", text="")
@@ -274,7 +274,7 @@ class DATA_PT_shadow(DataButtonsPanel):
                 sub.itemR(lamp, "shadow_buffer_soft", text="Soft")
                 sub.itemR(lamp, "shadow_buffer_bias", text="Bias")
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemL(text="Sample Buffers:")
                 col.itemR(lamp, "shadow_sample_buffers", text="")
@@ -295,7 +295,7 @@ class DATA_PT_shadow(DataButtonsPanel):
             sub.active = not lamp.auto_clip_start
             sub.itemR(lamp, "shadow_buffer_clip_start", text="Clip Start")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(lamp, "auto_clip_end", text="Autoclip End")
             sub = col.column()
@@ -339,7 +339,7 @@ class DATA_PT_spot(DataButtonsPanel):
         layout = self.layout
 
         lamp = context.lamp
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -349,7 +349,7 @@ class DATA_PT_spot(DataButtonsPanel):
         sub.itemR(lamp, "spot_blend", text="Blend", slider=True)
         col.itemR(lamp, "square")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         else:
             col.itemS()

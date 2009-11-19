@@ -41,9 +41,9 @@ class DATA_PT_context_camera(DataButtonsPanel):
         ob = context.object
         cam = context.camera
         space = context.space_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.65)
             if ob:
                 split.template_ID(ob, "data")
@@ -65,9 +65,9 @@ class DATA_PT_camera(DataButtonsPanel):
         layout = self.layout
 
         cam = context.camera
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             layout.itemR(cam, "type", expand=True)
         else:
             layout.itemR(cam, "type", text="")
@@ -80,7 +80,7 @@ class DATA_PT_camera(DataButtonsPanel):
                 col.itemR(cam, "lens", text="Angle")
             elif cam.lens_unit == 'DEGREES':
                 col.itemR(cam, "angle")
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(cam, "lens_unit", text="")
 
@@ -96,7 +96,7 @@ class DATA_PT_camera(DataButtonsPanel):
         col.itemR(cam, "shift_x", text="X")
         col.itemR(cam, "shift_y", text="Y")
 
-        if col2:
+        if wide_ui:
             col = split.column(align=True)
         col.itemL(text="Clipping:")
         col.itemR(cam, "clip_start", text="Start")
@@ -109,7 +109,7 @@ class DATA_PT_camera(DataButtonsPanel):
         col = split.column()
         col.itemR(cam, "dof_object", text="")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(cam, "dof_distance", text="Distance")
 
@@ -121,7 +121,7 @@ class DATA_PT_camera_display(DataButtonsPanel):
         layout = self.layout
 
         cam = context.camera
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -131,7 +131,7 @@ class DATA_PT_camera_display(DataButtonsPanel):
         col.itemR(cam, "show_title_safe", text="Title Safe")
         col.itemR(cam, "show_name", text="Name")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(cam, "draw_size", text="Size")
         col.itemS()

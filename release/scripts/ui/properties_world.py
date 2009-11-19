@@ -56,10 +56,10 @@ class WORLD_PT_context_world(WorldButtonsPanel):
         scene = context.scene
         world = context.world
         space = context.space_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.65)
             if scene:
                 split.template_ID(scene, "world", new="world.new")
@@ -75,10 +75,10 @@ class WORLD_PT_world(WorldButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         world = context.world
 
-        if col2:
+        if wide_ui:
             row = layout.row()
             row.itemR(world, "paper_sky")
             row.itemR(world, "blend_sky")
@@ -108,7 +108,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         world = context.world
 
         layout.active = world.mist.enabled
@@ -119,7 +119,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
         col.itemR(world.mist, "intensity", slider=True)
         col.itemR(world.mist, "start")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(world.mist, "depth")
         col.itemR(world.mist, "height")
@@ -138,7 +138,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         world = context.world
 
         layout.active = world.stars.enabled
@@ -149,7 +149,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
         col.itemR(world.stars, "size")
         col.itemR(world.stars, "color_randomization", text="Colors")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(world.stars, "min_distance", text="Min. Dist")
         col.itemR(world.stars, "average_separation", text="Separation")
@@ -166,7 +166,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         ao = context.world.ambient_occlusion
 
         layout.active = ao.enabled
@@ -185,7 +185,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
         sub.itemR(ao, "falloff_strength", text="Strength")
 
         if ao.gather_method == 'RAYTRACE':
-            if col2:
+            if wide_ui:
                 col = split.column()
 
             col.itemL(text="Sampling:")
@@ -201,7 +201,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
                 sub.itemR(ao, "bias")
 
         if ao.gather_method == 'APPROXIMATE':
-            if col2:
+            if wide_ui:
                 col = split.column()
 
             col.itemL(text="Sampling:")
@@ -220,7 +220,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
         col = split.column()
         col.itemR(ao, "energy")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(ao, "color")
 

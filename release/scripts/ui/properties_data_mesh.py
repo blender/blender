@@ -41,9 +41,9 @@ class DATA_PT_context_mesh(DataButtonsPanel):
         ob = context.object
         mesh = context.mesh
         space = context.space_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.65)
             if ob:
                 split.template_ID(ob, "data")
@@ -65,7 +65,7 @@ class DATA_PT_normals(DataButtonsPanel):
         layout = self.layout
 
         mesh = context.mesh
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -75,7 +75,7 @@ class DATA_PT_normals(DataButtonsPanel):
         sub.active = mesh.autosmooth
         sub.itemR(mesh, "autosmooth_angle", text="Angle")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         else:
             col.itemS()
@@ -154,7 +154,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
         ob = context.object
         key = ob.data.shape_keys
         kb = ob.active_shape_key
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
@@ -186,13 +186,13 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             split = layout.split(percentage=0.4)
             row = split.row()
             row.enabled = enable_edit
-            if col2:
+            if wide_ui:
                 row.itemR(key, "relative")
 
             row = split.row()
             row.alignment = 'RIGHT'
 
-            if not col2:
+            if not wide_ui:
                 layout.itemR(key, "relative")
                 row = layout.row()
 
@@ -232,7 +232,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
                     col.itemR(kb, "slider_min", text="Min")
                     col.itemR(kb, "slider_max", text="Max")
 
-                    if col2:
+                    if wide_ui:
                         col = split.column(align=True)
                     col.active = enable_edit_value
                     col.itemL(text="Blend:")

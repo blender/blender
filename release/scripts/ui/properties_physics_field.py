@@ -44,9 +44,9 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 
         ob = context.object
         field = ob.field
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.2)
             split.itemL(text="Type:")
         else:
@@ -55,7 +55,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
         split.itemR(field, "type", text="")
 
         if field.type not in ('NONE', 'GUIDE', 'TEXTURE'):
-            if col2:
+            if wide_ui:
                 split = layout.split(percentage=0.2)
                 split.itemL(text="Shape:")
             else:
@@ -73,7 +73,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "falloff_power")
             col.itemR(field, "guide_path_add")
             
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemL(text="Clumping:")
             col.itemR(field, "guide_clump_amount")
@@ -97,7 +97,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemR(field, "guide_kink_frequency")
                 col.itemR(field, "guide_kink_shape")
                 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemR(field, "guide_kink_amplitude")
 
@@ -108,7 +108,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "texture_mode", text="")
             col.itemR(field, "texture_nabla")
             
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(field, "use_coordinates")
             col.itemR(field, "root_coordinates")
@@ -133,7 +133,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemR(field, "use_radial_min", text="Use Minimum")
                 col.itemR(field, "use_radial_max", text="Use Maximum")
                 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemR(field, "radial_falloff", text="Power")
 
@@ -155,7 +155,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemR(field, "use_radial_min", text="Use Minimum")
                 col.itemR(field, "use_radial_max", text="Use Maximum")
                 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemR(field, "radial_falloff", text="Power")
 
@@ -181,7 +181,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
         layout = self.layout
 
         md = context.collision
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         split.operator_context = 'EXEC_DEFAULT'
@@ -190,7 +190,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
             # remove modifier + settings
             split.set_context_pointer("modifier", md)
             split.itemO("object.modifier_remove", text="Remove")
-            if col2:
+            if wide_ui:
                 col = split.column()
 
             #row = split.row(align=True)
@@ -202,7 +202,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
         else:
             # add modifier
             split.item_enumO("object.modifier_add", "type", 'COLLISION', text="Add")
-            if col2:
+            if wide_ui:
                 split.itemL()
 
             coll = None
@@ -228,7 +228,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
             sub.itemR(settings, "friction_factor", text="Factor", slider=True)
             sub.itemR(settings, "random_friction", text="Random", slider=True)
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemL(text="Soft Body and Cloth:")
             sub = col.column(align=True)

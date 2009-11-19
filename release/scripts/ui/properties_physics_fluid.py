@@ -40,7 +40,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
         layout = self.layout
 
         md = context.fluid
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         split.operator_context = 'EXEC_DEFAULT'
@@ -59,14 +59,14 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
         else:
             # add modifier
             split.item_enumO("object.modifier_add", "type", 'FLUID_SIMULATION', text="Add")
-            if col2:
+            if wide_ui:
                 split.itemL()
 
             fluid = None
 
 
         if fluid:
-            if col2:
+            if wide_ui:
                 layout.itemR(fluid, "type")
             else:
                 layout.itemR(fluid, "type", text="")
@@ -81,7 +81,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 col.itemL(text="Render Display:")
                 col.itemR(fluid, "render_display_mode", text="")
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemL(text="Required Memory: " + fluid.memory_estimate)
                 col.itemR(fluid, "preview_resolution", text="Preview")
@@ -96,7 +96,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 sub.itemR(fluid, "start_time", text="Start")
                 sub.itemR(fluid, "end_time", text="End")
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                     col.itemL()
                 col.itemR(fluid, "generate_speed_vectors")
@@ -112,7 +112,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 col.itemR(fluid, "volume_initialization", text="")
                 col.itemR(fluid, "export_animated_mesh")
                 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemL(text="Initial Velocity:")
                 col.itemR(fluid, "initial_velocity", text="")
@@ -125,7 +125,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 col.itemR(fluid, "volume_initialization", text="")
                 col.itemR(fluid, "export_animated_mesh")
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemL(text="Slip Type:")
                 col.itemR(fluid, "slip_type", text="")
@@ -144,7 +144,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 col.itemR(fluid, "export_animated_mesh")
                 col.itemR(fluid, "local_coordinates")
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemL(text="Inflow Velocity:")
                 col.itemR(fluid, "inflow_velocity", text="")
@@ -157,7 +157,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 col.itemR(fluid, "volume_initialization", text="")
                 col.itemR(fluid, "export_animated_mesh")
 
-                if col2:
+                if wide_ui:
                     split.column()
 
             elif fluid.type == 'PARTICLE':
@@ -168,7 +168,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 col.itemR(fluid, "particle_influence", text="Size")
                 col.itemR(fluid, "alpha_influence", text="Alpha")
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemL(text="Type:")
                 col.itemR(fluid, "drops")
@@ -185,7 +185,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 col.itemR(fluid, "quality", slider=True)
                 col.itemR(fluid, "reverse_frames")
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemL(text="Time:")
                 sub = col.column(align=True)
@@ -200,7 +200,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 sub.itemR(fluid, "attraction_strength", text="Strength")
                 sub.itemR(fluid, "attraction_radius", text="Radius")
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemL(text="Velocity Force:")
                 sub = col.column(align=True)
@@ -220,7 +220,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
         layout = self.layout
 
         fluid = context.fluid.settings
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -230,7 +230,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
         col.itemL(text="Real World Size:")
         col.itemR(fluid, "real_world_size", text="Metres")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Viscosity Presets:")
         sub = col.column(align=True)
@@ -257,7 +257,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
         layout = self.layout
 
         fluid = context.fluid.settings
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -267,7 +267,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
         if fluid.slip_type == 'PARTIALSLIP':
             col.itemR(fluid, "partial_slip_factor", slider=True, text="Amount")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Surface:")
         col.itemR(fluid, "surface_smoothing", text="Smoothing")

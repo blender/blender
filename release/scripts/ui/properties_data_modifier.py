@@ -34,31 +34,31 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         row = layout.row()
         row.item_menu_enumO("object.modifier_add", "type")
-        if col2:
+        if wide_ui:
             row.itemL()
 
         for md in ob.modifiers:
             box = layout.template_modifier(md)
             if box:
                 # match enum type to our functions, avoids a lookup table.
-                getattr(self, md.type)(box, ob, md, col2)
+                getattr(self, md.type)(box, ob, md, wide_ui)
 
     # the mt.type enum is (ab)used for a lookup on function names
     # ...to avoid lengthy if statements
     # so each type must have a function here.
 
-    def ARMATURE(self, layout, ob, md, col2):
-        if col2:
+    def ARMATURE(self, layout, ob, md, wide_ui):
+        if wide_ui:
             layout.itemR(md, "object")
         else:
             layout.itemR(md, "object", text="")
 
         row = layout.row()
-        if col2:
+        if wide_ui:
             row.itemL(text="Vertex Group:")
         sub = row.split(percentage=0.7)
         sub.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
@@ -75,14 +75,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "use_vertex_groups", text="Vertex Groups")
         col.itemR(md, "use_bone_envelopes", text="Bone Envelopes")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Deformation:")
         col.itemR(md, "quaternion")
         col.itemR(md, "multi_modifier")
 
-    def ARRAY(self, layout, ob, md, col2):
-        if col2:
+    def ARRAY(self, layout, ob, md, wide_ui):
+        if wide_ui:
             layout.itemR(md, "fit_type")
         else:
             layout.itemR(md, "fit_type", text="")
@@ -113,7 +113,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub.itemR(md, "merge_end_vertices", text="First Last")
         sub.itemR(md, "merge_distance", text="Distance")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "relative_offset")
         sub = col.column()
@@ -133,13 +133,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "start_cap")
         col.itemR(md, "end_cap")
 
-    def BEVEL(self, layout, ob, md, col2):
+    def BEVEL(self, layout, ob, md, wide_ui):
         split = layout.split()
         
         col = split.column()
         col.itemR(md, "width")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "only_vertices")
 
@@ -150,25 +150,25 @@ class DATA_PT_modifiers(DataButtonsPanel):
         elif md.limit_method == 'WEIGHT':
             layout.row().itemR(md, "edge_weight_method", expand=True)
 
-    def BOOLEAN(self, layout, ob, md, col2):
+    def BOOLEAN(self, layout, ob, md, wide_ui):
         layout.itemR(md, "operation")
         layout.itemR(md, "object")
 
-    def BUILD(self, layout, ob, md, col2):
+    def BUILD(self, layout, ob, md, wide_ui):
         split = layout.split()
 
         col = split.column()
         col.itemR(md, "start")
         col.itemR(md, "length")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "randomize")
         sub = col.column()
         sub.active = md.randomize
         sub.itemR(md, "seed")
 
-    def CAST(self, layout, ob, md, col2):
+    def CAST(self, layout, ob, md, wide_ui):
         layout.itemR(md, "cast_type")
         layout.itemR(md, "object")
         if md.object:
@@ -181,7 +181,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "y")
         col.itemR(md, "z")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "factor")
         col.itemR(md, "radius")
@@ -191,29 +191,29 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 
-    def CLOTH(self, layout, ob, md, col2):
+    def CLOTH(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Cloth panel.")
 
-    def COLLISION(self, layout, ob, md, col2):
+    def COLLISION(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Collision panel.")
 
-    def CURVE(self, layout, ob, md, col2):
+    def CURVE(self, layout, ob, md, wide_ui):
         layout.itemR(md, "object")
         layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
         layout.itemR(md, "deform_axis")
 
-    def DECIMATE(self, layout, ob, md, col2):
+    def DECIMATE(self, layout, ob, md, wide_ui):
         layout.itemR(md, "ratio")
         layout.itemR(md, "face_count")
 
-    def DISPLACE(self, layout, ob, md, col2):
+    def DISPLACE(self, layout, ob, md, wide_ui):
         
         split = layout.split()
         
         col = split.column()
         col.itemR(md, "midlevel")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "strength")
         
@@ -227,7 +227,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
             layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
 
-    def EDGE_SPLIT(self, layout, ob, md, col2):
+    def EDGE_SPLIT(self, layout, ob, md, wide_ui):
         split = layout.split()
 
         col = split.column()
@@ -236,11 +236,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub.active = md.use_edge_angle
         sub.itemR(md, "split_angle")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "use_sharp", text="Sharp Edges")
 
-    def EXPLODE(self, layout, ob, md, col2):
+    def EXPLODE(self, layout, ob, md, wide_ui):
         layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
         layout.itemR(md, "protect")
 
@@ -250,17 +250,17 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "split_edges")
         col.itemR(md, "unborn")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "alive")
         col.itemR(md, "dead")
 
         layout.itemO("object.explode_refresh", text="Refresh")
 
-    def FLUID_SIMULATION(self, layout, ob, md, col2):
+    def FLUID_SIMULATION(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Fluid panel.")
 
-    def HOOK(self, layout, ob, md, col2):
+    def HOOK(self, layout, ob, md, wide_ui):
         col = layout.column()
         col.itemR(md, "object")
         if md.object and md.object.type == 'ARMATURE':
@@ -273,7 +273,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemR(md, "falloff")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "force", slider=True)
 
@@ -284,7 +284,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemO("object.hook_reset", text="Reset")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemO("object.hook_recenter", text="Recenter")
 
@@ -293,11 +293,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
             row.itemO("object.hook_select", text="Select")
             row.itemO("object.hook_assign", text="Assign")
 
-    def LATTICE(self, layout, ob, md, col2):
+    def LATTICE(self, layout, ob, md, wide_ui):
         layout.itemR(md, "object")
         layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 
-    def MASK(self, layout, ob, md, col2):
+    def MASK(self, layout, ob, md, wide_ui):
         layout.itemR(md, "mode")
         if md.mode == 'ARMATURE':
             layout.itemR(md, "armature")
@@ -305,7 +305,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
         layout.itemR(md, "inverse")
 
-    def MESH_DEFORM(self, layout, ob, md, col2):
+    def MESH_DEFORM(self, layout, ob, md, wide_ui):
         layout.itemR(md, "object")
         layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
         layout.itemR(md, "invert")
@@ -321,11 +321,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
             col = split.column()
             col.itemR(md, "precision")
             
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(md, "dynamic")
 
-    def MIRROR(self, layout, ob, md, col2):
+    def MIRROR(self, layout, ob, md, wide_ui):
         
         split = layout.split()
 
@@ -334,7 +334,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "y")
         col.itemR(md, "z")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Textures:")
         col.itemR(md, "mirror_u", text="U")
@@ -345,14 +345,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
         split = layout.split()
         col = split.column()
         col.itemR(md, "clip")
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "mirror_vertex_groups", text="Vertex Groups")
 
         layout.itemR(md, "mirror_object")
 
-    def MULTIRES(self, layout, ob, md, col2):
-        if col2:
+    def MULTIRES(self, layout, ob, md, wide_ui):
+        if wide_ui:
             layout.row().itemR(md, "subdivision_type", expand=True)
         else:
             layout.row().itemR(md, "subdivision_type", text="")
@@ -363,11 +363,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemO("object.multires_subdivide", text="Subdivide")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemO("object.multires_higher_levels_delete", text="Delete Higher")
 
-    def PARTICLE_INSTANCE(self, layout, ob, md, col2):
+    def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
         layout.itemR(md, "object")
         layout.itemR(md, "particle_system_number", text="Particle System")
         
@@ -378,7 +378,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "children")
         col.itemR(md, "size")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Show Particles When:")
         col.itemR(md, "alive")
@@ -395,15 +395,15 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.row().itemR(md, "axis", expand=True)
         col.itemR(md, "keep_shape")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "position", slider=True)
         col.itemR(md, "random_position", text="Random", slider=True)
 
-    def PARTICLE_SYSTEM(self, layout, ob, md, col2):
+    def PARTICLE_SYSTEM(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Particle panel.")
 
-    def SHRINKWRAP(self, layout, ob, md, col2):
+    def SHRINKWRAP(self, layout, ob, md, wide_ui):
         layout.itemR(md, "target")
         layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
         
@@ -411,11 +411,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemR(md, "offset")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "subsurf_levels")
         
-        if col2:
+        if wide_ui:
             layout.itemR(md, "mode")
         else:
             layout.itemR(md, "mode", text="")
@@ -441,7 +441,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         elif md.mode == 'NEAREST_SURFACEPOINT':
             layout.itemR(md, "keep_above_surface")
 
-    def SIMPLE_DEFORM(self, layout, ob, md, col2):
+    def SIMPLE_DEFORM(self, layout, ob, md, wide_ui):
         layout.itemR(md, "mode")
         layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
         layout.itemR(md, "origin")
@@ -452,10 +452,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.itemR(md, "lock_x_axis")
             layout.itemR(md, "lock_y_axis")
 
-    def SMOKE(self, layout, ob, md, col2):
+    def SMOKE(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Smoke panel.")
 
-    def SMOOTH(self, layout, ob, md, col2):
+    def SMOOTH(self, layout, ob, md, wide_ui):
         split = layout.split()
 
         col = split.column()
@@ -463,18 +463,18 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "y")
         col.itemR(md, "z")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "factor")
         col.itemR(md, "repeat")
 
         layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 
-    def SOFT_BODY(self, layout, ob, md, col2):
+    def SOFT_BODY(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Soft Body panel.")
 
-    def SUBSURF(self, layout, ob, md, col2):
-        if col2:
+    def SUBSURF(self, layout, ob, md, wide_ui):
+        if wide_ui:
             layout.row().itemR(md, "subdivision_type", expand=True)
         else:
             layout.row().itemR(md, "subdivision_type", text="")
@@ -485,16 +485,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "levels", text="View")
         col.itemR(md, "render_levels", text="Render")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Options:")
         col.itemR(md, "optimal_draw", text="Optimal Display")
         col.itemR(md, "subsurf_uv")
 
-    def SURFACE(self, layout, ob, md, col2):
+    def SURFACE(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Fields panel.")
 
-    def UV_PROJECT(self, layout, ob, md, col2):
+    def UV_PROJECT(self, layout, ob, md, wide_ui):
         if ob.type == 'MESH':
             layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
             layout.itemR(md, "image")
@@ -508,14 +508,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
             for proj in md.projectors:
                 col.itemR(proj, "object", text="")
             
-            if col2:
+            if wide_ui:
                 col = split.column()
             sub = col.column(align=True)
             sub.itemL(text="Aspect Ratio:")
             sub.itemR(md, "horizontal_aspect_ratio", text="Horizontal")
             sub.itemR(md, "vertical_aspect_ratio", text="Vertical")
 
-    def WAVE(self, layout, ob, md, col2):
+    def WAVE(self, layout, ob, md, wide_ui):
         split = layout.split()
 
         col = split.column()
@@ -524,7 +524,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "y")
         col.itemR(md, "cyclic")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "normals")
         sub = col.column()
@@ -542,7 +542,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub.itemR(md, "lifetime", text="Life")
         col.itemR(md, "damping_time", text="Damping")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Position:")
         sub = col.column(align=True)
@@ -569,7 +569,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "speed", slider=True)
         col.itemR(md, "height", slider=True)
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(md, "width", slider=True)
         col.itemR(md, "narrowness", slider=True)

@@ -41,14 +41,14 @@ class RENDER_PT_render(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
         col = split.column()
         col.itemO("screen.render", text="Image", icon='ICON_RENDER_STILL')
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.item_booleanO("screen.render", "animation", True, text="Animation", icon='ICON_RENDER_ANIMATION')
 
@@ -65,7 +65,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
 
         scene = context.scene
         rd = scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         row = layout.row()
         row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
@@ -83,7 +83,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
 
         col = split.column()
         col.itemR(scene, "visible_layers", text="Scene")
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(rl, "visible_layers", text="Layer")
 
@@ -131,7 +131,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.itemR(rl, "pass_mist")
         col.itemR(rl, "pass_object_index")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL()
         col.itemR(rl, "pass_color")
@@ -161,7 +161,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -171,7 +171,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
         col.itemR(rd, "render_sss", text="Subsurface Scattering")
         col.itemR(rd, "render_envmaps", text="Environment Map")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(rd, "render_raytracing", text="Ray Tracing")
         col.itemR(rd, "color_management")
@@ -187,7 +187,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -201,7 +201,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         col.itemR(rd, "parts_x", text="X")
         col.itemR(rd, "parts_y", text="Y")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Memory:")
         sub = col.column()
@@ -230,7 +230,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -238,7 +238,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
         col.itemR(rd, "use_compositing")
         col.itemR(rd, "use_sequencer")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(rd, "dither_intensity", text="Dither", slider=True)
 
@@ -254,7 +254,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
         sub.itemR(rd, "fields_still", text="Still")
 
 
-        if col2:
+        if wide_ui:
             col = split.column()
         else:
             col.itemS()
@@ -273,7 +273,7 @@ class RENDER_PT_output(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.itemR(rd, "output_path", text="")
 
@@ -282,7 +282,7 @@ class RENDER_PT_output(RenderButtonsPanel):
         col.itemR(rd, "file_format", text="")
         col.row().itemR(rd, "color_mode", text="Color", expand=True)
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(rd, "file_extensions")
         col.itemR(rd, "use_overwrite")
@@ -299,13 +299,13 @@ class RENDER_PT_output(RenderButtonsPanel):
             col.itemL(text="Codec:")
             col.itemR(rd, "exr_codec", text="")
 
-            if col2:
+            if wide_ui:
                 subsplit = split.split()
                 col = subsplit.column()
             col.itemR(rd, "exr_half")
             col.itemR(rd, "exr_zbuf")
 
-            if col2:
+            if wide_ui:
                 col = subsplit.column()
             col.itemR(rd, "exr_preview")
 
@@ -315,7 +315,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             col.itemL(text="Depth:")
             col.row().itemR(rd, "jpeg2k_depth", expand=True)
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(rd, "jpeg2k_preset", text="")
             col.itemR(rd, "jpeg2k_ycc")
@@ -325,7 +325,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             col = split.column()
             col.itemR(rd, "cineon_log", text="Convert to Log")
 
-            if col2:
+            if wide_ui:
                 col = split.column(align=True)
             col.active = rd.cineon_log
             col.itemR(rd, "cineon_black", text="Black")
@@ -350,7 +350,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -369,7 +369,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.itemR(rd, "ffmpeg_maxrate", text="Maximum")
         col.itemR(rd, "ffmpeg_buffersize", text="Buffer")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(rd, "ffmpeg_gopsize")
         col.itemR(rd, "ffmpeg_autosplit")
@@ -388,7 +388,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.itemR(rd, "ffmpeg_audio_bitrate")
         col.itemR(rd, "ffmpeg_audio_mixrate")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(rd, "ffmpeg_multiplex_audio")
         col.itemR(rd, "ffmpeg_audio_volume")
@@ -407,7 +407,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         layout.active = rd.antialiasing
 
         split = layout.split()
@@ -416,7 +416,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
         col.row().itemR(rd, "antialiasing_samples", expand=True)
         col.itemR(rd, "full_sample")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(rd, "pixel_filter", text="")
         col.itemR(rd, "filter_size", text="Size", slider=True)
@@ -431,7 +431,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 
         scene = context.scene
         rd = scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -452,7 +452,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         sub.active = rd.use_border
         sub.itemR(rd, "crop_to_border", text="Crop")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         sub = col.column(align=True)
         sub.itemL(text="Frame Range:")
@@ -480,7 +480,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.active = rd.render_stamp
 
@@ -497,7 +497,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         col.itemR(rd, "stamp_marker", text="Marker")
         col.itemR(rd, "stamp_sequence_strip", text="Seq. Strip")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.active = rd.render_stamp
         col.itemR(rd, "stamp_foreground", slider=True)

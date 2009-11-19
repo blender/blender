@@ -329,7 +329,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 
         sima = context.space_data
         ima = sima.image
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -350,7 +350,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         sub.itemR(ima, "tiles_x", text="X")
         sub.itemR(ima, "tiles_y", text="Y")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Clamp:")
         col.itemR(ima, "clamp_x", text="X")
@@ -375,7 +375,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         ima = sima.image
         show_uvedit = sima.show_uvedit
         uvedit = sima.uv_editor
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -383,7 +383,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         if ima:
             col.itemR(ima, "display_aspect", text="Aspect Ratio")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemL(text="Coordinates:")
             col.itemR(sima, "draw_repeated", text="Repeat")
@@ -398,7 +398,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col = layout.column()
             col.itemL(text="UVs:")
             row = col.row()
-            if col2:
+            if wide_ui:
                 row.itemR(uvedit, "edge_draw_type", expand=True)
             else:
                 row.itemR(uvedit, "edge_draw_type", text="")
@@ -410,7 +410,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             #col.itemR(uvedit, "draw_edges")
             #col.itemR(uvedit, "draw_faces")
             
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(uvedit, "draw_stretch", text="Stretch")
             sub = col.column()
@@ -431,7 +431,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
         settings = context.tool_settings.image_paint
         brush = settings.brush
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         col = layout.split().column()
         row = col.row()
@@ -439,7 +439,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
         col.template_ID(settings, "brush", new="brush.add")
 
-        if col2:
+        if wide_ui:
             sub = layout.row(align=True)
         else:
             sub = layout.column(align=True)

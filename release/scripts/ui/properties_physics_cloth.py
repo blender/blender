@@ -49,7 +49,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 
         md = context.cloth
         ob = context.object
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         split.operator_context = 'EXEC_DEFAULT'
@@ -65,7 +65,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
         else:
             # add modifier
             split.item_enumO("object.modifier_add", "type", 'CLOTH', text="Add")
-            if col2:
+            if wide_ui:
                 split.column()
 
         if md:
@@ -88,7 +88,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             col.itemR(cloth, "structural_stiffness", text="Structural")
             col.itemR(cloth, "bending_stiffness", text="Bending")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
 
             col.itemL(text="Damping:")
@@ -146,7 +146,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 
         cloth = context.cloth.collision_settings
         md = context.cloth
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.active = cloth.enable_collision and cloth_panel_enabled(md)
 
@@ -157,7 +157,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
         col.itemR(cloth, "min_distance", slider=True, text="Distance")
         col.itemR(cloth, "friction")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(cloth, "enable_self_collision", text="Self Collision")
         sub = col.column()
@@ -185,7 +185,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
         md = context.cloth
         ob = context.object
         cloth = context.cloth.settings
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.active = cloth.stiffness_scaling	and cloth_panel_enabled(md)
 
@@ -196,7 +196,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
         col.item_pointerR(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
         col.itemR(cloth, "structural_stiffness_max", text="Max")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Bending Stiffness:")
         col.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")

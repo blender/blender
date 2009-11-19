@@ -45,7 +45,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 
         md = context.smoke
         ob = context.object
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         split.operator_context = 'EXEC_DEFAULT'
@@ -62,11 +62,11 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
         else:
             # add modifier
             split.item_enumO("object.modifier_add", "type", 'SMOKE', text="Add")
-            if col2:
+            if wide_ui:
                 split.itemL()
 
         if md:
-            if col2:
+            if wide_ui:
                 layout.itemR(md, "smoke_type", expand=True)
             else:
                 layout.itemR(md, "smoke_type", text="")
@@ -81,7 +81,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col.itemL(text="Resolution:")
                 col.itemR(domain, "maxres", text="Divisions")
 
-                if col2:
+                if wide_ui:
                      col = split.column()
                 col.itemL(text="Behavior:")
                 col.itemR(domain, "alpha")
@@ -104,10 +104,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col.item_pointerR(flow, "psys", ob, "particle_systems", text="")
 
                 if md.flow_settings.outflow:
-                    if col2:
+                    if wide_ui:
                         col = split.column()
                 else:
-                    if col2:
+                    if wide_ui:
                        col = split.column()
                     col.itemL(text="Behavior:")
                     col.itemR(flow, "temperature")
@@ -129,7 +129,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
         layout = self.layout
 
         group = context.smoke.domain_settings
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -140,7 +140,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
         #col.itemL(text="Effector Group:")
         #col.itemR(group, "eff_group", text="")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Collision Group:")
         col.itemR(group, "coll_group", text="")
@@ -178,7 +178,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
         layout = self.layout
 
         md = context.smoke.domain_settings
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -187,7 +187,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
         col.itemR(md, "amplify", text="Divisions")
         col.itemR(md, "viewhighres")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Noise Method:")
         col.row().itemR(md, "noise_type", text="")

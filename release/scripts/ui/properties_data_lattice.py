@@ -40,9 +40,9 @@ class DATA_PT_context_lattice(DataButtonsPanel):
         ob = context.object
         lat = context.lattice
         space = context.space_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.65)
             if ob:
                 split.template_ID(ob, "data")
@@ -64,26 +64,26 @@ class DATA_PT_lattice(DataButtonsPanel):
         layout = self.layout
 
         lat = context.lattice
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         col = split.column()
         col.itemR(lat, "points_u")
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(lat, "interpolation_type_u", text="")
         
         split = layout.split()
         col = split.column()
         col.itemR(lat, "points_v")
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(lat, "interpolation_type_v", text="")
         
         split = layout.split()
         col = split.column()
         col.itemR(lat, "points_w")
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(lat, "interpolation_type_w", text="")
 

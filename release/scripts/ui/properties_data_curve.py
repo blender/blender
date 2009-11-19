@@ -56,10 +56,10 @@ class DATA_PT_context_curve(DataButtonsPanel):
         ob = context.object
         curve = context.curve
         space = context.space_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.65)
 
             if ob:
@@ -80,7 +80,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
         ob = context.object
         curve = context.curve
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         is_surf = (ob.type == 'SURFACE')
         is_curve = (ob.type == 'CURVE')
         is_text = (ob.type == 'TEXT')
@@ -104,7 +104,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
             col.itemL(text="Display:")
             col.itemR(curve, "fast", text="Fast Editing")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         
         if is_surf:
@@ -132,7 +132,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
         layout = self.layout
 
         curve = context.curve
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -143,7 +143,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
         col.itemL(text="Taper Object:")
         col.itemR(curve, "taper_object", text="")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Bevel:")
         col.itemR(curve, "bevel_depth", text="Depth")
@@ -164,7 +164,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
         layout = self.layout
 
         curve = context.curve
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.active = curve.use_path
 
@@ -172,7 +172,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
 
         col = split.column()
         col.itemR(curve, "path_length", text="Frames")
-        if col2:
+        if wide_ui:
             col = split.column()
         
         split = layout.split()
@@ -181,7 +181,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
         col.itemR(curve, "use_path_follow")
         col.itemR(curve, "use_stretch")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         
         col.itemR(curve, "use_radius")
@@ -272,9 +272,9 @@ class DATA_PT_font(DataButtonsPanel):
 
         text = context.curve
         char = context.curve.edit_format
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             layout.itemR(text, "font")
         else:
             layout.itemR(text, "font", text="")
@@ -283,7 +283,7 @@ class DATA_PT_font(DataButtonsPanel):
 
         col = split.column()
         col.itemR(text, "text_size", text="Size")
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(text, "shear")
 
@@ -293,7 +293,7 @@ class DATA_PT_font(DataButtonsPanel):
         col.itemL(text="Object Font:")
         col.itemR(text, "family", text="")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Text on Curve:")
         col.itemR(text, "text_on_curve", text="")
@@ -305,7 +305,7 @@ class DATA_PT_font(DataButtonsPanel):
         col.itemR(text, "ul_position", text="Position")
         col.itemR(text, "ul_height", text="Thickness")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Character:")
         col.itemR(char, "bold")
@@ -325,10 +325,10 @@ class DATA_PT_paragraph(DataButtonsPanel):
         layout = self.layout
 
         text = context.curve
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         
         layout.itemL(text="Align:")
-        if col2:
+        if wide_ui:
             layout.itemR(text, "spacemode", expand=True)
         else:
             layout.itemR(text, "spacemode", text="")
@@ -341,7 +341,7 @@ class DATA_PT_paragraph(DataButtonsPanel):
         col.itemR(text, "word_spacing", text="Word")
         col.itemR(text, "line_dist", text="Line")
 
-        if col2:
+        if wide_ui:
             col = split.column(align=True)
         col.itemL(text="Offset:")
         col.itemR(text, "offset_x", text="X")
@@ -357,7 +357,7 @@ class DATA_PT_textboxes(DataButtonsPanel):
         layout = self.layout
 
         text = context.curve
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         for box in text.textboxes:
             split = layout.box().split()
@@ -367,7 +367,7 @@ class DATA_PT_textboxes(DataButtonsPanel):
             col.itemR(box, "width", text="Width")
             col.itemR(box, "height", text="Height")
 
-            if col2:
+            if wide_ui:
                 col = split.column(align=True)
             col.itemL(text="Offset:")
             col.itemR(box, "x", text="X")

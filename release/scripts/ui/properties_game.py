@@ -41,9 +41,9 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
         ob = context.active_object
         game = ob.game
         soft = ob.game.soft_body
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             layout.itemR(game, "physics_type")
         else:
             layout.itemR(game, "physics_type", text="")
@@ -58,7 +58,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col.itemR(game, "ghost")
             col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(game, "material_physics")
             col.itemR(game, "rotate_from_normal")
@@ -74,7 +74,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col.itemR(game, "radius")
             col.itemR(game, "form_factor")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             sub = col.column()
             sub.active = (game.physics_type == 'RIGID_BODY')
@@ -91,7 +91,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             sub.itemR(game, "minimum_velocity", text="Minimum")
             sub.itemR(game, "maximum_velocity", text="Maximum")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemL(text="Damping:")
             sub = col.column(align=True)
@@ -134,7 +134,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col.itemR(soft, "margin", slider=True)
             col.itemR(soft, "bending_const", text="Bending Constraints")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemR(soft, "shape_match")
             sub = col.column()
@@ -177,10 +177,10 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
         layout = self.layout
 
         game = context.active_object.game
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.active = game.use_collision_bounds
-        if col2:
+        if wide_ui:
             layout.itemR(game, "collision_bounds", text="Bounds")
         else:
             layout.itemR(game, "collision_bounds", text="")
@@ -190,7 +190,7 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
         col = split.column()
         col.itemR(game, "collision_margin", text="Margin", slider=True)
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(game, "collision_compound", text="Compound")
         
@@ -227,7 +227,7 @@ class RENDER_PT_game_player(RenderButtonsPanel):
         layout = self.layout
 
         gs = context.scene.game_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.itemR(gs, "fullscreen")
 
@@ -239,7 +239,7 @@ class RENDER_PT_game_player(RenderButtonsPanel):
         sub.itemR(gs, "resolution_x", slider=False, text="X")
         sub.itemR(gs, "resolution_y", slider=False, text="Y")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Quality:")
         sub = col.column(align=True)
@@ -249,7 +249,7 @@ class RENDER_PT_game_player(RenderButtonsPanel):
         # framing:
         col = layout.column()
         col.itemL(text="Framing:")
-        if col2:
+        if wide_ui:
             col.row().itemR(gs, "framing_type", expand=True)
         else:
             col.itemR(gs, "framing_type", text="")
@@ -265,7 +265,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
 
         gs = context.scene.game_data
         stereo_mode = gs.stereo
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         # stereo options:
         layout.itemR(gs, "stereo", expand=True)
@@ -278,7 +278,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
 
         # dome:
         elif stereo_mode == 'DOME':
-            if col2:
+            if wide_ui:
                 layout.itemR(gs, "dome_mode", text="Dome Type")
             else:
                 layout.itemR(gs, "dome_mode", text="")
@@ -295,7 +295,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
                 col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
                 col.itemR(gs, "dome_angle", slider=True)
 
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemR(gs, "dome_tesselation", text="Tesselation")
                 col.itemR(gs, "dome_tilt")
@@ -304,14 +304,14 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
                 col = split.column()
                 
                 col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
-                if col2:
+                if wide_ui:
                     col = split.column()
                 col.itemR(gs, "dome_tesselation", text="Tesselation")
 
             else: # cube map
                 col = split.column()
                 col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
-                if col2:
+                if wide_ui:
                     col = split.column()
 
             layout.itemR(gs, "dome_text")
@@ -324,9 +324,9 @@ class RENDER_PT_game_shading(RenderButtonsPanel):
         layout = self.layout
 
         gs = context.scene.game_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         
-        if col2:
+        if wide_ui:
             layout.itemR(gs, "material_mode", expand=True)
         else:
             layout.itemR(gs, "material_mode", text="")
@@ -352,7 +352,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
         layout = self.layout
 
         gs = context.scene.game_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         
         split = layout.split()
 
@@ -363,7 +363,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
         col.itemR(gs, "show_physics_visualization", text="Physics Visualization")
         col.itemR(gs, "deprecation_warnings")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Render:")
         col.itemR(gs, "all_frames")
@@ -377,9 +377,9 @@ class RENDER_PT_game_sound(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             layout.itemR(scene, "distance_model")
         else:
             layout.itemR(scene, "distance_model", text="")
@@ -418,9 +418,9 @@ class WORLD_PT_game_context_world(WorldButtonsPanel):
         scene = context.scene
         world = context.world
         space = context.space_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.65)
             if scene:
                 split.template_ID(scene, "world", new="world.new")
@@ -439,14 +439,14 @@ class WORLD_PT_game_world(WorldButtonsPanel):
         layout = self.layout
 
         world = context.world
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         
         col = split.column()
         col.itemR(world, "horizon_color")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(world, "ambient_color")
 
@@ -462,7 +462,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel):
         layout = self.layout
 
         world = context.world
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
         
         layout.active = world.mist.enabled
         split = layout.split()
@@ -470,7 +470,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel):
         col = split.column()
         col.itemR(world.mist, "start")
         
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemR(world.mist, "depth")
 
@@ -481,7 +481,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
         layout = self.layout
 
         gs = context.scene.game_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         layout.itemR(gs, "physics_engine")
         if gs.physics_engine != 'NONE':
@@ -496,7 +496,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
             sub.itemR(gs, "physics_step_sub", text="Substeps")
             col.itemR(gs, "fps", text="FPS")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemL(text="Logic Steps:")
             col.itemR(gs, "logic_step_max", text="Max")

@@ -38,9 +38,9 @@ class DATA_PT_empty(DataButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             layout.itemR(ob, "empty_draw_type", text="Display")
         else:
             layout.itemR(ob, "empty_draw_type", text="")

@@ -40,9 +40,9 @@ class DATA_PT_context_metaball(DataButtonsPanel):
         ob = context.object
         mball = context.meta_ball
         space = context.space_data
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             split = layout.split(percentage=0.65)
             if ob:
                 split.template_ID(ob, "data")
@@ -64,7 +64,7 @@ class DATA_PT_metaball(DataButtonsPanel):
         layout = self.layout
 
         mball = context.meta_ball
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -74,13 +74,13 @@ class DATA_PT_metaball(DataButtonsPanel):
         sub.itemR(mball, "wire_size", text="View")
         sub.itemR(mball, "render_size", text="Render")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Settings:")
         col.itemR(mball, "threshold", text="Threshold")
 
         layout.itemL(text="Update:")
-        if col2:
+        if wide_ui:
             layout.itemR(mball, "flag", expand=True)
         else:
             layout.itemR(mball, "flag", text="")
@@ -96,9 +96,9 @@ class DATA_PT_metaball_element(DataButtonsPanel):
         layout = self.layout
 
         metaelem = context.meta_ball.active_element
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             layout.itemR(metaelem, "type")
         else:
             layout.itemR(metaelem, "type", text="")
@@ -111,7 +111,7 @@ class DATA_PT_metaball_element(DataButtonsPanel):
         col.itemR(metaelem, "negative", text="Negative")
         col.itemR(metaelem, "hide", text="Hide")
         
-        if col2:
+        if wide_ui:
             col = split.column(align=True)
 
         if metaelem.type == 'CUBE':

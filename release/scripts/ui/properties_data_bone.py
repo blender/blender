@@ -55,11 +55,11 @@ class BONE_PT_transform(BoneButtonsPanel):
 
         ob = context.object
         bone = context.bone
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         if not bone:
             bone = context.edit_bone
-            if col2:
+            if wide_ui:
                 row = layout.row()
                 row.column().itemR(bone, "head")
                 row.column().itemR(bone, "tail")
@@ -80,7 +80,7 @@ class BONE_PT_transform(BoneButtonsPanel):
         else:
             pchan = ob.pose.bones[context.bone.name]
 
-            if col2:
+            if wide_ui:
                 row = layout.row()
                 col = row.column()
                 col.itemR(pchan, "location")
@@ -156,7 +156,7 @@ class BONE_PT_relations(BoneButtonsPanel):
         ob = context.object
         bone = context.bone
         arm = context.armature
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         if not bone:
             bone = context.edit_bone
@@ -176,7 +176,7 @@ class BONE_PT_relations(BoneButtonsPanel):
             col.itemL(text="Bone Group:")
             col.item_pointerR(pchan, "bone_group", ob.pose, "bone_groups", text="")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Parent:")
         if context.bone:
@@ -202,7 +202,7 @@ class BONE_PT_display(BoneButtonsPanel):
 
         ob = context.object
         bone = context.bone
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         if not bone:
             bone = context.edit_bone
@@ -218,7 +218,7 @@ class BONE_PT_display(BoneButtonsPanel):
             col.itemR(bone, "draw_wire", text="Wireframe")
             col.itemR(bone, "hidden", text="Hide")
 
-            if col2:
+            if wide_ui:
                 col = split.column()
             col.itemL(text="Custom Shape:")
             col.itemR(pchan, "custom_shape", text="")
@@ -240,7 +240,7 @@ class BONE_PT_deform(BoneButtonsPanel):
         layout = self.layout
 
         bone = context.bone
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         if not bone:
             bone = context.edit_bone
@@ -262,7 +262,7 @@ class BONE_PT_deform(BoneButtonsPanel):
         sub.itemR(bone, "head_radius", text="Head")
         sub.itemR(bone, "tail_radius", text="Tail")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Curved Bones:")
 
