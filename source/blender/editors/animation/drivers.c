@@ -147,7 +147,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	FCurve *fcu;
-	int array_index_max = array_index+1;
+	int array_index_max;
 	int done = 0;
 	
 	/* validate pointer first - exit if failure */
@@ -159,9 +159,15 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	
 	/* key entire array convenience method */
 	if (array_index == -1) {
-		array_index= 0;
 		array_index_max= RNA_property_array_length(&ptr, prop);
+		array_index= 0;
 	}
+	else
+		array_index_max= array_index;
+	
+	/* maximum index should be greater than the start index */
+	if (array_index == array_index_max)
+		array_index_max += 1;
 	
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
