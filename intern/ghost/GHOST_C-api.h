@@ -414,7 +414,7 @@ extern GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
 /**
  * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
  */
-extern void GHOST_setAcceptDragOperation(GHOST_SystemHandle systemhandle, GHOST_TInt8 canAccept);
+extern void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, GHOST_TInt8 canAccept);
 	
 	
 /**

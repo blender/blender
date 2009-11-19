@@ -892,7 +892,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 	switch(eventType) 
 	{
 		case GHOST_kEventDraggingEntered:
-			setAcceptDragOperation(FALSE); //Drag operation needs to be accepted explicitely by the event manager
 		case GHOST_kEventDraggingUpdated:
 		case GHOST_kEventDraggingExited:
 			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),eventType,draggedObjectType,window,mouseX,mouseY,NULL));
@@ -931,7 +930,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					{
 						droppedStr = [droppedArray objectAtIndex:i];
 						
-						pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+						pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
 						temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 					
 						if (!temp_buff) {
@@ -939,7 +938,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 							break;
 						}
 					
-						strncpy((char*)temp_buff, [droppedStr UTF8String], pastedTextSize);
+						strncpy((char*)temp_buff, [droppedStr cStringUsingEncoding:NSISOLatin1StringEncoding], pastedTextSize);
 						temp_buff[pastedTextSize] = '\0';
 						
 						strArray->strings[i] = temp_buff;
@@ -950,7 +949,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					
 				case GHOST_kDragnDropTypeString:
 					droppedStr = (NSString*)data;
-					pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+					pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
 					
 					temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 					
@@ -958,7 +957,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 						return GHOST_kFailure;
 					}
 					
-					strncpy((char*)temp_buff, [droppedStr UTF8String], pastedTextSize);
+					strncpy((char*)temp_buff, [droppedStr cStringUsingEncoding:NSISOLatin1StringEncoding], pastedTextSize);
 					
 					temp_buff[pastedTextSize] = '\0';
 					
@@ -1321,7 +1320,7 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	}
 	
 	NSArray *supportedTypes =
-		[NSArray arrayWithObjects: @"public.utf8-plain-text", nil];
+		[NSArray arrayWithObjects: NSStringPboardType, nil];
 	
 	NSString *bestType = [[NSPasteboard generalPasteboard]
 						  availableTypeFromArray:supportedTypes];
@@ -1331,14 +1330,14 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 		return NULL;
 	}
 	
-	NSString * textPasted = [pasteBoard stringForType:@"public.utf8-plain-text"];
+	NSString * textPasted = [pasteBoard stringForType:NSStringPboardType];
 
 	if (textPasted == nil) {
 		[pool drain];
 		return NULL;
 	}
 	
-	pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+	pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
 	
 	temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 
@@ -1347,7 +1346,7 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 		return NULL;
 	}
 	
-	strncpy((char*)temp_buff, [textPasted UTF8String], pastedTextSize);
+	strncpy((char*)temp_buff, [textPasted cStringUsingEncoding:NSISOLatin1StringEncoding], pastedTextSize);
 	
 	temp_buff[pastedTextSize] = '\0';
 	
@@ -1375,13 +1374,13 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 		return;
 	}
 	
-	NSArray *supportedTypes = [NSArray arrayWithObject:@"public.utf8-plain-text"];
+	NSArray *supportedTypes = [NSArray arrayWithObject:NSStringPboardType];
 	
 	[pasteBoard declareTypes:supportedTypes owner:nil];
 	
-	textToCopy = [NSString stringWithUTF8String:buffer];
+	textToCopy = [NSString stringWithCString:buffer encoding:NSISOLatin1StringEncoding];
 	
-	[pasteBoard setString:textToCopy forType:@"public.utf8-plain-text"];
+	[pasteBoard setString:textToCopy forType:NSStringPboardType];
 	
 	[pool drain];
 }
