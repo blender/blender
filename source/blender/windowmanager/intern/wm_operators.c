@@ -260,6 +260,26 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 					BLI_remlink(&win->modalhandlers, handler);
 					wm_event_free_handler(handler);
 				}
+
+				/* if operator is blocking, grab cursor
+				 * This may end up grabbing twice, but we don't care.
+				 * */
+				if(op->opm->type->flag & OPTYPE_BLOCKING) {
+					int bounds[4] = {-1,-1,-1,-1};
+					int wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
+
+					if(wrap) {
+						ARegion *ar= CTX_wm_region(C);
+						if(ar) {
+							bounds[0]= ar->winrct.xmin;
+							bounds[1]= ar->winrct.ymax;
+							bounds[2]= ar->winrct.xmax;
+							bounds[3]= ar->winrct.ymin;
+						}
+					}
+
+					WM_cursor_grab(CTX_wm_window(C), wrap, FALSE, bounds);
+				}
 			}
 
 		}
