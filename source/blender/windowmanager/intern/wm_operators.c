@@ -2507,21 +2507,22 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 #endif
 
 	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "ACT_OT_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_previewrange_set");
-	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");
-//	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
-	WM_modalkeymap_assign(keymap, "ACT_OT_select_border");
 	WM_modalkeymap_assign(keymap, "CONSOLE_OT_select_border");
 	WM_modalkeymap_assign(keymap, "FILE_OT_select_border");
 	WM_modalkeymap_assign(keymap, "GRAPH_OT_select_border");
+	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NLA_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NODE_OT_select_border");
+//	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
+	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
-	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
-	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
 }
 
 /* default keymap for windows and screens, only call once per WM */
