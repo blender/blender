@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\pthreads\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\ghost\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\imbuf;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\blenloader;..\..\..\source\blender\gpu;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\kernel\gen_system;..\..\..\source\kernel\gen_messaging;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\collada"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;WITH_COLLADA"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
