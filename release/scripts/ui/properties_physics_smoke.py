@@ -82,7 +82,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col.itemR(domain, "maxres", text="Divisions")
 
                 if wide_ui:
-                     col = split.column()
+                    col = split.column()
                 col.itemL(text="Behavior:")
                 col.itemR(domain, "alpha")
                 col.itemR(domain, "beta")
@@ -108,7 +108,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                         col = split.column()
                 else:
                     if wide_ui:
-                       col = split.column()
+                        col = split.column()
                     col.itemL(text="Behavior:")
                     col.itemR(flow, "temperature")
                     col.itemR(flow, "density")

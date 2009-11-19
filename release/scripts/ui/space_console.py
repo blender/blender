@@ -141,7 +141,7 @@ class ConsoleAutocomplete(bpy.types.Operator):
 
     def execute(self, context):
         sc = context.space_data
-        module =  __import__("console_" + sc.language)
+        module = __import__("console_" + sc.language)
         autocomplete = getattr(module, "autocomplete", None)
 
         if autocomplete:

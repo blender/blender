@@ -257,10 +257,8 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			conn.close()
 
 def compatible(module):
-	exec("import " + module)
-	module = eval(module)
-	for member in dir(module):
-		subclass = getattr(module, member)
+	module = __import__(module)
+	for subclass in module.__dict__.values():
 		try:		subclass.COMPAT_ENGINES.add('NET_RENDER')
 		except:	pass
 	del module

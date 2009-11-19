@@ -103,7 +103,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
         if is_text:
             col.itemL(text="Display:")
             col.itemR(curve, "fast", text="Fast Editing")
-        
+
         if wide_ui:
             col = split.column()
         
@@ -261,6 +261,7 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
             col = split.column()
             col.itemR(act_spline, "smooth")
 
+
 class DATA_PT_font(DataButtonsPanel):
     bl_label = "Font"
     
@@ -350,6 +351,7 @@ class DATA_PT_paragraph(DataButtonsPanel):
 
 class DATA_PT_textboxes(DataButtonsPanel):
     bl_label = "Text Boxes"
+
     def poll(self, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
         
