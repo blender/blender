@@ -64,11 +64,6 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 			/*blegh*/
 			{
 				BPy_IDProperty *group = PyObject_New(BPy_IDProperty, &IDGroup_Type);
-				if (!group) {
-					PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
-					return NULL;
-				}
-
 				group->id = id;
 				group->prop = prop;
 				return (PyObject*) group;
@@ -76,10 +71,6 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 		case IDP_ARRAY:
 			{
 				BPy_IDProperty *array = PyObject_New(BPy_IDProperty, &IDArray_Type);
-				if (!array) {
-					PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
-					return NULL;
-				}
 				array->id = id;
 				array->prop = prop;
 				return (PyObject*) array;
@@ -352,11 +343,6 @@ static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject
 static PyObject *BPy_IDGroup_SpawnIterator(BPy_IDProperty *self)
 {
 	BPy_IDGroup_Iter *iter = PyObject_New(BPy_IDGroup_Iter, &IDGroup_Iter_Type);
-
-	if (!iter) {
-		PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
-		return NULL;
-	}
 	iter->group = self;
 	iter->mode = IDPROP_ITER_KEYS;
 	iter->cur = self->prop->data.group.first;
@@ -464,12 +450,6 @@ static PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 static PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
 {
 	BPy_IDGroup_Iter *iter = PyObject_New(BPy_IDGroup_Iter, &IDGroup_Iter_Type);
-
-	if (!iter) {
-		PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
-		return NULL;
-	}
-
 	iter->group = self;
 	iter->mode = IDPROP_ITER_ITEMS;
 	iter->cur = self->prop->data.group.first;
@@ -607,6 +587,28 @@ static PyObject *BPy_IDGroup_ConvertToPy(BPy_IDProperty *self)
 	return BPy_IDGroup_MapDataToPy(self->prop);
 }
 
+
+/* Matches python dict.get(key, [default]) */
+PyObject* BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
+{
+	IDProperty *idprop;
+	char *key;
+	PyObject* def = Py_None;
+
+	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
+		return NULL;
+
+	idprop= IDP_GetPropertyFromGroup(self->prop, key);
+	if (idprop) {
+		PyObject* pyobj = BPy_IDGroup_WrapData(self->id, idprop);
+		if (pyobj)
+			return pyobj;
+	}
+
+	Py_INCREF(def);
+	return def;
+}
+
 static struct PyMethodDef BPy_IDGroup_methods[] = {
 	{"pop", (PyCFunction)BPy_IDGroup_Pop, METH_O,
 		"pop an item from the group; raises KeyError if the item doesn't exist."},
@@ -620,6 +622,8 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 		"get the items associated with this group."},
 	{"update", (PyCFunction)BPy_IDGroup_Update, METH_O,
 		"updates the values in the group with the values of another or a dict."},
+	{"get", (PyCFunction)BPy_IDGroup_Get, METH_VARARGS,
+		"idprop.get(k[,d]) -> idprop[k] if k in idprop, else d.  d defaults to None."},
 	{"convert_to_pyobject", (PyCFunction)BPy_IDGroup_ConvertToPy, METH_NOARGS,
 		"return a purely python version of the group."},
 	{0, NULL, 0, NULL}
@@ -709,12 +713,6 @@ PyTypeObject IDGroup_Type = {
 PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent)
 {
 	BPy_IDProperty *wrap = PyObject_New(BPy_IDProperty, &IDGroup_Type);
-
-	if (!wrap) {
-		PyErr_SetString( PyExc_RuntimeError, "PyObject_New() failed" );
-		return NULL;
-	}
-
 	wrap->prop = prop;
 	wrap->parent = parent;
 	wrap->id = id;
