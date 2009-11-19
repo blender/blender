@@ -480,18 +480,18 @@ static PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
 /* utility function */
 static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len)
 {
-	int i, j;
+	int j;
 
 	printf("ID Property Error found and corrected in BPy_IDGroup_GetKeys/Values/Items!\n");
 
 	/*fill rest of list with valid references to None*/
-	for (j=i; j<prop->len; j++) {
+	for (j=len; j<prop->len; j++) {
 		Py_INCREF(Py_None);
 		PyList_SET_ITEM(seq, j, Py_None);
 	}
 
 	/*set correct group length*/
-	prop->len = i;
+	prop->len = len;
 }
 
 PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
