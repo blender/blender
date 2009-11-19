@@ -77,18 +77,6 @@
 int no_rightbox=0, no_leftbox= 0;
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2);
 
-
-static void draw_cfra_seq(View2D *v2d, int cfra)
-{
-	glColor3ub(0x30, 0x90, 0x50);
-	glLineWidth(2.0);
-	glBegin(GL_LINES);
-	glVertex2f(cfra, v2d->cur.ymin);
-	glVertex2f(cfra, v2d->cur.ymax);
-	glEnd();
-	glLineWidth(1.0);
-}
-
 static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 {
 	char blendcol[3];
@@ -884,7 +872,7 @@ void drawseqspace(const bContext *C, ARegion *ar)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 	float col[3];
-	int i;
+	int i, flag=0;
 
 	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 		draw_image_seq(scene, ar, sseq);
@@ -936,8 +924,6 @@ void drawseqspace(const bContext *C, ARegion *ar)
 	
 	UI_view2d_constant_grid_draw(C, v2d);
 
-	draw_cfra_seq(v2d, scene->r.cfra);
-
 	/* sequences: first deselect */
 	if(ed) {
 		Sequence *last_seq = active_seq_get(scene);
@@ -974,7 +960,14 @@ void drawseqspace(const bContext *C, ARegion *ar)
 
 	/* text draw cached, in pixelspace now */
 	UI_view2d_text_cache_draw(ar);
-
+	
+	/* current frame */
+	UI_view2d_view_ortho(C, v2d);
+	
+	if ((sseq->flag & SEQ_DRAWFRAMES)==0) 	flag |= DRAWCFRA_UNIT_SECONDS;
+	if ((sseq->flag & SEQ_NO_DRAW_CFRANUM)==0)  flag |= DRAWCFRA_SHOW_NUMBOX;
+	ANIM_draw_cfra(C, v2d, flag);
+	
 	/* Draw markers */
 //	draw_markers_timespace(SCE_MARKERS, DRAW_MARKERS_LINES);
 	

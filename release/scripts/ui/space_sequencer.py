@@ -115,6 +115,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         """
 
         layout.itemR(st, "draw_frames")
+        layout.itemR(st, "show_cframe_indicator")
         if st.display_mode == 'IMAGE':
             layout.itemR(st, "draw_safe_margin")
         if st.display_mode == 'WAVEFORM':
