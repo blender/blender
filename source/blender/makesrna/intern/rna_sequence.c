@@ -42,16 +42,6 @@
 
 #ifdef RNA_RUNTIME
 
-static int rna_SequenceEditor_name_length(PointerRNA *ptr)
-{
-	return strlen("Sequence Editor");
-}
-
-static void rna_SequenceEditor_name_get(PointerRNA *ptr, char *str)
-{
-	strcpy(str, "Sequence Editor");
-}
-
 static void rna_SequenceEditor_start_frame_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
@@ -232,6 +222,8 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	 */
 	if (seq->name+2)
 		return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+	else
+		return BLI_strdup("");
 }
 
 static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *iter)
@@ -568,12 +560,6 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Sequence Editor", "Sequence editing data for a Scene datablock.");
 	RNA_def_struct_ui_icon(srna, ICON_SEQUENCE);
 	RNA_def_struct_sdna(srna, "Editing");
-
-	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_SequenceEditor_name_get", "rna_SequenceEditor_name_length", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "");
-	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);

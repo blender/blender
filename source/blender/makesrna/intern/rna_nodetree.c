@@ -1843,11 +1843,20 @@ static void def_tex_image(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
+	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	/* is this supposed to be exposed? not sure..
 	prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "storage");
 	RNA_def_property_struct_type(prop, "ImageUser");
 	RNA_def_property_ui_text(prop, "Settings", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	 */
 }
 
 static void def_tex_bricks(StructRNA *srna)
