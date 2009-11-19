@@ -308,9 +308,17 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	 */
 	item= ((PyTypeObject*)py_class)->tp_dict;
 	if(item) {
+		/* only call this so pyrna_deferred_register_props gives a useful error
+		 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
+		 * later */
+		RNA_def_struct_identifier(ot->srna, ot->idname);
+
+
 		if(pyrna_deferred_register_props(ot->srna, item)!=0) {
+			/* failed to register operator props */
 			PyErr_Print();
 			PyErr_Clear();
+
 		}
 	}
 	else {

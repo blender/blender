@@ -3191,12 +3191,8 @@ static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
 
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attr", "name", "description", "default", NULL};
-	char *id=NULL, *name="", *description="";
-	int def=0;
-	PropertyRNA *prop;
 	StructRNA *srna;
-	
+
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
@@ -3207,11 +3203,16 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+		static char *kwlist[] = {"attr", "name", "description", "default", "hidden", NULL};
+		char *id=NULL, *name="", *description="";
+		int def=0, hidden=0;
+		PropertyRNA *prop;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssi:BoolProperty", kwlist, &id, &name, &description, &def))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssii:BoolProperty", kwlist, &id, &name, &description, &def, &hidden))
 			return NULL;
 
 		prop= RNA_def_boolean(srna, id, def, name, description);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -3222,12 +3223,8 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
-	char *id=NULL, *name="", *description="";
-	int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, def=0;
-	PropertyRNA *prop;
 	StructRNA *srna;
-	
+
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
@@ -3238,11 +3235,18 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "hidden", NULL};
+		char *id=NULL, *name="", *description="";
+		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def=0;
+		int hidden=0;
+		PropertyRNA *prop;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiii:IntProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiiiii:IntProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &hidden))
 			return NULL;
 
 		prop= RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
+		RNA_def_property_ui_range(prop, min, max, step, 0);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -3253,13 +3257,8 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "step", "precision", "default", NULL};
-	char *id=NULL, *name="", *description="";
-	float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
-	int precision= 1;
-	PropertyRNA *prop;
 	StructRNA *srna;
-	
+
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
@@ -3270,12 +3269,18 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "hidden", NULL};
+		char *id=NULL, *name="", *description="";
+		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
+		int precision= 1, hidden=0;
+		PropertyRNA *prop;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssfffffif:FloatProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &step, &precision, &def))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffii:FloatProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &hidden))
 			return NULL;
 
 		prop= RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
 		RNA_def_property_ui_range(prop, min, max, step, precision);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -3286,12 +3291,8 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attr", "name", "description", "maxlen", "default", NULL};
-	char *id=NULL, *name="", *description="", *def="";
-	int maxlen=0;
-	PropertyRNA *prop;
 	StructRNA *srna;
-	
+
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
@@ -3302,11 +3303,16 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+		static char *kwlist[] = {"attr", "name", "description", "default", "maxlen", "hidden", NULL};
+		char *id=NULL, *name="", *description="", *def="";
+		int maxlen=0, hidden=0;
+		PropertyRNA *prop;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssis:StringProperty", kwlist, &id, &name, &description, &maxlen, &def))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|sssii:StringProperty", kwlist, &id, &name, &description, &def, &maxlen, &hidden))
 			return NULL;
 
 		prop= RNA_def_string(srna, id, def, maxlen, name, description);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -3363,14 +3369,8 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, const char *def, in
 
 PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attr", "items", "name", "description", "default", NULL};
-	char *id=NULL, *name="", *description="", *def="";
-	int defvalue=0;
-	PyObject *items= Py_None;
-	EnumPropertyItem *eitems;
-	PropertyRNA *prop;
 	StructRNA *srna;
-	
+
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
@@ -3381,8 +3381,14 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+		static char *kwlist[] = {"attr", "items", "name", "description", "default", "hidden", NULL};
+		char *id=NULL, *name="", *description="", *def="";
+		int defvalue=0, hidden=0;
+		PyObject *items= Py_None;
+		EnumPropertyItem *eitems;
+		PropertyRNA *prop;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sss:EnumProperty", kwlist, &id, &items, &name, &description, &def))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sssi:EnumProperty", kwlist, &id, &items, &name, &description, &def, &hidden))
 			return NULL;
 
 		eitems= enum_items_from_py(items, def, &defvalue);
@@ -3390,6 +3396,7 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 			
 		prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_duplicate_pointers(prop);
 		MEM_freeN(eitems);
 
@@ -3420,12 +3427,8 @@ static StructRNA *pointer_type_from_py(PyObject *value)
 
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attr", "type", "name", "description", NULL};
-	char *id=NULL, *name="", *description="";
-	PropertyRNA *prop;
-	StructRNA *srna, *ptype;
-	PyObject *type= Py_None;
-	
+	StructRNA *srna;
+
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
@@ -3436,8 +3439,14 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+		static char *kwlist[] = {"attr", "type", "name", "description", "hidden", NULL};
+		char *id=NULL, *name="", *description="";
+		int hidden;
+		PropertyRNA *prop;
+		StructRNA *ptype;
+		PyObject *type= Py_None;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ss:PointerProperty", kwlist, &id, &type, &name, &description))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssi:PointerProperty", kwlist, &id, &type, &name, &description, &hidden))
 			return NULL;
 
 		ptype= pointer_type_from_py(type);
@@ -3445,6 +3454,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		prop= RNA_def_pointer_runtime(srna, id, ptype, name, description);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -3456,12 +3466,8 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attr", "type", "name", "description", NULL};
-	char *id=NULL, *name="", *description="";
-	PropertyRNA *prop;
-	StructRNA *srna, *ptype;
-	PyObject *type= Py_None;
-	
+	StructRNA *srna;
+
 	if (PyTuple_Size(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
@@ -3472,8 +3478,14 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
+		static char *kwlist[] = {"attr", "type", "name", "description", "hidden", NULL};
+		char *id=NULL, *name="", *description="";
+		int hidden;
+		PropertyRNA *prop;
+		StructRNA *ptype;
+		PyObject *type= Py_None;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ss:CollectionProperty", kwlist, &id, &type, &name, &description))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssi:CollectionProperty", kwlist, &id, &type, &name, &description, &hidden))
 			return NULL;
 
 		ptype= pointer_type_from_py(type);
@@ -3481,6 +3493,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		prop= RNA_def_collection_runtime(srna, id, ptype, name, description);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -3521,9 +3534,7 @@ int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 					PyErr_Print();
 					PyErr_Clear();
 
-					PyLineSpit();
-
-					PyErr_Format(PyExc_ValueError, "StructRNA \"%.200s\" registration error: %.200s could not run\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
+					PyErr_Format(PyExc_ValueError, "StructRNA \"%.200s\" registration error: %.200s could not register\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
 					Py_DECREF(dummy_args);
 					return -1;
 				}
