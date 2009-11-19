@@ -302,7 +302,7 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_OperatorProperties, op->properties);
+	return rna_pointer_inherit_refine(ptr, op->type->srna, op->properties);
 }
 
 

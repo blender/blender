@@ -34,6 +34,11 @@ ops = ops_module.ops_fake_module
 import os
 import sys
 
+# a bit nasty but this prevents help() and input() from locking blender
+# Ideally we could have some way for the console to replace sys.stdin but
+# python would lock blender while waiting for a return value, not easy :|
+sys.stdin = None
+
 def load_scripts(reload_scripts=False):
     import traceback
     

@@ -345,11 +345,6 @@ void BPY_start_python( int argc, char **argv )
 		PyObject *d = PyEval_GetBuiltins(  );
 		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(bpy_reload_meth, NULL));	Py_DECREF(item);
 		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
-		
-		/* a bit nasty but this prevents help() and input() from locking blender
-		 * Ideally we could have some way for the console to replace sys.stdin but
-		 * python would lock blender while waiting for a return value, not easy :| */
-		PySys_SetObject("stdin", Py_None);
 	}
 	
 	pyrna_alloc_types();
