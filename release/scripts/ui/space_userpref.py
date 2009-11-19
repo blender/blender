@@ -441,27 +441,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             sub2.active = ui.shaded
             sub2.itemR(ui, "shadetop")
             sub2.itemR(ui, "shadedown")
-            
-            ui = theme.user_interface.wcol_toolbar
-            layout.itemL(text="Toolbar:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
-            
             ui = theme.user_interface.wcol_radio
             layout.itemL(text="Radio Buttons:")
 
