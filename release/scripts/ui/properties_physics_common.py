@@ -147,7 +147,7 @@ def basic_force_field_settings_ui(self, context, field):
 
     if field.type == 'TURBULENCE':
         col.itemR(field, "size")
-        col.itemR(field, "col")
+        col.itemR(field, "flow")
     elif field.type == 'HARMONIC':
         col.itemR(field, "harmonic_damping", text="Damping")
     elif field.type == 'VORTEX' and field.shape != 'POINT':

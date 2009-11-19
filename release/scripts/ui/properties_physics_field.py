@@ -72,8 +72,9 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "guide_free")
             col.itemR(field, "falloff_power")
             col.itemR(field, "guide_path_add")
-
-            col = split.column()
+            
+            if col2:
+                col = split.column()
             col.itemL(text="Clumping:")
             col.itemR(field, "guide_clump_amount")
             col.itemR(field, "guide_clump_shape")
@@ -90,10 +91,15 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             if (field.guide_kink_type != 'NONE'):
                 layout.itemR(field, "guide_kink_axis")
 
-                flow = layout.column_flow()
-                flow.itemR(field, "guide_kink_frequency")
-                flow.itemR(field, "guide_kink_shape")
-                flow.itemR(field, "guide_kink_amplitude")
+                split = layout.split()
+                
+                col = split.column()
+                col.itemR(field, "guide_kink_frequency")
+                col.itemR(field, "guide_kink_shape")
+                
+                if col2:
+                    col = split.column()
+                col.itemR(field, "guide_kink_amplitude")
 
         elif field.type == 'TEXTURE':
             col = split.column()
@@ -101,8 +107,9 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "texture", text="")
             col.itemR(field, "texture_mode", text="")
             col.itemR(field, "texture_nabla")
-
-            col = split.column()
+            
+            if col2:
+                col = split.column()
             col.itemR(field, "use_coordinates")
             col.itemR(field, "root_coordinates")
             col.itemR(field, "force_2d")
@@ -125,8 +132,9 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemL(text="Angular:")
                 col.itemR(field, "use_radial_min", text="Use Minimum")
                 col.itemR(field, "use_radial_max", text="Use Maximum")
-
-                col = split.column()
+                
+                if col2:
+                    col = split.column()
                 col.itemR(field, "radial_falloff", text="Power")
 
                 sub = col.column()
@@ -146,8 +154,9 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemL(text="Radial:")
                 col.itemR(field, "use_radial_min", text="Use Minimum")
                 col.itemR(field, "use_radial_max", text="Use Maximum")
-
-                col = split.column()
+                
+                if col2:
+                    col = split.column()
                 col.itemR(field, "radial_falloff", text="Power")
 
                 sub = col.column()
