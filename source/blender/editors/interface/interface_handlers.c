@@ -3399,6 +3399,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 	pup= uiPupMenuBegin(C, name, 0);
 	layout= uiPupMenuLayout(pup);
+	
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
 	if(but->rnapoin.data && but->rnaprop) {
 
