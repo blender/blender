@@ -27,6 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -45,6 +46,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_util.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -602,9 +604,9 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 			sce = seq->scene;
 		}
 
-		strncpy(seq->name + 2, sce->id.name + 2, 
-			sizeof(seq->name) - 2);
-
+		BLI_strncpy(seq->name+2, sce->id.name + 2, SEQ_NAME_MAXSTR-2);
+		seqUniqueName(scene->ed->seqbasep, seq);
+		
 		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
@@ -2413,9 +2415,10 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 		sh = get_sequence_blend(seq);
 
+#if 0 // XXX old animation system
 		seq->facf0 = seq->facf1 = 1.0;
 
-#if 0 // XXX old animation system
+
 		if(seq->ipo && seq->ipo->curve.first) {
 			do_seq_ipo(scene, seq, cfra);
 		} 
@@ -3532,6 +3535,7 @@ void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 {
 	if(seq) {
 		strcpy(seq->name, seq_load->name);
+		seqUniqueName(scene->ed->seqbasep, seq);
 
 		if(seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
 			seq_load->start_frame += (seq->enddisp - seq->startdisp);
@@ -3573,6 +3577,11 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	return seq;
 }
 
+void seqUniqueName(ListBase *seqbasep, Sequence *seq)
+{
+	 BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
+}
+
 /* NOTE: this function doesn't fill in iamge names */
 Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
@@ -3583,7 +3592,9 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
 	seq->type= SEQ_IMAGE;
-
+	BLI_strncpy(seq->name+2, "Image", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
+	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 
@@ -3591,7 +3602,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	strip->us= 1;
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
-
+	
 	seq_load_apply(scene, seq, seq_load);
 
 	return seq;
@@ -3630,6 +3641,8 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	seq->type= SEQ_SOUND;
 	seq->sound= sound;
+	BLI_strncpy(seq->name+2, "Sound", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
@@ -3672,6 +3685,8 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	seq->type= SEQ_MOVIE;
 	seq->anim= an;
 	seq->anim_preseek = IMB_anim_get_preseek(an);
+	BLI_strncpy(seq->name+2, "Movie", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");

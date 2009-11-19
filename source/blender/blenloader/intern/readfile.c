@@ -10055,8 +10055,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			Scene *sce= main->scene.first;
 			while(sce) {
+				Sequence *seq;
+				
 				if(sce->r.frame_step==0)
 					sce->r.frame_step= 1;
+				
+				if(sce->ed && sce->ed->seqbasep)
+				{
+					seq=sce->ed->seqbasep->first;
+					while(seq) {
+						seqUniqueName(sce->ed->seqbasep, seq);
+						seq=seq->next;
+					}
+				}
+				
 				sce= sce->id.next;
 			}
 		}

@@ -176,8 +176,10 @@ static int rna_Sequence_name_length(PointerRNA *ptr)
 
 static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 {
+	Scene *sce= (Scene*)ptr->id.data;
 	Sequence *seq= (Sequence*)ptr->data;
 	BLI_strncpy(seq->name+2, value, sizeof(seq->name)-2);
+	seqUniqueName(&sce->ed->seqbase, seq);
 }
 
 static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
@@ -230,16 +232,9 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	 */
 	if (seq->name+2)
 		return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
-	else {
-		/* compromise for the frequent sitation when strips don't have names... */
-		Scene *sce= (Scene*)ptr->id.data;
-		Editing *ed= seq_give_editing(sce, FALSE);
-		
-		return BLI_sprintfN("sequence_editor.sequences[%d]", BLI_findindex(&ed->seqbase, seq));
-	}
 }
 
-static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *iter)
+static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 	MetaStack *ms= (MetaStack*)internal->link;
@@ -589,7 +584,7 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEditor_meta_stack_get", 0, 0, 0);
 	
 	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
@@ -818,8 +813,16 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");
 	RNA_def_property_ui_text(prop, "Directory", "");
-
+	
 	rna_def_input(srna);
+	
+	RNA_def_struct_sdna_from(srna, "SoundHandle", "sound_handle");
+	
+	prop= RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "volume");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 }
 
 static void rna_def_effect(BlenderRNA *brna)

@@ -518,6 +518,8 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
             row.itemO("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
 
         row.itemR(strip.sound, "caching")
+        
+        layout.itemR(strip, "volume")
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
