@@ -1575,6 +1575,7 @@ void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Blend Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_blend";
+	ot->description= "";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1608,6 +1609,7 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clean Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_clean";
+	ot->description= "Remove Vertex Group assignments which aren't required.";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1653,6 +1655,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Vertex Group to Linked";
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_linked";
+	ot->description= "Copy Vertex Groups to all users of the same Geometry data.";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1709,6 +1712,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Active Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_set_active";
+	ot->description= "Set the active vertex group.";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1762,6 +1766,7 @@ void OBJECT_OT_vertex_group_menu(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Vertex Group Menu";
 	ot->idname= "OBJECT_OT_vertex_group_menu";
+	ot->description= "Menu showing the operators available for editing Vertex Groups";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
