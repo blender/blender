@@ -76,11 +76,11 @@ bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
-void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
+void node_tree_verify_groups(bNodeTree *nodetree);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);

@@ -55,7 +55,50 @@
  
 #include "node_intern.h"
 
-// XXX duplicate function
+/* **************** Node Header Buttons ************** */
+
+static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
+{
+	bNodeSocket *sock;
+	
+	/* unhide all */
+	if( node_has_hidden_sockets(node) ) {
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			sock->flag &= ~SOCK_HIDDEN;
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			sock->flag &= ~SOCK_HIDDEN;
+	}
+	else {
+		bNode *gnode= node_tree_get_editgroup(snode->nodetree);
+		
+		/* hiding inside group should not break links in other group users */
+		if(gnode) {
+			nodeGroupSocketUseFlags((bNodeTree *)gnode->id);
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				if(!(sock->flag & SOCK_IN_USE))
+					if(sock->link==NULL)
+						sock->flag |= SOCK_HIDDEN;
+			for(sock= node->outputs.first; sock; sock= sock->next)
+				if(!(sock->flag & SOCK_IN_USE))
+					if(nodeCountSocketLinks(snode->edittree, sock)==0)
+						sock->flag |= SOCK_HIDDEN;
+		}
+		else {
+			/* hide unused sockets */
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->link==NULL)
+					sock->flag |= SOCK_HIDDEN;
+			}
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				if(nodeCountSocketLinks(snode->edittree, sock)==0)
+					sock->flag |= SOCK_HIDDEN;
+			}
+		}
+	}
+
+	node_tree_verify_groups(snode->nodetree);
+}
+
 static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 {
 	rctf totr= node->totr;
@@ -93,13 +136,12 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 	}
 	/* hide unused sockets */
 	if(BLI_in_rctf(&totr, mx, my)) {
-		// XXX node_hide_unhide_sockets(snode, node);
+		node_hide_unhide_sockets(snode, node);
 	}
 	
 	return 0;
 }
 
-// XXX duplicate function
 static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float my)
 {
 	rctf totr= node->totr;
@@ -172,6 +214,7 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Visibility";
 	ot->idname= "NODE_OT_visibility_toggle";
+	ot->description= "Handle clicks on node header buttons.";
 	
 	/* api callbacks */
 	ot->invoke= node_toggle_visibility_invoke;
@@ -184,13 +227,67 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
 }
 
+/* **************** View All Operator ************** */
+
+static void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
+{
+	bNode *node;
+	rctf *cur, *tot;
+	float oldwidth, oldheight, width, height;
+	int first= 1;
+	
+	cur= &ar->v2d.cur;
+	tot= &ar->v2d.tot;
+	
+	oldwidth= cur->xmax - cur->xmin;
+	oldheight= cur->ymax - cur->ymin;
+	
+	cur->xmin= cur->ymin= 0.0f;
+	cur->xmax=ar->winx;
+	cur->xmax= ar->winy;
+	
+	if(snode->edittree) {
+		for(node= snode->edittree->nodes.first; node; node= node->next) {
+			if(first) {
+				first= 0;
+				ar->v2d.cur= node->totr;
+			}
+			else {
+				BLI_union_rctf(cur, &node->totr);
+			}
+		}
+	}
+	
+	snode->xof= 0;
+	snode->yof= 0;
+	width= cur->xmax - cur->xmin;
+	height= cur->ymax- cur->ymin;
+	if(width > height) {
+		float newheight;
+		newheight= oldheight * width/oldwidth;
+		cur->ymin= cur->ymin - newheight/4;
+		cur->ymax= cur->ymin + newheight;
+	}
+	else {
+		float newwidth;
+		newwidth= oldwidth * height/oldheight;
+		cur->xmin= cur->xmin - newwidth/4;
+		cur->xmax= cur->xmin + newwidth;
+	}
+	
+	ar->v2d.tot= ar->v2d.cur;
+	UI_view2d_curRect_validate(&ar->v2d);
+}
+
 static int node_view_all_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
+	
 	snode_home(sa, ar, snode);
 	ED_region_tag_redraw(ar);
+	
 	return OPERATOR_FINISHED;
 }
 

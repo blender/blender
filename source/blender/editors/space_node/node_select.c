@@ -56,6 +56,8 @@
  
 #include "node_intern.h"
  
+/* ****** Click Select ****** */
+ 
 static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
 {
 	bNode *node;

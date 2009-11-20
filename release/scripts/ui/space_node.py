@@ -111,7 +111,7 @@ class NODE_MT_node(bpy.types.Menu):
         
         layout.itemS()
 
-        layout.itemO("node.duplicate")
+        layout.itemO("node.duplicate_move", text="Duplicate")
         layout.itemO("node.delete")
 
         layout.itemS()

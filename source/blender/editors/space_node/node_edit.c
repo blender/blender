@@ -762,6 +762,19 @@ void node_set_active(SpaceNode *snode, bNode *node)
 	}
 }
 
+/* when links in groups change, inputs/outputs change, nodes added/deleted... */
+void node_tree_verify_groups(bNodeTree *nodetree)
+{
+	bNode *gnode;
+	
+	gnode= node_tree_get_editgroup(nodetree);
+	
+	/* does all materials */
+	if(gnode)
+		nodeVerifyGroup((bNodeTree *)gnode->id);
+	
+}
+
 /* ***************** Edit Group operator ************* */
 
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
@@ -892,81 +905,6 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* when links in groups change, inputs/outputs change, nodes added/deleted... */
-static void node_tree_verify_groups(bNodeTree *nodetree)
-{
-	bNode *gnode;
-	
-	gnode= node_tree_get_editgroup(nodetree);
-	
-	/* does all materials */
-	if(gnode)
-		nodeVerifyGroup((bNodeTree *)gnode->id);
-	
-}
-
-#if 0
-
-static void node_addgroup(SpaceNode *snode)
-{
-	bNodeTree *ngroup;
-	int tot= 0, offs, val;
-	char *strp;
-	
-	if(snode->edittree!=snode->nodetree) {
-		error("Can not add a Group in a Group");
-		return;
-	}
-	
-	/* construct menu with choices */
-	for(ngroup= G.main->nodetree.first; ngroup; ngroup= ngroup->id.next) {
-		if(ngroup->type==snode->treetype)
-			tot++;
-	}
-	if(tot==0) {
-		error("No groups available in database");
-		return;
-	}
-	strp= MEM_mallocN(32*tot+32, "menu");
-	strcpy(strp, "Add Group %t");
-	offs= strlen(strp);
-	
-	for(tot=0, ngroup= G.main->nodetree.first; ngroup; ngroup= ngroup->id.next, tot++) {
-		if(ngroup->type==snode->treetype)
-			offs+= sprintf(strp+offs, "|%s %%x%d", ngroup->id.name+2, tot);
-	}	
-	
-	val= pupmenu(strp);
-	if(val>=0) {
-		ngroup= BLI_findlink(&G.main->nodetree, val);
-		if(ngroup) {
-			bNode *node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup, NULL);
-			
-			/* generics */
-			if(node) {
-				float locx, locy;
-				short mval[2];
-
-				node_deselectall(snode, 0);
-				
-				getmouseco_areawin(mval);
-				areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-				
-				node->locx= locx;
-				node->locy= locy + 60.0f;		// arbitrary.. so its visible
-				node->flag |= SELECT;
-				
-				id_us_plus(node->id);
-				
-				node_set_active(snode, node);
-			}
-		}			
-	}
-	MEM_freeN(strp);
-}
-
-#endif /* 0 */
-
 /* ************************** Node generic ************** */
 
 /* allows to walk the list in order of visibility */
@@ -1033,56 +971,6 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 			break;
 	}
 	return tnode;
-}
-
-void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
-{
-	bNode *node;
-	rctf *cur, *tot;
-	float oldwidth, oldheight, width, height;
-	int first= 1;
-	
-	cur= &ar->v2d.cur;
-	tot= &ar->v2d.tot;
-	
-	oldwidth= cur->xmax - cur->xmin;
-	oldheight= cur->ymax - cur->ymin;
-	
-	cur->xmin= cur->ymin= 0.0f;
-	cur->xmax=ar->winx;
-	cur->xmax= ar->winy;
-	
-	if(snode->edittree) {
-		for(node= snode->edittree->nodes.first; node; node= node->next) {
-			if(first) {
-				first= 0;
-				ar->v2d.cur= node->totr;
-			}
-			else {
-				BLI_union_rctf(cur, &node->totr);
-			}
-		}
-	}
-	
-	snode->xof= 0;
-	snode->yof= 0;
-	width= cur->xmax - cur->xmin;
-	height= cur->ymax- cur->ymin;
-	if(width > height) {
-		float newheight;
-		newheight= oldheight * width/oldwidth;
-		cur->ymin= cur->ymin - newheight/4;
-		cur->ymax= cur->ymin + newheight;
-	}
-	else {
-		float newwidth;
-		newwidth= oldwidth * height/oldheight;
-		cur->xmin= cur->xmin - newwidth/4;
-		cur->xmax= cur->xmin + newwidth;
-	}
-	
-	ar->v2d.tot= ar->v2d.cur;
-	UI_view2d_curRect_validate(&ar->v2d);
 }
 
 #if 0
@@ -1321,127 +1209,6 @@ int node_has_hidden_sockets(bNode *node)
 	for(sock= node->outputs.first; sock; sock= sock->next)
 		if(sock->flag & SOCK_HIDDEN)
 			return 1;
-	return 0;
-}
-
-
-static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
-{
-	bNodeSocket *sock;
-	
-	/* unhide all */
-	if( node_has_hidden_sockets(node) ) {
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			sock->flag &= ~SOCK_HIDDEN;
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			sock->flag &= ~SOCK_HIDDEN;
-	}
-	else {
-		bNode *gnode= node_tree_get_editgroup(snode->nodetree);
-		
-		/* hiding inside group should not break links in other group users */
-		if(gnode) {
-			nodeGroupSocketUseFlags((bNodeTree *)gnode->id);
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(!(sock->flag & SOCK_IN_USE))
-					if(sock->link==NULL)
-						sock->flag |= SOCK_HIDDEN;
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				if(!(sock->flag & SOCK_IN_USE))
-					if(nodeCountSocketLinks(snode->edittree, sock)==0)
-						sock->flag |= SOCK_HIDDEN;
-		}
-		else {
-			/* hide unused sockets */
-			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->link==NULL)
-					sock->flag |= SOCK_HIDDEN;
-			}
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(nodeCountSocketLinks(snode->edittree, sock)==0)
-					sock->flag |= SOCK_HIDDEN;
-			}
-		}
-	}
-
-	// allqueue(REDRAWNODE, 1);
-	node_tree_verify_groups(snode->nodetree);
-
-}
-
-// XXX duplicate function
-/*static*/ int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
-{
-	rctf totr= node->totr;
-	
-	totr.ymin= totr.ymax-20.0f;
-	
-	totr.xmax= totr.xmin+15.0f;
-	if(BLI_in_rctf(&totr, mx, my)) {
-		node->flag |= NODE_HIDDEN;
-		// allqueue(REDRAWNODE, 0);
-		return 1;
-	}	
-	
-	totr.xmax= node->totr.xmax;
-	totr.xmin= totr.xmax-18.0f;
-	if(node->typeinfo->flag & NODE_PREVIEW) {
-		if(BLI_in_rctf(&totr, mx, my)) {
-			node->flag ^= NODE_PREVIEW;
-			// allqueue(REDRAWNODE, 0);
-			return 1;
-		}
-		totr.xmin-=18.0f;
-	}
-	if(node->type == NODE_GROUP) {
-		if(BLI_in_rctf(&totr, mx, my)) {
-			snode_make_group_editable(snode, node);
-			return 1;
-		}
-		totr.xmin-=18.0f;
-	}
-	if(node->typeinfo->flag & NODE_OPTIONS) {
-		if(BLI_in_rctf(&totr, mx, my)) {
-			node->flag ^= NODE_OPTIONS;
-			// allqueue(REDRAWNODE, 0);
-			return 1;
-		}
-		totr.xmin-=18.0f;
-	}
-	/* hide unused sockets */
-	if(BLI_in_rctf(&totr, mx, my)) {
-		node_hide_unhide_sockets(snode, node);
-	}
-	
-	
-	totr= node->totr;
-	totr.xmin= totr.xmax-10.0f;
-	totr.ymax= totr.ymin+10.0f;
-	if(BLI_in_rctf(&totr, mx, my)) {
-//		scale_node(snode, node);
-		return 1;
-	}
-	return 0;
-}
-
-// XXX duplicate function
-/*static*/ int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float my)
-{
-	rctf totr= node->totr;
-	
-	totr.xmax= totr.xmin+15.0f;
-	if(BLI_in_rctf(&totr, mx, my)) {
-		node->flag &= ~NODE_HIDDEN;
-		// allqueue(REDRAWNODE, 0);
-		return 1;
-	}	
-	
-	totr.xmax= node->totr.xmax;
-	totr.xmin= node->totr.xmax-15.0f;
-	if(BLI_in_rctf(&totr, mx, my)) {
-//		scale_node(snode, node);
-		return 1;
-	}
 	return 0;
 }
 
@@ -1738,17 +1505,6 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	node_duplicate_exec(C, op);
-	
-	// todo... remove this - this is for a modal op instead!
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-	
-	return OPERATOR_FINISHED;
-}
-
 void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1757,16 +1513,11 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 	ot->idname= "NODE_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke= node_duplicate_invoke;
 	ot->exec= node_duplicate_exec;
-	
 	ot->poll= ED_operator_node_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
 /* *************************** add link op ******************** */

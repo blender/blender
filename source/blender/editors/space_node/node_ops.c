@@ -75,6 +75,17 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_group_edit);
 }
 
+void ED_operatormacros_node(void)
+{
+	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
+	
+	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+}
+
 void node_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
@@ -107,7 +118,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_menu(keymap, "NODE_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_mute", MKEY, KM_PRESS, 0, 0);
