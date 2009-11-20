@@ -1810,7 +1810,7 @@ static int vertex_group_menu_exec(bContext *C, wmOperator *op)
 		if(vgroup_object_in_edit_mode(ob))
 			uiItemS(layout);
 
-		uiItemO(layout, "Set Active Group", 0, "OBJECT_OT_vertex_group_set_active");
+		uiItemMenuEnumO(layout, "Set Active Group", 0, "OBJECT_OT_vertex_group_set_active", "group");
 		uiItemO(layout, "Remove Group", 0, "OBJECT_OT_vertex_group_remove");
 		uiItemBooleanO(layout, "Remove All Groups", 0, "OBJECT_OT_vertex_group_remove", "all", 1);
 	}
