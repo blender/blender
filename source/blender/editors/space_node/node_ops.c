@@ -61,6 +61,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_visibility_toggle);
 	WM_operatortype_append(NODE_OT_mute);
 	WM_operatortype_append(NODE_OT_hide);
+	WM_operatortype_append(NODE_OT_show_cyclic_dependencies);
 	
 	WM_operatortype_append(NODE_OT_duplicate);
 	WM_operatortype_append(NODE_OT_delete);
@@ -80,7 +81,7 @@ void ED_operatormacros_node(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
@@ -122,6 +123,8 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "NODE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_mute", MKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "NODE_OT_show_cyclic_dependencies", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);

@@ -2059,7 +2059,7 @@ static int node_hide_exec(bContext *C, wmOperator *op)
 void NODE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Nodes";
+	ot->name= "Hide";
 	ot->description= "Toggle hiding of the nodes.";
 	ot->idname= "NODE_OT_hide";
 	
@@ -2098,7 +2098,7 @@ static int node_mute_exec(bContext *C, wmOperator *op)
 void NODE_OT_mute(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mute Nodes";
+	ot->name= "Mute";
 	ot->description= "Toggle muting of the nodes.";
 	ot->idname= "NODE_OT_mute";
 	
@@ -2157,6 +2157,33 @@ void NODE_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ****************** Show Cyclic Dependencies Operator  ******************* */
+
+static int node_show_cycles_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	
+	/* this is just a wrapper around this call... */
+	ntreeSolveOrder(snode->edittree);
+	snode_handle_recalc(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show Cyclic Dependencies";
+	ot->description= "Sort the nodes and show the cyclic dependencies between the nodes.";
+	ot->idname= "NODE_OT_show_cyclic_dependencies";
+	
+	/* callbacks */
+	ot->exec= node_show_cycles_exec;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 #if 0
 
@@ -2164,25 +2191,7 @@ void NODE_OT_delete(wmOperatorType *ot)
 
 void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
-	SpaceNode *snode= spacedata;
-	bNode *actnode;
-	bNodeSocket *actsock;
-	unsigned short event= evt->event;
-	short val= evt->val, doredraw=0, fromlib= 0;
-	
-	if(sa->win==0) return;
-	
-	if(snode->nodetree==NULL) {
-		/* no other events should be handled, but floating panels still should get handled */
-		uiDoBlocks(&curarea->uiblocks, event, 1);
-		return;
-	}
-	
 	if(val) {
-		if( node_uiDoBlocks(sa, event)!=UI_NOTHING ) event= 0;
-		
-		fromlib= (snode->id && snode->id->lib);
-		
 		switch(event) {
 		case CKEY:	/* sort again, showing cyclics */
 			ntreeSolveOrder(snode->edittree);
@@ -2207,13 +2216,6 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		}
 	}
-
-	if(fromlib==-1)
-		error_libdata();
-	if(doredraw)
-		scrarea_queue_winredraw(sa);
-	if(doredraw==2)
-		scrarea_queue_headredraw(sa);
 }
 #endif
 

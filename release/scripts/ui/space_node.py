@@ -111,7 +111,7 @@ class NODE_MT_node(bpy.types.Menu):
         
         layout.itemS()
 
-        layout.itemO("node.duplicate_move", text="Duplicate")
+        layout.itemO("node.duplicate_move")
         layout.itemO("node.delete")
 
         layout.itemS()
@@ -129,8 +129,10 @@ class NODE_MT_node(bpy.types.Menu):
 
         # XXX
         # layout.itemO("node.rename")
-        # layout.itemS()
-        # layout.itemO("node.show_cyclic_dependencies")
+		
+        layout.itemS()
+		
+        layout.itemO("node.show_cyclic_dependencies")
 
 bpy.types.register(NODE_HT_header)
 bpy.types.register(NODE_MT_view)

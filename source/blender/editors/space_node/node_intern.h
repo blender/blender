@@ -82,6 +82,7 @@ void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void node_tree_verify_groups(bNodeTree *nodetree);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
+int node_has_hidden_sockets(bNode *node);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
@@ -97,6 +98,8 @@ void NODE_OT_group_edit(struct wmOperatorType *ot);
 
 void NODE_OT_mute(struct wmOperatorType *ot);
 void NODE_OT_hide(struct wmOperatorType *ot);
+
+void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
 
 // XXXXXX
 
