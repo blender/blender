@@ -2354,6 +2354,17 @@ void txt_backspace_word (Text *text)
 	txt_delete_sel(text);
 }
 
+/* Max spaces to replace a tab with, currently hardcoded to TXT_TABSIZE = 4.
+ * Used by txt_convert_tab_to_spaces, indent and unintent.
+ * Remember to change this string according to max tab size */
+static char tab_to_spaces[] = "    ";
+
+static void txt_convert_tab_to_spaces (Text *text)
+{
+	char *sb = &tab_to_spaces[text->curl->len % TXT_TABSIZE];
+	txt_insert_buf(text, sb);
+}
+
 int txt_add_char (Text *text, char add) 
 {
 	int len, lineno;
@@ -2368,13 +2379,9 @@ int txt_add_char (Text *text, char add)
 		return 1;
 	}
 	
-	/* insert spaces rather then tabs
-	 * TODO, this will run an undo push each time (not nice) */
+	/* insert spaces rather then tabs */
 	if (add == '\t') {
-		int totspace = 4 - (text->curl->len % 4);
-		while(totspace--) {
-			txt_add_char(text, ' ');
-		}
+		txt_convert_tab_to_spaces(text);
 		return 1;
 	}
 
@@ -2453,7 +2460,13 @@ void indent(Text *text)
 {
 	int len, num;
 	char *tmp;
-	char add = '\t';
+	/* char *addtab = "\t";
+	int tablen = 1; */
+	/* hardcoded: TXT_TABSIZE = 4 spaces: */
+	int spaceslen = TXT_TABSIZE;
+	/* hardcoded: use spaces: */
+	char *add = tab_to_spaces;
+	int indentlen = spaceslen; 
 	
 	if (!text) return;
 	if (!text->curl) return;
@@ -2462,19 +2475,19 @@ void indent(Text *text)
 	num = 0;
 	while (TRUE)
 	{
-		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
+		tmp= MEM_mallocN(text->curl->len+indentlen+1, "textline_string");
 		
 		text->curc = 0; 
-		if(text->curc) memcpy(tmp, text->curl->line, text->curc);
-		tmp[text->curc]= add;
+		if(text->curc) memcpy(tmp, text->curl->line, text->curc); /* XXX never true, check prev line */
+		memcpy(tmp+text->curc, add, indentlen);
 		
 		len= text->curl->len - text->curc;
-		if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
-		tmp[text->curl->len+1]=0;
+		if(len>0) memcpy(tmp+text->curc+indentlen, text->curl->line+text->curc, len);
+		tmp[text->curl->len+indentlen]= 0;
 
 		make_new_line(text->curl, tmp);
 			
-		text->curc++;
+		text->curc+= indentlen;
 		
 		txt_make_dirty(text);
 		txt_clean_text(text);
@@ -2504,8 +2517,12 @@ void indent(Text *text)
 void unindent(Text *text)
 {
 	int num = 0;
-	char remove = '\t';
-	
+	/* char *rmtab = "\t"; */
+	char *remove = tab_to_spaces;
+	/* int indenttab = 1; */
+	int indentspaces = TXT_TABSIZE;
+	int indent = indentspaces;
+
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
@@ -2514,15 +2531,14 @@ void unindent(Text *text)
 	{
 		int i = 0;
 		
-		if (text->curl->line[i] == remove)
+		if (BLI_strncasecmp(text->curl->line, remove, indent) == 0)
 		{
 			while(i< text->curl->len) {
-				text->curl->line[i]= text->curl->line[i+1];
+				text->curl->line[i]= text->curl->line[i+indent];
 				i++;
 			}
-			text->curl->len--;
+			text->curl->len-= indent;
 		}
-			 
 	
 		txt_make_dirty(text);
 		txt_clean_text(text);
