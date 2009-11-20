@@ -243,34 +243,24 @@ void BPY_update_modules( void )
 /*****************************************************************************
 * Description: This function creates a new Python dictionary object.
 *****************************************************************************/
-static PyObject *CreateGlobalDictionary( bContext *C )
+static PyObject *CreateGlobalDictionary( bContext *C, const char *filename )
 {
 	PyObject *mod;
+	PyObject *item;
 	PyObject *dict = PyDict_New(  );
-	PyObject *item = PyUnicode_FromString( "__main__" );
 	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
+
+	item = PyUnicode_FromString( "__main__" );
 	PyDict_SetItemString( dict, "__name__", item );
 	Py_DECREF(item);
 	
-	// XXX - put somewhere more logical
-	{
-		PyMethodDef *ml;
-		static PyMethodDef bpy_prop_meths[] = {
-			{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{NULL, NULL, 0, NULL}
-		};
-		
-		for(ml = bpy_prop_meths; ml->ml_name; ml++) {
-			PyDict_SetItemString( dict, ml->ml_name, PyCFunction_New(ml, NULL));
-		}
+	/* __file__ only for nice UI'ness */
+	if(filename) {
+		PyObject *item = PyUnicode_FromString( filename );
+		PyDict_SetItemString( dict, "__file__", item );
+		Py_DECREF(item);
 	}
-	
+
 	/* add bpy to global namespace */
 	mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
 	PyDict_SetItemString( dict, "bpy", mod );
@@ -400,7 +390,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	
 	bpy_context_set(C, &gilstate);
 	
-	py_dict = CreateGlobalDictionary(C);
+	py_dict = CreateGlobalDictionary(C, text?text->id.name+2:fn);
 
 	if (text) {
 		
@@ -809,7 +799,7 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	
 	bpy_context_set(C, &gilstate);
 	
-	dict= CreateGlobalDictionary(C);
+	dict= CreateGlobalDictionary(C, NULL);
 	
 	/* import some modules: builtins,math*/
 	PyDict_SetItemString(dict, "__builtins__", PyEval_GetBuiltins());
