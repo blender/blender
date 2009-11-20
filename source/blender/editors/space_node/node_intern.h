@@ -84,13 +84,19 @@ bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
-void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
 void NODE_OT_resize(struct wmOperatorType *ot);
+
+void NODE_OT_link(struct wmOperatorType *ot);
+void NODE_OT_link_make(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
+
 void NODE_OT_group_make(struct wmOperatorType *ot);
 void NODE_OT_group_ungroup(struct wmOperatorType *ot);
 void NODE_OT_group_edit(struct wmOperatorType *ot);
+
+void NODE_OT_mute(struct wmOperatorType *ot);
+void NODE_OT_hide(struct wmOperatorType *ot);
 
 // XXXXXX
 

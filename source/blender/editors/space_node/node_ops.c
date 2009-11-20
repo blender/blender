@@ -55,14 +55,21 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select_all);
 	WM_operatortype_append(NODE_OT_select_linked_to);
 	WM_operatortype_append(NODE_OT_select_linked_from);
-	WM_operatortype_append(NODE_OT_visibility_toggle);
-	WM_operatortype_append(NODE_OT_view_all);
 	WM_operatortype_append(NODE_OT_select_border);
-	WM_operatortype_append(NODE_OT_delete);
-	WM_operatortype_append(NODE_OT_link);
-	WM_operatortype_append(NODE_OT_resize);
-	WM_operatortype_append(NODE_OT_links_cut);
+	
+	WM_operatortype_append(NODE_OT_view_all);
+	WM_operatortype_append(NODE_OT_visibility_toggle);
+	WM_operatortype_append(NODE_OT_mute);
+	WM_operatortype_append(NODE_OT_hide);
+	
 	WM_operatortype_append(NODE_OT_duplicate);
+	WM_operatortype_append(NODE_OT_delete);
+	WM_operatortype_append(NODE_OT_resize);
+	
+	WM_operatortype_append(NODE_OT_link);
+	WM_operatortype_append(NODE_OT_link_make);
+	WM_operatortype_append(NODE_OT_links_cut);
+	
 	WM_operatortype_append(NODE_OT_group_make);
 	WM_operatortype_append(NODE_OT_group_ungroup);
 	WM_operatortype_append(NODE_OT_group_edit);
@@ -93,12 +100,17 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	
 	/* each of these falls through if not handled... */
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);	// XXX not working..
+	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_visibility_toggle", LEFTMOUSE, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "NODE_OT_links_cut", RIGHTMOUSE, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_links_cut", RIGHTMOUSE, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, 0, 0);
 	
+	WM_keymap_add_menu(keymap, "NODE_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	WM_keymap_add_item(keymap, "NODE_OT_hide", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_mute", MKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
@@ -113,7 +125,5 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_menu(keymap, "NODE_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-
 	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);
 }

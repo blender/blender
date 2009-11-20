@@ -106,17 +106,17 @@ class NODE_MT_node(bpy.types.Menu):
         layout = self.layout
 
         layout.itemO("tfm.translate")
-        layout.itemO("tfm.resize")
         layout.itemO("tfm.rotate")
-
+        layout.itemO("tfm.resize")
+        
         layout.itemS()
 
         layout.itemO("node.duplicate")
         layout.itemO("node.delete")
 
-        # XXX
-        # layout.itemS()
-        # layout.itemO("node.make_link")
+        layout.itemS()
+        layout.itemO("node.link_make")
+        
         layout.itemS()
         layout.itemO("node.group_edit")
         layout.itemO("node.group_ungroup")
@@ -124,7 +124,8 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.itemO("node.visibility_toggle")
+        layout.itemO("node.hide")
+        layout.itemO("node.mute")
 
         # XXX
         # layout.itemO("node.rename")

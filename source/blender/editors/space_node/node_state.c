@@ -55,7 +55,7 @@
  
 #include "node_intern.h"
 
-
+// XXX duplicate function
 static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 {
 	rctf totr= node->totr;
@@ -99,6 +99,7 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 	return 0;
 }
 
+// XXX duplicate function
 static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float my)
 {
 	rctf totr= node->totr;
