@@ -77,7 +77,7 @@ typedef struct AviCodecData {
 } AviCodecData;
 
 typedef struct QuicktimeCodecData {
-
+	/*Old quicktime implementation compatibility fields, read only in 2.5 - deprecated*/
 	void			*cdParms;   /* codec/compressor options */
 	void			*pad;	    /* padding */
 
@@ -86,6 +86,22 @@ typedef struct QuicktimeCodecData {
 
 	char			qtcodecname[128];
 } QuicktimeCodecData;
+	
+typedef struct QuicktimeCodecSettings {
+	/* Codec settings detailed for 2.5 implementation*/
+	int codecType; /* Types defined in quicktime_export.h */
+	int	codecSpatialQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
+
+	/* Settings not available in current QTKit API */
+	int	codec;
+	int	codecFlags;
+	int	colorDepth;
+	int	codecTemporalQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
+	int	minSpatialQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
+	int	minTemporalQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
+	int	keyFrameRate;
+	int	bitRate;	/* bitrate in bps */
+} QuicktimeCodecSettings;
 
 typedef struct FFMpegCodecData {
 	int type;
@@ -176,6 +192,7 @@ typedef struct RenderData {
 	
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
+	struct QuicktimeCodecSettings qtcodecsettings;
 	struct FFMpegCodecData ffcodecdata;
 	
 	int cfra, sfra, efra;	/* frames as in 'images' */

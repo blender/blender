@@ -74,6 +74,37 @@ typedef struct QuicktimeExport {
 static struct QuicktimeExport *qtexport;
 
 
+static NSString *stringWithCodecType(int codecType) {
+	switch (codecType) {
+		case QT_CODECTYPE_RAW:
+			return @"raw ";
+		case QT_CODECTYPE_MJPEGA:
+			return @"mjpa";
+		case QT_CODECTYPE_MJPEGB:
+			return @"mjpb";
+		case QT_CODECTYPE_DVCPAL:
+			return @"dvcp";
+		case QT_CODECTYPE_DVCNTSC:
+			return @"dvc ";
+		case QT_CODECTYPE_MPEG4:
+			return @"mp4v";
+		case QT_CODECTYPE_H263:
+			return @"h263";
+		case QT_CODECTYPE_H264:
+			return @"avc1";
+		case QT_CODECTYPE_DVCPROHD720p:
+			return @"dvhp";
+		case QT_CODECTYPE_DVCPROHD1080i50:
+			return @"dvh5";
+		case QT_CODECTYPE_DVCPROHD1080i60:
+			return @"dvh6";
+			
+		case QT_CODECTYPE_JPEG:
+		default:
+			return @"jpeg";	
+	}
+}
+
 void makeqtstring (RenderData *rd, char *string) {
 	char txt[64];
 
@@ -121,13 +152,22 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty)
 				
 				qtexport->frameDuration = QTMakeTime(rd->frs_sec_base*1000, rd->frs_sec*1000);
 				
-				/* specifying the codec attributes
-				TODO: get these values from RenderData/scene*/
-				qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:@"jpeg",
-											 QTAddImageCodecType,
-											 [NSNumber numberWithLong:codecHighQuality],
-											 QTAddImageCodecQuality,
-											 nil];
+				/* specifying the codec attributes : try to retrieve them from render data first*/
+				if (rd->qtcodecsettings.codecType) {
+					qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
+												 stringWithCodecType(rd->qtcodecsettings.codecType),
+												 QTAddImageCodecType,
+												 [NSNumber numberWithLong:((rd->qtcodecsettings.codecSpatialQuality)*codecLosslessQuality)/100],
+												 QTAddImageCodecQuality,
+												 nil];
+				}
+				else {
+					qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:@"jpeg",
+												 QTAddImageCodecType,
+												 [NSNumber numberWithLong:codecHighQuality],
+												 QTAddImageCodecQuality,
+												 nil];
+				}
 				[qtexport->frameAttributes retain];
 			}
 		}
@@ -206,83 +246,17 @@ void end_qt(void)
 void free_qtcomponentdata(void) {
 }
 
-
-int get_qtcodec_settings(RenderData *rd) 
+void quicktime_verify_image_type(RenderData *rd)
 {
-/*
-	// get previous selected codecsetting, if any 
-	if(rd->qtcodecdata && rd->qtcodecdata->cdParms) {
-		QT_GetCodecSettingsFromScene(rd);
-		check_renderbutton_framerate(rd);
-	} else {
-		// configure the standard image compression dialog box
-		// set some default settings
-		qtdata->gSpatialSettings.codec = anyCodec;         
-		qtdata->gSpatialSettings.spatialQuality = codecMaxQuality;
-		qtdata->gTemporalSettings.temporalQuality = codecMaxQuality;
-		qtdata->gTemporalSettings.keyFrameRate = 25;   
-		qtdata->aDataRateSetting.dataRate = 90 * 1024;          
-
-		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
-		CheckError(err, "SCSetInfo1 error");
-		err = SCSetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
-		CheckError(err, "SCSetInfo2 error");
-		err = SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
-		CheckError(err, "SCSetInfo3 error");
-	}
-
-	check_renderbutton_framerate(rd);
-
-	// put up the dialog box - it needs to be called from the main thread
-	err = SCRequestSequenceSettings(qtdata->theComponent);
- 
-	if (err == scUserCancelled) {
-		G.afbreek = 1;
-		return 0;
-	}
-
-	// get user selected data
-	SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
-	SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
-	SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
-
-	QT_SaveCodecSettingsToScene(rd);
-
-	// framerate jugglin'
-	switch (qtexport->frameRate) {
-		case 1571553: // 23.98 fps
-			qtexport->frameDuration = QTMakeTime(1001, 24000);
-			rd->frs_sec = 24;
-			rd->frs_sec_base = 1.001;
-			break;
-		case 1964113: // 29.97 fps
-			qtexport->frameDuration = QTMakeTime(1001, 30000);
-			rd->frs_sec = 30;
-			rd->frs_sec_base = 1.001;
-			break;
-		case 3928227: // 59.94 fps
-			qtexport->frameDuration = QTMakeTime(1001, 60000);
-			rd->frs_sec = 60;
-			rd->frs_sec_base = 1.001;
-			break;
-		default:
-		{
-			double fps = qtexport->frameRate;
-			qtexport->frameDuration = QTMakeTime(60000/(qtexport->frameRate / 65536), 60000);
+	if (rd->imtype == R_QUICKTIME) {
+		if ((rd->qtcodecsettings.codecType<= 0) ||
+			(rd->qtcodecsettings.codecSpatialQuality <0) ||
+			(rd->qtcodecsettings.codecSpatialQuality > 100)) {
 			
-			if ((qtexport->frameRate & 0xffff) == 0) {
-				rd->frs_sec = fps / 65536;
-				rd->frs_sec_base = 1;
-			} else {
-				// we do our very best... 
-				rd->frs_sec = (fps * 10000 / 65536);
-				rd->frs_sec_base = 10000;
-			}
+			rd->qtcodecsettings.codecType = QT_CODECTYPE_JPEG;
+			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality*100)/codecLosslessQuality;
 		}
-			break;
 	}
-*/
-	return 1;
 }
 
 #endif /* _WIN32 || __APPLE__ */

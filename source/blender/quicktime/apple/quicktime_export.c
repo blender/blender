@@ -165,8 +165,6 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd)
 		qcd->cdSize = mySize;
 
 		GetCodecInfo (&ci, qtdata->gSpatialSettings.codecType, 0);
-		CopyPascalStringToC(ci.typeName, str);
-		sprintf(qcd->qtcodecname, "Codec: %s", str);
 	} else {
 		printf("Quicktime: QT_SaveCodecSettingsToScene failed\n"); 
 	}
@@ -599,6 +597,18 @@ static void check_renderbutton_framerate(RenderData *rd)
 	}
 }
 
+void quicktime_verify_image_type(RenderData *rd)
+{
+	if (rd->imtype == R_QUICKTIME) {
+		if ((rd->qtcodecsettings.codecType<= 0) ||
+			(rd->qtcodecsettings.codecSpatialQuality <0) ||
+			(rd->qtcodecsettings.codecSpatialQuality > 100)) {
+			
+			rd->qtcodecsettings.codecType = QT_CODECTYPE_JPEG;
+			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality*100)/codecLosslessQuality;
+		}
+	}
+}
 
 int get_qtcodec_settings(RenderData *rd) 
 {
@@ -623,8 +633,8 @@ int get_qtcodec_settings(RenderData *rd)
 		// set some default settings: codec=jpeg, quality = max
 		qtdata->gSpatialSettings.codecType = kJPEGCodecType;
 		qtdata->gSpatialSettings.codec = anyCodec;         
-		qtdata->gSpatialSettings.spatialQuality = codecMaxQuality;
-		qtdata->gTemporalSettings.temporalQuality = codecMaxQuality;
+		qtdata->gSpatialSettings.spatialQuality = codecHighQuality;
+		qtdata->gTemporalSettings.temporalQuality = codecHighQuality;
 		qtdata->gTemporalSettings.keyFrameRate = 25;   
 		qtdata->aDataRateSetting.dataRate = 5 * 1024 * 1024;          
 

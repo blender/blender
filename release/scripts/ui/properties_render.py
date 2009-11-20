@@ -337,6 +337,31 @@ class RENDER_PT_output(RenderButtonsPanel):
             split.itemR(rd, "tiff_bit")
 
 
+class RENDER_PT_QTencoding(RenderButtonsPanel):
+    bl_label = "Encoding"
+    bl_default_closed = True
+    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+    def poll(self, context):
+        rd = context.scene.render_data
+        return rd.file_format in ('QUICKTIME_QTKIT') # QUICKTIME will be added later
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render_data
+        wide_ui = context.region.width > narrowui
+
+        split = layout.split()
+
+        split.itemR(rd, "quicktime_codec_type")
+
+        split = layout.split()
+
+        if rd.file_format == 'QUICKTIME_QTKIT':
+            split.itemR(rd, "quicktime_codec_spatial_quality", text="Quality")
+
+
 class RENDER_PT_encoding(RenderButtonsPanel):
     bl_label = "Encoding"
     bl_default_closed = True
@@ -516,6 +541,7 @@ bpy.types.register(RENDER_PT_dimensions)
 bpy.types.register(RENDER_PT_antialiasing)
 bpy.types.register(RENDER_PT_shading)
 bpy.types.register(RENDER_PT_output)
+bpy.types.register(RENDER_PT_QTencoding)
 bpy.types.register(RENDER_PT_encoding)
 bpy.types.register(RENDER_PT_performance)
 bpy.types.register(RENDER_PT_post_processing)

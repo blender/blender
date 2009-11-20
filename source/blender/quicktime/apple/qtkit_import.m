@@ -157,8 +157,9 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
         }
     }
 
-	if (([bitmapImage bitmapFormat] & 0x5) == 0) {
-		/* Try a fast copy if the image is a planar RGBA 32bit bitmap*/
+	if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0)
+		&& ![bitmapImage isPlanar]) {
+		/* Try a fast copy if the image is a meshed RGBA 32bit bitmap*/
 		toIBuf = (uchar*)ibuf->rect;
 		rasterRGB = (uchar*)[bitmapImage bitmapData];
 		for (y = 0; y < height; y++) {

@@ -35,6 +35,10 @@
 /* Include for Bake Options */
 #include "RE_pipeline.h"
 
+#ifdef WITH_QUICKTIME
+#include "quicktime_export.h"
+#endif
+
 #ifdef WITH_FFMPEG
 #include "BKE_writeffmpeg.h"
 #include <libavcodec/avcodec.h> 
@@ -87,6 +91,7 @@ EnumPropertyItem proportional_editing_items[] = {
 #include "ED_info.h"
 #include "ED_node.h"
 #include "ED_view3d.h"
+#include "ED_object.h"
 
 #include "RE_pipeline.h"
 
@@ -348,6 +353,9 @@ static void rna_SceneRenderData_file_format_set(PointerRNA *ptr, int value)
 	rd->imtype= value;
 #ifdef WITH_FFMPEG
 	ffmpeg_verify_image_type(rd);
+#endif
+#ifdef WITH_QUICKTIME
+	quicktime_verify_image_type(rd);
 #endif
 }
 
@@ -1439,7 +1447,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""},
 #endif
 #ifdef WITH_QUICKTIME
+#	ifdef USE_QTKIT
+		{R_QUICKTIME, "QUICKTIME_QTKIT", ICON_FILE_MOVIE, "QuickTime", ""},
+#	else
 		{R_QUICKTIME, "QUICKTIME", ICON_FILE_MOVIE, "QuickTime", ""},
+#	endif
 #endif
 #ifdef __sgi
 		{R_MOVIE, "MOVIE", ICON_FILE_MOVIE, "Movie", ""},
@@ -1484,6 +1496,23 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{8, "8", 0, "8", "8 bit color channels"},
 		{12, "12", 0, "12", "12 bit color channels"},
 		{16, "16", 0, "16", "16 bit color channels"},
+		{0, NULL, 0, NULL, NULL}};
+#endif
+	
+#ifdef	WITH_QUICKTIME
+	static EnumPropertyItem quicktime_codec_type_items[] = {
+		{QT_CODECTYPE_RAW, "RAW", 0, "Uncompressed", ""},
+		{QT_CODECTYPE_JPEG, "JPEG", 0, "JPEG", ""},
+		{QT_CODECTYPE_MJPEGA, "MJPEG_A", 0, "M-JPEG A", ""},
+		{QT_CODECTYPE_MJPEGB, "MJPEG_B", 0, "M-JPEG B", ""},
+		{QT_CODECTYPE_DVCPAL, "DVCPAL", 0, "DV PAL", ""},
+		{QT_CODECTYPE_DVCNTSC, "DVCNTSC", 0, "DV/DVCPRO NTSC", ""},
+		{QT_CODECTYPE_DVCPROHD720p, "DVCPROHD720P", 0, "DVCPRO HD 720p"},
+		{QT_CODECTYPE_DVCPROHD1080i50, "DVCPROHD1080I50", 0, "DVCPRO HD 1080i50"},
+		{QT_CODECTYPE_DVCPROHD1080i60, "DVCPROHD1080I60", 0, "DVCPRO HD 1080i60"},
+		{QT_CODECTYPE_MPEG4, "MPEG4", 0, "MPEG4", ""},
+		{QT_CODECTYPE_H263, "H263", 0, "H.263", ""},
+		{QT_CODECTYPE_H264, "H264", 0, "H.264", ""},
 		{0, NULL, 0, NULL, NULL}};
 #endif
 
@@ -1676,6 +1705,22 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 #endif
 
+#ifdef WITH_QUICKTIME
+	/* QuickTime */
+	
+	prop= RNA_def_property(srna, "quicktime_codec_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.codecType");
+	RNA_def_property_enum_items(prop, quicktime_codec_type_items);
+	RNA_def_property_ui_text(prop, "Codec", "QuickTime codec type");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "quicktime_codec_spatial_quality", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "qtcodecsettings.codecSpatialQuality");
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "Spatial quality", "Intra-frame spatial quality level");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);	
+#endif
+	
 #ifdef WITH_FFMPEG
 	/* FFMPEG Video*/
 	
