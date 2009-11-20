@@ -1298,9 +1298,8 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         layout.itemO("armature.extrude_move")
 
-# EXTRUDE FORKED DOESN'T WORK YET
-#		if arm.x_axis_mirror:
-#			layout.item_booleanO("armature.extrude_move", "forked", True, text="Extrude Forked")
+        if arm.x_axis_mirror:
+            layout.itemO("armature.extrude_forked")
 
         layout.itemO("armature.duplicate_move")
         layout.itemO("armature.merge")
@@ -1311,6 +1310,7 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
         layout.itemS()
 
         layout.itemO("armature.subdivide_multi", text="Subdivide")
+        layout.itemO("armature.switch_direction", text="Switch Direction")
 
         layout.itemS()
 
@@ -1334,6 +1334,24 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         layout.item_menu_enumO("armature.flags_set", "mode", text="Bone Settings")
 
+class VIEW3D_MT_armature_specials(bpy.types.Menu):
+    bl_label = "Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        
+        layout.itemO("armature.subdivide_multi", text="Subdivide")
+        layout.itemO("armature.switch_direction", text="Switch Direction")
+        
+        layout.itemS()
+        
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.item_enumO("armature.autoside_names", "type", 'XAXIS', text="AutoName Left/Right")
+        layout.item_enumO("armature.autoside_names", "type", 'YAXIS', text="AutoName Front/Back")
+        layout.item_enumO("armature.autoside_names", "type", 'ZAXIS', text="AutoName Top/Bottom")
+        layout.itemO("armature.flip_names", text="Flip Names")
 
 class VIEW3D_MT_edit_armature_parent(bpy.types.Menu):
     bl_label = "Parent"
@@ -1768,6 +1786,8 @@ bpy.types.register(VIEW3D_MT_edit_lattice)
 bpy.types.register(VIEW3D_MT_edit_armature)
 bpy.types.register(VIEW3D_MT_edit_armature_parent)
 bpy.types.register(VIEW3D_MT_edit_armature_roll)
+
+bpy.types.register(VIEW3D_MT_armature_specials) # Only as a menu for keybindings
 
  # Panels
 bpy.types.register(VIEW3D_PT_3dview_properties)
