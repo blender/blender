@@ -194,6 +194,10 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Memory", "Text file is in memory, without a corresponding file on disk.");
 	
+	prop= RNA_def_property(srna, "use_module", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISSCRIPT);
+	RNA_def_property_ui_text(prop, "Register", "Register this text as a module on loading.");
+
 	prop= RNA_def_property(srna, "lines", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TextLine");
 	RNA_def_property_ui_text(prop, "Lines", "Lines of text.");

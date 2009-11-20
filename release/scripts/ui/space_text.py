@@ -51,6 +51,10 @@ class TEXT_HT_header(bpy.types.Header):
         row.itemR(st, "word_wrap", text="")
         row.itemR(st, "syntax_highlight", text="")
 
+        row = layout.row()
+        row.itemO("text.run_script")
+        row.itemR(text, "use_module")
+
         if text:
             row = layout.row()
             if text.filename != "":
@@ -63,9 +67,6 @@ class TEXT_HT_header(bpy.types.Header):
                     row.itemL(text="Text: External")
                 else:
                     row.itemL(text="Text: Internal")
-
-        row = layout.row()
-        row.itemO("text.run_script")
 
 
 class TEXT_PT_properties(bpy.types.Panel):

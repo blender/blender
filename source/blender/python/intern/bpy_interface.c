@@ -65,6 +65,7 @@
 #include "BKE_text.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "BPY_extern.h"
 
@@ -864,7 +865,28 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	return error_ret;
 }
 
+void BPY_load_user_modules(bContext *C)
+{
+	PyGILState_STATE gilstate;
+	Text *text;
 
+	bpy_context_set(C, &gilstate);
+
+	for(text=CTX_data_main(C)->text.first; text; text= text->id.next) {
+		if(text->flags & TXT_ISSCRIPT && BLI_testextensie(text->id.name+2, ".py")) {
+			PyObject *module= bpy_text_import(text);
+
+			if (module==NULL) {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			else {
+				Py_DECREF(module);
+			}
+		}
+	}
+	bpy_context_clear(C, &gilstate);
+}
 
 int BPY_context_get(bContext *C, const char *member, bContextDataResult *result)
 {

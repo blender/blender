@@ -494,6 +494,7 @@ int main(int argc, char **argv)
 #ifndef DISABLE_PYTHON
 		BPY_set_context(C); /* necessary evil */
 		BPY_start_python(argc, argv);
+		BPY_load_user_modules(C);
 #endif
 		
 		// XXX BRECHT SOLVE
@@ -533,6 +534,7 @@ int main(int argc, char **argv)
 #ifndef DISABLE_PYTHON
 		BPY_set_context(C); /* necessary evil */
 		BPY_start_python(argc, argv);
+		BPY_load_user_modules(C);
 #endif		
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 	}

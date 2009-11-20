@@ -1608,7 +1608,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	}
 	
 	/* Import blender texts as python modules */
-	m= bpy_text_import(name, &found);
+	m= bpy_text_import_name(name, &found);
 	if (m)
 		return m;
 	
