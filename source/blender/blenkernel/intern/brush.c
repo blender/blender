@@ -252,7 +252,7 @@ void brush_curve_preset(Brush *b, BrushCurvePreset preset)
 	if(preset == BRUSH_PRESET_SHARP)
 		cm->totpoint= 3;
 	if(preset == BRUSH_PRESET_SMOOTH)
-		cm->totpoint= 6;
+		cm->totpoint= 4;
 	if(preset == BRUSH_PRESET_MAX)
 		cm->totpoint= 2;
 
@@ -271,16 +271,12 @@ void brush_curve_preset(Brush *b, BrushCurvePreset preset)
 	else if(preset == BRUSH_PRESET_SMOOTH) {
 		cm->curve[0].x= 0;
 		cm->curve[0].y= 1;
-		cm->curve[1].x= 0.1;
-		cm->curve[1].y= 0.97553;
-		cm->curve[2].x= 0.3;
-		cm->curve[2].y= 0.79389;
-		cm->curve[3].x= 0.9;
-		cm->curve[3].y= 0.02447;
-		cm->curve[4].x= 0.7;
-		cm->curve[4].y= 0.20611;
-		cm->curve[5].x= 1;
-		cm->curve[5].y= 0;
+		cm->curve[1].x= 0.25;
+		cm->curve[1].y= 0.92;
+		cm->curve[2].x= 0.75;
+		cm->curve[2].y= 0.08;
+		cm->curve[3].x= 1;
+		cm->curve[3].y= 0;
 	}
 	else if(preset == BRUSH_PRESET_MAX) {
 		cm->curve[0].x= 0;
