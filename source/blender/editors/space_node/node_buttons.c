@@ -103,8 +103,8 @@ static int active_node_poll(const bContext *C, PanelType *pt)
 static void active_node_panel(const bContext *C, Panel *pa)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNodeTree *ntree= (snode) ? snode->nodetree : NULL; // XXX what's up with edittree then?
-	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL;
+	bNodeTree *ntree= (snode) ? snode->edittree : NULL;
+	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL; // xxx... for editing group nodes
 	uiLayout *layout= pa->layout;
 	uiBlock *block;
 	PointerRNA ptr;
@@ -112,7 +112,10 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	/* verify pointers, and create RNA pointer for the node */
 	if ELEM(NULL, ntree, node)
 		return;
-	RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
+	//if (node->id) /* for group nodes */
+	//	RNA_pointer_create(node->id, &RNA_Node, node, &ptr);
+	//else
+		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr); 
 	
 	/* set update callback */
 	// xxx is this really needed

@@ -36,14 +36,6 @@ struct View2D;
 struct bContext;
 struct wmWindowManager;
 
-/* defines */
-
-#define NODE_SELECT_MOUSE		1
-
-/* border select defines XXX these seem to be hardcode values still in border select invoke, check */
-#define NODE_EXTEND				1
-#define NODE_EXCLUSIVE			3
-
 /* space_node.c */
 ARegion *node_has_buttons_region(ScrArea *sa);
 
@@ -64,7 +56,6 @@ void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.c */
 void NODE_OT_select(struct wmOperatorType *ot);
-void NODE_OT_select_extend(struct wmOperatorType *ot);
 void NODE_OT_select_all(wmOperatorType *ot);
 void NODE_OT_select_linked_to(wmOperatorType *ot);
 void NODE_OT_select_linked_from(wmOperatorType *ot);

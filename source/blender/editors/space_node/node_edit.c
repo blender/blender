@@ -712,7 +712,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 			/* make active viewer, currently only 1 supported... */
 			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				bNode *tnode;
-				int was_output= node->flag & NODE_DO_OUTPUT;
+				int was_output= (node->flag & NODE_DO_OUTPUT);
 
 				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
 					if( ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
@@ -1206,8 +1206,11 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(node) {
 		rctf totr;
 		
+		/* convert mouse coordinates to v2d space */
 		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
 								 &snode->mx, &snode->my);
+		
+		/* rect we're interested in is just the bottom right corner */
 		totr= node->totr;
 		totr.xmin= totr.xmax-10.0f;
 		totr.ymax= totr.ymin+10.0f;
@@ -1230,7 +1233,7 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_RUNNING_MODAL;
 		}
 	}
-	return OPERATOR_PASS_THROUGH;
+	return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 }
 
 void NODE_OT_resize(wmOperatorType *ot)
@@ -2096,30 +2099,6 @@ void node_hide(SpaceNode *snode)
 
 #if 0
 
-void node_insert_key(SpaceNode *snode)
-{
-	bNode *node= editnode_get_active(snode->edittree);
-	
-	if(node == NULL)
-		return;
-	
-	if(node->type==CMP_NODE_TIME) {
-		if(node->custom1<node->custom2) {
-
-			CurveMapping *cumap= node->storage;
-			float fval, curval;
-		
-			curval= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
-			fval= curvemapping_evaluateF(cumap, 0, curval);
-			
-			if(fbutton(&fval, 0.0f, 1.0f, 10, 10, "Insert Value")) {
-				curvemap_insert(cumap->cm, curval, fval);
-
-			}
-		}
-	}
-}
-
 /* makes a link between selected output and input sockets */
 void node_make_link(SpaceNode *snode)
 {
@@ -2201,7 +2180,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	
-	return OPERATOR_PASS_THROUGH;;
+	return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 }
 
 void NODE_OT_links_cut(wmOperatorType *ot)
@@ -2330,6 +2309,8 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 		nodeSetActive(snode->nodetree, gnode);
 		ntreeSolveOrder(snode->nodetree);
 	}
+	
+	snode_handle_recalc(C, snode);
 
 	return OPERATOR_FINISHED;
 }

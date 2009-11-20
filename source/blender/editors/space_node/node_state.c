@@ -149,7 +149,7 @@ static int node_toggle_visibility_exec(bContext *C, wmOperator *op)
 	if(node_toggle_visibility(snode, ar, mval))
 		return OPERATOR_FINISHED;
 	else
-		return OPERATOR_PASS_THROUGH;
+		return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 }
 
 static int node_toggle_visibility_invoke(bContext *C, wmOperator *op, wmEvent *event)

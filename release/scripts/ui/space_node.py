@@ -76,9 +76,6 @@ class NODE_MT_view(bpy.types.Menu):
         layout.itemO("node.properties", icon='ICON_MENU_PANEL')
         layout.itemS()
 
-        # layout.itemO("grease_pencil..")
-        # layout.itemS()
-
         layout.itemO("view2d.zoom_in")
         layout.itemO("view2d.zoom_out")
 
