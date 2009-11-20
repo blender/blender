@@ -52,21 +52,18 @@ class DATA_PT_modifiers(DataButtonsPanel):
     # so each type must have a function here.
 
     def ARMATURE(self, layout, ob, md, wide_ui):
-        if wide_ui:
-            layout.itemR(md, "object")
-        else:
-            layout.itemR(md, "object", text="")
+        split = layout.split()
 
-        row = layout.row()
+        col = split.column()
+        col.itemL(text="Object:")
+        col.itemR(md, "object", text="")
         if wide_ui:
-            row.itemL(text="Vertex Group:")
-        sub = row.split(percentage=0.7)
-        sub.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
-        subsub = sub.row()
-        subsub.active = md.vertex_group
-        subsub.itemR(md, "invert", text="Inv")
-
-        layout.itemS()
+            col = split.column()
+        col.itemL(text="Vertex Group::")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = col.column()
+        sub.active = md.vertex_group
+        sub.itemR(md, "invert")
 
         split = layout.split()
 
@@ -86,8 +83,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.itemR(md, "fit_type")
         else:
             layout.itemR(md, "fit_type", text="")
-        
-        
+
         if md.fit_type == 'FIXED_COUNT':
             layout.itemR(md, "count")
         elif md.fit_type == 'FIT_LENGTH':
@@ -151,8 +147,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.row().itemR(md, "edge_weight_method", expand=True)
 
     def BOOLEAN(self, layout, ob, md, wide_ui):
-        layout.itemR(md, "operation")
-        layout.itemR(md, "object")
+        split = layout.split()
+
+        col = split.column()
+        col.itemL(text="Operation:")
+        col.itemR(md, "operation", text="")
+        
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Object:")
+        col.itemR(md, "object", text="")
 
     def BUILD(self, layout, ob, md, wide_ui):
         split = layout.split()
@@ -169,27 +173,38 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub.itemR(md, "seed")
 
     def CAST(self, layout, ob, md, wide_ui):
-        layout.itemR(md, "cast_type")
-        layout.itemR(md, "object")
-        if md.object:
-            layout.itemR(md, "use_transform")
+        split = layout.split(percentage=0.25)
 
-        split = layout.split()
-        
+        if wide_ui:
+            split.itemL(text="Cast Type:")
+            split.itemR(md, "cast_type", text="")
+        else:
+            layout.itemR(md, "cast_type", text="")        
+
+        split = layout.split(percentage=0.25)
+
         col = split.column()
         col.itemR(md, "x")
         col.itemR(md, "y")
         col.itemR(md, "z")
-        
-        if wide_ui:
-            col = split.column()
+
+        col = split.column()
         col.itemR(md, "factor")
         col.itemR(md, "radius")
         col.itemR(md, "size")
+        col.itemR(md, "from_radius")
 
-        layout.itemR(md, "from_radius")
-
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
+        split = layout.split()
+        
+        col = split.column() 
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Control Object:")
+        col.itemR(md, "object", text="")    
+        if md.object:
+          col.itemR(md, "use_transform")
 
     def CLOTH(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Cloth panel.")
@@ -198,16 +213,44 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.itemL(text="See Collision panel.")
 
     def CURVE(self, layout, ob, md, wide_ui):
-        layout.itemR(md, "object")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "deform_axis")
+        split = layout.split()
+
+        col = split.column()
+        col.itemL(text="Object:")
+        col.itemR(md, "object", text="")
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+        layout.itemL(text="Deformation Axis:")
+        layout.row().itemR(md, "deform_axis", expand=True)
 
     def DECIMATE(self, layout, ob, md, wide_ui):
         layout.itemR(md, "ratio")
         layout.itemR(md, "face_count")
 
     def DISPLACE(self, layout, ob, md, wide_ui):
-        
+        split = layout.split()
+
+        col = split.column()
+        col.itemL(text="Texture:")
+        col.itemR(md, "texture", text="")
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Direction:")
+        col.itemR(md, "direction", text="")
+        col.itemL(text="Texture Coordinates:")
+        col.itemR(md, "texture_coordinates", text="")
+        if md.texture_coordinates == 'OBJECT':
+            layout.itemR(md, "texture_coordinate_object", text="Object")
+        elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
+            layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
+
+        layout.itemS()
+
         split = layout.split()
         
         col = split.column()
@@ -216,16 +259,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.itemR(md, "strength")
-        
-        layout.itemS()
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "texture")
-        layout.itemR(md, "direction")
-        layout.itemR(md, "texture_coordinates")
-        if md.texture_coordinates == 'OBJECT':
-            layout.itemR(md, "texture_coordinate_object", text="Object")
-        elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
-            layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
 
     def EDGE_SPLIT(self, layout, ob, md, wide_ui):
         split = layout.split()
@@ -261,12 +294,20 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.itemL(text="See Fluid panel.")
 
     def HOOK(self, layout, ob, md, wide_ui):
-        col = layout.column()
-        col.itemR(md, "object")
-        if md.object and md.object.type == 'ARMATURE':
-            layout.item_pointerR(md, "subtarget", md.object.data, "bones", text="Bone")
+        split = layout.split()
 
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
+        col = split.column()
+        col.itemL(text="Object:")
+        col.itemR(md, "object", text="")
+        if md.object and md.object.type == 'ARMATURE':
+            col.itemL(text="Bone:")
+            col.item_pointerR(md, "subtarget", md.object.data, "bones", text="")
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+
+        layout.itemS()
 
         split = layout.split()
 
@@ -294,21 +335,52 @@ class DATA_PT_modifiers(DataButtonsPanel):
             row.itemO("object.hook_assign", text="Assign")
 
     def LATTICE(self, layout, ob, md, wide_ui):
-        layout.itemR(md, "object")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
+        split = layout.split()
+
+        col = split.column()
+        col.itemL(text="Object:")
+        col.itemR(md, "object", text="")
+        
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
 
     def MASK(self, layout, ob, md, wide_ui):
-        layout.itemR(md, "mode")
+        split = layout.split()
+
+        col = split.column()
+        col.itemL(text="Mode:")
+        col.itemR(md, "mode", text="")
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Vertex Group:")
         if md.mode == 'ARMATURE':
-            layout.itemR(md, "armature")
+            col.itemR(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
-            layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "inverse")
+            col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+
+        sub = col.column()
+        sub.active = md.vertex_group
+        sub.itemR(md, "inverse", text="Invert")
 
     def MESH_DEFORM(self, layout, ob, md, wide_ui):
-        layout.itemR(md, "object")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "invert")
+        split = layout.split()
+
+        col = split.column()
+        col.itemL(text="Object:")
+        col.itemR(md, "object", text="")
+        if md.object and md.object.type == 'ARMATURE':
+            col.itemL(text="Bone:")
+            col.item_pointerR(md, "subtarget", md.object.data, "bones", text="")
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+
+        sub = col.column()
+        sub.active = md.vertex_group
+        sub.itemR(md, "invert")
 
         layout.itemS()
 
@@ -326,30 +398,36 @@ class DATA_PT_modifiers(DataButtonsPanel):
             col.itemR(md, "dynamic")
 
     def MIRROR(self, layout, ob, md, wide_ui):
+        layout.itemR(md, "merge_limit")
         
-        split = layout.split()
+        if wide_ui:
+           split = layout.split(percentage=0.25)
+        else:
+           split = layout.split() 
 
         col = split.column()
+        col.itemL(text="Axis:")
         col.itemR(md, "x")
         col.itemR(md, "y")
         col.itemR(md, "z")
 
         if wide_ui:
             col = split.column()
+        else:
+            subsplit = layout.split()
+            col = subsplit.column()  
+        col.itemL(text="Options:")
+        col.itemR(md, "clip", text="Clipping")
+        col.itemR(md, "mirror_vertex_groups", text="Vertex Groups")
+
+        col = split.column()  
         col.itemL(text="Textures:")
         col.itemR(md, "mirror_u", text="U")
         col.itemR(md, "mirror_v", text="V")
-        
-        layout.itemR(md, "merge_limit")
-        
-        split = layout.split()
-        col = split.column()
-        col.itemR(md, "clip")
-        if wide_ui:
-            col = split.column()
-        col.itemR(md, "mirror_vertex_groups", text="Vertex Groups")
 
-        layout.itemR(md, "mirror_object")
+        col = layout.column()
+        col.itemL(text="Mirror Object:")
+        col.itemR(md, "mirror_object", text="")
 
     def MULTIRES(self, layout, ob, md, wide_ui):
         if wide_ui:
@@ -442,33 +520,54 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.itemR(md, "keep_above_surface")
 
     def SIMPLE_DEFORM(self, layout, ob, md, wide_ui):
-        layout.itemR(md, "mode")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "origin")
-        layout.itemR(md, "relative")
-        layout.itemR(md, "factor")
-        layout.itemR(md, "limits", slider=True)
+        split = layout.split()
+
+        col = split.column()
+        col.itemL(text="Mode:")
+        col.itemR(md, "mode", text="")
+
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+
+        layout.itemS()
+
+        split = layout.split()
+
+        col = split.column()
+        col.itemL(text="Origin:")
+        col.itemR(md, "origin", text="")
+        sub = col.column()
+        sub.active = md.origin
+        sub.itemR(md, "relative")
+
+        if wide_ui:
+            col = split.column()
+        col.itemL(text="Deform:")
+        col.itemR(md, "factor")
+        col.itemR(md, "limits", slider=True)
         if md.mode in ('TAPER', 'STRETCH'):
-            layout.itemR(md, "lock_x_axis")
-            layout.itemR(md, "lock_y_axis")
+            col.itemR(md, "lock_x_axis")
+            col.itemR(md, "lock_y_axis")
 
     def SMOKE(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Smoke panel.")
 
     def SMOOTH(self, layout, ob, md, wide_ui):
-        split = layout.split()
+        split = layout.split(percentage=0.25)
 
         col = split.column()
+        col.itemL(text="Axis:")
         col.itemR(md, "x")
         col.itemR(md, "y")
         col.itemR(md, "z")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.itemR(md, "factor")
         col.itemR(md, "repeat")
-
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
 
     def SOFT_BODY(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Soft Body panel.")
@@ -496,12 +595,17 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def UV_PROJECT(self, layout, ob, md, wide_ui):
         if ob.type == 'MESH':
-            layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
-            layout.itemR(md, "image")
-            
-
             split = layout.split()
+            col = split.column()
+            col.itemL(text="UV Layer:")
+            col.item_pointerR(md, "uv_layer", ob.data, "uv_textures", text="")
             
+            if wide_ui:
+                col = split.column()
+            col.itemL(text="Image:")
+            col.itemR(md, "image", text="")
+
+            split = layout.split()  
             col = split.column()
             col.itemR(md, "override_image")
             col.itemR(md, "num_projectors", text="Projectors")
