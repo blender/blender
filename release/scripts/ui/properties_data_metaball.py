@@ -114,7 +114,7 @@ class DATA_PT_metaball_element(DataButtonsPanel):
         if wide_ui:
             col = split.column(align=True)
 
-        if metaelem.type == 'CUBE':
+        if metaelem.type in ('CUBE', 'ELLIPSOID'):
             col.itemL(text="Size:")
             col.itemR(metaelem, "size_x", text="X")
             col.itemR(metaelem, "size_y", text="Y")
@@ -128,12 +128,6 @@ class DATA_PT_metaball_element(DataButtonsPanel):
             col.itemL(text="Size:")
             col.itemR(metaelem, "size_x", text="X")
             col.itemR(metaelem, "size_y", text="Y")
-
-        elif metaelem.type == 'ELLIPSOID':
-            col.itemL(text="Size:")
-            col.itemR(metaelem, "size_x", text="X")
-            col.itemR(metaelem, "size_y", text="Y")
-            col.itemR(metaelem, "size_z", text="Z")
 
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)

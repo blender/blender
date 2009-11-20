@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -57,6 +58,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemL(text="Object:")
         col.itemR(md, "object", text="")
+
         if wide_ui:
             col = split.column()
         col.itemL(text="Vertex Group::")
@@ -83,7 +85,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.itemR(md, "fit_type")
         else:
             layout.itemR(md, "fit_type", text="")
-
+        
+        
         if md.fit_type == 'FIXED_COUNT':
             layout.itemR(md, "count")
         elif md.fit_type == 'FIT_LENGTH':
@@ -172,7 +175,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub.active = md.randomize
         sub.itemR(md, "seed")
 
-    def CAST(self, layout, ob, md, wide_ui):
+    def CAST(self, layout, ob, md, wide_ui): 
         split = layout.split(percentage=0.25)
 
         if wide_ui:
@@ -260,6 +263,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
             col = split.column()
         col.itemR(md, "strength")
 
+
     def EDGE_SPLIT(self, layout, ob, md, wide_ui):
         split = layout.split()
 
@@ -274,17 +278,19 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "use_sharp", text="Sharp Edges")
 
     def EXPLODE(self, layout, ob, md, wide_ui):
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "protect")
-
         split = layout.split()
-
-        col = split.column()
-        col.itemR(md, "split_edges")
-        col.itemR(md, "unborn")
         
+        col = split.column()
+        col.itemL(text="Vertex group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = col.column()
+        sub.active = md.vertex_group
+        sub.itemR(md, "protect")
+
         if wide_ui:
             col = split.column()
+        col.itemR(md, "split_edges")
+        col.itemR(md, "unborn")
         col.itemR(md, "alive")
         col.itemR(md, "dead")
 
@@ -313,23 +319,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         col = split.column()
         col.itemR(md, "falloff")
-        
-        if wide_ui:
-            col = split.column()
         col.itemR(md, "force", slider=True)
-
-        layout.itemS()
-
-        split = layout.split()
-
-        col = split.column()
-        col.itemO("object.hook_reset", text="Reset")
-        
         if wide_ui:
             col = split.column()
+        else:
+            col.itemS()
+        col.itemO("object.hook_reset", text="Reset")
         col.itemO("object.hook_recenter", text="Recenter")
 
         if ob.mode == 'EDIT':
+            layout.itemS()
             row = layout.row()
             row.itemO("object.hook_select", text="Select")
             row.itemO("object.hook_assign", text="Assign")
@@ -362,11 +361,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         sub = col.column()
         sub.active = md.vertex_group
-        sub.itemR(md, "inverse", text="Invert")
+        sub.itemR(md, "invert")
 
     def MESH_DEFORM(self, layout, ob, md, wide_ui):
         split = layout.split()
-
         col = split.column()
         col.itemL(text="Object:")
         col.itemR(md, "object", text="")
@@ -399,11 +397,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def MIRROR(self, layout, ob, md, wide_ui):
         layout.itemR(md, "merge_limit")
-        
         if wide_ui:
            split = layout.split(percentage=0.25)
         else:
-           split = layout.split() 
+           split = layout.split(percentage=0.4) 
 
         col = split.column()
         col.itemL(text="Axis:")
@@ -482,39 +479,54 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.itemL(text="See Particle panel.")
 
     def SHRINKWRAP(self, layout, ob, md, wide_ui):
-        layout.itemR(md, "target")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        
         split = layout.split()
         col = split.column()
-        col.itemR(md, "offset")
-        
+        col.itemL(text="Target:")
+        col.itemR(md, "target", text="")
         if wide_ui:
             col = split.column()
+        col.itemL(text="Vertex Group:")
+        col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+
+        split = layout.split()
+
+        col = split.column()
+        col.itemR(md, "offset")
         col.itemR(md, "subsurf_levels")
-        
+
         if wide_ui:
-            layout.itemR(md, "mode")
+            col = split.column()
+            col.itemL(text="Mode:")
+        col.itemR(md, "mode", text="")
+
+        if wide_ui:
+           split = layout.split(percentage=0.25)
         else:
-            layout.itemR(md, "mode", text="")
+           split = layout.split(percentage=0.35)
+        col = split.column()
+
         if md.mode == 'PROJECT':
-            layout.itemR(md, "auxiliary_target")
+            col.itemL(text="Axis:")
+            col.itemR(md, "x")
+            col.itemR(md, "y")
+            col.itemR(md, "z")
 
-            row = layout.row()
-            row.itemR(md, "x")
-            row.itemR(md, "y")
-            row.itemR(md, "z")
-
-            split = layout.split()
             col = split.column()
             col.itemL(text="Direction:")
             col.itemR(md, "negative")
             col.itemR(md, "positive")
-            
-            col = split.column()
+
+            if wide_ui:
+                col = split.column()
+            else:
+                subsplit = layout.split()
+                col = subsplit.column()
             col.itemL(text="Cull Faces:")
             col.itemR(md, "cull_front_faces", text="Front")
             col.itemR(md, "cull_back_faces", text="Back")
+
+            layout.itemL(text="Auxiliary Target:")
+            layout.itemR(md, "auxiliary_target", text="")
             
         elif md.mode == 'NEAREST_SURFACEPOINT':
             layout.itemR(md, "keep_above_surface")
@@ -530,8 +542,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
             col = split.column()
         col.itemL(text="Vertex Group:")
         col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
-
-        layout.itemS()
 
         split = layout.split()
 

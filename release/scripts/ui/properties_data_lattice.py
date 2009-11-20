@@ -87,8 +87,7 @@ class DATA_PT_lattice(DataButtonsPanel):
             col = split.column()
         col.itemR(lat, "interpolation_type_w", text="")
 
-        row = layout.row()
-        row.itemR(lat, "outside")
+        layout.itemR(lat, "outside")
 
 bpy.types.register(DATA_PT_context_lattice)
 bpy.types.register(DATA_PT_lattice)

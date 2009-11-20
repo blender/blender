@@ -91,10 +91,7 @@ class DATA_PT_settings(DataButtonsPanel):
 
         mesh = context.mesh
 
-        split = layout.split()
-
-        col = split.column()
-        col.itemR(mesh, "texture_mesh")
+        layout.itemR(mesh, "texture_mesh")
 
 
 class DATA_PT_vertex_groups(DataButtonsPanel):

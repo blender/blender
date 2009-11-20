@@ -50,7 +50,6 @@ class DATA_PT_context_lamp(DataButtonsPanel):
         space = context.space_data
         wide_ui = context.region.width > narrowui
 
-
         if wide_ui:
             split = layout.split(percentage=0.65)
             if ob:

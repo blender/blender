@@ -106,7 +106,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        
+
         if is_surf:
             sub = col.column(align=True)
             sub.itemL(text="")
@@ -121,7 +121,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
             sub.itemR(curve, "back")
 
         col.itemL(text="Textures:")
-#		col.itemR(curve, "uv_orco")
+#       col.itemR(curve, "uv_orco")
         col.itemR(curve, "auto_texspace")
 
 
@@ -168,12 +168,11 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
 
         layout.active = curve.use_path
 
-        split = layout.split()
+        row = layout.row()
+        layout.itemR(curve, "path_length", text="Frames")
 
-        col = split.column()
-        col.itemR(curve, "path_length", text="Frames")
         if wide_ui:
-            col = split.column()
+            row.itemL()
         
         split = layout.split()
 
@@ -183,7 +182,6 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
 
         if wide_ui:
             col = split.column()
-        
         col.itemR(curve, "use_radius")
         col.itemR(curve, "use_time_offset", text="Offset Children")
 
@@ -247,7 +245,6 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
                 sub.itemR(act_spline, "order_v", text="V")
                 sub.itemR(act_spline, "resolution_v", text="V")
 
-
             if not is_surf:
                 split = layout.split()
                 col = split.column()
@@ -257,9 +254,7 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
                 col.itemR(act_spline, "tilt_interpolation", text="Tilt")
                 col.itemR(act_spline, "radius_interpolation", text="Radius")
 
-            split = layout.split()
-            col = split.column()
-            col.itemR(act_spline, "smooth")
+            layout.itemR(act_spline, "smooth")
 
 
 class DATA_PT_font(DataButtonsPanel):
@@ -312,8 +307,8 @@ class DATA_PT_font(DataButtonsPanel):
         col.itemR(char, "bold")
         col.itemR(char, "italic")
         col.itemR(char, "underline")
-#		col.itemR(char, "style")
-#		col.itemR(char, "wrap")
+#       col.itemR(char, "style")
+#       col.itemR(char, "wrap")
 
 
 class DATA_PT_paragraph(DataButtonsPanel):
