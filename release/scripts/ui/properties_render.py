@@ -191,15 +191,16 @@ class RENDER_PT_performance(RenderButtonsPanel):
 
         split = layout.split()
 
-        col = split.column(align=True)
+        col = split.column()
         col.itemL(text="Threads:")
         col.row().itemR(rd, "threads_mode", expand=True)
         sub = col.column()
         sub.enabled = rd.threads_mode == 'THREADS_FIXED'
         sub.itemR(rd, "threads")
-        col.itemL(text="Tiles:")
-        col.itemR(rd, "parts_x", text="X")
-        col.itemR(rd, "parts_y", text="Y")
+        sub = col.column(align=True)
+        sub.itemL(text="Tiles:")
+        sub.itemR(rd, "parts_x", text="X")
+        sub.itemR(rd, "parts_y", text="Y")
 
         if wide_ui:
             col = split.column()
@@ -359,7 +360,7 @@ class RENDER_PT_QTencoding(RenderButtonsPanel):
         split = layout.split()
 
         if rd.file_format == 'QUICKTIME_QTKIT':
-            split.itemR(rd, "quicktime_codec_spatial_quality", text="Quality")
+            split.itemR(rd, "quicktime_codec_spatial_quality", text="Quality", slider=True)
 
 
 class RENDER_PT_encoding(RenderButtonsPanel):
@@ -378,17 +379,28 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-
-        split.itemR(rd, "ffmpeg_format")
+        
+        col = split.column()
+        col.itemR(rd, "ffmpeg_format")
         if rd.ffmpeg_format in ('AVI', 'QUICKTIME', 'MKV', 'OGG'):
-            split.itemR(rd, "ffmpeg_codec")
+            if wide_ui:
+                col = split.column()
+            col.itemR(rd, "ffmpeg_codec")
         else:
-            split.itemL()
+            if wide_ui:
+                split.itemL()
 
         split = layout.split()
 
         col = split.column()
         col.itemR(rd, "ffmpeg_video_bitrate")
+        if wide_ui:
+            col = split.column()
+        col.itemR(rd, "ffmpeg_gopsize")
+        
+        split = layout.split()
+
+        col = split.column()
         col.itemL(text="Rate:")
         col.itemR(rd, "ffmpeg_minrate", text="Minimum")
         col.itemR(rd, "ffmpeg_maxrate", text="Maximum")
@@ -396,7 +408,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        col.itemR(rd, "ffmpeg_gopsize")
+        
         col.itemR(rd, "ffmpeg_autosplit")
         col.itemL(text="Mux:")
         col.itemR(rd, "ffmpeg_muxrate", text="Rate")
@@ -405,7 +417,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         row = layout.row()
         row.itemL(text="Audio:")
         row = layout.row()
-        row.itemR(rd, "ffmpeg_audio_codec")
+        row.itemR(rd, "ffmpeg_audio_codec", text="Codec")
 
         split = layout.split()
 
@@ -416,8 +428,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         if wide_ui:
             col = split.column()
         col.itemR(rd, "ffmpeg_multiplex_audio")
-        col.itemR(rd, "ffmpeg_audio_volume")
-
+        col.itemR(rd, "ffmpeg_audio_volume", slider=True)
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
     bl_label = "Anti-Aliasing"
@@ -527,6 +538,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         col.active = rd.render_stamp
         col.itemR(rd, "stamp_foreground", slider=True)
         col.itemR(rd, "stamp_background", slider=True)
+        col.itemS()
         col.itemR(rd, "stamp_font_size", text="Font Size")
 
         row = layout.split(percentage=0.2)
