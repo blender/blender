@@ -116,7 +116,7 @@ class AddTorus(bpy.types.Operator):
         mesh.update()
         ob_new = bpy.data.add_object('MESH', "Torus")
         ob_new.data = mesh
-        scene.add_object(ob_new)
+        scene.objects.link(ob_new)
         scene.objects.active = ob_new
         ob_new.selected = True
 

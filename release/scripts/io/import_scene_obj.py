@@ -864,7 +864,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	
 	ob= bpy.data.add_object("MESH", "Mesh")
 	ob.data= me
-	scn.add_object(ob)
+	scn.objects.link(ob)
 # 	ob= scn.objects.new(me)
 	new_objects.append(ob)
 

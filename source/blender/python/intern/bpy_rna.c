@@ -1428,54 +1428,66 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
-static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
+
+static void pyrna_dir_members_py(PyObject *list, PyObject *self)
 {
-	PyObject *ret, *dict;
-	PyObject *pystring;
-	
-	/* for looping over attrs and funcs */
-	PropertyRNA *iterprop;
-	
-	/* Include this incase this instance is a subtype of a python class
-	 * In these instances we may want to return a function or variable provided by the subtype
-	 * */
+	PyObject *dict;
+	PyObject **dict_ptr;
+	PyObject *list_tmp;
 
-	if (BPy_StructRNA_CheckExact(self)) {
-		ret = PyList_New(0);
-	} else {
-		PyObject *list;
-		/* class instances */
-		dict = *_PyObject_GetDictPtr((PyObject *)self);
+	dict_ptr= _PyObject_GetDictPtr((PyObject *)self);
 
-		if (dict==NULL) {
-			ret = PyList_New(0);
-		}
-		else {
-			ret = PyDict_Keys(dict);
-		}
-
-		/* classes dict */
-		dict= ((PyTypeObject *)Py_TYPE(self))->tp_dict;
-		list = PyDict_Keys(dict);
-		PyList_SetSlice(ret, INT_MAX, INT_MAX, list);
-		Py_DECREF(list);
+	if(dict_ptr && (dict=*dict_ptr)) {
+		list_tmp = PyDict_Keys(dict);
+		PyList_SetSlice(list, INT_MAX, INT_MAX, list_tmp);
+		Py_DECREF(list_tmp);
 	}
-	
-	/* Collect RNA items*/
+
+	dict= ((PyTypeObject *)Py_TYPE(self))->tp_dict;
+	if(dict) {
+		list_tmp = PyDict_Keys(dict);
+		PyList_SetSlice(list, INT_MAX, INT_MAX, list_tmp);
+		Py_DECREF(list_tmp);
+	}
+}
+
+static void pyrna_dir_members_rna(PyObject *list, PointerRNA *ptr)
+{
+	PyObject *pystring;
+	const char *idname;
+
+	/* for looping over attrs and funcs */
+	PointerRNA tptr;
+	PropertyRNA *iterprop;
+
+	{
+		RNA_pointer_create(NULL, &RNA_Struct, ptr->type, &tptr);
+		iterprop= RNA_struct_find_property(&tptr, "functions");
+
+		RNA_PROP_BEGIN(&tptr, itemptr, iterprop) {
+			idname= RNA_function_identifier(itemptr.data);
+
+			pystring = PyUnicode_FromString(idname);
+			PyList_Append(list, pystring);
+			Py_DECREF(pystring);
+		}
+		RNA_PROP_END;
+	}
+
 	{
 		/*
 		 * Collect RNA attributes
 		 */
 		char name[256], *nameptr;
 
-		iterprop= RNA_struct_iterator_property(self->ptr.type);
+		iterprop= RNA_struct_iterator_property(ptr->type);
 
-		RNA_PROP_BEGIN(&self->ptr, itemptr, iterprop) {
+		RNA_PROP_BEGIN(ptr, itemptr, iterprop) {
 			nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name));
 
 			if(nameptr) {
 				pystring = PyUnicode_FromString(nameptr);
-				PyList_Append(ret, pystring);
+				PyList_Append(list, pystring);
 				Py_DECREF(pystring);
 
 				if(name != nameptr)
@@ -1484,27 +1496,23 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 		}
 		RNA_PROP_END;
 	}
-	
-	
-	{
-		/*
-		 * Collect RNA function items
-		 */
-		PointerRNA tptr;
-		const char *idname;
+}
 
-		RNA_pointer_create(NULL, &RNA_Struct, self->ptr.type, &tptr);
-		iterprop= RNA_struct_find_property(&tptr, "functions");
 
-		RNA_PROP_BEGIN(&tptr, itemptr, iterprop) {
-			idname= RNA_function_identifier(itemptr.data);
+static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
+{
+	PyObject *ret;
+	PyObject *pystring;
 
-			pystring = PyUnicode_FromString(idname);
-			PyList_Append(ret, pystring);
-			Py_DECREF(pystring);
-		}
-		RNA_PROP_END;
-	}
+	/* Include this incase this instance is a subtype of a python class
+	 * In these instances we may want to return a function or variable provided by the subtype
+	 * */
+	ret = PyList_New(0);
+
+	if (!BPy_StructRNA_CheckExact(self))
+		pyrna_dir_members_py(ret, (PyObject *)self);
+
+	pyrna_dir_members_rna(ret, &self->ptr);
 
 	if(self->ptr.type == &RNA_Context) {
 		ListBase lb = CTX_data_dir_get(self->ptr.data);
@@ -1662,6 +1670,26 @@ static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObjec
 	/* pyrna_py_to_prop sets its own exceptions */
 	return pyrna_py_to_prop(&self->ptr, prop, NULL, value, "StructRNA - item.attr = val:");
 }
+
+static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
+{
+	PyObject *ret;
+	PointerRNA r_ptr;
+
+	/* Include this incase this instance is a subtype of a python class
+	 * In these instances we may want to return a function or variable provided by the subtype
+	 * */
+	ret = PyList_New(0);
+
+	if (!BPy_PropertyRNA_CheckExact(self))
+		pyrna_dir_members_py(ret, (PyObject *)self);
+
+	if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr))
+		pyrna_dir_members_rna(ret, &r_ptr);
+
+	return ret;
+}
+
 
 static PyObject *pyrna_prop_getattro( BPy_PropertyRNA *self, PyObject *pyname )
 {
@@ -2172,6 +2200,7 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 	/* array accessor function */
 	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
 	{"foreach_set", (PyCFunction)pyrna_prop_foreach_set, METH_VARARGS, NULL},
+	{"__dir__", (PyCFunction)pyrna_prop_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -3753,7 +3782,7 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 			pret= RNA_function_return(func);
 			RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
 
-			args = PyTuple_New(rna_function_arg_count(func));
+			args = PyTuple_New(rna_function_arg_count(func)); /* first arg is included in 'item' */
 			PyTuple_SET_ITEM(args, 0, py_class_instance);
 
 			RNA_parameter_list_begin(parms, &iter);
@@ -3778,7 +3807,8 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 			Py_DECREF(args);
 		}
 		else {
-			Py_DECREF(py_class_instance);
+			PyErr_Print();
+			PyErr_Clear();
 			PyErr_Format(PyExc_TypeError, "could not find function %.200s in %.200s to execute callback.", RNA_function_identifier(func), RNA_struct_identifier(ptr->type));
 			err= -1;
 		}

@@ -485,10 +485,10 @@ def write(filename, objects, scene,
 					newob = bpy.data.add_object('MESH', 'temp_object')
 					newob.data = me
 					# if we forget to set Object.data - crash
-					scene.add_object(newob)
+					scene.objects.link(newob)
 					newob.convert_to_triface(scene)
 					# mesh will still be there
-					scene.remove_object(newob)
+					scene.objects.unlink(newob)
 			'''
 			
 			# Make our own list so it can be sorted to reduce context switching

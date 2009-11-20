@@ -80,6 +80,7 @@ EnumPropertyItem proportional_editing_items[] = {
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
+#include "BKE_depsgraph.h"
 
 #include "BLI_threads.h"
 
@@ -95,6 +96,34 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 
 	/* we are actually iterating a Base list, so override get */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
+}
+
+static void rna_Scene_link_object(Scene *sce, ReportList *reports, Object *ob)
+{
+	Base *base= object_in_scene(ob, sce);
+	if (base) {
+		BKE_report(reports, RPT_ERROR, "Object is already in this scene.");
+		return;
+	}
+	base= scene_add_base(sce, ob);
+	ob->id.us++;
+
+	/* this is similar to what object_add_type and add_object do */
+	ob->lay= base->lay= sce->lay;
+	ob->recalc |= OB_RECALC;
+
+	DAG_scene_sort(sce);
+}
+
+static void rna_Scene_unlink_object(Scene *sce, ReportList *reports, Object *ob)
+{
+	Base *base= object_in_scene(ob, sce);
+	if (!base) {
+		BKE_report(reports, RPT_ERROR, "Object is not in this scene.");
+		return;
+	}
+	/* as long as ED_base_object_free_and_unlink calls free_libblock_us, we don't have to decrement ob->id.us */
+	ED_base_object_free_and_unlink(sce, base);
 }
 
 static void rna_Scene_skgen_etch_template_set(PointerRNA *ptr, PointerRNA value)
@@ -2176,37 +2205,25 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-//	FunctionRNA *func;
-//	PropertyRNA *parm;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 	
 	RNA_def_property_srna(cprop, "SceneObjects");
 	srna= RNA_def_struct(brna, "SceneObjects", NULL);
-	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_sdna(srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects.");
 
-#if 0
-	/* add object */
-	func= RNA_def_function(srna, "link", "rna_Scene_objects_link");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Add this object to this scene");
-	/* return type */
-	parm= RNA_def_boolean(func, "success", 0, "Success", "");
-	RNA_def_function_return(func, parm);
-	/* object to add */
-	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add.");
+	func= RNA_def_function(srna, "link", "rna_Scene_link_object");
+	RNA_def_function_ui_description(func, "Link object to scene.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add to scene.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	/* remove object */
-	func= RNA_def_function(srna, "unlink", "rna_Scene_objects_unlink");
-	RNA_def_function_ui_description(func, "Remove this object to a scene");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	/* return type */
-	parm= RNA_def_boolean(func, "success", 0, "Success", "");
-	RNA_def_function_return(func, parm);
-	/* object to remove */
-	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove.");
+	func= RNA_def_function(srna, "unlink", "rna_Scene_unlink_object");
+	RNA_def_function_ui_description(func, "Unlink object from scene.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-#endif
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");

@@ -465,7 +465,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			# bmesh.transform(contextMatrix)
 			ob = bpy.data.add_object("MESH", tempName)
 			ob.data = bmesh
-			SCN.add_object(ob)
+			SCN.objects.link(ob)
 # 			ob = SCN_OBJECTS.new(bmesh, tempName)
 			'''
 			if contextMatrix_tx:
@@ -766,7 +766,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
 			ob = bpy.data.add_object("LAMP", "Lamp")
 			ob.data = bpy.data.add_lamp("Lamp")
-			SCN.add_object(ob)
+			SCN.objects.link(ob)
 			
 			contextLamp[1]= ob.data
 # 			contextLamp[1]= bpy.data.lamps.new()

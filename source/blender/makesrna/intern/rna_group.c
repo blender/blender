@@ -49,16 +49,24 @@ static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((GroupObject*)internal->link)->ob);
 }
 
-static int rna_Group_objects_link(Group *group, bContext *C, Object *object)
+static void rna_Group_objects_link(Group *group, bContext *C, ReportList *reports, Object *object)
 {
+	if(!add_to_group(group, object, CTX_data_scene(C), NULL)) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" already in group \"%s\".", object->id.name+2, group->id.name+2);
+		return;
+	}
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, &object->id);
-	return add_to_group(group, object, CTX_data_scene(C), NULL);
 }
 
-static int rna_Group_objects_unlink(Group *group, bContext *C, Object *object)
+static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
 {
+	if(!rem_from_group(group, object, CTX_data_scene(C), NULL)) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" not in group \"%s\".", object->id.name+2, group->id.name+2);
+		return;
+	}
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, &object->id);
-	return rem_from_group(group, object, CTX_data_scene(C), NULL);
 }
 
 #else
@@ -79,11 +87,8 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* add object */
 	func= RNA_def_function(srna, "link", "rna_Group_objects_link");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add this object to a group");
-	/* return type */
-	parm= RNA_def_boolean(func, "success", 0, "Success", "");
-	RNA_def_function_return(func, parm);
 	/* object to add */
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -91,10 +96,7 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	/* remove object */
 	func= RNA_def_function(srna, "unlink", "rna_Group_objects_unlink");
 	RNA_def_function_ui_description(func, "Remove this object to a group");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	/* return type */
-	parm= RNA_def_boolean(func, "success", 0, "Success", "");
-	RNA_def_function_return(func, parm);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	/* object to remove */
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
