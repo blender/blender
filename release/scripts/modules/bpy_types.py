@@ -92,3 +92,18 @@ class MeshFace(StructRNA):
         return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
 
     edge_keys = property(_get_edge_keys)
+
+
+import collections
+class OrderedMeta(type):
+    def __init__(cls, name, bases, attributes):
+        super(OrderedMeta, cls).__init__(name, bases, attributes)
+        cls.order = list(attributes.keys())
+    def __prepare__(name, bases, **kwargs):
+        return collections.OrderedDict()
+
+class Operator(StructRNA, metaclass=OrderedMeta):
+    '''
+    Only defined so operators members can be used by accessing self.order
+    '''
+    pass

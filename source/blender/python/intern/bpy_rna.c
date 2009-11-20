@@ -3550,55 +3550,86 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 	return NULL;
 }
 
-int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
+
+static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key, PyObject *dummy_args)
 {
-	PyObject *dummy_args, *item, *key;
-	Py_ssize_t pos = 0;
+	/* We only care about results from C which
+	 * are for sure types, save some time with error */
+	if(PyTuple_CheckExact(item) && PyTuple_GET_SIZE(item)==2) {
 
-	dummy_args = PyTuple_New(0);
-	
-	while (PyDict_Next(class_dict, &pos, &key, &item)) {
 		PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
-		/* We only care about results from C which
-		 * are for sure types, save some time with error */
-		if(PyTuple_CheckExact(item)) {
-			if(PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 
-				PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
-				pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
-				py_srna_cobject = PyCObject_FromVoidPtr(srna, NULL);
+		if(PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 
-				/* not 100% nice :/, modifies the dict passed, should be ok */
-				PyDict_SetItemString(py_kw, "attr", key);
+			PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
 
-				py_ret = pyfunc(py_srna_cobject, dummy_args, py_kw);
-				Py_DECREF(py_srna_cobject);
+			pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
+			py_srna_cobject = PyCObject_FromVoidPtr(srna, NULL);
 
-				if(py_ret) {
-					Py_DECREF(py_ret);
-				}
-				else {
-					PyErr_Print();
-					PyErr_Clear();
+			/* not 100% nice :/, modifies the dict passed, should be ok */
+			PyDict_SetItemString(py_kw, "attr", key);
 
-					PyErr_Format(PyExc_ValueError, "StructRNA \"%.200s\" registration error: %.200s could not register\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
-					Py_DECREF(dummy_args);
-					return -1;
-				}
+			py_ret = pyfunc(py_srna_cobject, dummy_args, py_kw);
+			Py_DECREF(py_srna_cobject);
+
+			if(py_ret) {
+				Py_DECREF(py_ret);
 			}
 			else {
-				/* Since this is a class dict, ignore args that can't be passed */
-
-				/* for testing only */
-				/* PyObSpit("Why doesn't this work??", item);
-				PyErr_Print(); */
+				PyErr_Print();
 				PyErr_Clear();
 
+				PyErr_Format(PyExc_ValueError, "StructRNA \"%.200s\" registration error: %.200s could not register\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
+				Py_DECREF(dummy_args);
+				return -1;
 			}
+		}
+		else {
+			/* Since this is a class dict, ignore args that can't be passed */
+
+			/* for testing only */
+			/* PyObSpit("Why doesn't this work??", item);
+			PyErr_Print(); */
+			PyErr_Clear();
+		}
+	}
+
+	return 0;
+}
+
+int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
+{
+	PyObject *item, *key;
+	PyObject *order;
+	PyObject *dummy_args;
+	Py_ssize_t pos = 0;
+	int ret;
+
+	dummy_args = PyTuple_New(0);
+
+	order= PyDict_GetItemString(class_dict, "order");
+
+	if(order && PyList_Check(order)) {
+		printf("using order\n");
+		for(pos= 0; pos<PyList_GET_SIZE(order); pos++) {
+			key= PyList_GET_ITEM(order, pos);
+			item= PyDict_GetItem(class_dict, key);
+			ret= deferred_register_prop(srna, item, key, dummy_args);
+			if(ret==-1)
+				break;
+		}
+	}
+	else {
+		while (PyDict_Next(class_dict, &pos, &key, &item)) {
+			ret= deferred_register_prop(srna, item, key, dummy_args);
+
+			if(ret==-1)
+				break;
 		}
 	}
 
 	Py_DECREF(dummy_args);
+
 	return 0;
 }
 

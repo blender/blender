@@ -138,14 +138,13 @@ class WM_OT_properties_edit(bpy.types.Operator):
     '''Internal use (edit a property path)'''
     bl_idname = "wm.properties_edit"
     bl_label = "Edit Property!"
-
-    description = StringProperty(name="Tip", default="")
-    path = rna_path
-    value = rna_value
-    property = rna_property
     
+    path = rna_path
+    property = rna_property
+    value = rna_value
     min = rna_min
     max = rna_max
+    description = StringProperty(name="Tip", default="")
     
     # the class instance is not persistant, need to store in the class
     # not ideal but changes as the op runs.

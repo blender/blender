@@ -294,7 +294,6 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 		 * later */
 		RNA_def_struct_identifier(ot->srna, ot->idname);
 
-
 		if(pyrna_deferred_register_props(ot->srna, item)!=0) {
 			/* failed to register operator props */
 			PyErr_Print();
