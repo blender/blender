@@ -28,6 +28,7 @@
  */
 
 #include <string.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -610,6 +611,32 @@ static void vgroup_normalize(Object *ob)
 					/* incase of division errors with very low weights */
 					CLAMP(dw->weight, 0.0f, 1.0f);
 				}
+			}
+		}
+	}
+}
+
+static void vgroup_levels(Object *ob, float offset, float gain)
+{
+	bDeformGroup *dg;
+	MDeformWeight *dw;
+	MDeformVert *dvert, *dvert_array=NULL;
+	int i, def_nr, dvert_tot=0;
+	
+	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	
+	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
+	
+	if(dg) {
+		def_nr= ob->actdef-1;
+		
+		for(i = 0; i < dvert_tot; i++) {
+			dvert = dvert_array+i;
+			dw = ED_vgroup_weight_get(dvert, def_nr);
+			if(dw) {
+				dw->weight = gain * (dw->weight + offset);
+				
+				CLAMP(dw->weight, 0.0f, 1.0f);
 			}
 		}
 	}
@@ -1467,6 +1494,38 @@ void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int vertex_group_levels_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	
+	float offset= RNA_float_get(op->ptr,"offset");
+	float gain= RNA_float_get(op->ptr,"gain");
+	
+	vgroup_levels(ob, offset, gain);
+	
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Vertex Group Levels";
+	ot->idname= "OBJECT_OT_vertex_group_levels";
+	
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_levels_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_float(ot->srna, "offset", 0.f, -1.0, 1.0, "Offset", "Value to add to weights.", -1.0f, 1.f);
+	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by.", 0.0f, 10.f);
+}
 
 static int vertex_group_normalize_exec(bContext *C, wmOperator *op)
 {

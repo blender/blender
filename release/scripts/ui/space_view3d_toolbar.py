@@ -736,6 +736,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
         col.itemO("object.vertex_group_normalize", text="Normalize")
         col.itemO("object.vertex_group_invert", text="Invert")
         col.itemO("object.vertex_group_clean", text="Clean")
+        col.itemO("object.vertex_group_levels", text="Levels")
 
 
 class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
