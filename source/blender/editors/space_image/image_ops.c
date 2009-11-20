@@ -234,6 +234,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			view_pan_exec(C, op);
 			break;
 		case MIDDLEMOUSE:
+		case LEFTMOUSE:
 			if(event->val==KM_RELEASE) {
 				view_pan_exit(C, op, 0);
 				return OPERATOR_FINISHED;
@@ -349,6 +350,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ED_area_tag_redraw(CTX_wm_area(C));
 			break;
 		case MIDDLEMOUSE:
+		case LEFTMOUSE:
 			if(event->val==KM_RELEASE) {
 				view_zoom_exit(C, op, 0);
 				return OPERATOR_FINISHED;

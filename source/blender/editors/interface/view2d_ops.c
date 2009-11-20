@@ -237,6 +237,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
+		case ESCKEY:
 			if (event->val==KM_RELEASE) {
 				/* calculate overall delta mouse-movement for redo */
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
@@ -253,6 +254,12 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int view_pan_cancel(bContext *C, wmOperator *op)
+{
+	view_pan_exit(C, op);
+	return OPERATOR_CANCELLED;
+}
+
 void VIEW2D_OT_pan(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -264,6 +271,7 @@ void VIEW2D_OT_pan(wmOperatorType *ot)
 	ot->exec= view_pan_exec;
 	ot->invoke= view_pan_invoke;
 	ot->modal= view_pan_modal;
+	ot->cancel= view_pan_cancel;
 	
 	/* operator is repeatable */
 	ot->flag= OPTYPE_BLOCKING;
