@@ -256,11 +256,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "all_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_AREA);
 	RNA_def_property_ui_text(prop, "All Faces", "Paint on all faces inside brush.");
-	
-	prop= RNA_def_property(srna, "vertex_dist", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_SOFT);
-	RNA_def_property_ui_text(prop, "Vertex Dist", "Use distances to vertices (instead of paint entire faces).");
-	
+		
 	prop= RNA_def_property(srna, "normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_NORMALS);
 	RNA_def_property_ui_text(prop, "Normals", "Applies the vertex normal before painting.");
@@ -268,14 +264,6 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "spray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_SPRAY);
 	RNA_def_property_ui_text(prop, "Spray", "Keep applying paint effect while holding mouse.");
-	
-	prop= RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.1f, 5.0f);
-	RNA_def_property_ui_text(prop, "Gamma", "Vertex paint Gamma.");
-	
-	prop= RNA_def_property(srna, "mul", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.1f, 50.0f);
-	RNA_def_property_ui_text(prop, "Mul", "Vertex paint Mul.");
 }
 
 static void rna_def_image_paint(BlenderRNA *brna)

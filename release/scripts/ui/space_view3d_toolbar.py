@@ -753,8 +753,6 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
         col.itemR(wpaint, "all_faces")
         col.itemR(wpaint, "normals")
         col.itemR(wpaint, "spray")
-        col.itemR(wpaint, "vertex_dist", text="Distance")
-
 
         data = context.weight_paint_object.data
         if type(data) == bpy.types.Mesh:
@@ -787,7 +785,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
         col.itemR(vpaint, "all_faces")
         col.itemR(vpaint, "normals")
         col.itemR(vpaint, "spray")
-        col.itemR(vpaint, "vertex_dist", text="Distance")
+
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.itemL(text="Gamma:")
 #		col.itemR(vpaint, "gamma", text="")

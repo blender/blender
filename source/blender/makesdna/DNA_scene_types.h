@@ -542,7 +542,6 @@ typedef struct Sculpt {
 typedef struct VPaint {
 	Paint paint;
 
-	float gamma, mul;			/* should become part of struct Brush? */
 	short mode, flag;
 	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
@@ -554,11 +553,10 @@ typedef struct VPaint {
 /* VPaint flag */
 #define VP_COLINDEX	1
 #define VP_AREA		2
-#define VP_SOFT		4
+
 #define VP_NORMALS	8
 #define VP_SPRAY	16
 // #define VP_MIRROR_X	32 // depricated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X)
-#define VP_HARD		64
 #define VP_ONLYVGROUP	128
 
 

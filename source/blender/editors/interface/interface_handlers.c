@@ -2224,14 +2224,6 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			fac= 1.0f;
 			if(event->shift) fac /= 10.0f;
 			if(event->alt) fac /= 20.0f;
-
-			if(event->custom == EVT_DATA_TABLET) {
-				wmTabletData *wmtab= event->customdata;
-
-				/* de-sensitise based on tablet pressure */
-				if (wmtab->Active != EVT_TABLET_NONE)
-				 	fac *= wmtab->Pressure;
-			}
 			
 			snap= (event->ctrl)? (event->shift)? 2: 1: 0;
 
