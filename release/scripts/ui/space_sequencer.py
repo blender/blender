@@ -23,7 +23,7 @@ import bpy
 def act_strip(context):
     try:
         return context.scene.sequence_editor.active_strip
-    except:
+    except AttributeError:
         return None
 
 
@@ -518,7 +518,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
             row.itemO("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
 
         row.itemR(strip.sound, "caching")
-        
+
         layout.itemR(strip, "volume")
 
 

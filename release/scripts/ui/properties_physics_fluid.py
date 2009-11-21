@@ -111,7 +111,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 col.itemL(text="Volume Initialization:")
                 col.itemR(fluid, "volume_initialization", text="")
                 col.itemR(fluid, "export_animated_mesh")
-                
+
                 if wide_ui:
                     col = split.column()
                 col.itemL(text="Initial Velocity:")

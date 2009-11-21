@@ -1197,7 +1197,7 @@ class USERPREF_PT_input(bpy.types.Panel):
             itemcol = itemrow.column()
             itemcol.active = kmi.active
             row = itemcol.row()
-            
+
             if km.modal:
                 row.itemR(kmi, "propvalue", text="")
             else:

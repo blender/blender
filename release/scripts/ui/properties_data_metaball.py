@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -110,7 +111,7 @@ class DATA_PT_metaball_element(DataButtonsPanel):
         col.itemR(metaelem, "stiffness", text="Stiffness")
         col.itemR(metaelem, "negative", text="Negative")
         col.itemR(metaelem, "hide", text="Hide")
-        
+
         if wide_ui:
             col = split.column(align=True)
 

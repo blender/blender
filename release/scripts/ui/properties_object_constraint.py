@@ -43,7 +43,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
     def space_template(self, layout, con, wide_ui, target=True, owner=True):
         if target or owner:
-            
+
             split = layout.split(percentage=0.2)
 
             if wide_ui:
@@ -51,8 +51,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
                 row = split.row()
             else:
                 row = layout.row()
-            
-            
+
+
             if target:
                 row.itemR(con, "target_space", text="")
 
@@ -132,7 +132,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = split.column()
         col.itemO("constraint.childof_set_inverse")
-        
+
         if wide_ui:
             col = split.column()
         col.itemO("constraint.childof_clear_inverse")
@@ -149,7 +149,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = split.column()
         col.itemR(con, "up", text="Up")
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(con, "target_z")
@@ -189,7 +189,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
             sub = col.column()
             sub.active = con.rotation
             sub.itemR(con, "orient_weight", text="Rotation", slider=True)
-            
+
             if wide_ui:
                 col = split.column()
             col.itemR(con, "tail")
@@ -471,7 +471,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
             layout.itemR(con, "action")
         else:
             layout.itemR(con, "action", text="")
-        
+
         if wide_ui:
             layout.itemR(con, "transform_channel")
         else:
@@ -526,7 +526,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = split.column()
         col.itemR(con, "original_length", text="Rest Length")
-        
+
         if wide_ui:
             col = split.column()
         col.itemO("constraint.stretchto_reset", text="Reset")
@@ -550,7 +550,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = split.column()
         col.itemR(con, "sticky")
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(con, "use_rotation")
@@ -578,7 +578,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = split.column()
         col.itemR(con, "disable_linked_collision", text="No Collision")
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(con, "draw_pivot", text="Display Pivot")
@@ -615,13 +615,13 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         self.target_template(layout, con, wide_ui)
 
         layout.itemR(con, "extrapolate_motion", text="Extrapolate")
-        
+
         col = layout.column()
         col.row().itemL(text="Source:")
         col.row().itemR(con, "map_from", expand=True)
-        
+
         split = layout.split()
-        
+
         sub = split.column(align=True)
         sub.itemL(text="X:")
         sub.itemR(con, "from_min_x", text="Min")
@@ -646,29 +646,29 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         col.row().itemR(con, "map_to", expand=True)
 
         split = layout.split()
-        
+
         col = split.column()
         col.itemL(text="X:")
         col.row().itemR(con, "map_to_x_from", expand=True)
-        
+
         sub = col.column(align=True)
         sub.itemR(con, "to_min_x", text="Min")
         sub.itemR(con, "to_max_x", text="Max")
-        
+
         if wide_ui:
             col = split.column()
         col.itemL(text="Y:")
         col.row().itemR(con, "map_to_y_from", expand=True)
-        
+
         sub = col.column(align=True)
         sub.itemR(con, "to_min_y", text="Min")
         sub.itemR(con, "to_max_y", text="Max")
-        
+
         if wide_ui:
             col = split.column()
         col.itemL(text="Z:")
         col.row().itemR(con, "map_to_z_from", expand=True)
-        
+
         sub = col.column(align=True)
         sub.itemR(con, "to_min_z", text="Min")
         sub.itemR(con, "to_max_z", text="Max")
@@ -866,11 +866,11 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
         split.active = not simulation or itasc.reiteration != 'NEVER'
         col = split.column()
         col.itemR(itasc, "precision")
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(itasc, "num_iter")
-        
+
 
         if simulation:
             layout.itemR(itasc, "auto_step")

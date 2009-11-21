@@ -379,7 +379,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(rd, "ffmpeg_format")
         if rd.ffmpeg_format in ('AVI', 'QUICKTIME', 'MKV', 'OGG'):
@@ -397,7 +397,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         if wide_ui:
             col = split.column()
         col.itemR(rd, "ffmpeg_gopsize")
-        
+
         split = layout.split()
 
         col = split.column()
@@ -408,7 +408,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        
+
         col.itemR(rd, "ffmpeg_autosplit")
         col.itemL(text="Mux:")
         col.itemR(rd, "ffmpeg_muxrate", text="Rate")
@@ -429,6 +429,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
             col = split.column()
         col.itemR(rd, "ffmpeg_multiplex_audio")
         col.itemR(rd, "ffmpeg_audio_volume", slider=True)
+
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
     bl_label = "Anti-Aliasing"

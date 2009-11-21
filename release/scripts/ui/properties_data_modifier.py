@@ -85,8 +85,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.itemR(md, "fit_type")
         else:
             layout.itemR(md, "fit_type", text="")
-        
-        
+
+
         if md.fit_type == 'FIXED_COUNT':
             layout.itemR(md, "count")
         elif md.fit_type == 'FIT_LENGTH':
@@ -134,7 +134,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def BEVEL(self, layout, ob, md, wide_ui):
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(md, "width")
 
@@ -155,7 +155,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemL(text="Operation:")
         col.itemR(md, "operation", text="")
-        
+
         if wide_ui:
             col = split.column()
         col.itemL(text="Object:")
@@ -175,14 +175,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub.active = md.randomize
         sub.itemR(md, "seed")
 
-    def CAST(self, layout, ob, md, wide_ui): 
+    def CAST(self, layout, ob, md, wide_ui):
         split = layout.split(percentage=0.25)
 
         if wide_ui:
             split.itemL(text="Cast Type:")
             split.itemR(md, "cast_type", text="")
         else:
-            layout.itemR(md, "cast_type", text="")        
+            layout.itemR(md, "cast_type", text="")
 
         split = layout.split(percentage=0.25)
 
@@ -198,16 +198,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "from_radius")
 
         split = layout.split()
-        
-        col = split.column() 
+
+        col = split.column()
         col.itemL(text="Vertex Group:")
         col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
         if wide_ui:
             col = split.column()
         col.itemL(text="Control Object:")
-        col.itemR(md, "object", text="")    
+        col.itemR(md, "object", text="")
         if md.object:
-          col.itemR(md, "use_transform")
+            col.itemR(md, "use_transform")
 
     def CLOTH(self, layout, ob, md, wide_ui):
         layout.itemL(text="See Cloth panel.")
@@ -255,14 +255,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.itemS()
 
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(md, "midlevel")
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(md, "strength")
-
 
     def EDGE_SPLIT(self, layout, ob, md, wide_ui):
         split = layout.split()
@@ -279,7 +278,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def EXPLODE(self, layout, ob, md, wide_ui):
         split = layout.split()
-        
+
         col = split.column()
         col.itemL(text="Vertex group:")
         col.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
@@ -339,7 +338,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemL(text="Object:")
         col.itemR(md, "object", text="")
-        
+
         if wide_ui:
             col = split.column()
         col.itemL(text="Vertex Group:")
@@ -390,7 +389,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
             col = split.column()
             col.itemR(md, "precision")
-            
+
             if wide_ui:
                 col = split.column()
             col.itemR(md, "dynamic")
@@ -398,9 +397,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
     def MIRROR(self, layout, ob, md, wide_ui):
         layout.itemR(md, "merge_limit")
         if wide_ui:
-           split = layout.split(percentage=0.25)
+            split = layout.split(percentage=0.25)
         else:
-           split = layout.split(percentage=0.4) 
+            split = layout.split(percentage=0.4)
 
         col = split.column()
         col.itemL(text="Axis:")
@@ -412,12 +411,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
             col = split.column()
         else:
             subsplit = layout.split()
-            col = subsplit.column()  
+            col = subsplit.column()
         col.itemL(text="Options:")
         col.itemR(md, "clip", text="Clipping")
         col.itemR(md, "mirror_vertex_groups", text="Vertex Groups")
 
-        col = split.column()  
+        col = split.column()
         col.itemL(text="Textures:")
         col.itemR(md, "mirror_u", text="U")
         col.itemR(md, "mirror_v", text="V")
@@ -432,12 +431,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
         else:
             layout.row().itemR(md, "subdivision_type", text="")
         layout.itemR(md, "level")
-        
+
         split = layout.split()
 
         col = split.column()
         col.itemO("object.multires_subdivide", text="Subdivide")
-        
+
         if wide_ui:
             col = split.column()
         col.itemO("object.multires_higher_levels_delete", text="Delete Higher")
@@ -445,7 +444,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
     def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
         layout.itemR(md, "object")
         layout.itemR(md, "particle_system_number", text="Particle System")
-        
+
         split = layout.split()
         col = split.column()
         col.itemL(text="Create From:")
@@ -459,17 +458,17 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "alive")
         col.itemR(md, "unborn")
         col.itemR(md, "dead")
-        
+
         layout.itemS()
-        
+
         layout.itemR(md, "path", text="Create Along Paths")
-        
+
         split = layout.split()
         split.active = md.path
         col = split.column()
         col.row().itemR(md, "axis", expand=True)
         col.itemR(md, "keep_shape")
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(md, "position", slider=True)
@@ -500,9 +499,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemR(md, "mode", text="")
 
         if wide_ui:
-           split = layout.split(percentage=0.25)
+            split = layout.split(percentage=0.25)
         else:
-           split = layout.split(percentage=0.35)
+            split = layout.split(percentage=0.35)
         col = split.column()
 
         if md.mode == 'PROJECT':
@@ -527,7 +526,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
             layout.itemL(text="Auxiliary Target:")
             layout.itemR(md, "auxiliary_target", text="")
-            
+
         elif md.mode == 'NEAREST_SURFACEPOINT':
             layout.itemR(md, "keep_above_surface")
 
@@ -593,7 +592,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.itemL(text="Subdivisions:")
         col.itemR(md, "levels", text="View")
         col.itemR(md, "render_levels", text="Render")
-        
+
         if wide_ui:
             col = split.column()
         col.itemL(text="Options:")
@@ -609,19 +608,19 @@ class DATA_PT_modifiers(DataButtonsPanel):
             col = split.column()
             col.itemL(text="UV Layer:")
             col.item_pointerR(md, "uv_layer", ob.data, "uv_textures", text="")
-            
+
             if wide_ui:
                 col = split.column()
             col.itemL(text="Image:")
             col.itemR(md, "image", text="")
 
-            split = layout.split()  
+            split = layout.split()
             col = split.column()
             col.itemR(md, "override_image")
             col.itemR(md, "num_projectors", text="Projectors")
             for proj in md.projectors:
                 col.itemR(proj, "object", text="")
-            
+
             if wide_ui:
                 col = split.column()
             sub = col.column(align=True)
@@ -682,7 +681,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemR(md, "speed", slider=True)
         col.itemR(md, "height", slider=True)
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(md, "width", slider=True)

@@ -23,7 +23,7 @@ narrowui = 180
 
 def point_cache_ui(self, context, cache, enabled, particles, smoke):
     layout = self.layout
-    
+
     wide_ui = context.region.width > narrowui
     layout.set_context_pointer("PointCache", cache)
 
@@ -92,22 +92,22 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
 
 def effector_weights_ui(self, context, weights):
     layout = self.layout
-    
+
     wide_ui = context.region.width > narrowui
 
     layout.itemR(weights, "group")
 
     split = layout.split()
-    
+
     col = split.column()
     col.itemR(weights, "gravity", slider=True)
-    
+
     if wide_ui:
         col = split.column()
     col.itemR(weights, "all", slider=True)
 
     layout.itemS()
-    
+
     split = layout.split()
 
     col = split.column()
@@ -130,9 +130,9 @@ def effector_weights_ui(self, context, weights):
 
 def basic_force_field_settings_ui(self, context, field):
     layout = self.layout
-    
+
     wide_ui = context.region.width > narrowui
-    
+
     split = layout.split()
 
     if not field or field.type == 'NONE':
@@ -156,7 +156,7 @@ def basic_force_field_settings_ui(self, context, field):
         col.itemR(field, "quadratic_drag", text="Quadratic")
     else:
         col.itemR(field, "flow")
-    
+
     if wide_ui:
         col = split.column()
     col.itemR(field, "noise")
@@ -170,7 +170,7 @@ def basic_force_field_settings_ui(self, context, field):
     col.itemL(text="Effect point:")
     col.itemR(field, "do_location")
     col.itemR(field, "do_rotation")
-    
+
     if wide_ui:
         col = split.column()
     col.itemL(text="Collision:")
@@ -179,10 +179,10 @@ def basic_force_field_settings_ui(self, context, field):
 
 def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
-    
+
     wide_ui = context.region.width > narrowui
-    
-    # XXX: This doesn't update for some reason. 
+
+    # XXX: This doesn't update for some reason.
     #if wide_ui:
     #    split = layout.split()
     #else:

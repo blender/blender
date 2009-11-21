@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class IMAGE_MT_view(bpy.types.Menu):
     bl_label = "View"
 
@@ -409,13 +410,14 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col.itemR(uvedit, "draw_modified_edges", text="Modified")
             #col.itemR(uvedit, "draw_edges")
             #col.itemR(uvedit, "draw_faces")
-            
+
             if wide_ui:
                 col = split.column()
             col.itemR(uvedit, "draw_stretch", text="Stretch")
             sub = col.column()
             sub.active = uvedit.draw_stretch
             sub.row().itemR(uvedit, "draw_stretch_type", expand=True)
+
 
 class IMAGE_PT_paint(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'

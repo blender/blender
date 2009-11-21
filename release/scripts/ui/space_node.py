@@ -108,7 +108,7 @@ class NODE_MT_node(bpy.types.Menu):
         layout.itemO("tfm.translate")
         layout.itemO("tfm.rotate")
         layout.itemO("tfm.resize")
-        
+
         layout.itemS()
 
         layout.itemO("node.duplicate_move")
@@ -116,7 +116,7 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.itemS()
         layout.itemO("node.link_make")
-        
+
         layout.itemS()
         layout.itemO("node.group_edit")
         layout.itemO("node.group_ungroup")
@@ -129,9 +129,9 @@ class NODE_MT_node(bpy.types.Menu):
 
         # XXX
         # layout.itemO("node.rename")
-		
+
         layout.itemS()
-		
+
         layout.itemO("node.show_cyclic_dependencies")
 
 bpy.types.register(NODE_HT_header)

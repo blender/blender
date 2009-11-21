@@ -61,7 +61,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             else:
                 split = layout.split()
             split.itemR(field, "shape", text="")
-            
+
         split = layout.split()
 
         if field.type == 'NONE':
@@ -72,7 +72,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "guide_free")
             col.itemR(field, "falloff_power")
             col.itemR(field, "guide_path_add")
-            
+
             if wide_ui:
                 col = split.column()
             col.itemL(text="Clumping:")
@@ -92,11 +92,11 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 layout.itemR(field, "guide_kink_axis")
 
                 split = layout.split()
-                
+
                 col = split.column()
                 col.itemR(field, "guide_kink_frequency")
                 col.itemR(field, "guide_kink_shape")
-                
+
                 if wide_ui:
                     col = split.column()
                 col.itemR(field, "guide_kink_amplitude")
@@ -107,7 +107,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "texture", text="")
             col.itemR(field, "texture_mode", text="")
             col.itemR(field, "texture_nabla")
-            
+
             if wide_ui:
                 col = split.column()
             col.itemR(field, "use_coordinates")
@@ -132,7 +132,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemL(text="Angular:")
                 col.itemR(field, "use_radial_min", text="Use Minimum")
                 col.itemR(field, "use_radial_max", text="Use Maximum")
-                
+
                 if wide_ui:
                     col = split.column()
                 col.itemR(field, "radial_falloff", text="Power")
@@ -154,7 +154,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemL(text="Radial:")
                 col.itemR(field, "use_radial_min", text="Use Minimum")
                 col.itemR(field, "use_radial_max", text="Use Maximum")
-                
+
                 if wide_ui:
                     col = split.column()
                 col.itemR(field, "radial_falloff", text="Power")

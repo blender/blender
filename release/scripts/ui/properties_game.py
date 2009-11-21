@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class PhysicsButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -186,14 +187,14 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
             layout.itemR(game, "collision_bounds", text="")
 
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(game, "collision_margin", text="Margin", slider=True)
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(game, "collision_compound", text="Compound")
-        
+
 
 bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
@@ -302,7 +303,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
 
             elif dome_type == 'PANORAM_SPH':
                 col = split.column()
-                
+
                 col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
                 if wide_ui:
                     col = split.column()
@@ -325,7 +326,7 @@ class RENDER_PT_game_shading(RenderButtonsPanel):
 
         gs = context.scene.game_data
         wide_ui = context.region.width > narrowui
-        
+
         if wide_ui:
             layout.itemR(gs, "material_mode", expand=True)
         else:
@@ -353,7 +354,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
 
         gs = context.scene.game_data
         wide_ui = context.region.width > narrowui
-        
+
         split = layout.split()
 
         col = split.column()
@@ -426,11 +427,12 @@ class WORLD_PT_game_context_world(WorldButtonsPanel):
                 split.template_ID(scene, "world", new="world.new")
             elif world:
                 split.template_ID(space, "pin_id")
-        else:   
+        else:
             if scene:
                 layout.template_ID(scene, "world", new="world.new")
             elif world:
                 layout.template_ID(space, "pin_id")
+
 
 class WORLD_PT_game_world(WorldButtonsPanel):
     bl_label = "World"
@@ -442,37 +444,39 @@ class WORLD_PT_game_world(WorldButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(world, "horizon_color")
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(world, "ambient_color")
 
+
 class WORLD_PT_game_mist(WorldButtonsPanel):
     bl_label = "Mist"
-    
+
     def draw_header(self, context):
         world = context.world
-        
+
         self.layout.itemR(world.mist, "enabled", text="")
-    
+
     def draw(self, context):
         layout = self.layout
 
         world = context.world
         wide_ui = context.region.width > narrowui
-        
+
         layout.active = world.mist.enabled
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(world.mist, "start")
-        
+
         if wide_ui:
             col = split.column()
         col.itemR(world.mist, "depth")
+
 
 class WORLD_PT_game_physics(WorldButtonsPanel):
     bl_label = "Physics"

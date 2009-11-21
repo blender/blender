@@ -1334,24 +1334,26 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         layout.item_menu_enumO("armature.flags_set", "mode", text="Bone Settings")
 
+
 class VIEW3D_MT_armature_specials(bpy.types.Menu):
     bl_label = "Specials"
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator_context = 'INVOKE_REGION_WIN'
-        
+
         layout.itemO("armature.subdivide_multi", text="Subdivide")
         layout.itemO("armature.switch_direction", text="Switch Direction")
-        
+
         layout.itemS()
-        
+
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.item_enumO("armature.autoside_names", "type", 'XAXIS', text="AutoName Left/Right")
         layout.item_enumO("armature.autoside_names", "type", 'YAXIS', text="AutoName Front/Back")
         layout.item_enumO("armature.autoside_names", "type", 'ZAXIS', text="AutoName Top/Bottom")
         layout.itemO("armature.flip_names", text="Flip Names")
+
 
 class VIEW3D_MT_edit_armature_parent(bpy.types.Menu):
     bl_label = "Parent"
@@ -1417,7 +1419,7 @@ class VIEW3D_PT_3dview_name(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Item"
-    
+
     def poll(self, context):
         return (context.space_data and context.active_object)
 

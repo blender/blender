@@ -72,9 +72,6 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
         row.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
         row.item_enumO("gpencil.draw", "mode", 'ERASER', text="Erase")
 
-        
-        
-
 # ********** default tools for editmode_mesh ****************
 
 
@@ -91,14 +88,14 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.itemO("tfm.rotate")
         col.itemO("tfm.resize", text="Scale")
         col.itemO("tfm.shrink_fatten", text="Along Normal")
-        
+
 
         col = layout.column(align=True)
         col.itemL(text="Deform:")
         col.itemO("tfm.edge_slide")
         col.itemO("mesh.rip_move")
         col.itemO("mesh.vertices_smooth")
-        
+
 
         col = layout.column(align=True)
         col.itemL(text="Add:")
@@ -108,13 +105,13 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.itemO("mesh.duplicate_move")
         col.itemO("mesh.spin")
         col.itemO("mesh.screw")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Remove:")
         col.itemO("mesh.delete")
         col.itemO("mesh.merge")
         col.itemO("mesh.remove_doubles")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Normals:")
         col.itemO("mesh.normals_make_consistent", text="Recalculate")
@@ -125,13 +122,13 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.item_stringO("wm.call_menu", "name", "VIEW3D_MT_uv_map", text="Unwrap")
         col.itemO("mesh.mark_seam")
         col.item_booleanO("mesh.mark_seam", "clear", True, text="Clear Seam")
-        
-        
+
+
         col = layout.column(align=True)
         col.itemL(text="Shading:")
         col.itemO("mesh.faces_shade_smooth", text="Smooth")
         col.itemO("mesh.faces_shade_flat", text="Flat")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Repeat:")
         col.itemO("screen.repeat_last")
@@ -194,7 +191,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col.itemL(text="Modeling:")
         col.itemO("curve.extrude")
         col.itemO("curve.subdivide")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Repeat:")
         col.itemO("screen.repeat_last")
@@ -206,9 +203,6 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         row.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw")
         row.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
         row.item_enumO("gpencil.draw", "mode", 'ERASER', text="Erase")
-
-        
-        
 
 # ********** default tools for editmode_surface ****************
 
@@ -237,7 +231,7 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
         col.itemL(text="Modeling:")
         col.itemO("curve.extrude")
         col.itemO("curve.subdivide")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Repeat:")
         col.itemO("screen.repeat_last")
@@ -249,9 +243,6 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
         row.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw")
         row.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
         row.item_enumO("gpencil.draw", "mode", 'ERASER', text="Erase")
-
-        
-        
 
 # ********** default tools for editmode_text ****************
 
@@ -268,18 +259,18 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
         col.itemO("font.text_copy", text="Copy")
         col.itemO("font.text_cut", text="Cut")
         col.itemO("font.text_paste", text="Paste")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Set Case:")
         col.item_enumO("font.case_set", "case", 'UPPER', text="To Upper")
         col.item_enumO("font.case_set", "case", 'LOWER', text="To Lower")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Style:")
         col.item_enumO("font.style_toggle", "style", 'BOLD')
         col.item_enumO("font.style_toggle", "style", 'ITALIC')
         col.item_enumO("font.style_toggle", "style", 'UNDERLINE')
-        
+
         col = layout.column(align=True)
         col.itemL(text="Repeat:")
         col.itemO("screen.repeat_last")
@@ -325,9 +316,6 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
         row.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
         row.item_enumO("gpencil.draw", "mode", 'ERASER', text="Erase")
 
-        
-        
-
 
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
     bl_context = "armature_edit"
@@ -356,7 +344,7 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
         col.itemO("tfm.translate")
         col.itemO("tfm.rotate")
         col.itemO("tfm.resize", text="Scale")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Repeat:")
         col.itemO("screen.repeat_last")
@@ -368,9 +356,6 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
         row.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw")
         row.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
         row.item_enumO("gpencil.draw", "mode", 'ERASER', text="Erase")
-
-        
-        
 
 # ********** default tools for editmode_lattice ****************
 
@@ -387,15 +372,15 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
         col.itemO("tfm.translate")
         col.itemO("tfm.rotate")
         col.itemO("tfm.resize", text="Scale")
-        
+
         col = layout.column(align=True)
         col.itemO("lattice.make_regular")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Repeat:")
         col.itemO("screen.repeat_last")
         col.itemO("screen.repeat_history", text="History...")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Grease Pencil:")
         row = col.row()
@@ -419,26 +404,26 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
         col.itemO("tfm.translate")
         col.itemO("tfm.rotate")
         col.itemO("tfm.resize", text="Scale")
-        
+
         col = layout.column(align=True)
         col.itemL(text="In-Between:")
         row = col.row()
         row.itemO("pose.push", text="Push")
         row.itemO("pose.relax", text="Relax")
         col.itemO("pose.breakdown", text="Breakdowner")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Pose:")
         row = col.row()
         row.itemO("pose.copy", text="Copy")
         row.itemO("pose.paste", text="Paste")
-        
+
         col = layout.column(align=True)
         col.itemO("poselib.pose_add", text="Add To Library")
 
         col = layout.column(align=True)
         col.itemL(text="Keyframes:")
-        
+
         col.itemO("anim.insert_keyframe_menu", text="Insert")
         col.itemO("anim.delete_keyframe_v3d", text="Remove")
 
@@ -446,13 +431,14 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
         col.itemL(text="Repeat:")
         col.itemO("screen.repeat_last")
         col.itemO("screen.repeat_history", text="History...")
-        
+
         col = layout.column(align=True)
         col.itemL(text="Grease Pencil:")
         row = col.row()
         row.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw")
         row.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
         row.item_enumO("gpencil.draw", "mode", 'ERASER', text="Erase")
+
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel):
     bl_context = "posemode"

@@ -112,7 +112,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
             sub.itemL(text="")
             sub.itemR(curve, "resolution_v", text="Preview V")
             sub.itemR(curve, "render_resolution_v", text="Render V")
-        
+
         if is_curve or is_text:
             sub = col.column()
             sub.active = (curve.dimensions == '2D')
@@ -173,7 +173,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
 
         if wide_ui:
             row.itemL()
-        
+
         split = layout.split()
 
         col = split.column()
@@ -259,7 +259,7 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
 
 class DATA_PT_font(DataButtonsPanel):
     bl_label = "Font"
-    
+
     def poll(self, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
@@ -295,12 +295,12 @@ class DATA_PT_font(DataButtonsPanel):
         col.itemR(text, "text_on_curve", text="")
 
         split = layout.split()
-        
+
         col = split.column(align=True)
         col.itemL(text="Underline:")
         col.itemR(text, "ul_position", text="Position")
         col.itemR(text, "ul_height", text="Thickness")
-        
+
         if wide_ui:
             col = split.column()
         col.itemL(text="Character:")
@@ -322,7 +322,7 @@ class DATA_PT_paragraph(DataButtonsPanel):
 
         text = context.curve
         wide_ui = context.region.width > narrowui
-        
+
         layout.itemL(text="Align:")
         if wide_ui:
             layout.itemR(text, "spacemode", expand=True)
@@ -349,7 +349,7 @@ class DATA_PT_textboxes(DataButtonsPanel):
 
     def poll(self, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
-        
+
     def draw(self, context):
         layout = self.layout
 

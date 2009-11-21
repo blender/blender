@@ -88,7 +88,7 @@ class CONSOLE_MT_language(bpy.types.Menu):
 
     def draw(self, context):
         import sys
-        
+
         layout = self.layout
         layout.column()
 
@@ -161,7 +161,7 @@ class ConsoleBanner(bpy.types.Operator):
         if not sc.language:
             sc.language = 'python'
 
-        module =  __import__("console_" + sc.language)
+        module = __import__("console_" + sc.language)
         banner = getattr(module, "banner", None)
 
         if banner:

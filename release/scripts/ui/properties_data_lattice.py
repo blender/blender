@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -72,14 +73,14 @@ class DATA_PT_lattice(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.itemR(lat, "interpolation_type_u", text="")
-        
+
         split = layout.split()
         col = split.column()
         col.itemR(lat, "points_v")
         if wide_ui:
             col = split.column()
         col.itemR(lat, "interpolation_type_v", text="")
-        
+
         split = layout.split()
         col = split.column()
         col.itemR(lat, "points_w")
