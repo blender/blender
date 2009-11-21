@@ -2185,8 +2185,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			if (ts->snap_flag & SCE_SNAP) {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap with Ctrl during transform (Shift Tab)");
 				xco+= XIC;
-				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
-				xco+= XIC;
+				if(v3d->modeselect = OB_MODE_OBJECT) {
+					uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
+					xco+= XIC;
+				}
 				if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
 					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
 					xco+= XIC;
