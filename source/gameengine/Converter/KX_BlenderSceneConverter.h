@@ -31,6 +31,7 @@
 
 #include "KX_HashedPtr.h"
 #include "GEN_Map.h"
+#include <stdio.h>
 
 #include "KX_ISceneConverter.h"
 #include "KX_IpoConvert.h"

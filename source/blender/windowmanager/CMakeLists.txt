@@ -36,6 +36,7 @@ SET(INC .
 	../../kernel/gen_system ../readstreamglue
 	../../../intern/elbeem/extern
 	../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
+	../python
 	../nodes
 	../gpu
 	../blenfont
@@ -84,4 +85,3 @@ IF(BF_BUILDINFO)
 ENDIF(BF_BUILDINFO)
 
 BLENDERLIB_NOLIST(bf_windowmanager "${SRC}" "${INC}")
-
