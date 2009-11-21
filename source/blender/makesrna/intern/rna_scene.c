@@ -649,31 +649,37 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP);
 	RNA_def_property_ui_text(prop, "Snap", "Snap while Ctrl is held during transform.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_GEAR, 1);
+	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_align_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_ROTATE);
 	RNA_def_property_ui_text(prop, "Snap Align Rotation", "Align rotation with the snapping target.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_NORMAL, 0);
+	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_element", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "snap_mode");
 	RNA_def_property_enum_items(prop, snap_element_items);
 	RNA_def_property_ui_text(prop, "Snap Element", "Type of element to snap to.");
+	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "snap_target");
 	RNA_def_property_enum_items(prop, snap_mode_items);
 	RNA_def_property_ui_text(prop, "Snap Mode", "Which part to snap onto the target.");
+	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_peel_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PEEL_OBJECT);
 	RNA_def_property_ui_text(prop, "Snap Peel Object", "Consider objects as whole when finding volume center.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_PEEL_OBJECT, 0);
+	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 	
 	prop= RNA_def_property(srna, "snap_project", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
 	RNA_def_property_ui_text(prop, "Project Individual Elements", "DOC_BROKEN");
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
+	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	/* Auto Keying */
 	prop= RNA_def_property(srna, "enable_auto_key", PROP_BOOLEAN, PROP_NONE);

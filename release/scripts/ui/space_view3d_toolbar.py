@@ -171,6 +171,10 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col.itemO("tfm.translate")
         col.itemO("tfm.rotate")
         col.itemO("tfm.resize", text="Scale")
+        
+        col = layout.column(align=True)
+        col.item_enumO("tfm.transform", "mode", 'TILT')
+        col.item_enumO("tfm.transform", "mode", 'CURVE_SHRINKFATTEN')
 
         col = layout.column(align=True)
         col.itemL(text="Curve:")
@@ -182,10 +186,12 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 
         col = layout.column(align=True)
         col.itemL(text="Handles:")
-        col.item_enumO("curve.handle_type_set", "type", 'AUTOMATIC')
-        col.item_enumO("curve.handle_type_set", "type", 'VECTOR')
-        col.item_enumO("curve.handle_type_set", "type", 'ALIGN')
-        col.item_enumO("curve.handle_type_set", "type", 'FREE_ALIGN')
+        row = col.row()
+        row.item_enumO("curve.handle_type_set", "type", 'AUTOMATIC', text="Auto")
+        row.item_enumO("curve.handle_type_set", "type", 'VECTOR')
+        row = col.row()
+        row.item_enumO("curve.handle_type_set", "type", 'ALIGN')
+        row.item_enumO("curve.handle_type_set", "type", 'FREE_ALIGN', text="Free")
 
         col = layout.column(align=True)
         col.itemL(text="Modeling:")
