@@ -293,6 +293,7 @@ static int transform_exec(bContext *C, wmOperator *op)
 
 	if (!transformops_data(C, op, NULL))
 	{
+		G.moving = 0;
 		return OPERATOR_CANCELLED;
 	}
 
@@ -313,6 +314,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (!transformops_data(C, op, event))
 	{
+		G.moving = 0;
 		return OPERATOR_CANCELLED;
 	}
 
