@@ -20,7 +20,7 @@ import bpy
 import os
 
 class AddPreset(bpy.types.Operator):
-    '''Add a torus mesh.'''
+    '''Add a Render Preset'''
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
     
@@ -44,7 +44,6 @@ class AddPreset(bpy.types.Operator):
         return name.lower()
 
     def execute(self, context):
-        
         filename = self._as_filename(self.properties.name) + ".py"
         
         target_path = os.path.join(os.path.dirname(__file__), os.path.pardir, "presets", "render", filename)

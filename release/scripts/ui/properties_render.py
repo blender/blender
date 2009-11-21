@@ -481,6 +481,12 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         scene = context.scene
         rd = scene.render_data
         wide_ui = context.region.width > narrowui
+        
+        row = layout.row().split()
+        sub = row.row(align=True).split(percentage=0.75)
+        sub.itemM("RENDER_MT_presets", text="Presets")
+        sub.itemO("render.preset_add", text="Add")
+        row.itemL()
 
         split = layout.split()
 
@@ -509,15 +515,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         sub.itemR(scene, "end_frame", text="End")
         sub.itemR(scene, "frame_step", text="Step")
 
-        sub = col.column(align=True)
         sub.itemL(text="Frame Rate:")
         sub.itemR(rd, "fps")
-        sub.itemR(rd, "fps_base", text="/")
-
-        sub = col.split(percentage=0.75)        
-        sub.itemM("RENDER_MT_presets", text="Presets")
-        sub.itemO("render.preset_add", text="Add")
-        
+        sub.itemR(rd, "fps_base", text="/")  
 
 
 class RENDER_PT_stamp(RenderButtonsPanel):
