@@ -3778,7 +3778,7 @@ float _det_m3(float m2[3][3])
 	return det;
 }
 
-static void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscale[3][3])
+void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscale[3][3])
 {
 	BodyPoint *bp;
 	ReferenceVert *rp;
