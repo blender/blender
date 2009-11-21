@@ -107,3 +107,43 @@ class Operator(StructRNA, metaclass=OrderedMeta):
     Only defined so operators members can be used by accessing self.order
     '''
     pass
+
+
+class Menu(StructRNA):
+    
+    def path_menu(self, searchpath, operator):
+        layout = self.layout
+        
+        '''
+        Unrelated to the class above, add menu items from the filesystem.
+        
+        hard coded to set the operators 'path' to the filename.
+        '''
+        import os
+
+        def path_to_name(f):
+            ''' Only capitalize all lowercase names, mixed case use them as is.
+            '''
+            f_base = os.path.splitext(f)[0]
+            
+            # string replacements
+            f_base = f_base.replace("_colon_", ":")
+            
+            f_base = f_base.replace("_", " ")
+            
+            if f_base.lower() == f_base:
+                return ' '.join([w[0].upper() + w[1:] for w in f_base.split()])
+            else:
+                return f_base
+
+        layout = self.layout
+
+        for f in sorted(os.listdir(searchpath)):
+
+            if f.startswith("."):
+                continue
+
+            path = os.path.join(searchpath, f)
+            path = os.path.normpath(path)
+            layout.item_stringO(operator, "path", path, text=path_to_name(f))
+

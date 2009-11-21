@@ -177,22 +177,8 @@ class TEXT_MT_templates(bpy.types.Menu):
 
     def draw(self, context):
         import os
-
-        def path_to_name(f):
-            f_base = os.path.splitext(f)[0]
-            f_base = f_base.replace("_", " ")
-            return ' '.join([w[0].upper() + w[1:] for w in f_base.split()])
-
-        layout = self.layout
         template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "templates")
-
-        for f in sorted(os.listdir(template_dir)):
-
-            if f.startswith("."):
-                continue
-
-            path = os.path.join(template_dir, f)
-            layout.item_stringO("text.open", "path", path, text=path_to_name(f))
+        self.path_menu(template_dir, "text.open")
 
 
 class TEXT_MT_edit_view(bpy.types.Menu):

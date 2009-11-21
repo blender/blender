@@ -22,6 +22,18 @@ import bpy
 narrowui = 180
 
 
+class RENDER_MT_presets(bpy.types.Menu):
+    '''
+    Creates the menu items by scanning scripts/templates
+    '''
+    bl_label = "Render Presets"
+
+    def draw(self, context):
+        import os
+        template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "presets", "render")
+        self.path_menu(template_dir, "script.python_file_run")
+
+
 class RenderButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -502,6 +514,11 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         sub.itemR(rd, "fps")
         sub.itemR(rd, "fps_base", text="/")
 
+        sub = col.split(percentage=0.75)        
+        sub.itemM("RENDER_MT_presets", text="Presets")
+        sub.itemO("render.preset_add", text="Add")
+        
+
 
 class RENDER_PT_stamp(RenderButtonsPanel):
     bl_label = "Stamp"
@@ -547,6 +564,9 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         sub = row.row()
         sub.active = rd.stamp_note
         sub.itemR(rd, "stamp_note_text", text="")
+
+
+bpy.types.register(RENDER_MT_presets)
 
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_layers)
