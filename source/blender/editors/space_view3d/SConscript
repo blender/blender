@@ -2,7 +2,7 @@
 Import ('env')
 
 sources = env.Glob('*.c')
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'

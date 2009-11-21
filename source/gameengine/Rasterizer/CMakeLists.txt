@@ -38,5 +38,7 @@ SET(INC
 	${PYTHON_INC}
 )
 
+ADD_DEFINITIONS(-DGLEW_STATIC)
+
 BLENDERLIB(bf_rasterizer "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115], compileflags = cflags )

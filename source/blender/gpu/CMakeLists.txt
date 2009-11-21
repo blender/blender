@@ -30,5 +30,7 @@ SET(INC
 	. ../blenlib ../blenkernel ../makesdna ../include
 	../../../extern/glew/include ../../../intern/guardedalloc ../../../intern/smoke/extern ../imbuf)
 
+ADD_DEFINITIONS(-DGLEW_STATIC)
+
 BLENDERLIB(bf_gpu "${SRC}" "${INC}")
 

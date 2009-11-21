@@ -6,7 +6,7 @@ Import('env')
 
 sources = ['src/glew.c']
 
-defs = ''
+defs = 'GLEW_STATIC'
 incs = 'include'
 
 env.BlenderLib ( 'extern_glew', sources, Split(incs), Split(defs), libtype=['extern','player'], priority=[50,230])
