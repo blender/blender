@@ -1056,6 +1056,7 @@ static void calc_flatten_center(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 			for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i) {
 				if(vd.dist > outer_dist[i]) {
 					outer_index[i] = vd.index;
+					outer_dist[i] = vd.dist;
 					break;
 				}
 			}
