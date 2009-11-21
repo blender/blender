@@ -482,14 +482,17 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 	struct { ViewContext vc; float mval[2]; int dist; EditEdge *closest; } *data = userData;
 	float v1[2], v2[2];
 	int distance;
-		
+
+	ED_view3d_local_clipping(data->vc.rv3d, data->vc.obedit->obmat); /* for local clipping lookups */
+
 	v1[0] = x0;
 	v1[1] = y0;
 	v2[0] = x1;
 	v2[1] = y1;
-		
+
 	distance= dist_to_line_segment_v2(data->mval, v1, v2);
-		
+
+
 	if(eed->f & SELECT) distance+=5;
 	if(distance < data->dist) {
 		if(data->vc.rv3d->rflag & RV3D_CLIPPING) {
@@ -499,9 +502,8 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 			vec[0]= eed->v1->co[0] + labda*(eed->v2->co[0] - eed->v1->co[0]);
 			vec[1]= eed->v1->co[1] + labda*(eed->v2->co[1] - eed->v1->co[1]);
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
-			mul_m4_v3(data->vc.obedit->obmat, vec);
 
-			if(view3d_test_clipping(data->vc.rv3d, vec)==0) {
+			if(view3d_test_clipping(data->vc.rv3d, vec, 1)==0) {
 				data->dist = distance;
 				data->closest = eed;
 			}

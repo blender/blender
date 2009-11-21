@@ -1829,6 +1829,42 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 
 /* ********************* set clipping operator ****************** */
 
+static void calc_clipping_plane(float clip[6][4], BoundBox *clipbb)
+{
+	int val;
+
+	for(val=0; val<4; val++) {
+
+		normal_tri_v3( clip[val],clipbb->vec[val], clipbb->vec[val==3?0:val+1], clipbb->vec[val+4]);
+
+		clip[val][3]=
+			- clip[val][0]*clipbb->vec[val][0]
+			- clip[val][1]*clipbb->vec[val][1]
+			- clip[val][2]*clipbb->vec[val][2];
+	}
+}
+
+static void calc_local_clipping(float clip_local[][4], BoundBox *clipbb, float mat[][4])
+{
+	BoundBox clipbb_local;
+	float imat[4][4];
+	int i;
+
+	invert_m4_m4(imat, mat);
+
+	for(i=0; i<8; i++) {
+		mul_v3_m4v3(clipbb_local.vec[i], imat, clipbb->vec[i]);
+	}
+
+	calc_clipping_plane(clip_local, &clipbb_local);
+}
+
+void ED_view3d_local_clipping(RegionView3D *rv3d, float mat[][4])
+{
+	if(rv3d->rflag & RV3D_CLIPPING)
+		calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);
+}
+
 static int view3d_clipping_exec(bContext *C, wmOperator *op)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -1879,14 +1915,8 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	}
 
 	/* then plane equations */
-	for(val=0; val<4; val++) {
+	calc_clipping_plane(rv3d->clip, rv3d->clipbb);
 
-		normal_tri_v3( rv3d->clip[val],rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4]);
-
-		rv3d->clip[val][3]= - rv3d->clip[val][0]*rv3d->clipbb->vec[val][0]
-			- rv3d->clip[val][1]*rv3d->clipbb->vec[val][1]
-			- rv3d->clip[val][2]*rv3d->clipbb->vec[val][2];
-	}
 	return OPERATOR_FINISHED;
 }
 

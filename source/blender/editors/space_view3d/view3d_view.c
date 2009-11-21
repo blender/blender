@@ -680,7 +680,7 @@ void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
 	adr[0]= IS_CLIPPED;
 	
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		if(view3d_test_clipping(rv3d, vec))
+		if(view3d_test_clipping(rv3d, vec, 0))
 			return;
 	}
 	

@@ -142,7 +142,7 @@ static void draw_empty_cone(float size);
 /* ************* only use while object drawing **************
  * or after running ED_view3d_init_mats_rv3d
  * */
-static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
+static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -151,9 +151,7 @@ static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
 	
 	/* clipplanes in eye space */
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		VECCOPY(vec4, vec);
-		mul_m4_v3(rv3d->viewmatob, vec4);
-		if(view3d_test_clipping(rv3d, vec4))
+		if(view3d_test_clipping(rv3d, vec, local))
 			return;
 	}
 	
@@ -545,7 +543,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	for(vos= strings->first; vos; vos= vos->next) {
 		if(mat)
 			mul_m4_v3(mat, vos->vec);
-		view3d_project_short_clip(ar, vos->vec, vos->mval);
+		view3d_project_short_clip(ar, vos->vec, vos->mval, 0);
 		if(vos->mval[0]!=IS_CLIPPED)
 			tot++;
 	}
@@ -1207,9 +1205,11 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
 
+	ED_view3d_local_clipping(vc->rv3d, obedit->obmat); /* for local clipping lookups */
+
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
-			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s);
+			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s, 1);
 			if (s[0] != IS_CLIPPED)
 				func(userData, bp, s[0], s[1]);
 		}
@@ -1314,7 +1314,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 		short s[2]= {IS_CLIPPED, 0};
 
 		if (data->clipVerts) {
-			view3d_project_short_clip(data->vc.ar, co, s);
+			view3d_project_short_clip(data->vc.ar, co, s, 1);
 		} else {
 			view3d_project_short_noclip(data->vc.ar, co, s);
 		}
@@ -1334,6 +1334,9 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	if(clipVerts)
+		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	EM_init_index_arrays(vc->em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1349,8 +1352,8 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 
 	if (eed->h==0) {
 		if (data->clipVerts==1) {
-			view3d_project_short_clip(data->vc.ar, v0co, s[0]);
-			view3d_project_short_clip(data->vc.ar, v1co, s[1]);
+			view3d_project_short_clip(data->vc.ar, v0co, s[0], 1);
+			view3d_project_short_clip(data->vc.ar, v1co, s[1], 1);
 		} else {
 			view3d_project_short_noclip(data->vc.ar, v0co, s[0]);
 			view3d_project_short_noclip(data->vc.ar, v1co, s[1]);
@@ -1376,6 +1379,9 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEd
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	if(clipVerts)
+		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	EM_init_index_arrays(vc->em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1390,7 +1396,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 	short s[2];
 
 	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
-		view3d_project_short_clip(data->vc.ar, cent, s);
+		view3d_project_short_clip(data->vc.ar, cent, s, 1);
 
 		data->func(data->userData, efa, s[0], s[1], index);
 	}
@@ -1404,6 +1410,9 @@ void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFa
 	data.vc= *vc;
 	data.func = func;
 	data.userData = userData;
+
+	//if(clipVerts)
+	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
 	EM_init_index_arrays(vc->em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
@@ -1419,6 +1428,8 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	Nurb *nu;
 	int i;
 
+	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	for (nu= cu->editnurb->first; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
@@ -1427,17 +1438,17 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 				if(bezt->hide==0) {
 					
 					if(cu->drawflag & CU_HIDE_HANDLES) {
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[1], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 					} else {
-						view3d_project_short_clip(vc->ar, bezt->vec[0], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[0], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[1], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[2], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[2], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 					}
@@ -1449,7 +1460,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 				BPoint *bp = &nu->bp[i];
 
 				if(bp->hide==0) {
-					view3d_project_short_clip(vc->ar, bp->vec, s);
+					view3d_project_short_clip(vc->ar, bp->vec, s, 1);
 					if (s[0] != IS_CLIPPED)
 						func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
