@@ -68,6 +68,15 @@ void interp_v3_v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float w
 	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2];
 }
 
+/* weight 3 vectors,
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void interp_v3_v3v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float v4[3], float w[4])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2] + v4[0]*w[3];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2] + v4[1]*w[3];
+	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2] + v4[2]*w[3];
+}
+
 void mid_v3_v3v3(float *v, float *v1, float *v2)
 {
 	v[0]= 0.5f*(v1[0] + v2[0]);
