@@ -4,12 +4,12 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 
 import bpy
+import os
 
 from bpy.props import *
 
@@ -390,6 +391,54 @@ class WM_OT_reload_scripts(bpy.types.Operator):
                 print("Ignoring:", mod, mod_file)
         '''
         return ('FINISHED',)
+
+class AddPresetBase(bpy.types.Operator):
+    '''Base preset class, only for subclassing
+    subclasses must define 
+     - preset_values
+     - preset_path '''
+    bl_idname = "render.preset_add"
+    bl_label = "Add Render Preset"
+    
+    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen= 64, default= "New Preset")
+    
+    '''
+    preset_values = [
+        "bpy.context.scene.render_data.resolution_x",
+        "bpy.context.scene.render_data.resolution_y",
+        "bpy.context.scene.render_data.pixel_aspect_x",
+        "bpy.context.scene.render_data.pixel_aspect_y",
+        "bpy.context.scene.render_data.fps",
+        "bpy.context.scene.render_data.fps_base",
+        "bpy.context.scene.render_data.resolution_percentage",
+    ]
+    
+    preset_path = os.path.join("presets", "render")
+    '''
+    
+    def _as_filename(self, name): # could reuse for other presets
+        for char in " !@#$%^&*(){}:\";'[]<>,./?":
+            name = name.replace('.', '_')
+        return name.lower()
+
+    def execute(self, context):
+        filename = self._as_filename(self.properties.name) + ".py"
+        
+        target_path = os.path.join(os.path.dirname(__file__), os.path.pardir, self.preset_path, filename)
+
+        file_preset = open(target_path, 'w')
+        
+        for rna_path in self.preset_values:
+            file_preset.write("%s = %s\n" % (rna_path, eval(rna_path)))
+        
+        file_preset.close()
+        
+        return ('FINISHED',)
+
+    def invoke(self, context, event):
+        wm = context.manager
+        wm.invoke_props_popup(self, event)
+        return ('RUNNING_MODAL',)
 
 bpy.ops.add(MESH_OT_delete_edgeloop)
 

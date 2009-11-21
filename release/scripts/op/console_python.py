@@ -142,7 +142,7 @@ def autocomplete(context):
     sc = context.space_data
 
     console = get_console(hash(context.region))[0]
-    
+
     current_line = sc.history[-1]
     line = current_line.line
 

@@ -22,14 +22,14 @@ StructRNA = bpy_types.Struct.__bases__[0]
 
 
 class Context(StructRNA):
-    
+
     def copy(self):
         new_context = {}
         generic_keys = StructRNA.__dict__.keys()
         for item in dir(self):
             if item not in generic_keys:
                 new_context[item] = getattr(self, item)
-            
+
         return new_context
 
 
@@ -47,7 +47,7 @@ def ord_ind(i1,i2):
     return i2,i1
 
 class Mesh(bpy_types.ID):
-    
+
     def _get_edge_keys(self):
         return [edge_key for face in self.faces for edge_key in face.edge_keys]
 
@@ -102,10 +102,9 @@ class OrderedMeta(type):
     def __prepare__(name, bases, **kwargs):
         return collections.OrderedDict()
 
+
+# Only defined so operators members can be used by accessing self.order
 class Operator(StructRNA, metaclass=OrderedMeta):
-    '''
-    Only defined so operators members can be used by accessing self.order
-    '''
     pass
 
 
@@ -113,12 +112,8 @@ class Menu(StructRNA):
     
     def path_menu(self, searchpath, operator):
         layout = self.layout
+        # hard coded to set the operators 'path' to the filename.
         
-        '''
-        Unrelated to the class above, add menu items from the filesystem.
-        
-        hard coded to set the operators 'path' to the filename.
-        '''
         import os
 
         def path_to_name(f):

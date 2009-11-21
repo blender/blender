@@ -41,14 +41,14 @@ sys.stdin = None
 
 def load_scripts(reload_scripts=False):
     import traceback
-    
+
     def test_import(module_name):
         try:
             return __import__(module_name)
         except:
             traceback.print_exc()
             return None
-    
+
     base_path = os.path.join(os.path.dirname(__file__), "..", "..")
     base_path = os.path.normpath(base_path) # clean
 
@@ -64,7 +64,7 @@ def load_scripts(reload_scripts=False):
                 mod = test_import(f)
             else:
                 mod = None
-            
+
             if reload_scripts and mod:
                 print("Reloading:", mod)
                 reload(mod)
@@ -73,7 +73,7 @@ def load_scripts(reload_scripts=False):
 if "-d" in sys.argv and False: # Enable this to measure startup speed
     import cProfile
     cProfile.run('import bpy; bpy.load_scripts()', 'blender.prof')
-    
+
     import pstats
     p = pstats.Stats('blender.prof')
     p.sort_stats('cumulative').print_stats(100)

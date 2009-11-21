@@ -19,47 +19,28 @@
 import bpy
 import os
 
-class AddPreset(bpy.types.Operator):
-    '''Add a Render Preset'''
+from wm import AddPresetBase
+
+
+class AddPresetRender(AddPresetBase):
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
-    
-    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen= 64, default= "New Preset")
-    
-    _preset_values = [
+
+    name = AddPresetBase.name
+
+    preset_values = [
         "bpy.context.scene.render_data.resolution_x",
         "bpy.context.scene.render_data.resolution_y",
         "bpy.context.scene.render_data.pixel_aspect_x",
-        "bpy.context.scene.render_data.pixel_aspect_x",
+        "bpy.context.scene.render_data.pixel_aspect_y",
         "bpy.context.scene.render_data.fps",
         "bpy.context.scene.render_data.fps_base",
         "bpy.context.scene.render_data.resolution_percentage",
     ]
-    
-    _last_preset = "" # hack to avoid remaking
-    
-    def _as_filename(self, name): # could reuse for other presets
-        for char in " !@#$%^&*(){}:\";'[]<>,./?":
-            name = name.replace('.', '_')
-        return name.lower()
 
-    def execute(self, context):
-        filename = self._as_filename(self.properties.name) + ".py"
-        
-        target_path = os.path.join(os.path.dirname(__file__), os.path.pardir, "presets", "render", filename)
-        print(target_path)
-        file_preset = open(target_path, 'w')
-        
-        for rna_path in self._preset_values:
-            file_preset.write("%s = %s\n" % (rna_path, eval(rna_path)))
-        
-        file_preset.close()
-        
-        return ('FINISHED',)
+    preset_path = os.path.join("presets", "render")
 
-    def invoke(self, context, event):
-        wm = context.manager
-        wm.invoke_props_popup(self, event)
-        return ('RUNNING_MODAL',)
 
-bpy.ops.add(AddPreset)
+bpy.ops.add(AddPresetRender)
+
+
