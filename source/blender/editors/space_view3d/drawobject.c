@@ -91,6 +91,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
+#include "BKE_softbody.h"
 #include "BKE_smoke.h"
 #include "BKE_unit.h"
 #include "BKE_utildefines.h"
@@ -4325,7 +4326,65 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 
 	glPointSize(1.0);
 }
+static void draw_sb_motion(Scene *scene, Object *ob)
+{
+	SoftBody *sb = 0;
+	if (sb= ob->soft){
+		if(sb->solverflags & SBSO_MONITOR ||sb->solverflags & SBSO_ESTIMATEIPO){
+			/* draw com */ 
+	        float rt[3][3],sc[3][3],tr[3][3]; 
+			/* looks like to swap a b in reverse */
+			copy_m3_m3(sc,sb->lscale);
+			copy_m3_m3(rt,sb->lrot);
+			mul_m3_m3m3(tr,rt,sc); 
+			if(1){
+				float root[3],tip[3];
 
+				glBegin(GL_LINES);
+				root[1] = root[2] = 0.0f;
+				root[0] = -1.0f;
+				mul_m3_v3(tr,root);
+				VECADD(root,root,sb->lcom);
+				glVertex3fv(root); 
+				tip[1] = tip[2] = 0.0f;
+				tip[0] = 1.0f;
+				mul_m3_v3(tr,tip);
+				VECADD(tip,tip,sb->lcom);
+				glVertex3fv(tip); 
+				glEnd();
+
+				glBegin(GL_LINES);
+				root[0] = root[2] = 0.0f;
+				root[1] = -1.0f;
+				mul_m3_v3(tr,root);
+				VECADD(root,root,sb->lcom);
+				glVertex3fv(root); 
+				tip[0] = tip[2] = 0.0f;
+				tip[1] = 1.0f;
+				mul_m3_v3(tr,tip);
+				VECADD(tip,tip,sb->lcom);
+				glVertex3fv(tip); 
+				glEnd();
+
+				glBegin(GL_LINES);
+				root[0] = root[1] = 0.0f;
+				root[2] = -1.0f;
+				mul_m3_v3(tr,root);
+				VECADD(root,root,sb->lcom);
+				glVertex3fv(root); 
+				tip[0] = tip[1] = 0.0f;
+				tip[2] = 1.0f;
+				mul_m3_v3(tr,tip);
+				VECADD(tip,tip,sb->lcom);
+				glVertex3fv(tip); 
+				glEnd();
+			}
+
+		}
+	}
+};
+
+/*place to add drawers */
 unsigned int nurbcol[8]= {
 	0, 0x9090, 0x409030, 0x603080, 0, 0x40fff0, 0x40c033, 0xA090F0 };
 
@@ -5720,6 +5779,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		default:
 			drawaxes(1.0, flag, OB_ARROWS);
 	}
+    if(ob->soft /*&& flag & OB_SBMOTION*/) draw_sb_motion(scene, ob);
+
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob);
 
 	/* particle mode has to be drawn first so that possible child particles get cached in edit mode */

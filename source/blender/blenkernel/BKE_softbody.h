@@ -68,5 +68,8 @@ extern void				sbObjectToSoftbody(struct Object *ob);
 /* pass NULL to unlink again */
 extern void             sbSetInterruptCallBack(int (*f)(void));
 
+extern void             SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscale[3][3]);
+
+
 #endif
 

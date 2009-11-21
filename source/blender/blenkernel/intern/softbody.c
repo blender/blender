@@ -108,6 +108,16 @@ typedef struct BodyFace {
 	short flag;
 } BodyFace;
 
+typedef struct ReferenceVert {
+	float pos[3]; /* position relative to com */
+	float mass;   /* node mass */
+} ReferenceVert;
+
+typedef struct ReferenceState {
+	float com[3]; /* center of mass*/
+	ReferenceVert *ivert; /* list of intial values */
+}ReferenceState ;
+
 
 /*private scratch pad for caching and other data only needed when alive*/
 typedef struct SBScratch {
@@ -117,6 +127,7 @@ typedef struct SBScratch {
 	BodyFace *bodyface;
 	int totface;
 	float aabbmin[3],aabbmax[3];
+	ReferenceState Ref;
 }SBScratch;
 
 typedef struct  SB_thread_context {
@@ -881,6 +892,9 @@ static void free_scratch(SoftBody *sb)
 		}
 		if (sb->scratch->bodyface){
 			MEM_freeN(sb->scratch->bodyface);
+		}
+		if (sb->scratch->Ref.ivert){
+			MEM_freeN(sb->scratch->Ref.ivert);
 		}
 		MEM_freeN(sb->scratch);
 		sb->scratch = NULL;
@@ -3332,6 +3346,27 @@ static void mesh_faces_to_scratch(Object *ob)
 	}
 	sb->scratch->totface = me->totface;
 }
+static void reference_to_scratch(Object *ob)
+{
+	SoftBody *sb= ob->soft;	
+	ReferenceVert *rp;
+	BodyPoint     *bp;
+	float accu_pos[3] ={0.f,0.f,0.f};
+	float accu_mass = 0.f;
+	int a;
+
+	sb->scratch->Ref.ivert = MEM_mallocN(sizeof(ReferenceVert)*sb->totpoint,"SB_Reference");
+	bp= ob->soft->bpoint;
+	rp= sb->scratch->Ref.ivert;
+	for(a=0; a<sb->totpoint; a++, rp++, bp++) {
+		VECCOPY(rp->pos,bp->pos);
+		VECADD(accu_pos,accu_pos,bp->pos);
+		accu_mass += bp-> mass;
+	}
+	mul_v3_fl(accu_pos,1.0f/accu_mass);
+	VECCOPY(sb->scratch->Ref.com,accu_pos);
+	/* printf("reference_to_scratch \n"); */
+}
 
 /*
 helper function to get proper spring length 
@@ -3569,16 +3604,19 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 /* copies softbody result back in object */
 static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, int local)
 {
-	BodyPoint *bp= ob->soft->bpoint;
-	int a;
+	SoftBody *sb= ob->soft;
+	if(sb){
+		BodyPoint *bp= sb->bpoint;
+		int a;
+		if(sb->solverflags & SBSO_MONITOR ||sb->solverflags & SBSO_ESTIMATEIPO){SB_estimate_transform(ob,sb->lcom,sb->lrot,sb->lscale);}
+		/* inverse matrix is not uptodate... */
+		invert_m4_m4(ob->imat, ob->obmat);
 
-	/* inverse matrix is not uptodate... */
-	invert_m4_m4(ob->imat, ob->obmat);
-	
-	for(a=0; a<numVerts; a++, bp++) {
-		VECCOPY(vertexCos[a], bp->pos);
-		if(local==0) 
-			mul_m4_v3(ob->imat, vertexCos[a]);	/* softbody is in global coords, baked optionally not */
+		for(a=0; a<numVerts; a++, bp++) {
+			VECCOPY(vertexCos[a], bp->pos);
+			if(local==0) 
+				mul_m4_v3(ob->imat, vertexCos[a]);	/* softbody is in global coords, baked optionally not */
+		}
 	}
 }
 
@@ -3592,6 +3630,7 @@ static void sb_new_scratch(SoftBody *sb)
 	sb->scratch->totface = 0;
 	sb->scratch->aabbmax[0]=sb->scratch->aabbmax[1]=sb->scratch->aabbmax[2] = 1.0e30f;
 	sb->scratch->aabbmin[0]=sb->scratch->aabbmin[1]=sb->scratch->aabbmin[2] = -1.0e30f;
+	sb->scratch->Ref.ivert = NULL;
 	
 }
 /* --- ************ maintaining scratch *************** */
@@ -3713,6 +3752,178 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 	}
 }
 
+/* void SB_estimate_transform */
+/* input   Object *ob out (says any object that can do SB like mesh,lattice,curve )
+   output  float lloc[3],float lrot[3][3],float lscale[3][3]
+   that is:
+   a precise position vector denoting the motion of the center of mass
+   give a rotation/scale matrix using averaging method, that's why estimate and not calculate
+   see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
+   our advantage here we know the identity of the vertex
+   there are others methods giving other results.
+   lloc,lrot,lscale are allowed to be NULL, just in case you don't need it. 
+   should be pretty useful for pythoneers :)
+   not! velocity .. 2nd order stuff
+   */
+
+/* can't believe there is none in math utils */
+float _det_m3(float m2[3][3])
+{
+	float det = 0.f;
+	if (m2){
+	det= m2[0][0]* (m2[1][1]*m2[2][2] - m2[1][2]*m2[2][1])
+	    -m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
+	    +m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
+	}
+	return det;
+}
+
+static void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscale[3][3])
+{
+	BodyPoint *bp;
+	ReferenceVert *rp;
+	float accu_pos[3] = {0.0f,0.0f,0.0f};
+	float com[3],va[3],vb[3],rcom[3];
+	float accu_mass = 0.0f,la = 0.0f,lb = 0.0f,eps = 0.000001f;
+	SoftBody *sb = 0;
+	int a,i=0,imax=16;
+    int _localdebug;
+	
+	if (lloc) zero_v3(lloc);
+	if (lrot) zero_m3(lrot);
+	if (lscale) zero_m3(lscale);
+
+
+	if(!ob ||!ob->soft) return; /* why did we get here ? */
+	sb= ob->soft;
+	/*for threading there should be a lock */
+	/* sb-> lock; */
+	/* calculate center of mass */
+	if(!sb || !sb->bpoint) return;
+	_localdebug=sb->solverflags & SBSO_MONITOR; /* turn this on/off if you (don't) want to see progress on console */ 
+	for(a=0,bp=sb->bpoint; a<sb->totpoint; a++, bp++) {
+		VECADD(accu_pos,accu_pos,bp->pos);
+		accu_mass += bp->mass;
+	}
+	VECCOPY(com,accu_pos);
+	mul_v3_fl(com,1.0f/accu_mass);
+	/* center of mass done*/
+	if (sb->scratch){
+		float dcom[3],stunt[3];
+		float m[3][3],mr[3][3],q[3][3],qi[3][3];
+		float odet,ndet;
+		zero_m3(m);
+		zero_m3(mr);
+		VECSUB(dcom,com,sb->scratch->Ref.com);
+		VECCOPY(rcom,sb->scratch->Ref.com);
+		if (_localdebug) {
+			printf("DCOM %f %f %f\n",dcom[0],dcom[1],dcom[2]);  
+		}
+		if (lloc) VECCOPY(lloc,dcom);
+        VECCOPY(sb->lcom,dcom);
+		/* build 'projection' matrix */
+		for(a=0, bp=sb->bpoint, rp=sb->scratch->Ref.ivert; a<sb->totpoint; a++, bp++, rp++) {
+			VECSUB(va,rp->pos,rcom); 
+			la += len_v3(va);
+			/* mul_v3_fl(va,bp->mass);  mass needs renormalzation here ?? */ 
+			VECSUB(vb,bp->pos,com); 
+			lb += len_v3(vb);
+			/* mul_v3_fl(va,rp->mass); */
+			m[0][0] += va[0] * vb[0];
+			m[0][1] += va[0] * vb[1];
+			m[0][2] += va[0] * vb[2];
+
+			m[1][0] += va[1] * vb[0];
+			m[1][1] += va[1] * vb[1];
+			m[1][2] += va[1] * vb[2];
+
+			m[2][0] += va[2] * vb[0];
+			m[2][1] += va[2] * vb[1];
+			m[2][2] += va[2] * vb[2];
+
+			/* building the referenc matrix on the fly
+			needed to scale properly later*/
+          
+			mr[0][0] += va[0] * va[0];
+			mr[0][1] += va[0] * va[1];
+			mr[0][2] += va[0] * va[2];
+
+			mr[1][0] += va[1] * va[0];
+			mr[1][1] += va[1] * va[1];
+			mr[1][2] += va[1] * va[2];
+
+			mr[2][0] += va[2] * va[0];
+			mr[2][1] += va[2] * va[1];
+			mr[2][2] += va[2] * va[2];
+		}
+		/* we are pretty much set up here and we could return that raw mess containing essential information
+		but being nice fellows we proceed:
+		knowing we did split off the tanslational part to the center of mass (com) part
+		however let's do some more reverse engeneering and see if we can split 
+		rotation from scale ->Polardecompose
+		*/
+		copy_m3_m3(q,m);
+		stunt[0] = q[0][0]; stunt[1] = q[1][1]; stunt[2] = q[2][2];
+		/* nothing to see here but renormalizing works nicely
+		printf("lenght stunt %5.3f a %5.3f b %5.3f %5.3f\n",len_v3(stunt),la,lb,sqrt(la*lb));
+		*/
+		mul_m3_fl(q,1.f/len_v3(stunt)); 
+		/* not too much to see here
+			if(_localdebug){
+				printf("q0 %5.3f %5.3f %5.3f\n",q[0][0],q[0][1],q[0][2]);
+				printf("q1 %5.3f %5.3f %5.3f\n",q[1][0],q[1][1],q[1][2]);
+				printf("q2 %5.3f %5.3f %5.3f\n",q[2][0],q[2][1],q[2][2]);
+			}
+			*/
+		/* this is pretty much Polardecompose 'inline' the algo based on Higham's thesis */
+		/* without the far case !!! but seems to work here pretty neat                   */
+		odet = 0.f;
+		ndet = _det_m3(q);
+		while((odet-ndet)*(odet-ndet) > eps && i<imax){
+			invert_m3_m3(qi,q);
+			transpose_m3(qi);
+			add_m3_m3m3(q,q,qi);
+			mul_m3_fl(q,0.5f);
+			odet =ndet;
+			ndet =_det_m3(q);
+			i++;
+		}
+		if (i){
+			float scale[3][3];
+			float irot[3][3];
+			if(lrot) copy_m3_m3(lrot,q);
+			copy_m3_m3(sb->lrot,q);
+			if(_localdebug){
+				printf("Rot .. i %d\n",i);
+				printf("!q0 %5.3f %5.3f %5.3f\n",q[0][0],q[0][1],q[0][2]);
+				printf("!q1 %5.3f %5.3f %5.3f\n",q[1][0],q[1][1],q[1][2]);
+				printf("!q2 %5.3f %5.3f %5.3f\n",q[2][0],q[2][1],q[2][2]);
+			}
+			invert_m3_m3(irot,q);
+			/* now that's where we need mr to get scaling right */
+			invert_m3_m3(qi,mr);
+			mul_m3_m3m3(q,m,qi); 
+
+			//mul_m3_m3m3(scale,q,irot);
+			mul_m3_m3m3(scale,irot,q); /*  i always have a problem with this C functions left/right operator applies first*/
+  		    mul_m3_fl(scale,lb/la); /* 0 order scale was normalized away so put it back here  dunno if that is needed here ???*/
+
+			if(lscale) copy_m3_m3(lscale,scale);
+			copy_m3_m3(sb->lscale,scale);
+			if(_localdebug){
+				printf("Scale .. \n");
+				printf("!s0 %5.3f %5.3f %5.3f\n",scale[0][0],scale[0][1],scale[0][2]);
+				printf("!s1 %5.3f %5.3f %5.3f\n",scale[1][0],scale[1][1],scale[1][2]);
+				printf("!s2 %5.3f %5.3f %5.3f\n",scale[2][0],scale[2][1],scale[2][2]);
+			}
+
+			
+		}
+	}
+	/*for threading there should be a unlock */
+	/* sb-> unlock; */
+}
+
 static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int numVerts)
 {
 	BodyPoint *bp;
@@ -3750,6 +3961,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 	sb->scratch->needstobuildcollider=1; 
 
 	/* copy some info to scratch */
+	if (1) reference_to_scratch(ob); /* wa only need that if we want to reconstruct IPO */
 	switch(ob->type) {
 	case OB_MESH:
 		if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
@@ -3932,7 +4144,6 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
 		//cache->last_exact= 0;
-
 		return;
 	}
 	else if(framenr > endframe) {
@@ -3967,22 +4178,23 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	if(BKE_ptcache_get_continue_physics()) {
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
-
 		/* do simulation */
 		dtime = timescale;
-
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
 		softbody_step(scene, ob, sb, dtime);
+		if(sb->solverflags & SBSO_MONITOR ){
+			printf("Picked from cache continue_physics %d\n",framenr);
+		}
 
 		softbody_to_object(ob, vertexCos, numVerts, 0);
-
 		return;
 	}
 
 	/* still no points? go away */
-	if(sb->totpoint==0) return;
-
-	if(framenr == startframe) {
+	if(sb->totpoint==0) {
+		return;
+	}
+    if(framenr == startframe) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 
 		/* first frame, no simulation to do, just set the positions */
@@ -3998,6 +4210,9 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	cache_result = BKE_ptcache_read_cache(&pid, framenr, scene->r.frs_sec);
 
 	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
+		if(sb->solverflags & SBSO_MONITOR ){
+			printf("Picked from cache at frame %d\n",framenr);
+		}
 		softbody_to_object(ob, vertexCos, numVerts, sb->local);
 
 		cache->simframe= framenr;
@@ -4035,7 +4250,6 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 
 	cache->simframe= framenr;
 	cache->flag |= PTCACHE_SIMULATION_VALID;
-
 	BKE_ptcache_write_cache(&pid, framenr);
 }
 
