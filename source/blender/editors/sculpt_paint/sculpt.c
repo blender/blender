@@ -153,7 +153,7 @@ typedef struct StrokeCache {
 	int grab_active_totnode[8];
 	float grab_active_location[8][3];
 	float grab_delta[3], grab_delta_symmetry[3];
-	float old_grab_location[3];
+	float old_grab_location[3], orig_grab_location[3];
 	int symmetry; /* Symmetry index between 0 and 7 */
 	float view_normal[3], view_normal_symmetry[3];
 	int last_rake[2]; /* Last location of updating rake rotation */
@@ -932,8 +932,8 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 		while(sculpt_node_verts_next(&vd)) {
 			const float fade = tex_strength(ss, brush, origco[vd.i], vd.dist)*bstrength;
 			const float add[3]= {vd.co[0]+fade*grab_delta[0],
-								 vd.co[1]+fade*grab_delta[1],
-								 vd.co[2]+fade*grab_delta[2]};
+					     vd.co[1]+fade*grab_delta[1],
+					     vd.co[2]+fade*grab_delta[2]};
 
 			sculpt_clip(sd, ss, vd.co, add);			
 			ss->mvert[vd.index].flag |= ME_VERT_PBVH_UPDATE;
@@ -1545,7 +1545,6 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 {
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
-	float grab_location[3];
 	
 	int dx, dy;
 
@@ -1598,8 +1597,12 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 
 	/* Find the grab delta */
 	if(brush->sculpt_tool == SCULPT_TOOL_GRAB) {
-		// XXX: view3d_unproject(cache->mats, grab_location, cache->mouse[0], cache->mouse[1], cache->depth);
-		initgrabz(cache->vc->rv3d, cache->true_location[0], cache->true_location[1], cache->true_location[2]);
+		float grab_location[3];
+
+		if(cache->first_time)
+			copy_v3_v3(cache->orig_grab_location, cache->true_location);
+
+		initgrabz(cache->vc->rv3d, cache->orig_grab_location[0], cache->orig_grab_location[1], cache->orig_grab_location[2]);
 		window_to_3d_delta(cache->vc->ar, grab_location, cache->mouse[0], cache->mouse[1]);
 
 		if(!cache->first_time)
