@@ -1437,7 +1437,7 @@ static void rna_def_material_physics(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Material Physics", "Physics settings for a Material datablock.");
 	
 	prop= RNA_def_property(srna, "align_to_normal", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_FH_NOR);
+	RNA_def_property_boolean_sdna(prop, NULL, "dynamode", MA_FH_NOR);
 	RNA_def_property_ui_text(prop, "Align to Normal", "Align dynamic game objects along the surface normal, when inside the physics distance area");
 	
 	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
