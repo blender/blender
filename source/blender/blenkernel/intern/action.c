@@ -62,6 +62,8 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_idprop.h"
+
 #include "BIK_api.h"
 
 #include "BLI_math.h"
@@ -564,16 +566,27 @@ void init_pose_ikparam(bPose *pose)
 	}
 }
 
+void free_pose_channel(bPoseChannel *pchan)
+{
+	if (pchan->path)
+		MEM_freeN(pchan->path);
+
+	free_constraints(&pchan->constraints);
+
+	if(pchan->prop) {
+		IDP_FreeProperty(pchan->prop);
+		MEM_freeN(pchan->prop);
+	}
+}
+
 void free_pose_channels(bPose *pose) 
 {
 	bPoseChannel *pchan;
 	
 	if (pose->chanbase.first) {
-		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
-			if (pchan->path)
-				MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
-		}
+		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next)
+			free_pose_channel(pchan);
+
 		BLI_freelistN(&pose->chanbase);
 	}
 }

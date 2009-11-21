@@ -1530,8 +1530,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			}
 			
 			/* free stuff from current channel */
-			if (pchan->path) MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			
 			/* the final copy */
 			*pchan= pchanw;
@@ -1586,9 +1585,7 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	for(pchan= pose->chanbase.first; pchan; pchan= next) {
 		next= pchan->next;
 		if(pchan->bone==NULL) {
-			if(pchan->path)
-				MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			BLI_freelinkN(&pose->chanbase, pchan);
 		}
 	}
