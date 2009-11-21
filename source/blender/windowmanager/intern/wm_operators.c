@@ -167,65 +167,88 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *us
 
 /* ********************* macro operator ******************** */
 
+typedef struct {
+	int retval;
+} MacroData;
+
+static void wm_macro_start(wmOperator *op)
+{
+	if (op->customdata == NULL) {
+		op->customdata = MEM_callocN(sizeof(MacroData), "MacroData");
+	}
+}
+
+static int wm_macro_end(wmOperator *op, int retval)
+{
+	if (retval & OPERATOR_CANCELLED) {
+		MacroData *md = op->customdata;
+
+		if (md->retval & OPERATOR_FINISHED) {
+			retval |= OPERATOR_FINISHED;
+			retval &= ~OPERATOR_CANCELLED;
+		}
+	}
+
+	/* if modal is ending, free custom data */
+	if (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED)) {
+		if (op->customdata) {
+			MEM_freeN(op->customdata);
+		}
+	}
+
+	return retval;
+}
+
 /* macro exec only runs exec calls */
 static int wm_macro_exec(bContext *C, wmOperator *op)
 {
 	wmOperator *opm;
 	int retval= OPERATOR_FINISHED;
 	
-//	printf("macro exec %s\n", op->type->idname);
-	
+	wm_macro_start(op);
+
 	for(opm= op->macro.first; opm; opm= opm->next) {
 		
 		if(opm->type->exec) {
-//			printf("macro exec %s\n", opm->type->idname);
 			retval= opm->type->exec(C, opm);
 		
-			if(!(retval & OPERATOR_FINISHED))
-				break;
+			if (retval & OPERATOR_FINISHED) {
+				MacroData *md = op->customdata;
+				md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
+			} else {
+				break; /* operator didn't finish, end macro */
+			}
 		}
 	}
-//	if(opm)
-//		printf("macro ended not finished\n");
-//	else
-//		printf("macro end\n");
 	
-	return retval;
+	return wm_macro_end(op, retval);
 }
 
 int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event, wmOperator *opm)
 {
 	int retval= OPERATOR_FINISHED;
 
-//	printf("macro invoke %s\n", op->type->idname);
-
 	/* start from operator received as argument */
 	for( ; opm; opm= opm->next) {
-
 		if(opm->type->invoke)
 			retval= opm->type->invoke(C, opm, event);
 		else if(opm->type->exec)
 			retval= opm->type->exec(C, opm);
 
-		/* if modal, pass operator flags to macro, they may be needed later */
-		if(retval & OPERATOR_RUNNING_MODAL)
-			op->flag = opm->flag;
-
-		if(!(retval & OPERATOR_FINISHED))
-			break;
+		if (retval & OPERATOR_FINISHED) {
+			MacroData *md = op->customdata;
+			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
+		} else {
+			break; /* operator didn't finish, end macro */
+		}
 	}
 
-//	if(opm)
-//		printf("macro ended not finished\n");
-//	else
-//		printf("macro end\n");
-
-
-	return retval;
+	return wm_macro_end(op, retval);
 }
 
 static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	wm_macro_start(op);
 	return wm_macro_invoke_internal(C, op, event, op->macro.first);
 }
 
@@ -233,16 +256,18 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmOperator *opm = op->opm;
 	int retval= OPERATOR_FINISHED;
-//	printf("macro modal %s\n", op->type->idname);
 	
 	if(opm==NULL)
 		printf("macro error, calling NULL modal()\n");
 	else {
-//		printf("macro modal %s\n", op->opm->type->idname);
 		retval = opm->type->modal(C, opm, event);
 
 		/* if this one is done but it's not the last operator in the macro */
 		if ((retval & OPERATOR_FINISHED) && opm->next) {
+			MacroData *md = op->customdata;
+
+			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
+
 			retval = wm_macro_invoke_internal(C, op, event, opm->next);
 
 			/* if new operator is modal and also added its own handler */
@@ -281,11 +306,20 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 					WM_cursor_grab(CTX_wm_window(C), wrap, FALSE, bounds);
 				}
 			}
-
 		}
-	}	
-	
-	return retval;
+	}
+
+	return wm_macro_end(op, retval);
+}
+
+static int wm_macro_cancel(bContext *C, wmOperator *op)
+{
+	/* call cancel on the current modal operator, if any */
+	if (op->opm && op->opm->type->cancel) {
+		op->opm->type->cancel(C, op->opm);
+	}
+
+	return wm_macro_end(op, OPERATOR_CANCELLED);
 }
 
 /* Names have to be static for now */
@@ -308,6 +342,7 @@ wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
 	ot->exec= wm_macro_exec;
 	ot->invoke= wm_macro_invoke;
 	ot->modal= wm_macro_modal;
+	ot->cancel= wm_macro_cancel;
 	ot->poll= NULL;
 	
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)"); // XXX All ops should have a description but for now allow them not to.
