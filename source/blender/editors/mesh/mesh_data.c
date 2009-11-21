@@ -196,11 +196,12 @@ int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 
 int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 {
+	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
-	cdl= (index == -1)? NULL: &me->fdata.layers[index];
+ 	index= CustomData_get_active_layer_index(data, CD_MTFACE);
+	cdl= (index == -1) ? NULL: &data->layers[index];
 
 	if(!cdl)
 		return 0;
@@ -255,11 +256,12 @@ int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 
 int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 {
+	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
-	cdl= (index == -1)? NULL: &me->fdata.layers[index];
+ 	index= CustomData_get_active_layer_index(data, CD_MCOL);
+	cdl= (index == -1)? NULL: &data->layers[index];
 
 	if(!cdl)
 		return 0;
