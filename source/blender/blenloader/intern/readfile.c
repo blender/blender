@@ -10426,15 +10426,56 @@ static void expand_constraint_channels(FileData *fd, Main *mainvar, ListBase *ch
 	}
 }
 
-// XXX depreceated - old animation system
+static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
+{
+	FModifier *fcm;
+	
+	for (fcm= list->first; fcm; fcm= fcm->next) {
+		/* library data for specific F-Modifier types */
+		switch (fcm->type) {
+			case FMODIFIER_TYPE_PYTHON:
+			{
+				FMod_Python *data= (FMod_Python *)fcm->data;
+				
+				expand_doit(fd, mainvar, data->script);
+			}
+				break;
+		}
+	}
+}
+
+static void expand_fcurves(FileData *fd, Main *mainvar, ListBase *list)
+{
+	FCurve *fcu;
+	
+	for (fcu= list->first; fcu; fcu= fcu->next) {
+		/* Driver targets if there is a driver */
+		if (fcu->driver) {
+			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
+			
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
+				expand_doit(fd, mainvar, dtar->id);
+		}
+		
+		/* F-Curve Modifiers */
+		expand_fmodifiers(fd, mainvar, &fcu->modifiers);
+	}
+}
+
 static void expand_action(FileData *fd, Main *mainvar, bAction *act)
 {
 	bActionChannel *chan;
 	
+	// XXX depreceated - old animation system --------------
 	for (chan=act->chanbase.first; chan; chan=chan->next) {
 		expand_doit(fd, mainvar, chan->ipo);
 		expand_constraint_channels(fd, mainvar, &chan->constraintChannels);
 	}
+	// ---------------------------------------------------
+	
+	/* F-Curves in Action */
+	expand_fcurves(fd, mainvar, &act->curves);
 }
 
 static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
@@ -10458,6 +10499,9 @@ static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *lis
 		/* check child strips */
 		expand_animdata_nlastrips(fd, mainvar, &strip->strips);
 		
+		/* check F-Modifiers */
+		expand_fmodifiers(fd, mainvar, &strip->modifiers);
+		
 		/* relink referenced action */
 		expand_doit(fd, mainvar, strip->act);
 	}
@@ -10465,7 +10509,6 @@ static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *lis
 
 static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 {
-	FCurve *fcd;
 	NlaTrack *nlt;
 	
 	/* own action */
@@ -10473,13 +10516,7 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 	expand_doit(fd, mainvar, adt->tmpact);
 	
 	/* drivers - assume that these F-Curves have driver data to be in this list... */
-	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
-		ChannelDriver *driver= fcd->driver;
-		DriverTarget *dtar;
-		
-		for (dtar= driver->targets.first; dtar; dtar= dtar->next)
-			expand_doit(fd, mainvar, dtar->id);
-	}
+	expand_fcurves(fd, mainvar, &adt->drivers);
 	
 	/* nla-data - referenced actions */
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) 
