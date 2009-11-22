@@ -501,7 +501,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('SOUND')
+        return (strip.type == 'SOUND')
 
     def draw(self, context):
         layout = self.layout
@@ -535,7 +535,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('SCENE')
+        return (strip.type == 'SCENE')
 
     def draw(self, context):
         layout = self.layout
