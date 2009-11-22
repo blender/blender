@@ -72,12 +72,12 @@ class AddPresetCloth(AddPresetBase):
     name = AddPresetBase.name
     
     preset_values = [
-        "bpy.context.active_object.modifiers['Cloth'].settings.quality",
-        "bpy.context.active_object.modifiers['Cloth'].settings.mass",
-        "bpy.context.active_object.modifiers['Cloth'].settings.structural_stiffness",
-        "bpy.context.active_object.modifiers['Cloth'].settings.bending_stiffness",
-        "bpy.context.active_object.modifiers['Cloth'].settings.spring_damping",
-        "bpy.context.active_object.modifiers['Cloth'].settings.air_damping",
+        "bpy.context.cloth.settings.quality",
+        "bpy.context.cloth.settings.mass",
+        "bpy.context.cloth.settings.structural_stiffness",
+        "bpy.context.cloth.settings.bending_stiffness",
+        "bpy.context.cloth.settings.spring_damping",
+        "bpy.context.cloth.settings.air_damping",
     ]
     
     preset_path = os.path.join("presets", "cloth")

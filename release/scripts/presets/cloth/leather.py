@@ -1,6 +1,6 @@
-bpy.context.active_object.modifiers['Cloth'].settings.quality = 15
-bpy.context.active_object.modifiers['Cloth'].settings.mass = 0.4
-bpy.context.active_object.modifiers['Cloth'].settings.structural_stiffness = 80
-bpy.context.active_object.modifiers['Cloth'].settings.bending_stiffness = 150
-bpy.context.active_object.modifiers['Cloth'].settings.spring_damping = 25
-bpy.context.active_object.modifiers['Cloth'].settings.air_damping = 1
+bpy.context.cloth.settings.quality = 15
+bpy.context.cloth.settings.mass = 0.4
+bpy.context.cloth.settings.structural_stiffness = 80
+bpy.context.cloth.settings.bending_stiffness = 150
+bpy.context.cloth.settings.spring_damping = 25
+bpy.context.cloth.settings.air_damping = 1
