@@ -5,11 +5,10 @@
 	<TITLE>A brief introduction to Blender</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Win32)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20091122;16164300">
+	<META NAME="CHANGED" CONTENT="20091122;19562400">
 </HEAD>
 <BODY LANG="de-DE" DIR="LTR">
-<H1 LANG="en-US" ALIGN=CENTER><A NAME="top"></A>Blender v2.5 beta
-series</H1>
+<H1 LANG="en-US" ALIGN=CENTER><A NAME="top"></A>Blender v2.5 alpha 0</H1>
 <P><BR><BR>
 </P>
 <OL>
@@ -109,18 +108,18 @@ scripting language for im/exporters, UI buttons layout and other
 areas like presets. On Windows, Python 3.1 is included in the zip
 package from blender.org. 
 </P>
-<P LANG="en-US">In other platforms Python is usually a standard
+<P LANG="en-US">On other platforms Python is usually a standard
 component nowadays, so unless there's a version mismatch or an
-incomplete py installation, there should be no problems.</P>
+incomplete Python installation, there should be no problems.</P>
 <P LANG="en-US">Even if you do have the right version of Python
 installed you may need to tell the embedded Python interpreter where
 the installation is. To do that it's enough to set a system variable
 called PYTHON to the full path to the stand-alone Python executable
-(to find out execute &quot;import sys; print sys.executable&quot;
-inside the stand-alone interpreter, not in Blender). To check which
-Python was linked to your Blender binary, execute &quot;import sys;
-print sys.version&quot; at Blender's text editor), it's 3.1.something
--- only the two first numbers should have to match with yours.</P>
+(to find out execute &quot;import sys; print (sys.executable)&quot;
+inside the stand-alone interpreter, not in Blender). In Blender 2.5
+alpha 0,  Python  3.1 is linked to your Blender binary, so you have
+to use a Python 3.1.x version. 
+</P>
 <P ALIGN=RIGHT><A HREF="#top"><SPAN LANG="en-US">back to top</SPAN></A></P>
 <H2 LANG="en-US"><A NAME="start"></A>3. Getting Started</H2>
 <P LANG="en-US">Blender's main strength is at modeling, animating and
@@ -388,7 +387,7 @@ and pulldown menus. That means also the 2D options for OpenGL should
 work good, something easily ignored or badly tested by 3d card
 manufacturers, who target more at the latest SFX features for new 3d
 games.<BR>In general Blender performs very well on 3d cards from
-renowned brands, such as NVidia, ATI or 3dLabs.</P>
+renowned brands, such as NVIDIA, ATI or 3dLabs.</P>
 <H3 LANG="en-US"><A NAME="trouble_py"></A>Scripts</H3>
 <P><SPAN LANG="en-US">To be sure that some functionality is scripted:
 all scripts in Blender can be accessed from the &quot;Scripts&quot;
