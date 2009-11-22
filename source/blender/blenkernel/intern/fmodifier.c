@@ -890,18 +890,23 @@ static void fcm_sound_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, floa
 {
 	FMod_Sound *data= (FMod_Sound *)fcm->data;
 	float amplitude;
-
-	AUD_Device* device;
-	SoundHandle* handle;
-	AUD_Sound* limiter;
+	
+	AUD_Device *device;
+	AUD_Sound *limiter;
 	AUD_SoundInfo info;
-
+	
+	// XXX fixme - need to get in terms of time instead of frames to be really useful
 //	evaltime = FRA2TIME(evaltime);
 	evaltime -= data->delay;
-
-	if(evaltime < 0.0f || data->sound == NULL || data->sound->cache == NULL)
+	
+	/* sound-system cannot cope with negative times/frames */
+	if (evaltime < 0.0f)
+		return;
+	/* must have a sound with a cache so that this can be used */
+	if (ELEM(NULL, data->sound, data->sound->cache))
 		return;
 
+	/* examine this snippet of the wave, and extract the amplitude from it */
 	info = AUD_getInfo(data->sound->cache);
 	info.specs.channels = 1;
 	info.specs.format = AUD_FORMAT_FLOAT32;
@@ -909,7 +914,7 @@ static void fcm_sound_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, floa
 	limiter = AUD_limitSound(data->sound->cache, evaltime, evaltime + 1);
 	AUD_playDevice(device, limiter);
 	AUD_unload(limiter);
-	AUD_readDevice(device, &amplitude, 1);
+	AUD_readDevice(device, (sample_t*)&amplitude, 1);
 	AUD_closeReadDevice(device);
 
 	/* combine the amplitude with existing motion data */

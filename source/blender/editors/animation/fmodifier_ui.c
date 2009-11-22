@@ -330,40 +330,44 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 /* draw settings for sound modifier */
 static void draw_modifier__sound(const bContext *C, uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
+	FMod_Sound *data= (FMod_Sound *)fcm->data;
 	uiLayout *split, *col;
 	PointerRNA ptr;
-	FMod_Sound *data= (FMod_Sound *)fcm->data;
-
+	
 	/* init the RNA-pointer */
 	RNA_pointer_create(id, &RNA_FModifierSound, fcm, &ptr);
-
+	
 	/* sound */
-	uiTemplateID(layout, C, &ptr, "sound", NULL, "sound.open", NULL);
-
-	if(data->sound)
+	uiTemplateID(layout, (bContext*)C, &ptr, "sound", NULL, "sound.open", NULL);
+	
+	if (data->sound)
 	{
-		if(data->sound->cache)
+		/* only sounds that are cached can be used, so display error if not cached */
+		if (data->sound->cache)
 		{
 			/* blending mode */
 			uiItemR(layout, NULL, 0, &ptr, "modification", 0);
-
+			
 			/* split into 2 columns */
 			split= uiLayoutSplit(layout, 0.5f);
-
+			
 			/* col 1 */
 			col= uiLayoutColumn(split, 0);
 			uiItemR(col, NULL, 0, &ptr, "strength", 0);
-
+			
 			/* col 2 */
 			col= uiLayoutColumn(split, 0);
 			uiItemR(col, NULL, 0, &ptr, "delay", 0);
 		}
 		else
 		{
-			PointerRNA ptr2;
-			RNA_id_pointer_create(data->sound, &ptr2);
+			PointerRNA id_ptr;
+			
+			RNA_id_pointer_create((ID *)data->sound, &id_ptr);
+			
+			/* error message with a button underneath allowing users to rectify the issue */
 			uiItemL(layout, "Sound must be cached.", ICON_ERROR);
-			uiItemR(layout, NULL, 0, &ptr2, "caching", UI_ITEM_R_TOGGLE);
+			uiItemR(layout, NULL, 0, &id_ptr, "caching", UI_ITEM_R_TOGGLE);
 		}
 	}
 }
