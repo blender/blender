@@ -72,6 +72,75 @@ class VIEW3D_MT_showhide(bpy.types.Menu):
         layout.item_booleanO("%s.hide" % self._operator_name, "unselected", True, text="Hide Unselected")
 
 
+class VIEW3D_MT_transform(bpy.types.Menu):
+    bl_label = "Transform"
+
+    # TODO: get rid of the custom text strings?
+    def draw(self, context):
+        layout = self.layout
+        
+        layout.itemO("tfm.translate", text="Grab/Move")
+        # TODO: sub-menu for grab per axis
+        layout.itemO("tfm.rotate", text="Rotate")
+        # TODO: sub-menu for rot per axis
+        layout.itemO("tfm.resize", text="Scale")
+        # TODO: sub-menu for scale per axis
+        
+        layout.itemS()
+        
+        layout.itemO("tfm.tosphere", text="To Sphere")
+        layout.itemO("tfm.shear", text="Shear")
+        layout.itemO("tfm.warp", text="Warp")
+        layout.item_enumO("tfm.transform", "mode", 'PUSHPULL', text="Push/Pull")
+        if context.edit_object and context.edit_object.type == 'ARMATURE':
+            layout.itemO("armature.align")
+        else:
+            layout.operator_context = 'EXEC_AREA'
+            layout.item_enumO("tfm.transform", "mode", 'ALIGN', text="Align to Transform Orientation") # XXX see alignmenu() in edit.c of b2.4x to get this working
+        
+        layout.itemS()
+        
+        layout.operator_context = 'EXEC_AREA'
+        
+        layout.item_enumO("object.center_set", "type", 'CENTER')
+        layout.item_enumO("object.center_set", "type", 'CENTERNEW')
+        layout.item_enumO("object.center_set", "type", 'CENTERCURSOR')
+     
+class VIEW3D_MT_mirror(bpy.types.Menu):
+    bl_label = "Mirror"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.itemO("tfm.mirror", text="Interactive Mirror")
+        
+        layout.itemS()
+        
+        layout.operator_context = 'EXEC_AREA'
+        
+        props = layout.itemO("tfm.mirror", properties=True, text="X Global")
+        props.constraint_axis = (True, False, False)
+        props.constraint_orientation = 'GLOBAL'
+        props = layout.itemO("tfm.mirror", properties=True, text="Y Global")
+        props.constraint_axis = (False, True, False)
+        props.constraint_orientation = 'GLOBAL'
+        props = layout.itemO("tfm.mirror", properties=True, text="Z Global")
+        props.constraint_axis = (False, False, True)
+        props.constraint_orientation = 'GLOBAL'
+        
+        if context.edit_object:
+            layout.itemS()
+            
+            props = layout.itemO("tfm.mirror", properties=True, text="X Local")
+            props.constraint_axis = (True, False, False)
+            props.constraint_orientation = 'LOCAL'
+            props = layout.itemO("tfm.mirror", properties=True, text="Y Local")
+            props.constraint_axis = (False, True, False)
+            props.constraint_orientation = 'LOCAL'
+            props = layout.itemO("tfm.mirror", properties=True, text="Z Local")
+            props.constraint_axis = (False, False, True)
+            props.constraint_orientation = 'LOCAL'
+   
 class VIEW3D_MT_snap(bpy.types.Menu):
     bl_label = "Snap"
 
@@ -501,6 +570,8 @@ class VIEW3D_MT_object(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.itemM("VIEW3D_MT_transform")
+        layout.itemM("VIEW3D_MT_mirror")
         layout.itemM("VIEW3D_MT_object_clear")
         layout.itemM("VIEW3D_MT_object_apply")
         layout.itemM("VIEW3D_MT_snap")
@@ -759,7 +830,9 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout = self.layout
 
         arm = context.active_object.data
-
+        
+        layout.itemM("VIEW3D_MT_transform")
+        layout.itemM("VIEW3D_MT_snap")
         if arm.drawtype in ('BBONE', 'ENVELOPE'):
             layout.item_enumO("tfm.transform", "mode", 'BONESIZE', text="Scale Envelope Distance")
 
@@ -906,6 +979,8 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.itemS()
 
+        layout.itemM("VIEW3D_MT_transform")
+        layout.itemM("VIEW3D_MT_mirror")
         layout.itemM("VIEW3D_MT_snap")
 
         layout.itemS()
@@ -1094,7 +1169,9 @@ def draw_curve(self, context):
     layout = self.layout
 
     settings = context.tool_settings
-
+    
+    layout.itemM("VIEW3D_MT_transform")
+    layout.itemM("VIEW3D_MT_mirror")
     layout.itemM("VIEW3D_MT_snap")
 
     layout.itemS()
@@ -1228,7 +1305,9 @@ class VIEW3D_MT_edit_meta(bpy.types.Menu):
         layout.itemO("ed.redo")
 
         layout.itemS()
-
+        
+        layout.itemM("VIEW3D_MT_transform")
+        layout.itemM("VIEW3D_MT_mirror")
         layout.itemM("VIEW3D_MT_snap")
 
         layout.itemS()
@@ -1264,7 +1343,9 @@ class VIEW3D_MT_edit_lattice(bpy.types.Menu):
         layout = self.layout
 
         settings = context.tool_settings
-
+        
+        layout.itemM("VIEW3D_MT_transform")
+        layout.itemM("VIEW3D_MT_mirror")
         layout.itemM("VIEW3D_MT_snap")
 
         layout.itemS()
@@ -1285,7 +1366,9 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         edit_object = context.edit_object
         arm = edit_object.data
-
+        
+        layout.itemM("VIEW3D_MT_transform")
+        layout.itemM("VIEW3D_MT_mirror")
         layout.itemM("VIEW3D_MT_snap")
         layout.itemM("VIEW3D_MT_edit_armature_roll")
 
@@ -1730,6 +1813,11 @@ bpy.types.register(VIEW3D_MT_select_edit_lattice)
 bpy.types.register(VIEW3D_MT_select_edit_armature)
 bpy.types.register(VIEW3D_MT_select_face) # XXX todo
 
+bpy.types.register(VIEW3D_MT_transform) # Object/Edit Menus
+bpy.types.register(VIEW3D_MT_mirror) # Object/Edit Menus
+bpy.types.register(VIEW3D_MT_snap) # Object/Edit Menus
+bpy.types.register(VIEW3D_MT_uv_map) # Edit Menus
+
 bpy.types.register(VIEW3D_MT_object) # Object Menu
 bpy.types.register(VIEW3D_MT_object_apply)
 bpy.types.register(VIEW3D_MT_object_clear)
@@ -1758,9 +1846,6 @@ bpy.types.register(VIEW3D_MT_pose_group)
 bpy.types.register(VIEW3D_MT_pose_ik)
 bpy.types.register(VIEW3D_MT_pose_constraints)
 bpy.types.register(VIEW3D_MT_pose_showhide)
-
-bpy.types.register(VIEW3D_MT_snap) # Edit Menus
-bpy.types.register(VIEW3D_MT_uv_map) # Edit Menus
 
 bpy.types.register(VIEW3D_MT_edit_mesh)
 bpy.types.register(VIEW3D_MT_edit_mesh_specials) # Only as a menu for keybindings

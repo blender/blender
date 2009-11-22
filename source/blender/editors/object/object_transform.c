@@ -475,8 +475,14 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0f;
 		if(apply_scale)
 			ob->size[0]= ob->size[1]= ob->size[2]= 1.0f;
-		if(apply_rot)
+		if(apply_rot) {
 			ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
+			ob->quat[1]= ob->quat[2]= ob->quat[3]= 0.0f;
+			ob->rotAxis[0]= ob->rotAxis[2]= 0.0f;
+			ob->rotAngle= 0.0f;
+			
+			ob->quat[0]= ob->rotAxis[1]= 1.0f;
+		}
 
 		where_is_object(scene, ob);
 		ignore_parent_tx(bmain, scene, ob);
@@ -501,10 +507,16 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		where_is_object(scene, ob);
-
+		
 		VECCOPY(ob->loc, ob->obmat[3]);
-		mat4_to_size( ob->size,ob->obmat);
-		mat4_to_eul( ob->rot,ob->obmat);
+		mat4_to_size(ob->size,ob->obmat);
+		
+		if (ob->rotmode == ROT_MODE_QUAT)
+			mat4_to_quat(ob->quat, ob->obmat);
+		else if (ob->rotmode == ROT_MODE_AXISANGLE)
+			mat4_to_axis_angle(ob->rotAxis, &ob->rotAngle, ob->obmat);
+		else
+			mat4_to_eul(ob->rot,ob->obmat);
 		
 		where_is_object(scene, ob);
 		
@@ -639,14 +651,6 @@ void texspace_edit(Scene *scene, View3D *v3d)
 // XXX		initTransform(TFM_ROTATION, CTX_TEXTURE);
 // XXX		Transform();
 	}
-}
-
-/************************ Mirror Menu ****************************/
-
-void mirrormenu(void)
-{
-// XXX		initTransform(TFM_MIRROR, CTX_NO_PET);
-// XXX		Transform();
 }
 
 /********************* Set Object Center ************************/
