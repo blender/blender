@@ -158,14 +158,6 @@ class TEXT_MT_text(bpy.types.Menu):
 
         layout.itemO("text.properties", icon='ICON_MENU_PANEL')
 
-
-
-        #ifndef DISABLE_PYTHON
-        # XXX layout.column()
-        # XXX uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");
-        # XXX uiDefIconTextBlockBut(block, text_plugin_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Text Plugins", 0, yco-=20, 120, 19, "");
-        #endif
-
         layout.itemM("TEXT_MT_templates")
 
 
@@ -177,8 +169,7 @@ class TEXT_MT_templates(bpy.types.Menu):
 
     def draw(self, context):
         import os
-        template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "templates")
-        self.path_menu(template_dir, "text.open")
+        self.path_menu(bpy.utils.script_paths("templates"), "text.open")
 
 
 class TEXT_MT_edit_view(bpy.types.Menu):

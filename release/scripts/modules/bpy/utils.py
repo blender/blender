@@ -25,3 +25,27 @@ def expandpath(path):
 
     return path
 
+# base scripts
+_scripts = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
+_scripts = (os.path.normpath(_scripts), )
+
+def script_paths(*args):
+    if not args:
+        return _scripts
+
+    subdir = os.path.join(*args)
+    script_paths = []
+    for path in _scripts:
+        script_paths.append(os.path.join(path, subdir))
+
+    return script_paths
+
+
+_presets = os.path.join(_scripts[0], "presets") # FIXME - multiple paths 
+
+def preset_paths(subdir):
+	'''
+	Returns a list of paths for a spesific preset.
+	'''
+	
+	return (os.path.join(_presets, subdir), )

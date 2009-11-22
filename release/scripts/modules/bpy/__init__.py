@@ -25,21 +25,15 @@ context = _bpy.context
 
 # python modules
 from bpy import utils
-from bpy import ops as ops_module
+
+from bpy import ops as _ops_module
 
 # fake operator module
-ops = ops_module.ops_fake_module
-
-# load all scripts
-import os
-import sys
-
-# a bit nasty but this prevents help() and input() from locking blender
-# Ideally we could have some way for the console to replace sys.stdin but
-# python would lock blender while waiting for a return value, not easy :|
-sys.stdin = None
+ops = _ops_module.ops_fake_module
 
 def load_scripts(reload_scripts=False):
+    import os
+    import sys
     import traceback
 
     def test_import(module_name):
@@ -49,34 +43,44 @@ def load_scripts(reload_scripts=False):
             traceback.print_exc()
             return None
 
-    base_path = os.path.join(os.path.dirname(__file__), "..", "..")
-    base_path = os.path.normpath(base_path) # clean
+    for base_path in utils.script_paths():
+        print(base_path)
+        for path_subdir in ("ui", "op", "io"):
+            path = os.path.join(base_path, path_subdir)
+            sys.path.insert(0, path)
+            for f in sorted(os.listdir(path)):
+                if f.endswith(".py"):
+                    # python module
+                    mod = test_import(f[0:-3])
+                elif "." not in f:
+                    # python package
+                    mod = test_import(f)
+                else:
+                    mod = None
 
-    for path_subdir in ("ui", "op", "io"):
-        path = os.path.join(base_path, path_subdir)
-        sys.path.insert(0, path)
-        for f in sorted(os.listdir(path)):
-            if f.endswith(".py"):
-                # python module
-                mod = test_import(f[0:-3])
-            elif "." not in f:
-                # python package
-                mod = test_import(f)
-            else:
-                mod = None
+                if reload_scripts and mod:
+                    print("Reloading:", mod)
+                    reload(mod)
 
-            if reload_scripts and mod:
-                print("Reloading:", mod)
-                reload(mod)
+def _main():
+
+    # a bit nasty but this prevents help() and input() from locking blender
+    # Ideally we could have some way for the console to replace sys.stdin but
+    # python would lock blender while waiting for a return value, not easy :|
+    import sys
+    sys.stdin = None
+
+    if "-d" in sys.argv and False: # Enable this to measure startup speed
+        import cProfile
+        cProfile.run('import bpy; bpy.load_scripts()', 'blender.prof')
+
+        import pstats
+        p = pstats.Stats('blender.prof')
+        p.sort_stats('cumulative').print_stats(100)
+
+    else:
+        load_scripts()
+
+_main()
 
 
-if "-d" in sys.argv and False: # Enable this to measure startup speed
-    import cProfile
-    cProfile.run('import bpy; bpy.load_scripts()', 'blender.prof')
-
-    import pstats
-    p = pstats.Stats('blender.prof')
-    p.sort_stats('cumulative').print_stats(100)
-
-else:
-    load_scripts()

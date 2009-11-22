@@ -35,11 +35,9 @@ class CLOTH_MT_presets(bpy.types.Menu):
     Creates the menu items by scanning scripts/templates
     '''
     bl_label = "Cloth Presets"
-
-    def draw(self, context):
-        import os
-        template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "presets", "cloth")
-        self.path_menu(template_dir, "script.python_file_run")
+    preset_subdir = "cloth"
+    preset_operator = "script.python_file_run"
+    draw = bpy.types.Menu.draw_preset
 
 
 class PhysicButtonsPanel(bpy.types.Panel):

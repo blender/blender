@@ -23,15 +23,10 @@ narrowui = 180
 
 
 class RENDER_MT_presets(bpy.types.Menu):
-    '''
-    Creates the menu items by scanning scripts/templates
-    '''
     bl_label = "Render Presets"
-
-    def draw(self, context):
-        import os
-        template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "presets", "render")
-        self.path_menu(template_dir, "script.python_file_run")
+    preset_subdir = "render"
+    preset_operator = "script.python_file_run"
+    draw = bpy.types.Menu.draw_preset
 
 
 class RenderButtonsPanel(bpy.types.Panel):

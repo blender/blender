@@ -110,7 +110,7 @@ class Operator(StructRNA, metaclass=OrderedMeta):
 
 class Menu(StructRNA):
     
-    def path_menu(self, searchpath, operator):
+    def path_menu(self, searchpaths, operator):
         layout = self.layout
         # hard coded to set the operators 'path' to the filename.
         
@@ -133,12 +133,24 @@ class Menu(StructRNA):
 
         layout = self.layout
 
-        for f in sorted(os.listdir(searchpath)):
+        # collect paths
+        files = []
+        for path in searchpaths:
+            files.extend([(f, os.path.join(path, f)) for f in os.listdir(path)])
+
+        files.sort()
+
+        for f, path in files:
 
             if f.startswith("."):
                 continue
 
-            path = os.path.join(searchpath, f)
-            path = os.path.normpath(path)
             layout.item_stringO(operator, "path", path, text=path_to_name(f))
-
+    
+    def draw_preset(self, context):
+        '''Define these on the subclass
+         - preset_operator
+         - preset_subdir
+        '''
+        import bpy
+        self.path_menu(bpy.utils.preset_paths(self.preset_subdir), self.preset_operator)

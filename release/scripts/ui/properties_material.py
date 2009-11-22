@@ -37,11 +37,9 @@ def active_node_mat(mat):
 
 class MATERIAL_MT_sss_presets(bpy.types.Menu):
     bl_label = "SSS Presets"
-
-    def draw(self, context):
-        import os
-        template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "presets", "sss")
-        self.path_menu(template_dir, "script.python_file_run")
+    preset_subdir = "sss"
+    preset_operator = "script.python_file_run"
+    draw = bpy.types.Menu.draw_preset
 
 
 class MaterialButtonsPanel(bpy.types.Panel):
