@@ -465,7 +465,8 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	{
 		/* clear after PyErrPrint - seems it can be using
 		 * something in this dictionary and crash? */
-		PyDict_Clear(excdict);
+		// This doesn't appear to be needed anymore
+		//PyDict_Clear(excdict);
 		Py_DECREF(excdict);
 	}	
 	

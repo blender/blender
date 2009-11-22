@@ -1306,7 +1306,13 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
 	SG_SetActiveStage(SG_STAGE_RENDER);
 
+	// Run any pre-drawing python callbacks
+	scene->RunDrawingCallbacks(scene->GetPreDrawCB());
+
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
+
+	// Run any post-drawing python callbacks
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
