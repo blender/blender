@@ -591,9 +591,16 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		switch (type) {
 		case PROP_BOOLEAN:
 		{
-			int param = PyObject_IsTrue( value );
+			int param;
+			/* prefer not to have an exception here
+			 * however so many poll functions return None or a valid Object.
+			 * its a hassle to convert these into a bool before returning, */
+			if(RNA_property_flag(prop) & PROP_RETURN)
+				param = PyObject_IsTrue( value );
+			else
+				param = PyLong_AsSsize_t( value );
 			
-			if( param < 0 ) {
+			if( param < 0 || param > 1) {
 				PyErr_Format(PyExc_TypeError, "%.200s expected True/False or 0/1", error_prefix);
 				return -1;
 			} else {
@@ -681,7 +688,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptype));
 				return -1;
 			} else if((flag & PROP_NEVER_NULL) && value == Py_None) {
-				PyErr_Format(PyExc_TypeError, "property can't be assigned a None value");
+				PyErr_Format(PyExc_TypeError, "%.200s does not suppory a 'None' assignment %.200s type", error_prefix, RNA_struct_identifier(ptype));
 				return -1;
 			} else {
 				BPy_StructRNA *param= (BPy_StructRNA*)value;
@@ -813,9 +820,9 @@ static int pyrna_py_to_prop_index(BPy_PropertyRNA *self, int index, PyObject *va
 		switch (type) {
 		case PROP_BOOLEAN:
 			{
-				int param = PyObject_IsTrue( value );
+				int param = PyLong_AsSsize_t( value );
 		
-				if( param < 0 ) {
+				if( param < 0 || param > 1) {
 					PyErr_SetString(PyExc_TypeError, "expected True/False or 0/1");
 					ret = -1;
 				} else {

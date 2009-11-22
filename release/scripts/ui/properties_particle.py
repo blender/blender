@@ -221,7 +221,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
         sub.itemR(cloth, "pin_stiffness", text="Stiffness")
         sub.itemR(cloth, "mass")
         sub.itemR(cloth, "bending_stiffness", text="Bending")
-        sub.itemR(cloth, "internal_friction", slider="True")
+        sub.itemR(cloth, "internal_friction", slider=True)
 
         col = split.column()
 
@@ -410,9 +410,9 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             col = sub.column(align=True)
             col.active = boids.allow_flight
             col.itemR(boids, "air_max_speed")
-            col.itemR(boids, "air_min_speed", slider="True")
-            col.itemR(boids, "air_max_acc", slider="True")
-            col.itemR(boids, "air_max_ave", slider="True")
+            col.itemR(boids, "air_min_speed", slider=True)
+            col.itemR(boids, "air_max_acc", slider=True)
+            col.itemR(boids, "air_max_ave", slider=True)
             col.itemR(boids, "air_personal_space")
             row = col.row()
             row.active = (boids.allow_land or boids.allow_climb) and boids.allow_flight
@@ -423,8 +423,8 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             col.active = boids.allow_land or boids.allow_climb
             col.itemR(boids, "land_max_speed")
             col.itemR(boids, "land_jump_speed")
-            col.itemR(boids, "land_max_acc", slider="True")
-            col.itemR(boids, "land_max_ave", slider="True")
+            col.itemR(boids, "land_max_acc", slider=True)
+            col.itemR(boids, "land_max_ave", slider=True)
             col.itemR(boids, "land_personal_space")
             col.itemR(boids, "land_stick_force")
 
