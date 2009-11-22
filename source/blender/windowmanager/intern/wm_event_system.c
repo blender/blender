@@ -774,6 +774,30 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 				return 1;
 		}
 	}
+	/* exception for numpad emulation */
+	else if(U.flag & USER_NONUMPAD) {
+		wmKeyMapItem tmp= *kmi;
+
+		switch(kmi->type) {
+			case PAD0: tmp.type = ZEROKEY; break;
+			case PAD1: tmp.type = ONEKEY; break;
+			case PAD2: tmp.type = TWOKEY; break;
+			case PAD3: tmp.type = THREEKEY; break;
+			case PAD4: tmp.type = FOURKEY; break;
+			case PAD5: tmp.type = FIVEKEY; break;
+			case PAD6: tmp.type = SIXKEY; break;
+			case PAD7: tmp.type = SEVENKEY; break;
+			case PAD8: tmp.type = EIGHTKEY; break;
+			case PAD9: tmp.type = NINEKEY; break;
+			case PADMINUS: tmp.type = MINUSKEY; break;
+			case PADPLUSKEY: tmp.type = EQUALKEY; break;
+			case PADSLASHKEY: tmp.type = BACKSLASHKEY; break;
+		}
+
+		if(tmp.type != kmi->type)
+			if(wm_eventmatch(winevent, &tmp))
+				return 1;
+	}
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)

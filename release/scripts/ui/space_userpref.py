@@ -275,7 +275,6 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub1.itemR(system, "dpi")
         sub1.itemR(system, "frame_server_port")
         sub1.itemR(system, "scrollback", text="Console Scrollback")
-        sub1.itemR(system, "emulate_numpad")
         sub1.itemR(system, "auto_run_python_scripts")
 
         sub1.itemS()
@@ -1129,7 +1128,9 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.row().itemR(inputs, "middle_mouse", expand=True)
 
         sub.itemS()
-        sub.itemS()
+
+        sub.itemR(inputs, "emulate_numpad")
+
         sub.itemS()
 
         sub.itemL(text="Orbit Style:")
