@@ -156,7 +156,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
 
-        if ob.shape_key_lock == False:
+        if ob.shape_key_lock is False:
             if enable_edit or (ob.type == 'MESH' and ob.shape_key_edit_mode):
                 enable_edit_value = True
 

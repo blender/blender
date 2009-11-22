@@ -135,7 +135,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
         parent = ob.parent
         if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
             sub.item_pointerR(ob, "parent_bone", parent.data, "bones", text="")
-        sub.active = parent != None
+        sub.active = (parent is not None)
 
 
 class OBJECT_PT_groups(ObjectButtonsPanel):
@@ -276,10 +276,10 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.active = len(ob.particle_systems) != 0
         row = col.row()
         row.itemR(ob, "time_offset_parent", text="Parent")
-        row.active = ob.parent != None
+        row.active = (ob.parent is not None)
         row = col.row()
         row.itemR(ob, "slow_parent")
-        row.active = ob.parent != None
+        row.active = (ob.parent is not None)
         col.itemR(ob, "time_offset", text="Offset")
 
         if wide_ui:
@@ -290,7 +290,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         col.itemR(ob, "up_axis", text="Up Axis")
         row = col.row()
         row.itemR(ob, "track_override_parent", text="Override Parent")
-        row.active = ob.parent != None
+        row.active = (ob.parent is not None)
 
 
 class OBJECT_PT_properties(ObjectButtonsPanel):

@@ -26,14 +26,14 @@ from properties_physics_common import basic_force_field_falloff_ui
 
 
 def particle_panel_enabled(context, psys):
-    return psys.point_cache.baked == False and psys.edited == False and (not context.particle_system_editable)
+    return (psys.point_cache.baked is False) and (not psys.edited) and (not context.particle_system_editable)
 
 
 def particle_panel_poll(context):
     psys = context.particle_system
-    if psys == None:
+    if psys is None:
         return False
-    if psys.settings == None:
+    if psys.settings is None:
         return False
     return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
 
@@ -110,14 +110,14 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 
                 split = layout.split(percentage=0.65)
                 if part.type == 'HAIR':
-                    if psys.edited == True:
+                    if psys.edited:
                         split.itemO("particle.edited_clear", text="Free Edit")
                     else:
                         split.itemL(text="")
                     row = split.row()
                     row.enabled = particle_panel_enabled(context, psys)
                     row.itemR(part, "hair_step")
-                    if psys.edited == True:
+                    if psys.edited:
                         if psys.global_hair:
                             layout.itemO("particle.connect_hair")
                             layout.itemL(text="Hair is disconnected.")
@@ -190,9 +190,9 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
 
     def poll(self, context):
         psys = context.particle_system
-        if psys == None:
+        if psys is None:
             return False
-        if psys.settings == None:
+        if psys.settings is None:
             return False
         return psys.settings.type == 'HAIR'
 
@@ -240,9 +240,9 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 
     def poll(self, context):
         psys = context.particle_system
-        if psys == None:
+        if psys is None:
             return False
-        if psys.settings == None:
+        if psys.settings is None:
             return False
         phystype = psys.settings.physics_type
         if phystype == 'NO' or phystype == 'KEYED':
@@ -488,9 +488,9 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 
     def poll(self, context):
         psys = context.particle_system
-        if psys == None:
+        if psys is None:
             return False
-        if psys.settings == None:
+        if psys.settings is None:
             return False
         if psys.point_cache.external:
             return False
@@ -586,9 +586,9 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 
     def poll(self, context):
         psys = context.particle_system
-        if psys == None:
+        if psys is None:
             return False
-        if psys.settings == None:
+        if psys.settings is None:
             return False
         return True
 
@@ -625,20 +625,20 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
             sub.itemR(part, "velocity_length")
         elif part.ren_as == 'PATH':
 
-            if part.type != 'HAIR' and part.physics_type != 'KEYED' and psys.point_cache.baked == False:
+            if part.type != 'HAIR' and part.physics_type != 'KEYED' and (psys.point_cache.baked is False):
                 box = layout.box()
                 box.itemL(text="Baked or keyed particles needed for correct rendering.")
                 return
 
             sub.itemR(part, "render_strand")
             subsub = sub.column()
-            subsub.active = part.render_strand == False
+            subsub.active = (part.render_strand is False)
             subsub.itemR(part, "render_adaptive")
             subsub = sub.column()
             subsub.active = part.render_adaptive or part.render_strand == True
             subsub.itemR(part, "adaptive_angle")
             subsub = sub.column()
-            subsub.active = part.render_adaptive == True and part.render_strand == False
+            subsub.active = (part.render_adaptive is True and part.render_strand is False)
             subsub.itemR(part, "adaptive_pix")
             sub.itemR(part, "hair_bspline")
             sub.itemR(part, "render_step", text="Steps")
@@ -675,12 +675,12 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
             sub = split.column()
             sub.itemR(part, "whole_group")
             subsub = sub.column()
-            subsub.active = part.whole_group == False
+            subsub.active = (part.whole_group is False)
             subsub.itemR(part, "use_group_count")
 
             sub = split.column()
             subsub = sub.column()
-            subsub.active = part.whole_group == False
+            subsub.active = (part.whole_group is False)
             subsub.itemR(part, "use_global_dupli")
             subsub.itemR(part, "rand_group")
 
@@ -754,9 +754,9 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 
     def poll(self, context):
         psys = context.particle_system
-        if psys == None:
+        if psys is None:
             return False
-        if psys.settings == None:
+        if psys.settings is None:
             return False
         return True
 
@@ -774,7 +774,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 
         path = (part.ren_as == 'PATH' and part.draw_as == 'RENDER') or part.draw_as == 'PATH'
 
-        if path and part.type != 'HAIR' and part.physics_type != 'KEYED' and psys.point_cache.baked == False:
+        if path and part.type != 'HAIR' and part.physics_type != 'KEYED' and psys.point_cache.baked is False:
             box = layout.box()
             box.itemL(text="Baked or keyed particles needed for correct drawing.")
             return
@@ -801,7 +801,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
             col.itemR(part, "draw_step")
         else:
             sub = col.column()
-            sub.active = part.material_color == False
+            sub.active = (part.material_color is False)
             #sub.itemL(text="color")
             #sub.itemL(text="Override material color")
 

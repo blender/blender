@@ -127,18 +127,18 @@ class DATA_PT_bone_groups(DataButtonsPanel):
         row.template_list(pose, "bone_groups", pose, "active_bone_group_index", rows=2)
 
         col = row.column(align=True)
-        col.active = (ob.proxy == None)
+        col.active = (ob.proxy is None)
         col.itemO("pose.group_add", icon='ICON_ZOOMIN', text="")
         col.itemO("pose.group_remove", icon='ICON_ZOOMOUT', text="")
 
         group = pose.active_bone_group
         if group:
             col = layout.column()
-            col.active = (ob.proxy == None)
+            col.active = (ob.proxy is None)
             col.itemR(group, "name")
 
             split = layout.split()
-            split.active = (ob.proxy == None)
+            split.active = (ob.proxy is None)
 
             col = split.column()
             col.itemR(group, "color_set")
@@ -148,7 +148,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
                 col.template_triColorSet(group, "colors")
 
         row = layout.row(align=True)
-        row.active = (ob.proxy == None)
+        row.active = (ob.proxy is None)
 
         row.itemO("pose.group_assign", text="Assign")
         row.itemO("pose.group_remove", text="Remove") #row.itemO("pose.bone_group_remove_from", text="Remove")

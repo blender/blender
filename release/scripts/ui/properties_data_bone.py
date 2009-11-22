@@ -185,7 +185,7 @@ class BONE_PT_relations(BoneButtonsPanel):
             col.item_pointerR(bone, "parent", arm, "edit_bones", text="")
 
         sub = col.column()
-        sub.active = bone.parent != None
+        sub.active = (bone.parent is not None)
         sub.itemR(bone, "connected")
         sub.itemR(bone, "hinge", text="Inherit Rotation")
         sub.itemR(bone, "inherit_scale", text="Inherit Scale")

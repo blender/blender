@@ -37,7 +37,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         rd = context.scene.render_data
-        return (context.scene and rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
+        return (context.scene and rd.use_game_engine is False) and (rd.engine in self.COMPAT_ENGINES)
 
 
 class RENDER_PT_render(RenderButtonsPanel):

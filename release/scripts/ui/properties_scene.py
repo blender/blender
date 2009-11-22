@@ -107,7 +107,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
     bl_label = "Active Keying Set"
 
     def poll(self, context):
-        return (context.scene != None) and (context.scene.active_keying_set != None)
+        return (context.scene.active_keying_set is not None)
 
     def draw(self, context):
         layout = self.layout
@@ -141,7 +141,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
             col = row.column()
             col.itemL(text="Array Target:")
             col.itemR(ksp, "entire_array")
-            if ksp.entire_array == False:
+            if ksp.entire_array is False:
                 col.itemR(ksp, "array_index")
 
             if wide_ui:

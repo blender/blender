@@ -277,7 +277,7 @@ class SequencerButtonsPanel(bpy.types.Panel):
     bl_region_type = 'UI'
 
     def poll(self, context):
-        return context.space_data.display_mode == 'SEQUENCER' and act_strip(context) != None
+        return (context.space_data.display_mode == 'SEQUENCER') and (act_strip(context) is not None)
 
 
 class SequencerButtonsPanel_Output(bpy.types.Panel):
@@ -311,7 +311,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         row = layout.row()
         if strip.mute == True:
             row.itemR(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_ON', text="")
-        elif strip.mute == False:
+        elif strip.mute is False:
             row.itemR(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_OFF', text="")
 
         sub = row.row()

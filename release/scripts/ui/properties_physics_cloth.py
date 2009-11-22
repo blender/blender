@@ -27,7 +27,7 @@ from properties_physics_common import effector_weights_ui
 
 
 def cloth_panel_enabled(md):
-    return md.point_cache.baked == False
+    return md.point_cache.baked is False
     
 
 class CLOTH_MT_presets(bpy.types.Menu):

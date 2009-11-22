@@ -1248,7 +1248,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                 flow = itemcol.column_flow(columns=2)
                 props = kmi.properties
 
-                if props != None:
+                if props is not None:
                     for pname in dir(props):
                         if not props.is_property_hidden(pname):
                             flow.itemR(props, pname)
@@ -1351,7 +1351,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
                 props = kmi.properties
 
-                if props != None:
+                if props is not None:
                     for pname in dir(props):
                         if props.is_property_set(pname) and not props.is_property_hidden(pname):
                             value = eval("props.%s" % pname)
