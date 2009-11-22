@@ -22,6 +22,18 @@ import bpy
 narrowui = 180
 
 
+class SSS_MT_presets(bpy.types.Menu):
+    '''
+    Creates the menu items by scanning scripts/templates
+    '''
+    bl_label = "Subsurface Scattering Presets"
+
+    def draw(self, context):
+        import os
+        template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "presets", "sss")
+        self.path_menu(template_dir, "script.python_file_run")
+
+
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
     # which settings from node-materials are used
@@ -475,10 +487,15 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         sss = mat.subsurface_scattering
         wide_ui = context.region.width > narrowui
 
-        layout.active = sss.enabled
+        layout.active = (sss.enabled) and (not mat.shadeless)
+        
+        row = layout.row().split()
+        sub = row.row(align=True).split(percentage=0.75)
+        sub.itemM("SSS_MT_presets", text="Presets")
+        sub.itemO("sss.preset_add", text="Add")
+        row.itemL()
 
         split = layout.split()
-        split.active = (not mat.shadeless)
 
         col = split.column()
         col.itemR(sss, "ior")
@@ -861,6 +878,8 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
             col = split.column()
         col.itemL()
         col.itemR(vol, "depth_cutoff")
+        
+bpy.types.register(SSS_MT_presets)
 
 bpy.types.register(MATERIAL_PT_volume_density)
 bpy.types.register(MATERIAL_PT_volume_shading)
