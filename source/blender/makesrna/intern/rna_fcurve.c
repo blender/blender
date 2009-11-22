@@ -34,6 +34,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -49,6 +50,7 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},
 	{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
+	{FMODIFIER_TYPE_SOUND, "SOUND", 0, "Sound", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -76,6 +78,8 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 			return &RNA_FModifierPython;
 		case FMODIFIER_TYPE_LIMITS:
 			return &RNA_FModifierLimits;
+		case FMODIFIER_TYPE_SOUND:
+			return &RNA_FModifierSound;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -223,6 +227,11 @@ static FModifier *rna_FCurve_modifiers_new(FCurve *fcu, bContext *C, int type)
 static int rna_FCurve_modifiers_remove(FCurve *fcu, bContext *C, int index)
 {
 	return remove_fmodifier_index(&fcu->modifiers, index);
+}
+
+static int rna_Sound_id_editable(PointerRNA *ptr)
+{
+	return PROP_EDITABLE;
 }
 
 #else
@@ -532,6 +541,47 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 
 }
 
+
+/* --------- */
+
+static void rna_def_fmodifier_sound(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_modification_items[] = {
+		{FCM_SOUND_MODIF_REPLACE, "REPLACE", 0, "Replace", ""},
+		{FCM_SOUND_MODIF_ADD, "ADD", 0, "Add", ""},
+		{FCM_SOUND_MODIF_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
+		{FCM_SOUND_MODIF_MULTIPLY, "MULTIPLY", 0, "Multiply", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "FModifierSound", "FModifier");
+	RNA_def_struct_ui_text(srna, "Sound F-Modifier", "Modifies an F-Curve based on the amplitudes in a sound.");
+	RNA_def_struct_sdna_from(srna, "FMod_Sound", "data");
+
+	prop= RNA_def_property(srna, "modification", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_modification_items);
+	RNA_def_property_ui_text(prop, "Modification", "Method of modifying the existing F-Curve.");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strength");
+	RNA_def_property_ui_text(prop, "Strength", "Amplitude of the sound - the amount that it modifies the underlying curve");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+
+	prop= RNA_def_property(srna, "delay", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "delay");
+	RNA_def_property_ui_text(prop, "delay", "The delay before the sound curve modification should start");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+
+	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Sound");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_Sound_id_editable");
+	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this modifier.");
+
+}
 
 /* --------- */
 
@@ -850,6 +900,7 @@ void RNA_def_fcurve(BlenderRNA *brna)
 	rna_def_fmodifier_python(brna);
 	rna_def_fmodifier_limits(brna);
 	rna_def_fmodifier_noise(brna);
+	rna_def_fmodifier_sound(brna);
 }
 
 

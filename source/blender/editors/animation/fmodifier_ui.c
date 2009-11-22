@@ -247,7 +247,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 
 /* --------------- */
 
-/* draw settings for noise modifier */
+/* draw settings for generator modifier */
 static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	uiLayout *col;
@@ -323,6 +323,49 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	col= uiLayoutColumn(split, 0);
 	uiItemR(col, NULL, 0, &ptr, "phase", 0);
 	uiItemR(col, NULL, 0, &ptr, "depth", 0);
+}
+
+/* --------------- */
+
+/* draw settings for sound modifier */
+static void draw_modifier__sound(const bContext *C, uiLayout *layout, ID *id, FModifier *fcm, short width)
+{
+	uiLayout *split, *col;
+	PointerRNA ptr;
+	FMod_Sound *data= (FMod_Sound *)fcm->data;
+
+	/* init the RNA-pointer */
+	RNA_pointer_create(id, &RNA_FModifierSound, fcm, &ptr);
+
+	/* sound */
+	uiTemplateID(layout, C, &ptr, "sound", NULL, "sound.open", NULL);
+
+	if(data->sound)
+	{
+		if(data->sound->cache)
+		{
+			/* blending mode */
+			uiItemR(layout, NULL, 0, &ptr, "modification", 0);
+
+			/* split into 2 columns */
+			split= uiLayoutSplit(layout, 0.5f);
+
+			/* col 1 */
+			col= uiLayoutColumn(split, 0);
+			uiItemR(col, NULL, 0, &ptr, "strength", 0);
+
+			/* col 2 */
+			col= uiLayoutColumn(split, 0);
+			uiItemR(col, NULL, 0, &ptr, "delay", 0);
+		}
+		else
+		{
+			PointerRNA ptr2;
+			RNA_id_pointer_create(data->sound, &ptr2);
+			uiItemL(layout, "Sound must be cached.", ICON_ERROR);
+			uiItemR(layout, NULL, 0, &ptr2, "caching", UI_ITEM_R_TOGGLE);
+		}
+	}
 }
 
 /* --------------- */
@@ -590,7 +633,7 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 /* --------------- */
 
 
-void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
+void ANIM_uiTemplate_fmodifier_draw (const bContext *C, uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 	uiLayout *box, *row, *subrow;
@@ -665,11 +708,15 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 			case FMODIFIER_TYPE_LIMITS: /* Limits */
 				draw_modifier__limits(box, id, fcm, width);
 				break;
-			
+
 			case FMODIFIER_TYPE_NOISE: /* Noise */
 				draw_modifier__noise(box, id, fcm, width);
 				break;
-			
+
+			case FMODIFIER_TYPE_SOUND: /* Sound */
+				draw_modifier__sound(C, box, id, fcm, width);
+				break;
+
 			default: /* unknown type */
 				break;
 		}

@@ -203,6 +203,7 @@ extern StructRNA RNA_FModifierGenerator;
 extern StructRNA RNA_FModifierLimits;
 extern StructRNA RNA_FModifierNoise;
 extern StructRNA RNA_FModifierPython;
+extern StructRNA RNA_FModifierSound;
 extern StructRNA RNA_FieldSettings;
 extern StructRNA RNA_FileSelectParams;
 extern StructRNA RNA_FloatProperty;

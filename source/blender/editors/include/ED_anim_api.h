@@ -418,7 +418,7 @@ short ANIM_headerUI_standard_buttons(const struct bContext *C, struct bDopeSheet
 /* F-MODIFIER TOOLS */
 
 /* draw a given F-Modifier for some layout/UI-Block */
-void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
+void ANIM_uiTemplate_fmodifier_draw(const struct bContext *C, struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */

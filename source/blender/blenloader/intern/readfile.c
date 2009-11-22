@@ -1694,6 +1694,12 @@ static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
 				data->script = newlibadr(fd, id->lib, data->script);
 			}
 				break;
+			case FMODIFIER_TYPE_SOUND:
+			{
+				FMod_Sound *data= (FMod_Sound *)fcm->data;
+				data->sound = newlibadr(fd, id->lib, data->sound);
+			}
+				break;
 		}
 	}
 }
@@ -10438,6 +10444,13 @@ static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
 				FMod_Python *data= (FMod_Python *)fcm->data;
 				
 				expand_doit(fd, mainvar, data->script);
+			}
+				break;
+			case FMODIFIER_TYPE_SOUND:
+			{
+				FMod_Sound *data= (FMod_Sound *)fcm->data;
+
+				expand_doit(fd, mainvar, data->sound);
 			}
 				break;
 		}

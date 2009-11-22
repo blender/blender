@@ -450,7 +450,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
 		col= uiLayoutColumn(pa->layout, 1);
 		
-		ANIM_uiTemplate_fmodifier_draw(col, ale->id, &fcu->modifiers, fcm);
+		ANIM_uiTemplate_fmodifier_draw(C, col, ale->id, &fcu->modifiers, fcm);
 	}
 
 	MEM_freeN(ale);
