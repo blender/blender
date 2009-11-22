@@ -19,6 +19,8 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
@@ -47,9 +49,10 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 
         md = context.soft_body
         ob = context.object
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        split.operator_context = "EXEC_DEFAULT"
+        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings
@@ -62,7 +65,8 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
         else:
             # add modifier
             split.item_enumO("object.modifier_add", "type", 'SOFT_BODY', text="Add")
-            split.itemL("")
+            if wide_ui:
+                split.column()
 
         if md:
             softbody = md.settings
@@ -77,7 +81,8 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
             col.itemR(softbody, "mass")
             col.item_pointerR(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
 
-            col = split.column()
+            if wide_ui:
+                col = split.column()
             col.itemL(text="Simulation:")
             col.itemR(softbody, "speed")
 
@@ -91,7 +96,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 
     def draw(self, context):
         md = context.soft_body
-        point_cache_ui(self, md.point_cache, softbody_panel_enabled(md), 0, 0)
+        point_cache_ui(self, context, md.point_cache, softbody_panel_enabled(md), 0, 0)
 
 
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
@@ -113,6 +118,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         md = context.soft_body
         softbody = md.settings
         ob = context.object
+        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.use_goal and softbody_panel_enabled(md)
 
@@ -128,7 +134,8 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         sub.itemR(softbody, "goal_min", text="Minimum")
         sub.itemR(softbody, "goal_max", text="Maximum")
 
-        col = split.column()
+        if wide_ui:
+            col = split.column()
         col.itemL(text="Goal Settings:")
         col.itemR(softbody, "goal_spring", text="Stiffness")
         col.itemR(softbody, "goal_friction", text="Damping")
@@ -155,6 +162,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         md = context.soft_body
         softbody = md.settings
         ob = context.object
+        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.use_edges and softbody_panel_enabled(md)
 
@@ -170,7 +178,8 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         col.itemR(softbody, "spring_length", text="Length")
         col.item_pointerR(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
-        col = split.column()
+        if wide_ui:
+            col = split.column()
         col.itemR(softbody, "stiff_quads")
         sub = col.column()
         sub.active = softbody.stiff_quads
@@ -204,12 +213,15 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 
         md = context.soft_body
         softbody = md.settings
-        ob = context.object
+        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.self_collision and softbody_panel_enabled(md)
 
         layout.itemL(text="Collision Type:")
-        layout.itemR(softbody, "collision_type", expand=True)
+        if wide_ui:
+            layout.itemR(softbody, "collision_type", expand=True)
+        else:
+            layout.itemR(softbody, "collision_type", text="")
 
         col = layout.column(align=True)
         col.itemL(text="Ball:")
@@ -230,7 +242,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 
         md = context.soft_body
         softbody = md.settings
-        ob = context.object
+        wide_ui = context.region.width > narrowui
 
         layout.active = softbody_panel_enabled(md)
 
@@ -243,7 +255,8 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
         col.itemR(softbody, "maxstep")
         col.itemR(softbody, "auto_step", text="Auto-Step")
 
-        col = split.column()
+        if wide_ui:
+            col = split.column()
         col.itemR(softbody, "error_limit")
         col.itemL(text="Helpers:")
         col.itemR(softbody, "choke")
@@ -263,7 +276,8 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):
     def draw(self, context):
         md = context.soft_body
         softbody = md.settings
-        effector_weights_ui(self, softbody.effector_weights)
+
+        effector_weights_ui(self, context, softbody.effector_weights)
 
 bpy.types.register(PHYSICS_PT_softbody)
 bpy.types.register(PHYSICS_PT_softbody_cache)

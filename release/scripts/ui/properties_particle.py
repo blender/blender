@@ -208,7 +208,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
         layout = self.layout
 
         psys = context.particle_system
-        part = psys.settings
+        #part = psys.settings
         cloth = psys.cloth.settings
 
         layout.enabled = psys.hair_dynamics
@@ -250,11 +250,10 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
         return psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)
 
     def draw(self, context):
-        layout = self.layout
 
         psys = context.particle_system
 
-        point_cache_ui(self, psys.point_cache, particle_panel_enabled(context, psys), not psys.hair_dynamics, 0)
+        point_cache_ui(self, context, psys.point_cache, particle_panel_enabled(context, psys), not psys.hair_dynamics, 0)
 
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel):
@@ -477,7 +476,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
                 else:
                     sub = row.row()
                     #doesn't work yet
-                    #subrow.red_alert = key.valid
+                    #sub.red_alert = key.valid
                     sub.itemR(key, "object", text="")
                     sub.itemR(key, "system", text="System")
 
@@ -508,12 +507,12 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
         #row = layout.row()
         #row.template_list(boids, "states", boids, "active_boid_state_index", compact="True")
         #col = row.row()
-        #subrow = col.row(align=True)
-        #subrow.itemO("boid.state_add", icon='ICON_ZOOMIN', text="")
-        #subrow.itemO("boid.state_del", icon='ICON_ZOOMOUT', text="")
-        #subrow = row.row(align=True)
-        #subrow.itemO("boid.state_move_up", icon='VICON_MOVE_UP', text="")
-        #subrow.itemO("boid.state_move_down", icon='VICON_MOVE_DOWN', text="")
+        #sub = col.row(align=True)
+        #sub.itemO("boid.state_add", icon='ICON_ZOOMIN', text="")
+        #sub.itemO("boid.state_del", icon='ICON_ZOOMOUT', text="")
+        #sub = row.row(align=True)
+        #sub.itemO("boid.state_move_up", icon='VICON_MOVE_UP', text="")
+        #sub.itemO("boid.state_move_down", icon='VICON_MOVE_DOWN', text="")
 
         state = boids.active_boid_state
 
@@ -535,7 +534,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
         subsub.item_menu_enumO("boid.rule_add", "type", icon='ICON_ZOOMIN', text="")
         subsub.itemO("boid.rule_del", icon='ICON_ZOOMOUT', text="")
         sub = col.row()
-        subcol = sub.column(align=True)
+        subsub = sub.column(align=True)
         subsub.itemO("boid.rule_move_up", icon='VICON_MOVE_UP', text="")
         subsub.itemO("boid.rule_move_down", icon='VICON_MOVE_DOWN', text="")
 
@@ -570,9 +569,9 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
                 row.itemR(rule, "distance")
                 row = layout.row()
                 row.itemR(rule, "line")
-                subrow = row.row()
-                subrow.active = rule.line
-                subrow.itemR(rule, "queue_size")
+                sub = row.row()
+                sub.active = rule.line
+                sub.itemR(rule, "queue_size")
             elif rule.type == 'AVERAGE_SPEED':
                 row.itemR(rule, "speed", slider=True)
                 row.itemR(rule, "wander", slider=True)
@@ -890,7 +889,7 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel):
 
     def draw(self, context):
         part = context.particle_system.settings
-        effector_weights_ui(self, part.effector_weights)
+        effector_weights_ui(self, context, part.effector_weights)
 
         if part.type == 'HAIR':
             self.layout.itemR(part.effector_weights, "do_growing_hair")
@@ -910,8 +909,8 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel):
         split = layout.split(percentage=0.2)
         split.itemL(text="Type 1:")
         split.itemR(part.force_field_1, "type", text="")
-        basic_force_field_settings_ui(self, part.force_field_1)
-        basic_force_field_falloff_ui(self, part.force_field_1)
+        basic_force_field_settings_ui(self, context, part.force_field_1)
+        basic_force_field_falloff_ui(self, context, part.force_field_1)
 
         if part.force_field_1.type != 'NONE':
             layout.itemL(text="")
@@ -919,8 +918,8 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel):
         split = layout.split(percentage=0.2)
         split.itemL(text="Type 2:")
         split.itemR(part.force_field_2, "type", text="")
-        basic_force_field_settings_ui(self, part.force_field_2)
-        basic_force_field_falloff_ui(self, part.force_field_2)
+        basic_force_field_settings_ui(self, context, part.force_field_2)
+        basic_force_field_falloff_ui(self, context, part.force_field_2)
 
 
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
@@ -932,7 +931,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
 
         ob = context.object
         psys = context.particle_system
-        part = psys.settings
+        # part = psys.settings
 
         # layout.itemL(text="Nothing here yet.")
 

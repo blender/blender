@@ -27,6 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -45,6 +46,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_util.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -602,9 +604,9 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 			sce = seq->scene;
 		}
 
-		strncpy(seq->name + 2, sce->id.name + 2, 
-			sizeof(seq->name) - 2);
-
+		BLI_strncpy(seq->name+2, sce->id.name + 2, SEQ_NAME_MAXSTR-2);
+		seqUniqueName(scene->ed->seqbasep, seq);
+		
 		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
@@ -2226,7 +2228,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 	TStripElem * se1 = 0;
 	TStripElem * se2 = 0;
 	
-	sequence_effect_speed_rebuild_map(seq, 0);
+	sequence_effect_speed_rebuild_map(scene, seq, 0);
 	
 	f_cfra = seq->start + s->frameMap[nr];
 	
@@ -2413,9 +2415,10 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 		sh = get_sequence_blend(seq);
 
+#if 0 // XXX old animation system
 		seq->facf0 = seq->facf1 = 1.0;
 
-#if 0 // XXX old animation system
+
 		if(seq->ipo && seq->ipo->curve.first) {
 			do_seq_ipo(scene, seq, cfra);
 		} 
@@ -3053,7 +3056,7 @@ static void free_imbuf_seq_except(Scene *scene, int cfra)
 }
 #endif
 
-void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
+void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage)
 {
 	Sequence *seq;
 	TStripElem *se;
@@ -3111,11 +3114,11 @@ void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
 			if(seq->type==SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type==SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(seq, 1);
+				sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		if(seq->type==SEQ_META) {
-			free_imbuf_seq(&seq->seqbase, FALSE);
+			free_imbuf_seq(scene, &seq->seqbase, FALSE);
 		}
 		if(seq->type==SEQ_SCENE) {
 			/* FIXME: recurs downwards, 
@@ -3164,7 +3167,7 @@ static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *chan
 			if(seq->type == SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type == SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(seq, 1);
+				sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		
@@ -3509,4 +3512,206 @@ void seq_update_sound(struct Sequence *seq)
 		seq->sound_handle->mute = seq->flag & SEQ_MUTE ? 1 : 0;
 		seq->sound_handle->changed = -1;
 	}
+}
+
+Sequence *active_seq_get(Scene *scene)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	if(ed==NULL) return NULL;
+	return ed->act_seq;
+}
+
+void active_seq_set(Scene *scene, Sequence *seq)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	if(ed==NULL) return;
+
+	ed->act_seq= seq;
+}
+
+/* api like funcs for adding */
+
+void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
+{
+	if(seq) {
+		strcpy(seq->name, seq_load->name);
+		seqUniqueName(scene->ed->seqbasep, seq);
+
+		if(seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
+			seq_load->start_frame += (seq->enddisp - seq->startdisp);
+		}
+
+		if(seq_load->flag & SEQ_LOAD_REPLACE_SEL) {
+			seq_load->flag |= 1; /* SELECT */
+			active_seq_set(scene, seq);
+		}
+
+		if(seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
+			if(seq->sound)
+				sound_cache(seq->sound, 0);
+		}
+
+		seq_load->tot_success++;
+	}
+	else {
+		seq_load->tot_error++;
+	}
+}
+
+Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
+{
+	Sequence *seq;
+
+	seq= MEM_callocN( sizeof(Sequence), "addseq");
+	BLI_addtail(lb, seq);
+
+	*( (short *)seq->name )= ID_SEQ;
+	seq->name[2]= 0;
+
+	seq->flag= 1; /* SELECT */
+	seq->start= cfra;
+	seq->machine= machine;
+	seq->mul= 1.0;
+	seq->blend_opacity = 100.0;
+
+	return seq;
+}
+
+void seqUniqueName(ListBase *seqbasep, Sequence *seq)
+{
+	 BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
+}
+
+/* NOTE: this function doesn't fill in iamge names */
+Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for active seq */
+	Sequence *seq;
+	Strip *strip;
+	StripElem *se;
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+	seq->type= SEQ_IMAGE;
+	BLI_strncpy(seq->name+2, "Image", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
+	
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+
+	strip->len = seq->len = seq_load->len ? seq_load->len : 1;
+	strip->us= 1;
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+	
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
+}
+
+Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for sound */
+	Editing *ed= seq_give_editing(scene, TRUE);
+	bSound *sound;
+
+	Sequence *seq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+
+	AUD_SoundInfo info;
+
+	sound = sound_new_file(CTX_data_main(C), seq_load->path);
+
+	if (sound==NULL || sound->handle == NULL) {
+		//if(op)
+		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return NULL;
+	}
+
+	info = AUD_getInfo(sound->handle);
+
+	if (info.specs.format == AUD_FORMAT_INVALID) {
+		sound_delete(C, sound);
+		//if(op)
+		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return NULL;
+	}
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+
+	seq->type= SEQ_SOUND;
+	seq->sound= sound;
+	BLI_strncpy(seq->name+2, "Sound", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
+
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = (int) (info.length * FPS);
+	strip->us= 1;
+
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+
+	seq->sound_handle = sound_new_handle(scene, sound, seq_load->start_frame, seq_load->start_frame + strip->len, 0);
+
+	calc_sequence_disp(seq);
+
+	/* last active name */
+	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
+
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
+}
+
+Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for sound */
+
+	Sequence *seq, *soundseq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+
+	struct anim *an;
+
+	an = openanim(seq_load->path, IB_rect);
+
+	if(an==NULL)
+		return NULL;
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+
+	seq->type= SEQ_MOVIE;
+	seq->anim= an;
+	seq->anim_preseek = IMB_anim_get_preseek(an);
+	BLI_strncpy(seq->name+2, "Movie", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
+
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = IMB_anim_get_duration( an );
+	strip->us= 1;
+
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+
+	calc_sequence_disp(seq);
+
+
+	if(seq_load->flag & SEQ_LOAD_MOVIE_SOUND) {
+		int start_frame_back= seq_load->start_frame;
+		seq_load->channel++;
+
+		soundseq = sequencer_add_sound_strip(C, seqbasep, seq_load);
+
+		seq_load->start_frame= start_frame_back;
+		seq_load->channel--;
+	}
+
+	/* can be NULL */
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
 }

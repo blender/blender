@@ -175,6 +175,9 @@ void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
 	/* local viewmat and persmat, to calculate projections */
 	wmGetMatrix(rv3d->viewmatob);
 	wmGetSingleMatrix(rv3d->persmatob);
+
+	/* initializes object space clipping, speeds up clip tests */
+	ED_view3d_local_clipping(rv3d, ob->obmat);
 }
 
 /* ******************** default callbacks for view3d space ***************** */

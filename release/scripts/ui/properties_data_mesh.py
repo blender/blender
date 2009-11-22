@@ -19,6 +19,8 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -39,15 +41,21 @@ class DATA_PT_context_mesh(DataButtonsPanel):
         ob = context.object
         mesh = context.mesh
         space = context.space_data
+        wide_ui = context.region.width > narrowui
 
-        split = layout.split(percentage=0.65)
-
-        if ob:
-            split.template_ID(ob, "data")
-            split.itemS()
-        elif mesh:
-            split.template_ID(space, "pin_id")
-            split.itemS()
+        if wide_ui:
+            split = layout.split(percentage=0.65)
+            if ob:
+                split.template_ID(ob, "data")
+                split.itemS()
+            elif mesh:
+                split.template_ID(space, "pin_id")
+                split.itemS()
+        else:
+            if ob:
+                layout.template_ID(ob, "data")
+            elif mesh:
+                layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_normals(DataButtonsPanel):
@@ -57,6 +65,7 @@ class DATA_PT_normals(DataButtonsPanel):
         layout = self.layout
 
         mesh = context.mesh
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -66,7 +75,10 @@ class DATA_PT_normals(DataButtonsPanel):
         sub.active = mesh.autosmooth
         sub.itemR(mesh, "autosmooth_angle", text="Angle")
 
-        col = split.column()
+        if wide_ui:
+            col = split.column()
+        else:
+            col.itemS()
         col.itemR(mesh, "vertex_normal_flip")
         col.itemR(mesh, "double_sided")
 
@@ -79,10 +91,7 @@ class DATA_PT_settings(DataButtonsPanel):
 
         mesh = context.mesh
 
-        split = layout.split()
-
-        col = split.column()
-        col.itemR(mesh, "texture_mesh")
+        layout.itemR(mesh, "texture_mesh")
 
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
@@ -142,6 +151,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
         ob = context.object
         key = ob.data.shape_keys
         kb = ob.active_shape_key
+        wide_ui = context.region.width > narrowui
 
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
@@ -173,10 +183,16 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             split = layout.split(percentage=0.4)
             row = split.row()
             row.enabled = enable_edit
-            row.itemR(key, "relative")
+            if wide_ui:
+                row.itemR(key, "relative")
 
             row = split.row()
             row.alignment = 'RIGHT'
+
+            if not wide_ui:
+                layout.itemR(key, "relative")
+                row = layout.row()
+
 
             sub = row.row(align=True)
             subsub = sub.row(align=True)
@@ -213,7 +229,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
                     col.itemR(kb, "slider_min", text="Min")
                     col.itemR(kb, "slider_max", text="Max")
 
-                    col = split.column(align=True)
+                    if wide_ui:
+                        col = split.column(align=True)
                     col.active = enable_edit_value
                     col.itemL(text="Blend:")
                     col.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")

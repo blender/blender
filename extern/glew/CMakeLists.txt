@@ -34,5 +34,7 @@ SET(SRC
 	src/glew.c
 )
 
+ADD_DEFINITIONS(-DGLEW_STATIC)
+
 BLENDERLIB(extern_glew "${SRC}" "${INC}")
 

@@ -1395,7 +1395,7 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 				// FIXME: this currently only works with a few hardcoded cases
 				if ((ksp->templates & KSP_TEMPLATE_PCHAN) && (cks->pchan)) {
 					/* add basic pose-channel path access */
-					BLI_dynstr_append(pathds, "pose.pose_channels[\"");
+					BLI_dynstr_append(pathds, "pose.bones[\"");
 					BLI_dynstr_append(pathds, cks->pchan->name);
 					BLI_dynstr_append(pathds, "\"]");
 					

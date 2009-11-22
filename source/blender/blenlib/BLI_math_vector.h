@@ -99,6 +99,7 @@ void interp_v2_v2v2(float r[2], float a[2], float b[2], float t);
 void interp_v2_v2v2v2(float r[2], float a[2], float b[2], float c[3], float t[3]);
 void interp_v3_v3v3(float r[3], float a[3], float b[3], float t);
 void interp_v3_v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float w[3]);
+void interp_v3_v3v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float v4[3], float w[4]);
 
 void mid_v3_v3v3(float r[3], float a[3], float b[3]);
 

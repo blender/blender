@@ -194,7 +194,15 @@ def write_func(rna, ident, out, func_type):
         if rna_prop_type=='pointer':
             rna_prop_type_refine = "L{%s}" % rna_prop.fixed_type.identifier
         else:
-            rna_prop_type_refine = rna_prop_type
+            # Collections/Arrays can have a srna type
+            rna_prop_srna_type = rna_prop.srna
+            if rna_prop_srna_type:
+                print(rna_prop_srna_type.identifier)
+                rna_prop_type_refine = "L{%s}" % rna_prop_srna_type.identifier
+            else:
+                rna_prop_type_refine = rna_prop_type
+            
+            del rna_prop_srna_type
 
 
         try:		length = rna_prop.array_length
@@ -373,6 +381,13 @@ def rna2epy(BASEPATH):
 
             if rna_prop_type=='collection':	collection_str = 'Collection of '
             else:							collection_str = ''
+            
+            # some collections have a srna for their own properties
+            # TODO - arrays, however this isnt used yet
+            rna_prop_srna_type = rna_prop.srna
+            if rna_prop_srna_type:
+                collection_str =  "L{%s} %s" % (rna_prop_srna_type.identifier, collection_str)
+            del rna_prop_srna_type
 
             try:		rna_prop_ptr = rna_prop.fixed_type
             except:	rna_prop_ptr = None
@@ -530,12 +545,11 @@ def rna2epy(BASEPATH):
             if rna_id_ignore(rna_prop_identifier):			continue
             if rna_prop_identifier in rna_base_prop_keys:	continue
 
-            try:		rna_prop_ptr = rna_prop.fixed_type
-            except:	rna_prop_ptr = None
-
-            # Does this property point to me?
-            if rna_prop_ptr:
-                rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_prop_identifier) )
+            
+            for rna_prop_ptr in (getattr(rna_prop, "fixed_type", None), getattr(rna_prop, "srna", None)):
+                # Does this property point to me?
+                if rna_prop_ptr:
+                    rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_prop_identifier) )
 
         for rna_func in rna_struct.functions:
             for rna_prop_identifier, rna_prop in rna_func.parameters.items():

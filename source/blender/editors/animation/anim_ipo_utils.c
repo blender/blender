@@ -109,9 +109,9 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 *	- however, if we're showing subdata of bones (probably there will be other exceptions later)
 			 *	  need to include that info too since it gets confusing otherwise
 			 */
-			if (strstr(fcu->rna_path, "pose_channels") && strstr(fcu->rna_path, "constraints")) {
+			if (strstr(fcu->rna_path, "bones") && strstr(fcu->rna_path, "constraints")) {
 				/* perform string 'chopping' to get "Bone Name : Constraint Name" */
-				char *pchanName= BLI_getQuotedStr(fcu->rna_path, "pose_channels[");
+				char *pchanName= BLI_getQuotedStr(fcu->rna_path, "bones[");
 				char *constName= BLI_getQuotedStr(fcu->rna_path, "constraints[");
 				
 				/* assemble the string to display in the UI... */

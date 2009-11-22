@@ -854,13 +854,16 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 				 *	- Action
 				 *	- Drivers
 				 *	- TODO... some others?
+				 *
+				 *	note: this isn't well tested, we could also try remove
+				 *	      from all lists just to be safe - campbell
 				 */
 				if (fcu->grp)
 					action_groups_remove_channel(adt->action, fcu);
-				else if (adt->action)
-					BLI_remlink(&adt->action->curves, fcu);
 				else if (ac.datatype == ANIMCONT_DRIVERS)
 					BLI_remlink(&adt->drivers, fcu);
+				else if (adt->action)
+					BLI_remlink(&adt->action->curves, fcu);
 					
 				/* free the F-Curve itself */
 				free_fcurve(fcu);

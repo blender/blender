@@ -165,6 +165,8 @@ BF_EXPAT = '/usr'
 BF_EXPAT_LIB = 'expat'
 BF_EXPAT_LIBPATH = '/usr/lib'
 
+WITH_BF_OPENMP = True
+
 ##
 CC = 'gcc'
 CXX = 'g++'
@@ -173,7 +175,7 @@ CXX = 'g++'
 
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
-CPPFLAGS = ['-DXP_UNIX']
+CPPFLAGS = []
 CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']

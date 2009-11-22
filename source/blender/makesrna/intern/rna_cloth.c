@@ -53,6 +53,18 @@ static void rna_cloth_update(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 }
 
+static void rna_cloth_reset(bContext *C, PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
+
+	settings->reset = 1;
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+}
+
+
 static void rna_ClothSettings_max_bend_set(struct PointerRNA *ptr, float value)
 {
 	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
@@ -272,7 +284,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "structural_stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "structural");
-	RNA_def_property_range(prop, 1.0f, 10000.0f);
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Structural Stiffness", "Overall stiffness of structure.");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
@@ -311,6 +323,13 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Weights", "");
 
+	prop= RNA_def_property(srna, "pre_roll", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "preroll");
+	RNA_def_property_range(prop, 0, 200);
+	RNA_def_property_ui_text(prop, "Pre Roll", "Simulation starts on this frame.");
+	RNA_def_property_update(prop, 0, "rna_cloth_reset");
+
+
 	/* unused */
 
 	/* unused still
@@ -337,12 +356,6 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Effector Wind Scale", ""); */
 	
-	/* unused still
-	prop= RNA_def_property(srna, "pre_roll", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "preroll");
-	RNA_def_property_range(prop, 10, 80;
-	RNA_def_property_ui_text(prop, "Pre Roll", "Simulation starts on this frame."); */
-
 	/* unused still
 	prop= RNA_def_property(srna, "tearing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_TEARING);

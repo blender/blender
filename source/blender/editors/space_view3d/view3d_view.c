@@ -680,7 +680,7 @@ void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
 	adr[0]= IS_CLIPPED;
 	
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		if(view3d_test_clipping(rv3d, vec))
+		if(view3d_test_clipping(rv3d, vec, 0))
 			return;
 	}
 	
@@ -1610,7 +1610,7 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	
 	game_set_commmandline_options(&startscene->gm);
 
-	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
+	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS && startscene->gm.stereoflag != STEREO_DOME) { /* Letterbox */
 		rctf cam_framef;
 		calc_viewborder(startscene, ar, CTX_wm_view3d(C), &cam_framef);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;

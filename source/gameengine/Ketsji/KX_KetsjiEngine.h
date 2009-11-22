@@ -380,6 +380,9 @@ public:
 	 * @param b Blue component of the override color.
 	 */
 	void GetOverrideFrameColor(float& r, float& g, float& b) const;
+
+	KX_Scene*		CreateScene(const STR_String& scenename);
+	KX_Scene*		CreateScene(Scene *scene);
 	
 protected:
 	/**
@@ -399,7 +402,6 @@ protected:
 	void			AddScheduledScenes(void);
 	void			ReplaceScheduledScenes(void);
 	void			PostProcessScene(class KX_Scene* scene);
-	KX_Scene*		CreateScene(const STR_String& scenename);
 	
 	bool			BeginFrame();
 	void			ClearFrame();

@@ -27,9 +27,9 @@
 #include <string.h>
 #include <stdlib.h>
 #ifndef WIN32
+ #include <libgen.h>
  #include <unistd.h>
  #include <sys/param.h>
-// #include <libgen.h>
 #else
  #include <io.h>
  #include "BLI_winstuff.h"

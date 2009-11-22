@@ -65,6 +65,7 @@ def validate_arguments(args, bc):
 			'WITHOUT_BF_PYTHON_INSTALL',
 			'WITH_BF_OPENMP',
 			'WITH_GHOST_COCOA',
+			'USE_QTKIT',
 			'BF_FANCY', 'BF_QUIET',
 			'BF_X264_CONFIG',
 			'BF_XVIDCORE_CONFIG',
@@ -314,6 +315,7 @@ def read_opts(cfg, args):
 
 		(BoolVariable('WITH_BF_OPENMP', 'Use OpenMP if true', False)),
 		(BoolVariable('WITH_GHOST_COCOA', 'Use Cocoa-framework if true', False)),
+		(BoolVariable('USE_QTKIT', 'Use QTKIT if true', False)),
 
 		(BoolVariable('WITH_BF_QUICKTIME', 'Use QuickTime if true', False)),
 		('BF_QUICKTIME', 'QuickTime base path', ''),

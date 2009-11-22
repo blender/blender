@@ -78,6 +78,16 @@ static int rna_ksPath_id_editable(PointerRNA *ptr)
 	return (ksp->idtype)? PROP_EDITABLE : 0;
 }
 
+static void rna_ksPath_id_type_set(PointerRNA *ptr, int value)
+{
+	KS_Path *data= (KS_Path*)(ptr->data);
+	
+	/* set the driver type, then clear the id-block if the type is invalid */
+	data->idtype= value;
+	if ((data->id) && (GS(data->id->name) != data->idtype))
+		data->id= NULL;
+}
+
 static void rna_ksPath_RnaPath_get(PointerRNA *ptr, char *value)
 {
 	KS_Path *ksp= (KS_Path *)ptr->data;
@@ -179,6 +189,7 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
 	RNA_def_property_enum_items(prop, id_type_items);
 	RNA_def_property_enum_default(prop, ID_OB);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_ksPath_id_type_set", NULL);
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
 	
 	/* Group */

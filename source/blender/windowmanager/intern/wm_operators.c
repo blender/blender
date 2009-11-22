@@ -167,71 +167,159 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *us
 
 /* ********************* macro operator ******************** */
 
+typedef struct {
+	int retval;
+} MacroData;
+
+static void wm_macro_start(wmOperator *op)
+{
+	if (op->customdata == NULL) {
+		op->customdata = MEM_callocN(sizeof(MacroData), "MacroData");
+	}
+}
+
+static int wm_macro_end(wmOperator *op, int retval)
+{
+	if (retval & OPERATOR_CANCELLED) {
+		MacroData *md = op->customdata;
+
+		if (md->retval & OPERATOR_FINISHED) {
+			retval |= OPERATOR_FINISHED;
+			retval &= ~OPERATOR_CANCELLED;
+		}
+	}
+
+	/* if modal is ending, free custom data */
+	if (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED)) {
+		if (op->customdata) {
+			MEM_freeN(op->customdata);
+		}
+	}
+
+	return retval;
+}
+
 /* macro exec only runs exec calls */
 static int wm_macro_exec(bContext *C, wmOperator *op)
 {
 	wmOperator *opm;
 	int retval= OPERATOR_FINISHED;
 	
-//	printf("macro exec %s\n", op->type->idname);
-	
+	wm_macro_start(op);
+
 	for(opm= op->macro.first; opm; opm= opm->next) {
 		
 		if(opm->type->exec) {
-//			printf("macro exec %s\n", opm->type->idname);
 			retval= opm->type->exec(C, opm);
 		
-			if(!(retval & OPERATOR_FINISHED))
-				break;
+			if (retval & OPERATOR_FINISHED) {
+				MacroData *md = op->customdata;
+				md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
+			} else {
+				break; /* operator didn't finish, end macro */
+			}
 		}
 	}
-//	if(opm)
-//		printf("macro ended not finished\n");
-//	else
-//		printf("macro end\n");
 	
-	return retval;
+	return wm_macro_end(op, retval);
 }
 
-static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event, wmOperator *opm)
 {
-	wmOperator *opm;
 	int retval= OPERATOR_FINISHED;
-	
-//	printf("macro invoke %s\n", op->type->idname);
-	
-	for(opm= op->macro.first; opm; opm= opm->next) {
-		
+
+	/* start from operator received as argument */
+	for( ; opm; opm= opm->next) {
 		if(opm->type->invoke)
 			retval= opm->type->invoke(C, opm, event);
 		else if(opm->type->exec)
 			retval= opm->type->exec(C, opm);
-		
-		if(!(retval & OPERATOR_FINISHED))
-			break;
+
+		if (retval & OPERATOR_FINISHED) {
+			MacroData *md = op->customdata;
+			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
+		} else {
+			break; /* operator didn't finish, end macro */
+		}
 	}
-	
-//	if(opm)
-//		printf("macro ended not finished\n");
-//	else
-//		printf("macro end\n");
-	
-	
-	return retval;
+
+	return wm_macro_end(op, retval);
+}
+
+static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wm_macro_start(op);
+	return wm_macro_invoke_internal(C, op, event, op->macro.first);
 }
 
 static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-//	printf("macro modal %s\n", op->type->idname);
+	wmOperator *opm = op->opm;
+	int retval= OPERATOR_FINISHED;
 	
-	if(op->opm==NULL)
+	if(opm==NULL)
 		printf("macro error, calling NULL modal()\n");
 	else {
-//		printf("macro modal %s\n", op->opm->type->idname);
-		return op->opm->type->modal(C, op->opm, event);
-	}	
-	
-	return OPERATOR_FINISHED;
+		retval = opm->type->modal(C, opm, event);
+
+		/* if this one is done but it's not the last operator in the macro */
+		if ((retval & OPERATOR_FINISHED) && opm->next) {
+			MacroData *md = op->customdata;
+
+			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
+
+			retval = wm_macro_invoke_internal(C, op, event, opm->next);
+
+			/* if new operator is modal and also added its own handler */
+			if (retval & OPERATOR_RUNNING_MODAL && op->opm != opm) {
+				wmWindow *win = CTX_wm_window(C);
+				wmEventHandler *handler = NULL;
+
+				for (handler = win->modalhandlers.first; handler; handler = handler->next) {
+					/* first handler in list is the new one */
+					if (handler->op == op)
+						break;
+				}
+
+				if (handler) {
+					BLI_remlink(&win->modalhandlers, handler);
+					wm_event_free_handler(handler);
+				}
+
+				/* if operator is blocking, grab cursor
+				 * This may end up grabbing twice, but we don't care.
+				 * */
+				if(op->opm->type->flag & OPTYPE_BLOCKING) {
+					int bounds[4] = {-1,-1,-1,-1};
+					int wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
+
+					if(wrap) {
+						ARegion *ar= CTX_wm_region(C);
+						if(ar) {
+							bounds[0]= ar->winrct.xmin;
+							bounds[1]= ar->winrct.ymax;
+							bounds[2]= ar->winrct.xmax;
+							bounds[3]= ar->winrct.ymin;
+						}
+					}
+
+					WM_cursor_grab(CTX_wm_window(C), wrap, FALSE, bounds);
+				}
+			}
+		}
+	}
+
+	return wm_macro_end(op, retval);
+}
+
+static int wm_macro_cancel(bContext *C, wmOperator *op)
+{
+	/* call cancel on the current modal operator, if any */
+	if (op->opm && op->opm->type->cancel) {
+		op->opm->type->cancel(C, op->opm);
+	}
+
+	return wm_macro_end(op, OPERATOR_CANCELLED);
 }
 
 /* Names have to be static for now */
@@ -254,6 +342,7 @@ wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
 	ot->exec= wm_macro_exec;
 	ot->invoke= wm_macro_invoke;
 	ot->modal= wm_macro_modal;
+	ot->cancel= wm_macro_cancel;
 	ot->poll= NULL;
 	
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)"); // XXX All ops should have a description but for now allow them not to.
@@ -2475,18 +2564,22 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 #endif
 
 	/* assign map to operators */
-	WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_border");
-	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");
-//	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "ACT_OT_select_border");
+	WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_border");
+	WM_modalkeymap_assign(keymap, "ANIM_OT_previewrange_set");
 	WM_modalkeymap_assign(keymap, "CONSOLE_OT_select_border");
 	WM_modalkeymap_assign(keymap, "FILE_OT_select_border");
 	WM_modalkeymap_assign(keymap, "GRAPH_OT_select_border");
+	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NLA_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NODE_OT_select_border");
+//	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
-	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
 	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
 }
 
 /* default keymap for windows and screens, only call once per WM */

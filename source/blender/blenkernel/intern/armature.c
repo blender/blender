@@ -1530,8 +1530,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			}
 			
 			/* free stuff from current channel */
-			if (pchan->path) MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			
 			/* the final copy */
 			*pchan= pchanw;
@@ -1586,9 +1585,7 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	for(pchan= pose->chanbase.first; pchan; pchan= next) {
 		next= pchan->next;
 		if(pchan->bone==NULL) {
-			if(pchan->path)
-				MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			BLI_freelinkN(&pose->chanbase, pchan);
 		}
 	}
@@ -1632,7 +1629,7 @@ typedef struct tSplineIK_Tree {
 /* ----------- */
 
 /* Tag the bones in the chain formed by the given bone for IK */
-static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
+static void splineik_init_tree_from_pchan(Scene *scene, Object *ob, bPoseChannel *pchan_tip)
 {
 	bPoseChannel *pchan, *pchanRoot=NULL;
 	bPoseChannel *pchanChain[255];
@@ -1661,6 +1658,21 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 	}
 	if (con == NULL)
 		return;
+		
+	/* make sure that the constraint targets are ok 
+	 *	- this is a workaround for a depsgraph bug...
+	 */
+	if (ikData->tar) {
+		Curve *cu= ikData->tar->data;
+		
+		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
+		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
+		 */
+		
+		/* only happens on reload file, but violates depsgraph still... fix! */
+		if ((cu->path==NULL) || (cu->path->data==NULL))
+			makeDispListCurveTypes(scene, ikData->tar, 0);
+	}
 	
 	/* find the root bone and the chain of bones from the root to the tip 
 	 * NOTE: this assumes that the bones are connected, but that may not be true...
@@ -1800,7 +1812,7 @@ static void splineik_init_tree(Scene *scene, Object *ob, float ctime)
 	/* find the tips of Spline IK chains, which are simply the bones which have been tagged as such */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (pchan->constflag & PCHAN_HAS_SPLINEIK)
-			splineik_init_tree_from_pchan(ob, pchan);
+			splineik_init_tree_from_pchan(scene, ob, pchan);
 	}
 }
 
@@ -1892,7 +1904,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		/* construct rotation matrix from the axis-angle rotation found above 
 		 *	- this call takes care to make sure that the axis provided is a unit vector first
 		 */
-		axis_angle_to_mat3( dmat,raxis, rangle);
+		axis_angle_to_mat3(dmat, raxis, rangle);
 		
 		/* combine these rotations so that the y-axis of the bone is now aligned as the spline dictates,
 		 * while still maintaining roll control from the existing bone animation

@@ -779,13 +779,13 @@ static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve
 		{
 			Object *ob= (Object *)owner_id;
 			
-			/* only consider if F-Curve involves pose_channels */
-			if ((fcu->rna_path) && strstr(fcu->rna_path, "pose_channels")) {
+			/* only consider if F-Curve involves pose.bones */
+			if ((fcu->rna_path) && strstr(fcu->rna_path, "bones")) {
 				bPoseChannel *pchan;
 				char *bone_name;
 				
 				/* get bone-name, and check if this bone is selected */
-				bone_name= BLI_getQuotedStr(fcu->rna_path, "pose_channels[");
+				bone_name= BLI_getQuotedStr(fcu->rna_path, "bones[");
 				pchan= get_pose_channel(ob->pose, bone_name);
 				if (bone_name) MEM_freeN(bone_name);
 				

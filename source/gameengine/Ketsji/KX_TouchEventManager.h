@@ -74,6 +74,7 @@ public:
 	virtual void RemoveSensor(SCA_ISensor* sensor);
 	SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
 	PHY_IPhysicsEnvironment *GetPhysicsEnvironment() { return m_physEnv; }
+	virtual void	Replace_PhysicsScene(PHY_IPhysicsEnvironment* env) { m_physEnv= env; }
 
 	
 #ifdef WITH_CXX_GUARDEDALLOC

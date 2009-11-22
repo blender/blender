@@ -62,6 +62,8 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_idprop.h"
+
 #include "BIK_api.h"
 
 #include "BLI_math.h"
@@ -564,16 +566,27 @@ void init_pose_ikparam(bPose *pose)
 	}
 }
 
+void free_pose_channel(bPoseChannel *pchan)
+{
+	if (pchan->path)
+		MEM_freeN(pchan->path);
+
+	free_constraints(&pchan->constraints);
+
+	if(pchan->prop) {
+		IDP_FreeProperty(pchan->prop);
+		MEM_freeN(pchan->prop);
+	}
+}
+
 void free_pose_channels(bPose *pose) 
 {
 	bPoseChannel *pchan;
 	
 	if (pose->chanbase.first) {
-		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
-			if (pchan->path)
-				MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
-		}
+		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next)
+			free_pose_channel(pchan);
+
 		BLI_freelistN(&pose->chanbase);
 	}
 }
@@ -868,7 +881,7 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 	
 	/* build PointerRNA from provided data to obtain the paths to use */
 	if (pchan)
-		RNA_pointer_create((ID *)ob, &RNA_PoseChannel, pchan, &ptr);
+		RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan, &ptr);
 	else if (ob)
 		RNA_id_pointer_create((ID *)ob, &ptr);
 	else	
@@ -1045,7 +1058,9 @@ void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, 
 	copy_m4_m4(workob->constinv, ob->constinv);
 	workob->parent= ob->parent;
 	workob->track= ob->track;
-
+	
+	workob->rotmode= ob->rotmode;
+	
 	workob->trackflag= ob->trackflag;
 	workob->upflag= ob->upflag;
 	

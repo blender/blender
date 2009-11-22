@@ -304,9 +304,6 @@ void BL_ConvertActuators(char* maggiename,
 				STR_String toPropName = (msgAct->toPropName
 					? (char*) msgAct->toPropName
 					: "");
-				/* BGE Wants "OB" prefix */
-				if (toPropName != "")
-					toPropName = "OB" + toPropName;
 				
 				/**
 				* Get the Message Subject to send.

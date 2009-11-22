@@ -89,7 +89,7 @@
 
 #include "GPU_draw.h"
 
-// XXX #include "BPY_extern.h"
+#include "BPY_extern.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -274,8 +274,11 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
-					   
+
 		CTX_wm_window_set(C, NULL); /* exits queues */
+
+		/* run any texts that were loaded in and flagged as modules */
+		BPY_load_user_modules(C);
 	}
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");

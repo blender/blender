@@ -51,6 +51,10 @@ class TEXT_HT_header(bpy.types.Header):
         row.itemR(st, "word_wrap", text="")
         row.itemR(st, "syntax_highlight", text="")
 
+        row = layout.row()
+        row.itemO("text.run_script")
+        row.itemR(text, "use_module")
+
         if text:
             row = layout.row()
             if text.filename != "":
@@ -63,9 +67,6 @@ class TEXT_HT_header(bpy.types.Header):
                     row.itemL(text="Text: External")
                 else:
                     row.itemL(text="Text: Internal")
-
-        row = layout.row()
-        row.itemO("text.run_script")
 
 
 class TEXT_PT_properties(bpy.types.Panel):
@@ -157,14 +158,6 @@ class TEXT_MT_text(bpy.types.Menu):
 
         layout.itemO("text.properties", icon='ICON_MENU_PANEL')
 
-
-
-        #ifndef DISABLE_PYTHON
-        # XXX layout.column()
-        # XXX uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");
-        # XXX uiDefIconTextBlockBut(block, text_plugin_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Text Plugins", 0, yco-=20, 120, 19, "");
-        #endif
-
         layout.itemM("TEXT_MT_templates")
 
 
@@ -176,22 +169,7 @@ class TEXT_MT_templates(bpy.types.Menu):
 
     def draw(self, context):
         import os
-
-        def path_to_name(f):
-            f_base = os.path.splitext(f)[0]
-            f_base = f_base.replace("_", " ")
-            return ' '.join([w[0].upper() + w[1:] for w in f_base.split()])
-
-        layout = self.layout
-        template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "templates")
-
-        for f in sorted(os.listdir(template_dir)):
-
-            if f.startswith("."):
-                continue
-
-            path = os.path.join(template_dir, f)
-            layout.item_stringO("text.open", "path", path, text=path_to_name(f))
+        self.path_menu(bpy.utils.script_paths("templates"), "text.open")
 
 
 class TEXT_MT_edit_view(bpy.types.Menu):

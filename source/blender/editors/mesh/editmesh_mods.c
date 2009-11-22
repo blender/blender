@@ -482,14 +482,17 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 	struct { ViewContext vc; float mval[2]; int dist; EditEdge *closest; } *data = userData;
 	float v1[2], v2[2];
 	int distance;
-		
+
+	ED_view3d_local_clipping(data->vc.rv3d, data->vc.obedit->obmat); /* for local clipping lookups */
+
 	v1[0] = x0;
 	v1[1] = y0;
 	v2[0] = x1;
 	v2[1] = y1;
-		
+
 	distance= dist_to_line_segment_v2(data->mval, v1, v2);
-		
+
+
 	if(eed->f & SELECT) distance+=5;
 	if(distance < data->dist) {
 		if(data->vc.rv3d->rflag & RV3D_CLIPPING) {
@@ -499,9 +502,8 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 			vec[0]= eed->v1->co[0] + labda*(eed->v2->co[0] - eed->v1->co[0]);
 			vec[1]= eed->v1->co[1] + labda*(eed->v2->co[1] - eed->v1->co[1]);
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
-			mul_m4_v3(data->vc.obedit->obmat, vec);
 
-			if(view3d_test_clipping(data->vc.rv3d, vec)==0) {
+			if(view3d_test_clipping(data->vc.rv3d, vec, 1)==0) {
 				data->dist = distance;
 				data->closest = eed;
 			}
@@ -2400,6 +2402,15 @@ static int select_linked_limited_invoke(ViewContext *vc, short all, short sel)
 #undef is_face_tag
 #undef face_tag
 
+static void linked_limit_default(bContext *C, wmOperator *op) {
+	if(!RNA_property_is_set(op->ptr, "limit")) {
+		Object *obedit= CTX_data_edit_object(C);
+		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
+		if(em->selectmode == SCE_SELECT_FACE)
+			RNA_boolean_set(op->ptr, "limit", TRUE);
+	}
+}
+
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -2409,8 +2420,12 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	EditFace *efa;
 	short done=1, toggle=0;
 	int sel= !RNA_boolean_get(op->ptr, "deselect");
-	int limit= RNA_boolean_get(op->ptr, "limit");
+	int limit;
 	
+	linked_limit_default(C, op);
+
+	limit = RNA_boolean_get(op->ptr, "limit");
+
 	/* unified_finednearest needs ogl */
 	view3d_operator_needs_opengl(C);
 	
@@ -2571,6 +2586,12 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
+static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	linked_limit_default(C, op);
+	return select_linked_exec(C, op);
+}
+
 void MESH_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2580,6 +2601,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_linked_exec;
+	ot->invoke= select_linked_invoke;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */

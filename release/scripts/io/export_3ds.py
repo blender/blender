@@ -1123,7 +1123,7 @@ class Export3DS(bpy.types.Operator):
 
 	
 	def execute(self, context):
-		save_3ds(self.path, context)
+		save_3ds(self.properties.path, context)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):

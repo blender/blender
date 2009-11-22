@@ -516,7 +516,7 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "subsurf_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_SubsurfUv);
-	RNA_def_property_ui_text(prop, "Subsurf UV", "Use subsurf to subdivide UVs.");
+	RNA_def_property_ui_text(prop, "Subdivide UVs", "Use subsurf to subdivide UVs.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -678,7 +678,7 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "merge_limit", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "tolerance");
 	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 1, 10, 3); 
+	RNA_def_property_ui_range(prop, 0, 1, 0.01, 6);
 	RNA_def_property_ui_text(prop, "Merge Limit", "Distance from axis within which mirrored vertices are merged.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1233,7 +1233,7 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "projectors", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UVProjector");
-	RNA_def_property_collection_funcs(prop, "rna_UVProject_projectors_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_UVProject_projectors_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Projectors", "");
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
@@ -1852,9 +1852,9 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MaskModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "inverse", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MASK_INV);
-	RNA_def_property_ui_text(prop, "Inverse", "Use vertices that are not part of region defined.");
+	RNA_def_property_ui_text(prop, "Invert", "Use vertices that are not part of region defined.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

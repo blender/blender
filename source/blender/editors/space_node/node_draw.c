@@ -1031,6 +1031,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		strcpy(showname, ngroup->id.name+2);
 
+	// XXX this shows some scaling artifacts
 	UI_DrawString(rect.xmin+8.0f, rect.ymax+5.0f, showname);
 	
 	/* links from groupsockets to the internal nodes */

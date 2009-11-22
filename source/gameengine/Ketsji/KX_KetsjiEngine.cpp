@@ -1606,15 +1606,12 @@ void KX_KetsjiEngine::RemoveScheduledScenes()
 	}
 }
 
-
-
-KX_Scene* KX_KetsjiEngine::CreateScene(const STR_String& scenename)
+KX_Scene* KX_KetsjiEngine::CreateScene(Scene *scene)
 {
-	Scene *scene = m_sceneconverter->GetBlenderSceneForName(scenename);
 	KX_Scene* tmpscene = new KX_Scene(m_keyboarddevice,
 									  m_mousedevice,
 									  m_networkdevice,
-									  scenename,
+									  scene->id.name+2,
 									  scene);
 
 	m_sceneconverter->ConvertScene(tmpscene,
@@ -1624,7 +1621,11 @@ KX_Scene* KX_KetsjiEngine::CreateScene(const STR_String& scenename)
 	return tmpscene;
 }
 
-
+KX_Scene* KX_KetsjiEngine::CreateScene(const STR_String& scenename)
+{
+	Scene *scene = m_sceneconverter->GetBlenderSceneForName(scenename);
+	return CreateScene(scene);
+}
 
 void KX_KetsjiEngine::AddScheduledScenes()
 {

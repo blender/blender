@@ -144,6 +144,11 @@ void free_edit_bone(bArmature *arm, EditBone *bone)
 	if(arm->act_edbone==bone)
 		arm->act_edbone= NULL;
 
+	if(bone->prop) {
+		IDP_FreeProperty(bone->prop);
+		MEM_freeN(bone->prop);
+	}
+
 	BLI_freelinkN(arm->edbo, bone);
 }
 
@@ -1025,8 +1030,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 			}
 			
 			/* free any of the extra-data this pchan might have */
-			if (pchan->path) MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			
 			/* get rid of unneeded bone */
 			free_edit_bone(arm, curbone);
@@ -1733,17 +1737,17 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	
 	/*  First erase any associated pose channel */
 	if (obedit->pose) {
-		bPoseChannel *chan, *next;
-		for (chan=obedit->pose->chanbase.first; chan; chan=next) {
-			next= chan->next;
-			curBone = editbone_name_exists(arm->edbo, chan->name);
+		bPoseChannel *pchan, *next;
+		for (pchan=obedit->pose->chanbase.first; pchan; pchan=next) {
+			next= pchan->next;
+			curBone = editbone_name_exists(arm->edbo, pchan->name);
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
-				free_constraints(&chan->constraints);
-				BLI_freelinkN (&obedit->pose->chanbase, chan);
+				free_pose_channel(pchan);
+				BLI_freelinkN (&obedit->pose->chanbase, pchan);
 			}
 			else {
-				for (con= chan->constraints.first; con; con= con->next) {
+				for (con= pchan->constraints.first; con; con= con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 					ListBase targets = {NULL, NULL};
 					bConstraintTarget *ct;
@@ -2522,12 +2526,12 @@ void updateDuplicateSubtargetObjects(EditBone *dupBone, ListBase *editbones, Obj
 	 * they point to has also been duplicated
 	 */
 	EditBone     *oldtarget, *newtarget;
-	bPoseChannel *chan;
+	bPoseChannel *pchan;
 	bConstraint  *curcon;
 	ListBase     *conlist;
 	
-	if ( (chan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
-		if ( (conlist = &chan->constraints) ) {
+	if ( (pchan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
+		if ( (conlist = &pchan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
 				 * this armature?
@@ -5083,9 +5087,9 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int	sel=1;
 
-	/*	Determine if there are any selected bones
-	And therefore whether we are selecting or deselecting */
-	if (CTX_DATA_COUNT(C, selected_pchans) > 0)	sel=0;
+	/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
+	// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
+	if (CTX_DATA_COUNT(C, selected_pchans) > 1)	sel=0;
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
@@ -5411,7 +5415,7 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			// TODO: should we be using the database wide version instead (since drivers may break)
 			if (ob->adt) {
 				/* posechannels only... */
-				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.pose_channels", oldname, newname);
+				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.bones", oldname, newname);
 			}
 		}
 	}

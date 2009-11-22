@@ -273,12 +273,15 @@ RAS_BucketManager* KX_Scene::GetBucketManager()
 }
 
 
+CListValue* KX_Scene::GetTempObjectList()
+{
+	return m_tempObjectList;
+}
 
 CListValue* KX_Scene::GetObjectList()
 {
 	return m_objectlist;
 }
-
 
 
 CListValue* KX_Scene::GetRootParentList()
@@ -1043,7 +1046,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 			newobj->SetDeformer(NULL);
 		}
 
-		if (mesh->IsDeformed())
+		if (mesh->IsDeformed()) /* checks GetMesh() isnt NULL */
 		{
 			// we must create a new deformer but which one?
 			KX_GameObject* parentobj = newobj->GetParent();
@@ -1588,10 +1591,10 @@ void KX_Scene::SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter)
 void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)
 {
 	m_physicsEnvironment = physEnv;
-
-	KX_TouchEventManager* touchmgr = new KX_TouchEventManager(m_logicmgr, physEnv);
-	m_logicmgr->RegisterEventManager(touchmgr);
-	return;
+	if(m_physicsEnvironment) {
+		KX_TouchEventManager* touchmgr = new KX_TouchEventManager(m_logicmgr, physEnv);
+		m_logicmgr->RegisterEventManager(touchmgr);
+	}
 }
  
 void KX_Scene::setSuspendedTime(double suspendedtime)
@@ -1612,6 +1615,182 @@ double KX_Scene::getSuspendedDelta()
 }
 
 #ifndef DISABLE_PYTHON
+
+
+#include "KX_BulletPhysicsController.h"
+
+static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
+{
+	SCA_LogicManager *logicmgr= to->GetLogicManager();
+
+	brick->Replace_IScene(to);
+	brick->Replace_NetworkScene(to->GetNetworkScene());
+
+	SCA_ISensor *sensor=  dynamic_cast<class SCA_ISensor *>(brick);
+	if(sensor) {
+		sensor->Replace_EventManager(logicmgr);
+	}
+
+	/* near sensors have physics controllers */
+	KX_TouchSensor *touch_sensor = dynamic_cast<class KX_TouchSensor *>(brick);
+	if(touch_sensor) {
+		touch_sensor->GetPhysicsController()->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
+	}
+}
+
+#include "CcdGraphicController.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
+#include "CcdPhysicsEnvironment.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
+#include "KX_BulletPhysicsController.h"
+
+
+static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene *from)
+{
+	{
+		SCA_ActuatorList& actuators= gameobj->GetActuators();
+		SCA_ActuatorList::iterator ita;
+
+		for (ita = actuators.begin(); !(ita==actuators.end()); ++ita)
+		{
+			MergeScene_LogicBrick(*ita, to);
+		}
+	}
+
+
+	{
+		SCA_SensorList& sensors= gameobj->GetSensors();
+		SCA_SensorList::iterator its;
+
+		for (its = sensors.begin(); !(its==sensors.end()); ++its)
+		{
+			MergeScene_LogicBrick(*its, to);
+		}
+	}
+
+	{
+		SCA_ControllerList& controllers= gameobj->GetControllers();
+		SCA_ControllerList::iterator itc;
+
+		for (itc = controllers.begin(); !(itc==controllers.end()); ++itc)
+		{
+			SCA_IController *cont= *itc;
+			MergeScene_LogicBrick(cont, to);
+
+			vector<SCA_ISensor*> linkedsensors = cont->GetLinkedSensors();
+			vector<SCA_IActuator*> linkedactuators = cont->GetLinkedActuators();
+
+			for (vector<SCA_IActuator*>::iterator ita = linkedactuators.begin();!(ita==linkedactuators.end());++ita) {
+				MergeScene_LogicBrick(*ita, to);
+			}
+
+			for (vector<SCA_ISensor*>::iterator its = linkedsensors.begin();!(its==linkedsensors.end());++its) {
+				MergeScene_LogicBrick(*its, to);
+			}
+		}
+	}
+
+	/* graphics controller */
+	PHY_IGraphicController *ctrl = gameobj->GetGraphicController();
+	if(ctrl) {
+		/* SHOULD update the m_cullingTree */
+		ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
+	}
+
+	/* SG_Node can hold a scene reference */
+	SG_Node *sg= gameobj->GetSGNode();
+	if(sg) {
+		if(sg->GetSGClientInfo() == from) {
+			sg->SetSGClientInfo(to);
+		}
+
+		SGControllerList::iterator contit;
+		SGControllerList& controllers = sg->GetSGControllerList();
+		for (contit = controllers.begin();contit!=controllers.end();++contit)
+		{
+			KX_BulletPhysicsController *phys_ctrl= dynamic_cast<KX_BulletPhysicsController *>(*contit);
+			if (phys_ctrl)
+				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
+		}
+	}
+}
+
+bool KX_Scene::MergeScene(KX_Scene *other)
+{
+	CcdPhysicsEnvironment *env=			dynamic_cast<CcdPhysicsEnvironment *>(this->GetPhysicsEnvironment());
+	CcdPhysicsEnvironment *env_other=	dynamic_cast<CcdPhysicsEnvironment *>(other->GetPhysicsEnvironment());
+
+	if((env==NULL) != (env_other==NULL)) /* TODO - even when both scenes have NONE physics, the other is loaded with bullet enabled, ??? */
+	{
+		printf("KX_Scene::MergeScene: physics scenes type differ, aborting\n");
+		printf("\tsource %d, terget %d\n", (int)(env!=NULL), (int)(env_other!=NULL));
+		return false;
+	}
+
+	if(GetSceneConverter() != other->GetSceneConverter()) {
+		printf("KX_Scene::MergeScene: converters differ, aborting\n");
+		return false;
+	}
+
+
+	GetBucketManager()->MergeBucketManager(other->GetBucketManager());
+
+	/* move materials across, assume they both use the same scene-converters */
+	GetSceneConverter()->MergeScene(this, other);
+
+	/* active + inactive == all ??? - lets hope so */
+	for (int i = 0; i < other->GetObjectList()->GetCount(); i++)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*)other->GetObjectList()->GetValue(i);
+		MergeScene_GameObject(gameobj, this, other);
+
+		gameobj->UpdateBuckets(false); /* only for active objects */
+	}
+
+	for (int i = 0; i < other->GetInactiveList()->GetCount(); i++)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*)other->GetInactiveList()->GetValue(i);
+		MergeScene_GameObject(gameobj, this, other);
+	}
+
+	GetTempObjectList()->MergeList(other->GetTempObjectList());
+	other->GetTempObjectList()->ReleaseAndRemoveAll();
+
+	GetObjectList()->MergeList(other->GetObjectList());
+	other->GetObjectList()->ReleaseAndRemoveAll();
+
+	GetInactiveList()->MergeList(other->GetInactiveList());
+	other->GetInactiveList()->ReleaseAndRemoveAll();
+
+	GetRootParentList()->MergeList(other->GetRootParentList());
+	other->GetRootParentList()->ReleaseAndRemoveAll();
+
+	GetLightList()->MergeList(other->GetLightList());
+	other->GetLightList()->ReleaseAndRemoveAll();
+
+	if(env) /* bullet scene? - dummy scenes dont need touching */
+		env->MergeEnvironment(env_other);
+
+	/* merge logic */
+	{
+		SCA_LogicManager *logicmgr=			GetLogicManager();
+		SCA_LogicManager *logicmgr_other=	other->GetLogicManager();
+
+		vector<class SCA_EventManager*>evtmgrs= logicmgr->GetEventManagers();
+		//vector<class SCA_EventManager*>evtmgrs_others= logicmgr_other->GetEventManagers();
+
+		//SCA_EventManager *evtmgr;
+		SCA_EventManager *evtmgr_other;
+
+		for(int i= 0; i < evtmgrs.size(); i++) {
+			evtmgr_other= logicmgr_other->FindEventManager(evtmgrs[i]->GetType());
+
+			if(evtmgr_other) /* unlikely but possible one scene has a joystick and not the other */
+				evtmgr_other->Replace_LogicManager(logicmgr);
+
+			/* when merging objects sensors are moved across into the new manager, dont need to do this here */
+		}
+	}
+	return true;
+}
 
 //----------------------------------------------------------------------------
 //Python

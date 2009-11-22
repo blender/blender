@@ -241,6 +241,22 @@ public:
 		m_SGclientObject = clientObject;
 	}
 
+
+	/* needed for scene switching */
+	inline const void* GetSGClientInfo() const
+	{
+		return m_SGclientInfo;
+	}
+	inline void* GetSGClientInfo()
+	{
+		return m_SGclientInfo;
+	}
+	void SetSGClientInfo(void* clientInfo)
+	{
+		m_SGclientInfo = clientInfo;
+	}
+
+
 	/** 
 	 * Set the current simulation time for this node.
 	 * The implementation of this function runs through

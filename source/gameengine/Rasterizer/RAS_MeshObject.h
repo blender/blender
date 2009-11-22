@@ -80,7 +80,7 @@ public:
 	virtual ~RAS_MeshObject();
 
 
-	bool				IsDeformed() { return m_bDeformed; }
+	bool				IsDeformed() { return (m_bDeformed && m_mesh); }
 	
 	/* materials */
 	int					NumMaterials();

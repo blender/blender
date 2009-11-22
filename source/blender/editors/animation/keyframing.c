@@ -511,7 +511,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		con= ob->constraints.first;
 		identifier= (char *)RNA_property_identifier(prop);
 	}
-	else if (ptr->type == &RNA_PoseChannel) {
+	else if (ptr->type == &RNA_PoseBone) {
 		/* Pose Channel */
 		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
 		
@@ -622,7 +622,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			}
 		}
 	}
-	else if (ptr->type == &RNA_PoseChannel) {
+	else if (ptr->type == &RNA_PoseBone) {
 		Object *ob= (Object *)ptr->id.data; /* we assume that this is always set, and is an object */
 		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
 		float tmat[4][4];

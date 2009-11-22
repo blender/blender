@@ -117,7 +117,7 @@ int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous,
 */
 void IDP_RemFromGroup(struct IDProperty *group, struct IDProperty *prop);
 
-IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, char *name);
+IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, const char *name);
 
 /*Get an iterator to iterate over the members of an id property group.
  Note that this will automatically free the iterator once iteration is complete;

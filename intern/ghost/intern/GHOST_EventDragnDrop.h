@@ -50,8 +50,7 @@
  * <li> Outside of the normal sequence, dropped data can be sent (GHOST_kEventDraggingDropOnIcon). This can happen when the user drops an object
  * on the application icon. (Also used in OSX to pass the filename of the document the user doubled-clicked in the finder)
  *
- * <br><br>Note that the event handler is responsible for freeing the received data.
- * <br>And the mouse positions are given in Blender coordinates (y=0 at bottom)
+ * <br><br>Note that the mouse positions are given in Blender coordinates (y=0 at bottom)
  *
  * <br>Currently supported object types :
  * <li>UTF-8 string
@@ -81,6 +80,38 @@ public:
 		m_dragnDropEventData.data = data;
 		m_data = &m_dragnDropEventData;
 	}
+	
+	~GHOST_EventDragnDrop()
+	{
+		//Free the dropped object data
+		if (m_dragnDropEventData.data == NULL)
+			return;
+		
+		switch (m_dragnDropEventData.dataType) {
+			case GHOST_kDragnDropTypeBitmap:
+				//Not currently implemented
+				break;
+			case GHOST_kDragnDropTypeFilenames:
+			{
+				GHOST_TStringArray *strArray = (GHOST_TStringArray*)m_dragnDropEventData.data;
+				int i;
+				
+				for (i=0;i<strArray->count;i++)
+					free(strArray->strings[i]);
+				
+				free(strArray);
+			}
+				break;
+			case GHOST_kDragnDropTypeString:
+				free(m_dragnDropEventData.data);
+			break;
+
+			default:
+				break;
+		}
+	}
+	
+	
 
 protected:
 	/** The x,y-coordinates of the cursor position. */

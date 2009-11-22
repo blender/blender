@@ -17,11 +17,14 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import bpy
+
+narrowui = 180
 
 
-def point_cache_ui(self, cache, enabled, particles, smoke):
+def point_cache_ui(self, context, cache, enabled, particles, smoke):
     layout = self.layout
+
+    wide_ui = context.region.width > narrowui
     layout.set_context_pointer("PointCache", cache)
 
     row = layout.row()
@@ -87,34 +90,49 @@ def point_cache_ui(self, cache, enabled, particles, smoke):
         layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
 
 
-def effector_weights_ui(self, weights):
-        layout = self.layout
-
-        layout.itemR(weights, "group")
-
-        split = layout.split()
-        split.itemR(weights, "gravity", slider=True)
-        split.itemR(weights, "all", slider=True)
-
-        layout.itemS()
-
-        flow = layout.column_flow()
-        flow.itemR(weights, "force", slider=True)
-        flow.itemR(weights, "vortex", slider=True)
-        flow.itemR(weights, "magnetic", slider=True)
-        flow.itemR(weights, "wind", slider=True)
-        flow.itemR(weights, "curveguide", slider=True)
-        flow.itemR(weights, "texture", slider=True)
-        flow.itemR(weights, "harmonic", slider=True)
-        flow.itemR(weights, "charge", slider=True)
-        flow.itemR(weights, "lennardjones", slider=True)
-        flow.itemR(weights, "turbulence", slider=True)
-        flow.itemR(weights, "drag", slider=True)
-        flow.itemR(weights, "boid", slider=True)
-
-
-def basic_force_field_settings_ui(self, field):
+def effector_weights_ui(self, context, weights):
     layout = self.layout
+
+    wide_ui = context.region.width > narrowui
+
+    layout.itemR(weights, "group")
+
+    split = layout.split()
+
+    col = split.column()
+    col.itemR(weights, "gravity", slider=True)
+
+    if wide_ui:
+        col = split.column()
+    col.itemR(weights, "all", slider=True)
+
+    layout.itemS()
+
+    split = layout.split()
+
+    col = split.column()
+    col.itemR(weights, "force", slider=True)
+    col.itemR(weights, "vortex", slider=True)
+    col.itemR(weights, "magnetic", slider=True)
+    col.itemR(weights, "wind", slider=True)
+    col.itemR(weights, "curveguide", slider=True)
+    col.itemR(weights, "texture", slider=True)
+
+    if wide_ui:
+        col = split.column()
+    col.itemR(weights, "harmonic", slider=True)
+    col.itemR(weights, "charge", slider=True)
+    col.itemR(weights, "lennardjones", slider=True)
+    col.itemR(weights, "turbulence", slider=True)
+    col.itemR(weights, "drag", slider=True)
+    col.itemR(weights, "boid", slider=True)
+
+
+def basic_force_field_settings_ui(self, context, field):
+    layout = self.layout
+
+    wide_ui = context.region.width > narrowui
+
     split = layout.split()
 
     if not field or field.type == 'NONE':
@@ -139,7 +157,8 @@ def basic_force_field_settings_ui(self, field):
     else:
         col.itemR(field, "flow")
 
-    col = split.column()
+    if wide_ui:
+        col = split.column()
     col.itemR(field, "noise")
     col.itemR(field, "seed")
     if field.type == 'TURBULENCE':
@@ -152,13 +171,21 @@ def basic_force_field_settings_ui(self, field):
     col.itemR(field, "do_location")
     col.itemR(field, "do_rotation")
 
-    sub = split.column()
-    sub.itemL(text="Collision:")
-    sub.itemR(field, "do_absorption")
+    if wide_ui:
+        col = split.column()
+    col.itemL(text="Collision:")
+    col.itemR(field, "do_absorption")
 
 
-def basic_force_field_falloff_ui(self, field):
+def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
+
+    wide_ui = context.region.width > narrowui
+
+    # XXX: This doesn't update for some reason.
+    #if wide_ui:
+    #    split = layout.split()
+    #else:
     split = layout.split(percentage=0.35)
 
     if not field or field.type == 'NONE':
@@ -169,7 +196,8 @@ def basic_force_field_falloff_ui(self, field):
     col.itemR(field, "use_min_distance", text="Use Minimum")
     col.itemR(field, "use_max_distance", text="Use Maximum")
 
-    col = split.column()
+    if wide_ui:
+        col = split.column()
     col.itemR(field, "falloff_power", text="Power")
 
     sub = col.column()

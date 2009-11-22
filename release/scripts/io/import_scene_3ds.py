@@ -465,7 +465,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			# bmesh.transform(contextMatrix)
 			ob = bpy.data.add_object("MESH", tempName)
 			ob.data = bmesh
-			SCN.add_object(ob)
+			SCN.objects.link(ob)
 # 			ob = SCN_OBJECTS.new(bmesh, tempName)
 			'''
 			if contextMatrix_tx:
@@ -766,7 +766,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
 			ob = bpy.data.add_object("LAMP", "Lamp")
 			ob.data = bpy.data.add_lamp("Lamp")
-			SCN.add_object(ob)
+			SCN.objects.link(ob)
 			
 			contextLamp[1]= ob.data
 # 			contextLamp[1]= bpy.data.lamps.new()
@@ -1156,7 +1156,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 # 	apply_matrix = BoolProperty(name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
 	
 	def execute(self, context):
-		load_3ds(self.path, context, 0.0, False, False)
+		load_3ds(self.properties.path, context, 0.0, False, False)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):

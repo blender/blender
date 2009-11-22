@@ -61,6 +61,8 @@ SET(INC
 	../../../extern/glew/include
 )
 
+ADD_DEFINITIONS(-DGLEW_STATIC)
+
 IF(WITH_SDL)
 	SET(INC ${INC} ${SDL_INCLUDE_DIR})  
 ELSE(WITH_SDL)

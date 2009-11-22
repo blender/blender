@@ -29,19 +29,19 @@ class USERPREF_HT_header(bpy.types.Header):
 
         userpref = context.user_preferences
 
-        layout.operator_context = "EXEC_AREA"
+        layout.operator_context = 'EXEC_AREA'
         layout.itemO("wm.save_homefile", text="Save As Default")
 
         if userpref.active_section == 'INPUT':
-            layout.operator_context = "INVOKE_DEFAULT"
-            layout.itemO("wm.keyconfig_export", "Export Key Configuration...")
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.item_stringO("wm.keyconfig_export", "path", "keymap.py", "Export Key Configuration...")
 
 
 class USERPREF_MT_view(bpy.types.Menu):
     bl_label = "View"
 
     def draw(self, context):
-        layout = self.layout
+        pass # layout = self.layout
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -383,7 +383,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.itemR(v3d, "editmesh_active", slider=True)
 
             col = split.column()
-            
+
             col.itemR(v3d, "object_selected")
             col.itemR(v3d, "object_active")
             col.itemR(v3d, "object_grouped")
@@ -736,45 +736,45 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.itemR(graph, "button")
             col.itemR(graph, "button_title")
             col.itemR(graph, "button_text")
-            
+
             col = split.column()
             col.itemR(graph, "header")
             col.itemR(graph, "grid")
             col.itemR(graph, "list")
             col.itemR(graph, "channel_group")
-            
+
             col = split.column()
             col.itemR(graph, "active_channels_group")
             col.itemR(graph, "dopesheet_channel")
             col.itemR(graph, "dopesheet_subchannel")
             col.itemR(graph, "vertex")
-            
+
             col = split.column()
             col.itemR(graph, "current_frame")
             col.itemR(graph, "handle_vertex")
             col.itemR(graph, "handle_vertex_select")
             col.itemS()
             col.itemR(graph, "handle_vertex_size")
-            
+
         elif theme.active_theme == 'FILE_BROWSER':
-            file = theme.file_browser
+            file_browse = theme.file_browser
 
             col = split.column()
-            col.itemR(file, "back")
-            col.itemR(file, "text")
-            col.itemR(file, "text_hi")
+            col.itemR(file_browse, "back")
+            col.itemR(file_browse, "text")
+            col.itemR(file_browse, "text_hi")
 
             col = split.column()
-            col.itemR(file, "header")
-            col.itemR(file, "list")
+            col.itemR(file_browse, "header")
+            col.itemR(file_browse, "list")
 
             col = split.column()
-            col.itemR(file, "selected_file")
-            col.itemR(file, "tiles")
+            col.itemR(file_browse, "selected_file")
+            col.itemR(file_browse, "tiles")
 
             col = split.column()
-            col.itemR(file, "active_file")
-            col.itemR(file, "active_file_text")
+            col.itemR(file_browse, "active_file")
+            col.itemR(file_browse, "active_file_text")
 
         elif theme.active_theme == 'NLA_EDITOR':
             nla = theme.nla_editor
@@ -783,17 +783,17 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.itemR(nla, "back")
             col.itemR(nla, "button")
             col.itemR(nla, "button_title")
-            
+
             col = split.column()
             col.itemR(nla, "button_text")
             col.itemR(nla, "text")
             col.itemR(nla, "header")
-            
+
             col = split.column()
             col.itemR(nla, "grid")
             col.itemR(nla, "bars")
             col.itemR(nla, "bars_selected")
-            
+
             col = split.column()
             col.itemR(nla, "strips")
             col.itemR(nla, "strips_selected")
@@ -830,7 +830,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.itemR(image, "back")
             col.itemR(image, "button")
-            
+
             col = split.column()
             col.itemR(image, "button_title")
             col.itemR(image, "button_text")
@@ -875,7 +875,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.itemR(prop, "back")
-            
+
             col = split.column()
             col.itemR(prop, "title")
 
@@ -893,7 +893,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.itemR(text, "button")
             col.itemR(text, "button_title")
             col.itemR(text, "button_text")
-            
+
             col = split.column()
             col.itemR(text, "text")
             col.itemR(text, "text_hi")
@@ -923,7 +923,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.itemR(time, "grid")
-            
+
             col = split.column()
             col.itemR(time, "current_frame")
 
@@ -935,7 +935,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.itemR(node, "button")
             col.itemR(node, "button_title")
             col.itemR(node, "button_text")
-            
+
 
             col = split.column()
             col.itemR(node, "text")
@@ -980,7 +980,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.itemR(out, "text")
-            
+
             col = split.column()
             col.itemR(out, "text_hi")
 
@@ -1009,7 +1009,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.itemR(prefs, "text")
-            
+
             col = split.column()
             col.itemR(prefs, "header")
 
@@ -1065,7 +1065,7 @@ class USERPREF_PT_file(bpy.types.Panel):
 
         col = split.column()
         sub = col.split(percentage=0.2)
-        sub1 = sub.column()
+        sub.column() # sub1, unused
         sub2 = sub.column()
         sub2.itemL(text="Save & Load:")
         sub2.itemR(paths, "use_relative_paths")
@@ -1101,7 +1101,7 @@ class USERPREF_PT_input(bpy.types.Panel):
         userpref = context.user_preferences
         wm = context.manager
         #input = userpref.input
-        input = userpref
+        #input = userpref
         inputs = userpref.inputs
 
         split = layout.split(percentage=0.25)
@@ -1159,7 +1159,7 @@ class USERPREF_PT_input(bpy.types.Panel):
         # Keymap Settings
         col = split.column()
 
-        kc = wm.active_keyconfig
+        # kc = wm.active_keyconfig
         defkc = wm.default_keyconfig
         km = wm.active_keymap
 
@@ -1197,7 +1197,11 @@ class USERPREF_PT_input(bpy.types.Panel):
             itemcol = itemrow.column()
             itemcol.active = kmi.active
             row = itemcol.row()
-            row.itemR(kmi, "idname", text="")
+
+            if km.modal:
+                row.itemR(kmi, "propvalue", text="")
+            else:
+                row.itemR(kmi, "idname", text="")
 
             sub = row.row()
             sub.scale_x = 0.6
@@ -1233,6 +1237,7 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                     subrow = sub.row()
                     subrow.scale_x = 0.75
+                    subrow.itemR(kmi, "any")
                     subrow.itemR(kmi, "shift")
                     subrow.itemR(kmi, "ctrl")
                     subrow.itemR(kmi, "alt")
@@ -1304,10 +1309,10 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         return result
 
     def execute(self, context):
-        if not self.path:
+        if not self.properties.path:
             raise Exception("File path not set.")
 
-        f = open(self.path, "w")
+        f = open(self.properties.path, "w")
         if not f:
             raise Exception("Could not open file.")
 
@@ -1320,18 +1325,25 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         f.write("kc = wm.add_keyconfig(\'%s\')\n\n" % kc.name)
 
         for km in kc.keymaps:
+            km = km.active()
             f.write("# Map %s\n" % km.name)
-            f.write("km = kc.add_keymap(\'%s\', space_type=\'%s\', region_type=\'%s\')\n\n" % (km.name, km.space_type, km.region_type))
+            f.write("km = kc.add_keymap(\'%s\', space_type=\'%s\', region_type=\'%s\', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.modal))
             for kmi in km.items:
-                f.write("kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value))
-                if kmi.shift:
-                    f.write(", shift=True")
-                if kmi.ctrl:
-                    f.write(", ctrl=True")
-                if kmi.alt:
-                    f.write(", alt=True")
-                if kmi.oskey:
-                    f.write(", oskey=True")
+                if km.modal:
+                    f.write("kmi = km.add_modal_item(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value))
+                else:
+                    f.write("kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value))
+                if kmi.any:
+                    f.write(", any=True")
+                else:
+                    if kmi.shift:
+                        f.write(", shift=True")
+                    if kmi.ctrl:
+                        f.write(", ctrl=True")
+                    if kmi.alt:
+                        f.write(", alt=True")
+                    if kmi.oskey:
+                        f.write(", oskey=True")
                 if kmi.key_modifier and kmi.key_modifier != 'NONE':
                     f.write(", key_modifier=\'%s\'" % kmi.key_modifier)
                 f.write(")\n")
@@ -1380,7 +1392,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
 
-        if self.all:
+        if self.properties.all:
             for km in wm.default_keyconfig.keymaps:
                 km.restore_to_default()
         else:
@@ -1398,7 +1410,10 @@ class WM_OT_keyitem_add(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         km = wm.active_keymap
-        kmi = km.add_item("", 'A', 'PRESS')
+        if km.modal:
+            km.add_modal_item("", 'A', 'PRESS') # kmi
+        else:
+            km.add_item("", 'A', 'PRESS') # kmi
         return ('FINISHED',)
 
 

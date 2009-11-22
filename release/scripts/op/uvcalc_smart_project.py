@@ -1128,7 +1128,7 @@ class SmartProject(bpy.types.Operator):
 		return context.active_object != None
 
 	def execute(self, context):
-		main(context, self.island_margin, self.angle_limit)
+		main(context, self.properties.island_margin, self.properties.angle_limit)
 		return ('FINISHED',)
 
 bpy.ops.add(SmartProject)

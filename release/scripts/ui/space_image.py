@@ -19,6 +19,8 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
 
 class IMAGE_MT_view(bpy.types.Menu):
     bl_label = "View"
@@ -27,7 +29,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         layout = self.layout
 
         sima = context.space_data
-        uv = sima.uv_editor
+        # uv = sima.uv_editor
         settings = context.tool_settings
 
         show_uvedit = sima.show_uvedit
@@ -154,7 +156,7 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator_context = "EXEC_REGION_WIN"
+        layout.operator_context = 'EXEC_REGION_WIN'
 
         props = layout.itemO("tfm.mirror", text="X Axis", properties=True)
         props.constraint_axis[0] = True
@@ -227,8 +229,8 @@ class IMAGE_HT_header(bpy.types.Header):
         iuser = sima.image_user
         settings = context.tool_settings
 
-        show_render = sima.show_render
-        show_paint = sima.show_paint
+        # show_render = sima.show_render
+        # show_paint = sima.show_paint
         show_uvedit = sima.show_uvedit
 
         row = layout.row(align=True)
@@ -264,17 +266,14 @@ class IMAGE_HT_header(bpy.types.Header):
             else:
                 layout.itemR(settings, "uv_selection_mode", text="", expand=True)
                 layout.itemR(uvedit, "sticky_selection_mode", text="", icon_only=True)
-            pass
 
             row = layout.row(align=True)
             row.itemR(settings, "snap", text="")
             if settings.snap:
                 row.itemR(settings, "snap_mode", text="")
 
-            """
-            mesh = context.edit_object.data
-            row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_textures")
-            """
+            # mesh = context.edit_object.data
+            # row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_textures")
 
         if ima:
             # layers
@@ -310,7 +309,7 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
         layout = self.layout
 
         sima = context.space_data
-        ima = sima.image
+        # ima = sima.image
         iuser = sima.image_user
 
         layout.template_image(sima, "image", iuser, compact=True)
@@ -331,6 +330,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 
         sima = context.space_data
         ima = sima.image
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -351,7 +351,8 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         sub.itemR(ima, "tiles_x", text="X")
         sub.itemR(ima, "tiles_y", text="Y")
 
-        col = split.column()
+        if wide_ui:
+            col = split.column()
         col.itemL(text="Clamp:")
         col.itemR(ima, "clamp_x", text="X")
         col.itemR(ima, "clamp_y", text="Y")
@@ -375,6 +376,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         ima = sima.image
         show_uvedit = sima.show_uvedit
         uvedit = sima.uv_editor
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -382,7 +384,8 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         if ima:
             col.itemR(ima, "display_aspect", text="Aspect Ratio")
 
-            col = split.column()
+            if wide_ui:
+                col = split.column()
             col.itemL(text="Coordinates:")
             col.itemR(sima, "draw_repeated", text="Repeat")
             if show_uvedit:
@@ -396,21 +399,24 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col = layout.column()
             col.itemL(text="UVs:")
             row = col.row()
-            row.itemR(uvedit, "edge_draw_type", expand=True)
+            if wide_ui:
+                row.itemR(uvedit, "edge_draw_type", expand=True)
+            else:
+                row.itemR(uvedit, "edge_draw_type", text="")
 
             split = layout.split()
-
-            col = split.column()
-            col.itemR(uvedit, "draw_stretch", text="Stretch")
-            sub = col.column()
-            sub.active = uvedit.draw_stretch
-            sub.row().itemR(uvedit, "draw_stretch_type", expand=True)
-
             col = split.column()
             col.itemR(uvedit, "draw_smooth_edges", text="Smooth")
             col.itemR(uvedit, "draw_modified_edges", text="Modified")
             #col.itemR(uvedit, "draw_edges")
             #col.itemR(uvedit, "draw_faces")
+
+            if wide_ui:
+                col = split.column()
+            col.itemR(uvedit, "draw_stretch", text="Stretch")
+            sub = col.column()
+            sub.active = uvedit.draw_stretch
+            sub.row().itemR(uvedit, "draw_stretch_type", expand=True)
 
 
 class IMAGE_PT_paint(bpy.types.Panel):
@@ -427,6 +433,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
         settings = context.tool_settings.image_paint
         brush = settings.brush
+        wide_ui = context.region.width > narrowui
 
         col = layout.split().column()
         row = col.row()
@@ -434,11 +441,14 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
         col.template_ID(settings, "brush", new="brush.add")
 
-        row = layout.row(align=True)
-        row.item_enumR(settings, "tool", 'DRAW')
-        row.item_enumR(settings, "tool", 'SOFTEN')
-        row.item_enumR(settings, "tool", 'CLONE')
-        row.item_enumR(settings, "tool", 'SMEAR')
+        if wide_ui:
+            sub = layout.row(align=True)
+        else:
+            sub = layout.column(align=True)
+        sub.item_enumR(settings, "tool", 'DRAW')
+        sub.item_enumR(settings, "tool", 'SOFTEN')
+        sub.item_enumR(settings, "tool", 'CLONE')
+        sub.item_enumR(settings, "tool", 'SMEAR')
 
         if brush:
             col = layout.column()

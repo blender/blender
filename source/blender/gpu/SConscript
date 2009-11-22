@@ -3,9 +3,11 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
+defs = [ 'GLEW_STATIC' ]
+
 incs = '../blenlib ../blenkernel ../makesdna ../include'
 incs += ' #/extern/glew/include #intern/guardedalloc #intern/smoke/extern ../imbuf .'
 
 incs += ' ' + env['BF_OPENGL_INC']
 
-env.BlenderLib ( 'bf_gpu', sources, Split(incs), [], libtype=['core','player'], priority=[160,110] )
+env.BlenderLib ( 'bf_gpu', sources, Split(incs), defines = defs, libtype=['core','player'], priority=[160,110] )

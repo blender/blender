@@ -2451,6 +2451,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				
 			case BUT:
 				wt= widget_type(UI_WTYPE_EXEC);
+				if (!(but->flag & UI_HAS_ICON)) {
+					but->flag |= UI_TEXT_LEFT;
+				}
 				break;
 
 			case NUM:

@@ -861,8 +861,7 @@ static int project_paint_occlude_ptv_clip(
 	if (side)	interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 	else		interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 	
-	mul_m4_v3(ps->ob->obmat, wco);
-	if(!view3d_test_clipping(ps->rv3d, wco)) {
+	if(!view3d_test_clipping(ps->rv3d, wco, 1)) {
 		return 1;
 	}
 	
@@ -2446,8 +2445,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						/* a pitty we need to get the worldspace pixel location here */
 						if(ps->rv3d->rflag & RV3D_CLIPPING) {
 							interp_v3_v3v3v3(wco, ps->dm_mvert[ (*(&mf->v1 + i1)) ].co, ps->dm_mvert[ (*(&mf->v1 + i2)) ].co, ps->dm_mvert[ (*(&mf->v1 + i3)) ].co, w);
-							mul_m4_v3(ps->ob->obmat, wco);
-							if(view3d_test_clipping(ps->rv3d, wco)) {
+							if(view3d_test_clipping(ps->rv3d, wco, 1)) {
 								continue; /* Watch out that no code below this needs to run */
 							}
 						}
@@ -2663,9 +2661,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											if(ps->rv3d->rflag & RV3D_CLIPPING) {
 												if (side)	interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 												else		interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
-												
-												mul_m4_v3(ps->ob->obmat, wco);
-												if(view3d_test_clipping(ps->rv3d, wco)) {
+
+												if(view3d_test_clipping(ps->rv3d, wco, 1)) {
 													continue; /* Watch out that no code below this needs to run */
 												}
 											}
@@ -2934,6 +2931,8 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	/* ---- end defines ---- */
 	
+	ED_view3d_local_clipping(ps->rv3d, ps->ob->obmat); /* faster clipping lookups */
+
 	/* paint onto the derived mesh */
 	
 	/* Workaround for subsurf selection, try the display mesh first */

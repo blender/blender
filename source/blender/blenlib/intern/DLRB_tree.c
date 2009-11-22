@@ -130,6 +130,155 @@ void BLI_dlrbTree_linkedlist_sync (DLRBT_Tree *tree)
 }
 
 /* *********************************************** */
+/* Tree Search Utilities */
+
+/* Find the node which matches or is the closest to the requested node */
+DLRBT_Node *BLI_dlrbTree_search (DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *search_data)
+{
+	DLRBT_Node *node = (tree) ? tree->root : NULL;
+	short found= 0;
+	
+	/* check that there is a comparator to use */
+	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	if (cmp_cb == NULL)
+		return NULL;
+	
+	/* iteratively perform this search */
+	while (node && found==0) 
+	{
+		/* check if traverse further or not 
+		 * NOTE: it is assumed that the values will be unit values only
+		 */
+		switch (cmp_cb(node, search_data)) {
+			case -1: 	/* data less than node */
+				if (node->left)
+					node= node->left;
+				else
+					found= 1;
+				break;
+			
+			case 1: 	/* data greater than node */
+				if (node->right)
+					node= node->right;
+				else
+					found= 1;
+				break;
+			
+			default: 	/* data equals node */
+				found= 1;
+				break;
+		}
+	}
+	
+	/* return the nearest matching node */
+	return node;
+} 
+
+/* Find the node which exactly matches the required data */
+DLRBT_Node *BLI_dlrbTree_search_exact (DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *search_data)
+{
+	DLRBT_Node *node = (tree) ? tree->root : NULL;
+	short found= 0;
+	
+	/* check that there is a comparator to use */
+	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	if (cmp_cb == NULL)
+		return NULL;
+	
+	/* iteratively perform this search */
+	while (node && found==0) 
+	{
+		/* check if traverse further or not 
+		 * NOTE: it is assumed that the values will be unit values only
+		 */
+		switch (cmp_cb(node, search_data)) {
+			case -1: 	/* data less than node */
+				if (node->left)
+					node= node->left;
+				else
+					found= -1;
+				break;
+			
+			case 1: 	/* data greater than node */
+				if (node->right)
+					node= node->right;
+				else
+					found= -1;
+				break;
+			
+			default: 	/* data equals node */
+				found= 1;
+				break;
+		}
+	}
+	
+	/* return the nearest matching node */
+	return (found == 1) ? (node) : (NULL);
+}
+
+/* Find the node which occurs immediately before the best matching node */
+DLRBT_Node *BLI_dlrbTree_search_prev (DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *search_data)
+{
+	DLRBT_Node *node;
+	
+	/* check that there is a comparator to use */
+	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	if (cmp_cb == NULL)
+		return NULL;
+	
+	/* get the node which best matches this description */
+	node= BLI_dlrbTree_search(tree, cmp_cb, search_data);
+	
+	if (node) {
+		/* if the item we're searching for is greater than the node found, we've found the match */
+		if (cmp_cb(node, search_data) > 0)
+			return node;
+		
+		/* return the previous node otherwise */
+		// NOTE: what happens if there is no previous node?
+		return node->prev;
+	}
+	
+	/* nothing matching was found */
+	return NULL;
+}
+
+/* Find the node which occurs immediately after the best matching node */
+DLRBT_Node *BLI_dlrbTree_search_next (DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *search_data)
+{
+	DLRBT_Node *node;
+	
+	/* check that there is a comparator to use */
+	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	if (cmp_cb == NULL)
+		return NULL;
+	
+	/* get the node which best matches this description */
+	node= BLI_dlrbTree_search(tree, cmp_cb, search_data);
+	
+	if (node) {
+		/* if the item we're searching for is less than the node found, we've found the match */
+		if (cmp_cb(node, search_data) < 0)
+			return node;
+		
+		/* return the previous node otherwise */
+		// NOTE: what happens if there is no previous node?
+		return node->next;
+	}
+	
+	/* nothing matching was found */
+	return NULL;
+}
+
+
+/* Check whether there is a node matching the requested node */
+short BLI_dlrbTree_contains(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *search_data)
+{
+	/* check if an exact search throws up anything... */
+	return (BLI_dlrbTree_search_exact(tree, cmp_cb, search_data) != NULL);
+}
+
+/* *********************************************** */
 /* Tree Relationships Utilities */
 
 /* get the 'grandparent' - the parent of the parent - of the given node */
@@ -161,6 +310,7 @@ static DLRBT_Node *get_uncle (DLRBT_Node *node)
 /* *********************************************** */
 /* Tree Rotation Utilities */
 
+/* make right child of 'root' the new root */
 static void rotate_left (DLRBT_Tree *tree, DLRBT_Node *root)
 {
 	DLRBT_Node **root_slot, *pivot;
@@ -194,6 +344,7 @@ static void rotate_left (DLRBT_Tree *tree, DLRBT_Node *root)
 		*root_slot= pivot;
 }
 
+/* make the left child of the 'root' the new root */
 static void rotate_right (DLRBT_Tree *tree, DLRBT_Node *root)
 {
 	DLRBT_Node **root_slot, *pivot;
@@ -332,7 +483,7 @@ static void insert_check_3 (DLRBT_Tree *tree, DLRBT_Node *node)
 /* Balance the tree after the given element has been added to it 
  * (using custom code, in the Binary Tree way).
  */
-void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node)
+void BLI_dlrbTree_insert (DLRBT_Tree *tree, DLRBT_Node *node)
 {
 	/* sanity checks */
 	if ((tree == NULL) || (node == NULL))
@@ -343,6 +494,90 @@ void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node)
 		
 	/* start from case 1, an trek through the tail-recursive insertion checks */
 	insert_check_1(tree, node);
+}
+
+/* ----- */
+
+/* Add the given data to the tree, and return the node added */
+// NOTE: for duplicates, the update_cb is called (if available), and the existing node is returned
+DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, 
+			DLRBT_NAlloc_FP new_cb, DLRBT_NUpdate_FP update_cb, void *data)
+{
+	DLRBT_Node *parNode, *node=NULL;
+	short new_node = 0;
+	
+	/* sanity checks */
+	if (tree == NULL)
+		return NULL;
+		
+	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	if (cmp_cb == NULL)
+		return NULL;
+	// TODO: if no allocator is supplied, try using the one supplied with the tree...
+	if (new_cb == NULL)
+		return NULL;
+	// TODO: if no updater is supplied, try using the one supplied with the tree...
+		
+	/* try to find the nearest node to this one */
+	parNode= BLI_dlrbTree_search(tree, cmp_cb, data);
+	
+	/* add new node to the BST in the 'standard way' as appropriate 
+	 * NOTE: we do not support duplicates in our tree...
+	 */
+	if (parNode) {
+		/* check how this new node compares with the existing ones 
+		 * NOTE: it is assumed that the values will be unit values only
+		 */
+		switch (cmp_cb(parNode, data)) {
+			case -1: 	/* add new node as left child */
+			{
+				node= new_cb(data);
+				new_node= 1;
+				
+				parNode->left= node;
+				node->parent= parNode;
+			}
+				break;
+			
+			case 1: 	/* add new node as right child */
+			{
+				node= new_cb(data);
+				new_node= 1;
+				
+				parNode->right= node;
+				node->parent= parNode;
+			}
+				break;
+			
+			default: 	/* update the duplicate node as appropriate */
+			{
+				if (update_cb)
+					update_cb(parNode, data);
+			}
+				break;
+		}
+	}
+	else {
+		/* no nodes in the tree yet... add a new node as the root */
+		node= new_cb(data);
+		new_node= 1;
+		
+		tree->root= node;
+	}
+	
+	/* if a new node was added, it should be tagged as red, and then balanced as appropriate */
+	if (new_node) {
+		/* tag this new node as being 'red' */
+		node->tree_col= DLRBT_RED;
+		
+		/* perform BST balancing steps:
+		 * 	start from case 1, an trek through the tail-recursive insertion checks
+		 */
+		insert_check_1(tree, node);
+	}
+	
+	/* return the node added */
+	return node;
 }
 
 /* *********************************************** */

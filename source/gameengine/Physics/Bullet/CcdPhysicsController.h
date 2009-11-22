@@ -432,6 +432,7 @@ protected:
 
 		// controller replication
 		virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl);
+		virtual void		SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *env);
 
 		// kinematic methods
 		virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local);

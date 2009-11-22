@@ -193,20 +193,25 @@ void view3d_clr_clipping(void)
 	}
 }
 
-int view3d_test_clipping(RegionView3D *rv3d, float *vec)
+static test_clipping(float *vec, float clip[][4])
 {
-	/* vec in world coordinates, returns 1 if clipped */
 	float view[3];
-	
 	VECCOPY(view, vec);
 	
-	if(0.0f < rv3d->clip[0][3] + INPR(view, rv3d->clip[0]))
-		if(0.0f < rv3d->clip[1][3] + INPR(view, rv3d->clip[1]))
-			if(0.0f < rv3d->clip[2][3] + INPR(view, rv3d->clip[2]))
-				if(0.0f < rv3d->clip[3][3] + INPR(view, rv3d->clip[3]))
+	if(0.0f < clip[0][3] + INPR(view, clip[0]))
+		if(0.0f < clip[1][3] + INPR(view, clip[1]))
+			if(0.0f < clip[2][3] + INPR(view, clip[2]))
+				if(0.0f < clip[3][3] + INPR(view, clip[3]))
 					return 0;
-	
+
 	return 1;
+}
+
+/* for 'local' ED_view3d_local_clipping must run first
+ * then all comparisons can be done in localspace */
+int view3d_test_clipping(RegionView3D *rv3d, float *vec, int local)
+{
+	return test_clipping(vec, local ? rv3d->clip_local : rv3d->clip);
 }
 
 /* ********* end custom clipping *********** */

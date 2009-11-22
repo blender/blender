@@ -6,7 +6,7 @@ sources = env.Glob('*.cpp')
 
 incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/BlenderRoutines #extern/glew/include #source/gameengine/Expressions #source/gameengine/SceneGraph #source/blender/blenkernel #source/blender/makesdna'
 
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
 	incs += ' ' + env['BF_PYTHON_INC']

@@ -40,31 +40,30 @@
 
 EnumPropertyItem constraint_type_items[] ={
 	{0, "", 0, "Transform", ""},
-	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", ICON_CONSTRAINT_DATA, "Transformation", ""},
 	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", ICON_CONSTRAINT_DATA, "Copy Location", ""},
 	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", ICON_CONSTRAINT_DATA, "Copy Rotation", ""},
 	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", ICON_CONSTRAINT_DATA, "Copy Scale", ""},
+	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", ICON_CONSTRAINT_DATA, "Limit Distance", ""},
 	{CONSTRAINT_TYPE_LOCLIMIT, "LIMIT_LOCATION", ICON_CONSTRAINT_DATA, "Limit Location", ""},
 	{CONSTRAINT_TYPE_ROTLIMIT, "LIMIT_ROTATION", ICON_CONSTRAINT_DATA, "Limit Rotation", ""},
 	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", ICON_CONSTRAINT_DATA, "Limit Scale", ""},
-	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", ICON_CONSTRAINT_DATA, "Limit Distance", ""},
+	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", ICON_CONSTRAINT_DATA, "Transformation", ""},
 	{0, "", 0, "Tracking", ""},
-	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To", "Legacy tracking constraint prone to twisting artifacts"},
-	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", ICON_CONSTRAINT_DATA, "Locked Track", "Tracking along a single axis"},
-	{CONSTRAINT_TYPE_DAMPTRACK, "DAMPED_TRACK", ICON_CONSTRAINT_DATA, "Damped Track", "Tracking by taking the shortest path"},
 	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", ICON_CONSTRAINT_DATA, "Clamp To", ""},
-	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO",ICON_CONSTRAINT_DATA, "Stretch To", ""},
+	{CONSTRAINT_TYPE_DAMPTRACK, "DAMPED_TRACK", ICON_CONSTRAINT_DATA, "Damped Track", "Tracking by taking the shortest path"},
 	{CONSTRAINT_TYPE_KINEMATIC, "IK", ICON_CONSTRAINT_DATA, "Inverse Kinematics", ""},
+	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", ICON_CONSTRAINT_DATA, "Locked Track", "Tracking along a single axis"},
 	{CONSTRAINT_TYPE_SPLINEIK, "SPLINE_IK", ICON_CONSTRAINT_DATA, "Spline IK", ""},
+	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO",ICON_CONSTRAINT_DATA, "Stretch To", ""},
+	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", ICON_CONSTRAINT_DATA, "Track To", "Legacy tracking constraint prone to twisting artifacts"},
 	{0, "", 0, "Relationship", ""},
+	{CONSTRAINT_TYPE_ACTION, "ACTION", ICON_CONSTRAINT_DATA, "Action", ""},
 	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", ICON_CONSTRAINT_DATA, "Child Of", ""},
 	{CONSTRAINT_TYPE_MINMAX, "FLOOR", ICON_CONSTRAINT_DATA, "Floor", ""},
-	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", ICON_CONSTRAINT_DATA, "Shrinkwrap", ""},
 	{CONSTRAINT_TYPE_FOLLOWPATH, "FOLLOW_PATH", ICON_CONSTRAINT_DATA, "Follow Path", ""},
 	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", ICON_CONSTRAINT_DATA, "Rigid Body Joint", ""},
-	{CONSTRAINT_TYPE_ACTION, "ACTION", ICON_CONSTRAINT_DATA, "Action", ""},
 	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", ICON_CONSTRAINT_DATA, "Script", ""},
-
+	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", ICON_CONSTRAINT_DATA, "Shrinkwrap", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem space_pchan_items[] = {
@@ -194,7 +193,7 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 	
 	/* if constraint is in the list, the list is for the active bone... */
 	if ((inList) && (actlist != &ob->constraints) && (pchan))
-		return BLI_sprintfN("pose.pose_channels[\"%s\"].constraints[\"%s\"]", pchan->name, con->name);
+		return BLI_sprintfN("pose.bones[\"%s\"].constraints[\"%s\"]", pchan->name, con->name);
 	else
 		return BLI_sprintfN("constraints[\"%s\"]", con->name);
 }
@@ -286,7 +285,6 @@ static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float
 		*max= 1000.f;
 	}
 }
-
 
 #else
 
@@ -1681,9 +1679,9 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem splineik_xz_scale_mode[] = {
-		{CONSTRAINT_SPLINEIK_XZS_NONE, "NONE", 0, "None", "Don't scale the x and z axes, giving a volume preservation effect. (Default)"},
+		{CONSTRAINT_SPLINEIK_XZS_NONE, "NONE", 0, "Volume Preserve", "Don't scale the x and z axes, giving a volume preservation effect. (Default)"},
 		{CONSTRAINT_SPLINEIK_XZS_RADIUS, "CURVE_RADIUS", 0, "Curve Radius", "Use the radius of the curve."},
-		{CONSTRAINT_SPLINEIK_XZS_ORIGINAL, "ORIGINAL", 0, "Original", "Use the original scaling of the bones."},
+		{CONSTRAINT_SPLINEIK_XZS_ORIGINAL, "BONE_ORIGINAL", 0, "Bone Original", "Use the original scaling of the bones."},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SplineIKConstraint", "Constraint");
@@ -1703,7 +1701,11 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Chain Length", "How many bones are included in the chain");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 	
-	// TODO: add access to the positions array to allow more flexible aligning?
+	/* direct access to bindings */
+	// NOTE: only to be used by experienced users
+	//prop= RNA_def_property(srna, "joint_bindings", PROP_FLOAT, PROP_FACTOR);
+	//RNA_def_property_collection_sdna(prop, NULL, "points", "numpoints");
+	//RNA_def_property_ui_text(prop, "Joint Bindings", "(EXPERIENCED USERS ONLY) The relative positions of the joints along the chain as percentages.");
 	
 	/* settings */
 	prop= RNA_def_property(srna, "chain_offset", PROP_BOOLEAN, PROP_NONE);

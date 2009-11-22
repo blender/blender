@@ -23,7 +23,7 @@ import bpy
 def act_strip(context):
     try:
         return context.scene.sequence_editor.active_strip
-    except:
+    except AttributeError:
         return None
 
 
@@ -115,6 +115,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         """
 
         layout.itemR(st, "draw_frames")
+        layout.itemR(st, "show_cframe_indicator")
         if st.display_mode == 'IMAGE':
             layout.itemR(st, "draw_safe_margin")
         if st.display_mode == 'WAVEFORM':
@@ -132,8 +133,6 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        st = context.space_data
 
         layout.column()
         layout.item_enumO("sequencer.select_active_side", "side", 'LEFT', text="Strips to the Left")
@@ -154,8 +153,6 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
-
         layout.column()
         layout.itemO("marker.add", text="Add Marker")
         layout.itemO("marker.duplicate", text="Duplicate Marker")
@@ -174,8 +171,6 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        st = context.space_data
-
         layout.column()
         layout.itemO("sequencer.scene_strip_add", text="Scene")
         layout.itemO("sequencer.movie_strip_add", text="Movie")
@@ -191,7 +186,6 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        st = context.space_data
 
         layout.column()
         layout.item_enumO("sequencer.effect_strip_add", 'type', 'ADD')
@@ -214,8 +208,6 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        st = context.space_data
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -435,6 +427,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             col.itemR(strip, "rotation_start", text="Start")
             col.itemR(strip, "rotation_end", text="End")
 
+        col = layout.column(align=True)
+        col.itemR(strip, "factor_0", text="Anim0")
+        col.itemR(strip, "factor_1", text="Anim1")
+
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
     bl_label = "Strip Input"
@@ -510,7 +506,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 
         strip = act_strip(context)
 
-        layout.template_ID(strip, "sound", new="sound.open")
+        layout.template_ID(strip, "sound", open="sound.open")
 
         layout.itemS()
         layout.itemR(strip.sound, "filename", text="")
@@ -522,6 +518,8 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
             row.itemO("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
 
         row.itemR(strip.sound, "caching")
+
+        layout.itemR(strip, "volume")
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):

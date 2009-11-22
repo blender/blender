@@ -21,6 +21,7 @@ import sys, os, re
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
 
+import netrender
 import netrender.model
 import netrender.slave as slave
 import netrender.master as master
@@ -113,7 +114,7 @@ def clientSendJob(conn, scene, anim = False):
 	# LIBRARIES
 	###########################
 	for lib in bpy.data.libraries:
-		job.addFile(bpy.utils.expandpath(lib_path))
+		job.addFile(bpy.utils.expandpath(lib.filename))
 		
 	###########################
 	# IMAGES
@@ -150,7 +151,7 @@ def clientSendJob(conn, scene, anim = False):
 	
 	job.name = job_name
 	
-	for slave in scene.network_render.slaves_blacklist:
+	for slave in netrender.blacklist:
 		job.blacklist.append(slave.id)
 	
 	job.chunks = netsettings.chunks
@@ -200,14 +201,14 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
 
 	def render_slave(self, scene):
-		slave.render_slave(self, scene)
+		slave.render_slave(self, scene.network_render)
 	
 	def render_client(self, scene):
 		netsettings = scene.network_render
 		self.update_stats("", "Network render client initiation")
 		
 		
-		conn = clientConnection(scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
 			# Sending file
@@ -256,10 +257,8 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			conn.close()
 
 def compatible(module):
-	exec("import " + module)
-	module = eval(module)
-	for member in dir(module):
-		subclass = getattr(module, member)
+	module = __import__(module)
+	for subclass in module.__dict__.values():
 		try:		subclass.COMPAT_ENGINES.add('NET_RENDER')
 		except:	pass
 	del module

@@ -109,5 +109,3 @@ DynMenu.add = add
 # dont ever use this directly!
 bpy.types.register(DynMenu)
 '''
-
-

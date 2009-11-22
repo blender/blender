@@ -19,6 +19,9 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
+
 from properties_physics_common import basic_force_field_settings_ui
 from properties_physics_common import basic_force_field_falloff_ui
 
@@ -41,15 +44,22 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 
         ob = context.object
         field = ob.field
+        wide_ui = context.region.width > narrowui
 
-        split = layout.split(percentage=0.2)
-        split.itemL(text="Type:")
+        if wide_ui:
+            split = layout.split(percentage=0.2)
+            split.itemL(text="Type:")
+        else:
+            split = layout.split()
+
         split.itemR(field, "type", text="")
 
         if field.type not in ('NONE', 'GUIDE', 'TEXTURE'):
-            split = layout.split(percentage=0.2)
-            #split = layout.row()
-            split.itemL(text="Shape:")
+            if wide_ui:
+                split = layout.split(percentage=0.2)
+                split.itemL(text="Shape:")
+            else:
+                split = layout.split()
             split.itemR(field, "shape", text="")
 
         split = layout.split()
@@ -63,7 +73,8 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "falloff_power")
             col.itemR(field, "guide_path_add")
 
-            col = split.column()
+            if wide_ui:
+                col = split.column()
             col.itemL(text="Clumping:")
             col.itemR(field, "guide_clump_amount")
             col.itemR(field, "guide_clump_shape")
@@ -80,10 +91,15 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             if (field.guide_kink_type != 'NONE'):
                 layout.itemR(field, "guide_kink_axis")
 
-                flow = layout.column_flow()
-                flow.itemR(field, "guide_kink_frequency")
-                flow.itemR(field, "guide_kink_shape")
-                flow.itemR(field, "guide_kink_amplitude")
+                split = layout.split()
+
+                col = split.column()
+                col.itemR(field, "guide_kink_frequency")
+                col.itemR(field, "guide_kink_shape")
+
+                if wide_ui:
+                    col = split.column()
+                col.itemR(field, "guide_kink_amplitude")
 
         elif field.type == 'TEXTURE':
             col = split.column()
@@ -92,19 +108,20 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.itemR(field, "texture_mode", text="")
             col.itemR(field, "texture_nabla")
 
-            col = split.column()
+            if wide_ui:
+                col = split.column()
             col.itemR(field, "use_coordinates")
             col.itemR(field, "root_coordinates")
             col.itemR(field, "force_2d")
         else:
-            basic_force_field_settings_ui(self, field)
+            basic_force_field_settings_ui(self, context, field)
 
         if field.type not in ('NONE', 'GUIDE'):
 
             layout.itemL(text="Falloff:")
             layout.itemR(field, "falloff_type", expand=True)
 
-            basic_force_field_falloff_ui(self, field)
+            basic_force_field_falloff_ui(self, context, field)
 
             if field.falloff_type == 'CONE':
                 layout.itemS()
@@ -116,7 +133,8 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemR(field, "use_radial_min", text="Use Minimum")
                 col.itemR(field, "use_radial_max", text="Use Maximum")
 
-                col = split.column()
+                if wide_ui:
+                    col = split.column()
                 col.itemR(field, "radial_falloff", text="Power")
 
                 sub = col.column()
@@ -137,7 +155,8 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 col.itemR(field, "use_radial_min", text="Use Minimum")
                 col.itemR(field, "use_radial_max", text="Use Maximum")
 
-                col = split.column()
+                if wide_ui:
+                    col = split.column()
                 col.itemR(field, "radial_falloff", text="Power")
 
                 sub = col.column()
@@ -162,6 +181,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
         layout = self.layout
 
         md = context.collision
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         split.operator_context = 'EXEC_DEFAULT'
@@ -170,7 +190,8 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
             # remove modifier + settings
             split.set_context_pointer("modifier", md)
             split.itemO("object.modifier_remove", text="Remove")
-            col = split.column()
+            if wide_ui:
+                col = split.column()
 
             #row = split.row(align=True)
             #row.itemR(md, "render", text="")
@@ -181,7 +202,8 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
         else:
             # add modifier
             split.item_enumO("object.modifier_add", "type", 'COLLISION', text="Add")
-            split.itemL()
+            if wide_ui:
+                split.itemL()
 
             coll = None
 
@@ -195,28 +217,29 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
             col = split.column()
             col.itemL(text="Particle:")
             col.itemR(settings, "permeability", slider=True)
+            col.itemR(settings, "kill_particles")
             col.itemL(text="Particle Damping:")
             sub = col.column(align=True)
             sub.itemR(settings, "damping_factor", text="Factor", slider=True)
             sub.itemR(settings, "random_damping", text="Random", slider=True)
 
+            col.itemL(text="Particle Friction:")
+            sub = col.column(align=True)
+            sub.itemR(settings, "friction_factor", text="Factor", slider=True)
+            sub.itemR(settings, "random_friction", text="Random", slider=True)
+
+            if wide_ui:
+                col = split.column()
             col.itemL(text="Soft Body and Cloth:")
             sub = col.column(align=True)
             sub.itemR(settings, "outer_thickness", text="Outer", slider=True)
             sub.itemR(settings, "inner_thickness", text="Inner", slider=True)
 
-            layout.itemL(text="Force Fields:")
-            layout.itemR(settings, "absorption", text="Absorption")
-
-            col = split.column()
-            col.itemL(text="")
-            col.itemR(settings, "kill_particles")
-            col.itemL(text="Particle Friction:")
-            sub = col.column(align=True)
-            sub.itemR(settings, "friction_factor", text="Factor", slider=True)
-            sub.itemR(settings, "random_friction", text="Random", slider=True)
             col.itemL(text="Soft Body Damping:")
             col.itemR(settings, "damping", text="Factor", slider=True)
+
+            col.itemL(text="Force Fields:")
+            col.itemR(settings, "absorption", text="Absorption")
 
 bpy.types.register(PHYSICS_PT_field)
 bpy.types.register(PHYSICS_PT_collision)

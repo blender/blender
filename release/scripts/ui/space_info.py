@@ -29,7 +29,6 @@ class INFO_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
         scene = context.scene
         rd = scene.render_data
 
@@ -70,9 +69,9 @@ class INFO_MT_file(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = "EXEC_AREA"
+        layout.operator_context = 'EXEC_AREA'
         layout.itemO("wm.read_homefile", text="New", icon='ICON_NEW')
-        layout.operator_context = "INVOKE_AREA"
+        layout.operator_context = 'INVOKE_AREA'
         layout.itemO("wm.open_mainfile", text="Open...", icon='ICON_FILE_FOLDER')
         layout.item_menu_enumO("wm.open_recentfile", "file", text="Open Recent")
         layout.itemO("wm.recover_last_session")
@@ -80,14 +79,14 @@ class INFO_MT_file(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.operator_context = "EXEC_AREA"
+        layout.operator_context = 'EXEC_AREA'
         layout.itemO("wm.save_mainfile", text="Save", icon='ICON_FILE_TICK')
-        layout.operator_context = "INVOKE_AREA"
+        layout.operator_context = 'INVOKE_AREA'
         layout.itemO("wm.save_as_mainfile", text="Save As...")
         layout.itemO("screen.userpref_show", text="User Preferences...", icon='ICON_PREFERENCES')
 
         layout.itemS()
-        layout.operator_context = "INVOKE_AREA"
+        layout.operator_context = 'INVOKE_AREA'
         layout.itemO("wm.link_append", text="Link")
         layout.item_booleanO("wm.link_append", "link", False, text="Append")
         layout.itemS()
@@ -101,7 +100,7 @@ class INFO_MT_file(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.operator_context = "EXEC_AREA"
+        layout.operator_context = 'EXEC_AREA'
         layout.itemO("wm.exit_blender", text="Quit", icon='ICON_QUIT')
 
 # test for expanding menus
@@ -178,7 +177,7 @@ class INFO_MT_add(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = "EXEC_SCREEN"
+        layout.operator_context = 'EXEC_SCREEN'
 
         # layout.item_menu_enumO("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
         layout.itemM("INFO_MT_mesh_add", icon='ICON_OUTLINER_OB_MESH')
@@ -190,7 +189,7 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.itemS()
 
-        layout.operator_context = "INVOKE_SCREEN"
+        layout.operator_context = 'INVOKE_SCREEN'
 
         layout.itemO("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
         layout.item_enumO("object.add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
@@ -200,7 +199,7 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.item_enumO("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
 
-        layout.operator_context = "EXEC_SCREEN"
+        layout.operator_context = 'EXEC_SCREEN'
 
         layout.item_menu_enumO("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
 
@@ -237,7 +236,7 @@ class INFO_MT_render(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        # rd = context.scene.render_data
 
         layout.itemO("screen.render", text="Render Image", icon='ICON_RENDER_STILL')
         layout.item_booleanO("screen.render", "animation", True, text="Render Animation", icon='ICON_RENDER_ANIMATION')

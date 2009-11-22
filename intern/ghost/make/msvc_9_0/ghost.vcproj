@@ -365,6 +365,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\intern\GHOST_EventDragnDrop.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\intern\GHOST_EventKey.h"
 					>
 				</File>

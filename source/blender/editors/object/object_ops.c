@@ -136,12 +136,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
 	WM_operatortype_append(OBJECT_OT_multires_higher_levels_delete);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
-	WM_operatortype_append(OBJECT_OT_hook_reset);
-	WM_operatortype_append(OBJECT_OT_hook_recenter);
-	WM_operatortype_append(OBJECT_OT_hook_select);
-	WM_operatortype_append(OBJECT_OT_hook_assign);
 	WM_operatortype_append(OBJECT_OT_explode_refresh);
-
+	
 	WM_operatortype_append(OBJECT_OT_constraint_add);
 	WM_operatortype_append(OBJECT_OT_constraint_add_with_targets);
 	WM_operatortype_append(POSE_OT_constraint_add);
@@ -169,9 +165,9 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize_all);
 	WM_operatortype_append(OBJECT_OT_vertex_group_invert);
+	WM_operatortype_append(OBJECT_OT_vertex_group_levels);
 	WM_operatortype_append(OBJECT_OT_vertex_group_blend);
 	WM_operatortype_append(OBJECT_OT_vertex_group_clean);
-	WM_operatortype_append(OBJECT_OT_vertex_group_menu);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);
@@ -188,6 +184,14 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_group_add);
 	WM_operatortype_append(OBJECT_OT_group_remove);
+
+	WM_operatortype_append(OBJECT_OT_hook_add_selobj);
+	WM_operatortype_append(OBJECT_OT_hook_add_newobj);
+	WM_operatortype_append(OBJECT_OT_hook_remove);
+	WM_operatortype_append(OBJECT_OT_hook_select);
+	WM_operatortype_append(OBJECT_OT_hook_assign);
+	WM_operatortype_append(OBJECT_OT_hook_reset);
+	WM_operatortype_append(OBJECT_OT_hook_recenter);
 }
 
 void ED_operatormacros_object(void)
@@ -282,19 +286,13 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "name", "INFO_MT_add");
+	WM_keymap_add_menu(keymap, "INFO_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicates_make_real", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_object_apply");
-
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_single_user");
-    
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", LKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_links");
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_object_apply", AKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_make_single_user", UKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_make_links", LKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move_linked", DKEY, KM_PRESS, KM_ALT, 0);
@@ -326,6 +324,10 @@ void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keym
 {
 	wmKeyMapItem *km;
 
+	/* snap */
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
+
 	/* used by mesh, curve & lattice only */
 	if(do_pet) {
 		/* context ops */
@@ -342,6 +344,5 @@ void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keym
 		RNA_string_set(km->ptr, "value_1", "DISABLED");
 		RNA_string_set(km->ptr, "value_2", "CONNECTED");
 	}
-
 }
 

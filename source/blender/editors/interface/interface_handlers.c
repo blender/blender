@@ -2224,14 +2224,6 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			fac= 1.0f;
 			if(event->shift) fac /= 10.0f;
 			if(event->alt) fac /= 20.0f;
-
-			if(event->custom == EVT_DATA_TABLET) {
-				wmTabletData *wmtab= event->customdata;
-
-				/* de-sensitise based on tablet pressure */
-				if (wmtab->Active != EVT_TABLET_NONE)
-				 	fac *= wmtab->Pressure;
-			}
 			
 			snap= (event->ctrl)? (event->shift)? 2: 1: 0;
 
@@ -3399,11 +3391,14 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 	pup= uiPupMenuBegin(C, name, 0);
 	layout= uiPupMenuLayout(pup);
+	
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
 	if(but->rnapoin.data && but->rnaprop) {
 
 		length= RNA_property_array_length(&but->rnapoin, but->rnaprop);
-
+		
+		/* Keyframes */
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {
 				uiItemBooleanO(layout, "Replace Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
@@ -3425,7 +3420,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			else
 				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
 		}
-
+		
+		/* Drivers */
 		if(but->flag & UI_BUT_DRIVEN) {
 			uiItemS(layout);
 
@@ -3454,7 +3450,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			if (ANIM_driver_can_paste())
 				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
 		}
-
+		
+		/* Keying Sets */
 		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			uiItemS(layout);
 
@@ -3468,14 +3465,19 @@ static int ui_but_menu(bContext *C, uiBut *but)
 				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
 			}
 		}
-
+		
 		uiItemS(layout);
-
+		
+		/* Property Operators */
+		
+		//Copy Property Value
+		//Paste Property Value
+		
+		//uiItemO(layout, "Reset to Default Value", 0, "WM_OT_property_value_reset_button");
+		
 		uiItemO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button");
 
 		uiItemS(layout);
-
-
 	}
 
 
@@ -3739,26 +3741,55 @@ static void ui_blocks_set_tooltips(ARegion *ar, int enable)
 static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
-	int mx, my;
+	
 
-	/* check if the mouse is in the region, and in case of a view2d also check
-	 * if it is inside the view2d itself, not over scrollbars for example */
+	/* check if the mouse is in the region */
 	if(!BLI_in_rcti(&ar->winrct, x, y)) {
 		for(block=ar->uiblocks.first; block; block=block->next)
 			block->auto_open= 0;
-
+		
 		return 0;
 	}
 
+	/* also, check that with view2d, that the mouse is not over the scrollbars 
+	 * NOTE: care is needed here, since the mask rect may include the scrollbars
+	 * even when they are not visible, so we need to make a copy of the mask to
+	 * use to check
+	 */
 	if(ar->v2d.mask.xmin!=ar->v2d.mask.xmax) {
+		View2D *v2d= &ar->v2d;
+		rcti mask_rct;
+		int mx, my;
+		
+		/* convert window coordinates to region coordinates */
 		mx= x;
 		my= y;
 		ui_window_to_region(ar, &mx, &my);
-
-		if(!BLI_in_rcti(&ar->v2d.mask, mx, my))
+		
+		/* make a copy of the mask rect, and tweak accordingly for hidden scrollbars */
+		mask_rct.xmin= v2d->mask.xmin;
+		mask_rct.xmax= v2d->mask.xmax;
+		mask_rct.ymin= v2d->mask.ymin;
+		mask_rct.ymax= v2d->mask.ymax;
+		
+		if (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE) {
+			if (v2d->scroll & V2D_SCROLL_LEFT)
+				mask_rct.xmin= v2d->vert.xmin;
+			else if (v2d->scroll & V2D_SCROLL_RIGHT)
+				mask_rct.xmax= v2d->vert.xmax;
+		}
+		if (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE) {
+			if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O))
+				mask_rct.ymin= v2d->hor.ymin;
+			else if (v2d->scroll & V2D_SCROLL_TOP)
+				mask_rct.ymax= v2d->hor.ymax;
+		}
+		
+		/* check if in the rect */
+		if(!BLI_in_rcti(&mask_rct, mx, my)) 
 			return 0;
 	}
-
+	
 	return 1;
 }
 

@@ -504,7 +504,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	
 	split = uiLayoutSplit(layout, 0.8);
 	
-	if (ptr->type == &RNA_PoseChannel) {
+	if (ptr->type == &RNA_PoseBone) {
 		PointerRNA boneptr;
 		Bone *bone;
 		
@@ -591,7 +591,7 @@ static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 		return; 
 	}
 
-	RNA_pointer_create(&ob->id, &RNA_PoseChannel, pchan, &pchanptr);
+	RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan, &pchanptr);
 
 	col= uiLayoutColumn(layout, 0);
 	

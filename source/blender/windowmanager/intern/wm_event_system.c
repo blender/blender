@@ -461,10 +461,18 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				WM_operator_free(op);
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
-			/* grab cursor during blocking modal ops (X11) */
-			if(ot->flag & OPTYPE_BLOCKING) {
+			/* grab cursor during blocking modal ops (X11)
+			 * Also check for macro
+			 * */
+			if(ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
 				int bounds[4] = {-1,-1,-1,-1};
-				int wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				int wrap;
+
+				if (op->opm) {
+					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
+				} else {
+					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				}
 
 				if(wrap) {
 					ARegion *ar= CTX_wm_region(C);
@@ -621,7 +629,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 /* ********************* handlers *************** */
 
 /* future extra customadata free? */
-static void wm_event_free_handler(wmEventHandler *handler)
+void wm_event_free_handler(wmEventHandler *handler)
 {
 	MEM_freeN(handler);
 }
@@ -805,12 +813,17 @@ static int wm_event_always_pass(wmEvent *event)
 }
 
 /* operator exists */
-static void wm_event_modalkeymap(wmOperator *op, wmEvent *event)
+static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
 {
+	/* support for modal keymap in macros */
+	if (op->opm)
+		op = op->opm;
+
 	if(op->type->modalkeymap) {
+		wmKeyMap *keymap= WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
-		
-		for(kmi= op->type->modalkeymap->items.first; kmi; kmi= kmi->next) {
+
+		for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
 			if(wm_eventmatch(event, kmi)) {
 					
 				event->type= EVT_MODAL_MAP;
@@ -837,7 +850,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			wm_handler_op_context(C, handler);
 			wm_region_mouse_co(C, event);
-			wm_event_modalkeymap(op, event);
+			wm_event_modalkeymap(C, op, event);
 			
 			retval= ot->modal(C, op, event);
 

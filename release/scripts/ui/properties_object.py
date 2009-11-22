@@ -21,6 +21,7 @@ import bpy
 
 narrowui = 180
 
+
 class ObjectButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -48,11 +49,11 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
-        if col2:
+        if wide_ui:
             row = layout.row()
-            
+
             row.column().itemR(ob, "location")
             if ob.rotation_mode == 'QUATERNION':
                 row.column().itemR(ob, "rotation_quaternion", text="Rotation")
@@ -63,20 +64,21 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
                 row.column().itemR(ob, "rotation_axis_angle", text="Rotation")
             else:
                 row.column().itemR(ob, "rotation_euler", text="Rotation")
-    
+
             row.column().itemR(ob, "scale")
-    
+
             layout.itemR(ob, "rotation_mode")
         else:
             col = layout.column()
             col.itemR(ob, "location")
+            col.itemL(text="Rotation:")
             col.itemR(ob, "rotation_mode", text="")
             if ob.rotation_mode == 'QUATERNION':
-                col.itemR(ob, "rotation_quaternion")
+                col.itemR(ob, "rotation_quaternion", text="")
             elif ob.rotation_mode == 'AXIS_ANGLE':
-                col.itemR(ob, "rotation_axis_angle", text="Rotation")
+                col.itemR(ob, "rotation_axis_angle", text="")
             else:
-                col.itemR(ob, "rotation_euler", text="Rotation")
+                col.itemR(ob, "rotation_euler", text="")
             col.itemR(ob, "scale")
 
 
@@ -88,7 +90,7 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
+        # wide_ui = context.region.width > narrowui
 
         row = layout.row()
 
@@ -114,7 +116,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -123,7 +125,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
         col.itemS()
         col.itemR(ob, "pass_index")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Parent:")
         col.itemR(ob, "parent", text="")
@@ -143,9 +145,9 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
-        
-        if col2:
+        wide_ui = context.region.width > narrowui
+
+        if wide_ui:
             split = layout.split()
             split.item_menu_enumO("object.group_add", "group", text="Add to Group")
             split.itemL()
@@ -163,11 +165,11 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 row.itemO("object.group_remove", text="", icon='VICON_X')
 
                 split = col.box().split()
-                
+
                 col = split.column()
                 col.itemR(group, "layer", text="Dupli")
-                
-                if col2:
+
+                if wide_ui:
                     col = split.column()
                 col.itemR(group, "dupli_offset", text="")
 
@@ -179,13 +181,13 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
-        
+        wide_ui = context.region.width > narrowui
+
         split = layout.split()
         col = split.column()
         col.itemR(ob, "max_draw_type", text="Type")
-        
-        if col2:
+
+        if wide_ui:
             col = split.column()
         row = col.row()
         row.itemR(ob, "draw_bounds", text="Bounds")
@@ -194,13 +196,13 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         sub.itemR(ob, "draw_bounds_type", text="")
 
         split = layout.split()
-        
+
         col = split.column()
         col.itemR(ob, "draw_name", text="Name")
         col.itemR(ob, "draw_axis", text="Axis")
         col.itemR(ob, "draw_wire", text="Wire")
-        
-        if col2:
+
+        if wide_ui:
             col = split.column()
         col.itemR(ob, "draw_texture_space", text="Texture Space")
         col.itemR(ob, "x_ray", text="X-Ray")
@@ -214,13 +216,13 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
-        
-        if col2:
+        wide_ui = context.region.width > narrowui
+
+        if wide_ui:
             layout.itemR(ob, "dupli_type", expand=True)
         else:
             layout.itemR(ob, "dupli_type", text="")
-        
+
         if ob.dupli_type == 'FRAMES':
             split = layout.split()
 
@@ -228,7 +230,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
             col.itemR(ob, "dupli_frames_start", text="Start")
             col.itemR(ob, "dupli_frames_end", text="End")
 
-            if col2:
+            if wide_ui:
                 col = split.column(align=True)
             col.itemR(ob, "dupli_frames_on", text="On")
             col.itemR(ob, "dupli_frames_off", text="Off")
@@ -243,13 +245,13 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 
             col = split.column()
             col.itemR(ob, "dupli_faces_scale", text="Scale")
-            
-            if col2:
+
+            if wide_ui:
                 col = split.column()
             col.itemR(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'GROUP':
-            if col2:
+            if wide_ui:
                 layout.itemR(ob, "dupli_group", text="Group")
             else:
                 layout.itemR(ob, "dupli_group", text="")
@@ -262,8 +264,8 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        col2 = context.region.width > narrowui
-        
+        wide_ui = context.region.width > narrowui
+
         split = layout.split()
 
         col = split.column()
@@ -280,7 +282,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.active = ob.parent != None
         col.itemR(ob, "time_offset", text="Offset")
 
-        if col2:
+        if wide_ui:
             col = split.column()
         col.itemL(text="Track:")
         col.itemR(ob, "track", text="")
@@ -290,6 +292,17 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.itemR(ob, "track_override_parent", text="Override Parent")
         row.active = ob.parent != None
 
+
+class OBJECT_PT_properties(ObjectButtonsPanel):
+    bl_label = "Properties"
+    bl_default_closed = True
+
+    def draw(self, context):
+        import rna_prop_ui
+        # reload(rna_prop_ui)
+
+        rna_prop_ui.draw(self.layout, context, "object")
+
 bpy.types.register(OBJECT_PT_context_object)
 bpy.types.register(OBJECT_PT_transform)
 bpy.types.register(OBJECT_PT_transform_locks)
@@ -298,3 +311,4 @@ bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)
 bpy.types.register(OBJECT_PT_duplication)
 bpy.types.register(OBJECT_PT_animation)
+bpy.types.register(OBJECT_PT_properties)
