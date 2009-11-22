@@ -78,6 +78,8 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             if wide_ui:
                 split.column()
 
+        split.operator_context = 'INVOKE_DEFAULT'
+
         if md:
             cloth = md.settings
 

@@ -19,7 +19,57 @@
 import bpy
 import os
 
-from wm import AddPresetBase
+class AddPresetBase(bpy.types.Operator):
+    '''Base preset class, only for subclassing
+    subclasses must define 
+     - preset_values
+     - preset_path '''
+    bl_idname = "render.preset_add"
+    bl_label = "Add Render Preset"
+
+    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen= 64, default= "")
+
+    '''
+    preset_values = [
+        "bpy.context.scene.render_data.resolution_x",
+        "bpy.context.scene.render_data.resolution_y",
+        "bpy.context.scene.render_data.pixel_aspect_x",
+        "bpy.context.scene.render_data.pixel_aspect_y",
+        "bpy.context.scene.render_data.fps",
+        "bpy.context.scene.render_data.fps_base",
+        "bpy.context.scene.render_data.resolution_percentage",
+    ]
+
+    preset_subdir = "render"
+    '''
+    
+    def _as_filename(self, name): # could reuse for other presets
+        for char in " !@#$%^&*(){}:\";'[]<>,./?":
+            name = name.replace('.', '_')
+        return name.lower()
+
+    def execute(self, context):
+
+        if not self.properties.name:
+            return ('FINISHED',)
+
+        filename = self._as_filename(self.properties.name) + ".py"
+
+        target_path = bpy.utils.preset_paths(self.preset_subdir)[0] # we need some way to tell the user and system preset path
+
+        file_preset = open(os.path.join(target_path, filename), 'w')
+        
+        for rna_path in self.preset_values:
+            file_preset.write("%s = %s\n" % (rna_path, eval(rna_path)))
+
+        file_preset.close()
+
+        return ('FINISHED',)
+
+    def invoke(self, context, event):
+        wm = context.manager
+        wm.invoke_props_popup(self, event)
+        return ('RUNNING_MODAL',)
 
 
 class AddPresetRender(AddPresetBase):
@@ -38,7 +88,7 @@ class AddPresetRender(AddPresetBase):
         "bpy.context.scene.render_data.resolution_percentage",
     ]
 
-    preset_path = os.path.join("presets", "render")
+    preset_subdir = "render"
 
 
 class AddPresetSSS(AddPresetBase):
@@ -63,7 +113,7 @@ class AddPresetSSS(AddPresetBase):
         "bpy.context.material.subsurface_scattering.texture_factor",
     ]
 
-    preset_path = os.path.join("presets", "sss")
+    preset_subdir = "sss"
     
 class AddPresetCloth(AddPresetBase):
     '''Add a Cloth Preset.'''
@@ -80,7 +130,7 @@ class AddPresetCloth(AddPresetBase):
         "bpy.context.cloth.settings.air_damping",
     ]
     
-    preset_path = os.path.join("presets", "cloth")
+    preset_subdir = "cloth"
 
 bpy.ops.add(AddPresetRender)
 bpy.ops.add(AddPresetSSS)
