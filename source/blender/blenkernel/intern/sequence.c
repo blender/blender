@@ -47,6 +47,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "RNA_access.h"
+#include "RE_pipeline.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_util.h"
@@ -2006,14 +2007,9 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 		}
 	} else if(seq->type == SEQ_SCENE) {	// scene can be NULL after deletions
-#if 0
-		/* XXX move entirely to render? */
-		int oldcfra = CFRA;
-		Sequence * oldseq = get_last_seq();
 		Scene *sce= seq->scene, *oldsce= scene;
 		Render *re;
 		RenderResult rres;
-		int doseq, rendering= G.rendering;
 		char scenename[64];
 		int have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
 		int sce_valid =sce && (sce->camera || have_seq);
@@ -2035,18 +2031,24 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		if (!sce_valid) {
 			se->ok = STRIPELEM_FAILED;
 		} else if (se->ibuf==NULL && sce_valid) {
-			/* no need to display a waitcursor on sequencer
-			   scene strips */
-			if (!have_seq)
-				waitcursor(1);
-			
+			int oldcfra;
 			/* Hack! This function can be called from do_render_seq(), in that case
 			   the seq->scene can already have a Render initialized with same name, 
 			   so we have to use a default name. (compositor uses scene name to
 			   find render).
 			   However, when called from within the UI (image preview in sequencer)
 			   we do want to use scene Render, that way the render result is defined
-			   for display in render/imagewindow */
+			   for display in render/imagewindow 
+
+			   Hmm, don't see, why we can't do that all the time, 
+			   and since G.rendering is uhm, gone... (Peter)
+			*/
+
+			int rendering = 1;
+			int doseq;
+
+			oldcfra = seq->scene->r.cfra;
+
 			if(rendering) {
 				BLI_strncpy(scenename, sce->id.name+2, 64);
 				strcpy(sce->id.name+2, " do_build_seq_ibuf");
@@ -2057,16 +2059,9 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			doseq= scene->r.scemode & R_DOSEQ;
 			scene->r.scemode &= ~R_DOSEQ;
 			
-			BIF_init_render_callbacks(re, 0);	/* 0= no display callbacks */
-			
-			/* XXX hrms, set_scene still needed? work on that... */
-			if(sce!=oldsce) set_scene_bg(sce);
 			RE_BlenderFrame(re, sce,
 					seq->sfra+se->nr+seq->anim_startofs);
-			if(sce!=oldsce) set_scene_bg(oldsce);
 			
-			/* UGLY WARNING, it is set to zero in  RE_BlenderFrame */
-			G.rendering= rendering;
 			if(rendering)
 				BLI_strncpy(sce->id.name+2, scenename, 64);
 			
@@ -2086,20 +2081,12 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 
 			RE_ReleaseResultImage(re);
 			
-			BIF_end_render_callbacks();
+			// BIF_end_render_callbacks();
 			
 			/* restore */
 			scene->r.scemode |= doseq;
-
-			// XXX
-#if 0
-			if((G.f & G_PLAYANIM)==0 /* bad, is set on do_render_seq */
-			   && !have_seq
-			   && !build_proxy_run) 
-#endif
-			
-			CFRA = oldcfra;
-			set_last_seq(oldseq);
+		
+			seq->scene->r.cfra = oldcfra;
 
 			copy_to_ibuf_still(seq, se);
 
@@ -2112,7 +2099,6 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 
 		}
-#endif
 	}
 	if (!build_proxy_run) {
 		if (se->ibuf && use_limiter) {
