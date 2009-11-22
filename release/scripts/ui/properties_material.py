@@ -483,16 +483,15 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         mat = active_node_mat(context.material)
         sss = mat.subsurface_scattering
         wide_ui = context.region.width > narrowui
+        
+        layout.active = (sss.enabled) and (not mat.shadeless)
 
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)
         sub.itemM("MATERIAL_MT_sss_presets", text="Presets")
         sub.itemO("material.sss_preset_add", text="Add")
 
-        layout.active = sss.enabled
-
         split = layout.split()
-        split.active = (not mat.shadeless)
 
         col = split.column()
         col.itemR(sss, "ior")

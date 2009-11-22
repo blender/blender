@@ -486,7 +486,6 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         sub = row.row(align=True).split(percentage=0.75)
         sub.itemM("RENDER_MT_presets", text="Presets")
         sub.itemO("render.preset_add", text="Add")
-        row.itemL()
 
         split = layout.split()
 
