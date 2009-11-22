@@ -1232,6 +1232,52 @@ void VIEW3D_OT_view_center(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	if (rv3d) {
+		if (rv3d->persp==RV3D_CAMOB) {
+			/* center the camera offset */
+			rv3d->camdx= rv3d->camdy= 0.0;
+		}
+		else {
+			/* non camera center */
+			float *curs= give_cursor(scene, v3d);
+			float new_ofs[3];
+			
+			new_ofs[0]= -curs[0];
+			new_ofs[1]= -curs[1];
+			new_ofs[2]= -curs[2];
+			
+			smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
+		}
+		
+		if (rv3d->viewlock & RV3D_BOXVIEW)
+			view3d_boxview_copy(CTX_wm_area(C), ar);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Center View to Cursor";
+	ot->description= "Centers the view so that the cursor is in the middle of the view.";
+	ot->idname= "VIEW3D_OT_view_center_cursor";
+	
+	/* api callbacks */
+	ot->exec= viewcenter_cursor_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
 /* ********************* Set render border operator ****************** */
 
 static int render_border_exec(bContext *C, wmOperator *op)

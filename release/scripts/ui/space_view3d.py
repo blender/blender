@@ -266,6 +266,7 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
         layout.item_booleanO("view3d.view_all", "center", True, text="Center Cursor and View All")
         layout.itemO("view3d.camera_to_view", text="Align Active Camera to View")
         layout.itemO("view3d.view_center")
+        layout.itemO("view3d.view_center_cursor")
 
 
 class VIEW3D_MT_view_align_selected(bpy.types.Menu):

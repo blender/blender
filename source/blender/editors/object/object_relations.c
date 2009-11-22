@@ -653,8 +653,8 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					//ob->partype= PARSKEL; /* note, dna define, not operator property */
 					
 					/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
-					// XXX currently this should only happen for meshes, curves and surfaces - this stuff isn't available for metas yet
-					if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) 
+					// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
+					if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) 
 					{
 						switch (partype) 
 						{

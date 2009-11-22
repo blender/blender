@@ -190,6 +190,7 @@ static void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *di
 
 
 /* ****************** smooth view operator ****************** */
+/* This operator is one of the 'timer refresh' ones like animation playback */
 
 struct SmoothViewStore {
 	float orig_dist, new_dist;
@@ -386,6 +387,8 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 }
 
+/* ****************** change view operators ****************** */
+
 static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	float dvec[3];
@@ -445,6 +448,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
 static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -479,6 +483,7 @@ void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
 /* ********************************** */
 
 /* create intersection coordinates in view Z direction at mouse coordinates */
