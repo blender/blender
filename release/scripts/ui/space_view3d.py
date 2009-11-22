@@ -557,8 +557,9 @@ class VIEW3D_MT_select_face(bpy.types.Menu):# XXX no matching enum
 
     def draw(self, context):
         layout = self.layout
-
-        layout.view3d_select_faceselmenu()
+        
+        # TODO
+        # see view3d_select_faceselmenu
 
 # ********** Object menu **********
 

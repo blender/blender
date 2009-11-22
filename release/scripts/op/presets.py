@@ -42,7 +42,7 @@ class AddPresetRender(AddPresetBase):
 
 class AddPresetSSS(AddPresetBase):
     bl_idname = "material.sss_preset_add"
-    bl_label = "Add Render Preset"
+    bl_label = "Add SSS Preset"
     name = AddPresetBase.name
 
     preset_values = [
