@@ -229,6 +229,8 @@ void WM_operator_bl_idname(char *to, const char *from){}
 void WM_operator_py_idname(char *to, const char *from){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
 char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return NULL;}
+struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return NULL;}
+struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return NULL;}
 
 /* intern/decimation */
 int LOD_FreeDecimationData(struct LOD_Decimation_Info *info){return 0;}
@@ -239,9 +241,10 @@ int LOD_LoadMesh(struct LOD_Decimation_Info *info){return 0;}
 /* smoke */
 void lzo1x_1_compress(void) {return;}
 void LzmaCompress(void) { return; }
-void smoke_export(void) {return;}
 void lzo1x_decompress(void) {return;}
 void LzmaUncompress(void) {return;}
+/* smoke is included anyway
+void smoke_export(void) {return;}
 void smoke_init(void) {return;}
 void smoke_turbulence_init(void) {return;}
 void smoke_turbulence_initBlenderRNA(void) {return;}
@@ -258,6 +261,7 @@ void smoke_get_velocity_z(void) {return;}
 void smoke_get_obstacle(void) {return;}
 void smoke_get_index(void) {return;}
 void smoke_step(void) {return;}
+*/
 
 char blender_path(){return NULL;}
 

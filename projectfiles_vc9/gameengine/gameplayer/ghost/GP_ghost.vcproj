@@ -72,12 +72,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386&#x0D;&#x0A;"
-				AdditionalDependencies="ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib OpenAL32.lib wrap_oal.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib qtmlClient.lib SDL.lib freetype2ST.lib python31_d.lib pthreadVSE2.lib pthreadVC2.lib Half_d.lib Iex_d.lib IlmImf_d.lib IlmThread_d.lib Imath_d.lib avcodec-52.lib avformat-52.lib avutil-50.lib swscale-0.lib avdevice-52.lib"
+				AdditionalDependencies="libsamplerate.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib OpenAL32.lib wrap_oal.lib libjpeg.lib dxguid.lib libeay32.lib libpng_st.lib libz.lib qtmlClient.lib SDL.lib freetype2ST.lib python31_d.lib pthreadVSE2.lib pthreadVC2.lib Half_d.lib Iex_d.lib IlmImf_d.lib IlmThread_d.lib Imath_d.lib avcodec-52.lib avformat-52.lib avutil-50.lib swscale-0.lib avdevice-52.lib"
 				ShowProgress="0"
-				OutputFile="..\..\..\..\bin\debug\blenderplayer.exe"
+				OutputFile="..\..\..\..\..\install\msvc_9d\blenderplayer.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\openexr\lib_vs2008;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\lib\windows\pthreads\lib;..\..\..\..\..\lib\windows\ffmpeg\lib"
+				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\openexr\lib_vs2008;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\lib\windows\pthreads\lib;..\..\..\..\..\lib\windows\ffmpeg\lib;..\..\..\..\..\lib\windows\samplerate\lib"
 				IgnoreDefaultLibraryNames="libc.lib;libcmt.lib;msvcrt.lib;libcd.lib;msvcrtd.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="..\..\..\..\..\build\msvc_9\libs\debug\blenderplayer.pdb"
@@ -105,7 +105,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Moving libraries and export definitions...&#x0D;&#x0A;MOVE /Y ..\..\..\..\bin\debug\blenderplayer.lib ..\..\..\..\..\build\msvc_9\libs\debug&#x0D;&#x0A;MOVE /Y ..\..\..\..\bin\debug\blenderplayer.exp ..\..\..\..\..\build\msvc_9\libs\debug&#x0D;&#x0A;MOVE /Y ..\..\..\..\bin\debug\blenderplayer.ilk ..\..\..\..\..\build\msvc_9\libs\debug&#x0D;&#x0A;ECHO Copying required 3rd party dlls...&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\python31_d.dll ..\..\..\..\bin\debug&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\SDL.dll ..\..\..\..\bin\debug&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\png\lib\libpng.dll ..\..\..\..\bin\debug&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\bin\debug&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\..\..\bin\debug&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\..\..\bin\debug&#x0D;&#x0A;ECHO Done&#x0D;&#x0A;"
+				CommandLine="ECHO Copying required 3rd party dlls...&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\gettext\lib\*.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\*.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\python31_d.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;COPY /Y ..\..\..\..\..\lib\windows\release\python31.zip ..\..\..\..\..\install\msvc_9d\python31_d.zip&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\openal\lib\wrap_oal.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\openal\lib\OpenAL32.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\tiff\lib\*.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\sndfile\lib\*.dll ..\..\..\..\..\install\msvc_9d&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -138,7 +138,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\build\msvc_9\intern\ghost\include;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\openal\include;..\..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\blender\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\blenkernel;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenloader;..\..\..\..\source\blender\readblenfile;..\..\..\..\source\blender\render\extern\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Physics;..\..\..\..\source\gameengine\network;..\..\..\..\source\gameengine\rasterizer;..\..\..\..\source\gameengine\converter;..\..\..\..\source\gameengine\gamelogic;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\scenegraph;..\..\..\..\source\gameengine\Physics\Ode;..\..\..\..\source\gameengine\soundsystem;..\..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\..\source\gameengine\gameplayer\common;..\..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\..\source\gameengine\gameplayer\common\windows;..\..\..\..\source\sumo\include;..\..\..\..\source\sumo\fuzzics\include;..\..\..\..\source\blender\gpu;..\..\..\..\..\build\msvc_9\intern\guardedalloc\include"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\build\msvc_9\intern\ghost\include;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\openal\include;..\..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\blender\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\blenkernel;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\makesrna;..\..\..\..\source\blender\blenloader;..\..\..\..\source\blender\readblenfile;..\..\..\..\source\blender\render\extern\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Physics;..\..\..\..\source\gameengine\network;..\..\..\..\source\gameengine\rasterizer;..\..\..\..\source\gameengine\converter;..\..\..\..\source\gameengine\gamelogic;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\scenegraph;..\..\..\..\source\gameengine\Physics\Ode;..\..\..\..\source\gameengine\soundsystem;..\..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\..\source\gameengine\gameplayer\common;..\..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\..\source\gameengine\gameplayer\common\windows;..\..\..\..\source\sumo\include;..\..\..\..\source\sumo\fuzzics\include;..\..\..\..\source\blender\gpu;..\..\..\..\..\build\msvc_9\intern\guardedalloc\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE;WITH_FFMPEG"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -167,11 +167,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odelib.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib OpenAL32.lib wrap_oal.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib qtmlClient.lib SDL.lib freetype2ST.lib python31.lib pthreadVSE2.lib pthreadVC2.lib Half.lib Iex.lib IlmImf.lib IlmThread.lib Imath.lib avcodec-52.lib avformat-52.lib avutil-50.lib swscale-0.lib avdevice-52.lib"
-				OutputFile="..\..\..\..\bin\blenderplayer.exe"
+				AdditionalDependencies="libsamplerate.lib odelib.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib OpenAL32.lib wrap_oal.lib libjpeg.lib dxguid.lib libeay32.lib libpng_st.lib libz.lib qtmlClient.lib SDL.lib freetype2ST.lib python31.lib pthreadVSE2.lib pthreadVC2.lib Half.lib Iex.lib IlmImf.lib IlmThread.lib Imath.lib avcodec-52.lib avformat-52.lib avutil-50.lib swscale-0.lib avdevice-52.lib"
+				OutputFile="..\..\..\..\..\install\msvc_9\blenderplayer.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\openexr\lib_vs2008;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\lib\windows\pthreads\lib;..\..\..\..\..\lib\windows\ffmpeg\lib"
+				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\openexr\lib_vs2008;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\lib\windows\pthreads\lib;..\..\..\..\..\lib\windows\ffmpeg\lib;..\..\..\..\..\lib\windows\samplerate\lib"
 				IgnoreDefaultLibraryNames="libc.lib, msvcrt.lib, libcd.lib, libcmtd.lib, msvcrtd.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="..\..\..\..\..\build\msvc_9\libs\blenderplayer.pdb"
@@ -199,7 +199,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Moving libraries and export definitions...&#x0D;&#x0A;MOVE /Y ..\..\..\..\bin\blenderplayer.lib ..\..\..\..\..\build\msvc_9\libs&#x0D;&#x0A;MOVE /Y ..\..\..\..\bin\blenderplayer.exp ..\..\..\..\..\build\msvc_9\libs&#x0D;&#x0A;ECHO Copying required 3rd party dlls...&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\python31.dll ..\..\..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\SDL.dll ..\..\..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\png\lib\libpng.dll ..\..\..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\..\..\bin&#x0D;&#x0A;ECHO Done&#x0D;&#x0A;"
+				CommandLine="ECHO Copying required 3rd party dlls...&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\gettext\lib\*.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\*.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\python31.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\release\python31.zip ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\openal\lib\wrap_oal.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\openal\lib\OpenAL32.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\tiff\lib\*.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;XCOPY /Y ..\..\..\..\..\lib\windows\sndfile\lib\*.dll ..\..\..\..\..\install\msvc_9&#x0D;&#x0A;ECHO Done&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -232,6 +232,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_System.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blenderplayer\bad_level_call_stubs\stubs.c"
 				>
 			</File>
 			<File
