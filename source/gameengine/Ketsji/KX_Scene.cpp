@@ -424,6 +424,9 @@ void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
 				PyErr_Print();
 				PyErr_Clear();
 			}
+			else {
+				Py_DECREF(ret);
+			}
 		}
 	}
 }
