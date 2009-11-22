@@ -28,6 +28,18 @@ from properties_physics_common import effector_weights_ui
 
 def cloth_panel_enabled(md):
     return md.point_cache.baked == False
+    
+
+class CLOTH_MT_presets(bpy.types.Menu):
+    '''
+    Creates the menu items by scanning scripts/templates
+    '''
+    bl_label = "Cloth Presets"
+
+    def draw(self, context):
+        import os
+        template_dir = os.path.join(os.path.dirname(__file__), os.path.pardir, "presets", "cloth")
+        self.path_menu(template_dir, "script.python_file_run")
 
 
 class PhysicButtonsPanel(bpy.types.Panel):
@@ -78,7 +90,9 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             col = split.column()
 
             col.itemL(text="Presets:")
-            col.itemL(text="TODO!")
+            sub = col.row(align=True).split(percentage=0.75)
+            sub.itemM("CLOTH_MT_presets", text="Presets")
+            sub.itemO("cloth.preset_add", text="Add")
 
             col.itemL(text="Quality:")
             col.itemR(cloth, "quality", text="Steps", slider=True)
@@ -213,6 +227,8 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel):
     def draw(self, context):
         cloth = context.cloth.settings
         effector_weights_ui(self, context, cloth.effector_weights)
+        
+bpy.types.register(CLOTH_MT_presets)
 
 bpy.types.register(PHYSICS_PT_cloth)
 bpy.types.register(PHYSICS_PT_cloth_cache)

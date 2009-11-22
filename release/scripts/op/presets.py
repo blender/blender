@@ -23,6 +23,7 @@ from wm import AddPresetBase
 
 
 class AddPresetRender(AddPresetBase):
+    '''Add a Render Preset.'''
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
     name = AddPresetBase.name
@@ -41,6 +42,7 @@ class AddPresetRender(AddPresetBase):
 
 
 class AddPresetSSS(AddPresetBase):
+    '''Add a Subsurface Scattering Preset.'''
     bl_idname = "material.sss_preset_add"
     bl_label = "Add SSS Preset"
     name = AddPresetBase.name
@@ -62,8 +64,26 @@ class AddPresetSSS(AddPresetBase):
     ]
 
     preset_path = os.path.join("presets", "sss")
+    
+class AddPresetCloth(AddPresetBase):
+    '''Add a Cloth Preset.'''
+    bl_idname = "cloth.preset_add"
+    bl_label = "Add Cloth Preset"
+    name = AddPresetBase.name
+    
+    preset_values = [
+        "bpy.context.active_object.modifiers['Cloth'].settings.quality",
+        "bpy.context.active_object.modifiers['Cloth'].settings.mass",
+        "bpy.context.active_object.modifiers['Cloth'].settings.structural_stiffness",
+        "bpy.context.active_object.modifiers['Cloth'].settings.bending_stiffness",
+        "bpy.context.active_object.modifiers['Cloth'].settings.spring_damping",
+        "bpy.context.active_object.modifiers['Cloth'].settings.air_damping",
+    ]
+    
+    preset_path = os.path.join("presets", "cloth")
 
 bpy.ops.add(AddPresetRender)
 bpy.ops.add(AddPresetSSS)
+bpy.ops.add(AddPresetCloth)
 
 
