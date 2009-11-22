@@ -594,6 +594,10 @@ IF(APPLE)
 		SET(CMAKE_C_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
 	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
 
+	# Better warnings
+	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement")
+	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
+
 ENDIF(APPLE)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
