@@ -501,7 +501,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('SOUND', )
+        return strip.type in ('SOUND')
 
     def draw(self, context):
         layout = self.layout
@@ -522,6 +522,27 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         row.itemR(strip.sound, "caching")
 
         layout.itemR(strip, "volume")
+        
+
+class SEQUENCER_PT_scene(SequencerButtonsPanel):
+    bl_label = "Scene"
+
+    def poll(self, context):
+        if context.space_data.display_mode != 'SEQUENCER':
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type in ('SCENE')
+
+    def draw(self, context):
+        layout = self.layout
+
+        strip = act_strip(context)
+        
+        layout.template_ID(strip, "scene")
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
@@ -628,6 +649,7 @@ bpy.types.register(SEQUENCER_PT_edit) # sequencer panels
 bpy.types.register(SEQUENCER_PT_effect)
 bpy.types.register(SEQUENCER_PT_input)
 bpy.types.register(SEQUENCER_PT_sound)
+bpy.types.register(SEQUENCER_PT_scene)
 bpy.types.register(SEQUENCER_PT_filter)
 bpy.types.register(SEQUENCER_PT_proxy)
 
