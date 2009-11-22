@@ -1,516 +1,559 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Strict//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-<head>
-  <title>A brief introduction to Blender</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-  <meta name="GENERATOR" content="Quanta Plus">
-</head>
-<body>
-
-<h1 align="center"><a name="top">Blender v2.4x series</a></h1>
-<br>
-<ol>
-  <li><a href="#intro">About</a></li>
-  <li><a href="#pack">Package Contents and Install</a></li>
-  <li><a href="#start">Getting Started:</a></li>
-  <ol>
-    <li><a href="#start_run">Running</a></li>
-    <li><a href="#start_1st">First steps</a>,
-<a href="#start_3dview">The 3d View</a></li>
-  </ol>
-  <li><a href="#resources">Resources</a></li>
-  <li><a href="#trouble">Troubleshooting</a></li>
-  <li><a href="#faq">(FAQ) A few remarks</a></li>
-</ol>
-
-<h2><a name="intro">1. About</a></h2>
-
-<p>Welcome to the world of <a href="http://www.blender.org">Blender</a>!
-The program you have now in your hands is a free and fully functional 3D
-modeling, animation, rendering, compositing, video editing and game creation suite.  It is available for
-Unix-based (Linux, Mac OS X, etc.) and Windows systems and has a large
-world-wide community.</p>
-
-<p>Blender is free to be applied for any purpose, including commercial usage and
-distribution.  It's free and open-source software, released under the GNU GPL
-licence. The full program sources are available on our website.</p>
- 
-<p>For impatient readers, here the two most important links:</p>
-<a href="http://www.blender.org">www.blender.org</a> the main website<br>
-<a href="http://wiki.blender.org">wiki.blender.org</a> the documentation website<br>
-
-<p align="right"><a href="#top">back to top</a></p>
-
-<h2><a name="pack">2. Package Contents and Install</a></h2>
-
-<p>This is what you should get from a downloaded Blender package:</p>
-
-<ul>
-  <li>The Blender program for some specific platform;</li>
-  <li>This text, with links and the copyright notice;</li>
-  <li>A basic set of scripts, including importers and exporters to other 3d
-  formats.</li>
-</ul>
-
-<p>The latest version for all supported platforms can always be found at the
-main Blender site, along with documentation, sample .blend files, many scripts,
-plugins and more.</p>
-
-<p>If you are interested in the development of the program, information for
-coders and the CVS repository with the sources can be found at the
-<a href="http://www.blender.org/development/">developer's section of the site.</a></p>
-
-<h3><a name="start_install">Installation notes:</a></h3>
-
-<p>Installing is mostly a matter of executing a self-installer package or unpacking it to
-some folder. Blender has a minimum of system dependencies (like OpenGL and SDL), and doesn't 
-install by overwriting libraries in your system. There are also some extra
-files needed for a good install, like an antialiased font and standard python scripts, but these 
-are optional. Typically these will go to your HOME/.blender/
-directory. Below you find instructions for it per OS.
-</p>
-
-<p><b>Windows:</b> the .exe installer handles registry of file types for you. The .zip download has 
-a .blender directory included, which can be manually copied.<br>
-The directory .blender is located by Blender while checking the following list:<br>
-- whether environment variable HOME exists, <br>
-- or, if environment USERPROFILE exists, and the installer has created there the Application Data\Blender Foundation\Blender\ 
-directory, <br>
-- or it uses the .blender directory from the installation directory (where blender.exe resides) <br>
-Also note that Blender comes with two dll files, which have to reside next to blender.exe.</p>
-
-<p><b>Linux, FreeBSD, Irix, Solaris:</b> after unpacking the distribution, you can copy the .blender 
-directory from it to your home directory. </p>
-
-<p><b>OSX:</b> the .blender directory is in Blender.app/Contents/Resources/. This is being located 
-by default. If you like to alter some of the files, copy this directory to your home dir.</p>
-
-<p><b>Other settings:</b><br>
-There are many paths you can set in Blender itself, to tell it where to
-look for your collections of texture and sound files, fonts, plugins and
-additional scripts, besides where it should save rendered images, temporary
-data, etc.  If you're only starting, there's no need to worry about this now.
-</p>
-
-<p><b>Python:</b><br>
-Some downloaded scripts may require extra Python modules not shipped with
-Blender.  Installing the whole Python distribution is a way to solve this
-issue for most cases except scripts that require extensions (3rd party
-modules), but we are starting to add more modules to Blender itself so that
-most scripts don't depend on full Python installs anymore.  This is mostly
-about Windows, in other platforms Python is usually a standard component
-nowadays, so unless there's a version mismatch or an incomplete py
-installation, there should be no problems.</p>
-
-<p>Even if you do have the right version of Python installed you may need to
-tell the embedded Python interpreter where the installation is.  To do that
-it's enough to set a system variable called PYTHON to the full path to the
-stand-alone Python executable (to find out execute "import sys; print
-sys.executable" inside the stand-alone interpreter, not in Blender).  To check
-which Python was linked to your Blender binary, execute "import sys; print
-sys.version" at Blender's text editor), it's probably 2.5.something -- only the
-two first numbers should have to match with yours.</p>
-
-
-<p align="right"><a href="#top">back to top</a></p>
-
-<h2><a name="start">3. Getting Started</a></h2>
-
-<p>Blender's main strength is at modeling, animating and rendering 3d
-scenes, from simple cubes and monkey heads to the complex environments found in
-videogames and movies with computer graphics (CG) art.</p>
-
-<p><strong>Rendering</strong> is the process of generating 2d images from 3d
-data (basically lit 3d models) as if viewed by a virtual camera.  In simple
-terms, rendering is like taking a picture of the scene, but with many more
-ways to influence the results.  Blender comes with a very flexible renderer
-and is well integrated with the open source YafRay package. There are also
-scripts to export to other popular third party renderers like Povray and
-Renderman compliant ones.  By <strong>animating</strong> the data and rendering
-pictures of each successive frame, movie sequences can be created.</p>
-
-<p>In <strong>compositing</strong> a set of techniques is used to add effects
-to rendered images and combine these into a single frame. This is how, for
-example, artists add laser beams, glows and dinosaurs to motion
-pictures.  Blender also has builtin
-support for video sequence editing and sound synchronization.</p>
-
-<p>The <strong>game engine</strong> inside Blender lets users create and play
-nifty 3d games, complete with 3d graphics, sound, physics and scripted rules.
-</p>
-
-<p>Via <strong>scripting</strong> the program's functionality can be automated
-and extended in real-time with important new capabilities.  True displacement
-mapping, for example, is now part of the core program, but before that it was
-already possible using scripts.  Since they are written in a nice higher-level
-programming language -- <a href="http://www.python.org">Python</a> in our case
--- development is considerably faster and easier than normal C/C++ coding.
-Naturally, they run slower than compiled code, but still fast enough for
-<em>many</em> purposes or for mixed approaches like some plugins use.</p>
-
-<h3><a name="start_run">Running:</a></h3>
-
-<p>Depending on your platform, the installation may have put an icon on your
-desktop and a menu entry for Blender.  If not, it's not hard to do that
-yourself for your favorite window manager.</p>
-
-<p>But for more flexibility, you can execute Blender from a shell window or
-command-line prompt.  Try "blender -h" to see all available options.</p>
-
-<p>Blender saves data in its own custom binary format, using ".blend" as
-extension.  The default start-up configuration is saved in a file in your home directory called
-.B.blend.  To save your changes to it, click on
-<strong>File-&gt;Save Default Settings</strong> or use the Control+u shortcut
-directly.</p>
-
-<h3><a name="start_1st">First steps:</a></h3>
-
-<p>This is the point where we stop and warn newcomers that 3d Computer
-Graphics is a vast field and Blender has a lot of packed functionality.
-If you already tried to run it and fell victim to the "too many buttons!"
-syndrome, just relax and <a href="#faq_2">read this part</a> of the F.A.Q. </p>
-
-<p>Hoping the explanations helped, let's start Blender and take a look at it.
-At the top header you can see the main menu.  Under "File" you'll find entries
-to save, load and quit. If <em>someone</em> ever messes with your workspace
-and you can't find your way around: use the menu <strong>File->Load Factory settings</strong>.</p>
-
-<p>Blender's screen is divided in "areas".  Each of them has a top or bottom
-header and can show any of the available builtin applications (called "spaces",
-like the 3d View, the Text Editor, etc).  If you started with a default
-configuration, there should now be three areas:
-</p>
-
-<ul>
-  <li>A thin strip at the top where you can see the header of the <strong>User
-Preferences Window</strong> (its header is also Blender's main menu);</li>
-  <li>A big one in the middle with the <strong>3d View</strong>, where you
-model and preview your scenes;</li>
-  <li>A smaller at the bottom with the <strong>Buttons Window</strong>, where
-you add and configure most of your scene data.</li>
-</ul>
-
-<p>These are the three most important spaces, at least when you are starting.
-At the left corner of each header you can find the "Window Types" button,
-which is like the "Start" buttom of many desktop environments.  Clicking on
-it lets you change what is shown in that area.</p>
-
-<p><strong>Highly configurable workspace</strong></p>
-
-<p>Blender's interface has been considerably improved for the 2.3x series.
-Besides the goals of exposing functionality via menus and adding tooltips
-for all buttons, there are even more ways now to change your workspace.</p>
-
-<p>As before, areas can be resized, subdivided in two or joined; headers can
-be moved to the top or bottom of an area or hidden completely.  Just experiment
-to find out how, it's trivial. Hint: the mouse cursor changes to a double arrow
-when it is over the inter-area edges.</p>
-
-<p>There should be a button with "SCR:" in the top header.  It has some preset
-workspaces that can be tried now for a tour of the possibilities.  When you
-change your current setup to something worth keeping, that same button has the
-option to save the new screen.</p>
-
-<p>Since version 2.30 Blender lets users define new color themes that can also
-be shared with others when saved in the default startup .B.blend file.</p>
-
-<p>The User Preferences space has many options there that you may want to
-tweak, like turning button tooltips on/off, setting paths, etc.  Just remember
-to save your configuration if you want to keep it for the next session). 
-Since these preferences are not saved in regular .blend files, the presets will
-retain working even when loading files from others. Note however, that the arrangement
-of the UI itself - its screens and windows - are always saved in each file.
-</p>
-
-<h3><a name="start_3dview">The 3d View:</a></h3>
-
-<p><strong>Mouse buttons and the toolbox</strong></p>
-
-<p>Pressing the SPACEBAR or Shift+a while the mouse pointer is inside a 3d
-View space will open up the toolbox.  The toolbox gives you faster access to
-many functions, like adding new objects to your scene, editing their properties,
-selecting and so on.</p>
-
-<p>This is how the mouse buttons work in this space:
-<ul>
-  <li>Left button: anchor the 3d cursor in a new location -- it defines where
-your next added object will appear, among other things.</li>
-  <li>Right button: selection.  If you hold it and move, you can move the
-selected item around.</li>
-  <li>Middle button: 3d space rotation or translation -- choose which one in
-one of the User Preferences tabs.</li>
-</ul>
-Combinations of mouse buttons and Shift or Control will give you additional
-options like zooming, panning and restricted movement.  3d scenes can be seen
-from any position and orientation, but there are some default ones you can
-reach with Numpad buttons or the "View" menu in the 3d View's header.</p>
-
-<p><strong>Edit Mode</strong></p>
-
-<p>When you want to edit the vertices of a mesh, for example, it's necessary to
-select the object and enter "Edit Mode", either using the 3d View header "Mode"
-button or by pressing TAB on your keyboard (press it again to return to object
-mode).</p>
-
-<p><strong>And this was only the beginning ...</strong></p>
-
-<p>The above guidelines should have given new users enough to start playing
-with the interface.  The next section lists online references that can actually teach about 3d and this program, but it's a good idea to spend some time just
-playing with Blender, looking at menus and finding what mouse actions do in
-each space.</p>
-
-<p align="right"><a href="#top">back to top</a></p>
-
-<h2><a name="resources">4. Resources</a></h2>
-
-<ul>
-  <li><a href="http://www.blender.org">www.blender.org</a> - the general site, with documentation and downloads</li>
-  <li><a href="http://www.blenderartists.org">www.blenderartists.org</a> - the main user community web site</li>
-  <li><a href="http://projects.blender.org">projects.blender.org</a> - the project's site</li>
-</ul>
-
-<p>This short presentation is meant to guide newcomers to Blender through their
-<em>very first</em> steps, giving directions to where you can find the
-resources you will need.  We can't teach you 3D in these few lines of text,
-that would take a lengthy book.</p>
-
-<p>Irc users are invited to try #blenderchat on irc.freenode.net .</p>
-
-<p>There are also local Blender community sites in some countries, that should
-be listed at the Community section of the main site.</p>
-
-<p>If you are a coder wanting to get in touch with Blender development, a good read
-is the "Get Involved" page at <a href="http://www.blender.org/community/get-involved/">www.blender.org</a>.  A
-good way to start is to follow the mailing lists for a while and check bug
-reports, to see if you can fix one.  On irc.freenode.net: #blendercoders you'll find many active developers, here also the weekly meetings take place.</p>
-
-<h3><a name="resources_xtra">Other useful links</a></h3>
-
-<p>In the realm of open-source cg programs, it's a pleasure to mention other
-great projects that can help you achieve your visions.  Note that these
-programs are completely independent from Blender and have their own sites,
-documentation and support channels.  Note also that this list is not complete
-and should be updated on future versions of this text.</p>
-
-<dl>
-  <dt><a href="http://www.gimp.org">The Gimp</a></dt>
-  <dd>The mighty GNU Image Manipulation Program.  In 3d work it is a valuable
-resource to create, convert and, of course, manipulate texture images.
-It is also useful for work with rendered pictures, for example to add 2d text,
-logos or to touch-up, apply factory or hand-made effects and compose with other
-images.</dd>
-
-</dl>
-
-<h4>Renderers:</h4>
-
-<dl>
-  <dt><a href="http://www.yafray.org">YafRay</a></dt>
-  <dd>A currently inactive but very impressive program.  Blender has builtin
-support for it.</dd>
-  <dt><a href="http://www.povray.org">Povray</a></dt>
-  <dd>One of the best and most popular renderers in the world.  There is a
-script to export Blender scenes to be rendered with it.</dd>
-  <dt><a href="https://renderman.pixar.com">Renderman-compliant:</a>
-open-source: <a href="http://www.aqsis.org">Aqsis</a>,
-<a href="http://pixie.sf.net">Pixie</a>.  Closed-source:
-<a href="http://www.3delight.com">3delight</a>.</dt>
-  <dd>The Renderman spec was created by Pixar years ago to define both a
-standard and powerful representation of 3d data for renderers and the expected
-quality of the renderization itself.  Think about 3d art from some movie -- it
-was much probably created by Pixar's own Photorealistic Renderman (PRMan)
-renderer.  This is a good site to learn more:
-<a href="http://www.rendermanacademy.com">The Renderman Academy</a>.  Neither
-Pixar nor its products are affiliated with Blender.</dd>
-</dl>
-
-<p align="right"><a href="#top">back to top</a></p>
-
-<h2><a name="trouble">5. Troubleshooting</a></h2>
-
-<p>If something isn't working, please read this entire section before looking
-for help.</p>
-
-<ul>
-  <li><a href="#trouble_gen">General start-up and usage problems</a></li>
-  <li><a href="#trouble_vdo">Video card blues</a></li>
-  <li><a href="#trouble_py">Scripts</a></li>
-  <li><a href="#trouble_bugt">The Bug Tracker</a></li>
-</ul>
-
-<h3><a name="trouble_gen">General start-up and usage problems</a></h3>
-
-<p>If the program crashes or something isn't working properly, try running
-Blender in <strong>debug mode:</strong> execute it as "blender -d" from a
-command prompt.  This might give some info about what is wrong.  There are also
-other options that might be useful, "blender -h" lists all of them.<br>
-Most likely an immediate crash is due to Blender's need for a compliant and 
-stable working OpenGL.</p>
-
-<h3><a name="trouble_vdo">Video card blues</a></h3>
-
-<p>Although OpenGL is cherished as an excellent cross platform library, the enormous
-growth of different 3D cards have made this a complicated affair for Blender. Unlike
-other programs - or 3D games - Blender utilizes OpenGL for its entire GUI, including
-buttons and pulldown menus. That means also the 2D options for OpenGL should
-work good, something easily ignored or badly tested by 3D card manufacturors, who 
-target more at the latest SFX features for new 3D games.<br> 
-In general Blender performs
-very well on 3D cards from renowned brands, such as NVidia, ATI or 3DLabs.</p>
-
-
-<h3><a name="trouble_py">Scripts</a></h3>
-
-<p>To be sure that some functionality is scripted: all scripts in Blender can
-be accessed from the "Scripts" menu in the Scripts Window's header, even if the
-same functionality is also in another menu somewhere.  If you see an entry in
-one of the submenus there, it refers to a script.  Please don't report problems
-with scripts to the bug tracker or other normal Blender channels.  You should
-find the author's site or contact email in the script's text itself, but
-usually the Python &amp; Plugins forum at
-<a href="http://www.blenderartists.org">Blenderartists.org</a> is used for posting
-announcements, questions, suggestions and bug reports related to scripts.  It's
-the recommended place to look first, specially if no site was specified at the
-script's window or source file(s).</p>
-<p>If some or all scripts that should appear in menus are not there, running
-Blender in <a href="#trouble_gen">debug mode </a> can possibly inform what is
-wrong.  Make sure the reported dir(s) really exist.</p>
-
-<h3><a name="trouble_bugt">The Bug Tracker</a></h3>
-
-<p>If you really think you found a new bug in Blender, check the Bug Tracker
-entries at <a href="http://projects.blender.org/tracker/?atid=125&group_id=9&func=browse">the projects site</a> and if
-it was not reported yet, please log in (or register) and fill in detailed
-information about the error.  A small .blend file or script (if it is a problem
-with the Blender Python API) showcasing the bug can help a lot.</p>
-
-<p align="right"><a href="#top">back to top</a></p>
-
-<h2><a name="faq">6. (FAQ) A few remarks</a></h2>
-
-<ol>
-  <li><a href="#faq_1">Quick tips.</a></li>
-  <li><a href="#faq_2">What's up with the interface?</a></li>
-  <li><a href="#faq_3">How good is Blender?  How does it compare to other 3d
-programs?</a></li>
-  <li><a href="#faq_4">Something doesn't work, what do I do?</a></li>
-</ol>
-
-<h3><a name="faq_1">Quick tips:</a></h3>
-
-<p><strong>Rendering</strong>: to see something when you render (F12) an image,
-make sure the scene has a camera pointing at your models (camera view is
-NumPad 0) and at least one light properly placed.  Otherwise you'll only get a
-black rectangle.</p>
-
-<p>Setting texture map input to "uv" in the Material Buttons window is not enough
-to assign a texture image and uv data to a mesh.  It's necessary to select the mesh,
-enter edit mode, indicate face selection mode (modes can be accessed in the 3d view's header), load an
-image in the UV/Image Editor window and then define a mapping (or unwrapping).  Only then
-the mesh will have uv data available for exporting.</p>
-
-<p>If you want the fastest possible access to Blender's functionality, remember
-what a <cite>wise power user</cite> wrote: "keep one hand on the keyboard
-and the other on the mouse".  Learn and use the shortcuts, configure your
-workspace to your needs.</p>
-
-<h3><a name="faq_2">What's up with the interface?</a></h3>
-
-<p>Blender uses a couple of innovative paradigms in the UI, not following more common, somewhat standard rules for user
-interfaces. In the past years several of our interface concepts have been adopted in more programs though, 
-especially using a configurable non-overlapping subdivision layout and the paradigm to never block the UI from working by
-offering all editors and options in parallel. <br>
-Typically free programs offer easy-to-use interfaces for large audiences. Blender however is, like other high-end 3D tools,
-meant to be a powerful production tool for professionals and 3D enthusiasts, for people who are dedicated to become 3D artists with enough time
-and motivation to master the software. <br>
-This also has its origins in the 90ies, when Blender was born as an in-house studio tool, optimized to speed up daily heavy
-work, and not to please everyone.  But it's true that you can consider Blender's interface
-to be not very newbie-friendly. Luckily you only have to learn it once, and once you get the basics it'll feel like 2nd nature!</p>
-
-<p>Blender also has been considerably
-improved since the 2.3x series, exposing most functionality via menus, adding
-panels, color "themability", tooltips for all buttons and internationalization
-support.  This is an ongoing effort or, better, a goal to keep the best ideas
-in Blender's design while expanding and making it more user-friendly.</p>
-
-<p><b>Too many buttons!</b></p>
-
-<p>Again, 3D Computer Graphics is a vast and fun field.  If you're only
-starting, Blender can seem daunting, specially because of all its packed
-functionality.  Don't let that upset you, there is no need to care about
-<em>all</em> those buttons right now -- or ever.</p>
-
-<p>There are basic things all users should learn early up:</p>
-
-<ul>
-  <li>Start the program and access the main menus;</li>
-  <li>Find and configure user preferences;</li>
-  <li>Basic scene set-up: how to add and transform (move, scale, rotate)
-  lights, cameras and objects;</li>
-  <li>Create and link materials to objects, at least to color them;</li>
-  <li>Render your scenes.</li>
-</ul>
-
-<p>One hour is enough time to assimilate and practice that before going on
-with basic mesh editing and texturing, for example.  There are many different
-areas to learn about.  Taste, interaction with other users and your main
-interests (game art, rendered stills, movies) will guide you and define the
-skills you'll want to master.  Then it goes like a spiral: practice something
-for a while, study and find about new tricks or whole new areas, practice a
-little more and so on.  Soon you'll become pleased to have all those buttons to
-play with.  A few more months and you'll probably be back asking for more ...
-</p>
-
-<h3><a name="faq_3">How good is Blender?</a></h3>
-
-<p>If you ever get the impression that it's not possible to create great
-looking or complex works with Blender, rejoice -- you are just plainly
-uninformed, as browsing blender.org galleries and community forums can easily confirm.</p>
-
-<h3>How does it compare to other 3d programs?</h3>
-
-<p>In short: it takes considerable dedication to become good, no matter which
-program you work with, as long as it is good enough not to get in your way.
-Blender has, like the others, its strong and weak points.</p>
-
-<p>Compared to commercial alternatives, Blender misses some features and isn't
-as "newbie-friendly".  It doesn't come packed with "one-click" or "wizard"
-functionality, where you get much faster results in detriment of flexibility
-and value.  It also isn't bundled with tens of megabytes of sample models,
-texture images, tutorials, etc. (which only partly explains how Blender can fit
-in such a small download).</p>
-
-<p>Thankfully, these are relatively minor shortcomings. Many of Blender's modeling, animation and
-rendering/compositing features are up-to-par with the industry standards. The pace at which features
-are being added or polished in Blender is impressive, now that it's a well
-stablished open source project. We get daily feedback from professionals and studios using Blender, and
-results from the Blender Foundation's Open Movie/Game projects such as <a href="http://www.bigbuckbunny.org">Big Buck Bunny</a>
-and <a href="http://www.yofrankie.org">Yo Frankie!</a> have set a reference standard for what a program like Blender can achieve.
- More: through plugins and scripting, many
-repetitive or otherwise cumbersome tasks can be made trivial.  But plugin and
-script authors go further, teaching Blender new tricks, from importers and
-exporters to more advanced "applications".</p>
-
-<p>About goodies, there are many places where you can get them (check
-<a href="#resources">resources</a>).  Besides the many available Blender books, the main site and
-blenderartists.org are the best ones to start. For free texture
-images, a simple search for "free textures" should bring many results, just pay
-attention to their licenses if you plan to release your work later.</p>
-
-<p>Commercial packages might make it easier for newbies to produce nice looking
-material, but only another newbie would praise the results.  There's a huge
-difference between what a skilled artist and someone poking at buttons and
-using presets can accomplish.</p>
-
-<p>Last but best of all: Blender is open-source, free for all to use, study and
-improve.</p>
-
-<hr>
-<p>Thanks for reading, we hope you enjoy Blender!</p>
-
-<p><font size=-1>Document version 1.1, Sept 2008</font></p>
-
-<p align="right"><a href="#top">back to top</a></p>
-
-</body>
-</html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>A brief introduction to Blender</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Win32)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20091122;16164300">
+</HEAD>
+<BODY LANG="de-DE" DIR="LTR">
+<H1 LANG="en-US" ALIGN=CENTER><A NAME="top"></A>Blender v2.5 beta
+series</H1>
+<P><BR><BR>
+</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#intro">About</A>
+	</SPAN>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#pack">Package
+	Contents and Install</A> </SPAN>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#start">Getting
+	Started:</A> </SPAN>
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#start_run">Running</A>
+		</SPAN>
+		</P>
+		<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#start_1st">First
+		steps</A>, <A HREF="#start_3dview">The 3d View</A> </SPAN>
+		</P>
+	</OL>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#resources">Resources</A>
+	</SPAN>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#trouble">Troubleshooting</A>
+	</SPAN>
+	</P>
+	<LI><P><SPAN LANG="en-US"><A HREF="#faq">(FAQ) A few remarks</A> </SPAN>
+	</P>
+</OL>
+<H2 LANG="en-US"><A NAME="intro"></A>1. About</H2>
+<P><SPAN LANG="en-US">Welcome to the world of <A HREF="http://www.blender.org/">Blender</A>!
+The program you have now in your hands is a free and fully functional
+3d modeling, animation, rendering, compositing, video editing and
+game creation suite. It is available for Unix-based (Linux, Mac OS X,
+etc.) and Windows systems and has a large world-wide community.</SPAN></P>
+<P LANG="en-US">Blender is free to be applied for any purpose,
+including commercial usage and distribution. It's free and
+open-source software, released under the GNU GPL licence. The full
+program sources are available on our website.</P>
+<P LANG="en-US">For impatient readers, here the two most important
+links:</P>
+<P><SPAN LANG="en-US"><A HREF="http://www.blender.org/">www.blender.org</A>
+the main website<BR><A HREF="http://wiki.blender.org/">wiki.blender.org</A>
+the documentation website</SPAN></P>
+<P ALIGN=RIGHT><A HREF="#top"><SPAN LANG="en-US">back to top</SPAN></A></P>
+<H2 LANG="en-US"><A NAME="pack"></A>2. Package Contents and Install</H2>
+<P LANG="en-US">This is what you should get from a downloaded Blender
+package:</P>
+<UL>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">The Blender program
+	for some specific platform; 
+	</P>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">This text, with links
+	and the copyright notice; 
+	</P>
+	<LI><P LANG="en-US">A basic set of scripts, including importers and
+	exporters to other 3d formats. 
+	</P>
+</UL>
+<P LANG="en-US">The latest version for all supported platforms can
+always be found at the main Blender site, along with documentation,
+sample .blend files, many scripts, plugins and more.</P>
+<P><SPAN LANG="en-US">If you are interested in the development of the
+program, information for coders and the SVN repository with the
+sources can be found at the <A HREF="http://www.blender.org/development/">developer's
+section of the site.</A></SPAN></P>
+<H3 LANG="en-US"><A NAME="start_install"></A>Installation notes:</H3>
+<P LANG="en-US">Installing is mostly a matter of executing a
+self-installer package or unpacking it to some folder. Blender has a
+minimum of system dependencies (like OpenGL and SDL), and doesn't
+install by overwriting libraries in your system. There are also some
+extra files needed for a good install, like standard python scripts,
+but these are optional. Typically these will go to your
+HOME/.blender/ directory. Below you find instructions for it per OS. 
+</P>
+<P LANG="en-US"><B>Windows:</B> The .zip download has a .blender
+directory included, which can be manually copied.<BR>Also note that
+Blender comes with some dll files, which have to reside next to
+blender.exe.</P>
+<P LANG="en-US"><B>Linux, FreeBSD, Irix, Solaris:</B> after unpacking
+the distribution, you can copy the .blender directory from it to your
+home directory. 
+</P>
+<P LANG="en-US"><B>OSX:</B> the .blender directory is in
+Blender.app/Contents/Resources/. This is being located by default. If
+you like to alter some of the files, copy this directory to your home
+dir.</P>
+<P LANG="en-US"><B>Other settings:</B><BR>There are many paths you
+can set in Blender itself, to tell it where to look for your
+collections of texture and sound files, fonts, plugins and additional
+scripts, besides where it should save rendered images, temporary
+data, etc. If you're only starting, there's no need to worry about
+this now. 
+</P>
+<P LANG="en-US"><B>Python:</B><BR>Blender 2.5x use Python 3.1 as
+scripting language for im/exporters, UI buttons layout and other
+areas like presets. On Windows, Python 3.1 is included in the zip
+package from blender.org. 
+</P>
+<P LANG="en-US">In other platforms Python is usually a standard
+component nowadays, so unless there's a version mismatch or an
+incomplete py installation, there should be no problems.</P>
+<P LANG="en-US">Even if you do have the right version of Python
+installed you may need to tell the embedded Python interpreter where
+the installation is. To do that it's enough to set a system variable
+called PYTHON to the full path to the stand-alone Python executable
+(to find out execute &quot;import sys; print sys.executable&quot;
+inside the stand-alone interpreter, not in Blender). To check which
+Python was linked to your Blender binary, execute &quot;import sys;
+print sys.version&quot; at Blender's text editor), it's 3.1.something
+-- only the two first numbers should have to match with yours.</P>
+<P ALIGN=RIGHT><A HREF="#top"><SPAN LANG="en-US">back to top</SPAN></A></P>
+<H2 LANG="en-US"><A NAME="start"></A>3. Getting Started</H2>
+<P LANG="en-US">Blender's main strength is at modeling, animating and
+rendering 3d scenes, from simple cubes and monkey heads to the
+complex environments found in videogames and movies with computer
+graphics (CG) art.</P>
+<P><STRONG><SPAN LANG="en-US">Rendering</SPAN></STRONG> <SPAN LANG="en-US">is
+the process of generating 2d images from 3d data (basically lit 3d
+models) as if viewed by a virtual camera. In simple terms, rendering
+is like taking a picture of the scene, but with many more ways to
+influence the results. Blender comes with a very flexible renderer
+and a Povray Render Exporter script. By </SPAN><STRONG><SPAN LANG="en-US">animating</SPAN></STRONG>
+<SPAN LANG="en-US">the data and rendering pictures of each successive
+frame, movie sequences can be created.</SPAN></P>
+<P><SPAN LANG="en-US">In </SPAN><STRONG><SPAN LANG="en-US">compositing</SPAN></STRONG>
+<SPAN LANG="en-US">a set of techniques is used to add effects to
+rendered images and combine these into a single frame. This is how,
+for example, artists add laser beams, glows and dinosaurs to motion
+pictures. Blender also has builtin support for video sequence editing
+and sound synchronization.</SPAN></P>
+<P><SPAN LANG="en-US">The </SPAN><STRONG><SPAN LANG="en-US">game
+engine</SPAN></STRONG> <SPAN LANG="en-US">inside Blender lets users
+create and play nifty 3d games, complete with 3d graphics, sound,
+physics and scripted rules. </SPAN>
+</P>
+<P><SPAN LANG="en-US">Via </SPAN><STRONG><SPAN LANG="en-US">scripting</SPAN></STRONG>
+<SPAN LANG="en-US">the program's functionality can be automated and
+extended in real-time with important new capabilities. True
+displacement mapping, for example, is now part of the core program,
+but before that it was already possible using scripts. Since they are
+written in a nice higher-level programming language -- <A HREF="http://www.python.org/">Python</A>
+in our case -- development is considerably faster and easier than
+normal C/C++ coding. Naturally, they run slower than compiled code,
+but still fast enough for </SPAN><EM><SPAN LANG="en-US">many</SPAN></EM>
+<SPAN LANG="en-US">purposes or for mixed approaches like some plugins
+use.</SPAN></P>
+<H3 LANG="en-US"><A NAME="start_run"></A>Running:</H3>
+<P LANG="en-US">Depending on your platform, the installation may have
+put an icon on your desktop and a menu entry for Blender. If not,
+it's not hard to do that yourself for your favorite window manager.</P>
+<P LANG="en-US">But for more flexibility, you can execute Blender
+from a shell window or command-line prompt. Try &quot;blender -h&quot;
+to see all available options.</P>
+<P><SPAN LANG="en-US">Blender saves data in its own custom binary
+format, using &quot;.blend&quot; as extension. The default start-up
+configuration is saved in a file in your home directory called
+.B.blend. To save your changes to it, click on </SPAN><STRONG><SPAN LANG="en-US">File-&gt;User
+Preferences-&gt;Save as Default</SPAN></STRONG> <SPAN LANG="en-US">or
+use the Control+U shortcut directly.</SPAN></P>
+<H3 LANG="en-US"><A NAME="start_1st"></A>First steps:</H3>
+<P><SPAN LANG="en-US">This is the point where we stop and warn
+newcomers that 3d Computer Graphics is a vast field and Blender has a
+lot of packed functionality. If you already tried to run it and fell
+victim to the &quot;too many buttons!&quot; syndrome, just relax and
+<A HREF="#faq_2">read this part</A> of the F.A.Q. </SPAN>
+</P>
+<P><SPAN LANG="en-US">Hoping the explanations helped, let's start
+Blender and take a look at it. At the top header you can see the main
+menu. Under &quot;File&quot; you'll find entries to save, load and
+quit. If </SPAN><EM><SPAN LANG="en-US">someone</SPAN></EM> <SPAN LANG="en-US">ever
+messes with your workspace and you can't find your way around: use
+the menu </SPAN><STRONG><SPAN LANG="en-US">File-&gt;New</SPAN></STRONG><SPAN LANG="en-US">.</SPAN></P>
+<P LANG="en-US">Blender's screen is divided in &quot;areas&quot;.
+Each of them has a top or bottom header and can show any of the
+available built in applications (called &quot;spaces&quot;, like the
+3d View, the Text Editor, etc). If you started with a default
+configuration, there should now be five areas: 
+</P>
+<UL>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">A thin strip at the
+	top where you can see the main menus and some important basic
+	functions like search and the new Engine drop down menu; 
+	</P>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">On the left:</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US">A big one, the
+		</SPAN><STRONG><SPAN LANG="en-US">3d View</SPAN></STRONG><SPAN LANG="en-US">,
+		where you model and preview your scenes and the new toolbar on the
+		left; </SPAN>
+		</P>
+		<LI><P><SPAN LANG="en-US">A smaller one at the bottom, the
+		</SPAN><STRONG><SPAN LANG="en-US">Timeline</SPAN></STRONG><SPAN LANG="en-US">,
+		where you can playback your animations and change basic animation
+		settings.</SPAN></P>
+	</UL>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">On the right:</P>
+	<UL>
+		<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">A small one on top,
+		the O<B>utliner</B>, which gives you access over your objects and
+		it's underlying data.</P>
+		<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">Beneath that, the
+		<B>Properties Window</B>, which contains most buttons and settings.
+				</P>
+	</UL>
+</UL>
+<P LANG="en-US">These are the five most important spaces, at least
+when you are starting. At the left corner of each header you can find
+the &quot;Window Types&quot; button, which is like the &quot;Start&quot;
+buttom of many desktop environments. Clicking on it lets you change
+what is shown in that area.</P>
+<P><STRONG><SPAN LANG="en-US">Highly configurable workspace</SPAN></STRONG></P>
+<P LANG="en-US">Blender's interface has been considerably improved
+for the 2.5x series. Besides the goals of exposing functionality via
+menus and adding tooltips for all buttons, there are even more ways
+now to change your workspace.</P>
+<P LANG="en-US">Editor areas can be split and joined with the new
+window split action zone. Dragging the zone inside the editor area
+with LMB interactively splits a new window in between, dragging the
+zone into another editor area joins it. Alt-LMB dragging the zone
+swaps the area with another. 
+</P>
+<P LANG="en-US">There should be a button with &quot;Default&quot; in
+the top header. It has some preset workspaces that can be tried now
+for a tour of the possibilities. When you change your current setup
+to something worth keeping, that same button has the option to save
+the new screen.</P>
+<P LANG="en-US">The User Preferences space has many options there
+that you may want to tweak, like turning button tooltips on/off,
+setting paths, etc. Just remember to save your configuration if you
+want to keep it for the next session). Since these preferences are
+not saved in regular .blend files, the presets will retain working
+even when loading files from others. Note however, that the
+arrangement of the UI itself - its screens and windows - are always
+saved in each file. 
+</P>
+<H3 LANG="en-US"><A NAME="start_3dview"></A>The 3d View:</H3>
+<P><STRONG><SPAN LANG="en-US">Mouse buttons and the toolbox</SPAN></STRONG></P>
+<P LANG="en-US">Pressing Shift+A while the mouse pointer is inside a
+3d View space will open up the Add menu, where you can add new
+objects to your scene.</P>
+<P LANG="en-US">This is how the mouse buttons work in this space: 
+</P>
+<UL>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">Left button: anchor
+	the 3d cursor in a new location -- it defines where your next added
+	object will appear, among other things. 
+	</P>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">Right button:
+	selection. If you hold it and move, you can move the selected item
+	around. 
+	</P>
+	<LI><P LANG="en-US">Middle button: 3d space rotation or translation
+	-- choose which one in one of the User Preferences tabs. 
+	</P>
+</UL>
+<P LANG="en-US">Combinations of mouse buttons and Shift or Control
+will give you additional options like zooming, panning and restricted
+movement. 3d scenes can be seen from any position and orientation,
+but there are some default ones you can reach with Numpad buttons or
+the &quot;View&quot; menu in the 3d View's header.</P>
+<P><STRONG><SPAN LANG="en-US">Edit Mode</SPAN></STRONG></P>
+<P LANG="en-US">When you want to edit the vertices of a mesh, for
+example, it's necessary to select the object and enter &quot;Edit
+Mode&quot;, either using the 3d View header &quot;Mode&quot; button
+or by pressing TAB on your keyboard (press it again to return to
+object mode).</P>
+<P><STRONG><SPAN LANG="en-US">And this was only the beginning ...</SPAN></STRONG></P>
+<P LANG="en-US">The above guidelines should have given new users
+enough to start playing with the interface. The next section lists
+online references that can actually teach about 3d and this program,
+but it's a good idea to spend some time just playing with Blender,
+looking at menus and finding what mouse actions do in each space.</P>
+<P ALIGN=RIGHT><A HREF="#top"><SPAN LANG="en-US">back to top</SPAN></A></P>
+<H2 LANG="en-US"><A NAME="resources"></A>4. Resources</H2>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="http://www.blender.org/">www.blender.org</A>
+	- the general site, with documentation and downloads </SPAN>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="http://www.blenderartists.org/">www.blenderartists.org</A>
+	- the main user community web site </SPAN>
+	</P>
+	<LI><P><SPAN LANG="en-US"><A HREF="http://projects.blender.org/">projects.blender.org</A>
+	- the project's site </SPAN>
+	</P>
+</UL>
+<P><SPAN LANG="en-US">This short presentation is meant to guide
+newcomers to Blender through their </SPAN><EM><SPAN LANG="en-US">very
+first</SPAN></EM> <SPAN LANG="en-US">steps, giving directions to
+where you can find the resources you will need. We can't teach you 3d
+in these few lines of text, that would take a lengthy book.</SPAN></P>
+<P LANG="en-US">IRC users are invited to try #blenderchat or #blender
+on irc.freenode.net .</P>
+<P LANG="en-US">There are also local Blender community sites in some
+countries, that should be listed at the Community section of the main
+site.</P>
+<P><SPAN LANG="en-US">If you are a coder wanting to get in touch with
+Blender development, a good read is the &quot;Get Involved&quot; page
+at <A HREF="http://www.blender.org/community/get-involved/">www.blender.org</A>.
+A good way to start is to follow the mailing lists for a while and
+check bug reports, to see if you can fix one. On irc.freenode.net:
+#blendercoders you'll find many active developers, here also the
+weekly meetings take place.</SPAN></P>
+<H3 LANG="en-US"><A NAME="resources_xtra"></A>Other useful links</H3>
+<P LANG="en-US">In the realm of open-source cg programs, it's a
+pleasure to mention other great projects that can help you achieve
+your visions. Note that these programs are completely independent
+from Blender and have their own sites, documentation and support
+channels. Note also that this list is not complete and should be
+updated on future versions of this text.</P>
+<DL>
+	<DT><SPAN LANG="en-US"><A HREF="http://www.gimp.org/">The Gimp</A> </SPAN>
+	</DT><DD LANG="en-US" STYLE="margin-bottom: 0.5cm">
+	The mighty GNU Image Manipulation Program. In 3d work it is a
+	valuable resource to create, convert and, of course, manipulate
+	texture images. It is also useful for work with rendered pictures,
+	for example to add 2d text, logos or to touch-up, apply factory or
+	hand-made effects and compose with other images. 
+	</DD></DL>
+<H4 LANG="en-US">
+Renderers:</H4>
+<DL>
+	<DT><SPAN LANG="en-US"><A HREF="http://www.povray.org/">Povray</A> </SPAN>
+	</DT><DD LANG="en-US">
+	One of the best and most popular renderers in the world. There is a
+	script to export Blender scenes to be rendered with it, delivered
+	with 2.5. 
+	</DD><DT>
+	<SPAN LANG="en-US"><A HREF="https://renderman.pixar.com/">Renderman-compliant:</A>
+	open-source: <A HREF="http://www.aqsis.org/">Aqsis</A>, <A HREF="http://pixie.sf.net/">Pixie</A>.
+	Closed-source: <A HREF="http://www.3delight.com/">3delight</A>. </SPAN>
+	</DT><DD STYLE="margin-bottom: 0.5cm">
+	<SPAN LANG="en-US">The Renderman spec was created by Pixar years ago
+	to define both a standard and powerful representation of 3d data for
+	renderers and the expected quality of the renderization itself.
+	Think about 3d art from some movie -- it was much probably created
+	by Pixar's own Photorealistic Renderman (PRMan) renderer. This is a
+	good site to learn more: <A HREF="http://www.rendermanacademy.com/">The
+	Renderman Academy</A>. Neither Pixar nor its products are affiliated
+	with Blender. </SPAN>
+	</DD></DL>
+<P ALIGN=RIGHT>
+<A HREF="#top"><SPAN LANG="en-US">back to top</SPAN></A></P>
+<H2 LANG="en-US"><A NAME="trouble"></A>5. Troubleshooting</H2>
+<P LANG="en-US">If something isn't working, please read this entire
+section before looking for help.</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#trouble_gen">General
+	start-up and usage problems</A> </SPAN>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#trouble_vdo">Video
+	card blues</A> </SPAN>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#trouble_py">Scripts</A>
+	</SPAN>
+	</P>
+	<LI><P><SPAN LANG="en-US"><A HREF="#trouble_bugt">The Bug Tracker</A>
+	</SPAN>
+	</P>
+</UL>
+<H3 LANG="en-US"><A NAME="trouble_gen"></A>General start-up and usage
+problems</H3>
+<P><SPAN LANG="en-US">If the program crashes or something isn't
+working properly, try running Blender in </SPAN><STRONG><SPAN LANG="en-US">debug
+mode:</SPAN></STRONG> <SPAN LANG="en-US">execute it as &quot;blender
+-d&quot; from a command prompt. This might give some info about what
+is wrong. There are also other options that might be useful, &quot;blender
+-h&quot; lists all of them.<BR>Most likely an immediate crash is due
+to Blender's need for a compliant and stable working OpenGL.</SPAN></P>
+<H3 LANG="en-US"><A NAME="trouble_vdo"></A>Video card blues</H3>
+<P LANG="en-US">Although OpenGL is cherished as an excellent cross
+platform library, the enormous growth of different 3d cards have made
+this a complicated affair for Blender. Unlike other programs - or 3d
+games - Blender utilizes OpenGL for its entire GUI, including buttons
+and pulldown menus. That means also the 2D options for OpenGL should
+work good, something easily ignored or badly tested by 3d card
+manufacturers, who target more at the latest SFX features for new 3d
+games.<BR>In general Blender performs very well on 3d cards from
+renowned brands, such as NVidia, ATI or 3dLabs.</P>
+<H3 LANG="en-US"><A NAME="trouble_py"></A>Scripts</H3>
+<P><SPAN LANG="en-US">To be sure that some functionality is scripted:
+all scripts in Blender can be accessed from the &quot;Scripts&quot;
+menu in the Scripts Window's header, even if the same functionality
+is also in another menu somewhere. If you see an entry in one of the
+submenus there, it refers to a script. Please don't report problems
+with scripts to the bug tracker or other normal Blender channels. You
+should find the author's site or contact email in the script's text
+itself, but usually the Python &amp; Plugins forum at
+<A HREF="http://www.blenderartists.org/">Blenderartists.org</A> is
+used for posting announcements, questions, suggestions and bug
+reports related to scripts. It's the recommended place to look first,
+specially if no site was specified at the script's window or source
+file(s).</SPAN></P>
+<P><SPAN LANG="en-US">If some or all scripts that should appear in
+menus are not there, running Blender in <A HREF="#trouble_gen">debug
+mode </A>can possibly inform what is wrong. Make sure the reported
+dir(s) really exist.</SPAN></P>
+<H3 LANG="en-US"><A NAME="trouble_bugt"></A>The Bug Tracker</H3>
+<P><SPAN LANG="en-US">If you really think you found a new bug in
+Blender, check the Bug Tracker entries at <A HREF="https://projects.blender.org/tracker/?atid=498&amp;group_id=9&amp;func=browse">the
+projects site</A> and if it was not reported yet, please log in (or
+register) and fill in detailed information about the error. A small
+.blend file or script (if it is a problem with the Blender Python
+API) showcasing the bug can help a lot.</SPAN></P>
+<P ALIGN=RIGHT><A HREF="#top"><SPAN LANG="en-US">back to top</SPAN></A></P>
+<H2 LANG="en-US"><A NAME="faq"></A>6. (FAQ) A few remarks</H2>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#faq_1">Quick
+	tips.</A> </SPAN>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#faq_2">What's
+	up with the interface?</A> </SPAN>
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><SPAN LANG="en-US"><A HREF="#faq_3">How
+	good is Blender? How does it compare to other 3d programs?</A> </SPAN>
+	</P>
+	<LI><P><SPAN LANG="en-US"><A HREF="#faq_4">Something doesn't work,
+	what do I do?</A> </SPAN>
+	</P>
+</OL>
+<H3 LANG="en-US"><A NAME="faq_1"></A>Quick tips:</H3>
+<P><STRONG><SPAN LANG="en-US">Rendering</SPAN></STRONG><SPAN LANG="en-US">:
+to see something when you render (F12) an image, make sure the scene
+has a camera pointing at your models (camera view is NumPad 0) and at
+least one light properly placed. Otherwise you'll only get a black
+rectangle.</SPAN></P>
+<P LANG="en-US">Setting texture map input to &quot;uv&quot; in the
+Material Buttons window is not enough to assign a texture image and
+uv data to a mesh. It's necessary to select the mesh, enter edit
+mode, indicate face selection mode (modes can be accessed in the 3d
+view's header), load an image in the UV/Image Editor window and then
+define a mapping (or unwrapping). Only then the mesh will have uv
+data available for exporting.</P>
+<P><SPAN LANG="en-US">If you want the fastest possible access to
+Blender's functionality, remember what a </SPAN><CITE><SPAN LANG="en-US">wise
+power user</SPAN></CITE> <SPAN LANG="en-US">wrote: &quot;keep one
+hand on the keyboard and the other on the mouse&quot;. Learn and use
+the shortcuts, configure your workspace to your needs.</SPAN></P>
+<H3 LANG="en-US"><A NAME="faq_2"></A>What's up with the interface?</H3>
+<P LANG="en-US">Blender uses a couple of innovative paradigms in the
+UI, not following more common, somewhat standard rules for user
+interfaces. In the past years several of our interface concepts have
+been adopted in more programs though, especially using a configurable
+non-overlapping subdivision layout and the paradigm to never block
+the UI from working by offering all editors and options in parallel.
+<BR>Typically free programs offer easy-to-use interfaces for large
+audiences. Blender however is, like other high-end 3d tools, meant to
+be a powerful production tool for professionals and 3d enthusiasts,
+for people who are dedicated to become 3d artists with enough time
+and motivation to master the software. <BR>This also has its origins
+in the 90ies, when Blender was born as an in-house studio tool,
+optimized to speed up daily heavy work, and not to please everyone.
+But it's true that you can consider Blender's interface to be not
+very newbie-friendly. Luckily you only have to learn it once, and
+once you get the basics it'll feel like 2nd nature!</P>
+<P LANG="en-US">Blender also has been considerably improved since the
+2.3x series, exposing most functionality via menus, adding panels,
+color &quot;themability&quot;, tooltips for all buttons and
+internationalization support. This is an ongoing effort or, better, a
+goal to keep the best ideas in Blender's design while expanding and
+making it more user-friendly.</P>
+<P LANG="en-US"><B>Too many buttons!</B></P>
+<P><SPAN LANG="en-US">Again, 3d Computer Graphics is a vast and fun
+field. If you're only starting, Blender can seem daunting, specially
+because of all its packed functionality. Don't let that upset you,
+there is no need to care about </SPAN><EM><SPAN LANG="en-US">all</SPAN></EM>
+<SPAN LANG="en-US">those buttons right now -- or ever.</SPAN></P>
+<P LANG="en-US">There are basic things all users should learn early
+up:</P>
+<UL>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">Start the program and
+	access the main menus; 
+	</P>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">Find and configure
+	user preferences; 
+	</P>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">Basic scene set-up:
+	how to add and transform (move, scale, rotate) lights, cameras and
+	objects; 
+	</P>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">Create and link
+	materials to objects, at least to color them; 
+	</P>
+	<LI><P LANG="en-US">Render your scenes. 
+	</P>
+</UL>
+<P LANG="en-US">One hour is enough time to assimilate and practice
+that before going on with basic mesh editing and texturing, for
+example. There are many different areas to learn about. Taste,
+interaction with other users and your main interests (game art,
+rendered stills, movies) will guide you and define the skills you'll
+want to master. Then it goes like a spiral: practice something for a
+while, study and find about new tricks or whole new areas, practice a
+little more and so on. Soon you'll become pleased to have all those
+buttons to play with. A few more months and you'll probably be back
+asking for more ... 
+</P>
+<H3 LANG="en-US"><A NAME="faq_3"></A>How good is Blender?</H3>
+<P LANG="en-US">If you ever get the impression that it's not possible
+to create great looking or complex works with Blender, rejoice -- you
+are just plainly uninformed, as browsing blender.org galleries and
+community forums can easily confirm.</P>
+<H3 LANG="en-US">How does it compare to other 3d programs?</H3>
+<P LANG="en-US">In short: it takes considerable dedication to become
+good, no matter which program you work with, as long as it is good
+enough not to get in your way. Blender has, like the others, its
+strong and weak points.</P>
+<P LANG="en-US">Compared to commercial alternatives, Blender misses
+some features and isn't as &quot;newbie-friendly&quot;. It doesn't
+come packed with &quot;one-click&quot; or &quot;wizard&quot;
+functionality, where you get much faster results in detriment of
+flexibility and value. It also isn't bundled with tens of megabytes
+of sample models, texture images, tutorials, etc. (which only partly
+explains how Blender can fit in such a small download).</P>
+<P><SPAN LANG="en-US">Thankfully, these are relatively minor
+shortcomings. Many of Blender's modeling, animation and
+rendering/compositing features are up-to-par with the industry
+standards. The pace at which features are being added or polished in
+Blender is impressive, now that it's a well stablished open source
+project. We get daily feedback from professionals and studios using
+Blender, and results from the Blender Foundation's Open Movie/Game
+projects such as <A HREF="http://www.bigbuckbunny.org/">Big Buck
+Bunny</A> and <A HREF="http://www.yofrankie.org/">Yo Frankie!</A>
+have set a reference standard for what a program like Blender can
+achieve. More: through plugins and scripting, many repetitive or
+otherwise cumbersome tasks can be made trivial. But plugin and script
+authors go further, teaching Blender new tricks, from importers and
+exporters to more advanced &quot;applications&quot;.</SPAN></P>
+<P><SPAN LANG="en-US">About goodies, there are many places where you
+can get them (check <A HREF="#resources">resources</A>). Besides the
+many available Blender books, the main site and blenderartists.org
+are the best ones to start. For free texture images, a simple search
+for &quot;free textures&quot; should bring many results, just pay
+attention to their licenses if you plan to release your work later.</SPAN></P>
+<P LANG="en-US">Commercial packages might make it easier for newbies
+to produce nice looking material, but only another newbie would
+praise the results. There's a huge difference between what a skilled
+artist and someone poking at buttons and using presets can
+accomplish.</P>
+<P LANG="en-US">Last but best of all: Blender is open-source, free
+for all to use, study and improve.</P>
+<HR>
+<P LANG="en-US">Thanks for reading, we hope you enjoy Blender!</P>
+<P LANG="en-US"><FONT SIZE=2>Document version 1.2, November 2009</FONT></P>
+<P ALIGN=RIGHT><A HREF="#top"><SPAN LANG="en-US">back to top</SPAN></A></P>
+</BODY>
+</HTML>
