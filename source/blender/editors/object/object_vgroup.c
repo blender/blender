@@ -69,6 +69,7 @@
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "object_intern.h"
 
@@ -1753,6 +1754,7 @@ static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *ptr, int *free)
 	
 	for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
 		tmp.value= a;
+		tmp.icon= ICON_GROUP_VERTEX;
 		tmp.identifier= def->name;
 		tmp.name= def->name;
 		RNA_enum_item_add(&item, &totitem, &tmp);
@@ -1785,50 +1787,3 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active.");
 	RNA_def_enum_funcs(prop, vgroup_itemf);
 }
-
-static int vertex_group_menu_exec(bContext *C, wmOperator *op)
-{
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Vertex Groups", 0);
-	layout= uiPupMenuLayout(pup);
-	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-
-	if(vgroup_object_in_edit_mode(ob)) {
-		uiItemBooleanO(layout, "Assign to New Group", 0, "OBJECT_OT_vertex_group_assign", "new", 1);
-
-		if(BLI_countlist(&ob->defbase) && ob->actdef) {
-			uiItemO(layout, "Assign to Group", 0, "OBJECT_OT_vertex_group_assign");
-			uiItemO(layout, "Remove from Group", 0, "OBJECT_OT_vertex_group_remove_from");
-			uiItemBooleanO(layout, "Remove from All", 0, "OBJECT_OT_vertex_group_remove_from", "all", 1);
-		}
-	}
-
-	if(BLI_countlist(&ob->defbase) && ob->actdef) {
-		if(vgroup_object_in_edit_mode(ob))
-			uiItemS(layout);
-
-		uiItemMenuEnumO(layout, "Set Active Group", 0, "OBJECT_OT_vertex_group_set_active", "group");
-		uiItemO(layout, "Remove Group", 0, "OBJECT_OT_vertex_group_remove");
-		uiItemBooleanO(layout, "Remove All Groups", 0, "OBJECT_OT_vertex_group_remove", "all", 1);
-	}
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_vertex_group_menu(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Vertex Group Menu";
-	ot->idname= "OBJECT_OT_vertex_group_menu";
-	ot->description= "Menu showing the operators available for editing Vertex Groups";
-
-	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_menu_exec;
-}
-

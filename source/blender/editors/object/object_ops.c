@@ -136,12 +136,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
 	WM_operatortype_append(OBJECT_OT_multires_higher_levels_delete);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
-	WM_operatortype_append(OBJECT_OT_hook_reset);
-	WM_operatortype_append(OBJECT_OT_hook_recenter);
-	WM_operatortype_append(OBJECT_OT_hook_select);
-	WM_operatortype_append(OBJECT_OT_hook_assign);
 	WM_operatortype_append(OBJECT_OT_explode_refresh);
-
+	
 	WM_operatortype_append(OBJECT_OT_constraint_add);
 	WM_operatortype_append(OBJECT_OT_constraint_add_with_targets);
 	WM_operatortype_append(POSE_OT_constraint_add);
@@ -172,7 +168,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_levels);
 	WM_operatortype_append(OBJECT_OT_vertex_group_blend);
 	WM_operatortype_append(OBJECT_OT_vertex_group_clean);
-	WM_operatortype_append(OBJECT_OT_vertex_group_menu);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);
@@ -190,7 +185,13 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_group_add);
 	WM_operatortype_append(OBJECT_OT_group_remove);
 
-	WM_operatortype_append(OBJECT_OT_hook_add);
+	WM_operatortype_append(OBJECT_OT_hook_add_selobj);
+	WM_operatortype_append(OBJECT_OT_hook_add_newobj);
+	WM_operatortype_append(OBJECT_OT_hook_remove);
+	WM_operatortype_append(OBJECT_OT_hook_select);
+	WM_operatortype_append(OBJECT_OT_hook_assign);
+	WM_operatortype_append(OBJECT_OT_hook_reset);
+	WM_operatortype_append(OBJECT_OT_hook_recenter);
 }
 
 void ED_operatormacros_object(void)

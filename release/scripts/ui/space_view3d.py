@@ -746,9 +746,40 @@ class VIEW3D_MT_hook(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
-        layout.items_enumO("object.hook_add", "type")
-        # layout.itemS()
-        # Other operators still need porting
+        layout.itemO("object.hook_add_newob")
+        layout.itemO("object.hook_add_selob")
+        
+        if [mod.type == 'HOOK' for mod in context.active_object.modifiers]:
+            layout.itemS()
+            layout.item_menu_enumO("object.hook_assign", "modifier")
+            layout.item_menu_enumO("object.hook_remove", "modifier")
+            layout.itemS()
+            layout.item_menu_enumO("object.hook_select", "modifier")
+            layout.item_menu_enumO("object.hook_reset", "modifier")
+            layout.item_menu_enumO("object.hook_recenter", "modifier")
+
+
+class VIEW3D_MT_vertex_group(bpy.types.Menu):
+    bl_label = "Vertex Groups"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'EXEC_AREA'
+        layout.item_booleanO("object.vertex_group_assign", "new", True, text="Assign to New Group")
+        
+        ob = context.active_object
+        if ob.mode == 'EDIT':
+            if ob.vertex_groups and ob.active_vertex_group:
+                layout.itemS()
+                layout.itemO("object.vertex_group_assign", text="Assign to Active Group")
+                layout.itemO("object.vertex_group_remove_from", text="Remove from Active Group")
+                layout.item_booleanO("object.vertex_group_remove_from", "all", True, text="Remove from All")
+                layout.itemS()
+        
+        if ob.vertex_groups and ob.active_vertex_group:
+            layout.item_menu_enumO("object.vertex_group_set_active", "group", text="Set Active Group")
+            layout.itemO("object.vertex_group_remove", text="Remove Active Group")
+            layout.item_booleanO("object.vertex_group_remove", "all", True, text="Remove All Groups")
 
 
 # ********** Sculpt menu **********
@@ -1062,6 +1093,7 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 
         layout.itemS()
 
+        layout.itemM("VIEW3D_MT_vertex_group")
         layout.itemM("VIEW3D_MT_hook")
 
 
@@ -1830,6 +1862,7 @@ bpy.types.register(VIEW3D_MT_make_single_user)
 bpy.types.register(VIEW3D_MT_make_links)
 
 bpy.types.register(VIEW3D_MT_hook)
+bpy.types.register(VIEW3D_MT_vertex_group)
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
 

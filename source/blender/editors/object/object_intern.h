@@ -36,6 +36,12 @@ struct Object;
 struct Mesh;
 struct HookModifierData;
 
+/* add hook menu */
+enum {
+	OBJECT_ADDHOOK_NEWOB = 1,
+	OBJECT_ADDHOOK_SELOB,
+} eObject_Hook_Add_Mode;
+
 /* internal exports only */
 
 /* object_transform.c */
@@ -103,10 +109,13 @@ void OBJECT_OT_join(struct wmOperatorType *ot);
 void OBJECT_OT_convert(struct wmOperatorType *ot);
 
 /* object_hook.c */
-int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r);
-void object_hook_select(Object *obedit, struct HookModifierData *hmd);
-
-void OBJECT_OT_hook_add(struct wmOperatorType *ot);
+void OBJECT_OT_hook_add_selobj(struct wmOperatorType *ot);
+void OBJECT_OT_hook_add_newobj(struct wmOperatorType *ot);
+void OBJECT_OT_hook_remove(struct wmOperatorType *ot);
+void OBJECT_OT_hook_select(struct wmOperatorType *ot);
+void OBJECT_OT_hook_assign(struct wmOperatorType *ot);
+void OBJECT_OT_hook_reset(struct wmOperatorType *ot);
+void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
 
 /* object_lattice.c */
 void free_editLatt(Object *ob);
@@ -134,10 +143,6 @@ void OBJECT_OT_modifier_copy(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
 void OBJECT_OT_multires_higher_levels_delete(struct wmOperatorType *ot);
 void OBJECT_OT_meshdeform_bind(struct wmOperatorType *ot);
-void OBJECT_OT_hook_reset(struct wmOperatorType *ot);
-void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
-void OBJECT_OT_hook_select(struct wmOperatorType *ot);
-void OBJECT_OT_hook_assign(struct wmOperatorType *ot);
 void OBJECT_OT_explode_refresh(struct wmOperatorType *ot);
 
 /* object_constraint.c */
@@ -177,7 +182,6 @@ void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
-void OBJECT_OT_vertex_group_menu(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 
 void OBJECT_OT_game_property_new(struct wmOperatorType *ot);

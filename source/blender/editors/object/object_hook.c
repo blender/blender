@@ -35,6 +35,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -45,12 +46,15 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -59,13 +63,15 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_view3d.h"
+#include "ED_screen.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
 
-#include "object_intern.h"
+#include "UI_interface.h"
+#include "UI_resources.h"
 
-/* XXX operators for this are not implemented yet */
+#include "object_intern.h"
 
 static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float *cent)
 {
@@ -286,7 +292,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	return totvert;
 }
 
-int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
+static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar= NULL;
 	*tot= 0;
@@ -368,7 +374,7 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 	}
 }
 
-void object_hook_select(Object *ob, HookModifierData *hmd) 
+static void object_hook_select(Object *ob, HookModifierData *hmd) 
 {
 	if (hmd->indexar == NULL)
 		return;
@@ -379,281 +385,440 @@ void object_hook_select(Object *ob, HookModifierData *hmd)
 	else if(ob->type==OB_SURF) select_editcurve_hook(ob, hmd);
 }
 
-
-void add_hook(Scene *scene, View3D *v3d, int mode)
+static Object *add_hook_object_new(Scene *scene, Object *obedit)
 {
-	ModifierData *md = NULL;
+	Base *base, *basedit;
+	Object *ob;
+
+	ob= add_object(scene, OB_EMPTY);
+	
+	basedit = object_in_scene(obedit, scene);
+	base = object_in_scene(ob, scene);
+	base->lay = ob->lay = obedit->lay;
+	
+	/* icky, add_object sets new base as active.
+	 * so set it back to the original edit object */
+	scene->basact = basedit;
+
+	return ob;
+}
+
+
+static void add_hook_object(Scene *scene, Object *obedit, Object *ob, int mode)
+{
+	ModifierData *md=NULL;
 	HookModifierData *hmd = NULL;
-	Object *ob=NULL;
-	Object *obedit= scene->obedit;  // XXX get from context
+	float cent[3];
+	int tot, ok, *indexar;
+	char name[32];
 	
-	if(obedit==NULL) return;
+	ok = object_hook_index_array(obedit, &tot, &indexar, name, cent);
 	
-	/* preconditions */
-	if(mode==2) { /* selected object */
-		Base *base;
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-					ob= base->object;
-					break;
-				}
-			}
-		}
-		if(ob==NULL) {
-			// XXX error("Requires selected Object");
-			return;
-		}
+	if (!ok) return;	// XXX error("Requires selected vertices or active Vertex Group");
+	
+	if (mode==OBJECT_ADDHOOK_NEWOB && !ob) {
+		
+		ob = add_hook_object_new(scene, obedit);
+		
+		/* transform cent to global coords for loc */
+		mul_v3_m4v3(ob->loc, obedit->obmat, cent);
 	}
-	else if(mode!=1) {
-		int maxlen=0, a, nr;
-		char *cp;
-		
-		/* make pupmenu with hooks */
-		for(md=obedit->modifiers.first; md; md= md->next) {
-			if (md->type==eModifierType_Hook) 
-				maxlen+=32;
-		}
-		
-		if(maxlen==0) {
-			// XXX error("Object has no hooks yet");
-			return;
-		}
-		
-		cp= MEM_callocN(maxlen+32, "temp string");
-		if(mode==3) strcpy(cp, "Remove %t|");
-		else if(mode==4) strcpy(cp, "Reassign %t|");
-		else if(mode==5) strcpy(cp, "Select %t|");
-		else if(mode==6) strcpy(cp, "Clear Offset %t|");
-		
-		for(md=obedit->modifiers.first; md; md= md->next) {
-			if (md->type==eModifierType_Hook) {
-				strcat(cp, md->name);
-				strcat(cp, " |");
-			}
-		}
-		
-		nr= 0; // XXX pupmenu(cp);
-		MEM_freeN(cp);
-		
-		if(nr<1) return;
-		
-		a= 1;
-		for(md=obedit->modifiers.first; md; md=md->next) {
-			if (md->type==eModifierType_Hook) {
-				if(a==nr) break;
-				a++;
-			}
-		}
-		
-		hmd = (HookModifierData*) md;
-		ob= hmd->object;
+	
+	md = obedit->modifiers.first;
+	while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
+		md = md->next;
 	}
-
-	/* do it, new hooks or reassign */
-	if(mode==1 || mode==2 || mode==4) {
-		float cent[3];
-		int tot, ok, *indexar;
-		char name[32];
-		
-		ok = object_hook_index_array(obedit, &tot, &indexar, name, cent);
-		
-		if(ok==0) {
-			// XXX error("Requires selected vertices or active Vertex Group");
-		}
-		else {
-			
-			if(mode==1) {
-				Base *base= BASACT, *newbase;
-				
-				ob= add_object(scene, OB_EMPTY);
-				/* set layers OK */
-				newbase= BASACT;
-				newbase->lay= base->lay;
-				ob->lay= newbase->lay;
-				
-				/* transform cent to global coords for loc */
-				mul_v3_m4v3(ob->loc, obedit->obmat, cent);
-				
-				/* restore, add_object sets active */
-				BASACT= base;
-			}
-			/* if mode is 2 or 4, ob has been set */
-			
-			/* new hook */
-			if(mode==1 || mode==2) {
-				ModifierData *md = obedit->modifiers.first;
-				
-				while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
-					md = md->next;
-				}
-				
-				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
-				BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
-				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
-				modifier_unique_name(&obedit->modifiers, (ModifierData*)hmd);
-			}
-			else if (hmd->indexar) MEM_freeN(hmd->indexar); /* reassign, hook was set */
-		
-			hmd->object= ob;
-			hmd->indexar= indexar;
-			copy_v3_v3(hmd->cent, cent);
-			hmd->totindex= tot;
-			BLI_strncpy(hmd->name, name, 32);
-			
-			// TODO: need to take into account bone targets here too now...
-			if(mode==1 || mode==2) {
-				/* matrix calculus */
-				/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
-				/*        (parentinv         )                          */
-				
-				where_is_object(scene, ob);
-				
-				invert_m4_m4(ob->imat, ob->obmat);
-				/* apparently this call goes from right to left... */
-				mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
-							 NULL, NULL, NULL, NULL, NULL);
-			}
-		}
-	}
-	else if(mode==3) { /* remove */
-		BLI_remlink(&obedit->modifiers, md);
-		modifier_free(md);
-	}
-	else if(mode==5) { /* select */
-		// FIXME: this is now OBJECT_OT_hook_select
-		object_hook_select(obedit, hmd);
-	}
-	else if(mode==6) { /* clear offset */
-		// FIXME: this is now OBJECT_OT_hook_reset operator
-		where_is_object(scene, ob);	/* ob is hook->parent */
-
-		invert_m4_m4(ob->imat, ob->obmat);
-		/* this call goes from right to left... */
-		mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
-					 NULL, NULL, NULL, NULL, NULL);
-	}
-
+	
+	hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
+	BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
+	sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
+	modifier_unique_name(&obedit->modifiers, (ModifierData*)hmd);
+	
+	hmd->object= ob;
+	hmd->indexar= indexar;
+	copy_v3_v3(hmd->cent, cent);
+	hmd->totindex= tot;
+	BLI_strncpy(hmd->name, name, 32);
+	
+	/* matrix calculus */
+	/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
+	/*        (parentinv         )                          */
+	where_is_object(scene, ob);
+	
+	invert_m4_m4(ob->imat, ob->obmat);
+	/* apparently this call goes from right to left... */
+	mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
+				 NULL, NULL, NULL, NULL, NULL);
+	
 	DAG_scene_sort(scene);
 }
 
-void add_hook_menu(Scene *scene, View3D *v3d)
-{
-	Object *obedit= scene->obedit;  // XXX get from context
-	int mode;
-	
-	if(obedit==NULL) return;
-	
-	if(modifiers_findByType(obedit, eModifierType_Hook))
-		mode= 0; // XXX pupmenu("Hooks %t|Add, To New Empty %x1|Add, To Selected Object %x2|Remove... %x3|Reassign... %x4|Select... %x5|Clear Offset...%x6");
-	else
-		mode= 0; // XXX pupmenu("Hooks %t|Add, New Empty %x1|Add, To Selected Object %x2");
-
-	if(mode<1) return;
-		
-	/* do operations */
-	add_hook(scene, v3d, mode);
-}
-
-void hookmenu(Scene *scene, View3D *v3d)
-{
-	/* only called in object mode */
-	short event, changed=0;
-	Object *ob;
-	Base *base;
-	ModifierData *md;
-	HookModifierData *hmd;
-	
-	event= 0; // XXX pupmenu("Modify Hooks for Selected...%t|Reset Offset%x1|Recenter at Cursor%x2");
-	if (event==-1) return;
-	if (event==2 && !(v3d)) {
-		// XXX error("Cannot perform this operation without a 3d view");
-		return;
-	}
-	
-	for (base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			for (md = base->object->modifiers.first; md; md=md->next) {
-				if (md->type==eModifierType_Hook) {
-					ob = base->object;
-					hmd = (HookModifierData*) md;
-					
-					/*
-					 * Copied from modifiers_cursorHookCenter and
-					 * modifiers_clearHookOffset, should consolidate
-					 * */
-					
-					if (event==1) {
-						if(hmd->object) {
-							invert_m4_m4(hmd->object->imat, hmd->object->obmat);
-							mul_serie_m4(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
-							
-							changed= 1;
-							DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-						}
-					} else {
-						float *curs = give_cursor(scene, v3d);
-						float bmat[3][3], imat[3][3];
-						
-						where_is_object(scene, ob);
-					
-						copy_m3_m4(bmat, ob->obmat);
-						invert_m3_m3(imat, bmat);
-				
-						curs= give_cursor(scene, v3d);
-						hmd->cent[0]= curs[0]-ob->obmat[3][0];
-						hmd->cent[1]= curs[1]-ob->obmat[3][1];
-						hmd->cent[2]= curs[2]-ob->obmat[3][2];
-						mul_m3_v3(imat, hmd->cent);
-						
-						changed= 1;
-						DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-					} 
-				}
-			}
-		}
-	}
-	
-	if (changed) {
-	}	
-}
-
-static int object_add_hook_exec(bContext *C, wmOperator *op)
+static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-
-	int mode= RNA_enum_get(op->ptr, "type");
-
-	// XXX - todo, break up this function for different operators
-	// and detect if this finished correctly or not,
-	add_hook(scene, v3d, mode);
-
+	Object *obedit = CTX_data_edit_object(C);
+	Object *obsel=NULL;
+	
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects)
+	{
+		if (ob != obedit) {
+			obsel = ob;
+			break;
+		}
+	}
+	CTX_DATA_END;
+	
+	if (!obsel) {
+		BKE_report(op->reports, RPT_ERROR, "Can't add hook with no other selected objects.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	add_hook_object(scene, obedit, obsel, OBJECT_ADDHOOK_SELOB);
+	
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_hook_add(wmOperatorType *ot)
+void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_new_hook_types[] = {
-		{1, "NEW", 0, "New Object", "Create a new object and assign the verts to it."},
-		{2, "SELECTED", 0, "Selection", "Add the hook to the selected object."},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	/* identifiers */
-	ot->name= "Add Hook";
-	ot->description= "Add hook to selected verts.";
-	ot->idname= "OBJECT_OT_hook_add";
-
+	ot->name= "Hook to Selected Object";
+	ot->description= "Hook selected vertices to the first selected Object.";
+	ot->idname= "OBJECT_OT_hook_add_selob";
+	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_add_hook_exec;
-//	ot->poll= ED_operator_editmesh;
-
+	ot->exec= object_add_hook_selob_exec;
+	ot->poll= ED_operator_editmesh;
+	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
-	RNA_def_enum(ot->srna, "type", prop_new_hook_types, 0, "Type", "");
+static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+
+	add_hook_object(scene, obedit, NULL, OBJECT_ADDHOOK_NEWOB);
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hook to New Object";
+	ot->description= "Hook selected vertices to the first selected Object.";
+	ot->idname= "OBJECT_OT_hook_add_newob";
+	
+	/* api callbacks */
+	ot->exec= object_add_hook_newob_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static EnumPropertyItem hook_mod_items[]= {
+{0, NULL, 0, NULL, NULL}};
+
+static int object_hook_remove_exec(bContext *C, wmOperator *op)
+{
+	int num= RNA_enum_get(op->ptr, "modifier");
+	Object *ob=NULL;
+	HookModifierData *hmd=NULL;
+
+	ob = CTX_data_edit_object(C);
+	hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+
+	if (!ob || !hmd) {
+		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* remove functionality */
+	
+	BLI_remlink(&ob->modifiers, (ModifierData *)hmd);
+	modifier_free((ModifierData *)hmd);
+	
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	Object *ob = CTX_data_edit_object(C);
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	ModifierData *md = NULL;
+	int a, totitem= 0;
+	
+	if(!ob)
+		return hook_mod_items;
+	
+	for(a=0, md=ob->modifiers.first; md; md= md->next, a++) {
+		if (md->type==eModifierType_Hook) {
+			tmp.value= a;
+			tmp.icon = ICON_HOOK;
+			tmp.identifier= md->name;
+			tmp.name= md->name;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+	
+	return item;
+}
+
+void OBJECT_OT_hook_remove(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Remove Hook";
+	ot->idname= "OBJECT_OT_hook_remove";
+	ot->description= "Remove a hook from the active object.";
+	
+	/* api callbacks */
+	ot->poll= ED_operator_editmesh;
+	ot->exec= object_hook_remove_exec;
+	ot->invoke= WM_menu_invoke;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to remove.");
+	RNA_def_enum_funcs(prop, hook_mod_itemf);
+}
+
+static int object_hook_reset_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	int num= RNA_enum_get(op->ptr, "modifier");
+	Object *ob=NULL;
+	HookModifierData *hmd=NULL;
+	
+	if (ptr.data) {		/* if modifier context is available, use that */
+		ob = ptr.id.data;
+		hmd= ptr.data;
+	} else {			/* use the provided property */
+		ob = CTX_data_edit_object(C);
+		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+	}
+	if (!ob || !hmd) {
+		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* reset functionality */
+	
+	if(hmd->object) {
+		bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
+		
+		if(hmd->subtarget[0] && pchan) {
+			float imat[4][4], mat[4][4];
+			
+			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
+			mul_m4_m4m4(mat, pchan->pose_mat, hmd->object->obmat);
+			
+			invert_m4_m4(imat, mat);
+			mul_serie_m4(hmd->parentinv, imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		}
+		else {
+			invert_m4_m4(hmd->object->imat, hmd->object->obmat);
+			mul_serie_m4(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		}
+	}
+	
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_reset(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Reset Hook";
+	ot->description= "Recalculate and and clear offset transformation.";
+	ot->idname= "OBJECT_OT_hook_reset";
+	
+	ot->poll= ED_operator_editmesh;
+	ot->exec= object_hook_reset_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to assign to.");
+	RNA_def_enum_funcs(prop, hook_mod_itemf);
+}
+
+static int object_hook_recenter_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	int num= RNA_enum_get(op->ptr, "modifier");
+	Object *ob=NULL;
+	HookModifierData *hmd=NULL;
+	Scene *scene = CTX_data_scene(C);
+	float bmat[3][3], imat[3][3];
+	
+	if (ptr.data) {		/* if modifier context is available, use that */
+		ob = ptr.id.data;
+		hmd= ptr.data;
+	} else {			/* use the provided property */
+		ob = CTX_data_edit_object(C);
+		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+	}
+	if (!ob || !hmd) {
+		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* recenter functionality */
+	
+	copy_m3_m4(bmat, ob->obmat);
+	invert_m3_m3(imat, bmat);
+	
+	sub_v3_v3v3(hmd->cent, scene->cursor, ob->obmat[3]);
+	mul_m3_v3(imat, hmd->cent);
+	
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_recenter(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Recenter Hook";
+	ot->description= "Set hook center to cursor position.";
+	ot->idname= "OBJECT_OT_hook_recenter";
+	
+	ot->poll= ED_operator_editmesh;
+	ot->exec= object_hook_recenter_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to assign to.");
+	RNA_def_enum_funcs(prop, hook_mod_itemf);
+}
+
+static int object_hook_assign_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	int num= RNA_enum_get(op->ptr, "modifier");
+	Object *ob=NULL;
+	HookModifierData *hmd=NULL;
+	float cent[3];
+	char name[32];
+	int *indexar, tot;
+	
+	if (ptr.data) {		/* if modifier context is available, use that */
+		ob = ptr.id.data;
+		hmd= ptr.data;
+	} else {			/* use the provided property */
+		ob = CTX_data_edit_object(C);
+		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+	}
+	if (!ob || !hmd) {
+		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* assign functionality */
+	
+	if(!object_hook_index_array(ob, &tot, &indexar, name, cent)) {
+		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
+		return OPERATOR_CANCELLED;
+	}
+	if(hmd->indexar)
+		MEM_freeN(hmd->indexar);
+	
+	copy_v3_v3(hmd->cent, cent);
+	hmd->indexar= indexar;
+	hmd->totindex= tot;
+	
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_assign(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Assign to Hook";
+	ot->description= "Assign the selected vertices to a hook.";
+	ot->idname= "OBJECT_OT_hook_assign";
+	
+	ot->poll= ED_operator_editmesh;
+	ot->exec= object_hook_assign_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to assign to.");
+	RNA_def_enum_funcs(prop, hook_mod_itemf);
+}
+
+static int object_hook_select_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	int num= RNA_enum_get(op->ptr, "modifier");
+	Object *ob=NULL;
+	HookModifierData *hmd=NULL;
+	
+	if (ptr.data) {		/* if modifier context is available, use that */
+		ob = ptr.id.data;
+		hmd= ptr.data;
+	} else {			/* use the provided property */
+		ob = CTX_data_edit_object(C);
+		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+	}
+	if (!ob || !hmd) {
+		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* select functionality */
+	
+	object_hook_select(ob, hmd);
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_select(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Select Hook";
+	ot->description= "Selects effected vertices on mesh.";
+	ot->idname= "OBJECT_OT_hook_select";
+	
+	ot->poll= ED_operator_editmesh;
+	ot->exec= object_hook_select_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to remove.");
+	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
