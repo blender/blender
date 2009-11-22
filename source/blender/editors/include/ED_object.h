@@ -114,12 +114,17 @@ void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb)
 void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 
 /* object_modifier.c */
+enum {
+	MODIFIER_APPLY_DATA=1,
+	MODIFIER_APPLY_SHAPE,
+} eModifier_Apply_Mode;
+
 struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, int type);
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_convert(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
 #endif /* ED_OBJECT_H */

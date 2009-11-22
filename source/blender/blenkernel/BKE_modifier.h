@@ -281,6 +281,7 @@ int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct ModifierData *md);
 int           modifier_isDeformer(struct ModifierData *md);
+int			  modifier_sameTopology(ModifierData *md);
 int           modifier_isEnabled(struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 

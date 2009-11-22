@@ -54,6 +54,7 @@ struct Object;
 struct Scene;
 struct Mesh;
 struct EditMesh;
+struct KeyBlock;
 struct ModifierData;
 struct MCol;
 struct ColorBand;
@@ -317,6 +318,10 @@ int DM_release(DerivedMesh *dm);
 /* utility function to convert a DerivedMesh to a Mesh
  */
 void DM_to_mesh(DerivedMesh *dm, struct Mesh *me);
+
+/* utility function to convert a DerivedMesh to a shape key block 
+ */
+void DM_to_meshkey(DerivedMesh *dm, struct Mesh *me, struct KeyBlock *kb);
 
 /* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask

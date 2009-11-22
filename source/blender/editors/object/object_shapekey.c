@@ -119,49 +119,6 @@ void key_to_mesh(KeyBlock *kb, Mesh *me)
 	}
 }
 
-static KeyBlock *add_keyblock(Scene *scene, Key *key)
-{
-	KeyBlock *kb;
-	float curpos= -0.1;
-	int tot;
-	
-	kb= key->block.last;
-	if(kb) curpos= kb->pos;
-	
-	kb= MEM_callocN(sizeof(KeyBlock), "Keyblock");
-	BLI_addtail(&key->block, kb);
-	kb->type= KEY_CARDINAL;
-	
-	tot= BLI_countlist(&key->block);
-	if(tot==1) strcpy(kb->name, "Basis");
-	else sprintf(kb->name, "Key %d", tot-1);
-	
-		// XXX this is old anim system stuff? (i.e. the 'index' of the shapekey)
-	kb->adrcode= tot-1;
-	
-	key->totkey++;
-	if(key->totkey==1) key->refkey= kb;
-	
-	kb->slidermin= 0.0f;
-	kb->slidermax= 1.0f;
-	
-	// XXX kb->pos is the confusing old horizontal-line RVK crap in old IPO Editor...
-	if(key->type == KEY_RELATIVE) 
-		kb->pos= curpos+0.1;
-	else {
-#if 0 // XXX old animation system
-		curpos= bsystem_time(scene, 0, (float)CFRA, 0.0);
-		if(calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
-			curpos /= 100.0;
-		}
-		kb->pos= curpos;
-		
-		sort_keys(key);
-#endif // XXX old animation system
-	}
-	return kb;
-}
-
 static void insert_meshkey(Scene *scene, Object *ob)
 {
 	Mesh *me= ob->data;

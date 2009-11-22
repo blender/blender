@@ -8924,6 +8924,12 @@ int modifier_couldBeCage(ModifierData *md)
 			modifier_supportsMapping(md));	
 }
 
+int modifier_sameTopology(ModifierData *md)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	return ( mti->type == eModifierTypeType_OnlyDeform || mti->type == eModifierTypeType_Nonconstructive);
+}
+
 void modifier_setError(ModifierData *md, char *format, ...)
 {
 	char buffer[2048];

@@ -33,6 +33,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -51,6 +52,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -66,6 +68,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_armature.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -328,7 +331,7 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	return 1;
 }
 
-int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md, int mode)
 {
 	DerivedMesh *dm;
 	Mesh *me = ob->data;
@@ -346,27 +349,64 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected.");
 
 	if (ob->type==OB_MESH) {
-		if(me->key) {
-			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
-			return 0;
+		if (mode == MODIFIER_APPLY_SHAPE) {
+			Key *key=me->key;
+			KeyBlock *kb;
+			int newkey=0;
+			
+			if(!modifier_sameTopology(md)) {
+				BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
+				return 0;
+			}
+			mesh_pmv_off(ob, me);
+			
+			dm = mesh_create_derived_for_modifier(scene, ob, md);
+			if (!dm) {
+				BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+				return 0;
+			}
+			
+			if(key == NULL) {
+				key= me->key= add_key((ID *)me);
+				key->type= KEY_RELATIVE;
+				newkey= 1;
+			}
+			kb= add_keyblock(scene, key);
+			
+			if (newkey) {
+				/* if that was the first key block added, then it was the basis.
+				 * Initialise it with the mesh, and add another for the modifier */
+				mesh_to_key(me, kb);
+				kb= add_keyblock(scene, key);
+			}
+			DM_to_meshkey(dm, me, kb);
+			converted = 1;
+			
+			dm->release(dm);
 		}
-	
-		mesh_pmv_off(ob, me);
+		else {	/* MODIFIER_APPLY_DATA */
+			if( me->key) {
+				BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
+				return 0;
+			}
+			
+			mesh_pmv_off(ob, me);
 
-	   /* Multires: ensure that recent sculpting is applied */
-	   if(md->type == eModifierType_Multires)
-			   multires_force_update(ob);
+			/* Multires: ensure that recent sculpting is applied */
+			if(md->type == eModifierType_Multires)
+				   multires_force_update(ob);
 
-		dm = mesh_create_derived_for_modifier(scene, ob, md);
-		if (!dm) {
-			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
-			return 0;
+			dm = mesh_create_derived_for_modifier(scene, ob, md);
+			if (!dm) {
+				BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+				return 0;
+			}
+
+			DM_to_mesh(dm, me);
+			converted = 1;
+
+			dm->release(dm);
 		}
-
-		DM_to_mesh(dm, me);
-		converted = 1;
-
-		dm->release(dm);
 	} 
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -598,8 +638,9 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
 	Object *ob= ptr.id.data;
 	ModifierData *md= ptr.data;
+	int apply_as= RNA_enum_get(op->ptr, "apply_as");
 
-	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md))
+	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -608,6 +649,11 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static EnumPropertyItem modifier_apply_as_items[] = {
+	{MODIFIER_APPLY_DATA, "DATA", 0, "Object Data", "Apply modifier to the object's data"},
+	{MODIFIER_APPLY_SHAPE, "SHAPE", 0, "New Shape", "Apply deform-only modifier to a new shape on this object"},
+	{0, NULL, 0, NULL, NULL}};
+
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 {
 	ot->name= "Apply Modifier";
@@ -615,11 +661,14 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_modifier_apply";
 	ot->poll= ED_operator_object_active;
 
+	//ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_apply_exec;
 	ot->poll= modifier_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "apply_as", modifier_apply_as_items, MODIFIER_APPLY_DATA, "Apply as", "How to apply the modifier to the geometry");
 }
 
 /************************ convert modifier operator *********************/
