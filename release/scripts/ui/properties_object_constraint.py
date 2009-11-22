@@ -159,7 +159,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
     def IK(self, context, layout, con, wide_ui):
         if context.object.pose.ik_solver == "ITASC":
             layout.itemR(con, "ik_type")
-            getattr(self, 'IK_' + con.ik_type)(context, layout, con)
+            getattr(self, 'IK_' + con.ik_type)(context, layout, con, wide_ui)
         else:
             # Legacy IK constraint
             self.target_template(layout, con, wide_ui)
