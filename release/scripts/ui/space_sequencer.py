@@ -506,7 +506,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 
         strip = act_strip(context)
 
-        layout.template_ID(strip, "sound", new="sound.open")
+        layout.template_ID(strip, "sound", open="sound.open")
 
         layout.itemS()
         layout.itemR(strip.sound, "filename", text="")

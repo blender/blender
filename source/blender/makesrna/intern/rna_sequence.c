@@ -789,7 +789,7 @@ static void rna_def_sound(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sound");
-	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this sequence (RAM audio only).");
+	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this sequence.");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
