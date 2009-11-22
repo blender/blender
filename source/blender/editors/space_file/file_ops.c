@@ -124,7 +124,7 @@ static void clamp_to_filelist(int numfiles, int *first_file, int *last_file)
 	}
 }
 
-static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short selecting)
+static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short selecting, short toggle_one)
 {
 	int first_file = -1;
 	int last_file = -1;
@@ -146,7 +146,14 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 	if ( (first_file >= 0) && (first_file < numfiles) && (last_file >= 0) && (last_file < numfiles) ) {
 		for (act_file = first_file; act_file <= last_file; act_file++) {
 			struct direntry* file = filelist_file(sfile->files, act_file);
-			if (selecting) 
+			
+			if (toggle_one) {
+				if (file->flags & ACTIVE) {
+					file->flags &= ~ACTIVE;
+					selecting=0;
+				} else
+					file->flags |= ACTIVE;
+			} else if (selecting) 
 				file->flags |= ACTIVE;
 			else
 				file->flags &= ~ACTIVE;
@@ -208,7 +215,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 
 	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 	
-	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, selecting)) {
+	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, selecting, 0)) {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	} else {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
@@ -239,6 +246,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	short val;
 	rcti rect;
+	int extend = RNA_boolean_get(op->ptr, "extend");
 
 	if(ar->regiontype != RGN_TYPE_WINDOW)
 		return OPERATOR_CANCELLED;
@@ -251,9 +259,9 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	/* single select, deselect all selected first */
-	file_deselect_all(sfile);
+	if (!extend) file_deselect_all(sfile);
 
-	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, val==LEFTMOUSE )) //LEFTMOUSE XXX, fixme
+	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, 1, extend ))
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	else
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
@@ -273,13 +281,13 @@ void FILE_OT_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= file_select_invoke;
+	ot->poll= ED_operator_file_active;
 
 	/* rna */
-
-	ot->poll= ED_operator_file_active;
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
-static int file_select_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int file_select_all_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -317,7 +325,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 	ot->idname= "FILE_OT_select_all_toggle";
 	
 	/* api callbacks */
-	ot->invoke= file_select_all_invoke;
+	ot->exec= file_select_all_exec;
 
 	/* rna */
 
@@ -326,7 +334,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 
 /* ---------- BOOKMARKS ----------- */
 
-static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
@@ -353,13 +361,13 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 	ot->idname= "FILE_OT_select_bookmark";
 	
 	/* api callbacks */
-	ot->invoke= bookmark_select_invoke;
+	ot->exec= bookmark_select_exec;
 	ot->poll= ED_operator_file_active;
 
 	RNA_def_string(ot->srna, "dir", "", 256, "Dir", "");
 }
 
-static int bookmark_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int bookmark_add_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -386,11 +394,11 @@ void FILE_OT_add_bookmark(wmOperatorType *ot)
 	ot->idname= "FILE_OT_add_bookmark";
 	
 	/* api callbacks */
-	ot->invoke= bookmark_add_invoke;
+	ot->exec= bookmark_add_exec;
 	ot->poll= ED_operator_file_active;
 }
 
-static int bookmark_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int bookmark_delete_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	struct FSMenu* fsmenu = fsmenu_get();
@@ -419,14 +427,14 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	ot->idname= "FILE_OT_delete_bookmark";
 	
 	/* api callbacks */
-	ot->invoke= bookmark_delete_invoke;
+	ot->exec= bookmark_delete_exec;
 	ot->poll= ED_operator_file_active;
 
 	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
 }
 
 
-static int loadimages_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int loadimages_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -449,7 +457,7 @@ void FILE_OT_loadimages(wmOperatorType *ot)
 	ot->idname= "FILE_OT_loadimages";
 	
 	/* api callbacks */
-	ot->invoke= loadimages_invoke;
+	ot->exec= loadimages_exec;
 	
 	ot->poll= ED_operator_file_active;
 }
