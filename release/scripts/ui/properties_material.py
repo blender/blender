@@ -266,7 +266,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
         sub.itemL(text="Light Group:")
         sub.itemR(mat, "light_group", text="")
         row = sub.row()
-        row.active = mat.light_group
+        row.active = bool(mat.light_group)
         row.itemR(mat, "light_group_exclusive", text="Exclusive")
 
         if wide_ui:

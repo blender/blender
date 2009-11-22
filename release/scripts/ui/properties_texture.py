@@ -870,7 +870,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
             col.itemR(pd, "object", text="")
 
             sub = col.column()
-            sub.enabled = pd.object
+            sub.enabled = bool(pd.object)
             if pd.object:
                 sub.itemL(text="System:")
                 sub.item_pointerR(pd, "particle_system", pd.object, "particle_systems", text="")
