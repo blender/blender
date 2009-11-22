@@ -54,7 +54,7 @@ class SEQUENCER_HT_header(bpy.types.Header):
 
         if st.display_mode == 'SEQUENCER':
             layout.itemS()
-            layout.itemO("sequencer.reload")
+            layout.itemO("sequencer.refresh_all")
         else:
             layout.itemR(st, "display_channel", text="Channel")
 
