@@ -6,7 +6,7 @@ defs = [ 'GLEW_STATIC' ]
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../render/extern/include #/intern/guardedalloc'
+incs += ' ../../render/extern/include'
 incs += ' ../../gpu ../../makesrna ../../blenfont'
 incs += ' #/intern/smoke/extern'
 incs += ' #source/kernel/gen_system'
