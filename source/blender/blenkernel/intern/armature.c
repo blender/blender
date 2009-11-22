@@ -170,10 +170,13 @@ void make_local_armature(bArmature *arm)
 	}
 }
 
-static void	copy_bonechildren (Bone* newBone, Bone* oldBone)
+static void	copy_bonechildren (Bone* newBone, Bone* oldBone, Bone* actBone, Bone **newActBone)
 {
 	Bone	*curBone, *newChildBone;
 	
+	if(oldBone == actBone)
+		*newActBone= newBone;
+
 	/*	Copy this bone's list*/
 	BLI_duplicatelist(&newBone->childbase, &oldBone->childbase);
 	
@@ -181,7 +184,7 @@ static void	copy_bonechildren (Bone* newBone, Bone* oldBone)
 	newChildBone=newBone->childbase.first;
 	for (curBone=oldBone->childbase.first;curBone;curBone=curBone->next){
 		newChildBone->parent=newBone;
-		copy_bonechildren(newChildBone,curBone);
+		copy_bonechildren(newChildBone, curBone, actBone, newActBone);
 		newChildBone=newChildBone->next;
 	}
 }
@@ -190,6 +193,7 @@ bArmature *copy_armature(bArmature *arm)
 {
 	bArmature *newArm;
 	Bone		*oldBone, *newBone;
+	Bone		*newActBone= NULL;
 	
 	newArm= copy_libblock (arm);
 	BLI_duplicatelist(&newArm->bonebase, &arm->bonebase);
@@ -198,10 +202,11 @@ bArmature *copy_armature(bArmature *arm)
 	newBone=newArm->bonebase.first;
 	for (oldBone=arm->bonebase.first;oldBone;oldBone=oldBone->next){
 		newBone->parent=NULL;
-		copy_bonechildren (newBone, oldBone);
+		copy_bonechildren (newBone, oldBone, arm->act_bone, &newActBone);
 		newBone=newBone->next;
 	};
 	
+	newArm->act_bone= newActBone;
 	return newArm;
 }
 
@@ -1690,8 +1695,6 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 		/* setup new empty array for the points list */
 		if (ikData->points) 
 			MEM_freeN(ikData->points);
-		// NOTE: just do chainlen+1 always for now, since we may get crashes otherwise
-		//ikData->numpoints= (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT)? ikData->chainlen : ikData->chainlen+1;
 		ikData->numpoints= ikData->chainlen+1; 
 		ikData->points= MEM_callocN(sizeof(float)*ikData->numpoints, "Spline IK Binding");
 		
@@ -1750,6 +1753,7 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 		maxScale = totLength / splineLen;
 		
 		/* apply scaling correction to all of the temporary points */
+		// TODO: this is really not adequate enough on really short chains
 		for (i = 0; i < segcount; i++)
 			jointPoints[i] *= maxScale;
 	}
@@ -1829,7 +1833,6 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	}
 	
 	/* step 1b: get xyz positions for the head endpoint of the bone */
-		/* firstly, calculate the position that the path suggests */
 	if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
 		/* store the position, and convert it to pose space */
 		Mat4MulVecfl(ob->imat, vec);
@@ -1837,12 +1840,6 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		
 		/* set the new radius (it should be the average value) */
 		radius = (radius+rad) / 2;
-	}
-	if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) && (pchan == tree->root)) 
-	{
-		// this is the root bone, and it can be controlled however we like...
-		// TODO: how do we calculate the offset of the root, if we don't even know the binding?
-		VECCOPY(poseHead, pchan->pose_head);
 	}
 	
 	/* step 2: determine the implied transform from these endpoints 
@@ -1923,7 +1920,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	}
 	
 	/* step 5: set the location of the bone in the matrix */
-	VECCOPY(poseMat[3], pchan->pose_head);
+	VECCOPY(poseMat[3], poseHead);
 	
 	/* finally, store the new transform */
 	Mat4CpyMat4(pchan->pose_mat, poseMat);

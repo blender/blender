@@ -1114,7 +1114,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 		
 		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */
 		if (chan->bone) 
-			chan->selectflag= chan->bone->flag & (BONE_SELECTED|BONE_ACTIVE); /* gets restored on read, for library armatures */
+			chan->selectflag= chan->bone->flag & BONE_SELECTED; /* gets restored on read, for library armatures */
 		
 		writestruct(wd, DATA, "bPoseChannel", 1, chan);
 	}

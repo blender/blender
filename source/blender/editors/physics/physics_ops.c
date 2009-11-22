@@ -49,6 +49,7 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_select_linked);
 	WM_operatortype_append(PARTICLE_OT_select_less);
 	WM_operatortype_append(PARTICLE_OT_select_more);
+	WM_operatortype_append(PARTICLE_OT_select_inverse);
 
 	WM_operatortype_append(PARTICLE_OT_hide);
 	WM_operatortype_append(PARTICLE_OT_reveal);
@@ -98,6 +99,7 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);
+	WM_keymap_add_item(keymap, "PARTICLE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", DELKEY, KM_PRESS, 0, 0);

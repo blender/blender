@@ -516,9 +516,6 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	View3D *v3d = CTX_wm_view3d(C);
 	Object *ob = CTX_data_active_object(C);
 	Object *obedit = CTX_data_active_object(C);
-	float normal[3]={0.0, 0.0, 0.0};
-	float plane[3]={0.0, 0.0, 0.0};
-	
 
 	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
@@ -533,7 +530,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	case V3D_MANIP_NORMAL:
 		if(obedit || (ob && ob->mode & OB_MODE_POSE)) {
 			strcpy(t->spacename, "normal");
-			getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
+			ED_getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
 					break;
 					}
 		/* no break we define 'normal' as 'local' in Object mode */
@@ -942,12 +939,11 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	return result;
 }
 
-void getTransformOrientationMatrix(const bContext *C, float twmat[][3], int activeOnly)
+void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[][3], int activeOnly)
 {
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
 
-	float mat[3][3];
 	int type;
 
 	type = getTransformOrientation(C, normal, plane, activeOnly);
@@ -955,25 +951,25 @@ void getTransformOrientationMatrix(const bContext *C, float twmat[][3], int acti
 	switch (type)
 	{
 		case ORIENTATION_NORMAL:
-			if (createSpaceNormalTangent(mat, normal, plane) == 0)
+			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0)
 			{
 				type = ORIENTATION_NONE;
 			}
 			break;
 		case ORIENTATION_VERT:
-			if (createSpaceNormal(mat, normal) == 0)
+			if (createSpaceNormal(orientation_mat, normal) == 0)
 			{
 				type = ORIENTATION_NONE;
 			}
 			break;
 		case ORIENTATION_EDGE:
-			if (createSpaceNormalTangent(mat, normal, plane) == 0)
+			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0)
 			{
 				type = ORIENTATION_NONE;
 			}
 			break;
 		case ORIENTATION_FACE:
-			if (createSpaceNormalTangent(mat, normal, plane) == 0)
+			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0)
 			{
 				type = ORIENTATION_NONE;
 			}
@@ -982,10 +978,6 @@ void getTransformOrientationMatrix(const bContext *C, float twmat[][3], int acti
 
 	if (type == ORIENTATION_NONE)
 	{
-		Mat3One(twmat);
-	}
-	else
-	{
-		Mat3CpyMat3(twmat, mat);
+		Mat3One(orientation_mat);
 	}
 }

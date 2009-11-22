@@ -55,6 +55,7 @@
 
 #include "RNA_access.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -186,18 +187,9 @@ void gimbal_axis(Object *ob, float gmat[][3])
 {
 	if(ob->mode & OB_MODE_POSE)
 	{
-		bPoseChannel *pchan= NULL;
+		bPoseChannel *pchan= get_active_posechannel(ob);
 
-		/* use channels to get stats */
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if (pchan->bone && pchan->bone->flag & BONE_ACTIVE) {
-				if(test_rotmode_euler(pchan->rotmode)) {
-					break;
-				}
-			}
-		}
-
-		if(pchan) {
+		if(pchan && test_rotmode_euler(pchan->rotmode)) {
 			float mat[3][3], tmat[3][3], obmat[3][3];
 
 			EulToGimbalAxis(mat, pchan->eul, pchan->rotmode);
@@ -499,7 +491,9 @@ int calc_manipulator_stats(const bContext *C)
 						}
 		case V3D_MANIP_NORMAL:
 			if(obedit || ob->mode & OB_MODE_POSE) {
-				getTransformOrientationMatrix(C, rv3d->twmat, (v3d->around == V3D_ACTIVE));
+				float mat[3][3];
+				ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
+				Mat4CpyMat3(rv3d->twmat, mat);
 						break;
 						}
 			/* no break we define 'normal' as 'local' in Object mode */

@@ -276,18 +276,26 @@ void normal(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
 	outdot = -dot(dir, nor);
 }
 
-void curves_vec(vec3 vec, sampler1D curvemap, out vec3 outvec)
+void curves_vec(float fac, vec3 vec, sampler1D curvemap, out vec3 outvec)
 {
 	outvec.x = texture1D(curvemap, (vec.x + 1.0)*0.5).x;
 	outvec.y = texture1D(curvemap, (vec.y + 1.0)*0.5).y;
 	outvec.z = texture1D(curvemap, (vec.z + 1.0)*0.5).z;
+
+	if (fac != 1.0)
+		outvec = (outvec*fac) + (vec*(1.0-fac));
+
 }
 
-void curves_rgb(vec4 col, sampler1D curvemap, out vec4 outcol)
+void curves_rgb(float fac, vec4 col, sampler1D curvemap, out vec4 outcol)
 {
 	outcol.r = texture1D(curvemap, texture1D(curvemap, col.r).a).r;
 	outcol.g = texture1D(curvemap, texture1D(curvemap, col.g).a).g;
 	outcol.b = texture1D(curvemap, texture1D(curvemap, col.b).a).b;
+
+	if (fac != 1.0)
+		outcol = (outcol*fac) + (col*(1.0-fac));
+
 	outcol.a = col.a;
 }
 

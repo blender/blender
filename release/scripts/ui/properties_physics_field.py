@@ -77,7 +77,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             layout.itemS()
 
             layout.itemR(field, "guide_kink_type")
-            if (field.guide_kink_type != "NONE"):
+            if (field.guide_kink_type != 'NONE'):
                 layout.itemR(field, "guide_kink_axis")
 
                 flow = layout.column_flow()

@@ -54,6 +54,7 @@
 GHOST_System::GHOST_System()
 : m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0), m_ndofManager(0)
 {
+	m_canAcceptDragOperation = false;
 }
 
 
@@ -275,6 +276,15 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool& isDown
 	return success;
 }
 
+void GHOST_System::setAcceptDragOperation(bool canAccept)
+{
+	m_canAcceptDragOperation = canAccept;
+}
+
+bool GHOST_System::canAcceptDragOperation() const
+{
+	return m_canAcceptDragOperation;
+}
 
 GHOST_TSuccess GHOST_System::init()
 {

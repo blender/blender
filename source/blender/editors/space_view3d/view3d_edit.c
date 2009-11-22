@@ -1500,7 +1500,6 @@ static EnumPropertyItem prop_view_items[] = {
 
 
 /* would like to make this a generic function - outside of transform */
-extern void getTransformOrientationMatrix(const bContext *C, float twmat[][4], int activeOnly);
 
 static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
 {
@@ -1520,12 +1519,12 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 		}
 		else {
 			float obact_quat[4];
-			float twmat[4][4];
+			float twmat[3][3];
 
 			/* same as transform manipulator when normal is set */
-			getTransformOrientationMatrix(C, twmat, TRUE);
+			ED_getTransformOrientationMatrix(C, twmat, TRUE);
 
-			Mat4ToQuat(twmat, obact_quat);
+			Mat3ToQuat(twmat, obact_quat);
 			QuatInv(obact_quat);
 			QuatMul(new_quat, new_quat, obact_quat);
 
@@ -1882,8 +1881,7 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	/* then plane equations */
 	for(val=0; val<4; val++) {
 
-		CalcNormFloat(rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4],
-					  rv3d->clip[val]);
+		CalcNormFloat(rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4], rv3d->clip[val]);
 
 		rv3d->clip[val][3]= - rv3d->clip[val][0]*rv3d->clipbb->vec[val][0]
 			- rv3d->clip[val][1]*rv3d->clipbb->vec[val][1]

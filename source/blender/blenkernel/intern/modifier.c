@@ -3140,8 +3140,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				xmin = -xmax;
 				ymin = -ymax;
 
-				i_window(xmin, xmax, ymin, ymax,
-					 cam->clipsta, cam->clipend, perspmat);
+				i_window(xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend, perspmat);
 				Mat4MulMat4(tmpmat, projectors[i].projmat, perspmat);
 			} else if(cam->type == CAM_ORTHO) {
 				float orthomat[4][4];
@@ -3160,8 +3159,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				xmin = -xmax;
 				ymin = -ymax;
 
-				i_ortho(xmin, xmax, ymin, ymax,
-					cam->clipsta, cam->clipend, orthomat);
+				i_ortho(xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend, orthomat);
 				Mat4MulMat4(tmpmat, projectors[i].projmat, orthomat);
 			}
 		} else {

@@ -180,10 +180,10 @@ int BL_ArmatureChannel::py_attr_setattr(void *self_v, const struct KX_PYATTRIBUT
 	bPoseChannel* channel = self->m_posechannel;
 	int attr_order = attrdef-Attributes;
 
-	int ival;
-	double dval;
-	char* sval;
-	KX_GameObject *oval;
+//	int ival;
+//	double dval;
+//	char* sval;
+//	KX_GameObject *oval;
 
 	if (!channel) {
 		PyErr_SetString(PyExc_AttributeError, "channel is NULL");

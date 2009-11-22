@@ -86,6 +86,7 @@ class CONSOLE_MT_report(bpy.types.Menu):
 class CONSOLE_MT_language(bpy.types.Menu):
     bl_label = "Languages..."
 
+<<<<<<< .working
     def draw(self, context):
         layout = self.layout
         layout.column()
@@ -102,6 +103,24 @@ class CONSOLE_MT_language(bpy.types.Menu):
         for language in languages:
             layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
 
+=======
+    def draw(self, context):
+        layout = self.layout
+        layout.column()
+
+        mod = bpy.ops.console
+        languages = []
+        for opname in dir(mod):
+            # execute_python, execute_shell etc.
+            if opname.startswith("execute_"):
+                languages.append(opname.split('_', 1)[-1])
+
+        languages.sort()
+
+        for language in languages:
+            layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
+
+>>>>>>> .merge-right.r24463
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
         bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
@@ -147,6 +166,8 @@ class ConsoleAutocomplete(bpy.types.Operator):
         else:
             print("Error: bpy.ops.console.autocomplete_" + sc.language + " - not found")
 
+<<<<<<< .working
+=======
         return ('FINISHED',)
 
 
@@ -155,13 +176,14 @@ class ConsoleBanner(bpy.types.Operator):
 
     def execute(self, context):
         sc = context.space_data
-        
+
+>>>>>>> .merge-right.r24463
         # default to python
         if not sc.language:
             sc.language = 'python'
 
         banner = getattr(bpy.ops.console, "banner_" + sc.language, None)
-        
+
         if banner:
             banner()
         else:
@@ -169,6 +191,42 @@ class ConsoleBanner(bpy.types.Operator):
 
         return ('FINISHED',)
 
+
+
+class ConsoleLanguage(bpy.types.Operator):
+    '''Set the current language for this console'''
+    bl_idname = "console.language"
+    language = StringProperty(name="Language", maxlen= 32, default= "")
+
+    def execute(self, context):
+        sc = context.space_data
+<<<<<<< .working
+        
+        # default to python
+        if not sc.language:
+            sc.language = 'python'
+=======
+>>>>>>> .merge-right.r24463
+
+<<<<<<< .working
+        banner = getattr(bpy.ops.console, "banner_" + sc.language, None)
+        
+        if banner:
+            banner()
+        else:
+            print("Error: bpy.ops.console.banner_" + sc.language + " - not found")
+=======
+        # defailt to python
+        sc.language = self.language
+>>>>>>> .merge-right.r24463
+
+<<<<<<< .working
+        return ('FINISHED',)
+=======
+        bpy.ops.console.banner()
+>>>>>>> .merge-right.r24463
+
+<<<<<<< .working
 
 
 class ConsoleLanguage(bpy.types.Operator):
@@ -188,6 +246,12 @@ class ConsoleLanguage(bpy.types.Operator):
         bpy.ops.console.history_append(text="", current_character=0,
             remove_duplicates=True)
 
+=======
+        # insert a new blank line
+        bpy.ops.console.history_append(text="", current_character=0,
+            remove_duplicates=True)
+
+>>>>>>> .merge-right.r24463
         return ('FINISHED',)
 
 

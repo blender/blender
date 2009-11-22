@@ -148,6 +148,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	PropertyRNA *prop;
 	FCurve *fcu;
 	int array_index_max = array_index+1;
+	int done = 0;
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
@@ -197,11 +198,14 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 				BLI_snprintf(expression, maxlen, "%.3f", fval);
 			}
 		}
+		
+		/* set the done status */
+		done += (fcu != NULL);
 	}
 	}
 	
 	/* done */
-	return (fcu != NULL);
+	return done;
 }
 
 /* Main Driver Management API calls:
@@ -367,7 +371,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	PropertyRNA *prop= NULL;
 	char *path;
 	short success= 0;
-	int index, length, all= RNA_boolean_get(op->ptr, "all");
+	int index, all= RNA_boolean_get(op->ptr, "all");
 	
 	/* try to create driver using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));

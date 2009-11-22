@@ -301,4 +301,11 @@ typedef struct TexNodeOutput {
 	char name[32];
 } TexNodeOutput;
 
+
+/* comp channel matte */
+#define CMP_NODE_CHANNEL_MATTE_CS_RGB	1
+#define CMP_NODE_CHANNEL_MATTE_CS_HSV	2
+#define CMP_NODE_CHANNEL_MATTE_CS_YUV	3
+#define CMP_NODE_CHANNEL_MATTE_CS_YCC	4
+
 #endif

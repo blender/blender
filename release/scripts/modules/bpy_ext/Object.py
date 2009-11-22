@@ -1,3 +1,4 @@
+<<<<<<< .working
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -20,3 +21,5 @@ import bpy
 class_obj = bpy.types.Object
 
 class_obj.getChildren = lambda self: [child for child in bpy.data.objects if child.parent == self]
+=======
+>>>>>>> .merge-right.r24463

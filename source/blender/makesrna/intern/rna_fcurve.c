@@ -652,8 +652,8 @@ static void rna_def_fcurve(BlenderRNA *brna)
 		{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear", ""},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_mode_color_items[] = {
-		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", 0, "Automatic Rainbow", ""},
-		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", 0, "Automatic XYZ to RGB", ""},
+		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", 0, "Auto Rainbow", ""},
+		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", 0, "Auto XYZ to RGB", ""},
 		{FCURVE_COLOR_CUSTOM, "CUSTOM", 0, "User Defined", ""},
 		{0, NULL, 0, NULL, NULL}};
 

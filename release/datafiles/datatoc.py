@@ -48,6 +48,7 @@ if filename[0] == ".":
 cname = filename + ".c"
 sys.stdout.write("Making C file <%s>\n" % cname)
 
+filename = filename.split("/")[-1].split("\\")[-1]
 filename = filename.replace(".", "_")
 sys.stdout.write(str(size))
 sys.stdout.write("\n")

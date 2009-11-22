@@ -34,7 +34,9 @@ def addFluidFiles(job, path):
 			match = pattern.match(fluid_file)
 			
 			if match:
-				current_frame = int(match.groups()[1])
+				# fluid frames starts at 0, which explains the +1
+				# This is stupid
+				current_frame = int(match.groups()[1]) + 1 
 				job.addFile(path + fluid_file, current_frame, current_frame)
 
 def addPointCache(job, ob, point_cache, default_path):

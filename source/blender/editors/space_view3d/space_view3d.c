@@ -148,7 +148,7 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 	
 	if(rv3d==NULL) {
 		ScrArea *sa =CTX_wm_area(C);
-		if(sa->spacetype==SPACE_VIEW3D) {
+		if(sa && sa->spacetype==SPACE_VIEW3D) {
 			ARegion *ar;
 			for(ar= sa->regionbase.first; ar; ar= ar->next)
 				if(ar->regiontype==RGN_TYPE_WINDOW)
@@ -747,7 +747,11 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		
 		return 1;
 	}
-	return 0;
+	else {
+		return 0; /* not found */
+	}
+
+	return -1; /* found but not available */
 }
 
 /* only called once, from space/spacetypes.c */

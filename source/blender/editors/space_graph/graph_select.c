@@ -279,23 +279,21 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	rcti rect;
 	short mode=0, selectmode=0;
-	int event;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	
+
+	if(RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT)
+		selectmode= SELECT_ADD;
+	else
+		selectmode= SELECT_SUBTRACT;
+
 	/* get settings from operator */
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
-		
-	event= RNA_int_get(op->ptr, "event_type");
-	if (event == LEFTMOUSE) // FIXME... hardcoded
-		selectmode = SELECT_ADD;
-	else
-		selectmode = SELECT_SUBTRACT;
 	
 	/* selection 'mode' depends on whether borderselect region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
@@ -339,11 +337,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	WM_operator_properties_gesture_border(ot, FALSE);
 	
 	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }

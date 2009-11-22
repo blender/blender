@@ -1416,11 +1416,11 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 		fact*= facg;
 		facm= 1.0-fact;
 		
-		col= fact*tex[0];
+		col= tex[0]+((1-tex[0])*facm);
 		if(col < out[0]) in[0]= col; else in[0]= out[0];
-		col= fact*tex[1];
+		col= tex[1]+((1-tex[1])*facm);
 		if(col < out[1]) in[1]= col; else in[1]= out[1];
-		col= fact*tex[2];
+		col= tex[2]+((1-tex[2])*facm);
 		if(col < out[2]) in[2]= col; else in[2]= out[2];
 		break;
 

@@ -199,7 +199,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         sub.active = rd.render_raytracing
         sub.itemL(text="Acceleration structure:")
         sub.itemR(rd, "raytrace_structure", text="")
-        if rd.raytrace_structure == "OCTREE":
+        if rd.raytrace_structure == 'OCTREE':
             sub.itemR(rd, "octree_resolution", text="Resolution")
         else:
             sub.itemR(rd, "use_instances", text="Instances")

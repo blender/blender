@@ -323,6 +323,7 @@ Scene *add_scene(char *name)
 	sce->r.cfra= 1;
 	sce->r.sfra= 1;
 	sce->r.efra= 250;
+	sce->r.frame_step= 1;
 	sce->r.xsch= 1920;
 	sce->r.ysch= 1080;
 	sce->r.xasp= 1;

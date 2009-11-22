@@ -32,6 +32,7 @@
 
 /* **************** CURVE VEC  ******************** */
 static bNodeSocketType sh_node_curve_vec_in[]= {
+	{	SOCK_VALUE, 0, "Fac",	1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -47,7 +48,7 @@ static void node_shader_exec_curve_vec(void *data, bNode *node, bNodeStack **in,
 	
 	/* stack order input:  vec */
 	/* stack order output: vec */
-	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
 	curvemapping_evaluate3F(node->storage, out[0]->vec, vec);
 }
 
@@ -86,6 +87,7 @@ bNodeType sh_node_curve_vec= {
 
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketType sh_node_curve_rgb_in[]= {
+	{	SOCK_VALUE, 1, "Fac",	1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Color",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -101,8 +103,11 @@ static void node_shader_exec_curve_rgb(void *data, bNode *node, bNodeStack **in,
 	
 	/* stack order input:  vec */
 	/* stack order output: vec */
-	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
 	curvemapping_evaluateRGBF(node->storage, out[0]->vec, vec);
+	if(in[0]->vec[0] != 1.0f) {
+		VecLerpf(out[0]->vec, vec, out[0]->vec, *in[0]->vec);
+	}
 }
 
 static void node_shader_init_curve_rgb(bNode *node)
@@ -114,7 +119,6 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in,
 {
 	float *array;
 	int size;
-
 	curvemapping_table_RGBA(node->storage, &array, &size);
 	return GPU_stack_link(mat, "curves_rgb", in, out, GPU_texture(size, array));
 }

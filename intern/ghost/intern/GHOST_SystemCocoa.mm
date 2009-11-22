@@ -41,6 +41,7 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventWheel.h"
 #include "GHOST_EventNDOF.h"
+#include "GHOST_EventDragnDrop.h"
 
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
@@ -413,6 +414,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
 	NSLog(@"\nGet open file event from cocoa : %@",filename);
+	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingDropOnIcon, GHOST_kDragnDropTypeFilenames, nil, 0, 0, [NSArray arrayWithObject:filename]);
 	return YES;
 }
 
@@ -879,6 +881,102 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 		}
 	return GHOST_kSuccess;
 }
+
+//Note: called from NSWindow subclass
+GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,
+								   GHOST_WindowCocoa* window, int mouseX, int mouseY, void* data)
+{
+	if (!validWindow(window)) {
+		return GHOST_kFailure;
+	}
+	switch(eventType) 
+	{
+		case GHOST_kEventDraggingEntered:
+			setAcceptDragOperation(FALSE); //Drag operation needs to be accepted explicitely by the event manager
+		case GHOST_kEventDraggingUpdated:
+		case GHOST_kEventDraggingExited:
+			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),GHOST_kEventDraggingEntered,draggedObjectType,window,mouseX,mouseY,NULL));
+			break;
+			
+		case GHOST_kEventDraggingDropDone:
+		case GHOST_kEventDraggingDropOnIcon:
+		{
+			GHOST_TUns8 * temp_buff;
+			GHOST_TStringArray *strArray;
+			NSArray *droppedArray;
+			size_t pastedTextSize;	
+			NSString *droppedStr;
+			GHOST_TEventDataPtr eventData;
+			int i;
+
+			if (!data) return GHOST_kFailure;
+			
+			switch (draggedObjectType) {
+				case GHOST_kDragnDropTypeBitmap:
+					//TODO: implement bitmap conversion to a blender friendly format
+					break;
+				case GHOST_kDragnDropTypeFilenames:
+					droppedArray = (NSArray*)data;
+					
+					strArray = (GHOST_TStringArray*)malloc(sizeof(GHOST_TStringArray));
+					if (!strArray) return GHOST_kFailure;
+					
+					strArray->count = [droppedArray count];
+					if (strArray->count == 0) return GHOST_kFailure;
+					
+					strArray->strings = (GHOST_TUns8**) malloc(strArray->count*sizeof(GHOST_TUns8*));
+					
+					for (i=0;i<strArray->count;i++)
+					{
+						droppedStr = [droppedArray objectAtIndex:i];
+						
+						pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+						temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
+					
+						if (!temp_buff) {
+							strArray->count = i;
+							break;
+						}
+					
+						strncpy((char*)temp_buff, [droppedStr UTF8String], pastedTextSize);
+						temp_buff[pastedTextSize] = '\0';
+						
+						strArray->strings[i] = temp_buff;
+					}
+
+					eventData = (GHOST_TEventDataPtr) strArray;	
+					break;
+					
+				case GHOST_kDragnDropTypeString:
+					droppedStr = (NSString*)data;
+					pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+					
+					temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
+					
+					if (temp_buff == NULL) {
+						return GHOST_kFailure;
+					}
+					
+					strncpy((char*)temp_buff, [droppedStr UTF8String], pastedTextSize);
+					
+					temp_buff[pastedTextSize] = '\0';
+					
+					eventData = (GHOST_TEventDataPtr) temp_buff;
+					break;
+					
+				default:
+					return GHOST_kFailure;
+					break;
+			}
+			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),GHOST_kEventDraggingEntered,draggedObjectType,window,mouseX,mouseY,eventData));
+		}
+			break;
+		default:
+			return GHOST_kFailure;
+	}
+	return GHOST_kSuccess;
+}
+
 
 GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 {

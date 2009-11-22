@@ -821,11 +821,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			float fno[3];
 
 			if(mface->v4)
-				CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
-					mvert[mface->v3].co, mvert[mface->v4].co, fno);
+				CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, fno);
 			else
-				CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
-					mvert[mface->v3].co, fno);
+				CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, fno);
 
 			no0 = no1 = no2 = no3 = MT_Vector3(fno);
 		}
@@ -1818,7 +1816,7 @@ bPoseChannel *get_active_posechannel2 (Object *ob)
 	
 	/* find active */
 	for(pchan= (bPoseChannel *)ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer))
+		if(pchan->bone && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer))
 			return pchan;
 	}
 	

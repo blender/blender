@@ -1681,15 +1681,8 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	if(!(state & UI_TEXTINPUT)) {
-		rect->xmin += (rect->ymax-rect->ymin);
-		rect->xmax -= (rect->ymax-rect->ymin);
-	}
-	else {
-		textoffs= rad;
-		rect->xmin += textoffs;
-		rect->xmax -= textoffs;
-	}
+	rect->xmin += rad*0.75f;
+	rect->xmax -= rad*0.75f;
 }
 
 

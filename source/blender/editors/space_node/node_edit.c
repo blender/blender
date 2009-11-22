@@ -395,21 +395,6 @@ static void composit_node_event(SpaceNode *snode, short event)
 		case B_REDR:
 			// allqueue(REDRAWNODE, 1);
 			break;
-		case B_NODE_LOADIMAGE:
-		{
-			bNode *node= nodeGetActive(snode->edittree);
-			char name[FILE_MAXDIR+FILE_MAXFILE];
-			
-			if(node->id)
-				strcpy(name, ((Image *)node->id)->name);
-			else strcpy(name, U.textudir);
-			if (G.qual & LR_CTRLKEY) {
-				activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
-			} else {
-				activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
-			}
-			break;
-		}
 		case B_NODE_SETIMAGE:
 		{
 			bNode *node= nodeGetActive(snode->edittree);

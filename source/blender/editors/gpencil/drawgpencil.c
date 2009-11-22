@@ -744,20 +744,25 @@ void draw_gpencil_2dview (bContext *C, short onlyv2d)
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes, second time with only3d=0 for screen-aligned strokes
  */
+void draw_gpencil_3dview_ext (Scene *scene, ARegion *ar, short only3d)
+{
+	bGPdata *gpd;
+	int dflag = 0;
+
+	/* check that we have grease-pencil stuff to draw */
+	gpd= gpencil_data_get_active_v3d(scene); // XXX
+	if(gpd == NULL) return;
+
+	/* draw it! */
+	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_NOSTATUS);
+	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag);
+}
+
 void draw_gpencil_3dview (bContext *C, short only3d)
 {
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
-	bGPdata *gpd;
-	int dflag = 0;
-	
-	/* check that we have grease-pencil stuff to draw */
-	gpd= gpencil_data_get_active(C); // XXX
-	if (gpd == NULL) return;
-	
-	/* draw it! */
-	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_NOSTATUS);
-	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag);
+	draw_gpencil_3dview_ext(scene, ar, only3d);
 }
 
 /* draw grease-pencil sketches to opengl render window assuming that matrices are already set correctly */

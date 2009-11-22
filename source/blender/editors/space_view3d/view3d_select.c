@@ -364,7 +364,14 @@ static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves
 		
 		if(lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) pchan->bone->flag |= BONE_SELECTED;
-			else pchan->bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+			else pchan->bone->flag &= ~BONE_SELECTED;
+		}
+	}
+	
+	{
+		bArmature *arm= ob->data;
+		if((arm->act_bone->flag & BONE_SELECTED)==0) {
+			arm->act_bone= NULL;
 		}
 	}
 }
@@ -644,9 +651,11 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 		/* if one of points selected, we skip the bone itself */
 		if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
-			else ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			else ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
+
+	ED_armature_validate_active(arm);
 }
 
 static void do_lasso_select_facemode(ViewContext *vc, short mcords[][2], short moves, short select)
@@ -1389,38 +1398,38 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	unsigned int buffer[4*MAXPICKBUF];
 	int a, index;
-	short hits, val;
+	short hits, selecting;
 
 	view3d_operator_needs_opengl(C);
 	
 	/* setup view context for argument to callbacks */
 	view3d_set_viewcontext(C, &vc);
 	
-	val= RNA_int_get(op->ptr, "event_type");
+	selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	
 	if(obedit==NULL && (paint_facesel_test(OBACT))) {
-		face_borderselect(C, obact, &rect, (val==LEFTMOUSE));
+		face_borderselect(C, obact, &rect, selecting);
 		return OPERATOR_FINISHED;
 	}
 	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
-		return PE_border_select(C, &rect, (val==LEFTMOUSE));
+		return PE_border_select(C, &rect, selecting);
 	}
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
 			vc.em= me->edit_btmesh;
-			do_mesh_box_select(&vc, &rect, (val==LEFTMOUSE));
+			do_mesh_box_select(&vc, &rect, selecting);
 //			if (EM_texFaceCheck())
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			
 		}
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-			do_nurbs_box_select(&vc, &rect, val==LEFTMOUSE);
+			do_nurbs_box_select(&vc, &rect, selecting);
 		}
 		else if(obedit->type==OB_MBALL) {
 			MetaBall *mb = (MetaBall*)obedit->data;
@@ -1432,14 +1441,14 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 				for(a=0; a<hits; a++) {
 					if(ml->selcol1==buffer[ (4 * a) + 3 ]) {
 						ml->flag |= MB_SCALE_RAD;
-						if(val==LEFTMOUSE) ml->flag |= SELECT;
-						else ml->flag &= ~SELECT;
+						if(selecting)	ml->flag |= SELECT;
+						else			ml->flag &= ~SELECT;
 						break;
 					}
 					if(ml->selcol2==buffer[ (4 * a) + 3 ]) {
 						ml->flag &= ~MB_SCALE_RAD;
-						if(val==LEFTMOUSE) ml->flag |= SELECT;
-						else ml->flag &= ~SELECT;
+						if(selecting)	ml->flag |= SELECT;
+						else			ml->flag &= ~SELECT;
 						break;
 					}
 				}
@@ -1463,14 +1472,14 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 					ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 					if (index & BONESEL_TIP) {
 						ebone->flag |= BONE_DONE;
-						if (val==LEFTMOUSE) ebone->flag |= BONE_TIPSEL;
-						else ebone->flag &= ~BONE_TIPSEL;
+						if (selecting)	ebone->flag |= BONE_TIPSEL;
+						else			ebone->flag &= ~BONE_TIPSEL;
 					}
 					
 					if (index & BONESEL_ROOT) {
 						ebone->flag |= BONE_DONE;
-						if (val==LEFTMOUSE) ebone->flag |= BONE_ROOTSEL;
-						else ebone->flag &= ~BONE_ROOTSEL;
+						if (selecting)	ebone->flag |= BONE_ROOTSEL;
+						else			ebone->flag &= ~BONE_ROOTSEL;
 					}
 				}
 			}
@@ -1490,7 +1499,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 					ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 					if (index & BONESEL_BONE) {
 						if(!(ebone->flag & BONE_DONE)) {
-							if (val==LEFTMOUSE)
+							if (selecting)
 								ebone->flag |= (BONE_ROOTSEL|BONE_TIPSEL|BONE_SELECTED);
 							else
 								ebone->flag &= ~(BONE_ROOTSEL|BONE_TIPSEL|BONE_SELECTED);
@@ -1501,7 +1510,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			
 		}
 		else if(obedit->type==OB_LATTICE) {
-			do_lattice_box_select(&vc, &rect, val==LEFTMOUSE);
+			do_lattice_box_select(&vc, &rect, selecting);
 		}
 	}
 	else {	/* no editmode, unified for bones and objects */
@@ -1509,7 +1518,6 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		Object *ob= OBACT;
 		unsigned int *vbuffer=NULL; /* selection buffer	*/
 		unsigned int *col;			/* color in buffer	*/
-		short selecting = 0;
 		int bone_only;
 		int totobj= MAXPICKBUF;	// XXX solve later
 		
@@ -1517,9 +1525,6 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			bone_only= 1;
 		else
 			bone_only= 0;
-		
-		if (val==LEFTMOUSE)
-			selecting = 1;
 		
 		/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
 		vbuffer = MEM_mallocN(4 * (totobj+MAXPICKBUF) * sizeof(unsigned int), "selection buffer");
@@ -1553,8 +1558,12 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 // XXX									select_actionchannel_by_name(base->object->action, bone->name, 1);
 								}
 								else {
-									bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+									bArmature *arm= base->object->data;
+									bone->flag &= ~BONE_SELECTED;
 // XXX									select_actionchannel_by_name(base->object->action, bone->name, 0);
+									if(arm->act_bone==bone)
+										arm->act_bone= NULL;
+									
 								}
 							}
 						}
@@ -1609,13 +1618,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
 /* ****** Mouse Select ****** */
@@ -1897,9 +1900,11 @@ static void armature_circle_select(ViewContext *vc, int selecting, short *mval, 
 			if (selecting) 
 				ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
 			else 
-				ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL); 
+				ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
+
+	ED_armature_validate_active(arm);
 }
 
 /** Callbacks for circle selection in Editmode */

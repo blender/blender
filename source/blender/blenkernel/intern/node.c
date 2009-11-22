@@ -1054,7 +1054,7 @@ bNodeTree *ntreeAddTree(int type)
     if(ntree->type==NTREE_SHADER)
 		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
     else if(ntree->type==NTREE_COMPOSIT)
-		BLI_strncpy(ntree->id.name, "NTComposit Nodetree", sizeof(ntree->id.name));
+		BLI_strncpy(ntree->id.name, "NTCompositing Nodetree", sizeof(ntree->id.name));
     else if(ntree->type==NTREE_TEXTURE)
 		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
 	
@@ -1662,7 +1662,8 @@ void ntreeSocketUseFlags(bNodeTree *ntree)
 	/* tag all thats in use */
 	for(link= ntree->links.first; link; link= link->next) {
 		link->fromsock->flag |= SOCK_IN_USE;
-		link->tosock->flag |= SOCK_IN_USE;
+		if(link->tosock) // FIXME This can be NULL, when dragging a new link in the UI, should probably copy the node tree for preview render - campbell
+			link->tosock->flag |= SOCK_IN_USE;
 	}
 }
 

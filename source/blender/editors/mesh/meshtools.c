@@ -126,8 +126,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	KeyBlock *kb, *okb, *kbn;
 	float imat[4][4], cmat[4][4], *fp1, *fp2, curpos;
 	int a, b, totcol, totmat=0, totedge=0, totvert=0, totface=0, ok=0;
-	int totloop=0, totpoly=0, vertofs, *matmap;
-	int	i, j, index, haskey=0, edgeofs, faceofs, loopofs, polyofs;
+	int totloop=0, totpoly=0, vertofs, *matmap=NULL;
+	int i, j, index, haskey=0, edgeofs, faceofs, loopofs, polyofs;
 	bDeformGroup *dg, *odg;
 	MDeformVert *dvert;
 	CustomData vdata, edata, fdata, ldata, pdata;
@@ -173,7 +173,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	
 	/* new material indices and material array */
 	matar= MEM_callocN(sizeof(void*)*totmat, "join_mesh matar");
-	matmap= MEM_callocN(sizeof(int)*totmat, "join_mesh matmap");
+	if (totmat) matmap= MEM_callocN(sizeof(int)*totmat, "join_mesh matmap");
 	totcol= ob->totcol;
 	
 	/* obact materials in new main array, is nicer start! */
@@ -448,7 +448,10 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					mface->v3+= vertofs;
 					if(mface->v4) mface->v4+= vertofs;
 					
-					mface->mat_nr= matmap[(int)mface->mat_nr];
+					if (matmap)
+						mface->mat_nr= matmap[(int)mface->mat_nr];
+					else 
+						mface->mat_nr= 0;
 				}
 				
 				faceofs += me->totface;
@@ -563,7 +566,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	ob->totcol= me->totcol= totcol;
 	ob->colbits= 0;
 
-	MEM_freeN(matmap);
+	if (matmap) MEM_freeN(matmap);
 	
 	/* other mesh users */
 	test_object_materials((ID *)me);

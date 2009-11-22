@@ -791,21 +791,17 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 			
 			/* show name of active bone too (if possible) */
 			if(arm->edbo) {
-				EditBone *ebo;
-				for (ebo=arm->edbo->first; ebo; ebo=ebo->next){
-					if ((ebo->flag & BONE_ACTIVE) && (ebo->layer & arm->layer)) {
-						name= ebo->name;
-						break;
-					}
-				}
+
+				if(arm->act_edbone)
+					name= ((EditBone *)arm->act_edbone)->name;
+
 			}
-			else if(ob->pose && (ob->mode & OB_MODE_POSE)) {
-				bPoseChannel *pchan;
-				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-					if((pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer)) {
-						name= pchan->name;
-						break;
-					}
+			else if(ob->mode & OB_MODE_POSE) {
+				if(arm->act_bone) {
+
+					if(arm->act_bone->layer & arm->layer)
+						name= arm->act_bone->name;
+
 				}
 			}
 			if(name && markern)
@@ -2008,6 +2004,14 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
+
+	/* draw grease-pencil stuff */
+	draw_gpencil_3dview_ext(scene, ar, 1);
+
+	ED_region_pixelspace(ar);
+
+	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+	draw_gpencil_3dview_ext(scene, ar, 0);
 
 	GPU_free_images();
 
