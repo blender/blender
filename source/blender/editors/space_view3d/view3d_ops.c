@@ -128,7 +128,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_move", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center", PADPERIOD, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center_cursor", QKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center_cursor", PADPERIOD, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_fly", FKEY, KM_PRESS, KM_SHIFT, 0);
 
