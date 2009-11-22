@@ -75,7 +75,7 @@
 
 /******************************** API ****************************/
 
-int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
+ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
 {
 	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
@@ -83,7 +83,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 	if(mti->flags&eModifierTypeFlag_Single) {
 		if(modifiers_findByType(ob, type)) {
 			BKE_report(reports, RPT_WARNING, "Only one modifier of this type allowed.");
-			return 0;
+			return NULL;
 		}
 	}
 
@@ -131,7 +131,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
-	return 1;
+	return new_md;
 }
 
 int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)

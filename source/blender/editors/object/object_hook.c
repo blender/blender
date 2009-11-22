@@ -431,7 +431,7 @@ static void add_hook_object(Scene *scene, Object *obedit, Object *ob, int mode)
 	
 	hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
 	BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
-	sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
+	BLI_snprintf(hmd->modifier.name, sizeof(hmd->modifier.name), "Hook-%s", ob->id.name+2);
 	modifier_unique_name(&obedit->modifiers, (ModifierData*)hmd);
 	
 	hmd->object= ob;

@@ -114,7 +114,7 @@ void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb)
 void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 
 /* object_modifier.c */
-int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, int type);
+struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, int type);
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
