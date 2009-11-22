@@ -25,7 +25,6 @@ from wm import AddPresetBase
 class AddPresetRender(AddPresetBase):
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
-
     name = AddPresetBase.name
 
     preset_values = [
@@ -41,6 +40,30 @@ class AddPresetRender(AddPresetBase):
     preset_path = os.path.join("presets", "render")
 
 
+class AddPresetSSS(AddPresetBase):
+    bl_idname = "material.sss_preset_add"
+    bl_label = "Add Render Preset"
+    name = AddPresetBase.name
+
+    preset_values = [
+        "bpy.context.material.subsurface_scattering.back",
+        "bpy.context.material.subsurface_scattering.color[0]",
+        "bpy.context.material.subsurface_scattering.color[1]",
+        "bpy.context.material.subsurface_scattering.color[2]",
+        "bpy.context.material.subsurface_scattering.color_factor",
+        "bpy.context.material.subsurface_scattering.error_tolerance",
+        "bpy.context.material.subsurface_scattering.front",
+        "bpy.context.material.subsurface_scattering.ior",
+        "bpy.context.material.subsurface_scattering.radius[0]",
+        "bpy.context.material.subsurface_scattering.radius[1]",
+        "bpy.context.material.subsurface_scattering.radius[2]",
+        "bpy.context.material.subsurface_scattering.scale",
+        "bpy.context.material.subsurface_scattering.texture_factor",
+    ]
+
+    preset_path = os.path.join("presets", "sss")
+
 bpy.ops.add(AddPresetRender)
+bpy.ops.add(AddPresetSSS)
 
 
