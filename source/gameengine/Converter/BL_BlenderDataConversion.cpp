@@ -774,7 +774,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 		}
 	}
 
-	meshobj->SetName(mesh->id.name);
+	meshobj->SetName(mesh->id.name + 2);
 	meshobj->m_sharedvertex_map.resize(totvert);
 	RAS_IPolyMaterial* polymat = NULL;
 	STR_String imastr;
@@ -1977,7 +1977,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	bAction *curAct;
 	for (curAct = (bAction*)maggie->action.first; curAct; curAct=(bAction*)curAct->id.next)
 	{
-		logicmgr->RegisterActionName(curAct->id.name, curAct);
+		logicmgr->RegisterActionName(curAct->id.name + 2, curAct);
 	}
 
 	SetDefaultFaceType(blenderscene);
@@ -2053,8 +2053,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			
 			BL_ConvertProperties(blenderobject,gameobj,timemgr,kxscene,isInActiveLayer);
 			
-	
-			gameobj->SetName(blenderobject->id.name);
+			gameobj->SetName(blenderobject->id.name + 2);
 	
 			// update children/parent hierarchy
 			if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
@@ -2245,7 +2244,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							BL_ConvertProperties(blenderobject,gameobj,timemgr,kxscene,isInActiveLayer);
 							
 					
-							gameobj->SetName(blenderobject->id.name);
+							gameobj->SetName(blenderobject->id.name + 2);
 					
 							// update children/parent hierarchy
 							if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))

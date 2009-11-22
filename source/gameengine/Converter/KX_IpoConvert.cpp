@@ -475,7 +475,7 @@ void BL_ConvertMaterialIpos(
 			Material *mat = give_current_material(blenderobject, material_index);
 			STR_HashedString matname;
 			if(mat) {
-				matname= mat->id.name;
+				matname= mat->id.name; // who is using this name? can we remove the MA here?
 				ConvertMaterialIpos(mat, matname.hash(), gameobj, converter);
 			}
 		}

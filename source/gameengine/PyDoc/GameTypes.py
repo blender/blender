@@ -991,7 +991,7 @@ class CListValue(CPropValue):
 	C{val= clist[i]}
 	
 	CListValue supports string lookups.
-	C{val= scene.objects["OBCube"]}
+	C{val= scene.objects["Cube"]}
 	
 	Other operations such as C{len(clist), list(clist), clist[0:10]} are also supported.
 	"""
@@ -1504,7 +1504,6 @@ class KX_GameObject(SCA_IObject):
 		- note: Calling ANY method or attribute on an object that has been removed from a scene will raise a SystemError, if an object may have been removed since last accessing it use the L{invalid} attribute to check.
 
 	@ivar name: The object's name. (read-only)
-		- note: Currently (Blender 2.49) the prefix "OB" is added to all objects name. This may change in blender 2.5.
 	@type name: string.
 	@ivar mass: The object's mass
 		- note: The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0
@@ -3543,7 +3542,7 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		  
 		  This will genereate a warning in the console:
 		  
-		  C{ERROR: GameObject I{OBName} has a AddObjectActuator I{ActuatorName} without object (in 'nonactive' layer)}
+		  C{ERROR: GameObject I{Name} has a AddObjectActuator I{ActuatorName} without object (in 'nonactive' layer)}
 	"""
 #{Deprecated
 	def setObject(object):
@@ -3729,7 +3728,7 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		
 		This will generate a warning in the console:
 		
-		C{ERROR: GameObject I{OBName} ReplaceMeshActuator I{ActuatorName} without object}
+		C{ERROR: GameObject I{Name} ReplaceMeshActuator I{ActuatorName} without object}
 	
 	@ivar mesh: L{KX_MeshProxy} or the name of the mesh that will replace the current one
 	            Set to None to disable actuator
@@ -3782,7 +3781,7 @@ class KX_Scene(PyObjectPlus):
 			print obj.name
 		
 		# get an object named 'Cube'
-		obj = scene.objects["OBCube"]
+		obj = scene.objects["Cube"]
 		
 		# get the first object in the scene.
 		obj = scene.objects[0]
@@ -3874,7 +3873,7 @@ class KX_SceneActuator(SCA_IActuator):
 
 		  This will generate a warning in the console:
 		  
-		  C{ERROR: GameObject I{OBName} has a SceneActuator I{ActuatorName} (SetScene) without scene}
+		  C{ERROR: GameObject I{Name} has a SceneActuator I{ActuatorName} (SetScene) without scene}
 	
 	@ivar scene: the name of the scene to change to/overlay/underlay/remove/suspend/resume
 	@type scene: string.
@@ -4181,7 +4180,7 @@ class KX_TrackToActuator(SCA_IActuator):
 		
 		This will generate a warning in the console:
 		
-		C{ERROR: GameObject I{OBName} no object in EditObjectActuator I{ActuatorName}}
+		C{ERROR: GameObject I{Name} no object in EditObjectActuator I{ActuatorName}}
 
 	@ivar object: the object this actuator tracks.
 	@type object: KX_GameObject or None
