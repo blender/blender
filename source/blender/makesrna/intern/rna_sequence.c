@@ -532,15 +532,15 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blend Opacity", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	/* generic factors, should these be exposed some other way? */
-	prop= RNA_def_property(srna, "factor_0", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "facf0");
-	RNA_def_property_ui_text(prop, "Generic Factor 0", "");
+	prop= RNA_def_property(srna, "effect_fader", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_sdna(prop, NULL, "effect_fader");
+	RNA_def_property_ui_text(prop, "Effect fader position", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 
-	prop= RNA_def_property(srna, "factor_1", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "facf1");
-	RNA_def_property_ui_text(prop, "Generic Factor 0", "");
+	prop= RNA_def_property(srna, "speed_fader", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "speed_fader");
+	RNA_def_property_ui_text(prop, "Speed effect fader position", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 
 	/* functions */

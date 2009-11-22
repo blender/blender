@@ -38,12 +38,15 @@
 #include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_sequence.h"
+#include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
+#include "RNA_access.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_util.h"
@@ -809,24 +812,25 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 	int x, y;
 	int early_out;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
+	FCurve *fcu= NULL;
 
 	if (!sh.execute) { /* effect not supported in this version... */
 		make_black_ibuf(se->ibuf);
 		return;
 	}
 
-#if 0 // XXX old animation system
-	if(seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(scene, seq, cfra);
-		fac= seq->facf0;
-		facf= seq->facf1;
-	} else
-#endif // XXX old animation system	
-	{
-		sh.get_default_fac(seq, cfra, &fac, &facf);
-	}
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
+				  "effect_fader", 0);
 
-	if( !(scene->r.mode & R_FIELDS) ) facf = fac;
+	if (!fcu) {
+		sh.get_default_fac(seq, cfra, &fac, &facf);
+		if( scene->r.mode & R_FIELDS ); else facf= fac;
+	} else {
+		fac = facf = evaluate_fcurve(fcu, cfra);
+		if( scene->r.mode & R_FIELDS ) {
+			facf = evaluate_fcurve(fcu, cfra + 0.5);
+		}
+	}
 
 	early_out = sh.early_out(seq, fac, facf);
 
@@ -1565,12 +1569,6 @@ static int input_have_to_preprocess(Scene *scene, Sequence * seq, TStripElem* se
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE &&
 	   !(seq->type & SEQ_EFFECT)) {
-#if 0 // XXX old animation system
-		if (seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-			mul *= seq->facf0;
-		}
-#endif // XXX old animation system
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -1655,12 +1653,6 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	mul = seq->mul;
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
-#if 0 // XXX old animation system
-		if (seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-			mul *= seq->facf0;
-		}
-#endif // XXX old animation system
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -2138,24 +2130,25 @@ static void do_effect_seq_recursively(Scene *scene, Sequence *seq, TStripElem *s
 	float fac, facf;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
 	int early_out;
+	FCurve *fcu= NULL;
 
 	se->se1 = 0;
 	se->se2 = 0;
 	se->se3 = 0;
 
-#if 0 // XXX old animation system
-	if(seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(scene, seq, cfra);
-		fac= seq->facf0;
-		facf= seq->facf1;
-	} else 
-#endif // XXX old animation system
-	{
-		sh.get_default_fac(seq, cfra, &fac, &facf);
-	} 
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
+				  "effect_fader", 0);
 
-	if( scene->r.mode & R_FIELDS ); else facf= fac;
-	
+	if (!fcu) {
+		sh.get_default_fac(seq, cfra, &fac, &facf);
+		if( scene->r.mode & R_FIELDS ); else facf= fac;
+	} else {
+		fac = facf = evaluate_fcurve(fcu, cfra);
+		if( scene->r.mode & R_FIELDS ) {
+			facf = evaluate_fcurve(fcu, cfra + 0.5);
+		}
+	}
+
 	early_out = sh.early_out(seq, fac, facf);
 	switch (early_out) {
 	case -1:
@@ -2389,6 +2382,7 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		int early_out;
 		Sequence * seq = seq_arr[i];
 		struct SeqEffectHandle sh;
+		float facf;
 
 		se = give_tstripelem(seq, cfra);
 
@@ -2415,21 +2409,9 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 		sh = get_sequence_blend(seq);
 
-#if 0 // XXX old animation system
-		seq->facf0 = seq->facf1 = 1.0;
+		facf = seq->blend_opacity / 100.0;
 
-
-		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-		} 
-#endif
-
-		if( scene->r.mode & R_FIELDS ); else seq->facf0 = seq->facf1;
-
-		seq->facf0 *= seq->blend_opacity / 100.0;
-		seq->facf1 *= seq->blend_opacity / 100.0;
-
-		early_out = sh.early_out(seq, seq->facf0, seq->facf1);
+		early_out = sh.early_out(seq, facf, facf);
 
 		switch (early_out) {
 		case -1:
@@ -2486,8 +2468,10 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		struct SeqEffectHandle sh = get_sequence_blend(seq);
 		TStripElem* se1 = give_tstripelem(seq_arr[i-1], cfra);
 		TStripElem* se2 = give_tstripelem(seq_arr[i], cfra);
+
+		float facf = seq->blend_opacity / 100.0;
 	
-		int early_out = sh.early_out(seq, seq->facf0, seq->facf1);
+		int early_out = sh.early_out(seq, facf, facf);
 		switch (early_out) {
 		case 0: {
 			int x= se2->ibuf->x;
@@ -2535,12 +2519,12 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 			if (swap_input) {
 				sh.execute(seq, cfra, 
-					   seq->facf0, seq->facf1, x, y, 
+					   facf, facf, x, y, 
 					   se2->ibuf, se1->ibuf_comp, 0,
 					   se2->ibuf_comp);
 			} else {
 				sh.execute(seq, cfra, 
-					   seq->facf0, seq->facf1, x, y, 
+					   facf, facf, x, y, 
 					   se1->ibuf_comp, se2->ibuf, 0,
 					   se2->ibuf_comp);
 			}

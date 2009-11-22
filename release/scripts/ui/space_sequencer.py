@@ -428,8 +428,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             col.itemR(strip, "rotation_end", text="End")
 
         col = layout.column(align=True)
-        col.itemR(strip, "factor_0", text="Anim0")
-        col.itemR(strip, "factor_1", text="Anim1")
+        if strip.type == 'SPEED':
+            col.itemR(strip, "speed_fader", text="Speed fader")
+        else:
+            col.itemR(strip, "effect_fader", text="Effect fader")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):

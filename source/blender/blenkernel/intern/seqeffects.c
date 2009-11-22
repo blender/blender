@@ -246,7 +246,6 @@ static void do_plugin_effect(Sequence * seq,int cfra,
 		
 		if(seq->plugin->cfra) 
 			*(seq->plugin->cfra)= cfra;
-// XXX			*(seq->plugin->cfra)= frame_to_float(scene, cfra);
 		
 		cp = PIL_dynlib_find_symbol(
 			seq->plugin->handle, "seqname");
@@ -2781,10 +2780,8 @@ static void store_icu_yrange_speed(struct Sequence * seq,
 		}
 	}	
 }
-extern float frame_to_float (Scene *scene, int cfra);
 void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 {
-	float facf0 = seq->facf0;
 	float ctime, div;
 	int cfra;
 	float fallback_fac;
@@ -2804,7 +2801,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 	/* XXX - new in 2.5x. should we use the animation system this way?
 	 * The fcurve is needed because many frames need evaluating at once - campbell */
-	fcu= id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "factor_0", 0);
+	fcu= id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_fader", 0);
 
 
 	if (!v->frameMap || v->length != seq->len) {
@@ -2838,32 +2835,29 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
 		float cursor = 0;
+		float facf;
 
 		v->frameMap[0] = 0;
 		v->lastValidFrame = 0;
 
 		for (cfra = 1; cfra < v->length; cfra++) {
 			if(fcu) {
-				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-					ctime = frame_to_float(scene, seq->startdisp + cfra);
-					div = 1.0;
-				} else {
-					ctime= frame_to_float(scene, cfra);
-					div= v->length / 100.0f;
-					if(div==0.0) return;
-				}
-		
-//XXX OLD ANIMSYS
-//				calc_ipo(seq->ipo, ctime/div);
-//				execute_ipo((ID *)seq, seq->ipo);
-				seq->facf0 = evaluate_fcurve(fcu, ctime/div);
-			} else 
-			{
-				seq->facf0 = fallback_fac;
+                               if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+                                       ctime = seq->startdisp + cfra;
+				       div = 1.0;
+                               } else {
+                                       ctime= cfra;
+                                       div= v->length / 100.0f;
+                                       if(div==0.0) return;
+                               }
+			       
+			       facf = evaluate_fcurve(fcu, ctime/div);
+			} else {
+				facf = fallback_fac;
 			}
-			seq->facf0 *= v->globalSpeed;
+			facf *= v->globalSpeed;
 
-			cursor += seq->facf0;
+			cursor += facf;
 
 			if (cursor >= v->length) {
 				v->frameMap[cfra] = v->length - 1;
@@ -2873,41 +2867,39 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 			}
 		}
 	} else {
+		float facf;
+
 		v->lastValidFrame = 0;
 		for (cfra = 0; cfra < v->length; cfra++) {
 
 			if(fcu) {
-				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-					ctime = frame_to_float(scene, seq->startdisp + cfra);
-					div = 1.0;
-				} else {
-					ctime= frame_to_float(scene, cfra);
-					div= v->length / 100.0f;
-					if(div==0.0) return;
-				}
+                               if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+                                       ctime = seq->startdisp + cfra;
+                                       div = 1.0;
+                               } else {
+                                       ctime= cfra;
+                                       div= v->length / 100.0f;
+                                       if(div==0.0) return;
+                               }
 		
-// XXX old animation system
-//				calc_ipo(seq->ipo, ctime/div);
-//				execute_ipo((ID *)seq, seq->ipo);
-				seq->facf0 = evaluate_fcurve(fcu, ctime/div);
+			       facf = evaluate_fcurve(fcu, ctime / div);
+			       if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+				       facf *= v->length;
+			       }
 			}
 			
-			if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-				seq->facf0 *= v->length;
-			}
 			if (!fcu) {
-				seq->facf0 = (float) cfra * fallback_fac;
+				facf = (float) cfra * fallback_fac;
 			}
-			seq->facf0 *= v->globalSpeed;
-			if (seq->facf0 >= v->length) {
-				seq->facf0 = v->length - 1;
+			facf *= v->globalSpeed;
+			if (facf >= v->length) {
+				facf = v->length - 1;
 			} else {
 				v->lastValidFrame = cfra;
 			}
-			v->frameMap[cfra] = seq->facf0;
+			v->frameMap[cfra] = facf;
 		}
 	}
-	seq->facf0 = facf0;
 }
 
 /*
