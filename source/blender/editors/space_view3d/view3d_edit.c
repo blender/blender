@@ -1001,7 +1001,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
-	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
 	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
 }
