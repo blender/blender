@@ -1960,7 +1960,7 @@ void ui_check_but(uiBut *but)
 				sprintf(but->drawstr, "%s%.2f", but->str, value);
 			}
 		}
-		else strcpy(but->drawstr, but->str);
+		else strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		
 		break;
 
@@ -1978,7 +1978,7 @@ void ui_check_but(uiBut *but)
 		break;
 	
 	case KEYEVT:
-		strcpy(but->drawstr, but->str);
+		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		if (but->flag & UI_SELECT) {
 			strcat(but->drawstr, "Press a key");
 		} else {
@@ -1991,9 +1991,9 @@ void ui_check_but(uiBut *but)
 			short *sp= (short *)but->func_arg3;
 			
 			if(but->flag & UI_BUT_IMMEDIATE)
-				strcpy(but->drawstr, but->str);
+				strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 			else
-				strcpy(but->drawstr, "");
+				strncpy(but->drawstr, "", UI_MAX_DRAW_STR);
 			
 			if(*sp) {
 				char *str= but->drawstr;
@@ -2011,25 +2011,25 @@ void ui_check_but(uiBut *but)
 				strcat(but->drawstr, "Press a key  ");
 		}
 		else
-			strcpy(but->drawstr, but->str);
+			strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 
 		break;
 		
 	case BUT_TOGDUAL:
 		/* trying to get the dual-icon to left of text... not very nice */
 		if(but->str[0]) {
-			strcpy(but->drawstr, "  ");
-			strcpy(but->drawstr+2, but->str);
+			strncpy(but->drawstr, "  ", UI_MAX_DRAW_STR);
+			strncpy(but->drawstr+2, but->str, UI_MAX_DRAW_STR-2);
 		}
 		break;
 	default:
-		strcpy(but->drawstr, but->str);
+		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		
 	}
 
 	/* if we are doing text editing, this will override the drawstr */
 	if(but->editstr)
-		strcpy(but->drawstr, but->editstr);
+		strncpy(but->drawstr, but->editstr, UI_MAX_DRAW_STR);
 	
 	/* text clipping moved to widget drawing code itself */
 }
