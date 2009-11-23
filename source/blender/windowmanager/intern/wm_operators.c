@@ -1126,7 +1126,9 @@ static EnumPropertyItem *open_recentfile_splash_itemf(bContext *C, PointerRNA *p
 		tmp.value= i+1;
 		tmp.icon= ICON_FILE_BLEND;
 		tmp.identifier= recent->filename;
-		tmp.name= BLI_last_slash(recent->filename)+1;
+		tmp.name= BLI_last_slash(recent->filename);
+		if(tmp.name) tmp.name += 1;
+		else tmp.name = recent->filename;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
 	
@@ -2732,7 +2734,6 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_splash", F1KEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
 	/* Space switching */
