@@ -1652,7 +1652,7 @@ static char *drawtype_pup(void)
 	str += sprintf(str, "%s", "|Bounding Box %x1"); 
 	str += sprintf(str, "%s", "|Wireframe %x2");
 	str += sprintf(str, "%s", "|Solid %x3");
-	str += sprintf(str, "%s", "|Shaded %x4");
+//XXX not working in 2.5!	str += sprintf(str, "%s", "|Shaded %x4");
 	str += sprintf(str, "%s", "|Textured %x5");
 	return string;
 }
