@@ -1294,6 +1294,10 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 	int kflag=0, success= 0;
 	char *groupname= NULL;
 	
+	/* sanity checks */
+	if (ks == NULL)
+		return 0;
+	
 	/* get flags to use */
 	if (mode == MODIFYKEY_MODE_INSERT) {
 		/* use KeyingSet's flags as base */

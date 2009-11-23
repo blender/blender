@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -61,6 +62,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -72,8 +74,16 @@
 
 static int object_location_clear_exec(bContext *C, wmOperator *op)
 {
-	int armature_clear= 0;
-
+	Scene *scene= CTX_data_scene(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	
+	/* clear location of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if((ob->protectflag & OB_LOCK_LOCX)==0)
@@ -82,13 +92,17 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 				ob->loc[1]= ob->dloc[1]= 0.0f;
 			if((ob->protectflag & OB_LOCK_LOCZ)==0)
 				ob->loc[2]= ob->dloc[2]= 0.0f;
+				
+			/* do auto-keyframing as appropriate */
+			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+				/* init cks for this object, then use the relative KeyingSets to keyframe it */
+				cks.id= &ob->id;
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			}
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-
-	if(armature_clear==0) /* in this case flush was done */
-		ED_anim_dag_flush_update(C);	
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -112,8 +126,16 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
-	int armature_clear= 0;
-
+	Scene *scene= CTX_data_scene(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	
+	/* clear rotation of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
@@ -206,13 +228,17 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
 				}
 			}
+			
+			/* do auto-keyframing as appropriate */
+			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+				/* init cks for this object, then use the relative KeyingSets to keyframe it */
+				cks.id= &ob->id;
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			}
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-
-	if(armature_clear==0) /* in this case flush was done */
-		ED_anim_dag_flush_update(C);	
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -236,8 +262,16 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
-	int armature_clear= 0;
-
+	Scene *scene= CTX_data_scene(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	
+	/* clear scales of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if((ob->protectflag & OB_LOCK_SCALEX)==0) {
@@ -252,13 +286,17 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 				ob->dsize[2]= 0.0f;
 				ob->size[2]= 1.0f;
 			}
+			
+			/* do auto-keyframing as appropriate */
+			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+				/* init cks for this object, then use the relative KeyingSets to keyframe it */
+				cks.id= &ob->id;
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			}
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-	
-	if(armature_clear==0) /* in this case flush was done */
-		ED_anim_dag_flush_update(C);	
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	

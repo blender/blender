@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -83,6 +84,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -4843,7 +4845,16 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 
 static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
@@ -4854,8 +4865,21 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 		if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
 			pchan->size[2]= 1.0f;
 			
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
@@ -4884,10 +4908,20 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 
 static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		/* clear location */
 		if ((pchan->protectflag & OB_LOCK_LOCX)==0)
 			pchan->loc[0]= 0.0f;
 		if ((pchan->protectflag & OB_LOCK_LOCY)==0)
@@ -4895,8 +4929,21 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 		if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
 			pchan->loc[2]= 0.0f;
 			
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
@@ -4925,7 +4972,16 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 
 static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
@@ -5021,8 +5077,21 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			}
 		}
 		
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
