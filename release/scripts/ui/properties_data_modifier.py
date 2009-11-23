@@ -64,7 +64,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.label(text="Vertex Group::")
         col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
-        sub.active = md.vertex_group
+        sub.active = bool(md.vertex_group)
         sub.prop(md, "invert")
 
         split = layout.split()
@@ -283,7 +283,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.label(text="Vertex group:")
         col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
-        sub.active = md.vertex_group
+        sub.active = bool(md.vertex_group)
         sub.prop(md, "protect")
 
         if wide_ui:
@@ -359,7 +359,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
             col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
-        sub.active = md.vertex_group
+        sub.active = bool(md.vertex_group)
         sub.prop(md, "invert")
 
     def MESH_DEFORM(self, layout, ob, md, wide_ui):
@@ -376,7 +376,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
-        sub.active = md.vertex_group
+        sub.active = bool(md.vertex_group)
         sub.prop(md, "invert")
 
         layout.separator()
