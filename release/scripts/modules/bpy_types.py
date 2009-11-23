@@ -35,36 +35,14 @@ class Context(StructRNA):
 
 class Object(bpy_types.ID):
 
-    def _get_children(self):
+    @property
+    def children(self):
         import bpy
         return [child for child in bpy.data.objects if child.parent == self]
-
-    children = property(_get_children)
 
 
 class PoseBone(StructRNA):
 
-    def _get_children(self):
-        import bpy
-        obj = self.id_data
-        return [child for child in obj.pose.bones if child.parent == self]
-
-    children = property(_get_children)
-
-    def _get_parent_recursive(self):
-        parent_list = []
-        parent = self.parent
-        
-        while parent:
-            if parent:
-                parent_list.append(parent)
-            
-            parent = parent.parent
-        
-        return parent_list
-
-    parent_recursive = property(_get_parent_recursive)
-    
     def parent_index(self, parent_test):
         '''
         The same as 'bone in other_bone.parent_recursive' but saved generating a list.
@@ -78,8 +56,28 @@ class PoseBone(StructRNA):
             i += 1
         
         return 0
+
+    @property
+    def children(self):
+        import bpy
+        obj = self.id_data
+        return [child for child in obj.pose.bones if child.parent == self]
+
+    @property
+    def parent_recursive(self):
+        parent_list = []
+        parent = self.parent
+        
+        while parent:
+            if parent:
+                parent_list.append(parent)
+            
+            parent = parent.parent
+        
+        return parent_list
     
-    def _get_children_recursive(self):
+    @property
+    def children_recursive(self):
         obj = self.id_data
         bones_children = []
         for bone in obj.pose.bones:
@@ -91,7 +89,11 @@ class PoseBone(StructRNA):
         bones_children.sort(key=lambda bone_pair: bone_pair[0])
         return [bone for index, bone in bones_children]
 
-    children_recursive = property(_get_children_recursive)
+
+class Bone(StructRNA):
+    @property
+    def length(self):
+        return (self.head - self.tail).length
 
 
 def ord_ind(i1,i2):
@@ -100,12 +102,12 @@ def ord_ind(i1,i2):
 
 class Mesh(bpy_types.ID):
 
-    def _get_edge_keys(self):
+    @property
+    def edge_keys(self):
         return [edge_key for face in self.faces for edge_key in face.edge_keys]
 
-    edge_keys = property(_get_edge_keys)
-
-    def _get_edge_face_count_dict(self):
+    @property
+    def edge_face_count_dict(self):
         face_edge_keys = [face.edge_keys for face in self.faces]
         face_edge_count = {}
         for face_keys in face_edge_keys:
@@ -117,33 +119,28 @@ class Mesh(bpy_types.ID):
 
         return face_edge_count
 
-    edge_face_count_dict = property(_get_edge_face_count_dict)
-
-    def _get_edge_face_count(self):
+    @property
+    def edge_face_count(self):
         edge_face_count_dict = self.edge_face_count_dict
         return [edge_face_count_dict.get(ed.key, 0) for ed in mesh.edges]
-
-    edge_face_count = property(_get_edge_face_count)
 
 
 class MeshEdge(StructRNA):
 
-    def _get_key(self):
+    @property
+    def key(self):
         return ord_ind(*tuple(self.verts))
-
-    key = property(_get_key)
 
 
 class MeshFace(StructRNA):
 
-    def _get_edge_keys(self):
+    @property
+    def edge_keys(self):
         verts = tuple(self.verts)
         if len(verts)==3:
             return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[0])
 
         return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
-
-    edge_keys = property(_get_edge_keys)
 
 
 import collections
