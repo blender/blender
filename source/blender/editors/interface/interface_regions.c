@@ -1321,9 +1321,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
-	/* XXX ton added, chrash on load file with popup open... need investigate */
-	if(CTX_wm_screen(C))
-		ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
+	ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
 	MEM_freeN(handle);
 }
 
