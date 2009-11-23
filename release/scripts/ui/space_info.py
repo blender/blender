@@ -304,8 +304,8 @@ class HELP_OT_manual(HelpOperator):
 class HELP_OT_release_logs(HelpOperator):
     '''Information about the changes in this version of Blender'''
     bl_idname = "help.release_logs"
-    bl_label = "Release Logs"
-    _url = 'http://www.blender.org/development/release-logs/'
+    bl_label = "Release Log"
+    _url = 'http://www.blender.org/development/release-logs/blender-250/'
 
 
 class HELP_OT_blender_website(HelpOperator):
