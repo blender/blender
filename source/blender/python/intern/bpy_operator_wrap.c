@@ -105,7 +105,11 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 	py_class_instance = PyObject_Call(py_class, args, NULL);
 	Py_DECREF(args);
 	
-	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
+	if (py_class_instance==NULL) { /* Initializing the class worked, now run its invoke function */
+		PyErr_Print();
+		PyErr_Clear();
+	}
+	else {
 		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
 
 		if (mode==PYOP_INVOKE) {
@@ -137,10 +141,6 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		Py_DECREF(args);
 		Py_DECREF(item);
 	}
-	else {
-		PyErr_Print();
-		PyErr_Clear();
-	}
 	
 	if (ret == NULL) { /* covers py_class_instance failing too */
 		if(op)
@@ -149,9 +149,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 	else {
 		if (mode==PYOP_POLL) {
 			if (PyBool_Check(ret) == 0) {
-				PyErr_SetString(PyExc_ValueError, "Python poll function return value ");
-				if(op)
-					BPy_errors_to_report(op->reports);
+				PyErr_Format(PyExc_ValueError, "Python operator '%s.poll', did not return a bool value", ot->idname);
+				BPy_errors_to_report(op ? op->reports:NULL); /* prints and clears if NULL given */
 			}
 			else {
 				ret_flag= ret==Py_True ? 1:0;
@@ -159,11 +158,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 			
 		} else if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			/* the returned value could not be converted into a flag */
-			if(op) {
-				fprintf(stderr, "error using return value from \"%s\"\n", op->idname); // for some reason the error raised doesnt include file:line... this helps
-				BPy_errors_to_report(op->reports);
-			}
-
+			PyErr_Format(PyExc_ValueError, "Python operator, error using return value from \"%s\"\n", ot->idname);
+			BPy_errors_to_report(op ? op->reports:NULL);
 			ret_flag = OPERATOR_CANCELLED;
 		}
 		/* there is no need to copy the py keyword dict modified by
