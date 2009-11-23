@@ -1770,21 +1770,34 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
     bl_label = "Properties"
     bl_default_closed = True
 
-    def draw(self, context):
-        import rna_prop_ui
-        # reload(rna_prop_ui)
+    def _active_context_member(self, context):
         obj = context.object
         if obj:
             mode = obj.mode
             if mode == 'POSE':
-                item = "active_pchan"
+                return "active_pchan"
             elif mode == 'EDIT' and obj.type == 'ARMATURE':
-                item = "active_bone"
+                return "active_bone"
             else:
-                item = "object"
+                return "object"
 
+        return ""
+    
+    def poll(self, context):
+        member = self._active_context_member(context)
+        if member:
+            return getattr(context, member).keys()
+
+        return False
+
+    def draw(self, context):
+        import rna_prop_ui
+        # reload(rna_prop_ui)
+        member = self._active_context_member(context)
+
+        if member:
             # Draw with no edit button
-            rna_prop_ui.draw(self.layout, context, item, False)
+            rna_prop_ui.draw(self.layout, context, member, False)
 
 
 # Operators

@@ -1132,7 +1132,6 @@ class Export3DS(bpy.types.Operator):
 		return ('RUNNING_MODAL',)
 	
 	def poll(self, context): # Poll isnt working yet
-		print("Poll")
 		return context.active_object != None
 
 bpy.ops.add(Export3DS)

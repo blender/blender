@@ -44,7 +44,6 @@ def load_scripts(reload_scripts=False):
             return None
 
     for base_path in utils.script_paths():
-        print(base_path)
         for path_subdir in ("ui", "op", "io"):
             path = os.path.join(base_path, path_subdir)
             sys.path.insert(0, path)
