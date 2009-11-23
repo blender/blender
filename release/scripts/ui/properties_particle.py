@@ -941,51 +941,51 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
 
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
+        row.prop_object(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
         row.prop(psys, "vertex_group_density_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
+        row.prop_object(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
         row.prop(psys, "vertex_group_velocity_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
+        row.prop_object(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
         row.prop(psys, "vertex_group_length_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
+        row.prop_object(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
         row.prop(psys, "vertex_group_clump_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
+        row.prop_object(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
         row.prop(psys, "vertex_group_kink_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_roughness1", ob, "vertex_groups", text="Roughness 1")
+        row.prop_object(psys, "vertex_group_roughness1", ob, "vertex_groups", text="Roughness 1")
         row.prop(psys, "vertex_group_roughness1_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_roughness2", ob, "vertex_groups", text="Roughness 2")
+        row.prop_object(psys, "vertex_group_roughness2", ob, "vertex_groups", text="Roughness 2")
         row.prop(psys, "vertex_group_roughness2_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
+        row.prop_object(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
         row.prop(psys, "vertex_group_roughness_end_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_size", ob, "vertex_groups", text="Size")
+        row.prop_object(psys, "vertex_group_size", ob, "vertex_groups", text="Size")
         row.prop(psys, "vertex_group_size_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_tangent", ob, "vertex_groups", text="Tangent")
+        row.prop_object(psys, "vertex_group_tangent", ob, "vertex_groups", text="Tangent")
         row.prop(psys, "vertex_group_tangent_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_rotation", ob, "vertex_groups", text="Rotation")
+        row.prop_object(psys, "vertex_group_rotation", ob, "vertex_groups", text="Rotation")
         row.prop(psys, "vertex_group_rotation_negate", text="")
 
         row = layout.row()
-        row.prop_pointer(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
+        row.prop_object(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
         row.prop(psys, "vertex_group_field_negate", text="")
 
 bpy.types.register(PARTICLE_PT_particles)

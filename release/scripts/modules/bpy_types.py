@@ -145,7 +145,7 @@ class Menu(StructRNA):
             if f.startswith("."):
                 continue
 
-            layout.operator_string(operator, "path", path, text=path_to_name(f))
+            layout.operator(operator, text=path_to_name(f)).path = path
     
     def draw_preset(self, context):
         '''Define these on the subclass

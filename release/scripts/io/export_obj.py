@@ -1008,7 +1008,7 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".obj")
-    self.layout.operator_string(ExportOBJ.bl_idname, "path", default_path, text="Wavefront (.obj)...")
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 

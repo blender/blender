@@ -75,7 +75,7 @@ def draw(layout, context, context_member, use_edit = True):
 
     if use_edit:
         row = layout.row()
-        props = row.operator("wm.properties_add", properties=True, text="Add")
+        props = row.operator("wm.properties_add", text="Add")
         props.path = context_member
         del row
 
@@ -112,10 +112,10 @@ def draw(layout, context, context_member, use_edit = True):
 
         if use_edit:
             row = split.row(align=True)
-            prop = row.operator("wm.properties_edit", properties=True, text="edit")
+            prop = row.operator("wm.properties_edit", text="edit")
             assign_props(prop, val_draw, key)
 
-            prop = row.operator("wm.properties_remove", properties=True, text="", icon='ICON_ZOOMOUT')
+            prop = row.operator("wm.properties_remove", text="", icon='ICON_ZOOMOUT')
             assign_props(prop, val_draw, key)
 
 

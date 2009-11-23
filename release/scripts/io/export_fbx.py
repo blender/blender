@@ -3466,7 +3466,7 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".fbx")
-    self.layout.operator_string(ExportFBX.bl_idname, "path", default_path, text="Autodesk FBX...")
+    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 

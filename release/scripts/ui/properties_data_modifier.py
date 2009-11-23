@@ -62,7 +62,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Vertex Group::")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "invert")
@@ -201,7 +201,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
         if wide_ui:
             col = split.column()
         col.label(text="Control Object:")
@@ -224,7 +224,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
         layout.label(text="Deformation Axis:")
         layout.row().prop(md, "deform_axis", expand=True)
 
@@ -239,7 +239,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.label(text="Texture:")
         col.prop(md, "texture", text="")
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
         if wide_ui:
             col = split.column()
@@ -250,7 +250,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if md.texture_coordinates == 'OBJECT':
             layout.prop(md, "texture_coordinate_object", text="Object")
         elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
-            layout.prop_pointer(md, "uv_layer", ob.data, "uv_textures")
+            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
 
         layout.separator()
 
@@ -281,7 +281,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         col = split.column()
         col.label(text="Vertex group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "protect")
@@ -306,11 +306,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "object", text="")
         if md.object and md.object.type == 'ARMATURE':
             col.label(text="Bone:")
-            col.prop_pointer(md, "subtarget", md.object.data, "bones", text="")
+            col.prop_object(md, "subtarget", md.object.data, "bones", text="")
         if wide_ui:
             col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
         layout.separator()
 
@@ -342,7 +342,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
     def MASK(self, layout, ob, md, wide_ui):
         split = layout.split()
@@ -356,7 +356,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if md.mode == 'ARMATURE':
             col.prop(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
-            col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+            col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
         sub.active = bool(md.vertex_group)
@@ -369,11 +369,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "object", text="")
         if md.object and md.object.type == 'ARMATURE':
             col.label(text="Bone:")
-            col.prop_pointer(md, "subtarget", md.object.data, "bones", text="")
+            col.prop_object(md, "subtarget", md.object.data, "bones", text="")
         if wide_ui:
             col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
         sub.active = bool(md.vertex_group)
@@ -485,7 +485,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
         split = layout.split()
 
@@ -540,7 +540,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
         split = layout.split()
 
@@ -576,7 +576,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "factor")
         col.prop(md, "repeat")
         col.label(text="Vertex Group:")
-        col.prop_pointer(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
     def SOFT_BODY(self, layout, ob, md, wide_ui):
         layout.label(text="See Soft Body panel.")
@@ -607,7 +607,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
             split = layout.split()
             col = split.column()
             col.label(text="UV Layer:")
-            col.prop_pointer(md, "uv_layer", ob.data, "uv_textures", text="")
+            col.prop_object(md, "uv_layer", ob.data, "uv_textures", text="")
 
             if wide_ui:
                 col = split.column()
@@ -666,11 +666,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.separator()
 
         layout.prop(md, "start_position_object")
-        layout.prop_pointer(md, "vertex_group", ob, "vertex_groups")
+        layout.prop_object(md, "vertex_group", ob, "vertex_groups")
         layout.prop(md, "texture")
         layout.prop(md, "texture_coordinates")
         if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
-            layout.prop_pointer(md, "uv_layer", ob.data, "uv_textures")
+            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
         elif md.texture_coordinates == 'OBJECT':
             layout.prop(md, "texture_coordinates_object")
 

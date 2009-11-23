@@ -88,7 +88,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.separator()
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.link_append", text="Link")
-        layout.operator_boolean("wm.link_append", "link", False, text="Append")
+        layout.operator("wm.link_append", text="Append").link = False
         layout.separator()
 
         layout.menu("INFO_MT_file_import")
@@ -192,12 +192,12 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_SCREEN'
 
         layout.operator("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
-        layout.operator_enum("object.add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
-        layout.operator_enum("object.add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
+        layout.operator("object.add", icon='ICON_OUTLINER_OB_LATTICE').type = 'LATTICE'
+        layout.operator("object.add", icon='ICON_OUTLINER_OB_EMPTY').type = 'EMPTY'
 
         layout.separator()
 
-        layout.operator_enum("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
+        layout.operator("object.add", icon='ICON_OUTLINER_OB_CAMERA').type = 'CAMERA'
 
         layout.operator_context = 'EXEC_SCREEN'
 
@@ -239,12 +239,12 @@ class INFO_MT_render(bpy.types.Menu):
         # rd = context.scene.render_data
 
         layout.operator("screen.render", text="Render Image", icon='ICON_RENDER_STILL')
-        layout.operator_boolean("screen.render", "animation", True, text="Render Animation", icon='ICON_RENDER_ANIMATION')
+        layout.operator("screen.render", text="Render Animation", icon='ICON_RENDER_ANIMATION').animation = True
 
         layout.separator()
 
         layout.operator("screen.opengl_render", text="OpenGL Render Image")
-        layout.operator_boolean("screen.opengl_render", "animation", True, text="OpenGL Render Animation")
+        layout.operator("screen.opengl_render", text="OpenGL Render Animation").animation = True
 
         layout.separator()
 

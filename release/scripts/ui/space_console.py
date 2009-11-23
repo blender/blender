@@ -101,7 +101,7 @@ class CONSOLE_MT_language(bpy.types.Menu):
         languages.sort()
 
         for language in languages:
-            layout.operator_string("console.language", "language", language, text=language[0].upper() + language[1:])
+            layout.operator("console.language", text=language[0].upper() + language[1:]).language = language
 
 
 def add_scrollback(text, text_type):

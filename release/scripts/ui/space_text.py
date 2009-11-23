@@ -178,8 +178,8 @@ class TEXT_MT_edit_view(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_enum("text.move", "type", 'FILE_TOP', text="Top of File")
-        layout.operator_enum("text.move", "type", 'FILE_BOTTOM', text="Bottom of File")
+        layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
+        layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
 
 
 class TEXT_MT_edit_select(bpy.types.Menu):
@@ -228,8 +228,8 @@ class TEXT_MT_edit_to3d(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_boolean("text.to_3d_object", "split_lines", False, text="One Object")
-        layout.operator_boolean("text.to_3d_object", "split_lines", True, text="One Object Per Line")
+        layout.operator("text.to_3d_object", text="One Object").split_lines = False
+        layout.operator("text.to_3d_object", text="One Object Per Line").split_lines = True
 
 
 class TEXT_MT_edit(bpy.types.Menu):

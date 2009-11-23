@@ -53,7 +53,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         for a, b in ratios:
             text = "Zoom %d:%d" % (a, b)
-            layout.operator_float("image.view_zoom_ratio", "ratio", a / b, text=text)
+            layout.operator("image.view_zoom_ratio", text=text).ratio = a / b
 
         layout.separator()
 
@@ -71,7 +71,7 @@ class IMAGE_MT_select(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("uv.select_border")
-        layout.operator_boolean("uv.select_border", "pinned", True)
+        layout.operator("uv.select_border").pinned = True
 
         layout.separator()
 
@@ -122,7 +122,7 @@ class IMAGE_MT_image(bpy.types.Menu):
                 # this could be done in operator poll too
                 if ima.dirty:
                     if ima.source in ('FILE', 'GENERATED') and ima.type != 'MULTILAYER':
-                        layout.operator_boolean("image.pack", "as_png", True, text="Pack As PNG")
+                        layout.operator("image.pack", text="Pack As PNG").as_png = True
 
             layout.separator()
 
@@ -137,7 +137,7 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
 
         layout.operator("uv.reveal")
         layout.operator("uv.hide")
-        layout.operator_boolean("uv.hide", "unselected", True)
+        layout.operator("uv.hide").unselected = True
 
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):
@@ -158,11 +158,8 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
 
-        props = layout.operator("tfm.mirror", text="X Axis", properties=True)
-        props.constraint_axis[0] = True
-
-        props = layout.operator("tfm.mirror", text="Y Axis", properties=True)
-        props.constraint_axis[1] = True
+        layout.operator("tfm.mirror", text="X Axis").constraint_axis[0] = True
+        layout.operator("tfm.mirror", text="Y Axis").constraint_axis[1] = True
 
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
@@ -192,7 +189,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         layout.prop(uv, "live_unwrap")
         layout.operator("uv.unwrap")
-        layout.operator_boolean("uv.pin", "clear", True, text="Unpin")
+        layout.operator("uv.pin", text="Unpin").clear = True
         layout.operator("uv.pin")
 
         layout.separator()
@@ -273,7 +270,7 @@ class IMAGE_HT_header(bpy.types.Header):
                 row.prop(settings, "snap_mode", text="")
 
             # mesh = context.edit_object.data
-            # row.prop_pointer(mesh, "active_uv_layer", mesh, "uv_textures")
+            # row.prop_object(mesh, "active_uv_layer", mesh, "uv_textures")
 
         if ima:
             # layers
@@ -445,10 +442,10 @@ class IMAGE_PT_paint(bpy.types.Panel):
             sub = layout.row(align=True)
         else:
             sub = layout.column(align=True)
-        sub.item_enumR(settings, "tool", 'DRAW')
-        sub.item_enumR(settings, "tool", 'SOFTEN')
-        sub.item_enumR(settings, "tool", 'CLONE')
-        sub.item_enumR(settings, "tool", 'SMEAR')
+        sub.prop_enum(settings, "tool", 'DRAW')
+        sub.prop_enum(settings, "tool", 'SOFTEN')
+        sub.prop_enum(settings, "tool", 'CLONE')
+        sub.prop_enum(settings, "tool", 'SMEAR')
 
         if brush:
             col = layout.column()

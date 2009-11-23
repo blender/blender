@@ -99,8 +99,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             row.template_list(idblock, "textures", idblock, "active_texture_index", rows=2)
 
             col = row.column(align=True)
-            col.operator_enum("texture.slot_move", "type", 'UP', text="", icon='ICON_TRIA_UP')
-            col.operator_enum("texture.slot_move", "type", 'DOWN', text="", icon='ICON_TRIA_DOWN')
+            col.operator("texture.slot_move", text="", icon='ICON_TRIA_UP').type = 'UP'
+            col.operator("texture.slot_move", text="", icon='ICON_TRIA_DOWN').type = 'DOWN'
 
 
         if wide_ui:
@@ -211,7 +211,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
                 split.label(text="Layer:")
                 ob = context.object
                 if ob and ob.type == 'MESH':
-                    split.prop_pointer(tex, "uv_layer", ob.data, "uv_textures", text="")
+                    split.prop_object(tex, "uv_layer", ob.data, "uv_textures", text="")
                 else:
                     split.prop(tex, "uv_layer", text="")
 
@@ -873,7 +873,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
             sub.enabled = bool(pd.object)
             if pd.object:
                 sub.label(text="System:")
-                sub.prop_pointer(pd, "particle_system", pd.object, "particle_systems", text="")
+                sub.prop_object(pd, "particle_system", pd.object, "particle_systems", text="")
             sub.label(text="Cache:")
             sub.prop(pd, "particle_cache", text="")
         else:

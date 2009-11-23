@@ -174,7 +174,7 @@ class BONE_PT_relations(BoneButtonsPanel):
 
         if ob and pchan:
             col.label(text="Bone Group:")
-            col.prop_pointer(pchan, "bone_group", ob.pose, "bone_groups", text="")
+            col.prop_object(pchan, "bone_group", ob.pose, "bone_groups", text="")
 
         if wide_ui:
             col = split.column()
@@ -182,7 +182,7 @@ class BONE_PT_relations(BoneButtonsPanel):
         if context.bone:
             col.prop(bone, "parent", text="")
         else:
-            col.prop_pointer(bone, "parent", arm, "edit_bones", text="")
+            col.prop_object(bone, "parent", arm, "edit_bones", text="")
 
         sub = col.column()
         sub.active = (bone.parent is not None)

@@ -54,17 +54,17 @@ class TIME_HT_header(bpy.types.Header):
         layout.separator()
 
         row = layout.row(align=True)
-        row.operator_boolean("screen.frame_jump", "end", False, text="", icon='ICON_REW')
-        row.operator_boolean("screen.keyframe_jump", "next", False, text="", icon='ICON_PREV_KEYFRAME')
+        row.operator("screen.frame_jump", text="", icon='ICON_REW').end = False
+        row.operator("screen.keyframe_jump", text="", icon='ICON_PREV_KEYFRAME').next = False
         if not screen.animation_playing:
-            row.operator_boolean("screen.animation_play", "reverse", True, text="", icon='ICON_PLAY_REVERSE')
+            row.operator("screen.animation_play", text="", icon='ICON_PLAY_REVERSE').reverse = True
             row.operator("screen.animation_play", text="", icon='ICON_PLAY')
         else:
             sub = row.row()
             sub.scale_x = 2.0
             sub.operator("screen.animation_play", text="", icon='ICON_PAUSE')
-        row.operator_boolean("screen.keyframe_jump", "next", True, text="", icon='ICON_NEXT_KEYFRAME')
-        row.operator_boolean("screen.frame_jump", "end", True, text="", icon='ICON_FF')
+        row.operator("screen.keyframe_jump", text="", icon='ICON_NEXT_KEYFRAME').next = True
+        row.operator("screen.frame_jump", text="", icon='ICON_FF').end = True
 
         row = layout.row(align=True)
         row.prop(tools, "enable_auto_key", text="", toggle=True, icon='ICON_REC')
@@ -77,7 +77,7 @@ class TIME_HT_header(bpy.types.Header):
         layout.separator()
 
         row = layout.row(align=True)
-        row.prop_pointer(scene, "active_keying_set", scene, "keying_sets", text="")
+        row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
         row.operator("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
         row.operator("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
 
@@ -159,8 +159,8 @@ class TIME_MT_autokey(bpy.types.Menu):
 
         layout.active = tools.enable_auto_key
 
-        layout.item_enumR(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
-        layout.item_enumR(tools, "autokey_mode", 'REPLACE_KEYS')
+        layout.prop_enum(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
+        layout.prop_enum(tools, "autokey_mode", 'REPLACE_KEYS')
 
 bpy.types.register(TIME_HT_header)
 bpy.types.register(TIME_MT_view)

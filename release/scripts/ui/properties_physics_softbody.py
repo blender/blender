@@ -64,7 +64,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
             row.prop(md, "realtime", text="")
         else:
             # add modifier
-            split.operator_enum("object.modifier_add", "type", 'SOFT_BODY', text="Add")
+            split.operator("object.modifier_add", text="Add").type = 'SOFT_BODY'
             if wide_ui:
                 split.column()
 
@@ -79,7 +79,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
             col.label(text="Object:")
             col.prop(softbody, "friction")
             col.prop(softbody, "mass")
-            col.prop_pointer(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
+            col.prop_object(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
 
             if wide_ui:
                 col = split.column()
@@ -140,7 +140,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         col.prop(softbody, "goal_spring", text="Stiffness")
         col.prop(softbody, "goal_friction", text="Damping")
 
-        layout.prop_pointer(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
+        layout.prop_object(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
@@ -176,7 +176,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         col.prop(softbody, "plastic")
         col.prop(softbody, "bending")
         col.prop(softbody, "spring_length", text="Length")
-        col.prop_pointer(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
+        col.prop_object(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
         if wide_ui:
             col = split.column()

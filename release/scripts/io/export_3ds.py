@@ -1142,6 +1142,6 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".3ds")
-    self.layout.operator_string(Export3DS.bl_idname, "path", default_path, text="Autodesk 3DS...")
+    self.layout.operator(Export3DS.bl_idname, text="Autodesk 3DS...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)

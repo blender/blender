@@ -58,7 +58,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 
         else:
             # add modifier
-            split.operator_enum("object.modifier_add", "type", 'FLUID_SIMULATION', text="Add")
+            split.operator("object.modifier_add", text="Add").type = 'FLUID_SIMULATION'
             if wide_ui:
                 split.label()
 

@@ -135,12 +135,12 @@ class SEQUENCER_MT_select(bpy.types.Menu):
         layout = self.layout
 
         layout.column()
-        layout.operator_enum("sequencer.select_active_side", "side", 'LEFT', text="Strips to the Left")
-        layout.operator_enum("sequencer.select_active_side", "side", 'RIGHT', text="Strips to the Right")
+        layout.operator("sequencer.select_active_side", text="Strips to the Left").side = 'LEFT'
+        layout.operator("sequencer.select_active_side", text="Strips to the Right").side = 'RIGHT'
         layout.separator()
-        layout.operator_enum("sequencer.select_handles", "side", 'BOTH', text="Surrounding Handles")
-        layout.operator_enum("sequencer.select_handles", "side", 'LEFT', text="Left Handle")
-        layout.operator_enum("sequencer.select_handles", "side", 'RIGHT', text="Right Handle")
+        layout.operator("sequencer.select_handles", text="Surrounding Handles").side = 'BOTH'
+        layout.operator("sequencer.select_handles", text="Left Handle").side = 'LEFT'
+        layout.operator("sequencer.select_handles", text="Right Handle").side = 'RIGHT'
         layout.separator()
         layout.operator("sequencer.select_linked")
         layout.operator("sequencer.select_all_toggle")
@@ -188,19 +188,19 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'ADD')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'SUBTRACT')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'ALPHA_OVER')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'ALPHA_UNDER')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'GAMMA_CROSS')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'MULTIPLY')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'OVER_DROP')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'PLUGIN')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'WIPE')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'GLOW')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'TRANSFORM')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'COLOR')
-        layout.operator_enum("sequencer.effect_strip_add", 'type', 'SPEED')
+        layout.operator("sequencer.effect_strip_add").type = 'ADD'
+        layout.operator("sequencer.effect_strip_add").type = 'SUBTRACT'
+        layout.operator("sequencer.effect_strip_add").type = 'ALPHA_OVER'
+        layout.operator("sequencer.effect_strip_add").type = 'ALPHA_UNDER'
+        layout.operator("sequencer.effect_strip_add").type = 'GAMMA_CROSS'
+        layout.operator("sequencer.effect_strip_add").type = 'MULTIPLY'
+        layout.operator("sequencer.effect_strip_add").type = 'OVER_DROP'
+        layout.operator("sequencer.effect_strip_add").type = 'PLUGIN'
+        layout.operator("sequencer.effect_strip_add").type = 'WIPE'
+        layout.operator("sequencer.effect_strip_add").type = 'GLOW'
+        layout.operator("sequencer.effect_strip_add").type = 'TRANSFORM'
+        layout.operator("sequencer.effect_strip_add").type = 'COLOR'
+        layout.operator("sequencer.effect_strip_add").type = 'SPEED'
 
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
@@ -212,13 +212,13 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator_enum("tfm.transform", "mode", 'TRANSLATION', text="Grab/Move")
-        layout.operator_enum("tfm.transform", "mode", 'TIME_EXTEND', text="Grab/Extend from frame")
+        layout.operator("tfm.transform", text="Grab/Move").mode = TRANSLATION
+        layout.operator("tfm.transform", text="Grab/Extend from frame").mode = TIME_EXTEND
         #  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
         layout.separator()
 
-        layout.operator_enum("sequencer.cut", "type", 'HARD', text="Cut (hard) at frame")
-        layout.operator_enum("sequencer.cut", "type", 'SOFT', text="Cut (soft) at frame")
+        layout.operator("sequencer.cut", text="Cut (hard) at frame").type = 'HARD'
+        layout.operator("sequencer.cut", text="Cut (soft) at frame").type = 'SOFT'
         layout.operator("sequencer.images_separate")
         layout.separator()
 
@@ -264,7 +264,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.mute")
         layout.operator("sequencer.unmute")
 
-        layout.operator_boolean("sequencer.mute", "unselected", 1, text="Mute Deselected Strips")
+        layout.operator("sequencer.mute", text="Mute Deselected Strips").unselected = True
 
         layout.operator("sequencer.snap")
 

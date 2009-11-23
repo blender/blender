@@ -34,7 +34,7 @@ class USERPREF_HT_header(bpy.types.Header):
 
         if userpref.active_section == 'INPUT':
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator_string("wm.keyconfig_export", "path", "keymap.py", "Export Key Configuration...")
+            layout.operator("wm.keyconfig_export", "Export Key Configuration...").path = "keymap.py"
 
 
 class USERPREF_MT_view(bpy.types.Menu):
@@ -1111,7 +1111,7 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         sub = col.column()
         sub.label(text="Configuration:")
-        sub.prop_pointer(wm, "active_keyconfig", wm, "keyconfigs", text="")
+        sub.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="")
 
         col.separator()
 
@@ -1165,11 +1165,11 @@ class USERPREF_PT_input(bpy.types.Panel):
         km = wm.active_keymap
 
         subsplit = col.split()
-        subsplit.prop_pointer(wm, "active_keymap", defkc, "keymaps", text="Map:")
+        subsplit.prop_object(wm, "active_keymap", defkc, "keymaps", text="Map:")
         if km.user_defined:
             row = subsplit.row()
             row.operator("WM_OT_keymap_restore", text="Restore")
-            row.operator_boolean("WM_OT_keymap_restore", "all", True, text="Restore All")
+            row.operator("WM_OT_keymap_restore", text="Restore All").all = True
         else:
             row = subsplit.row()
             row.operator("WM_OT_keymap_edit", text="Edit")

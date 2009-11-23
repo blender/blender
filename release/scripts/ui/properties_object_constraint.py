@@ -73,23 +73,23 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         if con.target and subtargets:
             if con.target.type == 'ARMATURE':
                 if wide_ui:
-                    layout.prop_pointer(con, "subtarget", con.target.data, "bones", text="Bone")
+                    layout.prop_object(con, "subtarget", con.target.data, "bones", text="Bone")
                 else:
-                    layout.prop_pointer(con, "subtarget", con.target.data, "bones", text="")
+                    layout.prop_object(con, "subtarget", con.target.data, "bones", text="")
 
                 if con.type == 'COPY_LOCATION':
                     row = layout.row()
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")
             elif con.target.type in ('MESH', 'LATTICE'):
-                layout.prop_pointer(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
+                layout.prop_object(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
     def ik_template(self, layout, con, wide_ui):
         # only used for iTaSC
         layout.prop(con, "pole_target")
 
         if con.pole_target and con.pole_target.type == 'ARMATURE':
-            layout.prop_pointer(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+            layout.prop_object(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 
         if con.pole_target:
             row = layout.row()
@@ -169,9 +169,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
                 layout.prop(con, "pole_target", text="")
             if con.pole_target and con.pole_target.type == 'ARMATURE':
                 if wide_ui:
-                    layout.prop_pointer(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+                    layout.prop_object(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
                 else:
-                    layout.prop_pointer(con, "pole_subtarget", con.pole_target.data, "bones", text="")
+                    layout.prop_object(con, "pole_subtarget", con.pole_target.data, "bones", text="")
 
             if con.pole_target:
                 row = layout.row()

@@ -61,7 +61,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 
         else:
             # add modifier
-            split.operator_enum("object.modifier_add", "type", 'SMOKE', text="Add")
+            split.operator("object.modifier_add", text="Add").type = 'SMOKE'
             if wide_ui:
                 split.label()
 
@@ -101,7 +101,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col = split.column()
                 col.prop(flow, "outflow")
                 col.label(text="Particle System:")
-                col.prop_pointer(flow, "psys", ob, "particle_systems", text="")
+                col.prop_object(flow, "psys", ob, "particle_systems", text="")
 
                 if md.flow_settings.outflow:
                     if wide_ui:

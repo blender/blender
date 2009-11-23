@@ -177,8 +177,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             col.separator()
 
             sub = col.column(align=True)
-            sub.operator_enum("object.shape_key_move", "type", 'UP', icon='ICON_TRIA_UP', text="")
-            sub.operator_enum("object.shape_key_move", "type", 'DOWN', icon='ICON_TRIA_DOWN', text="")
+            sub.operator("object.shape_key_move", icon='ICON_TRIA_UP', text="").type = 'UP'
+            sub.operator("object.shape_key_move", icon='ICON_TRIA_DOWN', text="").type = 'DOWN'
 
             split = layout.split(percentage=0.4)
             row = split.row()
@@ -233,8 +233,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
                         col = split.column(align=True)
                     col.active = enable_edit_value
                     col.label(text="Blend:")
-                    col.prop_pointer(kb, "vertex_group", ob, "vertex_groups", text="")
-                    col.prop_pointer(kb, "relative_key", key, "keys", text="")
+                    col.prop_object(kb, "vertex_group", ob, "vertex_groups", text="")
+                    col.prop_object(kb, "relative_key", key, "keys", text="")
 
             else:
                 row = layout.row()

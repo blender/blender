@@ -61,7 +61,7 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
         if cache.baked == True:
             row.operator("ptcache.free_bake", text="Free Bake")
         else:
-            row.operator_boolean("ptcache.bake", "bake", True, text="Bake")
+            row.operator("ptcache.bake", text="Bake").bake = True
 
         sub = row.row()
         sub.enabled = (cache.frames_skipped or cache.outdated) and enabled
@@ -85,7 +85,7 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
         layout.separator()
 
         row = layout.row()
-        row.operator_boolean("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+        row.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
         row.operator("ptcache.free_bake_all", text="Free All Bakes")
         layout.operator("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
 

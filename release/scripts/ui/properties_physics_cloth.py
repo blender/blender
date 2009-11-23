@@ -74,7 +74,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             row.prop(md, "realtime", text="")
         else:
             # add modifier
-            split.operator_enum("object.modifier_add", "type", 'CLOTH', text="Add")
+            split.operator("object.modifier_add", text="Add").type = 'CLOTH'
             if wide_ui:
                 split.column()
 
@@ -112,7 +112,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             col.prop(cloth, "pin_cloth", text="Pinning")
             sub = col.column()
             sub.active = cloth.pin_cloth
-            sub.prop_pointer(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
+            sub.prop_object(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
             sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
             col.label(text="Pre roll:")
@@ -207,13 +207,13 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 
         col = split.column()
         col.label(text="Structural Stiffness:")
-        col.prop_pointer(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
         col.prop(cloth, "structural_stiffness_max", text="Max")
 
         if wide_ui:
             col = split.column()
         col.label(text="Bending Stiffness:")
-        col.prop_pointer(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
+        col.prop_object(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
         col.prop(cloth, "bending_stiffness_max", text="Max")
 
 

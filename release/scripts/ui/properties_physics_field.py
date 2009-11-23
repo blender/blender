@@ -201,7 +201,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 
         else:
             # add modifier
-            split.operator_enum("object.modifier_add", "type", 'COLLISION', text="Add")
+            split.operator("object.modifier_add", text="Add").type = 'COLLISION'
             if wide_ui:
                 split.label()
 

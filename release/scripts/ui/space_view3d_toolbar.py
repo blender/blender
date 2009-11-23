@@ -68,9 +68,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Grease Pencil:")
         row = col.row()
-        row.operator_enum("gpencil.draw", "mode", 'DRAW', text="Draw")
-        row.operator_enum("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
-        row.operator_enum("gpencil.draw", "mode", 'ERASER', text="Erase")
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 # ********** default tools for editmode_mesh ****************
 
@@ -119,9 +119,9 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="UV Mapping:")
-        col.operator_string("wm.call_menu", "name", "VIEW3D_MT_uv_map", text="Unwrap")
+        col.operator("wm.call_menu", text="Unwrap").name = "VIEW3D_MT_uv_map"
         col.operator("mesh.mark_seam")
-        col.operator_boolean("mesh.mark_seam", "clear", True, text="Clear Seam")
+        col.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
 
         col = layout.column(align=True)
@@ -137,9 +137,9 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Grease Pencil:")
         row = col.row()
-        row.operator_enum("gpencil.draw", "mode", 'DRAW', text="Draw")
-        row.operator_enum("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
-        row.operator_enum("gpencil.draw", "mode", 'ERASER', text="Erase")
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel):
@@ -173,8 +173,8 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col.operator("tfm.resize", text="Scale")
         
         col = layout.column(align=True)
-        col.operator_enum("tfm.transform", "mode", 'TILT')
-        col.operator_enum("tfm.transform", "mode", 'CURVE_SHRINKFATTEN')
+        col.operator("tfm.transform").mode = 'TILT'
+        col.operator("tfm.transform").mode = 'CURVE_SHRINKFATTEN'
 
         col = layout.column(align=True)
         col.label(text="Curve:")
@@ -187,11 +187,11 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Handles:")
         row = col.row()
-        row.operator_enum("curve.handle_type_set", "type", 'AUTOMATIC', text="Auto")
-        row.operator_enum("curve.handle_type_set", "type", 'VECTOR')
+        row.operator("curve.handle_type_set", text="Auto").type = 'AUTOMATIC'
+        row.operator("curve.handle_type_set").type = 'VECTOR'
         row = col.row()
-        row.operator_enum("curve.handle_type_set", "type", 'ALIGN')
-        row.operator_enum("curve.handle_type_set", "type", 'FREE_ALIGN', text="Free")
+        row.operator("curve.handle_type_set").type = 'ALIGN'
+        row.operator("curve.handle_type_set", text="Free").type = 'FREE_ALIGN'
 
         col = layout.column(align=True)
         col.label(text="Modeling:")
@@ -206,9 +206,9 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Grease Pencil:")
         row = col.row()
-        row.operator_enum("gpencil.draw", "mode", 'DRAW', text="Draw")
-        row.operator_enum("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
-        row.operator_enum("gpencil.draw", "mode", 'ERASER', text="Erase")
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 # ********** default tools for editmode_surface ****************
 
@@ -246,9 +246,9 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Grease Pencil:")
         row = col.row()
-        row.operator_enum("gpencil.draw", "mode", 'DRAW', text="Draw")
-        row.operator_enum("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
-        row.operator_enum("gpencil.draw", "mode", 'ERASER', text="Erase")
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 # ********** default tools for editmode_text ****************
 
@@ -268,14 +268,14 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Set Case:")
-        col.operator_enum("font.case_set", "case", 'UPPER', text="To Upper")
-        col.operator_enum("font.case_set", "case", 'LOWER', text="To Lower")
+        col.operator("font.case_set", text="To Upper").case = 'UPPER'
+        col.operator("font.case_set", text="To Lower").case = 'LOWER'
 
         col = layout.column(align=True)
         col.label(text="Style:")
-        col.operator_enum("font.style_toggle", "style", 'BOLD')
-        col.operator_enum("font.style_toggle", "style", 'ITALIC')
-        col.operator_enum("font.style_toggle", "style", 'UNDERLINE')
+        col.operator("font.style_toggle").style = 'BOLD'
+        col.operator("font.style_toggle").style = 'ITALIC'
+        col.operator("font.style_toggle").style = 'UNDERLINE'
 
         col = layout.column(align=True)
         col.label(text="Repeat:")
@@ -318,9 +318,9 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Grease Pencil:")
         row = col.row()
-        row.operator_enum("gpencil.draw", "mode", 'DRAW', text="Draw")
-        row.operator_enum("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
-        row.operator_enum("gpencil.draw", "mode", 'ERASER', text="Erase")
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
@@ -359,9 +359,9 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Grease Pencil:")
         row = col.row()
-        row.operator_enum("gpencil.draw", "mode", 'DRAW', text="Draw")
-        row.operator_enum("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
-        row.operator_enum("gpencil.draw", "mode", 'ERASER', text="Erase")
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 # ********** default tools for editmode_lattice ****************
 
@@ -390,9 +390,9 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Grease Pencil:")
         row = col.row()
-        row.operator_enum("gpencil.draw", "mode", 'DRAW', text="Draw")
-        row.operator_enum("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
-        row.operator_enum("gpencil.draw", "mode", 'ERASER', text="Erase")
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 
 # ********** default tools for posemode ****************
@@ -441,9 +441,9 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Grease Pencil:")
         row = col.row()
-        row.operator_enum("gpencil.draw", "mode", 'DRAW', text="Draw")
-        row.operator_enum("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Line")
-        row.operator_enum("gpencil.draw", "mode", 'ERASER', text="Erase")
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel):
@@ -561,10 +561,10 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
         elif context.texture_paint_object and brush:
             col = layout.column(align=True)
-            col.item_enumR(settings, "tool", 'DRAW')
-            col.item_enumR(settings, "tool", 'SOFTEN')
-            col.item_enumR(settings, "tool", 'CLONE')
-            col.item_enumR(settings, "tool", 'SMEAR')
+            col.prop_enum(settings, "tool", 'DRAW')
+            col.prop_enum(settings, "tool", 'SOFTEN')
+            col.prop_enum(settings, "tool", 'CLONE')
+            col.prop_enum(settings, "tool", 'SMEAR')
 
             col = layout.column()
             col.prop(brush, "color", text="")

@@ -134,7 +134,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
         sub.prop(ob, "parent_type", text="")
         parent = ob.parent
         if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
-            sub.prop_pointer(ob, "parent_bone", parent.data, "bones", text="")
+            sub.prop_object(ob, "parent_bone", parent.data, "bones", text="")
         sub.active = (parent is not None)
 
 
