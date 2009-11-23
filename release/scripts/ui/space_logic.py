@@ -35,15 +35,15 @@ class LOGIC_PT_properties(bpy.types.Panel):
         ob = context.active_object
         game = ob.game
 
-        layout.itemO("object.game_property_new", text="Add Game Property")
+        layout.operator("object.game_property_new", text="Add Game Property")
 
         for i, prop in enumerate(game.properties):
 
             row = layout.row(align=True)
-            row.itemR(prop, "name", text="")
-            row.itemR(prop, "type", text="")
-            row.itemR(prop, "value", text="", toggle=True) # we dont care about the type. rna will display correctly
-            row.itemR(prop, "debug", text="", toggle=True, icon='ICON_INFO')
-            row.item_intO("object.game_property_remove", "index", i, text="", icon='ICON_X')
+            row.prop(prop, "name", text="")
+            row.prop(prop, "type", text="")
+            row.prop(prop, "value", text="", toggle=True) # we dont care about the type. rna will display correctly
+            row.prop(prop, "debug", text="", toggle=True, icon='ICON_INFO')
+            row.operator_int("object.game_property_remove", "index", i, text="", icon='ICON_X')
 
 bpy.types.register(LOGIC_PT_properties)

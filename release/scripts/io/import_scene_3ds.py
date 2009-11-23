@@ -1167,7 +1167,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 bpy.ops.add(IMPORT_OT_autodesk_3ds)
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)...")
+menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 # NOTES:

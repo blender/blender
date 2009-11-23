@@ -67,14 +67,14 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
         if md:
             # remove modifier + settings
             split.set_context_pointer("modifier", md)
-            split.itemO("object.modifier_remove", text="Remove")
+            split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
-            row.itemR(md, "render", text="")
-            row.itemR(md, "realtime", text="")
+            row.prop(md, "render", text="")
+            row.prop(md, "realtime", text="")
         else:
             # add modifier
-            split.item_enumO("object.modifier_add", "type", 'CLOTH', text="Add")
+            split.operator_enum("object.modifier_add", "type", 'CLOTH', text="Add")
             if wide_ui:
                 split.column()
 
@@ -89,44 +89,44 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 
             col = split.column()
 
-            col.itemL(text="Presets:")
+            col.label(text="Presets:")
             sub = col.row(align=True).split(percentage=0.75)
-            sub.itemM("CLOTH_MT_presets", text="Presets")
-            sub.itemO("cloth.preset_add", text="Add")
+            sub.menu("CLOTH_MT_presets", text="Presets")
+            sub.operator("cloth.preset_add", text="Add")
 
-            col.itemL(text="Quality:")
-            col.itemR(cloth, "quality", text="Steps", slider=True)
+            col.label(text="Quality:")
+            col.prop(cloth, "quality", text="Steps", slider=True)
 
-            col.itemL(text="Material:")
-            col.itemR(cloth, "mass")
-            col.itemR(cloth, "structural_stiffness", text="Structural")
-            col.itemR(cloth, "bending_stiffness", text="Bending")
+            col.label(text="Material:")
+            col.prop(cloth, "mass")
+            col.prop(cloth, "structural_stiffness", text="Structural")
+            col.prop(cloth, "bending_stiffness", text="Bending")
 
             if wide_ui:
                 col = split.column()
 
-            col.itemL(text="Damping:")
-            col.itemR(cloth, "spring_damping", text="Spring")
-            col.itemR(cloth, "air_damping", text="Air")
+            col.label(text="Damping:")
+            col.prop(cloth, "spring_damping", text="Spring")
+            col.prop(cloth, "air_damping", text="Air")
 
-            col.itemR(cloth, "pin_cloth", text="Pinning")
+            col.prop(cloth, "pin_cloth", text="Pinning")
             sub = col.column()
             sub.active = cloth.pin_cloth
-            sub.item_pointerR(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
-            sub.itemR(cloth, "pin_stiffness", text="Stiffness")
+            sub.prop_pointer(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
+            sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
-            col.itemL(text="Pre roll:")
-            col.itemR(cloth, "pre_roll", text="Frame")
+            col.label(text="Pre roll:")
+            col.prop(cloth, "pre_roll", text="Frame")
 
             # Disabled for now
             """
             if cloth.mass_vertex_group:
-                layout.itemL(text="Goal:")
+                layout.label(text="Goal:")
 
                 col = layout.column_flow()
-                col.itemR(cloth, "goal_default", text="Default")
-                col.itemR(cloth, "goal_spring", text="Stiffness")
-                col.itemR(cloth, "goal_friction", text="Friction")
+                col.prop(cloth, "goal_default", text="Default")
+                col.prop(cloth, "goal_spring", text="Stiffness")
+                col.prop(cloth, "goal_friction", text="Friction")
             """
 
 
@@ -153,7 +153,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
         cloth = context.cloth.collision_settings
 
         self.layout.active = cloth_panel_enabled(context.cloth)
-        self.layout.itemR(cloth, "enable_collision", text="")
+        self.layout.prop(cloth, "enable_collision", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -167,17 +167,17 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(cloth, "collision_quality", slider=True, text="Quality")
-        col.itemR(cloth, "min_distance", slider=True, text="Distance")
-        col.itemR(cloth, "friction")
+        col.prop(cloth, "collision_quality", slider=True, text="Quality")
+        col.prop(cloth, "min_distance", slider=True, text="Distance")
+        col.prop(cloth, "friction")
 
         if wide_ui:
             col = split.column()
-        col.itemR(cloth, "enable_self_collision", text="Self Collision")
+        col.prop(cloth, "enable_self_collision", text="Self Collision")
         sub = col.column()
         sub.active = cloth.enable_self_collision
-        sub.itemR(cloth, "self_collision_quality", slider=True, text="Quality")
-        sub.itemR(cloth, "self_min_distance", slider=True, text="Distance")
+        sub.prop(cloth, "self_collision_quality", slider=True, text="Quality")
+        sub.prop(cloth, "self_min_distance", slider=True, text="Distance")
 
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
@@ -191,7 +191,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
         cloth = context.cloth.settings
 
         self.layout.active = cloth_panel_enabled(context.cloth)
-        self.layout.itemR(cloth, "stiffness_scaling", text="")
+        self.layout.prop(cloth, "stiffness_scaling", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -206,15 +206,15 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Structural Stiffness:")
-        col.item_pointerR(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
-        col.itemR(cloth, "structural_stiffness_max", text="Max")
+        col.label(text="Structural Stiffness:")
+        col.prop_pointer(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
+        col.prop(cloth, "structural_stiffness_max", text="Max")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Bending Stiffness:")
-        col.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
-        col.itemR(cloth, "bending_stiffness_max", text="Max")
+        col.label(text="Bending Stiffness:")
+        col.prop_pointer(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
+        col.prop(cloth, "bending_stiffness_max", text="Max")
 
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel):

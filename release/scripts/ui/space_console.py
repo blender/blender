@@ -36,27 +36,27 @@ class CONSOLE_HT_header(bpy.types.Header):
             sub = row.row(align=True)
 
             if sc.console_type == 'REPORT':
-                sub.itemM("CONSOLE_MT_report")
+                sub.menu("CONSOLE_MT_report")
             else:
-                sub.itemM("CONSOLE_MT_console")
+                sub.menu("CONSOLE_MT_console")
 
-        layout.itemS()
-        layout.itemR(sc, "console_type", expand=True)
+        layout.separator()
+        layout.prop(sc, "console_type", expand=True)
 
         if sc.console_type == 'REPORT':
             row = layout.row(align=True)
-            row.itemR(sc, "show_report_debug", text="Debug")
-            row.itemR(sc, "show_report_info", text="Info")
-            row.itemR(sc, "show_report_operator", text="Operators")
-            row.itemR(sc, "show_report_warn", text="Warnings")
-            row.itemR(sc, "show_report_error", text="Errors")
+            row.prop(sc, "show_report_debug", text="Debug")
+            row.prop(sc, "show_report_info", text="Info")
+            row.prop(sc, "show_report_operator", text="Operators")
+            row.prop(sc, "show_report_warn", text="Warnings")
+            row.prop(sc, "show_report_error", text="Errors")
 
             row = layout.row()
             row.enabled = sc.show_report_operator
-            row.itemO("console.report_replay")
+            row.operator("console.report_replay")
         else:
             row = layout.row(align=True)
-            row.itemO("console.autocomplete", text="Autocomplete")
+            row.operator("console.autocomplete", text="Autocomplete")
 
 
 class CONSOLE_MT_console(bpy.types.Menu):
@@ -65,10 +65,10 @@ class CONSOLE_MT_console(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.column()
-        layout.itemO("console.clear")
-        layout.itemO("console.copy")
-        layout.itemO("console.paste")
-        layout.itemM("CONSOLE_MT_language")
+        layout.operator("console.clear")
+        layout.operator("console.copy")
+        layout.operator("console.paste")
+        layout.menu("CONSOLE_MT_language")
 
 
 class CONSOLE_MT_report(bpy.types.Menu):
@@ -77,10 +77,10 @@ class CONSOLE_MT_report(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.column()
-        layout.itemO("console.select_all_toggle")
-        layout.itemO("console.select_border")
-        layout.itemO("console.report_delete")
-        layout.itemO("console.report_copy")
+        layout.operator("console.select_all_toggle")
+        layout.operator("console.select_border")
+        layout.operator("console.report_delete")
+        layout.operator("console.report_copy")
 
 
 class CONSOLE_MT_language(bpy.types.Menu):
@@ -101,7 +101,7 @@ class CONSOLE_MT_language(bpy.types.Menu):
         languages.sort()
 
         for language in languages:
-            layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
+            layout.operator_string("console.language", "language", language, text=language[0].upper() + language[1:])
 
 
 def add_scrollback(text, text_type):

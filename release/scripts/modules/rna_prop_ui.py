@@ -75,7 +75,7 @@ def draw(layout, context, context_member, use_edit = True):
 
     if use_edit:
         row = layout.row()
-        props = row.itemO("wm.properties_add", properties=True, text="Add")
+        props = row.operator("wm.properties_add", properties=True, text="Add")
         props.path = context_member
         del row
 
@@ -102,20 +102,20 @@ def draw(layout, context, context_member, use_edit = True):
         else:
             row = box.row()
 
-        row.itemL(text=key)
+        row.label(text=key)
 
         # explicit exception for arrays
         if convert_to_pyobject and not hasattr(val_orig, "len"):
-            row.itemL(text=val_draw)
+            row.label(text=val_draw)
         else:
-            row.itemR(rna_item, '["%s"]' % key, text="")
+            row.prop(rna_item, '["%s"]' % key, text="")
 
         if use_edit:
             row = split.row(align=True)
-            prop = row.itemO("wm.properties_edit", properties=True, text="edit")
+            prop = row.operator("wm.properties_edit", properties=True, text="edit")
             assign_props(prop, val_draw, key)
 
-            prop = row.itemO("wm.properties_remove", properties=True, text="", icon='ICON_ZOOMOUT')
+            prop = row.operator("wm.properties_remove", properties=True, text="", icon='ICON_ZOOMOUT')
             assign_props(prop, val_draw, key)
 
 

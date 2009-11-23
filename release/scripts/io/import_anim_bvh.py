@@ -877,5 +877,5 @@ bpy.ops.add(BvhImporter)
 
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
+menu_func = lambda self, context: self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)

@@ -37,30 +37,30 @@ class INFO_HT_header(bpy.types.Header):
 
         if context.area.show_menus:
             sub = row.row(align=True)
-            sub.itemM("INFO_MT_file")
-            sub.itemM("INFO_MT_add")
+            sub.menu("INFO_MT_file")
+            sub.menu("INFO_MT_add")
             if rd.use_game_engine:
-                sub.itemM("INFO_MT_game")
+                sub.menu("INFO_MT_game")
             else:
-                sub.itemM("INFO_MT_render")
-            sub.itemM("INFO_MT_help")
+                sub.menu("INFO_MT_render")
+            sub.menu("INFO_MT_help")
 
         layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
         layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
 
-        layout.itemS()
+        layout.separator()
 
         if rd.multiple_engines:
-            layout.itemR(rd, "engine", text="")
+            layout.prop(rd, "engine", text="")
 
-        layout.itemS()
+        layout.separator()
 
         layout.template_operator_search()
         layout.template_running_jobs()
 
-        layout.itemL(text=scene.statistics())
+        layout.label(text=scene.statistics())
 
-        layout.itemO("wm.window_fullscreen_toggle", icon='ICON_FULLSCREEN_ENTER', text="")
+        layout.operator("wm.window_fullscreen_toggle", icon='ICON_FULLSCREEN_ENTER', text="")
 
 
 class INFO_MT_file(bpy.types.Menu):
@@ -70,38 +70,38 @@ class INFO_MT_file(bpy.types.Menu):
         layout = self.layout
 
         layout.operator_context = 'EXEC_AREA'
-        layout.itemO("wm.read_homefile", text="New", icon='ICON_NEW')
+        layout.operator("wm.read_homefile", text="New", icon='ICON_NEW')
         layout.operator_context = 'INVOKE_AREA'
-        layout.itemO("wm.open_mainfile", text="Open...", icon='ICON_FILE_FOLDER')
-        layout.item_menu_enumO("wm.open_recentfile", "file", text="Open Recent")
-        layout.itemO("wm.recover_last_session")
-        layout.itemO("wm.recover_auto_save", text="Recover Auto Save...")
+        layout.operator("wm.open_mainfile", text="Open...", icon='ICON_FILE_FOLDER')
+        layout.operator_menu_enum("wm.open_recentfile", "file", text="Open Recent")
+        layout.operator("wm.recover_last_session")
+        layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
 
-        layout.itemS()
+        layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
-        layout.itemO("wm.save_mainfile", text="Save", icon='ICON_FILE_TICK')
+        layout.operator("wm.save_mainfile", text="Save", icon='ICON_FILE_TICK')
         layout.operator_context = 'INVOKE_AREA'
-        layout.itemO("wm.save_as_mainfile", text="Save As...")
-        layout.itemO("screen.userpref_show", text="User Preferences...", icon='ICON_PREFERENCES')
+        layout.operator("wm.save_as_mainfile", text="Save As...")
+        layout.operator("screen.userpref_show", text="User Preferences...", icon='ICON_PREFERENCES')
 
-        layout.itemS()
+        layout.separator()
         layout.operator_context = 'INVOKE_AREA'
-        layout.itemO("wm.link_append", text="Link")
-        layout.item_booleanO("wm.link_append", "link", False, text="Append")
-        layout.itemS()
+        layout.operator("wm.link_append", text="Link")
+        layout.operator_boolean("wm.link_append", "link", False, text="Append")
+        layout.separator()
 
-        layout.itemM("INFO_MT_file_import")
-        layout.itemM("INFO_MT_file_export")
+        layout.menu("INFO_MT_file_import")
+        layout.menu("INFO_MT_file_export")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemM("INFO_MT_file_external_data")
+        layout.menu("INFO_MT_file_external_data")
 
-        layout.itemS()
+        layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
-        layout.itemO("wm.exit_blender", text="Quit", icon='ICON_QUIT')
+        layout.operator("wm.exit_blender", text="Quit", icon='ICON_QUIT')
 
 # test for expanding menus
 '''
@@ -111,7 +111,7 @@ class INFO_MT_file_more(INFO_MT_file):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("wm.read_homefile", text="TESTING ")
+        layout.operator("wm.read_homefile", text="TESTING ")
 
 dynamic_menu.setup(INFO_MT_file_more)
 '''
@@ -123,7 +123,7 @@ class INFO_MT_file_import(dynamic_menu.DynMenu):
 
     def draw(self, context):
         if "collada_import" in dir(bpy.ops.wm):
-            self.layout.itemO("wm.collada_import", text="COLLADA (.dae)...")
+            self.layout.operator("wm.collada_import", text="COLLADA (.dae)...")
 
 
 class INFO_MT_file_export(dynamic_menu.DynMenu):
@@ -132,7 +132,7 @@ class INFO_MT_file_export(dynamic_menu.DynMenu):
 
     def draw(self, context):
         if "collada_export" in dir(bpy.ops.wm):
-            self.layout.itemO("wm.collada_export", text="COLLADA (.dae)...")
+            self.layout.operator("wm.collada_export", text="COLLADA (.dae)...")
 
 
 class INFO_MT_file_external_data(bpy.types.Menu):
@@ -141,15 +141,15 @@ class INFO_MT_file_external_data(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("file.pack_all", text="Pack into .blend file")
-        layout.itemO("file.unpack_all", text="Unpack into Files...")
+        layout.operator("file.pack_all", text="Pack into .blend file")
+        layout.operator("file.unpack_all", text="Unpack into Files...")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemO("file.make_paths_relative")
-        layout.itemO("file.make_paths_absolute")
-        layout.itemO("file.report_missing_files")
-        layout.itemO("file.find_missing_files")
+        layout.operator("file.make_paths_relative")
+        layout.operator("file.make_paths_absolute")
+        layout.operator("file.report_missing_files")
+        layout.operator("file.find_missing_files")
 
 
 class INFO_MT_mesh_add(dynamic_menu.DynMenu):
@@ -159,16 +159,16 @@ class INFO_MT_mesh_add(dynamic_menu.DynMenu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.itemO("mesh.primitive_plane_add", icon='ICON_MESH_PLANE', text="Plane")
-        layout.itemO("mesh.primitive_cube_add", icon='ICON_MESH_CUBE', text="Cube")
-        layout.itemO("mesh.primitive_circle_add", icon='ICON_MESH_CIRCLE', text="Circle")
-        layout.itemO("mesh.primitive_uv_sphere_add", icon='ICON_MESH_UVSPHERE', text="UV Sphere")
-        layout.itemO("mesh.primitive_ico_sphere_add", icon='ICON_MESH_ICOSPHERE', text="Icosphere")
-        layout.itemO("mesh.primitive_tube_add", icon='ICON_MESH_TUBE', text="Tube")
-        layout.itemO("mesh.primitive_cone_add", icon='ICON_MESH_CONE', text="Cone")
-        layout.itemS()
-        layout.itemO("mesh.primitive_grid_add", icon='ICON_MESH_GRID', text="Grid")
-        layout.itemO("mesh.primitive_monkey_add", icon='ICON_MESH_MONKEY', text="Monkey")
+        layout.operator("mesh.primitive_plane_add", icon='ICON_MESH_PLANE', text="Plane")
+        layout.operator("mesh.primitive_cube_add", icon='ICON_MESH_CUBE', text="Cube")
+        layout.operator("mesh.primitive_circle_add", icon='ICON_MESH_CIRCLE', text="Circle")
+        layout.operator("mesh.primitive_uv_sphere_add", icon='ICON_MESH_UVSPHERE', text="UV Sphere")
+        layout.operator("mesh.primitive_ico_sphere_add", icon='ICON_MESH_ICOSPHERE', text="Icosphere")
+        layout.operator("mesh.primitive_tube_add", icon='ICON_MESH_TUBE', text="Tube")
+        layout.operator("mesh.primitive_cone_add", icon='ICON_MESH_CONE', text="Cone")
+        layout.separator()
+        layout.operator("mesh.primitive_grid_add", icon='ICON_MESH_GRID', text="Grid")
+        layout.operator("mesh.primitive_monkey_add", icon='ICON_MESH_MONKEY', text="Monkey")
 
 
 class INFO_MT_add(bpy.types.Menu):
@@ -179,37 +179,37 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.operator_context = 'EXEC_SCREEN'
 
-        # layout.item_menu_enumO("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
-        layout.itemM("INFO_MT_mesh_add", icon='ICON_OUTLINER_OB_MESH')
+        # layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+        layout.menu("INFO_MT_mesh_add", icon='ICON_OUTLINER_OB_MESH')
 
-        layout.item_menu_enumO("object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
-        layout.item_menu_enumO("object.surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
-        layout.item_menu_enumO("object.metaball_add", "type", 'META', text="Metaball", icon='ICON_OUTLINER_OB_META')
-        layout.itemO("object.text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
+        layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
+        layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
+        layout.operator_menu_enum("object.metaball_add", "type", 'META', text="Metaball", icon='ICON_OUTLINER_OB_META')
+        layout.operator("object.text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
 
-        layout.itemS()
+        layout.separator()
 
         layout.operator_context = 'INVOKE_SCREEN'
 
-        layout.itemO("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
-        layout.item_enumO("object.add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
-        layout.item_enumO("object.add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
+        layout.operator("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
+        layout.operator_enum("object.add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
+        layout.operator_enum("object.add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
 
-        layout.itemS()
+        layout.separator()
 
-        layout.item_enumO("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
+        layout.operator_enum("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
 
         layout.operator_context = 'EXEC_SCREEN'
 
-        layout.item_menu_enumO("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
+        layout.operator_menu_enum("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
 
-        layout.itemS()
+        layout.separator()
 
-        layout.item_menu_enumO("object.effector_add", "type", 'EMPTY', text="Force Field", icon='ICON_OUTLINER_OB_EMPTY')
+        layout.operator_menu_enum("object.effector_add", "type", 'EMPTY', text="Force Field", icon='ICON_OUTLINER_OB_EMPTY')
 
-        layout.itemS()
+        layout.separator()
 
-        layout.item_menu_enumO("object.group_instance_add", "type", text="Group Instance", icon='ICON_OUTLINER_OB_EMPTY')
+        layout.operator_menu_enum("object.group_instance_add", "type", text="Group Instance", icon='ICON_OUTLINER_OB_EMPTY')
 
 
 class INFO_MT_game(bpy.types.Menu):
@@ -220,14 +220,14 @@ class INFO_MT_game(bpy.types.Menu):
 
         gs = context.scene.game_data
 
-        layout.itemO("view3d.game_start")
+        layout.operator("view3d.game_start")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemR(gs, "show_debug_properties")
-        layout.itemR(gs, "show_framerate_profile")
-        layout.itemR(gs, "show_physics_visualization")
-        layout.itemR(gs, "deprecation_warnings")
+        layout.prop(gs, "show_debug_properties")
+        layout.prop(gs, "show_framerate_profile")
+        layout.prop(gs, "show_physics_visualization")
+        layout.prop(gs, "deprecation_warnings")
 
 
 class INFO_MT_render(bpy.types.Menu):
@@ -238,17 +238,17 @@ class INFO_MT_render(bpy.types.Menu):
 
         # rd = context.scene.render_data
 
-        layout.itemO("screen.render", text="Render Image", icon='ICON_RENDER_STILL')
-        layout.item_booleanO("screen.render", "animation", True, text="Render Animation", icon='ICON_RENDER_ANIMATION')
+        layout.operator("screen.render", text="Render Image", icon='ICON_RENDER_STILL')
+        layout.operator_boolean("screen.render", "animation", True, text="Render Animation", icon='ICON_RENDER_ANIMATION')
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemO("screen.opengl_render", text="OpenGL Render Image")
-        layout.item_booleanO("screen.opengl_render", "animation", True, text="OpenGL Render Animation")
+        layout.operator("screen.opengl_render", text="OpenGL Render Image")
+        layout.operator_boolean("screen.opengl_render", "animation", True, text="OpenGL Render Animation")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemO("screen.render_view_show")
+        layout.operator("screen.render_view_show")
 
 
 class INFO_MT_help(bpy.types.Menu):
@@ -257,19 +257,19 @@ class INFO_MT_help(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("help.manual", icon='ICON_HELP')
-        layout.itemO("help.release_logs", icon='ICON_URL')
+        layout.operator("help.manual", icon='ICON_HELP')
+        layout.operator("help.release_logs", icon='ICON_URL')
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemO("help.blender_website", icon='ICON_URL')
-        layout.itemO("help.blender_eshop", icon='ICON_URL')
-        layout.itemO("help.developer_community", icon='ICON_URL')
-        layout.itemO("help.user_community", icon='ICON_URL')
-        layout.itemS()
-        layout.itemO("help.report_bug", icon='ICON_URL')
-        layout.itemS()
-        layout.itemO("help.operator_cheat_sheet")
+        layout.operator("help.blender_website", icon='ICON_URL')
+        layout.operator("help.blender_eshop", icon='ICON_URL')
+        layout.operator("help.developer_community", icon='ICON_URL')
+        layout.operator("help.user_community", icon='ICON_URL')
+        layout.separator()
+        layout.operator("help.report_bug", icon='ICON_URL')
+        layout.separator()
+        layout.operator("help.operator_cheat_sheet")
 
 bpy.types.register(INFO_HT_header)
 bpy.types.register(INFO_MT_file)

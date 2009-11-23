@@ -650,7 +650,7 @@ bpy.ops.add(MESH_OT_skin)
 
 # Add to a menu
 import dynamic_menu
-menu_item = dynamic_menu.add(bpy.types.VIEW3D_MT_edit_mesh_faces, (lambda self, context: self.layout.itemO("mesh.skin", text="Bridge Faces")) )
+menu_item = dynamic_menu.add(bpy.types.VIEW3D_MT_edit_mesh_faces, (lambda self, context: self.layout.operator("mesh.skin", text="Bridge Faces")) )
 
 if __name__ == "__main__":
 	bpy.ops.mesh.skin()

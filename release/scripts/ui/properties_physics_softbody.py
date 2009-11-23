@@ -57,14 +57,14 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
         if md:
             # remove modifier + settings
             split.set_context_pointer("modifier", md)
-            split.itemO("object.modifier_remove", text="Remove")
+            split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
-            row.itemR(md, "render", text="")
-            row.itemR(md, "realtime", text="")
+            row.prop(md, "render", text="")
+            row.prop(md, "realtime", text="")
         else:
             # add modifier
-            split.item_enumO("object.modifier_add", "type", 'SOFT_BODY', text="Add")
+            split.operator_enum("object.modifier_add", "type", 'SOFT_BODY', text="Add")
             if wide_ui:
                 split.column()
 
@@ -76,15 +76,15 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
             split.enabled = softbody_panel_enabled(md)
 
             col = split.column()
-            col.itemL(text="Object:")
-            col.itemR(softbody, "friction")
-            col.itemR(softbody, "mass")
-            col.item_pointerR(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
+            col.label(text="Object:")
+            col.prop(softbody, "friction")
+            col.prop(softbody, "mass")
+            col.prop_pointer(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
 
             if wide_ui:
                 col = split.column()
-            col.itemL(text="Simulation:")
-            col.itemR(softbody, "speed")
+            col.label(text="Simulation:")
+            col.prop(softbody, "speed")
 
 
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
@@ -110,7 +110,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         softbody = context.soft_body.settings
 
         self.layout.active = softbody_panel_enabled(context.soft_body)
-        self.layout.itemR(softbody, "use_goal", text="")
+        self.layout.prop(softbody, "use_goal", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -128,19 +128,19 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Goal Strengths:")
-        col.itemR(softbody, "goal_default", text="Default")
+        col.label(text="Goal Strengths:")
+        col.prop(softbody, "goal_default", text="Default")
         sub = col.column(align=True)
-        sub.itemR(softbody, "goal_min", text="Minimum")
-        sub.itemR(softbody, "goal_max", text="Maximum")
+        sub.prop(softbody, "goal_min", text="Minimum")
+        sub.prop(softbody, "goal_max", text="Maximum")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Goal Settings:")
-        col.itemR(softbody, "goal_spring", text="Stiffness")
-        col.itemR(softbody, "goal_friction", text="Damping")
+        col.label(text="Goal Settings:")
+        col.prop(softbody, "goal_spring", text="Stiffness")
+        col.prop(softbody, "goal_friction", text="Damping")
 
-        layout.item_pointerR(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
+        layout.prop_pointer(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
@@ -154,7 +154,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         softbody = context.soft_body.settings
 
         self.layout.active = softbody_panel_enabled(context.soft_body)
-        self.layout.itemR(softbody, "use_edges", text="")
+        self.layout.prop(softbody, "use_edges", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -169,30 +169,30 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Springs:")
-        col.itemR(softbody, "pull")
-        col.itemR(softbody, "push")
-        col.itemR(softbody, "damp")
-        col.itemR(softbody, "plastic")
-        col.itemR(softbody, "bending")
-        col.itemR(softbody, "spring_length", text="Length")
-        col.item_pointerR(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
+        col.label(text="Springs:")
+        col.prop(softbody, "pull")
+        col.prop(softbody, "push")
+        col.prop(softbody, "damp")
+        col.prop(softbody, "plastic")
+        col.prop(softbody, "bending")
+        col.prop(softbody, "spring_length", text="Length")
+        col.prop_pointer(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
         if wide_ui:
             col = split.column()
-        col.itemR(softbody, "stiff_quads")
+        col.prop(softbody, "stiff_quads")
         sub = col.column()
         sub.active = softbody.stiff_quads
-        sub.itemR(softbody, "shear")
+        sub.prop(softbody, "shear")
 
-        col.itemR(softbody, "new_aero", text="Aero")
+        col.prop(softbody, "new_aero", text="Aero")
         sub = col.column()
         sub.enabled = softbody.new_aero
-        sub.itemR(softbody, "aero", text="Factor")
+        sub.prop(softbody, "aero", text="Factor")
 
-        col.itemL(text="Collision:")
-        col.itemR(softbody, "edge_collision", text="Edge")
-        col.itemR(softbody, "face_collision", text="Face")
+        col.label(text="Collision:")
+        col.prop(softbody, "edge_collision", text="Edge")
+        col.prop(softbody, "face_collision", text="Face")
 
 
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
@@ -206,7 +206,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
         softbody = context.soft_body.settings
 
         self.layout.active = softbody_panel_enabled(context.soft_body)
-        self.layout.itemR(softbody, "self_collision", text="")
+        self.layout.prop(softbody, "self_collision", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -217,17 +217,17 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 
         layout.active = softbody.self_collision and softbody_panel_enabled(md)
 
-        layout.itemL(text="Collision Type:")
+        layout.label(text="Collision Type:")
         if wide_ui:
-            layout.itemR(softbody, "collision_type", expand=True)
+            layout.prop(softbody, "collision_type", expand=True)
         else:
-            layout.itemR(softbody, "collision_type", text="")
+            layout.prop(softbody, "collision_type", text="")
 
         col = layout.column(align=True)
-        col.itemL(text="Ball:")
-        col.itemR(softbody, "ball_size", text="Size")
-        col.itemR(softbody, "ball_stiff", text="Stiffness")
-        col.itemR(softbody, "ball_damp", text="Dampening")
+        col.label(text="Ball:")
+        col.prop(softbody, "ball_size", text="Size")
+        col.prop(softbody, "ball_stiff", text="Stiffness")
+        col.prop(softbody, "ball_damp", text="Dampening")
 
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
@@ -250,20 +250,20 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.itemL(text="Step Size:")
-        col.itemR(softbody, "minstep")
-        col.itemR(softbody, "maxstep")
-        col.itemR(softbody, "auto_step", text="Auto-Step")
+        col.label(text="Step Size:")
+        col.prop(softbody, "minstep")
+        col.prop(softbody, "maxstep")
+        col.prop(softbody, "auto_step", text="Auto-Step")
 
         if wide_ui:
             col = split.column()
-        col.itemR(softbody, "error_limit")
-        col.itemL(text="Helpers:")
-        col.itemR(softbody, "choke")
-        col.itemR(softbody, "fuzzy")
+        col.prop(softbody, "error_limit")
+        col.label(text="Helpers:")
+        col.prop(softbody, "choke")
+        col.prop(softbody, "fuzzy")
 
-        layout.itemL(text="Diagnostics:")
-        layout.itemR(softbody, "diagnose")
+        layout.label(text="Diagnostics:")
+        layout.prop(softbody, "diagnose")
 
 
 class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):

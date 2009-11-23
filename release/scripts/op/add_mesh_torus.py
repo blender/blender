@@ -130,7 +130,7 @@ bpy.ops.add(AddTorus)
 # Add to a menu
 import dynamic_menu
 
-menu_func = (lambda self, context: self.layout.itemO(AddTorus.bl_idname,
+menu_func = (lambda self, context: self.layout.operator(AddTorus.bl_idname,
                                         text="Torus", icon='ICON_MESH_DONUT'))
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_mesh_add, menu_func)

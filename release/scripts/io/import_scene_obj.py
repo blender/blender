@@ -1626,7 +1626,7 @@ bpy.ops.add(IMPORT_OT_obj)
 
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
+menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 

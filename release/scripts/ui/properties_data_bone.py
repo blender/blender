@@ -43,8 +43,8 @@ class BONE_PT_context_bone(BoneButtonsPanel):
             bone = context.edit_bone
 
         row = layout.row()
-        row.itemL(text="", icon='ICON_BONE_DATA')
-        row.itemR(bone, "name", text="")
+        row.label(text="", icon='ICON_BONE_DATA')
+        row.prop(bone, "name", text="")
 
 
 class BONE_PT_transform(BoneButtonsPanel):
@@ -61,21 +61,21 @@ class BONE_PT_transform(BoneButtonsPanel):
             bone = context.edit_bone
             if wide_ui:
                 row = layout.row()
-                row.column().itemR(bone, "head")
-                row.column().itemR(bone, "tail")
+                row.column().prop(bone, "head")
+                row.column().prop(bone, "tail")
 
                 col = row.column()
                 sub = col.column(align=True)
-                sub.itemL(text="Roll:")
-                sub.itemR(bone, "roll", text="")
-                sub.itemL()
-                sub.itemR(bone, "locked")
+                sub.label(text="Roll:")
+                sub.prop(bone, "roll", text="")
+                sub.label()
+                sub.prop(bone, "locked")
             else:
                 col = layout.column()
-                col.itemR(bone, "head")
-                col.itemR(bone, "tail")
-                col.itemR(bone, "roll")
-                col.itemR(bone, "locked")
+                col.prop(bone, "head")
+                col.prop(bone, "tail")
+                col.prop(bone, "roll")
+                col.prop(bone, "locked")
 
         else:
             pchan = ob.pose.bones[context.bone.name]
@@ -83,37 +83,37 @@ class BONE_PT_transform(BoneButtonsPanel):
             if wide_ui:
                 row = layout.row()
                 col = row.column()
-                col.itemR(pchan, "location")
+                col.prop(pchan, "location")
                 col.active = not (bone.parent and bone.connected)
 
                 col = row.column()
                 if pchan.rotation_mode == 'QUATERNION':
-                    col.itemR(pchan, "rotation_quaternion", text="Rotation")
+                    col.prop(pchan, "rotation_quaternion", text="Rotation")
                 elif pchan.rotation_mode == 'AXIS_ANGLE':
-                    #col.itemL(text="Rotation")
-                    #col.itemR(pchan, "rotation_angle", text="Angle")
-                    #col.itemR(pchan, "rotation_axis", text="Axis")
-                    col.itemR(pchan, "rotation_axis_angle", text="Rotation")
+                    #col.label(text="Rotation")
+                    #col.prop(pchan, "rotation_angle", text="Angle")
+                    #col.prop(pchan, "rotation_axis", text="Axis")
+                    col.prop(pchan, "rotation_axis_angle", text="Rotation")
                 else:
-                    col.itemR(pchan, "rotation_euler", text="Rotation")
+                    col.prop(pchan, "rotation_euler", text="Rotation")
 
-                row.column().itemR(pchan, "scale")
+                row.column().prop(pchan, "scale")
 
-                layout.itemR(pchan, "rotation_mode")
+                layout.prop(pchan, "rotation_mode")
             else:
                 col = layout.column()
                 sub = col.column()
                 sub.active = not (bone.parent and bone.connected)
-                sub.itemR(pchan, "location")
-                col.itemL(text="Rotation:")
-                col.itemR(pchan, "rotation_mode", text="")
+                sub.prop(pchan, "location")
+                col.label(text="Rotation:")
+                col.prop(pchan, "rotation_mode", text="")
                 if pchan.rotation_mode == 'QUATERNION':
-                    col.itemR(pchan, "rotation_quaternion", text="")
+                    col.prop(pchan, "rotation_quaternion", text="")
                 elif pchan.rotation_mode == 'AXIS_ANGLE':
-                    col.itemR(pchan, "rotation_axis_angle", text="")
+                    col.prop(pchan, "rotation_axis_angle", text="")
                 else:
-                    col.itemR(pchan, "rotation_euler", text="")
-                col.itemR(pchan, "scale")
+                    col.prop(pchan, "rotation_euler", text="")
+                col.prop(pchan, "scale")
 
 
 class BONE_PT_transform_locks(BoneButtonsPanel):
@@ -132,19 +132,19 @@ class BONE_PT_transform_locks(BoneButtonsPanel):
 
         row = layout.row()
         col = row.column()
-        col.itemR(pchan, "lock_location")
+        col.prop(pchan, "lock_location")
         col.active = not (bone.parent and bone.connected)
 
         col = row.column()
         if pchan.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
-            col.itemR(pchan, "lock_rotations_4d", text="Lock Rotation")
+            col.prop(pchan, "lock_rotations_4d", text="Lock Rotation")
             if pchan.lock_rotations_4d:
-                col.itemR(pchan, "lock_rotation_w", text="W")
-            col.itemR(pchan, "lock_rotation", text="")
+                col.prop(pchan, "lock_rotation_w", text="W")
+            col.prop(pchan, "lock_rotation", text="")
         else:
-            col.itemR(pchan, "lock_rotation", text="Rotation")
+            col.prop(pchan, "lock_rotation", text="Rotation")
 
-        row.column().itemR(pchan, "lock_scale")
+        row.column().prop(pchan, "lock_scale")
 
 
 class BONE_PT_relations(BoneButtonsPanel):
@@ -167,28 +167,28 @@ class BONE_PT_relations(BoneButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Layers:")
-        col.itemR(bone, "layer", text="")
+        col.label(text="Layers:")
+        col.prop(bone, "layer", text="")
 
-        col.itemS()
+        col.separator()
 
         if ob and pchan:
-            col.itemL(text="Bone Group:")
-            col.item_pointerR(pchan, "bone_group", ob.pose, "bone_groups", text="")
+            col.label(text="Bone Group:")
+            col.prop_pointer(pchan, "bone_group", ob.pose, "bone_groups", text="")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Parent:")
+        col.label(text="Parent:")
         if context.bone:
-            col.itemR(bone, "parent", text="")
+            col.prop(bone, "parent", text="")
         else:
-            col.item_pointerR(bone, "parent", arm, "edit_bones", text="")
+            col.prop_pointer(bone, "parent", arm, "edit_bones", text="")
 
         sub = col.column()
         sub.active = (bone.parent is not None)
-        sub.itemR(bone, "connected")
-        sub.itemR(bone, "hinge", text="Inherit Rotation")
-        sub.itemR(bone, "inherit_scale", text="Inherit Scale")
+        sub.prop(bone, "connected")
+        sub.prop(bone, "hinge", text="Inherit Rotation")
+        sub.prop(bone, "inherit_scale", text="Inherit Scale")
 
 
 class BONE_PT_display(BoneButtonsPanel):
@@ -215,13 +215,13 @@ class BONE_PT_display(BoneButtonsPanel):
             split = layout.split()
 
             col = split.column()
-            col.itemR(bone, "draw_wire", text="Wireframe")
-            col.itemR(bone, "hidden", text="Hide")
+            col.prop(bone, "draw_wire", text="Wireframe")
+            col.prop(bone, "hidden", text="Hide")
 
             if wide_ui:
                 col = split.column()
-            col.itemL(text="Custom Shape:")
-            col.itemR(pchan, "custom_shape", text="")
+            col.label(text="Custom Shape:")
+            col.prop(pchan, "custom_shape", text="")
 
 
 class BONE_PT_deform(BoneButtonsPanel):
@@ -234,7 +234,7 @@ class BONE_PT_deform(BoneButtonsPanel):
         if not bone:
             bone = context.edit_bone
 
-        self.layout.itemR(bone, "deform", text="")
+        self.layout.prop(bone, "deform", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -250,29 +250,29 @@ class BONE_PT_deform(BoneButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Envelope:")
+        col.label(text="Envelope:")
 
         sub = col.column(align=True)
-        sub.itemR(bone, "envelope_distance", text="Distance")
-        sub.itemR(bone, "envelope_weight", text="Weight")
-        col.itemR(bone, "multiply_vertexgroup_with_envelope", text="Multiply")
+        sub.prop(bone, "envelope_distance", text="Distance")
+        sub.prop(bone, "envelope_weight", text="Weight")
+        col.prop(bone, "multiply_vertexgroup_with_envelope", text="Multiply")
 
         sub = col.column(align=True)
-        sub.itemL(text="Radius:")
-        sub.itemR(bone, "head_radius", text="Head")
-        sub.itemR(bone, "tail_radius", text="Tail")
+        sub.label(text="Radius:")
+        sub.prop(bone, "head_radius", text="Head")
+        sub.prop(bone, "tail_radius", text="Tail")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Curved Bones:")
+        col.label(text="Curved Bones:")
 
         sub = col.column(align=True)
-        sub.itemR(bone, "bbone_segments", text="Segments")
-        sub.itemR(bone, "bbone_in", text="Ease In")
-        sub.itemR(bone, "bbone_out", text="Ease Out")
+        sub.prop(bone, "bbone_segments", text="Segments")
+        sub.prop(bone, "bbone_in", text="Ease In")
+        sub.prop(bone, "bbone_out", text="Ease Out")
 
-        col.itemL(text="Offset:")
-        col.itemR(bone, "cyclic_offset")
+        col.label(text="Offset:")
+        col.prop(bone, "cyclic_offset")
 
 
 class BONE_PT_properties(BoneButtonsPanel):

@@ -89,15 +89,15 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
             row.template_list(ob, "materials", ob, "active_material_index", rows=2)
 
             col = row.column(align=True)
-            col.itemO("object.material_slot_add", icon='ICON_ZOOMIN', text="")
-            col.itemO("object.material_slot_remove", icon='ICON_ZOOMOUT', text="")
-            col.itemO("object.material_slot_copy", icon='ICON_COPY_ID', text="")
+            col.operator("object.material_slot_add", icon='ICON_ZOOMIN', text="")
+            col.operator("object.material_slot_remove", icon='ICON_ZOOMOUT', text="")
+            col.operator("object.material_slot_copy", icon='ICON_COPY_ID', text="")
 
             if ob.mode == 'EDIT':
                 row = layout.row(align=True)
-                row.itemO("object.material_slot_assign", text="Assign")
-                row.itemO("object.material_slot_select", text="Select")
-                row.itemO("object.material_slot_deselect", text="Deselect")
+                row.operator("object.material_slot_assign", text="Assign")
+                row.operator("object.material_slot_select", text="Select")
+                row.operator("object.material_slot_deselect", text="Deselect")
 
         if wide_ui:
             split = layout.split(percentage=0.65)
@@ -106,12 +106,12 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
                 split.template_ID(ob, "active_material", new="material.new")
                 row = split.row()
                 if slot:
-                    row.itemR(slot, "link", text="")
+                    row.prop(slot, "link", text="")
                 else:
-                    row.itemL()
+                    row.label()
             elif mat:
                 split.template_ID(space, "pin_id")
-                split.itemS()
+                split.separator()
         else:
             if ob:
                 layout.template_ID(ob, "active_material", new="material.new")
@@ -120,9 +120,9 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 
         if mat:
             if wide_ui:
-                layout.itemR(mat, "type", expand=True)
+                layout.prop(mat, "type", expand=True)
             else:
-                layout.itemR(mat, "type", text="")
+                layout.prop(mat, "type", text="")
 
 
 class MATERIAL_PT_shading(MaterialButtonsPanel):
@@ -146,21 +146,21 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
             col = split.column()
             sub = col.column()
             sub.active = not mat.shadeless
-            sub.itemR(mat, "emit")
-            sub.itemR(mat, "ambient")
+            sub.prop(mat, "emit")
+            sub.prop(mat, "ambient")
             sub = col.column()
-            sub.itemR(mat, "translucency")
+            sub.prop(mat, "translucency")
 
             if wide_ui:
                 col = split.column()
-            col.itemR(mat, "shadeless")
+            col.prop(mat, "shadeless")
             sub = col.column()
             sub.active = not mat.shadeless
-            sub.itemR(mat, "tangent_shading")
-            sub.itemR(mat, "cubic")
+            sub.prop(mat, "tangent_shading")
+            sub.prop(mat, "cubic")
 
         elif mat.type == 'HALO':
-            layout.itemR(mat, "alpha")
+            layout.prop(mat, "alpha")
 
 
 class MATERIAL_PT_strand(MaterialButtonsPanel):
@@ -184,32 +184,32 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 
         col = split.column()
         sub = col.column(align=True)
-        sub.itemL(text="Size:")
-        sub.itemR(tan, "root_size", text="Root")
-        sub.itemR(tan, "tip_size", text="Tip")
-        sub.itemR(tan, "min_size", text="Minimum")
-        sub.itemR(tan, "blender_units")
+        sub.label(text="Size:")
+        sub.prop(tan, "root_size", text="Root")
+        sub.prop(tan, "tip_size", text="Tip")
+        sub.prop(tan, "min_size", text="Minimum")
+        sub.prop(tan, "blender_units")
         sub = col.column()
         sub.active = (not mat.shadeless)
-        sub.itemR(tan, "tangent_shading")
-        col.itemR(tan, "shape")
+        sub.prop(tan, "tangent_shading")
+        col.prop(tan, "shape")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Shading:")
-        col.itemR(tan, "width_fade")
+        col.label(text="Shading:")
+        col.prop(tan, "width_fade")
         ob = context.object
         if ob and ob.type == 'MESH':
-            col.item_pointerR(tan, "uv_layer", ob.data, "uv_textures", text="")
+            col.prop_pointer(tan, "uv_layer", ob.data, "uv_textures", text="")
         else:
-            col.itemR(tan, "uv_layer", text="")
-        col.itemS()
+            col.prop(tan, "uv_layer", text="")
+        col.separator()
         sub = col.column()
         sub.active = (not mat.shadeless)
-        sub.itemR(tan, "surface_diffuse")
+        sub.prop(tan, "surface_diffuse")
         sub = col.column()
         sub.active = tan.surface_diffuse
-        sub.itemR(tan, "blend_distance", text="Distance")
+        sub.prop(tan, "blend_distance", text="Distance")
 
 
 class MATERIAL_PT_physics(MaterialButtonsPanel):
@@ -225,15 +225,15 @@ class MATERIAL_PT_physics(MaterialButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(phys, "distance")
-        col.itemR(phys, "friction")
-        col.itemR(phys, "align_to_normal")
+        col.prop(phys, "distance")
+        col.prop(phys, "friction")
+        col.prop(phys, "align_to_normal")
 
         if wide_ui:
             col = split.column()
-        col.itemR(phys, "force", slider=True)
-        col.itemR(phys, "elasticity", slider=True)
-        col.itemR(phys, "damp", slider=True)
+        col.prop(phys, "force", slider=True)
+        col.prop(phys, "elasticity", slider=True)
+        col.prop(phys, "damp", slider=True)
 
 
 class MATERIAL_PT_options(MaterialButtonsPanel):
@@ -254,31 +254,31 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(mat, "traceable")
-        col.itemR(mat, "full_oversampling")
-        col.itemR(mat, "sky")
-        col.itemR(mat, "exclude_mist")
-        col.itemR(mat, "invert_z")
+        col.prop(mat, "traceable")
+        col.prop(mat, "full_oversampling")
+        col.prop(mat, "sky")
+        col.prop(mat, "exclude_mist")
+        col.prop(mat, "invert_z")
         sub = col.row()
-        sub.itemR(mat, "z_offset")
+        sub.prop(mat, "z_offset")
         sub.active = mat.transparency and mat.transparency_method == 'Z_TRANSPARENCY'
         sub = col.column(align=True)
-        sub.itemL(text="Light Group:")
-        sub.itemR(mat, "light_group", text="")
+        sub.label(text="Light Group:")
+        sub.prop(mat, "light_group", text="")
         row = sub.row()
         row.active = bool(mat.light_group)
-        row.itemR(mat, "light_group_exclusive", text="Exclusive")
+        row.prop(mat, "light_group_exclusive", text="Exclusive")
 
         if wide_ui:
             col = split.column()
-        col.itemR(mat, "face_texture")
+        col.prop(mat, "face_texture")
         sub = col.column()
         sub.active = mat.face_texture
-        sub.itemR(mat, "face_texture_alpha")
-        col.itemS()
-        col.itemR(mat, "vertex_color_paint")
-        col.itemR(mat, "vertex_color_light")
-        col.itemR(mat, "object_color")
+        sub.prop(mat, "face_texture_alpha")
+        col.separator()
+        col.prop(mat, "vertex_color_paint")
+        col.prop(mat, "vertex_color_light")
+        col.prop(mat, "object_color")
 
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel):
@@ -300,22 +300,22 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(mat, "shadows", text="Receive")
-        col.itemR(mat, "receive_transparent_shadows", text="Receive Transparent")
-        col.itemR(mat, "only_shadow", text="Shadows Only")
-        col.itemR(mat, "cast_shadows_only", text="Cast Only")
-        col.itemR(mat, "shadow_casting_alpha", text="Casting Alpha")
+        col.prop(mat, "shadows", text="Receive")
+        col.prop(mat, "receive_transparent_shadows", text="Receive Transparent")
+        col.prop(mat, "only_shadow", text="Shadows Only")
+        col.prop(mat, "cast_shadows_only", text="Cast Only")
+        col.prop(mat, "shadow_casting_alpha", text="Casting Alpha")
 
         if wide_ui:
             col = split.column()
-        col.itemR(mat, "cast_buffer_shadows")
+        col.prop(mat, "cast_buffer_shadows")
         sub = col.column()
         sub.active = mat.cast_buffer_shadows
-        sub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
-        col.itemR(mat, "ray_shadow_bias", text="Auto Ray Bias")
+        sub.prop(mat, "shadow_buffer_bias", text="Buffer Bias")
+        col.prop(mat, "ray_shadow_bias", text="Auto Ray Bias")
         sub = col.column()
         sub.active = (not mat.ray_shadow_bias)
-        sub.itemR(mat, "shadow_ray_bias", text="Ray Bias")
+        sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
 
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel):
@@ -336,57 +336,57 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(mat, "diffuse_color", text="")
+        col.prop(mat, "diffuse_color", text="")
         sub = col.column()
         sub.active = (not mat.shadeless)
-        sub.itemR(mat, "diffuse_intensity", text="Intensity")
+        sub.prop(mat, "diffuse_intensity", text="Intensity")
 
         if wide_ui:
             col = split.column()
         col.active = (not mat.shadeless)
-        col.itemR(mat, "diffuse_shader", text="")
-        col.itemR(mat, "use_diffuse_ramp", text="Ramp")
+        col.prop(mat, "diffuse_shader", text="")
+        col.prop(mat, "use_diffuse_ramp", text="Ramp")
 
         col = layout.column()
         col.active = (not mat.shadeless)
         if mat.diffuse_shader == 'OREN_NAYAR':
-            col.itemR(mat, "roughness")
+            col.prop(mat, "roughness")
         elif mat.diffuse_shader == 'MINNAERT':
-            col.itemR(mat, "darkness")
+            col.prop(mat, "darkness")
         elif mat.diffuse_shader == 'TOON':
             split = col.split()
 
             col = split.column()
-            col.itemR(mat, "diffuse_toon_size", text="Size")
+            col.prop(mat, "diffuse_toon_size", text="Size")
 
             if wide_ui:
                 col = split.column()
-            col.itemR(mat, "diffuse_toon_smooth", text="Smooth")
+            col.prop(mat, "diffuse_toon_smooth", text="Smooth")
         elif mat.diffuse_shader == 'FRESNEL':
             split = col.split()
 
             col = split.column()
-            col.itemR(mat, "diffuse_fresnel", text="Fresnel")
+            col.prop(mat, "diffuse_fresnel", text="Fresnel")
 
             if wide_ui:
                 col = split.column()
-            col.itemR(mat, "diffuse_fresnel_factor", text="Factor")
+            col.prop(mat, "diffuse_fresnel_factor", text="Factor")
 
         if mat.use_diffuse_ramp:
-            layout.itemS()
+            layout.separator()
             layout.template_color_ramp(mat, "diffuse_ramp", expand=True)
-            layout.itemS()
+            layout.separator()
 
             split = layout.split()
 
             col = split.column()
-            col.itemR(mat, "diffuse_ramp_input", text="Input")
+            col.prop(mat, "diffuse_ramp_input", text="Input")
 
             if wide_ui:
                 col = split.column()
-            col.itemR(mat, "diffuse_ramp_blend", text="Blend")
+            col.prop(mat, "diffuse_ramp_blend", text="Blend")
             row = layout.row()
-            row.itemR(mat, "diffuse_ramp_factor", text="Factor")
+            row.prop(mat, "diffuse_ramp_factor", text="Factor")
 
 
 class MATERIAL_PT_specular(MaterialButtonsPanel):
@@ -409,53 +409,53 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(mat, "specular_color", text="")
-        col.itemR(mat, "specular_intensity", text="Intensity")
+        col.prop(mat, "specular_color", text="")
+        col.prop(mat, "specular_intensity", text="Intensity")
 
         if wide_ui:
             col = split.column()
-        col.itemR(mat, "specular_shader", text="")
-        col.itemR(mat, "use_specular_ramp", text="Ramp")
+        col.prop(mat, "specular_shader", text="")
+        col.prop(mat, "use_specular_ramp", text="Ramp")
 
         col = layout.column()
         if mat.specular_shader in ('COOKTORR', 'PHONG'):
-            col.itemR(mat, "specular_hardness", text="Hardness")
+            col.prop(mat, "specular_hardness", text="Hardness")
         elif mat.specular_shader == 'BLINN':
             split = layout.split()
 
             col = split.column()
-            col.itemR(mat, "specular_hardness", text="Hardness")
+            col.prop(mat, "specular_hardness", text="Hardness")
 
             if wide_ui:
                 col = split.column()
-            col.itemR(mat, "specular_ior", text="IOR")
+            col.prop(mat, "specular_ior", text="IOR")
         elif mat.specular_shader == 'WARDISO':
-            col.itemR(mat, "specular_slope", text="Slope")
+            col.prop(mat, "specular_slope", text="Slope")
         elif mat.specular_shader == 'TOON':
             split = layout.split()
 
             col = split.column()
-            col.itemR(mat, "specular_toon_size", text="Size")
+            col.prop(mat, "specular_toon_size", text="Size")
 
             if wide_ui:
                 col = split.column()
-            col.itemR(mat, "specular_toon_smooth", text="Smooth")
+            col.prop(mat, "specular_toon_smooth", text="Smooth")
 
         if mat.use_specular_ramp:
-            layout.itemS()
+            layout.separator()
             layout.template_color_ramp(mat, "specular_ramp", expand=True)
-            layout.itemS()
+            layout.separator()
             split = layout.split()
 
             col = split.column()
-            col.itemR(mat, "specular_ramp_input", text="Input")
+            col.prop(mat, "specular_ramp_input", text="Input")
 
             if wide_ui:
                 col = split.column()
-            col.itemR(mat, "specular_ramp_blend", text="Blend")
+            col.prop(mat, "specular_ramp_blend", text="Blend")
 
             row = layout.row()
-            row.itemR(mat, "specular_ramp_factor", text="Factor")
+            row.prop(mat, "specular_ramp_factor", text="Factor")
 
 
 class MATERIAL_PT_sss(MaterialButtonsPanel):
@@ -473,7 +473,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         sss = mat.subsurface_scattering
 
         self.layout.active = (not mat.shadeless)
-        self.layout.itemR(sss, "enabled", text="")
+        self.layout.prop(sss, "enabled", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -486,28 +486,28 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)
-        sub.itemM("MATERIAL_MT_sss_presets", text="Presets")
-        sub.itemO("material.sss_preset_add", text="Add")
+        sub.menu("MATERIAL_MT_sss_presets", text="Presets")
+        sub.operator("material.sss_preset_add", text="Add")
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(sss, "ior")
-        col.itemR(sss, "scale")
-        col.itemR(sss, "color", text="")
-        col.itemR(sss, "radius", text="RGB Radius")
+        col.prop(sss, "ior")
+        col.prop(sss, "scale")
+        col.prop(sss, "color", text="")
+        col.prop(sss, "radius", text="RGB Radius")
 
         if wide_ui:
             col = split.column()
         sub = col.column(align=True)
-        sub.itemL(text="Blend:")
-        sub.itemR(sss, "color_factor", text="Color")
-        sub.itemR(sss, "texture_factor", text="Texture")
-        sub.itemL(text="Scattering Weight:")
-        sub.itemR(sss, "front")
-        sub.itemR(sss, "back")
-        col.itemS()
-        col.itemR(sss, "error_tolerance", text="Error")
+        sub.label(text="Blend:")
+        sub.prop(sss, "color_factor", text="Color")
+        sub.prop(sss, "texture_factor", text="Texture")
+        sub.label(text="Scattering Weight:")
+        sub.prop(sss, "front")
+        sub.prop(sss, "back")
+        col.separator()
+        col.prop(sss, "error_tolerance", text="Error")
 
 
 class MATERIAL_PT_mirror(MaterialButtonsPanel):
@@ -523,7 +523,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
     def draw_header(self, context):
         raym = active_node_mat(context.material).raytrace_mirror
 
-        self.layout.itemR(raym, "enabled", text="")
+        self.layout.prop(raym, "enabled", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -537,36 +537,36 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(raym, "reflect_factor")
-        col.itemR(mat, "mirror_color", text="")
+        col.prop(raym, "reflect_factor")
+        col.prop(mat, "mirror_color", text="")
 
         if wide_ui:
             col = split.column()
-        col.itemR(raym, "fresnel")
+        col.prop(raym, "fresnel")
         sub = col.column()
         sub.active = raym.fresnel > 0
-        sub.itemR(raym, "fresnel_factor", text="Blend")
+        sub.prop(raym, "fresnel_factor", text="Blend")
 
         split = layout.split()
 
         col = split.column()
-        col.itemS()
-        col.itemR(raym, "distance", text="Max Dist")
-        col.itemR(raym, "depth")
-        col.itemS()
+        col.separator()
+        col.prop(raym, "distance", text="Max Dist")
+        col.prop(raym, "depth")
+        col.separator()
         sub = col.split(percentage=0.4)
-        sub.itemL(text="Fade To:")
-        sub.itemR(raym, "fade_to", text="")
+        sub.label(text="Fade To:")
+        sub.prop(raym, "fade_to", text="")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Gloss:")
-        col.itemR(raym, "gloss_factor", text="Amount")
+        col.label(text="Gloss:")
+        col.prop(raym, "gloss_factor", text="Amount")
         sub = col.column()
         sub.active = raym.gloss_factor < 1.0
-        sub.itemR(raym, "gloss_threshold", text="Threshold")
-        sub.itemR(raym, "gloss_samples", text="Samples")
-        sub.itemR(raym, "gloss_anisotropic", text="Anisotropic")
+        sub.prop(raym, "gloss_threshold", text="Threshold")
+        sub.prop(raym, "gloss_samples", text="Samples")
+        sub.prop(raym, "gloss_anisotropic", text="Anisotropic")
 
 
 class MATERIAL_PT_transp(MaterialButtonsPanel):
@@ -582,7 +582,7 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
     def draw_header(self, context):
         mat = active_node_mat(context.material)
 
-        self.layout.itemR(mat, "transparency", text="")
+        self.layout.prop(mat, "transparency", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -594,46 +594,46 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
         row = layout.row()
         row.active = mat.transparency and (not mat.shadeless)
         if wide_ui:
-            row.itemR(mat, "transparency_method", expand=True)
+            row.prop(mat, "transparency_method", expand=True)
         else:
-            row.itemR(mat, "transparency_method", text="")
+            row.prop(mat, "transparency_method", text="")
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(mat, "alpha")
+        col.prop(mat, "alpha")
         row = col.row()
         row.active = mat.transparency and (not mat.shadeless)
-        row.itemR(mat, "specular_alpha", text="Specular")
+        row.prop(mat, "specular_alpha", text="Specular")
 
         if wide_ui:
             col = split.column()
         col.active = (not mat.shadeless)
-        col.itemR(rayt, "fresnel")
+        col.prop(rayt, "fresnel")
         sub = col.column()
         sub.active = rayt.fresnel > 0
-        sub.itemR(rayt, "fresnel_factor", text="Blend")
+        sub.prop(rayt, "fresnel_factor", text="Blend")
 
         if mat.transparency_method == 'RAYTRACE':
-            layout.itemS()
+            layout.separator()
             split = layout.split()
             split.active = mat.transparency
 
             col = split.column()
-            col.itemR(rayt, "ior")
-            col.itemR(rayt, "filter")
-            col.itemR(rayt, "falloff")
-            col.itemR(rayt, "limit")
-            col.itemR(rayt, "depth")
+            col.prop(rayt, "ior")
+            col.prop(rayt, "filter")
+            col.prop(rayt, "falloff")
+            col.prop(rayt, "limit")
+            col.prop(rayt, "depth")
 
             if wide_ui:
                 col = split.column()
-            col.itemL(text="Gloss:")
-            col.itemR(rayt, "gloss_factor", text="Amount")
+            col.label(text="Gloss:")
+            col.prop(rayt, "gloss_factor", text="Amount")
             sub = col.column()
             sub.active = rayt.gloss_factor < 1.0
-            sub.itemR(rayt, "gloss_threshold", text="Threshold")
-            sub.itemR(rayt, "gloss_samples", text="Samples")
+            sub.prop(rayt, "gloss_threshold", text="Threshold")
+            sub.prop(rayt, "gloss_samples", text="Samples")
 
 
 class MATERIAL_PT_halo(MaterialButtonsPanel):
@@ -655,35 +655,35 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(mat, "diffuse_color", text="")
-        col.itemR(halo, "size")
-        col.itemR(halo, "hardness")
-        col.itemR(halo, "add")
-        col.itemL(text="Options:")
-        col.itemR(halo, "texture")
-        col.itemR(halo, "vertex_normal")
-        col.itemR(halo, "xalpha")
-        col.itemR(halo, "shaded")
-        col.itemR(halo, "soft")
+        col.prop(mat, "diffuse_color", text="")
+        col.prop(halo, "size")
+        col.prop(halo, "hardness")
+        col.prop(halo, "add")
+        col.label(text="Options:")
+        col.prop(halo, "texture")
+        col.prop(halo, "vertex_normal")
+        col.prop(halo, "xalpha")
+        col.prop(halo, "shaded")
+        col.prop(halo, "soft")
 
         if wide_ui:
             col = split.column()
-        col.itemR(halo, "ring")
+        col.prop(halo, "ring")
         sub = col.column()
         sub.active = halo.ring
-        sub.itemR(halo, "rings")
-        sub.itemR(mat, "mirror_color", text="")
-        col.itemS()
-        col.itemR(halo, "lines")
+        sub.prop(halo, "rings")
+        sub.prop(mat, "mirror_color", text="")
+        col.separator()
+        col.prop(halo, "lines")
         sub = col.column()
         sub.active = halo.lines
-        sub.itemR(halo, "line_number", text="Lines")
-        sub.itemR(mat, "specular_color", text="")
-        col.itemS()
-        col.itemR(halo, "star")
+        sub.prop(halo, "line_number", text="Lines")
+        sub.prop(mat, "specular_color", text="")
+        col.separator()
+        col.prop(halo, "star")
         sub = col.column()
         sub.active = halo.star
-        sub.itemR(halo, "star_tips")
+        sub.prop(halo, "star_tips")
 
 
 class MATERIAL_PT_flare(MaterialButtonsPanel):
@@ -698,7 +698,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel):
     def draw_header(self, context):
         halo = context.material.halo
 
-        self.layout.itemR(halo, "flare_mode", text="")
+        self.layout.prop(halo, "flare_mode", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -712,13 +712,13 @@ class MATERIAL_PT_flare(MaterialButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(halo, "flare_size", text="Size")
-        col.itemR(halo, "flare_boost", text="Boost")
-        col.itemR(halo, "flare_seed", text="Seed")
+        col.prop(halo, "flare_size", text="Size")
+        col.prop(halo, "flare_boost", text="Boost")
+        col.prop(halo, "flare_seed", text="Seed")
         if wide_ui:
             col = split.column()
-        col.itemR(halo, "flares_sub", text="Subflares")
-        col.itemR(halo, "flare_subsize", text="Subsize")
+        col.prop(halo, "flares_sub", text="Subflares")
+        col.prop(halo, "flare_subsize", text="Subsize")
 
 bpy.types.register(MATERIAL_PT_context_material)
 bpy.types.register(MATERIAL_PT_preview)
@@ -760,11 +760,11 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel):
 
         split = layout.split()
         col = split.column()
-        col.itemR(vol, "density")
+        col.prop(vol, "density")
 
         if wide_ui:
             col = split.column()
-        col.itemR(vol, "density_scale")
+        col.prop(vol, "density_scale")
 
 
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
@@ -781,18 +781,18 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(vol, "scattering")
-        col.itemR(vol, "asymmetry")
-        col.itemR(vol, "transmission_color")
+        col.prop(vol, "scattering")
+        col.prop(vol, "asymmetry")
+        col.prop(vol, "transmission_color")
 
         if wide_ui:
             col = split.column()
         sub = col.column(align=True)
-        sub.itemR(vol, "emission")
-        sub.itemR(vol, "emission_color", text="")
+        sub.prop(vol, "emission")
+        sub.prop(vol, "emission_color", text="")
         sub = col.column(align=True)
-        sub.itemR(vol, "reflection")
-        sub.itemR(vol, "reflection_color", text="")
+        sub.prop(vol, "reflection")
+        sub.prop(vol, "reflection_color", text="")
 
 
 class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
@@ -809,28 +809,28 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(vol, "lighting_mode", text="")
+        col.prop(vol, "lighting_mode", text="")
 
         if wide_ui:
             col = split.column()
 
         if vol.lighting_mode == 'SHADED':
-            col.itemR(vol, "external_shadows")
-            col.itemR(vol, "light_cache")
+            col.prop(vol, "external_shadows")
+            col.prop(vol, "light_cache")
             sub = col.column()
             sub.active = vol.light_cache
-            sub.itemR(vol, "cache_resolution")
+            sub.prop(vol, "cache_resolution")
         elif vol.lighting_mode in ('MULTIPLE_SCATTERING', 'SHADED_PLUS_MULTIPLE_SCATTERING'):
             sub = col.column()
             sub.enabled = True
             sub.active = False
-            sub.itemR(vol, "light_cache")
-            col.itemR(vol, "cache_resolution")
+            sub.prop(vol, "light_cache")
+            col.prop(vol, "cache_resolution")
 
             sub = col.column(align=True)
-            sub.itemR(vol, "ms_diffusion")
-            sub.itemR(vol, "ms_spread")
-            sub.itemR(vol, "ms_intensity")
+            sub.prop(vol, "ms_diffusion")
+            sub.prop(vol, "ms_spread")
+            sub.prop(vol, "ms_intensity")
 
 
 class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
@@ -844,9 +844,9 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         if wide_ui:
-            layout.itemR(mat, "transparency_method", expand=True)
+            layout.prop(mat, "transparency_method", expand=True)
         else:
-            layout.itemR(mat, "transparency_method", text="")
+            layout.prop(mat, "transparency_method", text="")
 
 
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
@@ -863,15 +863,15 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Step Calculation:")
-        col.itemR(vol, "step_calculation", text="")
+        col.label(text="Step Calculation:")
+        col.prop(vol, "step_calculation", text="")
         col = col.column(align=True)
-        col.itemR(vol, "step_size")
+        col.prop(vol, "step_size")
 
         if wide_ui:
             col = split.column()
-        col.itemL()
-        col.itemR(vol, "depth_cutoff")
+        col.label()
+        col.prop(vol, "depth_cutoff")
 
 bpy.types.register(MATERIAL_MT_sss_presets)
 

@@ -47,10 +47,10 @@ class DATA_PT_context_mesh(DataButtonsPanel):
             split = layout.split(percentage=0.65)
             if ob:
                 split.template_ID(ob, "data")
-                split.itemS()
+                split.separator()
             elif mesh:
                 split.template_ID(space, "pin_id")
-                split.itemS()
+                split.separator()
         else:
             if ob:
                 layout.template_ID(ob, "data")
@@ -70,17 +70,17 @@ class DATA_PT_normals(DataButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(mesh, "autosmooth")
+        col.prop(mesh, "autosmooth")
         sub = col.column()
         sub.active = mesh.autosmooth
-        sub.itemR(mesh, "autosmooth_angle", text="Angle")
+        sub.prop(mesh, "autosmooth_angle", text="Angle")
 
         if wide_ui:
             col = split.column()
         else:
-            col.itemS()
-        col.itemR(mesh, "vertex_normal_flip")
-        col.itemR(mesh, "double_sided")
+            col.separator()
+        col.prop(mesh, "vertex_normal_flip")
+        col.prop(mesh, "double_sided")
 
 
 class DATA_PT_settings(DataButtonsPanel):
@@ -91,7 +91,7 @@ class DATA_PT_settings(DataButtonsPanel):
 
         mesh = context.mesh
 
-        layout.itemR(mesh, "texture_mesh")
+        layout.prop(mesh, "texture_mesh")
 
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
@@ -114,29 +114,29 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
         row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index", rows=rows)
 
         col = row.column(align=True)
-        col.itemO("object.vertex_group_add", icon='ICON_ZOOMIN', text="")
-        col.itemO("object.vertex_group_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("object.vertex_group_add", icon='ICON_ZOOMIN', text="")
+        col.operator("object.vertex_group_remove", icon='ICON_ZOOMOUT', text="")
 
-        col.itemO("object.vertex_group_copy", icon='ICON_COPY_ID', text="")
+        col.operator("object.vertex_group_copy", icon='ICON_COPY_ID', text="")
         if ob.data.users > 1:
-            col.itemO("object.vertex_group_copy_to_linked", icon='ICON_LINK_AREA', text="")
+            col.operator("object.vertex_group_copy_to_linked", icon='ICON_LINK_AREA', text="")
 
         if group:
             row = layout.row()
-            row.itemR(group, "name")
+            row.prop(group, "name")
 
         if ob.mode == 'EDIT' and len(ob.vertex_groups) > 0:
             row = layout.row()
 
             sub = row.row(align=True)
-            sub.itemO("object.vertex_group_assign", text="Assign")
-            sub.itemO("object.vertex_group_remove_from", text="Remove")
+            sub.operator("object.vertex_group_assign", text="Assign")
+            sub.operator("object.vertex_group_remove_from", text="Remove")
 
             sub = row.row(align=True)
-            sub.itemO("object.vertex_group_select", text="Select")
-            sub.itemO("object.vertex_group_deselect", text="Deselect")
+            sub.operator("object.vertex_group_select", text="Select")
+            sub.operator("object.vertex_group_deselect", text="Deselect")
 
-            layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight")
+            layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
 
 
 class DATA_PT_shape_keys(DataButtonsPanel):
@@ -170,27 +170,27 @@ class DATA_PT_shape_keys(DataButtonsPanel):
         col = row.column()
 
         sub = col.column(align=True)
-        sub.itemO("object.shape_key_add", icon='ICON_ZOOMIN', text="")
-        sub.itemO("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
+        sub.operator("object.shape_key_add", icon='ICON_ZOOMIN', text="")
+        sub.operator("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
 
         if kb:
-            col.itemS()
+            col.separator()
 
             sub = col.column(align=True)
-            sub.item_enumO("object.shape_key_move", "type", 'UP', icon='ICON_TRIA_UP', text="")
-            sub.item_enumO("object.shape_key_move", "type", 'DOWN', icon='ICON_TRIA_DOWN', text="")
+            sub.operator_enum("object.shape_key_move", "type", 'UP', icon='ICON_TRIA_UP', text="")
+            sub.operator_enum("object.shape_key_move", "type", 'DOWN', icon='ICON_TRIA_DOWN', text="")
 
             split = layout.split(percentage=0.4)
             row = split.row()
             row.enabled = enable_edit
             if wide_ui:
-                row.itemR(key, "relative")
+                row.prop(key, "relative")
 
             row = split.row()
             row.alignment = 'RIGHT'
 
             if not wide_ui:
-                layout.itemR(key, "relative")
+                layout.prop(key, "relative")
                 row = layout.row()
 
 
@@ -198,48 +198,48 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
             if ob.shape_key_lock:
-                subsub.itemR(ob, "shape_key_lock", icon='ICON_PINNED', text="")
+                subsub.prop(ob, "shape_key_lock", icon='ICON_PINNED', text="")
             else:
-                subsub.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
+                subsub.prop(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
             if kb.mute:
-                subsub.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
+                subsub.prop(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
             else:
-                subsub.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
-            sub.itemR(ob, "shape_key_edit_mode", text="")
+                subsub.prop(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
+            sub.prop(ob, "shape_key_edit_mode", text="")
 
             sub = row.row(align=True)
-            sub.itemO("object.shape_key_mirror", icon='ICON_ARROW_LEFTRIGHT', text="")
-            sub.itemO("object.shape_key_clear", icon='ICON_X', text="")
+            sub.operator("object.shape_key_mirror", icon='ICON_ARROW_LEFTRIGHT', text="")
+            sub.operator("object.shape_key_clear", icon='ICON_X', text="")
 
 
             row = layout.row()
-            row.itemR(kb, "name")
+            row.prop(kb, "name")
 
             if key.relative:
                 if ob.active_shape_key_index != 0:
                     row = layout.row()
                     row.active = enable_edit_value
-                    row.itemR(kb, "value")
+                    row.prop(kb, "value")
 
                     split = layout.split()
 
                     col = split.column(align=True)
                     col.active = enable_edit_value
-                    col.itemL(text="Range:")
-                    col.itemR(kb, "slider_min", text="Min")
-                    col.itemR(kb, "slider_max", text="Max")
+                    col.label(text="Range:")
+                    col.prop(kb, "slider_min", text="Min")
+                    col.prop(kb, "slider_max", text="Max")
 
                     if wide_ui:
                         col = split.column(align=True)
                     col.active = enable_edit_value
-                    col.itemL(text="Blend:")
-                    col.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
-                    col.item_pointerR(kb, "relative_key", key, "keys", text="")
+                    col.label(text="Blend:")
+                    col.prop_pointer(kb, "vertex_group", ob, "vertex_groups", text="")
+                    col.prop_pointer(kb, "relative_key", key, "keys", text="")
 
             else:
                 row = layout.row()
                 row.active = enable_edit_value
-                row.itemR(key, "slurph")
+                row.prop(key, "slurph")
 
 
 class DATA_PT_uv_texture(DataButtonsPanel):
@@ -256,12 +256,12 @@ class DATA_PT_uv_texture(DataButtonsPanel):
         col.template_list(me, "uv_textures", me, "active_uv_texture_index", rows=2)
 
         col = row.column(align=True)
-        col.itemO("mesh.uv_texture_add", icon='ICON_ZOOMIN', text="")
-        col.itemO("mesh.uv_texture_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("mesh.uv_texture_add", icon='ICON_ZOOMIN', text="")
+        col.operator("mesh.uv_texture_remove", icon='ICON_ZOOMOUT', text="")
 
         lay = me.active_uv_texture
         if lay:
-            layout.itemR(lay, "name")
+            layout.prop(lay, "name")
 
 
 class DATA_PT_vertex_colors(DataButtonsPanel):
@@ -278,12 +278,12 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
         col.template_list(me, "vertex_colors", me, "active_vertex_color_index", rows=2)
 
         col = row.column(align=True)
-        col.itemO("mesh.vertex_color_add", icon='ICON_ZOOMIN', text="")
-        col.itemO("mesh.vertex_color_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("mesh.vertex_color_add", icon='ICON_ZOOMIN', text="")
+        col.operator("mesh.vertex_color_remove", icon='ICON_ZOOMOUT', text="")
 
         lay = me.active_vertex_color
         if lay:
-            layout.itemR(lay, "name")
+            layout.prop(lay, "name")
 
 bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_normals)

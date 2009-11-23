@@ -191,7 +191,7 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".mdd")
-    self.layout.item_stringO(ExportMDD.bl_idname, "path", default_path, text="Vertex Keyframe Animation (.mdd)...")
+    self.layout.operator_string(ExportMDD.bl_idname, "path", default_path, text="Vertex Keyframe Animation (.mdd)...")
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 

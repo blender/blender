@@ -34,39 +34,39 @@ class TEXT_HT_header(bpy.types.Header):
 
         if context.area.show_menus:
             sub = row.row(align=True)
-            sub.itemM("TEXT_MT_text")
+            sub.menu("TEXT_MT_text")
             if text:
-                sub.itemM("TEXT_MT_edit")
-                sub.itemM("TEXT_MT_format")
+                sub.menu("TEXT_MT_edit")
+                sub.menu("TEXT_MT_format")
 
         if text and text.modified:
             row = layout.row()
             # row.color(redalert)
-            row.itemO("text.resolve_conflict", text="", icon='ICON_HELP')
+            row.operator("text.resolve_conflict", text="", icon='ICON_HELP')
 
         layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
 
         row = layout.row(align=True)
-        row.itemR(st, "line_numbers", text="")
-        row.itemR(st, "word_wrap", text="")
-        row.itemR(st, "syntax_highlight", text="")
+        row.prop(st, "line_numbers", text="")
+        row.prop(st, "word_wrap", text="")
+        row.prop(st, "syntax_highlight", text="")
 
         if text:
             row = layout.row()
-            row.itemO("text.run_script")
-            row.itemR(text, "use_module")
+            row.operator("text.run_script")
+            row.prop(text, "use_module")
 
             row = layout.row()
             if text.filename != "":
                 if text.dirty:
-                    row.itemL(text="File: *%s (unsaved)" % text.filename)
+                    row.label(text="File: *%s (unsaved)" % text.filename)
                 else:
-                    row.itemL(text="File: %s" % text.filename)
+                    row.label(text="File: %s" % text.filename)
             else:
                 if text.library:
-                    row.itemL(text="Text: External")
+                    row.label(text="Text: External")
                 else:
-                    row.itemL(text="Text: Internal")
+                    row.label(text="Text: Internal")
 
 
 class TEXT_PT_properties(bpy.types.Panel):
@@ -80,14 +80,14 @@ class TEXT_PT_properties(bpy.types.Panel):
         st = context.space_data
 
         flow = layout.column_flow()
-        flow.itemR(st, "line_numbers")
-        flow.itemR(st, "word_wrap")
-        flow.itemR(st, "syntax_highlight")
-        flow.itemR(st, "live_edit")
+        flow.prop(st, "line_numbers")
+        flow.prop(st, "word_wrap")
+        flow.prop(st, "syntax_highlight")
+        flow.prop(st, "live_edit")
 
         flow = layout.column_flow()
-        flow.itemR(st, "font_size")
-        flow.itemR(st, "tab_width")
+        flow.prop(st, "font_size")
+        flow.prop(st, "tab_width")
 
 
 class TEXT_PT_find(bpy.types.Panel):
@@ -103,24 +103,24 @@ class TEXT_PT_find(bpy.types.Panel):
         # find
         col = layout.column(align=True)
         row = col.row()
-        row.itemR(st, "find_text", text="")
-        row.itemO("text.find_set_selected", text="", icon='ICON_TEXT')
-        col.itemO("text.find")
+        row.prop(st, "find_text", text="")
+        row.operator("text.find_set_selected", text="", icon='ICON_TEXT')
+        col.operator("text.find")
 
         # replace
         col = layout.column(align=True)
         row = col.row()
-        row.itemR(st, "replace_text", text="")
-        row.itemO("text.replace_set_selected", text="", icon='ICON_TEXT')
-        col.itemO("text.replace")
+        row.prop(st, "replace_text", text="")
+        row.operator("text.replace_set_selected", text="", icon='ICON_TEXT')
+        col.operator("text.replace")
 
         # mark
-        layout.itemO("text.mark_all")
+        layout.operator("text.mark_all")
 
         # settings
         row = layout.row()
-        row.itemR(st, "find_wrap", text="Wrap")
-        row.itemR(st, "find_all", text="All")
+        row.prop(st, "find_wrap", text="Wrap")
+        row.prop(st, "find_all", text="All")
 
 
 class TEXT_MT_text(bpy.types.Menu):
@@ -133,32 +133,32 @@ class TEXT_MT_text(bpy.types.Menu):
         text = st.text
 
         layout.column()
-        layout.itemO("text.new")
-        layout.itemO("text.open")
+        layout.operator("text.new")
+        layout.operator("text.open")
 
         if text:
-            layout.itemO("text.reload")
+            layout.operator("text.reload")
 
             layout.column()
-            layout.itemO("text.save")
-            layout.itemO("text.save_as")
+            layout.operator("text.save")
+            layout.operator("text.save_as")
 
             if text.filename != "":
-                layout.itemO("text.make_internal")
+                layout.operator("text.make_internal")
 
             layout.column()
-            layout.itemO("text.run_script")
+            layout.operator("text.run_script")
 
             #ifndef DISABLE_PYTHON
             # XXX if(BPY_is_pyconstraint(text))
             # XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
             #endif
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemO("text.properties", icon='ICON_MENU_PANEL')
+        layout.operator("text.properties", icon='ICON_MENU_PANEL')
 
-        layout.itemM("TEXT_MT_templates")
+        layout.menu("TEXT_MT_templates")
 
 
 class TEXT_MT_templates(bpy.types.Menu):
@@ -178,8 +178,8 @@ class TEXT_MT_edit_view(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.item_enumO("text.move", "type", 'FILE_TOP', text="Top of File")
-        layout.item_enumO("text.move", "type", 'FILE_BOTTOM', text="Bottom of File")
+        layout.operator_enum("text.move", "type", 'FILE_TOP', text="Top of File")
+        layout.operator_enum("text.move", "type", 'FILE_BOTTOM', text="Bottom of File")
 
 
 class TEXT_MT_edit_select(bpy.types.Menu):
@@ -188,8 +188,8 @@ class TEXT_MT_edit_select(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("text.select_all")
-        layout.itemO("text.select_line")
+        layout.operator("text.select_all")
+        layout.operator("text.select_line")
 
 
 class TEXT_MT_edit_markers(bpy.types.Menu):
@@ -198,9 +198,9 @@ class TEXT_MT_edit_markers(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("text.markers_clear")
-        layout.itemO("text.next_marker")
-        layout.itemO("text.previous_marker")
+        layout.operator("text.markers_clear")
+        layout.operator("text.next_marker")
+        layout.operator("text.previous_marker")
 
 
 class TEXT_MT_format(bpy.types.Menu):
@@ -209,17 +209,17 @@ class TEXT_MT_format(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("text.indent")
-        layout.itemO("text.unindent")
+        layout.operator("text.indent")
+        layout.operator("text.unindent")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemO("text.comment")
-        layout.itemO("text.uncomment")
+        layout.operator("text.comment")
+        layout.operator("text.uncomment")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.item_menu_enumO("text.convert_whitespace", "type")
+        layout.operator_menu_enum("text.convert_whitespace", "type")
 
 
 class TEXT_MT_edit_to3d(bpy.types.Menu):
@@ -228,8 +228,8 @@ class TEXT_MT_edit_to3d(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.item_booleanO("text.to_3d_object", "split_lines", False, text="One Object")
-        layout.item_booleanO("text.to_3d_object", "split_lines", True, text="One Object Per Line")
+        layout.operator_boolean("text.to_3d_object", "split_lines", False, text="One Object")
+        layout.operator_boolean("text.to_3d_object", "split_lines", True, text="One Object Per Line")
 
 
 class TEXT_MT_edit(bpy.types.Menu):
@@ -241,29 +241,29 @@ class TEXT_MT_edit(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.itemO("ed.undo")
-        layout.itemO("ed.redo")
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemO("text.cut")
-        layout.itemO("text.copy")
-        layout.itemO("text.paste")
+        layout.operator("text.cut")
+        layout.operator("text.copy")
+        layout.operator("text.paste")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemM("TEXT_MT_edit_view")
-        layout.itemM("TEXT_MT_edit_select")
-        layout.itemM("TEXT_MT_edit_markers")
+        layout.menu("TEXT_MT_edit_view")
+        layout.menu("TEXT_MT_edit_select")
+        layout.menu("TEXT_MT_edit_markers")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemO("text.jump")
-        layout.itemO("text.properties", text="Find...")
+        layout.operator("text.jump")
+        layout.operator("text.properties", text="Find...")
 
-        layout.itemS()
+        layout.separator()
 
-        layout.itemM("TEXT_MT_edit_to3d")
+        layout.menu("TEXT_MT_edit_to3d")
 
 bpy.types.register(TEXT_HT_header)
 bpy.types.register(TEXT_PT_properties)

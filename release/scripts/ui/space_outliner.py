@@ -35,29 +35,29 @@ class OUTLINER_HT_header(bpy.types.Header):
 
         if context.area.show_menus:
             sub = row.row(align=True)
-            sub.itemM("OUTLINER_MT_view")
+            sub.menu("OUTLINER_MT_view")
             if space.display_mode == 'DATABLOCKS':
-                sub.itemM("OUTLINER_MT_edit_datablocks")
+                sub.menu("OUTLINER_MT_edit_datablocks")
 
-        layout.itemR(space, "display_mode", text="")
+        layout.prop(space, "display_mode", text="")
 
-        layout.itemS()
+        layout.separator()
 
         if space.display_mode == 'DATABLOCKS':
             row = layout.row(align=True)
-            row.itemO("outliner.keyingset_add_selected", icon='ICON_ZOOMIN', text="")
-            row.itemO("outliner.keyingset_remove_selected", icon='ICON_ZOOMOUT', text="")
+            row.operator("outliner.keyingset_add_selected", icon='ICON_ZOOMIN', text="")
+            row.operator("outliner.keyingset_remove_selected", icon='ICON_ZOOMOUT', text="")
 
             if ks:
                 row = layout.row(align=False)
-                row.item_pointerR(scene, "active_keying_set", scene, "keying_sets", text="")
+                row.prop_pointer(scene, "active_keying_set", scene, "keying_sets", text="")
 
                 row = layout.row(align=True)
-                row.itemO("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
-                row.itemO("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
+                row.operator("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
+                row.operator("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
             else:
                 row = layout.row(align=False)
-                row.itemL(text="No Keying Set active")
+                row.label(text="No Keying Set active")
 
 
 class OUTLINER_MT_view(bpy.types.Menu):
@@ -70,12 +70,12 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
         col = layout.column()
         if space.display_mode not in ('DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'):
-            col.itemR(space, "show_restriction_columns")
-            col.itemS()
-            col.itemO("outliner.show_active")
+            col.prop(space, "show_restriction_columns")
+            col.separator()
+            col.operator("outliner.show_active")
 
-        col.itemO("outliner.show_one_level")
-        col.itemO("outliner.show_hierarchy")
+        col.operator("outliner.show_one_level")
+        col.operator("outliner.show_hierarchy")
 
 
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
@@ -86,13 +86,13 @@ class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
 
         col = layout.column()
 
-        col.itemO("outliner.keyingset_add_selected")
-        col.itemO("outliner.keyingset_remove_selected")
+        col.operator("outliner.keyingset_add_selected")
+        col.operator("outliner.keyingset_remove_selected")
 
-        col.itemS()
+        col.separator()
 
-        col.itemO("outliner.drivers_add_selected")
-        col.itemO("outliner.drivers_delete_selected")
+        col.operator("outliner.drivers_add_selected")
+        col.operator("outliner.drivers_delete_selected")
 
 bpy.types.register(OUTLINER_HT_header)
 bpy.types.register(OUTLINER_MT_view)

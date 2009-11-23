@@ -47,10 +47,10 @@ class DATA_PT_context_arm(DataButtonsPanel):
             split = layout.split(percentage=0.65)
             if ob:
                 split.template_ID(ob, "data")
-                split.itemS()
+                split.separator()
             elif arm:
                 split.template_ID(space, "pin_id")
-                split.itemS()
+                split.separator()
         else:
             layout.template_ID(ob, "data")
 
@@ -64,23 +64,23 @@ class DATA_PT_skeleton(DataButtonsPanel):
         arm = context.armature
         wide_ui = context.region.width > narrowui
 
-        layout.itemR(arm, "pose_position", expand=True)
+        layout.prop(arm, "pose_position", expand=True)
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Layers:")
-        col.itemR(arm, "layer", text="")
-        col.itemL(text="Protected Layers:")
-        col.itemR(arm, "layer_protection", text="")
+        col.label(text="Layers:")
+        col.prop(arm, "layer", text="")
+        col.label(text="Protected Layers:")
+        col.prop(arm, "layer_protection", text="")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Deform:")
-        col.itemR(arm, "deform_vertexgroups", text="Vertex Groups")
-        col.itemR(arm, "deform_envelope", text="Envelopes")
-        col.itemR(arm, "deform_quaternion", text="Quaternion")
-        col.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
+        col.label(text="Deform:")
+        col.prop(arm, "deform_vertexgroups", text="Vertex Groups")
+        col.prop(arm, "deform_envelope", text="Envelopes")
+        col.prop(arm, "deform_quaternion", text="Quaternion")
+        col.prop(arm, "deform_bbone_rest", text="B-Bones Rest")
 
 
 class DATA_PT_display(DataButtonsPanel):
@@ -93,21 +93,21 @@ class DATA_PT_display(DataButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         if wide_ui:
-            layout.row().itemR(arm, "drawtype", expand=True)
+            layout.row().prop(arm, "drawtype", expand=True)
         else:
-            layout.row().itemR(arm, "drawtype", text="")
+            layout.row().prop(arm, "drawtype", text="")
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(arm, "draw_names", text="Names")
-        col.itemR(arm, "draw_axes", text="Axes")
-        col.itemR(arm, "draw_custom_bone_shapes", text="Shapes")
+        col.prop(arm, "draw_names", text="Names")
+        col.prop(arm, "draw_axes", text="Axes")
+        col.prop(arm, "draw_custom_bone_shapes", text="Shapes")
 
         if wide_ui:
             col = split.column()
-        col.itemR(arm, "draw_group_colors", text="Colors")
-        col.itemR(arm, "delay_deform", text="Delay Refresh")
+        col.prop(arm, "draw_group_colors", text="Colors")
+        col.prop(arm, "delay_deform", text="Delay Refresh")
 
 
 class DATA_PT_bone_groups(DataButtonsPanel):
@@ -128,20 +128,20 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 
         col = row.column(align=True)
         col.active = (ob.proxy is None)
-        col.itemO("pose.group_add", icon='ICON_ZOOMIN', text="")
-        col.itemO("pose.group_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("pose.group_add", icon='ICON_ZOOMIN', text="")
+        col.operator("pose.group_remove", icon='ICON_ZOOMOUT', text="")
 
         group = pose.active_bone_group
         if group:
             col = layout.column()
             col.active = (ob.proxy is None)
-            col.itemR(group, "name")
+            col.prop(group, "name")
 
             split = layout.split()
             split.active = (ob.proxy is None)
 
             col = split.column()
-            col.itemR(group, "color_set")
+            col.prop(group, "color_set")
             if group.color_set:
                 if wide_ui:
                     col = split.column()
@@ -150,10 +150,10 @@ class DATA_PT_bone_groups(DataButtonsPanel):
         row = layout.row(align=True)
         row.active = (ob.proxy is None)
 
-        row.itemO("pose.group_assign", text="Assign")
-        row.itemO("pose.group_remove", text="Remove") #row.itemO("pose.bone_group_remove_from", text="Remove")
-        #row.itemO("object.bone_group_select", text="Select")
-        #row.itemO("object.bone_group_deselect", text="Deselect")
+        row.operator("pose.group_assign", text="Assign")
+        row.operator("pose.group_remove", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
+        #row.operator("object.bone_group_select", text="Select")
+        #row.operator("object.bone_group_deselect", text="Deselect")
 
 
 class DATA_PT_paths(DataButtonsPanel):
@@ -166,41 +166,41 @@ class DATA_PT_paths(DataButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         if wide_ui:
-            layout.itemR(arm, "paths_type", expand=True)
+            layout.prop(arm, "paths_type", expand=True)
         else:
-            layout.itemR(arm, "paths_type", text="")
+            layout.prop(arm, "paths_type", text="")
 
         split = layout.split()
 
         col = split.column()
         sub = col.column(align=True)
         if (arm.paths_type == 'CURRENT_FRAME'):
-            sub.itemR(arm, "path_before_current", text="Before")
-            sub.itemR(arm, "path_after_current", text="After")
+            sub.prop(arm, "path_before_current", text="Before")
+            sub.prop(arm, "path_after_current", text="After")
         elif (arm.paths_type == 'RANGE'):
-            sub.itemR(arm, "path_start_frame", text="Start")
-            sub.itemR(arm, "path_end_frame", text="End")
+            sub.prop(arm, "path_start_frame", text="Start")
+            sub.prop(arm, "path_end_frame", text="End")
 
-        sub.itemR(arm, "path_size", text="Step")
-        col.row().itemR(arm, "paths_location", expand=True)
+        sub.prop(arm, "path_size", text="Step")
+        col.row().prop(arm, "paths_location", expand=True)
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Display:")
-        col.itemR(arm, "paths_show_frame_numbers", text="Frame Numbers")
-        col.itemR(arm, "paths_highlight_keyframes", text="Keyframes")
-        col.itemR(arm, "paths_show_keyframe_numbers", text="Keyframe Numbers")
+        col.label(text="Display:")
+        col.prop(arm, "paths_show_frame_numbers", text="Frame Numbers")
+        col.prop(arm, "paths_highlight_keyframes", text="Keyframes")
+        col.prop(arm, "paths_show_keyframe_numbers", text="Keyframe Numbers")
 
-        layout.itemS()
+        layout.separator()
 
         split = layout.split()
 
         col = split.column()
-        col.itemO("pose.paths_calculate", text="Calculate Paths")
+        col.operator("pose.paths_calculate", text="Calculate Paths")
 
         if wide_ui:
             col = split.column()
-        col.itemO("pose.paths_clear", text="Clear Paths")
+        col.operator("pose.paths_clear", text="Clear Paths")
 
 
 class DATA_PT_ghost(DataButtonsPanel):
@@ -213,9 +213,9 @@ class DATA_PT_ghost(DataButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         if wide_ui:
-            layout.itemR(arm, "ghost_type", expand=True)
+            layout.prop(arm, "ghost_type", expand=True)
         else:
-            layout.itemR(arm, "ghost_type", text="")
+            layout.prop(arm, "ghost_type", text="")
 
         split = layout.split()
 
@@ -223,17 +223,17 @@ class DATA_PT_ghost(DataButtonsPanel):
 
         sub = col.column(align=True)
         if arm.ghost_type == 'RANGE':
-            sub.itemR(arm, "ghost_start_frame", text="Start")
-            sub.itemR(arm, "ghost_end_frame", text="End")
-            sub.itemR(arm, "ghost_size", text="Step")
+            sub.prop(arm, "ghost_start_frame", text="Start")
+            sub.prop(arm, "ghost_end_frame", text="End")
+            sub.prop(arm, "ghost_size", text="Step")
         elif arm.ghost_type == 'CURRENT_FRAME':
-            sub.itemR(arm, "ghost_step", text="Range")
-            sub.itemR(arm, "ghost_size", text="Step")
+            sub.prop(arm, "ghost_step", text="Range")
+            sub.prop(arm, "ghost_size", text="Step")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Display:")
-        col.itemR(arm, "ghost_only_selected", text="Selected Only")
+        col.label(text="Display:")
+        col.prop(arm, "ghost_only_selected", text="Selected Only")
 
 bpy.types.register(DATA_PT_context_arm)
 bpy.types.register(DATA_PT_skeleton)

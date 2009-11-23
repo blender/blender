@@ -30,11 +30,11 @@ class USERPREF_HT_header(bpy.types.Header):
         userpref = context.user_preferences
 
         layout.operator_context = 'EXEC_AREA'
-        layout.itemO("wm.save_homefile", text="Save As Default")
+        layout.operator("wm.save_homefile", text="Save As Default")
 
         if userpref.active_section == 'INPUT':
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.item_stringO("wm.keyconfig_export", "path", "keymap.py", "Export Key Configuration...")
+            layout.operator_string("wm.keyconfig_export", "path", "keymap.py", "Export Key Configuration...")
 
 
 class USERPREF_MT_view(bpy.types.Menu):
@@ -55,7 +55,7 @@ class USERPREF_PT_tabs(bpy.types.Panel):
 
         userpref = context.user_preferences
 
-        layout.itemR(userpref, "active_section", expand=True)
+        layout.prop(userpref, "active_section", expand=True)
 
 
 class USERPREF_PT_interface(bpy.types.Panel):
@@ -80,68 +80,68 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub = col.split(percentage=0.85)
 
         sub1 = sub.column()
-        sub1.itemL(text="Display:")
-        sub1.itemR(view, "tooltips")
-        sub1.itemR(view, "display_object_info", text="Object Info")
-        sub1.itemR(view, "use_large_cursors")
-        sub1.itemR(view, "show_view_name", text="View Name")
-        sub1.itemR(view, "show_playback_fps", text="Playback FPS")
-        sub1.itemR(view, "global_scene")
-        sub1.itemR(view, "pin_floating_panels")
-        sub1.itemR(view, "object_center_size")
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemR(view, "show_mini_axis", text="Display Mini Axis")
+        sub1.label(text="Display:")
+        sub1.prop(view, "tooltips")
+        sub1.prop(view, "display_object_info", text="Object Info")
+        sub1.prop(view, "use_large_cursors")
+        sub1.prop(view, "show_view_name", text="View Name")
+        sub1.prop(view, "show_playback_fps", text="Playback FPS")
+        sub1.prop(view, "global_scene")
+        sub1.prop(view, "pin_floating_panels")
+        sub1.prop(view, "object_center_size")
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
+        sub1.prop(view, "show_mini_axis", text="Display Mini Axis")
         sub2 = sub1.column()
         sub2.enabled = view.show_mini_axis
-        sub2.itemR(view, "mini_axis_size", text="Size")
-        sub2.itemR(view, "mini_axis_brightness", text="Brightness")
+        sub2.prop(view, "mini_axis_size", text="Size")
+        sub2.prop(view, "mini_axis_brightness", text="Brightness")
 
         col = split.column()
         sub = col.split(percentage=0.85)
 
         sub1 = sub.column()
-        sub1.itemL(text="View Manipulation:")
-        sub1.itemR(view, "auto_depth")
-        sub1.itemR(view, "global_pivot")
-        sub1.itemR(view, "zoom_to_mouse")
-        sub1.itemR(view, "rotate_around_selection")
-        sub1.itemS()
+        sub1.label(text="View Manipulation:")
+        sub1.prop(view, "auto_depth")
+        sub1.prop(view, "global_pivot")
+        sub1.prop(view, "zoom_to_mouse")
+        sub1.prop(view, "rotate_around_selection")
+        sub1.separator()
 
 
-        sub1.itemR(view, "auto_perspective")
-        sub1.itemR(view, "smooth_view")
-        sub1.itemR(view, "rotation_angle")
+        sub1.prop(view, "auto_perspective")
+        sub1.prop(view, "smooth_view")
+        sub1.prop(view, "rotation_angle")
 
         col = split.column()
         sub = col.split(percentage=0.85)
         sub1 = sub.column()
 
 #Toolbox doesn't exist yet
-#		sub1.itemL(text="Toolbox:")
-#		sub1.itemR(view, "use_column_layout")
-#		sub1.itemL(text="Open Toolbox Delay:")
-#		sub1.itemR(view, "open_left_mouse_delay", text="Hold LMB")
-#		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
+#		sub1.label(text="Toolbox:")
+#		sub1.prop(view, "use_column_layout")
+#		sub1.label(text="Open Toolbox Delay:")
+#		sub1.prop(view, "open_left_mouse_delay", text="Hold LMB")
+#		sub1.prop(view, "open_right_mouse_delay", text="Hold RMB")
 
         #manipulator
-        sub1.itemR(view, "use_manipulator")
+        sub1.prop(view, "use_manipulator")
         sub2 = sub1.column()
         sub2.enabled = view.use_manipulator
-        sub2.itemR(view, "manipulator_size", text="Size")
-        sub2.itemR(view, "manipulator_handle_size", text="Handle Size")
-        sub2.itemR(view, "manipulator_hotspot", text="Hotspot")
+        sub2.prop(view, "manipulator_size", text="Size")
+        sub2.prop(view, "manipulator_handle_size", text="Handle Size")
+        sub2.prop(view, "manipulator_hotspot", text="Hotspot")
 
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
 
-        sub1.itemL(text="Menus:")
-        sub1.itemR(view, "open_mouse_over")
-        sub1.itemL(text="Menu Open Delay:")
-        sub1.itemR(view, "open_toplevel_delay", text="Top Level")
-        sub1.itemR(view, "open_sublevel_delay", text="Sub Level")
+        sub1.label(text="Menus:")
+        sub1.prop(view, "open_mouse_over")
+        sub1.label(text="Menu Open Delay:")
+        sub1.prop(view, "open_toplevel_delay", text="Top Level")
+        sub1.prop(view, "open_sublevel_delay", text="Sub Level")
 
 
 class USERPREF_PT_edit(bpy.types.Panel):
@@ -166,87 +166,87 @@ class USERPREF_PT_edit(bpy.types.Panel):
         sub = col.split(percentage=0.85)
 
         sub1 = sub.column()
-        sub1.itemL(text="Link Materials To:")
-        sub1.row().itemR(edit, "material_link", expand=True)
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemL(text="New Objects:")
-        sub1.itemR(edit, "enter_edit_mode")
-        sub1.itemL(text="Align To:")
-        sub1.row().itemR(edit, "object_align", expand=True)
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
+        sub1.label(text="Link Materials To:")
+        sub1.row().prop(edit, "material_link", expand=True)
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
+        sub1.label(text="New Objects:")
+        sub1.prop(edit, "enter_edit_mode")
+        sub1.label(text="Align To:")
+        sub1.row().prop(edit, "object_align", expand=True)
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
 
-        sub1.itemL(text="Undo:")
-        sub1.itemR(edit, "global_undo")
-        sub1.itemR(edit, "undo_steps", text="Steps")
-        sub1.itemR(edit, "undo_memory_limit", text="Memory Limit")
-
-        col = split.column()
-        sub = col.split(percentage=0.85)
-
-        sub1 = sub.column()
-        sub1.itemL(text="Snap:")
-        sub1.itemR(edit, "snap_translate", text="Translate")
-        sub1.itemR(edit, "snap_rotate", text="Rotate")
-        sub1.itemR(edit, "snap_scale", text="Scale")
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemL(text="Grease Pencil:")
-        sub1.itemR(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
-        sub1.itemR(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
-        # sub1.itemR(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
-        sub1.itemR(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
-        sub1.itemR(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
+        sub1.label(text="Undo:")
+        sub1.prop(edit, "global_undo")
+        sub1.prop(edit, "undo_steps", text="Steps")
+        sub1.prop(edit, "undo_memory_limit", text="Memory Limit")
 
         col = split.column()
         sub = col.split(percentage=0.85)
 
         sub1 = sub.column()
-        sub1.itemL(text="Keyframing:")
-        sub1.itemR(edit, "use_visual_keying")
-        sub1.itemR(edit, "keyframe_insert_needed", text="Only Insert Needed")
-        sub1.itemS()
-        sub1.itemL(text="New F-Curve Defaults:")
-        sub1.itemR(edit, "new_interpolation_type", text="Interpolation")
-        sub1.itemS()
-        sub1.itemR(edit, "auto_keying_enable", text="Auto Keyframing:")
+        sub1.label(text="Snap:")
+        sub1.prop(edit, "snap_translate", text="Translate")
+        sub1.prop(edit, "snap_rotate", text="Rotate")
+        sub1.prop(edit, "snap_scale", text="Scale")
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
+        sub1.label(text="Grease Pencil:")
+        sub1.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
+        sub1.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
+        # sub1.prop(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
+        sub1.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
+        sub1.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
+
+        col = split.column()
+        sub = col.split(percentage=0.85)
+
+        sub1 = sub.column()
+        sub1.label(text="Keyframing:")
+        sub1.prop(edit, "use_visual_keying")
+        sub1.prop(edit, "keyframe_insert_needed", text="Only Insert Needed")
+        sub1.separator()
+        sub1.label(text="New F-Curve Defaults:")
+        sub1.prop(edit, "new_interpolation_type", text="Interpolation")
+        sub1.separator()
+        sub1.prop(edit, "auto_keying_enable", text="Auto Keyframing:")
         sub2 = sub1.column()
         sub2.active = edit.auto_keying_enable
-        sub2.itemR(edit, "auto_keyframe_insert_keyingset", text="Only Insert for Keying Set")
-        sub2.itemR(edit, "auto_keyframe_insert_available", text="Only Insert Available")
+        sub2.prop(edit, "auto_keyframe_insert_keyingset", text="Only Insert for Keying Set")
+        sub2.prop(edit, "auto_keyframe_insert_available", text="Only Insert Available")
 
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
 
-        sub1.itemL(text="Transform:")
-        sub1.itemR(edit, "drag_immediately")
+        sub1.label(text="Transform:")
+        sub1.prop(edit, "drag_immediately")
 
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
 
         col = split.column()
         sub = col.split(percentage=0.85)
 
         sub1 = sub.column()
-        sub1.itemL(text="Duplicate Data:")
-        sub1.itemR(edit, "duplicate_mesh", text="Mesh")
-        sub1.itemR(edit, "duplicate_surface", text="Surface")
-        sub1.itemR(edit, "duplicate_curve", text="Curve")
-        sub1.itemR(edit, "duplicate_text", text="Text")
-        sub1.itemR(edit, "duplicate_metaball", text="Metaball")
-        sub1.itemR(edit, "duplicate_armature", text="Armature")
-        sub1.itemR(edit, "duplicate_lamp", text="Lamp")
-        sub1.itemR(edit, "duplicate_material", text="Material")
-        sub1.itemR(edit, "duplicate_texture", text="Texture")
-        sub1.itemR(edit, "duplicate_ipo", text="F-Curve")
-        sub1.itemR(edit, "duplicate_action", text="Action")
-        sub1.itemR(edit, "duplicate_particle", text="Particle")
+        sub1.label(text="Duplicate Data:")
+        sub1.prop(edit, "duplicate_mesh", text="Mesh")
+        sub1.prop(edit, "duplicate_surface", text="Surface")
+        sub1.prop(edit, "duplicate_curve", text="Curve")
+        sub1.prop(edit, "duplicate_text", text="Text")
+        sub1.prop(edit, "duplicate_metaball", text="Metaball")
+        sub1.prop(edit, "duplicate_armature", text="Armature")
+        sub1.prop(edit, "duplicate_lamp", text="Lamp")
+        sub1.prop(edit, "duplicate_material", text="Material")
+        sub1.prop(edit, "duplicate_texture", text="Texture")
+        sub1.prop(edit, "duplicate_ipo", text="F-Curve")
+        sub1.prop(edit, "duplicate_action", text="Action")
+        sub1.prop(edit, "duplicate_particle", text="Particle")
 
 
 class USERPREF_PT_system(bpy.types.Panel):
@@ -271,74 +271,74 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub = col.split(percentage=0.9)
 
         sub1 = sub.column()
-        sub1.itemL(text="General:")
-        sub1.itemR(system, "dpi")
-        sub1.itemR(system, "frame_server_port")
-        sub1.itemR(system, "scrollback", text="Console Scrollback")
-        sub1.itemR(system, "auto_run_python_scripts")
+        sub1.label(text="General:")
+        sub1.prop(system, "dpi")
+        sub1.prop(system, "frame_server_port")
+        sub1.prop(system, "scrollback", text="Console Scrollback")
+        sub1.prop(system, "auto_run_python_scripts")
 
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
 
-        sub1.itemL(text="Sound:")
-        sub1.row().itemR(system, "audio_device", expand=True)
+        sub1.label(text="Sound:")
+        sub1.row().prop(system, "audio_device", expand=True)
         sub2 = sub1.column()
         sub2.active = system.audio_device != 'NONE'
-        sub2.itemR(system, "enable_all_codecs")
-        sub2.itemR(system, "game_sound")
-        sub2.itemR(system, "audio_channels", text="Channels")
-        sub2.itemR(system, "audio_mixing_buffer", text="Mixing Buffer")
-        sub2.itemR(system, "audio_sample_rate", text="Sample Rate")
-        sub2.itemR(system, "audio_sample_format", text="Sample Format")
+        sub2.prop(system, "enable_all_codecs")
+        sub2.prop(system, "game_sound")
+        sub2.prop(system, "audio_channels", text="Channels")
+        sub2.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
+        sub2.prop(system, "audio_sample_rate", text="Sample Rate")
+        sub2.prop(system, "audio_sample_format", text="Sample Format")
 
         col = split.column()
         sub = col.split(percentage=0.9)
 
         sub1 = sub .column()
-        sub1.itemL(text="Weight Colors:")
-        sub1.itemR(system, "use_weight_color_range", text="Use Custom Range")
+        sub1.label(text="Weight Colors:")
+        sub1.prop(system, "use_weight_color_range", text="Use Custom Range")
         sub2 = sub1.column()
         sub2.active = system.use_weight_color_range
         sub2.template_color_ramp(system, "weight_color_range", expand=True)
 
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
 
-        sub1.itemR(system, "language")
-        sub1.itemL(text="Translate:")
-        sub1.itemR(system, "translate_tooltips", text="Tooltips")
-        sub1.itemR(system, "translate_buttons", text="Labels")
-        sub1.itemR(system, "translate_toolbox", text="Toolbox")
+        sub1.prop(system, "language")
+        sub1.label(text="Translate:")
+        sub1.prop(system, "translate_tooltips", text="Tooltips")
+        sub1.prop(system, "translate_buttons", text="Labels")
+        sub1.prop(system, "translate_toolbox", text="Toolbox")
 
-        sub1.itemS()
+        sub1.separator()
 
-        sub1.itemR(system, "use_textured_fonts")
+        sub1.prop(system, "use_textured_fonts")
 
         col = split.column()
         sub = col.split(percentage=0.9)
 
         sub1 = sub.column()
 
-        sub1.itemL(text="OpenGL:")
-        sub1.itemR(system, "clip_alpha", slider=True)
-        sub1.itemR(system, "use_mipmaps")
-        sub1.itemR(system, "use_vbos")
-        sub1.itemL(text="Window Draw Method:")
-        sub1.row().itemR(system, "window_draw_method", expand=True)
-        sub1.itemL(text="Textures:")
-        sub1.itemR(system, "gl_texture_limit", text="Limit Size")
-        sub1.itemR(system, "texture_time_out", text="Time Out")
-        sub1.itemR(system, "texture_collection_rate", text="Collection Rate")
+        sub1.label(text="OpenGL:")
+        sub1.prop(system, "clip_alpha", slider=True)
+        sub1.prop(system, "use_mipmaps")
+        sub1.prop(system, "use_vbos")
+        sub1.label(text="Window Draw Method:")
+        sub1.row().prop(system, "window_draw_method", expand=True)
+        sub1.label(text="Textures:")
+        sub1.prop(system, "gl_texture_limit", text="Limit Size")
+        sub1.prop(system, "texture_time_out", text="Time Out")
+        sub1.prop(system, "texture_collection_rate", text="Collection Rate")
 
-        sub1.itemS()
-        sub1.itemS()
-        sub1.itemS()
+        sub1.separator()
+        sub1.separator()
+        sub1.separator()
 
-        sub1.itemL(text="Sequencer:")
-        sub1.itemR(system, "prefetch_frames")
-        sub1.itemR(system, "memory_cache_limit")
+        sub1.label(text="Sequencer:")
+        sub1.prop(system, "prefetch_frames")
+        sub1.prop(system, "memory_cache_limit")
 
 
 class USERPREF_PT_theme(bpy.types.Panel):
@@ -359,9 +359,9 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
 
         split = layout.split(percentage=0.33)
-        split.itemR(theme, "active_theme", text="")
+        split.prop(theme, "active_theme", text="")
 
-        layout.itemS()
+        layout.separator()
 
         split = layout.split()
 
@@ -369,634 +369,634 @@ class USERPREF_PT_theme(bpy.types.Panel):
             v3d = theme.view_3d
 
             col = split.column()
-            col.itemR(v3d, "back")
-            col.itemR(v3d, "button")
-            col.itemR(v3d, "button_title")
-            col.itemR(v3d, "button_text")
-            col.itemR(v3d, "header")
+            col.prop(v3d, "back")
+            col.prop(v3d, "button")
+            col.prop(v3d, "button_title")
+            col.prop(v3d, "button_text")
+            col.prop(v3d, "header")
 
             col = split.column()
-            col.itemR(v3d, "grid")
-            col.itemR(v3d, "wire")
-            col.itemR(v3d, "lamp", slider=True)
-            col.itemR(v3d, "editmesh_active", slider=True)
+            col.prop(v3d, "grid")
+            col.prop(v3d, "wire")
+            col.prop(v3d, "lamp", slider=True)
+            col.prop(v3d, "editmesh_active", slider=True)
 
             col = split.column()
 
-            col.itemR(v3d, "object_selected")
-            col.itemR(v3d, "object_active")
-            col.itemR(v3d, "object_grouped")
-            col.itemR(v3d, "object_grouped_active")
-            col.itemR(v3d, "transform")
+            col.prop(v3d, "object_selected")
+            col.prop(v3d, "object_active")
+            col.prop(v3d, "object_grouped")
+            col.prop(v3d, "object_grouped_active")
+            col.prop(v3d, "transform")
 
             col = split.column()
-            col.itemR(v3d, "vertex")
-            col.itemR(v3d, "face", slider=True)
-            col.itemR(v3d, "normal")
-            col.itemR(v3d, "bone_solid")
-            col.itemR(v3d, "bone_pose")
+            col.prop(v3d, "vertex")
+            col.prop(v3d, "face", slider=True)
+            col.prop(v3d, "normal")
+            col.prop(v3d, "bone_solid")
+            col.prop(v3d, "bone_pose")
 
-#           col.itemR(v3d, "edge") Doesn't seem to work
+#           col.prop(v3d, "edge") Doesn't seem to work
         elif theme.active_theme == 'USER_INTERFACE':
 
             ui = theme.user_interface.wcol_regular
 
-            layout.itemL(text="Regular:")
+            layout.label(text="Regular:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
-            layout.itemS()
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
+            layout.separator()
 
             ui = theme.user_interface.wcol_tool
-            layout.itemL(text="Tool:")
+            layout.label(text="Tool:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_radio
-            layout.itemL(text="Radio Buttons:")
+            layout.label(text="Radio Buttons:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_text
-            layout.itemL(text="Text:")
+            layout.label(text="Text:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_option
-            layout.itemL(text="Option:")
+            layout.label(text="Option:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_toggle
-            layout.itemL(text="Toggle:")
+            layout.label(text="Toggle:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_num
-            layout.itemL(text="Number Field:")
+            layout.label(text="Number Field:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_numslider
-            layout.itemL(text="Value Slider:")
+            layout.label(text="Value Slider:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_box
-            layout.itemL(text="Box:")
+            layout.label(text="Box:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_menu
-            layout.itemL(text="Menu:")
+            layout.label(text="Menu:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_pulldown
-            layout.itemL(text="Pulldown:")
+            layout.label(text="Pulldown:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_menu_back
-            layout.itemL(text="Menu Back:")
+            layout.label(text="Menu Back:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_menu_item
-            layout.itemL(text="Menu Item:")
+            layout.label(text="Menu Item:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_scroll
-            layout.itemL(text="Scroll Bar:")
+            layout.label(text="Scroll Bar:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_list_item
-            layout.itemL(text="List Item:")
+            layout.label(text="List Item:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "outline")
-            sub1.itemR(ui, "item", slider=True)
+            sub1.prop(ui, "outline")
+            sub1.prop(ui, "item", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "inner", slider=True)
-            sub1.itemR(ui, "inner_sel", slider=True)
+            sub1.prop(ui, "inner", slider=True)
+            sub1.prop(ui, "inner_sel", slider=True)
             sub1 = sub.column()
-            sub1.itemR(ui, "text")
-            sub1.itemR(ui, "text_sel")
+            sub1.prop(ui, "text")
+            sub1.prop(ui, "text_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "shaded")
+            sub1.prop(ui, "shaded")
             sub2 = sub1.column(align=True)
             sub2.active = ui.shaded
-            sub2.itemR(ui, "shadetop")
-            sub2.itemR(ui, "shadedown")
+            sub2.prop(ui, "shadetop")
+            sub2.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_state
-            layout.itemL(text="State:")
+            layout.label(text="State:")
 
             sub = layout.row()
             sub1 = sub.column()
-            sub1.itemR(ui, "inner_anim")
-            sub1.itemR(ui, "inner_anim_sel")
+            sub1.prop(ui, "inner_anim")
+            sub1.prop(ui, "inner_anim_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "inner_driven")
-            sub1.itemR(ui, "inner_driven_sel")
+            sub1.prop(ui, "inner_driven")
+            sub1.prop(ui, "inner_driven_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "inner_key")
-            sub1.itemR(ui, "inner_key_sel")
+            sub1.prop(ui, "inner_key")
+            sub1.prop(ui, "inner_key_sel")
             sub1 = sub.column()
-            sub1.itemR(ui, "blend")
+            sub1.prop(ui, "blend")
 
             ui = theme.user_interface
-            layout.itemS()
+            layout.separator()
 
             sub = layout.row()
-            sub.itemR(ui, "icon_file")
+            sub.prop(ui, "icon_file")
 
-            layout.itemS()
-            layout.itemS()
+            layout.separator()
+            layout.separator()
 
 
         elif theme.active_theme == 'GRAPH_EDITOR':
             graph = theme.graph_editor
 
             col = split.column()
-            col.itemR(graph, "back")
-            col.itemR(graph, "button")
-            col.itemR(graph, "button_title")
-            col.itemR(graph, "button_text")
+            col.prop(graph, "back")
+            col.prop(graph, "button")
+            col.prop(graph, "button_title")
+            col.prop(graph, "button_text")
 
             col = split.column()
-            col.itemR(graph, "header")
-            col.itemR(graph, "grid")
-            col.itemR(graph, "list")
-            col.itemR(graph, "channel_group")
+            col.prop(graph, "header")
+            col.prop(graph, "grid")
+            col.prop(graph, "list")
+            col.prop(graph, "channel_group")
 
             col = split.column()
-            col.itemR(graph, "active_channels_group")
-            col.itemR(graph, "dopesheet_channel")
-            col.itemR(graph, "dopesheet_subchannel")
-            col.itemR(graph, "vertex")
+            col.prop(graph, "active_channels_group")
+            col.prop(graph, "dopesheet_channel")
+            col.prop(graph, "dopesheet_subchannel")
+            col.prop(graph, "vertex")
 
             col = split.column()
-            col.itemR(graph, "current_frame")
-            col.itemR(graph, "handle_vertex")
-            col.itemR(graph, "handle_vertex_select")
-            col.itemS()
-            col.itemR(graph, "handle_vertex_size")
+            col.prop(graph, "current_frame")
+            col.prop(graph, "handle_vertex")
+            col.prop(graph, "handle_vertex_select")
+            col.separator()
+            col.prop(graph, "handle_vertex_size")
 
         elif theme.active_theme == 'FILE_BROWSER':
             file_browse = theme.file_browser
 
             col = split.column()
-            col.itemR(file_browse, "back")
-            col.itemR(file_browse, "text")
-            col.itemR(file_browse, "text_hi")
+            col.prop(file_browse, "back")
+            col.prop(file_browse, "text")
+            col.prop(file_browse, "text_hi")
 
             col = split.column()
-            col.itemR(file_browse, "header")
-            col.itemR(file_browse, "list")
+            col.prop(file_browse, "header")
+            col.prop(file_browse, "list")
 
             col = split.column()
-            col.itemR(file_browse, "selected_file")
-            col.itemR(file_browse, "tiles")
+            col.prop(file_browse, "selected_file")
+            col.prop(file_browse, "tiles")
 
             col = split.column()
-            col.itemR(file_browse, "active_file")
-            col.itemR(file_browse, "active_file_text")
+            col.prop(file_browse, "active_file")
+            col.prop(file_browse, "active_file_text")
 
         elif theme.active_theme == 'NLA_EDITOR':
             nla = theme.nla_editor
 
             col = split.column()
-            col.itemR(nla, "back")
-            col.itemR(nla, "button")
-            col.itemR(nla, "button_title")
+            col.prop(nla, "back")
+            col.prop(nla, "button")
+            col.prop(nla, "button_title")
 
             col = split.column()
-            col.itemR(nla, "button_text")
-            col.itemR(nla, "text")
-            col.itemR(nla, "header")
+            col.prop(nla, "button_text")
+            col.prop(nla, "text")
+            col.prop(nla, "header")
 
             col = split.column()
-            col.itemR(nla, "grid")
-            col.itemR(nla, "bars")
-            col.itemR(nla, "bars_selected")
+            col.prop(nla, "grid")
+            col.prop(nla, "bars")
+            col.prop(nla, "bars_selected")
 
             col = split.column()
-            col.itemR(nla, "strips")
-            col.itemR(nla, "strips_selected")
-            col.itemR(nla, "current_frame")
+            col.prop(nla, "strips")
+            col.prop(nla, "strips_selected")
+            col.prop(nla, "current_frame")
 
         elif theme.active_theme == 'DOPESHEET_EDITOR':
             dope = theme.dopesheet_editor
 
             col = split.column()
-            col.itemR(dope, "back")
-            col.itemR(dope, "list")
-            col.itemR(dope, "text")
-            col.itemR(dope, "header")
+            col.prop(dope, "back")
+            col.prop(dope, "list")
+            col.prop(dope, "text")
+            col.prop(dope, "header")
 
             col = split.column()
-            col.itemR(dope, "grid")
-            col.itemR(dope, "channels")
-            col.itemR(dope, "channels_selected")
-            col.itemR(dope, "channel_group")
+            col.prop(dope, "grid")
+            col.prop(dope, "channels")
+            col.prop(dope, "channels_selected")
+            col.prop(dope, "channel_group")
 
             col = split.column()
-            col.itemR(dope, "active_channels_group")
-            col.itemR(dope, "long_key")
-            col.itemR(dope, "long_key_selected")
+            col.prop(dope, "active_channels_group")
+            col.prop(dope, "long_key")
+            col.prop(dope, "long_key_selected")
 
             col = split.column()
-            col.itemR(dope, "current_frame")
-            col.itemR(dope, "dopesheet_channel")
-            col.itemR(dope, "dopesheet_subchannel")
+            col.prop(dope, "current_frame")
+            col.prop(dope, "dopesheet_channel")
+            col.prop(dope, "dopesheet_subchannel")
 
         elif theme.active_theme == 'IMAGE_EDITOR':
             image = theme.image_editor
 
             col = split.column()
-            col.itemR(image, "back")
-            col.itemR(image, "button")
+            col.prop(image, "back")
+            col.prop(image, "button")
 
             col = split.column()
-            col.itemR(image, "button_title")
-            col.itemR(image, "button_text")
+            col.prop(image, "button_title")
+            col.prop(image, "button_text")
 
             col = split.column()
-            col.itemR(image, "header")
+            col.prop(image, "header")
 
             col = split.column()
-            col.itemR(image, "editmesh_active", slider=True)
+            col.prop(image, "editmesh_active", slider=True)
 
         elif theme.active_theme == 'SEQUENCE_EDITOR':
             seq = theme.sequence_editor
 
             col = split.column()
-            col.itemR(seq, "back")
-            col.itemR(seq, "button")
-            col.itemR(seq, "button_title")
-            col.itemR(seq, "button_text")
-            col.itemR(seq, "text")
+            col.prop(seq, "back")
+            col.prop(seq, "button")
+            col.prop(seq, "button_title")
+            col.prop(seq, "button_text")
+            col.prop(seq, "text")
 
             col = split.column()
-            col.itemR(seq, "header")
-            col.itemR(seq, "grid")
-            col.itemR(seq, "movie_strip")
-            col.itemR(seq, "image_strip")
-            col.itemR(seq, "scene_strip")
+            col.prop(seq, "header")
+            col.prop(seq, "grid")
+            col.prop(seq, "movie_strip")
+            col.prop(seq, "image_strip")
+            col.prop(seq, "scene_strip")
 
             col = split.column()
-            col.itemR(seq, "audio_strip")
-            col.itemR(seq, "effect_strip")
-            col.itemR(seq, "plugin_strip")
-            col.itemR(seq, "transition_strip")
+            col.prop(seq, "audio_strip")
+            col.prop(seq, "effect_strip")
+            col.prop(seq, "plugin_strip")
+            col.prop(seq, "transition_strip")
 
             col = split.column()
-            col.itemR(seq, "meta_strip")
-            col.itemR(seq, "current_frame")
-            col.itemR(seq, "keyframe")
-            col.itemR(seq, "draw_action")
+            col.prop(seq, "meta_strip")
+            col.prop(seq, "current_frame")
+            col.prop(seq, "keyframe")
+            col.prop(seq, "draw_action")
 
         elif theme.active_theme == 'PROPERTIES':
             prop = theme.properties
 
             col = split.column()
-            col.itemR(prop, "back")
+            col.prop(prop, "back")
 
             col = split.column()
-            col.itemR(prop, "title")
+            col.prop(prop, "title")
 
             col = split.column()
-            col.itemR(prop, "text")
+            col.prop(prop, "text")
 
             col = split.column()
-            col.itemR(prop, "header")
+            col.prop(prop, "header")
 
         elif theme.active_theme == 'TEXT_EDITOR':
             text = theme.text_editor
 
             col = split.column()
-            col.itemR(text, "back")
-            col.itemR(text, "button")
-            col.itemR(text, "button_title")
-            col.itemR(text, "button_text")
+            col.prop(text, "back")
+            col.prop(text, "button")
+            col.prop(text, "button_title")
+            col.prop(text, "button_text")
 
             col = split.column()
-            col.itemR(text, "text")
-            col.itemR(text, "text_hi")
-            col.itemR(text, "header")
-            col.itemR(text, "line_numbers_background")
+            col.prop(text, "text")
+            col.prop(text, "text_hi")
+            col.prop(text, "header")
+            col.prop(text, "line_numbers_background")
 
             col = split.column()
-            col.itemR(text, "selected_text")
-            col.itemR(text, "cursor")
-            col.itemR(text, "syntax_builtin")
-            col.itemR(text, "syntax_special")
+            col.prop(text, "selected_text")
+            col.prop(text, "cursor")
+            col.prop(text, "syntax_builtin")
+            col.prop(text, "syntax_special")
 
             col = split.column()
-            col.itemR(text, "syntax_comment")
-            col.itemR(text, "syntax_string")
-            col.itemR(text, "syntax_numbers")
+            col.prop(text, "syntax_comment")
+            col.prop(text, "syntax_string")
+            col.prop(text, "syntax_numbers")
 
         elif theme.active_theme == 'TIMELINE':
             time = theme.timeline
 
             col = split.column()
-            col.itemR(time, "back")
-            col.itemR(time, "text")
+            col.prop(time, "back")
+            col.prop(time, "text")
 
             col = split.column()
-            col.itemR(time, "header")
+            col.prop(time, "header")
 
             col = split.column()
-            col.itemR(time, "grid")
+            col.prop(time, "grid")
 
             col = split.column()
-            col.itemR(time, "current_frame")
+            col.prop(time, "current_frame")
 
         elif theme.active_theme == 'NODE_EDITOR':
             node = theme.node_editor
 
             col = split.column()
-            col.itemR(node, "back")
-            col.itemR(node, "button")
-            col.itemR(node, "button_title")
-            col.itemR(node, "button_text")
+            col.prop(node, "back")
+            col.prop(node, "button")
+            col.prop(node, "button_title")
+            col.prop(node, "button_text")
 
 
             col = split.column()
-            col.itemR(node, "text")
-            col.itemR(node, "text_hi")
-            col.itemR(node, "header")
-            col.itemR(node, "wires")
+            col.prop(node, "text")
+            col.prop(node, "text_hi")
+            col.prop(node, "header")
+            col.prop(node, "wires")
 
             col = split.column()
-            col.itemR(node, "wire_select")
-            col.itemR(node, "selected_text")
-            col.itemR(node, "node_backdrop", slider=True)
-            col.itemR(node, "in_out_node")
+            col.prop(node, "wire_select")
+            col.prop(node, "selected_text")
+            col.prop(node, "node_backdrop", slider=True)
+            col.prop(node, "in_out_node")
 
             col = split.column()
-            col.itemR(node, "converter_node")
-            col.itemR(node, "operator_node")
-            col.itemR(node, "group_node")
+            col.prop(node, "converter_node")
+            col.prop(node, "operator_node")
+            col.prop(node, "group_node")
 
         elif theme.active_theme == 'LOGIC_EDITOR':
             logic = theme.logic_editor
 
             col = split.column()
-            col.itemR(logic, "back")
-            col.itemR(logic, "button")
+            col.prop(logic, "back")
+            col.prop(logic, "button")
 
             col = split.column()
-            col.itemR(logic, "button_title")
-            col.itemR(logic, "button_text")
+            col.prop(logic, "button_title")
+            col.prop(logic, "button_text")
 
             col = split.column()
-            col.itemR(logic, "text")
-            col.itemR(logic, "header")
+            col.prop(logic, "text")
+            col.prop(logic, "header")
 
             col = split.column()
-            col.itemR(logic, "panel")
+            col.prop(logic, "panel")
 
         elif theme.active_theme == 'OUTLINER':
             out = theme.outliner
 
             col = split.column()
-            col.itemR(out, "back")
+            col.prop(out, "back")
 
             col = split.column()
-            col.itemR(out, "text")
+            col.prop(out, "text")
 
             col = split.column()
-            col.itemR(out, "text_hi")
+            col.prop(out, "text_hi")
 
             col = split.column()
-            col.itemR(out, "header")
+            col.prop(out, "header")
 
         elif theme.active_theme == 'INFO':
             info = theme.info
 
             col = split.column()
-            col.itemR(info, "back")
+            col.prop(info, "back")
 
             col = split.column()
-            col.itemR(info, "header")
+            col.prop(info, "header")
 
             col = split.column()
-            col.itemR(info, "header_text")
+            col.prop(info, "header_text")
 
             col = split.column()
 
@@ -1004,16 +1004,16 @@ class USERPREF_PT_theme(bpy.types.Panel):
             prefs = theme.user_preferences
 
             col = split.column()
-            col.itemR(prefs, "back")
+            col.prop(prefs, "back")
 
             col = split.column()
-            col.itemR(prefs, "text")
+            col.prop(prefs, "text")
 
             col = split.column()
-            col.itemR(prefs, "header")
+            col.prop(prefs, "header")
 
             col = split.column()
-            col.itemR(prefs, "header_text")
+            col.prop(prefs, "header_text")
 
 
 class USERPREF_PT_file(bpy.types.Panel):
@@ -1035,53 +1035,53 @@ class USERPREF_PT_file(bpy.types.Panel):
         split = layout.split(percentage=0.6)
 
         col = split.column()
-        col.itemL(text="File Paths:")
+        col.label(text="File Paths:")
         sub = col.split(percentage=0.3)
 
-        sub.itemL(text="Fonts:")
-        sub.itemR(paths, "fonts_directory", text="")
+        sub.label(text="Fonts:")
+        sub.prop(paths, "fonts_directory", text="")
         sub = col.split(percentage=0.3)
-        sub.itemL(text="Textures:")
-        sub.itemR(paths, "textures_directory", text="")
+        sub.label(text="Textures:")
+        sub.prop(paths, "textures_directory", text="")
         sub = col.split(percentage=0.3)
-        sub.itemL(text="Texture Plugins:")
-        sub.itemR(paths, "texture_plugin_directory", text="")
+        sub.label(text="Texture Plugins:")
+        sub.prop(paths, "texture_plugin_directory", text="")
         sub = col.split(percentage=0.3)
-        sub.itemL(text="Sequence Plugins:")
-        sub.itemR(paths, "sequence_plugin_directory", text="")
+        sub.label(text="Sequence Plugins:")
+        sub.prop(paths, "sequence_plugin_directory", text="")
         sub = col.split(percentage=0.3)
-        sub.itemL(text="Render Output:")
-        sub.itemR(paths, "render_output_directory", text="")
+        sub.label(text="Render Output:")
+        sub.prop(paths, "render_output_directory", text="")
         sub = col.split(percentage=0.3)
-        sub.itemL(text="Scripts:")
-        sub.itemR(paths, "python_scripts_directory", text="")
+        sub.label(text="Scripts:")
+        sub.prop(paths, "python_scripts_directory", text="")
         sub = col.split(percentage=0.3)
-        sub.itemL(text="Sounds:")
-        sub.itemR(paths, "sounds_directory", text="")
+        sub.label(text="Sounds:")
+        sub.prop(paths, "sounds_directory", text="")
         sub = col.split(percentage=0.3)
-        sub.itemL(text="Temp:")
-        sub.itemR(paths, "temporary_directory", text="")
+        sub.label(text="Temp:")
+        sub.prop(paths, "temporary_directory", text="")
 
         col = split.column()
         sub = col.split(percentage=0.2)
         sub.column() # sub1, unused
         sub2 = sub.column()
-        sub2.itemL(text="Save & Load:")
-        sub2.itemR(paths, "use_relative_paths")
-        sub2.itemR(paths, "compress_file")
-        sub2.itemR(paths, "load_ui")
-        sub2.itemR(paths, "filter_file_extensions")
-        sub2.itemR(paths, "hide_dot_files_datablocks")
-        sub2.itemS()
-        sub2.itemS()
-        sub2.itemL(text="Auto Save:")
-        sub2.itemR(paths, "save_version")
-        sub2.itemR(paths, "recent_files")
-        sub2.itemR(paths, "save_preview_images")
-        sub2.itemR(paths, "auto_save_temporary_files")
+        sub2.label(text="Save & Load:")
+        sub2.prop(paths, "use_relative_paths")
+        sub2.prop(paths, "compress_file")
+        sub2.prop(paths, "load_ui")
+        sub2.prop(paths, "filter_file_extensions")
+        sub2.prop(paths, "hide_dot_files_datablocks")
+        sub2.separator()
+        sub2.separator()
+        sub2.label(text="Auto Save:")
+        sub2.prop(paths, "save_version")
+        sub2.prop(paths, "recent_files")
+        sub2.prop(paths, "save_preview_images")
+        sub2.prop(paths, "auto_save_temporary_files")
         sub3 = sub2.column()
         sub3.enabled = paths.auto_save_temporary_files
-        sub3.itemR(paths, "auto_save_time", text="Timer (mins)")
+        sub3.prop(paths, "auto_save_time", text="Timer (mins)")
 
 
 class USERPREF_PT_input(bpy.types.Panel):
@@ -1110,52 +1110,52 @@ class USERPREF_PT_input(bpy.types.Panel):
         col = row.column()
 
         sub = col.column()
-        sub.itemL(text="Configuration:")
-        sub.item_pointerR(wm, "active_keyconfig", wm, "keyconfigs", text="")
+        sub.label(text="Configuration:")
+        sub.prop_pointer(wm, "active_keyconfig", wm, "keyconfigs", text="")
 
-        col.itemS()
+        col.separator()
 
         sub = col.column()
-        sub.itemL(text="Mouse:")
+        sub.label(text="Mouse:")
         sub1 = sub.column()
         sub1.enabled = (inputs.select_mouse == 'RIGHT')
-        sub1.itemR(inputs, "emulate_3_button_mouse")
-        sub.itemR(inputs, "continuous_mouse")
+        sub1.prop(inputs, "emulate_3_button_mouse")
+        sub.prop(inputs, "continuous_mouse")
 
-        sub.itemL(text="Select With:")
-        sub.row().itemR(inputs, "select_mouse", expand=True)
-        sub.itemL(text="Middle Mouse:")
-        sub.row().itemR(inputs, "middle_mouse", expand=True)
+        sub.label(text="Select With:")
+        sub.row().prop(inputs, "select_mouse", expand=True)
+        sub.label(text="Middle Mouse:")
+        sub.row().prop(inputs, "middle_mouse", expand=True)
 
-        sub.itemS()
+        sub.separator()
 
-        sub.itemR(inputs, "emulate_numpad")
+        sub.prop(inputs, "emulate_numpad")
 
-        sub.itemS()
+        sub.separator()
 
-        sub.itemL(text="Orbit Style:")
-        sub.row().itemR(inputs, "view_rotation", expand=True)
+        sub.label(text="Orbit Style:")
+        sub.row().prop(inputs, "view_rotation", expand=True)
 
-        sub.itemL(text="Zoom Style:")
-        sub.row().itemR(inputs, "viewport_zoom_style", expand=True)
+        sub.label(text="Zoom Style:")
+        sub.row().prop(inputs, "viewport_zoom_style", expand=True)
 
-        #sub.itemR(inputs, "use_middle_mouse_paste")
+        #sub.prop(inputs, "use_middle_mouse_paste")
 
-        #col.itemS()
+        #col.separator()
 
         #sub = col.column()
-        #sub.itemL(text="Mouse Wheel:")
-        #sub.itemR(view, "wheel_invert_zoom", text="Invert Zoom")
-        #sub.itemR(view, "wheel_scroll_lines", text="Scroll Lines")
+        #sub.label(text="Mouse Wheel:")
+        #sub.prop(view, "wheel_invert_zoom", text="Invert Zoom")
+        #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
-        col.itemS()
+        col.separator()
 
         sub = col.column()
-        sub.itemL(text="NDOF Device:")
-        sub.itemR(inputs, "ndof_pan_speed", text="Pan Speed")
-        sub.itemR(inputs, "ndof_rotate_speed", text="Orbit Speed")
+        sub.label(text="NDOF Device:")
+        sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
+        sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
 
-        row.itemS()
+        row.separator()
 
         # Keymap Settings
         col = split.column()
@@ -1165,17 +1165,17 @@ class USERPREF_PT_input(bpy.types.Panel):
         km = wm.active_keymap
 
         subsplit = col.split()
-        subsplit.item_pointerR(wm, "active_keymap", defkc, "keymaps", text="Map:")
+        subsplit.prop_pointer(wm, "active_keymap", defkc, "keymaps", text="Map:")
         if km.user_defined:
             row = subsplit.row()
-            row.itemO("WM_OT_keymap_restore", text="Restore")
-            row.item_booleanO("WM_OT_keymap_restore", "all", True, text="Restore All")
+            row.operator("WM_OT_keymap_restore", text="Restore")
+            row.operator_boolean("WM_OT_keymap_restore", "all", True, text="Restore All")
         else:
             row = subsplit.row()
-            row.itemO("WM_OT_keymap_edit", text="Edit")
-            row.itemL()
+            row.operator("WM_OT_keymap_edit", text="Edit")
+            row.label()
 
-        col.itemS()
+        col.separator()
 
         for kmi in km.items:
             subcol = col.column()
@@ -1184,66 +1184,66 @@ class USERPREF_PT_input(bpy.types.Panel):
             row = subcol.row()
 
             if kmi.expanded:
-                row.itemR(kmi, "expanded", text="", icon='ICON_TRIA_DOWN')
+                row.prop(kmi, "expanded", text="", icon='ICON_TRIA_DOWN')
             else:
-                row.itemR(kmi, "expanded", text="", icon='ICON_TRIA_RIGHT')
+                row.prop(kmi, "expanded", text="", icon='ICON_TRIA_RIGHT')
 
             itemrow = row.row()
             itemrow.enabled = km.user_defined
             if kmi.active:
-                itemrow.itemR(kmi, "active", text="", icon='ICON_CHECKBOX_HLT')
+                itemrow.prop(kmi, "active", text="", icon='ICON_CHECKBOX_HLT')
             else:
-                itemrow.itemR(kmi, "active", text="", icon='ICON_CHECKBOX_DEHLT')
+                itemrow.prop(kmi, "active", text="", icon='ICON_CHECKBOX_DEHLT')
 
             itemcol = itemrow.column()
             itemcol.active = kmi.active
             row = itemcol.row()
 
             if km.modal:
-                row.itemR(kmi, "propvalue", text="")
+                row.prop(kmi, "propvalue", text="")
             else:
-                row.itemR(kmi, "idname", text="")
+                row.prop(kmi, "idname", text="")
 
             sub = row.row()
             sub.scale_x = 0.6
-            sub.itemR(kmi, "map_type", text="")
+            sub.prop(kmi, "map_type", text="")
 
             sub = row.row(align=True)
             if kmi.map_type == 'KEYBOARD':
-                sub.itemR(kmi, "type", text="", full_event=True)
+                sub.prop(kmi, "type", text="", full_event=True)
             elif kmi.map_type == 'MOUSE':
-                sub.itemR(kmi, "type", text="", full_event=True)
+                sub.prop(kmi, "type", text="", full_event=True)
             elif kmi.map_type == 'TWEAK':
                 sub.scale_x = 0.5
-                sub.itemR(kmi, "type", text="")
-                sub.itemR(kmi, "value", text="")
+                sub.prop(kmi, "type", text="")
+                sub.prop(kmi, "value", text="")
             elif kmi.map_type == 'TIMER':
-                sub.itemR(kmi, "type", text="")
+                sub.prop(kmi, "type", text="")
             else:
-                sub.itemL()
+                sub.label()
 
             if kmi.expanded:
                 if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
                     sub = itemcol.row(align=True)
 
                     if kmi.map_type == 'KEYBOARD':
-                        sub.itemR(kmi, "type", text="", event=True)
-                        sub.itemR(kmi, "value", text="")
+                        sub.prop(kmi, "type", text="", event=True)
+                        sub.prop(kmi, "value", text="")
                     elif kmi.map_type == 'MOUSE':
-                        sub.itemR(kmi, "type", text="")
-                        sub.itemR(kmi, "value", text="")
+                        sub.prop(kmi, "type", text="")
+                        sub.prop(kmi, "value", text="")
                     else:
-                        sub.itemL()
-                        sub.itemL()
+                        sub.label()
+                        sub.label()
 
                     subrow = sub.row()
                     subrow.scale_x = 0.75
-                    subrow.itemR(kmi, "any")
-                    subrow.itemR(kmi, "shift")
-                    subrow.itemR(kmi, "ctrl")
-                    subrow.itemR(kmi, "alt")
-                    subrow.itemR(kmi, "oskey", text="Cmd")
-                    sub.itemR(kmi, "key_modifier", text="", event=True)
+                    subrow.prop(kmi, "any")
+                    subrow.prop(kmi, "shift")
+                    subrow.prop(kmi, "ctrl")
+                    subrow.prop(kmi, "alt")
+                    subrow.prop(kmi, "oskey", text="Cmd")
+                    sub.prop(kmi, "key_modifier", text="", event=True)
 
                 flow = itemcol.column_flow(columns=2)
                 props = kmi.properties
@@ -1251,15 +1251,15 @@ class USERPREF_PT_input(bpy.types.Panel):
                 if props is not None:
                     for pname in dir(props):
                         if not props.is_property_hidden(pname):
-                            flow.itemR(props, pname)
+                            flow.prop(props, pname)
 
-                itemcol.itemS()
+                itemcol.separator()
 
-            itemrow.itemO("wm.keyitem_remove", text="", icon='ICON_ZOOMOUT')
+            itemrow.operator("wm.keyitem_remove", text="", icon='ICON_ZOOMOUT')
 
         itemrow = col.row()
-        itemrow.itemL()
-        itemrow.itemO("wm.keyitem_add", text="", icon='ICON_ZOOMIN')
+        itemrow.label()
+        itemrow.operator("wm.keyitem_add", text="", icon='ICON_ZOOMIN')
         itemrow.enabled = km.user_defined
 
 bpy.types.register(USERPREF_HT_header)

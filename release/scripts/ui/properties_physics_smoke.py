@@ -53,23 +53,23 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
         if md:
             # remove modifier + settings
             split.set_context_pointer("modifier", md)
-            split.itemO("object.modifier_remove", text="Remove")
+            split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
-            row.itemR(md, "render", text="")
-            row.itemR(md, "realtime", text="")
+            row.prop(md, "render", text="")
+            row.prop(md, "realtime", text="")
 
         else:
             # add modifier
-            split.item_enumO("object.modifier_add", "type", 'SMOKE', text="Add")
+            split.operator_enum("object.modifier_add", "type", 'SMOKE', text="Add")
             if wide_ui:
-                split.itemL()
+                split.label()
 
         if md:
             if wide_ui:
-                layout.itemR(md, "smoke_type", expand=True)
+                layout.prop(md, "smoke_type", expand=True)
             else:
-                layout.itemR(md, "smoke_type", text="")
+                layout.prop(md, "smoke_type", text="")
 
             if md.smoke_type == 'TYPE_DOMAIN':
 
@@ -78,19 +78,19 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 split = layout.split()
 
                 col = split.column()
-                col.itemL(text="Resolution:")
-                col.itemR(domain, "maxres", text="Divisions")
+                col.label(text="Resolution:")
+                col.prop(domain, "maxres", text="Divisions")
 
                 if wide_ui:
                     col = split.column()
-                col.itemL(text="Behavior:")
-                col.itemR(domain, "alpha")
-                col.itemR(domain, "beta")
-                col.itemR(domain, "dissolve_smoke", text="Dissolve")
+                col.label(text="Behavior:")
+                col.prop(domain, "alpha")
+                col.prop(domain, "beta")
+                col.prop(domain, "dissolve_smoke", text="Dissolve")
                 sub = col.column()
                 sub.active = domain.dissolve_smoke
-                sub.itemR(domain, "dissolve_speed", text="Time")
-                sub.itemR(domain, "dissolve_smoke_log", text="Slow")
+                sub.prop(domain, "dissolve_speed", text="Time")
+                sub.prop(domain, "dissolve_smoke_log", text="Slow")
 
             elif md.smoke_type == 'TYPE_FLOW':
 
@@ -99,9 +99,9 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 split = layout.split()
 
                 col = split.column()
-                col.itemR(flow, "outflow")
-                col.itemL(text="Particle System:")
-                col.item_pointerR(flow, "psys", ob, "particle_systems", text="")
+                col.prop(flow, "outflow")
+                col.label(text="Particle System:")
+                col.prop_pointer(flow, "psys", ob, "particle_systems", text="")
 
                 if md.flow_settings.outflow:
                     if wide_ui:
@@ -109,12 +109,12 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 else:
                     if wide_ui:
                         col = split.column()
-                    col.itemL(text="Behavior:")
-                    col.itemR(flow, "temperature")
-                    col.itemR(flow, "density")
+                    col.label(text="Behavior:")
+                    col.prop(flow, "temperature")
+                    col.prop(flow, "density")
 
             #elif md.smoke_type == 'TYPE_COLL':
-            #	layout.itemS()
+            #	layout.separator()
 
 
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
@@ -134,16 +134,16 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Flow Group:")
-        col.itemR(group, "fluid_group", text="")
+        col.label(text="Flow Group:")
+        col.prop(group, "fluid_group", text="")
 
-        #col.itemL(text="Effector Group:")
-        #col.itemR(group, "eff_group", text="")
+        #col.label(text="Effector Group:")
+        #col.prop(group, "eff_group", text="")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Collision Group:")
-        col.itemR(group, "coll_group", text="")
+        col.label(text="Collision Group:")
+        col.prop(group, "coll_group", text="")
 
 
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
@@ -172,7 +172,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
     def draw_header(self, context):
         high = context.smoke.domain_settings
 
-        self.layout.itemR(high, "highres", text="")
+        self.layout.prop(high, "highres", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -183,15 +183,15 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Resolution:")
-        col.itemR(md, "amplify", text="Divisions")
-        col.itemR(md, "viewhighres")
+        col.label(text="Resolution:")
+        col.prop(md, "amplify", text="Divisions")
+        col.prop(md, "viewhighres")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Noise Method:")
-        col.row().itemR(md, "noise_type", text="")
-        col.itemR(md, "strength")
+        col.label(text="Noise Method:")
+        col.row().prop(md, "noise_type", text="")
+        col.prop(md, "strength")
 
 
 class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):

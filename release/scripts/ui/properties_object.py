@@ -38,8 +38,8 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
         ob = context.object
 
         row = layout.row()
-        row.itemL(text="", icon='ICON_OBJECT_DATA')
-        row.itemR(ob, "name", text="")
+        row.label(text="", icon='ICON_OBJECT_DATA')
+        row.prop(ob, "name", text="")
 
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
@@ -54,32 +54,32 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
         if wide_ui:
             row = layout.row()
 
-            row.column().itemR(ob, "location")
+            row.column().prop(ob, "location")
             if ob.rotation_mode == 'QUATERNION':
-                row.column().itemR(ob, "rotation_quaternion", text="Rotation")
+                row.column().prop(ob, "rotation_quaternion", text="Rotation")
             elif ob.rotation_mode == 'AXIS_ANGLE':
-                #row.column().itemL(text="Rotation")
-                #row.column().itemR(pchan, "rotation_angle", text="Angle")
-                #row.column().itemR(pchan, "rotation_axis", text="Axis")
-                row.column().itemR(ob, "rotation_axis_angle", text="Rotation")
+                #row.column().label(text="Rotation")
+                #row.column().prop(pchan, "rotation_angle", text="Angle")
+                #row.column().prop(pchan, "rotation_axis", text="Axis")
+                row.column().prop(ob, "rotation_axis_angle", text="Rotation")
             else:
-                row.column().itemR(ob, "rotation_euler", text="Rotation")
+                row.column().prop(ob, "rotation_euler", text="Rotation")
 
-            row.column().itemR(ob, "scale")
+            row.column().prop(ob, "scale")
 
-            layout.itemR(ob, "rotation_mode")
+            layout.prop(ob, "rotation_mode")
         else:
             col = layout.column()
-            col.itemR(ob, "location")
-            col.itemL(text="Rotation:")
-            col.itemR(ob, "rotation_mode", text="")
+            col.prop(ob, "location")
+            col.label(text="Rotation:")
+            col.prop(ob, "rotation_mode", text="")
             if ob.rotation_mode == 'QUATERNION':
-                col.itemR(ob, "rotation_quaternion", text="")
+                col.prop(ob, "rotation_quaternion", text="")
             elif ob.rotation_mode == 'AXIS_ANGLE':
-                col.itemR(ob, "rotation_axis_angle", text="")
+                col.prop(ob, "rotation_axis_angle", text="")
             else:
-                col.itemR(ob, "rotation_euler", text="")
-            col.itemR(ob, "scale")
+                col.prop(ob, "rotation_euler", text="")
+            col.prop(ob, "scale")
 
 
 class OBJECT_PT_transform_locks(ObjectButtonsPanel):
@@ -95,18 +95,18 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel):
         row = layout.row()
 
         col = row.column()
-        col.itemR(ob, "lock_location", text="Location")
+        col.prop(ob, "lock_location", text="Location")
 
         col = row.column()
         if ob.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
-            col.itemR(ob, "lock_rotations_4d", text="Rotation")
+            col.prop(ob, "lock_rotations_4d", text="Rotation")
             if ob.lock_rotations_4d:
-                col.itemR(ob, "lock_rotation_w", text="W")
-            col.itemR(ob, "lock_rotation", text="")
+                col.prop(ob, "lock_rotation_w", text="W")
+            col.prop(ob, "lock_rotation", text="")
         else:
-            col.itemR(ob, "lock_rotation", text="Rotation")
+            col.prop(ob, "lock_rotation", text="Rotation")
 
-        row.column().itemR(ob, "lock_scale", text="Scale")
+        row.column().prop(ob, "lock_scale", text="Scale")
 
 
 class OBJECT_PT_relations(ObjectButtonsPanel):
@@ -121,20 +121,20 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(ob, "layers")
-        col.itemS()
-        col.itemR(ob, "pass_index")
+        col.prop(ob, "layers")
+        col.separator()
+        col.prop(ob, "pass_index")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Parent:")
-        col.itemR(ob, "parent", text="")
+        col.label(text="Parent:")
+        col.prop(ob, "parent", text="")
 
         sub = col.column()
-        sub.itemR(ob, "parent_type", text="")
+        sub.prop(ob, "parent_type", text="")
         parent = ob.parent
         if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
-            sub.item_pointerR(ob, "parent_bone", parent.data, "bones", text="")
+            sub.prop_pointer(ob, "parent_bone", parent.data, "bones", text="")
         sub.active = (parent is not None)
 
 
@@ -149,10 +149,10 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
         if wide_ui:
             split = layout.split()
-            split.item_menu_enumO("object.group_add", "group", text="Add to Group")
-            split.itemL()
+            split.operator_menu_enum("object.group_add", "group", text="Add to Group")
+            split.label()
         else:
-            layout.item_menu_enumO("object.group_add", "group", text="Add to Group")
+            layout.operator_menu_enum("object.group_add", "group", text="Add to Group")
 
         for group in bpy.data.groups:
             if ob.name in group.objects:
@@ -161,17 +161,17 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 col.set_context_pointer("group", group)
 
                 row = col.box().row()
-                row.itemR(group, "name", text="")
-                row.itemO("object.group_remove", text="", icon='VICON_X')
+                row.prop(group, "name", text="")
+                row.operator("object.group_remove", text="", icon='VICON_X')
 
                 split = col.box().split()
 
                 col = split.column()
-                col.itemR(group, "layer", text="Dupli")
+                col.prop(group, "layer", text="Dupli")
 
                 if wide_ui:
                     col = split.column()
-                col.itemR(group, "dupli_offset", text="")
+                col.prop(group, "dupli_offset", text="")
 
 
 class OBJECT_PT_display(ObjectButtonsPanel):
@@ -185,28 +185,28 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 
         split = layout.split()
         col = split.column()
-        col.itemR(ob, "max_draw_type", text="Type")
+        col.prop(ob, "max_draw_type", text="Type")
 
         if wide_ui:
             col = split.column()
         row = col.row()
-        row.itemR(ob, "draw_bounds", text="Bounds")
+        row.prop(ob, "draw_bounds", text="Bounds")
         sub = row.row()
         sub.active = ob.draw_bounds
-        sub.itemR(ob, "draw_bounds_type", text="")
+        sub.prop(ob, "draw_bounds_type", text="")
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(ob, "draw_name", text="Name")
-        col.itemR(ob, "draw_axis", text="Axis")
-        col.itemR(ob, "draw_wire", text="Wire")
+        col.prop(ob, "draw_name", text="Name")
+        col.prop(ob, "draw_axis", text="Axis")
+        col.prop(ob, "draw_wire", text="Wire")
 
         if wide_ui:
             col = split.column()
-        col.itemR(ob, "draw_texture_space", text="Texture Space")
-        col.itemR(ob, "x_ray", text="X-Ray")
-        col.itemR(ob, "draw_transparent", text="Transparency")
+        col.prop(ob, "draw_texture_space", text="Texture Space")
+        col.prop(ob, "x_ray", text="X-Ray")
+        col.prop(ob, "draw_transparent", text="Transparency")
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel):
@@ -219,42 +219,42 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         if wide_ui:
-            layout.itemR(ob, "dupli_type", expand=True)
+            layout.prop(ob, "dupli_type", expand=True)
         else:
-            layout.itemR(ob, "dupli_type", text="")
+            layout.prop(ob, "dupli_type", text="")
 
         if ob.dupli_type == 'FRAMES':
             split = layout.split()
 
             col = split.column(align=True)
-            col.itemR(ob, "dupli_frames_start", text="Start")
-            col.itemR(ob, "dupli_frames_end", text="End")
+            col.prop(ob, "dupli_frames_start", text="Start")
+            col.prop(ob, "dupli_frames_end", text="End")
 
             if wide_ui:
                 col = split.column(align=True)
-            col.itemR(ob, "dupli_frames_on", text="On")
-            col.itemR(ob, "dupli_frames_off", text="Off")
+            col.prop(ob, "dupli_frames_on", text="On")
+            col.prop(ob, "dupli_frames_off", text="Off")
 
-            layout.itemR(ob, "dupli_frames_no_speed", text="No Speed")
+            layout.prop(ob, "dupli_frames_no_speed", text="No Speed")
 
         elif ob.dupli_type == 'VERTS':
-            layout.itemR(ob, "dupli_verts_rotation", text="Rotation")
+            layout.prop(ob, "dupli_verts_rotation", text="Rotation")
 
         elif ob.dupli_type == 'FACES':
             split = layout.split()
 
             col = split.column()
-            col.itemR(ob, "dupli_faces_scale", text="Scale")
+            col.prop(ob, "dupli_faces_scale", text="Scale")
 
             if wide_ui:
                 col = split.column()
-            col.itemR(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
+            col.prop(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'GROUP':
             if wide_ui:
-                layout.itemR(ob, "dupli_group", text="Group")
+                layout.prop(ob, "dupli_group", text="Group")
             else:
-                layout.itemR(ob, "dupli_group", text="")
+                layout.prop(ob, "dupli_group", text="")
 
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
@@ -269,27 +269,27 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Time Offset:")
-        col.itemR(ob, "time_offset_edit", text="Edit")
+        col.label(text="Time Offset:")
+        col.prop(ob, "time_offset_edit", text="Edit")
         row = col.row()
-        row.itemR(ob, "time_offset_particle", text="Particle")
+        row.prop(ob, "time_offset_particle", text="Particle")
         row.active = len(ob.particle_systems) != 0
         row = col.row()
-        row.itemR(ob, "time_offset_parent", text="Parent")
+        row.prop(ob, "time_offset_parent", text="Parent")
         row.active = (ob.parent is not None)
         row = col.row()
-        row.itemR(ob, "slow_parent")
+        row.prop(ob, "slow_parent")
         row.active = (ob.parent is not None)
-        col.itemR(ob, "time_offset", text="Offset")
+        col.prop(ob, "time_offset", text="Offset")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Track:")
-        col.itemR(ob, "track", text="")
-        col.itemR(ob, "track_axis", text="Axis")
-        col.itemR(ob, "up_axis", text="Up Axis")
+        col.label(text="Track:")
+        col.prop(ob, "track", text="")
+        col.prop(ob, "track_axis", text="Axis")
+        col.prop(ob, "up_axis", text="Up Axis")
         row = col.row()
-        row.itemR(ob, "track_override_parent", text="Override Parent")
+        row.prop(ob, "track_override_parent", text="Override Parent")
         row.active = (ob.parent is not None)
 
 
