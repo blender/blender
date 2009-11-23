@@ -526,10 +526,10 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "PoseChannelConstraints");
-	srna= RNA_def_struct(brna, "PoseChannelConstraints", NULL);
+	RNA_def_property_srna(cprop, "PoseBoneConstraints");
+	srna= RNA_def_struct(brna, "PoseBoneConstraints", NULL);
 	RNA_def_struct_sdna(srna, "bPoseChannel");
-	RNA_def_struct_ui_text(srna, "PoseChannel Constraints", "Collection of object constraints.");
+	RNA_def_struct_ui_text(srna, "PoseBone Constraints", "Collection of pose bone constraints.");
 
 	/* Collection active property */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
