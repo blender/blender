@@ -248,9 +248,9 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
         return ('FINISHED',)
 
 doc_id = StringProperty(name="Doc ID",
-        description="ID for the documentation", maxlen=1024, default="")
+        description="", maxlen=1024, default="", hidden=True)
 
-doc_new = StringProperty(name="Doc New",
+doc_new = StringProperty(name="Edit Description",
         description="", maxlen=1024, default="")
 
 

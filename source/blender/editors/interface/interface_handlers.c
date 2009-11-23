@@ -3497,7 +3497,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			RNA_string_set(&ptr_props, "doc_id", buf);
 			RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
 
-			uiItemFullO(layout, "Edit Docs (TODO)", 0, "WM_OT_doc_edit", ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
+			uiItemFullO(layout, "Submit Description", 0, "WM_OT_doc_edit", ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
 		}
 		else if (but->optype) {
 			WM_operator_py_idname(buf, but->optype->idname);
@@ -3511,7 +3511,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			RNA_string_set(&ptr_props, "doc_id", buf);
 			RNA_string_set(&ptr_props, "doc_new", but->optype->description);
 
-			uiItemFullO(layout, "Edit Docs (TODO)", 0, "WM_OT_doc_edit", ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
+			uiItemFullO(layout, "Submit Description", 0, "WM_OT_doc_edit", ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
 		}
 	}
 

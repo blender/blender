@@ -699,7 +699,9 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlock *block;
 	uiLayout *layout;
 	uiStyle *style= U.uistyles.first;
+	int columns= 2, width= 300;
 	
+
 	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
@@ -710,14 +712,20 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
 	}
 
+	// XXX - hack, only for editing docs
+	if(strcmp(op->type->idname, "WM_OT_doc_edit")==0) {
+		columns= 1;
+		width= 500;
+	}
+
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
 	uiItemL(layout, op->type->name, 0);
 
 	if(op->type->ui)
 		op->type->ui((bContext*)C, &ptr, layout);
 	else
-		uiDefAutoButsRNA(C, layout, &ptr, 2);
+		uiDefAutoButsRNA(C, layout, &ptr, columns);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
