@@ -1800,6 +1800,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_shape_key_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); // XXX this is really unpredictable...
 	RNA_def_property_int_funcs(prop, "rna_Object_active_shape_key_index_get", "rna_Object_active_shape_key_index_set", "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index.");
 	RNA_def_property_update(prop, 0, "rna_Object_active_shape_update");

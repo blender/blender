@@ -2340,7 +2340,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "set", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "set");
 	RNA_def_property_struct_type(prop, "Scene");
-	//RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
 	RNA_def_property_ui_text(prop, "Set Scene", "Background set scene.");

@@ -331,7 +331,6 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 static void draw_modifier__sound(const bContext *C, uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	FMod_Sound *data= (FMod_Sound *)fcm->data;
-	uiLayout *split, *col;
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
@@ -348,16 +347,9 @@ static void draw_modifier__sound(const bContext *C, uiLayout *layout, ID *id, FM
 			/* blending mode */
 			uiItemR(layout, NULL, 0, &ptr, "modification", 0);
 			
-			/* split into 2 columns */
-			split= uiLayoutSplit(layout, 0.5f);
-			
-			/* col 1 */
-			col= uiLayoutColumn(split, 0);
-			uiItemR(col, NULL, 0, &ptr, "strength", 0);
-			
-			/* col 2 */
-			col= uiLayoutColumn(split, 0);
-			uiItemR(col, NULL, 0, &ptr, "delay", 0);
+			/* settings */
+			uiItemR(layout, NULL, 0, &ptr, "strength", 0);
+			uiItemR(layout, NULL, 0, &ptr, "delay", 0);
 		}
 		else
 		{

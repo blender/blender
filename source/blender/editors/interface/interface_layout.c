@@ -629,7 +629,11 @@ PointerRNA uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDP
 		but= uiDefIconButO(block, BUT, ot->idname, context, icon, 0, 0, w, UI_UNIT_Y, NULL);
 	else
 		but= uiDefButO(block, BUT, ot->idname, context, (char*)name, 0, 0, w, UI_UNIT_Y, NULL);
-
+	
+	/* text alignment for toolbar buttons */
+	if((layout->root->type == UI_LAYOUT_TOOLBAR) && !icon)
+		but->flag |= UI_TEXT_LEFT;
+	
 	/* assign properties */
 	if(properties || (flag & UI_ITEM_O_RETURN_PROPS)) {
 		PointerRNA *opptr= uiButGetOperatorPtrRNA(but);

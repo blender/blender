@@ -560,6 +560,7 @@ void UI_exit(void);
 #define UI_LAYOUT_PANEL			0
 #define UI_LAYOUT_HEADER		1
 #define UI_LAYOUT_MENU			2
+#define UI_LAYOUT_TOOLBAR		3
  
 #define UI_UNIT_X				20
 #define UI_UNIT_Y				20

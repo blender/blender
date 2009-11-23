@@ -229,11 +229,6 @@ static int rna_FCurve_modifiers_remove(FCurve *fcu, bContext *C, int index)
 	return remove_fmodifier_index(&fcu->modifiers, index);
 }
 
-static int rna_Sound_id_editable(PointerRNA *ptr)
-{
-	return PROP_EDITABLE;
-}
-
 #else
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
@@ -578,7 +573,6 @@ static void rna_def_fmodifier_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sound");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_editable_func(prop, "rna_Sound_id_editable");
 	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this modifier.");
 
 }
