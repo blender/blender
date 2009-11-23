@@ -3494,7 +3494,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 	else if(srna) {
 		static char *kwlist[] = {"attr", "type", "name", "description", "hidden", NULL};
 		char *id=NULL, *name="", *description="";
-		int hidden;
+		int hidden= 0;
 		PropertyRNA *prop;
 		StructRNA *ptype;
 		PyObject *type= Py_None;
@@ -3533,7 +3533,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 	else if(srna) {
 		static char *kwlist[] = {"attr", "type", "name", "description", "hidden", NULL};
 		char *id=NULL, *name="", *description="";
-		int hidden;
+		int hidden= 0;
 		PropertyRNA *prop;
 		StructRNA *ptype;
 		PyObject *type= Py_None;
