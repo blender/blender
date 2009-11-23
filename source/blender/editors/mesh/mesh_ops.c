@@ -284,10 +284,9 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_split", YKEY, KM_PRESS, 0, 0);
-						/* use KM_RELEASE because same key is used for tweaks
-						 * TEMPORARY REMAP TO ALT+CTRL TO AVOID CONFLICT 
-						 * */
-	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_RELEASE, KM_CTRL|KM_ALT, 0);
+
+	/* use KM_CLICK because same key is used for tweaks */
+	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_delete", DELKEY, KM_PRESS, 0, 0);

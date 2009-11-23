@@ -1153,6 +1153,22 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		if(CTX_wm_window(C)==NULL)
 			break;
 	}
+
+	/* test for CLICK event */
+	if (event->val == KM_RELEASE && action == WM_HANDLER_CONTINUE) {
+		wmWindow *win = CTX_wm_window(C);
+
+		if (win && win->last_type == event->type && win->last_val == KM_PRESS) {
+			event->val = KM_CLICK;
+			action = wm_handlers_do(C, event, handlers);
+
+			/* revert value if not handled */
+			if (action == WM_HANDLER_CONTINUE) {
+				event->val = KM_RELEASE;
+			}
+		}
+	}
+
 	return action;
 }
 
@@ -1333,6 +1349,10 @@ void wm_event_do_handlers(bContext *C)
 				}
 			}
 			
+			/* store last event for this window */
+			win->last_type = event->type;
+			win->last_val = event->val;
+
 			/* unlink and free here, blender-quit then frees all */
 			BLI_remlink(&win->queue, event);
 			wm_event_free(event);

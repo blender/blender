@@ -152,8 +152,10 @@ typedef struct wmWindow {
 	short cursor;		/* current mouse cursor type */
 	short lastcursor;	/* for temp waitcursor */
 	short addmousemove;	/* internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching */
-	int pad3;
 	
+	short last_type; /* last event information, used for click */
+	short last_val;
+
 	struct wmEvent *eventstate;	/* storage for event system */
 	
 	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
