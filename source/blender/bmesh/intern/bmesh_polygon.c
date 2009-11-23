@@ -4,7 +4,7 @@
 
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 
@@ -272,7 +272,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		v1 = verts[i];
 		v2 = verts[(i+1) % nverts];
 		v3 = verts[(i+2) % nverts];
-		CalcNormFloat(v1, v2, v3, norm);	
+		normal_tri_v3( norm,v1, v2, v3);	
 	
 		avgn[0] += norm[0];
 		avgn[1] += norm[1];
@@ -288,7 +288,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		avgn[0] /= nverts;
 		avgn[1] /= nverts;
 		avgn[2] /= nverts;
-		Normalize(avgn);
+		normalize_v3(avgn);
 	}
 	
 	for(i = 0; i < nverts; i++){
@@ -303,7 +303,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		temp[1] = (avgn[1] * mag);
 		temp[2] = (avgn[2] * mag);
 
-		VecSubf(v1, v1, temp);
+		sub_v3_v3v3(v1, v1, temp);
 	}	
 }
 
@@ -364,7 +364,7 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 	double angle;
 	int i;
 
-	Crossf(axis, up, normal);
+	cross_v3_v3v3(axis, up, normal);
 	axis[0] *= -1;
 	axis[1] *= -1;
 	axis[2] *= -1;
@@ -373,11 +373,11 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 
 	if (angle == 0.0f) return;
 
-	AxisAngleToQuatd(q, axis, angle);
-	QuatToMat3(q, mat);
+	axis_angle_to_quat(q, axis, (float)angle);
+	quat_to_mat3(mat, q);
 
 	for(i = 0;  i < nverts;  i++)
-		Mat3MulVecfl(mat, verts[i]);
+		mul_m3_v3(mat, verts[i]);
 }
 
 /*
@@ -434,12 +434,12 @@ void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
 	for (; f; f=BMIter_Step(&iter), len++) {
-		VecAddf(v->no, f->no, v->no);
+		add_v3_v3v3(v->no, f->no, v->no);
 	}
 
 	if (!len) return;
 
-	VecMulf(v->no, 1.0f/(int)len);
+	mul_v3_fl(v->no, 1.0f/(int)len);
 }
 
 void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
@@ -463,7 +463,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		v1 = f->loopbase->v;
 		v2 = ((BMLoop*)(f->loopbase->head.next))->v;
 		v3 = ((BMLoop*)(f->loopbase->head.next->next))->v;
-		CalcNormFloat(v1->co, v2->co, v3->co, f->no);
+		normal_tri_v3( f->no,v1->co, v2->co, v3->co);
 	}
 	else if(f->len == 4){
 		BMVert *v1, *v2, *v3, *v4;
@@ -471,7 +471,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		v2 = ((BMLoop*)(f->loopbase->head.next))->v;
 		v3 = ((BMLoop*)(f->loopbase->head.next->next))->v;
 		v4 = ((BMLoop*)(f->loopbase->head.prev))->v;
-		CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, f->no);
+		normal_quad_v3( f->no,v1->co, v2->co, v3->co, v4->co);
 	}
 	else{ /*horrible, two sided face!*/
 		f->no[0] = 0.0;
@@ -649,7 +649,7 @@ static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3],
 			isear = 0;
 		
 		if(isear) {
-			/*angle = VecAngle3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
+			/*angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
 			if(!bestear || ABS(angle-45.0f) < bestangle) {
 				bestear = l;
 				bestangle = ABS(45.0f-angle);
@@ -841,8 +841,8 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		VECCOPY(v2, edgeverts[i*2]);
 		VECCOPY(v3, edgeverts[i*2+1]);
 
-		VecAddf(mid, v2, v3);
-		VecMulf(mid, 0.5f);
+		add_v3_v3v3(mid, v2, v3);
+		mul_v3_fl(mid, 0.5f);
 		
 		clen = 0;
 		for (j=0; j<f->len; j++) {

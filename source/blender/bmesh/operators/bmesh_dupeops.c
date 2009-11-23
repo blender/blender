@@ -6,7 +6,7 @@
 #include "BLI_memarena.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "bmesh.h"
 #include "bmesh_operators_private.h"

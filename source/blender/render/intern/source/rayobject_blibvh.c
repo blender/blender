@@ -31,7 +31,7 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "RE_raytrace.h"
 #include "render_types.h"
 #include "rayobject.h"
@@ -120,7 +120,7 @@ static int  RE_rayobject_blibvh_intersect(RayObject *o, Isect *isec)
 	data.leafs = obj->leafs;
 
 	VECCOPY(dir, isec->vec);
-	Normalize(dir);
+	normalize_v3(dir);
 
 	hit.index = 0;
 	hit.dist = isec->labda*isec->dist;

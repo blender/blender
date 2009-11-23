@@ -39,7 +39,7 @@
 #include "RNA_access.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_graph.h"
 #include "BLI_ghash.h"
 
@@ -416,10 +416,10 @@ ReebNode *sk_pointToNode(SK_Point *pt, float imat[][4], float tmat[][3])
 
 	node = MEM_callocN(sizeof(ReebNode), "reeb node");
 	VECCOPY(node->p, pt->p);
-	Mat4MulVecfl(imat, node->p);
+	mul_m4_v3(imat, node->p);
 
 	VECCOPY(node->no, pt->no);
-	Mat3MulVecfl(tmat, node->no);
+	mul_m3_v3(tmat, node->no);
 
 	return node;
 }
@@ -439,10 +439,10 @@ ReebArc *sk_strokeToArc(SK_Stroke *stk, float imat[][4], float tmat[][3])
 	for (i = 0; i < arc->bcount; i++)
 	{
 		VECCOPY(arc->buckets[i].p, stk->points[i + 1].p);
-		Mat4MulVecfl(imat, arc->buckets[i].p);
+		mul_m4_v3(imat, arc->buckets[i].p);
 
 		VECCOPY(arc->buckets[i].no, stk->points[i + 1].no);
-		Mat3MulVecfl(tmat, arc->buckets[i].no);
+		mul_m3_v3(tmat, arc->buckets[i].no);
 	}
 
 	return arc;
@@ -457,10 +457,10 @@ void sk_retargetStroke(bContext *C, SK_Stroke *stk)
 	ReebArc *arc;
 	RigGraph *rg;
 
-	Mat4Invert(imat, obedit->obmat);
+	invert_m4_m4(imat, obedit->obmat);
 
-	Mat3CpyMat4(tmat, obedit->obmat);
-	Mat3Transp(tmat);
+	copy_m3_m4(tmat, obedit->obmat);
+	transpose_m3(tmat);
 
 	arc = sk_strokeToArc(stk, imat, tmat);
 
@@ -505,16 +505,16 @@ void sk_drawEdge(GLUquadric *quad, SK_Point *pt0, SK_Point *pt1, float size)
 	float vec1[3], vec2[3] = {0, 0, 1}, axis[3];
 	float angle, length;
 
-	VecSubf(vec1, pt1->p, pt0->p);
-	length = Normalize(vec1);
-	Crossf(axis, vec2, vec1);
+	sub_v3_v3v3(vec1, pt1->p, pt0->p);
+	length = normalize_v3(vec1);
+	cross_v3_v3v3(axis, vec2, vec1);
 
-	if (VecIsNull(axis))
+	if (is_zero_v3(axis))
 	{
 		axis[1] = 1;
 	}
 
-	angle = NormalizedVecAngle2(vec2, vec1);
+	angle = angle_normalized_v3v3(vec2, vec1);
 
 	glRotatef(angle * 180 / M_PI + 180, axis[0], axis[1], axis[2]);
 
@@ -528,14 +528,14 @@ void sk_drawNormal(GLUquadric *quad, SK_Point *pt, float size, float height)
 	
 	glPushMatrix();
 
-	Crossf(axis, vec2, pt->no);
+	cross_v3_v3v3(axis, vec2, pt->no);
 
-	if (VecIsNull(axis))
+	if (is_zero_v3(axis))
 	{
 		axis[1] = 1;
 	}
 
-	angle = NormalizedVecAngle2(vec2, pt->no);
+	angle = angle_normalized_v3v3(vec2, pt->no);
 
 	glRotatef(angle * 180 / M_PI, axis[0], axis[1], axis[2]);
 
@@ -576,8 +576,8 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 		float d_rgb[3] = {1, 1, 1};
 
 		VECCOPY(rgb, color);
-		VecSubf(d_rgb, d_rgb, rgb);
-		VecMulf(d_rgb, 1.0f / (float)stk->nb_points);
+		sub_v3_v3v3(d_rgb, d_rgb, rgb);
+		mul_v3_fl(d_rgb, 1.0f / (float)stk->nb_points);
 
 		for (i = 0; i < stk->nb_points; i++)
 		{
@@ -614,7 +614,7 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 
 			glPopMatrix();
 
-			VecAddf(rgb, rgb, d_rgb);
+			add_v3_v3v3(rgb, rgb, d_rgb);
 		}
 	}
 
@@ -756,7 +756,7 @@ SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones, short 
 		if ((bone->flag & BONE_CONNECTED) == 0)
 		{
 			VECCOPY(vec, bone->head);
-			Mat4MulVecfl(ob->obmat, vec);
+			mul_m4_v3(ob->obmat, vec);
 			project_short_noclip(ar, vec, pval);
 
 			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
@@ -772,7 +772,7 @@ SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones, short 
 
 
 		VECCOPY(vec, bone->tail);
-		Mat4MulVecfl(ob->obmat, vec);
+		mul_m4_v3(ob->obmat, vec);
 		project_short_noclip(ar, vec, pval);
 
 		pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
@@ -977,13 +977,13 @@ float sk_distanceDepth(bContext *C, float p1[3], float p2[3])
 	float vec[3];
 	float distance;
 
-	VecSubf(vec, p1, p2);
+	sub_v3_v3v3(vec, p1, p2);
 
-	Projf(vec, vec, rv3d->viewinv[2]);
+	project_v3_v3v3(vec, vec, rv3d->viewinv[2]);
 
-	distance = VecLength(vec);
+	distance = len_v3(vec);
 
-	if (Inpf(rv3d->viewinv[2], vec) > 0)
+	if (dot_v3v3(rv3d->viewinv[2], vec) > 0)
 	{
 		distance *= -1;
 	}
@@ -1000,19 +1000,19 @@ void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end, float 
 	float progress = 0;
 	int i;
 
-	progress = VecLenf(stk->points[start].p, stk->points[start - 1].p);
+	progress = len_v3v3(stk->points[start].p, stk->points[start - 1].p);
 
 	for (i = start; i <= end; i++)
 	{
 		float ray_start[3], ray_normal[3];
-		float delta = VecLenf(stk->points[i].p, stk->points[i + 1].p);
+		float delta = len_v3v3(stk->points[i].p, stk->points[i + 1].p);
 		float pval[2];
 
 		project_float(ar, stk->points[i].p, pval);
 		viewray(ar, v3d, pval, ray_start, ray_normal);
 
-		VecMulf(ray_normal, distance * progress / length);
-		VecAddf(stk->points[i].p, stk->points[i].p, ray_normal);
+		mul_v3_fl(ray_normal, distance * progress / length);
+		add_v3_v3v3(stk->points[i].p, stk->points[i].p, ray_normal);
 
 		progress += delta ;
 	}
@@ -1037,7 +1037,7 @@ void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_DrawData 
 	/* method taken from editview.c - mouse_cursor() */
 	project_short_noclip(ar, fp, cval);
 	window_to_3d_delta(ar, dvec, cval[0] - dd->mval[0], cval[1] - dd->mval[1]);
-	VecSubf(vec, fp, dvec);
+	sub_v3_v3v3(vec, fp, dvec);
 }
 
 int sk_getStrokeDrawPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
@@ -1132,9 +1132,9 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 				{
 					p2->flag = 1;
 
-					VecAddf(vec, p1->p, p2->p);
-					VecMulf(vec, 0.5f);
-					new_size = VecLenf(p1->p, p2->p);
+					add_v3_v3v3(vec, p1->p, p2->p);
+					mul_v3_fl(vec, 0.5f);
+					new_size = len_v3v3(p1->p, p2->p);
 				}
 				else
 				{
@@ -1149,7 +1149,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 					break;
 				}
 
-				new_dist = VecLenf(last_p, vec);
+				new_dist = len_v3v3(last_p, vec);
 
 				if (new_dist < dist)
 				{
@@ -1248,7 +1248,7 @@ int sk_addStrokeSnapPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_Dra
 		length = 0;
 		for (i = stk->nb_points - 2; i > 0; i--)
 		{
-			length += VecLenf(stk->points[i].p, stk->points[i + 1].p);
+			length += len_v3v3(stk->points[i].p, stk->points[i + 1].p);
 			total++;
 			if (stk->points[i].mode == PT_SNAP || stk->points[i].type == PT_EXACT)
 			{
@@ -1494,10 +1494,10 @@ void sk_convertStroke(bContext *C, SK_Stroke *stk)
 
 	head = NULL;
 
-	Mat4Invert(invmat, obedit->obmat);
+	invert_m4_m4(invmat, obedit->obmat);
 
-	Mat3CpyMat4(tmat, obedit->obmat);
-	Mat3Transp(tmat);
+	copy_m3_m4(tmat, obedit->obmat);
+	transpose_m3(tmat);
 
 	for (i = 0; i < stk->nb_points; i++)
 	{
@@ -1543,8 +1543,8 @@ void sk_convertStroke(bContext *C, SK_Stroke *stk)
 					VECCOPY(bone->head, head->p);
 					VECCOPY(bone->tail, pt->p);
 
-					Mat4MulVecfl(invmat, bone->head);
-					Mat4MulVecfl(invmat, bone->tail);
+					mul_m4_v3(invmat, bone->head);
+					mul_m4_v3(invmat, bone->tail);
 					setBoneRollFromNormal(bone, head->no, invmat, tmat);
 				}
 
@@ -1624,7 +1624,7 @@ int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gesture)
 			project_float(ar, gesture->points[g_i].p, g_p1);
 			project_float(ar, gesture->points[g_i + 1].p, g_p2);
 
-			if (LineIntersectLineStrict(s_p1, s_p2, g_p1, g_p2, vi, &lambda))
+			if (isect_line_line_strict_v3(s_p1, s_p2, g_p1, g_p2, vi, &lambda))
 			{
 				SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
 
@@ -1633,9 +1633,9 @@ int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gesture)
 				isect->after = s_i + 1;
 				isect->stroke = gesture;
 
-				VecSubf(isect->p, gesture->points[s_i + 1].p, gesture->points[s_i].p);
-				VecMulf(isect->p, lambda);
-				VecAddf(isect->p, isect->p, gesture->points[s_i].p);
+				sub_v3_v3v3(isect->p, gesture->points[s_i + 1].p, gesture->points[s_i].p);
+				mul_v3_fl(isect->p, lambda);
+				add_v3_v3v3(isect->p, isect->p, gesture->points[s_i].p);
 
 				BLI_addtail(list, isect);
 
@@ -1711,7 +1711,7 @@ int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, SK_Strok
 				project_float(ar, gesture->points[g_i].p, g_p1);
 				project_float(ar, gesture->points[g_i + 1].p, g_p2);
 
-				if (LineIntersectLineStrict(s_p1, s_p2, g_p1, g_p2, vi, &lambda))
+				if (isect_line_line_strict_v3(s_p1, s_p2, g_p1, g_p2, vi, &lambda))
 				{
 					SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
 					float ray_start[3], ray_end[3];
@@ -1727,7 +1727,7 @@ int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, SK_Strok
 					mval[1] = vi[1];
 					viewline(ar, v3d, mval, ray_start, ray_end);
 
-					LineIntersectLine(	stk->points[s_i].p,
+					isect_line_line_v3(	stk->points[s_i].p,
 										stk->points[s_i + 1].p,
 										ray_start,
 										ray_end,
@@ -1768,7 +1768,7 @@ int sk_getSegments(SK_Stroke *segments, SK_Stroke *gesture)
 		float n[3];
 
 		/* Calculate normal */
-		VecSubf(n, gesture->points[i].p, vec);
+		sub_v3_v3v3(n, gesture->points[i].p, vec);
 
 		if (calcArcCorrelation(iter, j, i, vec, n) < CORRELATION_THRESHOLD)
 		{
@@ -1818,10 +1818,10 @@ int sk_detectTrimGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		float s1[3], s2[3];
 		float angle;
 
-		VecSubf(s1, gest->segments->points[1].p, gest->segments->points[0].p);
-		VecSubf(s2, gest->segments->points[2].p, gest->segments->points[1].p);
+		sub_v3_v3v3(s1, gest->segments->points[1].p, gest->segments->points[0].p);
+		sub_v3_v3v3(s2, gest->segments->points[2].p, gest->segments->points[1].p);
 
-		angle = RAD2DEG(VecAngle2(s1, s2));
+		angle = RAD2DEG(angle_v2v2(s1, s2));
 
 		if (angle > 60 && angle < 120)
 		{
@@ -1837,7 +1837,7 @@ void sk_applyTrimGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 	SK_Intersection *isect;
 	float trim_dir[3];
 
-	VecSubf(trim_dir, gest->segments->points[2].p, gest->segments->points[1].p);
+	sub_v3_v3v3(trim_dir, gest->segments->points[2].p, gest->segments->points[1].p);
 
 	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
@@ -1849,10 +1849,10 @@ void sk_applyTrimGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		VECCOPY(pt.p, isect->p);
 		VECCOPY(pt.no, isect->stroke->points[isect->before].no);
 
-		VecSubf(stroke_dir, isect->stroke->points[isect->after].p, isect->stroke->points[isect->before].p);
+		sub_v3_v3v3(stroke_dir, isect->stroke->points[isect->after].p, isect->stroke->points[isect->before].p);
 
 		/* same direction, trim end */
-		if (Inpf(stroke_dir, trim_dir) > 0)
+		if (dot_v3v3(stroke_dir, trim_dir) > 0)
 		{
 			sk_replaceStrokePoint(isect->stroke, &pt, isect->after);
 			sk_trimStroke(isect->stroke, 0, isect->after);
@@ -1936,10 +1936,10 @@ int sk_detectDeleteGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		float s1[3], s2[3];
 		float angle;
 
-		VecSubf(s1, gest->segments->points[1].p, gest->segments->points[0].p);
-		VecSubf(s2, gest->segments->points[2].p, gest->segments->points[1].p);
+		sub_v3_v3v3(s1, gest->segments->points[1].p, gest->segments->points[0].p);
+		sub_v3_v3v3(s2, gest->segments->points[2].p, gest->segments->points[1].p);
 
-		angle = RAD2DEG(VecAngle2(s1, s2));
+		angle = RAD2DEG(angle_v2v2(s1, s2));
 
 		if (angle > 120)
 		{
@@ -2062,16 +2062,16 @@ int sk_detectReverseGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 
 				if (isect->gesture_index < isect->next->gesture_index)
 				{
-					VecSubf(start_v, isect->p, gest->stk->points[0].p);
-					VecSubf(end_v, sk_lastStrokePoint(gest->stk)->p, isect->next->p);
+					sub_v3_v3v3(start_v, isect->p, gest->stk->points[0].p);
+					sub_v3_v3v3(end_v, sk_lastStrokePoint(gest->stk)->p, isect->next->p);
 				}
 				else
 				{
-					VecSubf(start_v, isect->next->p, gest->stk->points[0].p);
-					VecSubf(end_v, sk_lastStrokePoint(gest->stk)->p, isect->p);
+					sub_v3_v3v3(start_v, isect->next->p, gest->stk->points[0].p);
+					sub_v3_v3v3(end_v, sk_lastStrokePoint(gest->stk)->p, isect->p);
 				}
 
-				angle = RAD2DEG(VecAngle2(start_v, end_v));
+				angle = RAD2DEG(angle_v2v2(start_v, end_v));
 
 				if (angle > 120)
 				{

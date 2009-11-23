@@ -17,7 +17,7 @@
 #include "mesh_intern.h"
 #include "ED_mesh.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_array.h"
@@ -53,7 +53,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 	ototedge = bm->totedge;
 	
 	BMO_Get_Mat4(op, "mat", mtx);
-	Mat4Invert(imtx, mtx);
+	invert_m4_m4(imtx, mtx);
 	
 	BMO_InitOpf(bm, &dupeop, "dupe geom=%s", op, "geom");
 	BMO_Exec_Op(bm, &dupeop);

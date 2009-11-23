@@ -49,7 +49,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
@@ -829,7 +829,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
 		VECCOPY(co, bv->co);
 		co[3]= 1.0;
-		Mat4MulVec4fl(obedit->obmat, co);
+		mul_m4_v4(obedit->obmat, co);
 		project_float(ar, co, scr);
 		BLI_ghash_insert(gh, bv, scr);
 	}

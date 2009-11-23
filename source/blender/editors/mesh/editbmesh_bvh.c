@@ -52,7 +52,7 @@
 #include "RNA_access.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
@@ -147,26 +147,26 @@ static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, flo
 	VECCOPY(vv2, v1);
 	VECCOPY(vv3, v2);
 
-	VecAddf(cent, vv1, vv2);
-	VecAddf(cent, cent, vv3);
-	VecMulf(cent, 1.0f/3.0f);
+	add_v3_v3v3(cent, vv1, vv2);
+	add_v3_v3v3(cent, cent, vv3);
+	mul_v3_fl(cent, 1.0f/3.0f);
 
-	VecSubf(vv1, vv1, cent);
-	VecSubf(vv2, vv2, cent);
-	VecSubf(vv3, vv3, cent);
+	sub_v3_v3v3(vv1, vv1, cent);
+	sub_v3_v3v3(vv2, vv2, cent);
+	sub_v3_v3v3(vv3, vv3, cent);
 
-	VecMulf(vv1, 1.0f + e);
-	VecMulf(vv2, 1.0f + e);
-	VecMulf(vv3, 1.0f + e);
+	mul_v3_fl(vv1, 1.0f + e);
+	mul_v3_fl(vv2, 1.0f + e);
+	mul_v3_fl(vv3, 1.0f + e);
 
-	VecAddf(vv1, vv1, cent);
-	VecAddf(vv2, vv2, cent);
-	VecAddf(vv3, vv3, cent);
+	add_v3_v3v3(vv1, vv1, cent);
+	add_v3_v3v3(vv2, vv2, cent);
+	add_v3_v3v3(vv3, vv3, cent);
 
-	if(RayIntersectsTriangle((float*)ray->origin, (float*)ray->direction, vv1, vv2, vv3, &dist, uv))
+	if(isect_ray_tri_v3((float*)ray->origin, (float*)ray->direction, vv1, vv2, vv3, &dist, uv))
 		return dist;
 #else
-	if(RayIntersectsTriangle((float*)ray->origin, (float*)ray->direction, v0, v1, v2, &dist, uv))
+	if(isect_ray_tri_v3((float*)ray->origin, (float*)ray->direction, v0, v1, v2, &dist, uv))
 		return dist;
 #endif
 
@@ -191,12 +191,12 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 		VECCOPY(co2, ls[1]->v->co);
 		VECCOPY(co3, ls[2]->v->co);
 
-		VecMulf(co1, uv[0]);
-		VecMulf(co2, uv[1]);
-		VecMulf(co3, 1.0f-uv[0]-uv[1]);
+		mul_v3_fl(co1, uv[0]);
+		mul_v3_fl(co2, uv[1]);
+		mul_v3_fl(co3, 1.0f-uv[0]-uv[1]);
 
-		VecAddf(hit->co, co1, co2);
-		VecAddf(hit->co, hit->co, co3);
+		add_v3_v3v3(hit->co, co1, co2);
+		add_v3_v3v3(hit->co, hit->co, co3);
 	}
 }
 
@@ -244,37 +244,37 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d, Object *obe
 	float epsilon = 0.01f; 
 	
 	VECCOPY(origin, r3d->viewinv[3]);
-	Mat4Invert(invmat, obedit->obmat);
-	Mat4MulVecfl(invmat, origin);
+	invert_m4_m4(invmat, obedit->obmat);
+	mul_m4_v3(invmat, origin);
 
 	VECCOPY(co1, e->v1->co);
-	VecAddf(co2, e->v1->co, e->v2->co);
-	VecMulf(co2, 0.5f);
+	add_v3_v3v3(co2, e->v1->co, e->v2->co);
+	mul_v3_fl(co2, 0.5f);
 	VECCOPY(co3, e->v2->co);
 	
 	/*ok, idea is to generate rays going from the camera origin to the 
 	  three points on the edge (v1, mid, v2)*/
-	VecSubf(dir1, origin, co1);
-	VecSubf(dir2, origin, co2);
-	VecSubf(dir3, origin, co3);
+	sub_v3_v3v3(dir1, origin, co1);
+	sub_v3_v3v3(dir2, origin, co2);
+	sub_v3_v3v3(dir3, origin, co3);
 	
-	Normalize(dir1);
-	Normalize(dir2);
-	Normalize(dir3);
+	normalize_v3(dir1);
+	normalize_v3(dir2);
+	normalize_v3(dir3);
 
-	VecMulf(dir1, epsilon);
-	VecMulf(dir2, epsilon);
-	VecMulf(dir3, epsilon);
+	mul_v3_fl(dir1, epsilon);
+	mul_v3_fl(dir2, epsilon);
+	mul_v3_fl(dir3, epsilon);
 	
 	/*offset coordinates slightly along view vectors, to avoid
 	  hitting the faces that own the edge.*/
-	VecAddf(co1, co1, dir1);
-	VecAddf(co2, co2, dir2);
-	VecAddf(co3, co3, dir3);
+	add_v3_v3v3(co1, co1, dir1);
+	add_v3_v3v3(co2, co2, dir2);
+	add_v3_v3v3(co3, co3, dir3);
 
-	Normalize(dir1);
-	Normalize(dir2);
-	Normalize(dir3);
+	normalize_v3(dir1);
+	normalize_v3(dir2);
+	normalize_v3(dir3);
 
 	/*do three samplings: left, middle, right*/
 	f = edge_ray_cast(tree, co1, dir1, NULL, e);

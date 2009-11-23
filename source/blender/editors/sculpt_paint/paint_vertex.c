@@ -42,7 +42,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_cellalloc.h"
 #include "BLI_ghash.h"
@@ -1445,9 +1445,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	//	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
 	
 	/* imat for normals */
-	Mat4MulMat4(mat, ob->obmat, wpd->vc.rv3d->viewmat);
-	Mat4Invert(imat, mat);
-	Mat3CpyMat4(wpd->wpimat, imat);
+	mul_m4_m4m4(mat, ob->obmat, wpd->vc.rv3d->viewmat);
+	invert_m4_m4(imat, mat);
+	copy_m3_m4(wpd->wpimat, imat);
 	
 	/* if mirror painting, find the other group */
 	if(me->editflag & ME_EDIT_MIRROR_X) {
@@ -1503,7 +1503,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;
 			
-	Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
+	swap_m4m4(wpd->vc.rv3d->persmat, mat);
 			
 	/* which faces are involved */
 	if(wp->flag & VP_AREA) {
@@ -1599,7 +1599,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 			
-	Mat4SwapMat4(vc->rv3d->persmat, mat);
+	swap_m4m4(vc->rv3d->persmat, mat);
 			
 	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 	ED_region_tag_redraw(vc->ar);
@@ -1883,9 +1883,9 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	copy_vpaint_prev(vp, (unsigned int *)me->mloopcol, me->totloop);
 	
 	/* some old cruft to sort out later */
-	Mat4MulMat4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
-	Mat4Invert(imat, mat);
-	Mat3CpyMat4(vpd->vpimat, imat);
+	mul_m4_m4m4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
+	invert_m4_m4(imat, mat);
+	copy_m3_m4(vpd->vpimat, imat);
 
 	return 1;
 }
@@ -1960,7 +1960,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		else totindex= 0;
 	}
 			
-	Mat4SwapMat4(vc->rv3d->persmat, mat);
+	swap_m4m4(vc->rv3d->persmat, mat);
 			
 	if(vp->flag & VP_COLINDEX) {
 		for(index=0; index<totindex; index++) {
@@ -1985,7 +1985,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 	
-	Mat4SwapMat4(vc->rv3d->persmat, mat);
+	swap_m4m4(vc->rv3d->persmat, mat);
 
 	/* was disabled because it is slow, but necessary for blur */
 	if(vp->mode == VP_BLUR)
@@ -2063,7 +2063,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 		
-	Mat4SwapMat4(vc->rv3d->persmat, mat);
+	swap_m4m4(vc->rv3d->persmat, mat);
 			
 	do_shared_vertexcol(me);
 

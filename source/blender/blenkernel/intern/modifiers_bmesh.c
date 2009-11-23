@@ -36,7 +36,7 @@
 #include "float.h"
 #include "ctype.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
@@ -422,13 +422,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->end_cap && amd->end_cap != ob)
 		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
 
-	Mat4One(offset);
+	unit_m4(offset);
 
 	src_mvert = cddm->getVertArray(dm);
 	maxVerts = cddm->getNumVerts(dm);
 
 	if(amd->offset_type & MOD_ARR_OFF_CONST)
-		VecAddf(offset[3], offset[3], amd->offset);
+		add_v3_v3v3(offset[3], offset[3], amd->offset);
 	if(amd->offset_type & MOD_ARR_OFF_RELATIVE) {
 		for(j = 0; j < 3; j++)
 			offset[3][j] += amd->scale[j] * vertarray_size(src_mvert,
@@ -440,14 +440,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		float result_mat[4][4];
 
 		if(ob)
-			Mat4Invert(obinv, ob->obmat);
+			invert_m4_m4(obinv, ob->obmat);
 		else
-			Mat4One(obinv);
+			unit_m4(obinv);
 
-		Mat4MulSerie(result_mat, offset,
+		mul_serie_m4(result_mat, offset,
 				 obinv, amd->offset_ob->obmat,
                                  NULL, NULL, NULL, NULL, NULL);
-		Mat4CpyMat4(offset, result_mat);
+		copy_m4_m4(offset, result_mat);
 	}
 
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
@@ -457,7 +457,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			float scale;
 			
 			object_to_mat3(amd->curve_ob, tmp_mat);
-			scale = Mat3ToScalef(tmp_mat);
+			scale = mat3_to_scale(tmp_mat);
 				
 			if(!cu->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
@@ -505,11 +505,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	}
 
 	/* calculate the offset matrix of the final copy (for merging) */ 
-	Mat4One(final_offset);
+	unit_m4(final_offset);
 
 	for(j=0; j < count - 1; j++) {
-		Mat4MulMat4(tmp_mat, final_offset, offset);
-		Mat4CpyMat4(final_offset, tmp_mat);
+		mul_m4_m4m4(tmp_mat, final_offset, offset);
+		copy_m4_m4(final_offset, tmp_mat);
 	}
 
 	BMO_Init_Op(&weldop, "weldverts");
@@ -670,10 +670,10 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	if (mmd->mirror_ob) {
 		float mtx2[4][4], vec[3];
 		
-		Mat4Invert(mtx2, mmd->mirror_ob->obmat);
-		Mat4MulMat4(mtx, ob->obmat, mtx2);
+		invert_m4_m4(mtx2, mmd->mirror_ob->obmat);
+		mul_m4_m4m4(mtx, ob->obmat, mtx2);
 	} else {
-		Mat4One(mtx);
+		unit_m4(mtx);
 	}
 
 	BMO_InitOpf(bm, &op, "mirror geom=%avef mat=%m4 mergedist=%f axis=%d", 

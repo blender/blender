@@ -33,7 +33,7 @@
 
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "DNA_texture_types.h"
@@ -832,7 +832,7 @@ static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float 
 	else {
 		VECCOPY(nor, n);
 	}
-	Mat4Mul3Vecfl(R.viewinv, nor);
+	mul_mat3_m4_v3(R.viewinv, nor);
 
 	x1= fabs(nor[0]);
 	y1= fabs(nor[1]);
@@ -871,7 +871,7 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float *n, float x, float y, float z
 			/* test for v1, vlr can be faked for baking */
 			if(vlr->v1 && vlr->v1->orco) {
 				float nor[3];
-				CalcNormFloat(vlr->v1->orco, vlr->v2->orco, vlr->v3->orco, nor);
+				normal_tri_v3( nor,vlr->v1->orco, vlr->v2->orco, vlr->v3->orco);
 				
 				if( fabs(nor[0])<fabs(nor[2]) && fabs(nor[1])<fabs(nor[2]) ) vlr->puno |= ME_PROJXY;
 				else if( fabs(nor[0])<fabs(nor[1]) && fabs(nor[2])<fabs(nor[1]) ) vlr->puno |= ME_PROJXZ;
@@ -925,7 +925,7 @@ static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *ad
 	if(n==NULL) return 0;
 	
 	VECCOPY(nor, n);
-	if(ob) Mat4Mul3Vecfl(ob->imat, nor);
+	if(ob) mul_mat3_m4_v3(ob->imat, nor);
 	
 	x1= fabs(nor[0]);
 	y1= fabs(nor[1]);
@@ -970,8 +970,8 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			fx = (t[0] + 1.0) / 2.0;
 			fy = (t[1] + 1.0) / 2.0;
 		}
-		else if(wrap==MTEX_TUBE) tubemap(t[0], t[1], t[2], &fx, &fy);
-		else if(wrap==MTEX_SPHERE) spheremap(t[0], t[1], t[2], &fx, &fy);
+		else if(wrap==MTEX_TUBE) map_to_tube( &fx, &fy,t[0], t[1], t[2]);
+		else if(wrap==MTEX_SPHERE) map_to_sphere( &fx, &fy,t[0], t[1], t[2]);
 		else {
 			if(texco==TEXCO_OBJECT) cubemap_ob(ob, n, t[0], t[1], t[2], &fx, &fy);
 			else if(texco==TEXCO_GLOB) cubemap_glob(n, t[0], t[1], t[2], &fx, &fy);
@@ -1042,20 +1042,20 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			}
 			if(ok) {
 				if(wrap==MTEX_TUBE) {
-					tubemap(t[0], t[1], t[2], area, area+1);
-					tubemap(t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2], area+2, area+3);
-					tubemap(t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2], area+4, area+5);
+					map_to_tube( area, area+1,t[0], t[1], t[2]);
+					map_to_tube( area+2, area+3,t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2]);
+					map_to_tube( area+4, area+5,t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2]);
 				}
 				else { 
-					spheremap(t[0], t[1], t[2],area,area+1);
-					spheremap(t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2], area+2, area+3);
-					spheremap(t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2], area+4, area+5);
+					map_to_sphere(area,area+1,t[0], t[1], t[2]);
+					map_to_sphere( area+2, area+3,t[0]+dxt[0], t[1]+dxt[1], t[2]+dxt[2]);
+					map_to_sphere( area+4, area+5,t[0]+dyt[0], t[1]+dyt[1], t[2]+dyt[2]);
 				}
 				areaflag= 1;
 			}
 			else {
-				if(wrap==MTEX_TUBE) tubemap(t[0], t[1], t[2], &fx, &fy);
-				else spheremap(t[0], t[1], t[2], &fx, &fy);
+				if(wrap==MTEX_TUBE) map_to_tube( &fx, &fy,t[0], t[1], t[2]);
+				else map_to_sphere( &fx, &fy,t[0], t[1], t[2]);
 				dxt[0]/= 2.0; 
 				dxt[1]/= 2.0;
 				dyt[0]/= 2.0; 
@@ -1230,7 +1230,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		 * artificer: added the use of tmpvec to avoid scaling texvec
 		 */
 		VECCOPY(tmpvec, texvec);
-		VecMulf(tmpvec, 1.0/tex->noisesize);
+		mul_v3_fl(tmpvec, 1.0/tex->noisesize);
 		
 		switch(tex->stype) {
 		case TEX_MFRACTAL:
@@ -1252,7 +1252,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		 * artificer: added the use of tmpvec to avoid scaling texvec
 		 */
 		VECCOPY(tmpvec, texvec);
-		VecMulf(tmpvec, 1.0/tex->noisesize);
+		mul_v3_fl(tmpvec, 1.0/tex->noisesize);
 		
 		retval= voronoiTex(tex, tmpvec, texres);
 		break;
@@ -1261,7 +1261,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		 * artificer: added the use of tmpvec to avoid scaling texvec
 		 */
 		VECCOPY(tmpvec, texvec);
-		VecMulf(tmpvec, 1.0/tex->noisesize);
+		mul_v3_fl(tmpvec, 1.0/tex->noisesize);
 		
 		retval= mg_distNoiseTex(tex, tmpvec, texres);
 		break;
@@ -1675,13 +1675,13 @@ void do_material_tex(ShadeInput *shi)
 					VECCOPY(tempvec, shi->co);
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG)
 						if(shi->obi && shi->obi->duplitexmat)
-							Mat4MulVecfl(shi->obi->duplitexmat, tempvec);
-					Mat4MulVecfl(ob->imat, tempvec);
+							mul_m4_v3(shi->obi->duplitexmat, tempvec);
+					mul_m4_v3(ob->imat, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						Mat4Mul3Vecfl(ob->imat, dxt);
-						Mat4Mul3Vecfl(ob->imat, dyt);
+						mul_mat3_m4_v3(ob->imat, dxt);
+						mul_mat3_m4_v3(ob->imat, dyt);
 					}
 				}
 				else {
@@ -1742,7 +1742,7 @@ void do_material_tex(ShadeInput *shi)
 								nn[0] = -shi->vn[0];
 								nn[1] = -shi->vn[1];
 								nn[2] = -shi->vn[2];
-								VecOrthoBasisf(nn, nu, nv);
+								ortho_basis_v3v3_v3( nu, nv,nn);
 								nunvdone= 1;
 							}
 
@@ -1819,7 +1819,7 @@ void do_material_tex(ShadeInput *shi)
 					nn[0] = -shi->vn[0];
 					nn[1] = -shi->vn[1];
 					nn[2] = -shi->vn[2];
-					VecOrthoBasisf(nn, nu, nv);
+					ortho_basis_v3v3_v3( nu, nv,nn);
 					nunvdone= 1;
 				}
 
@@ -1897,20 +1897,20 @@ void do_material_tex(ShadeInput *shi)
 						idv = (dv < 1e-6f) ? bf : (bf/dv);
 
 						if ((mtex->texco == TEXCO_ORCO) && shi->obr && shi->obr->ob) {
-							Mat4Mul3Vecfl(shi->obr->ob->imat, tu);
-							Mat4Mul3Vecfl(shi->obr->ob->imat, tv);
-							Normalize(tu);
-							Normalize(tv);
+							mul_mat3_m4_v3(shi->obr->ob->imat, tu);
+							mul_mat3_m4_v3(shi->obr->ob->imat, tv);
+							normalize_v3(tu);
+							normalize_v3(tv);
 						}
 						else if (mtex->texco == TEXCO_GLOB) {
-							Mat4Mul3Vecfl(R.viewinv, tu);
-							Mat4Mul3Vecfl(R.viewinv, tv);
+							mul_mat3_m4_v3(R.viewinv, tu);
+							mul_mat3_m4_v3(R.viewinv, tv);
 						}
 						else if (mtex->texco == TEXCO_OBJECT && mtex->object) {
-							Mat4Mul3Vecfl(mtex->object->imat, tu);
-							Mat4Mul3Vecfl(mtex->object->imat, tv);
-							Normalize(tu);
-							Normalize(tv);
+							mul_mat3_m4_v3(mtex->object->imat, tu);
+							mul_mat3_m4_v3(mtex->object->imat, tv);
+							normalize_v3(tu);
+							normalize_v3(tv);
 						}
 
 						// +u val
@@ -1937,7 +1937,7 @@ void do_material_tex(ShadeInput *shi)
 					nv[0] += vd*nn[0];
 					nv[1] += vd*nn[1];
 					nv[2] += vd*nn[2];
-					Crossf(nvec, nu, nv);
+					cross_v3_v3v3(nvec, nu, nv);
 
 					nvec[0] = -nvec[0];
 					nvec[1] = -nvec[1];
@@ -2020,12 +2020,12 @@ void do_material_tex(ShadeInput *shi)
 					// rotate to global coords
 					if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
 						if(shi->vlr && shi->obr && shi->obr->ob) {
-							float len= Normalize(texres.nor);
+							float len= normalize_v3(texres.nor);
 							// can be optimized... (ton)
-							Mat4Mul3Vecfl(shi->obr->ob->obmat, texres.nor);
-							Mat4Mul3Vecfl(R.viewmat, texres.nor);
-							Normalize(texres.nor);
-							VecMulf(texres.nor, len);
+							mul_mat3_m4_v3(shi->obr->ob->obmat, texres.nor);
+							mul_mat3_m4_v3(R.viewmat, texres.nor);
+							normalize_v3(texres.nor);
+							mul_v3_fl(texres.nor, len);
 						}
 					}
 				}
@@ -2100,7 +2100,7 @@ void do_material_tex(ShadeInput *shi)
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
 							/* qdn: tangent space */
 							float B[3], tv[3];
-							Crossf(B, shi->vn, shi->nmaptang);	/* bitangent */
+							cross_v3_v3v3(B, shi->vn, shi->nmaptang);	/* bitangent */
 							/* transform norvec from tangent space to object surface in camera space */
 							tv[0] = texres.nor[0]*shi->nmaptang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
 							tv[1] = texres.nor[0]*shi->nmaptang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
@@ -2116,15 +2116,15 @@ void do_material_tex(ShadeInput *shi)
 
 							if(mtex->normapspace == MTEX_NSPACE_CAMERA);
 							else if(mtex->normapspace == MTEX_NSPACE_WORLD) {
-								Mat4Mul3Vecfl(R.viewmat, nor);
+								mul_mat3_m4_v3(R.viewmat, nor);
 							}
 							else if(mtex->normapspace == MTEX_NSPACE_OBJECT) {
 								if(shi->obr && shi->obr->ob)
-									Mat4Mul3Vecfl(shi->obr->ob->obmat, nor);
-								Mat4Mul3Vecfl(R.viewmat, nor);
+									mul_mat3_m4_v3(shi->obr->ob->obmat, nor);
+								mul_mat3_m4_v3(R.viewmat, nor);
 							}
 
-							Normalize(nor);
+							normalize_v3(nor);
 
 							/* qdn: worldspace */
 							shi->vn[0]= facm*shi->vn[0] + fact*nor[0];
@@ -2159,7 +2159,7 @@ void do_material_tex(ShadeInput *shi)
 							shi->vn[2]+= dot*nor[2];
 						}
 					}
-					Normalize(shi->vn);
+					normalize_v3(shi->vn);
 					
 					/* this makes sure the bump is passed on to the next texture */
 					shi->orn[0]= -shi->vn[0];
@@ -2316,9 +2316,9 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 					VECCOPY(co, xyz);	
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG) {
 						if(shi->obi && shi->obi->duplitexmat)
-							Mat4MulVecfl(shi->obi->duplitexmat, co);					
+							mul_m4_v3(shi->obi->duplitexmat, co);					
 					} 
-					Mat4MulVecfl(ob->imat, co);
+					mul_m4_v3(ob->imat, co);
 				}
 			}
 			/* not really orco, but 'local' */
@@ -2330,12 +2330,12 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 				else {
 					Object *ob= shi->obi->ob;
 					VECCOPY(co, xyz);
-					Mat4MulVecfl(ob->imat, co);
+					mul_m4_v3(ob->imat, co);
 				}
 			}
 			else if(mtex->texco==TEXCO_GLOB) {							
 			   VECCOPY(co, xyz);
-			   Mat4MulVecfl(R.viewinv, co);
+			   mul_m4_v3(R.viewinv, co);
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
 
@@ -2648,8 +2648,8 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_H_SPHEREMAP:
 			case TEXCO_H_TUBEMAP:
 				if(skyflag & WO_ZENUP) {
-					if(mtex->texco==TEXCO_H_TUBEMAP) tubemap(lo[0], lo[2], lo[1], tempvec, tempvec+1);
-					else spheremap(lo[0], lo[2], lo[1], tempvec, tempvec+1);
+					if(mtex->texco==TEXCO_H_TUBEMAP) map_to_tube( tempvec, tempvec+1,lo[0], lo[2], lo[1]);
+					else map_to_sphere( tempvec, tempvec+1,lo[0], lo[2], lo[1]);
 					/* tube/spheremap maps for outside view, not inside */
 					tempvec[0]= 1.0-tempvec[0];
 					/* only top half */
@@ -2668,7 +2668,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_OBJECT:
 				if(mtex->object) {
 					VECCOPY(tempvec, lo);
-					Mat4MulVecfl(mtex->object->imat, tempvec);
+					mul_m4_v3(mtex->object->imat, tempvec);
 					co= tempvec;
 				}
 				break;
@@ -2676,16 +2676,16 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_GLOB:
 				if(rco) {
 					VECCOPY(tempvec, rco);
-					Mat4MulVecfl(R.viewinv, tempvec);
+					mul_m4_v3(R.viewinv, tempvec);
 					co= tempvec;
 				}
 				else
 					co= lo;
 				
 //				VECCOPY(shi->dxgl, shi->dxco);
-//				Mat3MulVecfl(R.imat, shi->dxco);
+//				mul_m3_v3(R.imat, shi->dxco);
 //				VECCOPY(shi->dygl, shi->dyco);
-//				Mat3MulVecfl(R.imat, shi->dyco);
+//				mul_m3_v3(R.imat, shi->dyco);
 				break;
 			}
 			
@@ -2812,12 +2812,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					dx= dxt;
 					dy= dyt;
 					VECCOPY(tempvec, shi->co);
-					Mat4MulVecfl(ob->imat, tempvec);
+					mul_m4_v3(ob->imat, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						Mat4Mul3Vecfl(ob->imat, dxt);
-						Mat4Mul3Vecfl(ob->imat, dyt);
+						mul_mat3_m4_v3(ob->imat, dxt);
+						mul_mat3_m4_v3(ob->imat, dyt);
 					}
 				}
 				else {
@@ -2828,12 +2828,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 			else if(mtex->texco==TEXCO_GLOB) {
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
 				VECCOPY(shi->gl, shi->co);
-				Mat4MulVecfl(R.viewinv, shi->gl);
+				mul_m4_v3(R.viewinv, shi->gl);
 			}
 			else if(mtex->texco==TEXCO_VIEW) {
 				
 				VECCOPY(tempvec, lavec);
-				Mat3MulVecfl(la->imat, tempvec);
+				mul_m3_v3(la->imat, tempvec);
 				
 				if(la->type==LA_SPOT) {
 					tempvec[0]*= la->spottexfac;
@@ -2846,11 +2846,11 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					VECCOPY(dxt, shi->dxlv);
 					VECCOPY(dyt, shi->dylv);
 					/* need some matrix conversion here? la->imat is a [3][3]  matrix!!! **/
-					Mat3MulVecfl(la->imat, dxt);
-					Mat3MulVecfl(la->imat, dyt);
+					mul_m3_v3(la->imat, dxt);
+					mul_m3_v3(la->imat, dyt);
 					
-					VecMulf(dxt, la->spottexfac);
-					VecMulf(dyt, la->spottexfac);
+					mul_v3_fl(dxt, la->spottexfac);
+					mul_v3_fl(dyt, la->spottexfac);
 				}
 			}
 			

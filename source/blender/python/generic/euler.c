@@ -28,7 +28,7 @@
 
 #include "Mathutils.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 
@@ -123,9 +123,9 @@ static PyObject *Euler_ToQuat(EulerObject * self)
 	for(x = 0; x < 3; x++) {
 		eul[x] = self->eul[x] * ((float)Py_PI / 180);
 	}
-	EulToQuat(eul, quat);
+	eul_to_quat( quat,eul);
 #else
-	EulToQuat(self->eul, quat);
+	eul_to_quat( quat,self->eul);
 #endif
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
@@ -147,10 +147,10 @@ static PyObject *Euler_ToMatrix(EulerObject * self)
 		for(x = 0; x < 3; x++) {
 			eul[x] = self->eul[x] * ((float)Py_PI / 180);
 		}
-		EulToMat3(eul, (float (*)[3]) mat);
+		eul_to_mat3( (float (*)[3]) mat,eul);
 	}
 #else
-	EulToMat3(self->eul, (float (*)[3]) mat);
+	eul_to_mat3( (float (*)[3]) mat,self->eul);
 #endif
 	return newMatrixObject(mat, 3, 3 , Py_NEW, NULL);
 }
@@ -261,7 +261,7 @@ static PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 		}
 	}
 #endif
-	euler_rot(self->eul, angle, *axis);
+	rotate_eul(self->eul, *axis, angle);
 
 #ifdef USE_MATHUTILS_DEG
 	{

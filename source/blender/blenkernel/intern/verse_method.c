@@ -37,7 +37,7 @@
 
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BIF_verse.h"
 

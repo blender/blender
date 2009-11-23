@@ -34,7 +34,7 @@
 #include "BL_ArmatureChannel.h"
 #include "BL_ArmatureObject.h"
 #include "BL_ArmatureConstraint.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 
 #ifndef DISABLE_PYTHON
@@ -211,19 +211,19 @@ PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 	float norm;
 	double sa, ca;
 	// get rotation in armature space
-	Mat3CpyMat4(pose_mat, pchan->pose_mat);
-	Mat3Ortho(pose_mat);
+	copy_m3_m4(pose_mat, pchan->pose_mat);
+	normalize_m3(pose_mat);
 	if (pchan->parent) {
 		// bone has a parent, compute the rest pose of the bone taking actual pose of parent
-		Mat3IsMat3MulMat4(rest_mat, pchan->bone->bone_mat, pchan->parent->pose_mat);
-		Mat3Ortho(rest_mat);
+		mul_m3_m3m4(rest_mat, pchan->bone->bone_mat, pchan->parent->pose_mat);
+		normalize_m3(rest_mat);
 	} else {
 		// otherwise, the bone matrix in armature space is the rest pose
-		Mat3CpyMat4(rest_mat, pchan->bone->arm_mat);
+		copy_m3_m4(rest_mat, pchan->bone->arm_mat);
 	}
 	// remove the rest pose to get the joint movement
-	Mat3Transp(rest_mat);
-	Mat3MulMat3(joint_mat, rest_mat, pose_mat);		
+	transpose_m3(rest_mat);
+	mul_m3_m3m3(joint_mat, rest_mat, pose_mat);		
 	joints[0] = joints[1] = joints[2] = 0.f;
 	// returns a 3 element list that gives corresponding joint
 	int flag = 0;
@@ -237,35 +237,35 @@ PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 	case 0:	// fixed joint
 		break;
 	case 1:	// X only
-		Mat3ToEulO(joint_mat, joints, EULER_ORDER_XYZ);
+		mat3_to_eulO( joints, EULER_ORDER_XYZ,joint_mat);
 		joints[1] = joints[2] = 0.f;
 		break;
 	case 2:	// Y only
-		Mat3ToEulO(joint_mat, joints, EULER_ORDER_XYZ);
+		mat3_to_eulO( joints, EULER_ORDER_XYZ,joint_mat);
 		joints[0] = joints[2] = 0.f;
 		break;
 	case 3:	// X+Y
-		Mat3ToEulO(joint_mat, joints, EULER_ORDER_ZYX);
+		mat3_to_eulO( joints, EULER_ORDER_ZYX,joint_mat);
 		joints[2] = 0.f;
 		break;
 	case 4:	// Z only
-		Mat3ToEulO(joint_mat, joints, EULER_ORDER_XYZ);
+		mat3_to_eulO( joints, EULER_ORDER_XYZ,joint_mat);
 		joints[0] = joints[1] = 0.f;
 		break;
 	case 5:	// X+Z
 		// decompose this as an equivalent rotation vector in X/Z plane
 		joints[0] = joint_mat[1][2];
 		joints[2] = -joint_mat[1][0];
-		norm = Normalize(joints);
+		norm = normalize_v3(joints);
 		if (norm < FLT_EPSILON) {
 			norm = (joint_mat[1][1] < 0.f) ? M_PI : 0.f;
 		} else {
 			norm = acos(joint_mat[1][1]);
 		}
-		VecMulf(joints, norm);
+		mul_v3_fl(joints, norm);
 		break;
 	case 6:	// Y+Z
-		Mat3ToEulO(joint_mat, joints, EULER_ORDER_XYZ);
+		mat3_to_eulO( joints, EULER_ORDER_XYZ,joint_mat);
 		joints[0] = 0.f;
 		break;
 	case 7: // X+Y+Z
@@ -273,14 +273,14 @@ PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 		joints[0] = (joint_mat[1][2]-joint_mat[2][1])*0.5f;
 		joints[1] = (joint_mat[2][0]-joint_mat[0][2])*0.5f;
 		joints[2] = (joint_mat[0][1]-joint_mat[1][0])*0.5f;
-		sa = VecLength(joints);
+		sa = len_v3(joints);
 		ca = (joint_mat[0][0]+joint_mat[1][1]+joint_mat[1][1]-1.0f)*0.5f;
 		if (sa > FLT_EPSILON) {
 			norm = atan2(sa,ca)/sa;
 		} else {
 		   if (ca < 0.0) {
 			   norm = M_PI;
-			   VecMulf(joints,0.f);
+			   mul_v3_fl(joints,0.f);
 			   if (joint_mat[0][0] > 0.f) {
 				   joints[0] = 1.0f;
 			   } else if (joint_mat[1][1] > 0.f) {
@@ -292,7 +292,7 @@ PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 			   norm = 0.0;
 		   }
 		}
-		VecMulf(joints,norm);
+		mul_v3_fl(joints,norm);
 		break;
 	}
 	return newVectorObject(joints, 3, Py_NEW, NULL);
@@ -327,45 +327,45 @@ int BL_ArmatureChannel::py_attr_set_joint_rotation(void *self_v, const struct KX
 		flag |= 2;
 	if (!(pchan->ikflag & BONE_IK_NO_ZDOF))
 		flag |= 4;
-	QuatOne(quat);
+	unit_qt(quat);
 	switch (flag) {
 	case 0:	// fixed joint
 		break;
 	case 1:	// X only
 		joints[1] = joints[2] = 0.f;
-		EulOToQuat(joints, EULER_ORDER_XYZ, quat);
+		eulO_to_quat( quat,joints, EULER_ORDER_XYZ);
 		break;
 	case 2:	// Y only
 		joints[0] = joints[2] = 0.f;
-		EulOToQuat(joints, EULER_ORDER_XYZ, quat);
+		eulO_to_quat( quat,joints, EULER_ORDER_XYZ);
 		break;
 	case 3:	// X+Y
 		joints[2] = 0.f;
-		EulOToQuat(joints, EULER_ORDER_ZYX, quat);
+		eulO_to_quat( quat,joints, EULER_ORDER_ZYX);
 		break;
 	case 4:	// Z only
 		joints[0] = joints[1] = 0.f;
-		EulOToQuat(joints, EULER_ORDER_XYZ, quat);
+		eulO_to_quat( quat,joints, EULER_ORDER_XYZ);
 		break;
 	case 5:	// X+Z
 		// X and Z are components of an equivalent rotation axis
 		joints[1] = 0;
-		VecRotToQuat(joints, VecLength(joints), quat);
+		axis_angle_to_quat( quat,joints, len_v3(joints));
 		break;
 	case 6:	// Y+Z
 		joints[0] = 0.f;
-		EulOToQuat(joints, EULER_ORDER_XYZ, quat);
+		eulO_to_quat( quat,joints, EULER_ORDER_XYZ);
 		break;
 	case 7: // X+Y+Z
 		// equivalent axis
-		VecRotToQuat(joints, VecLength(joints), quat);
+		axis_angle_to_quat( quat,joints, len_v3(joints));
 		break;
 	}
 	if (pchan->rotmode > 0) {
-		QuatToEulO(quat, joints, pchan->rotmode);
-		VecCopyf(pchan->eul, joints);
+		quat_to_eulO( joints, pchan->rotmode,quat);
+		copy_v3_v3(pchan->eul, joints);
 	} else
-		QuatCopy(pchan->quat, quat);
+		copy_qt_qt(pchan->quat, quat);
 	return PY_SET_ATTR_SUCCESS;
 }
 

@@ -7,7 +7,7 @@
 #include "BLI_heap.h"
 #include "BLI_ghash.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_array.h"
 
 #include "bmesh.h"
@@ -282,8 +282,8 @@ static int convex(float *v1, float *v2, float *v3, float *v4)
 	float nor[3], nor1[3], nor2[3], vec[4][2];
 	
 	/* define projection, do both trias apart, quad is undefined! */
-	CalcNormFloat(v1, v2, v3, nor1);
-	CalcNormFloat(v1, v3, v4, nor2);
+	normal_tri_v3( nor1,v1, v2, v3);
+	normal_tri_v3( nor2,v1, v3, v4);
 	nor[0]= ABS(nor1[0]) + ABS(nor2[0]);
 	nor[1]= ABS(nor1[1]) + ABS(nor2[1]);
 	nor[2]= ABS(nor1[2]) + ABS(nor2[2]);
@@ -308,7 +308,7 @@ static int convex(float *v1, float *v2, float *v3, float *v4)
 	}
 	
 	/* linetests, the 2 diagonals have to instersect to be convex */
-	if( IsectLL2Df(vec[0], vec[2], vec[1], vec[3]) > 0 ) return 1;
+	if( isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0 ) return 1;
 	return 0;
 }
 
@@ -455,7 +455,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 			else v4 = edges2[i]->v1;
 		}
 
-		if (VecLenf(v1->co, v3->co) > VecLenf(v1->co, v4->co)) {
+		if (len_v3v3(v1->co, v3->co) > len_v3v3(v1->co, v4->co)) {
 			BMVert *v;
 			v = v3;
 			v3 = v4;

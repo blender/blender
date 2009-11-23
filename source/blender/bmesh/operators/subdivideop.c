@@ -29,7 +29,7 @@
 
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
 #include "BLI_array.h"
@@ -119,8 +119,8 @@ static void alter_co(float *co, BMEdge *edge, subdparams *params, float perc,
 		/* we calculate an offset vector vec1[], to be added to *co */
 		float len, fac, nor[3], nor1[3], nor2[3], smooth=params->smooth;
 
-		VecSubf(nor, vsta->co, vend->co);
-		len= 0.5f*Normalize(nor);
+		sub_v3_v3v3(nor, vsta->co, vend->co);
+		len= 0.5f*normalize_v3(nor);
 
 		VECCOPY(nor1, vsta->no);
 		VECCOPY(nor2, vend->no);
@@ -151,18 +151,18 @@ static void alter_co(float *co, BMEdge *edge, subdparams *params, float perc,
 		co[2] += vec1[2];
 	}
 	else if(params->beauty & B_SPHERE) { /* subdivide sphere */
-		Normalize(co);
+		normalize_v3(co);
 		co[0]*= params->smooth;
 		co[1]*= params->smooth;
 		co[2]*= params->smooth;
 	}
 
 	if(params->beauty & B_FRACTAL) {
-		fac= params->fractal*VecLenf(vsta->co, vend->co);
+		fac= params->fractal*len_v3v3(vsta->co, vend->co);
 		vec1[0]= fac*(float)(0.5-BLI_drand());
 		vec1[1]= fac*(float)(0.5-BLI_drand());
 		vec1[2]= fac*(float)(0.5-BLI_drand());
-		VecAddf(co, co, vec1);
+		add_v3_v3v3(co, co, vec1);
 	}
 }
 
@@ -761,10 +761,10 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			             || e1->v2 == e2->v1 || e1->v2 == e2->v1)) {
 			float angle;
 
-			VecSubf(vec1, e1->v2->co, e1->v1->co);
-			VecSubf(vec2, e2->v2->co, e2->v1->co);
-			Normalize(vec1);
-			Normalize(vec2);
+			sub_v3_v3v3(vec1, e1->v2->co, e1->v1->co);
+			sub_v3_v3v3(vec2, e2->v2->co, e2->v1->co);
+			normalize_v3(vec1);
+			normalize_v3(vec2);
 
 			angle = INPR(vec1, vec2);
 			angle = ABS(angle);

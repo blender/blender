@@ -37,7 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "DNA_meta_types.h"
@@ -116,7 +116,7 @@ MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
 		ml= ml->next;
 	}
 
-	Mat3CpyMat4(mat, obedit->obmat);
+	copy_m3_m4(mat, obedit->obmat);
 	if(v3d) {
 		curs= give_cursor(scene, v3d);
 		VECCOPY(cent, curs);
@@ -130,16 +130,16 @@ MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
 
 	if (rv3d) {
 		if (!(newname) || U.flag & USER_ADD_VIEWALIGNED)
-			Mat3CpyMat4(imat, rv3d->viewmat);
+			copy_m3_m4(imat, rv3d->viewmat);
 		else
-			Mat3One(imat);
-		Mat3MulVecfl(imat, cent);
-		Mat3MulMat3(cmat, imat, mat);
-		Mat3Inv(imat,cmat);
-		Mat3MulVecfl(imat, cent);
+			unit_m3(imat);
+		mul_m3_v3(imat, cent);
+		mul_m3_m3m3(cmat, imat, mat);
+		invert_m3_m3(imat,cmat);
+		mul_m3_v3(imat, cent);
 	}
 	else
-		Mat3One(imat);
+		unit_m3(imat);
 
 	ml= MEM_callocN(sizeof(MetaElem), "metaelem");
 

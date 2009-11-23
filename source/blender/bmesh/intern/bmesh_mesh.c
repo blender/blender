@@ -35,7 +35,7 @@
 #include "MEM_guardedalloc.h"
 #include "DNA_listBase.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BKE_utildefines.h"
 
 #include "bmesh.h"
@@ -232,7 +232,7 @@ void BM_Compute_Normals(BMesh *bm)
 			continue;
 
 		for(l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f ); l; l = BMIter_Step(&loops)) 
-			VecAddf(l->v->no, l->v->no, f->no);
+			add_v3_v3v3(l->v->no, l->v->no, f->no);
 	}
 	
 	/*average the vertex normals*/
@@ -240,9 +240,9 @@ void BM_Compute_Normals(BMesh *bm)
 		if (BM_TestHFlag(v, BM_HIDDEN))
 			continue;
 
-		if (Normalize(v->no)==0.0) {
+		if (normalize_v3(v->no)==0.0) {
 			VECCOPY(v->no, v->co);
-			Normalize(v->no);
+			normalize_v3(v->no);
 		}
 	}
 	

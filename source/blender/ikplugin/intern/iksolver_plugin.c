@@ -31,7 +31,7 @@
 
 #include "BIK_api.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
@@ -179,10 +179,10 @@ static void make_dmats(bPoseChannel *pchan)
 {
 	if (pchan->parent) {
 		float iR_parmat[4][4];
-		Mat4Invert(iR_parmat, pchan->parent->pose_mat);
-		Mat4MulMat4(pchan->chan_mat,  pchan->pose_mat, iR_parmat);	// delta mat
+		invert_m4_m4(iR_parmat, pchan->parent->pose_mat);
+		mul_m4_m4m4(pchan->chan_mat,  pchan->pose_mat, iR_parmat);	// delta mat
 	}
-	else Mat4CpyMat4(pchan->chan_mat, pchan->pose_mat);
+	else copy_m4_m4(pchan->chan_mat, pchan->pose_mat);
 }
 
 /* applies IK matrix to pchan, IK is done separated */
@@ -192,19 +192,19 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 {
 	float vec[3], ikmat[4][4];
 	
-	Mat4CpyMat3(ikmat, ik_mat);
+	copy_m4_m3(ikmat, ik_mat);
 	
 	if (pchan->parent)
-		Mat4MulSerie(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat, ikmat, NULL, NULL, NULL, NULL, NULL);
+		mul_serie_m4(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat, ikmat, NULL, NULL, NULL, NULL, NULL);
 	else 
-		Mat4MulMat4(pchan->pose_mat, ikmat, pchan->chan_mat);
+		mul_m4_m4m4(pchan->pose_mat, ikmat, pchan->chan_mat);
 
 	/* calculate head */
 	VECCOPY(pchan->pose_head, pchan->pose_mat[3]);
 	/* calculate tail */
 	VECCOPY(vec, pchan->pose_mat[1]);
-	VecMulf(vec, pchan->bone->length);
-	VecAddf(pchan->pose_tail, pchan->pose_head, vec);
+	mul_v3_fl(vec, pchan->bone->length);
+	add_v3_v3v3(pchan->pose_tail, pchan->pose_head, vec);
 
 	pchan->flag |= POSE_DONE;
 }
@@ -266,41 +266,41 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		IK_SetParent(seg, parent);
 			
 		/* get the matrix that transforms from prevbone into this bone */
-		Mat3CpyMat4(R_bonemat, pchan->pose_mat);
+		copy_m3_m4(R_bonemat, pchan->pose_mat);
 		
 		/* gather transformations for this IK segment */
 		
 		if (pchan->parent)
-			Mat3CpyMat4(R_parmat, pchan->parent->pose_mat);
+			copy_m3_m4(R_parmat, pchan->parent->pose_mat);
 		else
-			Mat3One(R_parmat);
+			unit_m3(R_parmat);
 		
 		/* bone offset */
 		if (pchan->parent && (a > 0))
-			VecSubf(start, pchan->pose_head, pchan->parent->pose_tail);
+			sub_v3_v3v3(start, pchan->pose_head, pchan->parent->pose_tail);
 		else
 			/* only root bone (a = 0) has no parent */
 			start[0]= start[1]= start[2]= 0.0f;
 		
 		/* change length based on bone size */
-		length= bone->length*VecLength(R_bonemat[1]);
+		length= bone->length*len_v3(R_bonemat[1]);
 		
 		/* compute rest basis and its inverse */
-		Mat3CpyMat3(rest_basis, bone->bone_mat);
-		Mat3CpyMat3(irest_basis, bone->bone_mat);
-		Mat3Transp(irest_basis);
+		copy_m3_m3(rest_basis, bone->bone_mat);
+		copy_m3_m3(irest_basis, bone->bone_mat);
+		transpose_m3(irest_basis);
 		
 		/* compute basis with rest_basis removed */
-		Mat3Inv(iR_parmat, R_parmat);
-		Mat3MulMat3(full_basis, iR_parmat, R_bonemat);
-		Mat3MulMat3(basis, irest_basis, full_basis);
+		invert_m3_m3(iR_parmat, R_parmat);
+		mul_m3_m3m3(full_basis, iR_parmat, R_bonemat);
+		mul_m3_m3m3(basis, irest_basis, full_basis);
 		
 		/* basis must be pure rotation */
-		Mat3Ortho(basis);
+		normalize_m3(basis);
 		
 		/* transform offset into local bone space */
-		Mat3Ortho(iR_parmat);
-		Mat3MulVecfl(iR_parmat, start);
+		normalize_m3(iR_parmat);
+		mul_m3_v3(iR_parmat, start);
 		
 		IK_SetTransform(seg, start, rest_basis, basis, length);
 		
@@ -332,13 +332,13 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		/* transform goal by parent mat, so this rotation is not part of the
 		   segment's basis. otherwise rotation limits do not work on the
 		   local transform of the segment itself. */
-		Mat4CpyMat4(rootmat, pchan->parent->pose_mat);
+		copy_m4_m4(rootmat, pchan->parent->pose_mat);
 	else
-		Mat4One(rootmat);
+		unit_m4(rootmat);
 	VECCOPY(rootmat[3], pchan->pose_head);
 	
-	Mat4MulMat4 (imat, rootmat, ob->obmat);
-	Mat4Invert (goalinv, imat);
+	mul_m4_m4m4(imat, rootmat, ob->obmat);
+	invert_m4_m4(goalinv, imat);
 	
 	for (target=tree->targets.first; target; target=target->next) {
 		float polepos[3];
@@ -352,10 +352,10 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		get_constraint_target_matrix(scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 		
 		/* and set and transform goal */
-		Mat4MulMat4(goal, rootmat, goalinv);
+		mul_m4_m4m4(goal, rootmat, goalinv);
 		
 		VECCOPY(goalpos, goal[3]);
-		Mat3CpyMat4(goalrot, goal);
+		copy_m3_m4(goalrot, goal);
 		
 		/* same for pole vector target */
 		if(data->poletar) {
@@ -366,7 +366,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 				break;
 			}
 			else {
-				Mat4MulMat4(goal, rootmat, goalinv);
+				mul_m4_m4m4(goal, rootmat, goalinv);
 				VECCOPY(polepos, goal[3]);
 				poleconstrain= 1;
 
@@ -392,9 +392,9 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			pchan= tree->pchan[target->tip];
 			
 			/* end effector in world space */
-			Mat4CpyMat4(end_pose, pchan->pose_mat);
+			copy_m4_m4(end_pose, pchan->pose_mat);
 			VECCOPY(end_pose[3], pchan->pose_tail);
-			Mat4MulSerie(world_pose, goalinv, ob->obmat, end_pose, 0, 0, 0, 0, 0);
+			mul_serie_m4(world_pose, goalinv, ob->obmat, end_pose, 0, 0, 0, 0, 0);
 			
 			/* blend position */
 			goalpos[0]= fac*goalpos[0] + mfac*world_pose[3][0];
@@ -402,10 +402,10 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			goalpos[2]= fac*goalpos[2] + mfac*world_pose[3][2];
 			
 			/* blend rotation */
-			Mat3ToQuat(goalrot, q1);
-			Mat4ToQuat(world_pose, q2);
-			QuatInterpol(q, q1, q2, mfac);
-			QuatToMat3(q, goalrot);
+			mat3_to_quat( q1,goalrot);
+			mat4_to_quat( q2,world_pose);
+			interp_qt_qtqt(q, q1, q2, mfac);
+			quat_to_mat3( goalrot,q);
 		}
 		
 		iktarget= iktree[target->tip];
@@ -449,7 +449,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 				float trans[3], length;
 				
 				IK_GetTranslationChange(iktree[a], trans);
-				length= pchan->bone->length*VecLength(pchan->pose_mat[1]);
+				length= pchan->bone->length*len_v3(pchan->pose_mat[1]);
 				
 				ikstretch[a]= (length == 0.0)? 1.0: (trans[1]+length)/length;
 			}
@@ -458,14 +458,14 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			
 			stretch= (parentstretch == 0.0)? 1.0: ikstretch[a]/parentstretch;
 			
-			VecMulf(tree->basis_change[a][0], stretch);
-			VecMulf(tree->basis_change[a][1], stretch);
-			VecMulf(tree->basis_change[a][2], stretch);
+			mul_v3_fl(tree->basis_change[a][0], stretch);
+			mul_v3_fl(tree->basis_change[a][1], stretch);
+			mul_v3_fl(tree->basis_change[a][2], stretch);
 		}
 
 		if(resultblend && resultinf!=1.0f) {
-			Mat3One(identity);
-			Mat3BlendMat3(tree->basis_change[a], identity,
+			unit_m3(identity);
+			blend_m3_m3m3(tree->basis_change[a], identity,
 				tree->basis_change[a], resultinf);
 		}
 		

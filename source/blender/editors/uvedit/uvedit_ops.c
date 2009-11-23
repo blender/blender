@@ -43,7 +43,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_array.h"
@@ -438,9 +438,9 @@ void uv_center(float uv[][2], float cent[2], int quad)
 float uv_area(float uv[][2], int quad)
 {
 	if(quad)
-		return AreaF2Dfl(uv[0], uv[1], uv[2]) + AreaF2Dfl(uv[0], uv[2], uv[3]); 
+		return area_tri_v2(uv[0], uv[1], uv[2]) + area_tri_v2(uv[0], uv[2], uv[3]); 
 	else
-		return AreaF2Dfl(uv[0], uv[1], uv[2]); 
+		return area_tri_v2(uv[0], uv[1], uv[2]); 
 }
 
 float poly_uv_area(float uv[][2], int len)
@@ -449,9 +449,9 @@ float poly_uv_area(float uv[][2], int len)
 	//maybe use scanfill? I dunno.
 
 	if(len >= 4)
-		return AreaF2Dfl(uv[0], uv[1], uv[2]) + AreaF2Dfl(uv[0], uv[2], uv[3]); 
+		return area_tri_v2(uv[0], uv[1], uv[2]) + area_tri_v2(uv[0], uv[2], uv[3]); 
 	else
-		return AreaF2Dfl(uv[0], uv[1], uv[2]); 
+		return area_tri_v2(uv[0], uv[1], uv[2]); 
 
 	return 1.0;
 }
@@ -594,7 +594,7 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, BMEditMesh *em, float
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			nextluv = CustomData_bmesh_get(&em->bm->ldata, l->head.next->data, CD_MLOOPUV);
 
-			dist= PdistVL2Dfl(co, luv->uv, nextluv->uv);
+			dist= dist_to_line_segment_v2(co, luv->uv, nextluv->uv);
 
 			if(dist < mindist) {
 				hit->tf= tf;
@@ -687,8 +687,8 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int nverts, int id,
 		i++;
 	}
 
-	VecSubf(v1, uv1, uv);
-	VecSubf(v2, uv3, uv);
+	sub_v3_v3v3(v1, uv1, uv);
+	sub_v3_v3v3(v2, uv3, uv);
 
 	/* m and v2 on same side of v-v1? */
 	c1= v1[0]*m[1] - v1[1]*m[0];

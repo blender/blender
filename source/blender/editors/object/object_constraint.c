@@ -33,7 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_dynstr.h"
 
 #include "DNA_action_types.h"
@@ -577,7 +577,7 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 		float imat[4][4], tmat[4][4];
 		
 		/* make copy of pchan's original pose-mat (for use later) */
-		Mat4CpyMat4(pmat, pchan->pose_mat);
+		copy_m4_m4(pmat, pchan->pose_mat);
 		
 		/* disable constraint for pose to be solved without it */
 		cinf= con->enforce;
@@ -590,9 +590,9 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 		 * pchan->pose_mat from the original pchan->pose_mat, thus determining 
 		 * the effect of the constraint
 		 */
-		Mat4Invert(imat, pchan->pose_mat);
-		Mat4MulMat4(tmat, imat, pmat);
-		Mat4Invert(data->invmat, tmat);
+		invert_m4_m4(imat, pchan->pose_mat);
+		mul_m4_m4m4(tmat, imat, pmat);
+		invert_m4_m4(data->invmat, tmat);
 		
 		/* recalculate pose with new inv-mat */
 		con->enforce= cinf;
@@ -604,10 +604,10 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 		 * NOTE: what_does_parent uses a static workob defined in object.c 
 		 */
 		what_does_parent(scene, ob, &workob);
-		Mat4Invert(data->invmat, workob.obmat);
+		invert_m4_m4(data->invmat, workob.obmat);
 	}
 	else
-		Mat4One(data->invmat);
+		unit_m4(data->invmat);
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 		
@@ -637,7 +637,7 @@ static int childof_clear_inverse_exec (bContext *C, wmOperator *op)
 	bChildOfConstraint *data= (bChildOfConstraint *)con->data;
 	
 	/* simply clear the matrix */
-	Mat4One(data->invmat);
+	unit_m4(data->invmat);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 	
@@ -1052,9 +1052,9 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			 * if adding a target for an IK Constraint
 			 */
 			if (con_type == CONSTRAINT_TYPE_KINEMATIC)
-				VecMat4MulVecfl(obt->loc, obact->obmat, pchanact->pose_tail);
+				mul_v3_m4v3(obt->loc, obact->obmat, pchanact->pose_tail);
 			else
-				VecMat4MulVecfl(obt->loc, obact->obmat, pchanact->pose_head);
+				mul_v3_m4v3(obt->loc, obact->obmat, pchanact->pose_head);
 		}
 		else
 			VECCOPY(obt->loc, obact->obmat[3]);

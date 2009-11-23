@@ -64,7 +64,7 @@
 
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 
 #include "BKE_blender.h"
@@ -180,7 +180,7 @@ static void mesh_add_normals_flags(Mesh *me)
 		v3= me->mvert+mface->v3;
 		v4= me->mvert+mface->v4;
 		
-		CalcNormFloat(v1->co, v2->co, v3->co, nor);
+		normal_tri_v3( nor,v1->co, v2->co, v3->co);
 		sno[0]= 32767.0*nor[0];
 		sno[1]= 32767.0*nor[1];
 		sno[2]= 32767.0*nor[2];
@@ -1249,7 +1249,7 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 						VECCOPY(bp->vec, data);
 						if(coordtype==4) {
 							bp->vec[3]= data[3];
-							VecMulf(bp->vec, 1.0f/data[3]);
+							mul_v3_fl(bp->vec, 1.0f/data[3]);
 						}
 						else bp->vec[3]= 1.0;
 						data+= coordtype;
@@ -1837,7 +1837,7 @@ static void write_vert_stl(Object *ob, MVert *verts, int index, FILE *fpSTL)
 	float vert[3];
 
 	VECCOPY(vert, verts[(index)].co);
-	Mat4MulVecfl(ob->obmat, vert);
+	mul_m4_v3(ob->obmat, vert);
 
 	if (ENDIAN_ORDER==B_ENDIAN) {
 		SWITCH_INT(vert[0]);
@@ -2174,7 +2174,7 @@ static void write_camera_vrml(FILE *fp, Object *ob)
 	Camera *cam;
 	
 	if(ob==0) return;
-	Mat4Invert(ob->imat, ob->obmat);
+	invert_m4_m4(ob->imat, ob->obmat);
 
 	fprintf(fp, "\tMatrixTransform {\n");
 
@@ -3031,10 +3031,10 @@ static void dxf_read_line(Scene *scene, int noob) {
 	
 	mvert= &me->mvert[(me->totvert-2)];
 
-	VecSubf(mvert->co, cent, vcenter);
+	sub_v3_v3v3(mvert->co, cent, vcenter);
 	mvert++;
 	if (vspace) { VECCOPY(mvert->co, epoint);
-	} else VecSubf(mvert->co, epoint, vcenter);
+	} else sub_v3_v3v3(mvert->co, epoint, vcenter);
 		
 	mface= &(((MFace*)me->mface)[me->totface-1]);
 	mface->v1= me->totvert-2;
@@ -3237,7 +3237,7 @@ static void dxf_read_ellipse(Scene *scene, int noob)
 		if (vspace) {
 			VECCOPY(mvert->co, epoint);
 		}	else {
-			VecSubf(mvert->co, epoint, vcenter);
+			sub_v3_v3v3(mvert->co, epoint, vcenter);
 		}
 
 		if (v > 0) {
@@ -3360,7 +3360,7 @@ static void dxf_read_arc(Scene *scene, int noob)
 		if (vspace) {
 			VECCOPY(mvert->co, epoint);
 		} else {
-			VecSubf(mvert->co, epoint, vcenter);
+			sub_v3_v3v3(mvert->co, epoint, vcenter);
 		}
 
 		if (v > 0) {
@@ -3470,7 +3470,7 @@ static void dxf_read_polyline(Scene *scene, int noob) {
 			mvert= &me->mvert[me->totvert-1];
 			
 			if (vspace) { VECCOPY(mvert->co, vert);
-			} else VecSubf(mvert->co, vert, vcenter);
+			} else sub_v3_v3v3(mvert->co, vert, vcenter);
 		}
 		
 		/* make edges */
@@ -3556,7 +3556,7 @@ static void dxf_read_polyline(Scene *scene, int noob) {
 				mvert= &me->mvert[(me->totvert-1)];
 	
 				if (vspace) { VECCOPY(mvert->co, vert);
-				} else VecSubf(mvert->co, vert, vcenter);
+				} else sub_v3_v3v3(mvert->co, vert, vcenter);
 	
 			} else if (vflags & 128) {
 				if(vids[2]==0) {
@@ -3687,7 +3687,7 @@ static void dxf_read_lwpolyline(Scene *scene, int noob) {
 		if (vspace) { 
 			VECCOPY(mvert->co, vert);
 		} else {
-			VecSubf(mvert->co, vert, vcenter);
+			sub_v3_v3v3(mvert->co, vert, vcenter);
 		}
 
 		if (v > 0) {
@@ -3859,20 +3859,20 @@ static void dxf_read_3dface(Scene *scene, int noob)
 	ftmp=NULL;
 	
 	mvert= &me->mvert[(me->totvert-nverts)];
-	VecSubf(mvert->co, cent, vcenter);
+	sub_v3_v3v3(mvert->co, cent, vcenter);
 						
 	mvert++;
 	if (vspace) { VECCOPY(mvert->co, vert2);
-	} else VecSubf(mvert->co, vert2, vcenter);
+	} else sub_v3_v3v3(mvert->co, vert2, vcenter);
 
 	mvert++;
 	if (vspace) { VECCOPY(mvert->co, vert3);
-	} else VecSubf(mvert->co, vert3, vcenter);
+	} else sub_v3_v3v3(mvert->co, vert3, vcenter);
 
 	if (nverts==4) {
 		mvert++;
 		if (vspace) { VECCOPY(mvert->co, vert4);
-		} else VecSubf(mvert->co, vert4, vcenter);		
+		} else sub_v3_v3v3(mvert->co, vert4, vcenter);		
 	}
 
 	mface= &(((MFace*)me->mface)[me->totface-1]);

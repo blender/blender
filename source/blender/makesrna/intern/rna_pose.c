@@ -43,7 +43,7 @@
 #include "BIK_api.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_userdef_types.h"
 
@@ -163,7 +163,7 @@ static void rna_PoseChannel_rotation_axis_angle_get(PointerRNA *ptr, float *valu
 	
 	/* for now, assume that rotation mode is axis-angle */
 	value[0]= pchan->rotAngle;
-	VecCopyf(&value[1], pchan->rotAxis);
+	copy_v3_v3(&value[1], pchan->rotAxis);
 }
 
 /* rotation - axis-angle */
@@ -173,7 +173,7 @@ static void rna_PoseChannel_rotation_axis_angle_set(PointerRNA *ptr, const float
 	
 	/* for now, assume that rotation mode is axis-angle */
 	pchan->rotAngle= value[0];
-	VecCopyf(pchan->rotAxis, (float *)&value[1]);
+	copy_v3_v3(pchan->rotAxis, (float *)&value[1]);
 	
 	// TODO: validate axis?
 }

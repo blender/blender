@@ -1,7 +1,7 @@
 #undef TEST_ACTIVE
 //#define ACTIVE 1
 /**
- * blenlib/BLI_arithb.h    mar 2001 Nzc
+ * blenlib/BLI_math.h    mar 2001 Nzc
  *
  * $Id$ 
  *
@@ -139,20 +139,21 @@ extern "C" {
 					{ 0.0, 0.0, 1.0}}
 
 
-void CalcCent3f(float *cent,  float *v1, float *v2, float *v3);
-void CalcCent4f(float *cent, float *v1, float *v2, float *v3, float *v4);
+void cent_tri_v3(float *cent,  float *v1, float *v2, float *v3);
+void cent_quad_v3(float *cent, float *v1, float *v2, float *v3, float *v4);
 
-void Crossf(float *c, float *a, float *b);
-void Projf(float *c, float *v1, float *v2);
+void cross_v3_v3v3(float *c, float *a, float *b);
+void project_v3_v3v3(float *c, float *v1, float *v2);
 
-float Inpf(float *v1, float *v2);
-float Inp2f(float *v1, float *v2);
+float dot_v3v3(float *v1, float *v2);
+float dot_v2v2(float *v1, float *v2);
 
-float Normalize(float *n);
-float Normalize2(float *n);
+float normalize_v3(float *n);
+float normalize_v2(float *n);
+double normalize_dv3(double n[3]);
 
 float Sqrt3f(float f);
-double Sqrt3d(double d);
+double sqrt3d(double d);
 
 float saacos(float fac);
 float saasin(float fac);
@@ -161,12 +162,12 @@ float saacosf(float fac);
 float saasinf(float fac);
 float sasqrtf(float fac);
 
-int FloatCompare(float *v1, float *v2, float limit);
-int FloatCompare4(float *v1, float *v2, float limit);
-float FloatLerpf(float target, float origin, float fac);
+int compare_v3v3(float *v1, float *v2, float limit);
+int compare_v4v4(float *v1, float *v2, float limit);
+float interpf(float target, float origin, float fac);
 
-float CalcNormFloat(float *v1, float *v2, float *v3, float *n);
-float CalcNormFloat4(float *v1, float *v2, float *v3, float *v4, float *n);
+float normal_tri_v3( float *n,float *v1, float *v2, float *v3);
+float normal_quad_v3( float *n,float *v1, float *v2, float *v3, float *v4);
 
 void CalcNormLong(int *v1, int *v2, int *v3, float *n);
 /* CalcNormShort: is ook uitprodukt - (translates as 'is also out/cross product') */
@@ -192,234 +193,234 @@ typedef enum eEulerRotationOrders {
 	/* NOTE: there are about 6 more entries when including duplicated entries too */
 } eEulerRotationOrders;
 
-void EulOToQuat(float eul[3], short order, float quat[4]);
-void QuatToEulO(float quat[4], float eul[3], short order);
+void eulO_to_quat( float quat[4],float eul[3], short order);
+void quat_to_eulO( float eul[3], short order,float quat[4]);
 
-void EulOToMat3(float eul[3], short order, float Mat[3][3]);
-void EulOToMat4(float eul[3], short order, float Mat[4][4]);
+void eulO_to_mat3( float Mat[3][3],float eul[3], short order);
+void eulO_to_mat4( float Mat[4][4],float eul[3], short order);
  
-void Mat3ToEulO(float Mat[3][3], float eul[3], short order);
-void Mat4ToEulO(float Mat[4][4], float eul[3], short order);
+void mat3_to_eulO( float eul[3], short order,float Mat[3][3]);
+void mat4_to_eulO( float eul[3], short order,float Mat[4][4]);
 
-void Mat3ToCompatibleEulO(float mat[3][3], float eul[3], float oldrot[3], short order);
+void mat3_to_compatible_eulO( float eul[3], float oldrot[3], short order,float mat[3][3]);
 
-void eulerO_rot(float beul[3], float ang, char axis, short order);
+void rotate_eulO(float beul[3], short order, char axis, float ang);
  
 /**
  * @section Euler conversion routines (Blender XYZ)
  */
 
-void EulToMat3(float *eul, float mat[][3]);
-void EulToMat4(float *eul, float mat[][4]);
+void eul_to_mat3( float mat[][3],float *eul);
+void eul_to_mat4( float mat[][4],float *eul);
 
-void Mat3ToEul(float tmat[][3], float *eul);
-void Mat4ToEul(float tmat[][4],float *eul);
+void mat3_to_eul( float *eul,float tmat[][3]);
+void mat4_to_eul(float *eul,float tmat[][4]);
 
-void EulToQuat(float *eul, float *quat);
+void eul_to_quat( float *quat,float *eul);
 
-void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot);
-void EulToGimbalAxis(float gmat[][3], float *eul, short order);
+void mat3_to_compatible_eul( float *eul, float *oldrot,float mat[][3]);
+void eulO_to_gimbal_axis(float gmat[][3], float *eul, short order);
 
 
 void compatible_eul(float *eul, float *oldrot);
-void euler_rot(float *beul, float ang, char axis);
+void rotate_eul(float *beul, char axis, float ang);
 
 
 /**
  * @section Quaternion arithmetic routines
  */
 
-int  QuatIsNul(float *q);
-void QuatToEul(float *quat, float *eul);
-void QuatOne(float *);
-void QuatMul(float *, float *, float *);
-void QuatMulVecf(float *q, float *v);
-void QuatMulf(float *q, float f);
-void QuatMulFac(float *q, float fac);
+int  is_zero_qt(float *q);
+void quat_to_eul( float *eul,float *quat);
+void unit_qt(float *);
+void mul_qt_qtqt(float *, float *, float *);
+void mul_qt_v3(float *q, float *v);
+void mul_qt_fl(float *q, float f);
+void mul_fac_qt_fl(float *q, float fac);
 
-void NormalQuat(float *);
-void VecRotToQuat(float *vec, float phi, float *quat);
+void normalize_qt(float *);
+void axis_angle_to_quat( float *quat,float *vec, float phi);
 
-void QuatSub(float *q, float *q1, float *q2);
-void QuatConj(float *q);
-void QuatInv(float *q);
-float QuatDot(float *q1, float *q2);
-void QuatCopy(float *q1, float *q2);
+void sub_qt_qtqt(float *q, float *q1, float *q2);
+void conjugate_qt(float *q);
+void invert_qt(float *q);
+float dot_qtqt(float *q1, float *q2);
+void copy_qt_qt(float *q1, float *q2);
 
-void printquat(char *str, float q[4]);
+void print_qt(char *str, float q[4]);
 
-void QuatInterpol(float *result, float *quat1, float *quat2, float t);
-void QuatAdd(float *result, float *quat1, float *quat2, float t);
+void interp_qt_qtqt(float *result, float *quat1, float *quat2, float t);
+void add_qt_qtqt(float *result, float *quat1, float *quat2, float t);
 
-void QuatToMat3(float *q, float m[][3]);
-void QuatToMat4(float *q, float m[][4]);
+void quat_to_mat3( float m[][3],float *q);
+void quat_to_mat4( float m[][4],float *q);
 
 /**
  * @section matrix multiplication and copying routines
  */
 
-void Mat3MulFloat(float *m, float f);
-void Mat4MulFloat(float *m, float f);
-void Mat4MulFloat3(float *m, float f);
+void mul_m3_fl(float *m, float f);
+void mul_m4_fl(float *m, float f);
+void mul_mat3_m4_fl(float *m, float f);
 
-void Mat3Transp(float mat[][3]);
-void Mat4Transp(float mat[][4]);
+void transpose_m3(float mat[][3]);
+void transpose_m4(float mat[][4]);
 
-int Mat4Invert(float inverse[][4], float mat[][4]);
-void Mat4InvertSimp(float inverse[][4], float mat[][4]);
-void Mat4Inv(float *m1, float *m2);
-void Mat4InvGG(float out[][4], float in[][4]);
-void Mat3Inv(float m1[][3], float m2[][3]);
+int invert_m4_m4(float inverse[][4], float mat[][4]);
+void invert_m4_m4(float inverse[][4], float mat[][4]);
+void invert_m4_m4(float *m1, float *m2);
+void invert_m4_m4(float out[][4], float in[][4]);
+void invert_m3_m3(float m1[][3], float m2[][3]);
 
-void Mat3CpyMat4(float m1[][3],float m2[][4]);
-void Mat4CpyMat3(float m1[][4], float m2[][3]); 
+void copy_m3_m4(float m1[][3],float m2[][4]);
+void copy_m4_m3(float m1[][4], float m2[][3]); 
 
-void Mat3BlendMat3(float out[][3], float dst[][3], float src[][3], float srcweight);
-void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight);
+void blend_m3_m3m3(float out[][3], float dst[][3], float src[][3], float srcweight);
+void blend_m4_m4m4(float out[][4], float dst[][4], float src[][4], float srcweight);
 
-float Det2x2(float a,float b,float c, float d);
+float determinant_m2(float a,float b,float c, float d);
 
-float Det3x3(
+float determinant_m3(
 	float a1, float a2, float a3,
 	float b1, float b2, float b3,
 	float c1, float c2, float c3 
 );
 
-float Det4x4(float m[][4]);
+float determinant_m4(float m[][4]);
 
-void Mat3Adj(float m1[][3], float m[][3]);
-void Mat4Adj(float out[][4], float in[][4]);
+void adjoint_m3_m3(float m1[][3], float m[][3]);
+void adjoint_m4_m4(float out[][4], float in[][4]);
 
-void Mat4MulMat4(float m1[][4], float m2[][4], float m3[][4]);
+void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4]);
 void subMat4MulMat4(float *m1, float *m2, float *m3);
 #ifndef TEST_ACTIVE
-void Mat3MulMat3(float m1[][3], float m3[][3], float m2[][3]);
+void mul_m3_m3m3(float m1[][3], float m3[][3], float m2[][3]);
 #else
-void Mat3MulMat3(float *m1, float *m3, float *m2);
+void mul_m3_m3m3(float *m1, float *m3, float *m2);
 #endif
-void Mat4MulMat34(float (*m1)[4], float (*m3)[3], float (*m2)[4]);
-void Mat4CpyMat4(float m1[][4], float m2[][4]);
-void Mat4SwapMat4(float m1[][4], float m2[][4]);
-void Mat3CpyMat3(float m1[][3], float m2[][3]);
+void mul_m4_m3m4(float (*m1)[4], float (*m3)[3], float (*m2)[4]);
+void copy_m4_m4(float m1[][4], float m2[][4]);
+void swap_m4m4(float m1[][4], float m2[][4]);
+void copy_m3_m3(float m1[][3], float m2[][3]);
 
-void Mat3MulSerie(float answ[][3],
+void mul_serie_m3(float answ[][3],
 	float m1[][3], float m2[][3], float m3[][3],
 	float m4[][3], float m5[][3], float m6[][3],
 	float m7[][3], float m8[][3]
 );
 
-void Mat4MulSerie(float answ[][4], float m1[][4],
+void mul_serie_m4(float answ[][4], float m1[][4],
 	float m2[][4], float m3[][4], float m4[][4],
 	float m5[][4], float m6[][4], float m7[][4],
 	float m8[][4]
 );
 	
-void Mat4Clr(float *m);
-void Mat3Clr(float *m);
+void zero_m4(float *m);
+void zero_m3(float *m);
 	
-void Mat3One(float m[][3]);
-void Mat4One(float m[][4]);
+void unit_m3(float m[][3]);
+void unit_m4(float m[][4]);
 
 /* NOTE: These only normalise the matrix, they don't make it orthogonal */
-void Mat3Ortho(float mat[][3]);
-void Mat4Ortho(float mat[][4]);
+void normalize_m3(float mat[][3]);
+void normalize_m4(float mat[][4]);
 
-int IsMat3Orthogonal(float mat[][3]);
-void Mat3Orthogonal(float mat[][3], int axis); /* axis is the one to keep in place (assumes it is non-null) */
-int IsMat4Orthogonal(float mat[][4]);
-void Mat4Orthogonal(float mat[][4], int axis); /* axis is the one to keep in place (assumes it is non-null) */
+int is_orthogonal_m3(float mat[][3]);
+void orthogonalize_m3(float mat[][3], int axis); /* axis is the one to keep in place (assumes it is non-null) */
+int is_orthogonal_m4(float mat[][4]);
+void orthogonalize_m4(float mat[][4], int axis); /* axis is the one to keep in place (assumes it is non-null) */
 
-void VecMat4MulVecfl(float *in, float mat[][4], float *vec);
-void Mat4MulMat43(float (*m1)[4], float (*m3)[4], float (*m2)[3]);
-void Mat3IsMat3MulMat4(float m1[][3], float m2[][3], float m3[][4]);
+void mul_v3_m4v3(float *in, float mat[][4], float *vec);
+void mul_m4_m4m3(float (*m1)[4], float (*m3)[4], float (*m2)[3]);
+void mul_m3_m3m4(float m1[][3], float m2[][3], float m3[][4]);
 
 void Mat4MulVec(float mat[][4],int *vec);
-void Mat4MulVecfl(float mat[][4], float *vec);
-void Mat4Mul3Vecfl(float mat[][4], float *vec);
-void Mat4MulVec3Project(float mat[][4],float *vec);
-void Mat4MulVec4fl(float mat[][4], float *vec);
+void mul_m4_v3(float mat[][4], float *vec);
+void mul_mat3_m4_v3(float mat[][4], float *vec);
+void mul_project_m4_v4(float mat[][4],float *vec);
+void mul_m4_v4(float mat[][4], float *vec);
 void Mat3MulVec(float mat[][3],int *vec);
-void Mat3MulVecfl(float mat[][3], float *vec);
-void Mat3MulVecd(float mat[][3], double *vec);
-void Mat3TransMulVecfl(float mat[][3], float *vec);
+void mul_m3_v3(float mat[][3], float *vec);
+void mul_m3_v3_double(float mat[][3], double *vec);
+void mul_transposed_m3_v3(float mat[][3], float *vec);
 
-void Mat3AddMat3(float m1[][3], float m2[][3], float m3[][3]);
-void Mat4AddMat4(float m1[][4], float m2[][4], float m3[][4]);
+void add_m3_m3m3(float m1[][3], float m2[][3], float m3[][3]);
+void add_m4_m4m4(float m1[][4], float m2[][4], float m3[][4]);
 
 void VecUpMat3old(float *vec, float mat[][3], short axis);
 void VecUpMat3(float *vec, float mat[][3], short axis);
 
-void VecCopyf(float *v1, float *v2);
+void copy_v3_v3(float *v1, float *v2);
 int VecLen(int *v1, int *v2);
-float VecLenf(float v1[3], float v2[3]);
-float VecLength(float *v);
-void VecMulf(float *v1, float f);
-void VecNegf(float *v1);
+float len_v3v3(float v1[3], float v2[3]);
+float len_v3(float *v);
+void mul_v3_fl(float *v1, float f);
+void negate_v3(float *v1);
 
-int VecLenCompare(float *v1, float *v2, float limit);
-int VecCompare(float *v1, float *v2, float limit);
-int VecEqual(float *v1, float *v2);
-int VecIsNull(float *v);
+int compare_len_v3v3(float *v1, float *v2, float limit);
+int compare_v3v3(float *v1, float *v2, float limit);
+int equals_v3v3(float *v1, float *v2);
+int is_zero_v3(float *v);
 
-void printvecf(char *str,float v[3]);
-void printvec4f(char *str, float v[4]);
+void print_v3(char *str,float v[3]);
+void print_v4(char *str, float v[4]);
 
-void VecAddf(float *v, float *v1, float *v2);
-void VecSubf(float *v, float *v1, float *v2);
-void VecMulVecf(float *v, float *v1, float *v2);
-void VecLerpf(float *target, const float *a, const float *b, const float t);
-void VecLerp3f(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]);
-void VecMidf(float *v, float *v1, float *v2);
+void add_v3_v3v3(float *v, float *v1, float *v2);
+void sub_v3_v3v3(float *v, float *v1, float *v2);
+void mul_v3_v3v3(float *v, float *v1, float *v2);
+void interp_v3_v3v3(float *target, const float *a, const float *b, const float t);
+void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]);
+void mid_v3_v3v3(float *v, float *v1, float *v2);
 
-void VecOrthoBasisf(float *v, float *v1, float *v2);
+void ortho_basis_v3v3_v3( float *v1, float *v2,float *v);
 
-float Vec2Lenf(float *v1, float *v2);
-float Vec2Length(float *v);
-void Vec2Mulf(float *v1, float f);
-void Vec2Addf(float *v, float *v1, float *v2);
-void Vec2Subf(float *v, float *v1, float *v2);
-void Vec2Copyf(float *v1, float *v2);
-void Vec2Lerpf(float *target, const float *a, const float *b, const float t);
-void Vec2Lerp3f(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3]);
+float len_v2v2(float *v1, float *v2);
+float len_v2(float *v);
+void mul_v2_fl(float *v1, float f);
+void add_v2_v2v2(float *v, float *v1, float *v2);
+void sub_v2_v2v2(float *v, float *v1, float *v2);
+void copy_v2_v2(float *v1, float *v2);
+void interp_v2_v2v2(float *target, const float *a, const float *b, const float t);
+void interp_v2_v2v2v2(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3]);
 
-void AxisAngleToQuat(float q[4], float axis[3], float angle);
-void QuatToAxisAngle(float q[4], float axis[3], float *angle);
-void AxisAngleToEulO(float axis[3], float angle, float eul[3], short order);
-void EulOToAxisAngle(float eul[3], short order, float axis[3], float *angle);
-void AxisAngleToMat3(float axis[3], float angle, float mat[3][3]);
-void AxisAngleToMat4(float axis[3], float angle, float mat[4][4]);
-void Mat3ToAxisAngle(float mat[3][3], float axis[3], float *angle);
-void Mat4ToAxisAngle(float mat[4][4], float axis[3], float *angle);
+void axis_angle_to_quat(float q[4], float axis[3], float angle);
+void quat_to_axis_angle( float axis[3], float *angle,float q[4]);
+void axis_angle_to_eulO( float eul[3], short order,float axis[3], float angle);
+void eulO_to_axis_angle( float axis[3], float *angle,float eul[3], short order);
+void axis_angle_to_mat3( float mat[3][3],float axis[3], float angle);
+void axis_angle_to_mat4( float mat[4][4],float axis[3], float angle);
+void mat3_to_axis_angle( float axis[3], float *angle,float mat[3][3]);
+void mat4_to_axis_angle( float axis[3], float *angle,float mat[4][4]);
 
-void Mat3ToVecRot(float mat[3][3], float axis[3], float *angle);
-void Mat4ToVecRot(float mat[4][4], float axis[3], float *angle);
-void VecRotToMat3(float *vec, float phi, float mat[][3]);
-void VecRotToMat4(float *vec, float phi, float mat[][4]);
+void mat3_to_vec_rot( float axis[3], float *angle,float mat[3][3]);
+void mat4_to_vec_rot( float axis[3], float *angle,float mat[4][4]);
+void vec_rot_to_mat3( float mat[][3],float *vec, float phi);
+void vec_rot_to_mat4( float mat[][4],float *vec, float phi);
 
-void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3]);
-void vectoquat(float *vec, short axis, short upflag, float *q);
-void Mat3ToQuat_is_ok(float wmat[][3], float *q);
+void rotation_between_vecs_to_quat(float *q, float v1[3], float v2[3]);
+void vec_to_quat( float *q,float *vec, short axis, short upflag);
+void mat3_to_quat_is_ok( float *q,float wmat[][3]);
 
-void VecReflect(float *out, float *v1, float *v2);
-void VecBisect3(float *v, float *v1, float *v2, float *v3);
-float VecAngle2(float *v1, float *v2);
-float VecAngle3(float *v1, float *v2, float *v3);
-float NormalizedVecAngle2(float *v1, float *v2);
+void reflect_v3_v3v3(float *out, float *v1, float *v2);
+void bisect_v3_v3v3v3(float *v, float *v1, float *v2, float *v3);
+float angle_v2v2(float *v1, float *v2);
+float angle_v3v3v3(float *v1, float *v2, float *v3);
+float angle_normalized_v3v3(float *v1, float *v2);
 
-float Vec2Angle3(float *v1, float *v2, float *v3);
-float NormalizedVecAngle2_2D(float *v1, float *v2);
+float angle_v2v2v2(float *v1, float *v2, float *v3);
+float angle_normalized_v2v2(float *v1, float *v2);
 	
-void NormalShortToFloat(float *out, short *in);
-void NormalFloatToShort(short *out, float *in);
+void normal_short_to_float_v3(float *out, short *in);
+void normal_float_to_short_v3(short *out, float *in);
 
-float DistVL2Dfl(float *v1, float *v2, float *v3);
-float PdistVL2Dfl(float *v1, float *v2, float *v3);
-float PdistVL3Dfl(float *v1, float *v2, float *v3);
-void PclosestVL3Dfl(float *closest, float v1[3], float v2[3], float v3[3]);
-float AreaF2Dfl(float *v1, float *v2, float *v3);
-float AreaQ3Dfl(float *v1, float *v2, float *v3, float *v4);
-float AreaT3Dfl(float *v1, float *v2, float *v3);
-float AreaPoly3Dfl(int nr, float *verts, float *normal);
+float dist_to_line_v2(float *v1, float *v2, float *v3);
+float dist_to_line_segment_v2(float *v1, float *v2, float *v3);
+float dist_to_line_segment_v3(float *v1, float *v2, float *v3);
+void closest_to_line_segment_v3(float *closest, float v1[3], float v2[3], float v3[3]);
+float area_tri_v2(float *v1, float *v2, float *v3);
+float area_quad_v3(float *v1, float *v2, float *v3, float *v4);
+float area_tri_v3(float *v1, float *v2, float *v3);
+float area_poly_v3(int nr, float *verts, float *normal);
 
 /* intersect Line-Line
 	return:
@@ -428,18 +429,18 @@ float AreaPoly3Dfl(int nr, float *verts, float *normal);
 	 1: exact intersection of segments
 	 2: cross-intersection of segments
 */
-extern short IsectLL2Df(float *v1, float *v2, float *v3, float *v4);
-extern short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4);
+extern short isect_line_line_v2(float *v1, float *v2, float *v3, float *v4);
+extern short isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4);
 
 /*point in tri,  0 no intersection, 1 intersect */
-int IsectPT2Df(float pt[2], float v1[2], float v2[2], float v3[2]);
+int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2]);
 /* point in quad,  0 no intersection, 1 intersect */
-int IsectPQ2Df(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2]);
+int isect_point_quad_v2(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2]);
 
 /* interpolation weights of point in a triangle or quad, v4 may be NULL */
-void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, float *w);
+void interp_weights_face_v3( float *w,float *v1, float *v2, float *v3, float *v4, float *co);
 /* interpolation weights of point in a polygon with >= 3 vertices */
-void MeanValueWeights(float v[][3], int n, float *co, float *w);
+void interp_weights_poly_v3( float *w,float v[][3], int n, float *co);
 
 void i_lookat(
 	float vx, float vy, 
@@ -474,66 +475,66 @@ int constrain_rgb(float *r, float *g, float *b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 unsigned int rgb_to_cpack(float r, float g, float b);
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b);
-void MinMaxRGB(short c[]);
+void minmax_rgb(short c[]);
 
 
 
-void VecStar(float mat[][3],float *vec);
+void star_m3_v3(float mat[][3],float *vec);
 
 short EenheidsMat(float mat[][3]);
 
-void i_ortho(float left, float right, float bottom, float top, float nearClip, float farClip, float matrix[][4]);
-void i_polarview(float dist, float azimuth, float incidence, float twist, float Vm[][4]);
-void i_translate(float Tx, float Ty, float Tz, float mat[][4]);
+void orthographic_m4( float matrix[][4],float left, float right, float bottom, float top, float nearClip, float farClip);
+void polarview_m4( float Vm[][4],float dist, float azimuth, float incidence, float twist);
+void translate_m4( float mat[][4],float Tx, float Ty, float Tz);
 void i_multmatrix(float icand[][4], float Vm[][4]);
-void i_rotate(float angle, char axis, float mat[][4]);
+void rotate_m4( float mat[][4], char axis,float angle);
 
 
 
-void MinMax3(float *min, float *max, float *vec);
-void SizeToMat3(float *size, float mat[][3]);
-void SizeToMat4(float *size, float mat[][4]);
+void minmax_v3_v3v3(float *min, float *max, float *vec);
+void size_to_mat3( float mat[][3],float *size);
+void size_to_mat4( float mat[][4],float *size);
 
-float Mat3ToScalef(float mat[][3]);
-float Mat4ToScalef(float mat[][4]);
+float mat3_to_scale(float mat[][3]);
+float mat4_to_scale(float mat[][4]);
 
-void printmatrix3(char *str, float m[][3]);
-void printmatrix4(char *str, float m[][4]);
+void print_m3(char *str, float m[][3]);
+void print_m4(char *str, float m[][4]);
 
 /* uit Sig.Proc.85 pag 253 */
-void Mat3ToQuat(float wmat[][3], float *q);
-void Mat4ToQuat(float m[][4], float *q);
+void mat3_to_quat( float *q,float wmat[][3]);
+void mat4_to_quat( float *q,float m[][4]);
 
-void Mat3ToSize(float mat[][3], float *size);
-void Mat4ToSize(float mat[][4], float *size);
+void mat3_to_size( float *size,float mat[][3]);
+void mat4_to_size( float *size,float mat[][4]);
 
-void triatoquat(float *v1, float *v2, float *v3, float *quat);
+void tri_to_quat( float *quat,float *v1, float *v2, float *v3);
 
-void LocEulSizeToMat4(float mat[4][4], float loc[3], float eul[3], float size[3]);
-void LocEulOSizeToMat4(float mat[4][4], float loc[3], float eul[3], float size[3], short rotOrder);
-void LocQuatSizeToMat4(float mat[4][4], float loc[3], float quat[4], float size[3]);
+void loc_eul_size_to_mat4(float mat[4][4], float loc[3], float eul[3], float size[3]);
+void loc_eulO_size_to_mat4(float mat[4][4], float loc[3], float eul[3], float size[3], short rotOrder);
+void loc_quat_size_to_mat4(float mat[4][4], float loc[3], float quat[4], float size[3]);
 
-void tubemap(float x, float y, float z, float *u, float *v);
-void spheremap(float x, float y, float z, float *u, float *v);
+void map_to_tube( float *u, float *v,float x, float y, float z);
+void map_to_sphere( float *u, float *v,float x, float y, float z);
 
-int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float i1[3], float i2[3]);
-int LineIntersectLineStrict(float v1[3], float v2[3], float v3[3], float v4[3], float vi[3], float *lambda);
-int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
-int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
-int RayIntersectsTriangleThreshold(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float threshold);
-int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint);
-int AxialLineIntersectsTriangle(int axis, float co1[3], float co2[3], float v0[3], float v1[3], float v2[3], float *lambda);
-int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3]);
-void VecfCubicInterpol(float *x1, float *v1, float *x2, float *v2, float t, float *x, float *v);
-void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv);
-void PointInFace2DUV(int isquad, float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv);
-int IsPointInTri2D(float v1[2], float v2[2], float v3[2], float pt[2]);
-int IsPointInTri2DInts(int x1, int y1, int x2, int y2, int a, int b);
-int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3]);
+int isect_line_line_v3(float v1[3], float v2[3], float v3[3], float v4[3], float i1[3], float i2[3]);
+int isect_line_line_strict_v3(float v1[3], float v2[3], float v3[3], float v4[3], float vi[3], float *lambda);
+int isect_line_tri_v3(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
+int isect_ray_tri_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
+int isect_ray_tri_threshold_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float threshold);
+int isect_sweeping_sphere_tri_v3(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint);
+int isect_axial_line_tri_v3(int axis, float co1[3], float co2[3], float v0[3], float v1[3], float v2[3], float *lambda);
+int isect_aabb_aabb_v3(float min1[3], float max1[3], float min2[3], float max2[3]);
+void interp_cubic_v3( float *x, float *v,float *x1, float *v1, float *x2, float *v2, float t);
+void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv);
+void isect_point_face_uv_v2(int isquad, float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv);
+int isect_point_tri_v2(float v1[2], float v2[2], float v3[2], float pt[2]);
+int isect_point_tri_v2_int(int x1, int y1, int x2, int y2, int a, int b);
+int isect_point_tri_prism_v3(float p[3], float v1[3], float v2[3], float v3[3]);
 
-float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3]);
+float closest_to_line_v3( float cp[3],float p[3], float l1[3], float l2[3]);
 
-float AngleToLength(const float angle);
+float shell_angle_to_dist(const float angle);
 
 typedef struct DualQuat {
 	float quat[4];
@@ -543,12 +544,12 @@ typedef struct DualQuat {
 	float scale_weight;
 } DualQuat;
 
-void Mat4ToDQuat(float basemat[][4], float mat[][4], DualQuat *dq);
-void DQuatToMat4(DualQuat *dq, float mat[][4]);
-void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight);
-void DQuatNormalize(DualQuat *dq, float totweight);
-void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3]);
-void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2);
+void mat4_to_dquat( DualQuat *dq,float basemat[][4], float mat[][4]);
+void dquat_to_mat4( float mat[][4],DualQuat *dq);
+void add_weighted_dq_dq(DualQuat *dqsum, DualQuat *dq, float weight);
+void normalize_dq(DualQuat *dq, float totweight);
+void mul_v3m3_dq( float *co, float mat[][3],DualQuat *dq);
+void copy_dq_dq(DualQuat *dq1, DualQuat *dq2);
 			  
 /* Tangent stuff */
 typedef struct VertexTangent {

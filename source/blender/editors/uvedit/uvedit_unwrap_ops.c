@@ -49,7 +49,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 #include "BLI_scanfill.h"
@@ -598,7 +598,7 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 					}
 				}
 			}
-			VecMidf(result, min, max);
+			mid_v3_v3v3(result, min, max);
 			break;
 
 		case V3D_CURSOR: /*cursor center*/ 
@@ -625,23 +625,23 @@ static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object
 
 	/* get rotation of the current view matrix */
 	if(rv3d)
-		Mat4CpyMat4(viewmatrix, rv3d->viewmat);
+		copy_m4_m4(viewmatrix, rv3d->viewmat);
 	else
-		Mat4One(viewmatrix);
+		unit_m4(viewmatrix);
 
 	/* but shifting */
 	for(k=0; k<4; k++)
 		viewmatrix[3][k] =0.0f;
 
 	/* get rotation of the current object matrix */
-	Mat4CpyMat4(rotobj,ob->obmat);
+	copy_m4_m4(rotobj,ob->obmat);
 
 	/* but shifting */
 	for(k=0; k<4; k++)
 		rotobj[3][k] =0.0f;
 
-	Mat4Clr(*rotup);
-	Mat4Clr(*rotside);
+	zero_m4(*rotup);
+	zero_m4(*rotside);
 
 	/* compensate front/side.. against opengl x,y,z world definition */
 	/* this is "kanonen gegen spatzen", a few plus minus 1 will do here */
@@ -661,7 +661,7 @@ static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object
 	rotup[0][0]= (float)1.0f/radius;
 
 	/* calculate transforms*/
-	Mat4MulSerie(result, rotup, rotside, viewmatrix, rotobj, NULL, NULL, NULL, NULL);
+	mul_serie_m4(result, rotup, rotside, viewmatrix, rotobj, NULL, NULL, NULL, NULL);
 }
 
 static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float rotmat[4][4])
@@ -692,7 +692,7 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 
 	/* be compatible to the "old" sphere/cylinder mode */
 	if(direction == ALIGN_TO_OBJECT)
-		Mat4One(rotmat);
+		unit_m4(rotmat);
 	else 
 		uv_map_rotation_matrix(rotmat, rv3d, obedit, upangledeg, sideangledeg, radius);
 
@@ -902,7 +902,7 @@ static void uv_from_view_bounds(float target[2], float source[3], float rotmat[4
 {
 	float pv[3];
 
-	Mat4MulVecfl(rotmat, pv);
+	mul_m4_v3(rotmat, pv);
 
 	/* ortho projection */
 	target[0] = -pv[0];
@@ -914,19 +914,19 @@ static void uv_from_view(ARegion *ar, float target[2], float source[3], float ro
 	RegionView3D *rv3d= ar->regiondata;
 	float pv[3], pv4[4], dx, dy, x= 0.0, y= 0.0;
 
-	Mat4MulVecfl(rotmat, pv);
+	mul_m4_v3(rotmat, pv);
 
 	dx= ar->winx;
 	dy= ar->winy;
 
-	VecCopyf(pv4, source);
+	copy_v3_v3(pv4, source);
 	pv4[3]= 1.0;
 
 	/* rotmat is the object matrix in this case */
-	Mat4MulVec4fl(rotmat, pv4); 
+	mul_m4_v4(rotmat, pv4); 
 
 	/* almost project_short */
-	Mat4MulVec4fl(rv3d->persmat, pv4);
+	mul_m4_v4(rv3d->persmat, pv4);
 	if(fabs(pv4[3]) > 0.00001) { /* avoid division by zero */
 		target[0] = dx/2.0 + (dx/2.0)*pv4[0]/pv4[3];
 		target[1] = dy/2.0 + (dy/2.0)*pv4[1]/pv4[3];
@@ -982,7 +982,7 @@ static int from_view_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		Mat4CpyMat4(rotmat, obedit->obmat);
+		copy_m4_m4(rotmat, obedit->obmat);
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			if (!BM_TestHFlag(efa, BM_SELECT))
@@ -1125,10 +1125,10 @@ static void uv_sphere_project(float target[2], float source[3], float center[3],
 {
 	float pv[3];
 
-	VecSubf(pv, source, center);
-	Mat4MulVecfl(rotmat, pv);
+	sub_v3_v3v3(pv, source, center);
+	mul_m4_v3(rotmat, pv);
 
-	spheremap(pv[0], pv[1], pv[2], &target[0], &target[1]);
+	map_to_sphere( &target[0], &target[1],pv[0], pv[1], pv[2]);
 
 	/* split line is always zero */
 	if(target[0] >= 1.0f)
@@ -1232,10 +1232,10 @@ static void uv_cylinder_project(float target[2], float source[3], float center[3
 {
 	float pv[3];
 
-	VecSubf(pv, source, center);
-	Mat4MulVecfl(rotmat, pv);
+	sub_v3_v3v3(pv, source, center);
+	mul_m4_v3(rotmat, pv);
 
-	tubemap(pv[0], pv[1], pv[2], &target[0], &target[1]);
+	map_to_tube( &target[0], &target[1],pv[0], pv[1], pv[2]);
 
 	/* split line is always zero */
 	if(target[0] >= 1.0f)

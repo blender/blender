@@ -29,7 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_kdopbvh.h"
 
@@ -106,7 +106,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	/* init everything */
 	if (!psys || !ob || !pd) return;
 	
-	Mat4MulMat4(obview, re->viewinv, ob->obmat);
+	mul_m4_m4m4(obview, re->viewinv, ob->obmat);
 	
 	/* Just to create a valid rendering context for particles */
 	psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, 0);
@@ -119,7 +119,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	}
 	
 	/* in case ob->imat isn't up-to-date */
-	Mat4Invert(ob->imat, ob->obmat);
+	invert_m4_m4(ob->imat, ob->obmat);
 	
 	total_particles = psys->totpart+psys->totchild;
 	psys->lattice=psys_get_lattice(&sim);
@@ -140,11 +140,11 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 			VECCOPY(partco, state.co);
 			
 			if (pd->psys_cache_space == TEX_PD_OBJECTSPACE)
-				Mat4MulVecfl(ob->imat, partco);
+				mul_m4_v3(ob->imat, partco);
 			else if (pd->psys_cache_space == TEX_PD_OBJECTLOC) {
 				float obloc[3];
 				VECCOPY(obloc, ob->loc);
-				VecSubf(partco, partco, obloc);
+				sub_v3_v3v3(partco, partco, obloc);
 			} else {
 				/* TEX_PD_WORLDSPACE */
 			}
@@ -209,12 +209,12 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 			case TEX_PD_OBJECTSPACE:
 				break;
 			case TEX_PD_OBJECTLOC:
-				Mat4MulVecfl(ob->obmat, co);
-				VecSubf(co, co, ob->loc);
+				mul_m4_v3(ob->obmat, co);
+				sub_v3_v3v3(co, co, ob->loc);
 				break;
 			case TEX_PD_WORLDSPACE:
 			default:
-				Mat4MulVecfl(ob->obmat, co);
+				mul_m4_v3(ob->obmat, co);
 				break;
 		}
 
@@ -391,7 +391,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
 		if (num > 0) {
 			age /= num;
-			VecMulf(vec, 1.0f/num);
+			mul_v3_fl(vec, 1.0f/num);
 		}
 		
 		/* reset */
@@ -424,7 +424,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
 	if (num > 0) {
 		age /= num;
-		VecMulf(vec, 1.0f/num);
+		mul_v3_fl(vec, 1.0f/num);
 	}
 	
 	texres->tin = density;
@@ -448,7 +448,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 			break;
 		case TEX_PD_COLOR_PARTSPEED:
 		{
-			float speed = VecLength(vec) * pd->speed_scale;
+			float speed = len_v3(vec) * pd->speed_scale;
 			
 			if (pd->coba) {
 				if (do_colorband(pd->coba, speed, col)) {
@@ -462,7 +462,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		}
 		case TEX_PD_COLOR_PARTVEL:
 			texres->talpha= 1;
-			VecMulf(vec, pd->speed_scale);
+			mul_v3_fl(vec, pd->speed_scale);
 			VECCOPY(&texres->tr, vec);
 			texres->ta = texres->tin;
 			break;

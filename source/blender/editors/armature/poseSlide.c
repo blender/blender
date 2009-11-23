@@ -34,7 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_dlrbTree.h"
@@ -461,7 +461,7 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 		/* perform blending */
 		if (pso->mode == POSESLIDE_BREAKDOWN) {
 			/* just perform the interpol between quat_prev and quat_next using pso->percentage as a guide */
-			QuatInterpol(pchan->quat, quat_prev, quat_next, pso->percentage);
+			interp_qt_qtqt(pchan->quat, quat_prev, quat_next, pso->percentage);
 		}
 		else {
 			float quat_interp[4], quat_orig[4];
@@ -470,16 +470,16 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 			/* perform this blending several times until a satisfactory result is reached */
 			while (iters-- > 0) {
 				/* calculate the interpolation between the endpoints */
-				QuatInterpol(quat_interp, quat_prev, quat_next, (cframe-pso->prevFrame) / (pso->nextFrame-pso->prevFrame) );
+				interp_qt_qtqt(quat_interp, quat_prev, quat_next, (cframe-pso->prevFrame) / (pso->nextFrame-pso->prevFrame) );
 				
 				/* make a copy of the original rotation */
 				QUATCOPY(quat_orig, pchan->quat);
 				
 				/* tricky interpolations - mode-dependent blending between original and new */
 				if (pso->mode == POSESLIDE_RELAX) // xxx this was the original code, so should work fine
-					QuatInterpol(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
+					interp_qt_qtqt(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
 				else // I'm just guessing here...
-					QuatInterpol(pchan->quat, quat_orig, quat_interp, 6.0f/5.0f);
+					interp_qt_qtqt(pchan->quat, quat_orig, quat_interp, 6.0f/5.0f);
 			}
 		}
 	}

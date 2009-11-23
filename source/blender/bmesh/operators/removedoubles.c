@@ -7,7 +7,7 @@
 
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_ghash.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
@@ -539,7 +539,7 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 					continue;
 			}
 
-			if (VecLenCompare(v->co, v2->co, dist)) {
+			if (compare_len_v3v3(v->co, v2->co, dist)) {
 				BMO_SetFlag(bm, v2, VERT_DOUBLE);
 				BMO_SetFlag(bm, v, VERT_TARGET);
 			
@@ -591,7 +591,7 @@ void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
 			if (BMO_TestFlag(bm, v2, VERT_IN))
 				continue;
 
-			if (VecLenCompare(v->co, v2->co, dist)) {
+			if (compare_len_v3v3(v->co, v2->co, dist)) {
 				BMO_SetFlag(bm, v2, VERT_DOUBLE);
 				BMO_SetFlag(bm, v, VERT_TARGET);
 			

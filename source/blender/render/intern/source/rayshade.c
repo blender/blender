@@ -41,7 +41,7 @@
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
@@ -397,11 +397,11 @@ static void makeraytree_single(Render *re)
 						RE_rayface_from_vlak(face, obi, vlr);
 						if((obi->flag & R_TRANSFORMED))
 						{
-							Mat4MulVecfl(obi->mat, face->v1);
-							Mat4MulVecfl(obi->mat, face->v2);
-							Mat4MulVecfl(obi->mat, face->v3);
+							mul_m4_v3(obi->mat, face->v1);
+							mul_m4_v3(obi->mat, face->v2);
+							mul_m4_v3(obi->mat, face->v3);
 							if(RE_rayface_isQuad(face))
-								Mat4MulVecfl(obi->mat, face->v4);
+								mul_m4_v3(obi->mat, face->v4);
 						}
 
 						RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
@@ -481,7 +481,7 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shi->co[1]= is->start[1]+is->labda*(shi->view[1]);
 	shi->co[2]= is->start[2]+is->labda*(shi->view[2]);
 	
-	Normalize(shi->view);
+	normalize_v3(shi->view);
 
 	shi->obi= obi;
 	shi->obr= obi->obr;
@@ -674,7 +674,7 @@ static void ray_fadeout_endcolor(float *col, ShadeInput *origshi, ShadeInput *sh
 		VECCOPY(col, shr->combined);
 	} else if (origshi->mat->fadeto_mir == MA_RAYMIR_FADETOSKY) {
 		VECCOPY(shi->view, vec);
-		Normalize(shi->view);
+		normalize_v3(shi->view);
 		
 		shadeSkyView(col, isec->start, shi->view, NULL, shi->thread);
 		shadeSunView(col, shi->view);
@@ -686,7 +686,7 @@ static void ray_fadeout(Isect *is, ShadeInput *shi, float *col, float *blendcol,
 	/* if fading out, linear blend against fade color */
 	float blendfac;
 
-	blendfac = 1.0 - VecLenf(shi->co, is->start)/dist_mir;
+	blendfac = 1.0 - len_v3v3(shi->co, is->start)/dist_mir;
 	
 	col[0] = col[0]*blendfac + (1.0 - blendfac)*blendcol[0];
 	col[1] = col[1]*blendfac + (1.0 - blendfac)*blendcol[1];
@@ -1297,15 +1297,15 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 			/* get a quasi-random vector from a phong-weighted disc */
 			QMC_samplePhong(samp3d, qsa, shi->thread, samples, blur);
 						
-			VecOrthoBasisf(v_refract, orthx, orthy);
-			VecMulf(orthx, samp3d[0]);
-			VecMulf(orthy, samp3d[1]);
+			ortho_basis_v3v3_v3( orthx, orthy,v_refract);
+			mul_v3_fl(orthx, samp3d[0]);
+			mul_v3_fl(orthy, samp3d[1]);
 				
 			/* and perturb the refraction vector in it */
-			VecAddf(v_refract_new, v_refract, orthx);
-			VecAddf(v_refract_new, v_refract_new, orthy);
+			add_v3_v3v3(v_refract_new, v_refract, orthx);
+			add_v3_v3v3(v_refract_new, v_refract_new, orthy);
 			
-			Normalize(v_refract_new);
+			normalize_v3(v_refract_new);
 		} else {
 			/* no blurriness, use the original normal */
 			VECCOPY(v_refract_new, v_refract);
@@ -1384,20 +1384,20 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 			/* find the normal's perpendicular plane, blurring along tangents
 			 * if tangent shading enabled */
 			if (shi->mat->mode & (MA_TANGENT_V)) {
-				Crossf(orthx, shi->vn, shi->tang);      // bitangent
+				cross_v3_v3v3(orthx, shi->vn, shi->tang);      // bitangent
 				VECCOPY(orthy, shi->tang);
-				VecMulf(orthx, samp3d[0]);
-				VecMulf(orthy, samp3d[1]*aniso);
+				mul_v3_fl(orthx, samp3d[0]);
+				mul_v3_fl(orthy, samp3d[1]*aniso);
 			} else {
-				VecOrthoBasisf(shi->vn, orthx, orthy);
-				VecMulf(orthx, samp3d[0]);
-				VecMulf(orthy, samp3d[1]);
+				ortho_basis_v3v3_v3( orthx, orthy,shi->vn);
+				mul_v3_fl(orthx, samp3d[0]);
+				mul_v3_fl(orthy, samp3d[1]);
 			}
 
 			/* and perturb the normal in it */
-			VecAddf(v_nor_new, shi->vn, orthx);
-			VecAddf(v_nor_new, v_nor_new, orthy);
-			Normalize(v_nor_new);
+			add_v3_v3v3(v_nor_new, shi->vn, orthx);
+			add_v3_v3v3(v_nor_new, v_nor_new, orthy);
+			normalize_v3(v_nor_new);
 		} else {
 			/* no blurriness, use the original normal */
 			VECCOPY(v_nor_new, shi->vn);
@@ -1706,7 +1706,7 @@ static void DS_energy(float *sphere, int tot, float *vec)
 	res[0]= res[1]= res[2]= 0.0f;
 	
 	for(a=0, fp=sphere; a<tot; a++, fp+=3) {
-		VecSubf(force, vec, fp);
+		sub_v3_v3v3(force, vec, fp);
 		fac= force[0]*force[0] + force[1]*force[1] + force[2]*force[2];
 		if(fac!=0.0f) {
 			fac= 1.0f/fac;
@@ -1716,9 +1716,9 @@ static void DS_energy(float *sphere, int tot, float *vec)
 		}
 	}
 
-	VecMulf(res, 0.5);
-	VecAddf(vec, vec, res);
-	Normalize(vec);
+	mul_v3_fl(res, 0.5);
+	add_v3_v3v3(vec, vec, res);
+	normalize_v3(vec);
 	
 }
 
@@ -1881,7 +1881,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		VECCOPY(nrm, shi->facenor);
 	}
 	
-	VecOrthoBasisf(nrm, up, side);
+	ortho_basis_v3v3_v3( up, side,nrm);
 	
 	/* sampling init */
 	if (R.wrld.ao_samp_method==WO_AOSAMP_HALTON) {
@@ -1908,7 +1908,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		dir[1] = (samp3d[0]*up[1] + samp3d[1]*side[1] + samp3d[2]*nrm[1]);
 		dir[2] = (samp3d[0]*up[2] + samp3d[1]*side[2] + samp3d[2]*nrm[2]);
 		
-		Normalize(dir);
+		normalize_v3(dir);
 			
 		isec.vec[0] = -dir[0];
 		isec.vec[1] = -dir[1];
@@ -1928,7 +1928,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 			view[0]= -dir[0];
 			view[1]= -dir[1];
 			view[2]= -dir[2];
-			Normalize(view);
+			normalize_v3(view);
 			
 			if(aocolor==WO_AOSKYCOL) {
 				skyfac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
@@ -2064,7 +2064,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 				view[0]= -vec[0];
 				view[1]= -vec[1];
 				view[2]= -vec[2];
-				Normalize(view);
+				normalize_v3(view);
 				
 				if(aocolor==WO_AOSKYCOL) {
 					fac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
@@ -2230,8 +2230,8 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 				v[0] = co[0] - lampco[0];
 				v[1] = co[1] - lampco[1];
 				v[2] = co[2] - lampco[2];
-				Normalize(v);
-				VecOrthoBasisf(v, ru, rv);
+				normalize_v3(v);
+				ortho_basis_v3v3_v3( ru, rv,v);
 				
 				/* sampling, returns quasi-random vector in area_size disc */
 				QMC_sampleDisc(samp3d, qsa, shi->thread, samples,lar->area_size);
@@ -2248,7 +2248,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 				QMC_sampleRect(samp3d, qsa, shi->thread, samples, lar->area_size, lar->area_sizey);
 								
 				/* align samples to lamp vector */
-				Mat3MulVecfl(lar->mat, samp3d);
+				mul_m3_v3(lar->mat, samp3d);
 			}
 			end[0] = vec[0]+samp3d[0];
 			end[1] = vec[1]+samp3d[1];
@@ -2259,11 +2259,11 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 
 		if(shi->strand) {
 			/* bias away somewhat to avoid self intersection */
-			float jitbias= 0.5f*(VecLength(shi->dxco) + VecLength(shi->dyco));
+			float jitbias= 0.5f*(len_v3(shi->dxco) + len_v3(shi->dyco));
 			float v[3];
 
 			VECSUB(v, co, end);
-			Normalize(v);
+			normalize_v3(v);
 
 			co[0] -= jitbias*v[0];
 			co[1] -= jitbias*v[1];
@@ -2274,7 +2274,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		isec->vec[0] = end[0]-isec->start[0];
 		isec->vec[1] = end[1]-isec->start[1];
 		isec->vec[2] = end[2]-isec->start[2];
-		isec->labda = 1.0f; // * Normalize(isec->vec);
+		isec->labda = 1.0f; // * normalize_v3(isec->vec);
 		
 		/* trace the ray */
 		if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -2370,7 +2370,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 		vec[0]= jitlamp[0];
 		vec[1]= jitlamp[1];
 		vec[2]= 0.0f;
-		Mat3MulVecfl(lar->mat, vec);
+		mul_m3_v3(lar->mat, vec);
 		
 		/* set start and vec */
 		isec->vec[0] = vec[0]+lampco[0]-isec->start[0];
@@ -2537,7 +2537,7 @@ static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float
 		co[1]= isec.start[1]+isec.labda*(isec.vec[1]);
 		co[2]= isec.start[2]+isec.labda*(isec.vec[2]);
 		
-		*distfac= VecLength(isec.vec);
+		*distfac= len_v3(isec.vec);
 	}
 	else
 		*distfac= 0.0f;

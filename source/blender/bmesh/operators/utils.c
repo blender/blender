@@ -17,7 +17,7 @@
 #include "mesh_intern.h"
 #include "ED_mesh.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
@@ -53,7 +53,7 @@ void bmesh_transform_exec(BMesh *bm, BMOperator *op)
 	BMO_Get_Mat4(op, "mat", mat);
 
 	BMO_ITER(v, &iter, bm, op, "verts", BM_VERT) {
-		Mat4MulVecfl(mat, v->co);
+		mul_m4_v3(mat, v->co);
 	}
 }
 
@@ -63,7 +63,7 @@ void bmesh_translate_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_Get_Vec(op, "vec", vec);
 
-	Mat4One(mat);
+	unit_m4(mat);
 	VECCOPY(mat[3], vec);
 
 	BMO_CallOpf(bm, "transform mat=%m4 verts=%s", mat, op, "verts");
@@ -75,7 +75,7 @@ void bmesh_scale_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_Get_Vec(op, "vec", vec);
 
-	Mat3One(mat);
+	unit_m3(mat);
 	mat[0][0] = vec[0];
 	mat[1][1] = vec[1];
 	mat[2][2] = vec[2];
@@ -92,12 +92,12 @@ void bmesh_rotate_exec(BMesh *bm, BMOperator *op)
 	/*there has to be a proper matrix way to do this, but
 	  this is how editmesh did it and I'm too tired to think
 	  through the math right now.*/
-	VecMulf(vec, -1);
+	mul_v3_fl(vec, -1);
 	BMO_CallOpf(bm, "translate verts=%s vec=%v", op, "verts", vec);
 
 	BMO_CallOpf(bm, "transform mat=%s verts=%s", op, "mat", op, "verts");
 
-	VecMulf(vec, -1);
+	mul_v3_fl(vec, -1);
 	BMO_CallOpf(bm, "translate verts=%s vec=%v", op, "verts", vec);
 }
 
@@ -410,7 +410,7 @@ static void ngon_center(float *v, BMesh *bm, BMFace *f)
 	v[0] = v[1] = v[2] = 0;
 
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-		VecAddf(v, v, l->v->co);
+		add_v3_v3v3(v, v, l->v->co);
 	}
 
 	if( f->len )
@@ -441,7 +441,7 @@ static float ngon_perimeter(BMesh *bm, BMFace *f)
 			sv[2] = v[2] = l->v->co[2];
 			num_verts++;
 		} else {
-			perimeter += VecLenf(v, l->v->co);
+			perimeter += len_v3v3(v, l->v->co);
 			v[0] = l->v->co[0];
 			v[1] = l->v->co[1];
 			v[2] = l->v->co[2];
@@ -449,7 +449,7 @@ static float ngon_perimeter(BMesh *bm, BMFace *f)
 		}
 	}
 
-	perimeter += VecLenf(v, sv);
+	perimeter += len_v3v3(v, sv);
 
 	return perimeter;
 }
@@ -478,7 +478,7 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
 			sv[2] = v[2] = l->v->co[2];
 			num_verts++;
 		} else {
-			area += AreaT3Dfl(v, c, l->v->co);
+			area += area_tri_v3(v, c, l->v->co);
 			v[0] = l->v->co[0];
 			v[1] = l->v->co[1];
 			v[2] = l->v->co[2];
@@ -486,7 +486,7 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
 		}
 	}
 
-	area += AreaT3Dfl(v, c, sv);
+	area += area_tri_v3(v, c, sv);
 
 	return area;
 }
@@ -569,11 +569,11 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 				ngon_center(f_ext[i].c, bm, f_ext[i].f);
 
 				/* normalize the polygon normal */
-				VecCopyf(t_no, f_ext[i].f->no);
-				Normalize(t_no);
+				copy_v3_v3(t_no, f_ext[i].f->no);
+				normalize_v3(t_no);
 
 				/* compute the plane distance */
-				f_ext[i].d = Inpf(t_no, f_ext[i].c);
+				f_ext[i].d = dot_v3v3(t_no, f_ext[i].c);
 				break;
 
 			case SIMFACE_AREA:
@@ -614,7 +614,7 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMFACE_NORMAL:
-					angle = RAD2DEG(VecAngle2(fs->no, fm->no));	/* if the angle between the normals -> 0 */
+					angle = RAD2DEG(angle_v2v2(fs->no, fm->no));	/* if the angle between the normals -> 0 */
 					if( angle / 180.0 <= thresh ) {
 						BMO_SetFlag(bm, fm, FACE_MARK);
 						cont = 0;
@@ -622,7 +622,7 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMFACE_COPLANAR:
-					angle = RAD2DEG(VecAngle2(fs->no, fm->no)); /* angle -> 0 */
+					angle = RAD2DEG(angle_v2v2(fs->no, fm->no)); /* angle -> 0 */
 					if( angle / 180.0 <= thresh ) { /* and dot product difference -> 0 */
 						if( fabs(f_ext[i].d - f_ext[indices[idx]].d) <= thresh ) {
 							BMO_SetFlag(bm, fm, FACE_MARK);
@@ -686,7 +686,7 @@ static float edge_angle(BMesh *bm, BMEdge *e)
 		}
 	}
 
-	angle = VecAngle2(n1, n2);
+	angle = angle_v2v2(n1, n2);
 
 	return angle;
 }
@@ -754,11 +754,11 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 		for( i = 0; i < num_total; i++ ) {
 			switch( type ) {
 			case SIMEDGE_LENGTH:	/* compute the length of the edge */
-				e_ext[i].length	= VecLenf(e_ext[i].e->v1->co, e_ext[i].e->v2->co);
+				e_ext[i].length	= len_v3v3(e_ext[i].e->v1->co, e_ext[i].e->v2->co);
 				break;
 
 			case SIMEDGE_DIR:		/* compute the direction */
-				VecSubf(e_ext[i].dir, e_ext[i].e->v1->co, e_ext[i].e->v2->co);
+				sub_v3_v3v3(e_ext[i].dir, e_ext[i].e->v1->co, e_ext[i].e->v2->co);
 				break;
 
 			case SIMEDGE_FACE:		/* count the faces around the edge */
@@ -791,7 +791,7 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 
 				case SIMEDGE_DIR:
 					/* compute the angle between the two edges */
-					angle = RAD2DEG(VecAngle2(e_ext[i].dir, e_ext[indices[idx]].dir));
+					angle = RAD2DEG(angle_v2v2(e_ext[i].dir, e_ext[indices[idx]].dir));
 
 					if( angle > 90.0 ) /* use the smallest angle between the edges */
 						angle = fabs(angle - 180.0f);
@@ -927,7 +927,7 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 				switch( type ) {
 				case SIMVERT_NORMAL:
 					/* compare the angle between the normals */
-					if( RAD2DEG(VecAngle2(v->no, vs->no) / 180.0 <= thresh )) {
+					if( RAD2DEG(angle_v2v2(v->no, vs->no) / 180.0 <= thresh )) {
 						BMO_SetFlag(bm, v, VERT_MARK);
 						cont = 0;
 
@@ -1268,7 +1268,7 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 			float e_weight = v_weight;
 
 			if( type == VPATH_SELECT_EDGE_LENGTH )
-				e_weight += VecLenf(e->v1->co, e->v2->co);
+				e_weight += len_v3v3(e->v1->co, e->v2->co);
 			else e_weight += 1.0f;
 
 			u = ( e->v1 == v ) ? e->v2 : e->v1;

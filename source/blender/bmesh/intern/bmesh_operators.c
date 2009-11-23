@@ -1,6 +1,6 @@
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
@@ -264,7 +264,7 @@ void BMO_Set_Mat(struct BMOperator *op, char *slotname, float *mat, int size)
 	if (size == 4) {
 		memcpy(slot->data.p, mat, sizeof(float)*4*4);
 	} else if (size == 3) {
-		Mat4CpyMat3(slot->data.p, mat);
+		copy_m4_m3(slot->data.p, mat);
 	} else {
 		printf("yeek! invalid size in BMO_Set_Mat!\n");
 
@@ -288,7 +288,7 @@ void BMO_Get_Mat3(struct BMOperator *op, char *slotname, float mat[3][3])
 	if( !(slot->slottype == BMOP_OPSLOT_MAT) )
 		return;
 
-	Mat3CpyMat4(mat, slot->data.p);
+	copy_m3_m4(mat, slot->data.p);
 }
 
 void BMO_Set_Pnt(BMOperator *op, char *slotname, void *p)

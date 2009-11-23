@@ -41,7 +41,7 @@
 
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_kdopbvh.h"
 
@@ -215,7 +215,7 @@ TexMapping *add_mapping(void)
 	
 	texmap->size[0]= texmap->size[1]= texmap->size[2]= 1.0f;
 	texmap->max[0]= texmap->max[1]= texmap->max[2]= 1.0f;
-	Mat4One(texmap->mat);
+	unit_m4(texmap->mat);
 	
 	return texmap;
 }
@@ -224,16 +224,16 @@ void init_mapping(TexMapping *texmap)
 {
 	float eul[3], smat[3][3], rmat[3][3], mat[3][3];
 	
-	SizeToMat3(texmap->size, smat);
+	size_to_mat3( smat,texmap->size);
 	
 	eul[0]= (M_PI/180.0f)*texmap->rot[0];
 	eul[1]= (M_PI/180.0f)*texmap->rot[1];
 	eul[2]= (M_PI/180.0f)*texmap->rot[2];
-	EulToMat3(eul, rmat);
+	eul_to_mat3( rmat,eul);
 	
-	Mat3MulMat3(mat, rmat, smat);
+	mul_m3_m3m3(mat, rmat, smat);
 	
-	Mat4CpyMat3(texmap->mat, mat);
+	copy_m4_m3(texmap->mat, mat);
 	VECCOPY(texmap->mat[3], texmap->loc);
 
 }

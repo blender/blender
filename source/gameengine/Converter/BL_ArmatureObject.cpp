@@ -32,7 +32,7 @@
 #include "KX_BlenderSceneConverter.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BIK_api.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -158,13 +158,13 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 			QUATCOPY(dquat, dchan->quat);
 			QUATCOPY(squat, schan->quat);
 			if (mode==ACTSTRIPMODE_BLEND)
-				QuatInterpol(dchan->quat, dquat, squat, srcweight);
+				interp_qt_qtqt(dchan->quat, dquat, squat, srcweight);
 			else {
-				QuatMulFac(squat, srcweight);
-				QuatMul(dchan->quat, dquat, squat);
+				mul_fac_qt_fl(squat, srcweight);
+				mul_qt_qtqt(dchan->quat, dquat, squat);
 			}
 			
-			NormalQuat(dchan->quat);
+			normalize_qt(dchan->quat);
 		}
 
 		for (i=0; i<3; i++) {

@@ -35,7 +35,7 @@
 
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_verse.h"
 #include "BKE_utildefines.h"
@@ -114,16 +114,16 @@ static void recalculate_verseface_normals(VNode *vnode)
 		if(vface->vvert3) {
 			CalcNormFloat4(vface->vvert0->co, vface->vvert1->co,
 					vface->vvert2->co, vface->vvert3->co, vface->no);
-			VecAddf(vface->vvert3->no, vface->vvert3->no, vface->no);
+			add_v3_v3v3(vface->vvert3->no, vface->vvert3->no, vface->no);
 		}
 		else
 			CalcNormFloat(vface->vvert0->co, vface->vvert1->co,
 					vface->vvert2->co, vface->no);
 
 		/* calculate vertex normals ... it is averadge of all face normals using the vertex */
-		VecAddf(vface->vvert0->no, vface->vvert0->no, vface->no);
-		VecAddf(vface->vvert1->no, vface->vvert1->no, vface->no);
-		VecAddf(vface->vvert2->no, vface->vvert2->no, vface->no);
+		add_v3_v3v3(vface->vvert0->no, vface->vvert0->no, vface->no);
+		add_v3_v3v3(vface->vvert1->no, vface->vvert1->no, vface->no);
+		add_v3_v3v3(vface->vvert2->no, vface->vvert2->no, vface->no);
 
 		vface = vface->next;
 	}
@@ -131,7 +131,7 @@ static void recalculate_verseface_normals(VNode *vnode)
 	/* we have to normalize all vertex normals */
 	vvert = vert_layer->dl.lb.first;
 	while(vvert) {
-		Normalize(vvert->no);
+		normalize_v3(vvert->no);
 		vvert = vvert->next;
 	}
 }

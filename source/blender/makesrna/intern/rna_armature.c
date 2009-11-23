@@ -38,7 +38,7 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"

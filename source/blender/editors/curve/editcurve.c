@@ -39,7 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 
@@ -525,7 +525,7 @@ static void rotateflagNurb(ListBase *editnurb, short flag, float *cent, float ro
 					bp->vec[0]-=cent[0];
 					bp->vec[1]-=cent[1];
 					bp->vec[2]-=cent[2];
-					Mat3MulVecfl(rotmat, bp->vec);
+					mul_m3_v3(rotmat, bp->vec);
 					bp->vec[0]+=cent[0];
 					bp->vec[1]+=cent[1];
 					bp->vec[2]+=cent[2];
@@ -549,9 +549,9 @@ static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
 			a= nu->pntsu;
 			bezt= nu->bezt;
 			while(a--) {
-				if(bezt->f1 & flag) VecAddf(bezt->vec[0], bezt->vec[0], vec);
-				if(bezt->f2 & flag) VecAddf(bezt->vec[1], bezt->vec[1], vec);
-				if(bezt->f3 & flag) VecAddf(bezt->vec[2], bezt->vec[2], vec);
+				if(bezt->f1 & flag) add_v3_v3v3(bezt->vec[0], bezt->vec[0], vec);
+				if(bezt->f2 & flag) add_v3_v3v3(bezt->vec[1], bezt->vec[1], vec);
+				if(bezt->f3 & flag) add_v3_v3v3(bezt->vec[2], bezt->vec[2], vec);
 				bezt++;
 			}
 		}
@@ -559,7 +559,7 @@ static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a--) {
-				if(bp->f1 & flag) VecAddf(bp->vec, bp->vec, vec);
+				if(bp->f1 & flag) add_v3_v3v3(bp->vec, bp->vec, vec);
 				bp++;
 			}
 		}
@@ -1868,18 +1868,18 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 						memcpy(beztn, bezt, sizeof(BezTriple));
 						
 						/* midpoint subdividing */
-						VecMidf(vec, prevbezt->vec[1], prevbezt->vec[2]);
-						VecMidf(vec+3, prevbezt->vec[2], bezt->vec[0]);
-						VecMidf(vec+6, bezt->vec[0], bezt->vec[1]);
+						mid_v3_v3v3(vec, prevbezt->vec[1], prevbezt->vec[2]);
+						mid_v3_v3v3(vec+3, prevbezt->vec[2], bezt->vec[0]);
+						mid_v3_v3v3(vec+6, bezt->vec[0], bezt->vec[1]);
 						
-						VecMidf(vec+9, vec, vec+3);
-						VecMidf(vec+12, vec+3, vec+6);
+						mid_v3_v3v3(vec+9, vec, vec+3);
+						mid_v3_v3v3(vec+12, vec+3, vec+6);
 						
 						/* change handle of prev beztn */
 						VECCOPY((beztn-1)->vec[2], vec);
 						/* new point */
 						VECCOPY(beztn->vec[0], vec+9);
-						VecMidf(beztn->vec[1], vec+9, vec+12);
+						mid_v3_v3v3(beztn->vec[1], vec+9, vec+12);
 						VECCOPY(beztn->vec[2], vec+12);
 						/* handle of next bezt */
 						if(a==0 && (nu->flagu & CU_CYCLIC)) {VECCOPY(beztnew->vec[0], vec+6);}
@@ -2662,10 +2662,10 @@ static void make_selection_list_nurb(ListBase *editnurb)
 			bp= nu->bp;
 			a= nu->pntsu;
 			while(a--) {
-				VecAddf(nus->vec, nus->vec, bp->vec);
+				add_v3_v3v3(nus->vec, nus->vec, bp->vec);
 				bp++;
 			}
-			VecMulf(nus->vec, 1.0/(float)nu->pntsu);
+			mul_v3_fl(nus->vec, 1.0/(float)nu->pntsu);
 			
 			
 		}
@@ -2684,13 +2684,13 @@ static void make_selection_list_nurb(ListBase *editnurb)
 
 		nustest= nbase.first;
 		while(nustest) {
-			dist= VecLenf(nustest->vec, ((NurbSort *)nsortbase.first)->vec);
+			dist= len_v3v3(nustest->vec, ((NurbSort *)nsortbase.first)->vec);
 
 			if(dist<headdist) {
 				headdist= dist;
 				headdo= nustest;
 			}
-			dist= VecLenf(nustest->vec, ((NurbSort *)nsortbase.last)->vec);
+			dist= len_v3v3(nustest->vec, ((NurbSort *)nsortbase.last)->vec);
 
 			if(dist<taildist) {
 				taildist= dist;
@@ -2774,7 +2774,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	len1= 0.0;
 	
 	for(v=0; v<nu1->pntsv; v++, bp1+=nu1->pntsu, bp2+=nu2->pntsu) {
-		len1+= VecLenf(bp1->vec, bp2->vec);
+		len1+= len_v3v3(bp1->vec, bp2->vec);
 	}
 
 	bp1= nu1->bp + nu1->pntsu-1;
@@ -2782,7 +2782,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	len2= 0.0;
 	
 	for(v=0; v<nu1->pntsv; v++, bp1+=nu1->pntsu, bp2-=nu2->pntsu) {
-		len2+= VecLenf(bp1->vec, bp2->vec);
+		len2+= len_v3v3(bp1->vec, bp2->vec);
 	}
 
 	/* merge */
@@ -3136,13 +3136,13 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, sho
 	float persmat[3][3], persinv[3][3];
 	short a,ok, changed= 0;
 	
-	if(mode != 2 && rv3d) Mat3CpyMat4(persmat, rv3d->viewmat);
-	else Mat3One(persmat);
-	Mat3Inv(persinv, persmat);
+	if(mode != 2 && rv3d) copy_m3_m4(persmat, rv3d->viewmat);
+	else unit_m3(persmat);
+	invert_m3_m3(persinv, persmat);
 
 	/* imat and center and size */
-	Mat3CpyMat4(bmat, obedit->obmat);
-	Mat3Inv(imat, bmat);
+	copy_m3_m4(bmat, obedit->obmat);
+	invert_m3_m3(imat, bmat);
 
 	if(v3d) {
 		curs= give_cursor(scene, v3d);
@@ -3151,8 +3151,8 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, sho
 	else
 		cent[0]= cent[1]= cent[2]= 0.0f;
 
-	VecSubf(cent, cent, obedit->obmat[3]);
-	Mat3MulVecfl(imat,cent);
+	sub_v3_v3v3(cent, cent, obedit->obmat[3]);
+	mul_m3_v3(imat,cent);
 
 	if(dvec || mode==2 || !rv3d) {
 		n[0]=n[1]= 0.0;
@@ -3161,7 +3161,7 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, sho
 		n[0]= rv3d->viewinv[2][0];
 		n[1]= rv3d->viewinv[2][1];
 		n[2]= rv3d->viewinv[2][2];
-		Normalize(n);
+		normalize_v3(n);
 	}
 
 	phi= M_PI/8.0;
@@ -3170,27 +3170,27 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, sho
 	q[1]= n[0]*si;
 	q[2]= n[1]*si;
 	q[3]= n[2]*si;
-	QuatToMat3(q, cmat);
-	Mat3MulMat3(tmat, cmat, bmat);
-	Mat3MulMat3(rotmat, imat, tmat);
+	quat_to_mat3( cmat,q);
+	mul_m3_m3m3(tmat, cmat, bmat);
+	mul_m3_m3m3(rotmat, imat, tmat);
 
-	Mat3One(scalemat1);
+	unit_m3(scalemat1);
 	scalemat1[0][0]= sqrt(2.0);
 	scalemat1[1][1]= sqrt(2.0);
 
-	Mat3MulMat3(tmat,persmat,bmat);
-	Mat3MulMat3(cmat,scalemat1,tmat);
-	Mat3MulMat3(tmat,persinv,cmat);
-	Mat3MulMat3(scalemat1,imat,tmat);
+	mul_m3_m3m3(tmat,persmat,bmat);
+	mul_m3_m3m3(cmat,scalemat1,tmat);
+	mul_m3_m3m3(tmat,persinv,cmat);
+	mul_m3_m3m3(scalemat1,imat,tmat);
 
-	Mat3One(scalemat2);
+	unit_m3(scalemat2);
 	scalemat2[0][0]/= sqrt(2.0);
 	scalemat2[1][1]/= sqrt(2.0);
 
-	Mat3MulMat3(tmat,persmat,bmat);
-	Mat3MulMat3(cmat,scalemat2,tmat);
-	Mat3MulMat3(tmat,persinv,cmat);
-	Mat3MulMat3(scalemat2,imat,tmat);
+	mul_m3_m3m3(tmat,persmat,bmat);
+	mul_m3_m3m3(cmat,scalemat2,tmat);
+	mul_m3_m3m3(tmat,persinv,cmat);
+	mul_m3_m3m3(scalemat2,imat,tmat);
 
 	ok= 1;
 
@@ -3216,7 +3216,7 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, sho
 			}
 		}
 		if(dvec) {
-			Mat3MulVecfl(bmat,dvec);
+			mul_m3_v3(bmat,dvec);
 			translateflagNurb(editnurb, 1,dvec);
 		}
 	}
@@ -3275,8 +3275,8 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	BPoint *bp, *newbp = NULL;
 	float mat[3][3],imat[3][3], temp[3];
 
-	Mat3CpyMat4(mat, obedit->obmat);
-	Mat3Inv(imat,mat);
+	copy_m3_m4(mat, obedit->obmat);
+	invert_m3_m3(imat,mat);
 
 	findselectedNurbvert(editnurb, &nu, &bezt, &bp);
 	if(bezt==0 && bp==0) return OPERATOR_CANCELLED;
@@ -3322,11 +3322,11 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			}
 			else {
 				VECCOPY(newbezt->vec[1], location);
-				VecSubf(newbezt->vec[1],newbezt->vec[1], obedit->obmat[3]);
-				Mat3MulVecfl(imat,newbezt->vec[1]);
-				VecSubf(temp, newbezt->vec[1],temp);
-				VecAddf(newbezt->vec[0], bezt->vec[0],temp);
-				VecAddf(newbezt->vec[2], bezt->vec[2],temp);
+				sub_v3_v3v3(newbezt->vec[1],newbezt->vec[1], obedit->obmat[3]);
+				mul_m3_v3(imat,newbezt->vec[1]);
+				sub_v3_v3v3(temp, newbezt->vec[1],temp);
+				add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
+				add_v3_v3v3(newbezt->vec[2], bezt->vec[2],temp);
 				calchandlesNurb(nu);
 			}
 		}
@@ -3368,8 +3368,8 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			}
 			else {
 				VECCOPY(newbp->vec, location);
-				VecSubf(newbp->vec, newbp->vec, obedit->obmat[3]);
-				Mat3MulVecfl(imat,newbp->vec);
+				sub_v3_v3v3(newbp->vec, newbp->vec, obedit->obmat[3]);
+				mul_m3_v3(imat,newbp->vec);
 				newbp->vec[3]= 1.0;
 			}
 		}
@@ -4633,7 +4633,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	tempbase.first= tempbase.last= 0;
 	
 	/* trasnform all selected curves inverse in obact */
-	Mat4Invert(imat, ob->obmat);
+	invert_m4_m4(imat, ob->obmat);
 	
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		if(base->object->type==ob->type) {
@@ -4643,7 +4643,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 			
 				if(cu->nurb.first) {
 					/* watch it: switch order here really goes wrong */
-					Mat4MulMat4(cmat, base->object->obmat, imat);
+					mul_m4_m4m4(cmat, base->object->obmat, imat);
 					
 					nu= cu->nurb.first;
 					while(nu) {
@@ -4653,16 +4653,16 @@ int join_curve_exec(bContext *C, wmOperator *op)
 						if( (bezt= newnu->bezt) ) {
 							a= newnu->pntsu;
 							while(a--) {
-								Mat4MulVecfl(cmat, bezt->vec[0]);
-								Mat4MulVecfl(cmat, bezt->vec[1]);
-								Mat4MulVecfl(cmat, bezt->vec[2]);
+								mul_m4_v3(cmat, bezt->vec[0]);
+								mul_m4_v3(cmat, bezt->vec[1]);
+								mul_m4_v3(cmat, bezt->vec[2]);
 								bezt++;
 							}
 						}
 						if( (bp= newnu->bp) ) {
 							a= newnu->pntsu*nu->pntsv;
 							while(a--) {
-								Mat4MulVecfl(cmat, bp->vec);
+								mul_m4_v3(cmat, bp->vec);
 								bp++;
 							}
 						}
@@ -4716,7 +4716,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 	/* imat and center and size */
 	if(obedit) {
 		
-		Mat3CpyMat4(mat, obedit->obmat);
+		copy_m3_m4(mat, obedit->obmat);
 		if(v3d) {
 			curs= give_cursor(scene, v3d);
 			VECCOPY(cent, curs);
@@ -4730,16 +4730,16 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 		
 		if(rv3d) {
 			if (!newname && (U.flag & USER_ADD_VIEWALIGNED))
-				Mat3CpyMat4(imat, rv3d->viewmat);
+				copy_m3_m4(imat, rv3d->viewmat);
 			else
-				Mat3One(imat);
+				unit_m3(imat);
 
-			Mat3MulVecfl(imat, cent);
-			Mat3MulMat3(cmat, imat, mat);
-			Mat3Inv(imat, cmat);
+			mul_m3_v3(imat, cent);
+			mul_m3_m3m3(cmat, imat, mat);
+			invert_m3_m3(imat, cmat);
 		}
 		else
-			Mat3One(imat);
+			unit_m3(imat);
 
 		setflagsNurb(editnurb, 0);
 	}
@@ -4779,7 +4779,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			bezt->vec[0][1]+= -0.5*grid;
 			bezt->vec[2][0]+= -0.5*grid;
 			bezt->vec[2][1]+=  0.5*grid;
-			for(a=0;a<3;a++) Mat3MulVecfl(imat, bezt->vec[a]);
+			for(a=0;a<3;a++) mul_m3_v3(imat, bezt->vec[a]);
 
 			bezt++;
 			bezt->h1= bezt->h2= HD_ALIGN;
@@ -4790,7 +4790,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 				VECCOPY(bezt->vec[a], cent);
 			}
 			bezt->vec[1][0]+= grid;
-			for(a=0;a<3;a++) Mat3MulVecfl(imat, bezt->vec[a]);
+			for(a=0;a<3;a++) mul_m3_v3(imat, bezt->vec[a]);
 
 			calchandlesNurb(nu);
 		}
@@ -4821,7 +4821,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			bp->vec[0]+= 1.5*grid;
 
 			bp= nu->bp;
-			for(a=0;a<4;a++, bp++) Mat3MulVecfl(imat,bp->vec);
+			for(a=0;a<4;a++, bp++) mul_m3_v3(imat,bp->vec);
 
 			if(cutype==CU_NURBS) {
 				nu->knotsu= 0;	/* makeknots allocates */
@@ -4856,7 +4856,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 		bp->vec[0]+= 2.0*grid;
 
 		bp= nu->bp;
-		for(a=0;a<5;a++, bp++) Mat3MulVecfl(imat,bp->vec);
+		for(a=0;a<5;a++, bp++) mul_m3_v3(imat,bp->vec);
 
 		if(cutype==CU_NURBS) {
 			nu->knotsu= 0;	/* makeknots allocates */
@@ -4883,7 +4883,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][0]+= -grid;
-			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
+			for(a=0;a<3;a++) mul_m3_v3(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 			
 			bezt++;
@@ -4893,7 +4893,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][1]+= grid;
-			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
+			for(a=0;a<3;a++) mul_m3_v3(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			bezt++;
@@ -4903,7 +4903,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][0]+= grid;
-			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
+			for(a=0;a<3;a++) mul_m3_v3(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			bezt++;
@@ -4913,7 +4913,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][1]+= -grid;
-			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
+			for(a=0;a<3;a++) mul_m3_v3(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
 			calchandlesNurb(nu);
@@ -4940,7 +4940,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 				}
 				if(a & 1) bp->vec[3]= 0.25*sqrt(2.0);
 				else bp->vec[3]= 1.0;
-				Mat3MulVecfl(imat,bp->vec);
+				mul_m3_v3(imat,bp->vec);
 				bp->radius = bp->weight = 1.0;
 				
 				bp++;
@@ -4977,7 +4977,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 					if(a==1 || a==2) if(b==1 || b==2) {
 						bp->vec[2]+= grid;
 					}
-					Mat3MulVecfl(imat,bp->vec);
+					mul_m3_v3(imat,bp->vec);
 					bp->vec[3]= 1.0;
 					bp++;
 				}
@@ -5000,7 +5000,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
 			vec[2]= -grid;
-			Mat3MulVecfl(imat, vec);
+			mul_m3_v3(imat, vec);
 			translateflagNurb(editnurb, 1, vec);
 			extrudeflagNurb(editnurb, 1);
 			vec[0]= -2*vec[0]; 
@@ -5042,7 +5042,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 				bp->vec[2]+= nurbcircle[a][1]*grid;
 				if(a & 1) bp->vec[3]= 0.5*sqrt(2.0);
 				else bp->vec[3]= 1.0;
-				Mat3MulVecfl(imat,bp->vec);
+				mul_m3_v3(imat,bp->vec);
 				bp++;
 			}
 			nu->flagu= 4;

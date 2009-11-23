@@ -52,7 +52,7 @@
 #include "DNA_space_types.h"
 #include "DNA_particle_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
@@ -1670,10 +1670,10 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
 			float *v3 = vertexCos[(int) BMINDEX_GET(l[2]->v)];
 			float *no = bmdm->faceNos[i];
 			
-			CalcNormFloat(v1, v2, v3, no);
-			VecAddf(bmdm->vertexNos[BMINDEX_GET(l[0]->v)], bmdm->vertexNos[BMINDEX_GET(l[0]->v)], no);
-			VecAddf(bmdm->vertexNos[BMINDEX_GET(l[1]->v)], bmdm->vertexNos[BMINDEX_GET(l[1]->v)], no);
-			VecAddf(bmdm->vertexNos[BMINDEX_GET(l[2]->v)], bmdm->vertexNos[BMINDEX_GET(l[2]->v)], no);
+			normal_tri_v3( no,v1, v2, v3);
+			add_v3_v3v3(bmdm->vertexNos[BMINDEX_GET(l[0]->v)], bmdm->vertexNos[BMINDEX_GET(l[0]->v)], no);
+			add_v3_v3v3(bmdm->vertexNos[BMINDEX_GET(l[1]->v)], bmdm->vertexNos[BMINDEX_GET(l[1]->v)], no);
+			add_v3_v3v3(bmdm->vertexNos[BMINDEX_GET(l[2]->v)], bmdm->vertexNos[BMINDEX_GET(l[2]->v)], no);
 		}
 
 		eve=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
@@ -1681,9 +1681,9 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
 			float *no = bmdm->vertexNos[i];
 			/* following Mesh convention; we use vertex coordinate itself
 			 * for normal in this case */
-			if (Normalize(no)==0.0) {
+			if (normalize_v3(no)==0.0) {
 				VECCOPY(no, vertexCos[i]);
-				Normalize(no);
+				normalize_v3(no);
 			}
 		}
 	}

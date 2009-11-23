@@ -58,7 +58,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "RNA_access.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
@@ -153,7 +153,7 @@ void convert_to_triface(EditMesh *em, int direction)
 		if(efa->v4) {
 			if(efa->f & SELECT) {
 				/* choose shortest diagonal for split */
-				fac= VecLenf(efa->v1->co, efa->v3->co) - VecLenf(efa->v2->co, efa->v4->co);
+				fac= len_v3v3(efa->v1->co, efa->v3->co) - len_v3v3(efa->v2->co, efa->v4->co);
 				/* this makes sure exact squares get split different in both cases */
 				if( (direction==0 && fac<FLT_EPSILON) || (direction && fac>0.0f) ) {
 					efan= EM_face_from_faces(em, efa, NULL, 0, 1, 2, -1);
@@ -656,8 +656,8 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 		else {
 //			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
 			if(transmode=='n') {
-				Mat4MulVecfl(obedit->obmat, nor);
-				VecSubf(nor, nor, obedit->obmat[3]);
+				mul_m4_v3(obedit->obmat, nor);
+				sub_v3_v3v3(nor, nor, obedit->obmat[3]);
 //				BIF_setSingleAxisConstraint(nor, "along normal");
 			}
 //			Transform();
@@ -791,15 +791,15 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	dvec[0]= rv3d->persinv[2][0];
 	dvec[1]= rv3d->persinv[2][1];
 	dvec[2]= rv3d->persinv[2][2];
-	Normalize(dvec);
+	normalize_v3(dvec);
 	dvec[0]*= offs;
 	dvec[1]*= offs;
 	dvec[2]*= offs;
 
 	/* base correction */
-	Mat3CpyMat4(bmat, obedit->obmat);
-	Mat3Inv(tmat, bmat);
-	Mat3MulVecfl(tmat, dvec);
+	copy_m3_m4(bmat, obedit->obmat);
+	invert_m3_m3(tmat, bmat);
+	mul_m3_v3(tmat, dvec);
 
 	for(a=0; a<steps; a++) {
 		extrudeflag(obedit, em, SELECT, nor);
@@ -853,30 +853,30 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 	RNA_float_get_array(op->ptr, "center", cent);
 
 	/* imat and center and size */
-	Mat3CpyMat4(bmat, obedit->obmat);
-	Mat3Inv(imat,bmat);
+	copy_m3_m4(bmat, obedit->obmat);
+	invert_m3_m3(imat,bmat);
 
 	cent[0]-= obedit->obmat[3][0];
 	cent[1]-= obedit->obmat[3][1];
 	cent[2]-= obedit->obmat[3][2];
-	Mat3MulVecfl(imat, cent);
+	mul_m3_v3(imat, cent);
 
 	phi= degr*M_PI/360.0;
 	phi/= steps;
 	if(ts->editbutflag & B_CLOCKWISE) phi= -phi;
 
 	RNA_float_get_array(op->ptr, "axis", n);
-	Normalize(n);
+	normalize_v3(n);
 
 	q[0]= (float)cos(phi);
 	si= (float)sin(phi);
 	q[1]= n[0]*si;
 	q[2]= n[1]*si;
 	q[3]= n[2]*si;
-	QuatToMat3(q, cmat);
+	quat_to_mat3( cmat,q);
 
-	Mat3MulMat3(tmat,cmat,bmat);
-	Mat3MulMat3(bmat,imat,tmat);
+	mul_m3_m3m3(tmat,cmat,bmat);
+	mul_m3_m3m3(bmat,imat,tmat);
 
 	if(dupli==0)
 		if(ts->editbutflag & B_KEEPORIG)
@@ -891,7 +891,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 
 		rotateflag(em, SELECT, cent, bmat);
 		if(dvec) {
-			Mat3MulVecfl(bmat,dvec);
+			mul_m3_v3(bmat,dvec);
 			translateflag(em, SELECT, dvec);
 		}
 	}
@@ -1146,8 +1146,8 @@ static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int
 		/* we calculate an offset vector vec1[], to be added to *co */
 		float len, fac, nor[3], nor1[3], nor2[3];
 
-		VecSubf(nor, edge->v1->co, edge->v2->co);
-		len= 0.5f*Normalize(nor);
+		sub_v3_v3v3(nor, edge->v1->co, edge->v2->co);
+		len= 0.5f*normalize_v3(nor);
 
 		VECCOPY(nor1, edge->v1->no);
 		VECCOPY(nor2, edge->v2->no);
@@ -1178,18 +1178,18 @@ static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int
 		co[2] += vec1[2];
 	}
 	/*else if(beauty & B_SPHERE) { // subdivide sphere
-		Normalize(co);
+		normalize_v3(co);
 		co[0]*= smooth;
 		co[1]*= smooth;
 		co[2]*= smooth;
 	}
 
 	if(beauty & B_FRACTAL) {
-		fac= fractal*VecLenf(edge->v1->co, edge->v2->co);
+		fac= fractal*len_v3v3(edge->v1->co, edge->v2->co);
 		vec1[0]= fac*(float)(0.5-BLI_drand());
 		vec1[1]= fac*(float)(0.5-BLI_drand());
 		vec1[2]= fac*(float)(0.5-BLI_drand());
-		VecAddf(co, co, vec1);
+		add_v3_v3v3(co, co, vec1);
 	}*/
 }
 
@@ -1230,7 +1230,7 @@ static EditVert *subdivide_edge_addvert(EditMesh *em, EditEdge *edge, float smoo
 	ev->no[0] = (edge->v2->no[0]-edge->v1->no[0])*percent + edge->v1->no[0];
 	ev->no[1] = (edge->v2->no[1]-edge->v1->no[1])*percent + edge->v1->no[1];
 	ev->no[2] = (edge->v2->no[2]-edge->v1->no[2])*percent + edge->v1->no[2];
-	Normalize(ev->no);
+	normalize_v3(ev->no);
 
 	return ev;
 }
@@ -1259,11 +1259,11 @@ static void facecopy(EditMesh *em, EditFace *source, EditFace *target)
 	target->flag   = source->flag;
 	target->h	   = source->h;
 
-	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v1->co, w[0]);
-	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v2->co, w[1]);
-	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v3->co, w[2]);
+	interp_weights_face_v3( w[0],v1, v2, v3, v4, target->v1->co);
+	interp_weights_face_v3( w[1],v1, v2, v3, v4, target->v2->co);
+	interp_weights_face_v3( w[2],v1, v2, v3, v4, target->v3->co);
 	if (target->v4)
-		InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v4->co, w[3]);
+		interp_weights_face_v3( w[3],v1, v2, v3, v4, target->v4->co);
 
 	CustomData_em_interp(&em->fdata, &source->data, NULL, (float*)w, 1, target->data);
 }
@@ -2407,15 +2407,15 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 				VECCOPY(v2mat, ef->v2->co);
 				VECCOPY(v3mat, ef->v3->co);
 				VECCOPY(v4mat, ef->v4->co);
-				Mat4Mul3Vecfl(obedit->obmat, v1mat);
-				Mat4Mul3Vecfl(obedit->obmat, v2mat);
-				Mat4Mul3Vecfl(obedit->obmat, v3mat);
-				Mat4Mul3Vecfl(obedit->obmat, v4mat);
+				mul_mat3_m4_v3(obedit->obmat, v1mat);
+				mul_mat3_m4_v3(obedit->obmat, v2mat);
+				mul_mat3_m4_v3(obedit->obmat, v3mat);
+				mul_mat3_m4_v3(obedit->obmat, v4mat);
 
-				length[0] = VecLenf(v1mat, v2mat);
-				length[1] = VecLenf(v2mat, v3mat);
-				length[2] = VecLenf(v3mat, v4mat);
-				length[3] = VecLenf(v4mat, v1mat);
+				length[0] = len_v3v3(v1mat, v2mat);
+				length[1] = len_v3v3(v2mat, v3mat);
+				length[2] = len_v3v3(v3mat, v4mat);
+				length[3] = len_v3v3(v4mat, v1mat);
 				sort[0] = ef->e1;
 				sort[1] = ef->e2;
 				sort[2] = ef->e3;
@@ -2905,43 +2905,43 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 			minarea, maxarea, areaA, areaB;
 
 	/*First Test: Normal difference*/
-	CalcNormFloat(v1->co, v2->co, v3->co, noA1);
-	CalcNormFloat(v1->co, v3->co, v4->co, noA2);
+	normal_tri_v3( noA1,v1->co, v2->co, v3->co);
+	normal_tri_v3( noA2,v1->co, v3->co, v4->co);
 
 	if(noA1[0] == noA2[0] && noA1[1] == noA2[1] && noA1[2] == noA2[2]) normalADiff = 0.0;
-	else normalADiff = VecAngle2(noA1, noA2);
+	else normalADiff = angle_v2v2(noA1, noA2);
 		//if(!normalADiff) normalADiff = 179;
-	CalcNormFloat(v2->co, v3->co, v4->co, noB1);
-	CalcNormFloat(v4->co, v1->co, v2->co, noB2);
+	normal_tri_v3( noB1,v2->co, v3->co, v4->co);
+	normal_tri_v3( noB2,v4->co, v1->co, v2->co);
 
 	if(noB1[0] == noB2[0] && noB1[1] == noB2[1] && noB1[2] == noB2[2]) normalBDiff = 0.0;
-	else normalBDiff = VecAngle2(noB1, noB2);
+	else normalBDiff = angle_v2v2(noB1, noB2);
 		//if(!normalBDiff) normalBDiff = 179;
 
 	measure += (normalADiff/360) + (normalBDiff/360);
 	if(measure > limit) return measure;
 
 	/*Second test: Colinearity*/
-	VecSubf(edgeVec1, v1->co, v2->co);
-	VecSubf(edgeVec2, v2->co, v3->co);
-	VecSubf(edgeVec3, v3->co, v4->co);
-	VecSubf(edgeVec4, v4->co, v1->co);
+	sub_v3_v3v3(edgeVec1, v1->co, v2->co);
+	sub_v3_v3v3(edgeVec2, v2->co, v3->co);
+	sub_v3_v3v3(edgeVec3, v3->co, v4->co);
+	sub_v3_v3v3(edgeVec4, v4->co, v1->co);
 
 	diff = 0.0;
 
 	diff = (
-		fabs(VecAngle2(edgeVec1, edgeVec2) - 90) +
-		fabs(VecAngle2(edgeVec2, edgeVec3) - 90) +
-		fabs(VecAngle2(edgeVec3, edgeVec4) - 90) +
-		fabs(VecAngle2(edgeVec4, edgeVec1) - 90)) / 360;
+		fabs(angle_v2v2(edgeVec1, edgeVec2) - 90) +
+		fabs(angle_v2v2(edgeVec2, edgeVec3) - 90) +
+		fabs(angle_v2v2(edgeVec3, edgeVec4) - 90) +
+		fabs(angle_v2v2(edgeVec4, edgeVec1) - 90)) / 360;
 	if(!diff) return 0.0;
 
 	measure +=  diff;
 	if(measure > limit) return measure;
 
 	/*Third test: Concavity*/
-	areaA = AreaT3Dfl(v1->co, v2->co, v3->co) + AreaT3Dfl(v1->co, v3->co, v4->co);
-	areaB = AreaT3Dfl(v2->co, v3->co, v4->co) + AreaT3Dfl(v4->co, v1->co, v2->co);
+	areaA = area_tri_v3(v1->co, v2->co, v3->co) + area_tri_v3(v1->co, v3->co, v4->co);
+	areaB = area_tri_v3(v2->co, v3->co, v4->co) + area_tri_v3(v4->co, v1->co, v2->co);
 
 	if(areaA <= areaB) minarea = areaA;
 	else minarea = areaB;
@@ -4256,20 +4256,20 @@ static void beauty_fill(EditMesh *em)
 							* the area divided by the total edge lengths
 							*/
 
-							len1= VecLenf(v1->co, v2->co);
-							len2= VecLenf(v2->co, v3->co);
-							len3= VecLenf(v3->co, v4->co);
-							len4= VecLenf(v4->co, v1->co);
-							len5= VecLenf(v1->co, v3->co);
-							len6= VecLenf(v2->co, v4->co);
+							len1= len_v3v3(v1->co, v2->co);
+							len2= len_v3v3(v2->co, v3->co);
+							len3= len_v3v3(v3->co, v4->co);
+							len4= len_v3v3(v4->co, v1->co);
+							len5= len_v3v3(v1->co, v3->co);
+							len6= len_v3v3(v2->co, v4->co);
 
-							opp1= AreaT3Dfl(v1->co, v2->co, v3->co);
-							opp2= AreaT3Dfl(v1->co, v3->co, v4->co);
+							opp1= area_tri_v3(v1->co, v2->co, v3->co);
+							opp2= area_tri_v3(v1->co, v3->co, v4->co);
 
 							fac1= opp1/(len1+len2+len5) + opp2/(len3+len4+len5);
 
-							opp1= AreaT3Dfl(v2->co, v3->co, v4->co);
-							opp2= AreaT3Dfl(v2->co, v4->co, v1->co);
+							opp1= area_tri_v3(v2->co, v3->co, v4->co);
+							opp2= area_tri_v3(v2->co, v4->co, v1->co);
 
 							fac2= opp1/(len2+len3+len6) + opp2/(len4+len1+len6);
 

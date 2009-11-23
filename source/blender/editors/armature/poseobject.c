@@ -33,7 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
@@ -279,7 +279,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 							VECCOPY(fp, pchan->pose_tail);
 						}
 						
-						Mat4MulVecfl(ob->obmat, fp);
+						mul_m4_v3(ob->obmat, fp);
 					}
 				}
 			}
@@ -405,7 +405,7 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 							VECCOPY(fp, pchan->pose_tail);
 						}
 						
-						Mat4MulVecfl(ob->obmat, fp);
+						mul_m4_v3(ob->obmat, fp);
 					}
 				}
 			}
@@ -814,13 +814,13 @@ void pose_copy_menu(Scene *scene)
 							float tmp_quat[4];
 							
 							/* need to convert to quat first (in temp var)... */
-							Mat4ToQuat(delta_mat, tmp_quat);
-							QuatToAxisAngle(tmp_quat, pchan->rotAxis, &pchan->rotAngle);
+							mat4_to_quat( tmp_quat,delta_mat);
+							quat_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,tmp_quat);
 						}
 						else if (pchan->rotmode == ROT_MODE_QUAT)
-							Mat4ToQuat(delta_mat, pchan->quat);
+							mat4_to_quat( pchan->quat,delta_mat);
 						else
-							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
+							mat4_to_eulO( pchan->eul, pchan->rotmode,delta_mat);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -828,7 +828,7 @@ void pose_copy_menu(Scene *scene)
 						float delta_mat[4][4], size[4];
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
-						Mat4ToSize(delta_mat, size);
+						mat4_to_size( size,delta_mat);
 						VECCOPY(pchan->size, size);
 					}
 				}
@@ -1020,23 +1020,23 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				else if (pchan->rotmode > 0) {
 					/* quat/axis-angle to euler */
 					if (chan->rotmode == ROT_MODE_AXISANGLE)
-						AxisAngleToEulO(chan->rotAxis, chan->rotAngle, pchan->eul, pchan->rotmode);
+						axis_angle_to_eulO( pchan->eul, pchan->rotmode,chan->rotAxis, chan->rotAngle);
 					else
-						QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
+						quat_to_eulO( pchan->eul, pchan->rotmode,chan->quat);
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					/* quat/euler to axis angle */
 					if (chan->rotmode > 0)
-						EulOToAxisAngle(chan->eul, chan->rotmode, pchan->rotAxis, &pchan->rotAngle);
+						eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,chan->eul, chan->rotmode);
 					else	
-						QuatToAxisAngle(chan->quat, pchan->rotAxis, &pchan->rotAngle);
+						quat_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,chan->quat);
 				}
 				else {
 					/* euler/axis-angle to quat */
 					if (chan->rotmode > 0)
-						EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
+						eulO_to_quat( pchan->quat,chan->eul, chan->rotmode);
 					else
-						AxisAngleToQuat(pchan->quat, chan->rotAxis, pchan->rotAngle);
+						axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
 				}
 				
 				/* paste flipped pose? */
@@ -1051,10 +1051,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 						float eul[3];
 						
-						AxisAngleToEulO(pchan->rotAxis, pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
+						axis_angle_to_eulO( eul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
 						eul[1]*= -1;
 						eul[2]*= -1;
-						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, &pchan->rotAngle);
+						eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,eul, EULER_ORDER_DEFAULT);
 						
 						// experimental method (uncomment to test):
 #if 0
@@ -1066,10 +1066,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else {
 						float eul[3];
 						
-						QuatToEul(pchan->quat, eul);
+						quat_to_eul( eul,pchan->quat);
 						eul[1]*= -1;
 						eul[2]*= -1;
-						EulToQuat(eul, pchan->quat);
+						eul_to_quat( pchan->quat,eul);
 					}
 				}
 				

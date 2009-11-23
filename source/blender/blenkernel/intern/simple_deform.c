@@ -35,7 +35,7 @@
 #include "BKE_lattice.h"
 #include "BKE_deform.h"
 #include "BKE_utildefines.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BKE_shrinkwrap.h"
 
 #include <string.h>
@@ -171,8 +171,8 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 		}
 		else
 		{
-			Mat4CpyMat4(transf->local2target, smd->origin->obmat);
-			Mat4Invert(transf->target2local, transf->local2target);
+			copy_m4_m4(transf->local2target, smd->origin->obmat);
+			invert_m4_m4(transf->target2local, transf->local2target);
 		}
 	}
 
@@ -246,7 +246,7 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 			axis_limit(limit_axis, smd_limit, co, dcut);
 
 			simpleDeform_callback(smd_factor, dcut, co);		//Apply deform
-			VecLerpf(vertexCos[i], vertexCos[i], co, weight);	//Use vertex weight has coef of linear interpolation
+			interp_v3_v3v3(vertexCos[i], vertexCos[i], co, weight);	//Use vertex weight has coef of linear interpolation
 	
 			if(transf) space_transform_invert(transf, vertexCos[i]);
 		}

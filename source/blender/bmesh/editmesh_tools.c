@@ -56,7 +56,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "DNA_key_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
@@ -165,7 +165,7 @@ void convert_to_triface(int direction)
 		if(efa->v4) {
 			if(efa->f & SELECT) {
 				/* choose shortest diagonal for split */
-				fac= VecLenf(efa->v1->co, efa->v3->co) - VecLenf(efa->v2->co, efa->v4->co);
+				fac= len_v3v3(efa->v1->co, efa->v3->co) - len_v3v3(efa->v2->co, efa->v4->co);
 				/* this makes sure exact squares get split different in both cases */
 				if( (direction==0 && fac<FLT_EPSILON) || (direction && fac>0.0f) ) {
 					efan= EM_face_from_faces(efa, NULL, 0, 1, 2, -1);
@@ -691,8 +691,8 @@ void extrude_mesh(void)
 		else {
 			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
 			if(transmode=='n') {
-				Mat4MulVecfl(G.obedit->obmat, nor);
-				VecSubf(nor, nor, G.obedit->obmat[3]);
+				mul_m4_v3(G.obedit->obmat, nor);
+				sub_v3_v3v3(nor, nor, G.obedit->obmat[3]);
 				BIF_setSingleAxisConstraint(nor, "along normal");
 			}
 			Transform();
@@ -744,15 +744,15 @@ void extrude_repeat_mesh(int steps, float offs)
 	dvec[0]= G.vd->persinv[2][0];
 	dvec[1]= G.vd->persinv[2][1];
 	dvec[2]= G.vd->persinv[2][2];
-	Normalize(dvec);
+	normalize_v3(dvec);
 	dvec[0]*= offs;
 	dvec[1]*= offs;
 	dvec[2]*= offs;
 
 	/* base correction */
-	Mat3CpyMat4(bmat, G.obedit->obmat);
-	Mat3Inv(tmat, bmat);
-	Mat3MulVecfl(tmat, dvec);
+	copy_m3_m4(bmat, G.obedit->obmat);
+	invert_m3_m3(tmat, bmat);
+	mul_m3_v3(tmat, dvec);
 
 	for(a=0; a<steps; a++) {
 		extrudeflag(SELECT, nor);
@@ -784,15 +784,15 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 	if(multires_test()) return;
 	
 	/* imat and center and size */
-	Mat3CpyMat4(bmat, G.obedit->obmat);
-	Mat3Inv(imat,bmat);
+	copy_m3_m4(bmat, G.obedit->obmat);
+	invert_m3_m3(imat,bmat);
 
 	curs= give_cursor();
 	VECCOPY(cent, curs);
 	cent[0]-= G.obedit->obmat[3][0];
 	cent[1]-= G.obedit->obmat[3][1];
 	cent[2]-= G.obedit->obmat[3][2];
-	Mat3MulVecfl(imat, cent);
+	mul_m3_v3(imat, cent);
 
 	phi= degr*M_PI/360.0;
 	phi/= steps;
@@ -807,17 +807,17 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 		n[1]= G.vd->viewinv[2][1];
 		n[2]= G.vd->viewinv[2][2];
 	}
-	Normalize(n);
+	normalize_v3(n);
 
 	q[0]= (float)cos(phi);
 	si= (float)sin(phi);
 	q[1]= n[0]*si;
 	q[2]= n[1]*si;
 	q[3]= n[2]*si;
-	QuatToMat3(q, cmat);
+	quat_to_mat3( cmat,q);
 
-	Mat3MulMat3(tmat,cmat,bmat);
-	Mat3MulMat3(bmat,imat,tmat);
+	mul_m3_m3m3(tmat,cmat,bmat);
+	mul_m3_m3m3(bmat,imat,tmat);
 
 	if(mode==0) if(G.scene->toolsettings->editbutflag & B_KEEPORIG) adduplicateflag(1);
 	ok= 1;
@@ -831,7 +831,7 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 		}
 		rotateflag(SELECT, cent, bmat);
 		if(dvec) {
-			Mat3MulVecfl(bmat,dvec);
+			mul_m3_v3(bmat,dvec);
 			translateflag(SELECT, dvec);
 		}
 	}
@@ -1229,8 +1229,8 @@ static void alter_co(float *co, EditEdge *edge, float rad, int beauty, float per
 		/* we calculate an offset vector vec1[], to be added to *co */
 		float len, fac, nor[3], nor1[3], nor2[3];
 		
-		VecSubf(nor, edge->v1->co, edge->v2->co);
-		len= 0.5f*Normalize(nor);
+		sub_v3_v3v3(nor, edge->v1->co, edge->v2->co);
+		len= 0.5f*normalize_v3(nor);
 	
 		VECCOPY(nor1, edge->v1->no);
 		VECCOPY(nor2, edge->v2->no);
@@ -1259,17 +1259,17 @@ static void alter_co(float *co, EditEdge *edge, float rad, int beauty, float per
 	}
 	else {
 		if(rad > 0.0) {   /* subdivide sphere */
-			Normalize(co);
+			normalize_v3(co);
 			co[0]*= rad;
 			co[1]*= rad;
 			co[2]*= rad;
 		}
 		else if(rad< 0.0) {  /* fractal subdivide */
-			fac= rad* VecLenf(edge->v1->co, edge->v2->co);
+			fac= rad* len_v3v3(edge->v1->co, edge->v2->co);
 			vec1[0]= fac*(float)(0.5-BLI_drand());
 			vec1[1]= fac*(float)(0.5-BLI_drand());
 			vec1[2]= fac*(float)(0.5-BLI_drand());
-			VecAddf(co, co, vec1);
+			add_v3_v3v3(co, co, vec1);
 		}
 
 	}
@@ -1312,7 +1312,7 @@ static EditVert *subdivide_edge_addvert(EditEdge *edge, float rad, int beauty, f
 	ev->no[0] = (edge->v2->no[0]-edge->v1->no[0])*percent + edge->v1->no[0];
 	ev->no[1] = (edge->v2->no[1]-edge->v1->no[1])*percent + edge->v1->no[1];
 	ev->no[2] = (edge->v2->no[2]-edge->v1->no[2])*percent + edge->v1->no[2];
-	Normalize(ev->no);
+	normalize_v3(ev->no);
 	
 	return ev;
 }
@@ -1342,11 +1342,11 @@ static void facecopy(EditFace *source, EditFace *target)
 	target->flag   = source->flag;	
 	target->h	   = source->h;
 	
-	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v1->co, w[0]);
-	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v2->co, w[1]);
-	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v3->co, w[2]);
+	interp_weights_face_v3( w[0],v1, v2, v3, v4, target->v1->co);
+	interp_weights_face_v3( w[1],v1, v2, v3, v4, target->v2->co);
+	interp_weights_face_v3( w[2],v1, v2, v3, v4, target->v3->co);
 	if (target->v4)
-		InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v4->co, w[3]);
+		interp_weights_face_v3( w[3],v1, v2, v3, v4, target->v4->co);
 	
 	CustomData_em_interp(&em->fdata, &source->data, NULL, (float*)w, 1, target->data);
 }
@@ -2527,15 +2527,15 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 				VECCOPY(v2mat, ef->v2->co);
 				VECCOPY(v3mat, ef->v3->co);
 				VECCOPY(v4mat, ef->v4->co);						
-				Mat4Mul3Vecfl(G.obedit->obmat, v1mat);
-				Mat4Mul3Vecfl(G.obedit->obmat, v2mat);											
-				Mat4Mul3Vecfl(G.obedit->obmat, v3mat);
-				Mat4Mul3Vecfl(G.obedit->obmat, v4mat);
+				mul_mat3_m4_v3(G.obedit->obmat, v1mat);
+				mul_mat3_m4_v3(G.obedit->obmat, v2mat);											
+				mul_mat3_m4_v3(G.obedit->obmat, v3mat);
+				mul_mat3_m4_v3(G.obedit->obmat, v4mat);
 				
-				length[0] = VecLenf(v1mat, v2mat);
-				length[1] = VecLenf(v2mat, v3mat);
-				length[2] = VecLenf(v3mat, v4mat);
-				length[3] = VecLenf(v4mat, v1mat);
+				length[0] = len_v3v3(v1mat, v2mat);
+				length[1] = len_v3v3(v2mat, v3mat);
+				length[2] = len_v3v3(v3mat, v4mat);
+				length[3] = len_v3v3(v4mat, v1mat);
 				sort[0] = ef->e1;
 				sort[1] = ef->e2;
 				sort[2] = ef->e3;
@@ -3101,20 +3101,20 @@ void beauty_fill(void)
 							 * the area divided by the total edge lengths
 							 */
 
-							len1= VecLenf(v1->co, v2->co);
-							len2= VecLenf(v2->co, v3->co);
-							len3= VecLenf(v3->co, v4->co);
-							len4= VecLenf(v4->co, v1->co);
-							len5= VecLenf(v1->co, v3->co);
-							len6= VecLenf(v2->co, v4->co);
+							len1= len_v3v3(v1->co, v2->co);
+							len2= len_v3v3(v2->co, v3->co);
+							len3= len_v3v3(v3->co, v4->co);
+							len4= len_v3v3(v4->co, v1->co);
+							len5= len_v3v3(v1->co, v3->co);
+							len6= len_v3v3(v2->co, v4->co);
 
-							opp1= AreaT3Dfl(v1->co, v2->co, v3->co);
-							opp2= AreaT3Dfl(v1->co, v3->co, v4->co);
+							opp1= area_tri_v3(v1->co, v2->co, v3->co);
+							opp2= area_tri_v3(v1->co, v3->co, v4->co);
 
 							fac1= opp1/(len1+len2+len5) + opp2/(len3+len4+len5);
 
-							opp1= AreaT3Dfl(v2->co, v3->co, v4->co);
-							opp2= AreaT3Dfl(v2->co, v4->co, v1->co);
+							opp1= area_tri_v3(v2->co, v3->co, v4->co);
+							opp2= area_tri_v3(v2->co, v4->co, v1->co);
 
 							fac2= opp1/(len2+len3+len6) + opp2/(len4+len1+len6);
 
@@ -3199,43 +3199,43 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 			minarea, maxarea, areaA, areaB;
 	
 	/*First Test: Normal difference*/
-	CalcNormFloat(v1->co, v2->co, v3->co, noA1);
-	CalcNormFloat(v1->co, v3->co, v4->co, noA2);
+	normal_tri_v3( noA1,v1->co, v2->co, v3->co);
+	normal_tri_v3( noA2,v1->co, v3->co, v4->co);
 	
 	if(noA1[0] == noA2[0] && noA1[1] == noA2[1] && noA1[2] == noA2[2]) normalADiff = 0.0;
-	else normalADiff = VecAngle2(noA1, noA2);
+	else normalADiff = angle_v2v2(noA1, noA2);
 		//if(!normalADiff) normalADiff = 179;
-	CalcNormFloat(v2->co, v3->co, v4->co, noB1);
-	CalcNormFloat(v4->co, v1->co, v2->co, noB2);
+	normal_tri_v3( noB1,v2->co, v3->co, v4->co);
+	normal_tri_v3( noB2,v4->co, v1->co, v2->co);
 	
 	if(noB1[0] == noB2[0] && noB1[1] == noB2[1] && noB1[2] == noB2[2]) normalBDiff = 0.0;
-	else normalBDiff = VecAngle2(noB1, noB2);
+	else normalBDiff = angle_v2v2(noB1, noB2);
 		//if(!normalBDiff) normalBDiff = 179;
 	
 	measure += (normalADiff/360) + (normalBDiff/360);
 	if(measure > limit) return measure;
 	
 	/*Second test: Colinearity*/
-	VecSubf(edgeVec1, v1->co, v2->co);
-	VecSubf(edgeVec2, v2->co, v3->co);
-	VecSubf(edgeVec3, v3->co, v4->co);
-	VecSubf(edgeVec4, v4->co, v1->co);
+	sub_v3_v3v3(edgeVec1, v1->co, v2->co);
+	sub_v3_v3v3(edgeVec2, v2->co, v3->co);
+	sub_v3_v3v3(edgeVec3, v3->co, v4->co);
+	sub_v3_v3v3(edgeVec4, v4->co, v1->co);
 	
 	diff = 0.0;
 	
 	diff = (
-		fabs(VecAngle2(edgeVec1, edgeVec2) - 90) +
-		fabs(VecAngle2(edgeVec2, edgeVec3) - 90) + 
-		fabs(VecAngle2(edgeVec3, edgeVec4) - 90) + 
-		fabs(VecAngle2(edgeVec4, edgeVec1) - 90)) / 360;
+		fabs(angle_v2v2(edgeVec1, edgeVec2) - 90) +
+		fabs(angle_v2v2(edgeVec2, edgeVec3) - 90) + 
+		fabs(angle_v2v2(edgeVec3, edgeVec4) - 90) + 
+		fabs(angle_v2v2(edgeVec4, edgeVec1) - 90)) / 360;
 	if(!diff) return 0.0;
 	
 	measure +=  diff;
 	if(measure > limit) return measure;
 
 	/*Third test: Concavity*/
-	areaA = AreaT3Dfl(v1->co, v2->co, v3->co) + AreaT3Dfl(v1->co, v3->co, v4->co);
-	areaB = AreaT3Dfl(v2->co, v3->co, v4->co) + AreaT3Dfl(v4->co, v1->co, v2->co);
+	areaA = area_tri_v3(v1->co, v2->co, v3->co) + area_tri_v3(v1->co, v3->co, v4->co);
+	areaB = area_tri_v3(v2->co, v3->co, v4->co) + area_tri_v3(v4->co, v1->co, v2->co);
 	
 	if(areaA <= areaB) minarea = areaA;
 	else minarea = areaB;
@@ -3654,7 +3654,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 		return;
 	
 	/* coplaner faces only please */
-	if(Inpf(face[0]->n,face[1]->n) <= 0.000001)
+	if(dot_v3v3(face[0]->n,face[1]->n) <= 0.000001)
 		return;
 	
 	/* we want to construct an array of vertex indicis in both faces, starting at
@@ -3852,17 +3852,17 @@ static void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, f
 {
 	float a[3], c[3], n_a[3], n_c[3], mid[3], ac, ac2, fac;
 
-	VecSubf(a, v1, v2);
-	VecSubf(c, v3, v2);
+	sub_v3_v3v3(a, v1, v2);
+	sub_v3_v3v3(c, v3, v2);
 
-	Crossf(n_a, a, no);
-	Normalize(n_a);
-	Crossf(n_c, no, c);
-	Normalize(n_c);
+	cross_v3_v3v3(n_a, a, no);
+	normalize_v3(n_a);
+	cross_v3_v3v3(n_c, no, c);
+	normalize_v3(n_c);
 
-	Normalize(a);
-	Normalize(c);
-	ac = Inpf(a, c);
+	normalize_v3(a);
+	normalize_v3(c);
+	ac = dot_v3v3(a, c);
 
 	if (ac == 1 || ac == -1) {
 		midvec[0] = midvec[1] = midvec[2] = 0;
@@ -3870,11 +3870,11 @@ static void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, f
 	}
 	ac2 = ac * ac;
 	fac = (float)sqrt((ac2 + 2*ac + 1)/(1 - ac2) + 1);
-	VecAddf(mid, n_c, n_a);
-	Normalize(mid);
-	VecMulf(mid, d * fac);
-	VecAddf(mid, mid, v2);
-	VecCopyf(midvec, mid);
+	add_v3_v3v3(mid, n_c, n_a);
+	normalize_v3(mid);
+	mul_v3_fl(mid, d * fac);
+	add_v3_v3v3(mid, mid, v2);
+	copy_v3_v3(midvec, mid);
 }
 
 /*	Finds the new point using the sinus law to extrapolate a triangle
@@ -3885,32 +3885,32 @@ static void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float
 {
 	float a[3], b[3], c[3], l_a, l_b, l_c, s_a, s_b, s_c, Pos1[3], Pos2[3], Dir[3];
 
-	VecSubf(a, v3, v2);
-	l_a = Normalize(a);
-	VecSubf(b, v4, v3);
-	Normalize(b);
-	VecSubf(c, v1, v2);
-	Normalize(c);
+	sub_v3_v3v3(a, v3, v2);
+	l_a = normalize_v3(a);
+	sub_v3_v3v3(b, v4, v3);
+	normalize_v3(b);
+	sub_v3_v3v3(c, v1, v2);
+	normalize_v3(c);
 
-	s_b = Inpf(a, c);
+	s_b = dot_v3v3(a, c);
 	s_b = (float)sqrt(1 - (s_b * s_b));
-	s_a = Inpf(b, c);
+	s_a = dot_v3v3(b, c);
 	s_a = (float)sqrt(1 - (s_a * s_a));
-	VecMulf(a, -1);
-	s_c = Inpf(a, b);
+	mul_v3_fl(a, -1);
+	s_c = dot_v3v3(a, b);
 	s_c = (float)sqrt(1 - (s_c * s_c));
 
 	l_b = s_b * l_a / s_a;
 	l_c = s_c * l_a / s_a;
 
-	VecMulf(b, l_b);
-	VecMulf(c, l_c);
+	mul_v3_fl(b, l_b);
+	mul_v3_fl(c, l_c);
 
-	VecAddf(Pos1, v2, c);
-	VecAddf(Pos2, v3, b);
+	add_v3_v3v3(Pos1, v2, c);
+	add_v3_v3v3(Pos2, v3, b);
 
-	VecAddf(Dir, Pos1, Pos2);
-	VecMulf(Dir, 0.5);
+	add_v3_v3v3(Dir, Pos1, Pos2);
+	mul_v3_fl(Dir, 0.5);
 
 	bevel_displace_vec(midvec, v3, Dir, v2, d, no);
 
@@ -3921,13 +3921,13 @@ static char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *n
 {
 	float o_a[3], a[3], o_c[3], c[3];
 
-	VecSubf(o_a, o_v1, o_v2);
-	VecSubf(a, v1, v2);
+	sub_v3_v3v3(o_a, o_v1, o_v2);
+	sub_v3_v3v3(a, v1, v2);
 
-	Crossf(o_c, o_a, no);
-	Crossf(c, a, no);
+	cross_v3_v3v3(o_c, o_a, no);
+	cross_v3_v3v3(c, a, no);
 
-	if (Inpf(c, o_c) <= 0)
+	if (dot_v3v3(c, o_c) <= 0)
 		return 1;
 	else
 		return 0;
@@ -3972,32 +3972,32 @@ static void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_
 	}
 	// Edge 2 and 4 inverted
 	else if (wrap[0] == 0 && wrap[1] == 1 && wrap[2] == 0 && wrap[3] == 1) {
-		VecAddf(vec, v2, v3);
-		VecMulf(vec, 0.5);
+		add_v3_v3v3(vec, v2, v3);
+		mul_v3_fl(vec, 0.5);
 		VECCOPY(v2, vec);
 		VECCOPY(v3, vec);
-		VecAddf(vec, v1, v4);
-		VecMulf(vec, 0.5);
+		add_v3_v3v3(vec, v1, v4);
+		mul_v3_fl(vec, 0.5);
 		VECCOPY(v1, vec);
 		VECCOPY(v4, vec);
 	}
 	// Edge 1 and 3 inverted
 	else if (wrap[0] == 1 && wrap[1] == 0 && wrap[2] == 1 && wrap[3] == 0) {
-		VecAddf(vec, v1, v2);
-		VecMulf(vec, 0.5);
+		add_v3_v3v3(vec, v1, v2);
+		mul_v3_fl(vec, 0.5);
 		VECCOPY(v1, vec);
 		VECCOPY(v2, vec);
-		VecAddf(vec, v3, v4);
-		VecMulf(vec, 0.5);
+		add_v3_v3v3(vec, v3, v4);
+		mul_v3_fl(vec, 0.5);
 		VECCOPY(v3, vec);
 		VECCOPY(v4, vec);
 	}
 	// Totally inverted
 	else if (wrap[0] == 1 && wrap[1] == 1 && wrap[2] == 1 && wrap[3] == 1) {
-		VecAddf(vec, v1, v2);
-		VecAddf(vec, vec, v3);
-		VecAddf(vec, vec, v4);
-		VecMulf(vec, 0.25);
+		add_v3_v3v3(vec, v1, v2);
+		add_v3_v3v3(vec, vec, v3);
+		add_v3_v3v3(vec, vec, v4);
+		mul_v3_fl(vec, 0.25);
 		VECCOPY(v1, vec);
 		VECCOPY(v2, vec);
 		VECCOPY(v3, vec);
@@ -4013,9 +4013,9 @@ static void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1,
 {
 	if (detect_wrap(o_v1, o_v2, v1, v2, no)) {
 		float vec[3];
-		VecAddf(vec, o_v1, o_v2);
-		VecAddf(vec, vec, o_v3);
-		VecMulf(vec, 1.0f/3.0f);
+		add_v3_v3v3(vec, o_v1, o_v2);
+		add_v3_v3v3(vec, vec, o_v3);
+		mul_v3_fl(vec, 1.0f/3.0f);
 		VECCOPY(v1, vec);
 		VECCOPY(v2, vec);
 		VECCOPY(v3, vec);
@@ -4276,10 +4276,10 @@ static void bevel_mesh(float bsize, int allfaces)
 					   (eed->v1 != eed2->v2) &&					   
 					   (eed->v2 != eed2->v1) &&
 					   (eed->v2 != eed2->v2) &&	(
-					   ( VecCompare(eed->v1->co, eed2->v1->co, limit) &&
-						 VecCompare(eed->v2->co, eed2->v2->co, limit) ) ||
-					   ( VecCompare(eed->v1->co, eed2->v2->co, limit) &&
-						 VecCompare(eed->v2->co, eed2->v1->co, limit) ) ) )
+					   ( compare_v3v3(eed->v1->co, eed2->v1->co, limit) &&
+						 compare_v3v3(eed->v2->co, eed2->v2->co, limit) ) ||
+					   ( compare_v3v3(eed->v1->co, eed2->v2->co, limit) &&
+						 compare_v3v3(eed->v2->co, eed2->v1->co, limit) ) ) )
 						{
 						
 #ifdef BEV_DEBUG						
@@ -4308,7 +4308,7 @@ static void bevel_mesh(float bsize, int allfaces)
 						if(exist_face(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
 							efa= NULL;
 
-							if (VecCompare(eed->v1->co, eed2->v2->co, limit)) {
+							if (compare_v3v3(eed->v1->co, eed2->v2->co, limit)) {
 								efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], example,NULL);
 							} else {
 								efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], example,NULL);
@@ -4316,7 +4316,7 @@ static void bevel_mesh(float bsize, int allfaces)
 						
 							if(efa) {
 								float inp;	
-								CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
+								normal_tri_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co);
 								inp= efa->n[0]*G.vd->viewmat[0][2] + efa->n[1]*G.vd->viewmat[1][2] + efa->n[2]*G.vd->viewmat[2][2];
 								if(inp < 0.0) flipface(efa);
 #ifdef BEV_DEBUG
@@ -4365,7 +4365,7 @@ static void bevel_mesh(float bsize, int allfaces)
 		eve3= NULL;
 		while (eve2) {
 			if ((eve2 != eve) && ((eve2->f & (64|128))==0)) {
-				if (VecCompare(eve->co, eve2->co, limit)) {
+				if (compare_v3v3(eve->co, eve2->co, limit)) {
 					if ((eve->f & (128|64)) == 0) {
 						/* fprintf(stderr,"Found vertex cluster:\n  *\n  *\n"); */
 						eve->f |= 128;
@@ -4439,7 +4439,7 @@ static void bevel_mesh(float bsize, int allfaces)
 					cent[0]= cent[1]= cent[2]= 0.0;				
 					INIT_MINMAX(min, max);				
 					for (b=0; b<a; b++) {
-						VecAddf(cent, cent, neweve[b]->co);
+						add_v3_v3v3(cent, cent, neweve[b]->co);
 						DO_MINMAX(neweve[b]->co, min, max);
 					}
 					cent[0]= (min[0]+max[0])/2;
@@ -4482,7 +4482,7 @@ static void bevel_mesh(float bsize, int allfaces)
 				}
 				if(efa) {
 					float inp;	
-					CalcNormFloat(neweve[0]->co, neweve[1]->co, neweve[2]->co, efa->n);
+					normal_tri_v3( efa->n,neweve[0]->co, neweve[1]->co, neweve[2]->co);
 					inp= efa->n[0]*G.vd->viewmat[0][2] + efa->n[1]*G.vd->viewmat[1][2] + efa->n[2]*G.vd->viewmat[2][2];
 					if(inp < 0.0) flipface(efa);
 #ifdef BEV_DEBUG
@@ -4610,7 +4610,7 @@ void bevel_menu_old()
 			curval[1] = mval[1];
 			
 			window_to_3d(vec, mval[0]-oval[0], mval[1]-oval[1]);
-			d = Normalize(vec) / 10;
+			d = normalize_v3(vec) / 10;
 
 
 			drawd = d * fac;
@@ -5219,9 +5219,9 @@ int EdgeSlide(short immediate, float imperc)
 			}			
 			
 			if(prop == 0) {
-				len = VecLenf(upVert->co,downVert->co)*((perc+1)/2);
+				len = len_v3v3(upVert->co,downVert->co)*((perc+1)/2);
 				if(flip == 1) {
-					len = VecLenf(upVert->co,downVert->co) - len;
+					len = len_v3v3(upVert->co,downVert->co) - len;
 				} 
 			}
 			
@@ -5236,7 +5236,7 @@ int EdgeSlide(short immediate, float imperc)
 				}
 				else
 				{
-					len = MIN2(perc, VecLenf(upVert->co,downVert->co));
+					len = MIN2(perc, len_v3v3(upVert->co,downVert->co));
 					len = MAX2(len, 0);
 				}
 			}
@@ -5254,13 +5254,13 @@ int EdgeSlide(short immediate, float imperc)
 					tempsv = BLI_ghash_lookup(vertgh,ev);
 					
 					tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
-					VecLerpf(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
+					interp_v3_v3v3(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
 					
 					if (G.scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
 						for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 							suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
 							if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-								Vec2Lerpf(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
+								interp_v2_v2v2(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
 								fuv_link = suv->fuv_list;
 								while (fuv_link) {
 									VECCOPY2D(((float *)fuv_link->link), uv_tmp);
@@ -5280,17 +5280,17 @@ int EdgeSlide(short immediate, float imperc)
 					float newlen;
 					ev = look->link;
 					tempsv = BLI_ghash_lookup(vertgh,ev);
-					newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
+					newlen = (len / len_v3v3(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
 					if(newlen > 1.0) {newlen = 1.0;}
 					if(newlen < 0.0) {newlen = 0.0;}
 					if(flip == 0) {
-						VecLerpf(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));									
+						interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));									
 						if (G.scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
 							/* dont do anything if no UVs */
 							for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 								suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
 								if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-									Vec2Lerpf(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
+									interp_v2_v2v2(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
 									fuv_link = suv->fuv_list;
 									while (fuv_link) {
 										VECCOPY2D(((float *)fuv_link->link), uv_tmp);
@@ -5300,14 +5300,14 @@ int EdgeSlide(short immediate, float imperc)
 							}
 						}
 					} else{
-						VecLerpf(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));				
+						interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));				
 						
 						if (G.scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
 							/* dont do anything if no UVs */
 							for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 								suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
 								if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-									Vec2Lerpf(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
+									interp_v2_v2v2(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
 									fuv_link = suv->fuv_list;
 									while (fuv_link) {
 										VECCOPY2D(((float *)fuv_link->link), uv_tmp);
@@ -5630,7 +5630,7 @@ static float mesh_rip_edgedist(float mat[][4], float *co1, float *co2, short *mv
 	mvalf[0]= (float)mval[0];
 	mvalf[1]= (float)mval[1];
 	
-	return PdistVL2Dfl(mvalf, vec1, vec2);
+	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
 
 /* helper for below */
@@ -5950,7 +5950,7 @@ void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 
 			for(ev = em->verts.first; ev ; ev = ev->next){
 				if(ev->f & SELECT){
-					VecLerpf(ev->co,odata+(ev->keyindex*3),data+(ev->keyindex*3),perc);
+					interp_v3_v3v3(ev->co,odata+(ev->keyindex*3),data+(ev->keyindex*3),perc);
 				}		
 			}	
 			sprintf(str,"Blending at %d%c  MMB to Copy at 100%c",(int)(perc*100),'%','%');
@@ -6714,7 +6714,7 @@ void pathselect(void)
 						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
 						newpe->v = ((PathNode*)eed->v2->tmp.p)->u;
 						if(physical){
-								newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+								newpe->w = len_v3v3(eed->v1->co, eed->v2->co);
 						}
 						else newpe->w = 1;
 						newpe->next = 0;
@@ -6726,7 +6726,7 @@ void pathselect(void)
 						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
 						newpe->v = ((PathNode*)eed->v1->tmp.p)->u;
 						if(physical){
-								newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+								newpe->w = len_v3v3(eed->v1->co, eed->v2->co);
 						}
 						else newpe->w = 1;
 						newpe->next = 0;

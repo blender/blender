@@ -2,7 +2,7 @@
 
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 
@@ -361,11 +361,11 @@ void BM_editselection_center(BMesh *em, float *center, BMEditSelection *ese)
 {
 	if (ese->type==BM_VERT) {
 		BMVert *eve= ese->data;
-		VecCopyf(center, eve->co);
+		copy_v3_v3(center, eve->co);
 	} else if (ese->type==BM_EDGE) {
 		BMEdge *eed= ese->data;
-		VecAddf(center, eed->v1->co, eed->v2->co);
-		VecMulf(center, 0.5);
+		add_v3_v3v3(center, eed->v1->co, eed->v2->co);
+		mul_v3_fl(center, 0.5);
 	} else if (ese->type==BM_FACE) {
 		BMFace *efa= ese->data;
 		BM_Compute_Face_Center(em, efa, center);
@@ -376,26 +376,26 @@ void BM_editselection_normal(float *normal, BMEditSelection *ese)
 {
 	if (ese->type==BM_VERT) {
 		BMVert *eve= ese->data;
-		VecCopyf(normal, eve->no);
+		copy_v3_v3(normal, eve->no);
 	} else if (ese->type==BM_EDGE) {
 		BMEdge *eed= ese->data;
 		float plane[3]; /* need a plane to correct the normal */
 		float vec[3]; /* temp vec storage */
 		
-		VecAddf(normal, eed->v1->no, eed->v2->no);
-		VecSubf(plane, eed->v2->co, eed->v1->co);
+		add_v3_v3v3(normal, eed->v1->no, eed->v2->no);
+		sub_v3_v3v3(plane, eed->v2->co, eed->v1->co);
 		
 		/* the 2 vertex normals will be close but not at rightangles to the edge
 		for rotate about edge we want them to be at right angles, so we need to
 		do some extra colculation to correct the vert normals,
 		we need the plane for this */
-		Crossf(vec, normal, plane);
-		Crossf(normal, plane, vec); 
-		Normalize(normal);
+		cross_v3_v3v3(vec, normal, plane);
+		cross_v3_v3v3(normal, plane, vec); 
+		normalize_v3(normal);
 		
 	} else if (ese->type==BM_FACE) {
 		BMFace *efa= ese->data;
-		VecCopyf(normal, efa->no);
+		copy_v3_v3(normal, efa->no);
 	}
 }
 
@@ -410,7 +410,7 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 		
 		if (ese->prev) { /*use previously selected data to make a usefull vertex plane */
 			BM_editselection_center(em, vec, ese->prev);
-			VecSubf(plane, vec, eve->co);
+			sub_v3_v3v3(plane, vec, eve->co);
 		} else {
 			/* make a fake  plane thats at rightangles to the normal
 			we cant make a crossvec from a vec thats the same as the vec
@@ -419,7 +419,7 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 			if (eve->no[0]<0.5)		vec[0]=1;
 			else if (eve->no[1]<0.5)	vec[1]=1;
 			else				vec[2]=1;
-			Crossf(plane, eve->no, vec);
+			cross_v3_v3v3(plane, eve->no, vec);
 		}
 	} else if (ese->type==BM_EDGE) {
 		BMEdge *eed= ese->data;
@@ -430,9 +430,9 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 		(running along the edge).. to flip less often.
 		at least its more pradictable */
 		if (eed->v2->co[1] > eed->v1->co[1]) /*check which to do first */
-			VecSubf(plane, eed->v2->co, eed->v1->co);
+			sub_v3_v3v3(plane, eed->v2->co, eed->v1->co);
 		else
-			VecSubf(plane, eed->v1->co, eed->v2->co);
+			sub_v3_v3v3(plane, eed->v1->co, eed->v2->co);
 		
 	} else if (ese->type==BM_FACE) {
 		BMFace *efa= ese->data;
@@ -447,38 +447,38 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 		if (efa->no[0]<0.5)		vec[0]=1.0f;
 		else if (efa->no[1]<0.5)	vec[1]=1.0f;
 		else				vec[2]=1.0f;
-		Crossf(plane, efa->no, vec);
+		cross_v3_v3v3(plane, efa->no, vec);
 #if 0 //BMESH_TODO
 
 		if (efa->v4) { /*if its a quad- set the plane along the 2 longest edges.*/
 			float vecA[3], vecB[3];
-			VecSubf(vecA, efa->v4->co, efa->v3->co);
-			VecSubf(vecB, efa->v1->co, efa->v2->co);
-			VecAddf(plane, vecA, vecB);
+			sub_v3_v3v3(vecA, efa->v4->co, efa->v3->co);
+			sub_v3_v3v3(vecB, efa->v1->co, efa->v2->co);
+			add_v3_v3v3(plane, vecA, vecB);
 			
-			VecSubf(vecA, efa->v1->co, efa->v4->co);
-			VecSubf(vecB, efa->v2->co, efa->v3->co);
-			VecAddf(vec, vecA, vecB);						
+			sub_v3_v3v3(vecA, efa->v1->co, efa->v4->co);
+			sub_v3_v3v3(vecB, efa->v2->co, efa->v3->co);
+			add_v3_v3v3(vec, vecA, vecB);						
 			/*use the biggest edge length*/
 			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
+				copy_v3_v3(plane, vec);
 		} else {
 			/*start with v1-2 */
-			VecSubf(plane, efa->v1->co, efa->v2->co);
+			sub_v3_v3v3(plane, efa->v1->co, efa->v2->co);
 			
 			/*test the edge between v2-3, use if longer */
-			VecSubf(vec, efa->v2->co, efa->v3->co);
+			sub_v3_v3v3(vec, efa->v2->co, efa->v3->co);
 			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
+				copy_v3_v3(plane, vec);
 			
 			/*test the edge between v1-3, use if longer */
-			VecSubf(vec, efa->v3->co, efa->v1->co);
+			sub_v3_v3v3(vec, efa->v3->co, efa->v1->co);
 			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
+				copy_v3_v3(plane, vec);
 		}
 #endif
 	}
-	Normalize(plane);
+	normalize_v3(plane);
 }
 
 static int BM_check_selection(BMesh *em, void *data)

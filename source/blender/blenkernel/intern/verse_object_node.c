@@ -37,7 +37,7 @@
 
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BIF_verse.h"
 
@@ -138,9 +138,9 @@ void send_verse_object_rotation(VNode *vnode)
 	float q[4] = {cos(-M_PI/4), -sin(-M_PI/4), 0, 0}, v[4], tmp[4];
 
 	/* inverse transformation to transformation in function cb_o_transform_rot_real32 */
-	QuatMul(v, ((VObjectData*)vnode->data)->quat, q);
+	mul_qt_qtqt(v, ((VObjectData*)vnode->data)->quat, q);
 	q[1]= sin(-M_PI/4);
-	QuatMul(tmp, q, v);
+	mul_qt_qtqt(tmp, q, v);
 
 	quat.x = tmp[1];
 	quat.y = tmp[2];
@@ -465,9 +465,9 @@ static void cb_o_transform_rot_real32(
 	 *
 	 *, where v is original representation of rotation */
 
-	QuatMul(v, temp, q);
+	mul_qt_qtqt(v, temp, q);
 	q[1]= sin(M_PI/4);	/* normal quaternion */
-	QuatMul(temp, q, v);
+	mul_qt_qtqt(temp, q, v);
 
 	if( (((VObjectData*)vnode->data)->quat[0] != temp[0]) ||
 			(((VObjectData*)vnode->data)->quat[1] != temp[1]) ||

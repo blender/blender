@@ -47,7 +47,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_array.h"
 

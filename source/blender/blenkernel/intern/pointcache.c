@@ -170,12 +170,12 @@ static void ptcache_interpolate_softbody(int index, void *soft_v, void **data, f
 
 	dfra = cfra2 - cfra1;
 
-	VecMulf(keys[1].vel, dfra);
-	VecMulf(keys[2].vel, dfra);
+	mul_v3_fl(keys[1].vel, dfra);
+	mul_v3_fl(keys[2].vel, dfra);
 
 	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
 
-	VecMulf(keys->vel, 1.0f / dfra);
+	mul_v3_fl(keys->vel, 1.0f / dfra);
 
 	VECCOPY(bp->pos, keys->co);
 	VECCOPY(bp->vec, keys->vel);
@@ -255,18 +255,18 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 	/* determine velocity from previous location */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
 		if(cfra > pa->prev_state.time) {
-			VecSubf(pa->state.vel, pa->state.co, pa->prev_state.co);
-			VecMulf(pa->state.vel, (cfra - pa->prev_state.time) / frs_sec);
+			sub_v3_v3v3(pa->state.vel, pa->state.co, pa->prev_state.co);
+			mul_v3_fl(pa->state.vel, (cfra - pa->prev_state.time) / frs_sec);
 		}
 		else {
-			VecSubf(pa->state.vel, pa->prev_state.co, pa->state.co);
-			VecMulf(pa->state.vel, (pa->prev_state.time - cfra) / frs_sec);
+			sub_v3_v3v3(pa->state.vel, pa->prev_state.co, pa->state.co);
+			mul_v3_fl(pa->state.vel, (pa->prev_state.time - cfra) / frs_sec);
 		}
 	}
 
 	/* determine rotation from velocity */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		vectoquat(pa->state.vel, OB_NEGX, OB_POSZ, pa->state.rot);
+		vec_to_quat( pa->state.rot,pa->state.vel, OB_NEGX, OB_POSZ);
 	}
 }
 static void ptcache_interpolate_particle(int index, void *psys_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
@@ -292,18 +292,18 @@ static void ptcache_interpolate_particle(int index, void *psys_v, void **data, f
 	/* determine velocity from previous location */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
 		if(keys[1].time > keys[2].time) {
-			VecSubf(keys[2].vel, keys[1].co, keys[2].co);
-			VecMulf(keys[2].vel, (keys[1].time - keys[2].time) / frs_sec);
+			sub_v3_v3v3(keys[2].vel, keys[1].co, keys[2].co);
+			mul_v3_fl(keys[2].vel, (keys[1].time - keys[2].time) / frs_sec);
 		}
 		else {
-			VecSubf(keys[2].vel, keys[2].co, keys[1].co);
-			VecMulf(keys[2].vel, (keys[2].time - keys[1].time) / frs_sec);
+			sub_v3_v3v3(keys[2].vel, keys[2].co, keys[1].co);
+			mul_v3_fl(keys[2].vel, (keys[2].time - keys[1].time) / frs_sec);
 		}
 	}
 
 	/* determine rotation from velocity */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		vectoquat(keys[2].vel, OB_NEGX, OB_POSZ, keys[2].rot);
+		vec_to_quat( keys[2].rot,keys[2].vel, OB_NEGX, OB_POSZ);
 	}
 
 	if(cfra > pa->time)
@@ -311,13 +311,13 @@ static void ptcache_interpolate_particle(int index, void *psys_v, void **data, f
 
 	dfra = cfra2 - cfra1;
 
-	VecMulf(keys[1].vel, dfra / frs_sec);
-	VecMulf(keys[2].vel, dfra / frs_sec);
+	mul_v3_fl(keys[1].vel, dfra / frs_sec);
+	mul_v3_fl(keys[2].vel, dfra / frs_sec);
 
 	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
-	QuatInterpol(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
+	interp_qt_qtqt(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 
-	VecMulf(pa->state.vel, frs_sec / dfra);
+	mul_v3_fl(pa->state.vel, frs_sec / dfra);
 
 	pa->state.time = cfra;
 }
@@ -425,18 +425,18 @@ static int ptcache_totwrite_particle(void *psys_v)
 //	/* determine velocity from previous location */
 //	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
 //		if(cfra > pa->prev_state.time) {
-//			VecSubf(pa->state.vel, pa->state.co, pa->prev_state.co);
-//			VecMulf(pa->state.vel, (cfra - pa->prev_state.time) / frs_sec);
+//			sub_v3_v3v3(pa->state.vel, pa->state.co, pa->prev_state.co);
+//			mul_v3_fl(pa->state.vel, (cfra - pa->prev_state.time) / frs_sec);
 //		}
 //		else {
-//			VecSubf(pa->state.vel, pa->prev_state.co, pa->state.co);
-//			VecMulf(pa->state.vel, (pa->prev_state.time - cfra) / frs_sec);
+//			sub_v3_v3v3(pa->state.vel, pa->prev_state.co, pa->state.co);
+//			mul_v3_fl(pa->state.vel, (pa->prev_state.time - cfra) / frs_sec);
 //		}
 //	}
 //
 //	/* determine rotation from velocity */
 //	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-//		vectoquat(pa->state.vel, OB_POSX, OB_POSZ, pa->state.rot);
+//		vec_to_quat( pa->state.rot,pa->state.vel, OB_POSX, OB_POSZ);
 //	}
 //}
 //static void ptcache_interpolate_particle_stream(int index, void *psys_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
@@ -461,13 +461,13 @@ static int ptcache_totwrite_particle(void *psys_v)
 //
 //	dfra = cfra2 - cfra1;
 //
-//	VecMulf(keys[1].vel, dfra / frs_sec);
-//	VecMulf(keys[2].vel, dfra / frs_sec);
+//	mul_v3_fl(keys[1].vel, dfra / frs_sec);
+//	mul_v3_fl(keys[2].vel, dfra / frs_sec);
 //
 //	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
-//	QuatInterpol(pa->state.rot, keys[1].rot,keys[2].rot, (cfra - cfra1) / dfra);
+//	interp_qt_qtqt(pa->state.rot, keys[1].rot,keys[2].rot, (cfra - cfra1) / dfra);
 //
-//	VecMulf(pa->state.vel, frs_sec / dfra);
+//	mul_v3_fl(pa->state.vel, frs_sec / dfra);
 //
 //	pa->state.time = cfra;
 //}
@@ -525,12 +525,12 @@ static void ptcache_interpolate_cloth(int index, void *cloth_v, void **data, flo
 
 	dfra = cfra2 - cfra1;
 
-	VecMulf(keys[1].vel, dfra);
-	VecMulf(keys[2].vel, dfra);
+	mul_v3_fl(keys[1].vel, dfra);
+	mul_v3_fl(keys[2].vel, dfra);
 
 	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
 
-	VecMulf(keys->vel, 1.0f / dfra);
+	mul_v3_fl(keys->vel, 1.0f / dfra);
 
 	VECCOPY(vert->x, keys->co);
 	VECCOPY(vert->v, keys->vel);

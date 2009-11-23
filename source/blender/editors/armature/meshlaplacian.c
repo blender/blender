@@ -40,7 +40,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_memarena.h"
 
@@ -151,16 +151,16 @@ static float cotan_weight(float *v1, float *v2, float *v3)
 {
 	float a[3], b[3], c[3], clen;
 
-	VecSubf(a, v2, v1);
-	VecSubf(b, v3, v1);
-	Crossf(c, a, b);
+	sub_v3_v3v3(a, v2, v1);
+	sub_v3_v3v3(b, v3, v1);
+	cross_v3_v3v3(c, a, b);
 
-	clen = VecLength(c);
+	clen = len_v3(c);
 
 	if (clen == 0.0f)
 		return 0.0f;
 	
-	return Inpf(a, b)/clen;
+	return dot_v3v3(a, b)/clen;
 }
 
 static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3)
@@ -177,21 +177,21 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 	t2= cotan_weight(v2, v3, v1);
 	t3= cotan_weight(v3, v1, v2);
 
-	if(RAD2DEG(VecAngle3(v2, v1, v3)) > 90) obtuse= 1;
-	else if(RAD2DEG(VecAngle3(v1, v2, v3)) > 90) obtuse= 2;
-	else if(RAD2DEG(VecAngle3(v1, v3, v2)) > 90) obtuse= 3;
+	if(RAD2DEG(angle_v3v3v3(v2, v1, v3)) > 90) obtuse= 1;
+	else if(RAD2DEG(angle_v3v3v3(v1, v2, v3)) > 90) obtuse= 2;
+	else if(RAD2DEG(angle_v3v3v3(v1, v3, v2)) > 90) obtuse= 3;
 
 	if (obtuse > 0) {
-		area= AreaT3Dfl(v1, v2, v3);
+		area= area_tri_v3(v1, v2, v3);
 
 		varea[i1] += (obtuse == 1)? area: area*0.5;
 		varea[i2] += (obtuse == 2)? area: area*0.5;
 		varea[i3] += (obtuse == 3)? area: area*0.5;
 	}
 	else {
-		len1= VecLenf(v2, v3);
-		len2= VecLenf(v1, v3);
-		len3= VecLenf(v1, v2);
+		len1= len_v3v3(v2, v3);
+		len2= len_v3v3(v1, v3);
+		len3= len_v3v3(v1, v2);
 
 		t1 *= len1*len1;
 		t2 *= len2*len2;
@@ -446,7 +446,7 @@ static int heat_ray_bone_visible(LaplacianSystem *sys, int vertex, int bone)
 	
 
 	VECCOPY(isec.start, sys->heat.verts[vertex]);
-	PclosestVL3Dfl(end, isec.start, sys->heat.root[bone], sys->heat.tip[bone]);
+	closest_to_line_segment_v3(end, isec.start, sys->heat.root[bone], sys->heat.tip[bone]);
 
 	VECSUB(isec.vec, end, isec.start);
 	isec.labda = 1.0f - 1e-5;
@@ -462,11 +462,11 @@ static float heat_bone_distance(LaplacianSystem *sys, int vertex, int bone)
 	float closest[3], d[3], dist, cosine;
 	
 	/* compute euclidian distance */
-	PclosestVL3Dfl(closest, sys->heat.verts[vertex],
+	closest_to_line_segment_v3(closest, sys->heat.verts[vertex],
 		sys->heat.root[bone], sys->heat.tip[bone]);
 
-	VecSubf(d, sys->heat.verts[vertex], closest);
-	dist= Normalize(d);
+	sub_v3_v3v3(d, sys->heat.verts[vertex], closest);
+	dist= normalize_v3(d);
 
 	/* if the vertex normal does not point along the bone, increase distance */
 	cosine= INPR(d, sys->heat.vnors[vertex]);
@@ -536,15 +536,15 @@ void heat_calc_vnormals(LaplacianSystem *sys)
 		v2= (*face)[1];
 		v3= (*face)[2];
 
-		CalcNormFloat(sys->verts[v1], sys->verts[v2], sys->verts[v3], fnor);
+		normal_tri_v3( fnor,sys->verts[v1], sys->verts[v2], sys->verts[v3]);
 		
-		VecAddf(sys->heat.vnors[v1], sys->heat.vnors[v1], fnor);
-		VecAddf(sys->heat.vnors[v2], sys->heat.vnors[v2], fnor);
-		VecAddf(sys->heat.vnors[v3], sys->heat.vnors[v3], fnor);
+		add_v3_v3v3(sys->heat.vnors[v1], sys->heat.vnors[v1], fnor);
+		add_v3_v3v3(sys->heat.vnors[v2], sys->heat.vnors[v2], fnor);
+		add_v3_v3v3(sys->heat.vnors[v3], sys->heat.vnors[v3], fnor);
 	}
 
 	for(a=0; a<sys->totvert; a++)
-		Normalize(sys->heat.vnors[a]);
+		normalize_v3(sys->heat.vnors[a]);
 }
 
 static void heat_laplacian_create(LaplacianSystem *sys)
@@ -746,8 +746,8 @@ static void rigid_add_half_edge_to_R(LaplacianSystem *sys, EditVert *v1, EditVer
 	float e[3], e_[3];
 	int i;
 
-	VecSubf(e, sys->rigid.origco[v1->tmp.l], sys->rigid.origco[v2->tmp.l]);
-	VecSubf(e_, v1->co, v2->co);
+	sub_v3_v3v3(e, sys->rigid.origco[v1->tmp.l], sys->rigid.origco[v2->tmp.l]);
+	sub_v3_v3v3(e_, v1->co, v2->co);
 
 	/* formula (5) */
 	for (i=0; i<3; i++) {
@@ -767,9 +767,9 @@ static void rigid_orthogonalize_R(float R[][3])
 {
 	HMatrix M, Q, S;
 
-	Mat4CpyMat3(M, R);
+	copy_m4_m3(M, R);
 	polar_decomp(M, Q, S);
-	Mat3CpyMat4(R, Q);
+	copy_m3_m4(R, Q);
 }
 
 static void rigid_add_half_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditVert *v2, float w)
@@ -780,15 +780,15 @@ static void rigid_add_half_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditV
 	if (sys->vpinned[v1->tmp.l])
 		return;
 
-	Mat3AddMat3(Rsum, sys->rigid.R[v1->tmp.l], sys->rigid.R[v2->tmp.l]);
-	Mat3Transp(Rsum);
+	add_m3_m3m3(Rsum, sys->rigid.R[v1->tmp.l], sys->rigid.R[v2->tmp.l]);
+	transpose_m3(Rsum);
 
-	VecSubf(rhs, sys->rigid.origco[v1->tmp.l], sys->rigid.origco[v2->tmp.l]);
-	Mat3MulVecfl(Rsum, rhs);
-	VecMulf(rhs, 0.5f);
-	VecMulf(rhs, w);
+	sub_v3_v3v3(rhs, sys->rigid.origco[v1->tmp.l], sys->rigid.origco[v2->tmp.l]);
+	mul_m3_v3(Rsum, rhs);
+	mul_v3_fl(rhs, 0.5f);
+	mul_v3_fl(rhs, w);
 
-	VecAddf(sys->rigid.rhs[v1->tmp.l], sys->rigid.rhs[v1->tmp.l], rhs);
+	add_v3_v3v3(sys->rigid.rhs[v1->tmp.l], sys->rigid.rhs[v1->tmp.l], rhs);
 }
 
 static void rigid_add_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditVert *v2, float w)
@@ -916,7 +916,7 @@ void rigid_deform_begin(EditMesh *em)
 	sys->rigid.origco = MEM_callocN(sizeof(float)*3*totvert, "RigidDeformCo");
 
 	for(a=0, eve=em->verts.first; eve; eve=eve->next, a++)
-		VecCopyf(sys->rigid.origco[a], eve->co);
+		copy_v3_v3(sys->rigid.origco[a], eve->co);
 
 	sys->areaweights= 0;
 	sys->storeweights= 1;
@@ -940,7 +940,7 @@ void rigid_deform_end(int cancel)
 		if(cancel)
 			for(a=0, eve=em->verts.first; eve; eve=eve->next, a++)
 				if(!eve->pinned)
-					VecCopyf(eve->co, sys->rigid.origco[a]);
+					copy_v3_v3(eve->co, sys->rigid.origco[a]);
 
 		if(sys->rigid.R) MEM_freeN(sys->rigid.R);
 		if(sys->rigid.rhs) MEM_freeN(sys->rigid.rhs);
@@ -1034,7 +1034,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	VECSUB(edge2, vert2, vert0);
 
 	/* begin calculating determinant - also used to calculate U parameter */
-	Crossf(pvec, dir, edge2);
+	cross_v3_v3v3(pvec, dir, edge2);
 
 	/* if determinant is near zero, ray lies in plane of triangle */
 	det = INPR(edge1, pvec);
@@ -1052,7 +1052,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	  return 0;
 
 	/* prepare to test V parameter */
-	Crossf(qvec, tvec, edge1);
+	cross_v3_v3v3(qvec, tvec, edge1);
 
 	/* calculate V parameter and test bounds */
 	v = INPR(dir, qvec) * inv_det;
@@ -1158,20 +1158,20 @@ static int meshdeform_intersect(MeshDeformBind *mdb, Isect *isec)
 			hit = meshdeform_tri_intersect(isec->start, end, face[0], face[1], face[2], co, uvw);
 
 			if(hit) {
-				CalcNormFloat(face[0], face[1], face[2], nor);
+				normal_tri_v3( nor,face[0], face[1], face[2]);
 			}
 			else {
 				hit= meshdeform_tri_intersect(isec->start, end, face[0], face[2], face[3], co, uvw);
-				CalcNormFloat(face[0], face[2], face[3], nor);
+				normal_tri_v3( nor,face[0], face[2], face[3]);
 			}
 		}
 		else {
 			hit= meshdeform_tri_intersect(isec->start, end, face[0], face[1], face[2], co, uvw);
-			CalcNormFloat(face[0], face[1], face[2], nor);
+			normal_tri_v3( nor,face[0], face[1], face[2]);
 		}
 
 		if(hit) {
-			len= VecLenf(isec->start, co)/VecLenf(isec->start, end);
+			len= len_v3v3(isec->start, co)/len_v3v3(isec->start, end);
 			if(len < isec->labda) {
 				isec->labda= len;
 				isec->hit.face = mface;
@@ -1219,7 +1219,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 		isect->co[1]= co1[1] + isec.vec[1]*len;
 		isect->co[2]= co1[2] + isec.vec[2]*len;
 
-		isect->len= VecLenf(co1, isect->co);
+		isect->len= len_v3v3(co1, isect->co);
 		if(isect->len < MESHDEFORM_LEN_THRESHOLD)
 			isect->len= MESHDEFORM_LEN_THRESHOLD;
 
@@ -1237,7 +1237,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 		VECCOPY(vert[1], cagecos[mface->v2]);
 		VECCOPY(vert[2], cagecos[mface->v3]);
 		if(mface->v4) VECCOPY(vert[3], cagecos[mface->v4]);
-		MeanValueWeights(vert, isect->nvert, isect->co, isect->uvw);
+		interp_weights_poly_v3( isect->uvw,vert, isect->nvert, isect->co);
 
 		return isect;
 	}
@@ -1260,7 +1260,7 @@ static int meshdeform_inside_cage(MeshDeformBind *mdb, float *co)
 
 		VECCOPY(start, co);
 		VECSUB(dir, outside, start);
-		Normalize(dir);
+		normalize_v3(dir);
 		
 		isect = meshdeform_ray_tree_intersect(mdb, start, outside);
 		if(isect && !isect->facing)
@@ -1650,7 +1650,7 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 				for(b=0; b<mdb->totvert; b++) {
 					if(mdb->inside[b]) {
 						VECCOPY(vec, mdb->vertexcos[b]);
-						Mat4MulVecfl(mdb->cagemat, vec);
+						mul_m4_v3(mdb->cagemat, vec);
 						gridvec[0]= (vec[0] - mdb->min[0] - mdb->halfwidth[0])/mdb->width[0];
 						gridvec[1]= (vec[1] - mdb->min[1] - mdb->halfwidth[1])/mdb->width[1];
 						gridvec[2]= (vec[2] - mdb->min[2] - mdb->halfwidth[2])/mdb->width[2];
@@ -1720,7 +1720,7 @@ void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd, float 
 	mdb.cagedm= mesh_create_derived_no_deform(scene, mmd->object, NULL, CD_MASK_BAREMESH);
 	mdb.totcagevert= mdb.cagedm->getNumVerts(mdb.cagedm);
 	mdb.cagecos= MEM_callocN(sizeof(*mdb.cagecos)*mdb.totcagevert, "MeshDeformBindCos");
-	Mat4CpyMat4(mdb.cagemat, cagemat);
+	copy_m4_m4(mdb.cagemat, cagemat);
 
 	mvert= mdb.cagedm->getVertArray(mdb.cagedm);
 	for(a=0; a<mdb.totcagevert; a++)
@@ -1781,7 +1781,7 @@ void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd, float 
 	totinside= 0;
 	for(a=0; a<mdb.totvert; a++) {
 		VECCOPY(vec, mdb.vertexcos[a]);
-		Mat4MulVecfl(mdb.cagemat, vec);
+		mul_m4_v3(mdb.cagemat, vec);
 		mdb.inside[a]= meshdeform_inside_cage(&mdb, vec);
 		if(mdb.inside[a])
 			totinside++;
@@ -1821,7 +1821,7 @@ void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd, float 
 	mmd->bindcos= (float*)mdb.cagecos;
 	mmd->totvert= mdb.totvert;
 	mmd->totcagevert= mdb.totcagevert;
-	Mat4CpyMat4(mmd->bindmat, mmd->object->obmat);
+	copy_m4_m4(mmd->bindmat, mmd->object->obmat);
 
 	if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
 		mmd->totinfluence= 0;
@@ -1868,7 +1868,7 @@ void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd, float 
 
 	/* transform bindcos to world space */
 	for(a=0; a<mdb.totcagevert; a++)
-		Mat4MulVecfl(mmd->object->obmat, mmd->bindcos+a*3);
+		mul_m4_v3(mmd->object->obmat, mmd->bindcos+a*3);
 
 	/* free */
 	mdb.cagedm->release(mdb.cagedm);

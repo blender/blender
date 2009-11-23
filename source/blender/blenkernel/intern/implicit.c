@@ -1550,28 +1550,28 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 				CalcFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],triunnormal);
 			
 			VECCOPY(trinormal, triunnormal);
-			Normalize(trinormal);
+			normalize_v3(trinormal);
 			
 			// add wind from v1
 			VECCOPY(tmp, trinormal);
-			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v1], triunnormal));
+			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v1], triunnormal));
 			VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], tmp, factor);
 			
 			// add wind from v2
 			VECCOPY(tmp, trinormal);
-			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v2], triunnormal));
+			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v2], triunnormal));
 			VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], tmp, factor);
 			
 			// add wind from v3
 			VECCOPY(tmp, trinormal);
-			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v3], triunnormal));
+			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v3], triunnormal));
 			VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], tmp, factor);
 			
 			// add wind from v4
 			if(mfaces[i].v4)
 			{
 				VECCOPY(tmp, trinormal);
-				VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v4], triunnormal));
+				mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v4], triunnormal));
 				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], tmp, factor);
 			}
 		}
@@ -1652,7 +1652,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
 			{			
 				VECSUB(id->V[i], verts[i].xconst, verts[i].xold);
-				// VecMulf(id->V[i], clmd->sim_parms->stepsPerFrame);
+				// mul_v3_fl(id->V[i], clmd->sim_parms->stepsPerFrame);
 			}
 		}	
 	}
@@ -1725,7 +1725,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 					
 					VECCOPY(id->Xnew[i], verts[i].tx);
 					VECCOPY(id->Vnew[i], verts[i].tv);
-					VecMulf(id->Vnew[i], clmd->sim_parms->stepsPerFrame);
+					mul_v3_fl(id->Vnew[i], clmd->sim_parms->stepsPerFrame);
 				}
 			}
 			

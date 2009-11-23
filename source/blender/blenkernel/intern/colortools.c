@@ -52,7 +52,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_threads.h"
 
 #include "IMB_imbuf.h"
@@ -462,35 +462,35 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 		
 		if(bezt[0].h2==HD_AUTO) {
 			
-			hlen= VecLenf(bezt[0].vec[1], bezt[0].vec[2]);	/* original handle length */
+			hlen= len_v3v3(bezt[0].vec[1], bezt[0].vec[2]);	/* original handle length */
 			/* clip handle point */
 			VECCOPY(vec, bezt[1].vec[0]);
 			if(vec[0] < bezt[0].vec[1][0])
 				vec[0]= bezt[0].vec[1][0];
 			
-			VecSubf(vec, vec, bezt[0].vec[1]);
-			nlen= VecLength(vec);
+			sub_v3_v3v3(vec, vec, bezt[0].vec[1]);
+			nlen= len_v3(vec);
 			if(nlen>FLT_EPSILON) {
-				VecMulf(vec, hlen/nlen);
-				VecAddf(bezt[0].vec[2], vec, bezt[0].vec[1]);
-				VecSubf(bezt[0].vec[0], bezt[0].vec[1], vec);
+				mul_v3_fl(vec, hlen/nlen);
+				add_v3_v3v3(bezt[0].vec[2], vec, bezt[0].vec[1]);
+				sub_v3_v3v3(bezt[0].vec[0], bezt[0].vec[1], vec);
 			}
 		}
 		a= cuma->totpoint-1;
 		if(bezt[a].h2==HD_AUTO) {
 			
-			hlen= VecLenf(bezt[a].vec[1], bezt[a].vec[0]);	/* original handle length */
+			hlen= len_v3v3(bezt[a].vec[1], bezt[a].vec[0]);	/* original handle length */
 			/* clip handle point */
 			VECCOPY(vec, bezt[a-1].vec[2]);
 			if(vec[0] > bezt[a].vec[1][0])
 				vec[0]= bezt[a].vec[1][0];
 			
-			VecSubf(vec, vec, bezt[a].vec[1]);
-			nlen= VecLength(vec);
+			sub_v3_v3v3(vec, vec, bezt[a].vec[1]);
+			nlen= len_v3(vec);
 			if(nlen>FLT_EPSILON) {
-				VecMulf(vec, hlen/nlen);
-				VecAddf(bezt[a].vec[0], vec, bezt[a].vec[1]);
-				VecSubf(bezt[a].vec[2], bezt[a].vec[1], vec);
+				mul_v3_fl(vec, hlen/nlen);
+				add_v3_v3v3(bezt[a].vec[0], vec, bezt[a].vec[1]);
+				sub_v3_v3v3(bezt[a].vec[2], bezt[a].vec[1], vec);
 			}
 		}
 	}	

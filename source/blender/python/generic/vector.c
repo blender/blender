@@ -29,7 +29,7 @@
 
 #include "BLI_blenlib.h"
 #include "BKE_utildefines.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #define MAX_DIMENSIONS 4
 /* Swizzle axes get packed into a single value that is used as a closure. Each
@@ -347,7 +347,7 @@ static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 	vec[1] = -self->vec[1];
 	vec[2] = -self->vec[2];
 
-	vectoquat(vec, track, up, quat);
+	vec_to_quat( quat,vec, track, up);
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
@@ -379,7 +379,7 @@ static PyObject *Vector_Reflect( VectorObject * self, VectorObject * value )
 	if (self->size > 2)		vec[2] = self->vec[2];
 	else					vec[2] = 0.0;
 	
-	VecReflect(reflect, vec, mirror);
+	reflect_v3_v3v3(reflect, vec, mirror);
 	
 	return newVectorObject(reflect, self->size, Py_NEW, NULL);
 }
@@ -402,7 +402,7 @@ static PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
 		return NULL;
 	
 	vecCross = (VectorObject *)newVectorObject(NULL, 3, Py_NEW, NULL);
-	Crossf(vecCross->vec, self->vec, value->vec);
+	cross_v3_v3v3(vecCross->vec, self->vec, value->vec);
 	return (PyObject *)vecCross;
 }
 

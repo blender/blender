@@ -29,7 +29,7 @@
 
 #include "Mathutils.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "PIL_time.h"
 #include "BLI_rand.h"
 #include "BKE_utildefines.h"
@@ -437,7 +437,7 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		mat[8] = 1.0f;
 	} else if((strcmp(axis, "r") == 0) || (strcmp(axis, "R") == 0)) {
 		//arbitrary rotation
-		AxisAngleToMat3(vec->vec, angle, (float (*)[3])mat);
+		axis_angle_to_mat3( (float (*)[3])mat,vec->vec, angle);
 
 	} else {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): unrecognizable axis of rotation type - expected x,y,z or r\n");
@@ -477,7 +477,7 @@ static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * v
 		return NULL;
 	
 	//create a identity matrix and add translation
-	Mat4One((float(*)[4]) mat);
+	unit_m4((float(*)[4]) mat);
 	mat[12] = vec->vec[0];
 	mat[13] = vec->vec[1];
 	mat[14] = vec->vec[2];
@@ -762,7 +762,7 @@ static PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
 	for(x = 0; x < 4; x++) {
 		tempQuat[x] /= (float)(dot * dot);
 	}
-	QuatMul(quat, tempQuat, quatV->quat);
+	mul_qt_qtqt(quat, tempQuat, quatV->quat);
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.Slerp() ------------------
@@ -853,19 +853,19 @@ static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 	VECCOPY(v3, vec3->vec);
 
 	VECCOPY(dir, ray->vec);
-	Normalize(dir);
+	normalize_v3(dir);
 
 	VECCOPY(orig, ray_off->vec);
 
 	/* find vectors for two edges sharing v1 */
-	VecSubf(e1, v2, v1);
-	VecSubf(e2, v3, v1);
+	sub_v3_v3v3(e1, v2, v1);
+	sub_v3_v3v3(e2, v3, v1);
 
 	/* begin calculating determinant - also used to calculated U parameter */
-	Crossf(pvec, dir, e2);	
+	cross_v3_v3v3(pvec, dir, e2);	
 
 	/* if determinant is near zero, ray lies in plane of triangle */
-	det = Inpf(e1, pvec);
+	det = dot_v3v3(e1, pvec);
 
 	if (det > -0.000001 && det < 0.000001) {
 		Py_RETURN_NONE;
@@ -874,29 +874,29 @@ static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 	inv_det = 1.0f / det;
 
 	/* calculate distance from v1 to ray origin */
-	VecSubf(tvec, orig, v1);
+	sub_v3_v3v3(tvec, orig, v1);
 
 	/* calculate U parameter and test bounds */
-	u = Inpf(tvec, pvec) * inv_det;
+	u = dot_v3v3(tvec, pvec) * inv_det;
 	if (clip && (u < 0.0f || u > 1.0f)) {
 		Py_RETURN_NONE;
 	}
 
 	/* prepare to test the V parameter */
-	Crossf(qvec, tvec, e1);
+	cross_v3_v3v3(qvec, tvec, e1);
 
 	/* calculate V parameter and test bounds */
-	v = Inpf(dir, qvec) * inv_det;
+	v = dot_v3v3(dir, qvec) * inv_det;
 
 	if (clip && (v < 0.0f || u + v > 1.0f)) {
 		Py_RETURN_NONE;
 	}
 
 	/* calculate t, ray intersects triangle */
-	t = Inpf(e2, qvec) * inv_det;
+	t = dot_v3v3(e2, qvec) * inv_det;
 
-	VecMulf(dir, t);
-	VecAddf(pvec, orig, dir);
+	mul_v3_fl(dir, t);
+	add_v3_v3v3(pvec, orig, dir);
 
 	return newVectorObject(pvec, 3, Py_NEW, NULL);
 }
@@ -947,7 +947,7 @@ static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 			v4[2] = 0.0f;
 		}
 		
-		result = LineIntersectLine(v1, v2, v3, v4, i1, i2);
+		result = isect_line_line_v3(v1, v2, v3, v4, i1, i2);
 
 		if (result == 0) {
 			/* colinear */
@@ -1000,22 +1000,22 @@ static PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 	VECCOPY(v4, vec4->vec);
 
 	/* find vectors for two edges sharing v2 */
-	VecSubf(e1, v1, v2);
-	VecSubf(e2, v3, v2);
+	sub_v3_v3v3(e1, v1, v2);
+	sub_v3_v3v3(e2, v3, v2);
 
-	Crossf(n1, e2, e1);
-	Normalize(n1);
+	cross_v3_v3v3(n1, e2, e1);
+	normalize_v3(n1);
 
 	/* find vectors for two edges sharing v4 */
-	VecSubf(e1, v3, v4);
-	VecSubf(e2, v1, v4);
+	sub_v3_v3v3(e1, v3, v4);
+	sub_v3_v3v3(e2, v1, v4);
 
-	Crossf(n2, e2, e1);
-	Normalize(n2);
+	cross_v3_v3v3(n2, e2, e1);
+	normalize_v3(n2);
 
 	/* adding and averaging the normals of both triangles */
-	VecAddf(n1, n2, n1);
-	Normalize(n1);
+	add_v3_v3v3(n1, n2, n1);
+	normalize_v3(n1);
 
 	return newVectorObject(n1, 3, Py_NEW, NULL);
 }
@@ -1047,11 +1047,11 @@ static PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 	VECCOPY(v3, vec3->vec);
 
 	/* find vectors for two edges sharing v2 */
-	VecSubf(e1, v1, v2);
-	VecSubf(e2, v3, v2);
+	sub_v3_v3v3(e1, v1, v2);
+	sub_v3_v3v3(e2, v3, v2);
 
-	Crossf(n, e2, e1);
-	Normalize(n);
+	cross_v3_v3v3(n, e2, e1);
+	normalize_v3(n);
 
 	return newVectorObject(n, 3, Py_NEW, NULL);
 }
@@ -1082,7 +1082,7 @@ static PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
 		VECCOPY(v2, vec2->vec);
 		VECCOPY(v3, vec3->vec);
 
-		return PyFloat_FromDouble( AreaT3Dfl(v1, v2, v3) );
+		return PyFloat_FromDouble( area_tri_v3(v1, v2, v3) );
 	}
 	else if (vec1->size == 2) {
 		v1[0] = vec1->vec[0];
@@ -1094,7 +1094,7 @@ static PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
 		v3[0] = vec3->vec[0];
 		v3[1] = vec3->vec[1];
 
-		return PyFloat_FromDouble( AreaF2Dfl(v1, v2, v3) );
+		return PyFloat_FromDouble( area_tri_v2(v1, v2, v3) );
 	}
 	else {
 		PyErr_SetString( PyExc_TypeError, "only 2D,3D vectors are supported\n" );

@@ -51,7 +51,7 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_array.h"
 
@@ -465,7 +465,7 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int 
 	v2[0] = x1;
 	v2[1] = y1;
 		
-	distance= PdistVL2Dfl(data->mval, v1, v2);
+	distance= dist_to_line_segment_v2(data->mval, v1, v2);
 		
 	if(BM_TestHFlag(eed, BM_SELECT)) distance+=5;
 	if(distance < data->dist) {
@@ -476,7 +476,7 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int 
 			vec[0]= eed->v1->co[0] + labda*(eed->v2->co[0] - eed->v1->co[0]);
 			vec[1]= eed->v1->co[1] + labda*(eed->v2->co[1] - eed->v1->co[1]);
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
-			Mat4MulVecfl(data->vc.obedit->obmat, vec);
+			mul_m4_v3(data->vc.obedit->obmat, vec);
 
 			if(view3d_test_clipping(data->vc.rv3d, vec)==0) {
 				data->dist = distance;

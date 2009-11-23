@@ -90,7 +90,7 @@ typedef struct bConstraintTarget {
 	short space;			/* space that target should be evaluated in (overrides bConstraint->tarspace) */
 	short flag;				/* runtime settings (for editor, etc.) */
 	short type;				/* type of target (B_CONSTRAINT_OB_TYPE) */
-	short rotOrder;			/* rotation order for target (as defined in BLI_arithb.h) */
+	short rotOrder;			/* rotation order for target (as defined in BLI_math.h) */
 } bConstraintTarget;
 
 /* bConstraintTarget -> flag */

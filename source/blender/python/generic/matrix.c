@@ -28,7 +28,7 @@
 #include "Mathutils.h"
 
 #include "BKE_utildefines.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec); /* utility func */
@@ -229,9 +229,9 @@ static PyObject *Matrix_toQuat(MatrixObject * self)
 		return NULL;
 	} 
 	if(self->colSize == 3){
-        Mat3ToQuat((float (*)[3])*self->matrix, quat);
+        mat3_to_quat( quat,(float (*)[3])*self->matrix);
 	}else{
-		Mat4ToQuat((float (*)[4])*self->matrix, quat);
+		mat4_to_quat( quat,(float (*)[4])*self->matrix);
 	}
 	
 	return newQuaternionObject(quat, Py_NEW, NULL);
@@ -266,14 +266,14 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize ==3 && self->rowSize ==3) {
-		if(eul_compat)	Mat3ToCompatibleEul((float (*)[3])*self->matrix, eul, eul_compatf);
-		else			Mat3ToEul((float (*)[3])*self->matrix, eul);
+		if(eul_compat)	mat3_to_compatible_eul( eul, eul_compatf,(float (*)[3])*self->matrix);
+		else			mat3_to_eul( eul,(float (*)[3])*self->matrix);
 	}else if (self->colSize ==4 && self->rowSize ==4) {
 		float tempmat3[3][3];
-		Mat3CpyMat4(tempmat3, (float (*)[4])*self->matrix);
-		Mat3ToEul(tempmat3, eul);
-		if(eul_compat)	Mat3ToCompatibleEul(tempmat3, eul, eul_compatf);
-		else			Mat3ToEul(tempmat3, eul);
+		copy_m3_m4(tempmat3, (float (*)[4])*self->matrix);
+		mat3_to_eul( eul,tempmat3);
+		if(eul_compat)	mat3_to_compatible_eul( eul, eul_compatf,tempmat3);
+		else			mat3_to_eul( eul,tempmat3);
 		
 	}else {
 		PyErr_SetString(PyExc_AttributeError, "Matrix.toEuler(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
@@ -400,18 +400,18 @@ PyObject *Matrix_scalePart(MatrixObject * self)
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize == 4 && self->rowSize == 4)
-		Mat3CpyMat4(mat, (float (*)[4])*self->matrix);
+		copy_m3_m4(mat, (float (*)[4])*self->matrix);
 	else if(self->colSize == 3 && self->rowSize == 3)
-		Mat3CpyMat3(mat, (float (*)[3])*self->matrix);
+		copy_m3_m3(mat, (float (*)[3])*self->matrix);
 	else {
 		PyErr_SetString(PyExc_AttributeError, "Matrix.scalePart(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 	/* functionality copied from editobject.c apply_obmat */
-	Mat3ToEul(mat, rot);
-	EulToMat3(rot, tmat);
-	Mat3Inv(imat, tmat);
-	Mat3MulMat3(tmat, imat, mat);
+	mat3_to_eul( rot,mat);
+	eul_to_mat3( tmat,rot);
+	invert_m3_m3(imat, tmat);
+	mul_m3_m3m3(tmat, imat, mat);
 	
 	scale[0]= tmat[0][0];
 	scale[1]= tmat[1][1];
@@ -449,9 +449,9 @@ PyObject *Matrix_Invert(MatrixObject * self)
 			mat[2] = -self->matrix[1][0];
 			mat[3] = self->matrix[0][0];
 		} else if(self->rowSize == 3) {
-			Mat3Adj((float (*)[3]) mat,(float (*)[3]) *self->matrix);
+			adjoint_m3_m3((float (*)[3]) mat,(float (*)[3]) *self->matrix);
 		} else if(self->rowSize == 4) {
-			Mat4Adj((float (*)[4]) mat, (float (*)[4]) *self->matrix);
+			adjoint_m4_m4((float (*)[4]) mat, (float (*)[4]) *self->matrix);
 		}
 		/*divide by determinate*/
 		for(x = 0; x < (self->rowSize * self->colSize); x++) {
@@ -491,16 +491,16 @@ PyObject *Matrix_Determinant(MatrixObject * self)
 	}
 
 	if(self->rowSize == 2) {
-		det = Det2x2(self->matrix[0][0], self->matrix[0][1],
+		det = determinant_m2(self->matrix[0][0], self->matrix[0][1],
 					 self->matrix[1][0], self->matrix[1][1]);
 	} else if(self->rowSize == 3) {
-		det = Det3x3(self->matrix[0][0], self->matrix[0][1],
+		det = determinant_m3(self->matrix[0][0], self->matrix[0][1],
 					 self->matrix[0][2], self->matrix[1][0],
 					 self->matrix[1][1], self->matrix[1][2],
 					 self->matrix[2][0], self->matrix[2][1],
 					 self->matrix[2][2]);
 	} else {
-		det = Det4x4((float (*)[4]) *self->matrix);
+		det = determinant_m4((float (*)[4]) *self->matrix);
 	}
 
 	return PyFloat_FromDouble( (double) det );
@@ -523,9 +523,9 @@ PyObject *Matrix_Transpose(MatrixObject * self)
 		self->matrix[1][0] = self->matrix[0][1];
 		self->matrix[0][1] = t;
 	} else if(self->rowSize == 3) {
-		Mat3Transp((float (*)[3])*self->matrix);
+		transpose_m3((float (*)[3])*self->matrix);
 	} else {
-		Mat4Transp((float (*)[4])*self->matrix);
+		transpose_m4((float (*)[4])*self->matrix);
 	}
 
 	BaseMath_WriteCallback(self);
@@ -568,9 +568,9 @@ PyObject *Matrix_Identity(MatrixObject * self)
 		self->matrix[1][0] = 0.0f;
 		self->matrix[1][1] = 1.0f;
 	} else if(self->rowSize == 3) {
-		Mat3One((float (*)[3]) *self->matrix);
+		unit_m3((float (*)[3]) *self->matrix);
 	} else {
-		Mat4One((float (*)[4]) *self->matrix);
+		unit_m4((float (*)[4]) *self->matrix);
 	}
 
 	if(!BaseMath_WriteCallback(self))

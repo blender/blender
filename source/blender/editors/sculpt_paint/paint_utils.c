@@ -13,7 +13,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -43,9 +43,9 @@ static void imapaint_project(Object *ob, float *model, float *proj, float *co, f
 	VECCOPY(pco, co);
 	pco[3]= 1.0f;
 
-	Mat4MulVecfl(ob->obmat, pco);
-	Mat4MulVecfl((float(*)[4])model, pco);
-	Mat4MulVec4fl((float(*)[4])proj, pco);
+	mul_m4_v3(ob->obmat, pco);
+	mul_m4_v3((float(*)[4])model, pco);
+	mul_m4_v4((float(*)[4])proj, pco);
 }
 
 static void imapaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, float *co, float *w)
@@ -79,15 +79,15 @@ static void imapaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, fl
 	wmat[0][1]= pv1[1];  wmat[1][1]= pv2[1];  wmat[2][1]= pv3[1];
 	wmat[0][2]= pv1[3];  wmat[1][2]= pv2[3];  wmat[2][2]= pv3[3];
 
-	Mat3Inv(invwmat, wmat);
-	Mat3MulVecfl(invwmat, h);
+	invert_m3_m3(invwmat, wmat);
+	mul_m3_v3(invwmat, h);
 
 	VECCOPY(w, h);
 
 	/* w is still divided by perspdiv, make it sum to one */
 	divw= w[0] + w[1] + w[2];
 	if(divw != 0.0f)
-		VecMulf(w, 1.0f/divw);
+		mul_v3_fl(w, 1.0f/divw);
 }
 
 /* compute uv coordinates of mouse in face */

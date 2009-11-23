@@ -52,7 +52,7 @@
 #include "RNA_access.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
@@ -94,9 +94,9 @@
 static void add_normal_aligned(float *nor, float *add)
 {
 	if( INPR(nor, add) < -0.9999f)
-		VecSubf(nor, nor, add);
+		sub_v3_v3v3(nor, nor, add);
 	else
-		VecAddf(nor, nor, add);
+		add_v3_v3v3(nor, nor, add);
 }
 
 
@@ -346,7 +346,7 @@ short EDBM_Extrude_edges_indiv(BMEditMesh *em, short flag, float *nor)
 			}
 		}
 	}
-	Normalize(nor);
+	normalize_v3(nor);
 	
 	/* set correct selection */
 	EM_clear_flag_all(em, SELECT);
@@ -411,8 +411,8 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 				float mtx[4][4];
 				if (mmd->mirror_ob) {
 					float imtx[4][4];
-					Mat4Invert(imtx, mmd->mirror_ob->obmat);
-					Mat4MulMat4(mtx, obedit->obmat, imtx);
+					invert_m4_m4(imtx, mmd->mirror_ob->obmat);
+					mul_m4_m4m4(mtx, obedit->obmat, imtx);
 				}
 
 				for (edge=BMIter_New(&iter,bm,BM_EDGES_OF_MESH,NULL);
@@ -421,12 +421,12 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 					if(edge->head.flag & flag) {
 						float co1[3], co2[3];
 
-						VecCopyf(co1, edge->v1->co);
-						VecCopyf(co2, edge->v2->co);
+						copy_v3_v3(co1, edge->v1->co);
+						copy_v3_v3(co2, edge->v2->co);
 
 						if (mmd->mirror_ob) {
-							VecMat4MulVecfl(co1, mtx, co1);
-							VecMat4MulVecfl(co2, mtx, co2);
+							mul_v3_m4v3(co1, mtx, co1);
+							mul_v3_m4v3(co2, mtx, co2);
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)
@@ -474,7 +474,7 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 		};
 	}
 
-	Normalize(nor);
+	normalize_v3(nor);
 
 	BMO_Finish_Op(bm, &extop);
 
@@ -528,15 +528,15 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	dvec[0]= rv3d->persinv[2][0];
 	dvec[1]= rv3d->persinv[2][1];
 	dvec[2]= rv3d->persinv[2][2];
-	Normalize(dvec);
+	normalize_v3(dvec);
 	dvec[0]*= offs;
 	dvec[1]*= offs;
 	dvec[2]*= offs;
 
 	/* base correction */
-	Mat3CpyMat4(bmat, obedit->obmat);
-	Mat3Inv(tmat, bmat);
-	Mat3MulVecfl(tmat, dvec);
+	copy_m3_m4(bmat, obedit->obmat);
+	invert_m3_m3(tmat, bmat);
+	mul_m3_v3(tmat, dvec);
 
 	for(a=0; a<steps; a++) {
 		EDBM_Extrude_edge(obedit, em, BM_SELECT, nor);
@@ -645,8 +645,8 @@ int EDBM_Extrude_Mesh(Object *obedit, BMEditMesh *em, wmOperator *op, float *nor
 		else {
 //			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
 			if(transmode=='n') {
-				Mat4MulVecfl(obedit->obmat, nor);
-				VecSubf(nor, nor, obedit->obmat[3]);
+				mul_m4_v3(obedit->obmat, nor);
+				sub_v3_v3v3(nor, nor, obedit->obmat[3]);
 //				BIF_setSingleAxisConstraint(nor, "along normal");
 			}
 //			Transform();
@@ -1073,41 +1073,41 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		BM_ITER(eed, &iter, vc.em->bm, BM_EDGES_OF_MESH, NULL) {
 			if (BM_TestHFlag(eed->v1, BM_SELECT) ^ BM_TestHFlag(eed->v2, BM_SELECT)) {
 				if(BM_TestHFlag(eed->v1, BM_SELECT)) 
-					VecSubf(vec, eed->v1->co, eed->v2->co);
+					sub_v3_v3v3(vec, eed->v1->co, eed->v2->co);
 				else 
-					VecSubf(vec, eed->v2->co, eed->v1->co);
-				VecAddf(nor, nor, vec);
+					sub_v3_v3v3(vec, eed->v2->co, eed->v1->co);
+				add_v3_v3v3(nor, nor, vec);
 				done= 1;
 			}
 		}
-		if(done) Normalize(nor);
+		if(done) normalize_v3(nor);
 		
 		/* center */
-		VecAddf(cent, min, max);
-		VecMulf(cent, 0.5f);
+		add_v3_v3v3(cent, min, max);
+		mul_v3_fl(cent, 0.5f);
 		VECCOPY(min, cent);
 		
-		Mat4MulVecfl(vc.obedit->obmat, min);	// view space
+		mul_m4_v3(vc.obedit->obmat, min);	// view space
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
-		Mat4Invert(vc.obedit->imat, vc.obedit->obmat); 
-		Mat4MulVecfl(vc.obedit->imat, min); // back in object space
+		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
+		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
-		VecSubf(min, min, cent);
+		sub_v3_v3v3(min, min, cent);
 		
 		/* calculate rotation */
-		Mat3One(mat);
+		unit_m3(mat);
 		if(done) {
 			float dot;
 			
 			VECCOPY(vec, min);
-			Normalize(vec);
+			normalize_v3(vec);
 			dot= INPR(vec, nor);
 
 			if( fabs(dot)<0.999) {
 				float cross[3], si, q1[4];
 				
-				Crossf(cross, nor, vec);
-				Normalize(cross);
+				cross_v3_v3v3(cross, nor, vec);
+				normalize_v3(cross);
 				dot= 0.5f*saacos(dot);
 				si= (float)sin(dot);
 				q1[0]= (float)cos(dot);
@@ -1115,7 +1115,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				q1[2]= cross[1]*si;
 				q1[3]= cross[2]*si;
 				
-				QuatToMat3(q1, mat);
+				quat_to_mat3( mat,q1);
 			}
 		}
 		
@@ -1134,8 +1134,8 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		VECCOPY(min, curs);
 
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
-		Mat4Invert(vc.obedit->imat, vc.obedit->obmat); 
-		Mat4MulVecfl(vc.obedit->imat, min); // back in object space
+		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
+		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
 		EDBM_InitOpf(vc.em, &bmop, op, "makevert co=%v", min);
 		BMO_Exec_Op(vc.em->bm, &bmop);
@@ -2483,7 +2483,7 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 	if (target) {
 		vco = give_cursor(scene, v3d);
 		VECCOPY(co, vco);
-		Mat4MulVecfl(ob->imat, co);
+		mul_m4_v3(ob->imat, co);
 	} else {
 		i = 0;
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -2815,7 +2815,7 @@ int select_vertex_path_exec(bContext *C, wmOperator *op)
 						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
 						newpe->v = ((PathNode*)eed->v2->tmp.p)->u;
 						if(physical){
-								newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+								newpe->w = len_v3v3(eed->v1->co, eed->v2->co);
 						}
 						else newpe->w = 1;
 						newpe->next = 0;
@@ -2827,7 +2827,7 @@ int select_vertex_path_exec(bContext *C, wmOperator *op)
 						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
 						newpe->v = ((PathNode*)eed->v1->tmp.p)->u;
 						if(physical){
-								newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+								newpe->w = len_v3v3(eed->v1->co, eed->v2->co);
 						}
 						else newpe->w = 1;
 						newpe->next = 0;
@@ -2955,7 +2955,7 @@ static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *c
 	mvalf[0]= (float)mval[0];
 	mvalf[1]= (float)mval[1];
 
-	return PdistVL2Dfl(mvalf, vec1, vec2);
+	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
 
 /* based on mouse cursor position, it defines how is being ripped */
@@ -3078,16 +3078,16 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			  from edge midpoint to face center.  offset edge midpoint
 			  by a small amount along this vector.*/
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, e->loop->f) {
-				VecAddf(cent, cent, l->v->co);
+				add_v3_v3v3(cent, cent, l->v->co);
 			}
-			VecMulf(cent, 1.0f/(float)e->loop->f->len);
+			mul_v3_fl(cent, 1.0f/(float)e->loop->f->len);
 
-			VecAddf(mid, e->v1->co, e->v2->co);
-			VecMulf(mid, 0.5f);
-			VecSubf(vec, cent, mid);
-			Normalize(vec);
-			VecMulf(vec, 0.01f);
-			VecAddf(mid, mid, vec);
+			add_v3_v3v3(mid, e->v1->co, e->v2->co);
+			mul_v3_fl(mid, 0.5f);
+			sub_v3_v3v3(vec, cent, mid);
+			normalize_v3(vec);
+			mul_v3_fl(vec, 0.01f);
+			add_v3_v3v3(mid, mid, vec);
 
 			/*yay we have our comparison point, now project it*/
 			view3d_project_float(ar, mid, mid, projectMat);
@@ -3466,11 +3466,11 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 
 
 		if(add) {
-			VecMulf(co, blend);
-			VecAddf(eve->co, eve->co, co);
+			mul_v3_fl(co, blend);
+			add_v3_v3v3(eve->co, eve->co, co);
 		}
 		else
-			VecLerpf(eve->co, eve->co, co, blend);
+			interp_v3_v3v3(eve->co, eve->co, co, blend);
 		
 		VECCOPY(sco, co);
 	}

@@ -254,5 +254,26 @@ MINLINE float normalize_v3(float n[3])
 	return d;
 }
 
+
+MINLINE double normalize_dv3(double n[3])
+{
+	double d= n[0]*n[0] + n[1]*n[1] + n[2]*n[2];
+
+	/* a larger value causes normalize errors in a
+	   scaled down models with camera xtreme close */
+	if(d > 1.0e-35f) {
+		d= 1.0 / sqrt(d);
+		n[0] *= d;
+		n[1] *= d;
+		n[2] *= d;
+	}
+	else {
+		n[0] = n[1] = n[2] = 0.0;
+		d= 0.0;
+	}
+
+	return d;
+}
+
 #endif /* BLI_MATH_VECTOR_INLINE */
 

@@ -48,7 +48,7 @@
 
 #include "BLI_editVert.h"
 #include "BLI_scanfill.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
@@ -417,9 +417,9 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *a
 						/* TODO make this better (cache facenormals as layer?) */
 						float nor[3];
 						if(mface->v4) {
-							CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, nor);
+							normal_quad_v3( nor,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co);
 						} else {
-							CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, nor);
+							normal_tri_v3( nor,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co);
 						}
 						glNormal3fv(nor);
 					}
@@ -588,9 +588,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					else {
 						float nor[3];
 						if(mf->v4) {
-							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, nor);
+							normal_quad_v3( nor,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
 						} else {
-							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, nor);
+							normal_tri_v3( nor,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
 						}
 						glNormal3fv(nor);
 					}
@@ -759,9 +759,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					else {
 						float nor[3];
 						if(mf->v4) {
-							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co, nor);
+							normal_quad_v3( nor,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
 						} else {
-							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, nor);
+							normal_tri_v3( nor,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
 						}
 						glNormal3fv(nor);
 					}
@@ -931,9 +931,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					/* TODO ideally a normal layer should always be available */
 					float nor[3];
 					if(mface->v4) {
-						CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, nor);
+						normal_quad_v3( nor,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co);
 					} else {
-						CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, nor);
+						normal_tri_v3( nor,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co);
 					}
 					glNormal3fv(nor);
 				}
@@ -1275,17 +1275,17 @@ static void cdDM_foreachMappedFaceCenter(
 		ml = &cddm->mloop[mf->loopstart];
 		cent[0] = cent[1] = cent[2] = 0.0f;
 		for (j=0; j<mf->totloop; j++, ml++) {
-			VecAddf(cent, cent, mv[ml->v].co);
+			add_v3_v3v3(cent, cent, mv[ml->v].co);
 		}
-		VecMulf(cent, 1.0f / (float)j);
+		mul_v3_fl(cent, 1.0f / (float)j);
 
 		ml = &cddm->mloop[mf->loopstart];
 		if (j > 3) {
-			CalcNormFloat4(mv[ml->v].co, mv[(ml+1)->v].co,
-				       mv[(ml+2)->v].co, mv[(ml+3)->v].co, no);
+			normal_quad_v3(no, mv[ml->v].co, mv[(ml+1)->v].co,
+				       mv[(ml+2)->v].co, mv[(ml+3)->v].co);
 		} else {
-			CalcNormFloat(mv[ml->v].co, mv[(ml+1)->v].co,
-				       mv[(ml+2)->v].co, no);
+			normal_tri_v3(no, mv[ml->v].co, mv[(ml+1)->v].co,
+				       mv[(ml+2)->v].co);
 		}
 
 		func(userData, orig, cent, no);
@@ -2041,9 +2041,9 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	for (i=0; i<dm->numVertData; i++, mv++) {
 		float *no = vert_nors[i];
 		
-		if (Normalize(no) == 0.0) {
+		if (normalize_v3(no) == 0.0) {
 			VECCOPY(no, mv->co);
-			if (Normalize(no) == 0.0) {
+			if (normalize_v3(no) == 0.0) {
 				no[0] = 0.0f;
 				no[1] = 0.0f;
 				no[2] = 1.0f;
@@ -2460,7 +2460,7 @@ DerivedMesh *MultiresDM_new(MultiresSubsurf *ms, DerivedMesh *orig,
 		mvert = CustomData_get_layer(&orig->vertData, CD_MVERT);
 		mrdm->orco = MEM_callocN(sizeof(float) * 3 * orig->getNumVerts(orig), "multires orco");
 		for(i = 0; i < orig->getNumVerts(orig); ++i)
-			VecCopyf(mrdm->orco[i], mvert[i].co);
+			copy_v3_v3(mrdm->orco[i], mvert[i].co);
 	}
 	else
 		DM_init(dm, numVerts, numEdges, numFaces, numLoops, numPolys);

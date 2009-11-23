@@ -37,7 +37,7 @@ extern "C"
 #include "BKE_image.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 
@@ -87,7 +87,7 @@ extern "C"
 // This function assumes that quat is normalized.
 // The following document was used as reference:
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
-void QuatToAxisAngle(float *q, float *axis, float *angle)
+void quat_to_axis_angle( float *axis, float *angle,float *q)
 {
 	// quat to axis angle
 	*angle = 2 * acos(q[0]);
@@ -666,11 +666,11 @@ protected:
 
 		if (parent_mat) {
 			float invpar[4][4];
-			Mat4Invert(invpar, parent_mat);
-			Mat4MulMat4(local, mat, invpar);
+			invert_m4_m4(invpar, parent_mat);
+			mul_m4_m4m4(local, mat, invpar);
 		}
 		else {
-			Mat4CpyMat4(local, mat);
+			copy_m4_m4(local, mat);
 		}
 
 		TransformBase::decompose(local, loc, rot, size);
@@ -681,9 +681,9 @@ protected:
 		float axis[3];
 		float angle;
 		double angle_deg;
-		EulToQuat(rot, quat);
-		NormalQuat(quat);
-		QuatToAxisAngle(quat, axis, &angle);
+		eul_to_quat( quat,rot);
+		normalize_qt(quat);
+		quat_to_axis_angle( axis, &angle,quat);
 		angle_deg = angle * 180.0f / M_PI;
 		node.addRotate(axis[0], axis[1], axis[2], angle_deg);
 		*/
@@ -901,12 +901,12 @@ private:
 			bPoseChannel *parchan = get_pose_channel(ob_arm->pose, bone->parent->name);
 
 			float invpar[4][4];
-			Mat4Invert(invpar, parchan->pose_mat);
-			Mat4MulMat4(mat, pchan->pose_mat, invpar);
+			invert_m4_m4(invpar, parchan->pose_mat);
+			mul_m4_m4m4(mat, pchan->pose_mat, invpar);
 		}
 		else {
 			// get world-space from armature-space
-			Mat4MulMat4(mat, pchan->pose_mat, ob_arm->obmat);
+			mul_m4_m4m4(mat, pchan->pose_mat, ob_arm->obmat);
 		}
 
 		TransformWriter::add_node_transform(node, mat, NULL);
@@ -1059,9 +1059,9 @@ private:
 				float inv_bind_mat[4][4];
 
 				// make world-space matrix, pose_mat is armature-space
-				Mat4MulMat4(world, pchan->pose_mat, ob_arm->obmat);
+				mul_m4_m4m4(world, pchan->pose_mat, ob_arm->obmat);
 				
-				Mat4Invert(mat, world);
+				invert_m4_m4(mat, world);
 				converter.mat4_to_dae(inv_bind_mat, mat);
 
 				source.appendValues(inv_bind_mat);
@@ -1241,9 +1241,9 @@ public:
 		
 		if (ob->type == OB_MESH && is_skinned_mesh)
 			// for skinned mesh we write obmat in <bind_shape_matrix>
-			Mat4One(mat);
+			unit_m4(mat);
 		else
-			Mat4CpyMat4(mat, ob->obmat);
+			copy_m4_m4(mat, ob->obmat);
 
 		TransformWriter::add_node_transform(node, mat, ob->parent ? ob->parent->obmat : NULL);
 		
@@ -2048,7 +2048,7 @@ public:
 				
 				float eul[3];
 				
-				QuatToEul(quat, eul);
+				quat_to_eul( eul,quat);
 				
 				for (int k = 0; k < 3; k++)
 					create_bezt(eulcu[k], frame, eul[k]);

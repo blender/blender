@@ -53,7 +53,7 @@
 #include "BKE_world.h"
 #include "BKE_tessmesh.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 

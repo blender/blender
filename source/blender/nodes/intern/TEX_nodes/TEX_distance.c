@@ -27,7 +27,7 @@
  */
 
 #include <math.h>
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "../TEX_util.h"
 
 static bNodeSocketType inputs[]= {
@@ -48,7 +48,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	tex_input_vec(coord1, in[0], p, thread);
 	tex_input_vec(coord2, in[1], p, thread);
 
-	*out = VecLenf(coord2, coord1);
+	*out = len_v3v3(coord2, coord1);
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

@@ -60,7 +60,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_pointcache.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_kdtree.h"
@@ -587,13 +587,13 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 	if(pset->selectmode==SCE_SELECT_PATH)
 		selected= 0;
 
-	Mat4One(imat);
-	Mat4One(mat);
+	unit_m4(imat);
+	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
 		if(edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
 			psys_mat_hair_to_global(data->ob, psmd->dm, psys->part->from, psys->particles + p, mat);
-			Mat4Invert(imat,mat);
+			invert_m4_m4(imat,mat);
 		}
 
 		if(pset->selectmode==SCE_SELECT_END) {
@@ -698,7 +698,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 		key = pa->hair;
 		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
 		VECCOPY(co, key->co);
-		Mat4MulVecfl(mat, co);
+		mul_m4_v3(mat, co);
 		BLI_kdtree_insert(tree, p, co, NULL);
 	}
 
@@ -712,7 +712,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 		key = pa->hair;
 		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
 		VECCOPY(co, key->co);
-		Mat4MulVecfl(mat, co);
+		mul_m4_v3(mat, co);
 		co[0]= -co[0];
 
 		index= BLI_kdtree_find_nearest(tree, co, NULL, &nearest);
@@ -785,7 +785,7 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	/* mirror positions and tags */
 	psys_mat_hair_to_orco(ob, dm, psys->part->from, pa, mat);
 	psys_mat_hair_to_orco(ob, dm, psys->part->from, mpa, mmat);
-	Mat4Invert(immat, mmat);
+	invert_m4_m4(immat, mmat);
 
 	hkey=pa->hair;
 	mhkey=mpa->hair;
@@ -793,9 +793,9 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	mkey= mpoint->keys;
 	for(k=0; k<pa->totkey; k++, hkey++, mhkey++, key++, mkey++) {
 		VECCOPY(mhkey->co, hkey->co);
-		Mat4MulVecfl(mat, mhkey->co);
+		mul_m4_v3(mat, mhkey->co);
 		mhkey->co[0]= -mhkey->co[0];
-		Mat4MulVecfl(immat, mhkey->co);
+		mul_m4_v3(immat, mhkey->co);
 
 		if(key->flag & PEK_TAG)
 			mkey->flag |= PEK_TAG;
@@ -867,12 +867,12 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 		psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, psys->particles + p, hairmat);
 	
 		LOOP_KEYS {
-			Mat4MulVecfl(hairmat, key->co);
+			mul_m4_v3(hairmat, key->co);
 		}
 
 		LOOP_KEYS {
 			if(k==0) {
-				dist_1st = VecLenf((key+1)->co, key->co);
+				dist_1st = len_v3v3((key+1)->co, key->co);
 				dist_1st *= 0.75f * pset->emitterdist;
 			}
 			else {
@@ -881,32 +881,32 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 				vec=edit->emitter_cosnos +index*6;
 				nor=vec+3;
 
-				VecSubf(dvec, key->co, vec);
+				sub_v3_v3v3(dvec, key->co, vec);
 
-				dot=Inpf(dvec,nor);
+				dot=dot_v3v3(dvec,nor);
 				VECCOPY(dvec,nor);
 
 				if(dot>0.0f) {
 					if(dot<dist_1st) {
-						Normalize(dvec);
-						VecMulf(dvec,dist_1st-dot);
-						VecAddf(key->co,key->co,dvec);
+						normalize_v3(dvec);
+						mul_v3_fl(dvec,dist_1st-dot);
+						add_v3_v3v3(key->co,key->co,dvec);
 					}
 				}
 				else {
-					Normalize(dvec);
-					VecMulf(dvec,dist_1st-dot);
-					VecAddf(key->co,key->co,dvec);
+					normalize_v3(dvec);
+					mul_v3_fl(dvec,dist_1st-dot);
+					add_v3_v3v3(key->co,key->co,dvec);
 				}
 				if(k==1)
 					dist_1st*=1.3333f;
 			}
 		}
 		
-		Mat4Invert(hairimat,hairmat);
+		invert_m4_m4(hairimat,hairmat);
 
 		LOOP_KEYS {
-			Mat4MulVecfl(hairimat, key->co);
+			mul_m4_v3(hairimat, key->co);
 		}
 	}
 }
@@ -927,10 +927,10 @@ void PE_apply_lengths(Scene *scene, PTCacheEdit *edit)
 	LOOP_EDITED_POINTS {
 		LOOP_KEYS {
 			if(k) {
-				VecSubf(dv1, key->co, (key - 1)->co);
-				Normalize(dv1);
-				VecMulf(dv1, (key - 1)->length);
-				VecAddf(key->co, (key - 1)->co, dv1);
+				sub_v3_v3v3(dv1, key->co, (key - 1)->co);
+				normalize_v3(dv1);
+				mul_v3_fl(dv1, (key - 1)->length);
+				add_v3_v3v3(key->co, (key - 1)->co, dv1);
 			}
 		}
 	}
@@ -970,19 +970,19 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
 
 			for(; k<point->totkey; k++, key++) {
 				if(k) {
-					VecSubf(dv0, (key - 1)->co, key->co);
-					tlen= Normalize(dv0);
-					VecMulf(dv0, (mul * (tlen - (key - 1)->length)));
+					sub_v3_v3v3(dv0, (key - 1)->co, key->co);
+					tlen= normalize_v3(dv0);
+					mul_v3_fl(dv0, (mul * (tlen - (key - 1)->length)));
 				}
 
 				if(k < point->totkey - 1) {
-					VecSubf(dv2, (key + 1)->co, key->co);
-					tlen= Normalize(dv2);
-					VecMulf(dv2, mul * (tlen - key->length));
+					sub_v3_v3v3(dv2, (key + 1)->co, key->co);
+					tlen= normalize_v3(dv2);
+					mul_v3_fl(dv2, mul * (tlen - key->length));
 				}
 
 				if(k) {
-					VecAddf((key-1)->co,(key-1)->co,dv1);
+					add_v3_v3v3((key-1)->co,(key-1)->co,dv1);
 				}
 
 				VECADD(dv1,dv0,dv2);
@@ -1001,7 +1001,7 @@ static void recalc_lengths(PTCacheEdit *edit)
 	LOOP_EDITED_POINTS {
 		key= point->keys;
 		for(k=0; k<point->totkey-1; k++, key++) {
-			key->length= VecLenf(key->co, (key + 1)->co);
+			key->length= len_v3v3(key->co, (key + 1)->co);
 		}
 	}
 }
@@ -1055,12 +1055,12 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 			VECADD(vec,vec,mvert->co);
 			VECADD(nor,nor,mvert->no);
 			
-			VecMulf(vec,0.25);
+			mul_v3_fl(vec,0.25);
 		}
 		else
-			VecMulf(vec,0.3333f);
+			mul_v3_fl(vec,0.3333f);
 
-		Normalize(nor);
+		normalize_v3(nor);
 
 		BLI_kdtree_insert(edit->emitter_field, i, vec, NULL);
 	}
@@ -1114,7 +1114,7 @@ static void update_world_cos(Object *ob, PTCacheEdit *edit)
 		LOOP_KEYS {
 			VECCOPY(key->world_co,key->co);
 			if(!(psys->flag & PSYS_GLOBAL_HAIR))
-				Mat4MulVecfl(hairmat, key->world_co);
+				mul_m4_v3(hairmat, key->world_co);
 		}
 	}
 }
@@ -1142,7 +1142,7 @@ static void update_velocities(Object *ob, PTCacheEdit *edit)
 
 				if(point->totkey>2) {
 					VECSUB(vec1, (key+1)->co, (key+2)->co);
-					Projf(vec2, vec1, key->vel);
+					project_v3_v3v3(vec2, vec1, key->vel);
 					VECSUB(vec2, vec1, vec2);
 					VECADDFAC(key->vel, key->vel, vec2, 0.5f);
 				}
@@ -1157,7 +1157,7 @@ static void update_velocities(Object *ob, PTCacheEdit *edit)
 
 				if(point->totkey>2) {
 					VECSUB(vec1, (key-2)->co, (key-1)->co);
-					Projf(vec2, vec1, key->vel);
+					project_v3_v3v3(vec2, vec1, key->vel);
 					VECSUB(vec2, vec1, vec2);
 					VECADDFAC(key->vel, key->vel, vec2, 0.5f);
 				}
@@ -1170,7 +1170,7 @@ static void update_velocities(Object *ob, PTCacheEdit *edit)
 
 				VECSUB(key->vel, (key+1)->co, (key-1)->co);
 			}
-			VecMulf(key->vel, frs_sec/dfra);
+			mul_v3_fl(key->vel, frs_sec/dfra);
 		}
 	}
 }
@@ -1537,7 +1537,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short select)
 	if(!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 
-	Mat4One(mat);
+	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
 		if(edit->psys && !(psys->flag & PSYS_GLOBAL_HAIR))
@@ -1546,7 +1546,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short select)
 		if(pset->selectmode==SCE_SELECT_POINT) {
 			LOOP_KEYS {
 				VECCOPY(co, key->co);
-				Mat4MulVecfl(mat, co);
+				mul_m4_v3(mat, co);
 				project_short(ar, co, vertco);
 				if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1])) {
 					if(select && !(key->flag & PEK_SELECT)) {
@@ -1564,7 +1564,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short select)
 			key= point->keys + point->totkey - 1;
 
 			VECCOPY(co, key->co);
-			Mat4MulVecfl(mat, co);
+			mul_m4_v3(mat, co);
 			project_short(ar, co,vertco);
 			if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1])) {
 				if(select && !(key->flag & PEK_SELECT)) {
@@ -2255,7 +2255,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 		LOOP_SELECTED_POINTS {
 			psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, psys->particles+p, mat);
 			VECCOPY(co, point->keys->co);
-			Mat4MulVecfl(mat, co);
+			mul_m4_v3(mat, co);
 			BLI_kdtree_insert(tree, p, co, NULL);
 		}
 
@@ -2265,7 +2265,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 		LOOP_SELECTED_POINTS {
 			psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, psys->particles+p, mat);
 			VECCOPY(co, point->keys->co);
-			Mat4MulVecfl(mat, co);
+			mul_m4_v3(mat, co);
 
 			totn= BLI_kdtree_find_n_nearest(tree,10,co,NULL,nearest);
 
@@ -2736,8 +2736,8 @@ static void brush_comb(PEData *data, float mat[][4], float imat[][4], int point_
 	fac= (float)pow((double)(1.0f - data->dist / data->rad), (double)data->combfac);
 
 	VECCOPY(cvec,data->dvec);
-	Mat4Mul3Vecfl(imat,cvec);
-	VecMulf(cvec, fac);
+	mul_mat3_m4_v3(imat,cvec);
+	mul_v3_fl(cvec, fac);
 	VECADD(key->co, key->co, cvec);
 
 	(data->edit->points + point_index)->flag |= PEP_EDIT_RECALC;
@@ -2854,7 +2854,7 @@ static void brush_length(PEData *data, int point_index)
 		else {
 			VECSUB(dvec,key->co,pvec);
 			VECCOPY(pvec,key->co);
-			VecMulf(dvec,data->growfac);
+			mul_v3_fl(dvec,data->growfac);
 			VECADD(key->co,(key-1)->co,dvec);
 		}
 	}
@@ -2873,25 +2873,25 @@ static void brush_puff(PEData *data, int point_index)
 
 	if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 		psys_mat_hair_to_global(data->ob, data->dm, psys->part->from, psys->particles + point_index, mat);
-		Mat4Invert(imat,mat);
+		invert_m4_m4(imat,mat);
 	}
 	else {
-		Mat4One(mat);
-		Mat4One(imat);
+		unit_m4(mat);
+		unit_m4(imat);
 	}
 
 	LOOP_KEYS {
 		if(k==0) {
 			/* find root coordinate and normal on emitter */
 			VECCOPY(co, key->co);
-			Mat4MulVecfl(mat, co);
+			mul_m4_v3(mat, co);
 
 			point_index= BLI_kdtree_find_nearest(edit->emitter_field, co, NULL, NULL);
 			if(point_index == -1) return;
 
 			VECCOPY(rootco, co);
-			VecCopyf(nor, &edit->emitter_cosnos[point_index*6+3]);
-			Normalize(nor);
+			copy_v3_v3(nor, &edit->emitter_cosnos[point_index*6+3]);
+			normalize_v3(nor);
 			length= 0.0f;
 
 			fac= (float)pow((double)(1.0f - data->dist / data->rad), (double)data->pufffac);
@@ -2903,8 +2903,8 @@ static void brush_puff(PEData *data, int point_index)
 			/* compute position as if hair was standing up straight */
 			VECCOPY(lastco, co);
 			VECCOPY(co, key->co);
-			Mat4MulVecfl(mat, co);
-			length += VecLenf(lastco, co);
+			mul_m4_v3(mat, co);
+			length += len_v3v3(lastco, co);
 
 			VECADDFAC(kco, rootco, nor, length);
 
@@ -2913,7 +2913,7 @@ static void brush_puff(PEData *data, int point_index)
 			VECADDFAC(co, co, dco, fac);
 
 			VECCOPY(key->co, co);
-			Mat4MulVecfl(imat, key->co);
+			mul_m4_v3(imat, key->co);
 		}
 	}
 
@@ -2925,8 +2925,8 @@ static void brush_smooth_get(PEData *data, float mat[][4], float imat[][4], int 
 	if(key_index) {
 		float dvec[3];
 
-		VecSubf(dvec,key->co,(key-1)->co);
-		Mat4Mul3Vecfl(mat,dvec);
+		sub_v3_v3v3(dvec,key->co,(key-1)->co);
+		mul_mat3_m4_v3(mat,dvec);
 		VECADD(data->vec,data->vec,dvec);
 		data->tot++;
 	}
@@ -2938,12 +2938,12 @@ static void brush_smooth_do(PEData *data, float mat[][4], float imat[][4], int p
 	
 	if(key_index) {
 		VECCOPY(vec,data->vec);
-		Mat4Mul3Vecfl(imat,vec);
+		mul_mat3_m4_v3(imat,vec);
 
-		VecSubf(dvec,key->co,(key-1)->co);
+		sub_v3_v3v3(dvec,key->co,(key-1)->co);
 
 		VECSUB(dvec,vec,dvec);
-		VecMulf(dvec,data->smoothfac);
+		mul_v3_fl(dvec,data->smoothfac);
 		
 		VECADD(key->co,key->co,dvec);
 	}
@@ -2969,7 +2969,7 @@ static int brush_add(PEData *data, short number)
 	short size= pset->brush[PE_BRUSH_ADD].size;
 	short size2= size*size;
 	DerivedMesh *dm=0;
-	Mat4Invert(imat,ob->obmat);
+	invert_m4_m4(imat,ob->obmat);
 
 	if(psys->flag & PSYS_GLOBAL_HAIR)
 		return 0;
@@ -2995,8 +2995,8 @@ static int brush_add(PEData *data, short number)
 		mco[1]= data->mval[1] + dmy;
 		viewline(data->vc.ar, data->vc.v3d, mco, co1, co2);
 
-		Mat4MulVecfl(imat,co1);
-		Mat4MulVecfl(imat,co2);
+		mul_m4_v3(imat,co1);
+		mul_m4_v3(imat,co2);
 		min_d=2.0;
 		
 		/* warning, returns the derived mesh face */
@@ -3102,18 +3102,18 @@ static int brush_add(PEData *data, short number)
 
 					key[0].time= hkey->time/ 100.0f;
 					psys_get_particle_on_path(&sim, ptn[0].index, key, 0);
-					VecMulf(key[0].co, weight[0]);
+					mul_v3_fl(key[0].co, weight[0]);
 					
 					if(maxw>1) {
 						key[1].time= key[0].time;
 						psys_get_particle_on_path(&sim, ptn[1].index, key + 1, 0);
-						VecMulf(key[1].co, weight[1]);
+						mul_v3_fl(key[1].co, weight[1]);
 						VECADD(key[0].co, key[0].co, key[1].co);
 
 						if(maxw>2) {						
 							key[2].time= key[0].time;
 							psys_get_particle_on_path(&sim, ptn[2].index, key + 2, 0);
-							VecMulf(key[2].co, weight[2]);
+							mul_v3_fl(key[2].co, weight[2]);
 							VECADD(key[0].co, key[0].co, key[2].co);
 						}
 					}
@@ -3134,8 +3134,8 @@ static int brush_add(PEData *data, short number)
 			}
 			for(k=0, hkey=pa->hair; k<pset->totaddkey; k++, hkey++) {
 				psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
-				Mat4Invert(imat,hairmat);
-				Mat4MulVecfl(imat, hkey->co);
+				invert_m4_m4(imat,hairmat);
+				mul_m4_v3(imat, hkey->co);
 			}
 		}
 
@@ -3250,7 +3250,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				else
 					data.combfac= 1.0f - data.combfac;
 
-				Mat4Invert(ob->imat, ob->obmat);
+				invert_m4_m4(ob->imat, ob->obmat);
 
 				window_to_3d_delta(ar, vec, dx, dy);
 				data.dvec= vec;
@@ -3320,7 +3320,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 						data.pufffac= 1.0f - data.pufffac;
 
 					data.invert= (brush->invert ^ flip);
-					Mat4Invert(ob->imat, ob->obmat);
+					invert_m4_m4(ob->imat, ob->obmat);
 
 					foreach_mouse_hit_point(&data, brush_puff, selected);
 				}
@@ -3356,12 +3356,12 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 				data.smoothfac= (float)(brush->strength / 100.0f);
 
-				Mat4Invert(ob->imat, ob->obmat);
+				invert_m4_m4(ob->imat, ob->obmat);
 
 				foreach_mouse_hit_key(&data, brush_smooth_get, selected);
 
 				if(data.tot) {
-					VecMulf(data.vec, 1.0f / (float)data.tot);
+					mul_v3_fl(data.vec, 1.0f / (float)data.tot);
 					foreach_mouse_hit_key(&data, brush_smooth_do, selected);
 				}
 
@@ -3784,7 +3784,7 @@ int PE_minmax(Scene *scene, float *min, float *max)
 	if(psys)
 		psmd= psys_get_modifier(ob, psys);
 	else
-		Mat4One(mat);
+		unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
 		if(psys)
@@ -3792,7 +3792,7 @@ int PE_minmax(Scene *scene, float *min, float *max)
 
 		LOOP_SELECTED_KEYS {
 			VECCOPY(co, key->co);
-			Mat4MulVecfl(mat, co);
+			mul_m4_v3(mat, co);
 			DO_MINMAX(co, min, max);		
 			ok= 1;
 		}

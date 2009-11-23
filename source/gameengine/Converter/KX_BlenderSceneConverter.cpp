@@ -66,7 +66,7 @@
 #include "DNA_world_types.h"
 #include "BKE_main.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 extern "C"
 {
@@ -617,8 +617,8 @@ extern "C"
 	//XXX void testhandles_ipocurve(struct IpoCurve *icu);
 	void insert_vert_icu(struct IpoCurve *, float, float, short);
 	float eval_icu(struct IpoCurve *icu, float ipotime);
-	//void Mat3ToEul(float tmat[][3], float *eul);
-	void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot);
+	//void mat3_to_eul( float *eul,float tmat[][3]);
+	void mat3_to_compatible_eul( float *eul, float *oldrot,float mat[][3]);
 }
 
 IpoCurve* findIpoCurve(IpoCurve* first, const char* searchName)
@@ -742,7 +742,7 @@ void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo(){
 					if (blenderobject->type==OB_ARMATURE)
 						continue;
 					float eu[3];
-					Mat4ToEul(blenderobject->obmat,eu);					
+					mat4_to_eul(eu,blenderobject->obmat);					
 					MT_Point3 pos = MT_Point3(
 						blenderobject->obmat[3][0],
 						blenderobject->obmat[3][1],
@@ -847,8 +847,8 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						for (int c=0;c<3;c++)
 							tmat[r][c] = orn[c][r];
 					
-					// Mat3ToEul(tmat, eulerAngles); // better to use Mat3ToCompatibleEul
-					Mat3ToCompatibleEul(tmat, eulerAngles, eulerAnglesOld);
+					// mat3_to_eul( eulerAngles,tmat); // better to use Mat3ToCompatibleEul
+					mat3_to_compatible_eul( eulerAngles, eulerAnglesOld,tmat);
 					
 					//eval_icu
 					for(int x = 0; x < 3; x++)

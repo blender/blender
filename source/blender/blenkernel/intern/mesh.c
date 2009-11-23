@@ -71,7 +71,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_cellalloc.h"
 #include "BLI_array.h"
 #include "BLI_edgehash.h"
@@ -1220,7 +1220,7 @@ void mesh_to_curve(Scene *scene, Object *ob)
 				/* add points */
 				vl= polyline.first;
 				for (i=0, bp=nu->bp; i < totpoly; i++, bp++, vl=(VertLink *)vl->next) {
-					VecCopyf(bp->vec, mverts[vl->index].co);
+					copy_v3_v3(bp->vec, mverts[vl->index].co);
 					bp->f1= SELECT;
 					bp->radius = bp->weight = 1.0;
 				}
@@ -1280,23 +1280,23 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 		float *f_no= &fnors[i*3];
 
 		if (mf->v4)
-			CalcNormFloat4(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co, f_no);
+			normal_quad_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
 		else
-			CalcNormFloat(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, f_no);
+			normal_tri_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
 		
-		VecAddf(tnorms[mf->v1], tnorms[mf->v1], f_no);
-		VecAddf(tnorms[mf->v2], tnorms[mf->v2], f_no);
-		VecAddf(tnorms[mf->v3], tnorms[mf->v3], f_no);
+		add_v3_v3v3(tnorms[mf->v1], tnorms[mf->v1], f_no);
+		add_v3_v3v3(tnorms[mf->v2], tnorms[mf->v2], f_no);
+		add_v3_v3v3(tnorms[mf->v3], tnorms[mf->v3], f_no);
 		if (mf->v4)
-			VecAddf(tnorms[mf->v4], tnorms[mf->v4], f_no);
+			add_v3_v3v3(tnorms[mf->v4], tnorms[mf->v4], f_no);
 	}
 	for (i=0; i<numVerts; i++) {
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
-		if (Normalize(no)==0.0) {
+		if (normalize_v3(no)==0.0) {
 			VECCOPY(no, mv->co);
-			Normalize(no);
+			normalize_v3(no);
 		}
 
 		mv->no[0]= (short)(no[0]*32767.0);
@@ -1396,7 +1396,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 				next= iterv->next;
 
 				uv2= (tf+iterv->f)->uv[iterv->tfindex];
-				Vec2Subf(uvdiff, uv2, uv);
+				sub_v2_v2v2(uvdiff, uv2, uv);
 
 
 				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
@@ -1787,7 +1787,7 @@ void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
 		v1 = mvarray + (loopstart++)->v;
 		v2 = mvarray + (loopstart++)->v;
 		v3 = mvarray + loopstart->v;
-		CalcNormFloat(v1->co, v2->co, v3->co, no);
+		normal_tri_v3( no,v1->co, v2->co, v3->co);
 	}
 	else if(mpoly->totloop == 4){
 		MVert *v1, *v2, *v3, *v4;
@@ -1796,7 +1796,7 @@ void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
 		v2 = mvarray + (loopstart++)->v;
 		v3 = mvarray + (loopstart++)->v;
 		v4 = mvarray + loopstart->v;
-		CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, no);
+		normal_quad_v3( no,v1->co, v2->co, v3->co, v4->co);
 	}
 	else{ /*horrible, two sided face!*/
 		no[0] = 0.0;

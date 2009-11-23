@@ -41,7 +41,7 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_noise.h"
 
 #include "BKE_fcurve.h"

@@ -52,7 +52,7 @@
 #include "RNA_access.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
@@ -722,7 +722,7 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				uv2 = luv->uv; 
 				
-				Vec2Subf(uvdiff, uv2, uv);
+				sub_v2_v2v2(uvdiff, uv2, uv);
 
 				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
 					if(lastv) lastv->next= next;

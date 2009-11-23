@@ -135,7 +135,7 @@
 #include "BKE_mesh.h"
 #include "MT_Point3.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 extern "C" {
 #include "BKE_customdata.h"
@@ -805,15 +805,15 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 		if(mface->flag & ME_SMOOTH) {
 			float n0[3], n1[3], n2[3], n3[3];
 
-			NormalShortToFloat(n0, mvert[mface->v1].no);
-			NormalShortToFloat(n1, mvert[mface->v2].no);
-			NormalShortToFloat(n2, mvert[mface->v3].no);
+			normal_short_to_float_v3(n0, mvert[mface->v1].no);
+			normal_short_to_float_v3(n1, mvert[mface->v2].no);
+			normal_short_to_float_v3(n2, mvert[mface->v3].no);
 			no0 = n0;
 			no1 = n1;
 			no2 = n2;
 
 			if(mface->v4) {
-				NormalShortToFloat(n3, mvert[mface->v4].no);
+				normal_short_to_float_v3(n3, mvert[mface->v4].no);
 				no3 = n3;
 			}
 		}
@@ -821,9 +821,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			float fno[3];
 
 			if(mface->v4)
-				CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co, fno);
+				normal_quad_v3( fno,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co);
 			else
-				CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, fno);
+				normal_tri_v3( fno,mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co);
 
 			no0 = no1 = no2 = no3 = MT_Vector3(fno);
 		}

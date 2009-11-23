@@ -43,7 +43,7 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_noise.h"
 
 #include "BKE_fcurve.h"
@@ -924,11 +924,11 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			}			
 			
 			/* use the final posed locations */
-			Mat4ToQuat(pchan->pose_mat, q1);
-			Mat4ToQuat(pchan2->pose_mat, q2);
+			mat4_to_quat( q1,pchan->pose_mat);
+			mat4_to_quat( q2,pchan2->pose_mat);
 			
-			QuatInv(q1);
-			QuatMul(quat, q1, q2);
+			invert_qt(q1);
+			mul_qt_qtqt(quat, q1, q2);
 			angle = 2.0f * (saacos(quat[0]));
 			angle= ABS(angle);
 			
@@ -1017,13 +1017,13 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 		
 		if (d > 0.0) {
 			t= sqrt(d);
-			o[0]= (float)(Sqrt3d(-q+t) + Sqrt3d(-q-t) - a);
+			o[0]= (float)(sqrt3d(-q+t) + sqrt3d(-q-t) - a);
 			
 			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
 			else return 0;
 		}
 		else if (d == 0.0) {
-			t= Sqrt3d(-q);
+			t= sqrt3d(-q);
 			o[0]= (float)(2*t - a);
 			
 			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;

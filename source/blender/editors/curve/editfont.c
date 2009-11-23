@@ -39,7 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -541,7 +541,7 @@ void ED_text_to_object(bContext *C, Text *text, int split_lines)
 			offset[2] = 0;
 	
 			if(rv3d)
-				Mat4Mul3Vecfl(rv3d->viewinv, offset);
+				mul_mat3_m4_v3(rv3d->viewinv, offset);
 
 			txt_add_object(C, line, 1, offset);
 

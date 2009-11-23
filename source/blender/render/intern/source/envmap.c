@@ -31,7 +31,7 @@
 /* external modules: */
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
@@ -211,9 +211,9 @@ static void envmap_transmatrix(float mat[][4], int part)
 		eul[2]= -M_PI/2.0;
 	}
 	
-	Mat4CpyMat4(tmat, mat);
-	EulToMat4(eul, rotmat);
-	Mat4MulSerie(mat, tmat, rotmat,
+	copy_m4_m4(tmat, mat);
+	eul_to_mat4( rotmat,eul);
+	mul_serie_m4(mat, tmat, rotmat,
 					 0,   0,    0,
 					 0,   0,    0);
 }
@@ -231,28 +231,28 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 	int a;
 	
 	if(mode==0) {
-		Mat4Invert(tmat, mat);
-		Mat3CpyMat4(imat, tmat);
+		invert_m4_m4(tmat, mat);
+		copy_m3_m4(imat, tmat);
 	}
 	else {
-		Mat4CpyMat4(tmat, mat);
-		Mat3CpyMat4(imat, mat);
+		copy_m4_m4(tmat, mat);
+		copy_m3_m4(imat, mat);
 	}
 
 	for(obi=re->instancetable.first; obi; obi=obi->next) {
 		/* append or set matrix depending on dupli */
 		if(obi->flag & R_DUPLI_TRANSFORMED) {
-			Mat4CpyMat4(tmpmat, obi->mat);
-			Mat4MulMat4(obi->mat, tmpmat, tmat);
+			copy_m4_m4(tmpmat, obi->mat);
+			mul_m4_m4m4(obi->mat, tmpmat, tmat);
 		}
 		else if(mode==1)
-			Mat4CpyMat4(obi->mat, tmat);
+			copy_m4_m4(obi->mat, tmat);
 		else
-			Mat4One(obi->mat);
+			unit_m4(obi->mat);
 
-		Mat3CpyMat4(cmat, obi->mat);
-		Mat3Inv(obi->nmat, cmat);
-		Mat3Transp(obi->nmat);
+		copy_m3_m4(cmat, obi->mat);
+		invert_m3_m3(obi->nmat, cmat);
+		transpose_m3(obi->nmat);
 
 		/* indicate the renderer has to use transform matrices */
 		if(mode==0)
@@ -267,7 +267,7 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 			if((a & 255)==0) har= obr->bloha[a>>8];
 			else har++;
 		
-			Mat4MulVecfl(tmat, har->co);
+			mul_m4_v3(tmat, har->co);
 		}
 	}
 	
@@ -277,25 +277,25 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		/* removed here some horrible code of someone in NaN who tried to fix
 		   prototypes... just solved by introducing a correct cmat[3][3] instead
 		   of using smat. this works, check square spots in reflections  (ton) */
-		Mat3CpyMat3(cmat, lar->imat); 
-		Mat3MulMat3(lar->imat, cmat, imat); 
+		copy_m3_m3(cmat, lar->imat); 
+		mul_m3_m3m3(lar->imat, cmat, imat); 
 
-		Mat3MulVecfl(imat, lar->vec);
-		Mat4MulVecfl(tmat, lar->co);
+		mul_m3_v3(imat, lar->vec);
+		mul_m4_v3(tmat, lar->co);
 
 		lar->sh_invcampos[0]= -lar->co[0];
 		lar->sh_invcampos[1]= -lar->co[1];
 		lar->sh_invcampos[2]= -lar->co[2];
-		Mat3MulVecfl(lar->imat, lar->sh_invcampos);
+		mul_m3_v3(lar->imat, lar->sh_invcampos);
 		lar->sh_invcampos[2]*= lar->sh_zfac;
 		
 		if(lar->shb) {
 			if(mode==1) {
-				Mat4Invert(pmat, mat);
-				Mat4MulMat4(smat, pmat, lar->shb->viewmat);
-				Mat4MulMat4(lar->shb->persmat, smat, lar->shb->winmat);
+				invert_m4_m4(pmat, mat);
+				mul_m4_m4m4(smat, pmat, lar->shb->viewmat);
+				mul_m4_m4m4(lar->shb->persmat, smat, lar->shb->winmat);
 			}
-			else Mat4MulMat4(lar->shb->persmat, lar->shb->viewmat, lar->shb->winmat);
+			else mul_m4_m4m4(lar->shb->persmat, lar->shb->viewmat, lar->shb->winmat);
 		}
 	}
 	
@@ -373,8 +373,8 @@ static void env_set_imats(Render *re)
 	
 	base= re->scene->base.first;
 	while(base) {
-		Mat4MulMat4(mat, base->object->obmat, re->viewmat);
-		Mat4Invert(base->object->imat, mat);
+		mul_m4_m4m4(mat, base->object->obmat, re->viewmat);
+		invert_m4_m4(base->object->imat, mat);
 		
 		base= base->next;
 	}
@@ -393,18 +393,18 @@ static void render_envmap(Render *re, EnvMap *env)
 	short part;
 	
 	/* need a recalc: ortho-render has no correct viewinv */
-	Mat4Invert(oldviewinv, re->viewmat);
+	invert_m4_m4(oldviewinv, re->viewmat);
 
 	envre= envmap_render_copy(re, env);
 	
 	/* precalc orthmat for object */
-	Mat4CpyMat4(orthmat, env->object->obmat);
-	Mat4Ortho(orthmat);
+	copy_m4_m4(orthmat, env->object->obmat);
+	normalize_m4(orthmat);
 	
 	/* need imat later for texture imat */
-	Mat4MulMat4(mat, orthmat, re->viewmat);
-	Mat4Invert(tmat, mat);
-	Mat3CpyMat4(env->obimat, tmat);
+	mul_m4_m4m4(mat, orthmat, re->viewmat);
+	invert_m4_m4(tmat, mat);
+	copy_m3_m4(env->obimat, tmat);
 
 	for(part=0; part<6; part++) {
 		if(env->type==ENV_PLANE && part!=1)
@@ -412,17 +412,17 @@ static void render_envmap(Render *re, EnvMap *env)
 		
 		re->display_clear(re->dch, envre->result);
 		
-		Mat4CpyMat4(tmat, orthmat);
+		copy_m4_m4(tmat, orthmat);
 		envmap_transmatrix(tmat, part);
-		Mat4Invert(mat, tmat);
+		invert_m4_m4(mat, tmat);
 		/* mat now is the camera 'viewmat' */
 
-		Mat4CpyMat4(envre->viewmat, mat);
-		Mat4CpyMat4(envre->viewinv, tmat);
+		copy_m4_m4(envre->viewmat, mat);
+		copy_m4_m4(envre->viewinv, tmat);
 		
 		/* we have to correct for the already rotated vertexcoords */
-		Mat4MulMat4(tmat, oldviewinv, envre->viewmat);
-		Mat4Invert(env->imat, tmat);
+		mul_m4_m4m4(tmat, oldviewinv, envre->viewmat);
+		invert_m4_m4(env->imat, tmat);
 		
 		env_rotate_scene(envre, tmat, 1);
 		init_render_world(envre);
@@ -503,13 +503,13 @@ void make_envmaps(Render *re)
 							float orthmat[4][4], mat[4][4], tmat[4][4];
 							
 							/* precalc orthmat for object */
-							Mat4CpyMat4(orthmat, env->object->obmat);
-							Mat4Ortho(orthmat);
+							copy_m4_m4(orthmat, env->object->obmat);
+							normalize_m4(orthmat);
 							
 							/* need imat later for texture imat */
-							Mat4MulMat4(mat, orthmat, re->viewmat);
-							Mat4Invert(tmat, mat);
-							Mat3CpyMat4(env->obimat, tmat);
+							mul_m4_m4m4(mat, orthmat, re->viewmat);
+							invert_m4_m4(tmat, mat);
+							copy_m3_m4(env->obimat, tmat);
 						}
 						else {
 							
@@ -678,20 +678,20 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	
 	/* rotate to envmap space, if object is set */
 	VECCOPY(vec, texvec);
-	if(env->object) Mat3MulVecfl(env->obimat, vec);
-	else Mat4Mul3Vecfl(R.viewinv, vec);
+	if(env->object) mul_m3_v3(env->obimat, vec);
+	else mul_mat3_m4_v3(R.viewinv, vec);
 	
 	face= envcube_isect(env, vec, sco);
 	ibuf= env->cube[face];
 	
 	if(osatex) {
 		if(env->object) {
-			Mat3MulVecfl(env->obimat, dxt);
-			Mat3MulVecfl(env->obimat, dyt);
+			mul_m3_v3(env->obimat, dxt);
+			mul_m3_v3(env->obimat, dyt);
 		}
 		else {
-			Mat4Mul3Vecfl(R.viewinv, dxt);
-			Mat4Mul3Vecfl(R.viewinv, dyt);
+			mul_mat3_m4_v3(R.viewinv, dxt);
+			mul_mat3_m4_v3(R.viewinv, dyt);
 		}
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
 		imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, texres);
@@ -703,9 +703,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	
 			texr1.nor= texr2.nor= NULL;
 
-			VecAddf(vec, vec, dxt);
+			add_v3_v3v3(vec, vec, dxt);
 			face1= envcube_isect(env, vec, sco);
-			VecSubf(vec, vec, dxt);
+			sub_v3_v3v3(vec, vec, dxt);
 			
 			if(face!=face1) {
 				ibuf= env->cube[face1];
@@ -716,9 +716,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			
 			/* here was the nasty bug! results were not zero-ed. FPE! */
 			
-			VecAddf(vec, vec, dyt);
+			add_v3_v3v3(vec, vec, dyt);
 			face1= envcube_isect(env, vec, sco);
-			VecSubf(vec, vec, dyt);
+			sub_v3_v3v3(vec, vec, dyt);
 			
 			if(face!=face1) {
 				ibuf= env->cube[face1];

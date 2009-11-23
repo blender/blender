@@ -33,7 +33,7 @@
 #include "BKE_constraint.h"
 #include "BL_ArmatureActuator.h"
 #include "BL_ArmatureObject.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 /**
  * This class is the conversion of the Pose channel constraint.

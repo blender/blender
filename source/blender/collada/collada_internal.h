@@ -39,8 +39,8 @@ public:
 
 	void mat4_to_dae(float out[][4], float in[][4])
 	{
-		Mat4CpyMat4(out, in);
-		Mat4Transp(out);
+		copy_m4_m4(out, in);
+		transpose_m4(out);
 	}
 
 	void mat4_to_dae_double(double out[][4], float in[][4])
@@ -60,9 +60,9 @@ class TransformBase
 public:
 	void decompose(float mat[][4], float *loc, float *rot, float *size)
 	{
-		Mat4ToSize(mat, size);
-		Mat4ToEul(mat, rot);
-		VecCopyf(loc, mat[3]);
+		mat4_to_size( size,mat);
+		mat4_to_eul( rot,mat);
+		copy_v3_v3(loc, mat[3]);
 	}
 };
 

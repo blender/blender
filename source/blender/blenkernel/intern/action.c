@@ -64,7 +64,7 @@
 #include "BKE_utildefines.h"
 #include "BIK_api.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
@@ -453,7 +453,7 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	chan->limitmax[0]= chan->limitmax[1]= chan->limitmax[2]= 180.0f;
 	chan->stiffness[0]= chan->stiffness[1]= chan->stiffness[2]= 0.0f;
 	chan->ikrotweight = chan->iklinweight = 0.0f;
-	Mat4One(chan->constinv);
+	unit_m4(chan->constinv);
 	
 	BLI_addtail(&pose->chanbase, chan);
 	
@@ -611,8 +611,8 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	pchan->rotAngle= chan->rotAngle;
 	QUATCOPY(pchan->quat, chan->quat);
 	pchan->rotmode= chan->rotmode;
-	Mat4CpyMat4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
-	Mat4CpyMat4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
+	copy_m4_m4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
+	copy_m4_m4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
@@ -1013,8 +1013,8 @@ void copy_pose_result(bPose *to, bPose *from)
 	for(pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
 		pchanto= get_pose_channel(to, pchanfrom->name);
 		if(pchanto) {
-			Mat4CpyMat4(pchanto->pose_mat, pchanfrom->pose_mat);
-			Mat4CpyMat4(pchanto->chan_mat, pchanfrom->chan_mat);
+			copy_m4_m4(pchanto->pose_mat, pchanfrom->pose_mat);
+			copy_m4_m4(pchanto->chan_mat, pchanfrom->chan_mat);
 			
 			/* used for local constraints */
 			VECCOPY(pchanto->loc, pchanfrom->loc);
@@ -1040,9 +1040,9 @@ void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, 
 	clear_workob(workob);
 	
 	/* init workob */
-	Mat4CpyMat4(workob->obmat, ob->obmat);
-	Mat4CpyMat4(workob->parentinv, ob->parentinv);
-	Mat4CpyMat4(workob->constinv, ob->constinv);
+	copy_m4_m4(workob->obmat, ob->obmat);
+	copy_m4_m4(workob->parentinv, ob->parentinv);
+	copy_m4_m4(workob->constinv, ob->constinv);
 	workob->parent= ob->parent;
 	workob->track= ob->track;
 
@@ -1109,7 +1109,7 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 			dstweight = 1.0F;
 	}
 	
-	VecLerpf(dst->stride_offset, dst->stride_offset, src->stride_offset, srcweight);
+	interp_v3_v3v3(dst->stride_offset, dst->stride_offset, src->stride_offset, srcweight);
 }
 
 
@@ -1169,27 +1169,27 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 						execute_action_ipo(achan, &pchan);
 						
 						/* store offset that moves src to location of pchan */
-						VecSubf(vec, dpchan->loc, pchan.loc);
+						sub_v3_v3v3(vec, dpchan->loc, pchan.loc);
 						
-						Mat4Mul3Vecfl(dpchan->bone->arm_mat, vec);
+						mul_mat3_m4_v3(dpchan->bone->arm_mat, vec);
 					}
 				}
 				else {
 					/* store offset that moves src to location of dst */
 					
-					VecSubf(vec, dpchan->loc, spchan->loc);
-					Mat4Mul3Vecfl(dpchan->bone->arm_mat, vec);
+					sub_v3_v3v3(vec, dpchan->loc, spchan->loc);
+					mul_mat3_m4_v3(dpchan->bone->arm_mat, vec);
 				}
 				
 				/* if blending, we only add with factor scrweight */
-				VecMulf(vec, srcweight);
+				mul_v3_fl(vec, srcweight);
 				
-				VecAddf(dst->cyclic_offset, dst->cyclic_offset, vec);
+				add_v3_v3v3(dst->cyclic_offset, dst->cyclic_offset, vec);
 			}
 		}
 	}
 	
-	VecAddf(dst->cyclic_offset, dst->cyclic_offset, src->cyclic_offset);
+	add_v3_v3v3(dst->cyclic_offset, dst->cyclic_offset, src->cyclic_offset);
 }
 
 /* added "sizecorr" here, to allow armatures to be scaled and still have striding.
@@ -1249,14 +1249,14 @@ static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip
 			if (pdistNewNormalized <= 1) {
 				// search for correction in positive path-direction
 				where_on_path(ob, pdistNewNormalized, vec2, dir);	/* vec needs size 4 */
-				VecSubf(stride_offset, vec2, vec1);
+				sub_v3_v3v3(stride_offset, vec2, vec1);
 			}
 			else {
 				// we reached the end of the path, search backwards instead
 				where_on_path(ob, (pathdist-pdist)/path->totdist, vec2, dir);	/* vec needs size 4 */
-				VecSubf(stride_offset, vec1, vec2);
+				sub_v3_v3v3(stride_offset, vec1, vec2);
 			}
-			Mat4Mul3Vecfl(ob->obmat, stride_offset);
+			mul_mat3_m4_v3(ob->obmat, stride_offset);
 			return striptime;
 		}
 	}
@@ -1295,10 +1295,10 @@ static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float
 			}
 			if(foundvert) {
 				/* bring it into armature space */
-				VecSubf(min, max, min);
+				sub_v3_v3v3(min, max, min);
 				bone= get_named_bone(ob->data, strip->offs_bone);	/* weak */
 				if(bone) {
-					Mat4Mul3Vecfl(bone->arm_mat, min);
+					mul_mat3_m4_v3(bone->arm_mat, min);
 					
 					/* dominant motion, cyclic_offset was cleared in rest_pose */
 					if (strip->flag & (ACTSTRIP_CYCLIC_USEX | ACTSTRIP_CYCLIC_USEY | ACTSTRIP_CYCLIC_USEZ)) {
@@ -1549,7 +1549,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	}
 	else if(blocktype==ID_AR) {
 		/* apply stride offset to object */
-		VecAddf(ob->obmat[3], ob->obmat[3], ob->pose->stride_offset);
+		add_v3_v3v3(ob->obmat[3], ob->obmat[3], ob->pose->stride_offset);
 	}
 	
 	/* free */

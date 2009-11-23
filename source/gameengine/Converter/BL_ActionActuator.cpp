@@ -46,7 +46,7 @@
 #include "DNA_scene_types.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
 #include "FloatValue.h"
@@ -539,8 +539,8 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		
 		if(pchan) {
 			VECCOPY (pchan->loc, matrix[3]);
-			Mat4ToSize(matrix, pchan->size);
-			Mat4ToQuat(matrix, pchan->quat);
+			mat4_to_size( pchan->size,matrix);
+			mat4_to_quat( pchan->quat,matrix);
 		}
 	}
 	else {

@@ -40,7 +40,7 @@
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 
 #include "BKE_action.h"
@@ -841,14 +841,14 @@ static int hook_reset_exec(bContext *C, wmOperator *op)
 			float imat[4][4], mat[4][4];
 			
 			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
-			Mat4MulMat4(mat, pchan->pose_mat, hmd->object->obmat);
+			mul_m4_m4m4(mat, pchan->pose_mat, hmd->object->obmat);
 			
-			Mat4Invert(imat, mat);
-			Mat4MulSerie(hmd->parentinv, imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+			invert_m4_m4(imat, mat);
+			mul_serie_m4(hmd->parentinv, imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 		}
 		else {
-			Mat4Invert(hmd->object->imat, hmd->object->obmat);
-			Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+			invert_m4_m4(hmd->object->imat, hmd->object->obmat);
+			mul_serie_m4(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 		}
 	}
 
@@ -879,11 +879,11 @@ static int hook_recenter_exec(bContext *C, wmOperator *op)
 	HookModifierData *hmd= ptr.data;
 	float bmat[3][3], imat[3][3];
 
-	Mat3CpyMat4(bmat, ob->obmat);
-	Mat3Inv(imat, bmat);
+	copy_m3_m4(bmat, ob->obmat);
+	invert_m3_m3(imat, bmat);
 
 	VECSUB(hmd->cent, scene->cursor, ob->obmat[3]);
-	Mat3MulVecfl(imat, hmd->cent);
+	mul_m3_v3(imat, hmd->cent);
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);

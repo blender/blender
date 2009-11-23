@@ -106,7 +106,7 @@ static void node_shader_exec_curve_rgb(void *data, bNode *node, bNodeStack **in,
 	nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
 	curvemapping_evaluateRGBF(node->storage, out[0]->vec, vec);
 	if(in[0]->vec[0] != 1.0f) {
-		VecLerpf(out[0]->vec, vec, out[0]->vec, *in[0]->vec);
+		interp_v3_v3v3(out[0]->vec, vec, out[0]->vec, *in[0]->vec);
 	}
 }
 

@@ -49,7 +49,7 @@
 #include "RNA_access.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 
 #include "BKE_context.h"
@@ -906,7 +906,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			vec[0]= dia*phi;
 			vec[1]= - dia;
 			vec[2]= 0.0f;
-			Mat4MulVecfl(mat,vec);
+			mul_m4_v3(mat,vec);
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
 			if (a) {
@@ -917,7 +917,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
 		vec[1]= dia*phid;
-		Mat4Mul3Vecfl(mat, vec);
+		mul_mat3_m4_v3(mat, vec);
 		
 		for(a=0;a<seg-1;a++) {
 			extrudeflag_vert(obedit, em, 2, nor);	// nor unused
@@ -952,7 +952,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		q[0]= cos(phi);
 		q[3]= sin(phi);
 		q[1]=q[2]= 0;
-		QuatToMat3(q, cmat);
+		quat_to_mat3( cmat,q);
 		
 		for(a=0; a<seg; a++) {
 			extrudeflag_vert(obedit, em, 2, nor); // nor unused
@@ -965,7 +965,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & SELECT) {
-				Mat4MulVecfl(mat,eve->co);
+				mul_m4_v3(mat,eve->co);
 			}
 			eve= eve->next;
 		}
@@ -1008,7 +1008,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			eve= em->verts.first;
 			while(eve) {
 				if(eve->f & 2) {
-					Mat4MulVecfl(mat,eve->co);
+					mul_m4_v3(mat,eve->co);
 				}
 				eve= eve->next;
 			}
@@ -1047,7 +1047,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			/* and now do imat */
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->f & SELECT) {
-					Mat4MulVecfl(mat,eve->co);
+					mul_m4_v3(mat,eve->co);
 				}
 			}
 			recalc_editnormals(em);
@@ -1067,7 +1067,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 				vec[1]= dia*cos(phi);
 				vec[2]= b?depth:-depth;
 				
-				Mat4MulVecfl(mat, vec);
+				mul_m4_v3(mat, vec);
 				eve= addvertlist(em, vec, NULL);
 				eve->f= SELECT;
 				if(a==0) {
@@ -1084,12 +1084,12 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		if(type == PRIM_CONE || (fill && !ELEM(type, PRIM_PLANE, PRIM_CUBE))) {
 			vec[0]= vec[1]= 0.0f;
 			vec[2]= type==PRIM_CONE ? depth : -depth;
-			Mat4MulVecfl(mat, vec);
+			mul_m4_v3(mat, vec);
 			vdown= addvertlist(em, vec, NULL);
 			if((ext || type==PRIM_CONE) && fill) {
 				vec[0]= vec[1]= 0.0f;
 				vec[2]= type==PRIM_CONE ? -depth : depth;
-				Mat4MulVecfl(mat,vec);
+				mul_m4_v3(mat,vec);
 				vtop= addvertlist(em, vec, NULL);
 			}
 		} else {
@@ -1178,25 +1178,25 @@ static float new_primitive_matrix(bContext *C, int view_align, float primmat[][4
 	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 	float *curs, mat[3][3], vmat[3][3], cmat[3][3], imat[3][3];
 	
-	Mat4One(primmat);
+	unit_m4(primmat);
 	
 	if(rv3d && view_align) {
-		Mat3CpyMat4(vmat, rv3d->viewmat);
+		copy_m3_m4(vmat, rv3d->viewmat);
 	} else
-		Mat3One(vmat);
+		unit_m3(vmat);
 	
 	/* inverse transform for view and object */
-	Mat3CpyMat4(mat, obedit->obmat);
-	Mat3MulMat3(cmat, vmat, mat);
-	Mat3Inv(imat, cmat);
-	Mat4CpyMat3(primmat, imat);
+	copy_m3_m4(mat, obedit->obmat);
+	mul_m3_m3m3(cmat, vmat, mat);
+	invert_m3_m3(imat, cmat);
+	copy_m4_m3(primmat, imat);
 
 	/* center */
 	curs= give_cursor(scene, v3d);
 	VECCOPY(primmat[3], curs);
 	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
-	Mat3Inv(imat, mat);
-	Mat3MulVecfl(imat, primmat[3]);
+	invert_m3_m3(imat, mat);
+	mul_m3_v3(imat, primmat[3]);
 	
 	if(v3d) return v3d->grid;
 	return 1.0f;

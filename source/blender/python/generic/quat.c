@@ -28,7 +28,7 @@
 
 #include "Mathutils.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 
@@ -152,9 +152,9 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 
 	if(size == 3) //calculate the quat based on axis/angle
 #ifdef USE_MATHUTILS_DEG
-		AxisAngleToQuat(quat, quat, angle * (Py_PI / 180));
+		axis_angle_to_quat(quat, quat, angle * (Py_PI / 180));
 #else
-		AxisAngleToQuat(quat, quat, angle);
+		axis_angle_to_quat(quat, quat, angle);
 #endif
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
@@ -180,7 +180,7 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
 		
-		QuatToMat3(self->quat, mat);
+		quat_to_mat3( mat,self->quat);
 
 #ifdef USE_MATHUTILS_DEG
 		{
@@ -190,14 +190,14 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 			for(x = 0; x < 3; x++) {
 				eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
 			}
-			Mat3ToCompatibleEul(mat, eul, eul_compatf);
+			mat3_to_compatible_eul( eul, eul_compatf,mat);
 		}
 #else
-		Mat3ToCompatibleEul(mat, eul, eul_compat->eul);
+		mat3_to_compatible_eul( eul, eul_compat->eul,mat);
 #endif
 	}
 	else {
-		QuatToEul(self->quat, eul);
+		quat_to_eul( eul,self->quat);
 	}
 	
 #ifdef USE_MATHUTILS_DEG
@@ -220,7 +220,7 @@ static PyObject *Quaternion_ToMatrix(QuaternionObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	QuatToMat3(self->quat, (float (*)[3]) mat);
+	quat_to_mat3( (float (*)[3]) mat,self->quat);
 	return newMatrixObject(mat, 3, 3, Py_NEW, NULL);
 }
 
@@ -238,7 +238,7 @@ static PyObject *Quaternion_Cross(QuaternionObject * self, QuaternionObject * va
 	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 
-	QuatMul(quat, self->quat, value->quat);
+	mul_qt_qtqt(quat, self->quat, value->quat);
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 
@@ -254,7 +254,7 @@ static PyObject *Quaternion_Dot(QuaternionObject * self, QuaternionObject * valu
 	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 
-	return PyFloat_FromDouble(QuatDot(self->quat, value->quat));
+	return PyFloat_FromDouble(dot_qtqt(self->quat, value->quat));
 }
 
 //----------------------------Quaternion.normalize()----------------
@@ -264,7 +264,7 @@ static PyObject *Quaternion_Normalize(QuaternionObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	NormalQuat(self->quat);
+	normalize_qt(self->quat);
 
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
@@ -277,7 +277,7 @@ static PyObject *Quaternion_Inverse(QuaternionObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	QuatInv(self->quat);
+	invert_qt(self->quat);
 
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
@@ -290,7 +290,7 @@ static PyObject *Quaternion_Identity(QuaternionObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	QuatOne(self->quat);
+	unit_qt(self->quat);
 
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
@@ -303,7 +303,7 @@ static PyObject *Quaternion_Negate(QuaternionObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	QuatMulf(self->quat, -1.0f);
+	mul_qt_fl(self->quat, -1.0f);
 
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
@@ -316,7 +316,7 @@ static PyObject *Quaternion_Conjugate(QuaternionObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	QuatConj(self->quat);
+	conjugate_qt(self->quat);
 
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
@@ -525,7 +525,7 @@ static PyObject *Quaternion_add(PyObject * q1, PyObject * q2)
 	if(!BaseMath_ReadCallback(quat1) || !BaseMath_ReadCallback(quat2))
 		return NULL;
 
-	QuatAdd(quat, quat1->quat, quat2->quat, 1.0f);
+	add_qt_qtqt(quat, quat1->quat, quat2->quat, 1.0f);
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 //------------------------obj - obj------------------------------
@@ -573,7 +573,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 	}
 
 	if(quat1 && quat2) { /* QUAT*QUAT (dot product) */
-		return PyFloat_FromDouble(QuatDot(quat1->quat, quat2->quat));
+		return PyFloat_FromDouble(dot_qtqt(quat1->quat, quat2->quat));
 	}
 	
 	/* the only case this can happen (for a supported type is "FLOAT*QUAT" ) */
@@ -581,7 +581,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 		scalar= PyFloat_AsDouble(q1);
 		if ((scalar == -1.0 && PyErr_Occurred())==0) { /* FLOAT*QUAT */
 			QUATCOPY(quat, quat2->quat);
-			QuatMulf(quat, scalar);
+			mul_qt_fl(quat, scalar);
 			return newQuaternionObject(quat, Py_NEW, NULL);
 		}
 		PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: val * quat, val is not an acceptable type");
@@ -600,7 +600,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 		scalar= PyFloat_AsDouble(q2);
 		if ((scalar == -1.0 && PyErr_Occurred())==0) { /* QUAT*FLOAT */
 			QUATCOPY(quat, quat1->quat);
-			QuatMulf(quat, scalar);
+			mul_qt_fl(quat, scalar);
 			return newQuaternionObject(quat, Py_NEW, NULL);
 		}
 	}
@@ -669,7 +669,7 @@ static int Quaternion_setAxis( QuaternionObject * self, PyObject * value, void *
 
 static PyObject *Quaternion_getMagnitude( QuaternionObject * self, void *type )
 {
-	return PyFloat_FromDouble(sqrt(QuatDot(self->quat, self->quat)));
+	return PyFloat_FromDouble(sqrt(dot_qtqt(self->quat, self->quat)));
 }
 
 static PyObject *Quaternion_getAngle( QuaternionObject * self, void *type )
@@ -692,7 +692,7 @@ static PyObject *Quaternion_getAxisVec( QuaternionObject * self, void *type )
 	for(i = 0; i < 3; i++)
 		vec[i] = (float)(self->quat[i + 1] / mag);
 	
-	Normalize(vec);
+	normalize_v3(vec);
 	//If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations
 	if( EXPP_FloatsAreEqual(vec[0], 0.0f, 10) &&
 		EXPP_FloatsAreEqual(vec[1], 0.0f, 10) &&
@@ -820,7 +820,7 @@ PyObject *newQuaternionObject(float *quat, int type, PyTypeObject *base_type)
 	}else if (type == Py_NEW){
 		self->quat = PyMem_Malloc(4 * sizeof(float));
 		if(!quat) { //new empty
-			QuatOne(self->quat);
+			unit_qt(self->quat);
 		}else{
 			QUATCOPY(self->quat, quat);
 		}
