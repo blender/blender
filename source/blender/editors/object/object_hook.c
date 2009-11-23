@@ -55,6 +55,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_utildefines.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -385,6 +386,22 @@ static void object_hook_select(Object *ob, HookModifierData *hmd)
 	else if(ob->type==OB_SURF) select_editcurve_hook(ob, hmd);
 }
 
+/* special poll operators for hook operators */
+// TODO: check for properties window modifier context too as alternative?
+static int hook_op_edit_poll(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if (obedit) {
+		if (ED_operator_editmesh(C)) return 1;
+		if (ED_operator_editsurfcurve(C)) return 1;
+		if (ED_operator_editlattice(C)) return 1;
+		//if (ED_operator_editmball(C)) return 1;
+	}
+	
+	return 0;
+}
+
 static Object *add_hook_object_new(Scene *scene, Object *obedit)
 {
 	Base *base, *basedit;
@@ -402,7 +419,6 @@ static Object *add_hook_object_new(Scene *scene, Object *obedit)
 
 	return ob;
 }
-
 
 static void add_hook_object(Scene *scene, Object *obedit, Object *ob, int mode)
 {
@@ -488,7 +504,7 @@ void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_add_hook_selob_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -514,7 +530,7 @@ void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_add_hook_newob_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -585,9 +601,9 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	ot->description= "Remove a hook from the active object.";
 	
 	/* api callbacks */
-	ot->poll= ED_operator_editmesh;
 	ot->exec= object_hook_remove_exec;
 	ot->invoke= WM_menu_invoke;
+	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -607,7 +623,8 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {		/* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd= ptr.data;
-	} else {			/* use the provided property */
+	} 
+	else {			/* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
@@ -617,7 +634,6 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* reset functionality */
-	
 	if(hmd->object) {
 		bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
 		
@@ -646,12 +662,14 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
+	/* identifiers */
 	ot->name= "Reset Hook";
 	ot->description= "Recalculate and and clear offset transformation.";
 	ot->idname= "OBJECT_OT_hook_reset";
 	
-	ot->poll= ED_operator_editmesh;
+	/* callbacks */
 	ot->exec= object_hook_reset_exec;
+	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -673,7 +691,8 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {		/* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd= ptr.data;
-	} else {			/* use the provided property */
+	} 
+	else {			/* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
@@ -683,7 +702,6 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* recenter functionality */
-	
 	copy_m3_m4(bmat, ob->obmat);
 	invert_m3_m3(imat, bmat);
 	
@@ -700,12 +718,14 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
+	/* identifiers */
 	ot->name= "Recenter Hook";
 	ot->description= "Set hook center to cursor position.";
 	ot->idname= "OBJECT_OT_hook_recenter";
 	
-	ot->poll= ED_operator_editmesh;
+	/* callbacks */
 	ot->exec= object_hook_recenter_exec;
+	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -728,7 +748,8 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {		/* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd= ptr.data;
-	} else {			/* use the provided property */
+	} 
+	else {			/* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
@@ -760,12 +781,14 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
+	/* identifiers */
 	ot->name= "Assign to Hook";
 	ot->description= "Assign the selected vertices to a hook.";
 	ot->idname= "OBJECT_OT_hook_assign";
 	
-	ot->poll= ED_operator_editmesh;
+	/* callbacks */
 	ot->exec= object_hook_assign_exec;
+	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -785,7 +808,8 @@ static int object_hook_select_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {		/* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd= ptr.data;
-	} else {			/* use the provided property */
+	} 
+	else {			/* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
@@ -795,7 +819,6 @@ static int object_hook_select_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* select functionality */
-	
 	object_hook_select(ob, hmd);
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
@@ -807,12 +830,14 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
+	/* identifiers */
 	ot->name= "Select Hook";
 	ot->description= "Selects effected vertices on mesh.";
 	ot->idname= "OBJECT_OT_hook_select";
 	
-	ot->poll= ED_operator_editmesh;
+	/* callbacks */
 	ot->exec= object_hook_select_exec;
+	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
