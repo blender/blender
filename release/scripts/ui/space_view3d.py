@@ -1786,7 +1786,8 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
     def poll(self, context):
         member = self._active_context_member(context)
         if member:
-            return getattr(context, member).keys()
+            context_member = getattr(context, member)
+            return context_member and context_member.keys()
 
         return False
 
