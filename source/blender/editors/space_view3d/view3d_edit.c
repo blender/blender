@@ -1235,7 +1235,6 @@ void VIEW3D_OT_view_center(wmOperatorType *ot)
 static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	
@@ -1257,7 +1256,7 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 		}
 		
 		if (rv3d->viewlock & RV3D_BOXVIEW)
-			view3d_boxview_copy(CTX_wm_area(C), ar);
+			view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
 	}
 	
 	return OPERATOR_FINISHED;
@@ -1275,7 +1274,7 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= 0;
 }
 
 /* ********************* Set render border operator ****************** */

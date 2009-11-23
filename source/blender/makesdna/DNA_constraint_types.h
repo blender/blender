@@ -585,16 +585,18 @@ typedef enum eSplineIK_Flags {
 	CONSTRAINT_SPLINEIK_SCALE_LIMITED	= (1<<2),
 	/* evenly distribute the bones along the path regardless of length */
 	CONSTRAINT_SPLINEIK_EVENSPLITS		= (1<<3),	
+	/* don't adjust the x and z scaling of the bones by the curve radius */
+	CONSTRAINT_SPLINEIK_NO_CURVERAD	= (1<<4),
 } eSplineIK_Flags;
 
 /* bSplineIKConstraint->xzScaleMode */
 typedef enum eSplineIK_XZScaleModes {
 	/* no x/z scaling */
 	CONSTRAINT_SPLINEIK_XZS_NONE			= 0,
-	/* bones in the chain should take their x/z scales from the curve radius */
-	CONSTRAINT_SPLINEIK_XZS_RADIUS,
 	/* bones in the chain should take their x/z scales from the original scaling */
 	CONSTRAINT_SPLINEIK_XZS_ORIGINAL,
+	/* x/z scales are the inverse of the y-scale */
+	CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC,
 } eSplineIK_XZScaleModes;
 
 /* MinMax (floor) flags */

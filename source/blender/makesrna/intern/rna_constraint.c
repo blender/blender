@@ -1679,9 +1679,9 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem splineik_xz_scale_mode[] = {
-		{CONSTRAINT_SPLINEIK_XZS_NONE, "NONE", 0, "Volume Preserve", "Don't scale the x and z axes, giving a volume preservation effect. (Default)"},
-		{CONSTRAINT_SPLINEIK_XZS_RADIUS, "CURVE_RADIUS", 0, "Curve Radius", "Use the radius of the curve."},
+		{CONSTRAINT_SPLINEIK_XZS_NONE, "NONE", 0, "None", "Don't scale the X and Z axes (Default)"},
 		{CONSTRAINT_SPLINEIK_XZS_ORIGINAL, "BONE_ORIGINAL", 0, "Bone Original", "Use the original scaling of the bones."},
+		{CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC, "VOLUME_PRESERVE", 0, "Volume Preservation", "Scale of the X and Z axes is the inverse of the Y-Scale."},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SplineIKConstraint", "Constraint");
@@ -1718,15 +1718,20 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Even Divisions", "Ignore the relative lengths of the bones when fitting to the curve.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "y_scaling", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "y_streching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_SCALE_LIMITED);
-	RNA_def_property_ui_text(prop, "Y Scaling", "Stretch the Y axis of the bones to fit the curve.");
+	RNA_def_property_ui_text(prop, "Y Stretch", "Stretch the Y axis of the bones to fit the curve.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "use_curve_radius", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_NO_CURVERAD);
+	RNA_def_property_ui_text(prop, "Use Curve Radius", "Average radius of the endpoints is used to tweak the X and Z Scaling of the bones, on top of XZ Scale mode.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
 	prop= RNA_def_property(srna, "xz_scaling_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "xzScaleMode");
 	RNA_def_property_enum_items(prop, splineik_xz_scale_mode);
-	RNA_def_property_ui_text(prop, "XZ Scale Mode", "Method used for determining the scaling of the X and Z axes of the bone.");
+	RNA_def_property_ui_text(prop, "XZ Scale Mode", "Method used for determining the scaling of the X and Z axes of the bones.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 

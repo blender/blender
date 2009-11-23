@@ -706,11 +706,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = layout.column()
         col.itemL(text="Chain Scaling:")
-        col.itemR(con, "y_scaling")
+        col.itemR(con, "y_stretch")
         if wide_ui:
             col.itemR(con, "xz_scaling_mode")
         else:
             col.itemR(con, "xz_scaling_mode", text="")
+        col.itemR(con, "use_curve_radius")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):

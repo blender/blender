@@ -1915,20 +1915,12 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	}
 	
 	/* step 4: set the scaling factors for the axes */
-	// TODO: include a no-scale option?
 	{
 		/* only multiply the y-axis by the scaling factor to get nice volume-preservation */
 		mul_v3_fl(poseMat[1], scaleFac);
 		
 		/* set the scaling factors of the x and z axes from... */
 		switch (ikData->xzScaleMode) {
-			case CONSTRAINT_SPLINEIK_XZS_RADIUS:
-			{
-				/* radius of curve */
-				mul_v3_fl(poseMat[0], radius);
-				mul_v3_fl(poseMat[2], radius);
-			}
-				break;
 			case CONSTRAINT_SPLINEIK_XZS_ORIGINAL:
 			{
 				/* original scales get used */
@@ -1942,6 +1934,37 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 				mul_v3_fl(poseMat[2], scale);
 			}
 				break;
+			case CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC:
+			{
+				/* 'volume preservation' */
+				float scale;
+				
+				/* calculate volume preservation factor which is 
+				 * basically the inverse of the y-scaling factor 
+				 */
+				if (fabs(scaleFac) != 0.0f) {
+					scale= 1.0 / fabs(scaleFac);
+					
+					/* we need to clamp this within sensible values */
+					// NOTE: these should be fine for now, but should get sanitised in future
+					scale= MIN2( MAX2(scale, 0.0001) , 100000);
+				}
+				else
+					scale= 1.0f;
+				
+				/* apply the scaling */
+				mul_v3_fl(poseMat[0], scale);
+				mul_v3_fl(poseMat[2], scale);
+			}
+				break;
+		}
+		
+		/* finally, multiply the x and z scaling by the radius of the curve too, 
+		 * to allow automatic scales to get tweaked still
+		 */
+		if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_CURVERAD) == 0) {
+			mul_v3_fl(poseMat[0], radius);
+			mul_v3_fl(poseMat[2], radius);
 		}
 	}
 	
