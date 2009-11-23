@@ -518,17 +518,22 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	outPose->ikdata = NULL;
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
 	
-	// TODO: rename this argument...
-	if (copycon) {
-		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
+	for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
+		// TODO: rename this argument...
+		if (copycon) {
 			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
 			pchan->constraints= listb;
 			pchan->path= NULL;
 		}
 		
-		/* for now, duplicate Bone Groups too when doing this */
-		BLI_duplicatelist(&outPose->agroups, &src->agroups);
+		if(pchan->prop) {
+			pchan->prop= IDP_CopyProperty(pchan->prop);
+		}
 	}
+
+	/* for now, duplicate Bone Groups too when doing this */
+	if(copycon)
+		BLI_duplicatelist(&outPose->agroups, &src->agroups);
 	
 	*dst=outPose;
 }
