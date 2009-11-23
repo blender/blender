@@ -2599,40 +2599,16 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *edit
 	 */
 	if (src_ob->pose) {
 		bPoseChannel *chanold, *channew;
-		ListBase     *listold, *listnew;
 		
 		chanold = verify_pose_channel(src_ob->pose, curBone->name);
 		if (chanold) {
-			listold = &chanold->constraints;
-			if (listold) {
-				/* WARNING: this creates a new posechannel, but there will not be an attached bone 
-				 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
-				 */
-				channew = 
-					verify_pose_channel(dst_ob->pose, eBone->name);
-				if (channew) {
-					/* copy transform locks */
-					channew->protectflag = chanold->protectflag;
-					
-					/* copy bone group */
-					channew->agrp_index= chanold->agrp_index;
-					
-					/* ik (dof) settings */
-					channew->ikflag = chanold->ikflag;
-					VECCOPY(channew->limitmin, chanold->limitmin);
-					VECCOPY(channew->limitmax, chanold->limitmax);
-					VECCOPY(channew->stiffness, chanold->stiffness);
-					channew->ikstretch= chanold->ikstretch;
-					channew->ikrotweight= chanold->ikrotweight;
-					channew->iklinweight= chanold->iklinweight;
-					
-					/* constraints */
-					listnew = &channew->constraints;
-					copy_constraints(listnew, listold);
-					
-					/* custom shape */
-					channew->custom= chanold->custom;
-				}
+			/* WARNING: this creates a new posechannel, but there will not be an attached bone
+			 *		yet as the new bones created here are still 'EditBones' not 'Bones'.
+			 */
+			channew= verify_pose_channel(dst_ob->pose, eBone->name);
+
+			if(channew) {
+				duplicate_pose_channel_data(channew, chanold);
 			}
 		}
 	}
@@ -2701,43 +2677,15 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 				 */
 				if (obedit->pose) {
 					bPoseChannel *chanold, *channew;
-					ListBase     *listold, *listnew;
 					
 					chanold = verify_pose_channel(obedit->pose, curBone->name);
 					if (chanold) {
-						listold = &chanold->constraints;
-						if (listold) {
-							/* WARNING: this creates a new posechannel, but there will not be an attached bone 
-							 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
-							 */
-							channew = 
-								verify_pose_channel(obedit->pose, eBone->name);
-							if (channew) {
-								/* copy transform locks */
-								channew->protectflag = chanold->protectflag;
-								
-								/* copy rotation mode */
-								channew->rotmode = chanold->rotmode;
-								
-								/* copy bone group */
-								channew->agrp_index= chanold->agrp_index;
-								
-								/* ik (dof) settings */
-								channew->ikflag = chanold->ikflag;
-								VECCOPY(channew->limitmin, chanold->limitmin);
-								VECCOPY(channew->limitmax, chanold->limitmax);
-								VECCOPY(channew->stiffness, chanold->stiffness);
-								channew->ikstretch= chanold->ikstretch;
-								channew->ikrotweight= chanold->ikrotweight;
-								channew->iklinweight= chanold->iklinweight;
-								
-								/* constraints */
-								listnew = &channew->constraints;
-								copy_constraints(listnew, listold);
-								
-								/* custom shape */
-								channew->custom= chanold->custom;
-							}
+						/* WARNING: this creates a new posechannel, but there will not be an attached bone
+						 *		yet as the new bones created here are still 'EditBones' not 'Bones'.
+						 */
+						channew= verify_pose_channel(obedit->pose, eBone->name);
+						if(channew) {
+							duplicate_pose_channel_data(channew, chanold);
 						}
 					}
 				}

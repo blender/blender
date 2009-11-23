@@ -640,6 +640,48 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	}
 }
 
+/* makes copies of internal data, unlike copy_pose_channel_data which only
+ * copies the pose state.
+ * hint: use when copying bones in editmode (on returned value from verify_pose_channel) */
+void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_from)
+{
+	/* copy transform locks */
+	pchan->protectflag = pchan_from->protectflag;
+
+	/* copy rotation mode */
+	pchan->rotmode = pchan_from->rotmode;
+
+	/* copy bone group */
+	pchan->agrp_index= pchan_from->agrp_index;
+
+	/* ik (dof) settings */
+	pchan->ikflag = pchan_from->ikflag;
+	VECCOPY(pchan->limitmin, pchan_from->limitmin);
+	VECCOPY(pchan->limitmax, pchan_from->limitmax);
+	VECCOPY(pchan->stiffness, pchan_from->stiffness);
+	pchan->ikstretch= pchan_from->ikstretch;
+	pchan->ikrotweight= pchan_from->ikrotweight;
+	pchan->iklinweight= pchan_from->iklinweight;
+
+	/* constraints */
+	copy_constraints(&pchan->constraints, &pchan_from->constraints);
+
+	/* id-properties */
+	if(pchan->prop) {
+		/* unlikely but possible it exists */
+		IDP_FreeProperty(pchan->prop);
+		MEM_freeN(pchan->prop);
+		pchan->prop= NULL;
+	}
+	if(pchan_from->prop) {
+		pchan->prop= IDP_CopyProperty(pchan_from->prop);
+	}
+
+	/* custom shape */
+	pchan->custom= pchan_from->custom;
+}
+
+
 /* checks for IK constraint, Spline IK, and also for Follow-Path constraint.
  * can do more constraints flags later 
  */
