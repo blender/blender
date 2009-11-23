@@ -42,6 +42,58 @@ class Object(bpy_types.ID):
     children = property(_get_children)
 
 
+class PoseBone(StructRNA):
+
+    def _get_children(self):
+        import bpy
+        obj = self.id_data
+        return [child for child in obj.pose.bones if child.parent == self]
+
+    children = property(_get_children)
+
+    def _get_parent_recursive(self):
+        parent_list = []
+        parent = self.parent
+        
+        while parent:
+            if parent:
+                parent_list.append(parent)
+            
+            parent = parent.parent
+        
+        return parent_list
+
+    parent_recursive = property(_get_parent_recursive)
+    
+    def parent_index(self, parent_test):
+        '''
+        The same as 'bone in other_bone.parent_recursive' but saved generating a list.
+        '''
+        parent = self.parent
+        i = 1
+        while parent:
+            if parent == parent_test:
+                return i
+            parent = parent.parent
+            i += 1
+        
+        return 0
+    
+    def _get_children_recursive(self):
+        obj = self.id_data
+        bones_children = []
+        for bone in obj.pose.bones:
+            index = bone.parent_index(self)
+            if index:
+                bones_children.append((index, bone))
+        
+        # sort by distance to parent
+        bones_children.sort(key=lambda bone_pair: bone_pair[0])
+        return [bone for index, bone in bones_children]
+
+    children_recursive = property(_get_children_recursive)
+
+
 def ord_ind(i1,i2):
     if i1<i2: return i1,i2
     return i2,i1
