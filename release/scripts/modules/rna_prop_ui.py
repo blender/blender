@@ -177,6 +177,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
         exec_str = "item['%s'] = %s" % (prop, value_eval)
         # print(exec_str)
         exec(exec_str)
+        self._last_prop[:] = [prop]
 
         prop_type = type(item[prop])
 

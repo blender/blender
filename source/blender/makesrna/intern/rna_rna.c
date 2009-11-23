@@ -428,7 +428,12 @@ static int rna_Property_unit_get(PointerRNA *ptr)
 static int rna_Property_editable_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	return RNA_property_editable(ptr, prop);
+
+	/* dont use this becaure it will call functions that check the internal
+	 * data for introspection we only need to know if it can be edited so the
+	 * flag is better for this */
+//	return RNA_property_editable(ptr, prop);
+	return prop->flag & PROP_EDITABLE ? 1:0;
 }
 
 static int rna_Property_use_return_get(PointerRNA *ptr)

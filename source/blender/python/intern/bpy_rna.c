@@ -1391,7 +1391,6 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 	return result;
 }
 
-
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args)
 {
 	char *name;
@@ -1434,6 +1433,59 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
+static PyObject *pyrna_struct_path_to_id(BPy_StructRNA *self, PyObject *args)
+{
+	char *name= NULL;
+	char *path;
+	PropertyRNA *prop;
+	PyObject *ret;
+
+	if (!PyArg_ParseTuple(args, "|s:path_to_id", &name))
+		return NULL;
+
+	if(name) {
+		prop= RNA_struct_find_property(&self->ptr, name);
+		if(prop==NULL) {
+			PyErr_Format(PyExc_TypeError, "path_to_id(\"%.200s\") not found", name);
+			return NULL;
+		}
+
+		path= RNA_path_from_ID_to_property(&self->ptr, prop);
+	}
+	else {
+		path= RNA_path_from_ID_to_struct(&self->ptr);
+	}
+
+	if(path==NULL) {
+		if(name)	PyErr_Format(PyExc_TypeError, "%.200s.path_to_id(\"%s\") found but does not support path creation", RNA_struct_identifier(self->ptr.type), name);
+		else		PyErr_Format(PyExc_TypeError, "%.200s.path_to_id() does not support path creation for this type", name);
+		return NULL;
+	}
+
+	ret= PyUnicode_FromString(path);
+	MEM_freeN(path);
+
+	return ret;
+}
+
+static PyObject *pyrna_prop_path_to_id(BPy_PropertyRNA *self)
+{
+	char *path;
+	PropertyRNA *prop;
+	PyObject *ret;
+
+	path= RNA_path_from_ID_to_property(&self->ptr, self->prop);
+
+	if(path==NULL) {
+		PyErr_Format(PyExc_TypeError, "%.200s.%.200s.path_to_id() does not support path creation for this type", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(prop));
+		return NULL;
+	}
+
+	ret= PyUnicode_FromString(path);
+	MEM_freeN(path);
+
+	return ret;
+}
 
 static void pyrna_dir_members_py(PyObject *list, PyObject *self)
 {
@@ -1890,6 +1942,34 @@ static PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 	return ret;
 }
 
+static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
+{
+	IDProperty *group, *idprop;
+
+	char *key;
+	PyObject* def = Py_None;
+
+	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
+		return NULL;
+
+	/* mostly copied from BPy_IDGroup_Map_GetItem */
+	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+		PyErr_SetString( PyExc_TypeError, "this type doesn't support IDProperties");
+		return NULL;
+	}
+
+	group= RNA_struct_idproperties(&self->ptr, 0);
+	if(group) {
+		idprop= IDP_GetPropertyFromGroup(group, key);
+
+		if(idprop)
+			return BPy_IDGroup_WrapData(self->ptr.id.data, idprop);
+	}
+
+	Py_INCREF(def);
+	return def;
+}
+
 static PyObject *pyrna_prop_get(BPy_PropertyRNA *self, PyObject *args)
 {
 	PointerRNA newptr;
@@ -2182,12 +2262,15 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"values", (PyCFunction)pyrna_struct_values, METH_NOARGS, NULL},
 	{"items", (PyCFunction)pyrna_struct_items, METH_NOARGS, NULL},
 
+	{"get", (PyCFunction)pyrna_struct_get, METH_VARARGS, NULL},
+
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, NULL},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},
 	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_O, NULL},
+	{"path_to_id", (PyCFunction)pyrna_struct_path_to_id, METH_VARARGS, NULL},
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
@@ -2202,6 +2285,9 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 	/* moved into a getset */
 	{"add", (PyCFunction)pyrna_prop_add, METH_NOARGS, NULL},
 	{"remove", (PyCFunction)pyrna_prop_remove, METH_O, NULL},
+
+	/* almost the same as the srna function */
+	{"path_to_id", (PyCFunction)pyrna_prop_path_to_id, METH_NOARGS, NULL},
 
 	/* array accessor function */
 	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
