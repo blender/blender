@@ -192,12 +192,12 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_SCREEN'
 
         layout.operator("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
-        layout.operator("object.add", icon='ICON_OUTLINER_OB_LATTICE').type = 'LATTICE'
-        layout.operator("object.add", icon='ICON_OUTLINER_OB_EMPTY').type = 'EMPTY'
+        layout.operator("object.add", text="Lattice", icon='ICON_OUTLINER_OB_LATTICE').type = 'LATTICE'
+        layout.operator("object.add", text="Empty", icon='ICON_OUTLINER_OB_EMPTY').type = 'EMPTY'
 
         layout.separator()
 
-        layout.operator("object.add", icon='ICON_OUTLINER_OB_CAMERA').type = 'CAMERA'
+        layout.operator("object.add", text="Camera", icon='ICON_OUTLINER_OB_CAMERA').type = 'CAMERA'
 
         layout.operator_context = 'EXEC_SCREEN'
 
