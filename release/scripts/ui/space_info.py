@@ -269,6 +269,7 @@ class INFO_MT_help(bpy.types.Menu):
         layout.separator()
         layout.operator("help.report_bug", icon='ICON_URL')
         layout.separator()
+        layout.operator("help.python_api", icon='ICON_URL')
         layout.operator("help.operator_cheat_sheet")
 
 bpy.types.register(INFO_HT_header)
@@ -342,6 +343,13 @@ class HELP_OT_report_bug(HelpOperator):
     _url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
 
 
+class HELP_OT_python_api(HelpOperator):
+    '''Reference for operator and data Python API'''
+    bl_idname = "help.python_api"
+    bl_label = "Python API Reference"
+    _url = 'http://www.blender.org/documentation/250PythonDoc/'
+
+
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
     bl_idname = "help.operator_cheat_sheet"
     bl_label = "Operator Cheat Sheet (new textblock)"
@@ -375,4 +383,5 @@ bpy.ops.add(HELP_OT_blender_eshop)
 bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
 bpy.ops.add(HELP_OT_report_bug)
+bpy.ops.add(HELP_OT_python_api)
 bpy.ops.add(HELP_OT_operator_cheat_sheet)

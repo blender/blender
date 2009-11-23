@@ -847,6 +847,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_manual");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_blender_website");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_user_community");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_python_api");
 	uiItemS(col);
 	
 	col = uiLayoutColumn(split, 0);
