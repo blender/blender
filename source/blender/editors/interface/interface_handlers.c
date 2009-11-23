@@ -183,8 +183,6 @@ typedef struct uiAfterFunc {
 static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
 static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata);
-static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata);
-static void ui_handler_remove_popup(bContext *C, void *userdata);
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
 static void button_timers_tooltip_remove(bContext *C, uiBut *but);
 
@@ -754,6 +752,13 @@ static void ui_apply_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data)
 	data->applied= 1;
 }
 
+static void ui_apply_but_IMAGE(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	ui_apply_but_func(C, but);
+
+	data->retval= but->retval;
+	data->applied= 1;
+}
 
 static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, int interactive)
 {
@@ -873,6 +878,9 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case LINK:
 		case INLINK:
 			ui_apply_but_LINK(C, but, data);
+			break;
+		case BUT_IMAGE:	
+			ui_apply_but_IMAGE(C, but, data);
 			break;
 		default:
 			break;
@@ -3356,7 +3364,7 @@ static uiBlock *menu_change_hotkey(bContext *C, ARegion *ar, void *arg_but)
 	dummy[1]= 0;
 	
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSSP);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_MOVEMOUSE_QUIT|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_MOVEMOUSE_QUIT|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	BLI_strncpy(buf, ot->name, OP_MAX_TYPENAME);
 	strcat(buf, " |");
@@ -3647,6 +3655,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case TOG3:	
 	case ROW:
 	case LISTROW:
+	case BUT_IMAGE:
 		retval= ui_do_but_EXIT(C, but, data, event);
 		break;
 	case TEX:
@@ -4982,7 +4991,7 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 		uiPopupBlockHandle temp= *menu;
 		
 		ui_popup_block_free(C, menu);
-		WM_event_remove_ui_handler(&CTX_wm_window(C)->modalhandlers, ui_handler_popup, ui_handler_remove_popup, menu);
+		UI_remove_popup_handlers(&CTX_wm_window(C)->modalhandlers, menu);
 
 		if(temp.menuretval == UI_RETURN_OK) {
 			if(temp.popup_func)
@@ -5023,8 +5032,14 @@ void UI_add_region_handlers(ListBase *handlers)
 	WM_event_add_ui_handler(NULL, handlers, ui_handler_region, ui_handler_remove_region, NULL);
 }
 
-void UI_add_popup_handlers(bContext *C, ListBase *handlers, uiPopupBlockHandle *menu)
+void UI_add_popup_handlers(bContext *C, ListBase *handlers, uiPopupBlockHandle *popup)
 {
-	WM_event_add_ui_handler(C, handlers, ui_handler_popup, ui_handler_remove_popup, menu);
+	WM_event_add_ui_handler(C, handlers, ui_handler_popup, ui_handler_remove_popup, popup);
 }
+
+void UI_remove_popup_handlers(ListBase *handlers, uiPopupBlockHandle *popup)
+{
+	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup);
+}
+
 

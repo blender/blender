@@ -52,6 +52,8 @@ void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
+void		WM_init_splash		(struct bContext *C);
+
 
 void		WM_check			(struct bContext *C);
 

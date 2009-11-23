@@ -704,7 +704,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	uiBlockSetHandleFunc(block, redo_cb, arg_op);
 
 	if(!op->properties) {
@@ -764,7 +764,7 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
 	uiItemL(layout, op->type->name, 0);
@@ -813,6 +813,71 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "debugval", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
 }
 
+
+/* ***************** Splash Screen ************************* */
+
+static void wm_block_splash_close(bContext *C, void *arg_block, void *arg_unused)
+{
+	uiPupBlockClose(C, arg_block);
+}
+
+static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused)
+{
+	uiBlock *block;
+	uiBut *but;
+	uiLayout *layout, *split, *col;
+	uiStyle *style= U.uistyles.first;
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	
+	but= uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, NULL, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(but, wm_block_splash_close, block, NULL);
+	
+	uiBlockSetEmboss(block, UI_EMBOSSP);
+	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 10, 10, 480, 110, style);
+
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+	
+	split = uiLayoutSplit(layout, 0);
+	col = uiLayoutColumn(split, 0);
+	uiItemL(col, "Links", 0);
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_release_logs");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_manual");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_blender_website");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_user_community");
+	uiItemS(col);
+	
+	col = uiLayoutColumn(split, 0);
+	uiItemL(col, "Recent", 0);
+	uiItemsEnumO(col, "WM_OT_open_recentfile_splash", "file");
+	uiItemS(col);
+
+	uiCenteredBoundsBlock(block, 0.0f);
+	uiEndBlock(C, block);
+	
+	return block;
+}
+
+static int wm_splash_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPupBlock(C, wm_block_create_splash, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_splash(wmOperatorType *ot)
+{
+	ot->name= "Splash Screen";
+	ot->idname= "WM_OT_splash";
+	ot->description= "Opens a blocking popup region with release info";
+	
+	ot->invoke= wm_splash_invoke;
+	ot->poll= WM_operator_winactive;
+}
+
+
 /* ***************** Search menu ************************* */
 static void operator_call_cb(struct bContext *C, void *arg1, void *arg2)
 {
@@ -858,7 +923,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBut *but;
 	
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
@@ -1018,6 +1083,7 @@ static EnumPropertyItem *open_recentfile_itemf(bContext *C, PointerRNA *ptr, int
 	/* dynamically construct enum */
 	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
 		tmp.value= i+1;
+		tmp.icon= ICON_FILE_BLEND;
 		tmp.identifier= recent->filename;
 		tmp.name= BLI_short_filename(recent->filename);
 		RNA_enum_item_add(&item, &totitem, &tmp);
@@ -1045,6 +1111,45 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	
 	prop= RNA_def_enum(ot->srna, "file", file_items, 1, "File", "");
 	RNA_def_enum_funcs(prop, open_recentfile_itemf);
+}
+
+static EnumPropertyItem *open_recentfile_splash_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	struct RecentFile *recent;
+	int totitem= 0, i;
+	
+	/* dynamically construct enum */
+	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++) {
+		tmp.value= i+1;
+		tmp.icon= ICON_FILE_BLEND;
+		tmp.identifier= recent->filename;
+		tmp.name= BLI_last_slash(recent->filename)+1;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+	
+	return item;
+}
+
+static void WM_OT_open_recentfile_splash(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	static EnumPropertyItem file_items[]= {
+		{0, NULL, 0, NULL, NULL}};
+	
+	ot->name= "Open Recent File";
+	ot->idname= "WM_OT_open_recentfile_splash";
+	ot->description="Open recent files list.";
+	
+	ot->exec= recentfile_exec;
+	ot->poll= WM_operator_winactive;
+	
+	prop= RNA_def_enum(ot->srna, "file", file_items, 1, "File", "");
+	RNA_def_enum_funcs(prop, open_recentfile_splash_itemf);
 }
 
 /* *************** open file **************** */
@@ -2464,6 +2569,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
 	WM_operatortype_append(WM_OT_open_recentfile);
+	WM_operatortype_append(WM_OT_open_recentfile_splash);
 	WM_operatortype_append(WM_OT_open_mainfile);
 	WM_operatortype_append(WM_OT_link_append);
 	WM_operatortype_append(WM_OT_recover_last_session);
@@ -2473,6 +2579,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_debug_menu);
+	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
 
@@ -2624,6 +2731,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_splash", F1KEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
 	/* Space switching */

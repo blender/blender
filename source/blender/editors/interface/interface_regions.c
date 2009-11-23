@@ -1303,7 +1303,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		bt->y2 -= ar->winrct.ymin;
 	}
 
-	block->flag |= UI_BLOCK_LOOP|UI_BLOCK_MOVEMOUSE_QUIT;
+	block->flag |= UI_BLOCK_LOOP;
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
@@ -1338,6 +1338,8 @@ static void ui_block_func_MENUSTR(bContext *C, uiLayout *layout, void *arg_str)
 	char *instr= arg_str;
 	int columns, rows, a, b;
 
+	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
+	
 	/* compute menu data */
 	md= decompose_menu_string(instr);
 
@@ -1414,6 +1416,8 @@ void ui_block_func_ICONROW(bContext *C, uiLayout *layout, void *arg_but)
 	uiBut *but= arg_but;
 	int a;
 	
+	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
+	
 	for(a=(int)but->hardmin; a<=(int)but->hardmax; a++)
 		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->hardmin), 0, 0, UI_UNIT_X*5, UI_UNIT_Y,
 			&handle->retvalue, (float)a, 0.0, 0, 0, "");
@@ -1427,6 +1431,8 @@ void ui_block_func_ICONTEXTROW(bContext *C, uiLayout *layout, void *arg_but)
 	MenuData *md;
 	MenuEntry *entry;
 	int a;
+	
+	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 
 	md= decompose_menu_string(but->str);
 
@@ -1994,6 +2000,8 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	
 	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS);
 	
+	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
+	
 	VECCOPY(handle->retvec, but->editvec);
 	if(win->eventstate->shift) {
 		uiBlockPickerButtons(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
@@ -2195,6 +2203,8 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	uiBlockLayoutResolve(block, NULL, NULL);
 
+	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
+	
 	if(pup->popup) {
 		uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);
 		uiBlockSetDirection(block, direction);
@@ -2546,5 +2556,13 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int
 	
 	UI_add_popup_handlers(C, &window->modalhandlers, handle);
 	WM_event_add_mousemove(C);
+}
+
+void uiPupBlockClose(bContext *C, uiBlock *block)
+{
+	if(block->handle) {
+		UI_remove_popup_handlers(&CTX_wm_window(C)->modalhandlers, block->handle);
+		ui_popup_block_free(C, block->handle);
+	}
 }
 

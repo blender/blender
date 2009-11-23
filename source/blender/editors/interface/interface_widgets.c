@@ -2553,6 +2553,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				ui_draw_but_NORMAL(but, &tui->wcol_regular, rect);
 				break;
 				
+			case BUT_IMAGE:
+				ui_draw_but_IMAGE(ar, but, &tui->wcol_regular, rect);
+				break;
+				
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
 				break;
