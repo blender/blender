@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
