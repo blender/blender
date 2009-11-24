@@ -1994,52 +1994,6 @@ static void SCREEN_OT_redo_last(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 }
 
-/* ************** region split operator ***************************** */
-
-/* insert a region in the area region list */
-static int region_split_exec(bContext *C, wmOperator *op)
-{
-	ARegion *ar= CTX_wm_region(C);
-	
-	if(ar->regiontype==RGN_TYPE_HEADER)
-		BKE_report(op->reports, RPT_ERROR, "Cannot split header");
-	else if(ar->alignment==RGN_ALIGN_QSPLIT)
-		BKE_report(op->reports, RPT_ERROR, "Cannot split further");
-	else {
-		ScrArea *sa= CTX_wm_area(C);
-		ARegion *newar= BKE_area_region_copy(sa->type, ar);
-		int dir= RNA_enum_get(op->ptr, "type");
-	
-		BLI_insertlinkafter(&sa->regionbase, ar, newar);
-		
-		newar->alignment= ar->alignment;
-		
-		if(dir=='h')
-			ar->alignment= RGN_ALIGN_HSPLIT;
-		else
-			ar->alignment= RGN_ALIGN_VSPLIT;
-		
-		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-	}
-	
-	return OPERATOR_FINISHED;
-}
-
-static void SCREEN_OT_region_split(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Split Region";
-	ot->description= "Split area by directional position.";
-	ot->idname= "SCREEN_OT_region_split";
-	
-	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= region_split_exec;
-	ot->poll= ED_operator_areaactive;
-	
-	RNA_def_enum(ot->srna, "type", prop_direction_items, 'h', "Direction", "");
-}
-
 /* ************** region four-split operator ***************************** */
 
 /* insert a region in the area region list */
@@ -3592,7 +3546,6 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_area_join);
 	WM_operatortype_append(SCREEN_OT_area_dupli);
 	WM_operatortype_append(SCREEN_OT_area_swap);
-	WM_operatortype_append(SCREEN_OT_region_split);
 	WM_operatortype_append(SCREEN_OT_region_foursplit);
 	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_region_scale);
@@ -3692,16 +3645,11 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screencast", F3KEY, KM_PRESS, KM_ALT, 0);
 
 	 /* tests */
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0);
-	
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
-
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
-	
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
-
 	WM_keymap_verify_item(keymap, "WM_OT_reload_scripts", F8KEY, KM_PRESS, 0, 0);
 
 	/* files */
