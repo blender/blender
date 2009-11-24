@@ -598,50 +598,10 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				/* handle types */
 				if (pchan)
-					strcpy (ob->parsubstr, pchan->name);
+					strcpy(ob->parsubstr, pchan->name);
 				else
 					ob->parsubstr[0]= 0;
-				
-				/* constraint */
-				if(partype == PAR_PATH_CONST) {
-					bConstraint *con;
-					bFollowPathConstraint *data;
-					float cmat[4][4], vec[3];
 					
-					con = add_ob_constraint(ob, "AutoPath", CONSTRAINT_TYPE_FOLLOWPATH);
-					
-					data = con->data;
-					data->tar = par;
-					
-					get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(ob));
-					sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
-					
-					ob->loc[0] = vec[0];
-					ob->loc[1] = vec[1];
-					ob->loc[2] = vec[2];
-				}
-				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
-					if(partype == PAR_ARMATURE_NAME)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME);
-					else if(partype == PAR_ARMATURE_ENVELOPE)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE);
-					else if(partype == PAR_ARMATURE_AUTO)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO);
-					
-					/* get corrected inverse */
-					ob->partype= PAROBJECT;
-					what_does_parent(scene, ob, &workob);
-					
-					invert_m4_m4(ob->parentinv, workob.obmat);
-				}
-				else {
-					/* calculate inverse parent matrix */
-					what_does_parent(scene, ob, &workob);
-					invert_m4_m4(ob->parentinv, workob.obmat);
-				}
-				
-				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
-				
 				if(partype == PAR_PATH_CONST)
 					; /* don't do anything here, since this is not technically "parenting" */
 				else if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
@@ -683,6 +643,46 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					ob->partype= PARBONE; /* note, dna define, not operator property */
 				else
 					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
+				
+				/* constraint */
+				if(partype == PAR_PATH_CONST) {
+					bConstraint *con;
+					bFollowPathConstraint *data;
+					float cmat[4][4], vec[3];
+					
+					con = add_ob_constraint(ob, "AutoPath", CONSTRAINT_TYPE_FOLLOWPATH);
+					
+					data = con->data;
+					data->tar = par;
+					
+					get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(ob));
+					sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
+					
+					ob->loc[0] = vec[0];
+					ob->loc[1] = vec[1];
+					ob->loc[2] = vec[2];
+				}
+				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+					if(partype == PAR_ARMATURE_NAME)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME);
+					else if(partype == PAR_ARMATURE_ENVELOPE)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE);
+					else if(partype == PAR_ARMATURE_AUTO)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO);
+					
+					/* get corrected inverse */
+					ob->partype= PAROBJECT;
+					what_does_parent(scene, ob, &workob);
+					
+					invert_m4_m4(ob->parentinv, workob.obmat);
+				}
+				else {
+					/* calculate inverse parent matrix */
+					what_does_parent(scene, ob, &workob);
+					invert_m4_m4(ob->parentinv, workob.obmat);
+				}
+				
+				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 			}
 		}
 	}
