@@ -536,7 +536,7 @@ private:
 			}
 
 			DAG_scene_sort(CTX_data_scene(C));
-			ED_anim_dag_flush_update(C);
+			DAG_ids_flush_update(0);
 			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		}
 
