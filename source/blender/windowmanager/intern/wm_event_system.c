@@ -937,6 +937,10 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			retval= wm_operator_invoke(C, ot, event, properties, NULL);
 	}
 
+	/* Finished and pass through flag as handled */
+	if(retval == (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH))
+		return WM_HANDLER_HANDLED;
+
 	if(retval & OPERATOR_PASS_THROUGH)
 		return WM_HANDLER_CONTINUE;
 
@@ -1110,7 +1114,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		
 			/* modal+blocking handler */
 			if(handler->flag & WM_HANDLER_BLOCKING)
-				action= WM_HANDLER_BREAK;
+				action |= WM_HANDLER_BREAK;
 
 			if(handler->keymap) {
 				wmKeyMap *keymap= WM_keymap_active(wm, handler->keymap);
@@ -1122,28 +1126,28 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 							
 							event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 							
-							action= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
-							if(action==WM_HANDLER_BREAK)  /* not always_pass here, it denotes removed handler */
+							action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
+							if(action & WM_HANDLER_BREAK)  /* not always_pass here, it denotes removed handler */
 								break;
 						}
 					}
 				}
 			}
 			else if(handler->ui_handle) {
-				action= wm_handler_ui_call(C, handler, event);
+				action |= wm_handler_ui_call(C, handler, event);
 			}
 			else if(handler->type==WM_HANDLER_FILESELECT) {
 				/* screen context changes here */
-				action= wm_handler_fileselect_call(C, handlers, handler, event);
+				action |= wm_handler_fileselect_call(C, handlers, handler, event);
 			}
 			else {
 				/* modal, swallows all */
-				action= wm_handler_operator_call(C, handlers, handler, event, NULL);
+				action |= wm_handler_operator_call(C, handlers, handler, event, NULL);
 			}
 
-			if(action==WM_HANDLER_BREAK) {
+			if(action & WM_HANDLER_BREAK) {
 				if(always_pass)
-					action= WM_HANDLER_CONTINUE;
+					action &= ~WM_HANDLER_BREAK;
 				else
 					break;
 			}
@@ -1160,10 +1164,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 		if (win && win->last_type == event->type && win->last_val == KM_PRESS) {
 			event->val = KM_CLICK;
-			action = wm_handlers_do(C, event, handlers);
+			action |= wm_handlers_do(C, event, handlers);
 
 			/* revert value if not handled */
-			if (action == WM_HANDLER_CONTINUE) {
+			if ((action & WM_HANDLER_BREAK) == 0) {
 				event->val = KM_RELEASE;
 			}
 		}
@@ -1261,12 +1265,12 @@ void wm_event_do_handlers(bContext *C)
 
 	for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
 		wmEvent *event;
+		int action = WM_HANDLER_CONTINUE;
 		
 		if( win->screen==NULL )
 			wm_event_free_all(win);
 		
 		while( (event= win->queue.first) ) {
-			int action;
 
 			CTX_wm_window_set(C, win);
 			
@@ -1278,7 +1282,7 @@ void wm_event_do_handlers(bContext *C)
 			wm_window_make_drawable(C, win);
 			
 			/* first we do priority handlers, modal + some limited keymaps */
-			action= wm_handlers_do(C, event, &win->modalhandlers);
+			action |= wm_handlers_do(C, event, &win->modalhandlers);
 			
 			/* fileread case */
 			if(CTX_wm_window(C)==NULL)
@@ -1287,7 +1291,7 @@ void wm_event_do_handlers(bContext *C)
 			/* builtin tweak, if action is break it removes tweak */
 			wm_tweakevent_test(C, event, action);
 
-			if(action==WM_HANDLER_CONTINUE) {
+			if((action & WM_HANDLER_BREAK) == 0) {
 				ScrArea *sa;
 				ARegion *ar;
 				int doit= 0;
@@ -1304,15 +1308,15 @@ void wm_event_do_handlers(bContext *C)
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
 
-						if(action==WM_HANDLER_CONTINUE) {
+						if((action & WM_HANDLER_BREAK) == 0) {
 							for(ar=sa->regionbase.first; ar; ar= ar->next) {
 								if(wm_event_inside_i(event, &ar->winrct)) {
 									CTX_wm_region_set(C, ar);
-									action= wm_handlers_do(C, event, &ar->handlers);
+									action |= wm_handlers_do(C, event, &ar->handlers);
 
 									doit |= (BLI_in_rcti(&ar->winrct, event->x, event->y));
 									
-									if(action==WM_HANDLER_BREAK)
+									if(action & WM_HANDLER_BREAK)
 										break;
 								}
 							}
@@ -1320,8 +1324,8 @@ void wm_event_do_handlers(bContext *C)
 
 						CTX_wm_region_set(C, NULL);
 
-						if(action==WM_HANDLER_CONTINUE)
-							action= wm_handlers_do(C, event, &sa->handlers);
+						if((action & WM_HANDLER_BREAK) == 0)
+							action |= wm_handlers_do(C, event, &sa->handlers);
 
 						CTX_wm_area_set(C, NULL);
 
@@ -1329,12 +1333,12 @@ void wm_event_do_handlers(bContext *C)
 					}
 				}
 				
-				if(action==WM_HANDLER_CONTINUE) {
+				if((action & WM_HANDLER_BREAK) == 0) {
 					/* also some non-modal handlers need active area/region */
 					CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
 					CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
 
-					action= wm_handlers_do(C, event, &win->handlers);
+					action |= wm_handlers_do(C, event, &win->handlers);
 
 					/* fileread case */
 					if(CTX_wm_window(C)==NULL)
@@ -1350,8 +1354,13 @@ void wm_event_do_handlers(bContext *C)
 			}
 			
 			/* store last event for this window */
-			win->last_type = event->type;
-			win->last_val = event->val;
+			if (action == WM_HANDLER_CONTINUE) {
+				win->last_type = event->type;
+				win->last_val = event->val;
+			} else {
+				win->last_type = -1;
+				win->last_val = 0;
+			}
 
 			/* unlink and free here, blender-quit then frees all */
 			BLI_remlink(&win->queue, event);
