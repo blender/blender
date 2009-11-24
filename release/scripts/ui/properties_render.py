@@ -401,13 +401,16 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.label(text="Mux:")
         col.prop(rd, "ffmpeg_muxrate", text="Rate")
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
+        
+        # Audio: 
+        layout.prop(rd, "ffmpeg_multiplex_audio", text="Audio")
 
-        row = layout.row()
-        row.label(text="Audio:")
-        row = layout.row()
-        row.prop(rd, "ffmpeg_audio_codec", text="Codec")
+        sub = layout.column()
+        sub.active = rd.ffmpeg_multiplex_audio
+        sub.prop(rd, "ffmpeg_audio_codec", text="Codec")
+        sub.separator()
 
-        split = layout.split()
+        split = sub.split()
 
         col = split.column()
         col.prop(rd, "ffmpeg_audio_bitrate")
@@ -415,7 +418,6 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        col.prop(rd, "ffmpeg_multiplex_audio")
         col.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
