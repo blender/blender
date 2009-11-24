@@ -4329,7 +4329,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 static void draw_sb_motion(Scene *scene, Object *ob)
 {
 	SoftBody *sb = 0;
-	if (sb= ob->soft){
+	if ((sb= ob->soft)){
 		if(sb->solverflags & SBSO_MONITOR ||sb->solverflags & SBSO_ESTIMATEIPO){
 			/* draw com */ 
 	        float rt[3][3],sc[3][3],tr[3][3]; 

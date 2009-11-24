@@ -298,7 +298,7 @@ class HELP_OT_manual(HelpOperator):
     '''The Blender Wiki manual'''
     bl_idname = "help.manual"
     bl_label = "Manual"
-    _url = 'http://wiki.blender.org/index.php/Manual'
+    _url = 'http://wiki.blender.org/index.php/Doc:Manual'
 
 
 class HELP_OT_release_logs(HelpOperator):

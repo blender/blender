@@ -41,27 +41,27 @@ class Object(bpy_types.ID):
         return [child for child in bpy.data.objects if child.parent == self]
 
 
-class PoseBone(StructRNA):
-
+class _GenericBone:
+    '''
+    functions for bones, common between Armature/Pose/Edit bones.
+    internal subclassing use only.
+    '''
     def parent_index(self, parent_test):
         '''
         The same as 'bone in other_bone.parent_recursive' but saved generating a list.
         '''
+        # use the name so different types can be tested.
+        name = parent_test.name
+        
         parent = self.parent
         i = 1
         while parent:
-            if parent == parent_test:
+            if parent.name == name:
                 return i
             parent = parent.parent
             i += 1
         
         return 0
-
-    @property
-    def children(self):
-        import bpy
-        obj = self.id_data
-        return [child for child in obj.pose.bones if child.parent == self]
 
     @property
     def parent_recursive(self):
@@ -75,12 +75,19 @@ class PoseBone(StructRNA):
             parent = parent.parent
         
         return parent_list
-    
+
+    @property
+    def length(self):
+        return (self.head - self.tail).length
+
+    @property
+    def children(self):
+        return [child for child in self._other_bones if child.parent == self]
+
     @property
     def children_recursive(self):
-        obj = self.id_data
         bones_children = []
-        for bone in obj.pose.bones:
+        for bone in self._other_bones:
             index = bone.parent_index(self)
             if index:
                 bones_children.append((index, bone))
@@ -89,11 +96,31 @@ class PoseBone(StructRNA):
         bones_children.sort(key=lambda bone_pair: bone_pair[0])
         return [bone for index, bone in bones_children]
 
-
-class Bone(StructRNA):
     @property
-    def length(self):
-        return (self.head - self.tail).length
+    def _other_bones(self):
+        id_data = self.id_data
+        id_data_type = type(id_data)
+        
+        if id_data_type == bpy_types.Object:
+            bones = id_data.pose.bones
+        elif id_data_type == bpy_types.Armature:
+            bones = id_data.edit_bones
+            if not bones: # not in editmode
+                bones = id_data.bones
+        
+        return bones
+
+
+class PoseBone(StructRNA, _GenericBone):
+    pass
+
+
+class Bone(StructRNA, _GenericBone):
+    pass
+
+
+class EditBone(StructRNA, _GenericBone):
+    pass
 
 
 def ord_ind(i1,i2):

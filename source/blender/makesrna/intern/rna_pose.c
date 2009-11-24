@@ -675,7 +675,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");
 	
-	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
@@ -689,11 +689,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	*/
 	
 	/* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */
-	prop= RNA_def_property(srna, "pose_head", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "pose_head");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Head Position", "Location of head of the channel's bone.");
 
-	prop= RNA_def_property(srna, "pose_tail", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "pose_tail");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Tail Position", "Location of tail of the channel's bone.");
 	
