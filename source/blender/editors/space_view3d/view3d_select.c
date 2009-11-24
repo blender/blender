@@ -999,7 +999,7 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 
 
 /* mval is region coords */
-static void mouse_select(bContext *C, short *mval, short extend, short obcenter, short enumerate)
+static int mouse_select(bContext *C, short *mval, short extend, short obcenter, short enumerate)
 {
 	ViewContext vc;
 	ARegion *ar= CTX_wm_region(C);
@@ -1007,6 +1007,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter,
 	Scene *scene= CTX_data_scene(C);
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
 	int temp, a, dist=100;
+	int retval = 0;
 	short hits;
 	
 	/* setup view context for argument to callbacks */
@@ -1153,6 +1154,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter,
 					basact->flag|= SELECT;
 					basact->object->flag= basact->flag;
 					
+					retval = 1;
 					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, basact->object);
 					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
 					
@@ -1172,6 +1174,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter,
 	
 	/* so, do we have something selected? */
 	if(basact) {
+		retval = 1;
 		
 		if(vc.obedit) {
 			/* only do select */
@@ -1205,6 +1208,8 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter,
 			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 		}
 	}
+
+	return retval;
 }
 
 /* ********************  border and circle ************************************** */
@@ -1611,31 +1616,37 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short extend= RNA_boolean_get(op->ptr, "extend");
 	short center= RNA_boolean_get(op->ptr, "center");
 	short enumerate= RNA_boolean_get(op->ptr, "enumerate");
+	int	retval = 0;
 
 	view3d_operator_needs_opengl(C);
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH)
-			mouse_mesh(C, event->mval, extend);
+			retval = mouse_mesh(C, event->mval, extend);
 		else if(obedit->type==OB_ARMATURE)
-			mouse_armature(C, event->mval, extend);
+			retval = mouse_armature(C, event->mval, extend);
 		else if(obedit->type==OB_LATTICE)
-			mouse_lattice(C, event->mval, extend);
+			retval = mouse_lattice(C, event->mval, extend);
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF))
-			mouse_nurb(C, event->mval, extend);
+			retval = mouse_nurb(C, event->mval, extend);
 		else if(obedit->type==OB_MBALL)
-			mouse_mball(C, event->mval, extend);
+			retval = mouse_mball(C, event->mval, extend);
 			
 	}
 	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
-		PE_mouse_particles(C, event->mval, extend);
+		return PE_mouse_particles(C, event->mval, extend);
 	else if(obact && paint_facesel_test(obact))
-		face_select(C, obact, event->mval, extend);
+		retval = face_select(C, obact, event->mval, extend);
 	else
-		mouse_select(C, event->mval, extend, center, enumerate);
+		retval = mouse_select(C, event->mval, extend, center, enumerate);
 
-	/* allowing tweaks */
-	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
+	/* passthrough allows tweaks
+	 * FINISHED to signal one operator worked
+	 * */
+	if (retval)
+		return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
+	else
+		return OPERATOR_PASS_THROUGH; /* nothing selected, just passthrough */
 }
 
 void VIEW3D_OT_select(wmOperatorType *ot)

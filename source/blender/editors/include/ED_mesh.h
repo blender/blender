@@ -149,7 +149,7 @@ void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type)
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
 void		EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em);
-void		mouse_mesh(struct bContext *C, short mval[2], short extend);
+int			mouse_mesh(struct bContext *C, short mval[2], short extend);
 int			EM_check_backbuf(unsigned int index);
 int			EM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EM_free_backbuf(void);

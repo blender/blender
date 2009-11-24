@@ -1875,7 +1875,7 @@ void ED_armature_deselectall(Object *obedit, int toggle, int doundo)
 
 
 /* context: editmode armature in view3d */
-void mouse_armature(bContext *C, short mval[2], int extend)
+int mouse_armature(bContext *C, short mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
@@ -1946,7 +1946,10 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 		}
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, vc.obedit);
+		return 1;
 	}
+
+	return 0;
 }
 
 void ED_armature_edit_free(struct Object *ob)

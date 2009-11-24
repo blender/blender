@@ -2222,7 +2222,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 
 /* here actual select happens */
 /* gets called via generic mouse select operator */
-void mouse_mesh(bContext *C, short mval[2], short extend)
+int mouse_mesh(bContext *C, short mval[2], short extend)
 {
 	ViewContext vc;
 	EditVert *eve;
@@ -2281,10 +2281,13 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 			vc.em->mat_nr= efa->mat_nr;
 //			BIF_preview_changed(ID_MA);
 		}
-	}
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
+
+		return 1;
+	}
 	
+	return 0;
 }
 
 /* *********** select linked ************* */
