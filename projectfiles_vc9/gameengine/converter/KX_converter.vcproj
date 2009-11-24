@@ -526,10 +526,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_SkinMeshObject.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BlenderWorldInfo.cpp"
 				>
 			</File>
@@ -559,6 +555,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\KX_IpoConvert.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Converter\KX_SoftBodyDeformer.cpp"
 				>
 			</File>
 		</Filter>
@@ -615,10 +615,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_SkinMeshObject.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BlenderWorldInfo.h"
 				>
 			</File>
@@ -648,6 +644,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\KX_IpoConvert.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Converter\KX_SoftBodyDeformer.h"
 				>
 			</File>
 		</Filter>

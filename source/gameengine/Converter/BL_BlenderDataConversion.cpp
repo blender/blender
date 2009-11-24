@@ -89,11 +89,11 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BL_SkinMeshObject.h"
 #include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_SkinDeformer.h"
 #include "BL_MeshDeformer.h"
+#include "KX_SoftBodyDeformer.h"
 //#include "BL_ArmatureController.h"
 
 #include "BlenderWorldInfo.h"
@@ -720,7 +720,6 @@ bool ConvertMaterial(
 RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
 	RAS_MeshObject *meshobj;
-	bool skinMesh = false;
 	int lightlayer = blenderobj ? blenderobj->lay:(1<<20)-1; // all layers if no object.
 
 	if ((meshobj = converter->FindGameMesh(mesh/*, ob->lay*/)) != NULL)
@@ -743,14 +742,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 		tangent = (float(*)[3])dm->getFaceDataArray(dm, CD_TANGENT);
 	}
 
-	// Determine if we need to make a skinned mesh
-	if (blenderobj && (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0) || BL_ModifierDeformer::HasCompatibleDeformer(blenderobj)))
-	{
-		meshobj = new BL_SkinMeshObject(mesh);
-		skinMesh = true;
-	}
-	else
-		meshobj = new RAS_MeshObject(mesh);
+	meshobj = new RAS_MeshObject(mesh);
 
 	// Extract avaiable layers
 	MTF_localLayer *layers =  new MTF_localLayer[MAX_MTFACE];
@@ -877,7 +869,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 				if (kx_blmat == NULL)
 					kx_blmat = new KX_BlenderMaterial();
 
-				kx_blmat->Initialize(scene, bl_mat, skinMesh);
+				kx_blmat->Initialize(scene, bl_mat);
 				polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
 			}
 			else {
@@ -1736,30 +1728,34 @@ static KX_GameObject *gameobject_from_blenderobject(
 		bool bHasDvert = mesh->dvert != NULL && ob->defbase.first;
 		bool bHasArmature = (ob->parent && ob->parent->type == OB_ARMATURE && ob->partype==PARSKEL && bHasDvert);
 		bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(ob);
+		bool bHasSoftBody = (!ob->parent && (ob->gameflag & OB_SOFT_BODY));
 
 		if (bHasModifier) {
 			BL_ModifierDeformer *dcont = new BL_ModifierDeformer((BL_DeformableGameObject *)gameobj,
-																kxscene->GetBlenderScene(), ob,	(BL_SkinMeshObject *)meshobj);
+																kxscene->GetBlenderScene(), ob,	meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 			if (bHasShapeKey && bHasArmature)
 				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasShapeKey) {
 			// not that we can have shape keys without dvert! 
 			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
-															ob, (BL_SkinMeshObject*)meshobj);
+															ob, meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 			if (bHasArmature)
 				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasArmature) {
 			BL_SkinDeformer *dcont = new BL_SkinDeformer((BL_DeformableGameObject*)gameobj,
-															ob, (BL_SkinMeshObject*)meshobj);
+															ob, meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		} else if (bHasDvert) {
 			// this case correspond to a mesh that can potentially deform but not with the
 			// object to which it is attached for the moment. A skin mesh was created in
 			// BL_ConvertMesh() so must create a deformer too!
 			BL_MeshDeformer *dcont = new BL_MeshDeformer((BL_DeformableGameObject*)gameobj,
-														  ob, (BL_SkinMeshObject*)meshobj);
+														  ob, meshobj);
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
+		} else if (bHasSoftBody) {
+			KX_SoftBodyDeformer *dcont = new KX_SoftBodyDeformer(meshobj, (BL_DeformableGameObject*)gameobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		}
 		

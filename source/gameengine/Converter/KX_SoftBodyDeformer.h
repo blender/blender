@@ -27,62 +27,68 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BL_SHAPEDEFORMER
-#define BL_SHAPEDEFORMER
+#ifndef KX_SOFTBODYDEFORMER
+#define KX_SOFTBODYDEFORMER
 
 #ifdef WIN32
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
-#include "BL_SkinDeformer.h"
+#include "RAS_Deformer.h"
 #include "BL_DeformableGameObject.h"
 #include <vector>
 
-struct IpoCurve;
 
-class BL_ShapeDeformer : public BL_SkinDeformer  
+class KX_SoftBodyDeformer : public RAS_Deformer
 {
+	class RAS_MeshObject*			m_pMeshObject;
+	class BL_DeformableGameObject*	m_gameobj;
+
 public:
-	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
-                     Object *bmeshobj,
-                     RAS_MeshObject *mesh)
-					:	
-						BL_SkinDeformer(gameobj,bmeshobj, mesh),
-						m_lastShapeUpdate(-1)
+	KX_SoftBodyDeformer(RAS_MeshObject*	pMeshObject,BL_DeformableGameObject* gameobj)
+		:m_pMeshObject(pMeshObject),
+		m_gameobj(gameobj)
 	{
+		//printf("KX_SoftBodyDeformer\n");
 	};
 
-	/* this second constructor is needed for making a mesh deformable on the fly. */
-	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
-					struct Object *bmeshobj_old,
-					struct Object *bmeshobj_new,
-					class RAS_MeshObject *mesh,
-					bool release_object,
-					bool recalc_normal,
-					BL_ArmatureObject* arma = NULL)
-					:
-						BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, recalc_normal, arma),
-						m_lastShapeUpdate(-1)
+	virtual ~KX_SoftBodyDeformer()
 	{
+		//printf("~KX_SoftBodyDeformer\n");
 	};
-
-	virtual RAS_Deformer *GetReplica();
-	virtual void ProcessReplica();
-	virtual ~BL_ShapeDeformer();
-
-	bool Update (void);
-	bool LoadShapeDrivers(Object* arma);
-	bool ExecuteShapeDrivers(void);
-
-	void ForceUpdate()
+	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map);
+	virtual bool Apply(class RAS_IPolyMaterial *polymat);
+	virtual bool Update(void)
 	{
-		m_lastShapeUpdate = -1.0;
-	};
+		//printf("update\n");
+		m_bDynamic = true;
+		return true;//??
+	}
+	virtual bool UpdateBuckets(void)
+	{
+		// this is to update the mesh slots outside the rasterizer, 
+		// no need to do it for this deformer, it's done in any case in Apply()
+		return false;
+	}
+
+	virtual RAS_Deformer *GetReplica()
+	{
+		KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(*this);
+		deformer->ProcessReplica();
+		return deformer;
+	}
+	virtual void ProcessReplica()
+	{
+		// we have two pointers to deal with but we cannot do it now, will be done in Relink
+		m_bDynamic = false;
+	}
+	virtual bool SkipVertexTransform()
+	{
+		return true;
+	}
 
 protected:
-	vector<IpoCurve*>		 m_shapeDrivers;
-	double					 m_lastShapeUpdate;
-
+	//class RAS_MeshObject	*m_pMesh;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
@@ -90,6 +96,7 @@ public:
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };
+
 
 #endif
 

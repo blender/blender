@@ -55,14 +55,14 @@ public:
 
 	BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 					struct Object *bmeshobj, 
-					class BL_SkinMeshObject *mesh,
+					class RAS_MeshObject *mesh,
 					BL_ArmatureObject* arma = NULL);
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
 	BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 					struct Object *bmeshobj_old,
 					struct Object *bmeshobj_new,
-					class BL_SkinMeshObject *mesh,
+					class RAS_MeshObject *mesh,
 					bool release_object,
 					bool recalc_normal,
 					BL_ArmatureObject* arma = NULL);

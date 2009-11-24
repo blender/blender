@@ -375,9 +375,7 @@ m_scalingPropagated(false)
 	//m_dynamicsWorld->getSolverInfo().m_solverMode=	SOLVER_USE_WARMSTARTING +	SOLVER_USE_2_FRICTION_DIRECTIONS +	SOLVER_RANDMIZE_ORDER +	SOLVER_USE_FRICTION_WARMSTARTING;
 
 	m_debugDrawer = 0;
-	m_gravity = btVector3(0.f,-10.f,0.f);
-	m_dynamicsWorld->setGravity(m_gravity);
-
+	setGravity(0.f,0.f,-9.81f);
 }
 
 void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
@@ -884,7 +882,7 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 {
 	m_gravity = btVector3(x,y,z);
 	m_dynamicsWorld->setGravity(m_gravity);
-
+	m_dynamicsWorld->getWorldInfo().m_gravity.setValue(x,y,z);
 }
 
 

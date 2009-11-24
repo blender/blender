@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_GLEXT;GLEW_STATIC"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -194,7 +194,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_GLEXT;GLEW_STATIC"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -269,7 +269,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -344,7 +344,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_GLEXT;GLEW_STATIC"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -419,7 +419,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\SceneGraph;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_GLEXT;GLEW_STATIC"
 				StringPooling="true"
 				RuntimeLibrary="0"

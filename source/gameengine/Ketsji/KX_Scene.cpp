@@ -53,7 +53,6 @@
 #include "SCA_JoystickManager.h"
 
 #include "RAS_MeshObject.h"
-#include "BL_SkinMeshObject.h"
 
 #include "RAS_IRasterizer.h"
 #include "RAS_BucketManager.h"
@@ -83,6 +82,7 @@
 #include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
+#include "KX_SoftBodyDeformer.h"
 
 // to get USE_BULLET!
 #include "KX_ConvertPhysicsObject.h"
@@ -1076,7 +1076,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 			newobj->SetDeformer(NULL);
 		}
 
-		if (mesh->IsDeformed()) /* checks GetMesh() isnt NULL */
+		if (mesh->GetMesh()) 
 		{
 			// we must create a new deformer but which one?
 			KX_GameObject* parentobj = newobj->GetParent();
@@ -1097,12 +1097,14 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				blendobj->parent->type == OB_ARMATURE && 
 				blendobj->partype==PARSKEL && 
 				blendmesh->dvert!=NULL;						// mesh has vertex group
+			bool bHasSoftBody = (!parentobj && (blendobj->gameflag & OB_SOFT_BODY));
+
 			bool releaseParent = true;
 
 			
 			if (oldblendobj==NULL) {
 				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
-				bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
+				bHasShapeKey= bHasDvert= bHasArmature=bHasModifier=bHasSoftBody= false;
 			}
 			
 			if (bHasModifier)
@@ -1114,7 +1116,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 						newobj,
 						m_blenderScene,
 						oldblendobj, blendobj,
-						static_cast<BL_SkinMeshObject*>(mesh),
+						mesh,
 						true,
 						static_cast<BL_ArmatureObject*>( parentobj )
 					);
@@ -1127,7 +1129,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 						newobj,
 						m_blenderScene,
 						oldblendobj, blendobj,
-						static_cast<BL_SkinMeshObject*>(mesh),
+						mesh,
 						false,
 						NULL
 					);
@@ -1142,7 +1144,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 					shapeDeformer = new BL_ShapeDeformer(
 						newobj,
 						oldblendobj, blendobj,
-						static_cast<BL_SkinMeshObject*>(mesh),
+						mesh,
 						true,
 						true,
 						static_cast<BL_ArmatureObject*>( parentobj )
@@ -1155,7 +1157,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 					shapeDeformer = new BL_ShapeDeformer(
 						newobj,
 						oldblendobj, blendobj,
-						static_cast<BL_SkinMeshObject*>(mesh),
+						mesh,
 						false,
 						true,
 						NULL
@@ -1168,7 +1170,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				BL_SkinDeformer* skinDeformer = new BL_SkinDeformer(
 					newobj,
 					oldblendobj, blendobj,
-					static_cast<BL_SkinMeshObject*>(mesh),
+					mesh,
 					true,
 					true,
 					static_cast<BL_ArmatureObject*>( parentobj )
@@ -1179,9 +1181,14 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 			else if (bHasDvert)
 			{
 				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
-					newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
+					newobj, oldblendobj, mesh
 				);
 				newobj->SetDeformer(meshdeformer);
+			}
+			else if (bHasSoftBody)
+			{
+				KX_SoftBodyDeformer *softdeformer = new KX_SoftBodyDeformer(mesh, newobj);
+				newobj->SetDeformer(softdeformer);
 			}
 
 			// release parent reference if its not being used 

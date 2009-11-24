@@ -34,6 +34,7 @@ SET(INC
 	../../../intern/string
 	../../../intern/moto/include
 	../../../extern/glew/include
+	../../../intern/guardedalloc
 	../Expressions
 	${PYTHON_INC}
 )
