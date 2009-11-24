@@ -2412,7 +2412,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 			first= 1;
 		}
 		else {
-			BKE_reportf(op->reports, RPT_INFO, "Text not found: %s", st->findstr);
+			BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
 			break;
 		}
 	} while(mode==TEXT_MARK_ALL);

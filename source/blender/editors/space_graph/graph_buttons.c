@@ -383,7 +383,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		
 		/* Target ID */
 		row= uiLayoutRow(box, 0);
-			uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value: ");
+			uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value:");
 		
 		/* Target Property */
 		// TODO: make this less technical...
