@@ -268,6 +268,15 @@ static int rna_CustomDataLayer_active_get(PointerRNA *ptr, int type, int render)
 	else return (n == CustomData_get_active_layer_index(fdata, type));
 }
 
+static int rna_CustomDataLayer_clone_get(PointerRNA *ptr, int type, int render)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	CustomData *fdata= rna_mesh_fdata(me);
+	int n= ((CustomDataLayer*)ptr->data) - fdata->layers;
+
+	return (n == CustomData_get_clone_layer_index(fdata, type));
+}
+
 static void rna_CustomDataLayer_active_set(PointerRNA *ptr, int value, int type, int render)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
@@ -279,6 +288,18 @@ static void rna_CustomDataLayer_active_set(PointerRNA *ptr, int value, int type,
 
 	if(render) CustomData_set_layer_render_index(fdata, type, n);
 	else CustomData_set_layer_active_index(fdata, type, n);
+}
+
+static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, int value, int type, int render)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	CustomData *fdata= rna_mesh_fdata(me);
+	int n= ((CustomDataLayer*)ptr->data) - fdata->layers;
+
+	if(value == 0)
+		return;
+
+	CustomData_set_layer_clone_index(fdata, type, n);
 }
 
 static int rna_uv_texture_check(CollectionPropertyIterator *iter, void *data)
@@ -309,6 +330,16 @@ static PointerRNA rna_Mesh_active_uv_texture_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_MeshTextureFaceLayer, cdl);
 }
 
+static PointerRNA rna_Mesh_clone_uv_texture_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->data;
+	CustomData *fdata= rna_mesh_fdata(me);
+	int index= CustomData_get_clone_layer_index(fdata, CD_MTFACE);
+	CustomDataLayer *cdl= (index == -1)? NULL: &fdata->layers[index];
+
+	return rna_pointer_inherit_refine(ptr, &RNA_MeshTextureFaceLayer, cdl);
+}
+
 static void rna_Mesh_active_uv_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Mesh *me= (Mesh*)ptr->data;
@@ -325,11 +356,34 @@ static void rna_Mesh_active_uv_texture_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+static void rna_Mesh_clone_uv_texture_set(PointerRNA *ptr, PointerRNA value)
+{
+	Mesh *me= (Mesh*)ptr->data;
+	CustomData *fdata= rna_mesh_fdata(me);
+	CustomDataLayer *cdl;
+	int a;
+
+	for(cdl=fdata->layers, a=0; a<fdata->totlayer; cdl++, a++) {
+		if(value.data == cdl) {
+			CustomData_set_layer_clone_index(fdata, CD_MTFACE, a);
+			mesh_update_customdata_pointers(me);
+			return;
+		}
+	}
+}
+
 static int rna_Mesh_active_uv_texture_index_get(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->data;
 	CustomData *fdata= rna_mesh_fdata(me);
 	return CustomData_get_active_layer(fdata, CD_MTFACE);
+}
+
+static int rna_Mesh_clone_uv_texture_index_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->data;
+	CustomData *fdata= rna_mesh_fdata(me);
+	return CustomData_get_clone_layer(fdata, CD_MTFACE);
 }
 
 static void rna_Mesh_active_uv_texture_index_set(PointerRNA *ptr, int value)
@@ -338,6 +392,15 @@ static void rna_Mesh_active_uv_texture_index_set(PointerRNA *ptr, int value)
 	CustomData *fdata= rna_mesh_fdata(me);
 
 	CustomData_set_layer_active(fdata, CD_MTFACE, value);
+	mesh_update_customdata_pointers(me);
+}
+
+static void rna_Mesh_clone_uv_texture_index_set(PointerRNA *ptr, int value)
+{
+	Mesh *me= (Mesh*)ptr->data;
+	CustomData *fdata= rna_mesh_fdata(me);
+
+	CustomData_set_layer_clone(fdata, CD_MTFACE, value);
 	mesh_update_customdata_pointers(me);
 }
 
@@ -480,6 +543,11 @@ static int rna_MeshTextureFaceLayer_active_get(PointerRNA *ptr)
 	return rna_CustomDataLayer_active_get(ptr, CD_MTFACE, 0);
 }
 
+static int rna_MeshTextureFaceLayer_clone_get(PointerRNA *ptr)
+{
+	return rna_CustomDataLayer_clone_get(ptr, CD_MTFACE, 0);
+}
+
 static void rna_MeshTextureFaceLayer_active_render_set(PointerRNA *ptr, int value)
 {
 	rna_CustomDataLayer_active_set(ptr, value, CD_MTFACE, 1);
@@ -488,6 +556,11 @@ static void rna_MeshTextureFaceLayer_active_render_set(PointerRNA *ptr, int valu
 static void rna_MeshTextureFaceLayer_active_set(PointerRNA *ptr, int value)
 {
 	rna_CustomDataLayer_active_set(ptr, value, CD_MTFACE, 0);
+}
+
+static void rna_MeshTextureFaceLayer_clone_set(PointerRNA *ptr, int value)
+{
+	rna_CustomDataLayer_clone_set(ptr, value, CD_MTFACE, 0);
 }
 
 static void rna_MeshTextureFaceLayer_name_set(PointerRNA *ptr, const char *value)
@@ -1108,6 +1181,12 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Render", "Sets the layer as active for rendering");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
+	prop= RNA_def_property(srna, "active_clone", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "active_clone", 0);
+	RNA_def_property_boolean_funcs(prop, "rna_MeshTextureFaceLayer_clone_get", "rna_MeshTextureFaceLayer_clone_set");
+	RNA_def_property_ui_text(prop, "Active Clone", "Sets the layer as active for cloning");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshTextureFace");
 	RNA_def_property_ui_text(prop, "Data", "");
@@ -1490,6 +1569,18 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_uv_texture_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Mesh_active_uv_texture_index_get", "rna_Mesh_active_uv_texture_index_set", "rna_Mesh_active_uv_texture_index_range");
 	RNA_def_property_ui_text(prop, "Active UV Texture Index", "Active UV texture index.");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	prop= RNA_def_property(srna, "clone_uv_texture", PROP_POINTER, PROP_UNSIGNED);
+	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
+	RNA_def_property_pointer_funcs(prop, "rna_Mesh_clone_uv_texture_get", "rna_Mesh_clone_uv_texture_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Clone UV Texture", "UV texture to be used as cloning source.");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	prop= RNA_def_property(srna, "clone_uv_texture_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Mesh_clone_uv_texture_index_get", "rna_Mesh_clone_uv_texture_index_set", "rna_Mesh_active_uv_texture_index_range");
+	RNA_def_property_ui_text(prop, "Clone UV Texture Index", "Clone UV texture index.");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	/* Vertex colors */
