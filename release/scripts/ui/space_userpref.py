@@ -1124,8 +1124,6 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
-        sub.label(text="Middle Mouse:")
-        sub.row().prop(inputs, "middle_mouse", expand=True)
 
         sub.separator()
 
