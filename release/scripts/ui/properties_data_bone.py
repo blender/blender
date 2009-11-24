@@ -284,7 +284,7 @@ class BONE_PT_properties(BoneButtonsPanel):
         # reload(rna_prop_ui)
         obj = context.object
         if obj and obj.mode == 'POSE':
-            item = "active_pchan"
+            item = "active_pose_bone"
         else:
             item = "active_bone"
 

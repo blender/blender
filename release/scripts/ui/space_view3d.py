@@ -1775,7 +1775,7 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
         if obj:
             mode = obj.mode
             if mode == 'POSE':
-                return "active_pchan"
+                return "active_pose_bone"
             elif mode == 'EDIT' and obj.type == 'ARMATURE':
                 return "active_bone"
             else:

@@ -5149,7 +5149,7 @@ static int pose_select_parent_exec(bContext *C, wmOperator *op)
 	bPoseChannel *pchan,*parent;
 
 	/*	Determine if there is an active bone */
-	pchan=CTX_data_active_pchan(C);
+	pchan=CTX_data_active_pose_bone(C);
 	if (pchan) {
 		bArmature *arm= ob->data;
 		parent=pchan->parent;
