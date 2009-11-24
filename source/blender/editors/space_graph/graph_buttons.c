@@ -235,13 +235,13 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 			DAG_scene_sort(scene);
 			
 			/* force an update of depsgraph */
-			ED_anim_dag_flush_update(C);
+			DAG_ids_flush_update(0);
 		}
 			break;
 	}
 	
 	/* default for now */
-	WM_event_add_notifier(C, NC_SCENE, scene); // XXX does this always work?
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene); // XXX could use better notifier
 }
 
 /* callback to remove the active driver */
@@ -342,7 +342,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
 		if (driver->type == DRIVER_TYPE_PYTHON) {
 			/* expression */
-			uiItemR(col, "Expr:", 0, &driver_ptr, "expression", 0);
+			uiItemR(col, "Expr", 0, &driver_ptr, "expression", 0);
 			
 			/* errors? */
 			if (driver->flag & DRIVER_FLAG_INVALID)
@@ -377,7 +377,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			uiItemR(row, "", 0, &dtar_ptr, "name", 0);
 			
 			/* remove button */
-			but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
+			but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
 			uiButSetFunc(but, driver_delete_var_cb, driver, dtar);
 		
 		

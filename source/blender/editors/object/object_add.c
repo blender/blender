@@ -755,7 +755,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if(islamp) reshadeall_displist(scene);	/* only frees displist */
 	
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
 	
@@ -951,7 +951,7 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1480,7 +1480,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	copy_object_set_idnew(C, dupflag);
 
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 

@@ -1023,7 +1023,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* send updates */
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1210,7 +1210,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* send updates */
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1277,7 +1277,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* send updates */
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 	
@@ -1367,7 +1367,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL);
@@ -1437,7 +1437,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	
 	if(success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL);

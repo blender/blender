@@ -481,11 +481,6 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 
 /* --------- anim_deps.c, animation updates -------- */
 
-	/* generic update flush, does tagged objects only, reads from Context screen (layers) and scene */
-void ED_anim_dag_flush_update(const struct bContext *C);
-	/* only flush object */
-void ED_anim_object_flush_update(const struct bContext *C, struct Object *ob);
-
 /* pose <-> action syncing */
 void ANIM_action_to_pose_sync(struct Object *ob);
 void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);

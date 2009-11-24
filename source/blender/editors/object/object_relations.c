@@ -458,7 +458,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
@@ -684,7 +684,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -772,7 +772,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -812,7 +812,7 @@ static int object_slow_parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -850,7 +850,7 @@ static int object_slow_parent_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -899,8 +899,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
+	DAG_ids_flush_update(0);
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);
 
 	return OPERATOR_FINISHED;
 }
@@ -992,7 +992,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1172,7 +1172,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 
 	/* one day multiple scenes will be visible, then we should have some update function for them */
 	return OPERATOR_FINISHED;
@@ -1240,7 +1240,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	return OPERATOR_FINISHED;
 }

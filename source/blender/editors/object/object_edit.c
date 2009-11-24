@@ -1062,7 +1062,7 @@ void flip_subdivison(Scene *scene, View3D *v3d, int level)
 		}
 	}
 	
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 }
  
 static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
@@ -1549,8 +1549,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 	if(do_scene_sort)
 		DAG_scene_sort(scene);
 
-	ED_anim_dag_flush_update(C);	
-
+	DAG_ids_flush_update(0);
 }
 
 void copy_attr_menu(Scene *scene, View3D *v3d)

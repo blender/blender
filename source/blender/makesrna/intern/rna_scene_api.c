@@ -57,18 +57,6 @@ static void rna_Scene_set_frame(Scene *scene, bContext *C, int frame)
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
 
-static void rna_Scene_update(Scene *scene, bContext *C)
-{
-	/* added to update driver deps, copied from do_graph_region_driver_buttons
-	 * but can be extended with update options */
-
-	/* rebuild depsgraph for the new deps */
-	DAG_scene_sort(scene);
-
-	/* force an update of depsgraph */
-	ED_anim_dag_flush_update(C);
-}
-
 static KeyingSet *rna_Scene_add_keying_set(Scene *sce, ReportList *reports, 
 		char name[], int absolute, int insertkey_needed, int insertkey_visual)
 {
@@ -108,10 +96,6 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
 	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set.", MINAFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-
-	func= RNA_def_function(srna, "update", "rna_Scene_update");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Rebuild the scene dependancy graph.");
 
 	/* Add Keying Set */
 	func= RNA_def_function(srna, "add_keying_set", "rna_Scene_add_keying_set");

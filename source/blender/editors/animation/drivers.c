@@ -398,7 +398,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL); // XXX
@@ -462,7 +462,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL);  // XXX

@@ -341,7 +341,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if(armature_clear==0) /* in this case flush was done */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -1010,7 +1010,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	if (tot_change) {
-		ED_anim_dag_flush_update(C);
+		DAG_ids_flush_update(0);
 	}
 	
 	/* Warn if any errors occured */

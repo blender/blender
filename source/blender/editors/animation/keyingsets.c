@@ -366,7 +366,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -444,7 +444,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
