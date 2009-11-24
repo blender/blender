@@ -984,18 +984,18 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	static EnumPropertyItem field_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{PFIELD_FORCE, "FORCE", 0, "Force", ""},
-		{PFIELD_WIND, "WIND", 0, "Wind", ""},
-		{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
-		{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
-		{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
-		{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
-		{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
-		{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
-		{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
-		{PFIELD_BOID, "BOID", 0, "Boid", ""},
-		{PFIELD_TURBULENCE, "TURBULENCE", 0, "Turbulence", ""},
-		{PFIELD_DRAG, "DRAG", 0, "Drag", ""},
+		{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", ""},
+		{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", ""},
+		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", ""},
+		{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", ""},
+		{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", ""},
+		{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", ""},
+		{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones", ""},
+		{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", ""},
+		{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", ""},
+		{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
+		{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
+		{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem falloff_items[] = {
