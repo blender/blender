@@ -466,7 +466,7 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	PropertyRNA *prop_default;
 	char *buf_default;
 	if(!all_args) {
-		WM_operator_properties_create(&opptr_default, ot->idname);
+		WM_operator_properties_create_ptr(&opptr_default, ot);
 	}
 
 
@@ -520,12 +520,17 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	return cstring;
 }
 
+void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot)
+{
+	RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+}
+
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 
 	if(ot)
-		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+		WM_operator_properties_create_ptr(ptr, ot);
 	else
 		RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
 }

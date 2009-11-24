@@ -2963,7 +2963,7 @@ PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)
 {
 	if(but->optype && !but->opptr) {
 		but->opptr= MEM_callocN(sizeof(PointerRNA), "uiButOpPtr");
-		WM_operator_properties_create(but->opptr, but->optype->idname);
+		WM_operator_properties_create_ptr(but->opptr, but->optype);
 	}
 
 	return but->opptr;
