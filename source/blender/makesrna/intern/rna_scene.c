@@ -1625,7 +1625,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	/* JPEG and AVI JPEG */
 	
-	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies.");
@@ -1720,7 +1720,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Codec", "QuickTime codec type");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "quicktime_codec_spatial_quality", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "quicktime_codec_spatial_quality", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "qtcodecsettings.codecSpatialQuality");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Spatial quality", "Intra-frame spatial quality level");

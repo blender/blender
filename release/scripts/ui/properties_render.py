@@ -348,7 +348,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             split = layout.split()
             col = split.column()
             col.prop(rd, "quicktime_codec_type")
-            col.prop(rd, "quicktime_codec_spatial_quality", text="Quality", slider=True)
+            col.prop(rd, "quicktime_codec_spatial_quality", text="Quality")
 
 
 class RENDER_PT_encoding(RenderButtonsPanel):
@@ -444,7 +444,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
         if wide_ui:
             col = split.column()
         col.prop(rd, "pixel_filter", text="")
-        col.prop(rd, "filter_size", text="Size", slider=True)
+        col.prop(rd, "filter_size", text="Size")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
