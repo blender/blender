@@ -1718,7 +1718,7 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Even Divisions", "Ignore the relative lengths of the bones when fitting to the curve.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "y_streching", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "y_stretch", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_SCALE_LIMITED);
 	RNA_def_property_ui_text(prop, "Y Stretch", "Stretch the Y axis of the bones to fit the curve.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
