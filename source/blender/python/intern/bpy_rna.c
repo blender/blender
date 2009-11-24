@@ -140,18 +140,20 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 	PyObject *ret= NULL;
 
 #ifdef USE_MATHUTILS
-	int type, subtype, totdim;
+	int subtype, totdim;
 	int len;
 
+	/* disallow dynamic sized arrays to be wrapped since the size could change
+	 * to a size mathutils does not support */
+	if ((RNA_property_type(prop) != PROP_FLOAT) || (RNA_property_flag(prop) & PROP_DYNAMIC))
+		return NULL;
+
 	len= RNA_property_array_length(ptr, prop);
-	type= RNA_property_type(prop);
 	subtype= RNA_property_subtype(prop);
 	totdim= RNA_property_array_dimension(ptr, prop, NULL);
 
-	if (type != PROP_FLOAT) return NULL;
-
 	if (totdim == 1 || (totdim == 2 && subtype == PROP_MATRIX)) {
-		ret = pyrna_prop_CreatePyObject(ptr, prop);
+		ret = pyrna_prop_CreatePyObject(ptr, prop); /* owned by the Mathutils PyObject */
 
 		switch(RNA_property_subtype(prop)) {
 		case PROP_TRANSLATION:
