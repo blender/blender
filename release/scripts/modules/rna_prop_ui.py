@@ -69,6 +69,10 @@ def draw(layout, context, context_member, use_edit = True):
             pass
 
     rna_item = eval("context." + context_member)
+    
+    # poll should really get this...
+    if not rna_item:
+        return
 
     items = rna_item.items()
     items.sort()
