@@ -153,7 +153,6 @@ void make_local_action(bAction *act)
 	}
 }
 
-
 void free_action (bAction *act)
 {
 	/* sanity check */

@@ -231,7 +231,9 @@ def generate_rig(context, ob):
         bpy.ops.object.mode_set(mode='EDIT')
         func(ob_new, pbone_name)
         bpy.ops.object.mode_set(mode='OBJECT')
-
+    
+    # needed to update driver deps
+    context.scene.update()
 
 if __name__ == "__main__":
     generate_rig(bpy.context, bpy.context.object)

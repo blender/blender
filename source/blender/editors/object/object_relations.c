@@ -616,26 +616,21 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
 					if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) 
 					{
-						switch (partype) 
-						{
-							case PAR_CURVE: /* curve deform */
-							{
-								CurveModifierData *cmd= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Curve);
-								cmd->object= par;
-							}
-								break;
-							case PAR_LATTICE: /* lattice deform */
-							{
-								LatticeModifierData *lmd= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Lattice);
-								lmd->object= par;
-							}
-								break;
-							default: /* armature deform */
-							{
-								ArmatureModifierData *amd= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Armature);
-								amd->object= par;
-							}
-								break;
+						ModifierData *md;
+
+						switch (partype) {
+						case PAR_CURVE: /* curve deform */
+							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Curve);
+							((CurveModifierData *)md)->object= par;
+							break;
+						case PAR_LATTICE: /* lattice deform */
+							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Lattice);
+							((LatticeModifierData *)md)->object= par;
+							break;
+						default: /* armature deform */
+							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Armature);
+							((ArmatureModifierData *)md)->object= par;
+							break;
 						}
 					}
 				}
