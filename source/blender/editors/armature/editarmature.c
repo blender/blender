@@ -141,7 +141,7 @@ void ED_armature_validate_active(struct bArmature *arm)
 	}
 }
 
-void free_edit_bone(bArmature *arm, EditBone *bone)
+void ED_armature_edit_bone_remove(bArmature *arm, EditBone *bone)
 {
 	if(arm->act_edbone==bone)
 		arm->act_edbone= NULL;
@@ -305,7 +305,7 @@ void ED_armature_from_edit(Object *obedit)
 					fBone->parent= eBone->parent;
 			}
 			printf("Warning: removed zero sized bone: %s\n", eBone->name);
-			free_edit_bone(arm, eBone);
+			ED_armature_edit_bone_remove(arm, eBone);
 		}
 	}
 	
@@ -1035,7 +1035,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 			free_pose_channel(pchan);
 			
 			/* get rid of unneeded bone */
-			free_edit_bone(arm, curbone);
+			ED_armature_edit_bone_remove(arm, curbone);
 			BLI_freelinkN(&ob->pose->chanbase, pchan);
 		}
 	}
@@ -1684,7 +1684,7 @@ static void delete_bone(bArmature *arm, EditBone* exBone)
 		}
 	}
 
-	free_edit_bone(arm, exBone);
+	ED_armature_edit_bone_remove(arm, exBone);
 }
 
 /* context: editmode armature */
@@ -2245,7 +2245,7 @@ void undo_push_armature(bContext *C, char *name)
 /* *************** Adding stuff in editmode *************** */
 
 /* default bone add, returns it selected, but without tail set */
-EditBone *addEditBone(bArmature *arm, char *name)
+EditBone *ED_armature_edit_bone_add(bArmature *arm, char *name)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
@@ -2267,14 +2267,6 @@ EditBone *addEditBone(bArmature *arm, char *name)
 	bone->layer= arm->layer;
 	
 	return bone;
-}
-
-/* default bone add, returns it selected, but without tail set */
-static EditBone *add_editbone(Object *obedit, char *name)
-{
-	bArmature *arm= obedit->data;
-
-	return addEditBone(arm, name);
 }
 
 /* v3d and rv3d are allowed to be NULL */
@@ -2301,7 +2293,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	ED_armature_deselectall(obedit, 0, 0);
 	
 	/*	Create a bone	*/
-	bone= add_editbone(obedit, "Bone");
+	bone= ED_armature_edit_bone_add(obedit->data, "Bone");
 
 	VECCOPY(bone->head, curs);
 	
@@ -2367,7 +2359,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *op)
 			}
 		}
 		
-		newbone= add_editbone(obedit, ebone->name);
+		newbone= ED_armature_edit_bone_add(arm, ebone->name);
 		arm->act_edbone= newbone;
 		
 		if (to_root) {
@@ -2484,7 +2476,7 @@ static EditBone *add_points_bone (Object *obedit, float head[], float tail[])
 {
 	EditBone *ebo;
 	
-	ebo= add_editbone(obedit, "Bone");
+	ebo= ED_armature_edit_bone_add(obedit->data, "Bone");
 	
 	VECCOPY(ebo->head, head);
 	VECCOPY(ebo->tail, tail);
@@ -3110,7 +3102,7 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	/* step 3: delete all bones between and including start and end */
 	for (ebo= end; ebo; ebo= ebone) {
 		ebone= (ebo == start) ? (NULL) : (ebo->parent);
-		free_edit_bone(arm, ebo);
+		ED_armature_edit_bone_remove(arm, ebo);
 	}
 }
 
@@ -3465,7 +3457,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	ED_armature_deselectall(obedit, 0, 0);
 	
 	/*	Create a bone	*/
-	bone= add_editbone(obedit, name);
+	bone= ED_armature_edit_bone_add(obedit->data, name);
 
 	VECCOPY(bone->head, curs);
 	
@@ -5623,7 +5615,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 		EditBone *root = NULL;
 		float angleLimit = (float)cos(scene->toolsettings->skgen_angle_limit * M_PI / 180.0f);
 		
-		parent = add_editbone(obedit, "Bone");
+		parent = ED_armature_edit_bone_add(arm, "Bone");
 		parent->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		VECCOPY(parent->head, head->p);
 		
@@ -5652,7 +5644,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 			{
 				VECCOPY(parent->tail, previous);
 
-				child = add_editbone(obedit, "Bone");
+				child = ED_armature_edit_bone_add(arm, "Bone");
 				VECCOPY(child->head, parent->tail);
 				child->parent = parent;
 				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
@@ -5858,7 +5850,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		if (lastBone == NULL)
 		{
 			EditBone	*bone;
-			bone = add_editbone(obedit, "Bone");
+			bone = ED_armature_edit_bone_add(obedit->data, "Bone");
 			bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 			
 			VECCOPY(bone->head, head->p);

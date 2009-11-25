@@ -93,6 +93,15 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+EditBone *rna_Armature_edit_bone_new(bArmature *arm, char *name)
+{
+	return ED_armature_edit_bone_add(arm, name);
+}
+
+void rna_Armature_edit_bone_remove(bArmature *arm, EditBone *ebone)
+{
+	ED_armature_edit_bone_remove(arm, ebone);
+}
 
 static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
 {
@@ -661,8 +670,8 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-//	FunctionRNA *func;
-//	PropertyRNA *parm;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "ArmatureEditBones");
 	srna= RNA_def_struct(brna, "ArmatureEditBones", NULL);
@@ -679,6 +688,22 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* todo, redraw */
 //		RNA_def_property_collection_active(prop, prop_act);
+
+	/* add target */
+	func= RNA_def_function(srna, "new", "rna_Armature_edit_bone_new");
+	RNA_def_function_ui_description(func, "Add a new bone.");
+	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the bone.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "bone", "EditBone", "", "Newly created edit bone.");
+	RNA_def_function_return(func, parm);
+
+	/* remove target */
+	func= RNA_def_function(srna, "remove", "rna_Armature_edit_bone_remove");
+	RNA_def_function_ui_description(func, "Remove an existing bone from the armature.");
+	/* target to remove*/
+	parm= RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 static void rna_def_armature(BlenderRNA *brna)

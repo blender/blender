@@ -116,7 +116,8 @@ void ED_armature_sync_selection(struct ListBase *edbo);
 void ED_armature_validate_active(struct bArmature *arm);
 
 void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d);
-EditBone *addEditBone(struct bArmature *arm, char *name); /* used by COLLADA importer */
+struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name);
+void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *bone);
 
 void transform_armature_mirror_update(struct Object *obedit);
 void clear_armature(struct Scene *scene, struct Object *ob, char mode);

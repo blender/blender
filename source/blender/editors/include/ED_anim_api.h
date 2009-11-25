@@ -311,7 +311,7 @@ typedef enum eAnimChannels_SetFlag {
 	ACHANNEL_SETFLAG_TOGGLE
 } eAnimChannels_SetFlag;
 
-/* types of settings for AnimChanels */
+/* types of settings for AnimChannels */
 typedef enum eAnimChannel_Settings {
  	ACHANNEL_SETTING_SELECT = 0,
 	ACHANNEL_SETTING_PROTECT,			// warning: for drawing UI's, need to check if this is off (maybe inverse this later)

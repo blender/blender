@@ -94,9 +94,6 @@ extern "C"
 
 char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
 
-// armature module internal func, it's not good to use it here? (Arystan)
-struct EditBone *addEditBone(struct bArmature *arm, char *name);
-
 const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
 {
 	using namespace COLLADAFW;
@@ -592,7 +589,7 @@ private:
 		}
 
 		// TODO rename from Node "name" attrs later
-		EditBone *bone = addEditBone(arm, (char*)get_joint_name(node));
+		EditBone *bone = ED_armature_edit_bone_add(arm, (char*)get_joint_name(node));
 		totbone++;
 
 		if (parent) bone->parent = parent;

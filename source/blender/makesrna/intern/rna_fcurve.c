@@ -276,7 +276,7 @@ static void rna_Fmodifier_active_update(bContext *C, PointerRNA *ptr)
 	
 }
 
-static int rna_FM_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+static int rna_FModifierGenerator_coefficients_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
 	FModifier *fm= (FModifier*)ptr->data;
 	FMod_Generator *gen= fm->data;
@@ -289,14 +289,14 @@ static int rna_FM_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION
 	return length[0];
 }
 
-static void rna_FM_get(PointerRNA *ptr, float *values)
+static void rna_FModifierGenerator_coefficients_get(PointerRNA *ptr, float *values)
 {
 	FModifier *fm= (FModifier*)ptr->data;
 	FMod_Generator *gen= fm->data;
 	memcpy(values, gen->coefficients, gen->arraysize * sizeof(float));
 }
 
-static void rna_FM_set(PointerRNA *ptr, const float *values)
+static void rna_FModifierGenerator_coefficients_set(PointerRNA *ptr, const float *values)
 {
 	FModifier *fm= (FModifier*)ptr->data;
 	FMod_Generator *gen= fm->data;
@@ -342,8 +342,8 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "coefficients", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_array(prop, 32);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
-	RNA_def_property_dynamic_array_funcs(prop, "rna_FM_get_length");
-	RNA_def_property_float_funcs(prop, "rna_FM_get", "rna_FM_set", NULL);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_FModifierGenerator_coefficients_get_length");
+	RNA_def_property_float_funcs(prop, "rna_FModifierGenerator_coefficients_get", "rna_FModifierGenerator_coefficients_set", NULL);
 	RNA_def_property_ui_text(prop, "Coefficients", "Coefficients for 'x' (starting from lowest power of x^0).");
 
 	/* coefficients array */

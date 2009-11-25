@@ -502,7 +502,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		
 	/* get first constraint and determine type of keyframe constraints to check for 
 	 * 	- constraints can be on either Objects or PoseChannels, so we only check if the
-	 *	  ptr->type is RNA_Object or RNA_PoseChannel, which are the RNA wrapping-info for
+	 *	  ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
 	 *  	  those structs, allowing us to identify the owner of the data 
 	 */
 	if (ptr->type == &RNA_Object) {
@@ -600,7 +600,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 	
 	/* handle for Objects or PoseChannels only 
 	 * 	- constraints can be on either Objects or PoseChannels, so we only check if the
-	 *	  ptr->type is RNA_Object or RNA_PoseChannel, which are the RNA wrapping-info for
+	 *	  ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
 	 *  	  those structs, allowing us to identify the owner of the data 
 	 *	- assume that array_index will be sane
 	 */

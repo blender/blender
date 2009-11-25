@@ -120,7 +120,7 @@ static IDProperty *rna_PoseBone_idproperties(PointerRNA *ptr, int create)
 
 	if(create && !pchan->prop) {
 		IDPropertyTemplate val = {0};
-		pchan->prop= IDP_New(IDP_GROUP, val, "RNA_PoseChannel group");
+		pchan->prop= IDP_New(IDP_GROUP, val, "RNA_PoseBone group");
 	}
 
 	return pchan->prop;

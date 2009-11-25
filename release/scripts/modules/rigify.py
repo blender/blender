@@ -22,7 +22,6 @@ from functools import reduce
 # TODO, have these in a more general module
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 
-
 empty_layer = [False] * 16
 
 
@@ -42,10 +41,44 @@ def get_bone_data(obj, bone_name):
 def bone_basename(name):
     return name.split(".")[0]
 
-def add_bone(arm, name):
-    '''Must be in editmode'''
-    bpy.ops.armature.bone_primitive_add(name=name)
-    return arm.edit_bones[-1]    
+def add_stretch_to(obj, from_name, to_name, name):
+    '''
+    Adds a bone that stretches from one to another
+    '''
+    
+    is_editmode = (obj.mode == 'EDIT')
+    if not is_editmode:
+        bpy.ops.object.mode_set(mode='EDIT')
+
+    arm = obj.data
+    stretch_ebone = arm.edit_bones.new(name)
+    stretch_name = stretch_ebone.name
+    head = stretch_ebone.head = arm.edit_bones[from_name].head.copy()
+    tail = stretch_ebone.tail = arm.edit_bones[to_name].head.copy()
+
+
+    # Now for the constraint
+    bpy.ops.object.mode_set(mode='OBJECT')
+    from_pbone = obj.pose.bones[from_name]
+    to_pbone = obj.pose.bones[to_name]
+    stretch_pbone = obj.pose.bones[stretch_name]
+    
+    con = stretch_pbone.constraints.new('COPY_LOCATION')
+    con.target = obj
+    con.subtarget = from_name
+    
+    con = stretch_pbone.constraints.new('STRETCH_TO')
+    con.target = obj
+    con.subtarget = to_name   
+    con.original_length = (head-tail).length
+    con.keep_axis = 'PLANE_X'
+    con.volume = 'NO_VOLUME'
+
+    if is_editmode:
+        bpy.ops.object.mode_set(mode='EDIT')
+    #else:
+    #    bpy.ops.object.mode_set(mode='OBJECT')
+
 
 def gen_finger(obj, orig_bone_name):
     
@@ -64,7 +97,7 @@ def gen_finger(obj, orig_bone_name):
     base_name = bone_basename(orig_pbone.name)
     
     # first make a new bone at the location of the finger
-    control_ebone = add_bone(arm, base_name)
+    control_ebone = arm.edit_bones.new(base_name)
     control_bone_name = control_ebone.name # we dont know if we get the name requested
     
     # Place the finger bone
@@ -94,7 +127,7 @@ def gen_finger(obj, orig_bone_name):
         driver_bone_name = child_bone_name.split('.')
         driver_bone_name = driver_bone_name[0] + "_driver." + ".".join(driver_bone_name[1:])
         
-        driver_ebone = add_bone(arm, driver_bone_name)
+        driver_ebone = arm.edit_bones.new(driver_bone_name)
         driver_bone_name = driver_ebone.name # cant be too sure!
         driver_ebone.layer = other_layer
         
@@ -119,7 +152,7 @@ def gen_finger(obj, orig_bone_name):
     
     del control_ebone
     
-    
+
     # *** POSEMODE
     bpy.ops.object.mode_set(mode='OBJECT')
     
@@ -161,10 +194,10 @@ def gen_finger(obj, orig_bone_name):
         obj, arm, driver_pbone, driver_bone = get_bone_data(obj, driver_bone_name)
         
         driver_pbone.rotation_mode = 'YZX'
-        driver_pbone.driver_add("rotation_euler", 0)
+        fcurve_driver = driver_pbone.driver_add("rotation_euler", 0)
         
         #obj.driver_add('pose.bones["%s"].scale', 1)
-        fcurve_driver = obj.animation_data.drivers[-1] # XXX, WATCH THIS
+        #obj.animation_data.drivers[-1] # XXX, WATCH THIS
         driver = fcurve_driver.driver
         
         # scale target
@@ -189,20 +222,133 @@ def gen_finger(obj, orig_bone_name):
             driver.expression = '(-scale+1.0)*pi*2.0*br'
         
         obj, arm, child_pbone, child_bone = get_bone_data(obj, child_bone_name)
-        
+
         # only allow X rotation
         driver_pbone.lock_rotation = child_pbone.lock_rotation = (False, True, True)
         
         i += 1
 
 
+def gen_delta(obj, delta_name):
+    '''
+    Use this bone to define a delta thats applied to its child in pose mode.
+    '''
+    
+    mode_orig = obj.mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    delta_pbone = obj.pose.bones[delta_name]
+    children = delta_pbone.children
+    
+    if len(children) != 1:
+        print("only 1 child supported for delta")
+    
+    child_name = children[0].name
+    
+    delta_head = delta_pbone.head.copy()
+    delta_tail = delta_pbone.tail.copy()
+    delta_matrix = delta_pbone.matrix.copy()
+    
+    children = delta_pbone.children
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    
+    arm = obj.data
+    
+    # XXX -probably should allow via the UI
+    for ebone in arm.edit_bones:
+        ebone.selected = ebone.head_selected = ebone.tail_selected = False
+    
+    # Select for deleting
+    delta_ebone = arm.edit_bones[delta_name]
+    delta_ebone.selected = delta_ebone.head_selected = delta_ebone.tail_selected = True
+    
+    bpy.ops.armature.delete()
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    
+    # Move the child bone to the deltas location
+    obj.animation_data_create()
+    child_pbone = obj.pose[child_name]
+    
+    # ------------------- drivers
+    fcurve_driver = child_pbone.driver_add("rotation_euler", 0)
+    #fcurve_driver = obj.animation_data.drivers[-1] # XXX, WATCH THIS
+    driver = fcurve_driver.driver
+    driver.type = 'AVERAGE'
+    mod = driver.modifiers.new('GENERATOR')
+    
+    
+    
+    obj, arm, parent_pbone, parent_bone = get_bone_data(obj, delta_name)
+    bpy.ops.object.mode_set(mode='EDIT')
+    
+    
+    bpy.ops.object.mode_set(mode=mode_orig)
+
+
+def gen_arm(obj, orig_bone_name):
+    """
+    the bone with the 'arm' property is the upper arm, this assumes a chain as follows.
+    [shoulder, upper_arm, forearm, hand]
+    ...where this bone is 'upper_arm'
+    """
+    
+    def validate_chain():
+        '''
+        Sanity check and return the arm as a list of bone names.
+        '''
+        # do a sanity check
+        obj, arm, orig_pbone, orig_ebone = get_bone_data(obj, orig_bone_name)
+        shoulder_pbone = arm_pbone.parent
+        
+        if not shoulder_pbone:
+            print("could not find 'arm' parent, skipping:", orig_bone_name)
+            return
+
+        # We could have some bones attached, find the bone that has this as its 2nd parent
+        hands = []
+        for pbone in obj.pose.bones:
+            index = pbone.parent_index(orig_pbone)
+            if index == 2:
+                hands.append(pbone)
+
+        if len(hands) > 1:
+            print("more then 1 hand found on:", orig_bone_name)
+            return
+
+        # first add the 2 new bones
+        hand_pbone = hands[0]
+        forearm_pbone = hand_pbone.parent
+        
+        return shoulder_pbone.name, orig_pbone.name, forearm_pbone.name, hand_pbone.name
+    
+    shoulder_name, arm_name, forearm_name, hand_name = validate_chain()
+    
+    
+    obj, arm, hand_pbone, hand_ebone = get_bone_data(obj, hand_name)
+    
+    # Add the edit bones
+    hand_ik_ebone = arm.edit_bones.new(hand_name + "_ik")
+    
+    hand_ik_ebone.head = hand_ebone.head
+    hand_ik_ebone.tail = hand_ebone.tail
+    hand_ik_ebone.roll = hand_ebone.roll
+    
+
 gen_table = {
     "":gen_none, \
     "finger":gen_finger, \
+    "delta":gen_delta, \
+    "arm":gen_arm, \
 }
+
 
 def generate_rig(context, ob):
     
+    # add_stretch_to(ob, "a", "b", "c")
+
     bpy.ops.object.mode_set(mode='OBJECT')
     
     
@@ -233,7 +379,7 @@ def generate_rig(context, ob):
         bpy.ops.object.mode_set(mode='OBJECT')
     
     # needed to update driver deps
-    context.scene.update()
+    # context.scene.update()
 
 if __name__ == "__main__":
     generate_rig(bpy.context, bpy.context.object)
