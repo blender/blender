@@ -141,7 +141,7 @@ void ED_armature_validate_active(struct bArmature *arm)
 	}
 }
 
-void ED_armature_edit_bone_remove(bArmature *arm, EditBone *bone)
+static void bone_free(bArmature *arm, EditBone *bone)
 {
 	if(arm->act_edbone==bone)
 		arm->act_edbone= NULL;
@@ -153,6 +153,22 @@ void ED_armature_edit_bone_remove(bArmature *arm, EditBone *bone)
 
 	BLI_freelinkN(arm->edbo, bone);
 }
+
+void ED_armature_edit_bone_remove(bArmature *arm, EditBone* exBone)
+{
+	EditBone *curBone;
+
+	/* Find any bones that refer to this bone */
+	for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
+		if (curBone->parent==exBone) {
+			curBone->parent=exBone->parent;
+			curBone->flag &= ~BONE_CONNECTED;
+		}
+	}
+
+	bone_free(arm, exBone);
+}
+
 
 /* converts Bones to EditBone list, used for tools as well */
 EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone *actBone)
@@ -305,7 +321,7 @@ void ED_armature_from_edit(Object *obedit)
 					fBone->parent= eBone->parent;
 			}
 			printf("Warning: removed zero sized bone: %s\n", eBone->name);
-			ED_armature_edit_bone_remove(arm, eBone);
+			bone_free(arm, eBone);
 		}
 	}
 	
@@ -1035,7 +1051,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 			free_pose_channel(pchan);
 			
 			/* get rid of unneeded bone */
-			ED_armature_edit_bone_remove(arm, curbone);
+			bone_free(arm, curbone);
 			BLI_freelinkN(&ob->pose->chanbase, pchan);
 		}
 	}
@@ -1671,22 +1687,6 @@ static EditBone *get_nearest_editbonepoint (ViewContext *vc, short mval[2], List
 	return NULL;
 }
 
-/* warning, wont clear the active bone */
-static void delete_bone(bArmature *arm, EditBone* exBone)
-{
-	EditBone *curBone;
-	
-	/* Find any bones that refer to this bone */
-	for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
-		if (curBone->parent==exBone) {
-			curBone->parent=exBone->parent;
-			curBone->flag &= ~BONE_CONNECTED;
-		}
-	}
-
-	ED_armature_edit_bone_remove(arm, exBone);
-}
-
 /* context: editmode armature */
 EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 {
@@ -1783,7 +1783,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 		if (arm->layer & curBone->layer) {
 			if (curBone->flag & BONE_SELECTED) {
 				if(curBone==arm->act_edbone) arm->act_edbone= NULL;
-				delete_bone(arm, curBone);
+				ED_armature_edit_bone_remove(arm, curBone);
 			}
 		}
 	}
@@ -3102,7 +3102,7 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	/* step 3: delete all bones between and including start and end */
 	for (ebo= end; ebo; ebo= ebone) {
 		ebone= (ebo == start) ? (NULL) : (ebo->parent);
-		ED_armature_edit_bone_remove(arm, ebo);
+		bone_free(arm, ebo);
 	}
 }
 
@@ -5660,7 +5660,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 		if (parent == root)
 		{
 			if(parent==arm->act_edbone) arm->act_edbone= NULL;
-			delete_bone(arm, parent);
+			ED_armature_edit_bone_remove(arm, parent);
 			parent = NULL;
 		}
 		

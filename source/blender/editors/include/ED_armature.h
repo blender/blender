@@ -117,7 +117,7 @@ void ED_armature_validate_active(struct bArmature *arm);
 
 void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d);
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name);
-void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *bone);
+void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 void transform_armature_mirror_update(struct Object *obedit);
 void clear_armature(struct Scene *scene, struct Object *ob, char mode);
