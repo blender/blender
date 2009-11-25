@@ -577,6 +577,71 @@ static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 	}
 }
 
+static int rna_Object_location_editable(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object *)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (ob->protectflag & OB_LOCK_LOCX))
+		return 0;
+	else if ((index == 1) && (ob->protectflag & OB_LOCK_LOCY))
+		return 0;
+	else if ((index == 2) && (ob->protectflag & OB_LOCK_LOCZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_Object_scale_editable(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object *)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (ob->protectflag & OB_LOCK_SCALEX))
+		return 0;
+	else if ((index == 1) && (ob->protectflag & OB_LOCK_SCALEY))
+		return 0;
+	else if ((index == 2) && (ob->protectflag & OB_LOCK_SCALEZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_Object_rotation_euler_editable(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object *)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (ob->protectflag & OB_LOCK_ROTX))
+		return 0;
+	else if ((index == 1) && (ob->protectflag & OB_LOCK_ROTY))
+		return 0;
+	else if ((index == 2) && (ob->protectflag & OB_LOCK_ROTZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object *)ptr->data;
+	
+	/* only consider locks if locking components individually... */
+	if (ob->protectflag & OB_LOCK_ROT4D) {
+		/* only if the axis in question is locked, not editable... */
+		if ((index == 0) && (ob->protectflag & OB_LOCK_ROTW))
+			return 0;
+		else if ((index == 1) && (ob->protectflag & OB_LOCK_ROTX))
+			return 0;
+		else if ((index == 2) && (ob->protectflag & OB_LOCK_ROTY))
+			return 0;
+		else if ((index == 3) && (ob->protectflag & OB_LOCK_ROTZ))
+			return 0;
+	}
+		
+	return PROP_EDITABLE;
+}
+
 
 static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
 {
@@ -1397,11 +1462,13 @@ static void rna_def_object(BlenderRNA *brna)
 	/* transform */
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_editable_array_func(prop, "rna_Object_location_editable");
 	RNA_def_property_ui_text(prop, "Location", "Location of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
 	prop= RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
+	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
@@ -1411,11 +1478,13 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
 	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
 	RNA_def_property_float_funcs(prop, "rna_Object_rotation_axis_angle_get", "rna_Object_rotation_axis_angle_set", NULL);
+	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
 	prop= RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_euler_editable");
 	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
@@ -1428,6 +1497,7 @@ static void rna_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_editable_array_func(prop, "rna_Object_scale_editable");
 	RNA_def_property_ui_text(prop, "Scale", "Scaling of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 

@@ -982,6 +982,26 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
 }
 
+/* same as RNA_property_editable(), except this checks individual items in an array */
+int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
+{
+	ID *id;
+	int flag;
+
+	prop= rna_ensure_property(prop);
+	
+	/* if there is no function to do this for a given index, 
+	 * just resort to doing this on the whole array
+	 */
+	if (prop->itemeditable == NULL)
+		return RNA_property_editable(ptr, prop);
+		
+	flag= prop->itemeditable(ptr, index);
+	id= ptr->id.data;
+	
+	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
+}
+
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
 	int flag;

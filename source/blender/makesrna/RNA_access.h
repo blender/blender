@@ -640,6 +640,7 @@ int RNA_property_enum_identifier(struct bContext *C, PointerRNA *ptr, PropertyRN
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 
