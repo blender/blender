@@ -308,6 +308,10 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_PROPERTIES)
 				ED_area_tag_redraw(sa);
 			break;
+		case NC_ID:
+			if(wmn->data == ND_ID_RENAME)
+				ED_area_tag_redraw(sa);
+			break;
 	}
 
 	if(wmn->data == ND_KEYS)

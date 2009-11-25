@@ -147,6 +147,10 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_OUTLINER)
 				ED_region_tag_redraw(ar);
 				break;
+		case NC_ID:
+			if(wmn->data == ND_ID_RENAME)
+				ED_region_tag_redraw(ar);
+				break;
 	}
 	
 }

@@ -517,6 +517,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_VIEW3D)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			if(wmn->data == ND_ID_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -637,6 +641,10 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_ID:
+			if(wmn->data == ND_ID_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
