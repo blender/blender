@@ -291,13 +291,20 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.itemR(md, "mirror_object")
 
     def MULTIRES(self, layout, ob, md):
-        layout.itemR(md, "subdivision_type")
+        layout.row().itemR(md, "subdivision_type", expand=True)
 
-        row = layout.row()
-        row.itemO("object.multires_subdivide", text="Subdivide")
-        row.itemO("object.multires_higher_levels_delete", text="Delete Higher")
+        split = layout.split()
+        col = split.column()
+        col.itemR(md, "levels", text="Preview")
+        col.itemR(md, "sculpt_levels", text="Sculpt")
+        col.itemR(md, "render_levels", text="Render")
 
-        layout.itemR(md, "level")
+        col = split.column()
+        col.itemO("object.multires_subdivide", text="Subdivide")
+        col.itemO("object.multires_higher_levels_delete", text="Delete Higher")
+        # row = col.row()
+        # row.enabled = md.total_levels > 0
+        # row.itemR(md, "external")
 
     def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.itemR(md, "object")
@@ -386,7 +393,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
         flow.itemR(md, "levels", text="Preview")
         flow.itemR(md, "render_levels", text="Render")
         flow.itemR(md, "optimal_draw", text="Optimal Display")
-        flow.itemR(md, "subsurf_uv")
 
     def SURFACE(self, layout, ob, md):
         layout.itemL(text="See Fields panel.")
