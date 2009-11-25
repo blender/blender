@@ -338,15 +338,19 @@ void mul_m4_v4(float mat[][4], float *vec)
 	vec[3]=x*mat[0][3] + y*mat[1][3] + z*mat[2][3] + mat[3][3]*vec[3];
 }
 
-void mul_m3_v3(float mat[][3], float *vec)
+void mul_v3_m3v3(float r[3], float M[3][3], float a[3])
 {
-	float x,y;
+	r[0]= M[0][0]*a[0] + M[1][0]*a[1] + M[2][0]*a[2];
+	r[1]= M[0][1]*a[0] + M[1][1]*a[1] + M[2][1]*a[2];
+	r[2]= M[0][2]*a[0] + M[1][2]*a[1] + M[2][2]*a[2];
+}
 
-	x=vec[0]; 
-	y=vec[1];
-	vec[0]= x*mat[0][0] + y*mat[1][0] + mat[2][0]*vec[2];
-	vec[1]= x*mat[0][1] + y*mat[1][1] + mat[2][1]*vec[2];
-	vec[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2];
+void mul_m3_v3(float M[3][3], float r[3])
+{
+	float tmp[3];
+
+	mul_v3_m3v3(tmp, M, r);
+	copy_v3_v3(r, tmp);
 }
 
 void mul_transposed_m3_v3(float mat[][3], float *vec)
