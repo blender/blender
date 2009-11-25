@@ -39,6 +39,9 @@
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_report.h"
 
+#include "BKE_animsys.h"
+#include "BKE_fcurve.h"
+
 /* only for keyframing */
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
@@ -1358,7 +1361,7 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 	char *path, *path_full;
 	int index= -1; /* default to all */
 	PropertyRNA *prop;
-	PyObject *result;
+	PyObject *ret;
 
 	if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index))
 		return NULL;
@@ -1387,10 +1390,38 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 		return NULL;
 	}
 
-	result= PyBool_FromLong( ANIM_add_driver((ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON));
+	if(ANIM_add_driver((ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON)) {
+		ID *id= self->ptr.id.data;
+		AnimData *adt= BKE_animdata_from_id(id);
+		FCurve *fcu;
+
+		PointerRNA tptr;
+		PyObject *item;
+
+		if(index == -1) { /* all, use a list */
+			int i= 0;
+			ret= PyList_New(0);
+			while((fcu= list_find_fcurve(&adt->drivers, path_full, i++))) {
+				RNA_pointer_create(id, &RNA_FCurve, fcu, &tptr);
+				item= pyrna_struct_CreatePyObject(&tptr);
+				PyList_Append(ret, item);
+				Py_DECREF(item);
+			}
+		}
+		else {
+			fcu= list_find_fcurve(&adt->drivers, path_full, index);
+			RNA_pointer_create(id, &RNA_FCurve, fcu, &tptr);
+			ret= pyrna_struct_CreatePyObject(&tptr);
+		}
+	}
+	else {
+		ret= Py_None;
+		Py_INCREF(ret);
+	}
+
 	MEM_freeN(path_full);
 
-	return result;
+	return ret;
 }
 
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args)
