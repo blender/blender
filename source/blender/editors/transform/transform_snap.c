@@ -293,7 +293,7 @@ void applySnapping(TransInfo *t, float *vec)
 		
 		// Time base quirky code to go around findnearest slowness
 		/* !TODO! add exception for object mode, no need to slow it down then */
-		if (current - t->tsnap.last  >= 0.1)
+		if (current - t->tsnap.last  >= 0.01)
 		{
 			t->tsnap.calcSnap(t, vec);
 			t->tsnap.targetSnap(t);
