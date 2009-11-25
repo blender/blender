@@ -187,16 +187,16 @@ class ConstraintButtonsPanel(bpy.types.Panel):
             col.label(text="Weight:")
             col.prop(con, "weight", text="Position", slider=True)
             sub = col.column()
-            sub.active = con.rotation
+            sub.active = con.use_rotation
             sub.prop(con, "orient_weight", text="Rotation", slider=True)
 
             if wide_ui:
                 col = split.column()
-            col.prop(con, "tail")
-            col.prop(con, "stretch")
+            col.prop(con, "use_tail")
+            col.prop(con, "use_stretch")
             col.separator()
-            col.prop(con, "targetless")
-            col.prop(con, "rotation")
+            col.prop(con, "use_target")
+            col.prop(con, "use_rotation")
 
     def IK_COPY_POSE(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
@@ -217,13 +217,13 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row.prop(con, "pos_lock_x", text="X")
         row.prop(con, "pos_lock_y", text="Y")
         row.prop(con, "pos_lock_z", text="Z")
-        split.active = con.position
+        split.active = con.use_position
 
         split = layout.split(percentage=0.33)
         split.row().prop(con, "rotation")
         row = split.row()
         row.prop(con, "orient_weight", text="Weight", slider=True)
-        row.active = con.rotation
+        row.active = con.use_rotation
         split = layout.split(percentage=0.33)
         row = split.row()
         row.label(text="Lock:")
@@ -231,7 +231,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row.prop(con, "rot_lock_x", text="X")
         row.prop(con, "rot_lock_y", text="Y")
         row.prop(con, "rot_lock_z", text="Z")
-        split.active = con.rotation
+        split.active = con.use_rotation
 
     def IK_DISTANCE(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
@@ -257,7 +257,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         if con.use_fixed_position:
             col.prop(con, "offset_factor", text="Offset")
         else:
-            col.prop(con, "offset")
+            col.prop(con, "use_offset")
 
         row = layout.row()
         if wide_ui:
@@ -419,7 +419,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         sub.active = con.rotate_like_z
         sub.prop(con, "invert_z", text="Invert")
 
-        layout.prop(con, "offset")
+        layout.prop(con, "use_offset")
 
         self.space_template(layout, con, wide_ui)
 
@@ -446,7 +446,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         sub.active = con.locate_like_z
         sub.prop(con, "invert_z", text="Invert")
 
-        layout.prop(con, "offset")
+        layout.prop(con, "use_offset")
 
         self.space_template(layout, con, wide_ui)
 
@@ -458,7 +458,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row.prop(con, "size_like_y", text="Y")
         row.prop(con, "size_like_z", text="Z")
 
-        layout.prop(con, "offset")
+        layout.prop(con, "use_offset")
 
         self.space_template(layout, con, wide_ui)
 

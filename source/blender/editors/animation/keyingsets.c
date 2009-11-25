@@ -1220,7 +1220,7 @@ static short modifykey_get_context_v3d_data (bContext *C, ListBase *dsources, Ke
 		//}
 #endif
 		
-		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 		{
 			/* add a new keying-source */
 			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");

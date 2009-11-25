@@ -1316,7 +1316,7 @@ static int pose_setflag_exec (bContext *C, wmOperator *op)
 	int mode= RNA_enum_get(op->ptr, "mode");
 	
 	/* loop over all selected pchans */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pchans) 
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
 	{
 		bone_setflag(&pchan->bone->flag, flag, mode);
 	}
@@ -4800,7 +4800,7 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
 		if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
 			pchan->size[0]= 1.0f;
 		if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
@@ -4863,7 +4863,7 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
 		/* clear location */
 		if ((pchan->protectflag & OB_LOCK_LOCX)==0)
 			pchan->loc[0]= 0.0f;
@@ -4927,7 +4927,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
 		if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
 			/* check if convert to eulers for locking... */
 			if (pchan->protectflag & OB_LOCK_ROT4D) {
@@ -5068,7 +5068,7 @@ static int pose_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	
 	/*	Set the flags */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) {
 		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
@@ -5101,10 +5101,10 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 
 	/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
 	// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
-	if (CTX_DATA_COUNT(C, selected_pchans) > 1)	sel=0;
+	if (CTX_DATA_COUNT(C, selected_pose_bones) > 1)	sel=0;
 	
 	/*	Set the flags */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) {
 		/* select pchan only if selectable, but deselect works always */
 		if (sel==0) {
 			pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);

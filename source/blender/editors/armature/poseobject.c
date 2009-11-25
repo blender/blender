@@ -1329,7 +1329,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	
 	/* add selected bones to group then */
 	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
 		pchan->agrp_index= pose->active_group;
 		done= 1;
 	}
@@ -1388,7 +1388,7 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *op)
 	
 	/* add selected bones to ungroup then */
 	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
-	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 		// NOTE: sync this view3d_context() in space_view3d.c
@@ -1530,7 +1530,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 	arm= ob->data;
 	
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
 		bone_flip_name(newname, 1);	// 1 = do strip off number extensions
@@ -1577,7 +1577,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	arm= ob->data;
 	
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
 		bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]);
@@ -1755,7 +1755,7 @@ static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	/* get layers that are active already */
 	memset(&layers, 0, sizeof(layers)); /* set all layers to be off by default */
 	
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pchans) 
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
 	{
 		short bit;
 		
@@ -1786,7 +1786,7 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	RNA_boolean_get_array(op->ptr, "layers", layers);
 	
 	/* set layers of pchans based on the values set in the operator props */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pchans) 
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_Bone, pchan->bone, &ptr);

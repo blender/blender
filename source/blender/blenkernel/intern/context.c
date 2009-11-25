@@ -883,13 +883,13 @@ struct bPoseChannel *CTX_data_active_pose_bone(const bContext *C)
 	return ctx_data_pointer_get(C, "active_pose_bone");
 }
 
-int CTX_data_selected_pchans(const bContext *C, ListBase *list)
+int CTX_data_selected_pose_bones(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, "selected_pchans", list);
+	return ctx_data_collection_get(C, "selected_pose_bones", list);
 }
 
-int CTX_data_visible_pchans(const bContext *C, ListBase *list)
+int CTX_data_visible_pose_bones(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, "visible_pchans", list);
+	return ctx_data_collection_get(C, "visible_pose_bones", list);
 }
 

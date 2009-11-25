@@ -800,7 +800,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	
 	/* free constraints for all selected bones */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
 		free_constraints(&pchan->constraints);
 		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_SPLINEIK|PCHAN_HAS_CONST);
@@ -917,7 +917,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 	/* if the active Object is Armature, and we can search for bones, do so... */
 	if ((obact->type == OB_ARMATURE) && (only_ob == 0)) {
 		/* search in list of selected Pose-Channels for target */
-		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
 		{
 			/* just use the first one that we encounter, as long as it is not the active one */
 			if (pchan != pchanact) {
@@ -1345,7 +1345,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	
 	/* only remove IK Constraints */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
 	{
 		bConstraint *con, *next;
 		

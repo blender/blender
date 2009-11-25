@@ -478,7 +478,7 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Chain Length", "How many bones are included in the IK effect - 0 uses all bones.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "tail", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_tail", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_TIP);
 	RNA_def_property_ui_text(prop, "Use Tail", "Include bone's tail as last element in chain.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -489,7 +489,7 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis Reference", "Constraint axis Lock options relative to Bone or Target reference");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "position", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_position", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_POS);
 	RNA_def_property_ui_text(prop, "Position", "Chain follows position of target.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -509,7 +509,7 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Z Pos", "Constraint position along Z axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "rotation", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_ROT);
 	RNA_def_property_ui_text(prop, "Rotation", "Chain follows rotation of target.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -529,12 +529,12 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Z Rot", "Constraint rotation along Z axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "targetless", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_AUTO);
-	RNA_def_property_ui_text(prop, "Targetless", "Use targetless IK.");
+	prop= RNA_def_property(srna, "use_target", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_AUTO);
+	RNA_def_property_ui_text(prop, "Target", "Disable for targetless IK.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "stretch", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_stretch", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_STRETCH);
 	RNA_def_property_ui_text(prop, "Stretch", "Enable IK Stretching.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -662,7 +662,7 @@ static void rna_def_constraint_rotate_like(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Invert Z", "Invert the Z rotation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_OFFSET);
 	RNA_def_property_ui_text(prop, "Offset", "Add original rotation into copied rotation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -725,7 +725,7 @@ static void rna_def_constraint_locate_like(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Invert Z", "Invert the Z location.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LOCLIKE_OFFSET);
 	RNA_def_property_ui_text(prop, "Offset", "Add original location into copied location.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -818,7 +818,7 @@ static void rna_def_constraint_size_like(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Like Z", "Copy the target's Z scale.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_OFFSET);
 	RNA_def_property_ui_text(prop, "Offset", "Add original scale into copied scale.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
