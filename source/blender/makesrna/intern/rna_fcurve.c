@@ -276,6 +276,33 @@ static void rna_Fmodifier_active_update(bContext *C, PointerRNA *ptr)
 	
 }
 
+static int rna_FM_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	FModifier *fm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fm->data;
+
+	if(gen)
+		length[0]= gen->arraysize;
+	else
+		length[0]= 100; /* for raw_access, untested */
+
+	return length[0];
+}
+
+static void rna_FM_get(PointerRNA *ptr, float *values)
+{
+	FModifier *fm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fm->data;
+	memcpy(values, gen->coefficients, gen->arraysize * sizeof(float));
+}
+
+static void rna_FM_set(PointerRNA *ptr, const float *values)
+{
+	FModifier *fm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fm->data;
+	memcpy(gen->coefficients, values, gen->arraysize * sizeof(float));
+}
+
 #else
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
@@ -311,6 +338,14 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Polynomial Order", "The highest power of 'x' for this polynomial. (number of coefficients - 1)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
+
+	prop= RNA_def_property(srna, "coefficients", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 32);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_FM_get_length");
+	RNA_def_property_float_funcs(prop, "rna_FM_get", "rna_FM_set", NULL);
+	RNA_def_property_ui_text(prop, "Coefficients", "Coefficients for 'x' (starting from lowest power of x^0).");
+
 	/* coefficients array */
 		// FIXME: this is quite difficult to try to wrap
 	//prop= RNA_def_property(srna, "coefficients", PROP_COLLECTION, PROP_NONE);
