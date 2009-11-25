@@ -1683,8 +1683,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
             layout.active = view.display_background_image
 
             col = layout.column()
-            col.prop(bg, "image", text="")
-            #col.prop(bg, "image_user")
+            col.template_ID(bg, "image", open="image.open")
             col.prop(bg, "size")
             col.prop(bg, "transparency", slider=True)
 
