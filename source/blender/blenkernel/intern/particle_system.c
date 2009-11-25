@@ -2287,6 +2287,9 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 		case PART_INT_RK4:
 			steps=4;
 			break;
+		case PART_INT_VERLET:
+			steps=1;
+			break;
 	}
 
 	copy_particle_key(states,&pa->state,1);
@@ -2391,6 +2394,13 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 						VECADDFAC(pa->state.vel,pa->state.vel,dv[2],1.0f/3.0f);
 						VECADDFAC(pa->state.vel,pa->state.vel,dv[3],1.0f/6.0f);
 				}
+				break;
+			case PART_INT_VERLET:   /* Verlet integration */
+				VECADDFAC(pa->state.vel,pa->state.vel,force,dtime);
+				VECADDFAC(pa->state.co,pa->state.co,pa->state.vel,dtime);
+
+				VECSUB(pa->state.vel,pa->state.co,pa->prev_state.co);
+				mul_v3_fl(pa->state.vel,1.0f/dtime);
 				break;
 		}
 	}
