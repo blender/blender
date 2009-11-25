@@ -42,6 +42,9 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
 
 char *BLI_strdupn(const char *str, int len) {
 	char *n= MEM_mallocN(len+1, "strdup");
