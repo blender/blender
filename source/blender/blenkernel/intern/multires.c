@@ -193,7 +193,7 @@ static DerivedMesh *multires_subdisp_pre(DerivedMesh *mrdm, int distance, int si
 	if(simple)
 		smd.subdivType = ME_SIMPLE_SUBSURF;
 
-	final = subsurf_make_derived_from_derived_with_multires(mrdm, &smd, NULL, 0, NULL, 0, 0);
+	final = NULL; // XXX subsurf_make_derived_from_derived_with_multires(mrdm, &smd, NULL, 0, NULL, 0, 0);
 
 	return final;
 }
@@ -1247,7 +1247,7 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, i
 	smd.levels = smd.renderLevels = mmd->lvl - 1;
 	smd.flags |= eSubsurfModifierFlag_SubsurfUv;
 
-	result = subsurf_make_derived_from_derived_with_multires(dm, &smd, &ms, useRenderParams, NULL, isFinalCalc, 0);
+	result = NULL; // XXX subsurf_make_derived_from_derived_with_multires(dm, &smd, &ms, useRenderParams, NULL, isFinalCalc, 0);
 	for(i = 0; i < result->getNumVerts(result); ++i)
 		MultiresDM_get_subco(result)[i] = CDDM_get_verts(result)[i];
 	multiresModifier_disp_run(result, MultiresDM_get_subco(result), 0);

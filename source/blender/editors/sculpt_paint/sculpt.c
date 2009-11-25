@@ -1368,7 +1368,7 @@ void sculpt_update_mesh_elements(bContext *C, int need_fmap)
 	}
 
 	ss->ob = ob;
-	ss->tree = dm->getPBVH(dm);
+	ss->tree = dm->getPBVH(ob, dm);
 	ss->fmap = (need_fmap)? dm->getFaceMap(dm): NULL;
 }
 

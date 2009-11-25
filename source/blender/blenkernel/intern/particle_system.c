@@ -287,12 +287,12 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		if(psys->part->from == PART_FROM_VERT) {
 			totdmelem= dm->getNumVerts(dm);
 			totelem= me->totvert;
-			origindex= DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+			origindex= dm->getVertDataArray(dm, CD_ORIGINDEX);
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
 			totdmelem= dm->getNumFaces(dm);
 			totelem= me->totface;
-			origindex= DM_get_face_data_layer(dm, CD_ORIGINDEX);
+			origindex= dm->getFaceDataArray(dm, CD_ORIGINDEX);
 		}
 	
 		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");
@@ -948,7 +948,8 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 	if(totpart==0)
 		return 0;
 
-	if (!finaldm->deformedOnly && !CustomData_has_layer( &finaldm->faceData, CD_ORIGINDEX ) ) {
+	if (!finaldm->deformedOnly && !finaldm->getFaceDataArray(finaldm, CD_ORIGINDEX)) {
+		printf("Can't create particles with the current modifier stack, disable destructive modifiers\n");
 // XXX		error("Can't paint with the current modifier stack, disable destructive modifiers");
 		return 0;
 	}

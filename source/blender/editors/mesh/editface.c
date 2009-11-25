@@ -99,14 +99,16 @@ void object_facesel_flush_dm(Object *ob)
 	int totface;
 	int i;
 	
-	
-	if(me==NULL || dm==NULL || !CustomData_has_layer( &dm->faceData, CD_ORIGINDEX))
+	if(me==NULL || dm==NULL)
+		return;
+
+	index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+
+	if(!index_array)
 		return;
 	
 	faces = dm->getFaceArray(dm);
 	totface = dm->getNumFaces(dm);
-	
-	index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	
 	mf= faces;
 	

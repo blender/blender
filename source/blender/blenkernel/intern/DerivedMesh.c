@@ -1886,7 +1886,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				mask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, mask);
-				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, !inputVertexCos);
+				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, 0);
 
 				if(ndm) {
 					/* if the modifier returned a new dm, release the old one */

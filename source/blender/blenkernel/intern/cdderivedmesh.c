@@ -184,21 +184,21 @@ static ListBase *cdDM_getFaceMap(DerivedMesh *dm)
 	if(!cddm->fmap) {
 		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, cddm->mface,
 				     dm->getNumVerts(dm), dm->getNumFaces(dm));
-		printf("rebuild fmap\n");
 	}
 
 	return cddm->fmap;
 }
 
-static struct PBVH *cdDM_getPBVH(DerivedMesh *dm)
+static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 
-	if(!cddm->pbvh) {
+	if(!cddm->pbvh && ob->type == OB_MESH) {
+		Mesh *me= ob->data;
+
 		cddm->pbvh = BLI_pbvh_new();
-		BLI_pbvh_build(cddm->pbvh, cddm->mface, cddm->mvert,
-			       dm->getNumFaces(dm), dm->getNumVerts(dm));
-		printf("rebuild pbvh\n");
+		BLI_pbvh_build(cddm->pbvh, me->mface, me->mvert,
+			       me->totface, me->totvert);
 	}
 
 	return cddm->pbvh;
@@ -1626,6 +1626,11 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 	int numVerts = source->numVertData;
 	int numEdges = source->numEdgeData;
 	int numFaces = source->numFaceData;
+
+	/* ensure these are created if they are made on demand */
+	source->getVertDataArray(source, CD_ORIGINDEX);
+	source->getEdgeDataArray(source, CD_ORIGINDEX);
+	source->getFaceDataArray(source, CD_ORIGINDEX);
 
 	/* this initializes dm, and copies all non mvert/medge/mface layers */
 	DM_from_template(dm, source, numVerts, numEdges, numFaces);
