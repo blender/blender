@@ -302,9 +302,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = split.column()
         col.itemO("object.multires_subdivide", text="Subdivide")
         col.itemO("object.multires_higher_levels_delete", text="Delete Higher")
-        # row = col.row()
-        # row.enabled = md.total_levels > 0
-        # row.itemR(md, "external")
+        row = col.row()
+        row.enabled = md.total_levels > 0
+        row.itemR(md, "external")
 
     def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.itemR(md, "object")

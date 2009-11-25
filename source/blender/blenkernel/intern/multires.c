@@ -249,7 +249,7 @@ void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Object
 	int levels = mmd->totlvl - lvl;
 	MDisps *mdisps;
 	
-	// XXX CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
+	CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
 	mdisps= CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	multires_force_update(ob);
@@ -595,7 +595,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 	ob = ccgdm->multires.ob;
 	me = ccgdm->multires.ob->data;
 	mmd = ccgdm->multires.mmd;
-	// XXX CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
+	CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
 	mdisps = CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	if(mdisps) {
@@ -692,7 +692,7 @@ void multires_force_update(Object *ob)
 struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
 						    int useRenderParams, int isFinalCalc)
 {
-	//Mesh *me= ob->data;
+	Mesh *me= ob->data;
 	DerivedMesh *result;
 	CCGDerivedMesh *ccgdm;
 	DMGridData **gridData, **subGridData;
@@ -727,7 +727,7 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, i
 		memcpy(subGridData[i], gridData[i], sizeof(DMGridData)*gridSize*gridSize);
 	}
 
-	// XXX CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
+	CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
 	multiresModifier_disp_run(result, ob->data, 0, 0, subGridData, mmd->totlvl);
 
 	for(i = 0; i < numGrids; i++)

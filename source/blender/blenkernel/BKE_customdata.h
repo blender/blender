@@ -278,4 +278,20 @@ int CustomData_verify_versions(struct CustomData *data, int index);
 void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
 void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata, int total);
 void CustomData_bmesh_init_pool(struct CustomData *data, int allocsize);
+
+/* External file storage */
+
+void CustomData_external_add(struct CustomData *data,
+	int type, const char *name, int totelem);
+void CustomData_external_remove(struct CustomData *data,
+	int type, int totelem);
+void CustomData_external_remove_object(struct CustomData *data);
+int CustomData_external_test(struct CustomData *data, int type);
+
+void CustomData_external_write(struct CustomData *data,
+	CustomDataMask mask, int totelem, int free);
+void CustomData_external_read(struct CustomData *data,
+	CustomDataMask mask, int totelem);
+
 #endif
+

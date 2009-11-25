@@ -1434,15 +1434,17 @@ static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 	}
 }
 
-static void write_mdisps(WriteData *wd, int count, MDisps *mdlist)
+static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 {
 	if(mdlist) {
 		int i;
 		
 		writestruct(wd, DATA, "MDisps", count, mdlist);
-		for(i = 0; i < count; ++i) {
-			if(mdlist[i].disps)
-				writedata(wd, DATA, sizeof(float)*3*mdlist[i].totdisp, mdlist[i].disps);
+		if(!external) {
+			for(i = 0; i < count; ++i) {
+				if(mdlist[i].disps)
+					writedata(wd, DATA, sizeof(float)*3*mdlist[i].totdisp, mdlist[i].disps);
+			}
 		}
 	}
 }
@@ -1450,6 +1452,10 @@ static void write_mdisps(WriteData *wd, int count, MDisps *mdlist)
 static void write_customdata(WriteData *wd, int count, CustomData *data, int partial_type, int partial_count)
 {
 	int i;
+
+	/* write external customdata */
+	if(data->external && !wd->current)
+		CustomData_external_write(data, CD_MASK_MESH, count, 0);
 
 	writestruct(wd, DATA, "CustomDataLayer", data->maxlayer, data->layers);
 
@@ -1463,7 +1469,7 @@ static void write_customdata(WriteData *wd, int count, CustomData *data, int par
 			write_dverts(wd, count, layer->data);
 		}
 		else if (layer->type == CD_MDISPS) {
-			write_mdisps(wd, count, layer->data);
+			write_mdisps(wd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
 		}
 		else {
 			CustomData_file_write_info(layer->type, &structname, &structnum);
@@ -1480,6 +1486,9 @@ static void write_customdata(WriteData *wd, int count, CustomData *data, int par
 				printf("error: this CustomDataLayer must not be written to file\n");
 		}
 	}
+
+	if(data->external)
+		writestruct(wd, DATA, "CustomDataExternal", 1, data->external);
 }
 
 static void write_meshs(WriteData *wd, ListBase *idbase)

@@ -1075,12 +1075,11 @@ static int BKE_ptcache_id_filename(PTCacheID *pid, char *filename, int cfra, sho
 	}
 	if(strcmp(pid->cache->name, "")==0 && (pid->cache->flag & PTCACHE_EXTERNAL)==0) {
 		idname = (pid->ob->id.name+2);
+
 		/* convert chars to hex so they are always a valid filename */
-		while('\0' != *idname) {
-			snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));
-			newname+=2;
-			len += 2;
-		}
+		BLI_strhex(newname, MAX_PTCACHE_FILE - len, idname);
+		len += strlen(newname);
+		newname = filename + len;
 	}
 	else {
 		int temp = (int)strlen(pid->cache->name); 

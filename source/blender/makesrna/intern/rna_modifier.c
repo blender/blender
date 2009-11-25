@@ -340,7 +340,7 @@ static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max
 	*max = mmd->totlvl;
 }
 
-/*static int rna_MultiresModifier_external_get(PointerRNA *ptr)
+static int rna_MultiresModifier_external_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	Mesh *me= ob->data;
@@ -364,7 +364,7 @@ static int rna_MultiresModifier_external_editable(PointerRNA *ptr)
 	MultiresModifierData *mmd = ptr->data;
 
 	return (G.save_over && mmd->totlvl > 0);
-}*/
+}
 
 static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRNA value)
 {
@@ -570,10 +570,10 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Total Levels", "Number of subdivisions for which displacements are stored.");
 
-	/*prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", "rna_MultiresModifier_external_set");
 	RNA_def_property_editable_func(prop, "rna_MultiresModifier_external_editable");
-	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory.");*/
+	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory.");
 }
 
 static void rna_def_modifier_lattice(BlenderRNA *brna)

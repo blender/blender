@@ -32,21 +32,26 @@
 *
 */ 
 
-#include "BKE_customdata.h"
-#include "BKE_utildefines.h" // CLAMP
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_linklist.h"
-#include "BLI_mempool.h"
+#include <math.h>
+#include <string.h>
+
+#include "MEM_guardedalloc.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_ID.h"
 
-#include "MEM_guardedalloc.h"
+#include "BLI_blenlib.h"
+#include "BLI_linklist.h"
+#include "BLI_math.h"
+#include "BLI_mempool.h"
+#include "BLI_string.h"
 
-#include <math.h>
-#include <string.h>
+#include "BKE_btex.h"
+#include "BKE_customdata.h"
+#include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
@@ -89,6 +94,12 @@ typedef struct LayerTypeInfo {
     /* a function to set a layer's data to default values. if NULL, the
 	   default is assumed to be all zeros */
 	void (*set_default)(void *data, int count);
+
+    /* a function to read data from a btex file */
+	int (*read)(BTex *btex, void *data, int count);
+
+    /* a function to write data to a btex file */
+	int (*write)(BTex *btex, void *data, int count);
 } LayerTypeInfo;
 
 static void layerCopy_mdeformvert(const void *source, void *dest,
@@ -538,6 +549,39 @@ static void layerFree_mdisps(void *data, int count, int size)
 	}
 }
 
+static int layerRead_mdisps(BTex *btex, void *data, int count)
+{
+	MDisps *d = data;
+	int i;
+
+	for(i = 0; i < count; ++i) {
+		if(!d[i].disps)
+			d[i].disps = MEM_callocN(sizeof(float)*3*d[i].totdisp, "mdisps read");
+
+		if(!btex_read_data(btex, d[i].totdisp*3*sizeof(float), d[i].disps)) {
+			printf("failed to read %d/%d %d\n", i, count, d[i].totdisp);
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int layerWrite_mdisps(BTex *btex, void *data, int count)
+{
+	MDisps *d = data;
+	int i;
+
+	for(i = 0; i < count; ++i) {
+		if(!btex_write_data(btex, d[i].totdisp*3*sizeof(float), d[i].disps)) {
+			printf("failed to write %d/%d %d\n", i, count, d[i].totdisp);
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
 /* --------- */
 
 static void layerDefault_mloopcol(void *data, int count)
@@ -731,7 +775,7 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, layerDefault_mloopcol},
 	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
-	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL},
+	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL, layerRead_mdisps, layerWrite_mdisps},
 	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
 	 {sizeof(MCol)*4, "MCol", 4, "IDCol", NULL, NULL, layerInterp_mcol,
@@ -793,6 +837,8 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 	CustomDataLayer *layer, *newlayer;
 	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0;
 
+	CustomData_external_read(dest, mask, totelem);
+
 	for(i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
@@ -853,6 +899,14 @@ static void customData_free_layer__internal(CustomDataLayer *layer, int totelem)
 	}
 }
 
+static void CustomData_external_free(CustomData *data)
+{
+	if(data->external) {
+		MEM_freeN(data->external);
+		data->external= NULL;
+	}
+}
+
 void CustomData_free(CustomData *data, int totelem)
 {
 	int i;
@@ -862,6 +916,8 @@ void CustomData_free(CustomData *data, int totelem)
 
 	if(data->layers)
 		MEM_freeN(data->layers);
+	
+	CustomData_external_free(data);
 	
 	memset(data, 0, sizeof(*data));
 }
@@ -2236,5 +2292,234 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 	}
 
 	return keeplayer;
+}
+
+/****************************** External Files *******************************/
+
+static void customdata_external_filename(char filename[FILE_MAX], CustomDataExternal *external)
+{
+	BLI_strncpy(filename, external->filename, FILE_MAX);
+	BLI_convertstringcode(filename, G.sce);
+}
+
+void CustomData_external_read(CustomData *data, CustomDataMask mask, int totelem)
+{
+	CustomDataExternal *external= data->external;
+	CustomDataLayer *layer;
+	BTex *btex;
+	BTexLayer *blay;
+	char filename[FILE_MAX];
+	const LayerTypeInfo *typeInfo;
+	int i, update = 0;
+
+	if(!external)
+		return;
+	
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		typeInfo = layerType_getInfo(layer->type);
+
+		if(!(mask & (1<<layer->type)));
+		else if(layer->flag & CD_FLAG_IN_MEMORY);
+		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read)
+			update= 1;
+	}
+
+	if(!update)
+		return;
+
+	customdata_external_filename(filename, external);
+
+	btex= btex_create(BTEX_TYPE_MESH);
+	if(!btex_read_open(btex, filename))
+		return;
+
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		typeInfo = layerType_getInfo(layer->type);
+
+		if(!(mask & (1<<layer->type)));
+		else if(layer->flag & CD_FLAG_IN_MEMORY);
+		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read) {
+			blay= btex_layer_find(btex, layer->type, layer->name);
+
+			if(blay) {
+				if(btex_read_layer(btex, blay)) {
+					if(typeInfo->read(btex, layer->data, totelem));
+					else break;
+					layer->flag |= CD_FLAG_IN_MEMORY;
+				}
+				else
+					break;
+			}
+		}
+	}
+
+	btex_read_close(btex);
+	btex_free(btex);
+}
+
+void CustomData_external_write(CustomData *data, CustomDataMask mask, int totelem, int free)
+{
+	CustomDataExternal *external= data->external;
+	CustomDataLayer *layer;
+	BTex *btex;
+	BTexLayer *blay;
+	const LayerTypeInfo *typeInfo;
+	int i, update = 0;
+	char filename[FILE_MAX];
+
+	if(!external)
+		return;
+
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		typeInfo = layerType_getInfo(layer->type);
+
+		if(!(mask & (1<<layer->type)));
+		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->write)
+			update= 1;
+	}
+
+	if(!update)
+		return;
+
+	CustomData_external_read(data, mask, totelem);
+
+	btex= btex_create(BTEX_TYPE_MESH);
+
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		typeInfo = layerType_getInfo(layer->type);
+
+		if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->write)
+			btex_layer_add(btex, layer->type, layer->name);
+	}
+
+	customdata_external_filename(filename, external);
+	if(!btex_write_open(btex, filename))
+		return;
+
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		typeInfo = layerType_getInfo(layer->type);
+
+		if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->write) {
+			blay= btex_layer_find(btex, layer->type, layer->name);
+
+			if(btex_write_layer(btex, blay)) {
+				if(typeInfo->write(btex, layer->data, totelem));
+				else break;
+			}
+			else
+				break;
+		}
+	}
+
+	if(i != data->totlayer) {
+		btex_free(btex);
+		return;
+	}
+
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		typeInfo = layerType_getInfo(layer->type);
+
+		if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->write) {
+			if(free) {
+				if(typeInfo->free)
+					typeInfo->free(layer->data, totelem, typeInfo->size);
+				layer->flag &= ~CD_FLAG_IN_MEMORY;
+			}
+		}
+	}
+
+	btex_write_close(btex);
+	btex_free(btex);
+}
+
+void CustomData_external_add(CustomData *data, int type, const char *name, int totelem)
+{
+	CustomDataExternal *external= data->external;
+	CustomDataLayer *layer;
+	int layer_index;
+
+	layer_index = CustomData_get_active_layer_index(data, type);
+	if(layer_index < 0) return;
+
+	layer = &data->layers[layer_index];
+
+	if(layer->flag & CD_FLAG_EXTERNAL)
+		return;
+
+	if(!external) {
+		char hex[MAX_ID_NAME*2];
+
+		external= MEM_callocN(sizeof(CustomDataExternal), "CustomDataExternal");
+		BLI_strhex(hex, sizeof(hex), name);
+		BLI_snprintf(external->filename, sizeof(external->filename), "//%s_mesh.btex", hex);
+		data->external= external;
+	}
+
+	layer->flag |= CD_FLAG_EXTERNAL|CD_FLAG_IN_MEMORY;
+}
+
+void CustomData_external_remove(CustomData *data, int type, int totelem)
+{
+	CustomDataExternal *external= data->external;
+	CustomDataLayer *layer;
+	char filename[FILE_MAX];
+	int layer_index, i, remove_file;
+
+	layer_index = CustomData_get_active_layer_index(data, type);
+	if(layer_index < 0) return;
+
+	layer = &data->layers[layer_index];
+
+	if(!external)
+		return;
+
+	if(layer->flag & CD_FLAG_EXTERNAL) {
+		if(!(layer->flag & CD_FLAG_IN_MEMORY))
+			CustomData_external_read(data, (1<<layer->type), totelem);
+
+		layer->flag &= ~CD_FLAG_EXTERNAL;
+
+		remove_file= 1;
+		for(i=0; i<data->totlayer; i++)
+			if(data->layers[i].flag & CD_FLAG_EXTERNAL)
+				remove_file= 0;
+
+		if(remove_file) {
+			customdata_external_filename(filename, external);
+			btex_remove(filename);
+			CustomData_external_free(data);
+		}
+	}
+}
+
+int CustomData_external_test(CustomData *data, int type)
+{
+	CustomDataLayer *layer;
+	int layer_index;
+
+	layer_index = CustomData_get_active_layer_index(data, type);
+	if(layer_index < 0) return 0;
+
+	layer = &data->layers[layer_index];
+	return (layer->flag & CD_FLAG_EXTERNAL);
+}
+
+void CustomData_external_remove_object(CustomData *data)
+{
+	CustomDataExternal *external= data->external;
+	char filename[FILE_MAX];
+
+	if(!external)
+		return;
+
+	customdata_external_filename(filename, external);
+	btex_remove(filename);
+	CustomData_external_free(data);
 }
 

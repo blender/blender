@@ -123,6 +123,9 @@ int BLI_natstrcmp(const char *s1, const char *s2);
 
 void BLI_timestr(double _time, char *str); /* time var is global */
 
+	/* Convert to hex string valid for file writing (2x length of original) */
+void BLI_strhex(char *hex, int maxlen, const char *str);
+
 #ifdef __cplusplus
 }
 #endif

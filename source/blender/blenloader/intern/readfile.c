@@ -3311,14 +3311,14 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 	}
 }
 
-static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps)
+static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int external)
 {
 	if(mdisps) {
 		int i;
 
 		for(i = 0; i < count; ++i) {
 			mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
-			if(!mdisps[i].disps)
+			if(!external && !mdisps[i].disps)
 				mdisps[i].totdisp = 0;
 		}
 	}       
@@ -3329,14 +3329,18 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 	int i = 0;
 
 	data->layers= newdataadr(fd, data->layers);
+	data->external= newdataadr(fd, data->external);
 
 	while (i < data->totlayer) {
 		CustomDataLayer *layer = &data->layers[i];
 
+		if(layer->flag & CD_FLAG_EXTERNAL)
+			layer->flag &= ~CD_FLAG_IN_MEMORY;
+
 		if (CustomData_verify_versions(data, i)) {
 			layer->data = newdataadr(fd, layer->data);
 			if(layer->type == CD_MDISPS)
-				direct_link_mdisps(fd, count, layer->data);
+				direct_link_mdisps(fd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
 			i++;
 		}
 	}
