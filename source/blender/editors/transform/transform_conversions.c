@@ -545,7 +545,7 @@ static short apply_targetless_ik(Object *ob)
 static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
 {
 	Bone *bone= pchan->bone;
-	float pmat[3][3], omat[3][3];
+	float pmat[3][3], omat[3][3], bmat[3][3];
 	float cmat[3][3], tmat[3][3];
 	float vec[3];
 
@@ -619,13 +619,18 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 			mul_serie_m3(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
 	}
 	else {
+		if (t->mode==TFM_TRANSLATION && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
+			unit_m3(bmat);
+		else
+			copy_m3_m3(bmat, pchan->bone->bone_mat);
+
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, pchan->bone->bone_mat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
 		}
 		else
-			mul_m3_m3m3(td->mtx, omat, pchan->bone->bone_mat);  // Mat3MulMat3 has swapped args!
+			mul_m3_m3m3(td->mtx, omat, bmat);  // Mat3MulMat3 has swapped args!
 	}
 
 	invert_m3_m3(td->smtx, td->mtx);

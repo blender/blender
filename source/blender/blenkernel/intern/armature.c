@@ -2247,7 +2247,12 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 			mul_serie_m4(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 	}
 	else {
-		mul_m4_m4m4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
+		if(bone->flag & BONE_NO_LOCAL_LOCATION) {
+			mul_m4_m4m4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
+			add_v3_v3v3(pchan->pose_mat[3], bone->arm_mat[3], pchan->chan_mat[3]);
+		}
+		else
+			mul_m4_m4m4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
 		
 		/* only rootbones get the cyclic offset (unless user doesn't want that) */
 		if ((bone->flag & BONE_NO_CYCLICOFFSET) == 0)
