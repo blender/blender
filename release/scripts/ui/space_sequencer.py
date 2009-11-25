@@ -188,19 +188,19 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator("sequencer.effect_strip_add").type = 'ADD'
-        layout.operator("sequencer.effect_strip_add").type = 'SUBTRACT'
-        layout.operator("sequencer.effect_strip_add").type = 'ALPHA_OVER'
-        layout.operator("sequencer.effect_strip_add").type = 'ALPHA_UNDER'
-        layout.operator("sequencer.effect_strip_add").type = 'GAMMA_CROSS'
-        layout.operator("sequencer.effect_strip_add").type = 'MULTIPLY'
-        layout.operator("sequencer.effect_strip_add").type = 'OVER_DROP'
-        layout.operator("sequencer.effect_strip_add").type = 'PLUGIN'
-        layout.operator("sequencer.effect_strip_add").type = 'WIPE'
-        layout.operator("sequencer.effect_strip_add").type = 'GLOW'
-        layout.operator("sequencer.effect_strip_add").type = 'TRANSFORM'
-        layout.operator("sequencer.effect_strip_add").type = 'COLOR'
-        layout.operator("sequencer.effect_strip_add").type = 'SPEED'
+        layout.operator("sequencer.effect_strip_add", text="Add").type = 'ADD'
+        layout.operator("sequencer.effect_strip_add", text="Subtract").type = 'SUBTRACT'
+        layout.operator("sequencer.effect_strip_add", text="Alpha Over").type = 'ALPHA_OVER'
+        layout.operator("sequencer.effect_strip_add", text="Alpha Under").type = 'ALPHA_UNDER'
+        layout.operator("sequencer.effect_strip_add", text="Gamma Cross").type = 'GAMMA_CROSS'
+        layout.operator("sequencer.effect_strip_add", text="Multiply").type = 'MULTIPLY'
+        layout.operator("sequencer.effect_strip_add", text="Over Drop").type = 'OVER_DROP'
+        layout.operator("sequencer.effect_strip_add", text="Plugin").type = 'PLUGIN'
+        layout.operator("sequencer.effect_strip_add", text="Wipe").type = 'WIPE'
+        layout.operator("sequencer.effect_strip_add", text="Glow").type = 'GLOW'
+        layout.operator("sequencer.effect_strip_add", text="Transform").type = 'TRANSFORM'
+        layout.operator("sequencer.effect_strip_add", text="Color").type = 'COLOR'
+        layout.operator("sequencer.effect_strip_add", text="Speed Control").type = 'SPEED'
 
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
@@ -212,8 +212,8 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator("tfm.transform", text="Grab/Move").mode = TRANSLATION
-        layout.operator("tfm.transform", text="Grab/Extend from frame").mode = TIME_EXTEND
+        layout.operator("tfm.transform", text="Grab/Move").mode = 'TRANSLATION'
+        layout.operator("tfm.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
         #  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
         layout.separator()
 
