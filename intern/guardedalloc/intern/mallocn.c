@@ -402,11 +402,13 @@ void MEM_printmemlist_stats()
 	}
 	totpb= b+1;
 
+#define MEM_IN_MB(mem) ((double)mem/(double)(1024*1024))
+
 	/* sort by length and print */
 	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
-	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use/(double)(1024*1024));
+	printf("\ntotal memory len: %.3f MB\n", MEM_IN_MB(mem_in_use));
 	for(a=0, pb=printblock; a<totpb; a++, pb++)
-		printf("%s items: %d, len: %.3f MB\n", pb->name, pb->items, (double)pb->len/(double)(1024*1024));
+		printf("%s items: %d, len: %.3f MB\n", pb->name, pb->items, MEM_IN_MB(pb->len));
 	
 	{
 		uintptr_t other= mem_in_use;
@@ -419,7 +421,7 @@ void MEM_printmemlist_stats()
 			"memory = [\n");
 
 		for(a=0, pb=printblock; a<totpb; a++, pb++) {
-			printf("[\"%s\", %.3f],\n", pb->name, (double)pb->len/(double)(1024*1024));
+			printf("[\"%s (%.3f MB)\", %.3f],\n", pb->name, MEM_IN_MB(pb->len), MEM_IN_MB(pb->len));
 			other -= pb->len;
 
 			if((double)pb->len/(double)mem_in_use < 0.025)
@@ -437,12 +439,14 @@ void MEM_printmemlist_stats()
 			"pie(fracs, labels=labels, colors=colors, autopct='%%1.1f%%%%')\n"
 			"title(\"Memory Usage: %.3f MB\")\n"
 			"\n"
-			"show()\n", (double)other/(double)(1024*1024), (double)mem_in_use/(double)(1024*1024));
+			"show()\n", MEM_IN_MB(other), MEM_IN_MB(mem_in_use));
 	}
 
 	free(printblock);
 	
 	mem_unlock_thread();
+
+#undef MEM_IN_MB
 }
 
 /* Prints in python syntax for easy */
