@@ -1771,6 +1771,11 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 		EM_free_index_arrays();
 	}
 
+	/* restore total selections */
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
+
 // XXX	retopo_free_paint();
 //	em->retopo_paint_data= retopo_paint_data_copy(um->retopo_paint_data);
 //	scene->toolsettings->retopo_mode= um->retopo_mode;
