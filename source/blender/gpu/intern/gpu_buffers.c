@@ -30,6 +30,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <limits.h>
 #include <string.h>
 
 #include "GL/glew.h"
@@ -388,11 +389,12 @@ typedef struct {
 } VertexBufferFormat;
 
 typedef struct {
-	unsigned int vert_buf, tri_buf;
-	unsigned short tot_tri;
+	GLuint vert_buf, index_buf;
+	GLenum index_type;
+	unsigned int tot_tri, tot_quad;
 } GPU_Buffers;
 
-void GPU_update_buffers(void *buffers_v, MVert *mvert,
+void GPU_update_mesh_buffers(void *buffers_v, MVert *mvert,
 			int *vert_indices, int totvert)
 {
 	GPU_Buffers *buffers = buffers_v;
@@ -414,11 +416,9 @@ void GPU_update_buffers(void *buffers_v, MVert *mvert,
 		memcpy(out->no, v->no, sizeof(short) * 3);
 	}
 	glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
-
-	//printf("node updated %p\n", buffers_v);
 }
 
-void *GPU_build_buffers(GHash *map, MVert *mvert, MFace *mface,
+void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 			int *face_indices, int totface,
 			int *vert_indices, int tot_uniq_verts,
 			int totvert)
@@ -428,14 +428,15 @@ void *GPU_build_buffers(GHash *map, MVert *mvert, MFace *mface,
 	int i, j, k, tottri;
 
 	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
+	buffers->index_type = GL_UNSIGNED_SHORT;
 
 	/* Count the number of triangles */
 	for(i = 0, tottri = 0; i < totface; ++i)
 		tottri += mface[face_indices[i]].v4 ? 2 : 1;
 
 	/* Generate index buffer object */
-	glGenBuffersARB(1, &buffers->tri_buf);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->tri_buf);
+	glGenBuffersARB(1, &buffers->index_buf);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
 	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
 		     sizeof(unsigned short) * tottri * 3, NULL, GL_STATIC_DRAW_ARB);
 
@@ -470,9 +471,106 @@ void *GPU_build_buffers(GHash *map, MVert *mvert, MFace *mface,
 
 	/* Build VBO */
 	glGenBuffersARB(1, &buffers->vert_buf);
-	GPU_update_buffers(buffers, mvert, vert_indices, totvert);
+	GPU_update_mesh_buffers(buffers, mvert, vert_indices, totvert);
 
 	buffers->tot_tri = tottri;
+
+	return buffers;
+}
+
+void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
+	int *grid_indices, int totgrid, int gridsize)
+{
+	GPU_Buffers *buffers = buffers_v;
+	DMGridData *vert_data;
+	int i, totvert;
+
+	totvert= gridsize*gridsize*totgrid;
+
+	/* Build VBO */
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
+		     sizeof(DMGridData) * totvert,
+		     NULL, GL_STATIC_DRAW_ARB);
+	vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+
+	for(i = 0; i < totgrid; ++i) {
+		DMGridData *grid= grids[grid_indices[i]];
+		memcpy(vert_data, grid, sizeof(DMGridData)*gridsize*gridsize);
+		vert_data += gridsize*gridsize;
+	}
+	glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+
+	//printf("node updated %p\n", buffers_v);
+}
+
+void *GPU_build_grid_buffers(DMGridData **grids,
+	int *grid_indices, int totgrid, int gridsize)
+{
+	GPU_Buffers *buffers;
+	int i, j, k, totquad, offset= 0;
+
+	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
+
+	/* Count the number of quads */
+	totquad= (gridsize-1)*(gridsize-1)*totgrid;
+
+	/* Generate index buffer object */
+	glGenBuffersARB(1, &buffers->index_buf);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
+
+	if(totquad < USHRT_MAX) {
+		unsigned short *quad_data;
+
+		buffers->index_type = GL_UNSIGNED_SHORT;
+		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
+				 sizeof(unsigned short) * totquad * 4, NULL, GL_STATIC_DRAW_ARB);
+
+		/* Fill the quad buffer */
+		quad_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+		for(i = 0; i < totgrid; ++i) {
+			for(j = 0; j < gridsize-1; ++j) {
+				for(k = 0; k < gridsize-1; ++k) {
+					*(quad_data++)= offset + j*gridsize + k;
+					*(quad_data++)= offset + (j+1)*gridsize + k;
+					*(quad_data++)= offset + (j+1)*gridsize + k+1;
+					*(quad_data++)= offset + j*gridsize + k+1;
+				}
+			}
+
+			offset += gridsize*gridsize;
+		}
+		glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);
+	}
+	else {
+		unsigned int *quad_data;
+
+		buffers->index_type = GL_UNSIGNED_INT;
+		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
+				 sizeof(unsigned int) * totquad * 4, NULL, GL_STATIC_DRAW_ARB);
+
+		/* Fill the quad buffer */
+		quad_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+		for(i = 0; i < totgrid; ++i) {
+			for(j = 0; j < gridsize-1; ++j) {
+				for(k = 0; k < gridsize-1; ++k) {
+					*(quad_data++)= offset + j*gridsize + k;
+					*(quad_data++)= offset + (j+1)*gridsize + k;
+					*(quad_data++)= offset + (j+1)*gridsize + k+1;
+					*(quad_data++)= offset + j*gridsize + k+1;
+				}
+			}
+
+			offset += gridsize*gridsize;
+		}
+		glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);
+	}
+
+	/* Build VBO */
+	glGenBuffersARB(1, &buffers->vert_buf);
+	GPU_update_grid_buffers(buffers, grids, grid_indices, totgrid, gridsize);
+
+	buffers->tot_quad = totquad;
 
 	return buffers;
 }
@@ -482,12 +580,20 @@ void GPU_draw_buffers(void *buffers_v)
 	GPU_Buffers *buffers = buffers_v;
 
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->tri_buf);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
 
-	glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat), 0);
-	glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat), (void*)12);
+	if(buffers->tot_quad) {
+		glVertexPointer(3, GL_FLOAT, sizeof(DMGridData), 0);
+		glNormalPointer(GL_FLOAT, sizeof(DMGridData), (void*)offsetof(DMGridData, no));
 
-	glDrawElements(GL_TRIANGLES, buffers->tot_tri * 3, GL_UNSIGNED_SHORT, 0);
+		glDrawElements(GL_QUADS, buffers->tot_quad * 4, buffers->index_type, 0);
+	}
+	else {
+		glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat), 0);
+		glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat), (void*)offsetof(VertexBufferFormat, no));
+
+		glDrawElements(GL_TRIANGLES, buffers->tot_tri * 3, buffers->index_type, 0);
+	}
 }
 
 void GPU_free_buffers(void *buffers_v)
@@ -496,7 +602,7 @@ void GPU_free_buffers(void *buffers_v)
 		GPU_Buffers *buffers = buffers_v;
 		
 		glDeleteBuffersARB(1, &buffers->vert_buf);
-		glDeleteBuffersARB(1, &buffers->tri_buf);
+		glDeleteBuffersARB(1, &buffers->index_buf);
 
 		MEM_freeN(buffers);
 	}

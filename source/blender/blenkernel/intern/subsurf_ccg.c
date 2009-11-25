@@ -819,6 +819,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		for(x = 1; x < edgeSize - 1; x++, i++) {
 			vd= ccgSubSurf_getEdgeData(ss, e, x);
 			copy_v3_v3(mvert[i].co, vd->co);
+			/* TODO CCGSubsurf does not set these */
 			normal_float_to_short_v3(mvert[i].no, vd->no);
 		}
 	}
@@ -1230,8 +1231,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 	char *faceFlags = ccgdm->faceFlags;
 	int step = 1; //(fast)? gridSize-1: 1;
 
-#if 0
-	if(ccgdm->pbvh && ccgdm->multires.mmd && !fast) {
+	if(ccgdm->pbvh && ccgdm->multires.mmd) { // && !fast) {
 		CCGFace **faces;
 		int totface;
 
@@ -1252,7 +1252,6 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 
 		return;
 	}
-#endif
 
 	fi = ccgSubSurf_getFaceIterator(ss);
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
@@ -2135,12 +2134,12 @@ static DMGridAdjacency *ccgDM_getGridAdjacency(DerivedMesh *dm)
 static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
-	//int gridSize, numGrids;
+	int gridSize, numGrids;
 
 	if(ccgdm->pbvh)
 		return ccgdm->pbvh;
 
-	/*if(ccgdm->multires.mmd) {
+	if(ccgdm->multires.mmd) {
 		ccgdm_create_grids(dm);
 
 		gridSize = ccgDM_getGridSize(dm);
@@ -2150,11 +2149,11 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, numGrids, gridSize,
 			(void**)ccgdm->gridFaces);
 	}
-	else*/ if(ob->type == OB_MESH) {
+	else if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 
 		ccgdm->pbvh = BLI_pbvh_new();
-		BLI_pbvh_build(ccgdm->pbvh, me->mface, me->mvert,
+		BLI_pbvh_build_mesh(ccgdm->pbvh, me->mface, me->mvert,
 			       me->totface, me->totvert);
 	}
 

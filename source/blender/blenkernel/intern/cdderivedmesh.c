@@ -197,7 +197,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		Mesh *me= ob->data;
 
 		cddm->pbvh = BLI_pbvh_new();
-		BLI_pbvh_build(cddm->pbvh, me->mface, me->mvert,
+		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 			       me->totface, me->totvert);
 	}
 
@@ -393,60 +393,6 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 	}
 }
 
-static int nodes_drawn = 0;
-static int is_partial = 0;
-/* XXX: Just a temporary replacement for the real drawing code */
-static void draw_partial_cb(PBVHNode *node, void *data)
-{
-	/* XXX: Just some quick code to show leaf nodes in different colors */
-	/*float col[3]; int i;
-	if(is_partial) {
-		col[0] = (rand() / (float)RAND_MAX); col[1] = col[2] = 0.6;
-	}
-	else {
-		srand((long long)data_v);
-		for(i = 0; i < 3; ++i)
-			col[i] = (rand() / (float)RAND_MAX) * 0.3 + 0.7;
-	}
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, col);
-
-	glColor3f(1, 0, 0);*/
-	GPU_draw_buffers(BLI_pbvh_node_get_draw_buffers(node));
-	++nodes_drawn;
-}
-
-/* Adapted from:
-   http://www.gamedev.net/community/forums/topic.asp?topic_id=512123
-   Returns true if the AABB is at least partially within the frustum
-   (ok, not a real frustum), false otherwise.
-*/
-int planes_contain_AABB(PBVHNode *node, void *data)
-{
-	float (*planes)[4] = data;
-	int i, axis;
-	float vmin[3], vmax[3], bb_min[3], bb_max[3];
-
-	BLI_pbvh_node_get_BB(node, bb_min, bb_max);
-
-	for(i = 0; i < 4; ++i) { 
-		for(axis = 0; axis < 3; ++axis) {
-			if(planes[i][axis] > 0) { 
-				vmin[axis] = bb_min[axis];
-				vmax[axis] = bb_max[axis];
-			}
-			else {
-				vmin[axis] = bb_max[axis];
-				vmax[axis] = bb_min[axis];
-			}
-		}
-		
-		if(dot_v3v3(planes[i], vmin) + planes[i][3] > 0)
-			return 0;
-	} 
-
-	return 1;
-}
-
 static void cdDM_drawFacesSolid(DerivedMesh *dm,
 				float (*partial_redraw_planes)[4],
 				int (*setMaterial)(int, void *attribs))
@@ -468,26 +414,11 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 	if(cddm->pbvh) {
 		float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
-		BLI_pbvh_update(cddm->pbvh, PBVH_UpdateNormals|PBVH_UpdateDrawBuffers,
-			face_nors);
-
 		/* should be per face */
 		if(dm->numFaceData && mface->flag & ME_SMOOTH)
 			glShadeModel(GL_SMOOTH);
 
-		if(partial_redraw_planes) {
-			BLI_pbvh_search_callback(cddm->pbvh, planes_contain_AABB,
-					partial_redraw_planes, draw_partial_cb, NULL);
-		}
-		else {
-			BLI_pbvh_search_callback(cddm->pbvh, NULL, NULL,
-					draw_partial_cb, NULL);
-		}
-
-		is_partial = !!partial_redraw_planes;
-
-		//printf("nodes drawn=%d\n", nodes_drawn);
-		nodes_drawn = 0;
+		BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors);
 
 		glShadeModel(GL_FLAT);
 
