@@ -2027,13 +2027,13 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
-	//MultiresModifierData *mmd = sculpt_multires_active(ob);
+	MultiresModifierData *mmd = sculpt_multires_active(ob);
 
 	if(ob->mode & OB_MODE_SCULPT) {
 		multires_force_update(ob);
 
-		/*if(mmd && mmd->sculptlvl != mmd->lvl)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);*/
+		if(mmd && mmd->sculptlvl != mmd->lvl)
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 		/* Leave sculptmode */
 		ob->mode &= ~OB_MODE_SCULPT;
@@ -2044,8 +2044,8 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* Enter sculptmode */
 		ob->mode |= OB_MODE_SCULPT;
 
-		/*if(mmd && mmd->sculptlvl != mmd->lvl)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);*/
+		if(mmd && mmd->sculptlvl != mmd->lvl)
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		
 		/* Create persistent sculpt mode data */
 		if(!ts->sculpt)

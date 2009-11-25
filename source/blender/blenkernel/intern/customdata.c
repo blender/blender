@@ -381,6 +381,7 @@ static void layerDefault_origspace_face(void *data, int count)
 		osf[i] = default_osf;
 }
 
+#if 0
 /* Adapted from sculptmode.c */
 static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float v)
 {
@@ -426,9 +427,12 @@ static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, fl
 
 	add_v3_v3v3(out, d2[0], d2[1]);
 }
+#endif
 
 static void layerSwap_mdisps(void *data, int *ci)
 {
+	// XXX
+#if 0
 	MDisps *s = data;
 	float (*d)[3] = NULL;
 	int x, y, st;
@@ -447,11 +451,14 @@ static void layerSwap_mdisps(void *data, int *ci)
 	if(s->disps)
 		MEM_freeN(s->disps);
 	s->disps = d;
+#endif
 }
 
 static void layerInterp_mdisps(void **sources, float *weights, float *sub_weights,
 			       int count, void *dest)
 {
+	// XXX
+#if 0
 	MDisps *d = dest;
 	MDisps *s = NULL;
 	int st, stl;
@@ -496,6 +503,7 @@ static void layerInterp_mdisps(void **sources, float *weights, float *sub_weight
 			copy_v3_v3(d->disps[y * st + x], srcdisp);
 		}
 	}
+#endif
 }
 
 static void layerCopy_mdisps(const void *source, void *dest, int count)

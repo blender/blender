@@ -39,6 +39,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_bmesh.h" /* For BevelModifierData */
+#include "BKE_global.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
 #include "WM_api.h"
@@ -335,9 +336,35 @@ static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)ptr->data;
 
-	*min = 1;
+	*min = 0;
 	*max = mmd->totlvl;
 }
+
+/*static int rna_MultiresModifier_external_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Mesh *me= ob->data;
+
+	return CustomData_external_test(&me->fdata, CD_MDISPS);
+}
+
+static void rna_MultiresModifier_external_set(PointerRNA *ptr, int value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Mesh *me= ob->data;
+
+	if(CustomData_external_test(&me->fdata, CD_MDISPS) && !value)
+		CustomData_external_remove(&me->fdata, CD_MDISPS, me->totface);
+	else if(!CustomData_external_test(&me->fdata, CD_MDISPS) && value)
+		CustomData_external_add(&me->fdata, CD_MDISPS, me->id.name+2, me->totface);
+}
+
+static int rna_MultiresModifier_external_editable(PointerRNA *ptr)
+{
+	MultiresModifierData *mmd = ptr->data;
+
+	return (G.save_over && mmd->totlvl > 0);
+}*/
 
 static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRNA value)
 {
@@ -487,17 +514,15 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 
 	rna_def_property_subdivision_common(srna, "subdivType");
 
-	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "levels");
-	RNA_def_property_range(prop, 1, 6);
-	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "renderLevels");
-	RNA_def_property_range(prop, 1, 6);
-	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Levels", "Number of subdivisions to perform when rendering.");
 
 	prop= RNA_def_property(srna, "optimal_draw", PROP_BOOLEAN, PROP_NONE);
@@ -523,11 +548,32 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 
 	rna_def_property_subdivision_common(srna, "simple");
 
-	prop= RNA_def_property(srna, "level", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "lvl");
-	RNA_def_property_ui_text(prop, "Level", "");
+	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to use in the viewport.");
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "sculpt_levels", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "sculptlvl");
+	RNA_def_property_ui_text(prop, "Sculpt Levels", "Number of subdivisions to use in sculpt mode.");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "renderlvl");
+	RNA_def_property_ui_text(prop, "Render Levels", "");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
+
+	prop= RNA_def_property(srna, "total_levels", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "totlvl");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Total Levels", "Number of subdivisions for which displacements are stored.");
+
+	/*prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", "rna_MultiresModifier_external_set");
+	RNA_def_property_editable_func(prop, "rna_MultiresModifier_external_editable");
+	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory.");*/
 }
 
 static void rna_def_modifier_lattice(BlenderRNA *brna)

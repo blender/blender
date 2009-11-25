@@ -1535,7 +1535,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, Modifier
 	md->scene= scene;
 	
 	if (!(md->mode&eModifierMode_Realtime)) return NULL;
-	if (mti->isDisabled && mti->isDisabled(md)) return NULL;
+	if (mti->isDisabled && mti->isDisabled(md, 0)) return NULL;
 
 	if (mti->type==eModifierTypeType_OnlyDeform) {
 		int numVerts;

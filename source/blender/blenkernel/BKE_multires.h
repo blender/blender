@@ -39,23 +39,6 @@ typedef struct MultiresSubsurf {
 	int local_mmd;
 } MultiresSubsurf;
 
-/* MultiresDM */
-struct Object *MultiresDM_get_object(struct DerivedMesh *dm);
-struct Mesh *MultiresDM_get_mesh(struct DerivedMesh *dm);
-struct DerivedMesh *MultiresDM_new(struct MultiresSubsurf *, struct DerivedMesh*, int, int, int);
-void *MultiresDM_get_vertnorm(struct DerivedMesh *);
-void *MultiresDM_get_orco(struct DerivedMesh *);
-struct MVert *MultiresDM_get_subco(struct DerivedMesh *);
-struct ListBase *MultiresDM_get_vert_face_map(struct DerivedMesh *);
-struct ListBase *MultiresDM_get_vert_edge_map(struct DerivedMesh *);
-int *MultiresDM_get_face_offsets(struct DerivedMesh *);
-int MultiresDM_get_totlvl(struct DerivedMesh *);
-int MultiresDM_get_lvl(struct DerivedMesh *);
-void MultiresDM_set_update(struct DerivedMesh *, void (*)(struct DerivedMesh*));
-
-/* The displacements will only be updated when
-   the MultiresDM has been marked as modified */
-void MultiresDM_mark_as_modified(struct DerivedMesh *);
 void multires_mark_as_modified(struct Object *ob);
 
 void multires_force_update(struct Object *ob);
@@ -64,10 +47,9 @@ struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*
 						    struct Object *, int, int);
 
 struct MultiresModifierData *find_multires_modifier(struct Object *ob);
-int multiresModifier_switch_level(struct Object *, const int);
 void multiresModifier_join(struct Object *);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
-void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob, int distance,
+void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob,
 				int updateblock, int simple);
 int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *dst, struct Object *src);
 

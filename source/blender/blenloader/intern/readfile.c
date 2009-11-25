@@ -3922,12 +3922,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 						SWITCH_INT(mmd->dynverts[a])
 			}
 		}
-		else if (md->type==eModifierType_Multires) {
-			MultiresModifierData *mmd = (MultiresModifierData*) md;
-			
-			mmd->undo_verts = newdataadr(fd, mmd->undo_verts);
-			mmd->undo_signal = !!mmd->undo_verts;
-		}
 	}
 }
 
@@ -9595,7 +9589,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ToolSettings *ts;
 		//PTCacheID *pid;
 		//ListBase pidlist;
-		int i, a;
+		int /*i, */a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
@@ -9613,6 +9607,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob->data = me;
 
 				if(me && me->id.lib==NULL && me->mr) { /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
+					// XXX
+#if 0
 					MultiresLevel *lvl;
 					ModifierData *md;
 					MultiresModifierData *mmd;
@@ -9648,7 +9644,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					mmd = (MultiresModifierData*)modifier_new(eModifierType_Multires);
 					BLI_insertlinkbefore(&ob->modifiers, md, mmd);
 
-					multiresModifier_subdivide(mmd, ob, me->mr->level_count - 1, 1, 0);
+					for(i = 0; i < me->mr->level_count - 1; ++i)
+						multiresModifier_subdivide(mmd, ob, 1, 0);
 
 					mmd->lvl = mmd->totlvl;
 					orig = CDDM_from_mesh(me, NULL);
@@ -9662,6 +9659,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 					/* Remove the old multires */
 					multires_free(me->mr);
+#endif
 					me->mr = NULL;
 				}
 

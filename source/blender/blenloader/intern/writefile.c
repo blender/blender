@@ -1214,12 +1214,6 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
 			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
 		}
-		else if (md->type==eModifierType_Multires) {
-			MultiresModifierData *mmd = (MultiresModifierData*) md;
-
-			if(mmd->undo_verts)
-				writestruct(wd, DATA, "MVert", mmd->undo_verts_tot, mmd->undo_verts);
-		}
 	}
 }
 

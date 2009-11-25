@@ -373,7 +373,7 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 
 		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
 
-		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md))) {
+		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 			return 0;
 		}
@@ -684,6 +684,13 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 
 /************* multires delete higher levels operator ****************/
 
+static int multires_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	ID *id= ptr.id.data;
+	return (ptr.data && id && !id->lib);
+}
+
 static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
@@ -702,8 +709,8 @@ void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
 {
 	ot->name= "Delete Higher Levels";
 	ot->idname= "OBJECT_OT_multires_higher_levels_delete";
-	ot->poll= ED_operator_object_active;
 
+	ot->poll= multires_poll;
 	ot->exec= multires_higher_levels_delete_exec;
 	
 	/* flags */
@@ -718,7 +725,7 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	Object *ob= ptr.id.data;
 	MultiresModifierData *mmd= ptr.data;
 
-	multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
+	multiresModifier_subdivide(mmd, ob, 0, mmd->simple);
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
