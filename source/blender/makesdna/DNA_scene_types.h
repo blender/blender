@@ -1047,7 +1047,8 @@ typedef struct Scene {
 
 /* Paint.flags */
 typedef enum {
-	PAINT_SHOW_BRUSH = 1
+	PAINT_SHOW_BRUSH = 1,
+	PAINT_FAST_NAVIGATE = 2
 } PaintFlags;
 
 /* Sculpt.flags */

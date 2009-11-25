@@ -232,7 +232,7 @@ struct DerivedMesh {
 	 * Also called for *final* editmode DerivedMeshes
 	 */
 	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
-	                       int (*setMaterial)(int, void *attribs));
+	                       int fast, int (*setMaterial)(int, void *attribs));
 
 	/* Draw all faces
 	 *  o If useTwoSided, draw front and back using col arrays

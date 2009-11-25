@@ -286,6 +286,8 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			
 			/* ensure it shows correct */
 			if(sms.to_camera) rv3d->persp= RV3D_PERSP;
+
+			rv3d->rflag |= RV3D_NAVIGATING;
 			
 			/* keep track of running timer! */
 			if(rv3d->sms==NULL)
@@ -348,6 +350,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
 		rv3d->smooth_timer= NULL;
+		rv3d->rflag &= ~RV3D_NAVIGATING;
 	}
 	else {
 		int i;
@@ -1885,7 +1888,7 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 
 	fly->time_lastdraw= fly->time_lastwheel= PIL_check_seconds_timer();
 
-	fly->rv3d->rflag |= RV3D_FLYMODE; /* so we draw the corner margins */
+	fly->rv3d->rflag |= RV3D_FLYMODE|RV3D_NAVIGATING; /* so we draw the corner margins */
 
 	/* detect weather to start with Z locking */
 	upvec[0]=1.0f; upvec[1]=0.0f; upvec[2]=0.0f;
@@ -1985,7 +1988,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		/*Done with correcting for the dist */
 	}
 
-	rv3d->rflag &= ~RV3D_FLYMODE;
+	rv3d->rflag &= ~(RV3D_FLYMODE|RV3D_NAVIGATING);
 //XXX2.5	BIF_view3d_previewrender_signal(fly->sa, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 
 

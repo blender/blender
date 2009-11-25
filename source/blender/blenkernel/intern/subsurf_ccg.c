@@ -1223,15 +1223,15 @@ static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 }
 
 	/* Only used by non-editmesh types */
-static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)[4]/*, int fast*/, int (*setMaterial)(int, void *attribs)) {
+static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)[4], int fast, int (*setMaterial)(int, void *attribs)) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi;
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	char *faceFlags = ccgdm->faceFlags;
-	int step = 1; //(fast)? gridSize-1: 1;
+	int step = (fast)? gridSize-1: 1;
 
-	if(ccgdm->pbvh && ccgdm->multires.mmd) { // && !fast) {
+	if(ccgdm->pbvh && ccgdm->multires.mmd && !fast) {
 		CCGFace **faces;
 		int totface;
 

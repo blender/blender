@@ -395,7 +395,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 
 static void cdDM_drawFacesSolid(DerivedMesh *dm,
 				float (*partial_redraw_planes)[4],
-				int (*setMaterial)(int, void *attribs))
+				int fast, int (*setMaterial)(int, void *attribs))
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mvert = cddm->mvert;

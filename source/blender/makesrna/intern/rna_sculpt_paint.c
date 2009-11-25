@@ -174,6 +174,10 @@ static void rna_def_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_SHOW_BRUSH);
 	RNA_def_property_ui_text(prop, "Show Brush", "");
+
+	prop= RNA_def_property(srna, "fast_navigate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_FAST_NAVIGATE);
+	RNA_def_property_ui_text(prop, "Fast Navigate", "For multires, show low resolution while navigating the view.");
 }
 
 static void rna_def_sculpt(BlenderRNA  *brna)

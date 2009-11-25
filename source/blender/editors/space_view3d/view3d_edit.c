@@ -275,7 +275,7 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 }
 
 
-static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
+static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 {
 	static float lastofs[3] = {0,0,0};
 	View3D *v3d = CTX_wm_view3d(C);
@@ -314,6 +314,21 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 	if (rv3d->persmat[2][1] < 0.0f)
 		vod->reverse= -1.0f;
 
+	rv3d->rflag |= RV3D_NAVIGATING;
+}
+
+static void viewops_data_free(bContext *C, wmOperator *op)
+{
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	ViewOpsData *vod= op->customdata;
+
+	vod->rv3d->rflag &= ~RV3D_NAVIGATING;
+
+	if(p && (p->flags & PAINT_FAST_NAVIGATE))
+		ED_region_tag_redraw(vod->ar);
+
+	MEM_freeN(vod);
+	op->customdata= NULL;
 }
 
 /* ************************** viewrotate **********************************/
@@ -578,9 +593,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else if (event_code==VIEW_CONFIRM) {
 		request_depth_update(CTX_wm_region_view3d(C));
-
-		MEM_freeN(vod);
-		op->customdata= NULL;
+		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
 	}
@@ -597,7 +610,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	/* makes op->customdata */
-	viewops_data(C, op, event);
+	viewops_data_create(C, op, event);
 	vod= op->customdata;
 
 	/* switch from camera view when: */
@@ -718,8 +731,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 	else if (event_code==VIEW_CONFIRM) {
 		request_depth_update(CTX_wm_region_view3d(C));
 
-		MEM_freeN(vod);
-		op->customdata= NULL;
+		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
 	}
@@ -730,7 +742,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* makes op->customdata */
-	viewops_data(C, op, event);
+	viewops_data_create(C, op, event);
 
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
@@ -911,9 +923,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else if (event_code==VIEW_CONFIRM) {
 		request_depth_update(CTX_wm_region_view3d(C));
-
-		MEM_freeN(vod);
-		op->customdata= NULL;
+		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
 	}
@@ -974,7 +984,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		/* makes op->customdata */
-		viewops_data(C, op, event);
+		viewops_data_create(C, op, event);
 
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
