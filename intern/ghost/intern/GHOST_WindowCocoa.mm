@@ -153,10 +153,15 @@ extern "C" {
 	else if ([[draggingPBoard types] containsObject:NSStringPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeString;
 	else return NSDragOperationNone;
 	
+	associatedWindow->setAcceptDragOperation(FALSE); //Drag operation needs to be accepted explicitly by the event manager
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
 	return NSDragOperationCopy;
 }
 
+- (BOOL)wantsPeriodicDraggingUpdates
+{
+	return NO; //No need to overflow blender event queue. Events shall be sent only on changes
+}
 
 - (NSDragOperation)draggingUpdated:(id < NSDraggingInfo >)sender
 {
@@ -174,7 +179,7 @@ extern "C" {
 
 - (BOOL)prepareForDragOperation:(id < NSDraggingInfo >)sender
 {
-	if (systemCocoa->canAcceptDragOperation())
+	if (associatedWindow->canAcceptDragOperation())
 		return YES;
 	else
 		return NO;
@@ -194,7 +199,7 @@ extern "C" {
 			data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
 			break;
 		case GHOST_kDragnDropTypeString:
-			data = [draggingPBoard stringForType:@"public.utf8-plain-text"];
+			data = [draggingPBoard stringForType:NSStringPboardType];
 			break;
 		default:
 			return NO;
@@ -853,15 +858,18 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 			
 			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;
 #ifdef WAIT_FOR_VSYNC
+			{
+				GLint swapInt = 1;
 				/* wait for vsync, to avoid tearing artifacts */
-				[tmpOpenGLContext setValues:1 forParameter:NSOpenGLCPSwapInterval];
+				[tmpOpenGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+			}
 #endif
-				[m_openGLView setOpenGLContext:tmpOpenGLContext];
-				[tmpOpenGLContext setView:m_openGLView];
-				
-				m_openGLContext = tmpOpenGLContext;
+			[m_openGLView setOpenGLContext:tmpOpenGLContext];
+			[tmpOpenGLContext setView:m_openGLView];
+			
+			m_openGLContext = tmpOpenGLContext;
 			break;
-		
+	
 		case GHOST_kDrawingContextTypeNone:
 			success = GHOST_kSuccess;
 			break;

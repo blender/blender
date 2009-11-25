@@ -34,6 +34,8 @@
 
 #include "SCA_ISensor.h"
 #include "MT_Point3.h"
+#include "SCA_IScene.h" /* only for scene replace */
+#include "KX_Scene.h" /* only for scene replace */
 
 struct KX_ClientObjectInfo;
 class KX_RayCast;
@@ -73,6 +75,10 @@ public:
 	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
 	bool NeedRayCast(KX_ClientObjectInfo* client);
 
+	virtual void		Replace_IScene(SCA_IScene *val) 
+	{ 	
+		m_scene= static_cast<KX_Scene *>(val); 
+	}
 
 	//Python Interface
 	enum RayAxis {

@@ -301,6 +301,11 @@ typedef struct SoftBody {
 	struct ListBase ptcaches;
 
 	struct EffectorWeights *effector_weights;
+    /* reverse esimated obmatrix .. no need to store in blend file .. how ever who cares */ 
+	float lcom[3];
+	float lrot[3][3];
+	float lscale[3][3];
+    char  pad4[4];
 
 } SoftBody;
 
@@ -379,8 +384,9 @@ typedef struct SoftBody {
 #define OB_SB_AERO_ANGLE	16384
 
 /* sb->solverflags */
-#define SBSO_MONITOR    1 
-#define SBSO_OLDERR     2 
+#define SBSO_MONITOR		1 
+#define SBSO_OLDERR			2 
+#define SBSO_ESTIMATEIPO    4 
 
 /* sb->sbc_mode */
 #define SBC_MODE_MANUAL		0

@@ -230,6 +230,9 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 	BLI_remlink(&wm->windows, win);
 	
 	wm_draw_window_clear(win);
+	CTX_wm_window_set(C, win);	/* needed by handlers */
+	WM_event_remove_handlers(C, &win->handlers);
+	WM_event_remove_handlers(C, &win->modalhandlers);
 	ED_screen_exit(C, win, win->screen);
 	wm_window_free(C, wm, win);
 	
@@ -986,3 +989,4 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 		win->eventstate->prevy= oldy;
 	}
 }
+

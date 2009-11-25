@@ -108,18 +108,25 @@ bConstraintTypeInfo *get_constraint_typeinfo(int type);
 /* Constraint Target Macros */
 #define VALID_CONS_TARGET(ct) ((ct) && (ct->tar))
 
-
 /* ---------------------------------------------------------------------------- */
 
 /* Constraint function prototypes */
 void unique_constraint_name(struct bConstraint *con, struct ListBase *list);
 
 void free_constraints(struct ListBase *list);
-void copy_constraints(struct ListBase *dst, struct ListBase *src);
+void copy_constraints(struct ListBase *dst, const struct ListBase *src);
 void relink_constraints(struct ListBase *list);
 void free_constraint_data(struct bConstraint *con);
 
+/* Constraint API function prototypes */
 struct bConstraint *constraints_get_active(struct ListBase *list);
+void constraints_set_active(ListBase *list, struct bConstraint *con);
+
+struct bConstraint *add_ob_constraint(struct Object *ob, const char *name, short type);
+struct bConstraint *add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
+
+int remove_constraint(ListBase *list, struct bConstraint *con);
+int remove_constraint_index(ListBase *list, int index);
 
 /* Constraints + Proxies function prototypes */
 void extract_proxylocal_constraints(struct ListBase *dst, struct ListBase *src);

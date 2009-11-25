@@ -80,6 +80,11 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
+	virtual void Replace_IScene(SCA_IScene *val)
+	{
+		m_scene= val;
+	};
+
 	static PyObject* pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 

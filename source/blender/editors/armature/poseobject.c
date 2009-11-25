@@ -241,10 +241,10 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
 	if ((ob->recalc & OB_RECALC)==0) {
 		ob->recalc |= OB_RECALC;
-		ED_anim_object_flush_update(C, ob);
+		DAG_id_update_flags(&ob->id);
 	}
 	else
-		ED_anim_object_flush_update(C, ob);
+		DAG_id_update_flags(&ob->id);
 	
 	/* calculate path over requested range */
 	for (CFRA=sfra; CFRA<=efra; CFRA++) {
@@ -355,10 +355,10 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
 	if ((ob->recalc & OB_RECALC)==0) {
 		ob->recalc |= OB_RECALC;
-		ED_anim_object_flush_update(C, ob);
+		DAG_id_update_flags(&ob->id);
 	}
 	else
-		ED_anim_object_flush_update(C, ob);
+		DAG_id_update_flags(&ob->id);
 	
 	/* alloc the path cache arrays */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {

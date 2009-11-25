@@ -145,12 +145,12 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	y= 18;
 	
 	/* draw green box around/behind text */
-	UI_ThemeColorShadeAlpha(TH_CFRAME, 0, -100);
+	UI_ThemeColorShade(TH_CFRAME, 0);
 	glRectf(x, y,  x+slen,  y+15);
 	
 	/* draw current frame number - black text */
 	UI_ThemeColor(TH_TEXT);
-	UI_DrawString(x-5, y+3, str); // XXX may need to be updated for font stuff
+	UI_DrawString(x-5, y+3, str);
 	
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);

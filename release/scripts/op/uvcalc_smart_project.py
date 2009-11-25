@@ -1128,7 +1128,7 @@ class SmartProject(bpy.types.Operator):
 		return context.active_object != None
 
 	def execute(self, context):
-		main(context, self.island_margin, self.angle_limit)
+		main(context, self.properties.island_margin, self.properties.angle_limit)
 		return ('FINISHED',)
 
 bpy.ops.add(SmartProject)
@@ -1136,7 +1136,7 @@ bpy.ops.add(SmartProject)
 # Add to a menu
 import dynamic_menu
 
-menu_func = (lambda self, context: self.layout.itemO(SmartProject.bl_idname,
+menu_func = (lambda self, context: self.layout.operator(SmartProject.bl_idname,
 										text="Smart Project"))
 
 menu_item = dynamic_menu.add(bpy.types.VIEW3D_MT_uv_map, menu_func)

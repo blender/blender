@@ -48,7 +48,7 @@ static struct PyMethodDef ui_methods[] = {
 
 static struct PyModuleDef ui_module = {
 	PyModuleDef_HEAD_INIT,
-	"bpy.ui",
+	"_bpy.ui",
 	"",
 	-1,/* multiple "initialization" just copies the module dict. */
 	ui_methods,

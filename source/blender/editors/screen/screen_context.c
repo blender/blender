@@ -64,8 +64,8 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			"scene", "selected_objects", "selected_bases",
 			"selected_editable_objects", "selected_editable_bases",
 			"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
-			"visible_pchans", "selected_pchans", "active_bone", "active_pchan",
-			"active_base", "active_object", "edit_object",
+			"visible_pchans", "selected_pchans", "active_bone", "active_pose_bone",
+			"active_base", "active_object", "object", "edit_object",
 			"sculpt_object", "vertex_paint_object", "weight_paint_object",
 			"texture_paint_object", "particle_edit_object", NULL};
 
@@ -200,7 +200,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-					CTX_data_list_add(result, &obact->id, &RNA_PoseChannel, pchan);
+					CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
 				}
 			}
 			
@@ -216,7 +216,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
 					if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
-						CTX_data_list_add(result, &obact->id, &RNA_PoseChannel, pchan);
+						CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
 				}
 			}
 			
@@ -240,12 +240,12 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			}
 		}
 	}
-	else if(CTX_data_equals(member, "active_pchan")) {
+	else if(CTX_data_equals(member, "active_pose_bone")) {
 		bPoseChannel *pchan;
 		
 		pchan= get_active_posechannel(obact);
 		if (pchan) {
-			CTX_data_pointer_set(result, &obact->id, &RNA_PoseChannel, pchan);
+			CTX_data_pointer_set(result, &obact->id, &RNA_PoseBone, pchan);
 			return 1;
 		}
 	}

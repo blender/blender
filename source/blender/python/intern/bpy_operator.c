@@ -57,13 +57,13 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
 	bContext *C = BPy_GetContext();
 	
-	if (!PyArg_ParseTuple(args, "sO|O!i:bpy.__ops__.call", &opname, &context_dict, &PyDict_Type, &kw, &context))
+	if (!PyArg_ParseTuple(args, "sO|O!i:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context))
 		return NULL;
 
 	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "bpy.__ops__.call: operator \"%s\"could not be found", opname);
+		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\"could not be found", opname);
 		return NULL;
 	}
 	
@@ -76,7 +76,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	Py_XINCREF(context_dict); /* so we done loose it */
 
 	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
-		PyErr_SetString( PyExc_SystemError, "bpy.__ops__.call: operator poll() function failed, context is incorrect");
+		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator %.200s.poll() function failed, context is incorrect", opname);
 		error_val= -1;
 	}
 	else {
@@ -153,18 +153,18 @@ static PyObject *pyop_as_string( PyObject * self, PyObject * args)
 	int all_args = 1;
 	int error_val= 0;
 
-	char *buf;
+	char *buf = NULL;
 	PyObject *pybuf;
 
 	bContext *C = BPy_GetContext();
 
-	if (!PyArg_ParseTuple(args, "s|O!i:bpy.__ops__.as_string", &opname, &PyDict_Type, &kw, &all_args))
+	if (!PyArg_ParseTuple(args, "s|O!i:_bpy.ops.as_string", &opname, &PyDict_Type, &kw, &all_args))
 		return NULL;
 
 	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "bpy.__ops__.as_string: operator \"%s\"could not be found", opname);
+		PyErr_Format( PyExc_SystemError, "_bpy.ops.as_string: operator \"%s\"could not be found", opname);
 		return NULL;
 	}
 
@@ -217,12 +217,12 @@ static PyObject *pyop_getrna(PyObject *self, PyObject *value)
 	BPy_StructRNA *pyrna= NULL;
 	
 	if(opname==NULL) {
-		PyErr_SetString(PyExc_TypeError, "bpy.__ops__.get_rna() expects a string argument");
+		PyErr_SetString(PyExc_TypeError, "_bpy.ops.get_rna() expects a string argument");
 		return NULL;
 	}
 	ot= WM_operatortype_find(opname, TRUE);
 	if(ot==NULL) {
-		PyErr_Format(PyExc_KeyError, "bpy.__ops__.get_rna(\"%s\") not found", opname);
+		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_rna(\"%s\") not found", opname);
 		return NULL;
 	}
 	
@@ -230,7 +230,9 @@ static PyObject *pyop_getrna(PyObject *self, PyObject *value)
 	//RNA_pointer_create(NULL, &RNA_Struct, ot->srna, &ptr);
 
 	/* XXX - should call WM_operator_properties_free */
-	WM_operator_properties_create(&ptr, ot->idname);
+	WM_operator_properties_create_ptr(&ptr, ot);
+
+	
 	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 	pyrna->freeptr= TRUE;
 	return (PyObject *)pyrna;
@@ -245,8 +247,8 @@ PyObject *BPY_operator_module( void )
 	static PyMethodDef pyop_add_meth =		{"add", (PyCFunction) PYOP_wrap_add, METH_O, NULL};
 	static PyMethodDef pyop_remove_meth =	{"remove", (PyCFunction) PYOP_wrap_remove, METH_O, NULL};
 
-	PyObject *submodule = PyModule_New("bpy.__ops__");
-	PyDict_SetItemString(PySys_GetObject("modules"), "bpy.__ops__", submodule);
+	PyObject *submodule = PyModule_New("_bpy.ops");
+	PyDict_SetItemString(PySys_GetObject("modules"), "_bpy.ops", submodule);
 
 	PyModule_AddObject( submodule, "call",	PyCFunction_New(&pyop_call_meth,	NULL) );
 	PyModule_AddObject( submodule, "as_string",PyCFunction_New(&pyop_as_string_meth,NULL) );

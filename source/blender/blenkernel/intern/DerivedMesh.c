@@ -277,6 +277,26 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	*me = tmp;
 }
 
+void DM_to_meshkey(DerivedMesh *dm, Mesh *me, KeyBlock *kb)
+{
+	int a, totvert = dm->getNumVerts(dm);
+	float *fp;
+	MVert *mvert;
+	
+	if(totvert==0 || me->totvert==0 || me->totvert!=totvert) return;
+	
+	if(kb->data) MEM_freeN(kb->data);
+	kb->data= MEM_callocN(me->key->elemsize*me->totvert, "kb->data");
+	kb->totelem= totvert;
+	
+	fp= kb->data;
+	mvert=dm->getVertDataArray(dm, CD_MVERT);
+	
+	for(a=0; a<kb->totelem; a++, fp+=3, mvert++) {
+		VECCOPY(fp, mvert->co);
+	}
+}
+
 void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask)
 {
 	CustomData_set_only_copy(&dm->vertData, mask);

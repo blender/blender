@@ -46,7 +46,14 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 {
 	uiBut *but=NULL;
 	const char *propname= RNA_property_identifier(prop);
+	char prop_item[sizeof(((IDProperty *)NULL)->name)+4]; /* size of the ID prop name + room for [""] */
 	int arraylen= RNA_property_array_length(ptr, prop);
+
+	/* support for custom props */
+	if(RNA_property_is_idprop(prop)) {
+		sprintf(prop_item, "[\"%s\"]", propname);
+		propname= prop_item;
+	}
 
 	switch(RNA_property_type(prop)) {
 		case PROP_BOOLEAN: {
@@ -62,11 +69,10 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			else
 				value= RNA_property_boolean_get(ptr, prop);
 			
-			// XXX: when to do TOG, and when to do ICONTOG? for now, let's just do TOG, since ICONTOG causes too much trouble everywhere else
 			if(icon && name && strcmp(name, "") == 0)
-				but= uiDefIconButR(block, TOG, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+				but= uiDefIconButR(block, ICONTOG, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else if(icon)
-				but= uiDefIconTextButR(block, TOG, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+				but= uiDefIconTextButR(block, ICONTOG, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else
 				but= uiDefButR(block, OPTION, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;

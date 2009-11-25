@@ -1569,7 +1569,7 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 
 /* correct non-cyclic cases by copying direction and rotation
  * values onto the first & last end-points */
-static void bevel_list_cyclic_fix(BevList *bl)
+static void bevel_list_cyclic_fix_3D(BevList *bl)
 {
 	BevPoint *bevp, *bevp1;
 
@@ -1837,7 +1837,7 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 
 	bevel_list_calc_bisect(bl);
 	if(bl->poly== -1) /* check its not cyclic */
-		bevel_list_cyclic_fix(bl); // XXX - run this now so tangents will be right before doing the flipping
+		bevel_list_cyclic_fix_3D(bl); // XXX - run this now so tangents will be right before doing the flipping
 	bevel_list_flip_tangents(bl);
 
 	/* correct the tangents */
@@ -1896,12 +1896,35 @@ static void make_bevel_list_3D(BevList *bl, int smooth_iter, int twist_mode)
 	}
 
 	if(bl->poly== -1) /* check its not cyclic */
-		bevel_list_cyclic_fix(bl);
+		bevel_list_cyclic_fix_3D(bl);
 
 	if(smooth_iter)
 		bevel_list_smooth(bl, smooth_iter);
 
 	bevel_list_apply_tilt(bl);
+}
+
+
+
+/* only for 2 points */
+static void make_bevel_list_segment_3D(BevList *bl)
+{
+	float q[4];
+
+	BevPoint *bevp2= (BevPoint *)(bl+1);
+	BevPoint *bevp1= bevp2+1;
+
+	/* simple quat/dir */
+	sub_v3_v3v3(bevp1->dir, bevp1->vec, bevp2->vec);
+	normalize_v3(bevp1->dir);
+
+	vec_to_quat( bevp1->quat,bevp1->dir, 5, 1);
+
+	axis_angle_to_quat(q, bevp1->dir, bevp1->alfa);
+	mul_qt_qtqt(bevp1->quat, q, bevp1->quat);
+	normalize_qt(bevp1->quat);
+	VECCOPY(bevp2->dir, bevp1->dir);
+	QUATCOPY(bevp2->quat, bevp1->quat);
 }
 
 
@@ -2213,7 +2236,9 @@ void makeBevelList(Object *ob)
 	}
 
 	/* STEP 4: 2D-COSINES or 3D ORIENTATION */
-	if((cu->flag & CU_3D)==0) { /* 3D */
+	if((cu->flag & CU_3D)==0) {
+		/* note: bevp->dir and bevp->quat are not needed for beveling but are
+		 * used when making a path from a 2D curve, therefor they need to be set - Campbell */
 		bl= cu->bev.first;
 		while(bl) {
 
@@ -2230,6 +2255,9 @@ void makeBevelList(Object *ob)
 				calc_bevel_sin_cos(x1, y1, -x1, -y1, &(bevp1->sina), &(bevp1->cosa));
 				bevp2->sina= bevp1->sina;
 				bevp2->cosa= bevp1->cosa;
+
+				/* fill in dir & quat */
+				make_bevel_list_segment_3D(bl);
 			}
 			else {
 				bevp2= (BevPoint *)(bl+1);
@@ -2244,6 +2272,12 @@ void makeBevelList(Object *ob)
 					y2= bevp1->vec[1]- bevp2->vec[1];
 
 					calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
+
+					/* from: make_bevel_list_3D_zup, could call but avoid a second loop.
+					 * no need for tricky tilt calculation as with 3D curves */
+					bisect_v3_v3v3v3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
+					vec_to_quat( bevp1->quat,bevp1->dir, 5, 1);
+					/* done with inline make_bevel_list_3D_zup */
 
 					bevp0= bevp1;
 					bevp1= bevp2;
@@ -2261,6 +2295,9 @@ void makeBevelList(Object *ob)
 					bevp1= bevp-1;
 					bevp->sina= bevp1->sina;
 					bevp->cosa= bevp1->cosa;
+
+					/* correct for the dir/quat, see above why its needed */
+					bevel_list_cyclic_fix_3D(bl);
 				}
 			}
 			bl= bl->next;
@@ -2274,22 +2311,7 @@ void makeBevelList(Object *ob)
 				/* do nothing */
 			}
 			else if(bl->nr==2) {	/* 2 pnt, treat separate */
-				float q[4];
-
-				bevp2= (BevPoint *)(bl+1);
-				bevp1= bevp2+1;
-
-				/* simple quat/dir */
-				sub_v3_v3v3(bevp1->dir, bevp1->vec, bevp2->vec);
-				normalize_v3(bevp1->dir);
-				
-				vec_to_quat( bevp1->quat,bevp1->dir, 5, 1);
-				
-				axis_angle_to_quat(q, bevp1->dir, bevp1->alfa);
-				mul_qt_qtqt(bevp1->quat, q, bevp1->quat);
-				normalize_qt(bevp1->quat);
-				VECCOPY(bevp2->dir, bevp1->dir);
-				QUATCOPY(bevp2->quat, bevp1->quat);
+				make_bevel_list_segment_3D(bl);
 			}
 			else {
 				make_bevel_list_3D(bl, (int)(resolu*cu->twist_smooth), cu->twist_mode);

@@ -27,6 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -37,14 +38,19 @@
 #include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_sequence.h"
+#include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
+#include "RNA_access.h"
+#include "RE_pipeline.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_util.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -602,9 +608,9 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 			sce = seq->scene;
 		}
 
-		strncpy(seq->name + 2, sce->id.name + 2, 
-			sizeof(seq->name) - 2);
-
+		BLI_strncpy(seq->name+2, sce->id.name + 2, SEQ_NAME_MAXSTR-2);
+		seqUniqueName(scene->ed->seqbasep, seq);
+		
 		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
@@ -807,24 +813,25 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 	int x, y;
 	int early_out;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
+	FCurve *fcu= NULL;
 
 	if (!sh.execute) { /* effect not supported in this version... */
 		make_black_ibuf(se->ibuf);
 		return;
 	}
 
-#if 0 // XXX old animation system
-	if(seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(scene, seq, cfra);
-		fac= seq->facf0;
-		facf= seq->facf1;
-	} else
-#endif // XXX old animation system	
-	{
-		sh.get_default_fac(seq, cfra, &fac, &facf);
-	}
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
+				  "effect_fader", 0);
 
-	if( !(scene->r.mode & R_FIELDS) ) facf = fac;
+	if (!fcu) {
+		sh.get_default_fac(seq, cfra, &fac, &facf);
+		if( scene->r.mode & R_FIELDS ); else facf= fac;
+	} else {
+		fac = facf = evaluate_fcurve(fcu, cfra);
+		if( scene->r.mode & R_FIELDS ) {
+			facf = evaluate_fcurve(fcu, cfra + 0.5);
+		}
+	}
 
 	early_out = sh.early_out(seq, fac, facf);
 
@@ -1563,12 +1570,6 @@ static int input_have_to_preprocess(Scene *scene, Sequence * seq, TStripElem* se
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE &&
 	   !(seq->type & SEQ_EFFECT)) {
-#if 0 // XXX old animation system
-		if (seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-			mul *= seq->facf0;
-		}
-#endif // XXX old animation system
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -1653,12 +1654,6 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	mul = seq->mul;
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
-#if 0 // XXX old animation system
-		if (seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-			mul *= seq->facf0;
-		}
-#endif // XXX old animation system
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -2012,14 +2007,9 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 		}
 	} else if(seq->type == SEQ_SCENE) {	// scene can be NULL after deletions
-#if 0
-		/* XXX move entirely to render? */
-		int oldcfra = CFRA;
-		Sequence * oldseq = get_last_seq();
-		Scene *sce= seq->scene, *oldsce= scene;
+		Scene *sce= seq->scene;// *oldsce= scene;
 		Render *re;
 		RenderResult rres;
-		int doseq, rendering= G.rendering;
 		char scenename[64];
 		int have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
 		int sce_valid =sce && (sce->camera || have_seq);
@@ -2041,18 +2031,24 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		if (!sce_valid) {
 			se->ok = STRIPELEM_FAILED;
 		} else if (se->ibuf==NULL && sce_valid) {
-			/* no need to display a waitcursor on sequencer
-			   scene strips */
-			if (!have_seq)
-				waitcursor(1);
-			
+			int oldcfra;
 			/* Hack! This function can be called from do_render_seq(), in that case
 			   the seq->scene can already have a Render initialized with same name, 
 			   so we have to use a default name. (compositor uses scene name to
 			   find render).
 			   However, when called from within the UI (image preview in sequencer)
 			   we do want to use scene Render, that way the render result is defined
-			   for display in render/imagewindow */
+			   for display in render/imagewindow 
+
+			   Hmm, don't see, why we can't do that all the time, 
+			   and since G.rendering is uhm, gone... (Peter)
+			*/
+
+			int rendering = 1;
+			int doseq;
+
+			oldcfra = seq->scene->r.cfra;
+
 			if(rendering) {
 				BLI_strncpy(scenename, sce->id.name+2, 64);
 				strcpy(sce->id.name+2, " do_build_seq_ibuf");
@@ -2063,16 +2059,9 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			doseq= scene->r.scemode & R_DOSEQ;
 			scene->r.scemode &= ~R_DOSEQ;
 			
-			BIF_init_render_callbacks(re, 0);	/* 0= no display callbacks */
-			
-			/* XXX hrms, set_scene still needed? work on that... */
-			if(sce!=oldsce) set_scene_bg(sce);
 			RE_BlenderFrame(re, sce,
 					seq->sfra+se->nr+seq->anim_startofs);
-			if(sce!=oldsce) set_scene_bg(oldsce);
 			
-			/* UGLY WARNING, it is set to zero in  RE_BlenderFrame */
-			G.rendering= rendering;
 			if(rendering)
 				BLI_strncpy(sce->id.name+2, scenename, 64);
 			
@@ -2092,20 +2081,12 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 
 			RE_ReleaseResultImage(re);
 			
-			BIF_end_render_callbacks();
+			// BIF_end_render_callbacks();
 			
 			/* restore */
 			scene->r.scemode |= doseq;
-
-			// XXX
-#if 0
-			if((G.f & G_PLAYANIM)==0 /* bad, is set on do_render_seq */
-			   && !have_seq
-			   && !build_proxy_run) 
-#endif
-			
-			CFRA = oldcfra;
-			set_last_seq(oldseq);
+		
+			seq->scene->r.cfra = oldcfra;
 
 			copy_to_ibuf_still(seq, se);
 
@@ -2118,7 +2099,6 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 
 		}
-#endif
 	}
 	if (!build_proxy_run) {
 		if (se->ibuf && use_limiter) {
@@ -2136,24 +2116,25 @@ static void do_effect_seq_recursively(Scene *scene, Sequence *seq, TStripElem *s
 	float fac, facf;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
 	int early_out;
+	FCurve *fcu= NULL;
 
 	se->se1 = 0;
 	se->se2 = 0;
 	se->se3 = 0;
 
-#if 0 // XXX old animation system
-	if(seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(scene, seq, cfra);
-		fac= seq->facf0;
-		facf= seq->facf1;
-	} else 
-#endif // XXX old animation system
-	{
-		sh.get_default_fac(seq, cfra, &fac, &facf);
-	} 
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
+				  "effect_fader", 0);
 
-	if( scene->r.mode & R_FIELDS ); else facf= fac;
-	
+	if (!fcu) {
+		sh.get_default_fac(seq, cfra, &fac, &facf);
+		if( scene->r.mode & R_FIELDS ); else facf= fac;
+	} else {
+		fac = facf = evaluate_fcurve(fcu, cfra);
+		if( scene->r.mode & R_FIELDS ) {
+			facf = evaluate_fcurve(fcu, cfra + 0.5);
+		}
+	}
+
 	early_out = sh.early_out(seq, fac, facf);
 	switch (early_out) {
 	case -1:
@@ -2226,7 +2207,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 	TStripElem * se1 = 0;
 	TStripElem * se2 = 0;
 	
-	sequence_effect_speed_rebuild_map(seq, 0);
+	sequence_effect_speed_rebuild_map(scene, seq, 0);
 	
 	f_cfra = seq->start + s->frameMap[nr];
 	
@@ -2387,6 +2368,7 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		int early_out;
 		Sequence * seq = seq_arr[i];
 		struct SeqEffectHandle sh;
+		float facf;
 
 		se = give_tstripelem(seq, cfra);
 
@@ -2413,20 +2395,9 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 		sh = get_sequence_blend(seq);
 
-		seq->facf0 = seq->facf1 = 1.0;
+		facf = seq->blend_opacity / 100.0;
 
-#if 0 // XXX old animation system
-		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-		} 
-#endif
-
-		if( scene->r.mode & R_FIELDS ); else seq->facf0 = seq->facf1;
-
-		seq->facf0 *= seq->blend_opacity / 100.0;
-		seq->facf1 *= seq->blend_opacity / 100.0;
-
-		early_out = sh.early_out(seq, seq->facf0, seq->facf1);
+		early_out = sh.early_out(seq, facf, facf);
 
 		switch (early_out) {
 		case -1:
@@ -2483,8 +2454,10 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		struct SeqEffectHandle sh = get_sequence_blend(seq);
 		TStripElem* se1 = give_tstripelem(seq_arr[i-1], cfra);
 		TStripElem* se2 = give_tstripelem(seq_arr[i], cfra);
+
+		float facf = seq->blend_opacity / 100.0;
 	
-		int early_out = sh.early_out(seq, seq->facf0, seq->facf1);
+		int early_out = sh.early_out(seq, facf, facf);
 		switch (early_out) {
 		case 0: {
 			int x= se2->ibuf->x;
@@ -2532,12 +2505,12 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 			if (swap_input) {
 				sh.execute(seq, cfra, 
-					   seq->facf0, seq->facf1, x, y, 
+					   facf, facf, x, y, 
 					   se2->ibuf, se1->ibuf_comp, 0,
 					   se2->ibuf_comp);
 			} else {
 				sh.execute(seq, cfra, 
-					   seq->facf0, seq->facf1, x, y, 
+					   facf, facf, x, y, 
 					   se1->ibuf_comp, se2->ibuf, 0,
 					   se2->ibuf_comp);
 			}
@@ -3053,7 +3026,7 @@ static void free_imbuf_seq_except(Scene *scene, int cfra)
 }
 #endif
 
-void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
+void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage)
 {
 	Sequence *seq;
 	TStripElem *se;
@@ -3111,11 +3084,11 @@ void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
 			if(seq->type==SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type==SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(seq, 1);
+				sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		if(seq->type==SEQ_META) {
-			free_imbuf_seq(&seq->seqbase, FALSE);
+			free_imbuf_seq(scene, &seq->seqbase, FALSE);
 		}
 		if(seq->type==SEQ_SCENE) {
 			/* FIXME: recurs downwards, 
@@ -3164,7 +3137,7 @@ static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *chan
 			if(seq->type == SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type == SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(seq, 1);
+				sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		
@@ -3509,4 +3482,206 @@ void seq_update_sound(struct Sequence *seq)
 		seq->sound_handle->mute = seq->flag & SEQ_MUTE ? 1 : 0;
 		seq->sound_handle->changed = -1;
 	}
+}
+
+Sequence *active_seq_get(Scene *scene)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	if(ed==NULL) return NULL;
+	return ed->act_seq;
+}
+
+void active_seq_set(Scene *scene, Sequence *seq)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	if(ed==NULL) return;
+
+	ed->act_seq= seq;
+}
+
+/* api like funcs for adding */
+
+void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
+{
+	if(seq) {
+		strcpy(seq->name, seq_load->name);
+		seqUniqueName(scene->ed->seqbasep, seq);
+
+		if(seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
+			seq_load->start_frame += (seq->enddisp - seq->startdisp);
+		}
+
+		if(seq_load->flag & SEQ_LOAD_REPLACE_SEL) {
+			seq_load->flag |= 1; /* SELECT */
+			active_seq_set(scene, seq);
+		}
+
+		if(seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
+			if(seq->sound)
+				sound_cache(seq->sound, 0);
+		}
+
+		seq_load->tot_success++;
+	}
+	else {
+		seq_load->tot_error++;
+	}
+}
+
+Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
+{
+	Sequence *seq;
+
+	seq= MEM_callocN( sizeof(Sequence), "addseq");
+	BLI_addtail(lb, seq);
+
+	*( (short *)seq->name )= ID_SEQ;
+	seq->name[2]= 0;
+
+	seq->flag= 1; /* SELECT */
+	seq->start= cfra;
+	seq->machine= machine;
+	seq->mul= 1.0;
+	seq->blend_opacity = 100.0;
+
+	return seq;
+}
+
+void seqUniqueName(ListBase *seqbasep, Sequence *seq)
+{
+	 BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
+}
+
+/* NOTE: this function doesn't fill in iamge names */
+Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for active seq */
+	Sequence *seq;
+	Strip *strip;
+	StripElem *se;
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+	seq->type= SEQ_IMAGE;
+	BLI_strncpy(seq->name+2, "Image", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
+	
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+
+	strip->len = seq->len = seq_load->len ? seq_load->len : 1;
+	strip->us= 1;
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+	
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
+}
+
+Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for sound */
+	Editing *ed= seq_give_editing(scene, TRUE);
+	bSound *sound;
+
+	Sequence *seq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+
+	AUD_SoundInfo info;
+
+	sound = sound_new_file(CTX_data_main(C), seq_load->path);
+
+	if (sound==NULL || sound->handle == NULL) {
+		//if(op)
+		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return NULL;
+	}
+
+	info = AUD_getInfo(sound->handle);
+
+	if (info.specs.format == AUD_FORMAT_INVALID) {
+		sound_delete(C, sound);
+		//if(op)
+		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return NULL;
+	}
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+
+	seq->type= SEQ_SOUND;
+	seq->sound= sound;
+	BLI_strncpy(seq->name+2, "Sound", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
+
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = (int) (info.length * FPS);
+	strip->us= 1;
+
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+
+	seq->sound_handle = sound_new_handle(scene, sound, seq_load->start_frame, seq_load->start_frame + strip->len, 0);
+
+	calc_sequence_disp(seq);
+
+	/* last active name */
+	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
+
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
+}
+
+Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	Scene *scene= CTX_data_scene(C); /* only for sound */
+
+	Sequence *seq, *soundseq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+
+	struct anim *an;
+
+	an = openanim(seq_load->path, IB_rect);
+
+	if(an==NULL)
+		return NULL;
+
+	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
+
+	seq->type= SEQ_MOVIE;
+	seq->anim= an;
+	seq->anim_preseek = IMB_anim_get_preseek(an);
+	BLI_strncpy(seq->name+2, "Movie", SEQ_NAME_MAXSTR-2);
+	seqUniqueName(seqbasep, seq);
+
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = IMB_anim_get_duration( an );
+	strip->us= 1;
+
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+
+	calc_sequence_disp(seq);
+
+
+	if(seq_load->flag & SEQ_LOAD_MOVIE_SOUND) {
+		int start_frame_back= seq_load->start_frame;
+		seq_load->channel++;
+
+		soundseq = sequencer_add_sound_strip(C, seqbasep, seq_load);
+
+		seq_load->start_frame= start_frame_back;
+		seq_load->channel--;
+	}
+
+	/* can be NULL */
+	seq_load_apply(scene, seq, seq_load);
+
+	return seq;
 }

@@ -42,6 +42,7 @@ EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{KM_PRESS, "PRESS", 0, "Press", ""},
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
+	{KM_CLICK, "CLICK", 0, "Click", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem event_tweak_value_items[]= {
@@ -230,6 +231,17 @@ EnumPropertyItem event_type_items[] = {
 	{TIMER2, "TIMER2", 0, "Timer 2", ""},
 	{0, NULL, 0, NULL, NULL}};	
 
+EnumPropertyItem keymap_propvalue_items[] = {
+		{0, "NONE", 0, "", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem keymap_modifiers_items[] = {
+		{KM_ANY, "ANY", 0, "Any", ""},
+		{0, "NONE", 0, "None", ""},
+		{1, "FIRST", 0, "First", ""},
+		{2, "SECOND", 0, "Second", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 #define KMI_TYPE_KEYBOARD	0
 #define KMI_TYPE_MOUSE		1
 #define KMI_TYPE_TWEAK		2
@@ -291,7 +303,7 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_OperatorProperties, op->properties);
+	return rna_pointer_inherit_refine(ptr, op->type->srna, op->properties);
 }
 
 
@@ -402,6 +414,73 @@ static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr
 	if(map_type == KMI_TYPE_TWEAK) return event_tweak_value_items;
 	else return event_value_items;
 }
+
+static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmKeyConfig *kc;
+	wmKeyMap *km;
+
+	/* check user keymaps */
+	for(km=U.keymaps.first; km; km=km->next) {
+		wmKeyMapItem *ki;
+		for (ki=km->items.first; ki; ki=ki->next) {
+			if (ki == ptr->data) {
+				if (!km->modal_items) {
+					if (!WM_keymap_user_init(wm, km)) {
+						return keymap_propvalue_items; /* ERROR */
+					}
+				}
+
+				return km->modal_items;
+			}
+		}
+	}
+
+	for(kc=wm->keyconfigs.first; kc; kc=kc->next) {
+		for(km=kc->keymaps.first; km; km=km->next) {
+			/* only check if it's a modal keymap */
+			if (km->modal_items) {
+				wmKeyMapItem *ki;
+				for (ki=km->items.first; ki; ki=ki->next) {
+					if (ki == ptr->data) {
+						return km->modal_items;
+					}
+				}
+			}
+		}
+	}
+
+
+	return keymap_propvalue_items; /* ERROR */
+}
+
+static int rna_KeyMapItem_any_getf(PointerRNA *ptr)
+{
+	wmKeyMapItem *kmi = (wmKeyMapItem*)ptr->data;
+
+	if (kmi->shift == KM_ANY &&
+		kmi->ctrl == KM_ANY &&
+		kmi->alt == KM_ANY &&
+		kmi->oskey == KM_ANY)
+
+		return 1;
+	else
+		return 0;
+}
+
+static void rna_KeyMapItem_any_setf(PointerRNA *ptr, int value)
+{
+	wmKeyMapItem *kmi = (wmKeyMapItem*)ptr->data;
+
+	if(value) {
+		kmi->shift= kmi->ctrl= kmi->alt= kmi->oskey= KM_ANY;
+	}
+	else {
+		kmi->shift= kmi->ctrl= kmi->alt= kmi->oskey= 0;
+	}
+}
+
 
 static PointerRNA rna_WindowManager_active_keyconfig_get(PointerRNA *ptr)
 {
@@ -734,6 +813,10 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_USER);
 	RNA_def_property_ui_text(prop, "User Defined", "Keymap is defined by the user.");
 
+	prop= RNA_def_property(srna, "modal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_MODAL);
+	RNA_def_property_ui_text(prop, "Modal Keymap", "Indicates that a keymap is used for translate modal events for an operator.");
+
 	RNA_api_keymap(srna);
 
 	/* KeyMapItem */
@@ -770,20 +853,32 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_value_itemf");
 	RNA_def_property_ui_text(prop, "Value", "");
 
+	prop= RNA_def_property(srna, "any", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_any_getf", "rna_KeyMapItem_any_setf");
+	RNA_def_property_ui_text(prop, "Any", "Any modifier keys pressed.");
+
 	prop= RNA_def_property(srna, "shift", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shift", 0);
+//	RNA_def_property_enum_sdna(prop, NULL, "shift");
+//	RNA_def_property_enum_items(prop, keymap_modifiers_items);
 	RNA_def_property_ui_text(prop, "Shift", "Shift key pressed.");
 
 	prop= RNA_def_property(srna, "ctrl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ctrl", 0);
+//	RNA_def_property_enum_sdna(prop, NULL, "ctrl");
+//	RNA_def_property_enum_items(prop, keymap_modifiers_items);
 	RNA_def_property_ui_text(prop, "Ctrl", "Control key pressed.");
 
 	prop= RNA_def_property(srna, "alt", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "alt", 0);
+//	RNA_def_property_enum_sdna(prop, NULL, "alt");
+//	RNA_def_property_enum_items(prop, keymap_modifiers_items);
 	RNA_def_property_ui_text(prop, "Alt", "Alt key pressed.");
 
 	prop= RNA_def_property(srna, "oskey", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "oskey", 0);
+//	RNA_def_property_enum_sdna(prop, NULL, "oskey");
+//	RNA_def_property_enum_items(prop, keymap_modifiers_items);
 	RNA_def_property_ui_text(prop, "OS Key", "Operating system key pressed.");
 
 	prop= RNA_def_property(srna, "key_modifier", PROP_ENUM, PROP_NONE);
@@ -794,6 +889,12 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Expanded in the user interface.");
+
+	prop= RNA_def_property(srna, "propvalue", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "propvalue");
+	RNA_def_property_enum_items(prop, keymap_propvalue_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_propvalue_itemf");
+	RNA_def_property_ui_text(prop, "Property Value", "The value this event translates to in a modal keymap.");
 
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", KMI_INACTIVE);

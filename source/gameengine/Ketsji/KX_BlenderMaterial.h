@@ -19,6 +19,9 @@
 #include "MEM_guardedalloc.h"
 #endif
 
+#include "SCA_IScene.h" /* only for Replace_IScene */
+#include "KX_Scene.h"
+
 struct MTFace;
 class KX_Scene;
 
@@ -30,8 +33,7 @@ public:
 	KX_BlenderMaterial();
 	void Initialize(
 		class KX_Scene*	scene,
-		BL_Material*	mat,
-		bool			skin
+		BL_Material*	mat
 	);
 
 	virtual ~KX_BlenderMaterial();
@@ -68,6 +70,7 @@ public:
 		TCachingInfo& cachingInfo
 	)const;
 
+	Material* GetBlenderMaterial() const;
 	MTFace* GetMTFace(void) const;
 	unsigned int* GetMCol(void) const;
 	BL_Texture * getTex (unsigned int idx) { 
@@ -83,6 +86,11 @@ public:
 		MT_Scalar ref, MT_Scalar emit, MT_Scalar alpha
 	);
 	
+	virtual void Replace_IScene(SCA_IScene *val)
+	{
+		mScene= static_cast<KX_Scene *>(val);
+	};
+
 #ifndef DISABLE_PYTHON
 	// --------------------------------
 	virtual PyObject* py_repr(void) { return PyUnicode_FromString(mMaterial->matname.ReadPtr()); }
@@ -119,7 +127,6 @@ private:
 
 	bool UsesLighting(RAS_IRasterizer *rasty) const;
 	void GetMaterialRGBAColor(unsigned char *rgba) const;
-	Material* GetBlenderMaterial() const;
 	Scene* GetBlenderScene() const;
 	void ReleaseMaterial();
 

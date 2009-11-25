@@ -52,6 +52,8 @@ void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
+void		WM_init_splash		(struct bContext *C);
+
 
 void		WM_check			(struct bContext *C);
 
@@ -100,17 +102,20 @@ wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, char *idname, int t
 								 int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type, 
 								 int val, int modifier, int keymodifier);
+wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, char *idname, int type,
+								 int val, int modifier, int keymodifier);
 void         WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 
 wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
+int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
 
 wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, struct EnumPropertyItem *items);
 wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, char *idname);
-void		WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
+wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
 void		WM_modalkeymap_assign(struct wmKeyMap *km, char *opname);
 
 const char	*WM_key_event_string(short type);
@@ -188,6 +193,7 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int con
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
+void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
 void		WM_operator_properties_gesture_border(wmOperatorType *ot, int extend);

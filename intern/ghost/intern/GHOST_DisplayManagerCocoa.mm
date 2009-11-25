@@ -155,11 +155,11 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(GHOST_TUns8 d
 		NULL);*/
 
 #ifdef GHOST_DEBUG
-	printf("GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(): switching to:\n");
+/*	printf("GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(): switching to:\n");
 	printf("  setting.xPixels=%d\n", getValue(displayModeValues, kCGDisplayWidth));
 	printf("  setting.yPixels=%d\n", getValue(displayModeValues, kCGDisplayHeight));
 	printf("  setting.bpp=%d\n", getValue(displayModeValues, kCGDisplayBitsPerPixel));
-	printf("  setting.frequency=%d\n", getValue(displayModeValues, kCGDisplayRefreshRate));
+	printf("  setting.frequency=%d\n", getValue(displayModeValues, kCGDisplayRefreshRate)); */
 #endif // GHOST_DEBUG
 
 	//CGDisplayErr err = ::CGDisplaySwitchToMode(m_displayIDs[display], displayModeValues);

@@ -41,7 +41,7 @@
 #include "RAS_IPolygonMaterial.h"
 #include "BL_DeformableGameObject.h"
 #include "BL_MeshDeformer.h"
-#include "BL_SkinMeshObject.h"
+#include "RAS_MeshObject.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 

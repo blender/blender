@@ -31,6 +31,8 @@
 
 #include "PHY_DynamicTypes.h"
 
+class PHY_IPhysicsEnvironment;
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
@@ -45,8 +47,9 @@ class PHY_IController
 	public:
 		virtual ~PHY_IController();
 		// clientinfo for raycasts for example
-		virtual	void*				getNewClientInfo()=0;
-		virtual	void				setNewClientInfo(void* clientinfo)=0;
+		virtual	void*	getNewClientInfo()=0;
+		virtual	void	setNewClientInfo(void* clientinfo)=0;
+		virtual void	SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *env)=0;
 
 	
 #ifdef WITH_CXX_GUARDEDALLOC

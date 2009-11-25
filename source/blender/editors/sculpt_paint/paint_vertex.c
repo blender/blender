@@ -154,12 +154,10 @@ static VPaint *new_vpaint(int wpaint)
 {
 	VPaint *vp= MEM_callocN(sizeof(VPaint), "VPaint");
 	
-	vp->gamma= vp->mul= 1.0f;
-	
-	vp->flag= VP_AREA+VP_SOFT+VP_SPRAY;
+	vp->flag= VP_AREA+VP_SPRAY;
 	
 	if(wpaint)
-		vp->flag= VP_AREA+VP_SOFT;
+		vp->flag= VP_AREA;
 
 	return vp;
 }
@@ -468,7 +466,8 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
-
+/* XXX: should be re-implemented as a vertex/weight paint 'colour correct' operator
+ 
 void vpaint_dogamma(Scene *scene)
 {
 	VPaint *vp= scene->toolsettings->vpaint;
@@ -508,6 +507,7 @@ void vpaint_dogamma(Scene *scene)
 		cp+= 4;
 	}
 }
+ */
 
 static unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 {
@@ -739,65 +739,83 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	return tot;
 }
 
-static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, float *mval)
+static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, float *mval, float pressure)
 {
 	Brush *brush = paint_brush(&vp->paint);
-	float fac, dx, dy;
-	int alpha;
+	float fac, fac_2, size, dx, dy;
+	float alpha;
 	short vertco[2];
 	
-	if(vp->flag & VP_SOFT) {
-	 	project_short_noclip(vc->ar, vert_nor, vertco);
-		dx= mval[0]-vertco[0];
-		dy= mval[1]-vertco[1];
+	project_short_noclip(vc->ar, vert_nor, vertco);
+	dx= mval[0]-vertco[0];
+	dy= mval[1]-vertco[1];
+	
+	if (brush->flag & BRUSH_SIZE_PRESSURE)
+		size = pressure * brush->size;
+	else
+		size = brush->size;
+	
+	fac_2= dx*dx + dy*dy;
+	if(fac_2 > size*size) return 0.f;
+	fac = sqrtf(fac_2);
+	
+	alpha= brush->alpha * brush_curve_strength_clamp(brush, fac, size);
+	
+	if (brush->flag & BRUSH_ALPHA_PRESSURE)
+		alpha *= pressure;
 		
-		fac= sqrt(dx*dx + dy*dy);
-		if(fac > brush->size) return 0;
-		if(vp->flag & VP_HARD)
-			alpha= 255;
-		else
-			alpha= 255.0*brush->alpha*(1.0-fac/brush->size);
-	}
-	else {
-		alpha= 255.0*brush->alpha;
-	}
-
 	if(vp->flag & VP_NORMALS) {
 		float *no= vert_nor+3;
 		
-			/* transpose ! */
+		/* transpose ! */
 		fac= vpimat[2][0]*no[0]+vpimat[2][1]*no[1]+vpimat[2][2]*no[2];
 		if(fac>0.0) {
 			dx= vpimat[0][0]*no[0]+vpimat[0][1]*no[1]+vpimat[0][2]*no[2];
 			dy= vpimat[1][0]*no[0]+vpimat[1][1]*no[1]+vpimat[1][2]*no[2];
 			
-			alpha*= fac/sqrt(dx*dx + dy*dy + fac*fac);
+			alpha*= fac/sqrtf(dx*dx + dy*dy + fac*fac);
 		}
-		else return 0;
+		else return 0.f;
 	}
 	
 	return alpha;
 }
 
-static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval)
+static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval, int flip)
 {
 	Brush *brush = paint_brush(&wp->paint);
+	int mode = wp->mode;
 	
 	if(dw==NULL || uw==NULL) return;
 	
-	if(wp->mode==VP_MIX || wp->mode==VP_BLUR)
+	if (flip) {
+		switch(mode) {
+			case VP_MIX:
+				paintval = 1.f - paintval; break;
+			case VP_ADD:
+				mode= VP_SUB; break;
+			case VP_SUB:
+				mode= VP_ADD; break;
+			case VP_LIGHTEN:
+				mode= VP_DARKEN; break;
+			case VP_DARKEN:
+				mode= VP_LIGHTEN; break;
+		}
+	}
+	
+	if(mode==VP_MIX || mode==VP_BLUR)
 		dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
-	else if(wp->mode==VP_ADD)
+	else if(mode==VP_ADD)
 		dw->weight += paintval*alpha;
-	else if(wp->mode==VP_SUB) 
+	else if(mode==VP_SUB) 
 		dw->weight -= paintval*alpha;
-	else if(wp->mode==VP_MUL) 
+	else if(mode==VP_MUL) 
 		/* first mul, then blend the fac */
 		dw->weight = ((1.0-alpha) + alpha*paintval)*dw->weight;
-	else if(wp->mode==VP_LIGHTEN) {
+	else if(mode==VP_LIGHTEN) {
 		if (dw->weight < paintval)
 			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
-	} else if(wp->mode==VP_DARKEN) {
+	} else if(mode==VP_DARKEN) {
 		if (dw->weight > paintval)
 			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
 	}
@@ -808,21 +826,21 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 		float testw=0.0f;
 		
 		alpha= brush->alpha;
-		if(wp->mode==VP_MIX || wp->mode==VP_BLUR)
+		if(mode==VP_MIX || mode==VP_BLUR)
 			testw = paintval*alpha + uw->weight*(1.0-alpha);
-		else if(wp->mode==VP_ADD)
+		else if(mode==VP_ADD)
 			testw = uw->weight + paintval*alpha;
-		else if(wp->mode==VP_SUB) 
+		else if(mode==VP_SUB) 
 			testw = uw->weight - paintval*alpha;
-		else if(wp->mode==VP_MUL) 
+		else if(mode==VP_MUL) 
 			/* first mul, then blend the fac */
 			testw = ((1.0-alpha) + alpha*paintval)*uw->weight;		
-		else if(wp->mode==VP_LIGHTEN) {
+		else if(mode==VP_LIGHTEN) {
 			if (uw->weight < paintval)
 				testw = paintval*alpha + uw->weight*(1.0-alpha);
 			else
 				testw = uw->weight;
-		} else if(wp->mode==VP_DARKEN) {
+		} else if(mode==VP_DARKEN) {
 			if (uw->weight > paintval)
 				testw = paintval*alpha + uw->weight*(1.0-alpha);
 			else
@@ -1023,7 +1041,7 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 }
 
 static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
-				   int alpha, float paintweight, 
+				   float alpha, float paintweight, int flip, 
 				   int vgroup_mirror, char *validmap)
 {
 	Mesh *me= ob->data;
@@ -1041,7 +1059,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	if(dw==NULL || uw==NULL)
 		return;
 	
-	wpaint_blend(wp, dw, uw, (float)alpha/255.0, paintweight);
+	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
 	do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
@@ -1423,8 +1441,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mat[4][4];
 	float paintweight= ts->vgroup_weight;
 	int *indexar= wpd->indexar;
-	int totindex, index, alpha, totw;
-	float mval[2];
+	int totindex, index, totw, flip;
+	float alpha;
+	float mval[2], pressure;
 
 	view3d_operator_needs_opengl(C);
 			
@@ -1433,6 +1452,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	wmGetSingleMatrix(mat);
 	wmLoadMatrix(wpd->vc.rv3d->viewmat);
 
+	flip = RNA_boolean_get(itemptr, "flip");
+	pressure = RNA_float_get(itemptr, "pressure");
 	RNA_float_get_array(itemptr, "mouse", mval);
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;
@@ -1457,7 +1478,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				if(mface->mat_nr!=ob->actcol-1) {
 					indexar[index]= 0;
 				}
-			}					
+			}
 		}
 	}
 			
@@ -1519,30 +1540,30 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			MFace *mface= me->mface + (indexar[index]-1);
 					
 			if((me->dvert+mface->v1)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval, pressure);
 				if(alpha) {
 					do_weight_paint_vertex(wp, ob, mface->v1, 
-						alpha, paintweight, wpd->vgroup_mirror, 
+						alpha, paintweight, flip, wpd->vgroup_mirror, 
 						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v1)->flag= 0;
 			}
 					
 			if((me->dvert+mface->v2)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval, pressure);
 				if(alpha) {
 					do_weight_paint_vertex(wp, ob, mface->v2, 
-						alpha, paintweight, wpd->vgroup_mirror, 
+						alpha, paintweight, flip, wpd->vgroup_mirror, 
 						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v2)->flag= 0;
 			}
 					
 			if((me->dvert+mface->v3)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval, pressure);
 				if(alpha) {
 					do_weight_paint_vertex(wp, ob, mface->v3, 
-						alpha, paintweight, wpd->vgroup_mirror, 
+						alpha, paintweight, flip, wpd->vgroup_mirror, 
 						wpd->vgroup_validmap);
 				}
 				(me->dvert+mface->v3)->flag= 0;
@@ -1550,10 +1571,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 					
 			if((me->dvert+mface->v4)->flag) {
 				if(mface->v4) {
-					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
+					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval, pressure);
 					if(alpha) {
 						do_weight_paint_vertex(wp, ob, mface->v4, 
-							alpha, paintweight, wpd->vgroup_mirror,
+							alpha, paintweight, flip, wpd->vgroup_mirror,
 							wpd->vgroup_validmap);
 					}
 					(me->dvert+mface->v4)->flag= 0;
@@ -1802,14 +1823,15 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	return 1;
 }
 
-static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index, float mval[2])
+static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index, float mval[2], float pressure, int flip)
 {
 	ViewContext *vc = &vpd->vc;
 	Mesh *me = get_mesh(ob);
 	MFace *mface= ((MFace*)me->mface) + index;
 	unsigned int *mcol= ((unsigned int*)me->mcol) + 4*index;
 	unsigned int *mcolorig= ((unsigned int*)vp->vpaint_prev) + 4*index;
-	int alpha, i;
+	float alpha;
+	int i;
 	
 	if((vp->flag & VP_COLINDEX && mface->mat_nr!=ob->actcol-1) ||
 	   ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL)))
@@ -1828,9 +1850,9 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index
 	}
 
 	for(i = 0; i < (mface->v4 ? 4 : 3); ++i) {
-		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i], mval);
+		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i], mval, pressure);
 		if(alpha)
-			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, alpha);
+			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0));
 	}
 }
 
@@ -1845,10 +1867,12 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	Mesh *me= ob->data;
 	float mat[4][4];
 	int *indexar= vpd->indexar;
-	int totindex, index;
-	float mval[2];
+	int totindex, index, flip;
+	float pressure, mval[2];
 
 	RNA_float_get_array(itemptr, "mouse", mval);
+	flip = RNA_boolean_get(itemptr, "flip");
+	pressure = RNA_float_get(itemptr, "pressure");
 			
 	view3d_operator_needs_opengl(C);
 			
@@ -1875,7 +1899,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	for(index=0; index<totindex; index++) {				
 		if(indexar[index] && indexar[index]<=me->totface)
-			vpaint_paint_face(vp, vpd, ob, indexar[index]-1, mval);
+			vpaint_paint_face(vp, vpd, ob, indexar[index]-1, mval, pressure, flip);
 	}
 						
 	swap_m4m4(vc->rv3d->persmat, mat);

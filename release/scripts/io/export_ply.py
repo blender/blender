@@ -274,14 +274,14 @@ class ExportPLY(bpy.types.Operator):
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
 
-		if not self.path:
+		if not self.properties.path:
 			raise Exception("filename not set")
 			
-		write(self.path, context.scene, context.active_object,\
-			EXPORT_APPLY_MODIFIERS = self.use_modifiers,
-			EXPORT_NORMALS = self.use_normals,
-			EXPORT_UV = self.use_uvs,
-			EXPORT_COLORS = self.use_colors,
+		write(self.properties.path, context.scene, context.active_object,\
+			EXPORT_APPLY_MODIFIERS = self.properties.use_modifiers,
+			EXPORT_NORMALS = self.properties.use_normals,
+			EXPORT_UV = self.properties.use_uvs,
+			EXPORT_COLORS = self.properties.use_colors,
 		)
 
 		return ('FINISHED',)
@@ -298,7 +298,7 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".ply")
-    self.layout.item_stringO(ExportPLY.bl_idname, "path", default_path, text="Stanford (.ply)...")
+    self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 

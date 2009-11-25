@@ -434,7 +434,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "data", "totelem");
 	RNA_def_property_struct_type(prop, "UnknownType");
 	RNA_def_property_ui_text(prop, "Data", "");
-	RNA_def_property_collection_funcs(prop, "rna_ShapeKey_data_begin", 0, 0, "rna_ShapeKey_data_get", "rna_ShapeKey_data_length", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_ShapeKey_data_begin", 0, 0, "rna_ShapeKey_data_get", "rna_ShapeKey_data_length", 0, 0);
 }
 
 static void rna_def_key(BlenderRNA *brna)

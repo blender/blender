@@ -64,6 +64,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_constraint_types.h"
 
 #include "MEM_guardedalloc.h"
 

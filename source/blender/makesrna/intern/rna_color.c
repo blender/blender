@@ -212,7 +212,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipmaxy_range");
 
 	prop= RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_CurveMapping_curves_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_CurveMapping_curves_length", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_CurveMapping_curves_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_CurveMapping_curves_length", 0, 0);
 	RNA_def_property_struct_type(prop, "CurveMap");
 	RNA_def_property_ui_text(prop, "Curves", "");
 

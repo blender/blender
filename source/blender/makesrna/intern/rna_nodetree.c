@@ -284,18 +284,6 @@ static void rna_Node_image_layer_update(bContext *C, PointerRNA *ptr)
 	rna_Node_update(C, ptr);
 }
 
-static void rna_Node_scene_layer_update(bContext *C, PointerRNA *ptr)
-{
-	bNode *node= (bNode*)ptr->data;
-	Image *ima = (Image *)node->id;
-	ImageUser *iuser= node->storage;
-	
-	BKE_image_multilayer_index(ima->rr, iuser);
-	
-	rna_Node_update(C, ptr);
-}
-
-
 static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 {
 	EnumPropertyItem *item= NULL;
@@ -1089,7 +1077,7 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_enum_items(prop, prop_scene_layer_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_scene_layer_itemf");
 	RNA_def_property_ui_text(prop, "Layer", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_scene_layer_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	/* TODO: comments indicate this might be a hack */
 	prop = RNA_def_property(srna, "re_render", PROP_BOOLEAN, PROP_NONE);
@@ -1508,7 +1496,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "no_zbuf", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "no_zbuf", 1);
 	RNA_def_property_ui_text(prop, "Use Z-Buffer", "Disable when using an image as input instead of actual zbuffer (auto enabled if node not image based, eg. time node)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
@@ -1855,11 +1843,20 @@ static void def_tex_image(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
+	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	/* is this supposed to be exposed? not sure..
 	prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "storage");
 	RNA_def_property_struct_type(prop, "ImageUser");
 	RNA_def_property_ui_text(prop, "Settings", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	 */
 }
 
 static void def_tex_bricks(StructRNA *srna)

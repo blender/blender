@@ -28,6 +28,7 @@
  */
 
 #include <string.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -68,6 +69,7 @@
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "object_intern.h"
 
@@ -610,6 +612,32 @@ static void vgroup_normalize(Object *ob)
 					/* incase of division errors with very low weights */
 					CLAMP(dw->weight, 0.0f, 1.0f);
 				}
+			}
+		}
+	}
+}
+
+static void vgroup_levels(Object *ob, float offset, float gain)
+{
+	bDeformGroup *dg;
+	MDeformWeight *dw;
+	MDeformVert *dvert, *dvert_array=NULL;
+	int i, def_nr, dvert_tot=0;
+	
+	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	
+	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
+	
+	if(dg) {
+		def_nr= ob->actdef-1;
+		
+		for(i = 0; i < dvert_tot; i++) {
+			dvert = dvert_array+i;
+			dw = ED_vgroup_weight_get(dvert, def_nr);
+			if(dw) {
+				dw->weight = gain * (dw->weight + offset);
+				
+				CLAMP(dw->weight, 0.0f, 1.0f);
 			}
 		}
 	}
@@ -1467,6 +1495,38 @@ void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int vertex_group_levels_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	
+	float offset= RNA_float_get(op->ptr,"offset");
+	float gain= RNA_float_get(op->ptr,"gain");
+	
+	vgroup_levels(ob, offset, gain);
+	
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Vertex Group Levels";
+	ot->idname= "OBJECT_OT_vertex_group_levels";
+	
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_levels_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_float(ot->srna, "offset", 0.f, -1.0, 1.0, "Offset", "Value to add to weights.", -1.0f, 1.f);
+	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by.", 0.0f, 10.f);
+}
 
 static int vertex_group_normalize_exec(bContext *C, wmOperator *op)
 {
@@ -1575,6 +1635,7 @@ void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Blend Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_blend";
+	ot->description= "";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1608,6 +1669,7 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clean Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_clean";
+	ot->description= "Remove Vertex Group assignments which aren't required.";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1653,6 +1715,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Vertex Group to Linked";
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_linked";
+	ot->description= "Copy Vertex Groups to all users of the same Geometry data.";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1691,6 +1754,7 @@ static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *ptr, int *free)
 	
 	for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
 		tmp.value= a;
+		tmp.icon= ICON_GROUP_VERTEX;
 		tmp.identifier= def->name;
 		tmp.name= def->name;
 		RNA_enum_item_add(&item, &totitem, &tmp);
@@ -1709,6 +1773,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Active Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_set_active";
+	ot->description= "Set the active vertex group.";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1721,50 +1786,5 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active.");
 	RNA_def_enum_funcs(prop, vgroup_itemf);
-}
-
-static int vertex_group_menu_exec(bContext *C, wmOperator *op)
-{
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Vertex Groups", 0);
-	layout= uiPupMenuLayout(pup);
-	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-
-	if(vgroup_object_in_edit_mode(ob)) {
-		uiItemBooleanO(layout, "Assign to New Group", 0, "OBJECT_OT_vertex_group_assign", "new", 1);
-
-		if(BLI_countlist(&ob->defbase) && ob->actdef) {
-			uiItemO(layout, "Assign to Group", 0, "OBJECT_OT_vertex_group_assign");
-			uiItemO(layout, "Remove from Group", 0, "OBJECT_OT_vertex_group_remove_from");
-			uiItemBooleanO(layout, "Remove from All", 0, "OBJECT_OT_vertex_group_remove_from", "all", 1);
-		}
-	}
-
-	if(BLI_countlist(&ob->defbase) && ob->actdef) {
-		if(vgroup_object_in_edit_mode(ob))
-			uiItemS(layout);
-
-		uiItemO(layout, "Set Active Group", 0, "OBJECT_OT_vertex_group_set_active");
-		uiItemO(layout, "Remove Group", 0, "OBJECT_OT_vertex_group_remove");
-		uiItemBooleanO(layout, "Remove All Groups", 0, "OBJECT_OT_vertex_group_remove", "all", 1);
-	}
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_vertex_group_menu(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Vertex Group Menu";
-	ot->idname= "OBJECT_OT_vertex_group_menu";
-
-	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_menu_exec;
 }
 

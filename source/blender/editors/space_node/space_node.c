@@ -198,6 +198,9 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			else if(wmn->data==ND_SPACE_NODE_VIEW)
 				ED_area_tag_redraw(sa);
 			break;
+		case NC_NODE:
+			ED_area_tag_refresh(sa);
+			break;
 	}
 }
 
@@ -299,6 +302,10 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SPACE:
+			if(wmn->data==ND_SPACE_NODE)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 		case NC_MATERIAL:
 		case NC_TEXTURE:
@@ -355,7 +362,7 @@ void ED_spacetype_node(void)
 	art->init= node_main_area_init;
 	art->draw= node_main_area_draw;
 	art->listener= node_region_listener;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_GPENCIL;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
 
 	BLI_addhead(&st->regiontypes, art);
 	

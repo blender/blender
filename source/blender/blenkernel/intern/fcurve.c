@@ -47,6 +47,8 @@
 #include "BLI_noise.h"
 
 #include "BKE_fcurve.h"
+#include "BKE_animsys.h"
+
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -176,6 +178,49 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 #endif
 
 /* --------------------- Finding -------------------------- */
+
+FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, char *prop_name, int index)
+{
+	/* anim vars */
+	AnimData *adt;
+	FCurve *fcu= NULL;
+
+	/* rna vars */
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	char *path;
+
+	adt= BKE_animdata_from_id(id);
+
+	/* only use the current action ??? */
+	if(adt==NULL || adt->action==NULL)
+		return NULL;
+
+	RNA_pointer_create(id, type, data, &ptr);
+	prop = RNA_struct_find_property(&ptr, prop_name);
+
+	if(prop) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+
+		if(path) {
+			/* animation takes priority over drivers */
+			if(adt->action && adt->action->curves.first)
+				fcu= list_find_fcurve(&adt->action->curves, path, index);
+
+			/* if not animated, check if driven */
+#if 0
+			if(!fcu && (adt->drivers.first)) {
+				fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
+			}
+#endif
+
+			MEM_freeN(path);
+		}
+	}
+
+	return fcu;
+}
+
 
 /* Find the F-Curve affecting the given RNA-access path + index, in the list of F-Curves provided */
 FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array_index)
@@ -686,6 +731,9 @@ DriverTarget *driver_add_new_target (ChannelDriver *driver)
 	dtar= MEM_callocN(sizeof(DriverTarget), "DriverTarget");
 	BLI_addtail(&driver->targets, dtar);
 	
+	/* make the default ID-type ID_OB, since most driver targets refer to objects */
+	dtar->idtype= ID_OB;
+	
 	/* give the target a 'unique' name */
 	strcpy(dtar->name, "var");
 	BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);
@@ -801,8 +849,13 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 				break;
 		}
 	}
-	else if (G.f & G_DEBUG)
-		printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, path);
+	else {
+		if (G.f & G_DEBUG)
+			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, path);
+		
+		driver->flag |= DRIVER_FLAG_INVALID;
+		return 0.0f;
+	}
 	
 	return value;
 }
@@ -831,7 +884,7 @@ static void driver_get_target_pchans2 (ChannelDriver *driver, bPoseChannel **pch
 		/* resolve path so that we have pointer to the right posechannel */
 		if (RNA_path_resolve(&id_ptr, dtar->rna_path, &ptr, &prop)) {
 			/* is pointer valid (i.e. pointing to an actual posechannel */
-			if ((ptr.type == &RNA_PoseChannel) && (ptr.data)) {
+			if ((ptr.type == &RNA_PoseBone) && (ptr.data)) {
 				/* first or second target? */
 				if (i)
 					*pchan1= ptr.data;
@@ -924,8 +977,8 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			}			
 			
 			/* use the final posed locations */
-			mat4_to_quat( q1,pchan->pose_mat);
-			mat4_to_quat( q2,pchan2->pose_mat);
+			mat4_to_quat(q1, pchan->pose_mat);
+			mat4_to_quat(q2, pchan2->pose_mat);
 			
 			invert_qt(q1);
 			mul_qt_qtqt(quat, q1, q2);

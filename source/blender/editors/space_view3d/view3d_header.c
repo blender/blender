@@ -551,9 +551,10 @@ static uiBlock *view3d_select_object_groupedmenu(bContext *C, ARegion *ar, void 
 
 #endif
 
+// TODO - port to python
+#if 0
 void do_view3d_select_faceselmenu(bContext *C, void *arg, int event)
 {
-#if 0
 	/* events >= 6 are registered bpython scripts */
 #ifndef DISABLE_PYTHON
 	if (event >= 6) BPY_menu_do_python(PYMENU_FACESELECT, event - 6);
@@ -573,7 +574,6 @@ void do_view3d_select_faceselmenu(bContext *C, void *arg, int event)
 			select_linked_tfaces(2);
 			break;
 	}
-#endif
 }
 
 static uiBlock *view3d_select_faceselmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -620,14 +620,7 @@ static uiBlock *view3d_select_faceselmenu(bContext *C, ARegion *ar, void *arg_un
 	uiTextBoundsBlock(block, 50);
 	return block;
 }
-
-/* wrapper for python layouts */
-void uiTemplate_view3d_select_faceselmenu(uiLayout *layout, bContext *C)
-{
-	void *arg_unused = NULL;
-	ARegion *ar= CTX_wm_region(C);
-	view3d_select_faceselmenu(C, ar, arg_unused);
-}
+#endif
 
 #if 0
 void do_view3d_transform_moveaxismenu(bContext *C, void *arg, int event)
@@ -1659,7 +1652,7 @@ static char *drawtype_pup(void)
 	str += sprintf(str, "%s", "|Bounding Box %x1"); 
 	str += sprintf(str, "%s", "|Wireframe %x2");
 	str += sprintf(str, "%s", "|Solid %x3");
-	str += sprintf(str, "%s", "|Shaded %x4");
+//XXX not working in 2.5!	str += sprintf(str, "%s", "|Shaded %x4");
 	str += sprintf(str, "%s", "|Textured %x5");
 	return string;
 }
@@ -2183,10 +2176,12 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiBlockBeginAlign(block);
 
 			if (ts->snap_flag & SCE_SNAP) {
-				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap with Ctrl during transform (Shift Tab)");
 				xco+= XIC;
-				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
-				xco+= XIC;
+				if(v3d->modeselect == OB_MODE_OBJECT) {
+					uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
+					xco+= XIC;
+				}
 				if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
 					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
 					xco+= XIC;

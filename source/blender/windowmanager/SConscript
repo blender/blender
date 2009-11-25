@@ -14,7 +14,7 @@ incs += ' ../makesrna ../gpu ../blenfont'
 incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost'
 incs += ' #/intern/elbeem #/extern/glew/include'
 
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 if not env['WITH_BF_PYTHON']:
 	defs.append('DISABLE_PYTHON')

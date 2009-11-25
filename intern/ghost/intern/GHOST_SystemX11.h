@@ -266,6 +266,10 @@ private :
 	/// A vector of keyboard key masks
 	char m_keyboard_vector[32];
 
+	/* to prevent multiple warp, we store the time of the last warp event
+	 *  and stop accumulating all events generated before that */
+	Time m_last_warp;
+
 	/**
 	 * Return the ghost window associated with the
 	 * X11 window xwind
@@ -280,6 +284,11 @@ private :
 	processEvent(
 		XEvent *xe
  	);
+
+		Time
+	lastEventTime(
+		Time default_time
+	);
 
 		bool
 	generateWindowExposeEvents(

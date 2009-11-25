@@ -125,6 +125,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	PointerRNA itemptr;
 	float pressure = 1;
 	float center[3] = {0, 0, 0};
+	int flip= event->shift?1:0;
 	PaintStroke *stroke = op->customdata;
 
 	/* XXX: can remove the if statement once all modes have this */
@@ -136,13 +137,15 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 		wmTabletData *wmtab= event->customdata;
 		if(wmtab->Active != EVT_TABLET_NONE)
 			pressure= wmtab->Pressure;
+		if(wmtab->Active == EVT_TABLET_ERASER)
+			flip = 1;
 	}
 				
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 	RNA_float_set_array(&itemptr, "location", center);
 	RNA_float_set_array(&itemptr, "mouse", mouse);
-	RNA_boolean_set(&itemptr, "flip", event->shift);
+	RNA_boolean_set(&itemptr, "flip", flip);
 	RNA_float_set(&itemptr, "pressure", pressure);
 
 	stroke->last_mouse_position[0] = mouse[0];

@@ -1694,6 +1694,12 @@ static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
 				data->script = newlibadr(fd, id->lib, data->script);
 			}
 				break;
+			case FMODIFIER_TYPE_SOUND:
+			{
+				FMod_Sound *data= (FMod_Sound *)fcm->data;
+				data->sound = newlibadr(fd, id->lib, data->sound);
+			}
+				break;
 		}
 	}
 }
@@ -3785,6 +3791,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if(clmd->sim_parms) {
 				if(clmd->sim_parms->presets > 10)
 					clmd->sim_parms->presets = 0;
+
+				clmd->sim_parms->reset = 0;
 			}
 
 			if(clmd->sim_parms->effector_weights)
@@ -3867,7 +3875,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_x = NULL;
 			collmd->current_xnew = NULL;
 			collmd->current_v = NULL;
-			collmd->time = -1;
+			collmd->time = -1000;
 			collmd->numverts = 0;
 			collmd->bvhtree = NULL;
 			collmd->mfaces = NULL;
@@ -4199,11 +4207,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 					MEM_freeN(base);
 				}
 			}
-			
-			if (sce->ed) {
-				Editing *ed= sce->ed;
-				ed->act_seq= NULL; //	ed->act_seq=  newlibadr(fd, ed->act_seq); // FIXME
-			}
 
 			SEQ_BEGIN(sce->ed, seq) {
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
@@ -4304,7 +4307,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;
 		
 		ed= sce->ed= newdataadr(fd, sce->ed);
-		ed->act_seq= NULL; //		ed->act_seq=  newdataadr(fd, ed->act_seq); // FIXME
+
+		ed->act_seq= newdataadr(fd, ed->act_seq);
 
 		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
@@ -5259,7 +5263,7 @@ static void lib_link_group(FileData *fd, Main *main)
 				go= go->next;
 			}
 			if(add_us) group->id.us++;
-			rem_from_group(group, NULL);	/* removes NULL entries */
+			rem_from_group(group, NULL, NULL, NULL);	/* removes NULL entries */
 		}
 		group= group->id.next;
 	}
@@ -5988,13 +5992,38 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_UI;
 				ar->alignment= RGN_ALIGN_TOP;
 				break;
+			case SPACE_VIEW3D:
+				/* toolbar */
+				ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
+				
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_LEFT;
+				ar->flag = RGN_FLAG_HIDDEN;
+				
+				/* tool properties */
+				ar= MEM_callocN(sizeof(ARegion), "tool properties for view3d");
+				
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+				ar->flag = RGN_FLAG_HIDDEN;
+				
+				/* buttons/list view */
+				ar= MEM_callocN(sizeof(ARegion), "buttons for view3d");
+				
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_RIGHT;
+				ar->flag = RGN_FLAG_HIDDEN;
 #if 0
 			case SPACE_BUTS:
 				/* context UI region */
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_CHANNELS;
-				ar->alignment= RGN_ALIGN_TOP;
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_RIGHT;
+				
 				break;
 #endif
 		}
@@ -10034,8 +10063,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			Scene *sce= main->scene.first;
 			while(sce) {
+				Sequence *seq;
+				
 				if(sce->r.frame_step==0)
 					sce->r.frame_step= 1;
+				
+				if(sce->ed && sce->ed->seqbasep)
+				{
+					seq=sce->ed->seqbasep->first;
+					while(seq) {
+						seqUniqueName(sce->ed->seqbasep, seq);
+						seq=seq->next;
+					}
+				}
+				
 				sce= sce->id.next;
 			}
 		}
@@ -10393,15 +10434,63 @@ static void expand_constraint_channels(FileData *fd, Main *mainvar, ListBase *ch
 	}
 }
 
-// XXX depreceated - old animation system
+static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
+{
+	FModifier *fcm;
+	
+	for (fcm= list->first; fcm; fcm= fcm->next) {
+		/* library data for specific F-Modifier types */
+		switch (fcm->type) {
+			case FMODIFIER_TYPE_PYTHON:
+			{
+				FMod_Python *data= (FMod_Python *)fcm->data;
+				
+				expand_doit(fd, mainvar, data->script);
+			}
+				break;
+			case FMODIFIER_TYPE_SOUND:
+			{
+				FMod_Sound *data= (FMod_Sound *)fcm->data;
+
+				expand_doit(fd, mainvar, data->sound);
+			}
+				break;
+		}
+	}
+}
+
+static void expand_fcurves(FileData *fd, Main *mainvar, ListBase *list)
+{
+	FCurve *fcu;
+	
+	for (fcu= list->first; fcu; fcu= fcu->next) {
+		/* Driver targets if there is a driver */
+		if (fcu->driver) {
+			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
+			
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
+				expand_doit(fd, mainvar, dtar->id);
+		}
+		
+		/* F-Curve Modifiers */
+		expand_fmodifiers(fd, mainvar, &fcu->modifiers);
+	}
+}
+
 static void expand_action(FileData *fd, Main *mainvar, bAction *act)
 {
 	bActionChannel *chan;
 	
+	// XXX depreceated - old animation system --------------
 	for (chan=act->chanbase.first; chan; chan=chan->next) {
 		expand_doit(fd, mainvar, chan->ipo);
 		expand_constraint_channels(fd, mainvar, &chan->constraintChannels);
 	}
+	// ---------------------------------------------------
+	
+	/* F-Curves in Action */
+	expand_fcurves(fd, mainvar, &act->curves);
 }
 
 static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
@@ -10425,6 +10514,9 @@ static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *lis
 		/* check child strips */
 		expand_animdata_nlastrips(fd, mainvar, &strip->strips);
 		
+		/* check F-Modifiers */
+		expand_fmodifiers(fd, mainvar, &strip->modifiers);
+		
 		/* relink referenced action */
 		expand_doit(fd, mainvar, strip->act);
 	}
@@ -10432,7 +10524,6 @@ static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *lis
 
 static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 {
-	FCurve *fcd;
 	NlaTrack *nlt;
 	
 	/* own action */
@@ -10440,13 +10531,7 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 	expand_doit(fd, mainvar, adt->tmpact);
 	
 	/* drivers - assume that these F-Curves have driver data to be in this list... */
-	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
-		ChannelDriver *driver= fcd->driver;
-		DriverTarget *dtar;
-		
-		for (dtar= driver->targets.first; dtar; dtar= dtar->next)
-			expand_doit(fd, mainvar, dtar->id);
-	}
+	expand_fcurves(fd, mainvar, &adt->drivers);
 	
 	/* nla-data - referenced actions */
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) 

@@ -878,9 +878,9 @@ int CTX_data_editable_bones(const bContext *C, ListBase *list)
 	return ctx_data_collection_get(C, "editable_bones", list);
 }
 
-struct bPoseChannel *CTX_data_active_pchan(const bContext *C)
+struct bPoseChannel *CTX_data_active_pose_bone(const bContext *C)
 {
-	return ctx_data_pointer_get(C, "active_pchan");
+	return ctx_data_pointer_get(C, "active_pose_bone");
 }
 
 int CTX_data_selected_pchans(const bContext *C, ListBase *list)

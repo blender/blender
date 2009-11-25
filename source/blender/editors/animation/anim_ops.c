@@ -260,6 +260,9 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	scene->r.psfra= (int)floor(sfra + 0.5f);
 	scene->r.pefra= (int)floor(efra + 0.5f);
 	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	
 	return OPERATOR_FINISHED;
 } 
 

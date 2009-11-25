@@ -28,6 +28,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -86,9 +87,11 @@ EnumPropertyItem object_type_items[] = {
 #include "BLI_math.h"
 
 #include "DNA_key_types.h"
+#include "DNA_constraint_types.h"
 
 #include "BKE_armature.h"
 #include "BKE_bullet.h"
+#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -574,6 +577,70 @@ static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 	}
 }
 
+static int rna_Object_location_editable(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object *)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (ob->protectflag & OB_LOCK_LOCX))
+		return 0;
+	else if ((index == 1) && (ob->protectflag & OB_LOCK_LOCY))
+		return 0;
+	else if ((index == 2) && (ob->protectflag & OB_LOCK_LOCZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_Object_scale_editable(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object *)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (ob->protectflag & OB_LOCK_SCALEX))
+		return 0;
+	else if ((index == 1) && (ob->protectflag & OB_LOCK_SCALEY))
+		return 0;
+	else if ((index == 2) && (ob->protectflag & OB_LOCK_SCALEZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_Object_rotation_euler_editable(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object *)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (ob->protectflag & OB_LOCK_ROTX))
+		return 0;
+	else if ((index == 1) && (ob->protectflag & OB_LOCK_ROTY))
+		return 0;
+	else if ((index == 2) && (ob->protectflag & OB_LOCK_ROTZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object *)ptr->data;
+	
+	/* only consider locks if locking components individually... */
+	if (ob->protectflag & OB_LOCK_ROT4D) {
+		/* only if the axis in question is locked, not editable... */
+		if ((index == 0) && (ob->protectflag & OB_LOCK_ROTW))
+			return 0;
+		else if ((index == 1) && (ob->protectflag & OB_LOCK_ROTX))
+			return 0;
+		else if ((index == 2) && (ob->protectflag & OB_LOCK_ROTY))
+			return 0;
+		else if ((index == 3) && (ob->protectflag & OB_LOCK_ROTZ))
+			return 0;
+	}
+		
+	return PROP_EDITABLE;
+}
 
 static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
 {
@@ -859,6 +926,36 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
 }
 
+static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bConstraint *con= constraints_get_active(&ob->constraints);
+	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
+}
+
+static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	constraints_set_active(&ob->constraints, (bConstraint *)value.data);
+}
+
+static bConstraint *rna_Object_constraints_new(Object *object, bContext *C, int type)
+{
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	return add_ob_constraint(object, NULL, type);
+}
+
+static int rna_Object_constraints_remove(Object *object, bContext *C, int index)
+{
+	int ok = remove_constraint_index(&object->constraints, index);
+	if(ok) {
+		ED_object_constraint_set_active(object, NULL);
+		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+	}
+
+	return ok;
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -1127,6 +1224,50 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine.");
 }
 
+static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "ObjectConstraints");
+	srna= RNA_def_struct(brna, "ObjectConstraints", NULL);
+	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_ui_text(srna, "Object Constraints", "Collection of object constraints.");
+
+
+	/* Collection active property */
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Constraint");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_constraint_get", "rna_Object_active_constraint_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Constraint", "Active Object constraint.");
+
+
+	/* Constraint collection */
+	func= RNA_def_function(srna, "new", "rna_Object_constraints_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a new constraint to this object");
+	/* return type */
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "remove", "rna_Object_constraints_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1301,7 +1442,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "MaterialSlot");
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", 0, 0, 0, 0, 0); /* don't dereference pointer! */
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", 0, 0, 0); /* don't dereference pointer! */
 	RNA_def_property_ui_text(prop, "Materials", "Material slots in the object.");
 
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
@@ -1320,11 +1461,13 @@ static void rna_def_object(BlenderRNA *brna)
 	/* transform */
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_editable_array_func(prop, "rna_Object_location_editable");
 	RNA_def_property_ui_text(prop, "Location", "Location of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
 	prop= RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
+	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
@@ -1334,11 +1477,13 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
 	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
 	RNA_def_property_float_funcs(prop, "rna_Object_rotation_axis_angle_get", "rna_Object_rotation_axis_angle_set", NULL);
+	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
 	prop= RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_euler_editable");
 	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
@@ -1351,6 +1496,7 @@ static void rna_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_editable_array_func(prop, "rna_Object_scale_editable");
 	RNA_def_property_ui_text(prop, "Scale", "Scaling of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
@@ -1428,6 +1574,8 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints of the object.");
+//	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove");
+	rna_def_object_constraints(brna, prop);
 
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
@@ -1721,6 +1869,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_shape_key_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); // XXX this is really unpredictable...
 	RNA_def_property_int_funcs(prop, "rna_Object_active_shape_key_index_get", "rna_Object_active_shape_key_index_set", "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index.");
 	RNA_def_property_update(prop, 0, "rna_Object_active_shape_update");

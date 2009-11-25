@@ -1272,7 +1272,15 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			}
 
 			if(open) {
-				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+				short panelContext;
+				
+				/* panel context can either be toolbar region or normal panels region */
+				if (ar->regiontype == RGN_TYPE_TOOLS)
+					panelContext= UI_LAYOUT_TOOLBAR;
+				else
+					panelContext= UI_LAYOUT_PANEL;
+				
+				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, panelContext,
 					style->panelspace, 0, w-2*style->panelspace, em, style);
 
 				pt->draw(C, panel);

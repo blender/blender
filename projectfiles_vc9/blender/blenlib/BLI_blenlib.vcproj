@@ -480,10 +480,6 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\arithb.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_bfile.c"
 				>
 			</File>
@@ -572,6 +568,34 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\math_base.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\math_color.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\math_geom.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\math_matrix.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\math_rotation.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\math_vector.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\math_vector_inline.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\noise.c"
 				>
 			</File>
@@ -620,10 +644,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_arithb.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_bfile.h"
 				>
@@ -694,6 +714,34 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_linklist.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_math.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_math_base.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_math_color.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_math_geom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_math_matrix.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_math_rotation.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_math_vector.h"
 				>
 			</File>
 			<File

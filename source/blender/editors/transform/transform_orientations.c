@@ -916,8 +916,10 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			}
 		}
 		
-		VECCOPY(normal, ob->obmat[2]);
-		VECCOPY(plane, ob->obmat[1]);
+		if (ob) {
+			VECCOPY(normal, ob->obmat[2]);
+			VECCOPY(plane, ob->obmat[1]);
+		}
 		result = ORIENTATION_NORMAL;
 	}
 	

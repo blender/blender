@@ -237,6 +237,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
+		case ESCKEY:
 			if (event->val==KM_RELEASE) {
 				/* calculate overall delta mouse-movement for redo */
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
@@ -253,6 +254,12 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int view_pan_cancel(bContext *C, wmOperator *op)
+{
+	view_pan_exit(C, op);
+	return OPERATOR_CANCELLED;
+}
+
 void VIEW2D_OT_pan(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -264,6 +271,7 @@ void VIEW2D_OT_pan(wmOperatorType *ot)
 	ot->exec= view_pan_exec;
 	ot->invoke= view_pan_invoke;
 	ot->modal= view_pan_modal;
+	ot->cancel= view_pan_cancel;
 	
 	/* operator is repeatable */
 	ot->flag= OPTYPE_BLOCKING;
@@ -1165,14 +1173,15 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	/* type of movement */
 	switch (vsm->zone) {
 		case SCROLLHANDLE_MIN:
-		case SCROLLHANDLE_MAX:
-			
 			/* only expand view on axis if zoom is allowed */
 			if ((vsm->scroller == 'h') && !(v2d->keepzoom & V2D_LOCKZOOM_X))
 				v2d->cur.xmin -= temp;
 			if ((vsm->scroller == 'v') && !(v2d->keepzoom & V2D_LOCKZOOM_Y))
 				v2d->cur.ymin -= temp;
-		
+			break;
+			
+		case SCROLLHANDLE_MAX:
+			
 			/* only expand view on axis if zoom is allowed */
 			if ((vsm->scroller == 'h') && !(v2d->keepzoom & V2D_LOCKZOOM_X))
 				v2d->cur.xmax += temp;
@@ -1284,6 +1293,13 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				/* can't catch this event for ourselves, so let it go to someone else? */
 				return OPERATOR_PASS_THROUGH;
 			}			
+		}
+		/* zone is also inappropriate if scroller is not visible... */
+		if ( ((vsm->scroller=='h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE)) ||
+			 ((vsm->scroller=='v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE)) )
+		{
+			/* can't catch this event for ourselves, so let it go to someone else? */
+			return OPERATOR_PASS_THROUGH;
 		}
 		
 		if(vsm->scroller=='h')

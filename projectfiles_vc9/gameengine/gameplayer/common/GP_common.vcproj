@@ -343,10 +343,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\common\GPC_PolygonMaterial.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\..\source\gameengine\GamePlayer\common\GPC_RawImage.cpp"
 				>
 			</File>

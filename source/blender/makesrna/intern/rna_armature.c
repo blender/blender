@@ -93,6 +93,15 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+EditBone *rna_Armature_edit_bone_new(bArmature *arm, char *name)
+{
+	return ED_armature_edit_bone_add(arm, name);
+}
+
+void rna_Armature_edit_bone_remove(bArmature *arm, EditBone *ebone)
+{
+	ED_armature_edit_bone_remove(arm, ebone);
+}
 
 static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
 {
@@ -439,8 +448,8 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Cyclic Offset", "When bone doesn't have a parent, it receives cyclic offset effects.");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "selectable", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_UNSELECTABLE);
+	prop= RNA_def_property(srna, "restrict_select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_UNSELECTABLE);
 	RNA_def_property_ui_text(prop, "Selectable", "Bone is able to be selected");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
@@ -610,6 +619,11 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Locked", "Bone is not able to be transformed when in Edit Mode.");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
+	RNA_def_property_ui_text(prop, "Selected", "");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+
 	prop= RNA_def_property(srna, "head_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);
 	RNA_def_property_ui_text(prop, "Head Selected", "");
@@ -623,10 +637,79 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_define_verify_sdna(1);
 }
 
+
+/* armature.bones.* */
+static void rna_def_armature_bones(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "ArmatureBones");
+	srna= RNA_def_struct(brna, "ArmatureBones", NULL);
+	RNA_def_struct_sdna(srna, "bArmature");
+	RNA_def_struct_ui_text(srna, "Armature Bones", "Collection of armature bones.");
+
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Bone");
+	RNA_def_property_pointer_sdna(prop, NULL, "act_bone");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Bone", "Armatures active bone.");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_bone_set", NULL);
+
+	/* todo, redraw */
+//		RNA_def_property_collection_active(prop, prop_act);
+}
+
+/* armature.bones.* */
+static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "ArmatureEditBones");
+	srna= RNA_def_struct(brna, "ArmatureEditBones", NULL);
+	RNA_def_struct_sdna(srna, "bArmature");
+	RNA_def_struct_ui_text(srna, "Armature EditBones", "Collection of armature edit bones.");
+
+	prop= RNA_def_property(srna, "edit_bones", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "EditBone");
+	RNA_def_property_pointer_sdna(prop, NULL, "act_edbone");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active EditBone", "Armatures active edit bone.");
+	//RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_edit_bone_set", NULL);
+
+	/* todo, redraw */
+//		RNA_def_property_collection_active(prop, prop_act);
+
+	/* add target */
+	func= RNA_def_function(srna, "new", "rna_Armature_edit_bone_new");
+	RNA_def_function_ui_description(func, "Add a new bone.");
+	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the bone.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "bone", "EditBone", "", "Newly created edit bone.");
+	RNA_def_function_return(func, parm);
+
+	/* remove target */
+	func= RNA_def_function(srna, "remove", "rna_Armature_edit_bone_remove");
+	RNA_def_function_ui_description(func, "Remove an existing bone from the armature.");
+	/* target to remove*/
+	parm= RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_armature(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop, *prop_act;
+	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_drawtype_items[] = {
 		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape (default)."},
@@ -663,37 +746,16 @@ static void rna_def_armature(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bonebase", NULL);
-	RNA_def_property_collection_funcs(prop, 0, "rna_Armature_bones_next", 0, 0, 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, "rna_Armature_bones_next", 0, 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_ui_text(prop, "Bones", "");
-
-	{ /* Collection active property */
-		prop_act= RNA_def_property(srna, "bones_active", PROP_POINTER, PROP_NONE);
-		RNA_def_property_struct_type(prop_act, "Bone");
-		RNA_def_property_pointer_sdna(prop_act, NULL, "act_bone");
-		RNA_def_property_flag(prop_act, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop_act, "Active Bone", "Armatures active bone.");
-		RNA_def_property_pointer_funcs(prop_act, NULL, "rna_Armature_act_bone_set", NULL);
-
-		/* todo, redraw */
-		RNA_def_property_collection_active(prop, prop_act);
-	}
+	rna_def_armature_bones(brna, prop);
 
 	prop= RNA_def_property(srna, "edit_bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "edbo", NULL);
 	RNA_def_property_struct_type(prop, "EditBone");
 	RNA_def_property_ui_text(prop, "Edit Bones", "");
-	
-	{ /* Collection active property */
-		prop_act= RNA_def_property(srna, "edit_bones_active", PROP_POINTER, PROP_NONE);
-		RNA_def_property_struct_type(prop_act, "EditBone");
-		RNA_def_property_pointer_sdna(prop_act, NULL, "act_edbone");
-		RNA_def_property_flag(prop_act, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop_act, "Active EditBone", "Armatures active edit bone.");
-		//RNA_def_property_update(prop_act, 0, "rna_Armature_act_editbone_update");
-		RNA_def_property_pointer_funcs(prop_act, NULL, "rna_Armature_act_edit_bone_set", NULL);
-		RNA_def_property_collection_active(prop, prop_act);
-	}
+	rna_def_armature_edit_bones(brna, prop);
 
 	/* Enum values */
 //	prop= RNA_def_property(srna, "rest_position", PROP_BOOLEAN, PROP_NONE);

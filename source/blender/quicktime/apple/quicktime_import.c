@@ -52,11 +52,37 @@
 #include "quicktime_import.h"
 #include "quicktime_export.h"
 
-
 #define	RECT_WIDTH(r)	(r.right-r.left)
 #define	RECT_HEIGHT(r)	(r.bottom-r.top)
 
 #define QTIME_DEBUG 0
+
+typedef struct _QuicktimeMovie {
+
+	GWorldPtr	offscreenGWorld;
+	PixMapHandle	offscreenPixMap;
+	Movie		movie;
+	Rect		movieBounds;
+	short		movieRefNum;
+	short		movieResId;
+	int			movWidth, movHeight;
+
+	
+	int			framecount;
+	
+	
+	ImBuf		*ibuf;
+	
+
+	TimeValue	*frameIndex;
+	Media		theMedia;
+	Track		theTrack;
+	long		trackIndex;
+	short		depth;
+	
+	int			have_gw;	//ugly
+} QuicktimeMovie;
+
 
 
 void quicktime_init(void)

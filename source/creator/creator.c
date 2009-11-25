@@ -278,7 +278,7 @@ int main(int argc, char **argv)
 {
 	SYS_SystemHandle syshandle;
 	bContext *C= CTX_create();
-	int a, i, stax, stay, sizx, sizy /*XXX, scr_init = 0*/;
+	int a, i, stax, stay, sizx, sizy /*XXX, scr_init = 0*/, file_loaded= 0;
 
 #ifdef WITH_BINRELOC
 	br_init( NULL );
@@ -489,11 +489,13 @@ int main(int argc, char **argv)
 			}
 		}
 
-#ifndef DISABLE_PYTHON		
-		BPY_start_python(argc, argv);
-#endif		
-
 		WM_init(C);
+
+#ifndef DISABLE_PYTHON
+		BPY_set_context(C); /* necessary evil */
+		BPY_start_python(argc, argv);
+		BPY_load_user_modules(C);
+#endif
 		
 		// XXX BRECHT SOLVE
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
@@ -530,7 +532,9 @@ int main(int argc, char **argv)
 		WM_init(C);
 
 #ifndef DISABLE_PYTHON
+		BPY_set_context(C); /* necessary evil */
 		BPY_start_python(argc, argv);
+		BPY_load_user_modules(C);
 #endif		
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 	}
@@ -543,13 +547,13 @@ int main(int argc, char **argv)
 	 * Update: now this function also inits the bpymenus, which also depend
 	 * on U.pythondir.
 	 */
-	BPY_post_start_python();
+	
+	// TODO - U.pythondir
 
-	BPY_run_ui_scripts(C, 0); /* dont need to reload the first time */
 #endif
 	
 	CTX_py_init_set(C, 1);
-	WM_keymap_init(C); /* after BPY_run_ui_scripts() */
+	WM_keymap_init(C);
 
 #ifdef WITH_QUICKTIME
 
@@ -876,6 +880,8 @@ int main(int argc, char **argv)
 				   a file - this should do everything a 'load file' does */
 				WM_read_file(C, filename, NULL);
 			}
+
+			file_loaded = 1;
 		}
 	}
 	
@@ -884,9 +890,12 @@ int main(int argc, char **argv)
 		WM_exit(C);
 	}
 
+	if(!G.background && !file_loaded)
+		WM_init_splash(C);
 
 	WM_main(C);
-	
+
+
 	/*XXX if (scr_init==0) {
 		main_init_screen();
 	}

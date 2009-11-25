@@ -235,19 +235,18 @@ void OBJECT_OT_add(wmOperatorType *ot)
 /********************* Add Effector Operator ********************/
 /* copy from rna_object_force.c*/
 static EnumPropertyItem field_type_items[] = {
-	{0, "NONE", 0, "None", ""},
-	{PFIELD_FORCE, "FORCE", 0, "Force", ""},
-	{PFIELD_WIND, "WIND", 0, "Wind", ""},
-	{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
-	{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
-	{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
-	{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
-	{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
-	{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
-	{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
-	{PFIELD_BOID, "BOID", 0, "Boid", ""},
-	{PFIELD_TURBULENCE, "TURBULENCE", 0, "Turbulence", ""},
-	{PFIELD_DRAG, "DRAG", 0, "Drag", ""},
+	{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", ""},
+	{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", ""},
+	{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", ""},
+	{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", ""},
+	{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", ""},
+	{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", ""},
+	{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones", ""},
+	{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", ""},
+	{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", ""},
+	{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
+	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
+	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 void add_effector_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
@@ -755,7 +754,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if(islamp) reshadeall_displist(scene);	/* only frees displist */
 	
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
 	
@@ -951,7 +950,7 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1262,9 +1261,8 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 			Group *group;
 			for(group= G.main->group.first; group; group= group->id.next) {
 				if(object_in_group(ob, group))
-					add_to_group(group, obn);
+					add_to_group(group, obn, scene, basen);
 			}
-			obn->flag |= OB_FROMGROUP; /* this flag is unset with copy_object() */
 		}
 		
 		/* duplicates using userflags */
@@ -1481,7 +1479,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	copy_object_set_idnew(C, dupflag);
 
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 

@@ -656,7 +656,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		uiLayout *box;
 
 		box= uiLayoutBox(column);
-		row= uiLayoutRow(box, 1);
+		row= uiLayoutRow(box, 0);
 
 		if(!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
 			/* only here obdata, the rest of modifiers is ob level */
@@ -669,8 +669,12 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 			}
-			else
-				uiItemO(row, "Apply", 0, "OBJECT_OT_modifier_apply");
+			else 
+				uiItemEnumO(row, "Apply", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_DATA);
+			
+			if (modifier_sameTopology(md))
+				uiItemEnumO(row, "Apply as Shape", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_SHAPE);
+			
 			
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);

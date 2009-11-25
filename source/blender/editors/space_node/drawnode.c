@@ -96,16 +96,6 @@
 
 /* ****************** GENERAL CALLBACKS FOR NODES ***************** */
 
-static void node_ID_title_cb(bContext *C, void *node_v, void *unused_v)
-{
-	bNode *node= node_v;
-	
-	if(node->id) {
-		test_idbutton(node->id->name+2);	/* library.c, verifies unique name */
-		BLI_strncpy(node->name, node->id->name+2, 21);
-	}
-}
-
 #if 0
 /* XXX not used yet, make compiler happy :) */
 static void node_group_alone_cb(bContext *C, void *node_v, void *unused_v)
@@ -517,36 +507,6 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 }
 
 /* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
-
-static void node_browse_image_cb(bContext *C, void *ntree_v, void *node_v)
-{
-	bNodeTree *ntree= ntree_v;
-	bNode *node= node_v;
-	
-	nodeSetActive(ntree, node);
-	
-	if(node->menunr<1) return;
-	if(node->menunr==32767) {	/* code for Load New */
-		/// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_LOADIMAGE); XXX
-	}
-	else {
-		if(node->id) node->id->us--;
-		node->id= BLI_findlink(&G.main->image, node->menunr-1);
-		id_us_plus(node->id);
-
-		BLI_strncpy(node->name, node->id->name+2, 21);
-
-		NodeTagChanged(ntree, node); 
-		BKE_image_signal((Image *)node->id, node->storage, IMA_SIGNAL_USER_NEW_IMAGE);
-		// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC); XXX
-	}
-	node->menunr= 0;
-}
-
-static void node_active_cb(bContext *C, void *ntree_v, void *node_v)
-{
-	nodeSetActive(ntree_v, node_v);
-}
 
 static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
@@ -1217,41 +1177,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *C, PointerRNA *pt
 
 static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	bNodeTree *ntree= ptr->id.data;
-	rctf *butr= &node->butr;
-	char *strp;
-	uiBut *bt;
-
-	uiBlockBeginAlign(block);
-	
-	/* browse button */
-	IMAnames_to_pupstring(&strp, NULL, "LOAD NEW %x32767", &(G.main->image), NULL, NULL);
-	node->menunr= 0;
-	bt= uiDefButS(block, MENU, B_NOP, strp, 
-				  butr->xmin, butr->ymin, 19, 19, 
-				  &node->menunr, 0, 0, 0, 0, "Browses existing choices");
-	uiButSetFunc(bt, node_browse_image_cb, ntree, node);
-	if(strp) MEM_freeN(strp);
-	
-	/* Add New button */
-	if(node->id==NULL) {
-		bt= uiDefBut(block, BUT, B_NODE_LOADIMAGE, "Load New",
-					 butr->xmin+19, butr->ymin, (short)(butr->xmax-butr->xmin-19.0f), 19, 
-					 NULL, 0.0, 0.0, 0, 0, "Add new Image");
-		uiButSetFunc(bt, node_active_cb, ntree, node);
-	}
-	else {
-		/* name button */
-		short xmin= (short)butr->xmin, xmax= (short)butr->xmax;
-		short width= xmax - xmin - 19;
-		
-		bt= uiDefBut(block, TEX, B_NOP, "IM:",
-					 xmin+19, butr->ymin, width, 19, 
-					 node->id->name+2, 0.0, 19.0, 0, 0, "Image name");
-		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-	}
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 }
 
 static void node_texture_buts_output(uiLayout *layout, bContext *C, PointerRNA *ptr)

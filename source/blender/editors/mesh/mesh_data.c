@@ -196,11 +196,12 @@ int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 
 int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 {
+	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
-	cdl= (index == -1)? NULL: &me->fdata.layers[index];
+ 	index= CustomData_get_active_layer_index(data, CD_MTFACE);
+	cdl= (index == -1) ? NULL: &data->layers[index];
 
 	if(!cdl)
 		return 0;
@@ -255,11 +256,12 @@ int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 
 int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 {
+	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
-	cdl= (index == -1)? NULL: &me->fdata.layers[index];
+ 	index= CustomData_get_active_layer_index(data, CD_MCOL);
+	cdl= (index == -1)? NULL: &data->layers[index];
 
 	if(!cdl)
 		return 0;
@@ -464,7 +466,7 @@ static void mesh_calc_edges(Mesh *mesh, int update)
 	MFace *mf = mesh->mface;
 	MEdge *med, *med_orig;
 	EdgeHash *eh = BLI_edgehash_new();
-	int i, *index, totedge, totface = mesh->totface;
+	int i, totedge, totface = mesh->totface;
 
 	if(mesh->totedge==0)
 		update= 0;
@@ -503,7 +505,7 @@ static void mesh_calc_edges(Mesh *mesh, int update)
 	ehi = BLI_edgehashIterator_new(eh);
 	med = CustomData_get_layer(&edata, CD_MEDGE);
 	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
-	    BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
+	    BLI_edgehashIterator_step(ehi), ++i, ++med) {
 
 		if(update && (med_orig=BLI_edgehashIterator_getValue(ehi))) {
 			*med= *med_orig; /* copy from the original */

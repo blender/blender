@@ -59,6 +59,11 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
 	virtual bool 
 	Update();
 
+	virtual void Replace_IScene(SCA_IScene *val)
+	{
+		m_scene= val;
+	};
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */

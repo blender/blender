@@ -66,6 +66,13 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 		replica->ProcessReplica();
 		return replica;
 	};
+
+	virtual void Replace_IScene(SCA_IScene *val)
+	{
+		m_kxscene= static_cast<KX_Scene *>(val);
+	};
+
+
 	/**
 	 * @attention Overrides default evaluate. 
 	 */

@@ -125,10 +125,11 @@ public:
 		return m_displayarea;
 	};
 
-		RAS_Rect &
-	GetDisplayArea(
+		void
+	SetDisplayArea(
+		RAS_Rect *rect
 	) {
-		return m_displayarea;
+		m_displayarea= *rect;
 	};
 	
 		RAS_Rect &

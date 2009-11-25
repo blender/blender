@@ -375,9 +375,7 @@ m_scalingPropagated(false)
 	//m_dynamicsWorld->getSolverInfo().m_solverMode=	SOLVER_USE_WARMSTARTING +	SOLVER_USE_2_FRICTION_DIRECTIONS +	SOLVER_RANDMIZE_ORDER +	SOLVER_USE_FRICTION_WARMSTARTING;
 
 	m_debugDrawer = 0;
-	m_gravity = btVector3(0.f,-10.f,0.f);
-	m_dynamicsWorld->setGravity(m_gravity);
-
+	setGravity(0.f,0.f,-9.81f);
 }
 
 void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
@@ -420,7 +418,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 		
 
-void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
+bool	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	//also remove constraint
 	btRigidBody* body = ctrl->GetRigidBody();
@@ -445,13 +443,13 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			m_dynamicsWorld->removeCollisionObject(ctrl->GetCollisionObject());
 		}
 	}
-	m_controllers.erase(ctrl);
-
 	if (ctrl->m_registerCount != 0)
 		printf("Warning: removing controller with non-zero m_registerCount: %d\n", ctrl->m_registerCount);
 
 	//remove it from the triggers
 	m_triggerControllers.erase(ctrl);
+
+	return (m_controllers.erase(ctrl) != 0);
 }
 
 void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
@@ -884,7 +882,7 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 {
 	m_gravity = btVector3(x,y,z);
 	m_dynamicsWorld->setGravity(m_gravity);
-
+	m_dynamicsWorld->getWorldInfo().m_gravity.setValue(x,y,z);
 }
 
 
@@ -1736,10 +1734,19 @@ btDispatcher*	CcdPhysicsEnvironment::getDispatcher()
 	return m_dynamicsWorld->getDispatcher();
 }
 
+void CcdPhysicsEnvironment::MergeEnvironment(CcdPhysicsEnvironment *other)
+{
+	std::set<CcdPhysicsController*>::iterator it;
 
+	while (other->m_controllers.begin() != other->m_controllers.end())
+	{
+		it= other->m_controllers.begin();
+		CcdPhysicsController* ctrl= (*it);
 
-
-
+		other->removeCcdPhysicsController(ctrl);
+		this->addCcdPhysicsController(ctrl);
+	}
+}
 
 CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 {

@@ -164,6 +164,7 @@ void ED_operatortypes_curve(void)
 void ED_keymap_curve(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+//	wmKeyMapItem *kmi;
 	
 	keymap= WM_keymap_find(keyconf, "Font", 0, 0);
 	keymap->poll= ED_operator_editfont;
@@ -219,7 +220,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editsurfcurve;
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_row", RKEY, KM_PRESS, KM_SHIFT, 0);
@@ -248,6 +249,9 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "unselected", 1);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
+
+	/* menus */
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }

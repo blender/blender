@@ -190,6 +190,7 @@ static void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *di
 
 
 /* ****************** smooth view operator ****************** */
+/* This operator is one of the 'timer refresh' ones like animation playback */
 
 struct SmoothViewStore {
 	float orig_dist, new_dist;
@@ -389,6 +390,8 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 }
 
+/* ****************** change view operators ****************** */
+
 static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	float dvec[3];
@@ -448,6 +451,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
 static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -482,6 +486,7 @@ void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
 /* ********************************** */
 
 void view3d_calculate_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rcti *rect)
@@ -721,7 +726,7 @@ void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
 	adr[0]= IS_CLIPPED;
 	
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		if(view3d_test_clipping(rv3d, vec))
+		if(view3d_test_clipping(rv3d, vec, 0))
 			return;
 	}
 	
@@ -1651,7 +1656,7 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	
 	game_set_commmandline_options(&startscene->gm);
 
-	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
+	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS && startscene->gm.stereoflag != STEREO_DOME) { /* Letterbox */
 		rctf cam_framef;
 		calc_viewborder(startscene, ar, CTX_wm_view3d(C), &cam_framef);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;

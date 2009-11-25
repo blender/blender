@@ -82,6 +82,7 @@ enum {
 #define KM_NOTHING	0
 #define KM_PRESS	1
 #define KM_RELEASE	2
+#define KM_CLICK	3
 
 
 /* ************** UI Handler ***************** */

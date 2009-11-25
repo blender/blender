@@ -60,6 +60,21 @@ public:
 	void ReleaseDisplayLists(RAS_IPolyMaterial * material = NULL);
 	void ReleaseMaterials(RAS_IPolyMaterial * material = NULL);
 
+	void RemoveMaterial(RAS_IPolyMaterial * mat); // freeing scenes only
+
+	/* for merging */
+	void MergeBucketManager(RAS_BucketManager *other);
+	BucketList & GetSolidBuckets() {return m_SolidBuckets;};
+	BucketList & GetAlphaBuckets() {return m_AlphaBuckets;};
+
+	/*void PrintStats(int verbose_level) {
+		printf("\nMappings...\n");
+		printf("\t m_SolidBuckets: %d\n", m_SolidBuckets.size());
+		printf("\t\t m_SolidBuckets: %d\n", m_SolidBuckets.size());
+		printf("\t m_AlphaBuckets: %d\n", m_AlphaBuckets.size());
+	}*/
+
+
 private:
 	void OrderBuckets(const MT_Transform& cameratrans, BucketList& buckets, vector<sortedmeshslot>& slots, bool alpha);
 

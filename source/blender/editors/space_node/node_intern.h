@@ -36,14 +36,6 @@ struct View2D;
 struct bContext;
 struct wmWindowManager;
 
-/* defines */
-
-#define NODE_SELECT_MOUSE		1
-
-/* border select defines XXX these seem to be hardcode values still in border select invoke, check */
-#define NODE_EXTEND				1
-#define NODE_EXCLUSIVE			3
-
 /* space_node.c */
 ARegion *node_has_buttons_region(ScrArea *sa);
 
@@ -64,7 +56,6 @@ void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.c */
 void NODE_OT_select(struct wmOperatorType *ot);
-void NODE_OT_select_extend(struct wmOperatorType *ot);
 void NODE_OT_select_all(wmOperatorType *ot);
 void NODE_OT_select_linked_to(wmOperatorType *ot);
 void NODE_OT_select_linked_from(wmOperatorType *ot);
@@ -85,21 +76,30 @@ bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
-void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
+void node_tree_verify_groups(bNodeTree *nodetree);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
+int node_has_hidden_sockets(bNode *node);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
-void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
 void NODE_OT_resize(struct wmOperatorType *ot);
+
+void NODE_OT_link(struct wmOperatorType *ot);
+void NODE_OT_link_make(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
+
 void NODE_OT_group_make(struct wmOperatorType *ot);
 void NODE_OT_group_ungroup(struct wmOperatorType *ot);
 void NODE_OT_group_edit(struct wmOperatorType *ot);
+
+void NODE_OT_mute(struct wmOperatorType *ot);
+void NODE_OT_hide(struct wmOperatorType *ot);
+
+void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
 
 // XXXXXX
 

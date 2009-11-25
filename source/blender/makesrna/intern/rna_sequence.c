@@ -42,16 +42,6 @@
 
 #ifdef RNA_RUNTIME
 
-static int rna_SequenceEditor_name_length(PointerRNA *ptr)
-{
-	return strlen("Sequence Editor");
-}
-
-static void rna_SequenceEditor_name_get(PointerRNA *ptr, char *str)
-{
-	strcpy(str, "Sequence Editor");
-}
-
 static void rna_SequenceEditor_start_frame_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
@@ -176,8 +166,10 @@ static int rna_Sequence_name_length(PointerRNA *ptr)
 
 static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 {
+	Scene *sce= (Scene*)ptr->id.data;
 	Sequence *seq= (Sequence*)ptr->data;
 	BLI_strncpy(seq->name+2, value, sizeof(seq->name)-2);
+	seqUniqueName(&sce->ed->seqbase, seq);
 }
 
 static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
@@ -230,16 +222,11 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	 */
 	if (seq->name+2)
 		return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
-	else {
-		/* compromise for the frequent sitation when strips don't have names... */
-		Scene *sce= (Scene*)ptr->id.data;
-		Editing *ed= seq_give_editing(sce, FALSE);
-		
-		return BLI_sprintfN("sequence_editor.sequences[%d]", BLI_findindex(&ed->seqbase, seq));
-	}
+	else
+		return BLI_strdup("");
 }
 
-static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *iter)
+static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 	MetaStack *ms= (MetaStack*)internal->link;
@@ -545,6 +532,17 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blend Opacity", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
+	prop= RNA_def_property(srna, "effect_fader", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_sdna(prop, NULL, "effect_fader");
+	RNA_def_property_ui_text(prop, "Effect fader position", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+
+	prop= RNA_def_property(srna, "speed_fader", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "speed_fader");
+	RNA_def_property_ui_text(prop, "Speed effect fader position", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+
 	/* functions */
 	func= RNA_def_function(srna, "getStripElem", "give_stripelem");
 	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None.");
@@ -563,12 +561,6 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_SEQUENCE);
 	RNA_def_struct_sdna(srna, "Editing");
 
-	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_SequenceEditor_name_get", "rna_SequenceEditor_name_length", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "");
-	RNA_def_struct_name_property(srna, prop);
-
 	prop= RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
@@ -578,7 +570,7 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEditor_meta_stack_get", 0, 0, 0);
 	
 	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
@@ -751,7 +743,9 @@ static void rna_def_scene(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Scene", "Scene that this sequence uses.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
@@ -797,7 +791,7 @@ static void rna_def_sound(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sound");
-	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this sequence (RAM audio only).");
+	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this sequence.");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
@@ -807,8 +801,16 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");
 	RNA_def_property_ui_text(prop, "Directory", "");
-
+	
 	rna_def_input(srna);
+	
+	RNA_def_struct_sdna_from(srna, "SoundHandle", "sound_handle");
+	
+	prop= RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "volume");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 }
 
 static void rna_def_effect(BlenderRNA *brna)
@@ -1054,6 +1056,7 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "global_speed", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "globalSpeed");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Global Speed", "");
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 0);
 	

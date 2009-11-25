@@ -62,6 +62,8 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_idprop.h"
+
 #include "BIK_api.h"
 
 #include "BLI_math.h"
@@ -150,7 +152,6 @@ void make_local_action(bAction *act)
 #endif	// XXX old animation system
 	}
 }
-
 
 void free_action (bAction *act)
 {
@@ -516,17 +517,22 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	outPose->ikdata = NULL;
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
 	
-	// TODO: rename this argument...
-	if (copycon) {
-		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
+	for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
+		// TODO: rename this argument...
+		if (copycon) {
 			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
 			pchan->constraints= listb;
 			pchan->path= NULL;
 		}
 		
-		/* for now, duplicate Bone Groups too when doing this */
-		BLI_duplicatelist(&outPose->agroups, &src->agroups);
+		if(pchan->prop) {
+			pchan->prop= IDP_CopyProperty(pchan->prop);
+		}
 	}
+
+	/* for now, duplicate Bone Groups too when doing this */
+	if(copycon)
+		BLI_duplicatelist(&outPose->agroups, &src->agroups);
 	
 	*dst=outPose;
 }
@@ -564,16 +570,27 @@ void init_pose_ikparam(bPose *pose)
 	}
 }
 
+void free_pose_channel(bPoseChannel *pchan)
+{
+	if (pchan->path)
+		MEM_freeN(pchan->path);
+
+	free_constraints(&pchan->constraints);
+
+	if(pchan->prop) {
+		IDP_FreeProperty(pchan->prop);
+		MEM_freeN(pchan->prop);
+	}
+}
+
 void free_pose_channels(bPose *pose) 
 {
 	bPoseChannel *pchan;
 	
 	if (pose->chanbase.first) {
-		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
-			if (pchan->path)
-				MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
-		}
+		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next)
+			free_pose_channel(pchan);
+
 		BLI_freelistN(&pose->chanbase);
 	}
 }
@@ -616,11 +633,53 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
-	for(pcon= pchan->constraints.first; pcon; pcon= pcon->next, con= con->next) {
+	for(pcon= pchan->constraints.first; pcon && con; pcon= pcon->next, con= con->next) {
 		pcon->enforce= con->enforce;
 		pcon->headtail= con->headtail;
 	}
 }
+
+/* makes copies of internal data, unlike copy_pose_channel_data which only
+ * copies the pose state.
+ * hint: use when copying bones in editmode (on returned value from verify_pose_channel) */
+void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_from)
+{
+	/* copy transform locks */
+	pchan->protectflag = pchan_from->protectflag;
+
+	/* copy rotation mode */
+	pchan->rotmode = pchan_from->rotmode;
+
+	/* copy bone group */
+	pchan->agrp_index= pchan_from->agrp_index;
+
+	/* ik (dof) settings */
+	pchan->ikflag = pchan_from->ikflag;
+	VECCOPY(pchan->limitmin, pchan_from->limitmin);
+	VECCOPY(pchan->limitmax, pchan_from->limitmax);
+	VECCOPY(pchan->stiffness, pchan_from->stiffness);
+	pchan->ikstretch= pchan_from->ikstretch;
+	pchan->ikrotweight= pchan_from->ikrotweight;
+	pchan->iklinweight= pchan_from->iklinweight;
+
+	/* constraints */
+	copy_constraints(&pchan->constraints, &pchan_from->constraints);
+
+	/* id-properties */
+	if(pchan->prop) {
+		/* unlikely but possible it exists */
+		IDP_FreeProperty(pchan->prop);
+		MEM_freeN(pchan->prop);
+		pchan->prop= NULL;
+	}
+	if(pchan_from->prop) {
+		pchan->prop= IDP_CopyProperty(pchan_from->prop);
+	}
+
+	/* custom shape */
+	pchan->custom= pchan_from->custom;
+}
+
 
 /* checks for IK constraint, Spline IK, and also for Follow-Path constraint.
  * can do more constraints flags later 
@@ -868,7 +927,7 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 	
 	/* build PointerRNA from provided data to obtain the paths to use */
 	if (pchan)
-		RNA_pointer_create((ID *)ob, &RNA_PoseChannel, pchan, &ptr);
+		RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan, &ptr);
 	else if (ob)
 		RNA_id_pointer_create((ID *)ob, &ptr);
 	else	
@@ -1045,7 +1104,9 @@ void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, 
 	copy_m4_m4(workob->constinv, ob->constinv);
 	workob->parent= ob->parent;
 	workob->track= ob->track;
-
+	
+	workob->rotmode= ob->rotmode;
+	
 	workob->trackflag= ob->trackflag;
 	workob->upflag= ob->upflag;
 	

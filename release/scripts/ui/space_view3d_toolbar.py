@@ -36,40 +36,41 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Transform:")
-        col.itemO("tfm.translate")
-        col.itemO("tfm.rotate")
-        col.itemO("tfm.resize", text="Scale")
+        col.label(text="Transform:")
+        col.operator("tfm.translate")
+        col.operator("tfm.rotate")
+        col.operator("tfm.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.itemL(text="Object:")
-        col.itemO("object.duplicate_move")
-        col.itemO("object.delete")
+        col.label(text="Object:")
+        col.operator("object.duplicate_move")
+        col.operator("object.delete")
+        col.operator("object.join")
 
         active_object = context.active_object
         if active_object and active_object.type == 'MESH':
 
             col = layout.column(align=True)
-            col.itemL(text="Shading:")
-            col.itemO("object.shade_smooth", text="Smooth")
-            col.itemO("object.shade_flat", text="Flat")
+            col.label(text="Shading:")
+            col.operator("object.shade_smooth", text="Smooth")
+            col.operator("object.shade_flat", text="Flat")
 
         col = layout.column(align=True)
-        col.itemL(text="Keyframes:")
-        col.itemO("anim.insert_keyframe_menu", text="Insert")
-        col.itemO("anim.delete_keyframe_v3d", text="Remove")
+        col.label(text="Keyframes:")
+        col.operator("anim.insert_keyframe_menu", text="Insert")
+        col.operator("anim.delete_keyframe_v3d", text="Remove")
 
         col = layout.column(align=True)
-        col.itemL(text="Grease Pencil:")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-        col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Grease Pencil:")
+        row = col.row()
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 # ********** default tools for editmode_mesh ****************
 
@@ -82,50 +83,64 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Transform:")
-        col.itemO("tfm.translate")
-        col.itemO("tfm.rotate")
-        col.itemO("tfm.resize", text="Scale")
+        col.label(text="Transform:")
+        col.operator("tfm.translate")
+        col.operator("tfm.rotate")
+        col.operator("tfm.resize", text="Scale")
+        col.operator("tfm.shrink_fatten", text="Along Normal")
+
 
         col = layout.column(align=True)
-        col.itemL(text="Mesh:")
-        col.itemO("mesh.duplicate_move")
-        col.itemO("mesh.delete")
+        col.label(text="Deform:")
+        col.operator("tfm.edge_slide")
+        col.operator("mesh.rip_move")
+        col.operator("mesh.vertices_smooth")
+
 
         col = layout.column(align=True)
-        col.itemL(text="Modeling:")
-        col.itemO("mesh.extrude_move")
-        col.itemO("mesh.subdivide")
-        col.itemO("mesh.loopcut")
-        col.itemO("mesh.spin")
-        col.itemO("mesh.screw")
-        col.itemO("mesh.merge")
-        col.itemO("mesh.rip_move")
+        col.label(text="Add:")
+        col.operator("mesh.extrude_move")
+        col.operator("mesh.subdivide")
+        col.operator("mesh.loopcut")
+        col.operator("mesh.duplicate_move")
+        col.operator("mesh.spin")
+        col.operator("mesh.screw")
         col.itemO("mesh.flip_normals")
 
         col = layout.column(align=True)
-        col.itemL(text="Shading:")
-        col.itemO("mesh.faces_shade_smooth", text="Smooth")
-        col.itemO("mesh.faces_shade_flat", text="Flat")
+        col.label(text="Remove:")
+        col.operator("mesh.delete")
+        col.operator("mesh.merge")
+        col.operator("mesh.remove_doubles")
 
         col = layout.column(align=True)
-        col.itemL(text="UV Mapping:")
-        col.item_stringO("wm.call_menu", "name", "VIEW3D_MT_uv_map", text="Unwrap")
-
-        col.itemO("mesh.uvs_rotate")
-        col.itemO("mesh.uvs_mirror")
+        col.label(text="Normals:")
+        col.operator("mesh.normals_make_consistent", text="Recalculate")
+        col.operator("mesh.flip_normals", text="Flip Direction")
 
         col = layout.column(align=True)
-        col.itemL(text="Grease Pencil:")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-        col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+        col.label(text="UV Mapping:")
+        col.operator("wm.call_menu", text="Unwrap").name = "VIEW3D_MT_uv_map"
+        col.operator("mesh.mark_seam")
+        col.operator("mesh.mark_seam", text="Clear Seam").clear = True
+
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Shading:")
+        col.operator("mesh.faces_shade_smooth", text="Smooth")
+        col.operator("mesh.faces_shade_flat", text="Flat")
+
+        col = layout.column(align=True)
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
+
+        col = layout.column(align=True)
+        col.label(text="Grease Pencil:")
+        row = col.row()
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel):
@@ -140,7 +155,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
         if ob:
             mesh = context.active_object.data
             col = layout.column(align=True)
-            col.itemR(mesh, "use_mirror_x")
+            col.prop(mesh, "use_mirror_x")
 
 # ********** default tools for editmode_curve ****************
 
@@ -153,42 +168,48 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Transform:")
-        col.itemO("tfm.translate")
-        col.itemO("tfm.rotate")
-        col.itemO("tfm.resize", text="Scale")
+        col.label(text="Transform:")
+        col.operator("tfm.translate")
+        col.operator("tfm.rotate")
+        col.operator("tfm.resize", text="Scale")
+        
+        col = layout.column(align=True)
+        col.operator("tfm.transform").mode = 'TILT'
+        col.operator("tfm.transform").mode = 'CURVE_SHRINKFATTEN'
 
         col = layout.column(align=True)
-        col.itemL(text="Curve:")
-        col.itemO("curve.duplicate")
-        col.itemO("curve.delete")
-        col.itemO("curve.cyclic_toggle")
-        col.itemO("curve.switch_direction")
-        col.itemO("curve.spline_type_set")
+        col.label(text="Curve:")
+        col.operator("curve.duplicate")
+        col.operator("curve.delete")
+        col.operator("curve.cyclic_toggle")
+        col.operator("curve.switch_direction")
+        col.operator("curve.spline_type_set")
 
         col = layout.column(align=True)
-        col.itemL(text="Handles:")
-        col.item_enumO("curve.handle_type_set", "type", 'AUTOMATIC')
-        col.item_enumO("curve.handle_type_set", "type", 'VECTOR')
-        col.item_enumO("curve.handle_type_set", "type", 'ALIGN')
-        col.item_enumO("curve.handle_type_set", "type", 'FREE_ALIGN')
+        col.label(text="Handles:")
+        row = col.row()
+        row.operator("curve.handle_type_set", text="Auto").type = 'AUTOMATIC'
+        row.operator("curve.handle_type_set").type = 'VECTOR'
+        row = col.row()
+        row.operator("curve.handle_type_set").type = 'ALIGN'
+        row.operator("curve.handle_type_set", text="Free").type = 'FREE_ALIGN'
 
         col = layout.column(align=True)
-        col.itemL(text="Modeling:")
-        col.itemO("curve.extrude")
-        col.itemO("curve.subdivide")
+        col.label(text="Modeling:")
+        col.operator("curve.extrude")
+        col.operator("curve.subdivide")
 
         col = layout.column(align=True)
-        col.itemL(text="Grease Pencil:")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-        col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Grease Pencil:")
+        row = col.row()
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 # ********** default tools for editmode_surface ****************
 
@@ -201,34 +222,34 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Transform:")
-        col.itemO("tfm.translate")
-        col.itemO("tfm.rotate")
-        col.itemO("tfm.resize", text="Scale")
+        col.label(text="Transform:")
+        col.operator("tfm.translate")
+        col.operator("tfm.rotate")
+        col.operator("tfm.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.itemL(text="Curve:")
-        col.itemO("curve.duplicate")
-        col.itemO("curve.delete")
-        col.itemO("curve.cyclic_toggle")
-        col.itemO("curve.switch_direction")
+        col.label(text="Curve:")
+        col.operator("curve.duplicate")
+        col.operator("curve.delete")
+        col.operator("curve.cyclic_toggle")
+        col.operator("curve.switch_direction")
 
         col = layout.column(align=True)
-        col.itemL(text="Modeling:")
-        col.itemO("curve.extrude")
-        col.itemO("curve.subdivide")
+        col.label(text="Modeling:")
+        col.operator("curve.extrude")
+        col.operator("curve.subdivide")
 
         col = layout.column(align=True)
-        col.itemL(text="Grease Pencil:")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-        col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Grease Pencil:")
+        row = col.row()
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 # ********** default tools for editmode_text ****************
 
@@ -241,21 +262,27 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Text Edit:")
-        col.itemO("font.text_copy", text="Copy")
-        col.itemO("font.text_cut", text="Cut")
-        col.itemO("font.text_paste", text="Paste")
+        col.label(text="Text Edit:")
+        col.operator("font.text_copy", text="Copy")
+        col.operator("font.text_cut", text="Cut")
+        col.operator("font.text_paste", text="Paste")
 
         col = layout.column(align=True)
-        col.itemL(text="Style:")
-        col.itemO("font.case_set")
-        col.itemO("font.style_toggle")
+        col.label(text="Set Case:")
+        col.operator("font.case_set", text="To Upper").case = 'UPPER'
+        col.operator("font.case_set", text="To Lower").case = 'LOWER'
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Style:")
+        col.operator("font.style_toggle").style = 'BOLD'
+        col.operator("font.style_toggle").style = 'ITALIC'
+        col.operator("font.style_toggle").style = 'UNDERLINE'
+
+        col = layout.column(align=True)
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
+
 
 # ********** default tools for editmode_armature ****************
 
@@ -268,33 +295,33 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Transform:")
-        col.itemO("tfm.translate")
-        col.itemO("tfm.rotate")
-        col.itemO("tfm.resize", text="Scale")
+        col.label(text="Transform:")
+        col.operator("tfm.translate")
+        col.operator("tfm.rotate")
+        col.operator("tfm.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.itemL(text="Bones:")
-        col.itemO("armature.bone_primitive_add", text="Add")
-        col.itemO("armature.duplicate_move", text="Duplicate")
-        col.itemO("armature.delete", text="Delete")
+        col.label(text="Bones:")
+        col.operator("armature.bone_primitive_add", text="Add")
+        col.operator("armature.duplicate_move", text="Duplicate")
+        col.operator("armature.delete", text="Delete")
 
         col = layout.column(align=True)
-        col.itemL(text="Modeling:")
-        col.itemO("armature.extrude_move")
-        col.itemO("armature.subdivide_multi", text="Subdivide")
+        col.label(text="Modeling:")
+        col.operator("armature.extrude_move")
+        col.operator("armature.subdivide_multi", text="Subdivide")
 
         col = layout.column(align=True)
-        col.itemL(text="Grease Pencil:")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-        col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Grease Pencil:")
+        row = col.row()
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
@@ -307,7 +334,7 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel):
         arm = context.active_object.data
 
         col = layout.column(align=True)
-        col.itemR(arm, "x_axis_mirror")
+        col.prop(arm, "x_axis_mirror")
 
 # ********** default tools for editmode_mball ****************
 
@@ -320,22 +347,22 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Transform:")
-        col.itemO("tfm.translate")
-        col.itemO("tfm.rotate")
-        col.itemO("tfm.resize", text="Scale")
+        col.label(text="Transform:")
+        col.operator("tfm.translate")
+        col.operator("tfm.rotate")
+        col.operator("tfm.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.itemL(text="Grease Pencil:")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-        col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Grease Pencil:")
+        row = col.row()
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 # ********** default tools for editmode_lattice ****************
 
@@ -348,22 +375,26 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Transform:")
-        col.itemO("tfm.translate")
-        col.itemO("tfm.rotate")
-        col.itemO("tfm.resize", text="Scale")
+        col.label(text="Transform:")
+        col.operator("tfm.translate")
+        col.operator("tfm.rotate")
+        col.operator("tfm.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.itemL(text="Grease Pencil:")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-        col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+        col.operator("lattice.make_regular")
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
+
+        col = layout.column(align=True)
+        col.label(text="Grease Pencil:")
+        row = col.row()
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+
 
 # ********** default tools for posemode ****************
 
@@ -376,45 +407,44 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.itemL(text="Transform:")
-        col.itemO("tfm.translate")
-        col.itemO("tfm.rotate")
-        col.itemO("tfm.resize", text="Scale")
+        col.label(text="Transform:")
+        col.operator("tfm.translate")
+        col.operator("tfm.rotate")
+        col.operator("tfm.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.itemL(text="Bones:")
-        col.itemO("pose.hide", text="Hide")
-        col.itemO("pose.reveal", text="Reveal")
+        col.label(text="In-Between:")
+        row = col.row()
+        row.operator("pose.push", text="Push")
+        row.operator("pose.relax", text="Relax")
+        col.operator("pose.breakdown", text="Breakdowner")
 
         col = layout.column(align=True)
-        col.itemL(text="Keyframes:")
-        col.itemO("anim.insert_keyframe_menu", text="Insert")
-        col.itemO("anim.delete_keyframe_v3d", text="Remove")
+        col.label(text="Pose:")
+        row = col.row()
+        row.operator("pose.copy", text="Copy")
+        row.operator("pose.paste", text="Paste")
 
         col = layout.column(align=True)
-        col.itemL(text="Pose:")
-        col.itemO("pose.copy", text="Copy")
-        col.itemO("pose.paste", text="Paste")
-        col.itemO("poselib.pose_add", text="Add To Library")
-        col.itemO("poselib.browse_interactive", text="Browse Library")
+        col.operator("poselib.pose_add", text="Add To Library")
 
         col = layout.column(align=True)
-        col.itemL(text="In-Between:")
-        col.itemO("pose.relax", text="Relax")
-        col.itemO("pose.push", text="Push")
-        col.itemO("pose.breakdown", text="Breakdowner")
+        col.label(text="Keyframes:")
+
+        col.operator("anim.insert_keyframe_menu", text="Insert")
+        col.operator("anim.delete_keyframe_v3d", text="Remove")
 
         col = layout.column(align=True)
-        col.itemL(text="Grease Pencil:")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
-        col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
-        col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+        col.label(text="Repeat:")
+        col.operator("screen.repeat_last")
+        col.operator("screen.repeat_history", text="History...")
 
         col = layout.column(align=True)
-        col.itemL(text="Repeat:")
-        col.itemO("screen.repeat_last")
-        col.itemO("screen.repeat_history", text="History...")
-        col.itemO("screen.redo_last", text="Tweak...")
+        col.label(text="Grease Pencil:")
+        row = col.row()
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel):
@@ -427,8 +457,8 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel):
         arm = context.active_object.data
 
         col = layout.column(align=True)
-        col.itemR(arm, "x_axis_mirror")
-        col.itemR(arm, "auto_ik")
+        col.prop(arm, "x_axis_mirror")
+        col.prop(arm, "auto_ik")
 
 # ********** default tools for paint modes ****************
 
@@ -478,123 +508,122 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         # XXX This needs a check if psys is editable.
         if context.particle_edit_object:
             # XXX Select Particle System
-            layout.column().itemR(settings, "tool", expand=True)
+            layout.column().prop(settings, "tool", expand=True)
 
             if settings.tool != 'NONE':
                 col = layout.column()
-                col.itemR(brush, "size", slider=True)
-                col.itemR(brush, "strength", slider=True)
+                col.prop(brush, "size", slider=True)
+                col.prop(brush, "strength", slider=True)
 
             if settings.tool == 'ADD':
                 col = layout.column()
-                col.itemR(settings, "add_interpolate")
+                col.prop(settings, "add_interpolate")
                 sub = col.column(align=True)
                 sub.active = settings.add_interpolate
-                sub.itemR(brush, "steps", slider=True)
-                sub.itemR(settings, "add_keys", slider=True)
+                sub.prop(brush, "steps", slider=True)
+                sub.prop(settings, "add_keys", slider=True)
             elif settings.tool == 'LENGTH':
-                layout.itemR(brush, "length_mode", expand=True)
+                layout.prop(brush, "length_mode", expand=True)
             elif settings.tool == 'PUFF':
-                layout.itemR(brush, "puff_mode", expand=True)
+                layout.prop(brush, "puff_mode", expand=True)
 
         # Sculpt Mode #
 
         elif context.sculpt_object and brush:
             col = layout.column()
-            col.itemS()
-            col.itemR(brush, "sculpt_tool", expand=True)
-            col.itemS()
+            col.separator()
+            col.prop(brush, "sculpt_tool", expand=True)
+            col.separator()
 
             row = col.row(align=True)
-            row.itemR(brush, "size", slider=True)
-            row.itemR(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "size", slider=True)
+            row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             if brush.sculpt_tool != 'GRAB':
                 row = col.row(align=True)
-                row.itemR(brush, "strength", slider=True)
-                row.itemR(brush, "use_strength_pressure", text="")
+                row.prop(brush, "strength", slider=True)
+                row.prop(brush, "use_strength_pressure", text="")
 
-                ''' # XXX - TODO
-                row = col.row(align=True)
-                row.itemR(brush, "jitter", slider=True)
-                row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
-                '''
+                # XXX - TODO
+                #row = col.row(align=True)
+                #row.prop(brush, "jitter", slider=True)
+                #row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+
                 col = layout.column()
 
                 if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
-                    col.row().itemR(brush, "direction", expand=True)
+                    col.row().prop(brush, "direction", expand=True)
 
                 if brush.sculpt_tool in ('DRAW', 'INFLATE', 'LAYER'):
-                    col.itemR(brush, "use_accumulate")
+                    col.prop(brush, "use_accumulate")
 
                 if brush.sculpt_tool == 'LAYER':
-                    col.itemR(brush, "use_persistent")
-                    col.itemO("sculpt.set_persistent_base")
+                    col.prop(brush, "use_persistent")
+                    col.operator("sculpt.set_persistent_base")
 
         # Texture Paint Mode #
 
         elif context.texture_paint_object and brush:
             col = layout.column(align=True)
-            col.item_enumR(settings, "tool", 'DRAW')
-            col.item_enumR(settings, "tool", 'SOFTEN')
-            col.item_enumR(settings, "tool", 'CLONE')
-            col.item_enumR(settings, "tool", 'SMEAR')
+            col.prop_enum(settings, "tool", 'DRAW')
+            col.prop_enum(settings, "tool", 'SOFTEN')
+            col.prop_enum(settings, "tool", 'CLONE')
+            col.prop_enum(settings, "tool", 'SMEAR')
 
             col = layout.column()
-            col.itemR(brush, "color", text="")
+            col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.itemR(brush, "size", slider=True)
-            row.itemR(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "size", slider=True)
+            row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             row = col.row(align=True)
-            row.itemR(brush, "strength", slider=True)
-            row.itemR(brush, "use_strength_pressure", toggle=True, text="")
+            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "use_strength_pressure", toggle=True, text="")
 
             row = col.row(align=True)
-            row.itemR(brush, "jitter", slider=True)
-            row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
+            row.prop(brush, "jitter", slider=True)
+            row.prop(brush, "use_jitter_pressure", toggle=True, text="")
 
-            col.itemR(brush, "blend", text="Blend")
+            col.prop(brush, "blend", text="Blend")
 
         # Weight Paint Mode #
 
         elif context.weight_paint_object and brush:
-            layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
-            layout.itemR(context.tool_settings, "auto_normalize", text="Auto Normalize")
+            layout.prop(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+            layout.prop(context.tool_settings, "auto_normalize", text="Auto Normalize")
 
             col = layout.column()
             row = col.row(align=True)
-            row.itemR(brush, "size", slider=True)
-            row.itemR(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "size", slider=True)
+            row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             row = col.row(align=True)
-            row.itemR(brush, "strength", slider=True)
-            row.itemR(brush, "use_strength_pressure", toggle=True, text="")
+            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "use_strength_pressure", toggle=True, text="")
 
             row = col.row(align=True)
-            row.itemR(brush, "jitter", slider=True)
-            row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
+            row.prop(brush, "jitter", slider=True)
+            row.prop(brush, "use_jitter_pressure", toggle=True, text="")
 
         # Vertex Paint Mode #
 
         elif context.vertex_paint_object and brush:
             col = layout.column()
-            col.itemR(brush, "color", text="")
+            col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.itemR(brush, "size", slider=True)
-            row.itemR(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "size", slider=True)
+            row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             row = col.row(align=True)
-            row.itemR(brush, "strength", slider=True)
-            row.itemR(brush, "use_strength_pressure", toggle=True, text="")
+            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "use_strength_pressure", toggle=True, text="")
 
-            ''' # XXX - TODO
-            row = col.row(align=True)
-            row.itemR(brush, "jitter", slider=True)
-            row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
-            '''
+            # XXX - TODO
+            #row = col.row(align=True)
+            #row.prop(brush, "jitter", slider=True)
+            #row.prop(brush, "use_jitter_pressure", toggle=True, text="")
 
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
@@ -617,27 +646,27 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 
         if context.sculpt_object:
             if brush.sculpt_tool != 'LAYER':
-                layout.itemR(brush, "use_anchor")
-            layout.itemR(brush, "use_rake")
+                layout.prop(brush, "use_anchor")
+            layout.prop(brush, "use_rake")
 
-        layout.itemR(brush, "use_airbrush")
+        layout.prop(brush, "use_airbrush")
         col = layout.column()
         col.active = brush.use_airbrush
-        col.itemR(brush, "rate", slider=True)
+        col.prop(brush, "rate", slider=True)
 
         if not texture_paint:
-            layout.itemR(brush, "use_smooth_stroke")
+            layout.prop(brush, "use_smooth_stroke")
             col = layout.column()
             col.active = brush.use_smooth_stroke
-            col.itemR(brush, "smooth_stroke_radius", text="Radius", slider=True)
-            col.itemR(brush, "smooth_stroke_factor", text="Factor", slider=True)
+            col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+            col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
-        layout.itemR(brush, "use_space")
+        layout.prop(brush, "use_space")
         row = layout.row(align=True)
         row.active = brush.use_space
-        row.itemR(brush, "spacing", text="Distance", slider=True)
+        row.prop(brush, "spacing", text="Distance", slider=True)
         if texture_paint:
-            row.itemR(brush, "use_spacing_pressure", toggle=True, text="")
+            row.prop(brush, "use_spacing_pressure", toggle=True, text="")
 
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
@@ -655,7 +684,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         brush = settings.brush
 
         layout.template_curve_mapping(brush, "curve")
-        layout.item_menu_enumO("brush.curve_preset", property="shape")
+        layout.operator_menu_enum("brush.curve_preset", property="shape")
 
 
 class VIEW3D_PT_sculpt_options(PaintPanel):
@@ -670,22 +699,22 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
         sculpt = context.tool_settings.sculpt
 
         col = layout.column()
-        col.itemR(sculpt, "show_brush")
-        col.itemR(sculpt, "fast_navigate")
+        col.prop(sculpt, "show_brush")
+        col.prop(sculpt, "fast_navigate")
 
         split = self.layout.split()
 
         col = split.column()
-        col.itemL(text="Symmetry:")
-        col.itemR(sculpt, "symmetry_x", text="X")
-        col.itemR(sculpt, "symmetry_y", text="Y")
-        col.itemR(sculpt, "symmetry_z", text="Z")
+        col.label(text="Symmetry:")
+        col.prop(sculpt, "symmetry_x", text="X")
+        col.prop(sculpt, "symmetry_y", text="Y")
+        col.prop(sculpt, "symmetry_z", text="Z")
 
         col = split.column()
-        col.itemL(text="Lock:")
-        col.itemR(sculpt, "lock_x", text="X")
-        col.itemR(sculpt, "lock_y", text="Y")
-        col.itemR(sculpt, "lock_z", text="Z")
+        col.label(text="Lock:")
+        col.prop(sculpt, "lock_x", text="X")
+        col.prop(sculpt, "lock_y", text="Y")
+        col.prop(sculpt, "lock_z", text="Z")
 
 # ********** default tools for weightpaint ****************
 
@@ -697,14 +726,13 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
     def draw(self, context):
         layout = self.layout
 
-        wpaint = context.tool_settings.weight_paint
-
         col = layout.column()
-        # col.itemL(text="Blend:")
-        col.itemO("object.vertex_group_normalize_all", text="Normalize All")
-        col.itemO("object.vertex_group_normalize", text="Normalize")
-        col.itemO("object.vertex_group_invert", text="Invert")
-        col.itemO("object.vertex_group_clean", text="Clean")
+        # col.label(text="Blend:")
+        col.operator("object.vertex_group_normalize_all", text="Normalize All")
+        col.operator("object.vertex_group_normalize", text="Normalize")
+        col.operator("object.vertex_group_invert", text="Invert")
+        col.operator("object.vertex_group_clean", text="Clean")
+        col.operator("object.vertex_group_levels", text="Levels")
 
 
 class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
@@ -717,23 +745,21 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
         wpaint = context.tool_settings.weight_paint
 
         col = layout.column()
-        col.itemL(text="Blend:")
-        col.itemR(wpaint, "mode", text="")
-        col.itemR(wpaint, "all_faces")
-        col.itemR(wpaint, "normals")
-        col.itemR(wpaint, "spray")
-        col.itemR(wpaint, "vertex_dist", text="Distance")
-
+        col.label(text="Blend:")
+        col.prop(wpaint, "mode", text="")
+        col.prop(wpaint, "all_faces")
+        col.prop(wpaint, "normals")
+        col.prop(wpaint, "spray")
 
         data = context.weight_paint_object.data
         if type(data) == bpy.types.Mesh:
-            col.itemR(data, "use_mirror_x")
+            col.prop(data, "use_mirror_x")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
-#		col.itemL(text="Gamma:")
-#		col.itemR(wpaint, "gamma", text="")
-#		col.itemL(text="Multiply:")
-#		col.itemR(wpaint, "mul", text="")
+#		col.label(text="Gamma:")
+#		col.prop(wpaint, "gamma", text="")
+#		col.label(text="Multiply:")
+#		col.prop(wpaint, "mul", text="")
 
 # Also missing now:
 # Soft, Vgroup, X-Mirror and "Clear" Operator.
@@ -751,17 +777,17 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
         vpaint = context.tool_settings.vertex_paint
 
         col = layout.column()
-        col.itemL(text="Blend:")
-        col.itemR(vpaint, "mode", text="")
-        col.itemR(vpaint, "all_faces")
-        col.itemR(vpaint, "normals")
-        col.itemR(vpaint, "spray")
-        col.itemR(vpaint, "vertex_dist", text="Distance")
+        col.label(text="Blend:")
+        col.prop(vpaint, "mode", text="")
+        col.prop(vpaint, "all_faces")
+        col.prop(vpaint, "normals")
+        col.prop(vpaint, "spray")
+
 # Commented out because the Apply button isn't an operator yet, making these settings useless
-#		col.itemL(text="Gamma:")
-#		col.itemR(vpaint, "gamma", text="")
-#		col.itemL(text="Multiply:")
-#		col.itemR(vpaint, "mul", text="")
+#		col.label(text="Gamma:")
+#		col.prop(vpaint, "gamma", text="")
+#		col.label(text="Multiply:")
+#		col.prop(vpaint, "mul", text="")
 
 # ********** default tools for texturepaint ****************
 
@@ -776,7 +802,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint
 
-        self.layout.itemR(ipaint, "use_projection", text="")
+        self.layout.prop(ipaint, "use_projection", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -788,36 +814,36 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         col = layout.column()
         sub = col.column()
         sub.active = use_projection
-        sub.itemR(ipaint, "use_occlude")
-        sub.itemR(ipaint, "use_backface_cull")
+        sub.prop(ipaint, "use_occlude")
+        sub.prop(ipaint, "use_backface_cull")
 
         split = layout.split()
 
         col = split.column()
         col.active = (use_projection)
-        col.itemR(ipaint, "use_normal_falloff")
+        col.prop(ipaint, "use_normal_falloff")
 
         col = split.column()
         col.active = (ipaint.use_normal_falloff and use_projection)
-        col.itemR(ipaint, "normal_angle", text="")
+        col.prop(ipaint, "normal_angle", text="")
 
         split = layout.split(percentage=0.7)
 
         col = split.column(align=False)
         col.active = (use_projection)
-        col.itemR(ipaint, "use_stencil_layer")
+        col.prop(ipaint, "use_stencil_layer")
 
         col = split.column(align=False)
         col.active = (use_projection and ipaint.use_stencil_layer)
-        col.itemR(ipaint, "invert_stencil", text="Inv")
+        col.prop(ipaint, "invert_stencil", text="Inv")
 
         col = layout.column()
         sub = col.column()
         sub.active = (settings.tool == 'CLONE')
-        sub.itemR(ipaint, "use_clone_layer")
+        sub.prop(ipaint, "use_clone_layer")
 
         sub = col.column()
-        sub.itemR(ipaint, "seam_bleed")
+        sub.prop(ipaint, "seam_bleed")
 
 
 class VIEW3D_PT_tools_particlemode(View3DPanel):
@@ -831,7 +857,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         pe = context.tool_settings.particle_edit
         ob = pe.object
 
-        layout.itemR(pe, "type", text="")
+        layout.prop(pe, "type", text="")
 
         ptcache = None
 
@@ -851,36 +877,36 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 
 
         if not pe.editable:
-            layout.itemL(text="Point cache must be baked")
-            layout.itemL(text="to enable editing!")
+            layout.label(text="Point cache must be baked")
+            layout.label(text="to enable editing!")
 
         col = layout.column(align=True)
         if pe.hair:
             col.active = pe.editable
-            col.itemR(pe, "emitter_deflect", text="Deflect emitter")
+            col.prop(pe, "emitter_deflect", text="Deflect emitter")
             sub = col.row()
             sub.active = pe.emitter_deflect
-            sub.itemR(pe, "emitter_distance", text="Distance")
+            sub.prop(pe, "emitter_distance", text="Distance")
 
         col = layout.column(align=True)
         col.active = pe.editable
-        col.itemL(text="Keep:")
-        col.itemR(pe, "keep_lengths", text="Lenghts")
-        col.itemR(pe, "keep_root", text="Root")
+        col.label(text="Keep:")
+        col.prop(pe, "keep_lengths", text="Lenghts")
+        col.prop(pe, "keep_root", text="Root")
         if not pe.hair:
-            col.itemL(text="Correct:")
-            col.itemR(pe, "auto_velocity", text="Velocity")
+            col.label(text="Correct:")
+            col.prop(pe, "auto_velocity", text="Velocity")
 
         col = layout.column(align=True)
         col.active = pe.editable
-        col.itemL(text="Draw:")
-        col.itemR(pe, "draw_step", text="Path Steps")
+        col.label(text="Draw:")
+        col.prop(pe, "draw_step", text="Path Steps")
         if pe.type == 'PARTICLES':
-            col.itemR(pe, "draw_particles", text="Particles")
-        col.itemR(pe, "fade_time")
+            col.prop(pe, "draw_particles", text="Particles")
+        col.prop(pe, "fade_time")
         sub = col.row()
         sub.active = pe.fade_time
-        sub.itemR(pe, "fade_frames", slider=True)
+        sub.prop(pe, "fade_frames", slider=True)
 
 
 bpy.types.register(VIEW3D_PT_tools_weightpaint)

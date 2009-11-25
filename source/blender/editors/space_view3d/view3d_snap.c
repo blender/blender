@@ -543,7 +543,8 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	ED_anim_dag_flush_update(C);
+
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -667,7 +668,8 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	ED_anim_dag_flush_update(C);
+
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1058,7 +1060,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;

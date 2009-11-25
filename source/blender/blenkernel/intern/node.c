@@ -1072,6 +1072,11 @@ bNodeTree *ntreeAddTree(int type)
 	return ntree;
 }
 
+/* Warning: this function gets called during some rather unexpected times
+ *	- internal_select is only 1 when used for duplicating selected nodes (i.e. Shift-D duplicate operator)
+ *	- this gets called when executing compositing updates (for threaded previews)
+ *	- when the nodetree datablock needs to be copied (i.e. when users get copied)
+ */
 bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 {
 	bNodeTree *newtree;
@@ -1103,10 +1108,9 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 		if(internal_select==0 || (node->flag & NODE_SELECT)) {
 			nnode= nodeCopyNode(newtree, node, internal_select);	/* sets node->new */
 			if(internal_select) {
-				node->flag &= ~NODE_SELECT;
+				node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
 				nnode->flag |= NODE_SELECT;
 			}
-			node->flag &= ~NODE_ACTIVE;
 
 			/* deselect original sockets */
 			for(sock= node->inputs.first; sock; sock= sock->next) {
@@ -1671,7 +1675,9 @@ void ntreeSocketUseFlags(bNodeTree *ntree)
 	
 	/* tag all thats in use */
 	for(link= ntree->links.first; link; link= link->next) {
-		link->fromsock->flag |= SOCK_IN_USE;
+	
+		if(link->fromsock) // FIXME, see below
+			link->fromsock->flag |= SOCK_IN_USE;
 		if(link->tosock) // FIXME This can be NULL, when dragging a new link in the UI, should probably copy the node tree for preview render - campbell
 			link->tosock->flag |= SOCK_IN_USE;
 	}

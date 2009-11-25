@@ -6020,7 +6020,7 @@ static void collisionModifier_initData(ModifierData *md)
 	collmd->current_x = NULL;
 	collmd->current_xnew = NULL;
 	collmd->current_v = NULL;
-	collmd->time = -1;
+	collmd->time = -1000;
 	collmd->numverts = 0;
 	collmd->bvhtree = NULL;
 }
@@ -6051,7 +6051,7 @@ static void collisionModifier_freeData(ModifierData *md)
 		collmd->current_x = NULL;
 		collmd->current_xnew = NULL;
 		collmd->current_v = NULL;
-		collmd->time = -1;
+		collmd->time = -1000;
 		collmd->numverts = 0;
 		collmd->bvhtree = NULL;
 		collmd->mfaces = NULL;
@@ -6101,7 +6101,7 @@ static void collisionModifier_deformVerts(
 			if(collmd->x && (numverts != collmd->numverts))
 				collisionModifier_freeData((ModifierData *)collmd);
 			
-			if(collmd->time == -1) // first time
+			if(collmd->time == -1000) // first time
 			{
 				collmd->x = dm->dupVertArray(dm); // frame start position
 				
@@ -8927,6 +8927,12 @@ int modifier_couldBeCage(ModifierData *md)
 			(md->mode & eModifierMode_Editmode) &&
 			(!mti->isDisabled || !mti->isDisabled(md, 0)) &&
 			modifier_supportsMapping(md));	
+}
+
+int modifier_sameTopology(ModifierData *md)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	return ( mti->type == eModifierTypeType_OnlyDeform || mti->type == eModifierTypeType_Nonconstructive);
 }
 
 void modifier_setError(ModifierData *md, char *format, ...)

@@ -175,6 +175,9 @@ void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
 	/* local viewmat and persmat, to calculate projections */
 	wmGetMatrix(rv3d->viewmatob);
 	wmGetSingleMatrix(rv3d->persmatob);
+
+	/* initializes object space clipping, speeds up clip tests */
+	ED_view3d_local_clipping(rv3d, ob->obmat);
 }
 
 /* ******************** default callbacks for view3d space ***************** */
@@ -367,6 +370,9 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	keymap= WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* own keymap, last so modes can override it */
@@ -773,7 +779,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
+	art->keymapflag= ED_KEYMAP_GPENCIL;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
 	art->free= view3d_main_area_free;

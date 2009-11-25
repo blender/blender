@@ -71,6 +71,7 @@ public:
 		m_meshObject(NULL),
 		m_unscaledShape(NULL),
 		m_useGimpact(false),
+		m_forceReInstance(false),
 		m_weldingThreshold1(0.f),
 		m_shapeProxy(NULL)
 	{
@@ -372,6 +373,7 @@ protected:
 	void GetWorldOrientation(btMatrix3x3& mat);
 
 	void CreateRigidbody();
+	bool CreateSoftbody();
 
 	bool Register()	{ 
 		return (m_registerCount++ == 0) ? true : false;
@@ -432,6 +434,7 @@ protected:
 
 		// controller replication
 		virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl);
+		virtual void		SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *env);
 
 		// kinematic methods
 		virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local);

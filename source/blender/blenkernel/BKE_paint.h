@@ -71,6 +71,7 @@ typedef struct SculptSession {
 	float *face_normals;
 	struct PBVH *tree;
 	struct Object *ob;
+	struct KeyBlock *kb, *refkb;
 	
 	/* Mesh connectivity */
 	struct ListBase *fmap;

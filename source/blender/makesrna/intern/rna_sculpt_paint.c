@@ -142,6 +142,21 @@ static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 
 	return (edit && edit->psys);
 }
+
+static void rna_Paint_active_brush_index_set(PointerRNA *ptr, int value)
+{
+	Paint *p= ptr->data;
+	CLAMP(value, 0, p->brush_count-1);
+	p->active_brush_index= value;
+}
+
+static void rna_Paint_active_brush_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	Paint *p= ptr->data;
+	*min= 0;
+	*max= MAX2(p->brush_count-1, 0);
+}
+
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -158,11 +173,13 @@ static void rna_def_paint(BlenderRNA *brna)
 					  "rna_iterator_array_next",
 					  "rna_iterator_array_end",
 					  "rna_iterator_array_dereference_get", 
-					  "rna_Paint_brushes_length", 0, 0, 0, 0);
+					  "rna_Paint_brushes_length", 0, 0);
 	RNA_def_property_ui_text(prop, "Brushes", "Brushes selected for this paint mode.");
 
 	prop= RNA_def_property(srna, "active_brush_index", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, INT_MAX);       
+	RNA_def_property_int_funcs(prop, NULL, "rna_Paint_active_brush_index_set", "rna_Paint_active_brush_index_range");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
 
 	/* Fake property to get active brush directly, rather than integer index */
 	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
@@ -170,6 +187,7 @@ static void rna_def_paint(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Paint_active_brush_get", "rna_Paint_active_brush_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Brush", "Active paint brush.");
+	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_SHOW_BRUSH);
@@ -238,11 +256,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "all_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_AREA);
 	RNA_def_property_ui_text(prop, "All Faces", "Paint on all faces inside brush.");
-	
-	prop= RNA_def_property(srna, "vertex_dist", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_SOFT);
-	RNA_def_property_ui_text(prop, "Vertex Dist", "Use distances to vertices (instead of paint entire faces).");
-	
+		
 	prop= RNA_def_property(srna, "normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_NORMALS);
 	RNA_def_property_ui_text(prop, "Normals", "Applies the vertex normal before painting.");
@@ -250,14 +264,6 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "spray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_SPRAY);
 	RNA_def_property_ui_text(prop, "Spray", "Keep applying paint effect while holding mouse.");
-	
-	prop= RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.1f, 5.0f);
-	RNA_def_property_ui_text(prop, "Gamma", "Vertex paint Gamma.");
-	
-	prop= RNA_def_property(srna, "mul", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.1f, 50.0f);
-	RNA_def_property_ui_text(prop, "Mul", "Vertex paint Mul.");
 }
 
 static void rna_def_image_paint(BlenderRNA *brna)

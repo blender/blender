@@ -1530,8 +1530,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			}
 			
 			/* free stuff from current channel */
-			if (pchan->path) MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			
 			/* the final copy */
 			*pchan= pchanw;
@@ -1586,9 +1585,7 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	for(pchan= pose->chanbase.first; pchan; pchan= next) {
 		next= pchan->next;
 		if(pchan->bone==NULL) {
-			if(pchan->path)
-				MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			BLI_freelinkN(&pose->chanbase, pchan);
 		}
 	}
@@ -1632,7 +1629,7 @@ typedef struct tSplineIK_Tree {
 /* ----------- */
 
 /* Tag the bones in the chain formed by the given bone for IK */
-static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
+static void splineik_init_tree_from_pchan(Scene *scene, Object *ob, bPoseChannel *pchan_tip)
 {
 	bPoseChannel *pchan, *pchanRoot=NULL;
 	bPoseChannel *pchanChain[255];
@@ -1661,6 +1658,21 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 	}
 	if (con == NULL)
 		return;
+		
+	/* make sure that the constraint targets are ok 
+	 *	- this is a workaround for a depsgraph bug...
+	 */
+	if (ikData->tar) {
+		Curve *cu= ikData->tar->data;
+		
+		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
+		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
+		 */
+		
+		/* only happens on reload file, but violates depsgraph still... fix! */
+		if ((cu->path==NULL) || (cu->path->data==NULL))
+			makeDispListCurveTypes(scene, ikData->tar, 0);
+	}
 	
 	/* find the root bone and the chain of bones from the root to the tip 
 	 * NOTE: this assumes that the bones are connected, but that may not be true...
@@ -1707,7 +1719,7 @@ static void splineik_init_tree_from_pchan(Object *ob, bPoseChannel *pchan_tip)
 				 */
 				if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
 					/* 1) equi-spaced joints */
-					ikData->points[i]= segmentLen;
+					ikData->points[i]= ikData->points[i-1] - segmentLen;
 				}
 				else {
 					 /*	2) to find this point on the curve, we take a step from the previous joint
@@ -1800,7 +1812,7 @@ static void splineik_init_tree(Scene *scene, Object *ob, float ctime)
 	/* find the tips of Spline IK chains, which are simply the bones which have been tagged as such */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (pchan->constflag & PCHAN_HAS_SPLINEIK)
-			splineik_init_tree_from_pchan(ob, pchan);
+			splineik_init_tree_from_pchan(scene, ob, pchan);
 	}
 }
 
@@ -1811,9 +1823,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 {
 	bSplineIKConstraint *ikData= tree->ikData;
 	float poseHead[3], poseTail[3], poseMat[4][4]; 
-	float splineVec[3], scaleFac;
-	float rad, radius=1.0f;
-	float vec[4], dir[3];
+	float splineVec[3], scaleFac, radius=1.0f;
 	
 	/* firstly, calculate the bone matrix the standard way, since this is needed for roll control */
 	where_is_pose_bone(scene, ob, pchan, ctime);
@@ -1821,24 +1831,41 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	VECCOPY(poseHead, pchan->pose_head);
 	VECCOPY(poseTail, pchan->pose_tail);
 	
-	/* step 1a: get xyz positions for the tail endpoint of the bone */
-	if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad) ) {
-		/* convert the position to pose-space, then store it */
-		mul_m4_v3(ob->imat, vec);
-		VECCOPY(poseTail, vec);
+	/* step 1: determine the positions for the endpoints of the bone */
+	{
+		float vec[4], dir[3], rad;
+		float tailBlendFac= 1.0f;
 		
-		/* set the new radius */
-		radius= rad;
-	}
-	
-	/* step 1b: get xyz positions for the head endpoint of the bone */
-	if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
-		/* store the position, and convert it to pose space */
-		mul_m4_v3(ob->imat, vec);
-		VECCOPY(poseHead, vec);
+		/* determine if the bone should still be affected by SplineIK */
+		if (tree->points[index+1] >= 1.0f) {
+			/* spline doesn't affect the bone anymore, so done... */
+			pchan->flag |= POSE_DONE;
+			return;
+		}
+		else if ((tree->points[index] >= 1.0f) && (tree->points[index+1] < 1.0f)) {
+			/* blending factor depends on the amount of the bone still left on the chain */
+			tailBlendFac= (1.0f - tree->points[index+1]) / (tree->points[index] - tree->points[index+1]);
+		}
 		
-		/* set the new radius (it should be the average value) */
-		radius = (radius+rad) / 2;
+		/* tail endpoint */
+		if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad) ) {
+			/* convert the position to pose-space, then store it */
+			mul_m4_v3(ob->imat, vec);
+			interp_v3_v3v3(poseTail, pchan->pose_tail, vec, tailBlendFac);
+			
+			/* set the new radius */
+			radius= rad;
+		}
+		
+		/* head endpoint */
+		if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
+			/* store the position, and convert it to pose space */
+			mul_m4_v3(ob->imat, vec);
+			VECCOPY(poseHead, vec);
+			
+			/* set the new radius (it should be the average value) */
+			radius = (radius+rad) / 2;
+		}
 	}
 	
 	/* step 2: determine the implied transform from these endpoints 
@@ -1877,7 +1904,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		/* construct rotation matrix from the axis-angle rotation found above 
 		 *	- this call takes care to make sure that the axis provided is a unit vector first
 		 */
-		axis_angle_to_mat3( dmat,raxis, rangle);
+		axis_angle_to_mat3(dmat, raxis, rangle);
 		
 		/* combine these rotations so that the y-axis of the bone is now aligned as the spline dictates,
 		 * while still maintaining roll control from the existing bone animation
@@ -1888,20 +1915,12 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	}
 	
 	/* step 4: set the scaling factors for the axes */
-	// TODO: include a no-scale option?
 	{
 		/* only multiply the y-axis by the scaling factor to get nice volume-preservation */
 		mul_v3_fl(poseMat[1], scaleFac);
 		
 		/* set the scaling factors of the x and z axes from... */
 		switch (ikData->xzScaleMode) {
-			case CONSTRAINT_SPLINEIK_XZS_RADIUS:
-			{
-				/* radius of curve */
-				mul_v3_fl(poseMat[0], radius);
-				mul_v3_fl(poseMat[2], radius);
-			}
-				break;
 			case CONSTRAINT_SPLINEIK_XZS_ORIGINAL:
 			{
 				/* original scales get used */
@@ -1915,11 +1934,50 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 				mul_v3_fl(poseMat[2], scale);
 			}
 				break;
+			case CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC:
+			{
+				/* 'volume preservation' */
+				float scale;
+				
+				/* calculate volume preservation factor which is 
+				 * basically the inverse of the y-scaling factor 
+				 */
+				if (fabs(scaleFac) != 0.0f) {
+					scale= 1.0 / fabs(scaleFac);
+					
+					/* we need to clamp this within sensible values */
+					// NOTE: these should be fine for now, but should get sanitised in future
+					scale= MIN2( MAX2(scale, 0.0001) , 100000);
+				}
+				else
+					scale= 1.0f;
+				
+				/* apply the scaling */
+				mul_v3_fl(poseMat[0], scale);
+				mul_v3_fl(poseMat[2], scale);
+			}
+				break;
+		}
+		
+		/* finally, multiply the x and z scaling by the radius of the curve too, 
+		 * to allow automatic scales to get tweaked still
+		 */
+		if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_CURVERAD) == 0) {
+			mul_v3_fl(poseMat[0], radius);
+			mul_v3_fl(poseMat[2], radius);
 		}
 	}
 	
-	/* step 5: set the location of the bone in the matrix */
-	VECCOPY(poseMat[3], poseHead);
+	/* step 5: set the location of the bone in the matrix 
+	 *	- when the 'no-root' option is affected, the chain can retain
+	 *	  the shape but be moved elsewhere
+	 */
+	if (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) {
+		VECCOPY(poseMat[3], pchan->pose_head);
+	}
+	else {
+		VECCOPY(poseMat[3], poseHead);
+	}
 	
 	/* finally, store the new transform */
 	copy_m4_m4(pchan->pose_mat, poseMat);

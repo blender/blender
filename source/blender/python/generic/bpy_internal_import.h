@@ -44,7 +44,10 @@
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
-PyObject*	bpy_text_import( char *name, int *found );
+struct Text;
+
+PyObject*	bpy_text_import( struct Text *text );
+PyObject*	bpy_text_import_name( char *name, int *found );
 PyObject*	bpy_text_reimport( PyObject *module, int *found );
 /* void		bpy_text_clear_modules( int clear_all );*/ /* Clear user modules */ 
 extern PyMethodDef bpy_import_meth[];

@@ -568,6 +568,22 @@
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\openexr\openexr_api.cpp"
 				>
+				<FileConfiguration
+					Name="BlenderPlayer Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="BlenderPlayer Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\png.c"

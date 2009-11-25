@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -83,6 +84,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -139,13 +141,34 @@ void ED_armature_validate_active(struct bArmature *arm)
 	}
 }
 
-void free_edit_bone(bArmature *arm, EditBone *bone)
+static void bone_free(bArmature *arm, EditBone *bone)
 {
 	if(arm->act_edbone==bone)
 		arm->act_edbone= NULL;
 
+	if(bone->prop) {
+		IDP_FreeProperty(bone->prop);
+		MEM_freeN(bone->prop);
+	}
+
 	BLI_freelinkN(arm->edbo, bone);
 }
+
+void ED_armature_edit_bone_remove(bArmature *arm, EditBone* exBone)
+{
+	EditBone *curBone;
+
+	/* Find any bones that refer to this bone */
+	for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
+		if (curBone->parent==exBone) {
+			curBone->parent=exBone->parent;
+			curBone->flag &= ~BONE_CONNECTED;
+		}
+	}
+
+	bone_free(arm, exBone);
+}
+
 
 /* converts Bones to EditBone list, used for tools as well */
 EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone *actBone)
@@ -298,7 +321,7 @@ void ED_armature_from_edit(Object *obedit)
 					fBone->parent= eBone->parent;
 			}
 			printf("Warning: removed zero sized bone: %s\n", eBone->name);
-			free_edit_bone(arm, eBone);
+			bone_free(arm, eBone);
 		}
 	}
 	
@@ -1025,11 +1048,10 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 			}
 			
 			/* free any of the extra-data this pchan might have */
-			if (pchan->path) MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			
 			/* get rid of unneeded bone */
-			free_edit_bone(arm, curbone);
+			bone_free(arm, curbone);
 			BLI_freelinkN(&ob->pose->chanbase, pchan);
 		}
 	}
@@ -1665,22 +1687,6 @@ static EditBone *get_nearest_editbonepoint (ViewContext *vc, short mval[2], List
 	return NULL;
 }
 
-/* warning, wont clear the active bone */
-static void delete_bone(bArmature *arm, EditBone* exBone)
-{
-	EditBone *curBone;
-	
-	/* Find any bones that refer to this bone */
-	for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
-		if (curBone->parent==exBone) {
-			curBone->parent=exBone->parent;
-			curBone->flag &= ~BONE_CONNECTED;
-		}
-	}
-
-	free_edit_bone(arm, exBone);
-}
-
 /* context: editmode armature */
 EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 {
@@ -1733,17 +1739,17 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	
 	/*  First erase any associated pose channel */
 	if (obedit->pose) {
-		bPoseChannel *chan, *next;
-		for (chan=obedit->pose->chanbase.first; chan; chan=next) {
-			next= chan->next;
-			curBone = editbone_name_exists(arm->edbo, chan->name);
+		bPoseChannel *pchan, *next;
+		for (pchan=obedit->pose->chanbase.first; pchan; pchan=next) {
+			next= pchan->next;
+			curBone = editbone_name_exists(arm->edbo, pchan->name);
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
-				free_constraints(&chan->constraints);
-				BLI_freelinkN (&obedit->pose->chanbase, chan);
+				free_pose_channel(pchan);
+				BLI_freelinkN (&obedit->pose->chanbase, pchan);
 			}
 			else {
-				for (con= chan->constraints.first; con; con= con->next) {
+				for (con= pchan->constraints.first; con; con= con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 					ListBase targets = {NULL, NULL};
 					bConstraintTarget *ct;
@@ -1777,7 +1783,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 		if (arm->layer & curBone->layer) {
 			if (curBone->flag & BONE_SELECTED) {
 				if(curBone==arm->act_edbone) arm->act_edbone= NULL;
-				delete_bone(arm, curBone);
+				ED_armature_edit_bone_remove(arm, curBone);
 			}
 		}
 	}
@@ -1869,7 +1875,7 @@ void ED_armature_deselectall(Object *obedit, int toggle, int doundo)
 
 
 /* context: editmode armature in view3d */
-void mouse_armature(bContext *C, short mval[2], int extend)
+int mouse_armature(bContext *C, short mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
@@ -1940,7 +1946,10 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 		}
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, vc.obedit);
+		return 1;
 	}
+
+	return 0;
 }
 
 void ED_armature_edit_free(struct Object *ob)
@@ -2236,7 +2245,7 @@ void undo_push_armature(bContext *C, char *name)
 /* *************** Adding stuff in editmode *************** */
 
 /* default bone add, returns it selected, but without tail set */
-EditBone *addEditBone(bArmature *arm, char *name)
+EditBone *ED_armature_edit_bone_add(bArmature *arm, char *name)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
@@ -2258,14 +2267,6 @@ EditBone *addEditBone(bArmature *arm, char *name)
 	bone->layer= arm->layer;
 	
 	return bone;
-}
-
-/* default bone add, returns it selected, but without tail set */
-static EditBone *add_editbone(Object *obedit, char *name)
-{
-	bArmature *arm= obedit->data;
-
-	return addEditBone(arm, name);
 }
 
 /* v3d and rv3d are allowed to be NULL */
@@ -2292,7 +2293,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	ED_armature_deselectall(obedit, 0, 0);
 	
 	/*	Create a bone	*/
-	bone= add_editbone(obedit, "Bone");
+	bone= ED_armature_edit_bone_add(obedit->data, "Bone");
 
 	VECCOPY(bone->head, curs);
 	
@@ -2358,7 +2359,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *op)
 			}
 		}
 		
-		newbone= add_editbone(obedit, ebone->name);
+		newbone= ED_armature_edit_bone_add(arm, ebone->name);
 		arm->act_edbone= newbone;
 		
 		if (to_root) {
@@ -2475,7 +2476,7 @@ static EditBone *add_points_bone (Object *obedit, float head[], float tail[])
 {
 	EditBone *ebo;
 	
-	ebo= add_editbone(obedit, "Bone");
+	ebo= ED_armature_edit_bone_add(obedit->data, "Bone");
 	
 	VECCOPY(ebo->head, head);
 	VECCOPY(ebo->tail, tail);
@@ -2522,12 +2523,12 @@ void updateDuplicateSubtargetObjects(EditBone *dupBone, ListBase *editbones, Obj
 	 * they point to has also been duplicated
 	 */
 	EditBone     *oldtarget, *newtarget;
-	bPoseChannel *chan;
+	bPoseChannel *pchan;
 	bConstraint  *curcon;
 	ListBase     *conlist;
 	
-	if ( (chan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
-		if ( (conlist = &chan->constraints) ) {
+	if ( (pchan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
+		if ( (conlist = &pchan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
 				 * this armature?
@@ -2593,40 +2594,16 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *edit
 	 */
 	if (src_ob->pose) {
 		bPoseChannel *chanold, *channew;
-		ListBase     *listold, *listnew;
 		
 		chanold = verify_pose_channel(src_ob->pose, curBone->name);
 		if (chanold) {
-			listold = &chanold->constraints;
-			if (listold) {
-				/* WARNING: this creates a new posechannel, but there will not be an attached bone 
-				 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
-				 */
-				channew = 
-					verify_pose_channel(dst_ob->pose, eBone->name);
-				if (channew) {
-					/* copy transform locks */
-					channew->protectflag = chanold->protectflag;
-					
-					/* copy bone group */
-					channew->agrp_index= chanold->agrp_index;
-					
-					/* ik (dof) settings */
-					channew->ikflag = chanold->ikflag;
-					VECCOPY(channew->limitmin, chanold->limitmin);
-					VECCOPY(channew->limitmax, chanold->limitmax);
-					VECCOPY(channew->stiffness, chanold->stiffness);
-					channew->ikstretch= chanold->ikstretch;
-					channew->ikrotweight= chanold->ikrotweight;
-					channew->iklinweight= chanold->iklinweight;
-					
-					/* constraints */
-					listnew = &channew->constraints;
-					copy_constraints(listnew, listold);
-					
-					/* custom shape */
-					channew->custom= chanold->custom;
-				}
+			/* WARNING: this creates a new posechannel, but there will not be an attached bone
+			 *		yet as the new bones created here are still 'EditBones' not 'Bones'.
+			 */
+			channew= verify_pose_channel(dst_ob->pose, eBone->name);
+
+			if(channew) {
+				duplicate_pose_channel_data(channew, chanold);
 			}
 		}
 	}
@@ -2695,43 +2672,15 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 				 */
 				if (obedit->pose) {
 					bPoseChannel *chanold, *channew;
-					ListBase     *listold, *listnew;
 					
 					chanold = verify_pose_channel(obedit->pose, curBone->name);
 					if (chanold) {
-						listold = &chanold->constraints;
-						if (listold) {
-							/* WARNING: this creates a new posechannel, but there will not be an attached bone 
-							 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
-							 */
-							channew = 
-								verify_pose_channel(obedit->pose, eBone->name);
-							if (channew) {
-								/* copy transform locks */
-								channew->protectflag = chanold->protectflag;
-								
-								/* copy rotation mode */
-								channew->rotmode = chanold->rotmode;
-								
-								/* copy bone group */
-								channew->agrp_index= chanold->agrp_index;
-								
-								/* ik (dof) settings */
-								channew->ikflag = chanold->ikflag;
-								VECCOPY(channew->limitmin, chanold->limitmin);
-								VECCOPY(channew->limitmax, chanold->limitmax);
-								VECCOPY(channew->stiffness, chanold->stiffness);
-								channew->ikstretch= chanold->ikstretch;
-								channew->ikrotweight= chanold->ikrotweight;
-								channew->iklinweight= chanold->iklinweight;
-								
-								/* constraints */
-								listnew = &channew->constraints;
-								copy_constraints(listnew, listold);
-								
-								/* custom shape */
-								channew->custom= chanold->custom;
-							}
+						/* WARNING: this creates a new posechannel, but there will not be an attached bone
+						 *		yet as the new bones created here are still 'EditBones' not 'Bones'.
+						 */
+						channew= verify_pose_channel(obedit->pose, eBone->name);
+						if(channew) {
+							duplicate_pose_channel_data(channew, chanold);
 						}
 					}
 				}
@@ -3153,7 +3102,7 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	/* step 3: delete all bones between and including start and end */
 	for (ebo= end; ebo; ebo= ebone) {
 		ebone= (ebo == start) ? (NULL) : (ebo->parent);
-		free_edit_bone(arm, ebo);
+		bone_free(arm, ebo);
 	}
 }
 
@@ -3508,7 +3457,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	ED_armature_deselectall(obedit, 0, 0);
 	
 	/*	Create a bone	*/
-	bone= add_editbone(obedit, name);
+	bone= ED_armature_edit_bone_add(obedit->data, name);
 
 	VECCOPY(bone->head, curs);
 	
@@ -4839,7 +4788,16 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 
 static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
@@ -4850,8 +4808,21 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 		if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
 			pchan->size[2]= 1.0f;
 			
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
@@ -4880,10 +4851,20 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 
 static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		/* clear location */
 		if ((pchan->protectflag & OB_LOCK_LOCX)==0)
 			pchan->loc[0]= 0.0f;
 		if ((pchan->protectflag & OB_LOCK_LOCY)==0)
@@ -4891,8 +4872,21 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 		if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
 			pchan->loc[2]= 0.0f;
 			
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
@@ -4921,7 +4915,16 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 
 static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
@@ -5017,8 +5020,21 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			}
 		}
 		
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
@@ -5083,9 +5099,9 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int	sel=1;
 
-	/*	Determine if there are any selected bones
-	And therefore whether we are selecting or deselecting */
-	if (CTX_DATA_COUNT(C, selected_pchans) > 0)	sel=0;
+	/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
+	// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
+	if (CTX_DATA_COUNT(C, selected_pchans) > 1)	sel=0;
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
@@ -5125,7 +5141,7 @@ static int pose_select_parent_exec(bContext *C, wmOperator *op)
 	bPoseChannel *pchan,*parent;
 
 	/*	Determine if there is an active bone */
-	pchan=CTX_data_active_pchan(C);
+	pchan=CTX_data_active_pose_bone(C);
 	if (pchan) {
 		bArmature *arm= ob->data;
 		parent=pchan->parent;
@@ -5411,7 +5427,7 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			// TODO: should we be using the database wide version instead (since drivers may break)
 			if (ob->adt) {
 				/* posechannels only... */
-				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.pose_channels", oldname, newname);
+				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.bones", oldname, newname);
 			}
 		}
 	}
@@ -5599,7 +5615,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 		EditBone *root = NULL;
 		float angleLimit = (float)cos(scene->toolsettings->skgen_angle_limit * M_PI / 180.0f);
 		
-		parent = add_editbone(obedit, "Bone");
+		parent = ED_armature_edit_bone_add(arm, "Bone");
 		parent->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		VECCOPY(parent->head, head->p);
 		
@@ -5628,7 +5644,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 			{
 				VECCOPY(parent->tail, previous);
 
-				child = add_editbone(obedit, "Bone");
+				child = ED_armature_edit_bone_add(arm, "Bone");
 				VECCOPY(child->head, parent->tail);
 				child->parent = parent;
 				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
@@ -5644,7 +5660,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 		if (parent == root)
 		{
 			if(parent==arm->act_edbone) arm->act_edbone= NULL;
-			delete_bone(arm, parent);
+			ED_armature_edit_bone_remove(arm, parent);
 			parent = NULL;
 		}
 		
@@ -5834,7 +5850,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		if (lastBone == NULL)
 		{
 			EditBone	*bone;
-			bone = add_editbone(obedit, "Bone");
+			bone = ED_armature_edit_bone_add(obedit->data, "Bone");
 			bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 			
 			VECCOPY(bone->head, head->p);

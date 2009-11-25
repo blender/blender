@@ -35,6 +35,9 @@
 
 #include "SCA_IActuator.h"
 
+#include "SCA_IScene.h" /* Replace_IScene only */
+#include "KX_Scene.h" /* Replace_IScene only */
+
 class KX_GameActuator : public SCA_IActuator
 {
 	Py_Header;
@@ -43,7 +46,7 @@ protected:
 	bool						m_restart;
 	STR_String					m_filename;
 	STR_String					m_loadinganimationname;
-	class KX_Scene*				m_scene;
+	class SCA_IScene*			m_scene;
 	class KX_KetsjiEngine*		m_ketsjiengine;
 
  public:
@@ -64,7 +67,7 @@ protected:
 					 int mode,
 					 const STR_String& filename,
 					 const STR_String& loadinganimationname,
-					 KX_Scene* scene,
+					 SCA_IScene* scene,
 					 KX_KetsjiEngine* ketsjiEngine);
 	virtual ~KX_GameActuator();
 
@@ -72,6 +75,11 @@ protected:
 
 	virtual bool Update();
 	
+	virtual void Replace_IScene(SCA_IScene *val)
+	{
+		m_scene= val;
+	};
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */

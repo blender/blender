@@ -19,6 +19,8 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -39,15 +41,21 @@ class DATA_PT_context_camera(DataButtonsPanel):
         ob = context.object
         cam = context.camera
         space = context.space_data
+        wide_ui = context.region.width > narrowui
 
-        split = layout.split(percentage=0.65)
-
-        if ob:
-            split.template_ID(ob, "data")
-            split.itemS()
-        elif cam:
-            split.template_ID(space, "pin_id")
-            split.itemS()
+        if wide_ui:
+            split = layout.split(percentage=0.65)
+            if ob:
+                split.template_ID(ob, "data")
+                split.separator()
+            elif cam:
+                split.template_ID(space, "pin_id")
+                split.separator()
+        else:
+            if ob:
+                layout.template_ID(ob, "data")
+            elif cam:
+                layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_camera(DataButtonsPanel):
@@ -57,39 +65,53 @@ class DATA_PT_camera(DataButtonsPanel):
         layout = self.layout
 
         cam = context.camera
+        wide_ui = context.region.width > narrowui
 
-        layout.itemR(cam, "type", expand=True)
+        if wide_ui:
+            layout.prop(cam, "type", expand=True)
+        else:
+            layout.prop(cam, "type", text="")
 
-        row = layout.row()
+        split = layout.split()
+
+        col = split.column()
         if cam.type == 'PERSP':
             if cam.lens_unit == 'MILLIMETERS':
-                row.itemR(cam, "lens", text="Angle")
+                col.prop(cam, "lens", text="Angle")
             elif cam.lens_unit == 'DEGREES':
-                row.itemR(cam, "angle")
-            row.itemR(cam, "lens_unit", text="")
+                col.prop(cam, "angle")
+            if wide_ui:
+                col = split.column()
+            col.prop(cam, "lens_unit", text="")
 
         elif cam.type == 'ORTHO':
-            row.itemR(cam, "ortho_scale")
+            col.prop(cam, "ortho_scale")
 
-        layout.itemR(cam, "panorama")
+        layout.prop(cam, "panorama")
 
         split = layout.split()
 
         col = split.column(align=True)
-        col.itemL(text="Shift:")
-        col.itemR(cam, "shift_x", text="X")
-        col.itemR(cam, "shift_y", text="Y")
+        col.label(text="Shift:")
+        col.prop(cam, "shift_x", text="X")
+        col.prop(cam, "shift_y", text="Y")
 
-        col = split.column(align=True)
-        col.itemL(text="Clipping:")
-        col.itemR(cam, "clip_start", text="Start")
-        col.itemR(cam, "clip_end", text="End")
+        if wide_ui:
+            col = split.column(align=True)
+        col.label(text="Clipping:")
+        col.prop(cam, "clip_start", text="Start")
+        col.prop(cam, "clip_end", text="End")
 
-        layout.itemL(text="Depth of Field:")
+        layout.label(text="Depth of Field:")
 
-        row = layout.row()
-        row.itemR(cam, "dof_object", text="")
-        row.itemR(cam, "dof_distance", text="Distance")
+        split = layout.split()
+
+        col = split.column()
+        col.prop(cam, "dof_object", text="")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(cam, "dof_distance", text="Distance")
 
 
 class DATA_PT_camera_display(DataButtonsPanel):
@@ -99,22 +121,24 @@ class DATA_PT_camera_display(DataButtonsPanel):
         layout = self.layout
 
         cam = context.camera
+        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(cam, "show_limits", text="Limits")
-        col.itemR(cam, "show_mist", text="Mist")
-        col.itemR(cam, "show_title_safe", text="Title Safe")
-        col.itemR(cam, "show_name", text="Name")
+        col.prop(cam, "show_limits", text="Limits")
+        col.prop(cam, "show_mist", text="Mist")
+        col.prop(cam, "show_title_safe", text="Title Safe")
+        col.prop(cam, "show_name", text="Name")
 
-        col = split.column()
-        col.itemR(cam, "draw_size", text="Size")
-        col.itemS()
-        col.itemR(cam, "show_passepartout", text="Passepartout")
+        if wide_ui:
+            col = split.column()
+        col.prop(cam, "draw_size", text="Size")
+        col.separator()
+        col.prop(cam, "show_passepartout", text="Passepartout")
         sub = col.column()
         sub.active = cam.show_passepartout
-        sub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
+        sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
 
 bpy.types.register(DATA_PT_context_camera)
 bpy.types.register(DATA_PT_camera)

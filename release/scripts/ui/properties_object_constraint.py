@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
 
 class ConstraintButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -29,585 +30,688 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         layout = self.layout
 
         box = layout.template_constraint(con)
+        wide_ui = context.region.width > narrowui
 
         if box:
             # match enum type to our functions, avoids a lookup table.
-            getattr(self, con.type)(context, box, con)
+            getattr(self, con.type)(context, box, con, wide_ui)
 
             # show/key buttons here are most likely obsolete now, with
             # keyframing functionality being part of every button
             if con.type not in ('RIGID_BODY_JOINT', 'SPLINE_IK', 'NULL'):
-                box.itemR(con, "influence")
+                box.prop(con, "influence")
 
-    def space_template(self, layout, con, target=True, owner=True):
+    def space_template(self, layout, con, wide_ui, target=True, owner=True):
         if target or owner:
-            row = layout.row()
 
-            row.itemL(text="Convert:")
+            split = layout.split(percentage=0.2)
+
+            if wide_ui:
+                split.label(text="Space:")
+                row = split.row()
+            else:
+                row = layout.row()
+
 
             if target:
-                row.itemR(con, "target_space", text="")
+                row.prop(con, "target_space", text="")
 
-            if target and owner:
-                row.itemL(icon='ICON_ARROW_LEFTRIGHT')
-
+            if wide_ui:
+                if target and owner:
+                    row.label(icon='ICON_ARROW_LEFTRIGHT')
+            else:
+                row = layout.row()
             if owner:
-                row.itemR(con, "owner_space", text="")
+                row.prop(con, "owner_space", text="")
 
-    def target_template(self, layout, con, subtargets=True):
-        layout.itemR(con, "target") # XXX limiting settings for only 'curves' or some type of object
+    def target_template(self, layout, con, wide_ui, subtargets=True):
+        if wide_ui:
+            layout.prop(con, "target") # XXX limiting settings for only 'curves' or some type of object
+        else:
+            layout.prop(con, "target", text="")
 
         if con.target and subtargets:
             if con.target.type == 'ARMATURE':
-                layout.item_pointerR(con, "subtarget", con.target.data, "bones", text="Bone")
+                if wide_ui:
+                    layout.prop_object(con, "subtarget", con.target.data, "bones", text="Bone")
+                else:
+                    layout.prop_object(con, "subtarget", con.target.data, "bones", text="")
 
                 if con.type == 'COPY_LOCATION':
                     row = layout.row()
-                    row.itemL(text="Head/Tail:")
-                    row.itemR(con, "head_tail", text="")
+                    row.label(text="Head/Tail:")
+                    row.prop(con, "head_tail", text="")
             elif con.target.type in ('MESH', 'LATTICE'):
-                layout.item_pointerR(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
+                layout.prop_object(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
-    def ik_template(self, layout, con):
+    def ik_template(self, layout, con, wide_ui):
         # only used for iTaSC
-        layout.itemR(con, "pole_target")
+        layout.prop(con, "pole_target")
 
         if con.pole_target and con.pole_target.type == 'ARMATURE':
-            layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+            layout.prop_object(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 
         if con.pole_target:
             row = layout.row()
-            row.itemL()
-            row.itemR(con, "pole_angle")
+            row.label()
+            row.prop(con, "pole_angle")
 
         split = layout.split(percentage=0.33)
         col = split.column()
-        col.itemR(con, "tail")
-        col.itemR(con, "stretch")
+        col.prop(con, "tail")
+        col.prop(con, "stretch")
 
         col = split.column()
-        col.itemR(con, "chain_length")
-        col.itemR(con, "targetless")
+        col.prop(con, "chain_length")
+        col.prop(con, "targetless")
 
-    def CHILD_OF(self, context, layout, con):
-        self.target_template(layout, con)
+    def CHILD_OF(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Location:")
-        col.itemR(con, "locationx", text="X")
-        col.itemR(con, "locationy", text="Y")
-        col.itemR(con, "locationz", text="Z")
+        col.label(text="Location:")
+        col.prop(con, "locationx", text="X")
+        col.prop(con, "locationy", text="Y")
+        col.prop(con, "locationz", text="Z")
 
         col = split.column()
-        col.itemL(text="Rotation:")
-        col.itemR(con, "rotationx", text="X")
-        col.itemR(con, "rotationy", text="Y")
-        col.itemR(con, "rotationz", text="Z")
+        col.label(text="Rotation:")
+        col.prop(con, "rotationx", text="X")
+        col.prop(con, "rotationy", text="Y")
+        col.prop(con, "rotationz", text="Z")
 
         col = split.column()
-        col.itemL(text="Scale:")
-        col.itemR(con, "sizex", text="X")
-        col.itemR(con, "sizey", text="Y")
-        col.itemR(con, "sizez", text="Z")
+        col.label(text="Scale:")
+        col.prop(con, "sizex", text="X")
+        col.prop(con, "sizey", text="Y")
+        col.prop(con, "sizez", text="Z")
+
+        split = layout.split()
+
+        col = split.column()
+        col.operator("constraint.childof_set_inverse")
+
+        if wide_ui:
+            col = split.column()
+        col.operator("constraint.childof_clear_inverse")
+
+    def TRACK_TO(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         row = layout.row()
-        row.itemO("constraint.childof_set_inverse")
-        row.itemO("constraint.childof_clear_inverse")
+        if wide_ui:
+            row.label(text="To:")
+        row.prop(con, "track", expand=True)
 
-    def TRACK_TO(self, context, layout, con):
-        self.target_template(layout, con)
+        split = layout.split()
 
-        row = layout.row()
-        row.itemL(text="To:")
-        row.itemR(con, "track", expand=True)
+        col = split.column()
+        col.prop(con, "up", text="Up")
 
-        row = layout.row()
-        #row.itemR(con, "up", text="Up", expand=True) # XXX: up and expand don't play nice together
-        row.itemR(con, "up", text="Up")
-        row.itemR(con, "target_z")
+        if wide_ui:
+            col = split.column()
+        col.prop(con, "target_z")
 
-        self.space_template(layout, con)
+        self.space_template(layout, con, wide_ui)
 
-    def IK(self, context, layout, con):
+    def IK(self, context, layout, con, wide_ui):
         if context.object.pose.ik_solver == "ITASC":
-            layout.itemR(con, "ik_type")
-            getattr(self, 'IK_' + con.ik_type)(context, layout, con)
+            layout.prop(con, "ik_type")
+            getattr(self, 'IK_' + con.ik_type)(context, layout, con, wide_ui)
         else:
             # Legacy IK constraint
-            self.target_template(layout, con)
-            layout.itemR(con, "pole_target")
-
+            self.target_template(layout, con, wide_ui)
+            if wide_ui:
+                layout.prop(con, "pole_target")
+            else:
+                layout.prop(con, "pole_target", text="")
             if con.pole_target and con.pole_target.type == 'ARMATURE':
-                layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+                if wide_ui:
+                    layout.prop_object(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+                else:
+                    layout.prop_object(con, "pole_subtarget", con.pole_target.data, "bones", text="")
 
             if con.pole_target:
                 row = layout.row()
-                row.itemL()
-                row.itemR(con, "pole_angle")
+                row.prop(con, "pole_angle")
+                if wide_ui:
+                    row.label()
 
             split = layout.split()
             col = split.column()
-            col.itemR(con, "tail")
-            col.itemR(con, "stretch")
+            col.prop(con, "iterations")
+            col.prop(con, "chain_length")
 
-            col = split.column()
-            col.itemR(con, "iterations")
-            col.itemR(con, "chain_length")
-
-            split = layout.split()
-            col = split.column()
-            col.itemL()
-            col.itemR(con, "targetless")
-            col.itemR(con, "rotation")
-
-            col = split.column()
-            col.itemL(text="Weight:")
-            col.itemR(con, "weight", text="Position", slider=True)
+            col.label(text="Weight:")
+            col.prop(con, "weight", text="Position", slider=True)
             sub = col.column()
             sub.active = con.rotation
-            sub.itemR(con, "orient_weight", text="Rotation", slider=True)
+            sub.prop(con, "orient_weight", text="Rotation", slider=True)
 
-    def IK_COPY_POSE(self, context, layout, con):
-        self.target_template(layout, con)
-        self.ik_template(layout, con)
+            if wide_ui:
+                col = split.column()
+            col.prop(con, "tail")
+            col.prop(con, "stretch")
+            col.separator()
+            col.prop(con, "targetless")
+            col.prop(con, "rotation")
+
+    def IK_COPY_POSE(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
+        self.ik_template(layout, con, wide_ui)
 
         row = layout.row()
-        row.itemL(text="Axis Ref:")
-        row.itemR(con, "axis_reference", expand=True)
+        row.label(text="Axis Ref:")
+        row.prop(con, "axis_reference", expand=True)
         split = layout.split(percentage=0.33)
-        split.row().itemR(con, "position")
+        split.row().prop(con, "position")
         row = split.row()
-        row.itemR(con, "weight", text="Weight", slider=True)
+        row.prop(con, "weight", text="Weight", slider=True)
         row.active = con.position
         split = layout.split(percentage=0.33)
         row = split.row()
-        row.itemL(text="Lock:")
+        row.label(text="Lock:")
         row = split.row()
-        row.itemR(con, "pos_lock_x", text="X")
-        row.itemR(con, "pos_lock_y", text="Y")
-        row.itemR(con, "pos_lock_z", text="Z")
+        row.prop(con, "pos_lock_x", text="X")
+        row.prop(con, "pos_lock_y", text="Y")
+        row.prop(con, "pos_lock_z", text="Z")
         split.active = con.position
 
         split = layout.split(percentage=0.33)
-        split.row().itemR(con, "rotation")
+        split.row().prop(con, "rotation")
         row = split.row()
-        row.itemR(con, "orient_weight", text="Weight", slider=True)
+        row.prop(con, "orient_weight", text="Weight", slider=True)
         row.active = con.rotation
         split = layout.split(percentage=0.33)
         row = split.row()
-        row.itemL(text="Lock:")
+        row.label(text="Lock:")
         row = split.row()
-        row.itemR(con, "rot_lock_x", text="X")
-        row.itemR(con, "rot_lock_y", text="Y")
-        row.itemR(con, "rot_lock_z", text="Z")
+        row.prop(con, "rot_lock_x", text="X")
+        row.prop(con, "rot_lock_y", text="Y")
+        row.prop(con, "rot_lock_z", text="Z")
         split.active = con.rotation
 
-    def IK_DISTANCE(self, context, layout, con):
-        self.target_template(layout, con)
-        self.ik_template(layout, con)
+    def IK_DISTANCE(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
+        self.ik_template(layout, con, wide_ui)
 
-        layout.itemR(con, "limit_mode")
+        layout.prop(con, "limit_mode")
         row = layout.row()
-        row.itemR(con, "weight", text="Weight", slider=True)
-        row.itemR(con, "distance", text="Distance", slider=True)
+        row.prop(con, "weight", text="Weight", slider=True)
+        row.prop(con, "distance", text="Distance", slider=True)
 
-    def FOLLOW_PATH(self, context, layout, con):
-        self.target_template(layout, con)
+    def FOLLOW_PATH(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(con, "use_curve_follow")
-        col.itemR(con, "use_curve_radius")
+        col.prop(con, "use_curve_follow")
+        col.prop(con, "use_curve_radius")
 
-        col = split.column()
-        col.itemR(con, "use_fixed_position")
+        if wide_ui:
+            col = split.column()
+        col.prop(con, "use_fixed_position")
         if con.use_fixed_position:
-            col.itemR(con, "offset_factor", text="Offset")
+            col.prop(con, "offset_factor", text="Offset")
         else:
-            col.itemR(con, "offset")
+            col.prop(con, "offset")
 
         row = layout.row()
-        row.itemL(text="Forward:")
-        row.itemR(con, "forward", expand=True)
+        if wide_ui:
+            row.label(text="Forward:")
+        row.prop(con, "forward", expand=True)
 
         row = layout.row()
-        row.itemR(con, "up", text="Up")
-        row.itemL()
+        row.prop(con, "up", text="Up")
+        if wide_ui:
+            row.label()
 
-    def LIMIT_ROTATION(self, context, layout, con):
+    def LIMIT_ROTATION(self, context, layout, con, wide_ui):
 
         split = layout.split()
 
-        col = split.column()
-        col.itemR(con, "use_limit_x")
+        col = split.column(align=True)
+        col.prop(con, "use_limit_x")
         sub = col.column()
         sub.active = con.use_limit_x
-        sub.itemR(con, "minimum_x", text="Min")
-        sub.itemR(con, "maximum_x", text="Max")
+        sub.prop(con, "minimum_x", text="Min")
+        sub.prop(con, "maximum_x", text="Max")
 
-        col = split.column()
-        col.itemR(con, "use_limit_y")
+        if wide_ui:
+            col = split.column(align=True)
+        col.prop(con, "use_limit_y")
         sub = col.column()
         sub.active = con.use_limit_y
-        sub.itemR(con, "minimum_y", text="Min")
-        sub.itemR(con, "maximum_y", text="Max")
+        sub.prop(con, "minimum_y", text="Min")
+        sub.prop(con, "maximum_y", text="Max")
 
-        col = split.column()
-        col.itemR(con, "use_limit_z")
+        if wide_ui:
+            col = split.column(align=True)
+        col.prop(con, "use_limit_z")
         sub = col.column()
         sub.active = con.use_limit_z
-        sub.itemR(con, "minimum_z", text="Min")
-        sub.itemR(con, "maximum_z", text="Max")
+        sub.prop(con, "minimum_z", text="Min")
+        sub.prop(con, "maximum_z", text="Max")
 
         row = layout.row()
-        row.itemR(con, "limit_transform")
-        row.itemL()
+        row.prop(con, "limit_transform")
+        if wide_ui:
+            row.label()
 
         row = layout.row()
-        row.itemL(text="Convert:")
-        row.itemR(con, "owner_space", text="")
+        if wide_ui:
+            row.label(text="Convert:")
+        row.prop(con, "owner_space", text="")
 
-    def LIMIT_LOCATION(self, context, layout, con):
+    def LIMIT_LOCATION(self, context, layout, con, wide_ui):
         split = layout.split()
 
         col = split.column()
-        col.itemR(con, "use_minimum_x")
+        col.prop(con, "use_minimum_x")
         sub = col.column()
         sub.active = con.use_minimum_x
-        sub.itemR(con, "minimum_x", text="")
-        col.itemR(con, "use_maximum_x")
+        sub.prop(con, "minimum_x", text="")
+        col.prop(con, "use_maximum_x")
         sub = col.column()
         sub.active = con.use_maximum_x
-        sub.itemR(con, "maximum_x", text="")
+        sub.prop(con, "maximum_x", text="")
 
-        col = split.column()
-        col.itemR(con, "use_minimum_y")
+        if wide_ui:
+            col = split.column()
+        col.prop(con, "use_minimum_y")
         sub = col.column()
         sub.active = con.use_minimum_y
-        sub.itemR(con, "minimum_y", text="")
-        col.itemR(con, "use_maximum_y")
+        sub.prop(con, "minimum_y", text="")
+        col.prop(con, "use_maximum_y")
         sub = col.column()
         sub.active = con.use_maximum_y
-        sub.itemR(con, "maximum_y", text="")
+        sub.prop(con, "maximum_y", text="")
 
-        col = split.column()
-        col.itemR(con, "use_minimum_z")
+        if wide_ui:
+            col = split.column()
+        col.prop(con, "use_minimum_z")
         sub = col.column()
         sub.active = con.use_minimum_z
-        sub.itemR(con, "minimum_z", text="")
-        col.itemR(con, "use_maximum_z")
+        sub.prop(con, "minimum_z", text="")
+        col.prop(con, "use_maximum_z")
         sub = col.column()
         sub.active = con.use_maximum_z
-        sub.itemR(con, "maximum_z", text="")
+        sub.prop(con, "maximum_z", text="")
 
         row = layout.row()
-        row.itemR(con, "limit_transform")
-        row.itemL()
+        row.prop(con, "limit_transform")
+        if wide_ui:
+            row.label()
 
         row = layout.row()
-        row.itemL(text="Convert:")
-        row.itemR(con, "owner_space", text="")
+        if wide_ui:
+            row.label(text="Convert:")
+        row.prop(con, "owner_space", text="")
 
-    def LIMIT_SCALE(self, context, layout, con):
+    def LIMIT_SCALE(self, context, layout, con, wide_ui):
         split = layout.split()
 
         col = split.column()
-        col.itemR(con, "use_minimum_x")
+        col.prop(con, "use_minimum_x")
         sub = col.column()
         sub.active = con.use_minimum_x
-        sub.itemR(con, "minimum_x", text="")
-        col.itemR(con, "use_maximum_x")
+        sub.prop(con, "minimum_x", text="")
+        col.prop(con, "use_maximum_x")
         sub = col.column()
         sub.active = con.use_maximum_x
-        sub.itemR(con, "maximum_x", text="")
+        sub.prop(con, "maximum_x", text="")
 
-        col = split.column()
-        col.itemR(con, "use_minimum_y")
+        if wide_ui:
+            col = split.column()
+        col.prop(con, "use_minimum_y")
         sub = col.column()
         sub.active = con.use_minimum_y
-        sub.itemR(con, "minimum_y", text="")
-        col.itemR(con, "use_maximum_y")
+        sub.prop(con, "minimum_y", text="")
+        col.prop(con, "use_maximum_y")
         sub = col.column()
         sub.active = con.use_maximum_y
-        sub.itemR(con, "maximum_y", text="")
+        sub.prop(con, "maximum_y", text="")
 
-        col = split.column()
-        col.itemR(con, "use_minimum_z")
+        if wide_ui:
+            col = split.column()
+        col.prop(con, "use_minimum_z")
         sub = col.column()
         sub.active = con.use_minimum_z
-        sub.itemR(con, "minimum_z", text="")
-        col.itemR(con, "use_maximum_z")
+        sub.prop(con, "minimum_z", text="")
+        col.prop(con, "use_maximum_z")
         sub = col.column()
         sub.active = con.use_maximum_z
-        sub.itemR(con, "maximum_z", text="")
+        sub.prop(con, "maximum_z", text="")
 
         row = layout.row()
-        row.itemR(con, "limit_transform")
-        row.itemL()
+        row.prop(con, "limit_transform")
+        if wide_ui:
+            row.label()
 
         row = layout.row()
-        row.itemL(text="Convert:")
-        row.itemR(con, "owner_space", text="")
+        if wide_ui:
+            row.label(text="Convert:")
+        row.prop(con, "owner_space", text="")
 
-    def COPY_ROTATION(self, context, layout, con):
-        self.target_template(layout, con)
+    def COPY_ROTATION(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(con, "rotate_like_x", text="X")
+        col.prop(con, "rotate_like_x", text="X")
         sub = col.column()
         sub.active = con.rotate_like_x
-        sub.itemR(con, "invert_x", text="Invert")
+        sub.prop(con, "invert_x", text="Invert")
 
         col = split.column()
-        col.itemR(con, "rotate_like_y", text="Y")
+        col.prop(con, "rotate_like_y", text="Y")
         sub = col.column()
         sub.active = con.rotate_like_y
-        sub.itemR(con, "invert_y", text="Invert")
+        sub.prop(con, "invert_y", text="Invert")
 
         col = split.column()
-        col.itemR(con, "rotate_like_z", text="Z")
+        col.prop(con, "rotate_like_z", text="Z")
         sub = col.column()
         sub.active = con.rotate_like_z
-        sub.itemR(con, "invert_z", text="Invert")
+        sub.prop(con, "invert_z", text="Invert")
 
-        layout.itemR(con, "offset")
+        layout.prop(con, "offset")
 
-        self.space_template(layout, con)
+        self.space_template(layout, con, wide_ui)
 
-    def COPY_LOCATION(self, context, layout, con):
-        self.target_template(layout, con)
+    def COPY_LOCATION(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(con, "locate_like_x", text="X")
+        col.prop(con, "locate_like_x", text="X")
         sub = col.column()
         sub.active = con.locate_like_x
-        sub.itemR(con, "invert_x", text="Invert")
+        sub.prop(con, "invert_x", text="Invert")
 
         col = split.column()
-        col.itemR(con, "locate_like_y", text="Y")
+        col.prop(con, "locate_like_y", text="Y")
         sub = col.column()
         sub.active = con.locate_like_y
-        sub.itemR(con, "invert_y", text="Invert")
+        sub.prop(con, "invert_y", text="Invert")
 
         col = split.column()
-        col.itemR(con, "locate_like_z", text="Z")
+        col.prop(con, "locate_like_z", text="Z")
         sub = col.column()
         sub.active = con.locate_like_z
-        sub.itemR(con, "invert_z", text="Invert")
+        sub.prop(con, "invert_z", text="Invert")
 
-        layout.itemR(con, "offset")
+        layout.prop(con, "offset")
 
-        self.space_template(layout, con)
+        self.space_template(layout, con, wide_ui)
 
-    def COPY_SCALE(self, context, layout, con):
-        self.target_template(layout, con)
+    def COPY_SCALE(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         row = layout.row(align=True)
-        row.itemR(con, "size_like_x", text="X")
-        row.itemR(con, "size_like_y", text="Y")
-        row.itemR(con, "size_like_z", text="Z")
+        row.prop(con, "size_like_x", text="X")
+        row.prop(con, "size_like_y", text="Y")
+        row.prop(con, "size_like_z", text="Z")
 
-        layout.itemR(con, "offset")
+        layout.prop(con, "offset")
 
-        self.space_template(layout, con)
+        self.space_template(layout, con, wide_ui)
 
     #def SCRIPT(self, context, layout, con):
 
-    def ACTION(self, context, layout, con):
-        self.target_template(layout, con)
+    def ACTION(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
-        layout.itemR(con, "action")
-        layout.itemR(con, "transform_channel")
+        if wide_ui:
+            layout.prop(con, "action")
+        else:
+            layout.prop(con, "action", text="")
+
+        if wide_ui:
+            layout.prop(con, "transform_channel")
+        else:
+            layout.prop(con, "transform_channel", text="")
 
         split = layout.split()
 
         col = split.column(align=True)
-        col.itemR(con, "start_frame", text="Start")
-        col.itemR(con, "end_frame", text="End")
+        col.label(text="Action Length:")
+        col.prop(con, "start_frame", text="Start")
+        col.prop(con, "end_frame", text="End")
 
-        col = split.column(align=True)
-        col.itemR(con, "minimum", text="Min")
-        col.itemR(con, "maximum", text="Max")
-
-        row = layout.row()
-        row.itemL(text="Convert:")
-        row.itemR(con, "target_space", text="")
-
-    def LOCKED_TRACK(self, context, layout, con):
-        self.target_template(layout, con)
+        if wide_ui:
+            col = split.column(align=True)
+        col.label(text="Target Range:")
+        col.prop(con, "minimum", text="Min")
+        col.prop(con, "maximum", text="Max")
 
         row = layout.row()
-        row.itemL(text="To:")
-        row.itemR(con, "track", expand=True)
+        if wide_ui:
+            row.label(text="Convert:")
+        row.prop(con, "target_space", text="")
+
+    def LOCKED_TRACK(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         row = layout.row()
-        row.itemL(text="Lock:")
-        row.itemR(con, "locked", expand=True)
+        if wide_ui:
+            row.label(text="To:")
+        row.prop(con, "track", expand=True)
 
-    def LIMIT_DISTANCE(self, context, layout, con):
-        self.target_template(layout, con)
+        row = layout.row()
+        if wide_ui:
+            row.label(text="Lock:")
+        row.prop(con, "locked", expand=True)
+
+    def LIMIT_DISTANCE(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         col = layout.column(align=True)
-        col.itemR(con, "distance")
-        col.itemO("constraint.limitdistance_reset")
+        col.prop(con, "distance")
+        col.operator("constraint.limitdistance_reset")
 
         row = layout.row()
-        row.itemL(text="Clamp Region:")
-        row.itemR(con, "limit_mode", text="")
+        row.label(text="Clamp Region:")
+        row.prop(con, "limit_mode", text="")
 
-    def STRETCH_TO(self, context, layout, con):
-        self.target_template(layout, con)
+    def STRETCH_TO(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
-        row = layout.row()
-        row.itemR(con, "original_length", text="Rest Length")
-        row.itemO("constraint.stretchto_reset", text="Reset")
+        split = layout.split()
+
+        col = split.column()
+        col.prop(con, "original_length", text="Rest Length")
+
+        if wide_ui:
+            col = split.column()
+        col.operator("constraint.stretchto_reset", text="Reset")
 
         col = layout.column()
-        col.itemR(con, "bulge", text="Volume Variation")
+        col.prop(con, "bulge", text="Volume Variation")
 
         row = layout.row()
-        row.itemL(text="Volume:")
-        row.itemR(con, "volume", expand=True)
-        row.itemL(text="Plane:")
-        row.itemR(con, "keep_axis", expand=True)
+        if wide_ui:
+            row.label(text="Volume:")
+        row.prop(con, "volume", expand=True)
+        if not wide_ui:
+            row = layout.row()
+        row.label(text="Plane:")
+        row.prop(con, "keep_axis", expand=True)
 
-    def FLOOR(self, context, layout, con):
-        self.target_template(layout, con)
+    def FLOOR(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
-        row = layout.row()
-        row.itemR(con, "sticky")
-        row.itemR(con, "use_rotation")
+        split = layout.split()
 
-        layout.itemR(con, "offset")
+        col = split.column()
+        col.prop(con, "sticky")
 
-        row = layout.row()
-        row.itemL(text="Min/Max:")
-        row.itemR(con, "floor_location", expand=True)
+        if wide_ui:
+            col = split.column()
+        col.prop(con, "use_rotation")
 
-    def RIGID_BODY_JOINT(self, context, layout, con):
-        self.target_template(layout, con)
-
-        layout.itemR(con, "pivot_type")
-        layout.itemR(con, "child")
+        layout.prop(con, "offset")
 
         row = layout.row()
-        row.itemR(con, "disable_linked_collision", text="No Collision")
-        row.itemR(con, "draw_pivot", text="Display Pivot")
+        if wide_ui:
+            row.label(text="Min/Max:")
+        row.prop(con, "floor_location", expand=True)
+
+    def RIGID_BODY_JOINT(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
+
+        if wide_ui:
+            layout.prop(con, "pivot_type")
+        else:
+            layout.prop(con, "pivot_type", text="")
+        if wide_ui:
+            layout.prop(con, "child")
+        else:
+            layout.prop(con, "child", text="")
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(con, "disable_linked_collision", text="No Collision")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(con, "draw_pivot", text="Display Pivot")
 
         split = layout.split()
 
         col = split.column(align=True)
-        col.itemL(text="Pivot:")
-        col.itemR(con, "pivot_x", text="X")
-        col.itemR(con, "pivot_y", text="Y")
-        col.itemR(con, "pivot_z", text="Z")
+        col.label(text="Pivot:")
+        col.prop(con, "pivot_x", text="X")
+        col.prop(con, "pivot_y", text="Y")
+        col.prop(con, "pivot_z", text="Z")
 
-        col = split.column(align=True)
-        col.itemL(text="Axis:")
-        col.itemR(con, "axis_x", text="X")
-        col.itemR(con, "axis_y", text="Y")
-        col.itemR(con, "axis_z", text="Z")
+        if wide_ui:
+            col = split.column(align=True)
+        col.label(text="Axis:")
+        col.prop(con, "axis_x", text="X")
+        col.prop(con, "axis_y", text="Y")
+        col.prop(con, "axis_z", text="Z")
 
         #Missing: Limit arrays (not wrapped in RNA yet)
 
-    def CLAMP_TO(self, context, layout, con):
-        self.target_template(layout, con)
+    def CLAMP_TO(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         row = layout.row()
-        row.itemL(text="Main Axis:")
-        row.itemR(con, "main_axis", expand=True)
+        if wide_ui:
+            row.label(text="Main Axis:")
+        row.prop(con, "main_axis", expand=True)
 
         row = layout.row()
-        row.itemR(con, "cyclic")
+        row.prop(con, "cyclic")
 
-    def TRANSFORM(self, context, layout, con):
-        self.target_template(layout, con)
+    def TRANSFORM(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
-        layout.itemR(con, "extrapolate_motion", text="Extrapolate")
+        layout.prop(con, "extrapolate_motion", text="Extrapolate")
+
+        col = layout.column()
+        col.row().label(text="Source:")
+        col.row().prop(con, "map_from", expand=True)
+
+        split = layout.split()
+
+        sub = split.column(align=True)
+        sub.label(text="X:")
+        sub.prop(con, "from_min_x", text="Min")
+        sub.prop(con, "from_max_x", text="Max")
+
+        if wide_ui:
+            sub = split.column(align=True)
+        sub.label(text="Y:")
+        sub.prop(con, "from_min_y", text="Min")
+        sub.prop(con, "from_max_y", text="Max")
+
+        if wide_ui:
+            sub = split.column(align=True)
+        sub.label(text="Z:")
+        sub.prop(con, "from_min_z", text="Min")
+        sub.prop(con, "from_max_z", text="Max")
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Source:")
-        col.row().itemR(con, "map_from", expand=True)
-
-        sub = col.row(align=True)
-        sub.itemL(text="X:")
-        sub.itemR(con, "from_min_x", text="")
-        sub.itemR(con, "from_max_x", text="")
-
-        sub = col.row(align=True)
-        sub.itemL(text="Y:")
-        sub.itemR(con, "from_min_y", text="")
-        sub.itemR(con, "from_max_y", text="")
-
-        sub = col.row(align=True)
-        sub.itemL(text="Z:")
-        sub.itemR(con, "from_min_z", text="")
-        sub.itemR(con, "from_max_z", text="")
+        col.label(text="Destination:")
+        col.row().prop(con, "map_to", expand=True)
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Destination:")
-        col.row().itemR(con, "map_to", expand=True)
+        col.label(text="X:")
+        col.row().prop(con, "map_to_x_from", expand=True)
 
-        sub = col.row(align=True)
-        sub.itemR(con, "map_to_x_from", text="")
-        sub.itemR(con, "to_min_x", text="")
-        sub.itemR(con, "to_max_x", text="")
+        sub = col.column(align=True)
+        sub.prop(con, "to_min_x", text="Min")
+        sub.prop(con, "to_max_x", text="Max")
 
-        sub = col.row(align=True)
-        sub.itemR(con, "map_to_y_from", text="")
-        sub.itemR(con, "to_min_y", text="")
-        sub.itemR(con, "to_max_y", text="")
+        if wide_ui:
+            col = split.column()
+        col.label(text="Y:")
+        col.row().prop(con, "map_to_y_from", expand=True)
 
-        sub = col.row(align=True)
-        sub.itemR(con, "map_to_z_from", text="")
-        sub.itemR(con, "to_min_z", text="")
-        sub.itemR(con, "to_max_z", text="")
+        sub = col.column(align=True)
+        sub.prop(con, "to_min_y", text="Min")
+        sub.prop(con, "to_max_y", text="Max")
 
-        self.space_template(layout, con)
+        if wide_ui:
+            col = split.column()
+        col.label(text="Z:")
+        col.row().prop(con, "map_to_z_from", expand=True)
 
-    def SHRINKWRAP(self, context, layout, con):
-        self.target_template(layout, con)
+        sub = col.column(align=True)
+        sub.prop(con, "to_min_z", text="Min")
+        sub.prop(con, "to_max_z", text="Max")
 
-        layout.itemR(con, "distance")
-        layout.itemR(con, "shrinkwrap_type")
+        self.space_template(layout, con, wide_ui)
+
+    def SHRINKWRAP(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
+
+        layout.prop(con, "distance")
+        layout.prop(con, "shrinkwrap_type")
 
         if con.shrinkwrap_type == 'PROJECT':
             row = layout.row(align=True)
-            row.itemR(con, "axis_x")
-            row.itemR(con, "axis_y")
-            row.itemR(con, "axis_z")
+            row.prop(con, "axis_x")
+            row.prop(con, "axis_y")
+            row.prop(con, "axis_z")
 
-    def DAMPED_TRACK(self, context, layout, con):
-        self.target_template(layout, con)
+    def DAMPED_TRACK(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         row = layout.row()
-        row.itemL(text="To:")
-        row.itemR(con, "track", expand=True)
+        if wide_ui:
+            row.label(text="To:")
+        row.prop(con, "track", expand=True)
 
-    def SPLINE_IK(self, context, layout, con):
-        self.target_template(layout, con)
-
-        col = layout.column()
-        col.itemL(text="Spline Fitting:")
-        col.itemR(con, "chain_length")
-        col.itemR(con, "even_divisions")
-        #col.itemR(con, "affect_root") # XXX: this is not that useful yet
+    def SPLINE_IK(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
 
         col = layout.column()
-        col.itemL(text="Chain Scaling:")
-        col.itemR(con, "keep_max_length")
-        col.itemR(con, "xz_scaling_mode")
+        col.label(text="Spline Fitting:")
+        col.prop(con, "chain_length")
+        col.prop(con, "even_divisions")
+        col.prop(con, "chain_offset")
+
+        col = layout.column()
+        col.label(text="Chain Scaling:")
+        col.prop(con, "y_stretch")
+        if wide_ui:
+            col.prop(con, "xz_scaling_mode")
+        else:
+            col.prop(con, "xz_scaling_mode", text="")
+        col.prop(con, "use_curve_radius")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
@@ -620,10 +724,12 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
     def draw(self, context):
         layout = self.layout
         ob = context.object
+        wide_ui = context.region.width > narrowui
 
         row = layout.row()
-        row.item_menu_enumO("object.constraint_add", "type")
-        row.itemL()
+        row.operator_menu_enum("object.constraint_add", "type")
+        if wide_ui:
+            row.label()
 
         for con in ob.constraints:
             self.draw_constraint(context, con)
@@ -639,7 +745,7 @@ class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
         bone = context.bone
 
         if ob and bone:
-            pchan = ob.pose.pose_channels[bone.name]
+            pchan = ob.pose.bones[bone.name]
             return pchan.has_ik
 
         return False
@@ -649,67 +755,84 @@ class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
 
         ob = context.object
         bone = context.bone
-        pchan = ob.pose.pose_channels[bone.name]
+        pchan = ob.pose.bones[bone.name]
+        wide_ui = context.region.width > narrowui
 
         row = layout.row()
-        row.itemR(ob.pose, "ik_solver")
+        row.prop(ob.pose, "ik_solver")
 
         split = layout.split(percentage=0.25)
-        split.itemR(pchan, "ik_dof_x", text="X")
+        split.prop(pchan, "ik_dof_x", text="X")
         row = split.row()
-        row.itemR(pchan, "ik_stiffness_x", text="Stiffness", slider=True)
+        row.prop(pchan, "ik_stiffness_x", text="Stiffness", slider=True)
         row.active = pchan.ik_dof_x
 
-        split = layout.split(percentage=0.25)
-        row = split.row()
-        row.itemR(pchan, "ik_limit_x", text="Limit")
-        row.active = pchan.ik_dof_x
-        row = split.row(align=True)
-        row.itemR(pchan, "ik_min_x", text="")
-        row.itemR(pchan, "ik_max_x", text="")
-        row.active = pchan.ik_dof_x and pchan.ik_limit_x
+        if wide_ui:
+            split = layout.split(percentage=0.25)
+            sub = split.row()
+        else:
+            sub = layout.column(align=True)
+        sub.prop(pchan, "ik_limit_x", text="Limit")
+        sub.active = pchan.ik_dof_x
+        if wide_ui:
+            sub = split.row(align=True)
+        sub.prop(pchan, "ik_min_x", text="")
+        sub.prop(pchan, "ik_max_x", text="")
+        sub.active = pchan.ik_dof_x and pchan.ik_limit_x
 
         split = layout.split(percentage=0.25)
-        split.itemR(pchan, "ik_dof_y", text="Y")
+        split.prop(pchan, "ik_dof_y", text="Y")
         row = split.row()
-        row.itemR(pchan, "ik_stiffness_y", text="Stiffness", slider=True)
+        row.prop(pchan, "ik_stiffness_y", text="Stiffness", slider=True)
         row.active = pchan.ik_dof_y
 
-        split = layout.split(percentage=0.25)
-        row = split.row()
-        row.itemR(pchan, "ik_limit_y", text="Limit")
-        row.active = pchan.ik_dof_y
-        row = split.row(align=True)
-        row.itemR(pchan, "ik_min_y", text="")
-        row.itemR(pchan, "ik_max_y", text="")
-        row.active = pchan.ik_dof_y and pchan.ik_limit_y
+        if wide_ui:
+            split = layout.split(percentage=0.25)
+            sub = split.row()
+        else:
+            sub = layout.column(align=True)
+        sub.prop(pchan, "ik_limit_y", text="Limit")
+        sub.active = pchan.ik_dof_y
+        if wide_ui:
+            sub = split.row(align=True)
+        sub.prop(pchan, "ik_min_y", text="")
+        sub.prop(pchan, "ik_max_y", text="")
+        sub.active = pchan.ik_dof_y and pchan.ik_limit_y
 
         split = layout.split(percentage=0.25)
-        split.itemR(pchan, "ik_dof_z", text="Z")
-        row = split.row()
-        row.itemR(pchan, "ik_stiffness_z", text="Stiffness", slider=True)
-        row.active = pchan.ik_dof_z
+        split.prop(pchan, "ik_dof_z", text="Z")
+        sub = split.row()
+        sub.prop(pchan, "ik_stiffness_z", text="Stiffness", slider=True)
+        sub.active = pchan.ik_dof_z
 
-        split = layout.split(percentage=0.25)
-        row = split.row()
-        row.itemR(pchan, "ik_limit_z", text="Limit")
-        row.active = pchan.ik_dof_z
-        row = split.row(align=True)
-        row.itemR(pchan, "ik_min_z", text="")
-        row.itemR(pchan, "ik_max_z", text="")
-        row.active = pchan.ik_dof_z and pchan.ik_limit_z
+        if wide_ui:
+            split = layout.split(percentage=0.25)
+            sub = split.row()
+        else:
+            sub = layout.column(align=True)
+        sub.prop(pchan, "ik_limit_z", text="Limit")
+        sub.active = pchan.ik_dof_z
+        if wide_ui:
+            sub = split.row(align=True)
+        sub.prop(pchan, "ik_min_z", text="")
+        sub.prop(pchan, "ik_max_z", text="")
+        sub.active = pchan.ik_dof_z and pchan.ik_limit_z
         split = layout.split()
-        split.itemR(pchan, "ik_stretch", text="Stretch", slider=True)
-        split.itemL()
+        split.prop(pchan, "ik_stretch", text="Stretch", slider=True)
+        if wide_ui:
+            split.label()
 
         if ob.pose.ik_solver == 'ITASC':
-            row = layout.row()
-            row.itemR(pchan, "ik_rot_control", text="Control Rotation")
-            row.itemR(pchan, "ik_rot_weight", text="Weight", slider=True)
+            split = layout.split()
+            col = split.column()
+            col.prop(pchan, "ik_rot_control", text="Control Rotation")
+            if wide_ui:
+                col = split.column()
+            col.prop(pchan, "ik_rot_weight", text="Weight", slider=True)
             # not supported yet
             #row = layout.row()
-            #row.itemR(pchan, "ik_lin_control", text="Joint Size")
-            #row.itemR(pchan, "ik_lin_weight", text="Weight", slider=True)
+            #row.prop(pchan, "ik_lin_control", text="Joint Size")
+            #row.prop(pchan, "ik_lin_weight", text="Weight", slider=True)
 
 
 class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
@@ -722,7 +845,7 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
         bone = context.bone
 
         if ob and bone:
-            pchan = ob.pose.pose_channels[bone.name]
+            pchan = ob.pose.bones[bone.name]
             return pchan.has_ik and ob.pose.ik_solver == 'ITASC' and ob.pose.ik_param
 
         return False
@@ -732,35 +855,41 @@ class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
 
         ob = context.object
         itasc = ob.pose.ik_param
+        wide_ui = context.region.width > narrowui
 
-        layout.itemR(itasc, "mode", expand=True)
+        layout.prop(itasc, "mode", expand=True)
         simulation = itasc.mode == 'SIMULATION'
         if simulation:
-            layout.itemL(text="Reiteration:")
-            layout.itemR(itasc, "reiteration", expand=True)
+            layout.label(text="Reiteration:")
+            layout.prop(itasc, "reiteration", expand=True)
 
-        flow = layout.column_flow()
-        flow.itemR(itasc, "precision", text="Prec")
-        flow.itemR(itasc, "num_iter", text="Iter")
-        flow.active = not simulation or itasc.reiteration != 'NEVER'
+        split = layout.split()
+        split.active = not simulation or itasc.reiteration != 'NEVER'
+        col = split.column()
+        col.prop(itasc, "precision")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(itasc, "num_iter")
+
 
         if simulation:
-            layout.itemR(itasc, "auto_step")
+            layout.prop(itasc, "auto_step")
             row = layout.row()
             if itasc.auto_step:
-                row.itemR(itasc, "min_step", text="Min")
-                row.itemR(itasc, "max_step", text="Max")
+                row.prop(itasc, "min_step", text="Min")
+                row.prop(itasc, "max_step", text="Max")
             else:
-                row.itemR(itasc, "num_step")
+                row.prop(itasc, "num_step")
 
-        layout.itemR(itasc, "solver")
+        layout.prop(itasc, "solver")
         if simulation:
-            layout.itemR(itasc, "feedback")
-            layout.itemR(itasc, "max_velocity")
+            layout.prop(itasc, "feedback")
+            layout.prop(itasc, "max_velocity")
         if itasc.solver == 'DLS':
             row = layout.row()
-            row.itemR(itasc, "dampmax", text="Damp", slider=True)
-            row.itemR(itasc, "dampeps", text="Eps", slider=True)
+            row.prop(itasc, "dampmax", text="Damp", slider=True)
+            row.prop(itasc, "dampeps", text="Eps", slider=True)
 
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
@@ -775,11 +904,13 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
         layout = self.layout
 
         ob = context.object
-        pchan = ob.pose.pose_channels[context.bone.name]
+        pchan = ob.pose.bones[context.bone.name]
+        wide_ui = context.region.width > narrowui
 
         row = layout.row()
-        row.item_menu_enumO("pose.constraint_add", "type")
-        row.itemL()
+        row.operator_menu_enum("pose.constraint_add", "type")
+        if wide_ui:
+            row.label()
 
         for con in pchan.constraints:
             self.draw_constraint(context, con)

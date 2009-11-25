@@ -1123,7 +1123,7 @@ class Export3DS(bpy.types.Operator):
 
 	
 	def execute(self, context):
-		save_3ds(self.path, context)
+		save_3ds(self.properties.path, context)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):
@@ -1132,7 +1132,6 @@ class Export3DS(bpy.types.Operator):
 		return ('RUNNING_MODAL',)
 	
 	def poll(self, context): # Poll isnt working yet
-		print("Poll")
 		return context.active_object != None
 
 bpy.ops.add(Export3DS)
@@ -1142,6 +1141,6 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".3ds")
-    self.layout.item_stringO(Export3DS.bl_idname, "path", default_path, text="Autodesk 3DS...")
+    self.layout.operator(Export3DS.bl_idname, text="Autodesk 3DS...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)

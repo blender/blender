@@ -108,8 +108,8 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 

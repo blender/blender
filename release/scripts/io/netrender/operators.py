@@ -21,6 +21,7 @@ import sys, os
 import http, http.client, http.server, urllib, socket
 import webbrowser
 
+import netrender
 from netrender.utils import *
 import netrender.client as client
 import netrender.model
@@ -36,8 +37,9 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 	
 	def execute(self, context):
 		scene = context.scene
+		netsettings = scene.network_render
 		
-		conn = clientConnection(scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
 			# Sending file
@@ -62,8 +64,9 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 	
 	def execute(self, context):
 		scene = context.scene
+		netsettings = scene.network_render
 		
-		conn = clientConnection(scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
 			# Sending file
@@ -86,7 +89,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 	
 	def execute(self, context):
 		netsettings = context.scene.network_render
-		conn = clientConnection(context.scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 
 		if conn:
 			conn.request("GET", "/status")
@@ -99,10 +102,10 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 			while(len(netsettings.jobs) > 0):
 				netsettings.jobs.remove(0)
 			
-			bpy.netrender_jobs = []
+			netrender.jobs = []
 			
 			for j in jobs:
-				bpy.netrender_jobs.append(j)
+				netrender.jobs.append(j)
 				netsettings.jobs.add()
 				job = netsettings.jobs[-1]
 				
@@ -130,8 +133,8 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 		if netsettings.active_slave_index >= 0:
 			
 			# deal with data
-			slave = bpy.netrender_slaves.pop(netsettings.active_slave_index)
-			bpy.netrender_blacklist.append(slave)
+			slave = netrender.slaves.pop(netsettings.active_slave_index)
+			netrender.blacklist.append(slave)
 			
 			# deal with rna
 			netsettings.slaves_blacklist.add()
@@ -160,8 +163,8 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 		if netsettings.active_blacklisted_slave_index >= 0:
 			
 			# deal with data
-			slave = bpy.netrender_blacklist.pop(netsettings.active_blacklisted_slave_index)
-			bpy.netrender_slaves.append(slave)
+			slave = netrender.blacklist.pop(netsettings.active_blacklisted_slave_index)
+			netrender.slaves.append(slave)
 			
 			# deal with rna
 			netsettings.slaves.add()
@@ -187,7 +190,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 	
 	def execute(self, context):
 		netsettings = context.scene.network_render
-		conn = clientConnection(context.scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
 			conn.request("GET", "/slaves")
@@ -200,17 +203,17 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 			while(len(netsettings.slaves) > 0):
 				netsettings.slaves.remove(0)
 			
-			bpy.netrender_slaves = []
+			netrender.slaves = []
 			
 			for s in slaves:
-				for i in range(len(bpy.netrender_blacklist)):
-					slave = bpy.netrender_blacklist[i]
+				for i in range(len(netrender.blacklist)):
+					slave = netrender.blacklist[i]
 					if slave.id == s.id:
-						bpy.netrender_blacklist[i] = s
+						netrender.blacklist[i] = s
 						netsettings.slaves_blacklist[i].name = s.name
 						break
 				else:
-					bpy.netrender_slaves.append(s)
+					netrender.slaves.append(s)
 					
 					netsettings.slaves.add()
 					slave = netsettings.slaves[-1]
@@ -233,10 +236,10 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 		
 	def execute(self, context):
 		netsettings = context.scene.network_render
-		conn = clientConnection(context.scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
-			job = bpy.netrender_jobs[netsettings.active_job_index]
+			job = netrender.jobs[netsettings.active_job_index]
 			
 			conn.request("POST", "/cancel", headers={"job-id":job.id})
 			
@@ -261,7 +264,7 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 		
 	def execute(self, context):
 		netsettings = context.scene.network_render
-		conn = clientConnection(context.scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
 			conn.request("POST", "/clear")
@@ -291,10 +294,10 @@ class netclientdownload(bpy.types.Operator):
 		netsettings = context.scene.network_render
 		rd = context.scene.render_data
 		
-		conn = clientConnection(context.scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
-			job = bpy.netrender_jobs[netsettings.active_job_index]
+			job = netrender.jobs[netsettings.active_job_index]
 			
 			for frame in job.frames:
 				client.requestResult(conn, job.id, frame.number)
@@ -332,26 +335,16 @@ class netclientscan(bpy.types.Operator):
 		return True
 		
 	def execute(self, context):
-		netsettings = context.scene.network_render
-		
-		try:
-			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-			s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-			s.settimeout(30)
-	
-			s.bind(('', 8000))
-			
-			buf, address = s.recvfrom(64)
-			
-			print("received:", buf)
-			
-			netsettings.server_address = address[0]
-			netsettings.server_port = int(str(buf, encoding='utf8'))
-		except socket.timeout:
-			print("no server info")
+		address, port = clientScan()
+
+		if address:
+			scene = context.scene
+			netsettings = scene.network_render
+			netsettings.server_address = address
+			netsettings.server_port = port
 		
 		return ('FINISHED',)
-	
+
 	def invoke(self, context, event):
 		return self.execute(context)
 
@@ -369,7 +362,7 @@ class netclientweb(bpy.types.Operator):
 		
 		
 		# open connection to make sure server exists
-		conn = clientConnection(context.scene)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port)
 		
 		if conn:
 			conn.close()

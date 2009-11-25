@@ -91,6 +91,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
+#include "BKE_softbody.h"
 #include "BKE_smoke.h"
 #include "BKE_unit.h"
 #include "BKE_utildefines.h"
@@ -143,7 +144,7 @@ static void draw_empty_cone(float size);
 /* ************* only use while object drawing **************
  * or after running ED_view3d_init_mats_rv3d
  * */
-static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
+static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -152,9 +153,7 @@ static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
 	
 	/* clipplanes in eye space */
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		VECCOPY(vec4, vec);
-		mul_m4_v3(rv3d->viewmatob, vec4);
-		if(view3d_test_clipping(rv3d, vec4))
+		if(view3d_test_clipping(rv3d, vec, local))
 			return;
 	}
 	
@@ -546,7 +545,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	for(vos= strings->first; vos; vos= vos->next) {
 		if(mat)
 			mul_m4_v3(mat, vos->vec);
-		view3d_project_short_clip(ar, vos->vec, vos->mval);
+		view3d_project_short_clip(ar, vos->vec, vos->mval, 0);
 		if(vos->mval[0]!=IS_CLIPPED)
 			tot++;
 	}
@@ -1208,9 +1207,11 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
 
+	ED_view3d_local_clipping(vc->rv3d, obedit->obmat); /* for local clipping lookups */
+
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
-			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s);
+			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s, 1);
 			if (s[0] != IS_CLIPPED)
 				func(userData, bp, s[0], s[1]);
 		}
@@ -1315,7 +1316,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 		short s[2]= {IS_CLIPPED, 0};
 
 		if (data->clipVerts) {
-			view3d_project_short_clip(data->vc.ar, co, s);
+			view3d_project_short_clip(data->vc.ar, co, s, 1);
 		} else {
 			view3d_project_short_noclip(data->vc.ar, co, s);
 		}
@@ -1335,6 +1336,9 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	if(clipVerts)
+		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	EM_init_index_arrays(vc->em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1350,8 +1354,8 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 
 	if (eed->h==0) {
 		if (data->clipVerts==1) {
-			view3d_project_short_clip(data->vc.ar, v0co, s[0]);
-			view3d_project_short_clip(data->vc.ar, v1co, s[1]);
+			view3d_project_short_clip(data->vc.ar, v0co, s[0], 1);
+			view3d_project_short_clip(data->vc.ar, v1co, s[1], 1);
 		} else {
 			view3d_project_short_noclip(data->vc.ar, v0co, s[0]);
 			view3d_project_short_noclip(data->vc.ar, v1co, s[1]);
@@ -1377,6 +1381,9 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEd
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	if(clipVerts)
+		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	EM_init_index_arrays(vc->em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1391,7 +1398,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 	short s[2];
 
 	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
-		view3d_project_short_clip(data->vc.ar, cent, s);
+		view3d_project_short_clip(data->vc.ar, cent, s, 1);
 
 		data->func(data->userData, efa, s[0], s[1], index);
 	}
@@ -1405,6 +1412,9 @@ void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFa
 	data.vc= *vc;
 	data.func = func;
 	data.userData = userData;
+
+	//if(clipVerts)
+	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
 	EM_init_index_arrays(vc->em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
@@ -1420,6 +1430,8 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	Nurb *nu;
 	int i;
 
+	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	for (nu= cu->editnurb->first; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
@@ -1428,17 +1440,17 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 				if(bezt->hide==0) {
 					
 					if(cu->drawflag & CU_HIDE_HANDLES) {
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[1], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 					} else {
-						view3d_project_short_clip(vc->ar, bezt->vec[0], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[0], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[1], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[2], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[2], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 					}
@@ -1450,7 +1462,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 				BPoint *bp = &nu->bp[i];
 
 				if(bp->hide==0) {
-					view3d_project_short_clip(vc->ar, bp->vec, s);
+					view3d_project_short_clip(vc->ar, bp->vec, s, 1);
 					if (s[0] != IS_CLIPPED)
 						func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
@@ -2235,7 +2247,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	if(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))
 		return;
 
-	/* make the precission of the pronted value proportionate to the gridsize */
+	/* make the precision of the pronted value proportionate to the gridsize */
 
 	if (grid < 0.01f)
 		strcpy(conv_float, "%.6f");
@@ -4328,7 +4340,65 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 
 	glPointSize(1.0);
 }
+static void draw_sb_motion(Scene *scene, Object *ob)
+{
+	SoftBody *sb = 0;
+	if ((sb= ob->soft)){
+		if(sb->solverflags & SBSO_MONITOR ||sb->solverflags & SBSO_ESTIMATEIPO){
+			/* draw com */ 
+	        float rt[3][3],sc[3][3],tr[3][3]; 
+			/* looks like to swap a b in reverse */
+			copy_m3_m3(sc,sb->lscale);
+			copy_m3_m3(rt,sb->lrot);
+			mul_m3_m3m3(tr,rt,sc); 
+			if(1){
+				float root[3],tip[3];
 
+				glBegin(GL_LINES);
+				root[1] = root[2] = 0.0f;
+				root[0] = -1.0f;
+				mul_m3_v3(tr,root);
+				VECADD(root,root,sb->lcom);
+				glVertex3fv(root); 
+				tip[1] = tip[2] = 0.0f;
+				tip[0] = 1.0f;
+				mul_m3_v3(tr,tip);
+				VECADD(tip,tip,sb->lcom);
+				glVertex3fv(tip); 
+				glEnd();
+
+				glBegin(GL_LINES);
+				root[0] = root[2] = 0.0f;
+				root[1] = -1.0f;
+				mul_m3_v3(tr,root);
+				VECADD(root,root,sb->lcom);
+				glVertex3fv(root); 
+				tip[0] = tip[2] = 0.0f;
+				tip[1] = 1.0f;
+				mul_m3_v3(tr,tip);
+				VECADD(tip,tip,sb->lcom);
+				glVertex3fv(tip); 
+				glEnd();
+
+				glBegin(GL_LINES);
+				root[0] = root[1] = 0.0f;
+				root[2] = -1.0f;
+				mul_m3_v3(tr,root);
+				VECADD(root,root,sb->lcom);
+				glVertex3fv(root); 
+				tip[0] = tip[1] = 0.0f;
+				tip[2] = 1.0f;
+				mul_m3_v3(tr,tip);
+				VECADD(tip,tip,sb->lcom);
+				glVertex3fv(tip); 
+				glEnd();
+			}
+
+		}
+	}
+};
+
+/*place to add drawers */
 unsigned int nurbcol[8]= {
 	0, 0x9090, 0x409030, 0x603080, 0, 0x40fff0, 0x40c033, 0xA090F0 };
 
@@ -5723,6 +5793,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		default:
 			drawaxes(1.0, flag, OB_ARROWS);
 	}
+    if(ob->soft /*&& flag & OB_SBMOTION*/) draw_sb_motion(scene, ob);
+
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob);
 
 	/* particle mode has to be drawn first so that possible child particles get cached in edit mode */

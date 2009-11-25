@@ -250,17 +250,13 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 
 	/* note, commented out for follow constraint */
 	//if(cu->flag & CU_FOLLOW) {
-		
+
 		key_curve_tangent_weights(1.0f-fac, data, KEY_BSPLINE);
-		
-		dir[0]= data[0]*p0->vec[0] + data[1]*p1->vec[0] + data[2]*p2->vec[0] + data[3]*p3->vec[0] ;
-		dir[1]= data[0]*p0->vec[1] + data[1]*p1->vec[1] + data[2]*p2->vec[1] + data[3]*p3->vec[1] ;
-		dir[2]= data[0]*p0->vec[2] + data[1]*p1->vec[2] + data[2]*p2->vec[2] + data[3]*p3->vec[2] ;
-		
+
+		interp_v3_v3v3v3v3(dir, p0->vec, p1->vec, p2->vec, p3->vec, data);
+
 		/* make compatible with vectoquat */
-		dir[0]= -dir[0];
-		dir[1]= -dir[1];
-		dir[2]= -dir[2];
+		negate_v3(dir);
 	//}
 	
 	nu= cu->nurb.first;
