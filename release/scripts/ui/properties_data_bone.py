@@ -189,7 +189,9 @@ class BONE_PT_relations(BoneButtonsPanel):
         sub.prop(bone, "connected")
         sub.prop(bone, "hinge", text="Inherit Rotation")
         sub.prop(bone, "inherit_scale", text="Inherit Scale")
-
+        sub = col.column()
+        sub.active = (not bone.parent or not bone.connected)
+        sub.prop(bone, "local_location", text="Local Location")
 
 class BONE_PT_display(BoneButtonsPanel):
     bl_label = "Display"
