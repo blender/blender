@@ -252,6 +252,30 @@ static int rna_FCurve_modifiers_remove(FCurve *fcu, bContext *C, int index)
 	return remove_fmodifier_index(&fcu->modifiers, index);
 }
 
+static void rna_Fmodifier_active_set(PointerRNA *ptr, int value)
+{
+	FModifier *fm= (FModifier*)ptr->data;
+
+	/* don't toggle, always switch on */
+	fm->flag |= FMODIFIER_FLAG_ACTIVE;
+}
+
+static void rna_Fmodifier_active_update(bContext *C, PointerRNA *ptr)
+{
+	FModifier *fm, *fmo= (FModifier*)ptr->data;
+
+	/* clear active state of other FModifiers in this list */
+	for (fm=fmo->prev; fm; fm=fm->prev)
+	{
+		fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
+	}
+	for (fm=fmo->next; fm; fm=fm->next)
+	{
+		fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
+	}
+	
+}
+
 #else
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
@@ -629,12 +653,13 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "F-Curve Modifier's panel is expanded in UI.");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	
 	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_MUTED);
 	RNA_def_property_ui_text(prop, "Muted", "F-Curve Modifier will not be evaluated.");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	RNA_def_property_ui_icon(prop, ICON_MUTE_IPO_OFF, 1);
 	
 		// XXX this is really an internal flag, but it may be useful for some tools to be able to access this...
 	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
@@ -647,7 +672,9 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_ACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "F-Curve Modifier is the one being edited ");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Fmodifier_active_set");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, "rna_Fmodifier_active_update");
+	RNA_def_property_ui_icon(prop, ICON_RADIOBUT_OFF, 1);
 }	
 
 /* *********************** */
@@ -808,7 +835,6 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_pointer_funcs(prop, "rna_FCurve_active_modifier_get", "rna_FCurve_active_modifier_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active fcurve modifier", "Active fcurve modifier.");
-
 
 	/* Constraint collection */
 	func= RNA_def_function(srna, "new", "rna_FCurve_modifiers_new");

@@ -2235,6 +2235,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
 	but->icon = 0;
+	but->iconadd=0;
 
 	but->retval= retval;
 	if( strlen(str)>=UI_MAX_NAME_STR-1 ) {
