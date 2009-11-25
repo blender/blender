@@ -53,6 +53,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -175,14 +176,17 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 		fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
 		
 		if (fcu && fcu->driver) {
-			fcu->driver->type= type;
+			ChannelDriver *driver= fcu->driver;
+			
+			/* set the type of the driver */
+			driver->type= type;
 			
 			/* fill in current value for python */
 			if (type == DRIVER_TYPE_PYTHON) {
 				PropertyType proptype= RNA_property_type(prop);
 				int array= RNA_property_array_length(&ptr, prop);
-				char *expression= fcu->driver->expression;
-				int val, maxlen= sizeof(fcu->driver->expression);
+				char *expression= driver->expression;
+				int val, maxlen= sizeof(driver->expression);
 				float fval;
 				
 				if (proptype == PROP_BOOLEAN) {

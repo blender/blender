@@ -731,6 +731,9 @@ DriverTarget *driver_add_new_target (ChannelDriver *driver)
 	dtar= MEM_callocN(sizeof(DriverTarget), "DriverTarget");
 	BLI_addtail(&driver->targets, dtar);
 	
+	/* make the default ID-type ID_OB, since most driver targets refer to objects */
+	dtar->idtype= ID_OB;
+	
 	/* give the target a 'unique' name */
 	strcpy(dtar->name, "var");
 	BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);

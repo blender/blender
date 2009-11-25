@@ -468,8 +468,8 @@ void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
 	ImBuf *ibuf;
-	GLint scissor[4];
-	int w, h;
+	//GLint scissor[4];
+	//int w, h;
 	
 	/* hardcoded to splash, loading and freeing every draw, eek! */
 	ibuf= IMB_ibImageFromMemory((int *)datatoc_splash_png, datatoc_splash_png_size, IB_rect);

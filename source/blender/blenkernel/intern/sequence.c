@@ -2007,7 +2007,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 		}
 	} else if(seq->type == SEQ_SCENE) {	// scene can be NULL after deletions
-		Scene *sce= seq->scene, *oldsce= scene;
+		Scene *sce= seq->scene;// *oldsce= scene;
 		Render *re;
 		RenderResult rres;
 		char scenename[64];

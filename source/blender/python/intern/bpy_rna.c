@@ -1473,7 +1473,7 @@ static PyObject *pyrna_struct_path_to_id(BPy_StructRNA *self, PyObject *args)
 static PyObject *pyrna_prop_path_to_id(BPy_PropertyRNA *self)
 {
 	char *path;
-	PropertyRNA *prop;
+	PropertyRNA *prop = self->prop;
 	PyObject *ret;
 
 	path= RNA_path_from_ID_to_property(&self->ptr, self->prop);
