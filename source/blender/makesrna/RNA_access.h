@@ -615,6 +615,7 @@ int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_multi_array_length(PointerRNA *ptr, PropertyRNA *prop, int dimension);
 int RNA_property_array_dimension(PointerRNA *ptr, PropertyRNA *prop, int length[]);
 char RNA_property_array_item_char(PropertyRNA *prop, int index);
+int RNA_property_array_item_index(PropertyRNA *prop, char name);
 
 int RNA_property_string_maxlength(PropertyRNA *prop);
 
@@ -718,7 +719,10 @@ char *RNA_path_append(const char *path, PointerRNA *ptr, PropertyRNA *prop,
 char *RNA_path_back(const char *path);
 
 int RNA_path_resolve(PointerRNA *ptr, const char *path,
-	PointerRNA *r_ptr, PropertyRNA **r_prop);
+        PointerRNA *r_ptr, PropertyRNA **r_prop);
+
+int RNA_path_resolve_full(PointerRNA *ptr, const char *path,
+        PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
 
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);

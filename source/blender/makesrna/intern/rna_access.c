@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -694,8 +695,56 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 		return vectoritem[index];
 	else if ((index < 4) && ELEM(subtype, PROP_COLOR, PROP_RGB))
 		return coloritem[index];
-	else
-		return '\0';
+
+	return '\0';
+}
+
+int RNA_property_array_item_index(PropertyRNA *prop, char name)
+{
+	PropertySubType subtype= rna_ensure_property(prop)->subtype;
+
+	name= toupper(name);
+
+	/* get index based on string name/alias */
+	/* maybe a function to find char index in string would be better than all the switches */
+	if (ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE)) {
+		switch (name) {
+			case 'W':
+				return 0;
+			case 'X':
+				return 1;
+			case 'Y':
+				return 2;
+			case 'Z':
+				return 3;
+		}
+	}
+	else if(ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION)) {
+		switch (name) {
+			case 'X':
+				return 0;
+			case 'Y':
+				return 1;
+			case 'Z':
+				return 2;
+			case 'W':
+				return 3;
+		}
+	}
+	else if (ELEM(subtype, PROP_COLOR, PROP_RGB)) {
+		switch (name) {
+			case 'R':
+				return 0;
+			case 'G':
+				return 1;
+			case 'B':
+				return 2;
+			case 'A':
+				return 3;
+		}
+	}
+
+	return -1;
 }
 
 void RNA_property_int_range(PointerRNA *ptr, PropertyRNA *prop, int *hardmin, int *hardmax)
@@ -2446,10 +2495,15 @@ static int rna_token_strip_quotes(char *token)
 /* Resolve the given RNA path to find the pointer+property indicated at the end of the path */
 int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
+	return RNA_path_resolve_full(ptr, path, r_ptr, r_prop, NULL);
+}
+
+int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *index)
+{
 	PropertyRNA *prop;
 	PointerRNA curptr, nextptr;
 	char fixedbuf[256], *token;
-	int len, intkey;
+	int type, len, intkey;
 
 	prop= NULL;
 	curptr= *ptr;
@@ -2484,43 +2538,78 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 		if(!prop)
 			return 0;
 
+		type= RNA_property_type(prop);
+
 		/* now look up the value of this property if it is a pointer or
 		 * collection, otherwise return the property rna so that the
 		 * caller can read the value of the property itself */
-		if(RNA_property_type(prop) == PROP_POINTER) {
+		switch (type) {
+		case PROP_POINTER:
 			nextptr= RNA_property_pointer_get(&curptr, prop);
 
 			if(nextptr.data)
 				curptr= nextptr;
 			else
 				return 0;
-		}
-		else if(RNA_property_type(prop) == PROP_COLLECTION && *path) {
-			/* resolve the lookup with [] brackets */
-			token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
 
-			if(!token)
-				return 0;
+			break;
+		case PROP_COLLECTION:
+			if(*path) {
+				/* resolve the lookup with [] brackets */
+				token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
 
-			len= strlen(token);
-			
-			/* check for "" to see if it is a string */
-			if(rna_token_strip_quotes(token)) {
-				RNA_property_collection_lookup_string(&curptr, prop, token+1, &nextptr);
+				if(!token)
+					return 0;
+
+				len= strlen(token);
+
+				/* check for "" to see if it is a string */
+				if(rna_token_strip_quotes(token)) {
+					RNA_property_collection_lookup_string(&curptr, prop, token+1, &nextptr);
+				}
+				else {
+					/* otherwise do int lookup */
+					intkey= atoi(token);
+					RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr);
+				}
+
+				if(token != fixedbuf)
+					MEM_freeN(token);
+
+				if(nextptr.data)
+					curptr= nextptr;
+				else
+					return 0;
 			}
-			else {
-				/* otherwise do int lookup */
-				intkey= atoi(token);
-				RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr);
+
+			break;
+		default:
+			if (index==NULL)
+				break;
+
+			*index= -1;
+
+			if (*path) {
+				if (*path=='[') {
+					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
+
+					/* check for "" to see if it is a string */
+					if(rna_token_strip_quotes(token)) {
+						*index= RNA_property_array_item_index(prop, *(token+1));
+					}
+					else {
+						/* otherwise do int lookup */
+						*index= atoi(token);
+					}
+				}
+				else {
+					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
+					*index= RNA_property_array_item_index(prop, *token);
+				}
+
+				if(token != fixedbuf)
+					MEM_freeN(token);
 			}
-
-			if(token != fixedbuf)
-				MEM_freeN(token);
-
-			if(nextptr.data)
-				curptr= nextptr;
-			else
-				return 0;
 		}
 	}
 
