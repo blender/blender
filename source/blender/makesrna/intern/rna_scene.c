@@ -48,7 +48,7 @@
 #include "WM_types.h"
 
 
-EnumPropertyItem snap_mode_items[] = {
+EnumPropertyItem snap_target_items[] = {
 	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
 	{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target."},
 	{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
@@ -70,6 +70,20 @@ EnumPropertyItem proportional_editing_items[] = {
 	{PROP_EDIT_OFF, "DISABLED", 0, "Disable", ""},
 	{PROP_EDIT_ON, "ENABLED", 0, "Enable", ""},
 	{PROP_EDIT_CONNECTED, "CONNECTED", 0, "Connected", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem mesh_select_mode_items[] = {
+	{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
+	{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
+	{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode."},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem snap_element_items[] = {
+	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments of grid."},
+	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices."},
+	{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges."},
+	{SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces."},
+	{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume."},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -561,19 +575,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode."},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem mesh_select_mode_items[] = {
-		{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
-		{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
-		{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode."},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem snap_element_items[] = {
-		{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices."},
-		{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges."},
-		{SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces."},
-		{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume."},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem auto_key_items[] = {
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
@@ -647,8 +648,8 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "snap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP);
-	RNA_def_property_ui_text(prop, "Snap", "Snap while Ctrl is held during transform.");
-	RNA_def_property_ui_icon(prop, ICON_SNAP_GEAR, 1);
+	RNA_def_property_ui_text(prop, "Snap", "Snap during transform.");
+	RNA_def_property_ui_icon(prop, ICON_SNAP_ON, 1);
 	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_align_rotation", PROP_BOOLEAN, PROP_NONE);
@@ -663,10 +664,10 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Snap Element", "Type of element to snap to.");
 	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
-	prop= RNA_def_property(srna, "snap_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "snap_target", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "snap_target");
-	RNA_def_property_enum_items(prop, snap_mode_items);
-	RNA_def_property_ui_text(prop, "Snap Mode", "Which part to snap onto the target.");
+	RNA_def_property_enum_items(prop, snap_target_items);
+	RNA_def_property_ui_text(prop, "Snap Target", "Which part to snap onto the target.");
 	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_peel_object", PROP_BOOLEAN, PROP_NONE);

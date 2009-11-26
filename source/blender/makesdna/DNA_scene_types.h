@@ -1007,10 +1007,11 @@ typedef struct Scene {
 #define SCE_SNAP_TARGET_MEDIAN	2
 #define SCE_SNAP_TARGET_ACTIVE	3
 /* toolsettings->snap_mode */
-#define SCE_SNAP_MODE_VERTEX	0
-#define SCE_SNAP_MODE_EDGE		1
-#define SCE_SNAP_MODE_FACE		2
-#define SCE_SNAP_MODE_VOLUME	3
+#define SCE_SNAP_MODE_INCREMENT	0
+#define SCE_SNAP_MODE_VERTEX	1
+#define SCE_SNAP_MODE_EDGE		2
+#define SCE_SNAP_MODE_FACE		3
+#define SCE_SNAP_MODE_VOLUME	4
 
 /* toolsettings->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */

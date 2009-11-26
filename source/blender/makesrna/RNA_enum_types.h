@@ -38,7 +38,9 @@ extern EnumPropertyItem object_mode_items[];
 
 extern EnumPropertyItem proportional_falloff_items[];
 extern EnumPropertyItem proportional_editing_items[];
-extern EnumPropertyItem snap_mode_items[];
+extern EnumPropertyItem snap_target_items[];
+extern EnumPropertyItem snap_element_items[];
+extern EnumPropertyItem mesh_select_mode_items[];
 extern EnumPropertyItem space_type_items[];
 extern EnumPropertyItem region_type_items[];
 extern EnumPropertyItem modifier_type_items[];
