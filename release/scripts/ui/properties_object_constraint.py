@@ -112,21 +112,21 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = split.column()
         col.label(text="Location:")
-        col.prop(con, "locationx", text="X")
-        col.prop(con, "locationy", text="Y")
-        col.prop(con, "locationz", text="Z")
+        col.prop(con, "use_location_x", text="X")
+        col.prop(con, "use_location_y", text="Y")
+        col.prop(con, "use_location_z", text="Z")
 
         col = split.column()
         col.label(text="Rotation:")
-        col.prop(con, "rotationx", text="X")
-        col.prop(con, "rotationy", text="Y")
-        col.prop(con, "rotationz", text="Z")
+        col.prop(con, "use_rotation_x", text="X")
+        col.prop(con, "use_rotation_y", text="Y")
+        col.prop(con, "use_rotation_z", text="Z")
 
         col = split.column()
         col.label(text="Scale:")
-        col.prop(con, "sizex", text="X")
-        col.prop(con, "sizey", text="Y")
-        col.prop(con, "sizez", text="Z")
+        col.prop(con, "use_scale_x", text="X")
+        col.prop(con, "use_scale_y", text="Y")
+        col.prop(con, "use_scale_z", text="Z")
 
         split = layout.split()
 
@@ -683,9 +683,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         if con.shrinkwrap_type == 'PROJECT':
             row = layout.row(align=True)
-            row.prop(con, "axis_x")
-            row.prop(con, "axis_y")
-            row.prop(con, "axis_z")
+            row.prop(con, "use_x")
+            row.prop(con, "use_y")
+            row.prop(con, "use_z")
 
     def DAMPED_TRACK(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)

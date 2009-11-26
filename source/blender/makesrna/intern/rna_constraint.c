@@ -368,49 +368,49 @@ static void rna_def_constraint_childof(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "locationx", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_location_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_LOCX);
 	RNA_def_property_ui_text(prop, "Location X", "Use X Location of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "locationy", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_location_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_LOCY);
 	RNA_def_property_ui_text(prop, "Location Y", "Use Y Location of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "locationz", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_location_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_LOCZ);
 	RNA_def_property_ui_text(prop, "Location Z", "Use Z Location of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "rotationx", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_rotation_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_ROTX);
 	RNA_def_property_ui_text(prop, "Rotation X", "Use X Rotation of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "rotationy", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_rotation_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_ROTY);
 	RNA_def_property_ui_text(prop, "Rotation Y", "Use Y Rotation of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "rotationz", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_rotation_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_ROTZ);
 	RNA_def_property_ui_text(prop, "Rotation Z", "Use Z Rotation of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "sizex", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_scale_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_SIZEX);
-	RNA_def_property_ui_text(prop, "Size X", "Use X Scale of Parent.");
+	RNA_def_property_ui_text(prop, "Scale X", "Use X Scale of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "sizey", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_scale_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_SIZEY);
-	RNA_def_property_ui_text(prop, "Size Y", "Use Y Scale of Parent.");
+	RNA_def_property_ui_text(prop, "Scale Y", "Use Y Scale of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "sizez", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_scale_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_SIZEZ);
-	RNA_def_property_ui_text(prop, "Size Z", "Use Z Scale of Parent.");
+	RNA_def_property_ui_text(prop, "Scale Z", "Use Z Scale of Parent.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
@@ -1650,17 +1650,17 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Distance", "Distance to Target.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "axis_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS);
 	RNA_def_property_ui_text(prop, "Axis X", "Projection over X Axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "axis_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS);
 	RNA_def_property_ui_text(prop, "Axis Y", "Projection over Y Axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "axis_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS);
 	RNA_def_property_ui_text(prop, "Axis Z", "Projection over Z Axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
