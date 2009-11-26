@@ -82,6 +82,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -3663,21 +3664,11 @@ void EM_deselect_by_material(EditMesh *em, int index)
 static void mesh_selection_type(ToolSettings *ts, EditMesh *em, int val)
 {
 	if(val>0) {
-		if(val==1) { 
-			em->selectmode= SCE_SELECT_VERTEX;
-			EM_selectmode_set(em);
-		}
-		else if(val==2) {
-			//if(ctrl) EM_convertsel(em, em->selectmode, SCE_SELECT_EDGE);
-			em->selectmode= SCE_SELECT_EDGE;
-			EM_selectmode_set(em);
-		}
-		
-		else{
-			//if((ctrl)) EM_convertsel(em, em->selectmode, SCE_SELECT_FACE);
-			em->selectmode= SCE_SELECT_FACE;
-			EM_selectmode_set(em);
-		}
+		//if(ctrl) EM_convertsel(em, em->selectmode, SCE_SELECT_EDGE);
+		//if((ctrl)) EM_convertsel(em, em->selectmode, SCE_SELECT_FACE);
+
+		em->selectmode= val;
+		EM_selectmode_set(em);
 		
 		/* note, em stores selectmode to be able to pass it on everywhere without scene,
 		   this is only until all select modes and toolsettings are settled more */
@@ -3685,13 +3676,6 @@ static void mesh_selection_type(ToolSettings *ts, EditMesh *em, int val)
 //		if (EM_texFaceCheck())
 	}
 }
-
-static EnumPropertyItem prop_mesh_edit_types[] = {
-	{1, "VERT", ICON_VERTEXSEL, "Vertices", ""},
-	{2, "EDGE", ICON_EDGESEL, "Edges", ""},
-	{3, "FACE", ICON_FACESEL, "Faces", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
 static int mesh_selection_type_exec(bContext *C, wmOperator *op)
 {		
@@ -3702,6 +3686,7 @@ static int mesh_selection_type_exec(bContext *C, wmOperator *op)
 	mesh_selection_type(ts, em, RNA_enum_get(op->ptr,"type"));
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, NULL); /* header redraw */
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -3721,10 +3706,10 @@ void MESH_OT_selection_type(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "type", prop_mesh_edit_types, 0, "Type", "Set the mesh selection type");
+	RNA_def_enum(ot->srna, "type", mesh_select_mode_items, 0, "Type", "Set the mesh selection type");
 	
 }
 /* ************************* SEAMS AND EDGES **************** */
