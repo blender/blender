@@ -2573,7 +2573,7 @@ void updateDuplicateSubtarget(EditBone *dupBone, ListBase *editbones, Object *ob
 
 EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
 {
-	EditBone *eBone = MEM_callocN(sizeof(EditBone), "addup_editbone");
+	EditBone *eBone = MEM_mallocN(sizeof(EditBone), "addup_editbone");
 	
 	/*	Copy data from old bone to new bone */
 	memcpy(eBone, curBone, sizeof(EditBone));
@@ -2589,6 +2589,10 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *edit
 	unique_editbone_name(editbones, eBone->name, NULL);
 	BLI_addtail(editbones, eBone);
 	
+	/* copy the ID property */
+	if(curBone->prop)
+		eBone->prop= IDP_CopyProperty(curBone->prop);
+
 	/* Lets duplicate the list of constraints that the
 	 * current bone has.
 	 */
@@ -2653,37 +2657,12 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 	for (curBone=arm->edbo->first; curBone && curBone!=firstDup; curBone=curBone->next) {
 		if (EBONE_VISIBLE(arm, curBone)) {
 			if (curBone->flag & BONE_SELECTED) {
-				eBone=MEM_callocN(sizeof(EditBone), "addup_editbone");
-				eBone->flag |= BONE_SELECTED;
 				
-				/* Copy data from old bone to new bone */
-				memcpy(eBone, curBone, sizeof(EditBone));
+				eBone= duplicateEditBone(curBone, curBone->name, arm->edbo, obedit);
 				
-				curBone->temp = eBone;
-				eBone->temp = curBone;
-				
-				unique_editbone_name(arm->edbo, eBone->name, NULL);
-				BLI_addtail(arm->edbo, eBone);
 				if (!firstDup)
 					firstDup=eBone;
 
-				/* Lets duplicate the list of constraints that the
-				 * current bone has.
-				 */
-				if (obedit->pose) {
-					bPoseChannel *chanold, *channew;
-					
-					chanold = verify_pose_channel(obedit->pose, curBone->name);
-					if (chanold) {
-						/* WARNING: this creates a new posechannel, but there will not be an attached bone
-						 *		yet as the new bones created here are still 'EditBones' not 'Bones'.
-						 */
-						channew= verify_pose_channel(obedit->pose, eBone->name);
-						if(channew) {
-							duplicate_pose_channel_data(channew, chanold);
-						}
-					}
-				}
 			}
 		}
 	}
