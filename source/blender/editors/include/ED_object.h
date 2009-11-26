@@ -92,6 +92,7 @@ int object_data_is_libdata(struct Object *ob);
 
 /* constraints */
 struct ListBase *get_active_constraints(struct Object *ob);
+struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r);
 struct bConstraint *get_active_constraint(struct Object *ob);
 
 void object_test_constraints(struct Object *ob);

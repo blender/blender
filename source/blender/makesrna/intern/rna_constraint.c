@@ -92,6 +92,8 @@ EnumPropertyItem constraint_ik_axisref_items[] ={
 
 #ifdef RNA_RUNTIME
 
+#include <stdio.h>
+
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
@@ -168,7 +170,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 	/* make sure name is unique */
 	if (ptr->id.data) {
 		Object *ob= ptr->id.data;
-		ListBase *list= get_active_constraints(ob);
+		ListBase *list = get_constraint_lb(ob, con, NULL);
 		
 		/* if we have the list, check for unique name, otherwise give up */
 		if (list)
@@ -183,19 +185,17 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 	bConstraint *con= ptr->data;
-	bPoseChannel *pchan= get_active_posechannel(ob);
-	ListBase *actlist= get_active_constraints(ob);
-	short inList = 0;
-	
-	/* check if constraint is in the given list */
-	if (actlist)
-		inList= (BLI_findindex(actlist, con) != -1);
-	
-	/* if constraint is in the list, the list is for the active bone... */
-	if ((inList) && (actlist != &ob->constraints) && (pchan))
+	bPoseChannel *pchan;
+	ListBase *lb = get_constraint_lb(ob, con, &pchan);
+
+	if(lb == NULL)
+		printf("rna_Constraint_path: internal error, constraint '%s' not found in object '%s'\n", con->name, ob->id.name);
+
+	if(pchan) {
 		return BLI_sprintfN("pose.bones[\"%s\"].constraints[\"%s\"]", pchan->name, con->name);
-	else
-		return BLI_sprintfN("constraints[\"%s\"]", con->name);
+	}
+	
+	return BLI_sprintfN("constraints[\"%s\"]", con->name);
 }
 
 static void rna_Constraint_update(bContext *C, PointerRNA *ptr)

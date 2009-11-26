@@ -98,6 +98,33 @@ ListBase *get_active_constraints (Object *ob)
 	return NULL;
 }
 
+ListBase *get_constraint_lb (Object *ob, bConstraint *con, bPoseChannel **pchan_r)
+{
+	if(pchan_r)
+		*pchan_r= NULL;
+
+	if (ELEM(NULL, ob, con))
+		return NULL;
+
+	if((BLI_findindex(&ob->constraints, con) != -1)) {
+		return &ob->constraints;
+	}
+	else if(ob->pose) {
+		bPoseChannel *pchan;
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if((BLI_findindex(&pchan->constraints, con) != -1)) {
+
+				if(pchan_r)
+					*pchan_r= pchan;
+
+				return &pchan->constraints;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 /* single constraint */
 bConstraint *get_active_constraint (Object *ob)
 {
