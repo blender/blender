@@ -661,19 +661,19 @@ static void rna_def_constraint_rotate_like(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "rotate_like_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_X);
-	RNA_def_property_ui_text(prop, "Like X", "Copy the target's X rotation.");
+	RNA_def_property_ui_text(prop, "Copy X", "Copy the target's X rotation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "rotate_like_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Y);
-	RNA_def_property_ui_text(prop, "Like Y", "Copy the target's Y rotation.");
+	RNA_def_property_ui_text(prop, "Copy Y", "Copy the target's Y rotation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "rotate_like_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Z);
-	RNA_def_property_ui_text(prop, "Like Z", "Copy the target's Z rotation.");
+	RNA_def_property_ui_text(prop, "Copy Z", "Copy the target's Z rotation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop= RNA_def_property(srna, "invert_x", PROP_BOOLEAN, PROP_NONE);
@@ -724,19 +724,19 @@ static void rna_def_constraint_locate_like(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "locate_like_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LOCLIKE_X);
-	RNA_def_property_ui_text(prop, "Like X", "Copy the target's X location.");
+	RNA_def_property_ui_text(prop, "Copy X", "Copy the target's X location.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "locate_like_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LOCLIKE_Y);
-	RNA_def_property_ui_text(prop, "Like Y", "Copy the target's Y location.");
+	RNA_def_property_ui_text(prop, "Copy Y", "Copy the target's Y location.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "locate_like_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LOCLIKE_Z);
-	RNA_def_property_ui_text(prop, "Like Z", "Copy the target's Z location.");
+	RNA_def_property_ui_text(prop, "Copy Z", "Copy the target's Z location.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop= RNA_def_property(srna, "invert_x", PROP_BOOLEAN, PROP_NONE);
@@ -832,19 +832,19 @@ static void rna_def_constraint_size_like(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "size_like_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_X);
-	RNA_def_property_ui_text(prop, "Like X", "Copy the target's X scale.");
+	RNA_def_property_ui_text(prop, "Copy X", "Copy the target's X scale.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "size_like_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_Y);
-	RNA_def_property_ui_text(prop, "Like Y", "Copy the target's Y scale.");
+	RNA_def_property_ui_text(prop, "Copy Y", "Copy the target's Y scale.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "size_like_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_Z);
-	RNA_def_property_ui_text(prop, "Like Z", "Copy the target's Z scale.");
+	RNA_def_property_ui_text(prop, "Copy Z", "Copy the target's Z scale.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop= RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);

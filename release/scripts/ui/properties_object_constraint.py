@@ -402,21 +402,21 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(con, "rotate_like_x", text="X")
+        col.prop(con, "use_x", text="X")
         sub = col.column()
-        sub.active = con.rotate_like_x
+        sub.active = con.use_x
         sub.prop(con, "invert_x", text="Invert")
 
         col = split.column()
-        col.prop(con, "rotate_like_y", text="Y")
+        col.prop(con, "use_y", text="Y")
         sub = col.column()
-        sub.active = con.rotate_like_y
+        sub.active = con.use_y
         sub.prop(con, "invert_y", text="Invert")
 
         col = split.column()
-        col.prop(con, "rotate_like_z", text="Z")
+        col.prop(con, "use_z", text="Z")
         sub = col.column()
-        sub.active = con.rotate_like_z
+        sub.active = con.use_z
         sub.prop(con, "invert_z", text="Invert")
 
         layout.prop(con, "use_offset")
@@ -429,21 +429,21 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(con, "locate_like_x", text="X")
+        col.prop(con, "use_x", text="X")
         sub = col.column()
-        sub.active = con.locate_like_x
+        sub.active = con.use_x
         sub.prop(con, "invert_x", text="Invert")
 
         col = split.column()
-        col.prop(con, "locate_like_y", text="Y")
+        col.prop(con, "use_y", text="Y")
         sub = col.column()
-        sub.active = con.locate_like_y
+        sub.active = con.use_y
         sub.prop(con, "invert_y", text="Invert")
 
         col = split.column()
-        col.prop(con, "locate_like_z", text="Z")
+        col.prop(con, "use_z", text="Z")
         sub = col.column()
-        sub.active = con.locate_like_z
+        sub.active = con.use_z
         sub.prop(con, "invert_z", text="Invert")
 
         layout.prop(con, "use_offset")
@@ -454,9 +454,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         self.target_template(layout, con, wide_ui)
 
         row = layout.row(align=True)
-        row.prop(con, "size_like_x", text="X")
-        row.prop(con, "size_like_y", text="Y")
-        row.prop(con, "size_like_z", text="Z")
+        row.prop(con, "use_x", text="X")
+        row.prop(con, "use_y", text="Y")
+        row.prop(con, "use_z", text="Z")
 
         layout.prop(con, "use_offset")
 
