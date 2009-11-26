@@ -1355,8 +1355,11 @@ void wm_event_do_handlers(bContext *C)
 			
 			/* store last event for this window */
 			if (action == WM_HANDLER_CONTINUE) {
-				win->last_type = event->type;
-				win->last_val = event->val;
+				/* mousemove event don't overwrite last type */
+				if (event->type != MOUSEMOVE) {
+					win->last_type = event->type;
+					win->last_val = event->val;
+				}
 			} else {
 				win->last_type = -1;
 				win->last_val = 0;
