@@ -2253,8 +2253,8 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 				mul_mat3_m4_v3(offs_bone, chan_loc);
 
 			/* for hinge we use armature instead of pose mat */
-			if(bone->flag & BONE_HINGE) mul_m4_v3(parbone->arm_mat, chan_loc);
-			else mul_m4_v3(parchan->pose_mat, chan_loc);
+			if(bone->flag & BONE_HINGE) mul_mat3_m4_v3(parbone->arm_mat, chan_loc);
+			else mul_mat3_m4_v3(parchan->pose_mat, chan_loc);
 
 			add_v3_v3v3(pchan->pose_mat[3], bone_loc, chan_loc);
 		}
