@@ -34,12 +34,13 @@ class SubsurfSet(bpy.types.Operator):
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
+        level = self.properties.level
         ob = context.active_object
         for mod in ob.modifiers:
             if mod.type == 'SUBSURF':
                 if mod.levels != level:
                     mod.levels = level
-                return
+                return ('FINISHED',)
         
         # adda new modifier
         bpy.ops.object.modifier_add(type='SUBSURF') # TODO, support adding directly
