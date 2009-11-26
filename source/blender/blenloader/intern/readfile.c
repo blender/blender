@@ -10100,6 +10100,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ntree= ntree->id.next;
 			}
 		}
+		{
+			Object *ob=main->object.first;
+			while (ob) {
+				/* shaded mode disabled for now */
+				if (ob->dt == OB_SHADED) ob->dt = OB_TEXTURE;
+				ob=ob->id.next;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

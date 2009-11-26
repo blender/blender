@@ -1317,7 +1317,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUNDBOX, "BOUNDS", 0, "Bounds", ""},
 		{OB_WIRE, "WIRE", 0, "Wire", ""},
 		{OB_SOLID, "SOLID", 0, "Solid", ""},
-		{OB_SHADED, "SHADED", 0, "Shaded", ""},
+		// disabled {OB_SHADED, "SHADED", 0, "Shaded", ""},
 		{OB_TEXTURE, "TEXTURED", 0, "Textured", ""},
 		{0, NULL, 0, NULL, NULL}};
 
