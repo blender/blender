@@ -1106,8 +1106,10 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 
 			
 			if (oldblendobj==NULL) {
-				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
-				bHasShapeKey= bHasDvert= bHasArmature=bHasModifier=bHasSoftBody= false;
+				if (bHasModifier || bHasShapeKey || bHasDvert || bHasArmature) {
+					std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
+					bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
+				}
 			}
 			
 			if (bHasModifier)
