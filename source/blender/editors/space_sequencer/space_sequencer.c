@@ -194,6 +194,23 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
+static void sequencer_main_area_draw(const bContext *C, ARegion *ar)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceSeq *sseq= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	
+	
+	if (sseq->mainb != SEQ_DRAW_SEQUENCE) {
+		/* image-viewer types */
+		draw_image_seq(scene, ar, sseq);
+	}
+	else {
+		/* NLE - strip editing timeline interface */
+		draw_timeline_seq(C, ar);
+	}
+}
+
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_header_area_init(wmWindowManager *wm, ARegion *ar)
@@ -281,7 +298,7 @@ void ED_spacetype_sequencer(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= sequencer_main_area_init;
-	art->draw= drawseqspace;
+	art->draw= sequencer_main_area_draw;
 	art->listener= sequencer_main_area_listener;
 	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_ANIMATION;
 
