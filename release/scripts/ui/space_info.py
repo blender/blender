@@ -179,7 +179,7 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.operator_context = 'EXEC_SCREEN'
 
-        # layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+        #layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
         layout.menu("INFO_MT_mesh_add", icon='ICON_OUTLINER_OB_MESH')
 
         layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
@@ -189,7 +189,7 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator_context = 'INVOKE_SCREEN'
+        layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice", icon='ICON_OUTLINER_OB_LATTICE').type = 'LATTICE'
