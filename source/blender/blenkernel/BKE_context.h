@@ -250,7 +250,7 @@ int CTX_data_editable_bones(const bContext *C, ListBase *list);
 
 struct bPoseChannel *CTX_data_active_pose_bone(const bContext *C);
 int CTX_data_selected_pose_bones(const bContext *C, ListBase *list);
-int CTX_data_visible_bose_bones(const bContext *C, ListBase *list);
+int CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 
 #ifdef __cplusplus
 }
