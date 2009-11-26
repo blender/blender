@@ -5085,7 +5085,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
 		/* check if any need to apply nla-mapping */
-		if (adt) {
+		if (adt && t->spacetype != SPACE_SEQ) {
 			deltax = t->values[0];
 
 			if (autosnap == SACTSNAP_STEP) {
