@@ -36,6 +36,7 @@ struct bContext;
 struct Base;
 struct View3D;
 struct bConstraint;
+struct bPoseChannel;
 struct KeyBlock;
 struct Lattice;
 struct Mesh;
