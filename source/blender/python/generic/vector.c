@@ -626,36 +626,30 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 {
 	int i;
-
 	VectorObject *vec1 = NULL, *vec2 = NULL;
+
+	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
+		return NULL;
+	}
+	vec1 = (VectorObject*)v1;
+	vec2 = (VectorObject*)v2;
 	
-	if VectorObject_Check(v1)
-		vec1= (VectorObject *)v1;
-	
-	if VectorObject_Check(v2)
-		vec2= (VectorObject *)v2;
-	
-	/* make sure v1 is always the vector */
-	if (vec1 && vec2 ) {
-		
-		if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
-			return NULL;
-		
-		/*VECTOR + VECTOR*/
-		if(vec1->size != vec2->size) {
-			PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation\n");
-			return NULL;
-		}
-		for(i = 0; i < vec1->size; i++) {
-			vec1->vec[i] +=	vec2->vec[i];
-		}
-		Py_INCREF( v1 );
-		return v1;
+	if(vec1->size != vec2->size) {
+		PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation\n");
+		return NULL;
 	}
 	
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
+		return NULL;
+
+	for(i = 0; i < vec1->size; i++) {
+		vec1->vec[i] = vec1->vec[i] + vec2->vec[i];
+	}
+
 	BaseMath_WriteCallback(vec1);
-	PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
-	return NULL;
+	Py_INCREF( v1 );
+	return v1;
 }
 
 /*------------------------obj - obj------------------------------
