@@ -313,6 +313,17 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", ONEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 1);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", TWOKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 2);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", THREEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 3);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", FOURKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 4);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", FIVEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 5);
+
 	/* Lattice -------------------------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);
 	keymap->poll= ED_operator_editlattice;
