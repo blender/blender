@@ -2397,7 +2397,9 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
 	arm->sketch = NULL;
+	
 	arm->adt= newdataadr(fd, arm->adt);
+	direct_link_animdata(fd, arm->adt);
 	
 	bone=arm->bonebase.first;
 	while (bone) {

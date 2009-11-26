@@ -37,6 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
@@ -49,6 +50,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -126,6 +128,12 @@ void free_armature(bArmature *arm)
 		if (arm->sketch) {
 			freeSketch(arm->sketch);
 			arm->sketch = NULL;
+		}
+		
+		/* free animation data */
+		if (arm->adt) {
+			BKE_free_animdata(&arm->id);
+			arm->adt= NULL;
 		}
 	}
 }
