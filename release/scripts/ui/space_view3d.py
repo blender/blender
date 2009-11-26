@@ -102,9 +102,9 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         
         layout.operator_context = 'EXEC_AREA'
         
-        layout.operator("object.center_set").type = 'CENTER'
-        layout.operator("object.center_set").type = 'CENTER_NEW'
-        layout.operator("object.center_set").type = 'CENTER_CURSOR'
+        layout.operator("object.center_set", text="ObData to Center").type = 'CENTER'
+        layout.operator("object.center_set", text="Center New").type = 'CENTER_NEW'
+        layout.operator("object.center_set", text="Center Cursor").type = 'CENTER_CURSOR'
      
 class VIEW3D_MT_mirror(bpy.types.Menu):
     bl_label = "Mirror"

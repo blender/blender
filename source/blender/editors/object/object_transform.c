@@ -1011,6 +1011,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 	
 	if (tot_change) {
 		DAG_ids_flush_update(0);
+		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	}
 	
 	/* Warn if any errors occured */

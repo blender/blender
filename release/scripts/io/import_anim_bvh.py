@@ -227,8 +227,6 @@ def read_bvh(context, file_path, GLOBAL_SCALE=1.0):
 				if ROT_STYLE != 'NATIVE':
 					rx, ry, rz = eulerRotate(rx, ry, rz, bvh_node.rot_order)
 				
-				#x,y,z = x/10.0, y/10.0, z/10.0 # For IPO's 36 is 360d
-				
 				# Make interpolation not cross between 180d, thjis fixes sub frame interpolation and time scaling.
 				# Will go from (355d to 365d) rather then to (355d to 5d) - inbetween these 2 there will now be a correct interpolation.
 				
@@ -337,7 +335,7 @@ def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP
 			
 			bvh_node.temp.rot= rx*DEG2RAD,ry*DEG2RAD,rz*DEG2RAD
 			
-			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeyTypes.LOCROT)
+			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeyTypes.LOCROT) # XXX invalid
 	
 	scn.update(1)
 	return objects
@@ -540,6 +538,7 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 	'''
 	
 	# KEYFRAME METHOD, SLOW, USE IPOS DIRECT
+	# TODO: use f-point samples instead (Aligorith)
 	
 	# Animate the data, the last used bvh_node will do since they all have the same number of frames
 	for current_frame in range(len(bvh_node.anim_data)-1): # skip the first frame (rest frame)
