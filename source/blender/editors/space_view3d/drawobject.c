@@ -5642,7 +5642,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if((flag & DRAW_CONSTCOLOR) == 0) {
 		project_short(ar, ob->obmat[3], &base->sx);
 
-		if((G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) UI_ThemeColor(TH_TRANSFORM);
+		if( (!scene->obedit) && (G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) UI_ThemeColor(TH_TRANSFORM);
 		else {
 
 			if(ob->type==OB_LAMP) UI_ThemeColor(TH_LAMP);
