@@ -252,7 +252,7 @@ static int rna_FCurve_modifiers_remove(FCurve *fcu, bContext *C, int index)
 	return remove_fmodifier_index(&fcu->modifiers, index);
 }
 
-static void rna_Fmodifier_active_set(PointerRNA *ptr, int value)
+static void rna_FModifier_active_set(PointerRNA *ptr, int value)
 {
 	FModifier *fm= (FModifier*)ptr->data;
 
@@ -260,7 +260,7 @@ static void rna_Fmodifier_active_set(PointerRNA *ptr, int value)
 	fm->flag |= FMODIFIER_FLAG_ACTIVE;
 }
 
-static void rna_Fmodifier_active_update(bContext *C, PointerRNA *ptr)
+static void rna_FModifier_active_update(bContext *C, PointerRNA *ptr)
 {
 	FModifier *fm, *fmo= (FModifier*)ptr->data;
 
@@ -278,8 +278,8 @@ static void rna_Fmodifier_active_update(bContext *C, PointerRNA *ptr)
 
 static int rna_FModifierGenerator_coefficients_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
-	FModifier *fm= (FModifier*)ptr->data;
-	FMod_Generator *gen= fm->data;
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fcm->data;
 
 	if(gen)
 		length[0]= gen->arraysize;
@@ -291,15 +291,15 @@ static int rna_FModifierGenerator_coefficients_get_length(PointerRNA *ptr, int l
 
 static void rna_FModifierGenerator_coefficients_get(PointerRNA *ptr, float *values)
 {
-	FModifier *fm= (FModifier*)ptr->data;
-	FMod_Generator *gen= fm->data;
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fcm->data;
 	memcpy(values, gen->coefficients, gen->arraysize * sizeof(float));
 }
 
 static void rna_FModifierGenerator_coefficients_set(PointerRNA *ptr, const float *values)
 {
-	FModifier *fm= (FModifier*)ptr->data;
-	FMod_Generator *gen= fm->data;
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fcm->data;
 	memcpy(gen->coefficients, values, gen->arraysize * sizeof(float));
 }
 
@@ -338,19 +338,13 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Polynomial Order", "The highest power of 'x' for this polynomial. (number of coefficients - 1)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-
+	/* coefficients array */
 	prop= RNA_def_property(srna, "coefficients", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_array(prop, 32);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_dynamic_array_funcs(prop, "rna_FModifierGenerator_coefficients_get_length");
 	RNA_def_property_float_funcs(prop, "rna_FModifierGenerator_coefficients_get", "rna_FModifierGenerator_coefficients_set", NULL);
 	RNA_def_property_ui_text(prop, "Coefficients", "Coefficients for 'x' (starting from lowest power of x^0).");
-
-	/* coefficients array */
-		// FIXME: this is quite difficult to try to wrap
-	//prop= RNA_def_property(srna, "coefficients", PROP_COLLECTION, PROP_NONE);
-	//RNA_def_property_collection_funcs(prop, "rna_FModifierGenerator_coefficients_begin", "rna_FModifierGenerator_coefficients_next", "rna_FModifierGenerator_coefficients_end", "rna_iterator_array_get", "rna_FModifierGenerator_coefficients_length", 0, 0, 0, 0);
-	//RNA_def_property_ui_text(prop, "Coefficients", "Coefficients for 'x' (starting from lowest power of x^0).");
 }
 
 /* --------- */
@@ -707,8 +701,8 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_ACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "F-Curve Modifier is the one being edited ");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Fmodifier_active_set");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, "rna_Fmodifier_active_update");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_FModifier_active_set");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, "rna_FModifier_active_update");
 	RNA_def_property_ui_icon(prop, ICON_RADIOBUT_OFF, 1);
 }	
 
@@ -848,10 +842,9 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
 }
 
-/* channeldriver.targets.* */
 static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
-	/* add target */
+	/* add modifiers */
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -861,7 +854,7 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "FCurveModifiers");
 	srna= RNA_def_struct(brna, "FCurveModifiers", NULL);
 	RNA_def_struct_sdna(srna, "FCurve");
-	RNA_def_struct_ui_text(srna, "FCurve Modifiers", "Collection of fcurve modifiers.");
+	RNA_def_struct_ui_text(srna, "F-Curve Modifiers", "Collection of F-Curve Modifiers.");
 
 
 	/* Collection active property */

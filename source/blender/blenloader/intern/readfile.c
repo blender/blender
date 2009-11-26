@@ -1708,6 +1708,9 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 {
 	FCurve *fcu;
 	
+	if (list == NULL)
+		return;
+	
 	/* relink ID-block references... */
 	for (fcu= list->first; fcu; fcu= fcu->next) {
 		/* driver data */
@@ -1853,6 +1856,9 @@ static void lib_link_nladata_strips(FileData *fd, ID *id, ListBase *list)
 	for (strip= list->first; strip; strip= strip->next) {
 		/* check strip's children */
 		lib_link_nladata_strips(fd, id, &strip->strips);
+		
+		/* check strip's F-Curves */
+		lib_link_fcurves(fd, id, &strip->fcurves);
 		
 		/* reassign the counted-reference to action */
 		strip->act = newlibadr_us(fd, id->lib, strip->act);
@@ -10511,6 +10517,9 @@ static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *lis
 	for (strip= list->first; strip; strip= strip->next) {
 		/* check child strips */
 		expand_animdata_nlastrips(fd, mainvar, &strip->strips);
+		
+		/* check F-Curves */
+		expand_fcurves(fd, mainvar, &strip->fcurves);
 		
 		/* check F-Modifiers */
 		expand_fmodifiers(fd, mainvar, &strip->modifiers);

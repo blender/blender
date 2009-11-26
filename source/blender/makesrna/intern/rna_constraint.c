@@ -286,6 +286,35 @@ static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float
 	}
 }
 
+static int rna_SplineIKConstraint_joint_bindings_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	bConstraint *con= (bConstraint*)ptr->data;
+	bSplineIKConstraint *ikData= (bSplineIKConstraint *)con->data;
+
+	if (ikData)
+		length[0]= ikData->numpoints;
+	else
+		length[0]= 256; /* for raw_access, untested */
+
+	return length[0];
+}
+
+static void rna_SplineIKConstraint_joint_bindings_get(PointerRNA *ptr, float *values)
+{
+	bConstraint *con= (bConstraint*)ptr->data;
+	bSplineIKConstraint *ikData= (bSplineIKConstraint *)con->data;
+	
+	memcpy(values, ikData->points, ikData->numpoints * sizeof(float));
+}
+
+static void rna_SplineIKConstraint_joint_bindings_set(PointerRNA *ptr, const float *values)
+{
+	bConstraint *con= (bConstraint*)ptr->data;
+	bSplineIKConstraint *ikData= (bSplineIKConstraint *)con->data;
+	
+	memcpy(ikData->points, values, ikData->numpoints * sizeof(float));
+}
+
 #else
 
 EnumPropertyItem constraint_distance_items[] = {
@@ -1703,9 +1732,13 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	
 	/* direct access to bindings */
 	// NOTE: only to be used by experienced users
-	//prop= RNA_def_property(srna, "joint_bindings", PROP_FLOAT, PROP_FACTOR);
-	//RNA_def_property_collection_sdna(prop, NULL, "points", "numpoints");
-	//RNA_def_property_ui_text(prop, "Joint Bindings", "(EXPERIENCED USERS ONLY) The relative positions of the joints along the chain as percentages.");
+	prop= RNA_def_property(srna, "joint_bindings", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_array(prop, 32); // XXX this is the maximum value allowed
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_SplineIKConstraint_joint_bindings_get_length");
+	RNA_def_property_float_funcs(prop, "rna_SplineIKConstraint_joint_bindings_get", "rna_SplineIKConstraint_joint_bindings_set", NULL);
+	RNA_def_property_ui_text(prop, "Joint Bindings", "(EXPERIENCED USERS ONLY) The relative positions of the joints along the chain as percentages.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
 	/* settings */
 	prop= RNA_def_property(srna, "chain_offset", PROP_BOOLEAN, PROP_NONE);
