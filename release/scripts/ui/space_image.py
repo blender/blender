@@ -149,7 +149,22 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
         layout.operator("tfm.translate")
         layout.operator("tfm.rotate")
         layout.operator("tfm.resize")
+		
+class IMAGE_MT_uvs_snap(bpy.types.Menu):
+    bl_label = "Snap"
 
+    def draw(self, context):	
+        layout = self.layout
+        layout.operator_context = 'EXEC_REGION_WIN'
+		
+        layout.operator("uv.snap_selection", text="Selected to Pixels").target = 'PIXELS'
+        layout.operator("uv.snap_selection", text="Selected to Cursor").target = 'CURSOR'
+        layout.operator("uv.snap_selection", text="Selected to Adjacent Unselected").target = 'ADJACENT_UNSELECTED'
+
+        layout.separator()
+
+        layout.operator("uv.snap_cursor", text="Cursor to Pixels").target = 'PIXELS'
+        layout.operator("uv.snap_cursor", text="Cursor to Selection").target = 'SELECTION'
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
     bl_label = "Mirror"
@@ -203,6 +218,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         layout.menu("IMAGE_MT_uvs_transform")
         layout.menu("IMAGE_MT_uvs_mirror")
+        layout.menu("IMAGE_MT_uvs_snap")
         layout.menu("IMAGE_MT_uvs_weldalign")
 
         layout.separator()
@@ -520,6 +536,7 @@ bpy.types.register(IMAGE_MT_select)
 bpy.types.register(IMAGE_MT_image)
 bpy.types.register(IMAGE_MT_uvs_showhide)
 bpy.types.register(IMAGE_MT_uvs_transform)
+bpy.types.register(IMAGE_MT_uvs_snap)
 bpy.types.register(IMAGE_MT_uvs_mirror)
 bpy.types.register(IMAGE_MT_uvs_weldalign)
 bpy.types.register(IMAGE_MT_uvs)
