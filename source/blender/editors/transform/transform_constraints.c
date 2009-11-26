@@ -290,7 +290,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 		mul_m3_v3(t->con.pmtx, out);
 
 		// With snap, a projection is alright, no need to correct for view alignment
-		if ((t->tsnap.status & SNAP_ON) == 0) {
+		if (!(t->tsnap.mode != SCE_SNAP_MODE_INCREMENT && t->modifiers & MOD_SNAP)) {
 			if (getConstraintSpaceDimension(t) == 2) {
 				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 					planeProjection(t, in, out);
@@ -316,7 +316,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 }
 
 /*
- * Generic callback for object based spacial constraints applied to linear motion
+ * Generic callback for object based spatial constraints applied to linear motion
  *
  * At first, the following is applied to the first data in the array
  * The IN vector in projected into the constrained space and then further

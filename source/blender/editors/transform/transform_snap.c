@@ -125,8 +125,8 @@ int BIF_snappingSupported(Object *obedit)
 
 void drawSnapping(const struct bContext *C, TransInfo *t)
 {
-	if ((t->tsnap.status & (SNAP_ON|POINT_INIT|TARGET_INIT)) == (SNAP_ON|POINT_INIT|TARGET_INIT) &&
-		(t->modifiers & MOD_SNAP_GEARS))
+	if ((t->tsnap.status & (POINT_INIT|TARGET_INIT)) == (POINT_INIT|TARGET_INIT) &&
+		(t->modifiers & MOD_SNAP))
 		{
 		
 		char col[4] = {1, 0, 1};
@@ -205,7 +205,8 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 int  handleSnapping(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
-	
+
+#if 0 // XXX need a proper selector for all snap mode
 	if (BIF_snappingSupported(t->obedit) && event->type == TABKEY && event->shift)
 	{
 		/* toggle snap and reinit */
@@ -213,6 +214,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 		initSnapping(t, NULL);
 		status = 1;
 	}
+#endif
 	
 	return status;
 }
@@ -220,7 +222,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 void applyProject(TransInfo *t)
 {
 	/* XXX FLICKER IN OBJECT MODE */
-	if ((t->tsnap.project) && (t->tsnap.status & SNAP_ON) && (t->modifiers & MOD_SNAP_GEARS))
+	if ((t->tsnap.project) && (t->modifiers & MOD_SNAP) && (t->modifiers & MOD_SNAP))
 	{
 		TransData *td = t->data;
 		float tvec[3];
@@ -256,7 +258,7 @@ void applyProject(TransInfo *t)
 			
 			project_float(t->ar, iloc, mval);
 			
-			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.mode))
+			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeTarget))
 			{
 //				if(t->flag & (T_EDIT|T_POSE)) {
 //					mul_m4_v3(imat, loc);
@@ -286,8 +288,8 @@ void applySnapping(TransInfo *t, float *vec)
 	
 		t->tsnap.applySnap(t, vec);
 	}
-	else if ((t->tsnap.status & SNAP_ON) && 
-		(t->modifiers & MOD_SNAP_GEARS))
+	else if ((t->tsnap.mode != SCE_SNAP_MODE_INCREMENT) &&
+		(t->modifiers & MOD_SNAP))
 	{
 		double current = PIL_check_seconds_timer();
 		
@@ -310,9 +312,9 @@ void applySnapping(TransInfo *t, float *vec)
 void resetSnapping(TransInfo *t)
 {
 	t->tsnap.status = 0;
-	t->tsnap.mode = 0;
 	t->tsnap.align = 0;
-	t->tsnap.modePoint = 0;
+	t->tsnap.mode = 0;
+	t->tsnap.modeSelect = 0;
 	t->tsnap.modeTarget = 0;
 	t->tsnap.last = 0;
 	t->tsnap.applySnap = NULL;
@@ -346,7 +348,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	Object *obedit = t->obedit;
 	Scene *scene = t->scene;
 	int snapping = 0;
-	short snap_mode = t->settings->snap_target;
+	short snap_target = t->settings->snap_target;
 	
 	resetSnapping(t);
 	
@@ -355,7 +357,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 		if (RNA_boolean_get(op->ptr, "snap"))
 		{
 			snapping = 1;
-			snap_mode = RNA_enum_get(op->ptr, "snap_mode");
+			snap_target = RNA_enum_get(op->ptr, "snap_target");
 			
 			t->tsnap.status |= SNAP_FORCED|POINT_INIT;
 			RNA_float_get_array(op->ptr, "snap_point", t->tsnap.snapPoint);
@@ -379,6 +381,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 		snapping = ((ts->snap_flag & SCE_SNAP) == SCE_SNAP);
 		t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
 		t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
+		t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
 	}
 	
 	/* force project off when not supported */
@@ -387,25 +390,23 @@ void initSnapping(TransInfo *t, wmOperator *op)
 		t->tsnap.project = 0;
 	}
 	
+	t->tsnap.mode = ts->snap_mode;
+
 	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
-			(t->flag & T_CAMERA) == 0) { // Not with camera selected
-		setSnappingCallback(t, snap_mode);
+			(t->flag & T_CAMERA) == 0) { // Not with camera selected in camera view
+		setSnappingCallback(t, snap_target);
 
 		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(snapping) && // Only if the snap flag is on
 			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
-			t->tsnap.status |= SNAP_ON;
-			t->tsnap.modePoint = SNAP_GEO;
-			
 			if (t->flag & T_PROP_EDIT)
 			{
-				t->tsnap.mode = SNAP_NOT_OBEDIT;
+				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
 			}
 			else
 			{
-				t->tsnap.mode = SNAP_ALL;
+				t->tsnap.modeSelect = SNAP_ALL;
 			}
 		}
 		/* Particles edit mode*/
@@ -413,29 +414,24 @@ void initSnapping(TransInfo *t, wmOperator *op)
 			(snapping) && // Only if the snap flag is on
 			(obedit == NULL && BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT ))
 		{
-			t->tsnap.status |= SNAP_ON;
-			t->tsnap.modePoint = SNAP_GEO;
-			t->tsnap.mode = SNAP_ALL;
+			t->tsnap.modeSelect = SNAP_ALL;
 		}
 		/* Object mode */
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(snapping) && // Only if the snap flag is on
 			(obedit == NULL) ) // Object Mode
 		{
-			t->tsnap.status |= SNAP_ON;
-			t->tsnap.modePoint = SNAP_GEO;
-			t->tsnap.mode = SNAP_NOT_SELECTED;
+			t->tsnap.modeSelect = SNAP_NOT_SELECTED;
 		}
 		else
 		{	
 			/* Grid if snap is not possible */
-			t->tsnap.modePoint = SNAP_GRID;
+			t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
 		}
 	}
 	else
 	{
 		/* Always grid outside of 3D view */
-		t->tsnap.modePoint = SNAP_GRID;
+		t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
 	}
 }
 
@@ -627,7 +623,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		mval[0] = t->mval[0];
 		mval[1] = t->mval[1];
 		
-		if (t->settings->snap_mode == SCE_SNAP_MODE_VOLUME)
+		if (t->tsnap.mode == SCE_SNAP_MODE_VOLUME)
 		{
 			ListBase depth_peels;
 			DepthPeel *p1, *p2;
@@ -720,7 +716,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		}
 		else
 		{
-			found = snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.mode);
+			found = snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect);
 		}
 		
 		if (found == 1)
@@ -1828,7 +1824,7 @@ void snapGrid(TransInfo *t, float *val) {
 	GearsType action;
 
 	// Only do something if using Snap to Grid
-	if (t->tsnap.modePoint != SNAP_GRID)
+	if (t->tsnap.mode != SCE_SNAP_MODE_INCREMENT)
 		return;
 
 	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL || t->mode==TFM_BONE_ROLL)
@@ -1839,10 +1835,10 @@ void snapGrid(TransInfo *t, float *val) {
 		invert = U.flag & USER_AUTOGRABGRID;
 
 	if(invert) {
-		action = (t->modifiers & MOD_SNAP_GEARS) ? NO_GEARS: BIG_GEARS;
+		action = (t->modifiers & MOD_SNAP) ? NO_GEARS: BIG_GEARS;
 	}
 	else {
-		action = (t->modifiers & MOD_SNAP_GEARS) ? BIG_GEARS : NO_GEARS;
+		action = (t->modifiers & MOD_SNAP) ? BIG_GEARS : NO_GEARS;
 	}
 
 	if (action == BIG_GEARS && (t->modifiers & MOD_PRECISION)) {

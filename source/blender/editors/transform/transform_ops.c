@@ -84,6 +84,38 @@ TransformModeItem transform_modes[] =
 	{NULL, 0}
 };
 
+static int snap_type_exec(bContext *C, wmOperator *op)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+
+	ts->snap_mode = RNA_enum_get(op->ptr,"type");
+
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, NULL); /* header redraw */
+
+	return OPERATOR_FINISHED;
+}
+
+void TFM_OT_snap_type(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Snap Type";
+	ot->description= "Set the snap element type.";
+	ot->idname= "TFM_OT_snap_type";
+
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= snap_type_exec;
+
+	ot->poll= ED_operator_areaactive;
+
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "type", snap_element_items, 0, "Type", "Set the snap element type");
+
+}
+
 static int select_orientation_exec(bContext *C, wmOperator *op)
 {
 	int orientation = RNA_enum_get(op->ptr, "orientation");
@@ -344,7 +376,7 @@ void Properties_Proportional(struct wmOperatorType *ot)
 void Properties_Snapping(struct wmOperatorType *ot, short align)
 {
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap to Point", "");
-	RNA_def_enum(ot->srna, "snap_mode", snap_mode_items, 0, "Mode", "");
+	RNA_def_enum(ot->srna, "snap_target", snap_target_items, 0, "Target", "");
 	RNA_def_float_vector(ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
 
 	if (align)
@@ -700,6 +732,8 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TFM_OT_select_orientation);
 	WM_operatortype_append(TFM_OT_create_orientation);
 	WM_operatortype_append(TFM_OT_delete_orientation);
+
+	WM_operatortype_append(TFM_OT_snap_type);
 }
 
 void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid)
@@ -736,6 +770,11 @@ void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *ke
 			RNA_boolean_set(km->ptr, "use", 1);
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
+
+			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", LEFTCTRLKEY, KM_CLICK, 0, 0);
+			RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_snap_type", LEFTCTRLKEY, KM_CLICK, KM_SHIFT, 0);
 
 			break;
 		case SPACE_ACTION:
@@ -808,6 +847,9 @@ void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *ke
 			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
+
+			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", LEFTCTRLKEY, KM_CLICK, 0, 0);
+			RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
 			break;
 		default:
 			break;

@@ -83,11 +83,13 @@ typedef struct NumInput {
 */
 
 typedef struct TransSnap {
+	short	mode;
 	short	modePoint;
 	short	modeTarget;
-	short	mode;
+	short	modeSelect;
 	short	align;
 	short	project;
+	short	peel;
 	short  	status;
 	float	snapPoint[3]; /* snapping from this point */
 	float	snapTarget[3]; /* to this point */
@@ -371,7 +373,7 @@ typedef struct TransInfo {
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02
-#define	MOD_SNAP_GEARS			0x04
+#define	MOD_SNAP				0x04
 #define	MOD_CONSTRAINT_PLANE	0x08
 
 
@@ -412,14 +414,9 @@ typedef struct TransInfo {
 #define TD_MIRROR_EDGE	 	(1 << 16) 	/* For editmode mirror, clamp to x = 0 */
 
 /* transsnap->status */
-#define SNAP_ON			1
-#define SNAP_FORCED		2
-#define TARGET_INIT		4
-#define POINT_INIT		8
-
-/* transsnap->modePoint */
-#define SNAP_GRID			0
-#define SNAP_GEO			1
+#define SNAP_FORCED		1
+#define TARGET_INIT		2
+#define POINT_INIT		4
 
 /* transsnap->modeTarget */
 #define SNAP_CLOSEST		0

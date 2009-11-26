@@ -1693,10 +1693,11 @@ static char *snapmode_pup(void)
 	char *str = string;
 	
 	str += sprintf(str, "%s", "Snap Element: %t"); 
-	str += sprintf(str, "%s", "|Vertex%x0");
-	str += sprintf(str, "%s", "|Edge%x1");
-	str += sprintf(str, "%s", "|Face%x2"); 
-	str += sprintf(str, "%s", "|Volume%x3"); 
+	str += sprintf(str, "%s", "|Increments%x0");
+	str += sprintf(str, "%s", "|Vertex%x1");
+	str += sprintf(str, "%s", "|Edge%x2");
+	str += sprintf(str, "%s", "|Face%x3");
+	str += sprintf(str, "%s", "|Volume%x4");
 	return string;
 }
 
@@ -2172,36 +2173,37 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 
 		/* Snap */
-		if (BIF_snappingSupported(obedit)) {
-			uiBlockBeginAlign(block);
+		uiBlockBeginAlign(block);
 
-			if (ts->snap_flag & SCE_SNAP) {
-				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap with Ctrl during transform (Shift Tab)");
-				xco+= XIC;
-				if(v3d->modeselect == OB_MODE_OBJECT) {
-					uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
-					xco+= XIC;
-				}
-				if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
-					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
-					xco+= XIC;
-				}
-				if (ts->snap_mode == SCE_SNAP_MODE_FACE) {
-					uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_RETOPO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
-					xco+= XIC;
-				}
-				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
-				xco+= XIC + 10;
-				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");
-				xco+= 70;
-			} else {
-				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
-				xco+= XIC;
-			}
-
-			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, 10);
+		if (ts->snap_flag & SCE_SNAP) {
+			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_ON,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap during transform (Ctrl)");
+		} else {
+			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_OFF,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap during transform (Ctrl)");
 		}
+		xco+= XIC;
+
+		if(v3d->modeselect == OB_MODE_OBJECT && ts->snap_mode != SCE_SNAP_MODE_INCREMENT) {
+			uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");
+			xco+= XIC;
+		}
+		if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
+			uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");
+			xco+= XIC;
+		}
+		if (ts->snap_mode == SCE_SNAP_MODE_FACE) {
+			uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_RETOPO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
+			xco+= XIC;
+		}
+		uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_INCREMENT, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
+		xco+= XIC + 10;
+		if(ts->snap_mode != SCE_SNAP_MODE_INCREMENT) {
+			uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");
+			xco+= 70;
+		}
+
+		uiBlockEndAlign(block);
+		header_xco_step(ar, &xco, &yco, &maxco, 10);
+
 
 		/* selection modus */
 		if(obedit && (obedit->type == OB_MESH)) {

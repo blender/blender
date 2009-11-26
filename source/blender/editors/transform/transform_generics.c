@@ -1048,6 +1048,10 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->options |= CTX_NO_PET;
 	}
 	
+	/* Snapping */
+	if (ts->snap_flag & SCE_SNAP) {
+		t->modifiers |= MOD_SNAP;
+	}
 	
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
