@@ -2121,6 +2121,60 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+/* ************** header flip operator ***************************** */
+
+/* flip a header region alignment */
+static int header_flip_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	
+	/* find the header region 
+	 *	- try context first, but upon failing, search all regions in area...
+	 */
+	if((ar == NULL) || (ar->regiontype != RGN_TYPE_HEADER)) {
+		ScrArea *sa= CTX_wm_area(C);
+		
+		/* loop over all regions until a matching one is found */
+		for (ar= sa->regionbase.first; ar; ar= ar->next) {
+			if(ar->regiontype == RGN_TYPE_HEADER)
+				break;
+		}
+		
+		/* don't do anything if no region */
+		if(ar == NULL)
+			return OPERATOR_CANCELLED;
+	}	
+	
+	/* copied from SCREEN_OT_region_flip */
+	if(ar->alignment==RGN_ALIGN_TOP)
+		ar->alignment= RGN_ALIGN_BOTTOM;
+	else if(ar->alignment==RGN_ALIGN_BOTTOM)
+		ar->alignment= RGN_ALIGN_TOP;
+	else if(ar->alignment==RGN_ALIGN_LEFT)
+		ar->alignment= RGN_ALIGN_RIGHT;
+	else if(ar->alignment==RGN_ALIGN_RIGHT)
+		ar->alignment= RGN_ALIGN_LEFT;
+	
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	printf("executed header region flip\n");
+	
+	return OPERATOR_FINISHED;
+}
+
+
+static void SCREEN_OT_header_flip(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Flip Header Region";
+	ot->idname= "SCREEN_OT_header_flip";
+	
+	/* api callbacks */
+	ot->exec= header_flip_exec;
+	
+	ot->poll= ED_operator_areaactive;
+	ot->flag= 0;
+}
+
 /* ************** header tools operator ***************************** */
 
 static int header_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -2133,16 +2187,15 @@ static int header_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	pup= uiPupMenuBegin(C, "Header", 0);
 	layout= uiPupMenuLayout(pup);
 	
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN); // XXX still can't manage to get the right region flipped
+	// XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator
 	if (ar->alignment == RGN_ALIGN_TOP)
-		uiItemO(layout, "Flip to Bottom", 0, "SCREEN_OT_region_flip");
+		uiItemO(layout, "Flip to Bottom", 0, "SCREEN_OT_header_flip");	
 	else
-		uiItemO(layout, "Flip to Top", 0, "SCREEN_OT_region_flip");
+		uiItemO(layout, "Flip to Top", 0, "SCREEN_OT_header_flip");
 	
 	uiItemS(layout);
 	
 	/* file browser should be fullscreen all the time, but other regions can be maximised/restored... */
-	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 	if (sa->spacetype != SPACE_FILE) {
 		if (sa->full) 
 			uiItemO(layout, "Tile Window", 0, "SCREEN_OT_screen_full_area");
@@ -3601,8 +3654,9 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_area_dupli);
 	WM_operatortype_append(SCREEN_OT_area_swap);
 	WM_operatortype_append(SCREEN_OT_region_foursplit);
-	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_region_scale);
+	WM_operatortype_append(SCREEN_OT_region_flip);
+	WM_operatortype_append(SCREEN_OT_header_flip);
 	WM_operatortype_append(SCREEN_OT_header_toolbox);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
