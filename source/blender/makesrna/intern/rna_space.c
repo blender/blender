@@ -656,8 +656,14 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "lock_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ob_centre");
 	RNA_def_property_ui_text(prop, "Lock Object", "3D View center is locked to this object's position");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
+	prop= RNA_def_property(srna, "lock_bone", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "ob_centre_bone");
+	RNA_def_property_ui_text(prop, "Lock Bone", "3D View center is locked to this bone's position");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "background_image", PROP_POINTER, PROP_NONE);

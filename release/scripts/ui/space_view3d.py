@@ -116,7 +116,7 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
         
         layout.separator()
         
-        layout.operator_context = 'EXEC_AREA'
+        layout.operator_context = 'INVOKE_REGION_WIN'
         
         props = layout.operator("tfm.mirror", text="X Global")
         props.constraint_axis = (True, False, False)
@@ -1529,6 +1529,12 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         col.prop(view, "grid_subdivisions", text="Subdivisions")
 
         layout.column().prop(scene, "cursor_location", text="3D Cursor:")
+        
+        col = layout.column()
+        col.label(text="Lock to Object:")
+        col.prop(view, "lock_object", text="")
+        if view.lock_object and view.lock_object.type == 'ARMATURE':
+            col.prop_object(view, "lock_bone", view.lock_object.data, "bones", text="")
 
 
 class VIEW3D_PT_3dview_name(bpy.types.Panel):
