@@ -19,7 +19,7 @@
 import bpy
 
 class SubsurfSet(bpy.types.Operator):
-    '''TODO, doc.'''
+    '''Sets a Subdivision Surface Level (1-5)'''
 
     bl_idname = "object.subsurf_set"
     bl_label = "Subsurf Set"

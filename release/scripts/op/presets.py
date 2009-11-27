@@ -23,25 +23,11 @@ class AddPresetBase(bpy.types.Operator):
     '''Base preset class, only for subclassing
     subclasses must define 
      - preset_values
-     - preset_path '''
+     - preset_subdir '''
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
 
     name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen= 64, default= "")
-
-    '''
-    preset_values = [
-        "bpy.context.scene.render_data.resolution_x",
-        "bpy.context.scene.render_data.resolution_y",
-        "bpy.context.scene.render_data.pixel_aspect_x",
-        "bpy.context.scene.render_data.pixel_aspect_y",
-        "bpy.context.scene.render_data.fps",
-        "bpy.context.scene.render_data.fps_base",
-        "bpy.context.scene.render_data.resolution_percentage",
-    ]
-
-    preset_subdir = "render"
-    '''
     
     def _as_filename(self, name): # could reuse for other presets
         for char in " !@#$%^&*(){}:\";'[]<>,./?":
@@ -135,5 +121,4 @@ class AddPresetCloth(AddPresetBase):
 bpy.ops.add(AddPresetRender)
 bpy.ops.add(AddPresetSSS)
 bpy.ops.add(AddPresetCloth)
-
 
