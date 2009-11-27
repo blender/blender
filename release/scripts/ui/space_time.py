@@ -72,7 +72,7 @@ class TIME_HT_header(bpy.types.Header):
             subsub = row.row()
             subsub.prop(tools, "record_with_nla", toggle=True)
 
-        layout.prop(scene, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
+        layout.prop(scene, "sync_audio", text="Realtime", toggle=True, icon='ICON_SPEAKER')
 
         layout.separator()
 
@@ -145,7 +145,7 @@ class TIME_MT_playback(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(scene, "sync_audio", icon='ICON_SPEAKER')
+        layout.prop(scene, "sync_audio", text="Realtime Playback", icon='ICON_SPEAKER')
         layout.prop(scene, "mute_audio")
         layout.prop(scene, "scrub_audio")
 

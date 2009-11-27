@@ -2525,7 +2525,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "sync_audio", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
-	RNA_def_property_ui_text(prop, "Audio Sync", "Play back and sync with audio from Sequence Editor.");
+	RNA_def_property_ui_text(prop, "Audio Sync", "Play back and sync with audio from Sequence Editor for realtime playback.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "scrub_audio", PROP_BOOLEAN, PROP_NONE);
