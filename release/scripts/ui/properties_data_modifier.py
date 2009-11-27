@@ -548,7 +548,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.label(text="Origin:")
         col.prop(md, "origin", text="")
         sub = col.column()
-        sub.active = md.origin
+        sub.active = (md.origin != "")
         sub.prop(md, "relative")
 
         if wide_ui:
