@@ -354,12 +354,8 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return transform_exec(C, op);
 	}
 	else {
-		TransInfo *t = op->customdata;
-
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
-
-		t->flag |= T_MODAL; // XXX meh maybe somewhere else
 
 		op->flag |= OP_GRAB_POINTER; // XXX maybe we want this with the manipulator only?
 		return OPERATOR_RUNNING_MODAL;
@@ -373,16 +369,18 @@ void Properties_Proportional(struct wmOperatorType *ot)
 	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
 }
 
-void Properties_Snapping(struct wmOperatorType *ot, short align)
+void Properties_Snapping(struct wmOperatorType *ot, short fullsnap, short align)
 {
-	RNA_def_boolean(ot->srna, "snap", 0, "Snap to Point", "");
-	RNA_def_enum(ot->srna, "snap_target", snap_target_items, 0, "Target", "");
-	RNA_def_float_vector(ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
+	RNA_def_boolean(ot->srna, "snap", 0, "Use Snapping Options", "");
 
-	if (align)
-	{
-		RNA_def_boolean(ot->srna, "snap_align", 0, "Align with Point Normal", "");
-		RNA_def_float_vector(ot->srna, "snap_normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "", -FLT_MAX, FLT_MAX);
+	if (fullsnap) {
+		RNA_def_enum(ot->srna, "snap_target", snap_target_items, 0, "Target", "");
+		RNA_def_float_vector(ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
+
+		if (align) {
+			RNA_def_boolean(ot->srna, "snap_align", 0, "Align with Point Normal", "");
+			RNA_def_float_vector(ot->srna, "snap_normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "", -FLT_MAX, FLT_MAX);
+		}
 	}
 }
 
@@ -419,7 +417,7 @@ void TFM_OT_translate(struct wmOperatorType *ot)
 
 	Properties_Constraints(ot);
 
-	Properties_Snapping(ot, 1);
+	Properties_Snapping(ot, 1, 1);
 }
 
 void TFM_OT_resize(struct wmOperatorType *ot)
@@ -445,7 +443,7 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 
 	Properties_Constraints(ot);
 
-	Properties_Snapping(ot, 0);
+	Properties_Snapping(ot, 1, 0);
 }
 
 
@@ -469,6 +467,8 @@ void TFM_OT_trackball(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_rotate(struct wmOperatorType *ot)
@@ -494,7 +494,7 @@ void TFM_OT_rotate(struct wmOperatorType *ot)
 
 	Properties_Constraints(ot);
 
-	Properties_Snapping(ot, 0);
+	Properties_Snapping(ot, 1, 0);
 }
 
 void TFM_OT_tilt(struct wmOperatorType *ot)
@@ -522,6 +522,8 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	Properties_Constraints(ot);
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_warp(struct wmOperatorType *ot)
@@ -545,7 +547,9 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
-	// XXX Shear axis?
+	Properties_Snapping(ot, 0, 0);
+
+	// XXX Warp axis?
 //	Properties_Constraints(ot);
 }
 
@@ -569,6 +573,8 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 
 	// XXX Shear axis?
 //	Properties_Constraints(ot);
@@ -594,6 +600,8 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_tosphere(struct wmOperatorType *ot)
@@ -617,6 +625,8 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_mirror(struct wmOperatorType *ot)
@@ -656,6 +666,8 @@ void TFM_OT_edge_slide(struct wmOperatorType *ot)
 	RNA_def_float_factor(ot->srna, "value", 0, -1.0f, 1.0f, "Factor", "", -1.0f, 1.0f);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_transform(struct wmOperatorType *ot)

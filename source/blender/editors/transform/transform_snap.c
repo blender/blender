@@ -347,20 +347,27 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
 	Scene *scene = t->scene;
-	int snapping = 0;
 	short snap_target = t->settings->snap_target;
 	
 	resetSnapping(t);
 	
+	/* if snap property exists */
 	if (op && RNA_struct_find_property(op->ptr, "snap") && RNA_property_is_set(op->ptr, "snap"))
 	{
 		if (RNA_boolean_get(op->ptr, "snap"))
 		{
-			snapping = 1;
-			snap_target = RNA_enum_get(op->ptr, "snap_target");
+			t->modifiers |= MOD_SNAP;
+
+			if (RNA_property_is_set(op->ptr, "snap_target"))
+			{
+				snap_target = RNA_enum_get(op->ptr, "snap_target");
+			}
 			
-			t->tsnap.status |= SNAP_FORCED|POINT_INIT;
-			RNA_float_get_array(op->ptr, "snap_point", t->tsnap.snapPoint);
+			if (RNA_property_is_set(op->ptr, "snap_point"))
+			{
+				RNA_float_get_array(op->ptr, "snap_point", t->tsnap.snapPoint);
+				t->tsnap.status |= SNAP_FORCED|POINT_INIT;
+			}
 			
 			/* snap align only defined in specific cases */
 			if (RNA_struct_find_property(op->ptr, "snap_align"))
@@ -376,9 +383,13 @@ void initSnapping(TransInfo *t, wmOperator *op)
 			}
 		}
 	}
-	else
+	/* use scene defaults only when transform is modal */
+	else if (t->flag & T_MODAL)
 	{
-		snapping = ((ts->snap_flag & SCE_SNAP) == SCE_SNAP);
+		if (ts->snap_flag & SCE_SNAP) {
+			t->modifiers |= MOD_SNAP;
+		}
+
 		t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
 		t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
 		t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
@@ -411,7 +422,6 @@ void initSnapping(TransInfo *t, wmOperator *op)
 		}
 		/* Particles edit mode*/
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(snapping) && // Only if the snap flag is on
 			(obedit == NULL && BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT ))
 		{
 			t->tsnap.modeSelect = SNAP_ALL;
