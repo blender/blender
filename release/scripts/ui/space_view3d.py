@@ -191,7 +191,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout.operator("view3d.viewnumpad", text="Camera").type = 'CAMERA'
         layout.operator("view3d.viewnumpad", text="Top").type = 'TOP'
         layout.operator("view3d.viewnumpad", text="Front").type = 'FRONT'
-        layout.operator("view3d.viewnumpad", text+"Right").type = 'RIGHT'
+        layout.operator("view3d.viewnumpad", text="Right").type = 'RIGHT'
 
         layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
 

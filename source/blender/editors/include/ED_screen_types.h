@@ -50,7 +50,7 @@ enum {
 };
 
 
-
+/* for editing areas/regions */
 typedef struct AZone {
 	struct AZone *next, *prev;
 	ARegion *ar;

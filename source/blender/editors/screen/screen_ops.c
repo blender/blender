@@ -2119,7 +2119,51 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_areaactive;
 	ot->flag= 0;
+}
 
+/* ************** header tools operator ***************************** */
+
+static int header_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup= uiPupMenuBegin(C, "Header", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN); // XXX still can't manage to get the right region flipped
+	if (ar->alignment == RGN_ALIGN_TOP)
+		uiItemO(layout, "Flip to Bottom", 0, "SCREEN_OT_region_flip");
+	else
+		uiItemO(layout, "Flip to Top", 0, "SCREEN_OT_region_flip");
+	
+	uiItemS(layout);
+	
+	/* file browser should be fullscreen all the time, but other regions can be maximised/restored... */
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+	if (sa->spacetype != SPACE_FILE) {
+		if (sa->full) 
+			uiItemO(layout, "Tile Window", 0, "SCREEN_OT_screen_full_area");
+		else
+			uiItemO(layout, "Maximize Window", 0, "SCREEN_OT_screen_full_area");
+	}
+	
+	uiPupMenuEnd(C, pup);
+
+	return OPERATOR_CANCELLED;
+}
+
+void SCREEN_OT_header_toolbox(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Header Toolbox";
+	ot->description="Display header region toolbox";
+	ot->idname= "SCREEN_OT_header_toolbox";
+	
+	/* api callbacks */
+	ot->invoke= header_toolbox_invoke;
 }
 
 /* ****************** anim player, with timer ***************** */
@@ -3559,6 +3603,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_region_foursplit);
 	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_region_scale);
+	WM_operatortype_append(SCREEN_OT_header_toolbox);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
 	WM_operatortype_append(SCREEN_OT_screenshot);
@@ -3638,7 +3683,11 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 			/* area move after action zones */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
 
-
+	/* Header Editing ------------------------------------------------ */
+	keymap= WM_keymap_find(keyconf, "Header", 0, 0);
+	
+	WM_keymap_add_item(keymap, "SCREEN_OT_header_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
+	
 	/* Screen General ------------------------------------------------ */
 	keymap= WM_keymap_find(keyconf, "Screen", 0, 0);
 	
@@ -3658,7 +3707,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_reload_scripts", F8KEY, KM_PRESS, 0, 0);
 

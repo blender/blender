@@ -828,27 +828,38 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 	
 	// XXX it would be good to have boundbox checks for some of these...
 	if(flag & ED_KEYMAP_UI) {
+		/* user interface widgets */
 		UI_add_region_handlers(handlers);
 	}
 	if(flag & ED_KEYMAP_VIEW2D) {
+		/* 2d-viewport handling+manipulation */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "View2D", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_MARKERS) {
+		/* time-markers */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 		// XXX need boundbox check urgently!!!
 	}
 	if(flag & ED_KEYMAP_ANIMATION) {
+		/* frame changing and timeline operators (for time spaces) */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Animation", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_FRAMES) {
+		/* frame changing/jumping (for all spaces) */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_GPENCIL) {
+		/* grease pencil */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
+	if(flag & ED_KEYMAP_HEADER) {
+		/* standard keymap for headers regions */
+		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Header", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 }
