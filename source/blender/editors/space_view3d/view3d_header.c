@@ -2219,7 +2219,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiBlockEndAlign(block);
 			header_xco_step(ar, &xco, &yco, &maxco, 10);
 			if(v3d->drawtype > OB_WIRE) {
-				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
+				if (v3d->flag & V3D_ZBUF_SELECT) {
+					uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
+				} else {
+					uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO_OFF, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
+				}
 			}
 			xco+= XIC;
 			uiBlockEndAlign(block);
@@ -2229,11 +2233,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 		else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
 			uiBlockBeginAlign(block);
-			uiDefIconButBitI(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_EDGESEL, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Path edit mode");
+			uiDefIconButBitI(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_PARTICLE_PATH, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Path edit mode");
 			xco+= XIC;
-			uiDefIconButBitI(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Point select mode");
+			uiDefIconButBitI(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_PARTICLE_POINT, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Point select mode");
 			xco+= XIC;
-			uiDefIconButBitI(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_FACESEL, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Tip select mode");
+			uiDefIconButBitI(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_PARTICLE_TIP, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Tip select mode");
 			xco+= XIC;
 			uiBlockEndAlign(block);
 			
