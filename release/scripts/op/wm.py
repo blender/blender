@@ -30,9 +30,14 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
     bl_label = "Delete Edge Loop"
 
     def execute(self, context):
+        snap = bpy.context.scene.tool_settings.snap
+        bpy.context.scene.tool_settings.snap = False
+        
         bpy.ops.tfm.edge_slide(value=1.0)
         bpy.ops.mesh.select_more()
         bpy.ops.mesh.remove_doubles()
+        
+        bpy.context.scene.tool_settings.snap = snap
         return ('FINISHED',)
 
 rna_path_prop = StringProperty(name="Context Attributes",
