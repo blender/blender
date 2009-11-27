@@ -223,11 +223,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "value_1", "TEXTURED");
 	RNA_string_set(kmi->ptr, "value_2", "SOLID");
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.viewport_shading");
-	RNA_string_set(kmi->ptr, "value_1", "SHADED");
-	RNA_string_set(kmi->ptr, "value_2", "WIREFRAME");
-
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
