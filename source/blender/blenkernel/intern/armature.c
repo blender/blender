@@ -1509,6 +1509,10 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.child= pchan->child;
 			pchanw.path= NULL;
 			
+			/* this is freed so copy a copy, else undo crashes */
+			if(pchanw.prop)
+				pchanw.prop= IDP_CopyProperty(pchanw.prop);
+
 			/* constraints - proxy constraints are flushed... local ones are added after 
 			 *	1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
 			 *	2. copy proxy-pchan's constraints on-to new
