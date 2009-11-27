@@ -1265,12 +1265,12 @@ void wm_event_do_handlers(bContext *C)
 
 	for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
 		wmEvent *event;
-		int action = WM_HANDLER_CONTINUE;
 		
 		if( win->screen==NULL )
 			wm_event_free_all(win);
 		
 		while( (event= win->queue.first) ) {
+			int action = WM_HANDLER_CONTINUE;
 
 			CTX_wm_window_set(C, win);
 			

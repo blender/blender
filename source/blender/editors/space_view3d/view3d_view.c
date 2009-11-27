@@ -1967,7 +1967,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
 void flyEvent(FlyInfo *fly, wmEvent *event)
 {
-	if (event->type == TIMER) {
+	if (event->type == TIMER && event->customdata == fly->timer) {
 		fly->redraw = 1;
 	}
 	else if (event->type == MOUSEMOVE) {
@@ -2426,7 +2426,7 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	flyEvent(fly, event);
 
-	if(event->type==TIMER)
+	if(event->type==TIMER && event->customdata == fly->timer)
 		flyApply(fly);
 
 	if(fly->redraw) {;
