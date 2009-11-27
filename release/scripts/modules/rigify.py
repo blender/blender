@@ -25,6 +25,49 @@ from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 
 empty_layer = [False] * 16
 
+def auto_class(slots, name="ContainerClass"):
+    return type(name, (object,), {"__slots__":tuple(slots)})
+    
+def auto_class_instance(slots, name="ContainerClass"):
+    return auto_class(slots, name)()
+
+
+
+def bone_class_instance(obj, slots, name="BoneContainer"):
+    for member in slots[:]:
+        slots.append(member + "_b") # bone bone
+        slots.append(member + "_p") # pose bone
+        slots.append(member + "_e") # edit bone
+    
+    slots.extend(["obj", "update"])
+    
+    instance = auto_class_instance(slots, name)
+    
+    def update():
+        '''
+        Re-Assigns bones from the blender data
+        '''
+        arm = obj.data
+        
+        bbones = arm.bones
+        pbones = obj.pose.bones
+        ebones = arm.edit_bones
+        
+        for member in slots:
+            
+            if member in ("update", "obj"):
+                continue
+            
+            if not member[-2] == "_":
+                name = getattr(instance, member, None)
+                if name is not None:
+                    setattr(instance, member + "_b", bbones.get(name, None))
+                    setattr(instance, member + "_p", pbones.get(name, None))
+                    setattr(instance, member + "_e", ebones.get(name, None))
+        
+    instance.update = update
+    
+    return instance
 
 def gen_none(obj, orig_bone_name):
     pass
@@ -388,22 +431,31 @@ def gen_arm(obj, orig_bone_name):
     - IKSwitch, MCH-%s ()
     """
     
-    def validate_chain():
+    # Since there are 3 chains, this gets confusing so divide into 3 chains
+    # Initialize container classes for convenience
+    mt = bone_class_instance(obj, ["shoulder", "arm", "forearm", "hand"])
+    ik = bone_class_instance(obj, ["arm", "forearm", "pole", "hand"])
+    sw = bone_class_instance(obj, ["socket", "shoulder", "arm", "forearm", "hand"])
+    
+    def chain_init():
         '''
         Sanity check and return the arm as a list of bone names.
         '''
         # do a sanity check
-        arm, orig_pbone, orig_ebone = get_bone_data(obj, orig_bone_name)
-        shoulder_pbone = orig_pbone.parent
+        mt.arm = orig_bone_name
+        mt.update()
         
-        if not shoulder_pbone:
+        mt.shoulder_p = mt.arm_p.parent
+        mt.shoulder = mt.shoulder_p.name
+        
+        if not mt.shoulder_p:
             print("could not find 'arm' parent, skipping:", orig_bone_name)
             return
 
         # We could have some bones attached, find the bone that has this as its 2nd parent
         hands = []
         for pbone in obj.pose.bones:
-            index = pbone.parent_index(orig_pbone)
+            index = pbone.parent_index(mt.arm_p)
             if index == 2:
                 hands.append(pbone)
 
@@ -412,53 +464,48 @@ def gen_arm(obj, orig_bone_name):
             return
 
         # first add the 2 new bones
-        hand_pbone = hands[0]
-        forearm_pbone = hand_pbone.parent
-        
-        return shoulder_pbone.name, orig_pbone.name, forearm_pbone.name, hand_pbone.name
-    
+        mt.hand_p = hands[0]
+        mt.hand = mt.hand_p.name
+
+        mt.forearm_p = mt.hand_p.parent
+        mt.forearm = mt.forearm_p.name
     
     arm = obj.data
-    
-    original_chain_tuple = validate_chain()
-    shoulder_name, arm_name, forearm_name, hand_name = original_chain_tuple
     
     
     def chain_ik(prefix="MCH-%s_ik"):
         
-        arm, arm_pbone, arm_ebone = get_bone_data(obj, arm_name)
-        arm, hand_pbone, hand_ebone = get_bone_data(obj, hand_name)
+        mt.update()
         
         # Add the edit bones
-        hand_ik_ebone = copy_bone_simple(arm, hand_name, prefix % hand_name)
-        hand_ik_name = hand_ik_ebone.name
+        ik.hand_e = copy_bone_simple(arm, mt.hand, prefix % mt.hand)
+        ik.hand = ik.hand_e.name
         
-        arm_ik_ebone = copy_bone_simple(arm, arm_name, prefix % arm_name)
-        arm_ik_name = arm_ik_ebone.name
+        ik.arm_e = copy_bone_simple(arm, mt.arm, prefix % mt.arm)
+        ik.arm = ik.arm_e.name
 
-        forearm_ik_ebone = copy_bone_simple(arm, forearm_name, prefix % forearm_name)
-        forearm_ik_name = forearm_ik_ebone.name
+        ik.forearm_e = copy_bone_simple(arm, mt.forearm, prefix % mt.forearm)
+        ik.forearm = ik.forearm_e.name
 
-        arm_ik_ebone.parent = arm_ebone.parent
-        forearm_ik_ebone.connected = arm_ebone.connected
+        ik.arm_e.parent = mt.arm_e.parent
+        ik.forearm_e.connected = mt.arm_e.connected
         
-        forearm_ik_ebone.parent = arm_ik_ebone
-        forearm_ik_ebone.connected = True
+        ik.forearm_e.parent = ik.arm_e
+        ik.forearm_e.connected = True
         
         
         # Add the bone used for the arms poll target
-        pole_ik_name = add_pole_target_bone(obj, forearm_name, "elbow_poll", mode='+Z')
+        ik.pole = add_pole_target_bone(obj, mt.forearm, "elbow_poll", mode='+Z')
         
         bpy.ops.object.mode_set(mode='OBJECT')
         
-        arm, forearm_ik_pbone, forearm_ik_bone = get_bone_data(obj, forearm_ik_name)
+        ik.update()
         
-        
-        con = forearm_ik_pbone.constraints.new('IK')
+        con = ik.forearm_p.constraints.new('IK')
         con.target = obj
-        con.subtarget = hand_ik_name
+        con.subtarget = ik.hand
         con.pole_target = obj
-        con.pole_subtarget = pole_ik_name
+        con.pole_subtarget = ik.pole
         
         con.use_tail = True
         con.use_stretch = True
@@ -468,46 +515,47 @@ def gen_arm(obj, orig_bone_name):
         con.pole_angle = -90.0 # XXX, RAD2DEG
         
         # ID Propery on the hand for IK/FK switch
-        arm, hand_ik_pbone, hand_ik_bone = get_bone_data(obj, hand_ik_name)
         
-        prop = rna_idprop_ui_prop_get(hand_ik_pbone, "ik", create=True)
-        hand_ik_pbone["ik"] = 0.5
+        prop = rna_idprop_ui_prop_get(ik.hand_p, "ik", create=True)
+        ik.hand_p["ik"] = 0.5
         prop["soft_min"] = 0.0
         prop["soft_max"] = 1.0
         
         bpy.ops.object.mode_set(mode='EDIT')
-        return None, arm_ik_name, forearm_ik_name, hand_ik_name, pole_ik_name
-    
-    ik_chain_tuple = chain_ik()
+        
+        ik.arm = ik.arm
+        ik.forearm = ik.forearm
+        ik.hand = ik.hand
+        ik.pole = ik.pole
     
     def chain_switch(prefix="MCH-%s"):
-        
-        arm_sw_ebone = copy_bone_simple(arm, arm_name, prefix % arm_name)
-        arm_sw_name = arm_sw_ebone.name
-        
-        
-        
-        forearm_sw_ebone = copy_bone_simple(arm, forearm_name, prefix % forearm_name)
-        forearm_sw_name = forearm_sw_ebone.name
-        forearm_sw_ebone.parent = arm_sw_ebone
-        forearm_sw_ebone.connected = arm.edit_bones[forearm_name].connected
 
-        hand_sw_ebone = copy_bone_simple(arm, hand_name, prefix % hand_name)
-        hand_sw_name = hand_sw_ebone.name
-        hand_sw_ebone.parent = forearm_sw_ebone
-        hand_sw_ebone.connected = arm.edit_bones[hand_name].connected
+        sw.shoulder_e = copy_bone_simple(arm, mt.shoulder, prefix % mt.shoulder)
+        sw.shoulder = sw.shoulder_e.name
+
+        sw.arm_e = copy_bone_simple(arm, mt.arm, prefix % mt.arm)
+        sw.arm = sw.arm_e.name
+        sw.arm_e.parent = sw.arm_e
+        sw.arm_e.connected = arm.edit_bones[mt.shoulder].connected
+        
+        sw.forearm_e = copy_bone_simple(arm, mt.forearm, prefix % mt.forearm)
+        sw.forearm = sw.forearm_e.name
+        sw.forearm_e.parent = sw.arm_e
+        sw.forearm_e.connected = arm.edit_bones[mt.forearm].connected
+
+        sw.hand_e = copy_bone_simple(arm, mt.hand, prefix % mt.hand)
+        sw.hand = sw.hand_e.name
+        sw.hand_e.parent = sw.forearm_e
+        sw.hand_e.connected = arm.edit_bones[mt.hand].connected
         
         bpy.ops.object.mode_set(mode='OBJECT')
         
-        
         # Add constraints
-        arm_sw_pbone = obj.pose.bones[arm_sw_name]
-        forearm_sw_pbone = obj.pose.bones[forearm_sw_name]
-        hand_sw_pbone = obj.pose.bones[hand_sw_name]
+        sw.update()
         
-        dummy, arm_ik_name, forearm_ik_name, hand_ik_name, pole_ik_name = ik_chain_tuple
+        #dummy, ik.arm, ik.forearm, ik.hand, ik.pole = ik_chain_tuple
         
-        ik_driver_path = obj.pose.bones[hand_ik_name].path_to_id() + '["ik"]'
+        ik_driver_path = obj.pose.bones[ik.hand].path_to_id() + '["ik"]'
         
         
         def ik_fk_driver(con):
@@ -524,60 +572,194 @@ def gen_arm(obj, orig_bone_name):
             tar.rna_path = ik_driver_path
 
         # ***********
-        con = arm_sw_pbone.constraints.new('COPY_ROTATION')
+        con = sw.arm_p.constraints.new('COPY_ROTATION')
         con.name = "FK"
         con.target = obj
-        con.subtarget = arm_name
+        con.subtarget = mt.arm
 
-        con = arm_sw_pbone.constraints.new('COPY_ROTATION')
+        con = sw.arm_p.constraints.new('COPY_ROTATION')
 
         con.target = obj
-        con.subtarget = arm_ik_name
+        con.subtarget = ik.arm
         con.influence = 0.5
         ik_fk_driver(con)
         
         # ***********
-        con = forearm_sw_pbone.constraints.new('COPY_ROTATION')
+        con = sw.forearm_p.constraints.new('COPY_ROTATION')
         con.name = "FK"
         con.target = obj
-        con.subtarget = forearm_name
+        con.subtarget = mt.forearm
 
-        con = forearm_sw_pbone.constraints.new('COPY_ROTATION')
+        con = sw.forearm_p.constraints.new('COPY_ROTATION')
         con.name = "IK"
         con.target = obj
-        con.subtarget = forearm_ik_name
+        con.subtarget = ik.forearm
         con.influence = 0.5
         ik_fk_driver(con)
         
         # ***********
-        con = hand_sw_pbone.constraints.new('COPY_ROTATION')
+        con = sw.hand_p.constraints.new('COPY_ROTATION')
         con.name = "FK"
         con.target = obj
-        con.subtarget = hand_name
+        con.subtarget = mt.hand
 
-        con = hand_sw_pbone.constraints.new('COPY_ROTATION')
+        con = sw.hand_p.constraints.new('COPY_ROTATION')
         con.name = "IK"
         con.target = obj
-        con.subtarget = hand_ik_name
+        con.subtarget = ik.hand
         con.influence = 0.5
         ik_fk_driver(con)
         
         
-        add_stretch_to(obj, forearm_sw_name, pole_ik_name, "VIS-elbow_ik_poll")
-        add_stretch_to(obj, hand_sw_name, hand_ik_name, "VIS-hand_ik")
-        
+        add_stretch_to(obj, sw.forearm, ik.pole, "VIS-elbow_ik_poll")
+        add_stretch_to(obj, sw.hand, ik.hand, "VIS-hand_ik")
         
         bpy.ops.object.mode_set(mode='EDIT')
-        return None, arm_sw_name, forearm_sw_name, hand_sw_name
+
+
+    def chain_shoulder(prefix="MCH-%s"):
+
+        sw.socket_e = copy_bone_simple(arm, mt.arm, (prefix % mt.arm) + "_socket")
+        sw.socket = sw.socket_e.name
+        sw.socket_e.tail = arm.edit_bones[mt.shoulder].tail
+        
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+        con = mt.arm_p.constraints.new('COPY_LOCATION')
+        con.target = obj
+        con.subtarget = sw.socket
+        
+        bpy.ops.object.mode_set(mode='EDIT')
+        
+        
+        
     
-    switch_chain_tuple = chain_switch()
+    chain_init()
+    chain_ik()
+    chain_switch()
+    
+    # add the shoulder
+    chain_shoulder()
+    
+    # Shoulder with its delta and hinge.
     
     
+    
+
+
+def gen_palm(obj, orig_bone_name):
+    arm, palm_pbone, palm_ebone = get_bone_data(obj, orig_bone_name)
+    children = [ebone.name for ebone in palm_ebone.children]
+    children.sort() # simply assume the pinky has the lowest name
+    
+    # Make a copy of the pinky
+    control_ebone = copy_bone_simple(arm, children[0], "palm_control")
+    control_name = control_ebone.name
+    offset = (arm.edit_bones[children[0]].head - arm.edit_bones[children[1]].head)
+    
+    control_ebone.head += offset
+    control_ebone.tail += offset
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    
+    arm, control_pbone, control_ebone = get_bone_data(obj, control_name)
+    arm, pinky_pbone, pinky_ebone = get_bone_data(obj, children[0])
+    
+    control_pbone.rotation_mode = 'YZX'
+    control_pbone.lock_rotation = False, True, True
+    
+    driver_fcurves = pinky_pbone.driver_add("rotation_euler")
+    
+    
+    controller_path = control_pbone.path_to_id()
+    
+    # add custom prop
+    control_pbone["spread"] = 0.0
+    prop = rna_idprop_ui_prop_get(control_pbone, "spread", create=True)
+    prop["soft_min"] = -1.0
+    prop["soft_max"] = 1.0
+    
+    
+    # *****
+    driver = driver_fcurves[0].driver
+    driver.type = 'AVERAGE'
+    
+    tar = driver.targets.new()
+    tar.name = "x"
+    tar.id_type = 'OBJECT'
+    tar.id = obj
+    tar.rna_path = controller_path + ".rotation_euler[0]"
+    
+    
+    # *****
+    driver = driver_fcurves[1].driver
+    driver.expression = "-x/4.0"
+    
+    tar = driver.targets.new()
+    tar.name = "x"
+    tar.id_type = 'OBJECT'
+    tar.id = obj
+    tar.rna_path = controller_path + ".rotation_euler[0]"
+    
+    
+    # *****
+    driver = driver_fcurves[2].driver
+    driver.expression = "(1.0-cos(x))-s"
+    tar = driver.targets.new()
+    tar.name = "x"
+    tar.id_type = 'OBJECT'
+    tar.id = obj
+    tar.rna_path = controller_path + ".rotation_euler[0]"
+    
+    tar = driver.targets.new()
+    tar.name = "s"
+    tar.id_type = 'OBJECT'
+    tar.id = obj
+    tar.rna_path = controller_path + '["spread"]'
+
+
+    for i, child_name in enumerate(children):
+        child_pbone = obj.pose.bones[child_name]
+        child_pbone.rotation_mode = 'YZX'
+        
+        if child_name != children[-1] and child_name != children[0]:
+            
+            # this is somewhat arbitrary but seems to look good
+            inf = i / (len(children)+1)
+            inf = 1.0 - inf
+            inf = ((inf * inf) + inf) / 2.0
+            
+            # used for X/Y constraint
+            inf_minor = inf * inf
+            
+            con = child_pbone.constraints.new('COPY_ROTATION')
+            con.name = "Copy Z Rot"
+            con.target = obj
+            con.subtarget = children[0] # also pinky_pbone
+            con.owner_space = con.target_space = 'LOCAL'
+            con.use_x, con.use_y, con.use_z = False, False, True
+            con.influence = inf
+
+            con = child_pbone.constraints.new('COPY_ROTATION')
+            con.name = "Copy XY Rot"
+            con.target = obj
+            con.subtarget = children[0] # also pinky_pbone
+            con.owner_space = con.target_space = 'LOCAL'
+            con.use_x, con.use_y, con.use_z = True, True, False
+            con.influence = inf_minor
+
+
+    child_pbone = obj.pose.bones[children[-1]]
+    child_pbone.rotation_mode = 'QUATERNION'
+
+
 gen_table = {
     "":gen_none, \
     "finger":gen_finger, \
     "delta":gen_delta, \
     "arm":gen_arm, \
+    "palm":gen_palm, \
 }
 
 def generate_rig(context, ob):
