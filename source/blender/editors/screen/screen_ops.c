@@ -2263,8 +2263,6 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		// TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this?
 		wt->timestep= (1.0/FPS);
 		
-		//WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-		
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_PASS_THROUGH;
@@ -2292,6 +2290,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	bScreen *screen= CTX_wm_screen(C);
 	
 	if(screen->animtimer) {
+		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0);
 		sound_stop_all(C);
 	}
@@ -2354,8 +2353,19 @@ static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	
-	if(screen->animtimer)
+	if(screen->animtimer) {
+		ScreenAnimData *sad= screen->animtimer->customdata;
+		Scene *scene= CTX_data_scene(C);
+		
+		/* reset current frame before stopping, and just send a notifier to deal with the rest 
+		 * (since playback still needs to be stopped)
+		 */
+		scene->r.cfra= sad->sfra;
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+		
+		/* call the other "toggling" operator to clean up now */
 		return screen_animation_play(C, op, event);
+	}
 	
 	return OPERATOR_PASS_THROUGH;
 }
@@ -2364,7 +2374,7 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cancel Animation";
-	ot->description= "Cancel animation.";
+	ot->description= "Cancel animation, returning to the original frame.";
 	ot->idname= "SCREEN_OT_animation_cancel";
 	
 	/* api callbacks */
