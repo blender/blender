@@ -3396,9 +3396,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 							//uiButSetFunc(but, sca_move_controller, cont, NULL);
 
 							uiBlockBeginAlign(block);
-							but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 							uiButSetFunc(but, sca_move_controller, cont, (void *)TRUE);
-							but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 							uiButSetFunc(but, sca_move_controller, cont, (void *)FALSE);
 							uiBlockEndAlign(block);
 
@@ -3488,9 +3488,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
 
 						uiBlockBeginAlign(block);
-						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 						uiButSetFunc(but, sca_move_sensor, sens, (void *)TRUE);
-						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 						uiButSetFunc(but, sca_move_sensor, sens, (void *)FALSE);
 						uiBlockEndAlign(block);
 					}
@@ -3568,9 +3568,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 						// uiButSetFunc(but, sca_move_actuator, act, NULL);
 
 						uiBlockBeginAlign(block);
-						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 						uiButSetFunc(but, sca_move_actuator, act, (void *)TRUE);
-						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 						uiButSetFunc(but, sca_move_actuator, act, (void *)FALSE);
 						uiBlockEndAlign(block);
 
