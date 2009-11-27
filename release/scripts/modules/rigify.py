@@ -85,9 +85,14 @@ def get_bone_data(obj, bone_name):
 def bone_basename(name):
     return name.split(".")[0]
 
-def copy_bone_simple(arm, from_bone, name):
+def copy_bone_simple(arm, from_bone, name, parent=False):
     ebone = arm.edit_bones[from_bone]
     ebone_new = arm.edit_bones.new(name)
+    
+    if parent:
+        ebone_new.connected = ebone.connected
+        ebone_new.parent = ebone.parent
+    
     ebone_new.head = ebone.head
     ebone_new.tail = ebone.tail
     ebone_new.roll = ebone.roll
@@ -201,6 +206,9 @@ def gen_finger(obj, orig_bone_name):
     control_ebone = arm.edit_bones.new(base_name)
     control_bone_name = control_ebone.name # we dont know if we get the name requested
     
+    control_ebone.connected = orig_ebone.connected
+    control_ebone.parent = orig_ebone.parent
+    
     # Place the finger bone
     head = orig_ebone.head.copy()
     tail = orig_ebone.tail.copy()
@@ -306,8 +314,7 @@ def gen_finger(obj, orig_bone_name):
         tar.name = "scale"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.array_index = 1 # Y scale
-        tar.rna_path = controller_path + '.scale'
+        tar.rna_path = controller_path + '.scale[1]'
 
         # bend target
         tar = driver.targets.new()
@@ -433,9 +440,11 @@ def gen_arm(obj, orig_bone_name):
     
     # Since there are 3 chains, this gets confusing so divide into 3 chains
     # Initialize container classes for convenience
-    mt = bone_class_instance(obj, ["shoulder", "arm", "forearm", "hand"])
-    ik = bone_class_instance(obj, ["arm", "forearm", "pole", "hand"])
-    sw = bone_class_instance(obj, ["socket", "shoulder", "arm", "forearm", "hand"])
+    mt = bone_class_instance(obj, ["shoulder", "arm", "forearm", "hand"]) # meta
+    ik = bone_class_instance(obj, ["arm", "forearm", "pole", "hand"]) # ik
+    sw = bone_class_instance(obj, ["socket", "shoulder", "arm", "forearm", "hand"]) # hinge
+    ex = bone_class_instance(obj, ["arm_hinge"]) # hinge & extras
+    
     
     def chain_init():
         '''
@@ -529,13 +538,18 @@ def gen_arm(obj, orig_bone_name):
         ik.pole = ik.pole
     
     def chain_switch(prefix="MCH-%s"):
-
+        
+        sw.update()
+        mt.update()
+        
         sw.shoulder_e = copy_bone_simple(arm, mt.shoulder, prefix % mt.shoulder)
         sw.shoulder = sw.shoulder_e.name
+        sw.shoulder_e.parent = mt.shoulder_e.parent
+        sw.shoulder_e.connected = mt.shoulder_e.connected
 
         sw.arm_e = copy_bone_simple(arm, mt.arm, prefix % mt.arm)
         sw.arm = sw.arm_e.name
-        sw.arm_e.parent = sw.arm_e
+        sw.arm_e.parent = sw.shoulder_e
         sw.arm_e.connected = arm.edit_bones[mt.shoulder].connected
         
         sw.forearm_e = copy_bone_simple(arm, mt.forearm, prefix % mt.forearm)
@@ -547,6 +561,14 @@ def gen_arm(obj, orig_bone_name):
         sw.hand = sw.hand_e.name
         sw.hand_e.parent = sw.forearm_e
         sw.hand_e.connected = arm.edit_bones[mt.hand].connected
+        
+        # The sw.hand_e needs to own all the children on the metarig's hand
+        for child in mt.hand_e.children:
+            child.parent = sw.hand_e
+        
+        
+        # These are made the children of sw.shoulder_e
+        
         
         bpy.ops.object.mode_set(mode='OBJECT')
         
@@ -623,22 +645,75 @@ def gen_arm(obj, orig_bone_name):
         sw.socket = sw.socket_e.name
         sw.socket_e.tail = arm.edit_bones[mt.shoulder].tail
         
+        
+        # Set the shoulder as parent
+        ik.update()
+        sw.update()
+        mt.update()
+        
+        sw.socket_e.parent = sw.shoulder_e
+        ik.arm_e.parent = sw.shoulder_e
+        
+        
+        # ***** add the shoulder hinge
+        # yes this is correct, the shoulder copy gets the arm's name
+        ex.arm_hinge_e = copy_bone_simple(arm, mt.shoulder, (prefix % mt.arm) + "_hinge")
+        ex.arm_hinge = ex.arm_hinge_e.name
+        offset = ex.arm_hinge_e.length / 2.0
+        
+        ex.arm_hinge_e.head.y += offset
+        ex.arm_hinge_e.tail.y += offset
+        
+        # Note: meta arm becomes child of hinge
+        mt.arm_e.parent = ex.arm_hinge_e
+        
+        
         bpy.ops.object.mode_set(mode='OBJECT')
+        
+        ex.update()
         
         con = mt.arm_p.constraints.new('COPY_LOCATION')
         con.target = obj
         con.subtarget = sw.socket
         
+        
+        # Hinge constraint & driver
+        con = ex.arm_hinge_p.constraints.new('COPY_ROTATION')
+        con.name = "hinge"
+        con.target = obj
+        con.subtarget = sw.shoulder
+        driver_fcurve = con.driver_add("influence", 0)
+        driver = driver_fcurve.driver
+
+        
+        controller_path = mt.arm_p.path_to_id()
+        # add custom prop
+        mt.arm_p["hinge"] = 0.0
+        prop = rna_idprop_ui_prop_get(mt.arm_p, "hinge", create=True)
+        prop["soft_min"] = 0.0
+        prop["soft_max"] = 1.0
+        
+        
+        # *****
+        driver = driver_fcurve.driver
+        driver.type = 'AVERAGE'
+        
+        tar = driver.targets.new()
+        tar.name = "hinge"
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = controller_path + '["hinge"]'
+        
+        
         bpy.ops.object.mode_set(mode='EDIT')
         
+        # remove the shoulder and re-parent 
         
         
     
     chain_init()
     chain_ik()
     chain_switch()
-    
-    # add the shoulder
     chain_shoulder()
     
     # Shoulder with its delta and hinge.
@@ -653,8 +728,10 @@ def gen_palm(obj, orig_bone_name):
     children.sort() # simply assume the pinky has the lowest name
     
     # Make a copy of the pinky
-    control_ebone = copy_bone_simple(arm, children[0], "palm_control")
-    control_name = control_ebone.name
+    pinky_ebone = arm.edit_bones[children[0]]
+    control_ebone = copy_bone_simple(arm, pinky_ebone.name, "palm_control", parent=True)
+    control_name = control_ebone.name 
+    
     offset = (arm.edit_bones[children[0]].head - arm.edit_bones[children[1]].head)
     
     control_ebone.head += offset
@@ -764,6 +841,9 @@ gen_table = {
 
 def generate_rig(context, ob):
     
+    global_undo = context.user_preferences.edit.global_undo
+    context.user_preferences.edit.global_undo = False
+    
     # add_stretch_to(ob, "a", "b", "c")
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -797,6 +877,12 @@ def generate_rig(context, ob):
     
     # needed to update driver deps
     # context.scene.update()
+    
+    # Only for demo'ing
+    ob.restrict_view = True
+    ob_new.data.draw_axes = False
+    
+    context.user_preferences.edit.global_undo = global_undo
 
 if __name__ == "__main__":
     generate_rig(bpy.context, bpy.context.object)
