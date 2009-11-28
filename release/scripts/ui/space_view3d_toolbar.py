@@ -173,8 +173,8 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col.operator("tfm.resize", text="Scale")
         
         col = layout.column(align=True)
-        col.operator("tfm.transform").mode = 'TILT'
-        col.operator("tfm.transform").mode = 'CURVE_SHRINKFATTEN'
+        col.operator("tfm.transform", text="Tilt").mode = 'TILT'
+        col.operator("tfm.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
 
         col = layout.column(align=True)
         col.label(text="Curve:")
@@ -188,9 +188,9 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col.label(text="Handles:")
         row = col.row()
         row.operator("curve.handle_type_set", text="Auto").type = 'AUTOMATIC'
-        row.operator("curve.handle_type_set").type = 'VECTOR'
+        row.operator("curve.handle_type_set", text="Vector").type = 'VECTOR'
         row = col.row()
-        row.operator("curve.handle_type_set").type = 'ALIGN'
+        row.operator("curve.handle_type_set", text="Align").type = 'ALIGN'
         row.operator("curve.handle_type_set", text="Free").type = 'FREE_ALIGN'
 
         col = layout.column(align=True)
@@ -273,9 +273,9 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Style:")
-        col.operator("font.style_toggle").style = 'BOLD'
-        col.operator("font.style_toggle").style = 'ITALIC'
-        col.operator("font.style_toggle").style = 'UNDERLINE'
+        col.operator("font.style_toggle", text="Bold").style = 'BOLD'
+        col.operator("font.style_toggle", text="Italic").style = 'ITALIC'
+        col.operator("font.style_toggle", text="Underline").style = 'UNDERLINE'
 
         col = layout.column(align=True)
         col.label(text="Repeat:")

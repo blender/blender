@@ -102,9 +102,9 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         
         layout.operator_context = 'EXEC_AREA'
         
-        layout.operator("object.center_set", text="ObData to Center").type = 'CENTER'
-        layout.operator("object.center_set", text="Center New").type = 'CENTER_NEW'
-        layout.operator("object.center_set", text="Center Cursor").type = 'CENTER_CURSOR'
+        layout.operator("object.center_set", text="ObData to Centroid").type = 'CENTER'
+        layout.operator("object.center_set", text="Centroid to ObData").type = 'CENTER_NEW'
+        layout.operator("object.center_set", text="Centroid to 3D Cursor").type = 'CENTER_CURSOR'
      
 class VIEW3D_MT_mirror(bpy.types.Menu):
     bl_label = "Mirror"
@@ -197,7 +197,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("view3d.view_persportho")
+        layout.operator("view3d.view_persportho", text="Toggle Perspective")
 
         layout.separator()
 
@@ -349,8 +349,8 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("pose.select_hierarchy").direction = 'PARENT'
-        layout.operator("pose.select_hierarchy").direction = 'CHILD'
+        layout.operator("pose.select_hierarchy", text="Parent").direction = 'PARENT'
+        layout.operator("pose.select_hierarchy", text="Child").direction = 'CHILD'
 
         layout.separator()
 
