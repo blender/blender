@@ -2662,12 +2662,12 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	{GESTURE_MODAL_BORDER_BEGIN,	"BEGIN", 0, "Begin", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Gesture Border");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Border");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Gesture Border", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Border", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
@@ -2697,10 +2697,11 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
+	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
-	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); // XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel
 }
 
 /* default keymap for windows and screens, only call once per WM */
