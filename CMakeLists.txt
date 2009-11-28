@@ -1,4 +1,4 @@
-# $Id$
+ # $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -531,19 +531,21 @@ IF(APPLE)
 	SET(LLIBS stdc++ SystemStubs)
 
 	IF (WITH_COCOA)
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -DGHOST_COCOA")
-	SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio")
-	IF(USE_QTKIT)
-	SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DUSE_QTKIT")
-	SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
-	ELSE(USE_QTKIT)
-	IF(WITH_QUICKTIME)
-	SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
-	ENDIF(WITH_QUICKTIME)
-	ENDIF(USE_QTKIT)
+		SET(PLATFORM_CFLAGS "-pipe -funsigned-char -DGHOST_COCOA")
+		SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio")
+		IF(USE_QTKIT)
+			SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DUSE_QTKIT")
+			SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
+			IF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+				SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
+				#libSDL still needs 32bit carbon quicktime 
+			ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+		ELSEIF(WITH_QUICKTIME)
+			SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
+		ENDIF(USE_QTKIT)
 	ELSE (WITH_COCOA)
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
-	SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
+		SET(PLATFORM_CFLAGS "-pipe -funsigned-char")
+		SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
 	ENDIF (WITH_COCOA)
 
 	IF(WITH_OPENMP)
@@ -585,13 +587,17 @@ IF(APPLE)
 
 	SET(EXETYPE MACOSX_BUNDLE)
 
-
+	SET(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
+	SET(CMAKE_CXX_FLAGS_DEBUG "-fno-strict-aliasing -g")
 	IF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
-		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
-		SET(CMAKE_C_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
+		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
+		SET(CMAKE_C_FLAGS_RELEASE "-O3 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
 	ELSEIF(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
-		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
-		SET(CMAKE_C_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+		SET(CMAKE_C_FLAGS_RELEASE "-O3 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+	ELSE(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
+		SET(CMAKE_C_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
+		SET(CMAKE_CXX_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
 	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
 
 	# Better warnings
