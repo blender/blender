@@ -1059,24 +1059,16 @@ static short test_special_char(char ch)
 
 static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 {
-	char *str;
-	int x, changed;
-	
-	str= data->str;
-	changed= (but->selsta != but->selend);
-	
-	for(x=0; x< strlen(str); x++) {
-		if (but->selend + x <= strlen(str) ) {
-			str[but->selsta + x]= str[but->selend + x];
-		} else {
-			str[but->selsta + x]= '\0';
-			break;
-		}
+	char *str= data->str;
+	int len= strlen(str);
+	int change= 0;
+	if(but->selsta != but->selend && len) {
+		memmove( str+but->selsta, str+but->selend, len+1 );
+		change= 1;
 	}
-
+	
 	but->pos = but->selend = but->selsta;
-
-	return changed;
+	return change;
 }
 
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
@@ -1365,8 +1357,10 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 			buf[i]= 0;
 
 			/* paste over the current selection */
-			if ((but->selend - but->selsta) > 0)
+			if ((but->selend - but->selsta) > 0) {
 				ui_textedit_delete_selection(but, data);
+				len= strlen(str);
+			}
 			
 			for (y=0; y<strlen(buf); y++)
 			{
