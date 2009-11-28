@@ -2253,27 +2253,12 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		row= uiLayoutRow(layout, 1);
 		uiItemO(row, "", ICON_RENDER_STILL, "SCREEN_OT_opengl_render");
 		uiItemBooleanO(row, "", ICON_RENDER_ANIMATION, "SCREEN_OT_opengl_render", "animation", 1);
-
 		
-		if (ob && (ob->mode & OB_MODE_POSE)) {
-			PointerRNA *but_ptr;
-			uiBut *but;
-			
-			xco+= XIC*2;
-			uiBlockBeginAlign(block);
-			
-			uiDefIconButO(block, BUT, "POSE_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, NULL);
-			uiBlockSetButLock(block, object_data_is_libdata(ob), "Can't edit external libdata");
-			xco+= XIC;
-			
-			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, NULL);
-			xco+= XIC;
-			but=uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEFLIPDOWN, xco,yco,XIC,YIC, NULL);
-				but_ptr= uiButGetOperatorPtrRNA(but);
-				RNA_boolean_set(but_ptr, "flipped", 1);
-			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, XIC);
-
+		if(ob && (ob->mode & OB_MODE_POSE)) {
+			row= uiLayoutRow(layout, 1);
+			uiItemO(row, "", ICON_COPYDOWN, "POSE_OT_copy");
+			uiItemO(row, "", ICON_PASTEDOWN, "POSE_OT_paste");
+			uiItemBooleanO(row, "", ICON_PASTEFLIPDOWN, "POSE_OT_paste", "flipped", 1);
 		}
 	}
 }
