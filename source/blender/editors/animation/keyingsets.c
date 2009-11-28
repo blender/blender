@@ -376,11 +376,11 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_add_keyingset_button (wmOperatorType *ot)
+void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add to Keying Set";
-	ot->idname= "ANIM_OT_add_keyingset_button";
+	ot->idname= "ANIM_OT_keyingset_button_add";
 	
 	/* callbacks */
 	ot->exec= add_keyingset_button_exec; 
@@ -454,11 +454,11 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_remove_keyingset_button (wmOperatorType *ot)
+void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove from Keying Set";
-	ot->idname= "ANIM_OT_remove_keyingset_button";
+	ot->idname= "ANIM_OT_keyingset_button_remove";
 	
 	/* callbacks */
 	ot->exec= remove_keyingset_button_exec; 

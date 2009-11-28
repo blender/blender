@@ -255,7 +255,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPH_OT_copy);
 	WM_operatortype_append(GRAPH_OT_paste);
 	
-	WM_operatortype_append(GRAPH_OT_insert_keyframe);
+	WM_operatortype_append(GRAPH_OT_keyframe_insert);
 	WM_operatortype_append(GRAPH_OT_click_insert);
 	
 	/* F-Curve Modifiers */
@@ -337,7 +337,7 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* insertkey */
-	WM_keymap_add_item(keymap, "GRAPH_OT_insert_keyframe", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_click_insert", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
 		/* copy/paste */

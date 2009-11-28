@@ -167,7 +167,7 @@ static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "GRAPH_OT_insert_keyframe");
+	uiItemO(layout, NULL, 0, "GRAPH_OT_keyframe_insert");
 	uiItemO(layout, NULL, 0, "GRAPH_OT_fmodifier_add");
 	
 	uiItemS(layout);

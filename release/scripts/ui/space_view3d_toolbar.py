@@ -57,8 +57,8 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Keyframes:")
-        col.operator("anim.insert_keyframe_menu", text="Insert")
-        col.operator("anim.delete_keyframe_v3d", text="Remove")
+        col.operator("anim.keyframe_insert_menu", text="Insert")
+        col.operator("anim.keyframe_delete_v3d", text="Remove")
 
         col = layout.column(align=True)
         col.label(text="Repeat:")
@@ -430,8 +430,8 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Keyframes:")
 
-        col.operator("anim.insert_keyframe_menu", text="Insert")
-        col.operator("anim.delete_keyframe_v3d", text="Remove")
+        col.operator("anim.keyframe_insert_menu", text="Insert")
+        col.operator("anim.keyframe_delete_v3d", text="Remove")
 
         col = layout.column(align=True)
         col.label(text="Repeat:")

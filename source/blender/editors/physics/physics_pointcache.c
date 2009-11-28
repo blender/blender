@@ -308,11 +308,11 @@ static int ptcache_remove_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-void PTCACHE_OT_add_new(wmOperatorType *ot)
+void PTCACHE_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add new cache";
-	ot->idname= "PTCACHE_OT_add_new";
+	ot->idname= "PTCACHE_OT_add";
 	
 	/* api callbacks */
 	ot->exec= ptcache_add_new_exec;

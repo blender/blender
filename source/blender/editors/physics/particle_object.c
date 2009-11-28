@@ -266,11 +266,11 @@ static int remove_particle_target_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_remove_target(wmOperatorType *ot)
+void PARTICLE_OT_target_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Particle Target";
-	ot->idname= "PARTICLE_OT_remove_target";
+	ot->idname= "PARTICLE_OT_target_remove";
 	ot->description="Remove the selected particle target.";
 	
 	/* api callbacks */

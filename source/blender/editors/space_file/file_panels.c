@@ -138,7 +138,7 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 
 	if(sfile) {
 		row= uiLayoutRow(pa->layout, 0);
-		uiItemO(row, "Add", ICON_ZOOMIN, "file.add_bookmark");
+		uiItemO(row, "Add", ICON_ZOOMIN, "file.bookmark_add");
 		uiItemL(row, NULL, 0);
 
 		file_panel_category(C, pa, FS_CATEGORY_BOOKMARKS, &sfile->bookmarknr, ICON_BOOKMARKS, 1, 0);

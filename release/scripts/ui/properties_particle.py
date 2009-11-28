@@ -454,7 +454,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             sub = col.row()
             subsub = sub.column(align=True)
             subsub.operator("particle.new_target", icon='ICON_ZOOMIN', text="")
-            subsub.operator("particle.remove_target", icon='ICON_ZOOMOUT', text="")
+            subsub.operator("particle.target_remove", icon='ICON_ZOOMOUT', text="")
             sub = col.row()
             subsub = sub.column(align=True)
             subsub.operator("particle.target_move_up", icon='VICON_MOVE_UP', text="")

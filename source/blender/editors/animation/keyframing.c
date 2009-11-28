@@ -1029,11 +1029,11 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_insert_keyframe (wmOperatorType *ot)
+void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframe";
-	ot->idname= "ANIM_OT_insert_keyframe";
+	ot->idname= "ANIM_OT_keyframe_insert";
 	ot->description= "Insert keyframes on the current frame for all properties in the specified Keying Set.";
 	
 	/* callbacks */
@@ -1073,7 +1073,7 @@ static void insert_key_menu_prompt (bContext *C)
 	 *	- only include entry if it exists
 	 */
 	if (scene->active_keyingset) {
-		uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+		uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_keyframe_insert_menu", "type", i++);
 		uiItemS(layout);
 	}
 	else
@@ -1084,7 +1084,7 @@ static void insert_key_menu_prompt (bContext *C)
 	 */
 	if (scene->keyingsets.first) {
 		for (ks= scene->keyingsets.first; ks; ks= ks->next)
-			uiItemIntO(layout, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+			uiItemIntO(layout, ks->name, 0, "ANIM_OT_keyframe_insert_menu", "type", i++);
 		uiItemS(layout);
 	}
 	
@@ -1093,7 +1093,7 @@ static void insert_key_menu_prompt (bContext *C)
 	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
 		/* only show KeyingSet if context is suitable */
 		if (keyingset_context_ok_poll(C, ks)) {
-			uiItemIntO(layout, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i--);
+			uiItemIntO(layout, ks->name, 0, "ANIM_OT_keyframe_insert_menu", "type", i--);
 		}
 	}
 	
@@ -1119,11 +1119,11 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
  
-void ANIM_OT_insert_keyframe_menu (wmOperatorType *ot)
+void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframe Menu";
-	ot->idname= "ANIM_OT_insert_keyframe_menu";
+	ot->idname= "ANIM_OT_keyframe_insert_menu";
 	
 	/* callbacks */
 	ot->invoke= insert_key_menu_invoke;
@@ -1216,11 +1216,11 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_delete_keyframe (wmOperatorType *ot)
+void ANIM_OT_keyframe_delete (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframe";
-	ot->idname= "ANIM_OT_delete_keyframe";
+	ot->idname= "ANIM_OT_keyframe_delete";
 	ot->description= "Delete keyframes on the current frame for all properties in the specified Keying Set.";
 	
 	/* callbacks */
@@ -1285,11 +1285,11 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_delete_keyframe_v3d (wmOperatorType *ot)
+void ANIM_OT_keyframe_delete_v3d (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframe";
-	ot->idname= "ANIM_OT_delete_keyframe_v3d";
+	ot->idname= "ANIM_OT_keyframe_delete_v3d";
 	
 	/* callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -1377,11 +1377,11 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_insert_keyframe_button (wmOperatorType *ot)
+void ANIM_OT_keyframe_insert_button (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframe (Buttons)";
-	ot->idname= "ANIM_OT_insert_keyframe_button";
+	ot->idname= "ANIM_OT_keyframe_insert_button";
 	
 	/* callbacks */
 	ot->exec= insert_key_button_exec; 
@@ -1447,11 +1447,11 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
+void ANIM_OT_keyframe_delete_button (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframe (Buttons)";
-	ot->idname= "ANIM_OT_delete_keyframe_button";
+	ot->idname= "ANIM_OT_keyframe_delete_button";
 	
 	/* callbacks */
 	ot->exec= delete_key_button_exec; 

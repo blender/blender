@@ -485,7 +485,7 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 	
 	
 	bpy.ops.pose.select_all_toggle() # set
-	bpy.ops.anim.insert_keyframe_menu(type=-4) # XXX -     -4 ???
+	bpy.ops.anim.keyframe_insert_menu(type=-4) # XXX -     -4 ???
 	
 
 	
@@ -498,7 +498,7 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 #XXX	action = Blender.Armature.NLA.NewAction("Action") 
 #XXX	action.setActive(arm_ob)
 	
-	#bpy.ops.act.new()
+	#bpy.ops.action.new()
 	#action = bpy.data.actions[-1]
 	
 	# arm_ob.animation_data.action = action
@@ -617,7 +617,7 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 				
 				
 			
-		# bpy.ops.anim.insert_keyframe_menu(type=-4) # XXX -     -4 ???
+		# bpy.ops.anim.keyframe_insert_menu(type=-4) # XXX -     -4 ???
 		bpy.ops.screen.frame_offset(delta=1)
 		
 		# First time, set the IPO's to linear

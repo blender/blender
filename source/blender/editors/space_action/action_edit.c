@@ -123,11 +123,11 @@ static int act_new_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_new (wmOperatorType *ot)
+void ACTION_OT_new (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "New";
-	ot->idname= "ACT_OT_new";
+	ot->idname= "ACTION_OT_new";
 	ot->description= "Create new action.";
 	
 	/* api callbacks */
@@ -224,11 +224,11 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_previewrange_set (wmOperatorType *ot)
+void ACTION_OT_previewrange_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Auto-Set Preview Range";
-	ot->idname= "ACT_OT_previewrange_set";
+	ot->idname= "ACTION_OT_previewrange_set";
 	ot->description= "Set Preview Range based on extents of selected Keyframes.";
 	
 	/* api callbacks */
@@ -272,11 +272,11 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_view_all (wmOperatorType *ot)
+void ACTION_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View All";
-	ot->idname= "ACT_OT_view_all";
+	ot->idname= "ACTION_OT_view_all";
 	ot->description= "Reset viewable area to show full keyframe range.";
 	
 	/* api callbacks */
@@ -357,11 +357,11 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_copy (wmOperatorType *ot)
+void ACTION_OT_copy (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Keyframes";
-	ot->idname= "ACT_OT_copy";
+	ot->idname= "ACTION_OT_copy";
 	ot->description= "Copy selected keyframes to the copy/paste buffer.";
 	
 	/* api callbacks */
@@ -402,11 +402,11 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_paste (wmOperatorType *ot)
+void ACTION_OT_paste (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Keyframes";
-	ot->idname= "ACT_OT_paste";
+	ot->idname= "ACTION_OT_paste";
 	ot->description= "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame.";
 	
 	/* api callbacks */
@@ -499,11 +499,11 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ACT_OT_insert_keyframe (wmOperatorType *ot)
+void ACT_OT_keyframe_insert (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframes";
-	ot->idname= "ACT_OT_insert_keyframe";
+	ot->idname= "ACT_OT_keyframe_insert";
 	ot->description= "Insert keyframes for the specified channels.";
 	
 	/* api callbacks */
@@ -577,11 +577,11 @@ static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_duplicate (wmOperatorType *ot)
+void ACTION_OT_duplicate (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Keyframes";
-	ot->idname= "ACT_OT_duplicate";
+	ot->idname= "ACTION_OT_duplicate";
 	ot->description= "Make a copy of all selected keyframes.";
 	
 	/* api callbacks */
@@ -645,11 +645,11 @@ static int actkeys_delete_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_delete (wmOperatorType *ot)
+void ACTION_OT_delete (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframes";
-	ot->idname= "ACT_OT_delete";
+	ot->idname= "ACTION_OT_delete";
 	ot->description= "Remove all selected keyframes.";
 	
 	/* api callbacks */
@@ -709,11 +709,11 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_clean (wmOperatorType *ot)
+void ACTION_OT_clean (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clean Keyframes";
-	ot->idname= "ACT_OT_clean";
+	ot->idname= "ACTION_OT_clean";
 	ot->description= "Simplify F-Curves by removing closely spaced keyframes.";
 	
 	/* api callbacks */
@@ -773,11 +773,11 @@ static int actkeys_sample_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_sample (wmOperatorType *ot)
+void ACTION_OT_sample (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Sample Keyframes";
-	ot->idname= "ACT_OT_sample";
+	ot->idname= "ACTION_OT_sample";
 	ot->description= "Add keyframes on every frame between the selected keyframes.";
 	
 	/* api callbacks */
@@ -849,11 +849,11 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_extrapolation_type (wmOperatorType *ot)
+void ACTION_OT_extrapolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
-	ot->idname= "ACT_OT_extrapolation_type";
+	ot->idname= "ACTION_OT_extrapolation_type";
 	ot->description= "Set extrapolation mode for selected F-Curves.";
 	
 	/* api callbacks */
@@ -920,11 +920,11 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_interpolation_type (wmOperatorType *ot)
+void ACTION_OT_interpolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
-	ot->idname= "ACT_OT_interpolation_type";
+	ot->idname= "ACTION_OT_interpolation_type";
 	ot->description= "Set interpolation mode for the F-Curve segments starting from the selected keyframes.";
 	
 	/* api callbacks */
@@ -1009,11 +1009,11 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_handle_type (wmOperatorType *ot)
+void ACTION_OT_handle_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "ACT_OT_handle_type";
+	ot->idname= "ACTION_OT_handle_type";
 	ot->description= "Set type of handle for selected keyframes.";
 	
 	/* api callbacks */
@@ -1080,11 +1080,11 @@ static int actkeys_keytype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframe_type (wmOperatorType *ot)
+void ACTION_OT_keyframe_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Type";
-	ot->idname= "ACT_OT_keyframe_type";
+	ot->idname= "ACTION_OT_keyframe_type";
 	ot->description= "Set type of keyframe for the seleced keyframes.";
 	
 	/* api callbacks */
@@ -1150,11 +1150,11 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ACT_OT_frame_jump (wmOperatorType *ot)
+void ACTION_OT_frame_jump (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Jump to Frame";
-	ot->idname= "ACT_OT_frame_jump";
+	ot->idname= "ACTION_OT_frame_jump";
 	ot->description= "Set the current frame to the average frame of the selected keyframes.";
 	
 	/* api callbacks */
@@ -1246,11 +1246,11 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_snap (wmOperatorType *ot)
+void ACTION_OT_snap (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Snap Keys";
-	ot->idname= "ACT_OT_snap";
+	ot->idname= "ACTION_OT_snap";
 	ot->description= "Snap selected keyframes to the times specified.";
 	
 	/* api callbacks */
@@ -1363,11 +1363,11 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_mirror (wmOperatorType *ot)
+void ACTION_OT_mirror (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mirror Keys";
-	ot->idname= "ACT_OT_mirror";
+	ot->idname= "ACTION_OT_mirror";
 	ot->description= "Flip selected keyframes over the selected mirror line.";
 	
 	/* api callbacks */

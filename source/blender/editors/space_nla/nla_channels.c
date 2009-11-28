@@ -429,11 +429,11 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_add_tracks (wmOperatorType *ot)
+void NLA_OT_tracks_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Track(s)";
-	ot->idname= "NLA_OT_add_tracks";
+	ot->idname= "NLA_OT_tracks_add";
 	ot->description= "Add NLA-Tracks above/after the selected tracks.";
 	
 	/* api callbacks */

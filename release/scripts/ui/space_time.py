@@ -78,8 +78,8 @@ class TIME_HT_header(bpy.types.Header):
 
         row = layout.row(align=True)
         row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
-        row.operator("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
-        row.operator("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
+        row.operator("anim.keyframe_insert", text="", icon='ICON_KEY_HLT')
+        row.operator("anim.keyframe_delete", text="", icon='ICON_KEY_DEHLT')
 
 
 class TIME_MT_view(bpy.types.Menu):
