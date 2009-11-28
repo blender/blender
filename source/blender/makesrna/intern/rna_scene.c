@@ -56,20 +56,20 @@ EnumPropertyItem snap_target_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 	
 EnumPropertyItem proportional_falloff_items[] ={
-	{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-	{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
-	{PROP_ROOT, "ROOT", 0, "Root", ""},
-	{PROP_SHARP, "SHARP", 0, "Sharp", ""},
-	{PROP_LIN, "LINEAR", 0, "Linear", ""},
-	{PROP_CONST, "CONSTANT", 0, "Constant", ""},
-	{PROP_RANDOM, "RANDOM", 0, "Random", ""},
+	{PROP_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
+	{PROP_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", ""},
+	{PROP_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
+	{PROP_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
+	{PROP_LIN, "LINEAR", ICON_LINCURVE, "Linear", ""},
+	{PROP_CONST, "CONSTANT", ICON_NOCURVE, "Constant", ""},
+	{PROP_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 
 EnumPropertyItem proportional_editing_items[] = {
-	{PROP_EDIT_OFF, "DISABLED", 0, "Disable", ""},
-	{PROP_EDIT_ON, "ENABLED", 0, "Enable", ""},
-	{PROP_EDIT_CONNECTED, "CONNECTED", 0, "Connected", ""},
+	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", ""},
+	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", ""},
+	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem mesh_select_mode_items[] = {

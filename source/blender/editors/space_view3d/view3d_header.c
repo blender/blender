@@ -1686,38 +1686,6 @@ static char *ndof_pup(void)
 	return string;
 }
 
-
-static char *snapmode_pup(void)
-{
-	static char string[512];
-	char *str = string;
-	
-	str += sprintf(str, "%s", "Snap Element: %t"); 
-	str += sprintf(str, "%s", "|Increments%x0");
-	str += sprintf(str, "%s", "|Vertex%x1");
-	str += sprintf(str, "%s", "|Edge%x2");
-	str += sprintf(str, "%s", "|Face%x3");
-	str += sprintf(str, "%s", "|Volume%x4");
-	return string;
-}
-
-static char *propfalloff_pup(void)
-{
-	static char string[512];
-	char *str = string;
-	
-	str += sprintf(str, "%s", "Falloff: %t"); 
-	str += sprintf(str, "%s", "|Smooth Falloff%x0");
-	str += sprintf(str, "%s", "|Sphere Falloff%x1");
-	str += sprintf(str, "%s", "|Root Falloff%x2"); 
-	str += sprintf(str, "%s", "|Sharp Falloff%x3"); 
-	str += sprintf(str, "%s", "|Linear Falloff%x4");
-	str += sprintf(str, "%s", "|Random Falloff%x6");
-	str += sprintf(str, "%s", "|Constant, No Falloff%x5");
-	return string;
-}
-
-
 static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 {
 	wmWindow *win= CTX_wm_window(C);
@@ -1999,12 +1967,15 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
+	PointerRNA toolsptr;
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	uiLayout *row;
 	int a, xco=0, maxco=0, yco= 0;
 	
+	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
+
 	block= uiLayoutAbsoluteBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
@@ -2157,54 +2128,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
 
 		}
-	
-		/* proportional falloff */
-		if((obedit == NULL || (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
-		
-			uiBlockBeginAlign(block);
-			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,yco,XIC+10,YIC, &(ts->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
-			xco+= XIC+10;
-		
-			if(ts->proportional) {
-				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SMOOTHCURVE, propfalloff_pup(), xco,yco,XIC+10,YIC, &(ts->prop_mode), 0.0, 0.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
-				xco+= XIC+10;
-			}
-			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, 10);
-		}
-
-		/* Snap */
-		uiBlockBeginAlign(block);
-
-		if (ts->snap_flag & SCE_SNAP) {
-			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_ON,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap during transform (Ctrl)");
-		} else {
-			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_OFF,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap during transform (Ctrl)");
-		}
-		xco+= XIC;
-
-		if(v3d->modeselect == OB_MODE_OBJECT && ts->snap_mode != SCE_SNAP_MODE_INCREMENT) {
-			uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");
-			xco+= XIC;
-		}
-		if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
-			uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");
-			xco+= XIC;
-		}
-		if (ts->snap_mode == SCE_SNAP_MODE_FACE) {
-			uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_RETOPO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
-			xco+= XIC;
-		}
-		uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_INCREMENT, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
-		xco+= XIC + 10;
-		if(ts->snap_mode != SCE_SNAP_MODE_INCREMENT) {
-			uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");
-			xco+= 70;
-		}
-
-		uiBlockEndAlign(block);
-		header_xco_step(ar, &xco, &yco, &maxco, 10);
-
 
 		/* selection modus */
 		if(obedit && (obedit->type == OB_MESH)) {
@@ -2245,6 +2168,29 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			if(v3d->drawtype > OB_WIRE)
 				uiItemR(layout, "", 0, &v3dptr, "occlude_geometry", UI_ITEM_R_ICON_ONLY);
 		}
+ 
+		/* Proportional editing */
+		if((obedit == NULL || (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
+			row= uiLayoutRow(layout, 1);
+			uiItemR(row, "", 0, &toolsptr, "proportional_editing", UI_ITEM_R_ICON_ONLY);
+			if(ts->proportional)
+				uiItemR(row, "", 0, &toolsptr, "proportional_editing_falloff", UI_ITEM_R_ICON_ONLY);
+		}
+
+		/* Snap */
+		row= uiLayoutRow(layout, 1);
+		uiItemR(row, "", 0, &toolsptr, "snap", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, "", 0, &toolsptr, "snap_element", UI_ITEM_R_ICON_ONLY);
+
+ 		if(ts->snap_mode != SCE_SNAP_MODE_INCREMENT) {
+			uiItemR(row, "", 0, &toolsptr, "snap_target", UI_ITEM_R_ICON_ONLY);
+			if(v3d->modeselect == OB_MODE_OBJECT)
+				uiItemR(row, "", 0, &toolsptr, "snap_align_rotation", UI_ITEM_R_ICON_ONLY);
+		}
+		if(ts->snap_mode == SCE_SNAP_MODE_VOLUME)
+			uiItemR(row, "", 0, &toolsptr, "snap_peel_object", UI_ITEM_R_ICON_ONLY);
+		else if(ts->snap_mode == SCE_SNAP_MODE_FACE)
+			uiItemR(row, "", 0, &toolsptr, "snap_project", UI_ITEM_R_ICON_ONLY);
 
 		/* OpenGL Render */
 		row= uiLayoutRow(layout, 1);
