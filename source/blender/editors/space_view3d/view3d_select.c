@@ -648,7 +648,7 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 			else ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
-
+	ED_armature_sync_selection(arm->edbo);
 	ED_armature_validate_active(arm);
 }
 
