@@ -168,7 +168,6 @@ class TEXT_MT_templates(bpy.types.Menu):
     bl_label = "Script Templates"
 
     def draw(self, context):
-        import os
         self.path_menu(bpy.utils.script_paths("templates"), "text.open")
 
 

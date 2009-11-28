@@ -193,6 +193,7 @@ class BONE_PT_relations(BoneButtonsPanel):
         sub.active = (not bone.parent or not bone.connected)
         sub.prop(bone, "local_location", text="Local Location")
 
+
 class BONE_PT_display(BoneButtonsPanel):
     bl_label = "Display"
 

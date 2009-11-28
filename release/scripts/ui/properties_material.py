@@ -481,7 +481,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         mat = active_node_mat(context.material)
         sss = mat.subsurface_scattering
         wide_ui = context.region.width > narrowui
-        
+
         layout.active = (sss.enabled) and (not mat.shadeless)
 
         row = layout.row().split()

@@ -30,7 +30,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         # view = context.space_data
         mode_string = context.mode
         edit_object = context.edit_object
-        object = context.active_object
+        obj = context.active_object
         toolsettings = context.scene.tool_settings
 
         row = layout.row(align=True)
@@ -48,7 +48,7 @@ class VIEW3D_HT_header(bpy.types.Header):
 
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
-            elif object:
+            elif obj:
                 if mode_string not in ['PAINT_WEIGHT', 'PAINT_TEXTURE']:
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
@@ -57,7 +57,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         layout.template_header_3D()
 
         # Proportional editing
-        if object.mode in ('OBJECT', 'EDIT'):
+        if obj.mode in ('OBJECT', 'EDIT'):
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
             if toolsettings.proportional_editing != 'DISABLED':
@@ -69,7 +69,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         row.prop(toolsettings, "snap_element", text="", icon_only=True)
         if toolsettings.snap_element != 'INCREMENT':
             row.prop(toolsettings, "snap_target", text="", icon_only=True)
-            if object.mode == 'OBJECT':
+            if obj.mode == 'OBJECT':
                 row.prop(toolsettings, "snap_align_rotation", text="")
         if toolsettings.snap_element == 'VOLUME':
             row.prop(toolsettings, "snap_peel_object", text="")
@@ -83,7 +83,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         props.animation = True
 
         # Pose
-        if object.mode == 'POSE':
+        if obj.mode == 'POSE':
             row = layout.row(align=True)
             row.operator("pose.copy", text="", icon='ICON_COPYDOWN')
             row.operator("pose.paste", text="", icon='ICON_PASTEDOWN')
@@ -114,16 +114,16 @@ class VIEW3D_MT_transform(bpy.types.Menu):
     # TODO: get rid of the custom text strings?
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("tfm.translate", text="Grab/Move")
         # TODO: sub-menu for grab per axis
         layout.operator("tfm.rotate", text="Rotate")
         # TODO: sub-menu for rot per axis
         layout.operator("tfm.resize", text="Scale")
         # TODO: sub-menu for scale per axis
-        
+
         layout.separator()
-        
+
         layout.operator("tfm.tosphere", text="To Sphere")
         layout.operator("tfm.shear", text="Shear")
         layout.operator("tfm.warp", text="Warp")
@@ -133,15 +133,16 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         else:
             layout.operator_context = 'EXEC_AREA'
             layout.operator("tfm.transform", text="Align to Transform Orientation").mode = 'ALIGN' # XXX see alignmenu() in edit.c of b2.4x to get this working
-        
+
         layout.separator()
-        
+
         layout.operator_context = 'EXEC_AREA'
-        
+
         layout.operator("object.center_set", text="ObData to Centroid").type = 'CENTER'
         layout.operator("object.center_set", text="Centroid to ObData").type = 'CENTER_NEW'
         layout.operator("object.center_set", text="Centroid to 3D Cursor").type = 'CENTER_CURSOR'
-     
+
+
 class VIEW3D_MT_mirror(bpy.types.Menu):
     bl_label = "Mirror"
 
@@ -149,11 +150,11 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("tfm.mirror", text="Interactive Mirror")
-        
+
         layout.separator()
-        
+
         layout.operator_context = 'INVOKE_REGION_WIN'
-        
+
         props = layout.operator("tfm.mirror", text="X Global")
         props.constraint_axis = (True, False, False)
         props.constraint_orientation = 'GLOBAL'
@@ -163,10 +164,10 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
         props = layout.operator("tfm.mirror", text="Z Global")
         props.constraint_axis = (False, False, True)
         props.constraint_orientation = 'GLOBAL'
-        
+
         if context.edit_object:
             layout.separator()
-            
+
             props = layout.operator("tfm.mirror", text="X Local")
             props.constraint_axis = (True, False, False)
             props.constraint_orientation = 'LOCAL'
@@ -176,7 +177,8 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
             props = layout.operator("tfm.mirror", text="Z Local")
             props.constraint_axis = (False, False, True)
             props.constraint_orientation = 'LOCAL'
-   
+
+
 class VIEW3D_MT_snap(bpy.types.Menu):
     bl_label = "Snap"
 
@@ -594,7 +596,7 @@ class VIEW3D_MT_select_face(bpy.types.Menu):# XXX no matching enum
 
     def draw(self, context):
         layout = self.layout
-        
+
         # TODO
         # see view3d_select_faceselmenu
 
@@ -785,7 +787,7 @@ class VIEW3D_MT_hook(bpy.types.Menu):
         layout.operator_context = 'EXEC_AREA'
         layout.operator("object.hook_add_newob")
         layout.operator("object.hook_add_selob")
-        
+
         if [mod.type == 'HOOK' for mod in context.active_object.modifiers]:
             layout.separator()
             layout.operator_menu_enum("object.hook_assign", "modifier")
@@ -803,7 +805,7 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
         layout.operator("object.vertex_group_assign", text="Assign to New Group").new = True
-        
+
         ob = context.active_object
         if ob.mode == 'EDIT':
             if ob.vertex_groups and ob.active_vertex_group:
@@ -812,7 +814,7 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
                 layout.operator("object.vertex_group_remove_from", text="Remove from Active Group")
                 layout.operator("object.vertex_group_remove_from", text="Remove from All").all = True
                 layout.separator()
-        
+
         if ob.vertex_groups and ob.active_vertex_group:
             layout.operator_menu_enum("object.vertex_group_set_active", "group", text="Set Active Group")
             layout.operator("object.vertex_group_remove", text="Remove Active Group")
@@ -898,7 +900,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout = self.layout
 
         arm = context.active_object.data
-        
+
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_snap")
         if arm.drawtype in ('BBONE', 'ENVELOPE'):
@@ -1238,7 +1240,7 @@ def draw_curve(self, context):
     layout = self.layout
 
     settings = context.tool_settings
-    
+
     layout.menu("VIEW3D_MT_transform")
     layout.menu("VIEW3D_MT_mirror")
     layout.menu("VIEW3D_MT_snap")
@@ -1374,7 +1376,7 @@ class VIEW3D_MT_edit_meta(bpy.types.Menu):
         layout.operator("ed.redo")
 
         layout.separator()
-        
+
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
@@ -1412,7 +1414,7 @@ class VIEW3D_MT_edit_lattice(bpy.types.Menu):
         layout = self.layout
 
         settings = context.tool_settings
-        
+
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
@@ -1435,7 +1437,7 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         edit_object = context.edit_object
         arm = edit_object.data
-        
+
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
@@ -1562,11 +1564,7 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         col.prop(view, "clip_start", text="Start")
         col.prop(view, "clip_end", text="End")
 
-
-
         layout.column().prop(scene, "cursor_location", text="3D Cursor:")
-        
-        
 
 
 class VIEW3D_PT_3dview_name(bpy.types.Panel):
@@ -1609,7 +1607,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         view = context.space_data
         gs = context.scene.game_data
         ob = context.object
-        
+
         col = layout.column()
         col.prop(view, "display_x_axis", text="X Axis")
         col.prop(view, "display_y_axis", text="Y Axis")
@@ -1620,7 +1618,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         if ob and ob.type == 'MESH':
             mesh = ob.data
             col.prop(mesh, "all_edges")
-        
+
         col = layout.column()
         col.prop(view, "display_floor", text="Grid Floor")
         sub = col.column(align=True)
@@ -1628,7 +1626,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         sub.prop(view, "grid_lines", text="Lines")
         sub.prop(view, "grid_spacing", text="Spacing")
         sub.prop(view, "grid_subdivisions", text="Subdivisions")
-        
+
         col = layout.column()
         col.label(text="Shading:")
         col.prop(gs, "material_mode", text="")
@@ -1826,7 +1824,7 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
                 return "object"
 
         return ""
-    
+
     def poll(self, context):
         member = self._active_context_member(context)
         if member:
@@ -1844,46 +1842,6 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
             # Draw with no edit button
             rna_prop_ui.draw(self.layout, context, member, False)
 
-
-# Operators
-from bpy.props import *
-
-
-class OBJECT_OT_select_pattern(bpy.types.Operator):
-    '''Select object matching a naming pattern.'''
-    bl_idname = "object.select_pattern"
-    bl_label = "Select Pattern"
-    bl_register = True
-    bl_undo = True
-
-    pattern = StringProperty(name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen=32, default="*")
-    case_sensitive = BoolProperty(name="Case Sensitive", description="Do a case sensitive compare", default=False)
-    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=True)
-
-    def execute(self, context):
-
-        import fnmatch
-
-        if self.properties.case_sensitive:
-            pattern_match = fnmatch.fnmatchcase
-        else:
-            pattern_match = lambda a, b: fnmatch.fnmatchcase(a.upper(), b.upper())
-
-        for ob in context.visible_objects:
-            if pattern_match(ob.name, self.properties.pattern):
-                ob.selected = True
-            elif not self.properties.extend:
-                ob.selected = False
-
-        return ('FINISHED',)
-
-        # TODO - python cant do popups yet
-    '''
-    def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
-    '''
 
 bpy.types.register(VIEW3D_HT_header) # Header
 
@@ -1979,5 +1937,3 @@ bpy.types.register(VIEW3D_PT_transform_orientations)
 bpy.types.register(VIEW3D_PT_etch_a_ton)
 
 bpy.types.register(VIEW3D_PT_context_properties)
-
-bpy.ops.add(OBJECT_OT_select_pattern)

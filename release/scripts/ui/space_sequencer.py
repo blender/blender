@@ -522,7 +522,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         row.prop(strip.sound, "caching")
 
         layout.prop(strip, "volume")
-        
+
 
 class SEQUENCER_PT_scene(SequencerButtonsPanel):
     bl_label = "Scene"
@@ -541,7 +541,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
         layout = self.layout
 
         strip = act_strip(context)
-        
+
         layout.template_ID(strip, "scene")
 
 

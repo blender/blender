@@ -17,6 +17,42 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
+from bpy.props import *
+
+
+class SelectPattern(bpy.types.Operator):
+    '''Select object matching a naming pattern.'''
+    bl_idname = "object.select_pattern"
+    bl_label = "Select Pattern"
+    bl_register = True
+    bl_undo = True
+
+    pattern = StringProperty(name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen=32, default="*")
+    case_sensitive = BoolProperty(name="Case Sensitive", description="Do a case sensitive compare", default=False)
+    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=True)
+
+    def execute(self, context):
+
+        import fnmatch
+
+        if self.properties.case_sensitive:
+            pattern_match = fnmatch.fnmatchcase
+        else:
+            pattern_match = lambda a, b: fnmatch.fnmatchcase(a.upper(), b.upper())
+
+        for ob in context.visible_objects:
+            if pattern_match(ob.name, self.properties.pattern):
+                ob.selected = True
+            elif not self.properties.extend:
+                ob.selected = False
+
+        return ('FINISHED',)
+
+    def invoke(self, context, event):
+        wm = context.manager
+        wm.invoke_props_popup(self, event)
+        return ('RUNNING_MODAL',)
+
 
 class SubsurfSet(bpy.types.Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
@@ -25,8 +61,8 @@ class SubsurfSet(bpy.types.Operator):
     bl_label = "Subsurf Set"
     bl_register = True
     bl_undo = True
-    
-    level = bpy.props.IntProperty(name="Level",
+
+    level = IntProperty(name="Level",
             default=1, min=0, max=6)
 
     def poll(self, context):
@@ -41,12 +77,12 @@ class SubsurfSet(bpy.types.Operator):
                 if mod.levels != level:
                     mod.levels = level
                 return ('FINISHED',)
-        
+
         # adda new modifier
         mod = ob.modifiers.new("Subsurf", 'SUBSURF')
         mod.levels = level
         return ('FINISHED',)
 
 
-# Register the operator
+bpy.ops.add(SelectPattern)
 bpy.ops.add(SubsurfSet)

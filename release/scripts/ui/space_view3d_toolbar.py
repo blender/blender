@@ -171,7 +171,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col.operator("tfm.translate")
         col.operator("tfm.rotate")
         col.operator("tfm.resize", text="Scale")
-        
+
         col = layout.column(align=True)
         col.operator("tfm.transform", text="Tilt").mode = 'TILT'
         col.operator("tfm.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'

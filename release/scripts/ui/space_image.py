@@ -149,14 +149,15 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
         layout.operator("tfm.translate")
         layout.operator("tfm.rotate")
         layout.operator("tfm.resize")
-		
+
+
 class IMAGE_MT_uvs_snap(bpy.types.Menu):
     bl_label = "Snap"
 
-    def draw(self, context):	
+    def draw(self, context):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
-		
+
         layout.operator("uv.snap_selection", text="Selected to Pixels").target = 'PIXELS'
         layout.operator("uv.snap_selection", text="Selected to Cursor").target = 'CURSOR'
         layout.operator("uv.snap_selection", text="Selected to Adjacent Unselected").target = 'ADJACENT_UNSELECTED'
@@ -165,6 +166,7 @@ class IMAGE_MT_uvs_snap(bpy.types.Menu):
 
         layout.operator("uv.snap_cursor", text="Cursor to Pixels").target = 'PIXELS'
         layout.operator("uv.snap_cursor", text="Cursor to Selection").target = 'SELECTION'
+
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
     bl_label = "Mirror"

@@ -401,8 +401,8 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.label(text="Mux:")
         col.prop(rd, "ffmpeg_muxrate", text="Rate")
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
-        
-        # Audio: 
+
+        # Audio:
         layout.prop(rd, "ffmpeg_multiplex_audio", text="Audio")
 
         sub = layout.column()

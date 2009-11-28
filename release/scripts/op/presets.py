@@ -4,12 +4,12 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -21,14 +21,14 @@ import os
 
 class AddPresetBase(bpy.types.Operator):
     '''Base preset class, only for subclassing
-    subclasses must define 
+    subclasses must define
      - preset_values
      - preset_subdir '''
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
 
     name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen= 64, default= "")
-    
+
     def _as_filename(self, name): # could reuse for other presets
         for char in " !@#$%^&*(){}:\";'[]<>,./?":
             name = name.replace('.', '_')
@@ -44,7 +44,7 @@ class AddPresetBase(bpy.types.Operator):
         target_path = bpy.utils.preset_paths(self.preset_subdir)[0] # we need some way to tell the user and system preset path
 
         file_preset = open(os.path.join(target_path, filename), 'w')
-        
+
         for rna_path in self.preset_values:
             file_preset.write("%s = %s\n" % (rna_path, eval(rna_path)))
 
@@ -100,13 +100,13 @@ class AddPresetSSS(AddPresetBase):
     ]
 
     preset_subdir = "sss"
-    
+
 class AddPresetCloth(AddPresetBase):
     '''Add a Cloth Preset.'''
     bl_idname = "cloth.preset_add"
     bl_label = "Add Cloth Preset"
     name = AddPresetBase.name
-    
+
     preset_values = [
         "bpy.context.cloth.settings.quality",
         "bpy.context.cloth.settings.mass",
@@ -115,7 +115,7 @@ class AddPresetCloth(AddPresetBase):
         "bpy.context.cloth.settings.spring_damping",
         "bpy.context.cloth.settings.air_damping",
     ]
-    
+
     preset_subdir = "cloth"
 
 bpy.ops.add(AddPresetRender)

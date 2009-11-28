@@ -28,7 +28,7 @@ from properties_physics_common import effector_weights_ui
 
 def cloth_panel_enabled(md):
     return md.point_cache.baked is False
-    
+
 
 class CLOTH_MT_presets(bpy.types.Menu):
     '''
@@ -227,7 +227,7 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel):
     def draw(self, context):
         cloth = context.cloth.settings
         effector_weights_ui(self, context, cloth.effector_weights)
-        
+
 bpy.types.register(CLOTH_MT_presets)
 
 bpy.types.register(PHYSICS_PT_cloth)

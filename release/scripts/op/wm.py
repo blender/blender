@@ -33,7 +33,7 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
         bpy.ops.tfm.edge_slide(value=1.0)
         bpy.ops.mesh.select_more()
         bpy.ops.mesh.remove_doubles()
-        
+
         return ('FINISHED',)
 
 rna_path_prop = StringProperty(name="Context Attributes",
