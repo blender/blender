@@ -776,21 +776,25 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_USE_MANIPULATOR);
 	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms.");
+	RNA_def_property_ui_icon(prop, ICON_MANIPUL, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "manipulator_translate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_TRANSLATE);
 	RNA_def_property_ui_text(prop, "Manipulator Translate", "Use the manipulator for movement transformations.");
+	RNA_def_property_ui_icon(prop, ICON_MAN_TRANS, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "manipulator_rotate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_ROTATE);
 	RNA_def_property_ui_text(prop, "Manipulator Rotate", "Use the manipulator for rotation transformations.");
+	RNA_def_property_ui_icon(prop, ICON_MAN_ROT, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "manipulator_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_SCALE);
 	RNA_def_property_ui_text(prop, "Manipulator Scale", "Use the manipulator for scale transformations.");
+	RNA_def_property_ui_icon(prop, ICON_MAN_SCALE, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "transform_orientation", PROP_ENUM, PROP_NONE);

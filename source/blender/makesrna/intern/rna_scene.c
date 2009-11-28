@@ -649,7 +649,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "snap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP);
 	RNA_def_property_ui_text(prop, "Snap", "Snap during transform.");
-	RNA_def_property_ui_icon(prop, ICON_SNAP_ON, 1);
+	RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
 	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_align_rotation", PROP_BOOLEAN, PROP_NONE);
