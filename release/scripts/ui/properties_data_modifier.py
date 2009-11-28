@@ -365,11 +365,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
     def MESH_DEFORM(self, layout, ob, md, wide_ui):
         split = layout.split()
         col = split.column()
-        col.label(text="Object:")
-        col.prop(md, "object", text="")
-        if md.object and md.object.type == 'ARMATURE':
-            col.label(text="Bone:")
-            col.prop_object(md, "subtarget", md.object.data, "bones", text="")
+        sub = col.column()
+        sub.label(text="Object:")
+        sub.prop(md, "object", text="")
+        sub.prop(md, "mode", text="")
+        sub.active = not md.is_bound
         if wide_ui:
             col = split.column()
         col.label(text="Vertex Group:")
@@ -385,14 +385,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.operator("object.meshdeform_bind", text="Unbind")
         else:
             layout.operator("object.meshdeform_bind", text="Bind")
-            split = layout.split()
 
-            col = split.column()
-            col.prop(md, "precision")
+            if md.mode == 'VOLUME':
+                split = layout.split()
 
-            if wide_ui:
                 col = split.column()
-            col.prop(md, "dynamic")
+                col.prop(md, "precision")
+
+                if wide_ui:
+                    col = split.column()
+                col.prop(md, "dynamic")
 
     def MIRROR(self, layout, ob, md, wide_ui):
         layout.prop(md, "merge_limit")

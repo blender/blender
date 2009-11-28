@@ -165,7 +165,8 @@ void BDR_drawSketch(const struct bContext *vc);
 int BDR_drawSketchNames(struct ViewContext *vc);
 
 /* meshlaplacian.c */
-void harmonic_coordinates_bind(struct Scene *scene, struct MeshDeformModifierData *mmd,
+void mesh_deform_bind(struct Scene *scene, struct DerivedMesh *dm,
+	struct MeshDeformModifierData *mmd,
 	float *vertexcos, int totvert, float cagemat[][4]);
 
 #endif /* ED_ARMATURE_H */

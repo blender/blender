@@ -7894,7 +7894,7 @@ static void meshdeformModifier_do(
 		/* progress bar redraw can make this recursive .. */
 		if(!recursive) {
 			recursive = 1;
-			mmd->bindfunc(md->scene, mmd, (float*)vertexCos, numVerts, cagemat);
+			mmd->bindfunc(md->scene, dm, mmd, (float*)vertexCos, numVerts, cagemat);
 			recursive = 0;
 		}
 	}

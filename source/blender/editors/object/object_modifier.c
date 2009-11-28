@@ -840,7 +840,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		int mode= mmd->modifier.mode;
 
 		/* force modifier to run, it will call binding routine */
-		mmd->bindfunc= harmonic_coordinates_bind;
+		mmd->bindfunc= mesh_deform_bind;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
 		if(ob->type == OB_MESH) {
