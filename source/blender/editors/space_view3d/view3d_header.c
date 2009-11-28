@@ -1993,6 +1993,7 @@ static int object_mode_icon(int mode)
 
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 {
+	bScreen *screen= CTX_wm_screen(C);
 	ARegion *ar= CTX_wm_region(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -2232,21 +2233,17 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			BKE_mesh_end_editmesh(obedit->data, em);
 		}
 		else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-			uiBlockBeginAlign(block);
-			uiDefIconButBitI(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_PARTICLE_PATH, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Path edit mode");
-			xco+= XIC;
-			uiDefIconButBitI(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_PARTICLE_POINT, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Point select mode");
-			xco+= XIC;
-			uiDefIconButBitI(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_PARTICLE_TIP, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Tip select mode");
-			xco+= XIC;
-			uiBlockEndAlign(block);
-			
-			if(v3d->drawtype > OB_WIRE) {
-				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
-				xco+= XIC;
-			}
-			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, XIC);
+			PointerRNA v3dptr;
+			PointerRNA particleptr;
+
+			RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);
+			RNA_pointer_create(&scene->id, &RNA_ParticleEdit, &ts->particle, &particleptr);
+
+			row= uiLayoutRow(layout, 1);
+			uiItemR(row, "", 0, &particleptr, "selection_mode", UI_ITEM_R_EXPAND+UI_ITEM_R_ICON_ONLY);
+
+			if(v3d->drawtype > OB_WIRE)
+				uiItemR(layout, "", 0, &v3dptr, "occlude_geometry", UI_ITEM_R_ICON_ONLY);
 		}
 
 		/* OpenGL Render */

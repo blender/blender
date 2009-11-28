@@ -416,6 +416,7 @@ Scene *add_scene(char *name)
 	pset->brushtype= PE_BRUSH_NONE;
 	pset->draw_step= 2;
 	pset->fade_frames= 2;
+	pset->selectmode= SCE_SELECT_PATH;
 	for(a=0; a<PE_TOT_BRUSH; a++) {
 		pset->brush[a].strength= 50;
 		pset->brush[a].size= 50;

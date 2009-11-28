@@ -341,9 +341,9 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem select_mode_items[] = {
-		{SCE_SELECT_PATH, "PATH", ICON_EDGESEL, "Path", ""}, // XXX icon
-		{SCE_SELECT_POINT, "POINT", ICON_VERTEXSEL, "Point", ""}, // XXX icon
-		{SCE_SELECT_END, "END", ICON_FACESEL, "End", "E"}, // XXX icon
+		{SCE_SELECT_PATH, "PATH", ICON_PARTICLE_PATH, "Path", "Path edit mode"},
+		{SCE_SELECT_POINT, "POINT", ICON_PARTICLE_POINT, "Point", "Point select mode"},
+		{SCE_SELECT_END, "TIP", ICON_PARTICLE_TIP, "Tip", "Tip select mode"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem puff_mode[] = {
