@@ -46,6 +46,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "DNA_object_types.h"
+// #include "GPU_draw.h"
 
 static void rna_userdef_update(bContext *C, PointerRNA *ptr)
 {
@@ -148,6 +149,15 @@ static void rna_UserDef_weight_color_update(bContext *C, PointerRNA *ptr)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 
+	rna_userdef_update(C, ptr);
+}
+
+// XXX - todo, this is not accessible from here and it only works when the userprefs are in the same window.
+// extern int GPU_default_lights(void);
+static void rna_UserDef_viewport_lights_update(bContext *C, PointerRNA *ptr)
+{
+	// GPU_default_lights();
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	rna_userdef_update(C, ptr);
 }
 
@@ -1596,21 +1606,25 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this OpenGL light in solid draw mode.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop= RNA_def_property(srna, "direction", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Direction", "The direction that the OpenGL light is shining.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop= RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "col");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Diffuse Color", "The diffuse color of the OpenGL light.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop= RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Specular Color", "The color of the lights specular highlight.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 }
 
 static void rna_def_userdef_view(BlenderRNA *brna)

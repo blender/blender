@@ -964,7 +964,7 @@ static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, Report
 
 static void rna_Object_modifier_remove(Object *object, bContext *C, ReportList *reports, ModifierData *md)
 {
-	return ED_object_modifier_remove(reports, CTX_data_scene(C), object, md);
+	ED_object_modifier_remove(reports, CTX_data_scene(C), object, md);
 }
 
 #else
