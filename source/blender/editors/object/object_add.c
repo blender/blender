@@ -1506,6 +1506,18 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 }
 
 /**************************** Join *************************/
+static int join_poll(bContext *C)
+{
+	Object *ob= CTX_data_active_object(C);
+	
+	if (!ob) return 0;
+	
+	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE))
+		return ED_operator_screenactive(C);
+	else
+		return 0;
+}
+
 
 static int join_exec(bContext *C, wmOperator *op)
 {
@@ -1514,10 +1526,6 @@ static int join_exec(bContext *C, wmOperator *op)
 
 	if(scene->obedit) {
 		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
-		return OPERATOR_CANCELLED;
-	}
-	else if(!ob) {
-		BKE_report(op->reports, RPT_ERROR, "Can't join unless there is an active object.");
 		return OPERATOR_CANCELLED;
 	}
 	else if(object_data_is_libdata(ob)) {
@@ -1531,9 +1539,7 @@ static int join_exec(bContext *C, wmOperator *op)
 		return join_curve_exec(C, op);
 	else if(ob->type == OB_ARMATURE)
 		return join_armature_exec(C, op);
-
-	BKE_report(op->reports, RPT_ERROR, "This object type doesn't support joining.");
-
+	
 	return OPERATOR_CANCELLED;
 }
 
@@ -1546,9 +1552,57 @@ void OBJECT_OT_join(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= join_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= join_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/**************************** Join as Shape Key*************************/
+static int join_shapes_poll(bContext *C)
+{
+	Object *ob= CTX_data_active_object(C);
+	
+	if (!ob) return 0;
+	
+	/* only meshes supported at the moment */
+	if (ob->type == OB_MESH)
+		return ED_operator_screenactive(C);
+	else
+		return 0;
+}
+
+static int join_shapes_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	if(scene->obedit) {
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
+		return OPERATOR_CANCELLED;
+	}
+	else if(object_data_is_libdata(ob)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(ob->type == OB_MESH)
+		return join_mesh_shapes_exec(C, op);
+	
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_join_shapes(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Join as Shapes";
+	ot->description = "Merge selected objects to shapes of active object.";
+	ot->idname= "OBJECT_OT_join_shapes";
+	
+	/* api callbacks */
+	ot->exec= join_shapes_exec;
+	ot->poll= join_shapes_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

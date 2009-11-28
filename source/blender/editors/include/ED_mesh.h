@@ -83,6 +83,7 @@ int			mesh_get_x_mirror_vert(struct Object *ob, int index);
 int			*mesh_get_x_mirror_faces(struct Object *ob, struct EditMesh *em);
 
 int			join_mesh_exec(struct bContext *C, struct wmOperator *op);
+int			join_mesh_shapes_exec(struct bContext *C, struct wmOperator *op);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
