@@ -43,8 +43,7 @@ class SubsurfSet(bpy.types.Operator):
                 return ('FINISHED',)
         
         # adda new modifier
-        bpy.ops.object.modifier_add(type='SUBSURF') # TODO, support adding directly
-        mod = ob.modifiers[-1]
+        mod = ob.modifiers.new("Subsurf", 'SUBSURF')
         mod.levels = level
         return ('FINISHED',)
 

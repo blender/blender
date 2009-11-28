@@ -69,7 +69,7 @@ static int particle_system_add_exec(bContext *C, wmOperator *op)
 	if(!scene || !ob)
 		return OPERATOR_CANCELLED;
 
-	object_add_particle_system(scene, ob);
+	object_add_particle_system(scene, ob, NULL);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;

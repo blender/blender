@@ -132,7 +132,7 @@ void ED_node_shader_default(struct Material *ma){}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws){}
 void ED_base_object_select(struct Base *base, short mode){}
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md){return 0;}
-int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, int type){return 0;}
+int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, char *name, int type){return 0;}
 void ED_object_enter_editmode(struct bContext *C, int flag){}
 void ED_object_exit_editmode(struct bContext *C, int flag){}
 int uiLayoutGetActive(struct uiLayout *layout){return 0;}

@@ -3268,14 +3268,14 @@ void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleDa
 /************************************************/
 /*			ParticleSettings handling			*/
 /************************************************/
-void object_add_particle_system(Scene *scene, Object *ob)
+ModifierData *object_add_particle_system(Scene *scene, Object *ob, char *name)
 {
 	ParticleSystem *psys;
 	ModifierData *md;
 	ParticleSystemModifierData *psmd;
 
 	if(!ob || ob->type != OB_MESH)
-		return;
+		return NULL;
 
 	psys = ob->particlesystem.first;
 	for(; psys; psys=psys->next)
@@ -3293,7 +3293,11 @@ void object_add_particle_system(Scene *scene, Object *ob)
 		strcpy(psys->name, "ParticleSystem");
 
 	md= modifier_new(eModifierType_ParticleSystem);
-	sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+
+	if(name)	BLI_strncpy(md->name, name, sizeof(md->name));
+	else		sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+	modifier_unique_name(&ob->modifiers, md);
+
 	psmd= (ParticleSystemModifierData*) md;
 	psmd->psys=psys;
 	BLI_addtail(&ob->modifiers, md);
@@ -3304,6 +3308,8 @@ void object_add_particle_system(Scene *scene, Object *ob)
 
 	DAG_scene_sort(scene);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+
+	return md;
 }
 void object_remove_particle_system(Scene *scene, Object *ob)
 {

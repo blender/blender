@@ -611,7 +611,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	/* return type */
 	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
 	RNA_def_function_return(func, parm);
-	/* object to add */
+	/* constraint to add */
 	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 

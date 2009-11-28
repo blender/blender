@@ -940,13 +940,13 @@ static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 	constraints_set_active(&ob->constraints, (bConstraint *)value.data);
 }
 
-static bConstraint *rna_Object_constraints_new(Object *object, bContext *C, int type)
+static bConstraint *rna_Object_constraint_new(Object *object, bContext *C, int type)
 {
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	return add_ob_constraint(object, NULL, type);
 }
 
-static int rna_Object_constraints_remove(Object *object, bContext *C, int index)
+static int rna_Object_constraint_remove(Object *object, bContext *C, int index)
 {
 	int ok = remove_constraint_index(&object->constraints, index);
 	if(ok) {
@@ -955,6 +955,16 @@ static int rna_Object_constraints_remove(Object *object, bContext *C, int index)
 	}
 
 	return ok;
+}
+
+static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports, char *name, int type)
+{
+	return ED_object_modifier_add(reports, CTX_data_scene(C), object, name, type);
+}
+
+static void rna_Object_modifier_remove(Object *object, bContext *C, ReportList *reports, ModifierData *md)
+{
+	return ED_object_modifier_remove(reports, CTX_data_scene(C), object, md);
 }
 
 #else
@@ -1248,7 +1258,7 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 
 
 	/* Constraint collection */
-	func= RNA_def_function(srna, "new", "rna_Object_constraints_new");
+	func= RNA_def_function(srna, "new", "rna_Object_constraint_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a new constraint to this object");
 	/* return type */
@@ -1258,7 +1268,7 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	func= RNA_def_function(srna, "remove", "rna_Object_constraints_remove");
+	func= RNA_def_function(srna, "remove", "rna_Object_constraint_remove");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
 	/* return type */
@@ -1266,6 +1276,55 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_return(func, parm);
 	/* object to add */
 	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
+/* armature.bones.* */
+static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "ObjectModifiers");
+	srna= RNA_def_struct(brna, "ObjectModifiers", NULL);
+	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_ui_text(srna, "Object Modifiers", "Collection of object modifiers.");
+
+#if 0
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "EditBone");
+	RNA_def_property_pointer_sdna(prop, NULL, "act_edbone");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active EditBone", "Armatures active edit bone.");
+	//RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_edit_bone_set", NULL);
+
+	/* todo, redraw */
+//		RNA_def_property_collection_active(prop, prop_act);
+#endif
+
+	/* add target */
+	func= RNA_def_function(srna, "new", "rna_Object_modifier_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Add a new bone.");
+	parm= RNA_def_string(func, "name", "Name", 0, "", "New name for the bone.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* modifier to add */
+	parm= RNA_def_enum(func, "type", modifier_type_items, 1, "", "Modifier type to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "modifier", "Modifier", "", "Newly created modifier.");
+	RNA_def_function_return(func, parm);
+
+	/* remove target */
+	func= RNA_def_function(srna, "remove", "rna_Object_modifier_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove an existing modifier from the object.");
+	/* target to remove*/
+	parm= RNA_def_pointer(func, "modifier", "Modifier", "", "Modifier to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
@@ -1581,6 +1640,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
 	RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting the geometric data of the Object.");
+	rna_def_object_modifiers(brna, prop);
 
 	/* game engine */
 	prop= RNA_def_property(srna, "game", PROP_POINTER, PROP_NONE);

@@ -485,7 +485,7 @@ static void rna_FieldSettings_shape_update(bContext *C, PointerRNA *ptr)
 		if(!md) {
 			if(pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield,PFIELD_GUIDE,PFIELD_TEXTURE)==0)
 				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
-					ED_object_modifier_add(NULL, scene, ob, eModifierType_Surface);
+					ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Surface);
 		}
 		else {
 			if(!pd || pd->shape != PFIELD_SHAPE_SURFACE)
@@ -620,7 +620,7 @@ static void rna_CollisionSettings_dependency_update(bContext *C, PointerRNA *ptr
 
 	/* add/remove modifier as needed */
 	if(ob->pd->deflect && !md)
-		ED_object_modifier_add(NULL, scene, ob, eModifierType_Collision);
+		ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Collision);
 	else if(!ob->pd->deflect && md)
 		ED_object_modifier_remove(NULL, scene, ob, md);
 

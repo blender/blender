@@ -43,6 +43,7 @@
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_action.h"
 #include "BKE_curve.h"
@@ -78,7 +79,7 @@
 
 /******************************** API ****************************/
 
-ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
+ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, char *name, int type)
 {
 	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
@@ -94,7 +95,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *
 		/* don't need to worry about the new modifier's name, since that is set to the number
 		 * of particle systems which shouldn't have too many duplicates 
 		 */
-		object_add_particle_system(scene, ob);
+		new_md = object_add_particle_system(scene, ob, name);
 	}
 	else {
 		/* get new modifier data to add */
@@ -110,8 +111,12 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *
 		}
 		else
 			BLI_addtail(&ob->modifiers, new_md);
-		
+
+		if(name)
+			BLI_strncpy(new_md->name, name, sizeof(new_md->name));
+
 		/* make sure modifier data has unique name */
+
 		modifier_unique_name(&ob->modifiers, new_md);
 		
 		/* special cases */
@@ -148,8 +153,10 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 		if(obmd==md)
 			break;
 	
-	if(!obmd)
+	if(!obmd) {
+		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'.", ob->id.name, md->name);
 		return 0;
+	}
 
 	/* special cases */
 	if(md->type == eModifierType_ParticleSystem) {
@@ -482,7 +489,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
     Object *ob = CTX_data_active_object(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
-	if(!ED_object_modifier_add(op->reports, scene, ob, type))
+	if(!ED_object_modifier_add(op->reports, scene, ob, NULL, type))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);

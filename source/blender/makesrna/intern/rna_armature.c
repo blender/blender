@@ -662,7 +662,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "bArmature");
 	RNA_def_struct_ui_text(srna, "Armature EditBones", "Collection of armature edit bones.");
 
-	prop= RNA_def_property(srna, "edit_bones", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "EditBone");
 	RNA_def_property_pointer_sdna(prop, NULL, "act_edbone");
 	RNA_def_property_flag(prop, PROP_EDITABLE);

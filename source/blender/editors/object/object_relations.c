@@ -620,15 +620,15 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 
 						switch (partype) {
 						case PAR_CURVE: /* curve deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Curve);
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Curve);
 							((CurveModifierData *)md)->object= par;
 							break;
 						case PAR_LATTICE: /* lattice deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Lattice);
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Lattice);
 							((LatticeModifierData *)md)->object= par;
 							break;
 						default: /* armature deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Armature);
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Armature);
 							((ArmatureModifierData *)md)->object= par;
 							break;
 						}
