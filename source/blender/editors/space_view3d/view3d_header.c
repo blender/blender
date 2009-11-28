@@ -2058,39 +2058,4 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	/* Occlude geometry */
 	if(v3d->drawtype > OB_WIRE && ((ob && ob->mode & OB_MODE_PARTICLE_EDIT) || (obedit && (obedit->type == OB_MESH))))
 		uiItemR(layout, "", 0, &v3dptr, "occlude_geometry", UI_ITEM_R_ICON_ONLY);
- 
-	/* Proportional editing */
-	if((obedit == NULL || (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
-		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &toolsptr, "proportional_editing", UI_ITEM_R_ICON_ONLY);
-		if(ts->proportional)
-			uiItemR(row, "", 0, &toolsptr, "proportional_editing_falloff", UI_ITEM_R_ICON_ONLY);
-	}
-
-	/* Snap */
-	row= uiLayoutRow(layout, 1);
-	uiItemR(row, "", 0, &toolsptr, "snap", UI_ITEM_R_ICON_ONLY);
-	uiItemR(row, "", 0, &toolsptr, "snap_element", UI_ITEM_R_ICON_ONLY);
-
-	if(ts->snap_mode != SCE_SNAP_MODE_INCREMENT) {
-		uiItemR(row, "", 0, &toolsptr, "snap_target", UI_ITEM_R_ICON_ONLY);
-		if(v3d->modeselect == OB_MODE_OBJECT)
-			uiItemR(row, "", 0, &toolsptr, "snap_align_rotation", UI_ITEM_R_ICON_ONLY);
-	}
-	if(ts->snap_mode == SCE_SNAP_MODE_VOLUME)
-		uiItemR(row, "", 0, &toolsptr, "snap_peel_object", UI_ITEM_R_ICON_ONLY);
-	else if(ts->snap_mode == SCE_SNAP_MODE_FACE)
-		uiItemR(row, "", 0, &toolsptr, "snap_project", UI_ITEM_R_ICON_ONLY);
-
-	/* OpenGL Render */
-	row= uiLayoutRow(layout, 1);
-	uiItemO(row, "", ICON_RENDER_STILL, "SCREEN_OT_opengl_render");
-	uiItemBooleanO(row, "", ICON_RENDER_ANIMATION, "SCREEN_OT_opengl_render", "animation", 1);
-		
-	if(ob && (ob->mode & OB_MODE_POSE)) {
-		row= uiLayoutRow(layout, 1);
-		uiItemO(row, "", ICON_COPYDOWN, "POSE_OT_copy");
-		uiItemO(row, "", ICON_PASTEDOWN, "POSE_OT_paste");
-		uiItemBooleanO(row, "", ICON_PASTEFLIPDOWN, "POSE_OT_paste", "flipped", 1);
-	}
 }

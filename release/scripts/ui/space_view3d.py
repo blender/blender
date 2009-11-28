@@ -31,6 +31,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         mode_string = context.mode
         edit_object = context.edit_object
         object = context.active_object
+        toolsettings = context.scene.tool_settings
 
         row = layout.row(align=True)
         row.template_header()
@@ -54,6 +55,41 @@ class VIEW3D_HT_header(bpy.types.Header):
                 sub.menu("VIEW3D_MT_object")
 
         layout.template_header_3D()
+
+        # Proportional editing
+        if object.mode in ('OBJECT', 'EDIT'):
+            row = layout.row(align=True)
+            row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
+            if toolsettings.proportional_editing != 'DISABLED':
+                row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
+
+        # Snap
+        row = layout.row(align=True)
+        row.prop(toolsettings, "snap", text="")
+        row.prop(toolsettings, "snap_element", text="", icon_only=True)
+        if toolsettings.snap_element != 'INCREMENT':
+            row.prop(toolsettings, "snap_target", text="", icon_only=True)
+            if object.mode == 'OBJECT':
+                row.prop(toolsettings, "snap_align_rotation", text="")
+        if toolsettings.snap_element == 'VOLUME':
+            row.prop(toolsettings, "snap_peel_object", text="")
+        elif toolsettings.snap_element == 'FACE':
+            row.prop(toolsettings, "snap_project", text="")
+
+        # OpenGL render
+        row = layout.row(align=True)
+        row.operator("screen.opengl_render", text="", icon='ICON_RENDER_STILL')
+        props = row.operator("screen.opengl_render", text="", icon='ICON_RENDER_ANIMATION')
+        props.animation = True
+
+        # Pose
+        if object.mode == 'POSE':
+            row = layout.row(align=True)
+            row.operator("pose.copy", text="", icon='ICON_COPYDOWN')
+            row.operator("pose.paste", text="", icon='ICON_PASTEDOWN')
+            props = row.operator("pose.paste", text="", icon='ICON_PASTEFLIPDOWN')
+            props.flipped = 1
+
 
 # ********** Menu **********
 
