@@ -152,6 +152,10 @@ BT_DECLARE_ALIGNED_ALLOCATOR();
 	{
 		return (proxyType == STATIC_PLANE_PROXYTYPE);
 	}
+	static SIMD_FORCE_INLINE bool isSoftBody(int proxyType)
+	{
+		return (proxyType == SOFTBODY_SHAPE_PROXYTYPE);
+	}
 	
 }
 ;

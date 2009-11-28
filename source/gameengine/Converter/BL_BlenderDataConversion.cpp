@@ -1458,7 +1458,9 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_kAHR= blenderobject->bsoft->kAHR;			/* Anchors hardness [0,1] */
 			objprop.m_soft_collisionflags= blenderobject->bsoft->collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
-			objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
+			//objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
+			/* disable welding: it doesn't bring any additional stability and it breaks the relation between soft body collision shape and graphic mesh */
+			objprop.m_soft_welding = 0.f;		
 			objprop.m_margin = blenderobject->bsoft->margin;
 			objprop.m_contactProcessingThreshold = 0.f;
 		} else

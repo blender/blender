@@ -1070,6 +1070,8 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 					rayCallback.m_hitTriangleIndex < shapeInfo->m_polygonIndexArray.size())
 				{
 					result.m_meshObject = shapeInfo->GetMesh();
+					// note for softbody: this assumes that the softbody shape uses the same triangle numbering 
+					// than the triangle mesh shape that was used to build it
 					result.m_polygon = shapeInfo->m_polygonIndexArray.at(rayCallback.m_hitTriangleIndex);
 
 					// Bullet returns the normal from "outside".
@@ -1078,7 +1080,13 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 					{
 						// mesh shapes are shared and stored in the shapeInfo
 						btTriangleMeshShape* triangleShape = shapeInfo->GetMeshShape();
-						if (triangleShape)
+
+						if (shape->isSoftBody()) 
+						{
+							// we can get the real normal directly from the body
+							btSoftBody* softBody = static_cast<btSoftBody*>(rayCallback.m_collisionObject);
+							rayCallback.m_hitNormalWorld = softBody->m_faces[rayCallback.m_hitTriangleIndex].m_normal;
+						} else if (triangleShape)
 						{
 							// this code is copied from Bullet 
 							btVector3 triangle[3];

@@ -72,6 +72,10 @@ public:
 	{
 		return btBroadphaseProxy::isCompound(getShapeType());
 	}
+	SIMD_FORCE_INLINE bool	isSoftBody() const
+	{
+		return btBroadphaseProxy::isSoftBody(getShapeType());
+	}
 
 	///isInfinite is used to catch simulation error (aabb check)
 	SIMD_FORCE_INLINE bool isInfinite() const

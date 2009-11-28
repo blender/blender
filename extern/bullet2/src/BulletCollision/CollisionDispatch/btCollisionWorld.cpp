@@ -31,6 +31,7 @@ subject to the following restrictions:
 #include "LinearMath/btAabbUtil2.h"
 #include "LinearMath/btQuickprof.h"
 #include "LinearMath/btStackAlloc.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 //#define USE_BRUTEFORCE_RAYBROADPHASE 1
 //RECALCULATE_AABB is slower, but benefit is that you don't need to call 'stepSimulation'  or 'updateAabbs' before using a rayTest
@@ -410,6 +411,31 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 						resultCallback);
 					// restore
 					collisionObject->internalSetTemporaryCollisionShape(saveCollisionShape);
+				}
+			} else {
+				if (collisionShape->isSoftBody()) {
+					btSoftBody* softBody = static_cast<btSoftBody*>(collisionObject);
+					btSoftBody::sRayCast softResult;
+					if (softBody->rayTest(rayFromTrans.getOrigin(), rayToTrans.getOrigin(), softResult)) 
+					{
+						btCollisionWorld::LocalShapeInfo shapeInfo;
+						shapeInfo.m_shapePart = 0;
+						shapeInfo.m_triangleIndex = softResult.index;
+						// get the normal
+						btVector3 normal = softBody->m_faces[softResult.index].m_normal;
+						btVector3 rayDir = rayToTrans.getOrigin() - rayFromTrans.getOrigin();
+						if (normal.dot(rayDir) > 0) {
+							// normal always point toward origin of the ray
+							normal = -normal;
+						}
+						btCollisionWorld::LocalRayResult rayResult
+							(collisionObject,
+							 &shapeInfo,
+							 normal,
+							 softResult.fraction);
+						bool	normalInWorldSpace = true;
+						resultCallback.addSingleResult(rayResult,normalInWorldSpace);
+					}
 				}
 			}
 		}
