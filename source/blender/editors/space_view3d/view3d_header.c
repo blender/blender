@@ -1838,11 +1838,11 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		BKE_mesh_end_editmesh(obedit->data, em);
 }
 
-static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *ob, int *xcoord, int yco)
+static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *ob)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	RegionView3D *rv3d= wm_region_view3d(C);
-	short xmax, xco= *xcoord;
+	short xmax, xco= 0, yco = 0;
 	
 	/* compensate for local mode when setting up the viewing menu/iconrow values */
 	if(rv3d->view==7) rv3d->viewbut= 1;
@@ -1885,8 +1885,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		/* ported to python */
 		}
 	}
-
-	*xcoord= xco;
 }
 
 static int view3d_layer_icon(int but_lay, int ob_lay, int used_lay)
@@ -1897,19 +1895,6 @@ static int view3d_layer_icon(int but_lay, int ob_lay, int used_lay)
 		return ICON_LAYER_USED;
 	else
 		return ICON_BLANK1;
-}
-
-static void header_xco_step(ARegion *ar, int *xco, int *yco, int *maxco, int step)
-{
-	*xco += step;
-	if(*maxco < *xco) *maxco = *xco;
-	
-	if(ar->winy > *yco + 44) {
-		if(*xco > ar->winrct.xmax) {
-			*xco= 8;
-			*yco+= 22;
-		}
-	}
 }
 
 /* Returns the icon associated with an object mode */
@@ -1929,7 +1914,6 @@ static int object_mode_icon(int mode)
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	ARegion *ar= CTX_wm_region(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
@@ -1939,16 +1923,15 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	uiLayout *row;
-	int a, xco=0, maxco=0, yco= 0;
 	
 	RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
 
-	block= uiLayoutAbsoluteBlock(layout);
+	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) 
-		view3d_header_pulldowns(C, block, ob, &xco, yco);
+		view3d_header_pulldowns(C, block, ob);
 
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -1969,9 +1952,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	if(ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) v3d->flag |= V3D_TEXTUREPAINT;
 	if(paint_facesel_test(ob)) v3d->flag |= V3D_FACESELECT;
 
+	uiBlockBeginAlign(block);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
-			  xco,yco,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");
-	header_xco_step(ar, &xco, &yco, &maxco, 126+8);
+			  0,0,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");
+	uiBlockEndAlign(block);
 	
 	/* Draw type */
 	uiItemR(layout, "", 0, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY);
@@ -1990,36 +1974,24 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiItemR(row, "", 0, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY);
 		uiItemR(row, "", 0, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY);
 
-		block= uiLayoutAbsoluteBlock(layout);
-		uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
-		xco = maxco = yco= 0;
-
 		/* NDOF */
 		if (G.ndofdevice ==0 ) {
-			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), xco,yco,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
-			xco+= XIC+10;
+			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), 0,0,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
 		
 			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
-				      xco,yco,XIC,YIC,
+				      0,0,XIC,YIC,
 				      &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
-			uiBlockEndAlign(block);
-		
-			header_xco_step(ar, &xco, &yco, &maxco, XIC+8);
 		}
-		uiBlockEndAlign(block);
 
 		/* Transform widget / manipulators */
-		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,yco,XIC,YIC, &v3d->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
-		xco+= XIC;
+		row= uiLayoutRow(layout, 1);
+		block= uiLayoutGetBlock(row);
+		uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,0,0,XIC,YIC, &v3d->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {
-			uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
-			xco+= XIC;
-			uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (Ctrl Alt R)");
-			xco+= XIC;
-			uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (Ctrl Alt S)");
-			xco+= XIC;
+			uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
+			uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (Ctrl Alt R)");
+			uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (Ctrl Alt S)");
 		}
 			
 		if (v3d->twmode > (BIF_countTransformOrientation(C) - 1) + V3D_MANIP_CUSTOM) {
@@ -2027,20 +1999,17 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 			
 		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-		uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,yco,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
+		uiDefButS(block, MENU, B_MAN_MODE, str_menu,0,0,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
 		MEM_freeN(str_menu);
-			
-		header_xco_step(ar, &xco, &yco, &maxco, 78);
-		uiBlockEndAlign(block);
 	}
  		
 	/* LAYERS */
 	if(obedit==NULL && v3d->localvd==NULL) {
 		int ob_lay = ob ? ob->lay : 0;
+		int a, xco = 0, yco = 0;
 
 		block= uiLayoutAbsoluteBlock(layout);
 		uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
-		xco = maxco = yco= 0;
 
 		uiBlockBeginAlign(block);
 		for(a=0; a<5; a++) {
@@ -2069,15 +2038,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	if(obedit && (obedit->type == OB_MESH)) {
 		EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
-		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
-		xco+= XIC;
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
-		xco+= XIC;
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
-		xco+= XIC;
-		uiBlockEndAlign(block);
-		header_xco_step(ar, &xco, &yco, &maxco, XIC);
+		row= uiLayoutRow(layout, 1);
+		block= uiLayoutGetBlock(row);
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
