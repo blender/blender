@@ -58,6 +58,19 @@ MINLINE void copy_v3_v3(float r[3], float a[3])
 	r[2]= a[2];
 }
 
+MINLINE void swap_v2_v2(float a[2], float b[2])
+{
+	SWAP(float, a[0], b[0]);
+	SWAP(float, a[1], b[1]);
+}
+
+MINLINE void swap_v3_v3(float a[3], float b[3])
+{
+	SWAP(float, a[0], b[0]);
+	SWAP(float, a[1], b[1]);
+	SWAP(float, a[2], b[2]);
+}
+
 /********************************* Arithmetic ********************************/
 
 MINLINE void add_v2_v2(float *r, float *a)
@@ -76,7 +89,7 @@ MINLINE void add_v3_v3(float *r, float *a)
 {
 	r[0] += a[0];
 	r[1] += a[1];
-	r[1] += a[1];
+	r[2] += a[2];
 }
 
 MINLINE void add_v3_v3v3(float *r, float *a, float *b)
@@ -102,7 +115,7 @@ MINLINE void sub_v3_v3(float *r, float *a)
 {
 	r[0] -= a[0];
 	r[1] -= a[1];
-	r[1] -= a[1];
+	r[2] -= a[2];
 }
 
 MINLINE void sub_v3_v3v3(float *r, float *a, float *b)
@@ -137,6 +150,34 @@ MINLINE void mul_v3_v3(float r[3], float a[3])
 	r[0] *= a[0];
 	r[1] *= a[1];
 	r[2] *= a[2];
+}
+
+MINLINE void madd_v3_v3fl(float r[3], float a[3], float f)
+{
+	r[0] += a[0]*f;
+	r[1] += a[1]*f;
+	r[2] += a[2]*f;
+}
+
+MINLINE void madd_v3_v3v3(float r[3], float a[3], float b[3])
+{
+	r[0] += a[0]*b[0];
+	r[1] += a[1]*b[1];
+	r[2] += a[2]*b[2];
+}
+
+MINLINE void madd_v3_v3v3fl(float r[3], float a[3], float b[3], float f)
+{
+	r[0] = a[0] + b[0]*f;
+	r[1] = a[1] + b[1]*f;
+	r[2] = a[2] + b[2]*f;
+}
+
+MINLINE void madd_v3_v3v3v3(float r[3], float a[3], float b[3], float c[3])
+{
+	r[0] = a[0] + b[0]*c[0];
+	r[1] = a[1] + b[1]*c[1];
+	r[2] = a[2] + b[2]*c[2];
 }
 
 MINLINE void mul_v3_v3v3(float *v, float *v1, float *v2)
@@ -252,6 +293,20 @@ MINLINE float normalize_v3(float n[3])
 	}
 
 	return d;
+}
+
+MINLINE void normal_short_to_float_v3(float *out, short *in)
+{
+	out[0] = in[0]*(1.0f/32767.0f);
+	out[1] = in[1]*(1.0f/32767.0f);
+	out[2] = in[2]*(1.0f/32767.0f);
+}
+
+MINLINE void normal_float_to_short_v3(short *out, float *in)
+{
+	out[0] = (short)(in[0]*32767.0f);
+	out[1] = (short)(in[1]*32767.0f);
+	out[2] = (short)(in[2]*32767.0f);
 }
 
 #endif /* BLI_MATH_VECTOR_INLINE */
