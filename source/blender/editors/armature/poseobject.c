@@ -1464,7 +1464,7 @@ static short pose_select_same_layer (Object *ob)
 	bPose *pose= (ob)? ob->pose : NULL;
 	bArmature *arm= (ob)? ob->data : NULL;
 	bPoseChannel *pchan;
-	short layers= 0, changed= 0;
+	int layers= 0, changed= 0;
 	
 	if (ELEM3(NULL, ob, pose, arm))
 		return 0;
@@ -1670,7 +1670,7 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* sanity checking */
 	if (arm == NULL)
@@ -1691,7 +1691,7 @@ static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
@@ -1723,7 +1723,7 @@ void POSE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers to make visible");
 }
 
 void ARMATURE_OT_armature_layers (wmOperatorType *ot)
@@ -1742,7 +1742,7 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers to make visible");
 }
 
 /* ------------------- */
@@ -1750,7 +1750,7 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get layers that are active already */
 	memset(&layers, 0, sizeof(layers)); /* set all layers to be off by default */
@@ -1760,7 +1760,7 @@ static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		short bit;
 		
 		/* loop over the bits for this pchan's layers, adding layers where they're needed */
-		for (bit= 0; bit < 16; bit++) {
+		for (bit= 0; bit < 32; bit++) {
 			if (pchan->bone->layer & (1<<bit))
 				layers[bit]= 1;
 		}
@@ -1780,7 +1780,7 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
@@ -1816,7 +1816,7 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ------------------- */
@@ -1824,7 +1824,7 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get layers that are active already */
 	memset(&layers, 0, sizeof(layers)); /* set all layers to be off by default */
@@ -1834,7 +1834,7 @@ static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 		short bit;
 		
 		/* loop over the bits for this pchan's layers, adding layers where they're needed */
-		for (bit= 0; bit < 16; bit++) {
+		for (bit= 0; bit < 32; bit++) {
 			if (ebone->layer & (1<<bit))
 				layers[bit]= 1;
 		}
@@ -1854,7 +1854,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
@@ -1890,7 +1890,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ********************************************** */

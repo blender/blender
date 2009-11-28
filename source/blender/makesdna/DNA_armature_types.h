@@ -66,8 +66,9 @@ typedef struct Bone {
 	float			rad_head, rad_tail;	/* radius for head/tail sphere, defining deform as well, parent->rad_tip overrides rad_head*/
 	
 	float			size[3];		/*  patch for upward compat, UNUSED! */
-	short			layer;
+	int				layer;			/* layers that bone appears on */
 	short			segments;		/*  for B-bones */
+	short 			pad[3];
 } Bone;
 
 typedef struct bArmature {
@@ -78,8 +79,8 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
 	
-	Bone		*act_bone;
-	void		*act_edbone;
+	Bone		*act_bone;				/* active bone (when not in editmode) */
+	void		*act_edbone;			/* active editbone (in editmode) */
 
 	void		*sketch;				/* sketch struct for etch-a-ton */
 	
@@ -87,7 +88,10 @@ typedef struct bArmature {
 	int			drawtype;			
 	short		deformflag; 
 	short		pathflag;
-	short		layer, layer_protected;		/* for buttons to work, both variables in this order together */
+	
+	int			pad;
+	
+	int			layer, layer_protected;		/* for buttons to work, both variables in this order together */
 	short		ghostep, ghostsize;		/* number of frames to ghosts to show, and step between them  */
 	short		ghosttype, pathsize;		/* ghost drawing options and number of frames between points of path */
 	int			ghostsf, ghostef;		/* start and end frames of ghost-drawing range */
