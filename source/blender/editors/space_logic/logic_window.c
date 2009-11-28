@@ -637,7 +637,7 @@ static char *sensor_name(int type)
 
 static char *sensor_pup(void)
 {
-	/* the number needs to match defines in game.h */
+	/* the number needs to match defines in DNA_sensor_types.h */
 	return "Sensors %t|Always %x0|Delay %x13|Keyboard %x3|Mouse %x5|"
 		"Touch %x1|Collision %x6|Near %x2|Radar %x7|"
 		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11|Actuator %x12|Armature %x14";
