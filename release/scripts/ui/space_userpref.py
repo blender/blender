@@ -119,11 +119,11 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub1 = sub.column()
 
 #Toolbox doesn't exist yet
-#		sub1.label(text="Toolbox:")
-#		sub1.prop(view, "use_column_layout")
-#		sub1.label(text="Open Toolbox Delay:")
-#		sub1.prop(view, "open_left_mouse_delay", text="Hold LMB")
-#		sub1.prop(view, "open_right_mouse_delay", text="Hold RMB")
+#       sub1.label(text="Toolbox:")
+#       sub1.prop(view, "use_column_layout")
+#       sub1.label(text="Open Toolbox Delay:")
+#       sub1.prop(view, "open_left_mouse_delay", text="Hold LMB")
+#       sub1.prop(view, "open_right_mouse_delay", text="Hold RMB")
 
         #manipulator
         sub1.prop(view, "use_manipulator")
@@ -264,6 +264,9 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         userpref = context.user_preferences
         system = userpref.system
+        lamp0 = system.solid_lights[0]
+        lamp1 = system.solid_lights[1]
+        lamp2 = system.solid_lights[2]
 
         split = layout.split()
 
@@ -320,6 +323,34 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub = col.split(percentage=0.9)
 
         sub1 = sub.column()
+
+        sub1.label(text="Solid OpenGL lights:")
+
+        sub2 = sub1.split()
+
+        col = sub2.column()
+        col.prop(lamp0, "enabled")
+        sub = col.column()
+        sub.active = lamp0.enabled
+        sub.prop(lamp0, "diffuse_color")
+        sub.prop(lamp0, "specular_color")
+        sub.prop(lamp0, "direction")
+
+        col = sub2.column()
+        col.prop(lamp1, "enabled")
+        sub = col.column()
+        sub.active = lamp1.enabled
+        sub.prop(lamp1, "diffuse_color")
+        sub.prop(lamp1, "specular_color")
+        sub.prop(lamp1, "direction")
+
+        col = sub2.column()
+        col.prop(lamp2, "enabled")
+        sub = col.column()
+        sub.active = lamp2.enabled
+        sub.prop(lamp2, "diffuse_color")
+        sub.prop(lamp2, "specular_color")
+        sub.prop(lamp2, "direction")
 
         sub1.label(text="OpenGL:")
         sub1.prop(system, "clip_alpha", slider=True)
