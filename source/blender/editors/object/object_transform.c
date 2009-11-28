@@ -695,9 +695,9 @@ void texspace_edit(Scene *scene, View3D *v3d)
 /********************* Set Object Center ************************/
 
 static EnumPropertyItem prop_set_center_types[] = {
-	{0, "CENTER", 0, "ObData to Center", "Move object data around Object center"},
-	{1, "CENTER_NEW", 0, "Center New", "Move Object center to center of object data"},
-	{2, "CENTER_CURSOR", 0, "Center Cursor", "Move Object Center to position of the 3d cursor"},
+	{0, "CENTER", 0, "ObData to Centroi", "Move object data to Object centroid"},
+	{1, "CENTER_NEW", 0, "Centroid to ObData", "Move Object centroid to center of object data"},
+	{2, "CENTER_CURSOR", 0, "Centroid to 3D Cursor", "Move Object centroid to position of the 3d cursor"},
 	{0, NULL, 0, NULL, NULL}
 };
 
