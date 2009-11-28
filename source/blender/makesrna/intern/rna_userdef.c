@@ -2268,26 +2268,21 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		{USER_TRACKBALL, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport."},
 		{0, NULL, 0, NULL, NULL}};
 		
-	static EnumPropertyItem middle_mouse_mouse_items[] = {
-		{0, "PAN", 0, "Pan", "Use the middle mouse button for panning the viewport."},
-		{USER_VIEWMOVE, "ROTATE", 0, "Rotate", "Use the middle mouse button for rotation the viewport."},
-		{0, NULL, 0, NULL, NULL}};
-		
 	static EnumPropertyItem view_zoom_styles[] = {
 		{USER_ZOOM_CONT, "CONTINUE", 0, "Continue", "Old style zoom, continues while moving mouse up or down."},
 		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zooms in and out based on vertical mouse movement."},
 		{USER_ZOOM_SCALE, "SCALE", 0, "Scale", "Zooms in and out like scaling the view, mouse movements relative to center."},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem view_zoom_axes[] = {
+		{0,						"VERTICAL", 0, "Vertical", "Zooms in and out based on vertical mouse movement."},
+		{USER_ZOOM_DOLLY_HORIZ, "HORIZONTAL", 0, "Horizontal", "Zooms in and out based on horizontal mouse movement."},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "UserPreferencesInput", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
 	RNA_def_struct_ui_text(srna, "Input", "Settings for input devices.");
-
-	prop= RNA_def_property(srna, "middle_mouse", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, middle_mouse_mouse_items);
-	RNA_def_property_ui_text(prop, "Middle Mouse", "Use the middle mouse button to pan or zoom the view.");
 	
 	prop= RNA_def_property(srna, "select_mouse", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
@@ -2299,6 +2294,15 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, view_zoom_styles);
 	RNA_def_property_ui_text(prop, "Viewport Zoom Style", "Which style to use for viewport scaling.");
 	
+	prop= RNA_def_property(srna, "zoom_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
+	RNA_def_property_enum_items(prop, view_zoom_axes);
+	RNA_def_property_ui_text(prop, "Zoom Axis", "Axis of mouse movement to zoom in or out on.");
+	
+	prop= RNA_def_property(srna, "invert_zoom_direction", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZOOM_INVERT);
+	RNA_def_property_ui_text(prop, "Invert Zoom Direction", "Invert the axis of mouse movement for zooming");
+	
 	prop= RNA_def_property(srna, "view_rotation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, view_rotation_items);
@@ -2306,7 +2310,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "continuous_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_CONTINUOUS_MOUSE);
-	RNA_def_property_ui_text(prop, "Continuous Grab", "Experimental option to allow moving the mouse outside the view");
+	RNA_def_property_ui_text(prop, "Continuous Grab", "Allow moving the mouse outside the view on some manipulations (transform, ui control drag).");
 	
 	prop= RNA_def_property(srna, "ndof_pan_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ndof_pan");

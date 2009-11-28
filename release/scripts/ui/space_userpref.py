@@ -1136,6 +1136,9 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         sub.label(text="Zoom Style:")
         sub.row().prop(inputs, "viewport_zoom_style", expand=True)
+        if inputs.viewport_zoom_style == 'DOLLY':
+            sub.row().prop(inputs, "zoom_axis", expand=True)
+            sub.prop(inputs, "invert_zoom_direction")
 
         #sub.prop(inputs, "use_middle_mouse_paste")
 
@@ -1143,7 +1146,6 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         #sub = col.column()
         #sub.label(text="Mouse Wheel:")
-        #sub.prop(view, "wheel_invert_zoom", text="Invert Zoom")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()

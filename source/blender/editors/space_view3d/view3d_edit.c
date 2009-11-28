@@ -851,8 +851,19 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 		zfac = vod->dist0 * ((float)len2/len1) / vod->rv3d->dist;
 	}
 	else {	/* USER_ZOOM_DOLLY */
-		float len1 = (vod->ar->winrct.ymax - y) + 5;
-		float len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
+		float len1, len2;
+		
+		if (U.uiflag & USER_ZOOM_DOLLY_HORIZ) {
+			len1 = (vod->ar->winrct.xmax - x) + 5;
+			len2 = (vod->ar->winrct.xmax - vod->origx) + 5;
+		}
+		else {
+			len1 = (vod->ar->winrct.ymax - y) + 5;
+			len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
+		}
+		if (U.uiflag & USER_ZOOM_INVERT)
+			SWAP(float, len1, len2);
+		
 		zfac = vod->dist0 * (2.0*((len2/len1)-1.0) + 1.0) / vod->rv3d->dist;
 	}
 
