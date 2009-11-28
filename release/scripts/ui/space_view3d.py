@@ -197,7 +197,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("view3d.view_persportho", text="Toggle Perspective")
+        layout.operator("view3d.view_persportho")
 
         layout.separator()
 
@@ -1517,25 +1517,21 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         col.label(text="Camera:")
         col.prop(view, "camera", text="")
         col.prop(view, "lens")
+        col.label(text="Lock to Object:")
+        col.prop(view, "lock_object", text="")
+        if view.lock_object and view.lock_object.type == 'ARMATURE':
+            col.prop_object(view, "lock_bone", view.lock_object.data, "bones", text="")
 
         col = layout.column(align=True)
         col.label(text="Clip:")
         col.prop(view, "clip_start", text="Start")
         col.prop(view, "clip_end", text="End")
 
-        col = layout.column(align=True)
-        col.label(text="Grid:")
-        col.prop(view, "grid_lines", text="Lines")
-        col.prop(view, "grid_spacing", text="Spacing")
-        col.prop(view, "grid_subdivisions", text="Subdivisions")
+
 
         layout.column().prop(scene, "cursor_location", text="3D Cursor:")
         
-        col = layout.column()
-        col.label(text="Lock to Object:")
-        col.prop(view, "lock_object", text="")
-        if view.lock_object and view.lock_object.type == 'ARMATURE':
-            col.prop_object(view, "lock_bone", view.lock_object.data, "bones", text="")
+        
 
 
 class VIEW3D_PT_3dview_name(bpy.types.Panel):
@@ -1578,9 +1574,8 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         view = context.space_data
         gs = context.scene.game_data
         ob = context.object
-
+        
         col = layout.column()
-        col.prop(view, "display_floor", text="Grid Floor")
         col.prop(view, "display_x_axis", text="X Axis")
         col.prop(view, "display_y_axis", text="Y Axis")
         col.prop(view, "display_z_axis", text="Z Axis")
@@ -1590,7 +1585,15 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         if ob and ob.type == 'MESH':
             mesh = ob.data
             col.prop(mesh, "all_edges")
-
+        
+        col = layout.column()
+        col.prop(view, "display_floor", text="Grid Floor")
+        sub = col.column(align=True)
+        sub.active = view.display_floor
+        sub.prop(view, "grid_lines", text="Lines")
+        sub.prop(view, "grid_spacing", text="Spacing")
+        sub.prop(view, "grid_subdivisions", text="Subdivisions")
+        
         col = layout.column()
         col.label(text="Shading:")
         col.prop(gs, "material_mode", text="")
