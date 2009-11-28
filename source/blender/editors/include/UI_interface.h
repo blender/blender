@@ -600,6 +600,7 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout);
 
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, char *name, struct PointerRNA *ptr);
+char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 
 void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
 void uiLayoutSetActive(uiLayout *layout, int active);

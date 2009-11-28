@@ -2454,3 +2454,89 @@ void uiLayoutSetContextPointer(uiLayout *layout, char *name, PointerRNA *ptr)
 	layout->context= CTX_store_add(&block->contexts, name, ptr);
 }
 
+
+/* introspect funcs */
+#include "BLI_dynstr.h"
+
+static void ui_intro_button(DynStr *ds, uiButtonItem *bitem)
+{
+	uiBut *but = bitem->but;
+	BLI_dynstr_appendf(ds, "'type':%d, ", but->type); /* see ~ UI_interface.h:200 */
+	BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr);
+	BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : ""); // not exactly needed, rna has this
+
+	if(but->optype) {
+		char *opstr = WM_operator_pystring(but->block->evil_C, but->optype, but->opptr, 0);
+		BLI_dynstr_appendf(ds, "'operator':'''%s''', ", opstr ? opstr : "");
+		MEM_freeN(opstr);
+	}
+
+	if(but->rnaprop) {
+		BLI_dynstr_appendf(ds, "'rna':'%s.%s[%d]', ", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop), but->rnaindex);
+	}
+
+}
+
+static void ui_intro_items(DynStr *ds, ListBase *lb)
+{
+	uiItem *item;
+
+	BLI_dynstr_append(ds, "[");
+
+	for(item=lb->first; item; item=item->next) {
+
+		BLI_dynstr_append(ds, "{");
+
+		/* could also use the INT but this is nicer*/
+		switch(item->type) {
+		case ITEM_BUTTON:			BLI_dynstr_append(ds, "'type':'BUTTON', ");break;
+		case ITEM_LAYOUT_ROW:		BLI_dynstr_append(ds, "'type':'ROW', "); break;
+		case ITEM_LAYOUT_COLUMN:	BLI_dynstr_append(ds, "'type':'COLUMN', "); break;
+		case ITEM_LAYOUT_COLUMN_FLOW:BLI_dynstr_append(ds, "'type':'COLUMN_FLOW', "); break;
+		case ITEM_LAYOUT_ROW_FLOW:	BLI_dynstr_append(ds, "'type':'ROW_FLOW', "); break;
+		case ITEM_LAYOUT_BOX:		BLI_dynstr_append(ds, "'type':'BOX', "); break;
+		case ITEM_LAYOUT_ABSOLUTE:	BLI_dynstr_append(ds, "'type':'ABSOLUTE', "); break;
+		case ITEM_LAYOUT_SPLIT:		BLI_dynstr_append(ds, "'type':'SPLIT', "); break;
+		case ITEM_LAYOUT_OVERLAP:	BLI_dynstr_append(ds, "'type':'OVERLAP', "); break;
+		case ITEM_LAYOUT_ROOT:		BLI_dynstr_append(ds, "'type':'ROOT', "); break;
+		default:					BLI_dynstr_append(ds, "'type':'UNKNOWN', "); break;
+		}
+
+		switch(item->type) {
+		case ITEM_BUTTON:
+			ui_intro_button(ds, (uiButtonItem *)item);
+			break;
+		default:
+			BLI_dynstr_append(ds, "'items':");
+			ui_intro_items(ds, &((uiLayout*)item)->items);
+			break;
+		}
+
+		BLI_dynstr_append(ds, "}");
+
+		if(item != lb->last)
+			BLI_dynstr_append(ds, ", ");
+	}
+	BLI_dynstr_append(ds, "], ");
+}
+
+static void ui_intro_uiLayout(DynStr *ds, uiLayout *layout)
+{
+	ui_intro_items(ds, &layout->items);
+}
+
+static char *str = NULL; // XXX, constant re-freeing, far from ideal.
+char *uiLayoutIntrospect(uiLayout *layout)
+{
+	DynStr *ds= BLI_dynstr_new();
+
+	if(str)
+		MEM_freeN(str);
+
+	ui_intro_uiLayout(ds, layout);
+
+	str = BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+
+	return str;
+}

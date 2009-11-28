@@ -465,8 +465,11 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	PointerRNA opptr_default;
 	PropertyRNA *prop_default;
 	char *buf_default;
-	if(!all_args) {
+	if(all_args==0 || opptr==NULL) {
 		WM_operator_properties_create_ptr(&opptr_default, ot);
+
+		if(opptr==NULL)
+			opptr = &opptr_default;
 	}
 
 
@@ -510,7 +513,7 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	}
 	RNA_PROP_END;
 
-	if(all_args==0)
+	if(all_args==0 || opptr==&opptr_default )
 		WM_operator_properties_free(&opptr_default);
 
 	BLI_dynstr_append(dynstr, ")");
