@@ -60,6 +60,11 @@
 #endif
 #import <Cocoa/Cocoa.h>
 #import <QTKit/QTKit.h>
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#error OSX 10.5 minimum is needed for QTKit
+#endif
+
 #endif /* __APPLE__ */
 
 typedef struct QuicktimeExport {
@@ -127,9 +132,12 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty)
 	char name[2048];
 
 	
-	if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
-
 	if (G.afbreek != 1) {
+		
+		if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
+		
+		[QTMovie enterQTKitOnThread];		
+		
 		/* Check first if the QuickTime 7.2.1 initToWritableFile: method is available */
 		if ([[[[QTMovie alloc] init] autorelease] respondsToSelector:@selector(initToWritableFile:error:)] != YES) {
 			G.afbreek = 1;
@@ -144,6 +152,7 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty)
 			if(qtexport->movie == nil) {
 				G.afbreek = 1;
 				NSLog(@"Unable to create quicktime movie : %@",[error localizedDescription]);
+				[QTMovie exitQTKitOnThread];
 			} else {
 				[qtexport->movie retain];
 				[qtexport->filename retain];
@@ -235,6 +244,8 @@ void end_qt(void)
 		[qtexport->frameAttributes release];
 		[qtexport->movie release];
 		}
+	
+	[QTMovie exitQTKitOnThread];
 
 	if(qtexport) {
 		MEM_freeN(qtexport);
