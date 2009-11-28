@@ -77,7 +77,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
                 else:
                     layout.prop_object(con, "subtarget", con.target.data, "bones", text="")
 
-                if con.type == 'COPY_LOCATION':
+                if con.type in ('COPY_LOCATION', 'STRETCH_TO', 'TRACK_TO'):
                     row = layout.row()
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")

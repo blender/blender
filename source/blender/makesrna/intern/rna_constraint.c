@@ -610,6 +610,12 @@ static void rna_def_constraint_track_to(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "TrackToConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Track To Constraint", "Aims the constrained object toward the target.");
+
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
+	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
 	RNA_def_struct_sdna_from(srna, "bTrackToConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
@@ -1061,6 +1067,12 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "StretchToConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Stretch To Constraint", "Stretches to meet the target object.");
+
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
+	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
 	RNA_def_struct_sdna_from(srna, "bStretchToConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
