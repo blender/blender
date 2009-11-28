@@ -592,7 +592,6 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
         layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
         layout.menu("VIEW3D_MT_make_single_user")
-        layout.menu("VIEW3D_MT_make_links")
 
         layout.separator()
 
