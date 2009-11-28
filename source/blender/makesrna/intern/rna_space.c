@@ -638,11 +638,11 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem pivot_items[] = {
-		{V3D_CENTER, "BOUNDING_BOX_CENTER", 0, "Bounding Box Center", ""},
-		{V3D_CURSOR, "CURSOR", 0, "3D Cursor", ""},
-		{V3D_LOCAL, "INDIVIDUAL_CENTERS", 0, "Individual Centers", ""},
-		{V3D_CENTROID, "MEDIAN_POINT", 0, "Median Point", ""},
-		{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", ""},
+		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", ""},
+		{V3D_LOCAL, "INDIVIDUAL_CENTERS", ICON_ROTATECENTER, "Individual Centers", ""},
+		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECOLLECTION, "Median Point", ""},
+		{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "Space3DView", "Space");
@@ -777,6 +777,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "pivot_point_align", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ALIGN);
 	RNA_def_property_ui_text(prop, "Align", "Manipulate object centers only.");
+	RNA_def_property_ui_icon(prop, ICON_ALIGN, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "manipulator", PROP_BOOLEAN, PROP_NONE);

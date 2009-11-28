@@ -1283,7 +1283,6 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	FunctionRNA *func;
 	PropertyRNA *parm;

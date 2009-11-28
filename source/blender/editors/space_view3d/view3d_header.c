@@ -112,7 +112,6 @@
 /* XXX port over */	
 static void countall(void) {}
 extern void borderselect();
-static int retopo_mesh_paint_check() {return 0;}
 
 /* view3d handler codes */
 #define VIEW3D_HANDLER_BACKGROUND	1
@@ -2012,197 +2011,165 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	uiBlockBeginAlign(block);
 
-	if(retopo_mesh_paint_check()) {
- 		void *rpd= NULL; // XXX RetopoPaintData *rpd= get_retopo_paint_data();
- 		if(rpd) {
- 			ToolSettings *ts= scene->toolsettings;
- 			
- 			uiDefButC(block,ROW,B_REDR,"Pen",xco,yco,40,20,&ts->retopo_paint_tool,6.0,RETOPO_PEN,0,0,"");
-			xco+= 40;
- 			uiDefButC(block,ROW,B_REDR,"Line",xco,yco,40,20,&ts->retopo_paint_tool,6.0,RETOPO_LINE,0,0,"");
-			xco+= 40;
- 			uiDefButC(block,ROW,B_REDR,"Ellipse",xco,yco,60,20,&ts->retopo_paint_tool,6.0,RETOPO_ELLIPSE,0,0,"");
-			xco+= 65;
-			
- 			uiBlockBeginAlign(block);
- 			if(ts->retopo_paint_tool == RETOPO_PEN) {
- 				uiDefButC(block,TOG,B_NOP,"Hotspot",xco,yco,60,20, &ts->retopo_hotspot, 0,0,0,0,"Show hotspots at line ends to allow line continuation");
-				xco+= 80;
- 			}
- 			else if(ts->retopo_paint_tool == RETOPO_LINE) {
-	 			uiDefButC(block,NUM,B_NOP,"LineDiv",xco,yco,80,20,&ts->line_div,1,50,0,0,"Subdivisions per retopo line");
-				xco+= 80;
-	 		}
-			else if(ts->retopo_paint_tool == RETOPO_ELLIPSE) {
-	 			uiDefButC(block,NUM,B_NOP,"EllDiv",xco,yco,80,20,&ts->ellipse_div,3,50,0,0,"Subdivisions per retopo ellipse");
-				xco+= 80;
-	 		}
-			header_xco_step(ar, &xco, &yco, &maxco, 5);
- 			
- 			uiBlockEndAlign(block);
- 		}
- 	} else {
- 		if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
-			Mesh *me= ob->data;
- 			uiDefIconButBitS(block, TOG, ME_EDIT_PAINT_MASK, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &me->editflag, 0, 0, 0, 0, "Painting Mask (FKey)");
-			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
- 		} else {
- 			/* Manipulators aren't used in weight paint mode */
- 			char *str_menu;
-			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(C), xco,yco,XIC+10,YIC, &(v3d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
+	if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
+		Mesh *me= ob->data;
+		uiDefIconButBitS(block, TOG, ME_EDIT_PAINT_MASK, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &me->editflag, 0, 0, 0, 0, "Painting Mask (FKey)");
+		header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
+	} else {
+		/* Manipulators aren't used in weight paint mode */
+		char *str_menu;
+		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(C), xco,yco,XIC+10,YIC, &(v3d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
+		xco+= XIC+10;
+		
+		uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
+				 xco,yco,XIC,YIC,
+				 &v3d->flag, 0, 0, 0, 0, "Move object centers only");	
+		uiBlockEndAlign(block);
+		
+		header_xco_step(ar, &xco, &yco, &maxco, XIC+8);
+	
+		uiBlockBeginAlign(block);
+
+		/* NDOF */
+		if (G.ndofdevice ==0 ) {
+			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), xco,yco,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
 			xco+= XIC+10;
 		
-			uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
-					 xco,yco,XIC,YIC,
-					 &v3d->flag, 0, 0, 0, 0, "Move object centers only");	
+			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
+				      xco,yco,XIC,YIC,
+				      &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
 			uiBlockEndAlign(block);
 		
 			header_xco_step(ar, &xco, &yco, &maxco, XIC+8);
-	
-			uiBlockBeginAlign(block);
+		}
+		uiBlockEndAlign(block);
 
-			/* NDOF */
-			if (G.ndofdevice ==0 ) {
-				uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), xco,yco,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
-				xco+= XIC+10;
+		/* Transform widget / manipulators */
+		uiBlockBeginAlign(block);
+		uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,yco,XIC,YIC, &v3d->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
+		xco+= XIC;
 		
-				uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
-					 xco,yco,XIC,YIC,
-					 &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
-				uiBlockEndAlign(block);
-		
-				header_xco_step(ar, &xco, &yco, &maxco, XIC+8);
-			}
-			uiBlockEndAlign(block);
-
-			/* Transform widget / manipulators */
-			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,yco,XIC,YIC, &v3d->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
+		if(v3d->twflag & V3D_USE_MANIPULATOR) {
+			uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
 			xco+= XIC;
-		
-			if(v3d->twflag & V3D_USE_MANIPULATOR) {
-				uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
-				xco+= XIC;
-				uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (Ctrl Alt R)");
-				xco+= XIC;
-				uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (Ctrl Alt S)");
-				xco+= XIC;
-			}
+			uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (Ctrl Alt R)");
+			xco+= XIC;
+			uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (Ctrl Alt S)");
+			xco+= XIC;
+		}
 			
-			if (v3d->twmode > (BIF_countTransformOrientation(C) - 1) + V3D_MANIP_CUSTOM) {
-				v3d->twmode = 0;
-			}
+		if (v3d->twmode > (BIF_countTransformOrientation(C) - 1) + V3D_MANIP_CUSTOM) {
+			v3d->twmode = 0;
+		}
 			
-			str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,yco,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
-			MEM_freeN(str_menu);
+		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
+		uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,yco,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
+		MEM_freeN(str_menu);
 			
-			header_xco_step(ar, &xco, &yco, &maxco, 78);
-			uiBlockEndAlign(block);
- 		}
+		header_xco_step(ar, &xco, &yco, &maxco, 78);
+		uiBlockEndAlign(block);
+	}
  		
-		/* LAYERS */
-		if(obedit==NULL && v3d->localvd==NULL) {
-			int ob_lay = ob ? ob->lay : 0;
-			uiBlockBeginAlign(block);
-			for(a=0; a<5; a++) {
-				uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco+(short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-			}
-			for(a=0; a<5; a++) {
-				uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco,			XIC/2, (YIC)/2, &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-			}
-			xco+= 5;
-			uiBlockBeginAlign(block);
-			for(a=5; a<10; a++) {
-				uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco+(short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-			}
-			for(a=5; a<10; a++) {
-				uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco, XIC/2, (YIC)/2, &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-			}
-			uiBlockEndAlign(block);
+	/* LAYERS */
+	if(obedit==NULL && v3d->localvd==NULL) {
+		int ob_lay = ob ? ob->lay : 0;
+		uiBlockBeginAlign(block);
+		for(a=0; a<5; a++) {
+			uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco+(short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+		}
+		for(a=0; a<5; a++) {
+			uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco,			XIC/2, (YIC)/2, &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+		}
+		xco+= 5;
+		uiBlockBeginAlign(block);
+		for(a=5; a<10; a++) {
+			uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco+(short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+		}
+		for(a=5; a<10; a++) {
+			uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco, XIC/2, (YIC)/2, &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+		}
+		uiBlockEndAlign(block);
 		
-			xco+= (a-2)*(XIC/2)+3;
+		xco+= (a-2)*(XIC/2)+3;
 
-			/* LOCK */
-			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_LOCKVIEW_OFF, xco+=XIC,yco,XIC,YIC, &(v3d->scenelock), 0, 0, 0, 0, "Locks Active Camera and layers to Scene (Ctrl `)");
-			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
+		/* LOCK */
+		uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_LOCKVIEW_OFF, xco+=XIC,yco,XIC,YIC, &(v3d->scenelock), 0, 0, 0, 0, "Locks Active Camera and layers to Scene (Ctrl `)");
+		header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
 
-		}
+	}
 
-		/* selection modus */
-		if(obedit && (obedit->type == OB_MESH)) {
-			EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	/* selection modus */
+	if(obedit && (obedit->type == OB_MESH)) {
+		EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
-			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
-			xco+= XIC;
-			uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
-			xco+= XIC;
-			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
-			xco+= XIC;
-			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, 10);
-			if(v3d->drawtype > OB_WIRE) {
-				if (v3d->flag & V3D_ZBUF_SELECT) {
-					uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
-				} else {
-					uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO_OFF, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
-				}
+		uiBlockBeginAlign(block);
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
+		xco+= XIC;
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
+		xco+= XIC;
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
+		xco+= XIC;
+		uiBlockEndAlign(block);
+		header_xco_step(ar, &xco, &yco, &maxco, 10);
+		if(v3d->drawtype > OB_WIRE) {
+			if (v3d->flag & V3D_ZBUF_SELECT) {
+				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
+			} else {
+				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO_OFF, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
 			}
-			xco+= XIC;
-			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, XIC);
-
-			BKE_mesh_end_editmesh(obedit->data, em);
 		}
-		else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-			PointerRNA v3dptr;
-			PointerRNA particleptr;
+		xco+= XIC;
+		uiBlockEndAlign(block);
+		header_xco_step(ar, &xco, &yco, &maxco, XIC);
 
-			RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);
-			RNA_pointer_create(&scene->id, &RNA_ParticleEdit, &ts->particle, &particleptr);
+		BKE_mesh_end_editmesh(obedit->data, em);
+	}
+	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
+		PointerRNA v3dptr;
+		PointerRNA particleptr;
 
-			row= uiLayoutRow(layout, 1);
-			uiItemR(row, "", 0, &particleptr, "selection_mode", UI_ITEM_R_EXPAND+UI_ITEM_R_ICON_ONLY);
+		RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);
+		RNA_pointer_create(&scene->id, &RNA_ParticleEdit, &ts->particle, &particleptr);
 
-			if(v3d->drawtype > OB_WIRE)
-				uiItemR(layout, "", 0, &v3dptr, "occlude_geometry", UI_ITEM_R_ICON_ONLY);
-		}
+		row= uiLayoutRow(layout, 1);
+		uiItemR(row, "", 0, &particleptr, "selection_mode", UI_ITEM_R_EXPAND+UI_ITEM_R_ICON_ONLY);
+
+		if(v3d->drawtype > OB_WIRE)
+			uiItemR(layout, "", 0, &v3dptr, "occlude_geometry", UI_ITEM_R_ICON_ONLY);
+	}
  
-		/* Proportional editing */
-		if((obedit == NULL || (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
-			row= uiLayoutRow(layout, 1);
-			uiItemR(row, "", 0, &toolsptr, "proportional_editing", UI_ITEM_R_ICON_ONLY);
-			if(ts->proportional)
-				uiItemR(row, "", 0, &toolsptr, "proportional_editing_falloff", UI_ITEM_R_ICON_ONLY);
-		}
-
-		/* Snap */
+	/* Proportional editing */
+	if((obedit == NULL || (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &toolsptr, "snap", UI_ITEM_R_ICON_ONLY);
-		uiItemR(row, "", 0, &toolsptr, "snap_element", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, "", 0, &toolsptr, "proportional_editing", UI_ITEM_R_ICON_ONLY);
+		if(ts->proportional)
+			uiItemR(row, "", 0, &toolsptr, "proportional_editing_falloff", UI_ITEM_R_ICON_ONLY);
+	}
 
- 		if(ts->snap_mode != SCE_SNAP_MODE_INCREMENT) {
-			uiItemR(row, "", 0, &toolsptr, "snap_target", UI_ITEM_R_ICON_ONLY);
-			if(v3d->modeselect == OB_MODE_OBJECT)
-				uiItemR(row, "", 0, &toolsptr, "snap_align_rotation", UI_ITEM_R_ICON_ONLY);
-		}
-		if(ts->snap_mode == SCE_SNAP_MODE_VOLUME)
-			uiItemR(row, "", 0, &toolsptr, "snap_peel_object", UI_ITEM_R_ICON_ONLY);
-		else if(ts->snap_mode == SCE_SNAP_MODE_FACE)
-			uiItemR(row, "", 0, &toolsptr, "snap_project", UI_ITEM_R_ICON_ONLY);
+	/* Snap */
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, "", 0, &toolsptr, "snap", UI_ITEM_R_ICON_ONLY);
+	uiItemR(row, "", 0, &toolsptr, "snap_element", UI_ITEM_R_ICON_ONLY);
 
-		/* OpenGL Render */
-		row= uiLayoutRow(layout, 1);
-		uiItemO(row, "", ICON_RENDER_STILL, "SCREEN_OT_opengl_render");
-		uiItemBooleanO(row, "", ICON_RENDER_ANIMATION, "SCREEN_OT_opengl_render", "animation", 1);
+	if(ts->snap_mode != SCE_SNAP_MODE_INCREMENT) {
+		uiItemR(row, "", 0, &toolsptr, "snap_target", UI_ITEM_R_ICON_ONLY);
+		if(v3d->modeselect == OB_MODE_OBJECT)
+			uiItemR(row, "", 0, &toolsptr, "snap_align_rotation", UI_ITEM_R_ICON_ONLY);
+	}
+	if(ts->snap_mode == SCE_SNAP_MODE_VOLUME)
+		uiItemR(row, "", 0, &toolsptr, "snap_peel_object", UI_ITEM_R_ICON_ONLY);
+	else if(ts->snap_mode == SCE_SNAP_MODE_FACE)
+		uiItemR(row, "", 0, &toolsptr, "snap_project", UI_ITEM_R_ICON_ONLY);
+
+	/* OpenGL Render */
+	row= uiLayoutRow(layout, 1);
+	uiItemO(row, "", ICON_RENDER_STILL, "SCREEN_OT_opengl_render");
+	uiItemBooleanO(row, "", ICON_RENDER_ANIMATION, "SCREEN_OT_opengl_render", "animation", 1);
 		
-		if(ob && (ob->mode & OB_MODE_POSE)) {
-			row= uiLayoutRow(layout, 1);
-			uiItemO(row, "", ICON_COPYDOWN, "POSE_OT_copy");
-			uiItemO(row, "", ICON_PASTEDOWN, "POSE_OT_paste");
-			uiItemBooleanO(row, "", ICON_PASTEFLIPDOWN, "POSE_OT_paste", "flipped", 1);
-		}
+	if(ob && (ob->mode & OB_MODE_POSE)) {
+		row= uiLayoutRow(layout, 1);
+		uiItemO(row, "", ICON_COPYDOWN, "POSE_OT_copy");
+		uiItemO(row, "", ICON_PASTEDOWN, "POSE_OT_paste");
+		uiItemBooleanO(row, "", ICON_PASTEFLIPDOWN, "POSE_OT_paste", "flipped", 1);
 	}
 }
-
