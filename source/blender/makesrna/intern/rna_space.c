@@ -202,6 +202,31 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 	return item;
 }
 
+/* Space 3D View */
+static void rna_Space3DView_lock_camera_and_layers_set(PointerRNA *ptr, int value)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	bScreen *sc= (bScreen*)ptr->id.data;
+
+	v3d->scenelock = value;
+
+	if(value) {
+		int bit;
+		v3d->lay= sc->scene->lay;
+		/* seek for layact */
+		bit= 0;
+		while(bit<32) {
+			if(v3d->lay & (1<<bit)) {
+				v3d->layact= 1<<bit;
+				break;
+			}
+			bit++;
+		}
+		v3d->camera= sc->scene->camera;
+	}
+}
+
+
 /* Space Image Editor */
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
@@ -640,8 +665,8 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	static EnumPropertyItem pivot_items[] = {
 		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", ""},
 		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", ""},
-		{V3D_LOCAL, "INDIVIDUAL_CENTERS", ICON_ROTATECENTER, "Individual Centers", ""},
-		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECOLLECTION, "Median Point", ""},
+		{V3D_LOCAL, "INDIVIDUAL_CENTERS", ICON_ROTATECOLLECTION, "Individual Centers", ""},
+		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point", ""},
 		{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
@@ -830,6 +855,12 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, "RegionView3D", "viewlock", RV3D_BOXCLIP);
 	RNA_def_property_ui_text(prop, "Clip", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scenelock", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_lock_camera_and_layers_set");
+	RNA_def_property_ui_text(prop, "Lock Camera and Layers", "Lock the active camera and layers to scene.");
+	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)

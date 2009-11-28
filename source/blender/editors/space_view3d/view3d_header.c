@@ -1641,38 +1641,6 @@ static char *view3d_modeselect_pup(Scene *scene)
 	return (string);
 }
 
-
-static char *drawtype_pup(void)
-{
- 	static char string[512];
- 	char *str = string;
-	
-	str += sprintf(str, "%s", "Draw type: %t"); 
-	str += sprintf(str, "%s", "|Bounding Box %x1"); 
-	str += sprintf(str, "%s", "|Wireframe %x2");
-	str += sprintf(str, "%s", "|Solid %x3");
-//XXX not working in 2.5!	str += sprintf(str, "%s", "|Shaded %x4");
-	str += sprintf(str, "%s", "|Textured %x5");
-	return string;
-}
-static char *around_pup(const bContext *C)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	static char string[512];
-	char *str = string;
-
-	str += sprintf(str, "%s", "Pivot: %t"); 
-	str += sprintf(str, "%s", "|Bounding Box Center %x0"); 
-	str += sprintf(str, "%s", "|Median Point %x3");
-	str += sprintf(str, "%s", "|3D Cursor %x1");
-	str += sprintf(str, "%s", "|Individual Centers %x2");
-	if ((obedit) && (obedit->type == OB_MESH))
-		str += sprintf(str, "%s", "|Active Vert/Edge/Face %x4");
-	else
-		str += sprintf(str, "%s", "|Active Object %x4");
-	return string;
-}
-
 static char *ndof_pup(void)
 {
 	static char string[512];
@@ -1966,13 +1934,14 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
-	PointerRNA toolsptr;
+	PointerRNA v3dptr, toolsptr;
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	uiLayout *row;
 	int a, xco=0, maxco=0, yco= 0;
 	
+	RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
 
 	block= uiLayoutAbsoluteBlock(layout);
@@ -2004,31 +1973,26 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			  xco,yco,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");
 	header_xco_step(ar, &xco, &yco, &maxco, 126+8);
 	
-	/* DRAWTYPE */
-	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,yco,XIC+10,YIC, &(v3d->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading (Hotkeys: Z, Shift Z, Alt Z)");
-
-	header_xco_step(ar, &xco, &yco, &maxco, XIC+18);
-
-	uiBlockBeginAlign(block);
+	/* Draw type */
+	uiItemR(layout, "", 0, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY);
 
 	if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
-		Mesh *me= ob->data;
-		uiDefIconButBitS(block, TOG, ME_EDIT_PAINT_MASK, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &me->editflag, 0, 0, 0, 0, "Painting Mask (FKey)");
-		header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
-	} else {
 		/* Manipulators aren't used in weight paint mode */
+		
+		PointerRNA meshptr;
+
+		RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
+		uiItemR(layout, "", 0, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY);
+	} else {
 		char *str_menu;
-		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(C), xco,yco,XIC+10,YIC, &(v3d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
-		xco+= XIC+10;
-		
-		uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
-				 xco,yco,XIC,YIC,
-				 &v3d->flag, 0, 0, 0, 0, "Move object centers only");	
-		uiBlockEndAlign(block);
-		
-		header_xco_step(ar, &xco, &yco, &maxco, XIC+8);
-	
-		uiBlockBeginAlign(block);
+
+		row= uiLayoutRow(layout, 1);
+		uiItemR(row, "", 0, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, "", 0, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY);
+
+		block= uiLayoutAbsoluteBlock(layout);
+		uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
+		xco = maxco = yco= 0;
 
 		/* NDOF */
 		if (G.ndofdevice ==0 ) {
@@ -2073,6 +2037,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	/* LAYERS */
 	if(obedit==NULL && v3d->localvd==NULL) {
 		int ob_lay = ob ? ob->lay : 0;
+
+		block= uiLayoutAbsoluteBlock(layout);
+		uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
+		xco = maxco = yco= 0;
+
 		uiBlockBeginAlign(block);
 		for(a=0; a<5; a++) {
 			uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco+(short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
@@ -2092,10 +2061,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		
 		xco+= (a-2)*(XIC/2)+3;
 
-		/* LOCK */
-		uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_LOCKVIEW_OFF, xco+=XIC,yco,XIC,YIC, &(v3d->scenelock), 0, 0, 0, 0, "Locks Active Camera and layers to Scene (Ctrl `)");
-		header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
-
+		/* Scene lock */
+		uiItemR(layout, "", 0, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY);
 	}
 
 	/* selection modus */
@@ -2110,33 +2077,22 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
 		xco+= XIC;
 		uiBlockEndAlign(block);
-		header_xco_step(ar, &xco, &yco, &maxco, 10);
-		if(v3d->drawtype > OB_WIRE) {
-			if (v3d->flag & V3D_ZBUF_SELECT) {
-				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
-			} else {
-				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO_OFF, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
-			}
-		}
-		xco+= XIC;
-		uiBlockEndAlign(block);
 		header_xco_step(ar, &xco, &yco, &maxco, XIC);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-		PointerRNA v3dptr;
 		PointerRNA particleptr;
 
-		RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);
 		RNA_pointer_create(&scene->id, &RNA_ParticleEdit, &ts->particle, &particleptr);
 
 		row= uiLayoutRow(layout, 1);
 		uiItemR(row, "", 0, &particleptr, "selection_mode", UI_ITEM_R_EXPAND+UI_ITEM_R_ICON_ONLY);
-
-		if(v3d->drawtype > OB_WIRE)
-			uiItemR(layout, "", 0, &v3dptr, "occlude_geometry", UI_ITEM_R_ICON_ONLY);
 	}
+
+	/* Occlude geometry */
+	if(v3d->drawtype > OB_WIRE && ((ob && ob->mode & OB_MODE_PARTICLE_EDIT) || (obedit && (obedit->type == OB_MESH))))
+		uiItemR(layout, "", 0, &v3dptr, "occlude_geometry", UI_ITEM_R_ICON_ONLY);
  
 	/* Proportional editing */
 	if((obedit == NULL || (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
