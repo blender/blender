@@ -861,6 +861,12 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_lock_camera_and_layers_set");
 	RNA_def_property_ui_text(prop, "Lock Camera and Layers", "Lock the active camera and layers to scene.");
 	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
+
+	prop= RNA_def_property(srna, "used_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay_used", 1);
+	RNA_def_property_array(prop, 20);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Used Layers", "Layers that contain something.");
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)

@@ -648,7 +648,8 @@ void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struc
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
-void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
+void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname,
+		      PointerRNA *used_ptr, char *used_propname, int active_layer);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);

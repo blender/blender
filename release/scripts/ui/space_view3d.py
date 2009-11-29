@@ -27,12 +27,12 @@ class VIEW3D_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
-        # view = context.space_data
+        view = context.space_data
         mode_string = context.mode
         edit_object = context.edit_object
         obj = context.active_object
         toolsettings = context.scene.tool_settings
-
+        
         row = layout.row(align=True)
         row.template_header()
 
@@ -56,8 +56,16 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         layout.template_header_3D()
 
+        # Particle edit
+        if obj and obj.mode == 'PARTICLE_EDIT':
+            layout.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True)
+
+        # Occlude geometry
+        if obj and view.viewport_shading in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+            layout.prop(view, "occlude_geometry", text="")
+
         # Proportional editing
-        if obj.mode in ('OBJECT', 'EDIT'):
+        if obj and obj.mode in ('OBJECT', 'EDIT'):
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
             if toolsettings.proportional_editing != 'DISABLED':
@@ -69,7 +77,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         row.prop(toolsettings, "snap_element", text="", icon_only=True)
         if toolsettings.snap_element != 'INCREMENT':
             row.prop(toolsettings, "snap_target", text="", icon_only=True)
-            if obj.mode == 'OBJECT':
+            if obj and obj.mode == 'OBJECT':
                 row.prop(toolsettings, "snap_align_rotation", text="")
         if toolsettings.snap_element == 'VOLUME':
             row.prop(toolsettings, "snap_peel_object", text="")
@@ -83,7 +91,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         props.animation = True
 
         # Pose
-        if obj.mode == 'POSE':
+        if obj and obj.mode == 'POSE':
             row = layout.row(align=True)
             row.operator("pose.copy", text="", icon='ICON_COPYDOWN')
             row.operator("pose.paste", text="", icon='ICON_PASTEDOWN')

@@ -1879,16 +1879,17 @@ void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
 /********************* Layer Buttons Template ************************/
 
 // TODO:
-//	- option for showing extra info like whether layer has contents?
 //	- for now, grouping of layers is determined by dividing up the length of 
 //	  the array of layer bitflags
 
-void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
+void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
+		      PointerRNA *used_ptr, char *used_propname, int active_layer)
 {
-	uiLayout *uRow, *uSplit, *uCol;
-	PropertyRNA *prop;
+	uiLayout *uRow, *uCol;
+	PropertyRNA *prop, *used_prop;
 	int groups, cols, layers;
 	int group, col, layer, row;
+	int cols_per_group = 5;
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if (!prop) {
@@ -1900,28 +1901,41 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 	 *	- we want 2 rows only (for now)
 	 *	- the number of columns (cols) is the total number of buttons per row
 	 *	  the 'remainder' is added to this, as it will be ok to have first row slightly wider if need be
-	 *	- for now, only split into groups if if group will have at least 5 items
+	 *	- for now, only split into groups if group will have at least 5 items
 	 */
 	layers= RNA_property_array_length(ptr, prop);
 	cols= (layers / 2) + (layers % 2);
-	groups= ((cols / 2) < 5) ? (1) : (cols / 2);
+	groups= ((cols / 2) < cols_per_group) ? (1) : (cols / cols_per_group);
+
+	if(used_ptr && used_propname) {
+		used_prop= RNA_struct_find_property(used_ptr, used_propname);
+		if (!used_prop) {
+			printf("uiTemplateLayer: used layers property not found: %s\n", used_propname);
+			return;
+		}
+
+		if(RNA_property_array_length(used_ptr, used_prop) < layers)
+			used_prop = NULL;
+	}
 	
 	/* layers are laid out going across rows, with the columns being divided into groups */
-	if (groups > 1)
-		uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
-	else	
-		uSplit= layout;
 	
 	for (group= 0; group < groups; group++) {
-		uCol= uiLayoutColumn(uSplit, 1);
+		uCol= uiLayoutColumn(layout, 1);
 		
 		for (row= 0; row < 2; row++) {
 			uRow= uiLayoutRow(uCol, 1);
-			layer= groups*cols*row + cols*group;
+			layer= groups*cols_per_group*row + cols_per_group*group;
 			
 			/* add layers as toggle buts */
-			for (col= 0; (col < cols) && (layer < layers); col++, layer++) {
-				int icon=0; // XXX - add some way of setting this...
+			for (col= 0; (col < cols_per_group) && (layer < layers); col++, layer++) {
+				int icon = 0;
+				int butlay = 1 << layer;
+				if(active_layer & butlay)
+					icon = ICON_LAYER_ACTIVE;
+				else if(used_prop && RNA_property_boolean_get_index(used_ptr, used_prop, layer))
+					icon = ICON_LAYER_USED;
+				
 				uiItemFullR(uRow, "", icon, ptr, prop, layer, 0, UI_ITEM_R_TOGGLE);
 			}
 		}

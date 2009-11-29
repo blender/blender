@@ -1918,7 +1918,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
-	PointerRNA v3dptr, toolsptr;
+	PointerRNA v3dptr, toolsptr, sceneptr;
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
@@ -1926,6 +1926,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	
 	RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
+	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &sceneptr);
 
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
@@ -1985,8 +1986,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);
+		uiItemR(row, "", 0, &v3dptr, "manipulator", UI_ITEM_R_ICON_ONLY);
 		block= uiLayoutGetBlock(row);
-		uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,0,0,XIC,YIC, &v3d->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {
 			uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
@@ -2046,16 +2047,4 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
-	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-		PointerRNA particleptr;
-
-		RNA_pointer_create(&scene->id, &RNA_ParticleEdit, &ts->particle, &particleptr);
-
-		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &particleptr, "selection_mode", UI_ITEM_R_EXPAND+UI_ITEM_R_ICON_ONLY);
-	}
-
-	/* Occlude geometry */
-	if(v3d->drawtype > OB_WIRE && ((ob && ob->mode & OB_MODE_PARTICLE_EDIT) || (obedit && (obedit->type == OB_MESH))))
-		uiItemR(layout, "", 0, &v3dptr, "occlude_geometry", UI_ITEM_R_ICON_ONLY);
 }
