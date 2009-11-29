@@ -148,6 +148,8 @@ float power_of_2(float f);
 
 float shell_angle_to_dist(float angle);
 
+double double_round(double x, int ndigits);
+
 #ifdef __cplusplus
 }
 #endif
