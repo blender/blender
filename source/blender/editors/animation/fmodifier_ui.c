@@ -119,6 +119,10 @@ static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 	
 	/* remove the given F-Modifier from the active modifier-stack */
 	remove_fmodifier(modifiers, fcm);
+	
+	/* send notifiers */
+	// XXX for now, this is the only way to get updates in all the right places... but would be nice to have a special one in this case 
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 }
 
 /* --------------- */

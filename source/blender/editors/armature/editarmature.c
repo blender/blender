@@ -334,7 +334,7 @@ void ED_armature_from_edit(Object *obedit)
 		memcpy(newBone->head, eBone->head, sizeof(float)*3);
 		memcpy(newBone->tail, eBone->tail, sizeof(float)*3);
 		newBone->flag= eBone->flag;
-
+		
 		if (eBone == arm->act_edbone) {
 			newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
 			arm->act_edbone= NULL;
@@ -353,7 +353,7 @@ void ED_armature_from_edit(Object *obedit)
 		newBone->rad_tail= eBone->rad_tail;
 		newBone->segments= eBone->segments;
 		newBone->layer = eBone->layer;
-
+		
 		if(eBone->prop)
 			newBone->prop= IDP_CopyProperty(eBone->prop);
 	}
@@ -620,8 +620,9 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 		curbone->flag |= BONE_UNKEYED;
 	}
 	
-	/* convert editbones back to bones */
+	/* convert editbones back to bones, and then free the edit-data */
 	ED_armature_from_edit(ob);
+	ED_armature_edit_free(ob);
 	
 	/* flush positions of posebones */
 	where_is_pose(scene, ob);

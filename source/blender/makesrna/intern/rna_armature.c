@@ -399,7 +399,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	
 	prop= RNA_def_property(srna, "hinge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_HINGE);
-	RNA_def_property_ui_text(prop, "Inherit Rotation", "Bone doesn't inherit rotation or scale from parent bone.");
+	RNA_def_property_ui_text(prop, "Inherit Rotation", "Bone inherits rotation or scale from parent bone.");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
 	prop= RNA_def_property(srna, "multiply_vertexgroup_with_envelope", PROP_BOOLEAN, PROP_NONE);
