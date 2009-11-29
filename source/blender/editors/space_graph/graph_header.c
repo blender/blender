@@ -154,9 +154,10 @@ static void graph_channelmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void graph_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemEnumO(layout, "Grab/Move", 0, "TFM_OT_transform", "mode", TFM_TIME_TRANSLATE);
+	uiItemO(layout, "Grab/Move", 0, "TFM_OT_translate");
 	uiItemEnumO(layout, "Extend", 0, "TFM_OT_transform", "mode", TFM_TIME_EXTEND);
-	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
+	uiItemO(layout, "Rotate", 0, "TFM_OT_rotate");
+	uiItemO(layout, "Scale", 0, "TFM_OT_resize");
 }
 
 static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)

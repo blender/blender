@@ -818,7 +818,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				/* protected curves (non editable) are drawn with dotted lines */
 				setlinestyle(2);
 			}
-			if (fcu->flag & FCURVE_MUTED) {
+			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED) ) {
 				/* muted curves are drawn in a greyish hue */
 				// XXX should we have some variations?
 				UI_ThemeColorShade(TH_HEADER, 50);
