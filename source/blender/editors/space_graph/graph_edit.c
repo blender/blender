@@ -481,11 +481,11 @@ static int graphkeys_insertkey_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_insert_keyframe (wmOperatorType *ot)
+void GRAPH_OT_keyframe_insert (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframes";
-	ot->idname= "GRAPH_OT_insert_keyframe";
+	ot->idname= "GRAPH_OT_keyframe_insert";
 	ot->description= "Insert keyframes for the specified channels.";
 	
 	/* api callbacks */

@@ -38,12 +38,16 @@
 #include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_sequence.h"
+#include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
+#include "RNA_access.h"
+#include "RE_pipeline.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_util.h"
@@ -809,24 +813,25 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 	int x, y;
 	int early_out;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
+	FCurve *fcu= NULL;
 
 	if (!sh.execute) { /* effect not supported in this version... */
 		make_black_ibuf(se->ibuf);
 		return;
 	}
 
-#if 0 // XXX old animation system
-	if(seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(scene, seq, cfra);
-		fac= seq->facf0;
-		facf= seq->facf1;
-	} else
-#endif // XXX old animation system	
-	{
-		sh.get_default_fac(seq, cfra, &fac, &facf);
-	}
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
+				  "effect_fader", 0);
 
-	if( !(scene->r.mode & R_FIELDS) ) facf = fac;
+	if (!fcu) {
+		sh.get_default_fac(seq, cfra, &fac, &facf);
+		if( scene->r.mode & R_FIELDS ); else facf= fac;
+	} else {
+		fac = facf = evaluate_fcurve(fcu, cfra);
+		if( scene->r.mode & R_FIELDS ) {
+			facf = evaluate_fcurve(fcu, cfra + 0.5);
+		}
+	}
 
 	early_out = sh.early_out(seq, fac, facf);
 
@@ -1565,12 +1570,6 @@ static int input_have_to_preprocess(Scene *scene, Sequence * seq, TStripElem* se
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE &&
 	   !(seq->type & SEQ_EFFECT)) {
-#if 0 // XXX old animation system
-		if (seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-			mul *= seq->facf0;
-		}
-#endif // XXX old animation system
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -1655,12 +1654,6 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	mul = seq->mul;
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
-#if 0 // XXX old animation system
-		if (seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-			mul *= seq->facf0;
-		}
-#endif // XXX old animation system
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -2014,14 +2007,9 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 		}
 	} else if(seq->type == SEQ_SCENE) {	// scene can be NULL after deletions
-#if 0
-		/* XXX move entirely to render? */
-		int oldcfra = CFRA;
-		Sequence * oldseq = get_last_seq();
-		Scene *sce= seq->scene, *oldsce= scene;
+		Scene *sce= seq->scene;// *oldsce= scene;
 		Render *re;
 		RenderResult rres;
-		int doseq, rendering= G.rendering;
 		char scenename[64];
 		int have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
 		int sce_valid =sce && (sce->camera || have_seq);
@@ -2043,18 +2031,24 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		if (!sce_valid) {
 			se->ok = STRIPELEM_FAILED;
 		} else if (se->ibuf==NULL && sce_valid) {
-			/* no need to display a waitcursor on sequencer
-			   scene strips */
-			if (!have_seq)
-				waitcursor(1);
-			
+			int oldcfra;
 			/* Hack! This function can be called from do_render_seq(), in that case
 			   the seq->scene can already have a Render initialized with same name, 
 			   so we have to use a default name. (compositor uses scene name to
 			   find render).
 			   However, when called from within the UI (image preview in sequencer)
 			   we do want to use scene Render, that way the render result is defined
-			   for display in render/imagewindow */
+			   for display in render/imagewindow 
+
+			   Hmm, don't see, why we can't do that all the time, 
+			   and since G.rendering is uhm, gone... (Peter)
+			*/
+
+			int rendering = 1;
+			int doseq;
+
+			oldcfra = seq->scene->r.cfra;
+
 			if(rendering) {
 				BLI_strncpy(scenename, sce->id.name+2, 64);
 				strcpy(sce->id.name+2, " do_build_seq_ibuf");
@@ -2065,16 +2059,9 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			doseq= scene->r.scemode & R_DOSEQ;
 			scene->r.scemode &= ~R_DOSEQ;
 			
-			BIF_init_render_callbacks(re, 0);	/* 0= no display callbacks */
-			
-			/* XXX hrms, set_scene still needed? work on that... */
-			if(sce!=oldsce) set_scene_bg(sce);
 			RE_BlenderFrame(re, sce,
 					seq->sfra+se->nr+seq->anim_startofs);
-			if(sce!=oldsce) set_scene_bg(oldsce);
 			
-			/* UGLY WARNING, it is set to zero in  RE_BlenderFrame */
-			G.rendering= rendering;
 			if(rendering)
 				BLI_strncpy(sce->id.name+2, scenename, 64);
 			
@@ -2094,20 +2081,12 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 
 			RE_ReleaseResultImage(re);
 			
-			BIF_end_render_callbacks();
+			// BIF_end_render_callbacks();
 			
 			/* restore */
 			scene->r.scemode |= doseq;
-
-			// XXX
-#if 0
-			if((G.f & G_PLAYANIM)==0 /* bad, is set on do_render_seq */
-			   && !have_seq
-			   && !build_proxy_run) 
-#endif
-			
-			CFRA = oldcfra;
-			set_last_seq(oldseq);
+		
+			seq->scene->r.cfra = oldcfra;
 
 			copy_to_ibuf_still(seq, se);
 
@@ -2120,7 +2099,6 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 
 		}
-#endif
 	}
 	if (!build_proxy_run) {
 		if (se->ibuf && use_limiter) {
@@ -2138,24 +2116,25 @@ static void do_effect_seq_recursively(Scene *scene, Sequence *seq, TStripElem *s
 	float fac, facf;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
 	int early_out;
+	FCurve *fcu= NULL;
 
 	se->se1 = 0;
 	se->se2 = 0;
 	se->se3 = 0;
 
-#if 0 // XXX old animation system
-	if(seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(scene, seq, cfra);
-		fac= seq->facf0;
-		facf= seq->facf1;
-	} else 
-#endif // XXX old animation system
-	{
-		sh.get_default_fac(seq, cfra, &fac, &facf);
-	} 
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
+				  "effect_fader", 0);
 
-	if( scene->r.mode & R_FIELDS ); else facf= fac;
-	
+	if (!fcu) {
+		sh.get_default_fac(seq, cfra, &fac, &facf);
+		if( scene->r.mode & R_FIELDS ); else facf= fac;
+	} else {
+		fac = facf = evaluate_fcurve(fcu, cfra);
+		if( scene->r.mode & R_FIELDS ) {
+			facf = evaluate_fcurve(fcu, cfra + 0.5);
+		}
+	}
+
 	early_out = sh.early_out(seq, fac, facf);
 	switch (early_out) {
 	case -1:
@@ -2389,6 +2368,7 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		int early_out;
 		Sequence * seq = seq_arr[i];
 		struct SeqEffectHandle sh;
+		float facf;
 
 		se = give_tstripelem(seq, cfra);
 
@@ -2415,21 +2395,9 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 		sh = get_sequence_blend(seq);
 
-#if 0 // XXX old animation system
-		seq->facf0 = seq->facf1 = 1.0;
+		facf = seq->blend_opacity / 100.0;
 
-
-		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(scene, seq, cfra);
-		} 
-#endif
-
-		if( scene->r.mode & R_FIELDS ); else seq->facf0 = seq->facf1;
-
-		seq->facf0 *= seq->blend_opacity / 100.0;
-		seq->facf1 *= seq->blend_opacity / 100.0;
-
-		early_out = sh.early_out(seq, seq->facf0, seq->facf1);
+		early_out = sh.early_out(seq, facf, facf);
 
 		switch (early_out) {
 		case -1:
@@ -2486,8 +2454,10 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		struct SeqEffectHandle sh = get_sequence_blend(seq);
 		TStripElem* se1 = give_tstripelem(seq_arr[i-1], cfra);
 		TStripElem* se2 = give_tstripelem(seq_arr[i], cfra);
+
+		float facf = seq->blend_opacity / 100.0;
 	
-		int early_out = sh.early_out(seq, seq->facf0, seq->facf1);
+		int early_out = sh.early_out(seq, facf, facf);
 		switch (early_out) {
 		case 0: {
 			int x= se2->ibuf->x;
@@ -2535,12 +2505,12 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 			if (swap_input) {
 				sh.execute(seq, cfra, 
-					   seq->facf0, seq->facf1, x, y, 
+					   facf, facf, x, y, 
 					   se2->ibuf, se1->ibuf_comp, 0,
 					   se2->ibuf_comp);
 			} else {
 				sh.execute(seq, cfra, 
-					   seq->facf0, seq->facf1, x, y, 
+					   facf, facf, x, y, 
 					   se1->ibuf_comp, se2->ibuf, 0,
 					   se2->ibuf_comp);
 			}

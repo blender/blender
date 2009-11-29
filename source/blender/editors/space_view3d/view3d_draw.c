@@ -193,7 +193,7 @@ void view3d_clr_clipping(void)
 	}
 }
 
-static test_clipping(float *vec, float clip[][4])
+static int test_clipping(float *vec, float clip[][4])
 {
 	float view[3];
 	VECCOPY(view, vec);

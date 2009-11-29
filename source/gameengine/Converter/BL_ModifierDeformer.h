@@ -50,7 +50,7 @@ public:
 	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
 						Scene *scene,
 						Object *bmeshobj,
-						BL_SkinMeshObject *mesh)
+						RAS_MeshObject *mesh)
 						:	
 						BL_ShapeDeformer(gameobj,bmeshobj, mesh),
 						m_lastModifierUpdate(-1),
@@ -65,7 +65,7 @@ public:
 						struct Scene *scene,
 						struct Object *bmeshobj_old,
 						struct Object *bmeshobj_new,
-						class BL_SkinMeshObject *mesh,
+						class RAS_MeshObject *mesh,
 						bool release_object,
 						BL_ArmatureObject* arma = NULL)
 						:

@@ -45,11 +45,11 @@ struct Scene;
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
-/* sequencer_header.c */
-// void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* sequencer_draw.c */
-void drawseqspace(const struct bContext *C, struct ARegion *ar);
+void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
+void draw_image_seq(struct Scene *scene, struct ARegion *ar, struct SpaceSeq *sseq);
+
 void seq_reset_imageofs(struct SpaceSeq *sseq);
 
 /* sequencer_edit.c */

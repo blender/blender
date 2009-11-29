@@ -1675,7 +1675,9 @@ void ntreeSocketUseFlags(bNodeTree *ntree)
 	
 	/* tag all thats in use */
 	for(link= ntree->links.first; link; link= link->next) {
-		link->fromsock->flag |= SOCK_IN_USE;
+	
+		if(link->fromsock) // FIXME, see below
+			link->fromsock->flag |= SOCK_IN_USE;
 		if(link->tosock) // FIXME This can be NULL, when dragging a new link in the UI, should probably copy the node tree for preview render - campbell
 			link->tosock->flag |= SOCK_IN_USE;
 	}

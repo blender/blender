@@ -292,20 +292,6 @@ void print_v4(char *str, float v[4])
 	printf("%s: %.3f %.3f %.3f %.3f\n", str, v[0], v[1], v[2], v[3]);
 }
 
-void normal_short_to_float_v3(float *out, short *in)
-{
-	out[0] = in[0]*(1.0f/32767.0f);
-	out[1] = in[1]*(1.0f/32767.0f);
-	out[2] = in[2]*(1.0f/32767.0f);
-}
-
-void normal_float_to_short_v3(short *out, float *in)
-{
-	out[0] = (short)(in[0]*32767.0f);
-	out[1] = (short)(in[1]*32767.0f);
-	out[2] = (short)(in[2]*32767.0f);
-}
-
 void minmax_v3_v3v3(float *min, float *max, float *vec)
 {
 	if(min[0]>vec[0]) min[0]= vec[0];

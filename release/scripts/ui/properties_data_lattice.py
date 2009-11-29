@@ -47,10 +47,10 @@ class DATA_PT_context_lattice(DataButtonsPanel):
             split = layout.split(percentage=0.65)
             if ob:
                 split.template_ID(ob, "data")
-                split.itemS()
+                split.separator()
             elif lat:
                 split.template_ID(space, "pin_id")
-                split.itemS()
+                split.separator()
         else:
             if ob:
                 layout.template_ID(ob, "data")
@@ -69,26 +69,26 @@ class DATA_PT_lattice(DataButtonsPanel):
 
         split = layout.split()
         col = split.column()
-        col.itemR(lat, "points_u")
+        col.prop(lat, "points_u")
         if wide_ui:
             col = split.column()
-        col.itemR(lat, "interpolation_type_u", text="")
+        col.prop(lat, "interpolation_type_u", text="")
 
         split = layout.split()
         col = split.column()
-        col.itemR(lat, "points_v")
+        col.prop(lat, "points_v")
         if wide_ui:
             col = split.column()
-        col.itemR(lat, "interpolation_type_v", text="")
+        col.prop(lat, "interpolation_type_v", text="")
 
         split = layout.split()
         col = split.column()
-        col.itemR(lat, "points_w")
+        col.prop(lat, "points_w")
         if wide_ui:
             col = split.column()
-        col.itemR(lat, "interpolation_type_w", text="")
+        col.prop(lat, "interpolation_type_w", text="")
 
-        layout.itemR(lat, "outside")
+        layout.prop(lat, "outside")
 
 bpy.types.register(DATA_PT_context_lattice)
 bpy.types.register(DATA_PT_lattice)

@@ -416,6 +416,7 @@ int BPy_reports_to_error(ReportList *reports)
 int BPy_errors_to_report(ReportList *reports)
 {
 	PyObject *pystring;
+	PyObject *pystring_format= NULL; // workaround, see below
 	char *cstring;
 
 	char *filename;
@@ -439,14 +440,23 @@ int BPy_errors_to_report(ReportList *reports)
 	}
 	
 	BPY_getFileAndNum(&filename, &lineno);
+	if(filename==NULL)
+		filename= "<unknown location>";
 	
 	cstring= _PyUnicode_AsString(pystring);
-	
+
+#if 0 // ARG!. workaround for a bug in blenders use of vsnprintf
 	BKE_reportf(reports, RPT_ERROR, "%s\nlocation:%s:%d\n", cstring, filename, lineno);
+#else
+	pystring_format= PyUnicode_FromFormat("%s\nlocation:%s:%d\n", cstring, filename, lineno);
+	cstring= _PyUnicode_AsString(pystring_format);
+	BKE_report(reports, RPT_ERROR, cstring);
+#endif
 	
 	fprintf(stderr, "%s\nlocation:%s:%d\n", cstring, filename, lineno); // not exactly needed. just for testing
 	
 	Py_DECREF(pystring);
+	Py_DECREF(pystring_format); // workaround
 	return 1;
 }
 

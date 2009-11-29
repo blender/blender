@@ -214,6 +214,7 @@ typedef struct uiLayout uiLayout;
 #define LISTBOX		(43<<9)
 #define LISTROW		(44<<9)
 #define HOTKEYEVT	(45<<9)
+#define BUT_IMAGE	(46<<9)
 
 #define BUTTYPE		(63<<9)
 
@@ -271,6 +272,8 @@ void uiPupBlock(struct bContext *C, uiBlockCreateFunc func, void *arg);
 void uiPupBlockO(struct bContext *C, uiBlockCreateFunc func, void *arg, char *opname, int opcontext);
 void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext);
 
+void uiPupBlockClose(struct bContext *C, uiBlock *block);
+
 /* Blocks
  *
  * Functions for creating, drawing and freeing blocks. A Block is a
@@ -303,10 +306,20 @@ void uiBlockClearButLock(uiBlock *block);
 void uiBlockBeginAlign(uiBlock *block);
 void uiBlockEndAlign(uiBlock *block);
 
+/* block bounds/position calculation */
+enum {
+	UI_BLOCK_BOUNDS=1,
+	UI_BLOCK_BOUNDS_TEXT,
+	UI_BLOCK_BOUNDS_POPUP_MOUSE,
+	UI_BLOCK_BOUNDS_POPUP_MENU,
+	UI_BLOCK_BOUNDS_POPUP_CENTER,
+} eBlockBoundsCalc;
+
 void uiBoundsBlock(struct uiBlock *block, int addval);
 void uiTextBoundsBlock(uiBlock *block, int addval);
 void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my);
 void uiMenuPopupBoundsBlock(uiBlock *block, int addvall, int mx, int my);
+void uiCenteredBoundsBlock(uiBlock *block, int addval);
 
 int		uiBlocksGetYMin		(struct ListBase *lb);
 
@@ -532,7 +545,8 @@ void uiEndPanel(uiBlock *block, int width, int height);
 
 void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_area_handlers(struct ListBase *handlers);
-void UI_add_popup_handlers(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *menu);
+void UI_add_popup_handlers(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *popup);
+void UI_remove_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *popup);
 
 /* Module
  *
@@ -560,6 +574,7 @@ void UI_exit(void);
 #define UI_LAYOUT_PANEL			0
 #define UI_LAYOUT_HEADER		1
 #define UI_LAYOUT_MENU			2
+#define UI_LAYOUT_TOOLBAR		3
  
 #define UI_UNIT_X				20
 #define UI_UNIT_Y				20
@@ -585,6 +600,7 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout);
 
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, char *name, struct PointerRNA *ptr);
+char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 
 void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
 void uiLayoutSetActive(uiLayout *layout, int active);
@@ -632,7 +648,8 @@ void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struc
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
-void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
+void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname,
+		      PointerRNA *used_ptr, char *used_propname, int active_layer);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);

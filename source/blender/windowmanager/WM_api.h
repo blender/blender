@@ -52,6 +52,8 @@ void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
+void		WM_init_splash		(struct bContext *C);
+
 
 void		WM_check			(struct bContext *C);
 
@@ -191,6 +193,7 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int con
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
+void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
 void		WM_operator_properties_gesture_border(wmOperatorType *ot, int extend);

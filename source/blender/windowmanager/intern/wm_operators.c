@@ -465,8 +465,11 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	PointerRNA opptr_default;
 	PropertyRNA *prop_default;
 	char *buf_default;
-	if(!all_args) {
-		WM_operator_properties_create(&opptr_default, ot->idname);
+	if(all_args==0 || opptr==NULL) {
+		WM_operator_properties_create_ptr(&opptr_default, ot);
+
+		if(opptr==NULL)
+			opptr = &opptr_default;
 	}
 
 
@@ -510,7 +513,7 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	}
 	RNA_PROP_END;
 
-	if(all_args==0)
+	if(all_args==0 || opptr==&opptr_default )
 		WM_operator_properties_free(&opptr_default);
 
 	BLI_dynstr_append(dynstr, ")");
@@ -520,12 +523,17 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	return cstring;
 }
 
+void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot)
+{
+	RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+}
+
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 
 	if(ot)
-		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+		WM_operator_properties_create_ptr(ptr, ot);
 	else
 		RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
 }
@@ -699,10 +707,12 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlock *block;
 	uiLayout *layout;
 	uiStyle *style= U.uistyles.first;
+	int columns= 2, width= 300;
 	
+
 	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	uiBlockSetHandleFunc(block, redo_cb, arg_op);
 
 	if(!op->properties) {
@@ -710,14 +720,20 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
 	}
 
+	// XXX - hack, only for editing docs
+	if(strcmp(op->type->idname, "WM_OT_doc_edit")==0) {
+		columns= 1;
+		width= 500;
+	}
+
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
 	uiItemL(layout, op->type->name, 0);
 
 	if(op->type->ui)
-		op->type->ui((bContext*)C, &ptr, layout);
+		op->type->ui((bContext*)C, op, layout);
 	else
-		uiDefAutoButsRNA(C, layout, &ptr, 2);
+		uiDefAutoButsRNA(C, layout, &ptr, columns);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -757,13 +773,13 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
 	uiItemL(layout, op->type->name, 0);
 
 	if(op->type->ui)
-		op->type->ui(C, op->ptr, layout);
+		op->type->ui(C, op, layout);
 	else
 		uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	
@@ -805,6 +821,72 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	
 	RNA_def_int(ot->srna, "debugval", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
 }
+
+
+/* ***************** Splash Screen ************************* */
+
+static void wm_block_splash_close(bContext *C, void *arg_block, void *arg_unused)
+{
+	uiPupBlockClose(C, arg_block);
+}
+
+static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused)
+{
+	uiBlock *block;
+	uiBut *but;
+	uiLayout *layout, *split, *col;
+	uiStyle *style= U.uistyles.first;
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	
+	but= uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, NULL, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(but, wm_block_splash_close, block, NULL);
+	
+	uiBlockSetEmboss(block, UI_EMBOSSP);
+	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 10, 10, 480, 110, style);
+
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+	
+	split = uiLayoutSplit(layout, 0);
+	col = uiLayoutColumn(split, 0);
+	uiItemL(col, "Links", 0);
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_release_logs");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_manual");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_blender_website");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_user_community");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_python_api");
+	uiItemS(col);
+	
+	col = uiLayoutColumn(split, 0);
+	uiItemL(col, "Recent", 0);
+	uiItemsEnumO(col, "WM_OT_open_recentfile_splash", "file");
+	uiItemS(col);
+
+	uiCenteredBoundsBlock(block, 0.0f);
+	uiEndBlock(C, block);
+	
+	return block;
+}
+
+static int wm_splash_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPupBlock(C, wm_block_create_splash, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_splash(wmOperatorType *ot)
+{
+	ot->name= "Splash Screen";
+	ot->idname= "WM_OT_splash";
+	ot->description= "Opens a blocking popup region with release info";
+	
+	ot->invoke= wm_splash_invoke;
+	ot->poll= WM_operator_winactive;
+}
+
 
 /* ***************** Search menu ************************* */
 static void operator_call_cb(struct bContext *C, void *arg1, void *arg2)
@@ -851,7 +933,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBut *but;
 	
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
@@ -1011,6 +1093,7 @@ static EnumPropertyItem *open_recentfile_itemf(bContext *C, PointerRNA *ptr, int
 	/* dynamically construct enum */
 	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
 		tmp.value= i+1;
+		tmp.icon= ICON_FILE_BLEND;
 		tmp.identifier= recent->filename;
 		tmp.name= BLI_short_filename(recent->filename);
 		RNA_enum_item_add(&item, &totitem, &tmp);
@@ -1038,6 +1121,47 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	
 	prop= RNA_def_enum(ot->srna, "file", file_items, 1, "File", "");
 	RNA_def_enum_funcs(prop, open_recentfile_itemf);
+}
+
+static EnumPropertyItem *open_recentfile_splash_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	struct RecentFile *recent;
+	int totitem= 0, i;
+	
+	/* dynamically construct enum */
+	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++) {
+		tmp.value= i+1;
+		tmp.icon= ICON_FILE_BLEND;
+		tmp.identifier= recent->filename;
+		tmp.name= BLI_last_slash(recent->filename);
+		if(tmp.name) tmp.name += 1;
+		else tmp.name = recent->filename;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+	
+	return item;
+}
+
+static void WM_OT_open_recentfile_splash(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	static EnumPropertyItem file_items[]= {
+		{0, NULL, 0, NULL, NULL}};
+	
+	ot->name= "Open Recent File";
+	ot->idname= "WM_OT_open_recentfile_splash";
+	ot->description="Open recent files list.";
+	
+	ot->exec= recentfile_exec;
+	ot->poll= WM_operator_winactive;
+	
+	prop= RNA_def_enum(ot->srna, "file", file_items, 1, "File", "");
+	RNA_def_enum_funcs(prop, open_recentfile_splash_itemf);
 }
 
 /* *************** open file **************** */
@@ -1922,7 +2046,7 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 		}
 	}
 	else {
-		if(action==WM_HANDLER_BREAK) {
+		if(action & WM_HANDLER_BREAK) {
 			WM_gesture_end(C, win->tweak);
 			win->tweak= NULL;
 		}
@@ -2458,6 +2582,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
 	WM_operatortype_append(WM_OT_open_recentfile);
+	WM_operatortype_append(WM_OT_open_recentfile_splash);
 	WM_operatortype_append(WM_OT_open_mainfile);
 	WM_operatortype_append(WM_OT_link_append);
 	WM_operatortype_append(WM_OT_recover_last_session);
@@ -2467,6 +2592,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_debug_menu);
+	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 
 #ifdef WITH_COLLADA
@@ -2541,12 +2667,12 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	{GESTURE_MODAL_BORDER_BEGIN,	"BEGIN", 0, "Begin", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Gesture Border");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Border");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Gesture Border", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Border", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
@@ -2564,7 +2690,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 #endif
 
 	/* assign map to operators */
-	WM_modalkeymap_assign(keymap, "ACT_OT_select_border");
+	WM_modalkeymap_assign(keymap, "ACTION_OT_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_previewrange_set");
 	WM_modalkeymap_assign(keymap, "CONSOLE_OT_select_border");
@@ -2576,10 +2702,11 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
+	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
-	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); // XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel
 }
 
 /* default keymap for windows and screens, only call once per WM */

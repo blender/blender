@@ -50,7 +50,7 @@ public:
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map);
 	BL_MeshDeformer(BL_DeformableGameObject *gameobj,
 					struct Object* obj,
-					class BL_SkinMeshObject *meshobj ):
+					class RAS_MeshObject *meshobj ):
 		m_pMeshObject(meshobj),
 		m_bmesh((struct Mesh*)(obj->data)),
 		m_transverts(0),
@@ -73,7 +73,7 @@ public:
 	//	virtual void InitDeform(double time){};
 
 protected:
-	class BL_SkinMeshObject*	m_pMeshObject;
+	class RAS_MeshObject*		m_pMeshObject;
 	struct Mesh*				m_bmesh;
 	
 	// this is so m_transverts doesn't need to be converted

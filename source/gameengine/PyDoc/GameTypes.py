@@ -3819,6 +3819,10 @@ class KX_Scene(PyObjectPlus):
 	@type activity_culling_radius: float
 	@ivar dbvt_culling: True when Dynamic Bounding box Volume Tree is set (read-only).
 	@type dbvt_culling: bool
+	@ivar pre_draw: A list of callables to be run before the render step.
+	@type pre_draw: list
+	@ivar post_draw: A list of callables to be run after the render step.
+	@type post_draw: list
 	@group Deprecated: getLightList, getObjectList, getName
 	"""
 	

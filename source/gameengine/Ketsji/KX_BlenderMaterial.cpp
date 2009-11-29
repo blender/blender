@@ -58,8 +58,7 @@ KX_BlenderMaterial::KX_BlenderMaterial()
 
 void KX_BlenderMaterial::Initialize(
     KX_Scene *scene,
-	BL_Material *data,
-	bool skin)
+	BL_Material *data)
 {
 	RAS_IPolyMaterial::Initialize(
 		data->texname[0],

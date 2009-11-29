@@ -375,9 +375,7 @@ m_scalingPropagated(false)
 	//m_dynamicsWorld->getSolverInfo().m_solverMode=	SOLVER_USE_WARMSTARTING +	SOLVER_USE_2_FRICTION_DIRECTIONS +	SOLVER_RANDMIZE_ORDER +	SOLVER_USE_FRICTION_WARMSTARTING;
 
 	m_debugDrawer = 0;
-	m_gravity = btVector3(0.f,-10.f,0.f);
-	m_dynamicsWorld->setGravity(m_gravity);
-
+	setGravity(0.f,0.f,-9.81f);
 }
 
 void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
@@ -884,7 +882,7 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 {
 	m_gravity = btVector3(x,y,z);
 	m_dynamicsWorld->setGravity(m_gravity);
-
+	m_dynamicsWorld->getWorldInfo().m_gravity.setValue(x,y,z);
 }
 
 
@@ -1072,6 +1070,8 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 					rayCallback.m_hitTriangleIndex < shapeInfo->m_polygonIndexArray.size())
 				{
 					result.m_meshObject = shapeInfo->GetMesh();
+					// note for softbody: this assumes that the softbody shape uses the same triangle numbering 
+					// than the triangle mesh shape that was used to build it
 					result.m_polygon = shapeInfo->m_polygonIndexArray.at(rayCallback.m_hitTriangleIndex);
 
 					// Bullet returns the normal from "outside".
@@ -1080,7 +1080,13 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 					{
 						// mesh shapes are shared and stored in the shapeInfo
 						btTriangleMeshShape* triangleShape = shapeInfo->GetMeshShape();
-						if (triangleShape)
+
+						if (shape->isSoftBody()) 
+						{
+							// we can get the real normal directly from the body
+							btSoftBody* softBody = static_cast<btSoftBody*>(rayCallback.m_collisionObject);
+							rayCallback.m_hitNormalWorld = softBody->m_faces[rayCallback.m_hitTriangleIndex].m_normal;
+						} else if (triangleShape)
 						{
 							// this code is copied from Bullet 
 							btVector3 triangle[3];

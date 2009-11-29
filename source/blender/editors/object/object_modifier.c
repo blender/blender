@@ -33,6 +33,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -42,6 +43,7 @@
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_action.h"
 #include "BKE_curve.h"
@@ -51,6 +53,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -66,6 +69,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_armature.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -75,7 +79,7 @@
 
 /******************************** API ****************************/
 
-int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
+ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, char *name, int type)
 {
 	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
@@ -83,7 +87,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 	if(mti->flags&eModifierTypeFlag_Single) {
 		if(modifiers_findByType(ob, type)) {
 			BKE_report(reports, RPT_WARNING, "Only one modifier of this type allowed.");
-			return 0;
+			return NULL;
 		}
 	}
 
@@ -91,7 +95,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 		/* don't need to worry about the new modifier's name, since that is set to the number
 		 * of particle systems which shouldn't have too many duplicates 
 		 */
-		object_add_particle_system(scene, ob);
+		new_md = object_add_particle_system(scene, ob, name);
 	}
 	else {
 		/* get new modifier data to add */
@@ -107,8 +111,12 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 		}
 		else
 			BLI_addtail(&ob->modifiers, new_md);
-		
+
+		if(name)
+			BLI_strncpy(new_md->name, name, sizeof(new_md->name));
+
 		/* make sure modifier data has unique name */
+
 		modifier_unique_name(&ob->modifiers, new_md);
 		
 		/* special cases */
@@ -131,7 +139,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
-	return 1;
+	return new_md;
 }
 
 int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
@@ -145,8 +153,10 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 		if(obmd==md)
 			break;
 	
-	if(!obmd)
+	if(!obmd) {
+		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'.", ob->id.name, md->name);
 		return 0;
+	}
 
 	/* special cases */
 	if(md->type == eModifierType_ParticleSystem) {
@@ -328,12 +338,104 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	return 1;
 }
 
-int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
-	DerivedMesh *dm;
-	Mesh *me = ob->data;
-	int converted = 0;
+	if (ob->type==OB_MESH) {
+		DerivedMesh *dm;
+		Mesh *me= ob->data;
+		Key *key=me->key;
+		KeyBlock *kb;
+		
+		if(!modifier_sameTopology(md)) {
+			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
+			return 0;
+		}
+		mesh_pmv_off(ob, me);
+		
+		dm = mesh_create_derived_for_modifier(scene, ob, md);
+		if (!dm) {
+			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+			return 0;
+		}
+		
+		if(key == NULL) {
+			key= me->key= add_key((ID *)me);
+			key->type= KEY_RELATIVE;
+			/* if that was the first key block added, then it was the basis.
+			 * Initialise it with the mesh, and add another for the modifier */
+			kb= add_keyblock(scene, key);
+			mesh_to_key(me, kb);
+		}
 
+		kb= add_keyblock(scene, key);
+		DM_to_meshkey(dm, me, kb);
+		
+		dm->release(dm);
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
+		return 0;
+	}
+	return 1;
+}
+
+static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+{
+	if (ob->type==OB_MESH) {
+		DerivedMesh *dm;
+		Mesh *me = ob->data;
+		if( me->key) {
+			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
+			return 0;
+		}
+		
+		mesh_pmv_off(ob, me);
+		
+		/* Multires: ensure that recent sculpting is applied */
+		if(md->type == eModifierType_Multires)
+			multires_force_update(ob);
+		
+		dm = mesh_create_derived_for_modifier(scene, ob, md);
+		if (!dm) {
+			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+			return 0;
+		}
+		
+		DM_to_mesh(dm, me);
+		
+		dm->release(dm);
+	} 
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		Curve *cu = ob->data;
+		int numVerts;
+		float (*vertexCos)[3];
+		
+		
+		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
+		
+		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md))) {
+			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
+			return 0;
+		}
+		
+		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
+		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
+
+		MEM_freeN(vertexCos);
+		
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
+		return 0;
+	}
+	return 1;
+}
+
+int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md, int mode)
+{
 	if (scene->obedit) {
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in editmode");
 		return 0;
@@ -345,65 +447,18 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	if (md!=ob->modifiers.first)
 		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected.");
 
-	if (ob->type==OB_MESH) {
-		if(me->key) {
-			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
+	if (mode == MODIFIER_APPLY_SHAPE) {
+		if (!modifier_apply_shape(reports, scene, ob, md))
 			return 0;
-		}
-	
-		mesh_pmv_off(ob, me);
-
-	   /* Multires: ensure that recent sculpting is applied */
-	   if(md->type == eModifierType_Multires)
-			   multires_force_update(ob);
-
-		dm = mesh_create_derived_for_modifier(scene, ob, md);
-		if (!dm) {
-			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+	} else {
+		if (!modifier_apply_obdata(reports, scene, ob, md))
 			return 0;
-		}
-
-		DM_to_mesh(dm, me);
-		converted = 1;
-
-		dm->release(dm);
-	} 
-	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		Curve *cu = ob->data;
-		int numVerts;
-		float (*vertexCos)[3];
-
-		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
-
-		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md))) {
-			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
-			return 0;
-		}
-
-		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
-		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
-		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
-
-		converted = 1;
-
-		MEM_freeN(vertexCos);
-
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	}
-	else {
-		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
-		return 0;
 	}
 
-	if (converted) {
-		BLI_remlink(&ob->modifiers, md);
-		modifier_free(md);
+	BLI_remlink(&ob->modifiers, md);
+	modifier_free(md);
 
-		return 1;
-	}
-
-	return 0;
+	return 1;
 }
 
 int ED_object_modifier_copy(ReportList *reports, Object *ob, ModifierData *md)
@@ -434,7 +489,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
     Object *ob = CTX_data_active_object(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
-	if(!ED_object_modifier_add(op->reports, scene, ob, type))
+	if(!ED_object_modifier_add(op->reports, scene, ob, NULL, type))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
@@ -598,8 +653,9 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
 	Object *ob= ptr.id.data;
 	ModifierData *md= ptr.data;
+	int apply_as= RNA_enum_get(op->ptr, "apply_as");
 
-	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md))
+	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -608,6 +664,11 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static EnumPropertyItem modifier_apply_as_items[] = {
+	{MODIFIER_APPLY_DATA, "DATA", 0, "Object Data", "Apply modifier to the object's data"},
+	{MODIFIER_APPLY_SHAPE, "SHAPE", 0, "New Shape", "Apply deform-only modifier to a new shape on this object"},
+	{0, NULL, 0, NULL, NULL}};
+
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 {
 	ot->name= "Apply Modifier";
@@ -615,11 +676,14 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_modifier_apply";
 	ot->poll= ED_operator_object_active;
 
+	//ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_apply_exec;
 	ot->poll= modifier_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "apply_as", modifier_apply_as_items, MODIFIER_APPLY_DATA, "Apply as", "How to apply the modifier to the geometry");
 }
 
 /************************ convert modifier operator *********************/
@@ -783,7 +847,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		int mode= mmd->modifier.mode;
 
 		/* force modifier to run, it will call binding routine */
-		mmd->bindfunc= harmonic_coordinates_bind;
+		mmd->bindfunc= mesh_deform_bind;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
 		if(ob->type == OB_MESH) {

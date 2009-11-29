@@ -150,7 +150,8 @@ typedef struct Sequence {
 	struct Ipo *ipo;	// xxx depreceated... old animation system
 	struct Scene *scene;
 	struct anim *anim;
-	float facf0, facf1;
+	float effect_fader;
+	float speed_fader;
 
 	PluginSeq *plugin;
 

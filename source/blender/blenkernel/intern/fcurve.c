@@ -731,6 +731,9 @@ DriverTarget *driver_add_new_target (ChannelDriver *driver)
 	dtar= MEM_callocN(sizeof(DriverTarget), "DriverTarget");
 	BLI_addtail(&driver->targets, dtar);
 	
+	/* make the default ID-type ID_OB, since most driver targets refer to objects */
+	dtar->idtype= ID_OB;
+	
 	/* give the target a 'unique' name */
 	strcpy(dtar->name, "var");
 	BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);
@@ -819,7 +822,7 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 	}
 	
 	/* get property to read from, and get value as appropriate */
-	if (RNA_path_resolve(&id_ptr, path, &ptr, &prop)) {
+	if (RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(&ptr, prop))

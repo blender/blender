@@ -3788,7 +3788,7 @@ void relink_constraints (ListBase *conlist)
 /* ......... */
 
 /* duplicate all of the constraints in a constraint stack */
-void copy_constraints (ListBase *dst, ListBase *src)
+void copy_constraints (ListBase *dst, const ListBase *src)
 {
 	bConstraint *con, *srccon;
 	

@@ -63,15 +63,15 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(scene.network_render, "mode")
-		col.itemR(scene.network_render, "path")
-		col.itemR(scene.network_render, "server_address")
-		col.itemR(scene.network_render, "server_port")
+		col.prop(scene.network_render, "mode")
+		col.prop(scene.network_render, "path")
+		col.prop(scene.network_render, "server_address")
+		col.prop(scene.network_render, "server_port")
 		
 		if scene.network_render.mode == "RENDER_MASTER":
-			col.itemR(scene.network_render, "server_broadcast")
+			col.prop(scene.network_render, "server_broadcast")
 		else:
-			col.itemO("render.netclientscan", icon="ICON_FILE_REFRESH", text="")
+			col.operator("render.netclientscan", icon="ICON_FILE_REFRESH", text="")
 
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
@@ -93,13 +93,13 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION')
-		col.itemO("render.netclientsend", icon="ICON_FILE_BLEND")
-		col.itemO("render.netclientweb", icon="ICON_QUESTION")
-		col.itemR(scene.network_render, "job_name")
+		col.operator("render.netclientanim", icon='ICON_RENDER_ANIMATION')
+		col.operator("render.netclientsend", icon="ICON_FILE_BLEND")
+		col.operator("render.netclientweb", icon="ICON_QUESTION")
+		col.prop(scene.network_render, "job_name")
 		row = col.row()
-		row.itemR(scene.network_render, "priority")
-		row.itemR(scene.network_render, "chunks")
+		row.prop(scene.network_render, "priority")
+		row.prop(scene.network_render, "chunks")
 
 @rnaType
 class RENDER_PT_network_slaves(RenderButtonsPanel):
@@ -120,22 +120,22 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 		row.template_list(netsettings, "slaves", netsettings, "active_slave_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.itemO("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
-		sub.itemO("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
+		sub.operator("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
+		sub.operator("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
 		
 		if len(netrender.slaves) == 0 and len(netsettings.slaves) > 0:
 			while(len(netsettings.slaves) > 0):
 				netsettings.slaves.remove(0)
 		
 		if netsettings.active_slave_index >= 0 and len(netsettings.slaves) > 0:
-			layout.itemS()
+			layout.separator()
 			
 			slave = netrender.slaves[netsettings.active_slave_index]
 
-			layout.itemL(text="Name: " + slave.name)
-			layout.itemL(text="Address: " + slave.address[0])
-			layout.itemL(text="Seen: " + time.ctime(slave.last_seen))
-			layout.itemL(text="Stats: " + slave.stats)
+			layout.label(text="Name: " + slave.name)
+			layout.label(text="Address: " + slave.address[0])
+			layout.label(text="Seen: " + time.ctime(slave.last_seen))
+			layout.label(text="Stats: " + slave.stats)
 
 @rnaType
 class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
@@ -156,21 +156,21 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 		row.template_list(netsettings, "slaves_blacklist", netsettings, "active_blacklisted_slave_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.itemO("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
+		sub.operator("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
 
 		if len(netrender.blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
 			while(len(netsettings.slaves_blacklist) > 0):
 				netsettings.slaves_blacklist.remove(0)
 		
 		if netsettings.active_blacklisted_slave_index >= 0 and len(netsettings.slaves_blacklist) > 0:
-			layout.itemS()
+			layout.separator()
 			
 			slave = netrender.blacklist[netsettings.active_blacklisted_slave_index]
 
-			layout.itemL(text="Name: " + slave.name)
-			layout.itemL(text="Address: " + slave.address[0])
-			layout.itemL(text="Seen: " + time.ctime(slave.last_seen))
-			layout.itemL(text="Stats: " + slave.stats)
+			layout.label(text="Name: " + slave.name)
+			layout.label(text="Address: " + slave.address[0])
+			layout.label(text="Seen: " + time.ctime(slave.last_seen))
+			layout.label(text="Stats: " + slave.stats)
 
 @rnaType
 class RENDER_PT_network_jobs(RenderButtonsPanel):
@@ -191,24 +191,24 @@ class RENDER_PT_network_jobs(RenderButtonsPanel):
 		row.template_list(netsettings, "jobs", netsettings, "active_job_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.itemO("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
-		sub.itemO("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
-		sub.itemO("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
-		sub.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
+		sub.operator("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
+		sub.operator("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
+		sub.operator("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
+		sub.operator("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
 
 		if len(netrender.jobs) == 0 and len(netsettings.jobs) > 0:
 			while(len(netsettings.jobs) > 0):
 				netsettings.jobs.remove(0)
 		
 		if netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0:
-			layout.itemS()
+			layout.separator()
 			
 			job = netrender.jobs[netsettings.active_job_index]
 
-			layout.itemL(text="Name: %s" % job.name)
-			layout.itemL(text="Length: %04i" % len(job))
-			layout.itemL(text="Done: %04i" % job.results[DONE])
-			layout.itemL(text="Error: %04i" % job.results[ERROR])
+			layout.label(text="Name: %s" % job.name)
+			layout.label(text="Length: %04i" % len(job))
+			layout.label(text="Done: %04i" % job.results[DONE])
+			layout.label(text="Error: %04i" % job.results[ERROR])
 
 @rnaType
 class NetRenderSettings(bpy.types.IDPropertyGroup):

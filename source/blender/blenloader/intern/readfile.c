@@ -1694,6 +1694,12 @@ static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
 				data->script = newlibadr(fd, id->lib, data->script);
 			}
 				break;
+			case FMODIFIER_TYPE_SOUND:
+			{
+				FMod_Sound *data= (FMod_Sound *)fcm->data;
+				data->sound = newlibadr(fd, id->lib, data->sound);
+			}
+				break;
 		}
 	}
 }
@@ -1701,6 +1707,9 @@ static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
 static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list) 
 {
 	FCurve *fcu;
+	
+	if (list == NULL)
+		return;
 	
 	/* relink ID-block references... */
 	for (fcu= list->first; fcu; fcu= fcu->next) {
@@ -1847,6 +1856,9 @@ static void lib_link_nladata_strips(FileData *fd, ID *id, ListBase *list)
 	for (strip= list->first; strip; strip= strip->next) {
 		/* check strip's children */
 		lib_link_nladata_strips(fd, id, &strip->strips);
+		
+		/* check strip's F-Curves */
+		lib_link_fcurves(fd, id, &strip->fcurves);
 		
 		/* reassign the counted-reference to action */
 		strip->act = newlibadr_us(fd, id->lib, strip->act);
@@ -2385,7 +2397,9 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
 	arm->sketch = NULL;
+	
 	arm->adt= newdataadr(fd, arm->adt);
+	direct_link_animdata(fd, arm->adt);
 	
 	bone=arm->bonebase.first;
 	while (bone) {
@@ -10086,6 +10100,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ntree= ntree->id.next;
 			}
 		}
+		{
+			Object *ob=main->object.first;
+			while (ob) {
+				/* shaded mode disabled for now */
+				if (ob->dt == OB_SHADED) ob->dt = OB_TEXTURE;
+				ob=ob->id.next;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10440,6 +10462,13 @@ static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
 				expand_doit(fd, mainvar, data->script);
 			}
 				break;
+			case FMODIFIER_TYPE_SOUND:
+			{
+				FMod_Sound *data= (FMod_Sound *)fcm->data;
+
+				expand_doit(fd, mainvar, data->sound);
+			}
+				break;
 		}
 	}
 }
@@ -10498,6 +10527,9 @@ static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *lis
 	for (strip= list->first; strip; strip= strip->next) {
 		/* check child strips */
 		expand_animdata_nlastrips(fd, mainvar, &strip->strips);
+		
+		/* check F-Curves */
+		expand_fcurves(fd, mainvar, &strip->fcurves);
 		
 		/* check F-Modifiers */
 		expand_fmodifiers(fd, mainvar, &strip->modifiers);

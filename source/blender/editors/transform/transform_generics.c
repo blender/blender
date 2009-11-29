@@ -930,6 +930,11 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	unit_m3(t->mat);
 	
+	/* if there's an event, we're modal */
+	if (event) {
+		t->flag |= T_MODAL;
+	}
+
 	t->spacetype = sa->spacetype;
 	if(t->spacetype == SPACE_VIEW3D)
 	{
@@ -1010,11 +1015,15 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 		else
 		{
-			if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
-				t->flag |= T_PROP_EDIT;
-				
-				if(ts->proportional == PROP_EDIT_CONNECTED)
-					t->flag |= T_PROP_CONNECTED;
+			/* use settings from scene only if modal */
+			if (t->flag & T_MODAL)
+			{
+				if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
+					t->flag |= T_PROP_EDIT;
+
+					if(ts->proportional == PROP_EDIT_CONNECTED)
+						t->flag |= T_PROP_CONNECTED;
+				}
 			}
 		}
 		
@@ -1047,7 +1056,6 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	{
 		t->options |= CTX_NO_PET;
 	}
-	
 	
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);

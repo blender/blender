@@ -122,6 +122,8 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 		for(win= wm->windows.first; win; win= win->next) {
 		
 			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
+			WM_event_remove_handlers(C, &win->handlers);
+			WM_event_remove_handlers(C, &win->modalhandlers);
 			ED_screen_exit(C, win, win->screen);
 		}
 	}

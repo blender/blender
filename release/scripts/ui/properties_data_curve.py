@@ -64,10 +64,10 @@ class DATA_PT_context_curve(DataButtonsPanel):
 
             if ob:
                 split.template_ID(ob, "data")
-                split.itemS()
+                split.separator()
             elif curve:
                 split.template_ID(space, "pin_id")
-                split.itemS()
+                split.separator()
         else:
             layout.template_ID(ob, "data")
 
@@ -87,42 +87,42 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
         if is_curve:
             row = layout.row()
-            row.itemR(curve, "dimensions", expand=True)
+            row.prop(curve, "dimensions", expand=True)
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Resolution:")
+        col.label(text="Resolution:")
         sub = col.column(align=True)
-        sub.itemR(curve, "resolution_u", text="Preview U")
-        sub.itemR(curve, "render_resolution_u", text="Render U")
+        sub.prop(curve, "resolution_u", text="Preview U")
+        sub.prop(curve, "render_resolution_u", text="Render U")
         if is_curve:
-            col.itemL(text="Twisting:")
-            col.itemR(curve, "twist_mode", text="")
-            col.itemR(curve, "twist_smooth", text="Smooth")
+            col.label(text="Twisting:")
+            col.prop(curve, "twist_mode", text="")
+            col.prop(curve, "twist_smooth", text="Smooth")
         if is_text:
-            col.itemL(text="Display:")
-            col.itemR(curve, "fast", text="Fast Editing")
+            col.label(text="Display:")
+            col.prop(curve, "fast", text="Fast Editing")
 
         if wide_ui:
             col = split.column()
 
         if is_surf:
             sub = col.column(align=True)
-            sub.itemL(text="")
-            sub.itemR(curve, "resolution_v", text="Preview V")
-            sub.itemR(curve, "render_resolution_v", text="Render V")
+            sub.label(text="")
+            sub.prop(curve, "resolution_v", text="Preview V")
+            sub.prop(curve, "render_resolution_v", text="Render V")
 
         if is_curve or is_text:
             sub = col.column()
             sub.active = (curve.dimensions == '2D')
-            sub.itemL(text="Caps:")
-            sub.itemR(curve, "front")
-            sub.itemR(curve, "back")
+            sub.label(text="Caps:")
+            sub.prop(curve, "front")
+            sub.prop(curve, "back")
 
-        col.itemL(text="Textures:")
-#       col.itemR(curve, "uv_orco")
-        col.itemR(curve, "auto_texspace")
+        col.label(text="Textures:")
+#       col.prop(curve, "uv_orco")
+        col.prop(curve, "auto_texspace")
 
 
 class DATA_PT_geometry_curve(DataButtonsPanel):
@@ -137,19 +137,19 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Modification:")
-        col.itemR(curve, "width")
-        col.itemR(curve, "extrude")
-        col.itemL(text="Taper Object:")
-        col.itemR(curve, "taper_object", text="")
+        col.label(text="Modification:")
+        col.prop(curve, "width")
+        col.prop(curve, "extrude")
+        col.label(text="Taper Object:")
+        col.prop(curve, "taper_object", text="")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Bevel:")
-        col.itemR(curve, "bevel_depth", text="Depth")
-        col.itemR(curve, "bevel_resolution", text="Resolution")
-        col.itemL(text="Bevel Object:")
-        col.itemR(curve, "bevel_object", text="")
+        col.label(text="Bevel:")
+        col.prop(curve, "bevel_depth", text="Depth")
+        col.prop(curve, "bevel_resolution", text="Resolution")
+        col.label(text="Bevel Object:")
+        col.prop(curve, "bevel_object", text="")
 
 
 class DATA_PT_pathanim(DataButtonsPanelCurve):
@@ -158,7 +158,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
     def draw_header(self, context):
         curve = context.curve
 
-        self.layout.itemR(curve, "use_path", text="")
+        self.layout.prop(curve, "use_path", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -169,21 +169,21 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
         layout.active = curve.use_path
 
         row = layout.row()
-        layout.itemR(curve, "path_length", text="Frames")
+        layout.prop(curve, "path_length", text="Frames")
 
         if wide_ui:
-            row.itemL()
+            row.label()
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(curve, "use_path_follow")
-        col.itemR(curve, "use_stretch")
+        col.prop(curve, "use_path_follow")
+        col.prop(curve, "use_stretch")
 
         if wide_ui:
             col = split.column()
-        col.itemR(curve, "use_radius")
-        col.itemR(curve, "use_time_offset", text="Offset Children")
+        col.prop(curve, "use_radius")
+        col.prop(curve, "use_time_offset", text="Offset Children")
 
 
 class DATA_PT_active_spline(DataButtonsPanelActive):
@@ -204,57 +204,57 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
             # These settings are below but its easier to have
             # poly's set aside since they use so few settings
             col = split.column()
-            col.itemL(text="Cyclic:")
-            col.itemR(act_spline, "smooth")
+            col.label(text="Cyclic:")
+            col.prop(act_spline, "smooth")
             col = split.column()
-            col.itemR(act_spline, "cyclic_u", text="U")
+            col.prop(act_spline, "cyclic_u", text="U")
 
         else:
             col = split.column()
-            col.itemL(text="Cyclic:")
+            col.label(text="Cyclic:")
             if act_spline.type == 'NURBS':
-                col.itemL(text="Bezier:")
-                col.itemL(text="Endpoint:")
-                col.itemL(text="Order:")
+                col.label(text="Bezier:")
+                col.label(text="Endpoint:")
+                col.label(text="Order:")
 
-            col.itemL(text="Resolution:")
+            col.label(text="Resolution:")
 
             col = split.column()
-            col.itemR(act_spline, "cyclic_u", text="U")
+            col.prop(act_spline, "cyclic_u", text="U")
 
             if act_spline.type == 'NURBS':
                 sub = col.column()
                 # sub.active = (not act_spline.cyclic_u)
-                sub.itemR(act_spline, "bezier_u", text="U")
-                sub.itemR(act_spline, "endpoint_u", text="U")
+                sub.prop(act_spline, "bezier_u", text="U")
+                sub.prop(act_spline, "endpoint_u", text="U")
 
                 sub = col.column()
-                sub.itemR(act_spline, "order_u", text="U")
-            col.itemR(act_spline, "resolution_u", text="U")
+                sub.prop(act_spline, "order_u", text="U")
+            col.prop(act_spline, "resolution_u", text="U")
 
             if is_surf:
                 col = split.column()
-                col.itemR(act_spline, "cyclic_v", text="V")
+                col.prop(act_spline, "cyclic_v", text="V")
 
                 # its a surface, assume its a nurb.
                 sub = col.column()
                 sub.active = (not act_spline.cyclic_v)
-                sub.itemR(act_spline, "bezier_v", text="V")
-                sub.itemR(act_spline, "endpoint_v", text="V")
+                sub.prop(act_spline, "bezier_v", text="V")
+                sub.prop(act_spline, "endpoint_v", text="V")
                 sub = col.column()
-                sub.itemR(act_spline, "order_v", text="V")
-                sub.itemR(act_spline, "resolution_v", text="V")
+                sub.prop(act_spline, "order_v", text="V")
+                sub.prop(act_spline, "resolution_v", text="V")
 
             if not is_surf:
                 split = layout.split()
                 col = split.column()
                 col.active = (curve.dimensions == '3D')
 
-                col.itemL(text="Interpolation:")
-                col.itemR(act_spline, "tilt_interpolation", text="Tilt")
-                col.itemR(act_spline, "radius_interpolation", text="Radius")
+                col.label(text="Interpolation:")
+                col.prop(act_spline, "tilt_interpolation", text="Tilt")
+                col.prop(act_spline, "radius_interpolation", text="Radius")
 
-            layout.itemR(act_spline, "smooth")
+            layout.prop(act_spline, "smooth")
 
 
 class DATA_PT_font(DataButtonsPanel):
@@ -271,44 +271,44 @@ class DATA_PT_font(DataButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         if wide_ui:
-            layout.itemR(text, "font")
+            layout.prop(text, "font")
         else:
-            layout.itemR(text, "font", text="")
+            layout.prop(text, "font", text="")
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(text, "text_size", text="Size")
+        col.prop(text, "text_size", text="Size")
         if wide_ui:
             col = split.column()
-        col.itemR(text, "shear")
+        col.prop(text, "shear")
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Object Font:")
-        col.itemR(text, "family", text="")
+        col.label(text="Object Font:")
+        col.prop(text, "family", text="")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Text on Curve:")
-        col.itemR(text, "text_on_curve", text="")
+        col.label(text="Text on Curve:")
+        col.prop(text, "text_on_curve", text="")
 
         split = layout.split()
 
         col = split.column(align=True)
-        col.itemL(text="Underline:")
-        col.itemR(text, "ul_position", text="Position")
-        col.itemR(text, "ul_height", text="Thickness")
+        col.label(text="Underline:")
+        col.prop(text, "ul_position", text="Position")
+        col.prop(text, "ul_height", text="Thickness")
 
         if wide_ui:
             col = split.column()
-        col.itemL(text="Character:")
-        col.itemR(char, "bold")
-        col.itemR(char, "italic")
-        col.itemR(char, "underline")
-#       col.itemR(char, "style")
-#       col.itemR(char, "wrap")
+        col.label(text="Character:")
+        col.prop(char, "bold")
+        col.prop(char, "italic")
+        col.prop(char, "underline")
+#       col.prop(char, "style")
+#       col.prop(char, "wrap")
 
 
 class DATA_PT_paragraph(DataButtonsPanel):
@@ -323,25 +323,25 @@ class DATA_PT_paragraph(DataButtonsPanel):
         text = context.curve
         wide_ui = context.region.width > narrowui
 
-        layout.itemL(text="Align:")
+        layout.label(text="Align:")
         if wide_ui:
-            layout.itemR(text, "spacemode", expand=True)
+            layout.prop(text, "spacemode", expand=True)
         else:
-            layout.itemR(text, "spacemode", text="")
+            layout.prop(text, "spacemode", text="")
 
         split = layout.split()
 
         col = split.column(align=True)
-        col.itemL(text="Spacing:")
-        col.itemR(text, "spacing", text="Character")
-        col.itemR(text, "word_spacing", text="Word")
-        col.itemR(text, "line_dist", text="Line")
+        col.label(text="Spacing:")
+        col.prop(text, "spacing", text="Character")
+        col.prop(text, "word_spacing", text="Word")
+        col.prop(text, "line_dist", text="Line")
 
         if wide_ui:
             col = split.column(align=True)
-        col.itemL(text="Offset:")
-        col.itemR(text, "offset_x", text="X")
-        col.itemR(text, "offset_y", text="Y")
+        col.label(text="Offset:")
+        col.prop(text, "offset_x", text="X")
+        col.prop(text, "offset_y", text="Y")
 
 
 class DATA_PT_textboxes(DataButtonsPanel):
@@ -360,15 +360,15 @@ class DATA_PT_textboxes(DataButtonsPanel):
             split = layout.box().split()
 
             col = split.column(align=True)
-            col.itemL(text="Dimensions:")
-            col.itemR(box, "width", text="Width")
-            col.itemR(box, "height", text="Height")
+            col.label(text="Dimensions:")
+            col.prop(box, "width", text="Width")
+            col.prop(box, "height", text="Height")
 
             if wide_ui:
                 col = split.column(align=True)
-            col.itemL(text="Offset:")
-            col.itemR(box, "x", text="X")
-            col.itemR(box, "y", text="Y")
+            col.label(text="Offset:")
+            col.prop(box, "x", text="X")
+            col.prop(box, "y", text="Y")
 
 bpy.types.register(DATA_PT_context_curve)
 bpy.types.register(DATA_PT_shape_curve)

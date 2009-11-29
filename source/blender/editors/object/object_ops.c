@@ -124,6 +124,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_duplicates_make_real);
 	WM_operatortype_append(OBJECT_OT_duplicate);
 	WM_operatortype_append(OBJECT_OT_join);
+	WM_operatortype_append(OBJECT_OT_join_shapes);
 	WM_operatortype_append(OBJECT_OT_convert);
 
 	WM_operatortype_append(OBJECT_OT_modifier_add);
@@ -227,6 +228,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
+	/* Objects, Regardless of Mode -------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
@@ -251,6 +253,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
+	/* Object Mode ---------------------------------------------------------------- */
 	/* Note: this keymap gets disabled in non-objectmode,  */
 	keymap= WM_keymap_find(keyconf, "Object Mode", 0, 0);
 	keymap->poll= object_mode_poll;
@@ -303,19 +306,33 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_make_local", LKEY, KM_PRESS, 0, 0);
 
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
-	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_verify_item(keymap, "GROUP_OT_create", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
-	/* Lattice */
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", ONEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 1);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", TWOKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 2);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", THREEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 3);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", FOURKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 4);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", FIVEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 5);
+
+	/* Lattice -------------------------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);
 	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	
+		/* menus */
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }
@@ -323,10 +340,6 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet)
 {
 	wmKeyMapItem *km;
-
-	/* snap */
-	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
 
 	/* used by mesh, curve & lattice only */
 	if(do_pet) {

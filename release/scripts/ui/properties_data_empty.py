@@ -41,10 +41,10 @@ class DATA_PT_empty(DataButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         if wide_ui:
-            layout.itemR(ob, "empty_draw_type", text="Display")
+            layout.prop(ob, "empty_draw_type", text="Display")
         else:
-            layout.itemR(ob, "empty_draw_type", text="")
+            layout.prop(ob, "empty_draw_type", text="")
 
-        layout.itemR(ob, "empty_draw_size", text="Size")
+        layout.prop(ob, "empty_draw_size", text="Size")
 
 bpy.types.register(DATA_PT_empty)

@@ -507,9 +507,9 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_TRANSLATE			3
 #define TFM_MODAL_ROTATE			4
 #define TFM_MODAL_RESIZE			5
-#define TFM_MODAL_SNAP_GEARS		6
-#define TFM_MODAL_SNAP_GEARS_OFF	7
-#define TFM_MODAL_SNAP_GEARS_TOGGLE	8
+#define TFM_MODAL_SNAP_ON		6
+#define TFM_MODAL_SNAP_OFF	7
+#define TFM_MODAL_SNAP_TOGGLE	8
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 void transform_modal_keymap(wmKeyConfig *keyconf)
@@ -520,9 +520,9 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 	{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
 	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
-	{TFM_MODAL_SNAP_GEARS, "SNAP_GEARS", 0, "Snap On", ""},
-	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
-	{TFM_MODAL_SNAP_GEARS_TOGGLE, "SNAP_GEARS_TOGGLE", 0, "Snap Toggle", ""},
+	{TFM_MODAL_SNAP_ON, "SNAP_ON", 0, "Snap On", ""},
+	{TFM_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Snap Off", ""},
+	{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -542,7 +542,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
 	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
 	
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_TOGGLE);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_CLICK, KM_ANY, 0, TFM_MODAL_SNAP_TOGGLE);
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
@@ -560,10 +560,11 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 }
 
 
-void transformEvent(TransInfo *t, wmEvent *event)
+int transformEvent(TransInfo *t, wmEvent *event)
 {
 	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	char cmode = constraintModeToChar(t);
+	int handled = 1;
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
@@ -629,17 +630,20 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				}
 				break;
 				
-			case TFM_MODAL_SNAP_GEARS:
-				t->modifiers |= MOD_SNAP_GEARS;
+			case TFM_MODAL_SNAP_ON:
+				t->modifiers |= MOD_SNAP;
 				t->redraw = 1;
 				break;
-			case TFM_MODAL_SNAP_GEARS_OFF:
-				t->modifiers &= ~MOD_SNAP_GEARS;
+			case TFM_MODAL_SNAP_OFF:
+				t->modifiers &= ~MOD_SNAP;
 				t->redraw = 1;
 				break;
-			case TFM_MODAL_SNAP_GEARS_TOGGLE:
-				t->modifiers ^= MOD_SNAP_GEARS;
+			case TFM_MODAL_SNAP_TOGGLE:
+				t->modifiers ^= MOD_SNAP;
 				t->redraw = 1;
+				break;
+			default:
+				handled = 0;
 				break;
 		}
 	}
@@ -898,6 +902,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 //		case NDOFMOTION:
 //            viewmoveNDOF(1);
   //         break;
+		default:
+			handled = 0;
+			break;
 		}
 
 		// Numerical input events
@@ -935,7 +942,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			case NDOF_REFRESH:
 				t->redraw = 1;
 				break;
-
+			default:
+				handled = 0;
+				break;
 		}
 
 		// Snapping events
@@ -964,6 +973,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 ////			if (t->options & CTX_TWEAK)
 //				t->state = TRANS_CONFIRM;
 //			break;
+		default:
+			handled = 0;
+			break;
 		}
 
 		/* confirm transform if launch key is released after mouse move */
@@ -977,6 +989,11 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	// Per transform event, if present
 	if (t->handleEvent)
 		t->redraw |= t->handleEvent(t, event);
+
+	if (handled || t->redraw)
+		return 0;
+	else
+		return OPERATOR_PASS_THROUGH;
 }
 
 int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float *vec)
@@ -1280,28 +1297,30 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
-	if (t->flag & T_MODAL)
-	{
+	if (t->flag & T_MODAL) {
+
 		/* save settings if not set in operator */
-		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional")) {
 			ts->proportional = proportional;
 		}
 
-		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size")) {
 			ts->proportional_size = t->prop_size;
 		}
 			
-		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff")) {
 			ts->prop_mode = t->prop_mode;
 		}
 		
-		if(t->spacetype == SPACE_VIEW3D)
-		{
-			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation"))
-			{
+		/* do we check for parameter? */
+		if (t->modifiers & MOD_SNAP) {
+			ts->snap_flag |= SCE_SNAP;
+		} else {
+			ts->snap_flag &= ~SCE_SNAP;
+		}
+
+		if(t->spacetype == SPACE_VIEW3D) {
+			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation")) {
 				View3D *v3d = t->view;
 	
 				v3d->twmode = t->current_orientation;
@@ -5085,7 +5104,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
 		/* check if any need to apply nla-mapping */
-		if (adt) {
+		if (adt && t->spacetype != SPACE_SEQ) {
 			deltax = t->values[0];
 
 			if (autosnap == SACTSNAP_STEP) {

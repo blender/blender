@@ -35,11 +35,92 @@ class Context(StructRNA):
 
 class Object(bpy_types.ID):
 
-    def _get_children(self):
+    @property
+    def children(self):
         import bpy
         return [child for child in bpy.data.objects if child.parent == self]
 
-    children = property(_get_children)
+
+class _GenericBone:
+    '''
+    functions for bones, common between Armature/Pose/Edit bones.
+    internal subclassing use only.
+    '''
+    def parent_index(self, parent_test):
+        '''
+        The same as 'bone in other_bone.parent_recursive' but saved generating a list.
+        '''
+        # use the name so different types can be tested.
+        name = parent_test.name
+        
+        parent = self.parent
+        i = 1
+        while parent:
+            if parent.name == name:
+                return i
+            parent = parent.parent
+            i += 1
+        
+        return 0
+
+    @property
+    def parent_recursive(self):
+        parent_list = []
+        parent = self.parent
+        
+        while parent:
+            if parent:
+                parent_list.append(parent)
+            
+            parent = parent.parent
+        
+        return parent_list
+
+    @property
+    def length(self):
+        return (self.head - self.tail).length
+
+    @property
+    def children(self):
+        return [child for child in self._other_bones if child.parent == self]
+
+    @property
+    def children_recursive(self):
+        bones_children = []
+        for bone in self._other_bones:
+            index = bone.parent_index(self)
+            if index:
+                bones_children.append((index, bone))
+        
+        # sort by distance to parent
+        bones_children.sort(key=lambda bone_pair: bone_pair[0])
+        return [bone for index, bone in bones_children]
+
+    @property
+    def _other_bones(self):
+        id_data = self.id_data
+        id_data_type = type(id_data)
+        
+        if id_data_type == bpy_types.Object:
+            bones = id_data.pose.bones
+        elif id_data_type == bpy_types.Armature:
+            bones = id_data.edit_bones
+            if not bones: # not in editmode
+                bones = id_data.bones
+        
+        return bones
+
+
+class PoseBone(StructRNA, _GenericBone):
+    pass
+
+
+class Bone(StructRNA, _GenericBone):
+    pass
+
+
+class EditBone(StructRNA, _GenericBone):
+    pass
 
 
 def ord_ind(i1,i2):
@@ -48,12 +129,12 @@ def ord_ind(i1,i2):
 
 class Mesh(bpy_types.ID):
 
-    def _get_edge_keys(self):
+    @property
+    def edge_keys(self):
         return [edge_key for face in self.faces for edge_key in face.edge_keys]
 
-    edge_keys = property(_get_edge_keys)
-
-    def _get_edge_face_count_dict(self):
+    @property
+    def edge_face_count_dict(self):
         face_edge_keys = [face.edge_keys for face in self.faces]
         face_edge_count = {}
         for face_keys in face_edge_keys:
@@ -65,33 +146,28 @@ class Mesh(bpy_types.ID):
 
         return face_edge_count
 
-    edge_face_count_dict = property(_get_edge_face_count_dict)
-
-    def _get_edge_face_count(self):
+    @property
+    def edge_face_count(self):
         edge_face_count_dict = self.edge_face_count_dict
         return [edge_face_count_dict.get(ed.key, 0) for ed in mesh.edges]
-
-    edge_face_count = property(_get_edge_face_count)
 
 
 class MeshEdge(StructRNA):
 
-    def _get_key(self):
+    @property
+    def key(self):
         return ord_ind(*tuple(self.verts))
-
-    key = property(_get_key)
 
 
 class MeshFace(StructRNA):
 
-    def _get_edge_keys(self):
+    @property
+    def edge_keys(self):
         verts = tuple(self.verts)
         if len(verts)==3:
             return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[0])
 
         return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
-
-    edge_keys = property(_get_edge_keys)
 
 
 import collections
@@ -145,7 +221,7 @@ class Menu(StructRNA):
             if f.startswith("."):
                 continue
 
-            layout.item_stringO(operator, "path", path, text=path_to_name(f))
+            layout.operator(operator, text=path_to_name(f)).path = path
     
     def draw_preset(self, context):
         '''Define these on the subclass

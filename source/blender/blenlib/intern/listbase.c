@@ -343,7 +343,7 @@ int BLI_findindex(ListBase *listbase, void *vlink)
 	return -1;
 }
 
-void BLI_duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */
+void BLI_duplicatelist(ListBase *list1, const ListBase *list2)
 {
 	struct Link *link1, *link2;
 	

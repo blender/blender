@@ -80,21 +80,21 @@ class WORLD_PT_world(WorldButtonsPanel):
 
         if wide_ui:
             row = layout.row()
-            row.itemR(world, "paper_sky")
-            row.itemR(world, "blend_sky")
-            row.itemR(world, "real_sky")
+            row.prop(world, "paper_sky")
+            row.prop(world, "blend_sky")
+            row.prop(world, "real_sky")
         else:
             col = layout.column()
-            col.itemR(world, "paper_sky")
-            col.itemR(world, "blend_sky")
-            col.itemR(world, "real_sky")
+            col.prop(world, "paper_sky")
+            col.prop(world, "blend_sky")
+            col.prop(world, "real_sky")
 
         row = layout.row()
-        row.column().itemR(world, "horizon_color")
+        row.column().prop(world, "horizon_color")
         col = row.column()
-        col.itemR(world, "zenith_color")
+        col.prop(world, "zenith_color")
         col.active = world.blend_sky
-        row.column().itemR(world, "ambient_color")
+        row.column().prop(world, "ambient_color")
 
 
 class WORLD_PT_mist(WorldButtonsPanel):
@@ -104,7 +104,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.itemR(world.mist, "enabled", text="")
+        self.layout.prop(world.mist, "enabled", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -116,15 +116,15 @@ class WORLD_PT_mist(WorldButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(world.mist, "intensity", slider=True)
-        col.itemR(world.mist, "start")
+        col.prop(world.mist, "intensity", slider=True)
+        col.prop(world.mist, "start")
 
         if wide_ui:
             col = split.column()
-        col.itemR(world.mist, "depth")
-        col.itemR(world.mist, "height")
+        col.prop(world.mist, "depth")
+        col.prop(world.mist, "height")
 
-        layout.itemR(world.mist, "falloff")
+        layout.prop(world.mist, "falloff")
 
 
 class WORLD_PT_stars(WorldButtonsPanel):
@@ -134,7 +134,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.itemR(world.stars, "enabled", text="")
+        self.layout.prop(world.stars, "enabled", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -146,13 +146,13 @@ class WORLD_PT_stars(WorldButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.itemR(world.stars, "size")
-        col.itemR(world.stars, "color_randomization", text="Colors")
+        col.prop(world.stars, "size")
+        col.prop(world.stars, "color_randomization", text="Colors")
 
         if wide_ui:
             col = split.column()
-        col.itemR(world.stars, "min_distance", text="Min. Dist")
-        col.itemR(world.stars, "average_separation", text="Separation")
+        col.prop(world.stars, "min_distance", text="Min. Dist")
+        col.prop(world.stars, "average_separation", text="Separation")
 
 
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
@@ -162,7 +162,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.itemR(world.ambient_occlusion, "enabled", text="")
+        self.layout.prop(world.ambient_occlusion, "enabled", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -171,58 +171,58 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 
         layout.active = ao.enabled
 
-        layout.itemR(ao, "gather_method", expand=True)
+        layout.prop(ao, "gather_method", expand=True)
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Attenuation:")
+        col.label(text="Attenuation:")
         if ao.gather_method == 'RAYTRACE':
-            col.itemR(ao, "distance")
-        col.itemR(ao, "falloff")
+            col.prop(ao, "distance")
+        col.prop(ao, "falloff")
         sub = col.row()
         sub.active = ao.falloff
-        sub.itemR(ao, "falloff_strength", text="Strength")
+        sub.prop(ao, "falloff_strength", text="Strength")
 
         if ao.gather_method == 'RAYTRACE':
             if wide_ui:
                 col = split.column()
 
-            col.itemL(text="Sampling:")
-            col.itemR(ao, "sample_method", text="")
+            col.label(text="Sampling:")
+            col.prop(ao, "sample_method", text="")
 
             sub = col.column()
-            sub.itemR(ao, "samples")
+            sub.prop(ao, "samples")
 
             if ao.sample_method == 'ADAPTIVE_QMC':
-                sub.itemR(ao, "threshold")
-                sub.itemR(ao, "adapt_to_speed", slider=True)
+                sub.prop(ao, "threshold")
+                sub.prop(ao, "adapt_to_speed", slider=True)
             elif ao.sample_method == 'CONSTANT_JITTERED':
-                sub.itemR(ao, "bias")
+                sub.prop(ao, "bias")
 
         if ao.gather_method == 'APPROXIMATE':
             if wide_ui:
                 col = split.column()
 
-            col.itemL(text="Sampling:")
-            col.itemR(ao, "passes")
-            col.itemR(ao, "error_tolerance", text="Error")
-            col.itemR(ao, "pixel_cache")
-            col.itemR(ao, "correction")
+            col.label(text="Sampling:")
+            col.prop(ao, "passes")
+            col.prop(ao, "error_tolerance", text="Error")
+            col.prop(ao, "pixel_cache")
+            col.prop(ao, "correction")
 
         col = layout.column()
-        col.itemL(text="Influence:")
+        col.label(text="Influence:")
 
-        col.row().itemR(ao, "blend_mode", expand=True)
+        col.row().prop(ao, "blend_mode", expand=True)
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(ao, "energy")
+        col.prop(ao, "energy")
 
         if wide_ui:
             col = split.column()
-        col.itemR(ao, "color")
+        col.prop(ao, "color")
 
 bpy.types.register(WORLD_PT_context_world)
 bpy.types.register(WORLD_PT_preview)

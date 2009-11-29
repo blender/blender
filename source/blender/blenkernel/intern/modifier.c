@@ -7894,7 +7894,7 @@ static void meshdeformModifier_do(
 		/* progress bar redraw can make this recursive .. */
 		if(!recursive) {
 			recursive = 1;
-			mmd->bindfunc(md->scene, mmd, (float*)vertexCos, numVerts, cagemat);
+			mmd->bindfunc(md->scene, dm, mmd, (float*)vertexCos, numVerts, cagemat);
 			recursive = 0;
 		}
 	}
@@ -8922,6 +8922,12 @@ int modifier_couldBeCage(ModifierData *md)
 			(md->mode & eModifierMode_Editmode) &&
 			(!mti->isDisabled || !mti->isDisabled(md)) &&
 			modifier_supportsMapping(md));	
+}
+
+int modifier_sameTopology(ModifierData *md)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	return ( mti->type == eModifierTypeType_OnlyDeform || mti->type == eModifierTypeType_Nonconstructive);
 }
 
 void modifier_setError(ModifierData *md, char *format, ...)

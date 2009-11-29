@@ -140,7 +140,7 @@ typedef enum PropertyFlag {
 	PROP_ANIMATEABLE = 1<<1,
 
 	/* icon */
-	PROP_ICONS_CONSECUTIVE = 1<12,
+	PROP_ICONS_CONSECUTIVE = 1<<12,
 
 	/* hidden in  the user interface */
 	PROP_HIDDEN = 1<<19,

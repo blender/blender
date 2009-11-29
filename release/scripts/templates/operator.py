@@ -51,7 +51,7 @@ bpy.ops.add(ExportSomeData)
 
 # Only needed if you want to add into a dynamic menu
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO("export.some_data", text="Example Exporter...")
+menu_func = lambda self, context: self.layout.operator("export.some_data", text="Example Exporter...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 # Use for running this script directly

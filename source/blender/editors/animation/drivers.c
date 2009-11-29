@@ -53,6 +53,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -175,14 +176,17 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 		fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
 		
 		if (fcu && fcu->driver) {
-			fcu->driver->type= type;
+			ChannelDriver *driver= fcu->driver;
+			
+			/* set the type of the driver */
+			driver->type= type;
 			
 			/* fill in current value for python */
 			if (type == DRIVER_TYPE_PYTHON) {
 				PropertyType proptype= RNA_property_type(prop);
 				int array= RNA_property_array_length(&ptr, prop);
-				char *expression= fcu->driver->expression;
-				int val, maxlen= sizeof(fcu->driver->expression);
+				char *expression= driver->expression;
+				int val, maxlen= sizeof(driver->expression);
 				float fval;
 				
 				if (proptype == PROP_BOOLEAN) {
@@ -398,7 +402,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL); // XXX
@@ -407,11 +411,11 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_add_driver_button (wmOperatorType *ot)
+void ANIM_OT_driver_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Driver";
-	ot->idname= "ANIM_OT_add_driver_button";
+	ot->idname= "ANIM_OT_driver_button_add";
 	ot->description= "Add driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */
@@ -462,7 +466,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL);  // XXX
@@ -471,11 +475,11 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_remove_driver_button (wmOperatorType *ot)
+void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Driver";
-	ot->idname= "ANIM_OT_remove_driver_button";
+	ot->idname= "ANIM_OT_driver_button_remove";
 	ot->description= "Remove the driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */

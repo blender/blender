@@ -498,6 +498,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
 	seq->type= type;
 
+	seqUniqueName(ed->seqbasep, seq);
+
 	sh = get_sequence_effect(seq);
 
 	seq->seq1= seq1;

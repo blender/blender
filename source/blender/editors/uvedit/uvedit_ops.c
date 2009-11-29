@@ -3144,6 +3144,9 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	/* cursor */
 	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_tile_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+	
+	/* menus */
+	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 

@@ -259,7 +259,7 @@ static int nlaedit_add_actionclip_invoke (bContext *C, wmOperator *op, wmEvent *
 	
 	/* loop through Actions in Main database, adding as items in the menu */
 	for (act= m->action.first; act; act= act->id.next)
-		uiItemStringO(layout, act->id.name+2, 0, "NLA_OT_add_actionclip", "action", act->id.name);
+		uiItemStringO(layout, act->id.name+2, 0, "NLA_OT_actionclip_add", "action", act->id.name);
 	uiItemS(layout);
 	
 	uiPupMenuEnd(C, pup);
@@ -347,11 +347,11 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_add_actionclip (wmOperatorType *ot)
+void NLA_OT_actionclip_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Action Strip";
-	ot->idname= "NLA_OT_add_actionclip";
+	ot->idname= "NLA_OT_actionclip_add";
 	ot->description= "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track.";
 	
 	/* api callbacks */
@@ -467,11 +467,11 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 	}
 }
 
-void NLA_OT_add_transition (wmOperatorType *ot)
+void NLA_OT_transition_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Transition";
-	ot->idname= "NLA_OT_add_transition";
+	ot->idname= "NLA_OT_transition_add";
 	ot->description= "Add a transition strip between two adjacent selected strips.";
 	
 	/* api callbacks */
@@ -529,11 +529,11 @@ static int nlaedit_add_meta_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_add_meta (wmOperatorType *ot)
+void NLA_OT_meta_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Meta-Strips";
-	ot->idname= "NLA_OT_add_meta";
+	ot->idname= "NLA_OT_meta_add";
 	ot->description= "Add new meta-strips incorporating the selected strips.";
 	
 	/* api callbacks */
@@ -581,11 +581,11 @@ static int nlaedit_remove_meta_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_remove_meta (wmOperatorType *ot)
+void NLA_OT_meta_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Meta-Strips";
-	ot->idname= "NLA_OT_remove_meta";
+	ot->idname= "NLA_OT_meta_remove";
 	ot->description= "Separate out the strips held by the selected meta-strips.";
 	
 	/* api callbacks */

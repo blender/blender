@@ -153,7 +153,6 @@ void make_local_action(bAction *act)
 	}
 }
 
-
 void free_action (bAction *act)
 {
 	/* sanity check */
@@ -457,6 +456,8 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	chan->ikrotweight = chan->iklinweight = 0.0f;
 	unit_m4(chan->constinv);
 	
+	chan->protectflag = OB_LOCK_ROT4D;	/* lock by components by default */
+	
 	BLI_addtail(&pose->chanbase, chan);
 	
 	return chan;
@@ -518,17 +519,22 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	outPose->ikdata = NULL;
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
 	
-	// TODO: rename this argument...
-	if (copycon) {
-		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
+	for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
+		// TODO: rename this argument...
+		if (copycon) {
 			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
 			pchan->constraints= listb;
 			pchan->path= NULL;
 		}
 		
-		/* for now, duplicate Bone Groups too when doing this */
-		BLI_duplicatelist(&outPose->agroups, &src->agroups);
+		if(pchan->prop) {
+			pchan->prop= IDP_CopyProperty(pchan->prop);
+		}
 	}
+
+	/* for now, duplicate Bone Groups too when doing this */
+	if(copycon)
+		BLI_duplicatelist(&outPose->agroups, &src->agroups);
 	
 	*dst=outPose;
 }
@@ -629,11 +635,53 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
-	for(pcon= pchan->constraints.first; pcon; pcon= pcon->next, con= con->next) {
+	for(pcon= pchan->constraints.first; pcon && con; pcon= pcon->next, con= con->next) {
 		pcon->enforce= con->enforce;
 		pcon->headtail= con->headtail;
 	}
 }
+
+/* makes copies of internal data, unlike copy_pose_channel_data which only
+ * copies the pose state.
+ * hint: use when copying bones in editmode (on returned value from verify_pose_channel) */
+void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_from)
+{
+	/* copy transform locks */
+	pchan->protectflag = pchan_from->protectflag;
+
+	/* copy rotation mode */
+	pchan->rotmode = pchan_from->rotmode;
+
+	/* copy bone group */
+	pchan->agrp_index= pchan_from->agrp_index;
+
+	/* ik (dof) settings */
+	pchan->ikflag = pchan_from->ikflag;
+	VECCOPY(pchan->limitmin, pchan_from->limitmin);
+	VECCOPY(pchan->limitmax, pchan_from->limitmax);
+	VECCOPY(pchan->stiffness, pchan_from->stiffness);
+	pchan->ikstretch= pchan_from->ikstretch;
+	pchan->ikrotweight= pchan_from->ikrotweight;
+	pchan->iklinweight= pchan_from->iklinweight;
+
+	/* constraints */
+	copy_constraints(&pchan->constraints, &pchan_from->constraints);
+
+	/* id-properties */
+	if(pchan->prop) {
+		/* unlikely but possible it exists */
+		IDP_FreeProperty(pchan->prop);
+		MEM_freeN(pchan->prop);
+		pchan->prop= NULL;
+	}
+	if(pchan_from->prop) {
+		pchan->prop= IDP_CopyProperty(pchan_from->prop);
+	}
+
+	/* custom shape */
+	pchan->custom= pchan_from->custom;
+}
+
 
 /* checks for IK constraint, Spline IK, and also for Follow-Path constraint.
  * can do more constraints flags later 
@@ -1037,7 +1085,10 @@ void copy_pose_result(bPose *to, bPose *from)
 			
 			VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
 			VECCOPY(pchanto->pose_tail, pchanfrom->pose_tail);
+			
+			pchanto->rotmode= pchanfrom->rotmode;
 			pchanto->flag= pchanfrom->flag;
+			pchanto->protectflag= pchanfrom->protectflag;
 		}
 	}
 }

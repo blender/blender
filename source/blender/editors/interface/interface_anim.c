@@ -189,25 +189,25 @@ void uiAnimContextProperty(const bContext *C, struct PointerRNA *ptr, struct Pro
 void ui_but_anim_insert_keyframe(bContext *C)
 {
 	/* this operator calls uiAnimContextProperty above */
-	WM_operator_name_call(C, "ANIM_OT_insert_keyframe_button", WM_OP_INVOKE_DEFAULT, NULL);
+	WM_operator_name_call(C, "ANIM_OT_keyframe_insert_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_delete_keyframe(bContext *C)
 {
 	/* this operator calls uiAnimContextProperty above */
-	WM_operator_name_call(C, "ANIM_OT_delete_keyframe_button", WM_OP_INVOKE_DEFAULT, NULL);
+	WM_operator_name_call(C, "ANIM_OT_keyframe_delete_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_add_driver(bContext *C)
 {
 	/* this operator calls uiAnimContextProperty above */
-	WM_operator_name_call(C, "ANIM_OT_add_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+	WM_operator_name_call(C, "ANIM_OT_driver_button_add", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_remove_driver(bContext *C)
 {
 	/* this operator calls uiAnimContextProperty above */
-	WM_operator_name_call(C, "ANIM_OT_remove_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+	WM_operator_name_call(C, "ANIM_OT_driver_button_remove", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_copy_driver(bContext *C)
@@ -225,11 +225,11 @@ void ui_but_anim_paste_driver(bContext *C)
 void ui_but_anim_add_keyingset(bContext *C)
 {
 	/* this operator calls uiAnimContextProperty above */
-	WM_operator_name_call(C, "ANIM_OT_add_keyingset_button", WM_OP_INVOKE_DEFAULT, NULL);
+	WM_operator_name_call(C, "ANIM_OT_keyingset_button_add", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_remove_keyingset(bContext *C)
 {
 	/* this operator calls uiAnimContextProperty above */
-	WM_operator_name_call(C, "ANIM_OT_remove_keyingset_button", WM_OP_INVOKE_DEFAULT, NULL);
+	WM_operator_name_call(C, "ANIM_OT_keyingset_button_remove", WM_OP_INVOKE_DEFAULT, NULL);
 }

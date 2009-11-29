@@ -95,13 +95,14 @@ class KX_Scene : public PyObjectPlus, public SCA_IScene
 
 #ifndef DISABLE_PYTHON
 	PyObject*	m_attr_dict;
+	PyObject*	m_draw_call_pre;
+	PyObject*	m_draw_call_post;
 #endif
 
 	struct CullingInfo {
 		int m_layer;
 		CullingInfo(int layer) : m_layer(layer) {}
 	};
-
 
 protected:
 	RAS_BucketManager*	m_bucketmanager;
@@ -287,6 +288,12 @@ public:
 	void RenderBuckets(const MT_Transform& cameratransform,
 						RAS_IRasterizer* rasty,
 						RAS_IRenderTools* rendertools);
+
+	/**
+	 * Run the registered python drawing functions.
+	 */
+	void RunDrawingCallbacks(PyObject* cb_list);
+
 	/**
 	 * Update all transforms according to the scenegraph.
 	 */
@@ -544,6 +551,10 @@ public:
 	static PyObject*	pyattr_get_cameras(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_drawing_callback_pre(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_drawing_callback_post(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	virtual PyObject* py_repr(void) { return PyUnicode_FromString(GetName().ReadPtr()); }
 	
@@ -551,6 +562,8 @@ public:
 	static PyMappingMethods	Mapping;
 	static PySequenceMethods	Sequence;
 
+	PyObject* GetPreDrawCB() { return m_draw_call_pre; };
+	PyObject* GetPostDrawCB() { return m_draw_call_post; };
 #endif
 
 	/**

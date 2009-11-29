@@ -313,7 +313,30 @@ void ui_bounds_block(uiBlock *block)
 	block->safety.ymax= block->maxy+xof;
 }
 
-static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int menu)
+static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
+{
+	wmWindow *window= CTX_wm_window(C);
+	int xmax, ymax;
+	int startx, starty;
+	int width, height;
+	
+	wm_window_get_size(window, &xmax, &ymax);
+	
+	ui_bounds_block(block);
+	
+	width= block->maxx - block->minx;
+	height= block->maxy - block->miny;
+	
+	startx = (xmax * 0.5f) - (width * 0.5f);
+	starty = (ymax * 0.5f) - (height * 0.5f);
+	
+	ui_block_translate(block, startx - block->minx, starty - block->miny);
+	
+	/* now recompute bounds and safety */
+	ui_bounds_block(block);
+	
+}
+static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_calc)
 {
 	wmWindow *window= CTX_wm_window(C);
 	int startx, starty, endx, endy, width, height;
@@ -323,13 +346,14 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int menu)
 
 	/* compute mouse position with user defined offset */
 	ui_bounds_block(block);
-	mx= window->eventstate->x + block->minx + block->mx;
-	my= window->eventstate->y + block->miny + block->my;
-
+	
 	wm_window_get_size(window, &xmax, &ymax);
 
+	mx= window->eventstate->x + block->minx + block->mx;
+	my= window->eventstate->y + block->miny + block->my;
+	
 	/* first we ensure wide enough text bounds */
-	if(menu) {
+	if(bounds_calc==UI_BLOCK_BOUNDS_POPUP_MENU) {
 		if(block->flag & UI_BLOCK_LOOP) {
 			block->bounds= 50;
 			ui_text_bounds_block(block, block->minx);
@@ -377,21 +401,21 @@ void uiBoundsBlock(uiBlock *block, int addval)
 		return;
 	
 	block->bounds= addval;
-	block->dobounds= 1;
+	block->dobounds= UI_BLOCK_BOUNDS;
 }
 
 /* used for pulldowns */
 void uiTextBoundsBlock(uiBlock *block, int addval)
 {
 	block->bounds= addval;
-	block->dobounds= 2;
+	block->dobounds= UI_BLOCK_BOUNDS_TEXT;
 }
 
 /* used for block popups */
 void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 {
 	block->bounds= addval;
-	block->dobounds= 3;
+	block->dobounds= UI_BLOCK_BOUNDS_POPUP_MOUSE;
 	block->mx= mx;
 	block->my= my;
 }
@@ -400,9 +424,16 @@ void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 void uiMenuPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 {
 	block->bounds= addval;
-	block->dobounds= 4;
+	block->dobounds= UI_BLOCK_BOUNDS_POPUP_MENU;
 	block->mx= mx;
 	block->my= my;
+}
+
+/* used for centered popups, i.e. splash */
+void uiCenteredBoundsBlock(uiBlock *block, int addval)
+{
+	block->bounds= addval;
+	block->dobounds= UI_BLOCK_BOUNDS_POPUP_CENTER;
 }
 
 /* ************** LINK LINE DRAWING  ************* */
@@ -627,9 +658,10 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
 	
 	/* after keymaps! */
-	if(block->dobounds == 1) ui_bounds_block(block);
-	else if(block->dobounds == 2) ui_text_bounds_block(block, 0.0f);
-	else if(block->dobounds) ui_popup_bounds_block(C, block, (block->dobounds == 4));
+	if(block->dobounds == UI_BLOCK_BOUNDS) ui_bounds_block(block);
+	else if(block->dobounds == UI_BLOCK_BOUNDS_TEXT) ui_text_bounds_block(block, 0.0f);
+	else if(block->dobounds == UI_BLOCK_BOUNDS_POPUP_CENTER) ui_centered_bounds_block(C, block);
+	else if(block->dobounds) ui_popup_bounds_block(C, block, block->dobounds);
 
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
 	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
@@ -1928,7 +1960,7 @@ void ui_check_but(uiBut *but)
 				sprintf(but->drawstr, "%s%.2f", but->str, value);
 			}
 		}
-		else strcpy(but->drawstr, but->str);
+		else strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		
 		break;
 
@@ -1946,7 +1978,7 @@ void ui_check_but(uiBut *but)
 		break;
 	
 	case KEYEVT:
-		strcpy(but->drawstr, but->str);
+		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		if (but->flag & UI_SELECT) {
 			strcat(but->drawstr, "Press a key");
 		} else {
@@ -1959,9 +1991,9 @@ void ui_check_but(uiBut *but)
 			short *sp= (short *)but->func_arg3;
 			
 			if(but->flag & UI_BUT_IMMEDIATE)
-				strcpy(but->drawstr, but->str);
+				strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 			else
-				strcpy(but->drawstr, "");
+				strncpy(but->drawstr, "", UI_MAX_DRAW_STR);
 			
 			if(*sp) {
 				char *str= but->drawstr;
@@ -1979,25 +2011,25 @@ void ui_check_but(uiBut *but)
 				strcat(but->drawstr, "Press a key  ");
 		}
 		else
-			strcpy(but->drawstr, but->str);
+			strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 
 		break;
 		
 	case BUT_TOGDUAL:
 		/* trying to get the dual-icon to left of text... not very nice */
 		if(but->str[0]) {
-			strcpy(but->drawstr, "  ");
-			strcpy(but->drawstr+2, but->str);
+			strncpy(but->drawstr, "  ", UI_MAX_DRAW_STR);
+			strncpy(but->drawstr+2, but->str, UI_MAX_DRAW_STR-2);
 		}
 		break;
 	default:
-		strcpy(but->drawstr, but->str);
+		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		
 	}
 
 	/* if we are doing text editing, this will override the drawstr */
 	if(but->editstr)
-		strcpy(but->drawstr, but->editstr);
+		strncpy(but->drawstr, but->editstr, UI_MAX_DRAW_STR);
 	
 	/* text clipping moved to widget drawing code itself */
 }
@@ -2203,6 +2235,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
 	but->icon = 0;
+	but->iconadd=0;
 
 	but->retval= retval;
 	if( strlen(str)>=UI_MAX_NAME_STR-1 ) {
@@ -2931,7 +2964,7 @@ PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)
 {
 	if(but->optype && !but->opptr) {
 		but->opptr= MEM_callocN(sizeof(PointerRNA), "uiButOpPtr");
-		WM_operator_properties_create(but->opptr, but->optype->idname);
+		WM_operator_properties_create_ptr(but->opptr, but->optype);
 	}
 
 	return but->opptr;

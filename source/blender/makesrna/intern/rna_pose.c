@@ -120,7 +120,7 @@ static IDProperty *rna_PoseBone_idproperties(PointerRNA *ptr, int create)
 
 	if(create && !pchan->prop) {
 		IDPropertyTemplate val = {0};
-		pchan->prop= IDP_New(IDP_GROUP, val, "RNA_PoseChannel group");
+		pchan->prop= IDP_New(IDP_GROUP, val, "RNA_PoseBone group");
 	}
 
 	return pchan->prop;
@@ -445,6 +445,71 @@ static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, bContext *C, 
 	return remove_constraint_index(&pchan->constraints, index);
 }
 
+static int rna_PoseChannel_location_editable(PointerRNA *ptr, int index)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (pchan->protectflag & OB_LOCK_LOCX))
+		return 0;
+	else if ((index == 1) && (pchan->protectflag & OB_LOCK_LOCY))
+		return 0;
+	else if ((index == 2) && (pchan->protectflag & OB_LOCK_LOCZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_PoseChannel_scale_editable(PointerRNA *ptr, int index)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (pchan->protectflag & OB_LOCK_SCALEX))
+		return 0;
+	else if ((index == 1) && (pchan->protectflag & OB_LOCK_SCALEY))
+		return 0;
+	else if ((index == 2) && (pchan->protectflag & OB_LOCK_SCALEZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_PoseChannel_rotation_euler_editable(PointerRNA *ptr, int index)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	
+	/* only if the axis in question is locked, not editable... */
+	if ((index == 0) && (pchan->protectflag & OB_LOCK_ROTX))
+		return 0;
+	else if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTY))
+		return 0;
+	else if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTZ))
+		return 0;
+	else
+		return PROP_EDITABLE;
+}
+
+static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	
+	/* only consider locks if locking components individually... */
+	if (pchan->protectflag & OB_LOCK_ROT4D) {
+		/* only if the axis in question is locked, not editable... */
+		if ((index == 0) && (pchan->protectflag & OB_LOCK_ROTW))
+			return 0;
+		else if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTX))
+			return 0;
+		else if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTY))
+			return 0;
+		else if ((index == 3) && (pchan->protectflag & OB_LOCK_ROTZ))
+			return 0;
+	}
+		
+	return PROP_EDITABLE;
+}
+
 #else
 
 static void rna_def_bone_group(BlenderRNA *brna)
@@ -526,10 +591,10 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "PoseChannelConstraints");
-	srna= RNA_def_struct(brna, "PoseChannelConstraints", NULL);
+	RNA_def_property_srna(cprop, "PoseBoneConstraints");
+	srna= RNA_def_struct(brna, "PoseBoneConstraints", NULL);
 	RNA_def_struct_sdna(srna, "bPoseChannel");
-	RNA_def_struct_ui_text(srna, "PoseChannel Constraints", "Collection of object constraints.");
+	RNA_def_struct_ui_text(srna, "PoseBone Constraints", "Collection of pose bone constraints.");
 
 	/* Collection active property */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -546,7 +611,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	/* return type */
 	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
 	RNA_def_function_return(func, parm);
-	/* object to add */
+	/* constraint to add */
 	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
@@ -634,16 +699,19 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	/* Transformation settings */
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_location_editable");
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_scale_editable");
 	RNA_def_property_ui_text(prop, "Scale", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
+	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
@@ -653,11 +721,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
 	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
 	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_axis_angle_get", "rna_PoseChannel_rotation_axis_angle_set", NULL);
+	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
+	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_euler_editable");
 	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
@@ -675,7 +745,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");
 	
-	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
@@ -689,11 +759,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	*/
 	
 	/* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */
-	prop= RNA_def_property(srna, "pose_head", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "pose_head");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Head Position", "Location of head of the channel's bone.");
 
-	prop= RNA_def_property(srna, "pose_tail", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "pose_tail");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Tail Position", "Location of tail of the channel's bone.");
 	

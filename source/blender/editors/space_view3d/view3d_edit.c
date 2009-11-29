@@ -851,8 +851,19 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 		zfac = vod->dist0 * ((float)len2/len1) / vod->rv3d->dist;
 	}
 	else {	/* USER_ZOOM_DOLLY */
-		float len1 = (vod->ar->winrct.ymax - y) + 5;
-		float len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
+		float len1, len2;
+		
+		if (U.uiflag & USER_ZOOM_DOLLY_HORIZ) {
+			len1 = (vod->ar->winrct.xmax - x) + 5;
+			len2 = (vod->ar->winrct.xmax - vod->origx) + 5;
+		}
+		else {
+			len1 = (vod->ar->winrct.ymax - y) + 5;
+			len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
+		}
+		if (U.uiflag & USER_ZOOM_INVERT)
+			SWAP(float, len1, len2);
+		
 		zfac = vod->dist0 * (2.0*((len2/len1)-1.0) + 1.0) / vod->rv3d->dist;
 	}
 
@@ -1001,7 +1012,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
-	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
 	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
 }
@@ -1228,6 +1239,51 @@ void VIEW3D_OT_view_center(wmOperatorType *ot)
 	ot->exec= viewcenter_exec;
 	ot->poll= ED_operator_view3d_active;
 
+	/* flags */
+	ot->flag= 0;
+}
+
+static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	if (rv3d) {
+		if (rv3d->persp==RV3D_CAMOB) {
+			/* center the camera offset */
+			rv3d->camdx= rv3d->camdy= 0.0;
+		}
+		else {
+			/* non camera center */
+			float *curs= give_cursor(scene, v3d);
+			float new_ofs[3];
+			
+			new_ofs[0]= -curs[0];
+			new_ofs[1]= -curs[1];
+			new_ofs[2]= -curs[2];
+			
+			smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
+		}
+		
+		if (rv3d->viewlock & RV3D_BOXVIEW)
+			view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Center View to Cursor";
+	ot->description= "Centers the view so that the cursor is in the middle of the view.";
+	ot->idname= "VIEW3D_OT_view_center_cursor";
+	
+	/* api callbacks */
+	ot->exec= viewcenter_cursor_exec;
+	ot->poll= ED_operator_view3d_active;
+	
 	/* flags */
 	ot->flag= 0;
 }

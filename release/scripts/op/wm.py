@@ -33,6 +33,7 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
         bpy.ops.tfm.edge_slide(value=1.0)
         bpy.ops.mesh.select_more()
         bpy.ops.mesh.remove_doubles()
+
         return ('FINISHED',)
 
 rna_path_prop = StringProperty(name="Context Attributes",
@@ -248,9 +249,9 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
         return ('FINISHED',)
 
 doc_id = StringProperty(name="Doc ID",
-        description="ID for the documentation", maxlen=1024, default="")
+        description="", maxlen=1024, default="", hidden=True)
 
-doc_new = StringProperty(name="Doc New",
+doc_new = StringProperty(name="Edit Description",
         description="", maxlen=1024, default="")
 
 
@@ -392,53 +393,6 @@ class WM_OT_reload_scripts(bpy.types.Operator):
         '''
         return ('FINISHED',)
 
-class AddPresetBase(bpy.types.Operator):
-    '''Base preset class, only for subclassing
-    subclasses must define 
-     - preset_values
-     - preset_path '''
-    bl_idname = "render.preset_add"
-    bl_label = "Add Render Preset"
-    
-    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen= 64, default= "New Preset")
-    
-    '''
-    preset_values = [
-        "bpy.context.scene.render_data.resolution_x",
-        "bpy.context.scene.render_data.resolution_y",
-        "bpy.context.scene.render_data.pixel_aspect_x",
-        "bpy.context.scene.render_data.pixel_aspect_y",
-        "bpy.context.scene.render_data.fps",
-        "bpy.context.scene.render_data.fps_base",
-        "bpy.context.scene.render_data.resolution_percentage",
-    ]
-    
-    preset_path = os.path.join("presets", "render")
-    '''
-    
-    def _as_filename(self, name): # could reuse for other presets
-        for char in " !@#$%^&*(){}:\";'[]<>,./?":
-            name = name.replace('.', '_')
-        return name.lower()
-
-    def execute(self, context):
-        filename = self._as_filename(self.properties.name) + ".py"
-        
-        target_path = os.path.join(os.path.dirname(__file__), os.path.pardir, self.preset_path, filename)
-
-        file_preset = open(target_path, 'w')
-        
-        for rna_path in self.preset_values:
-            file_preset.write("%s = %s\n" % (rna_path, eval(rna_path)))
-        
-        file_preset.close()
-        
-        return ('FINISHED',)
-
-    def invoke(self, context, event):
-        wm = context.manager
-        wm.invoke_props_popup(self, event)
-        return ('RUNNING_MODAL',)
 
 bpy.ops.add(MESH_OT_delete_edgeloop)
 

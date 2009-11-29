@@ -130,7 +130,7 @@ void nla_operatortypes(void)
 	/* channels */
 	WM_operatortype_append(NLA_OT_channels_click);
 	
-	WM_operatortype_append(NLA_OT_add_tracks);
+	WM_operatortype_append(NLA_OT_tracks_add);
 	WM_operatortype_append(NLA_OT_delete_tracks);
 	
 	/* select */
@@ -142,11 +142,11 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_tweakmode_enter);
 	WM_operatortype_append(NLA_OT_tweakmode_exit);
 	
-	WM_operatortype_append(NLA_OT_add_actionclip);
-	WM_operatortype_append(NLA_OT_add_transition);
+	WM_operatortype_append(NLA_OT_actionclip_add);
+	WM_operatortype_append(NLA_OT_transition_add);
 	
-	WM_operatortype_append(NLA_OT_add_meta);
-	WM_operatortype_append(NLA_OT_remove_meta);
+	WM_operatortype_append(NLA_OT_meta_add);
+	WM_operatortype_append(NLA_OT_meta_remove);
 	
 	WM_operatortype_append(NLA_OT_duplicate);
 	WM_operatortype_append(NLA_OT_delete);
@@ -178,8 +178,8 @@ static void nla_keymap_channels (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* channel operations */
 		/* add tracks */
-	WM_keymap_add_item(keymap, "NLA_OT_add_tracks", AKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_add_tracks", AKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "above_selected", 1);
+	WM_keymap_add_item(keymap, "NLA_OT_tracks_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_tracks_add", AKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "above_selected", 1);
 	
 		/* delete tracks */
 	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", XKEY, KM_PRESS, 0, 0);
@@ -240,12 +240,12 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
 		
 		/* add strips */
-	WM_keymap_add_item(keymap, "NLA_OT_add_actionclip", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "NLA_OT_add_transition", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_actionclip_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_transition_add", TKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* meta-strips */
-	WM_keymap_add_item(keymap, "NLA_OT_add_meta", GKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "NLA_OT_remove_meta", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_meta_add", GKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_meta_remove", GKEY, KM_PRESS, KM_ALT, 0);
 		
 		/* duplicate */
 	WM_keymap_add_item(keymap, "NLA_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);	

@@ -884,7 +884,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel):
 	def draw_header(self, context):
 		scene = context.scene
 
-		self.layout.itemR(scene, "pov_radio_enable", text="")
+		self.layout.prop(scene, "pov_radio_enable", text="")
 
 	def draw(self, context):
 		layout = self.layout
@@ -897,34 +897,34 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(scene, "pov_radio_count", text="Rays")
-		col.itemR(scene, "pov_radio_recursion_limit", text="Recursions")
+		col.prop(scene, "pov_radio_count", text="Rays")
+		col.prop(scene, "pov_radio_recursion_limit", text="Recursions")
 		col = split.column()
-		col.itemR(scene, "pov_radio_error_bound", text="Error")
+		col.prop(scene, "pov_radio_error_bound", text="Error")
 		
-		layout.itemR(scene, "pov_radio_display_advanced")
+		layout.prop(scene, "pov_radio_display_advanced")
 		
 		if scene.pov_radio_display_advanced:
 			split = layout.split()
 		
 			col = split.column()
-			col.itemR(scene, "pov_radio_adc_bailout", slider=True)
-			col.itemR(scene, "pov_radio_gray_threshold", slider=True)
-			col.itemR(scene, "pov_radio_low_error_factor", slider=True)
+			col.prop(scene, "pov_radio_adc_bailout", slider=True)
+			col.prop(scene, "pov_radio_gray_threshold", slider=True)
+			col.prop(scene, "pov_radio_low_error_factor", slider=True)
 
 			col = split.column()
-			col.itemR(scene, "pov_radio_brightness")
-			col.itemR(scene, "pov_radio_minimum_reuse", text="Min Reuse")
-			col.itemR(scene, "pov_radio_nearest_count")
+			col.prop(scene, "pov_radio_brightness")
+			col.prop(scene, "pov_radio_minimum_reuse", text="Min Reuse")
+			col.prop(scene, "pov_radio_nearest_count")
 
 			split = layout.split()
 		
 			col = split.column()
-			col.itemL(text="Estimation Influence:")
-			col.itemR(scene, "pov_radio_media")
-			col.itemR(scene, "pov_radio_normal")
+			col.label(text="Estimation Influence:")
+			col.prop(scene, "pov_radio_media")
+			col.prop(scene, "pov_radio_normal")
 			
 			col = split.column()
-			col.itemR(scene, "pov_radio_always_sample")
+			col.prop(scene, "pov_radio_always_sample")
 
 bpy.types.register(RENDER_PT_povray_radiosity)

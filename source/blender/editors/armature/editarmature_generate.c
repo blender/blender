@@ -294,7 +294,7 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	
 	IT_head(iter);
 	
-	parent = addEditBone(arm, "Bone");
+	parent = ED_armature_edit_bone_add(arm, "Bone");
 	VECCOPY(parent->head, iter->p);
 	
 	if (iter->size > 0)
@@ -309,7 +309,7 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	{
 		IT_peek(iter, index);
 
-		child = addEditBone(arm, "Bone");
+		child = ED_armature_edit_bone_add(arm, "Bone");
 		VECCOPY(child->head, parent->tail);
 		child->parent = parent;
 		child->flag |= BONE_CONNECTED;

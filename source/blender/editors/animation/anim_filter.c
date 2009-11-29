@@ -734,7 +734,6 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->flag= nlt->flag;
 				
-					// XXX or should this be done some other way?
 				ale->key_data= &nlt->strips;
 				ale->datatype= ALE_NLASTRIP;
 			}
@@ -755,12 +754,10 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
  
 /* ----------------------------------------- */
 
-
-static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, void *owner, short ownertype, int filter_mode, ID *owner_id)
+/* find the next F-Curve that is usable for inclusion */
+static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
-	bAnimListElem *ale = NULL;
-	FCurve *fcu;
-	int items = 0;
+	FCurve *fcu = NULL;
 	
 	/* loop over F-Curves - assume that the caller of this has already checked that these should be included 
 	 * NOTE: we need to check if the F-Curves belong to the same group, as this gets called for groups too...
@@ -803,15 +800,39 @@ static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve
 				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
-						ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
-						
-						if (ale) {
-							BLI_addtail(anim_data, ale);
-							items++;
-						}
+						/* this F-Curve can be used, so return it */
+						return fcu;
 					}
 				}
 			}
+		}
+	}
+	
+	/* no (more) F-Curves from the list are suitable... */
+	return NULL;
+}
+
+static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, void *owner, short ownertype, int filter_mode, ID *owner_id)
+{
+	FCurve *fcu;
+	int items = 0;
+	
+	/* loop over every F-Curve able to be included 
+	 *	- this for-loop works like this: 
+	 *		1) the starting F-Curve is assigned to the fcu pointer so that we have a starting point to search from
+	 *		2) the first valid F-Curve to start from (which may include the one given as 'first') in the remaining 
+	 *		   list of F-Curves is found, and verified to be non-null
+	 *		3) the F-Curve referenced by fcu pointer is added to the list
+	 *		4) the fcu pointer is set to the F-Curve after the one we just added, so that we can keep going through 
+	 *		   the rest of the F-Curve list without an eternal loop. Back to step 2 :)
+	 */
+	for (fcu=first; ( (fcu = animdata_filter_fcurve_next(ads, fcu, grp, filter_mode, owner_id)) ); fcu=fcu->next)
+	{
+		bAnimListElem *ale = make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
+		
+		if (ale) {
+			BLI_addtail(anim_data, ale);
+			items++;
 		}
 	}
 	
@@ -829,50 +850,57 @@ static int animdata_filter_action (ListBase *anim_data, bDopeSheet *ads, bAction
 	/* loop over groups */
 	// TODO: in future, should we expect to need nested groups?
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
-		/* add this group as a channel first */
-		if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
-			/* check if filtering by selection */
-			if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
-				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
-				if (ale) {
-					BLI_addtail(anim_data, ale);
-					items++;
-				}
-			}
-		}
+		FCurve *first_fcu;
 		
 		/* store reference to last channel of group */
 		if (agrp->channels.last) 
 			lastchan= agrp->channels.last;
 		
+		/* get the first F-Curve in this group we can start to use, 
+		 * and if there isn't any F-Curve to start from, then don't 
+		 * this group at all...
+		 */
+		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_mode, owner_id);
 		
-		/* there are some situations, where only the channels of the action group should get considered */
-		if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
-			/* filters here are a bit convoulted...
-			 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
-			 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
-			 *
-			 * cases when we should include F-Curves inside group:
-			 *	- we don't care about visibility
-			 *	- group is expanded
-			 *	- we just need the F-Curves present
-			 */
-			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
-			{
-				/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
-				 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
-				 * all its sub-curves to be shown
+		if (first_fcu) {
+			/* add this group as a channel first */
+			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				/* check if filtering by selection */
+				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
+					ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+			}
+			
+			/* there are some situations, where only the channels of the action group should get considered */
+			if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
+				/* filters here are a bit convoulted...
+				 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
+				 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
+				 *
+				 * cases when we should include F-Curves inside group:
+				 *	- we don't care about visibility
+				 *	- group is expanded
+				 *	- we just need the F-Curves present
 				 */
-				if ( !(filter_mode & ANIMFILTER_CURVEVISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
+				if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
 				{
-					if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
-						items += animdata_filter_fcurves(anim_data, ads, agrp->channels.first, agrp, owner, ownertype, filter_mode, owner_id);
+					/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
+					 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
+					 * all its sub-curves to be shown
+					 */
+					if ( !(filter_mode & ANIMFILTER_CURVEVISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
+					{
+						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
+							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, owner, ownertype, filter_mode, owner_id);
+						}
 					}
 				}
 			}
 		}
-		
-		// TODO: but we still need to deal with the case when the group may be closed, but it has no visible curves too
 	}
 	
 	/* loop over un-grouped F-Curves (only if we're not only considering those channels in the animive group) */

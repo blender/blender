@@ -23,6 +23,9 @@
  *
  * Contributor(s): none yet.
  *
+ * Part of this code has been taken from Qt, under LGPL license
+ * Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
+ *
  * ***** END GPL LICENSE BLOCK *****
  */
 
@@ -126,6 +129,8 @@ GHOST_SystemX11(
 	m_xclip_out= XInternAtom(m_display, "XCLIP_OUT", False);
 	m_incr= XInternAtom(m_display, "INCR", False);
 	m_utf8_string= XInternAtom(m_display, "UTF8_STRING", False);
+	m_last_warp = 0;
+
 
 	// compute the initial time
 	timeval tv;
@@ -310,6 +315,61 @@ static void SleepTillEvent(Display *display, GHOST_TInt64 maxSleep) {
 	}
 }
 
+/* This function borrowed from Qt's X11 support
+ * qclipboard_x11.cpp
+ *  */
+struct init_timestamp_data
+{
+    Time timestamp;
+};
+
+static Bool init_timestamp_scanner(Display*, XEvent *event, XPointer arg)
+{
+	init_timestamp_data *data =
+        reinterpret_cast<init_timestamp_data*>(arg);
+    switch(event->type)
+    {
+    case ButtonPress:
+    case ButtonRelease:
+        data->timestamp = event->xbutton.time;
+        break;
+    case MotionNotify:
+        data->timestamp = event->xmotion.time;
+        break;
+    case KeyPress:
+    case KeyRelease:
+        data->timestamp = event->xkey.time;
+        break;
+    case PropertyNotify:
+        data->timestamp = event->xproperty.time;
+        break;
+    case EnterNotify:
+    case LeaveNotify:
+        data->timestamp = event->xcrossing.time;
+        break;
+    case SelectionClear:
+        data->timestamp = event->xselectionclear.time;
+        break;
+    default:
+        break;
+    }
+
+    return false;
+}
+
+Time
+GHOST_SystemX11::
+lastEventTime(Time default_time) {
+    init_timestamp_data data;
+    data.timestamp = default_time;
+    XEvent ev;
+    XCheckIfEvent(m_display, &ev, &init_timestamp_scanner, (XPointer)&data);
+
+    return data.timestamp;
+}
+
+
+
 	bool 
 GHOST_SystemX11::
 processEvents(
@@ -405,10 +465,15 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				window->getCursorGrabAccum(x_accum, y_accum);
 
 				if(x_new != xme.x_root || y_new != xme.y_root) {
-					/* when wrapping we don't need to add an event because the
-					 * setCursorPosition call will cause a new event after */
-					setCursorPosition(x_new, y_new); /* wrap */
-					window->setCursorGrabAccum(x_accum + (xme.x_root - x_new), y_accum + (xme.y_root - y_new));
+					if (xme.time > m_last_warp) {
+						/* when wrapping we don't need to add an event because the
+						 * setCursorPosition call will cause a new event after */
+						setCursorPosition(x_new, y_new); /* wrap */
+						window->setCursorGrabAccum(x_accum + (xme.x_root - x_new), y_accum + (xme.y_root - y_new));
+						m_last_warp = lastEventTime(xme.time);
+					} else {
+						setCursorPosition(x_new, y_new); /* wrap but don't accumulate */
+					}
 				}
 				else {
 					g_event = new
@@ -907,7 +972,7 @@ setCursorPosition(
 	int rely = y-cy;
 
 	XWarpPointer(m_display,None,None,0,0,0,0,relx,rely);
-	XFlush(m_display);
+	XSync(m_display, 0); /* Sync to process all requests */
 	
 	return GHOST_kSuccess;
 }

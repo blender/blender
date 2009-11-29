@@ -48,7 +48,7 @@
 #include "WM_types.h"
 
 
-EnumPropertyItem snap_mode_items[] = {
+EnumPropertyItem snap_target_items[] = {
 	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
 	{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target."},
 	{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
@@ -56,20 +56,34 @@ EnumPropertyItem snap_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 	
 EnumPropertyItem proportional_falloff_items[] ={
-	{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-	{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
-	{PROP_ROOT, "ROOT", 0, "Root", ""},
-	{PROP_SHARP, "SHARP", 0, "Sharp", ""},
-	{PROP_LIN, "LINEAR", 0, "Linear", ""},
-	{PROP_CONST, "CONSTANT", 0, "Constant", ""},
-	{PROP_RANDOM, "RANDOM", 0, "Random", ""},
+	{PROP_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
+	{PROP_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", ""},
+	{PROP_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
+	{PROP_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
+	{PROP_LIN, "LINEAR", ICON_LINCURVE, "Linear", ""},
+	{PROP_CONST, "CONSTANT", ICON_NOCURVE, "Constant", ""},
+	{PROP_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 
 EnumPropertyItem proportional_editing_items[] = {
-	{PROP_EDIT_OFF, "DISABLED", 0, "Disable", ""},
-	{PROP_EDIT_ON, "ENABLED", 0, "Enable", ""},
-	{PROP_EDIT_CONNECTED, "CONNECTED", 0, "Connected", ""},
+	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", ""},
+	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", ""},
+	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem mesh_select_mode_items[] = {
+	{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
+	{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
+	{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode."},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem snap_element_items[] = {
+	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments of grid."},
+	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices."},
+	{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges."},
+	{SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces."},
+	{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume."},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -561,19 +575,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode."},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem mesh_select_mode_items[] = {
-		{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
-		{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
-		{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode."},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem snap_element_items[] = {
-		{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices."},
-		{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges."},
-		{SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces."},
-		{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume."},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem auto_key_items[] = {
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
@@ -647,8 +648,8 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "snap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP);
-	RNA_def_property_ui_text(prop, "Snap", "Snap while Ctrl is held during transform.");
-	RNA_def_property_ui_icon(prop, ICON_SNAP_GEAR, 1);
+	RNA_def_property_ui_text(prop, "Snap", "Snap during transform.");
+	RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
 	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_align_rotation", PROP_BOOLEAN, PROP_NONE);
@@ -663,10 +664,10 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Snap Element", "Type of element to snap to.");
 	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
-	prop= RNA_def_property(srna, "snap_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "snap_target", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "snap_target");
-	RNA_def_property_enum_items(prop, snap_mode_items);
-	RNA_def_property_ui_text(prop, "Snap Mode", "Which part to snap onto the target.");
+	RNA_def_property_enum_items(prop, snap_target_items);
+	RNA_def_property_ui_text(prop, "Snap Target", "Which part to snap onto the target.");
 	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_peel_object", PROP_BOOLEAN, PROP_NONE);
@@ -1625,7 +1626,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	/* JPEG and AVI JPEG */
 	
-	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies.");
@@ -1720,7 +1721,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Codec", "QuickTime codec type");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "quicktime_codec_spatial_quality", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "quicktime_codec_spatial_quality", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "qtcodecsettings.codecSpatialQuality");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Spatial quality", "Intra-frame spatial quality level");
@@ -2340,7 +2341,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "set", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "set");
 	RNA_def_property_struct_type(prop, "Scene");
-	//RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
 	RNA_def_property_ui_text(prop, "Set Scene", "Background set scene.");
@@ -2525,7 +2525,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "sync_audio", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
-	RNA_def_property_ui_text(prop, "Audio Sync", "Play back and sync with audio from Sequence Editor.");
+	RNA_def_property_ui_text(prop, "Audio Sync", "Play back and sync with audio from Sequence Editor for realtime playback.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "scrub_audio", PROP_BOOLEAN, PROP_NONE);

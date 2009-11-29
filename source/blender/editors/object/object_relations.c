@@ -458,7 +458,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
@@ -598,9 +598,46 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				/* handle types */
 				if (pchan)
-					strcpy (ob->parsubstr, pchan->name);
+					strcpy(ob->parsubstr, pchan->name);
 				else
 					ob->parsubstr[0]= 0;
+					
+				if(partype == PAR_PATH_CONST)
+					; /* don't do anything here, since this is not technically "parenting" */
+				else if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
+				{
+					/* partype is now set to PAROBJECT so that invisible 'virtual' modifiers don't need to be created
+					 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
+					 */
+					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
+					//ob->partype= PARSKEL; /* note, dna define, not operator property */
+					
+					/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
+					// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
+					if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) 
+					{
+						ModifierData *md;
+
+						switch (partype) {
+						case PAR_CURVE: /* curve deform */
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Curve);
+							((CurveModifierData *)md)->object= par;
+							break;
+						case PAR_LATTICE: /* lattice deform */
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Lattice);
+							((LatticeModifierData *)md)->object= par;
+							break;
+						default: /* armature deform */
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Armature);
+							((ArmatureModifierData *)md)->object= par;
+							break;
+						}
+					}
+				}
+				else if (partype == PAR_BONE)
+					ob->partype= PARBONE; /* note, dna define, not operator property */
+				else
+					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
 				
 				/* constraint */
 				if(partype == PAR_PATH_CONST) {
@@ -632,8 +669,6 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					ob->partype= PAROBJECT;
 					what_does_parent(scene, ob, &workob);
 					
-					ob->partype= PARSKEL;
-					
 					invert_m4_m4(ob->parentinv, workob.obmat);
 				}
 				else {
@@ -643,22 +678,13 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				}
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
-				
-				if(partype == PAR_PATH_CONST)
-					; /* don't do anything here, since this is not technically "parenting" */
-				if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
-					ob->partype= PARSKEL; /* note, dna define, not operator property */
-				else if (partype == PAR_BONE)
-					ob->partype= PARBONE; /* note, dna define, not operator property */
-				else
-					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
 			}
 		}
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);
+	DAG_scene_sort(scene);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -746,7 +772,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -786,7 +812,7 @@ static int object_slow_parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -824,7 +850,7 @@ static int object_slow_parent_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -873,8 +899,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
+	DAG_ids_flush_update(0);
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);
 
 	return OPERATOR_FINISHED;
 }
@@ -966,7 +992,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1146,7 +1172,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 
 	/* one day multiple scenes will be visible, then we should have some update function for them */
 	return OPERATOR_FINISHED;
@@ -1214,7 +1240,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	return OPERATOR_FINISHED;
 }

@@ -1397,6 +1397,10 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	static EnumPropertyItem prop_mode_items[] = {
+		{0, "VOLUME", 0, "Volume", "Bind to volume inside cage mesh."},
+		{1, "SURFACE", 0, "Surface", "Bind to surface of cage mesh."},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MeshDeformModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "MeshDeform Modifier", "Mesh deformation modifier to deform with other meshes.");
@@ -1436,6 +1440,10 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dynamic", "Recompute binding dynamically on top of other deformers (slower and more memory consuming.)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "Method of binding vertices are bound to cage mesh.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_particlesystem(BlenderRNA *brna)

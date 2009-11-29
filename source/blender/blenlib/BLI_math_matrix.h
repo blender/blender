@@ -82,6 +82,7 @@ void mul_m4_v4(float M[4][4], float r[3]);
 void mul_project_m4_v4(float M[4][4], float r[3]);
 
 void mul_m3_v3(float M[3][3], float r[3]);
+void mul_v3_m3v3(float r[3], float M[3][3], float a[3]);
 void mul_transposed_m3_v3(float M[3][3], float r[3]);
 void mul_m3_v3_double(float M[3][3], double r[3]);
 

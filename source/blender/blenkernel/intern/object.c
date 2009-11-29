@@ -1044,6 +1044,10 @@ Object *add_object(struct Scene *scene, int type)
 	ob->rotmode= ROT_MODE_EUL;
 	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
 	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
+	/* quaternions should be 1,0,0,0 by default.... */
+	ob->quat[0]= 1.0f;
+	/* rotation locks should be 4D for 4 component rotations by default... */
+	ob->protectflag = OB_LOCK_ROT4D;
 
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
@@ -2364,6 +2368,9 @@ void object_handle_update(Scene *scene, Object *ob)
 		}
 		
 		if(ob->recalc & OB_RECALC_DATA) {
+			ID *data_id= (ID *)ob->data;
+			AnimData *adt= BKE_animdata_from_id(data_id);
+			float ctime= (float)scene->r.cfra; // XXX this is bad...
 			
 			if (G.f & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name+2);
@@ -2386,10 +2393,6 @@ void object_handle_update(Scene *scene, Object *ob)
 				makeDispListCurveTypes(scene, ob, 0);
 			}
 			else if(ELEM(ob->type, OB_CAMERA, OB_LAMP)) {
-				ID *data_id= (ID *)ob->data;
-				AnimData *adt= BKE_animdata_from_id(data_id);
-				float ctime= (float)scene->r.cfra; // XXX this is bad...
-				
 				/* evaluate drivers */
 				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 			}
@@ -2401,6 +2404,9 @@ void object_handle_update(Scene *scene, Object *ob)
 				// XXX this won't screw up the pose set already...
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
+				
+				/* evaluate drivers */
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 				
 				if(ob->id.lib && ob->proxy_from) {
 					copy_pose_result(ob->pose, ob->proxy_from->pose);

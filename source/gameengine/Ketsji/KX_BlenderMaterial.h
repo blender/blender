@@ -33,8 +33,7 @@ public:
 	KX_BlenderMaterial();
 	void Initialize(
 		class KX_Scene*	scene,
-		BL_Material*	mat,
-		bool			skin
+		BL_Material*	mat
 	);
 
 	virtual ~KX_BlenderMaterial();

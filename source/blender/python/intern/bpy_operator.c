@@ -76,7 +76,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	Py_XINCREF(context_dict); /* so we done loose it */
 
 	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
-		PyErr_SetString( PyExc_SystemError, "_bpy.ops.call: operator poll() function failed, context is incorrect");
+		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator %.200s.poll() function failed, context is incorrect", opname);
 		error_val= -1;
 	}
 	else {
@@ -230,7 +230,9 @@ static PyObject *pyop_getrna(PyObject *self, PyObject *value)
 	//RNA_pointer_create(NULL, &RNA_Struct, ot->srna, &ptr);
 
 	/* XXX - should call WM_operator_properties_free */
-	WM_operator_properties_create(&ptr, ot->idname);
+	WM_operator_properties_create_ptr(&ptr, ot);
+
+	
 	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 	pyrna->freeptr= TRUE;
 	return (PyObject *)pyrna;

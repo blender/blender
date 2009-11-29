@@ -202,6 +202,31 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 	return item;
 }
 
+/* Space 3D View */
+static void rna_Space3DView_lock_camera_and_layers_set(PointerRNA *ptr, int value)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	bScreen *sc= (bScreen*)ptr->id.data;
+
+	v3d->scenelock = value;
+
+	if(value) {
+		int bit;
+		v3d->lay= sc->scene->lay;
+		/* seek for layact */
+		bit= 0;
+		while(bit<32) {
+			if(v3d->lay & (1<<bit)) {
+				v3d->layact= 1<<bit;
+				break;
+			}
+			bit++;
+		}
+		v3d->camera= sc->scene->camera;
+	}
+}
+
+
 /* Space Image Editor */
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
@@ -418,6 +443,9 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 		/* set action */
 		adt->action= saction->action;
 		id_us_plus(&adt->action->id);
+		
+		/* force depsgraph flush too */
+		DAG_id_flush_update(&obact->id, OB_RECALC_OB|OB_RECALC_DATA);
 	}
 }
 
@@ -638,11 +666,11 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem pivot_items[] = {
-		{V3D_CENTER, "BOUNDING_BOX_CENTER", 0, "Bounding Box Center", ""},
-		{V3D_CURSOR, "CURSOR", 0, "3D Cursor", ""},
-		{V3D_LOCAL, "INDIVIDUAL_CENTERS", 0, "Individual Centers", ""},
-		{V3D_CENTROID, "MEDIAN_POINT", 0, "Median Point", ""},
-		{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", ""},
+		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", ""},
+		{V3D_LOCAL, "INDIVIDUAL_CENTERS", ICON_ROTATECOLLECTION, "Individual Centers", ""},
+		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point", ""},
+		{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "Space3DView", "Space");
@@ -656,8 +684,14 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "lock_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ob_centre");
 	RNA_def_property_ui_text(prop, "Lock Object", "3D View center is locked to this object's position");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
+	prop= RNA_def_property(srna, "lock_bone", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "ob_centre_bone");
+	RNA_def_property_ui_text(prop, "Lock Bone", "3D View center is locked to this bone's position");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "background_image", PROP_POINTER, PROP_NONE);
@@ -750,6 +784,12 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Textured Solid", "Display face-assigned textures in solid view");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
+	prop= RNA_def_property(srna, "occlude_geometry", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ZBUF_SELECT);
+	RNA_def_property_ui_text(prop, "Occlude Geometry", "Limit selection to visible (clipped with depth buffer)");
+	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
 	prop= RNA_def_property(srna, "display_background_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_View3D_display_background_image_set");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DISPBGPIC);
@@ -765,26 +805,31 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "pivot_point_align", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ALIGN);
 	RNA_def_property_ui_text(prop, "Align", "Manipulate object centers only.");
+	RNA_def_property_ui_icon(prop, ICON_ALIGN, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_USE_MANIPULATOR);
 	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms.");
+	RNA_def_property_ui_icon(prop, ICON_MANIPUL, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "manipulator_translate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_TRANSLATE);
 	RNA_def_property_ui_text(prop, "Manipulator Translate", "Use the manipulator for movement transformations.");
+	RNA_def_property_ui_icon(prop, ICON_MAN_TRANS, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "manipulator_rotate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_ROTATE);
 	RNA_def_property_ui_text(prop, "Manipulator Rotate", "Use the manipulator for rotation transformations.");
+	RNA_def_property_ui_icon(prop, ICON_MAN_ROT, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "manipulator_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_SCALE);
 	RNA_def_property_ui_text(prop, "Manipulator Scale", "Use the manipulator for scale transformations.");
+	RNA_def_property_ui_icon(prop, ICON_MAN_SCALE, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "transform_orientation", PROP_ENUM, PROP_NONE);
@@ -813,6 +858,18 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, "RegionView3D", "viewlock", RV3D_BOXCLIP);
 	RNA_def_property_ui_text(prop, "Clip", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scenelock", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_lock_camera_and_layers_set");
+	RNA_def_property_ui_text(prop, "Lock Camera and Layers", "Lock the active camera and layers to scene.");
+	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
+
+	prop= RNA_def_property(srna, "used_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay_used", 1);
+	RNA_def_property_array(prop, 20);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Used Layers", "Layers that contain something.");
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)
@@ -1158,7 +1215,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceDopeSheetEditor_action_set", NULL);
 	RNA_def_property_ui_text(prop, "Action", "Action displayed and edited in this space.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, "rna_SpaceDopeSheetEditor_action_update");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, "rna_SpaceDopeSheetEditor_action_update");
 	
 	/* mode */
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);

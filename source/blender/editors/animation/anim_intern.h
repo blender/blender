@@ -45,25 +45,25 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
  *	These handle keyframes management from various spaces. They only make use of
  * 	Keying Sets.
  */
-void ANIM_OT_insert_keyframe(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_insert(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_delete(struct wmOperatorType *ot);
 
 /* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They will handle the menus 
  * 	required for each space.
  */
-void ANIM_OT_insert_keyframe_menu(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe_v3d(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_insert_menu(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_delete_v3d(struct wmOperatorType *ot);
 
 /* Keyframe managment operators for UI buttons (RMB menu). */
-void ANIM_OT_insert_keyframe_button(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe_button(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_insert_button(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_delete_button(struct wmOperatorType *ot);
 
 /* .......... */
 
 /* KeyingSet managment operators for UI buttons (RMB menu) */
-void ANIM_OT_add_keyingset_button(struct wmOperatorType *ot);
-void ANIM_OT_remove_keyingset_button(struct wmOperatorType *ot);
+void ANIM_OT_keyingset_button_add(struct wmOperatorType *ot);
+void ANIM_OT_keyingset_button_remove(struct wmOperatorType *ot);
 
 /* KeyingSet management operators for RNA collections/UI buttons */
 void ANIM_OT_keying_set_add(struct wmOperatorType *ot);
@@ -74,8 +74,8 @@ void ANIM_OT_keying_set_path_remove(struct wmOperatorType *ot);
 /* .......... */
 
 /* Driver management operators for UI buttons (RMB menu) */
-void ANIM_OT_add_driver_button(struct wmOperatorType *ot);
-void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
+void ANIM_OT_driver_button_add(struct wmOperatorType *ot);
+void ANIM_OT_driver_button_remove(struct wmOperatorType *ot);
 void ANIM_OT_copy_driver_button(struct wmOperatorType *ot);
 void ANIM_OT_paste_driver_button(struct wmOperatorType *ot);
 

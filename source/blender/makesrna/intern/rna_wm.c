@@ -42,6 +42,7 @@ EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{KM_PRESS, "PRESS", 0, "Press", ""},
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
+	{KM_CLICK, "CLICK", 0, "Click", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem event_tweak_value_items[]= {
@@ -61,6 +62,7 @@ EnumPropertyItem event_value_items[] = {
 	{KM_NOTHING, "NOTHING", 0, "Nothing", ""},
 	{KM_PRESS, "PRESS", 0, "Press", ""},
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
+	{KM_CLICK, "CLICK", 0, "Click", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem event_tweak_type_items[]= {

@@ -70,6 +70,8 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype){}
 char stipple_quarttone[1]; //GLubyte stipple_quarttone[128]
 double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, char *retstr) {return 0.0f;}
+struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
+void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
 
 /* rna */
 void WM_menutype_free(void){}
@@ -82,13 +84,16 @@ void WM_jobs_stop_all(struct wmWindowManager *wm){}
 
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep){}
+void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
 void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con){}
 void ED_node_composit_default(struct Scene *sce){}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo){return (struct EditBone *) NULL;}
+struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name){return (struct EditBone*) NULL;}
 struct ListBase *get_active_constraints (struct Object *ob){return (struct ListBase *) NULL;}
+struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r){return (struct ListBase *) NULL;}
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan){return 0;}
 
 int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit){return 0;}
@@ -127,7 +132,7 @@ void ED_node_shader_default(struct Material *ma){}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws){}
 void ED_base_object_select(struct Base *base, short mode){}
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md){return 0;}
-int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, int type){return 0;}
+int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, char *name, int type){return 0;}
 void ED_object_enter_editmode(struct bContext *C, int flag){}
 void ED_object_exit_editmode(struct bContext *C, int flag){}
 int uiLayoutGetActive(struct uiLayout *layout){return 0;}
@@ -177,6 +182,7 @@ void uiItemStringO(struct uiLayout *layout, char *name, int icon, char *opname, 
 void uiItemL(struct uiLayout *layout, char *name, int icon){}
 void uiItemM(struct uiLayout *layout, struct bContext *C, char *name, int icon, char *menuname){}
 void uiItemS(struct uiLayout *layout){}
+void uiItemFullR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag){}
 void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct PointerRNA *ptr){}
 
 /* rna template */
@@ -224,11 +230,14 @@ int WM_operator_poll(struct bContext *C, struct wmOperatorType *ot){return 0;}
 int WM_operator_props_popup(struct bContext *C, struct wmOperator *op, struct wmEvent *event){return 0;}
 void WM_operator_properties_free(struct PointerRNA *ptr){}
 void WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring){}
+void WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot){}
 void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType*, void*), void *userdata){}
 void WM_operator_bl_idname(char *to, const char *from){}
 void WM_operator_py_idname(char *to, const char *from){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
 char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return NULL;}
+struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return NULL;}
+struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return NULL;}
 
 /* intern/decimation */
 int LOD_FreeDecimationData(struct LOD_Decimation_Info *info){return 0;}
@@ -239,9 +248,10 @@ int LOD_LoadMesh(struct LOD_Decimation_Info *info){return 0;}
 /* smoke */
 void lzo1x_1_compress(void) {return;}
 void LzmaCompress(void) { return; }
-void smoke_export(void) {return;}
 void lzo1x_decompress(void) {return;}
 void LzmaUncompress(void) {return;}
+/* smoke is included anyway
+void smoke_export(void) {return;}
 void smoke_init(void) {return;}
 void smoke_turbulence_init(void) {return;}
 void smoke_turbulence_initBlenderRNA(void) {return;}
@@ -258,6 +268,7 @@ void smoke_get_velocity_z(void) {return;}
 void smoke_get_obstacle(void) {return;}
 void smoke_get_index(void) {return;}
 void smoke_step(void) {return;}
+*/
 
 char blender_path(){return NULL;}
 

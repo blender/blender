@@ -858,15 +858,18 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 			
 			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;
 #ifdef WAIT_FOR_VSYNC
+			{
+				GLint swapInt = 1;
 				/* wait for vsync, to avoid tearing artifacts */
-				[tmpOpenGLContext setValues:1 forParameter:NSOpenGLCPSwapInterval];
+				[tmpOpenGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+			}
 #endif
-				[m_openGLView setOpenGLContext:tmpOpenGLContext];
-				[tmpOpenGLContext setView:m_openGLView];
-				
-				m_openGLContext = tmpOpenGLContext;
+			[m_openGLView setOpenGLContext:tmpOpenGLContext];
+			[tmpOpenGLContext setView:m_openGLView];
+			
+			m_openGLContext = tmpOpenGLContext;
 			break;
-		
+	
 		case GHOST_kDrawingContextTypeNone:
 			success = GHOST_kSuccess;
 			break;

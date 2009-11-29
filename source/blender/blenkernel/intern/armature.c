@@ -37,6 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
@@ -49,6 +50,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -126,6 +128,12 @@ void free_armature(bArmature *arm)
 		if (arm->sketch) {
 			freeSketch(arm->sketch);
 			arm->sketch = NULL;
+		}
+		
+		/* free animation data */
+		if (arm->adt) {
+			BKE_free_animdata(&arm->id);
+			arm->adt= NULL;
 		}
 	}
 }
@@ -1501,6 +1509,10 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.child= pchan->child;
 			pchanw.path= NULL;
 			
+			/* this is freed so copy a copy, else undo crashes */
+			if(pchanw.prop)
+				pchanw.prop= IDP_CopyProperty(pchanw.prop);
+
 			/* constraints - proxy constraints are flushed... local ones are added after 
 			 *	1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
 			 *	2. copy proxy-pchan's constraints on-to new
@@ -1915,20 +1927,12 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	}
 	
 	/* step 4: set the scaling factors for the axes */
-	// TODO: include a no-scale option?
 	{
 		/* only multiply the y-axis by the scaling factor to get nice volume-preservation */
 		mul_v3_fl(poseMat[1], scaleFac);
 		
 		/* set the scaling factors of the x and z axes from... */
 		switch (ikData->xzScaleMode) {
-			case CONSTRAINT_SPLINEIK_XZS_RADIUS:
-			{
-				/* radius of curve */
-				mul_v3_fl(poseMat[0], radius);
-				mul_v3_fl(poseMat[2], radius);
-			}
-				break;
 			case CONSTRAINT_SPLINEIK_XZS_ORIGINAL:
 			{
 				/* original scales get used */
@@ -1942,6 +1946,37 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 				mul_v3_fl(poseMat[2], scale);
 			}
 				break;
+			case CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC:
+			{
+				/* 'volume preservation' */
+				float scale;
+				
+				/* calculate volume preservation factor which is 
+				 * basically the inverse of the y-scaling factor 
+				 */
+				if (fabs(scaleFac) != 0.0f) {
+					scale= 1.0 / fabs(scaleFac);
+					
+					/* we need to clamp this within sensible values */
+					// NOTE: these should be fine for now, but should get sanitised in future
+					scale= MIN2( MAX2(scale, 0.0001) , 100000);
+				}
+				else
+					scale= 1.0f;
+				
+				/* apply the scaling */
+				mul_v3_fl(poseMat[0], scale);
+				mul_v3_fl(poseMat[2], scale);
+			}
+				break;
+		}
+		
+		/* finally, multiply the x and z scaling by the radius of the curve too, 
+		 * to allow automatic scales to get tweaked still
+		 */
+		if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_CURVERAD) == 0) {
+			mul_v3_fl(poseMat[0], radius);
+			mul_v3_fl(poseMat[2], radius);
 		}
 	}
 	
@@ -2197,34 +2232,43 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 			
 			/* the rotation of the parent restposition */
 			copy_m4_m4(tmat, parbone->arm_mat);
-			
-			/* the location of actual parent transform */
-			VECCOPY(tmat[3], offs_bone[3]);
-			offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
-			mul_m4_v3(parchan->pose_mat, tmat[3]);
-			
 			mul_serie_m4(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 		}
 		else if(bone->flag & BONE_NO_SCALE) {
 			float orthmat[4][4];
 			
-			/* get the official transform, but we only use the vector from it (optimize...) */
-			mul_serie_m4(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
-			VECCOPY(vec, pchan->pose_mat[3]);
-			
-			/* do this again, but with an ortho-parent matrix */
+			/* do transform, with an ortho-parent matrix */
 			copy_m4_m4(orthmat, parchan->pose_mat);
 			normalize_m4(orthmat);
 			mul_serie_m4(pchan->pose_mat, orthmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
-			
-			/* copy correct transform */
-			VECCOPY(pchan->pose_mat[3], vec);
 		}
-		else 
+		else
 			mul_serie_m4(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+		
+		/* in these cases we need to compute location separately */
+		if(bone->flag & (BONE_HINGE|BONE_NO_SCALE|BONE_NO_LOCAL_LOCATION)) {
+			float bone_loc[3], chan_loc[3];
+
+			mul_v3_m4v3(bone_loc, parchan->pose_mat, offs_bone[3]);
+			copy_v3_v3(chan_loc, pchan->chan_mat[3]);
+
+			/* no local location is not transformed by bone matrix */
+			if(!(bone->flag & BONE_NO_LOCAL_LOCATION))
+				mul_mat3_m4_v3(offs_bone, chan_loc);
+
+			/* for hinge we use armature instead of pose mat */
+			if(bone->flag & BONE_HINGE) mul_mat3_m4_v3(parbone->arm_mat, chan_loc);
+			else mul_mat3_m4_v3(parchan->pose_mat, chan_loc);
+
+			add_v3_v3v3(pchan->pose_mat[3], bone_loc, chan_loc);
+		}
 	}
 	else {
 		mul_m4_m4m4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
+
+		/* optional location without arm_mat rotation */
+		if(bone->flag & BONE_NO_LOCAL_LOCATION)
+			add_v3_v3v3(pchan->pose_mat[3], bone->arm_mat[3], pchan->chan_mat[3]);
 		
 		/* only rootbones get the cyclic offset (unless user doesn't want that) */
 		if ((bone->flag & BONE_NO_CYCLICOFFSET) == 0)

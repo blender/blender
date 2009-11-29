@@ -86,7 +86,7 @@ static void act_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	RNA_pointer_create(&sc->id, &RNA_SpaceDopeSheetEditor, sact, &spaceptr);
 	
 	/* create menu */
-	//uiItemO(layout, NULL, ICON_MENU_PANEL, "ACT_OT_properties");
+	//uiItemO(layout, NULL, ICON_MENU_PANEL, "ACTION_OT_properties");
 	
 	//uiItemS(layout);
 	
@@ -104,13 +104,13 @@ static void act_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	uiItemO(layout, NULL, 0, "ANIM_OT_previewrange_set");
 	uiItemO(layout, NULL, 0, "ANIM_OT_previewrange_clear");
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_previewrange_set");
+	uiItemO(layout, NULL, 0, "ACTION_OT_previewrange_set");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_frame_jump");
+	uiItemO(layout, NULL, 0, "ACTION_OT_frame_jump");
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_view_all");
+	uiItemO(layout, NULL, 0, "ACTION_OT_view_all");
 	
 	if (sa->full) 
 		uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
@@ -120,21 +120,21 @@ static void act_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_selectmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemO(layout, NULL, 0, "ACT_OT_select_all_toggle");
-	uiItemBooleanO(layout, "Invert All", 0, "ACT_OT_select_all_toggle", "invert", 1);
+	uiItemO(layout, NULL, 0, "ACTION_OT_select_all_toggle");
+	uiItemBooleanO(layout, "Invert All", 0, "ACTION_OT_select_all_toggle", "invert", 1);
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_select_border");
-	uiItemBooleanO(layout, "Border Axis Range", 0, "ACT_OT_select_border", "axis_range", 1);
+	uiItemO(layout, NULL, 0, "ACTION_OT_select_border");
+	uiItemBooleanO(layout, "Border Axis Range", 0, "ACTION_OT_select_border", "axis_range", 1);
 	
 	uiItemS(layout);
 	
-	uiItemEnumO(layout, "Columns on Selected Keys", 0, "ACT_OT_select_column", "mode", ACTKEYS_COLUMNSEL_KEYS);
-	uiItemEnumO(layout, "Column on Current Frame", 0, "ACT_OT_select_column", "mode", ACTKEYS_COLUMNSEL_CFRA);
+	uiItemEnumO(layout, "Columns on Selected Keys", 0, "ACTION_OT_select_column", "mode", ACTKEYS_COLUMNSEL_KEYS);
+	uiItemEnumO(layout, "Column on Current Frame", 0, "ACTION_OT_select_column", "mode", ACTKEYS_COLUMNSEL_CFRA);
 	
-	uiItemEnumO(layout, "Columns on Selected Markers", 0, "ACT_OT_select_column", "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
-	uiItemEnumO(layout, "Between Selected Markers", 0, "ACT_OT_select_column", "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
+	uiItemEnumO(layout, "Columns on Selected Markers", 0, "ACTION_OT_select_column", "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
+	uiItemEnumO(layout, "Between Selected Markers", 0, "ACTION_OT_select_column", "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
 }
 
 static void act_channelmenu(bContext *C, uiLayout *layout, void *arg_unused)
@@ -170,34 +170,34 @@ static void act_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unus
 static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemMenuF(layout, "Transform", 0, act_edit_transformmenu, NULL);
-	uiItemMenuEnumO(layout, "Snap", 0, "ACT_OT_snap", "type");
-	uiItemMenuEnumO(layout, "Mirror", 0, "ACT_OT_mirror", "type");
+	uiItemMenuEnumO(layout, "Snap", 0, "ACTION_OT_snap", "type");
+	uiItemMenuEnumO(layout, "Mirror", 0, "ACTION_OT_mirror", "type");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_insert_keyframe");
+	uiItemO(layout, NULL, 0, "ACT_OT_keyframe_insert");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_duplicate");
-	uiItemO(layout, NULL, 0, "ACT_OT_delete");
+	uiItemO(layout, NULL, 0, "ACTION_OT_duplicate");
+	uiItemO(layout, NULL, 0, "ACTION_OT_delete");
 	
 	uiItemS(layout);
 	
-	uiItemMenuEnumO(layout, "Keyframe Type", 0, "ACT_OT_keyframe_type", "type");
-	uiItemMenuEnumO(layout, "Handle Type", 0, "ACT_OT_handle_type", "type");
-	uiItemMenuEnumO(layout, "Interpolation Type", 0, "ACT_OT_interpolation_type", "type");
-	uiItemMenuEnumO(layout, "Extrapolation Type", 0, "ACT_OT_extrapolation_type", "type");
+	uiItemMenuEnumO(layout, "Keyframe Type", 0, "ACTION_OT_keyframe_type", "type");
+	uiItemMenuEnumO(layout, "Handle Type", 0, "ACTION_OT_handle_type", "type");
+	uiItemMenuEnumO(layout, "Interpolation Type", 0, "ACTION_OT_interpolation_type", "type");
+	uiItemMenuEnumO(layout, "Extrapolation Type", 0, "ACTION_OT_extrapolation_type", "type");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_clean");
-	uiItemO(layout, NULL, 0, "ACT_OT_sample");
+	uiItemO(layout, NULL, 0, "ACTION_OT_clean");
+	uiItemO(layout, NULL, 0, "ACTION_OT_sample");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_copy");
-	uiItemO(layout, NULL, 0, "ACT_OT_paste");
+	uiItemO(layout, NULL, 0, "ACTION_OT_copy");
+	uiItemO(layout, NULL, 0, "ACTION_OT_paste");
 }
 
 /* ************************ header area region *********************** */
@@ -305,7 +305,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			RNA_pointer_create(&sc->id, &RNA_SpaceDopeSheetEditor, saction, &ptr);
 			
 			layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, 20+3, 20, 1, U.uistyles.first);
-			uiTemplateID(layout, (bContext*)C, &ptr, "action", "ACT_OT_new", NULL, NULL);
+			uiTemplateID(layout, (bContext*)C, &ptr, "action", "ACTION_OT_new", NULL, NULL);
 			uiBlockLayoutResolve(block, &xco, NULL);
 			
 			xco += 8;
@@ -331,9 +331,9 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		
 		/* COPY PASTE */
 		uiBlockBeginAlign(block);
-			uiDefIconButO(block, BUT, "ACT_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, "Copies the selected keyframes to the buffer.");
+			uiDefIconButO(block, BUT, "ACTION_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, "Copies the selected keyframes to the buffer.");
 			xco += XIC;
-			uiDefIconButO(block, BUT, "ACT_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, "Pastes the keyframes from the buffer into the selected channels.");
+			uiDefIconButO(block, BUT, "ACTION_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, "Pastes the keyframes from the buffer into the selected channels.");
 		uiBlockEndAlign(block);
 		xco += (XIC + 8);
 	}

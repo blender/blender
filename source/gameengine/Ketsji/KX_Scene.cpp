@@ -53,7 +53,6 @@
 #include "SCA_JoystickManager.h"
 
 #include "RAS_MeshObject.h"
-#include "BL_SkinMeshObject.h"
 
 #include "RAS_IRasterizer.h"
 #include "RAS_BucketManager.h"
@@ -83,6 +82,7 @@
 #include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
+#include "KX_SoftBodyDeformer.h"
 
 // to get USE_BULLET!
 #include "KX_ConvertPhysicsObject.h"
@@ -211,6 +211,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	
 #ifndef DISABLE_PYTHON
 	m_attr_dict = PyDict_New(); /* new ref */
+	m_draw_call_pre = NULL;
+	m_draw_call_post = NULL;
 #endif
 }
 
@@ -264,6 +266,9 @@ KX_Scene::~KX_Scene()
 #ifndef DISABLE_PYTHON
 	PyDict_Clear(m_attr_dict);
 	Py_DECREF(m_attr_dict);
+
+	Py_XDECREF(m_draw_call_pre);
+	Py_XDECREF(m_draw_call_post);
 #endif
 }
 
@@ -399,6 +404,34 @@ bool KX_Scene::IsSuspended()
 bool KX_Scene::IsClearingZBuffer()
 {
 	return m_isclearingZbuffer;
+}
+
+void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
+{
+	int len;
+
+	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
+	{
+		PyObject* args= PyTuple_New(0); // save python creating each call
+		PyObject* func;
+		PyObject* ret;
+
+		// Iterate the list and run the callbacks
+		for (int pos=0; pos < len; pos++)
+		{
+			func= PyList_GET_ITEM(cb_list, pos);
+			ret= PyObject_Call(func, args, NULL);
+			if (ret==NULL) {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			else {
+				Py_DECREF(ret);
+			}
+		}
+
+		Py_DECREF(args);
+	}
 }
 
 void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
@@ -1046,7 +1079,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 			newobj->SetDeformer(NULL);
 		}
 
-		if (mesh->IsDeformed()) /* checks GetMesh() isnt NULL */
+		if (mesh->GetMesh()) 
 		{
 			// we must create a new deformer but which one?
 			KX_GameObject* parentobj = newobj->GetParent();
@@ -1067,12 +1100,16 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				blendobj->parent->type == OB_ARMATURE && 
 				blendobj->partype==PARSKEL && 
 				blendmesh->dvert!=NULL;						// mesh has vertex group
+			bool bHasSoftBody = (!parentobj && (blendobj->gameflag & OB_SOFT_BODY));
+
 			bool releaseParent = true;
 
 			
 			if (oldblendobj==NULL) {
-				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
-				bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
+				if (bHasModifier || bHasShapeKey || bHasDvert || bHasArmature) {
+					std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
+					bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
+				}
 			}
 			
 			if (bHasModifier)
@@ -1084,7 +1121,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 						newobj,
 						m_blenderScene,
 						oldblendobj, blendobj,
-						static_cast<BL_SkinMeshObject*>(mesh),
+						mesh,
 						true,
 						static_cast<BL_ArmatureObject*>( parentobj )
 					);
@@ -1097,7 +1134,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 						newobj,
 						m_blenderScene,
 						oldblendobj, blendobj,
-						static_cast<BL_SkinMeshObject*>(mesh),
+						mesh,
 						false,
 						NULL
 					);
@@ -1112,7 +1149,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 					shapeDeformer = new BL_ShapeDeformer(
 						newobj,
 						oldblendobj, blendobj,
-						static_cast<BL_SkinMeshObject*>(mesh),
+						mesh,
 						true,
 						true,
 						static_cast<BL_ArmatureObject*>( parentobj )
@@ -1125,7 +1162,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 					shapeDeformer = new BL_ShapeDeformer(
 						newobj,
 						oldblendobj, blendobj,
-						static_cast<BL_SkinMeshObject*>(mesh),
+						mesh,
 						false,
 						true,
 						NULL
@@ -1138,7 +1175,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				BL_SkinDeformer* skinDeformer = new BL_SkinDeformer(
 					newobj,
 					oldblendobj, blendobj,
-					static_cast<BL_SkinMeshObject*>(mesh),
+					mesh,
 					true,
 					true,
 					static_cast<BL_ArmatureObject*>( parentobj )
@@ -1149,9 +1186,14 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 			else if (bHasDvert)
 			{
 				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
-					newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
+					newobj, oldblendobj, mesh
 				);
 				newobj->SetDeformer(meshdeformer);
+			}
+			else if (bHasSoftBody)
+			{
+				KX_SoftBodyDeformer *softdeformer = new KX_SoftBodyDeformer(mesh, newobj);
+				newobj->SetDeformer(softdeformer);
 			}
 
 			// release parent reference if its not being used 
@@ -1997,6 +2039,61 @@ int KX_Scene::pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	return PY_SET_ATTR_SUCCESS;
 }
 
+PyObject* KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
+
+	if(self->m_draw_call_pre==NULL)
+		self->m_draw_call_pre= PyList_New(0);
+	else
+		Py_INCREF(self->m_draw_call_pre);
+	return self->m_draw_call_pre;
+}
+
+PyObject* KX_Scene::pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
+
+	if(self->m_draw_call_post==NULL)
+		self->m_draw_call_post= PyList_New(0);
+	else
+		Py_INCREF(self->m_draw_call_post);
+	return self->m_draw_call_post;
+}
+
+int KX_Scene::pyattr_set_drawing_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
+
+	if (!PyList_CheckExact(value))
+	{
+		PyErr_SetString(PyExc_ValueError, "Expected a list");
+		return PY_SET_ATTR_FAIL;
+	}
+	Py_XDECREF(self->m_draw_call_pre);
+
+	Py_INCREF(value);
+	self->m_draw_call_pre = value;
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+int KX_Scene::pyattr_set_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
+
+	if (!PyList_CheckExact(value))
+	{
+		PyErr_SetString(PyExc_ValueError, "Expected a list");
+		return PY_SET_ATTR_FAIL;
+	}
+	Py_XDECREF(self->m_draw_call_post);
+
+	Py_INCREF(value);
+	self->m_draw_call_post = value;
+
+	return PY_SET_ATTR_SUCCESS;
+}
 
 PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",				KX_Scene, pyattr_get_name),
@@ -2005,6 +2102,8 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("cameras",			KX_Scene, pyattr_get_cameras),
 	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
 	KX_PYATTRIBUTE_RW_FUNCTION("active_camera",		KX_Scene, pyattr_get_active_camera, pyattr_set_active_camera),
+	KX_PYATTRIBUTE_RW_FUNCTION("pre_draw",			KX_Scene, pyattr_get_drawing_callback_pre, pyattr_set_drawing_callback_pre),
+	KX_PYATTRIBUTE_RW_FUNCTION("post_draw",			KX_Scene, pyattr_get_drawing_callback_post, pyattr_set_drawing_callback_post),
 	KX_PYATTRIBUTE_BOOL_RO("suspended",				KX_Scene, m_suspend),
 	KX_PYATTRIBUTE_BOOL_RO("activity_culling",		KX_Scene, m_activity_culling),
 	KX_PYATTRIBUTE_FLOAT_RW("activity_culling_radius", 0.5f, FLT_MAX, KX_Scene, m_activity_box_radius),
