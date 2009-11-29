@@ -128,6 +128,32 @@ def ord_ind(i1,i2):
     return i2,i1
 
 class Mesh(bpy_types.ID):
+    
+    def from_pydata(self, verts, edges, faces):
+        '''
+        Make a mesh from a list of verts/edges/faces
+        Until we have a nicer way to make geometry, use this.
+        '''
+        self.add_geometry(len(verts), len(edges), len(faces))
+        
+        verts_flat = [f for v in verts for f in v]
+        self.verts.foreach_set("co", verts_flat)
+        del verts_flat
+        
+        edges_flat = [i for e in edges for i in e]
+        self.edges.foreach_set("verts", edges_flat)
+        del edges_flat
+        
+        def treat_face(f):
+            if len(f) == 3:
+                return f[0], f[1], f[2], 0
+            elif f[3] == 0:
+                return f[3], f[0], f[1], f[2]
+            return f
+        
+        faces_flat = [v for f in faces for v in treat_face(f)]
+        self.faces.foreach_set("verts_raw", faces_flat)
+        del faces_flat
 
     @property
     def edge_keys(self):

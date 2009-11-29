@@ -963,6 +963,7 @@ Object *add_only_object(int type, char *name)
 	/* default object vars */
 	ob->type= type;
 	/* ob->transflag= OB_QUAT; */
+	ob->rotmode= ROT_MODE_EUL;
 
 #if 0 /* not used yet */
 	unit_qt(ob->quat);
