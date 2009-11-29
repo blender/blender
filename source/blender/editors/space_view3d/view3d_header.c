@@ -2004,32 +2004,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		MEM_freeN(str_menu);
 	}
  		
-	/* LAYERS */
 	if(obedit==NULL && v3d->localvd==NULL) {
 		int ob_lay = ob ? ob->lay : 0;
-		int a, xco = 0, yco = 0;
 
-		block= uiLayoutAbsoluteBlock(layout);
-		uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
-
-		uiBlockBeginAlign(block);
-		for(a=0; a<5; a++) {
-			uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco+(short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-		}
-		for(a=0; a<5; a++) {
-			uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco,			XIC/2, (YIC)/2, &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-		}
-		xco+= 5;
-		uiBlockBeginAlign(block);
-		for(a=5; a<10; a++) {
-			uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco+(short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-		}
-		for(a=5; a<10; a++) {
-			uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, v3d->lay_used), (short)(xco+a*(XIC/2)), yco, XIC/2, (YIC)/2, &(v3d->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-		}
-		uiBlockEndAlign(block);
-		
-		xco+= (a-2)*(XIC/2)+3;
+		/* Layers */
+		uiTemplateLayers(layout, &sceneptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
 
 		/* Scene lock */
 		uiItemR(layout, "", 0, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY);

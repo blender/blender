@@ -1878,6 +1878,25 @@ void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
 
 /********************* Layer Buttons Template ************************/
 
+static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
+{
+	uiBut *but = arg1;
+	int cur = GET_INT_FROM_POINTER(arg2);
+	wmWindow *win= CTX_wm_window(C);
+	int i, tot, shift= win->eventstate->shift;
+
+	if(!shift) {
+		tot= RNA_property_array_length(&but->rnapoin, but->rnaprop);
+		
+		/* Normally clicking only selects one layer */
+		RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, cur, 1);
+		for(i = 0; i < tot; ++i) {
+			if(i != cur)
+				RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, i, 0);
+		}
+	}
+}
+
 // TODO:
 //	- for now, grouping of layers is determined by dividing up the length of 
 //	  the array of layer bitflags
@@ -1890,12 +1909,15 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 	int groups, cols, layers;
 	int group, col, layer, row;
 	int cols_per_group = 5;
+	const char *desc;
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if (!prop) {
 		printf("uiTemplateLayer: layers property not found: %s\n", propname);
 		return;
 	}
+
+	desc= RNA_property_description(prop);
 	
 	/* the number of layers determines the way we group them 
 	 *	- we want 2 rows only (for now)
@@ -1924,19 +1946,26 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 		uCol= uiLayoutColumn(layout, 1);
 		
 		for (row= 0; row < 2; row++) {
+			uiBlock *block;
+			uiBut *but;
+
 			uRow= uiLayoutRow(uCol, 1);
+			block= uiLayoutGetBlock(uRow);
 			layer= groups*cols_per_group*row + cols_per_group*group;
 			
 			/* add layers as toggle buts */
 			for (col= 0; (col < cols_per_group) && (layer < layers); col++, layer++) {
 				int icon = 0;
 				int butlay = 1 << layer;
+
 				if(active_layer & butlay)
 					icon = ICON_LAYER_ACTIVE;
 				else if(used_prop && RNA_property_boolean_get_index(used_ptr, used_prop, layer))
 					icon = ICON_LAYER_USED;
 				
-				uiItemFullR(uRow, "", icon, ptr, prop, layer, 0, UI_ITEM_R_TOGGLE);
+				but= uiDefAutoButR(block, ptr, prop, layer, "", icon, 0, 0, 10, 10);
+				uiButSetFunc(but, handle_layer_buttons, but, SET_INT_IN_POINTER(layer));
+				but->type= TOG;
 			}
 		}
 	}
