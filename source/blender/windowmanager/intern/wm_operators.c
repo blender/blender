@@ -731,7 +731,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiItemL(layout, op->type->name, 0);
 
 	if(op->type->ui)
-		op->type->ui((bContext*)C, &ptr, layout);
+		op->type->ui((bContext*)C, op, layout);
 	else
 		uiDefAutoButsRNA(C, layout, &ptr, columns);
 
@@ -778,7 +778,7 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiItemL(layout, op->type->name, 0);
 
 	if(op->type->ui)
-		op->type->ui(C, op->ptr, layout);
+		op->type->ui(C, op, layout);
 	else
 		uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	

@@ -52,6 +52,17 @@ class SelectPattern(bpy.types.Operator):
         wm = context.manager
         wm.invoke_props_popup(self, event)
         return ('RUNNING_MODAL',)
+    
+    def draw(self, context):
+        print("WoW")
+        layout = self.layout
+        props = self.properties
+        
+        layout.prop(props, "pattern")
+        row = layout.row()
+        row.prop(props, "case_sensitive")
+        row.prop(props, "extend")
+        
 
 
 class SubsurfSet(bpy.types.Operator):

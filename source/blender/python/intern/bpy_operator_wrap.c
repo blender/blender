@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 #include "WM_api.h"
 #include "WM_types.h"
+#include "UI_interface.h"
 #include "ED_screen.h"
 
 #include "RNA_define.h"
@@ -78,10 +79,11 @@ static struct BPY_flag_def pyop_ret_flags[] = {
 #define PYOP_EXEC 1
 #define PYOP_INVOKE 2
 #define PYOP_POLL 3
+#define PYOP_DRAW 4
 	
 extern void BPY_update_modules( void ); //XXX temp solution
 
-static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperator *op, wmEvent *event)
+static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperator *op, wmEvent *event, uiLayout *layout)
 {
 	PyObject *py_class = ot->pyop_data;
 	PyObject *args;
@@ -89,7 +91,6 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
 	PointerRNA ptr_context;
 	PointerRNA ptr_operator;
-	PointerRNA ptr_event;
 
 	PyGILState_STATE gilstate;
 
@@ -113,6 +114,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
 
 		if (mode==PYOP_INVOKE) {
+			PointerRNA ptr_event;
 			item= PyObject_GetAttrString(py_class, "invoke");
 			args = PyTuple_New(3);
 
@@ -133,6 +135,36 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 			item= PyObject_GetAttrString(py_class, "poll");
 			args = PyTuple_New(2);
 			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
+		}
+		else if (mode==PYOP_DRAW) {
+			PointerRNA ptr_layout;
+			item= PyObject_GetAttrString(py_class, "draw");
+			args = PyTuple_New(2);
+
+			RNA_pointer_create(NULL, &RNA_UILayout, layout, &ptr_layout);
+
+			// PyTuple_SET_ITEM "steals" object reference, it is
+			// an object passed shouldn't be DECREF'ed
+			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
+#if 0
+			PyTuple_SET_ITEM(args, 2, pyrna_struct_CreatePyObject(&ptr_layout));
+#else
+			{
+				/* mimic panels */
+				PyObject *py_layout= pyrna_struct_CreatePyObject(&ptr_layout);
+				PyObject *pyname= PyUnicode_FromString("layout");
+
+				if(PyObject_GenericSetAttr(py_class_instance, pyname, py_layout)) {
+					PyErr_Print();
+					PyErr_Clear();
+				}
+				else {
+					Py_DECREF(py_layout);
+				}
+
+				Py_DECREF(pyname);
+			}
+#endif
 		}
 		PyTuple_SET_ITEM(args, 0, py_class_instance);
 
@@ -155,7 +187,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 			else {
 				ret_flag= ret==Py_True ? 1:0;
 			}
-			
+		} else if(mode==PYOP_DRAW) {
+			/* pass */
 		} else if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			/* the returned value could not be converted into a flag */
 			PyErr_Format(PyExc_ValueError, "Python operator, error using return value from \"%s\"\n", ot->idname);
@@ -209,18 +242,33 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 
 static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	return PYTHON_OT_generic(PYOP_INVOKE, C, op->type, op, event);	
+	return PYTHON_OT_generic(PYOP_INVOKE, C, op->type, op, event, NULL);
 }
 
 static int PYTHON_OT_execute(bContext *C, wmOperator *op)
 {
-	return PYTHON_OT_generic(PYOP_EXEC, C, op->type, op, NULL);
+	return PYTHON_OT_generic(PYOP_EXEC, C, op->type, op, NULL, NULL);
 }
 
 static int PYTHON_OT_poll(bContext *C, wmOperatorType *ot)
 {
-	return PYTHON_OT_generic(PYOP_POLL, C, ot, NULL, NULL);
+	return PYTHON_OT_generic(PYOP_POLL, C, ot, NULL, NULL, NULL);
 }
+
+static void PYTHON_OT_draw(bContext *C, wmOperator *op, uiLayout *layout)
+{
+	PYTHON_OT_generic(PYOP_DRAW, C, op->type, op, NULL, layout);
+}
+
+// void (*ui)(struct bContext *, struct PointerRNA *, struct uiLayout *);
+//
+//static int PYTHON_OT_ui(bContext *C, PointerRNA *, uiLayout *layout)
+//{
+//	PointerRNA ptr_context, ptr_layout;
+//	RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
+//	RNA_pointer_create(NULL, &RNA_UILayout, layout, &ptr_layout);
+//
+//}
 
 void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 {
@@ -256,6 +304,8 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 		ot->exec= PYTHON_OT_execute;
 	if (PyObject_HasAttrString(py_class, "poll"))
 		ot->pyop_poll= PYTHON_OT_poll;
+	if (PyObject_HasAttrString(py_class, "draw"))
+		ot->ui= PYTHON_OT_draw;
 	
 	ot->pyop_data= userdata;
 	
@@ -320,6 +370,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 		{"execute",				'f', 2,	-1, BPY_CLASS_ATTR_OPTIONAL},
 		{"invoke",				'f', 3,	-1, BPY_CLASS_ATTR_OPTIONAL},
 		{"poll",				'f', 2,	-1, BPY_CLASS_ATTR_OPTIONAL},
+		{"draw",				'f', 2,	-1, BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}
 	};
 
