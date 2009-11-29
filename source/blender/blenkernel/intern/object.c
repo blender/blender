@@ -962,20 +962,22 @@ Object *add_only_object(int type, char *name)
 
 	/* default object vars */
 	ob->type= type;
-	/* ob->transflag= OB_QUAT; */
-	ob->rotmode= ROT_MODE_EUL;
-
-#if 0 /* not used yet */
-	unit_qt(ob->quat);
-	unit_qt(ob->dquat);
-#endif 
-
+	
 	ob->col[0]= ob->col[1]= ob->col[2]= 1.0;
 	ob->col[3]= 1.0;
-
-	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0;
-	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
+	
 	ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+	
+	/* objects should default to having Euler XYZ rotations, 
+	 * but rotations default to quaternions 
+	 */
+	ob->rotmode= ROT_MODE_EUL;
+	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
+	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
+	/* quaternions should be 1,0,0,0 by default.... */
+	ob->quat[0]= ob->dquat[0]= 1.0f;
+	/* rotation locks should be 4D for 4 component rotations by default... */
+	ob->protectflag = OB_LOCK_ROT4D;
 
 	unit_m4(ob->constinv);
 	unit_m4(ob->parentinv);
@@ -992,11 +994,6 @@ Object *add_only_object(int type, char *name)
 		ob->trackflag= OB_POSY;
 		ob->upflag= OB_POSZ;
 	}
-	
-#if 0 // XXX old animation system
-	ob->ipoflag = OB_OFFS_OB+OB_OFFS_PARENT;
-	ob->ipowin= ID_OB;	/* the ipowin shown */
-#endif // XXX old animation system
 	
 	ob->dupon= 1; ob->dupoff= 0;
 	ob->dupsta= 1; ob->dupend= 100;
@@ -1039,17 +1036,6 @@ Object *add_object(struct Scene *scene, int type)
 
 	ob->lay= scene->lay;
 	
-	/* objects should default to having Euler XYZ rotations, 
-	 * but rotations default to quaternions 
-	 */
-	ob->rotmode= ROT_MODE_EUL;
-	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
-	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
-	/* quaternions should be 1,0,0,0 by default.... */
-	ob->quat[0]= 1.0f;
-	/* rotation locks should be 4D for 4 component rotations by default... */
-	ob->protectflag = OB_LOCK_ROT4D;
-
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
 	ob->recalc |= OB_RECALC;

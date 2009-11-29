@@ -83,12 +83,18 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("wm.save_mainfile", text="Save", icon='ICON_FILE_TICK')
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_as_mainfile", text="Save As...")
+        
+        layout.separator()
+        
         layout.operator("screen.userpref_show", text="User Preferences...", icon='ICON_PREFERENCES')
+        layout.operator("wm.read_homefile", text="Load Factory Settings").factory = True
 
         layout.separator()
+        
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.link_append", text="Link")
         layout.operator("wm.link_append", text="Append").link = False
+        
         layout.separator()
 
         layout.menu("INFO_MT_file_import")
