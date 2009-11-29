@@ -156,11 +156,10 @@ class ExportMDD(bpy.types.Operator):
 
     # get first scene to get min and max properties for frames, fps
 
-    sce = bpy.data.scenes[bpy.data.scenes.keys()[0]]
-    minframe = sce.rna_type.properties["current_frame"].soft_min
-    maxframe = sce.rna_type.properties["current_frame"].soft_max
-    minfps = sce.render_data.rna_type.properties["fps"].soft_min
-    maxfps = sce.render_data.rna_type.properties["fps"].soft_max
+    minframe = 1
+    maxframe = 300000
+    minfps = 1
+    maxfps = 120
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
@@ -174,10 +173,10 @@ class ExportMDD(bpy.types.Operator):
         return (ob and ob.type=='MESH')
 
     def execute(self, context):
-        if not self.path:
+        if not self.properties.path:
             raise Exception("filename not set")
-        write(self.path, context.scene, context.active_object,
-            self.start_frame, self.end_frame, self.fps )
+        write(self.properties.path, context.scene, context.active_object,
+            self.properties.start_frame, self.properties.end_frame, self.properties.fps )
         return ('FINISHED',)
     
     def invoke(self, context, event):
@@ -192,10 +191,9 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".mdd")
-    self.layout.item_stringO(ExportMDD.bl_idname, "path", default_path, text="Vertex Keyframe Animation (.mdd)...")
+    self.layout.operator(ExportMDD.bl_idname, text="Vertex Keyframe Animation (.mdd)...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 if __name__=='__main__':
-    #Blender.Window.FileSelector(mdd_export_ui, 'EXPORT MDD', sys.makename(ext='.mdd'))
-    bpy.ops.EXPORT_OT_mdd(path="/tmp/test.mdd")
+    bpy.ops.export.mdd(path="/tmp/test.mdd")

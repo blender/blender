@@ -32,36 +32,36 @@ class FILEBROWSER_HT_header(bpy.types.Header):
         layout.template_header(menus=False)
 
         row = layout.row()
-        row.itemS()
+        row.separator()
 
         row = layout.row(align=True)
-        row.itemO("file.previous", text="", icon='ICON_BACK')
-        row.itemO("file.next", text="", icon='ICON_FORWARD')
-        row.itemO("file.parent", text="", icon='ICON_FILE_PARENT')
-        row.itemO("file.refresh", text="", icon='ICON_FILE_REFRESH')
+        row.operator("file.previous", text="", icon='ICON_BACK')
+        row.operator("file.next", text="", icon='ICON_FORWARD')
+        row.operator("file.parent", text="", icon='ICON_FILE_PARENT')
+        row.operator("file.refresh", text="", icon='ICON_FILE_REFRESH')
 
         row = layout.row()
-        row.itemS()
+        row.separator()
 
         row = layout.row(align=True)
-        row.itemO("file.directory_new", text="", icon='ICON_NEWFOLDER')
+        row.operator("file.directory_new", text="", icon='ICON_NEWFOLDER')
 
-        layout.itemR(params, "display", expand=True, text="")
-        layout.itemR(params, "sort", expand=True, text="")
+        layout.prop(params, "display", expand=True, text="")
+        layout.prop(params, "sort", expand=True, text="")
 
-        layout.itemR(params, "hide_dot", text="Hide Invisible")
-        layout.itemR(params, "do_filter", text="", icon='ICON_FILTER')
+        layout.prop(params, "hide_dot", text="Hide Invisible")
+        layout.prop(params, "do_filter", text="", icon='ICON_FILTER')
 
         row = layout.row(align=True)
         row.active = params.do_filter
 
-        row.itemR(params, "filter_folder", text="")
-        row.itemR(params, "filter_blender", text="")
-        row.itemR(params, "filter_image", text="")
-        row.itemR(params, "filter_movie", text="")
-        row.itemR(params, "filter_script", text="")
-        row.itemR(params, "filter_font", text="")
-        row.itemR(params, "filter_sound", text="")
-        row.itemR(params, "filter_text", text="")
+        row.prop(params, "filter_folder", text="")
+        row.prop(params, "filter_blender", text="")
+        row.prop(params, "filter_image", text="")
+        row.prop(params, "filter_movie", text="")
+        row.prop(params, "filter_script", text="")
+        row.prop(params, "filter_font", text="")
+        row.prop(params, "filter_sound", text="")
+        row.prop(params, "filter_text", text="")
 
 bpy.types.register(FILEBROWSER_HT_header)

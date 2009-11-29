@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import sys
 import bpy
 from bpy.props import *
 
@@ -37,27 +36,27 @@ class CONSOLE_HT_header(bpy.types.Header):
             sub = row.row(align=True)
 
             if sc.console_type == 'REPORT':
-                sub.itemM("CONSOLE_MT_report")
+                sub.menu("CONSOLE_MT_report")
             else:
-                sub.itemM("CONSOLE_MT_console")
+                sub.menu("CONSOLE_MT_console")
 
-        layout.itemS()
-        layout.itemR(sc, "console_type", expand=True)
+        layout.separator()
+        layout.prop(sc, "console_type", expand=True)
 
         if sc.console_type == 'REPORT':
             row = layout.row(align=True)
-            row.itemR(sc, "show_report_debug", text="Debug")
-            row.itemR(sc, "show_report_info", text="Info")
-            row.itemR(sc, "show_report_operator", text="Operators")
-            row.itemR(sc, "show_report_warn", text="Warnings")
-            row.itemR(sc, "show_report_error", text="Errors")
+            row.prop(sc, "show_report_debug", text="Debug")
+            row.prop(sc, "show_report_info", text="Info")
+            row.prop(sc, "show_report_operator", text="Operators")
+            row.prop(sc, "show_report_warn", text="Warnings")
+            row.prop(sc, "show_report_error", text="Errors")
 
             row = layout.row()
             row.enabled = sc.show_report_operator
-            row.itemO("console.report_replay")
+            row.operator("console.report_replay")
         else:
             row = layout.row(align=True)
-            row.itemO("console.autocomplete", text="Autocomplete")
+            row.operator("console.autocomplete", text="Autocomplete")
 
 
 class CONSOLE_MT_console(bpy.types.Menu):
@@ -66,10 +65,10 @@ class CONSOLE_MT_console(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.column()
-        layout.itemO("console.clear")
-        layout.itemO("console.copy")
-        layout.itemO("console.paste")
-        layout.itemM("CONSOLE_MT_language")
+        layout.operator("console.clear")
+        layout.operator("console.copy")
+        layout.operator("console.paste")
+        layout.menu("CONSOLE_MT_language")
 
 
 class CONSOLE_MT_report(bpy.types.Menu):
@@ -78,49 +77,33 @@ class CONSOLE_MT_report(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.column()
-        layout.itemO("console.select_all_toggle")
-        layout.itemO("console.select_border")
-        layout.itemO("console.report_delete")
-        layout.itemO("console.report_copy")
+        layout.operator("console.select_all_toggle")
+        layout.operator("console.select_border")
+        layout.operator("console.report_delete")
+        layout.operator("console.report_copy")
+
 
 class CONSOLE_MT_language(bpy.types.Menu):
     bl_label = "Languages..."
 
-<<<<<<< .working
     def draw(self, context):
-        layout = self.layout
-        layout.column()
-        
-        mod = bpy.ops.console
-        languages = []
-        for opname in dir(mod):
-            # execute_python, execute_shell etc.
-            if opname.startswith("execute_"):
-                languages.append(opname.split('_', 1)[-1])
-        
-        languages.sort()
-        
-        for language in languages:
-            layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
+        import sys
 
-=======
-    def draw(self, context):
         layout = self.layout
         layout.column()
 
-        mod = bpy.ops.console
+        # Collect modules with 'console_*.execute'
         languages = []
-        for opname in dir(mod):
-            # execute_python, execute_shell etc.
-            if opname.startswith("execute_"):
-                languages.append(opname.split('_', 1)[-1])
+        for modname, mod in sys.modules.items():
+            if modname.startswith("console_") and hasattr(mod, "execute"):
+                languages.append(modname.split('_', 1)[-1])
 
         languages.sort()
 
         for language in languages:
-            layout.item_stringO("console.language", "language", language, text=language[0].upper() + language[1:])
+            layout.operator("console.language", text=language[0].upper() + language[1:]).language = language
 
->>>>>>> .merge-right.r24463
+
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
         bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
@@ -136,14 +119,14 @@ class ConsoleExec(bpy.types.Operator):
     def execute(self, context):
         sc = context.space_data
 
-        execute = getattr(bpy.ops.console, "execute_" + sc.language, None)
+        module = __import__("console_" + sc.language)
+        execute = getattr(module, "execute", None)
 
         if execute:
-            execute()
+            return execute(context)
         else:
             print("Error: bpy.ops.console.execute_" + sc.language + " - not found")
-
-        return ('FINISHED',)
+            return ('FINISHED',)
 
 
 class ConsoleAutocomplete(bpy.types.Operator):
@@ -158,17 +141,14 @@ class ConsoleAutocomplete(bpy.types.Operator):
 
     def execute(self, context):
         sc = context.space_data
-
-        autocomplete = getattr(bpy.ops.console, "autocomplete_" + sc.language, None)
+        module = __import__("console_" + sc.language)
+        autocomplete = getattr(module, "autocomplete", None)
 
         if autocomplete:
-            autocomplete()
+            return autocomplete(context)
         else:
             print("Error: bpy.ops.console.autocomplete_" + sc.language + " - not found")
-
-<<<<<<< .working
-=======
-        return ('FINISHED',)
+            return ('FINISHED',)
 
 
 class ConsoleBanner(bpy.types.Operator):
@@ -177,81 +157,37 @@ class ConsoleBanner(bpy.types.Operator):
     def execute(self, context):
         sc = context.space_data
 
->>>>>>> .merge-right.r24463
         # default to python
         if not sc.language:
             sc.language = 'python'
 
-        banner = getattr(bpy.ops.console, "banner_" + sc.language, None)
+        module = __import__("console_" + sc.language)
+        banner = getattr(module, "banner", None)
 
         if banner:
-            banner()
+            return banner(context)
         else:
             print("Error: bpy.ops.console.banner_" + sc.language + " - not found")
-
-        return ('FINISHED',)
-
+            return ('FINISHED',)
 
 
 class ConsoleLanguage(bpy.types.Operator):
     '''Set the current language for this console'''
     bl_idname = "console.language"
-    language = StringProperty(name="Language", maxlen= 32, default= "")
+    language = StringProperty(name="Language", maxlen=32, default="")
 
     def execute(self, context):
         sc = context.space_data
-<<<<<<< .working
-        
-        # default to python
-        if not sc.language:
-            sc.language = 'python'
-=======
->>>>>>> .merge-right.r24463
 
-<<<<<<< .working
-        banner = getattr(bpy.ops.console, "banner_" + sc.language, None)
-        
-        if banner:
-            banner()
-        else:
-            print("Error: bpy.ops.console.banner_" + sc.language + " - not found")
-=======
         # defailt to python
-        sc.language = self.language
->>>>>>> .merge-right.r24463
+        sc.language = self.properties.language
 
-<<<<<<< .working
-        return ('FINISHED',)
-=======
         bpy.ops.console.banner()
->>>>>>> .merge-right.r24463
 
-<<<<<<< .working
-
-
-class ConsoleLanguage(bpy.types.Operator):
-    '''Set the current language for this console'''
-    bl_idname = "console.language"
-    language = StringProperty(name="Language", maxlen= 32, default= "")
-
-    def execute(self, context):
-        sc = context.space_data
-        
-        # defailt to python
-        sc.language = self.language
-        
-        bpy.ops.console.banner()
-        
         # insert a new blank line
         bpy.ops.console.history_append(text="", current_character=0,
             remove_duplicates=True)
 
-=======
-        # insert a new blank line
-        bpy.ops.console.history_append(text="", current_character=0,
-            remove_duplicates=True)
-
->>>>>>> .merge-right.r24463
         return ('FINISHED',)
 
 

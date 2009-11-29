@@ -23,6 +23,8 @@ import subprocess, time
 from netrender.utils import *
 import netrender.model
 
+BLENDER_PATH = sys.argv[0]
+
 CANCEL_POLL_SPEED = 2
 MAX_TIMEOUT = 10
 INCREMENT_TIMEOUT = 1
@@ -85,13 +87,12 @@ def testFile(conn, job_id, slave_id, JOB_PREFIX, file_path, main_path = None):
 	return job_full_path
 
 
-def render_slave(engine, scene):
-	netsettings = scene.network_render
+def render_slave(engine, netsettings):
 	timeout = 1
 	
 	engine.update_stats("", "Network render node initiation")
 	
-	conn = clientConnection(scene)
+	conn = clientConnection(netsettings.server_address, netsettings.server_port)
 	
 	if conn:
 		conn.request("POST", "/slave", repr(slave_Info().serialize()))
@@ -150,7 +151,7 @@ def render_slave(engine, scene):
 						frame_args += ["-f", str(frame.number)]
 					
 					val = SetErrorMode()
-					process = subprocess.Popen([sys.argv[0], "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+					process = subprocess.Popen([BLENDER_PATH, "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 					RestoreErrorMode(val)
 				elif job.type == netrender.model.JOB_PROCESS:
 					command = job.frames[0].command
@@ -240,3 +241,6 @@ def render_slave(engine, scene):
 						return
 			
 		conn.close()
+
+if __name__ == "__main__":
+	pass

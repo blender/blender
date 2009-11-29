@@ -460,7 +460,7 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 	bpy.ops.object.mode_set(mode='POSE', toggle=False)
 	
 	pose= arm_ob.pose
-	pose_bones= pose.pose_channels
+	pose_bones= pose.bones
 	
 	
 	if ROT_STYLE=='NATIVE':
@@ -863,7 +863,7 @@ class BvhImporter(bpy.types.Operator):
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
 
-		read_bvh(context, self.path)
+		read_bvh(context, self.properties.path)
 
 		return ('FINISHED',)
 	
@@ -877,5 +877,5 @@ bpy.ops.add(BvhImporter)
 
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
+menu_func = lambda self, context: self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)

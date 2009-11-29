@@ -19,6 +19,8 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -33,437 +35,656 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout = self.layout
 
         ob = context.object
+        wide_ui = context.region.width > narrowui
 
         row = layout.row()
-        row.item_menu_enumO("object.modifier_add", "type")
-        row.itemL()
+        row.operator_menu_enum("object.modifier_add", "type")
+        if wide_ui:
+            row.label()
 
         for md in ob.modifiers:
             box = layout.template_modifier(md)
             if box:
                 # match enum type to our functions, avoids a lookup table.
-                getattr(self, md.type)(box, ob, md)
+                getattr(self, md.type)(box, ob, md, wide_ui)
 
     # the mt.type enum is (ab)used for a lookup on function names
     # ...to avoid lengthy if statements
     # so each type must have a function here.
 
-    def ARMATURE(self, layout, ob, md):
-        layout.itemR(md, "object")
+    def ARMATURE(self, layout, ob, md, wide_ui):
+        split = layout.split()
 
-        split = layout.split(percentage=0.5)
-        split.itemL(text="Vertex Group:")
-        sub = split.split(percentage=0.7)
-        sub.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
-        subsub = sub.row()
-        subsub.active = md.vertex_group
-        subsub.itemR(md, "invert")
+        col = split.column()
+        col.label(text="Object:")
+        col.prop(md, "object", text="")
 
-        layout.itemS()
+        if wide_ui:
+            col = split.column()
+        col.label(text="Vertex Group::")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = col.column()
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "invert")
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Bind To:")
-        col.itemR(md, "use_vertex_groups", text="Vertex Groups")
-        col.itemR(md, "use_bone_envelopes", text="Bone Envelopes")
+        col.label(text="Bind To:")
+        col.prop(md, "use_vertex_groups", text="Vertex Groups")
+        col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
 
-        col = split.column()
-        col.itemL(text="Deformation:")
-        col.itemR(md, "quaternion")
-        col.itemR(md, "multi_modifier")
+        if wide_ui:
+            col = split.column()
+        col.label(text="Deformation:")
+        col.prop(md, "quaternion")
+        col.prop(md, "multi_modifier")
 
-    def ARRAY(self, layout, ob, md):
-        layout.itemR(md, "fit_type")
+    def ARRAY(self, layout, ob, md, wide_ui):
+        if wide_ui:
+            layout.prop(md, "fit_type")
+        else:
+            layout.prop(md, "fit_type", text="")
+
+
         if md.fit_type == 'FIXED_COUNT':
-            layout.itemR(md, "count")
+            layout.prop(md, "count")
         elif md.fit_type == 'FIT_LENGTH':
-            layout.itemR(md, "length")
+            layout.prop(md, "length")
         elif md.fit_type == 'FIT_CURVE':
-            layout.itemR(md, "curve")
+            layout.prop(md, "curve")
 
-        layout.itemS()
+        layout.separator()
 
         split = layout.split()
 
         col = split.column()
-        col.itemR(md, "constant_offset")
+        col.prop(md, "constant_offset")
         sub = col.column()
         sub.active = md.constant_offset
-        sub.itemR(md, "constant_offset_displacement", text="")
+        sub.prop(md, "constant_offset_displacement", text="")
 
-        col.itemS()
+        col.separator()
 
-        col.itemR(md, "merge_adjacent_vertices", text="Merge")
+        col.prop(md, "merge_adjacent_vertices", text="Merge")
         sub = col.column()
         sub.active = md.merge_adjacent_vertices
-        sub.itemR(md, "merge_end_vertices", text="First Last")
-        sub.itemR(md, "merge_distance", text="Distance")
+        sub.prop(md, "merge_end_vertices", text="First Last")
+        sub.prop(md, "merge_distance", text="Distance")
 
-        col = split.column()
-        col.itemR(md, "relative_offset")
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "relative_offset")
         sub = col.column()
         sub.active = md.relative_offset
-        sub.itemR(md, "relative_offset_displacement", text="")
+        sub.prop(md, "relative_offset_displacement", text="")
 
-        col.itemS()
+        col.separator()
 
-        col.itemR(md, "add_offset_object")
+        col.prop(md, "add_offset_object")
         sub = col.column()
         sub.active = md.add_offset_object
-        sub.itemR(md, "offset_object", text="")
+        sub.prop(md, "offset_object", text="")
 
-        layout.itemS()
+        layout.separator()
 
         col = layout.column()
-        col.itemR(md, "start_cap")
-        col.itemR(md, "end_cap")
+        col.prop(md, "start_cap")
+        col.prop(md, "end_cap")
 
-    def BEVEL(self, layout, ob, md):
-        row = layout.row()
-        row.itemR(md, "width")
-        row.itemR(md, "only_vertices")
-
-        layout.itemL(text="Limit Method:")
-        layout.row().itemR(md, "limit_method", expand=True)
-        if md.limit_method == 'ANGLE':
-            layout.itemR(md, "angle")
-        elif md.limit_method == 'WEIGHT':
-            layout.row().itemR(md, "edge_weight_method", expand=True)
-
-    def BOOLEAN(self, layout, ob, md):
-        layout.itemR(md, "operation")
-        layout.itemR(md, "object")
-
-    def BUILD(self, layout, ob, md):
+    def BEVEL(self, layout, ob, md, wide_ui):
         split = layout.split()
 
         col = split.column()
-        col.itemR(md, "start")
-        col.itemR(md, "length")
+        col.prop(md, "width")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "only_vertices")
+
+        layout.label(text="Limit Method:")
+        layout.row().prop(md, "limit_method", expand=True)
+        if md.limit_method == 'ANGLE':
+            layout.prop(md, "angle")
+        elif md.limit_method == 'WEIGHT':
+            layout.row().prop(md, "edge_weight_method", expand=True)
+
+    def BOOLEAN(self, layout, ob, md, wide_ui):
+        split = layout.split()
 
         col = split.column()
-        col.itemR(md, "randomize")
+        col.label(text="Operation:")
+        col.prop(md, "operation", text="")
+
+        if wide_ui:
+            col = split.column()
+        col.label(text="Object:")
+        col.prop(md, "object", text="")
+
+    def BUILD(self, layout, ob, md, wide_ui):
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "start")
+        col.prop(md, "length")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "randomize")
         sub = col.column()
         sub.active = md.randomize
-        sub.itemR(md, "seed")
+        sub.prop(md, "seed")
 
-    def CAST(self, layout, ob, md):
-        layout.itemR(md, "cast_type")
-        layout.itemR(md, "object")
-        if md.object:
-            layout.itemR(md, "use_transform")
+    def CAST(self, layout, ob, md, wide_ui):
+        split = layout.split(percentage=0.25)
 
-        flow = layout.column_flow()
-        flow.itemR(md, "x")
-        flow.itemR(md, "y")
-        flow.itemR(md, "z")
-        flow.itemR(md, "factor")
-        flow.itemR(md, "radius")
-        flow.itemR(md, "size")
+        if wide_ui:
+            split.label(text="Cast Type:")
+            split.prop(md, "cast_type", text="")
+        else:
+            layout.prop(md, "cast_type", text="")
 
-        layout.itemR(md, "from_radius")
+        split = layout.split(percentage=0.25)
 
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
+        col = split.column()
+        col.prop(md, "x")
+        col.prop(md, "y")
+        col.prop(md, "z")
 
-    def CLOTH(self, layout, ob, md):
-        layout.itemL(text="See Cloth panel.")
+        col = split.column()
+        col.prop(md, "factor")
+        col.prop(md, "radius")
+        col.prop(md, "size")
+        col.prop(md, "from_radius")
 
-    def COLLISION(self, layout, ob, md):
-        layout.itemL(text="See Collision panel.")
-
-    def CURVE(self, layout, ob, md):
-        layout.itemR(md, "object")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "deform_axis")
-
-    def DECIMATE(self, layout, ob, md):
-        layout.itemR(md, "ratio")
-        layout.itemR(md, "face_count")
-
-    def DISPLACE(self, layout, ob, md):
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "texture")
-        layout.itemR(md, "midlevel")
-        layout.itemR(md, "strength")
-        layout.itemR(md, "direction")
-        layout.itemR(md, "texture_coordinates")
-        if md.texture_coordinates == 'OBJECT':
-            layout.itemR(md, "texture_coordinate_object", text="Object")
-        elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
-            layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
-
-    def EDGE_SPLIT(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        col.itemR(md, "use_edge_angle", text="Edge Angle")
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        if wide_ui:
+            col = split.column()
+        col.label(text="Control Object:")
+        col.prop(md, "object", text="")
+        if md.object:
+            col.prop(md, "use_transform")
+
+    def CLOTH(self, layout, ob, md, wide_ui):
+        layout.label(text="See Cloth panel.")
+
+    def COLLISION(self, layout, ob, md, wide_ui):
+        layout.label(text="See Collision panel.")
+
+    def CURVE(self, layout, ob, md, wide_ui):
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Object:")
+        col.prop(md, "object", text="")
+        if wide_ui:
+            col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        layout.label(text="Deformation Axis:")
+        layout.row().prop(md, "deform_axis", expand=True)
+
+    def DECIMATE(self, layout, ob, md, wide_ui):
+        layout.prop(md, "ratio")
+        layout.prop(md, "face_count")
+
+    def DISPLACE(self, layout, ob, md, wide_ui):
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Texture:")
+        col.prop(md, "texture", text="")
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
+        if wide_ui:
+            col = split.column()
+        col.label(text="Direction:")
+        col.prop(md, "direction", text="")
+        col.label(text="Texture Coordinates:")
+        col.prop(md, "texture_coordinates", text="")
+        if md.texture_coordinates == 'OBJECT':
+            layout.prop(md, "texture_coordinate_object", text="Object")
+        elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
+            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
+
+        layout.separator()
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "midlevel")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "strength")
+
+    def EDGE_SPLIT(self, layout, ob, md, wide_ui):
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "use_edge_angle", text="Edge Angle")
         sub = col.column()
         sub.active = md.use_edge_angle
-        sub.itemR(md, "split_angle")
+        sub.prop(md, "split_angle")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "use_sharp", text="Sharp Edges")
+
+    def EXPLODE(self, layout, ob, md, wide_ui):
+        split = layout.split()
 
         col = split.column()
-        col.itemR(md, "use_sharp", text="Sharp Edges")
+        col.label(text="Vertex group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = col.column()
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "protect")
 
-    def EXPLODE(self, layout, ob, md):
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "protect")
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "split_edges")
+        col.prop(md, "unborn")
+        col.prop(md, "alive")
+        col.prop(md, "dead")
 
-        flow = layout.column_flow(2)
-        flow.itemR(md, "split_edges")
-        flow.itemR(md, "unborn")
-        flow.itemR(md, "alive")
-        flow.itemR(md, "dead")
+        layout.operator("object.explode_refresh", text="Refresh")
 
-        layout.itemO("object.explode_refresh", text="Refresh")
+    def FLUID_SIMULATION(self, layout, ob, md, wide_ui):
+        layout.label(text="See Fluid panel.")
 
-    def FLUID_SIMULATION(self, layout, ob, md):
-        layout.itemL(text="See Fluid panel.")
+    def HOOK(self, layout, ob, md, wide_ui):
+        split = layout.split()
 
-    def HOOK(self, layout, ob, md):
-        col = layout.column()
-        col.itemR(md, "object")
+        col = split.column()
+        col.label(text="Object:")
+        col.prop(md, "object", text="")
         if md.object and md.object.type == 'ARMATURE':
-            layout.item_pointerR(md, "subtarget", md.object.data, "bones", text="Bone")
+            col.label(text="Bone:")
+            col.prop_object(md, "subtarget", md.object.data, "bones", text="")
+        if wide_ui:
+            col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
+        layout.separator()
 
         split = layout.split()
-        split.itemR(md, "falloff")
-        split.itemR(md, "force", slider=True)
 
-        layout.itemS()
-
-        row = layout.row()
-        row.itemO("object.hook_reset", text="Reset")
-        row.itemO("object.hook_recenter", text="Recenter")
+        col = split.column()
+        col.prop(md, "falloff")
+        col.prop(md, "force", slider=True)
+        if wide_ui:
+            col = split.column()
+        else:
+            col.separator()
+        col.operator("object.hook_reset", text="Reset")
+        col.operator("object.hook_recenter", text="Recenter")
 
         if ob.mode == 'EDIT':
+            layout.separator()
             row = layout.row()
-            row.itemO("object.hook_select", text="Select")
-            row.itemO("object.hook_assign", text="Assign")
+            row.operator("object.hook_select", text="Select")
+            row.operator("object.hook_assign", text="Assign")
 
-    def LATTICE(self, layout, ob, md):
-        layout.itemR(md, "object")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
+    def LATTICE(self, layout, ob, md, wide_ui):
+        split = layout.split()
 
-    def MASK(self, layout, ob, md):
-        layout.itemR(md, "mode")
+        col = split.column()
+        col.label(text="Object:")
+        col.prop(md, "object", text="")
+
+        if wide_ui:
+            col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
+    def MASK(self, layout, ob, md, wide_ui):
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Mode:")
+        col.prop(md, "mode", text="")
+        if wide_ui:
+            col = split.column()
+        col.label(text="Vertex Group:")
         if md.mode == 'ARMATURE':
-            layout.itemR(md, "armature")
+            col.prop(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
-            layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "inverse")
+            col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
-    def MESH_DEFORM(self, layout, ob, md):
-        layout.itemR(md, "object")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "invert")
+        sub = col.column()
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "invert")
 
-        layout.itemS()
+    def MESH_DEFORM(self, layout, ob, md, wide_ui):
+        split = layout.split()
+        col = split.column()
+        col.label(text="Object:")
+        col.prop(md, "object", text="")
+        if md.object and md.object.type == 'ARMATURE':
+            col.label(text="Bone:")
+            col.prop_object(md, "subtarget", md.object.data, "bones", text="")
+        if wide_ui:
+            col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
+        sub = col.column()
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "invert")
+
+        layout.separator()
 
         if md.is_bound:
-            layout.itemO("object.meshdeform_bind", text="Unbind")
+            layout.operator("object.meshdeform_bind", text="Unbind")
         else:
-            layout.itemO("object.meshdeform_bind", text="Bind")
-            row = layout.row()
-            row.itemR(md, "precision")
-            row.itemR(md, "dynamic")
-
-    def MIRROR(self, layout, ob, md):
-        layout.itemR(md, "merge_limit")
-        split = layout.split()
-
-        col = split.column()
-        col.itemR(md, "x")
-        col.itemR(md, "y")
-        col.itemR(md, "z")
-
-        col = split.column()
-        col.itemL(text="Textures:")
-        col.itemR(md, "mirror_u")
-        col.itemR(md, "mirror_v")
-
-        col = split.column()
-        col.itemR(md, "clip", text="Do Clipping")
-        col.itemR(md, "mirror_vertex_groups", text="Vertex Group")
-
-        layout.itemR(md, "mirror_object")
-
-    def MULTIRES(self, layout, ob, md):
-        layout.itemR(md, "subdivision_type")
-
-        row = layout.row()
-        row.itemO("object.multires_subdivide", text="Subdivide")
-        row.itemO("object.multires_higher_levels_delete", text="Delete Higher")
-
-        layout.itemR(md, "level")
-
-    def PARTICLE_INSTANCE(self, layout, ob, md):
-        layout.itemR(md, "object")
-        layout.itemR(md, "particle_system_number")
-
-        flow = layout.column_flow()
-        flow.itemR(md, "normal")
-        flow.itemR(md, "children")
-        flow.itemR(md, "size")
-        flow.itemR(md, "path")
-        if md.path:
-            flow.itemR(md, "keep_shape")
-        flow.itemR(md, "unborn")
-        flow.itemR(md, "alive")
-        flow.itemR(md, "dead")
-        flow.itemL(md, "")
-        if md.path:
-            flow.itemR(md, "axis", text="")
-
-        if md.path:
-            row = layout.row()
-            row.itemR(md, "position", slider=True)
-            row.itemR(md, "random_position", text="Random", slider=True)
-
-    def PARTICLE_SYSTEM(self, layout, ob, md):
-        layout.itemL(text="See Particle panel.")
-
-    def SHRINKWRAP(self, layout, ob, md):
-        layout.itemR(md, "target")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "offset")
-        layout.itemR(md, "subsurf_levels")
-        layout.itemR(md, "mode")
-        if md.mode == 'PROJECT':
-            layout.itemR(md, "subsurf_levels")
-            layout.itemR(md, "auxiliary_target")
-
-            row = layout.row()
-            row.itemR(md, "x")
-            row.itemR(md, "y")
-            row.itemR(md, "z")
-
-            flow = layout.column_flow()
-            flow.itemR(md, "negative")
-            flow.itemR(md, "positive")
-            flow.itemR(md, "cull_front_faces")
-            flow.itemR(md, "cull_back_faces")
-        elif md.mode == 'NEAREST_SURFACEPOINT':
-            layout.itemR(md, "keep_above_surface")
-
-    def SIMPLE_DEFORM(self, layout, ob, md):
-        layout.itemR(md, "mode")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "origin")
-        layout.itemR(md, "relative")
-        layout.itemR(md, "factor")
-        layout.itemR(md, "limits")
-        if md.mode in ('TAPER', 'STRETCH'):
-            layout.itemR(md, "lock_x_axis")
-            layout.itemR(md, "lock_y_axis")
-
-    def SMOKE(self, layout, ob, md):
-        layout.itemL(text="See Smoke panel.")
-
-    def SMOOTH(self, layout, ob, md):
-        split = layout.split()
-
-        col = split.column()
-        col.itemR(md, "x")
-        col.itemR(md, "y")
-        col.itemR(md, "z")
-
-        col = split.column()
-        col.itemR(md, "factor")
-        col.itemR(md, "repeat")
-
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-
-    def SOFT_BODY(self, layout, ob, md):
-        layout.itemL(text="See Soft Body panel.")
-
-    def SUBSURF(self, layout, ob, md):
-        layout.row().itemR(md, "subdivision_type", expand=True)
-
-        flow = layout.column_flow()
-        flow.itemR(md, "levels", text="Preview")
-        flow.itemR(md, "render_levels", text="Render")
-        flow.itemR(md, "optimal_draw", text="Optimal Display")
-        flow.itemR(md, "subsurf_uv")
-
-    def SURFACE(self, layout, ob, md):
-        layout.itemL(text="See Fields panel.")
-
-    def UV_PROJECT(self, layout, ob, md):
-        if ob.type == 'MESH':
-            layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
-            layout.itemR(md, "image")
-            layout.itemR(md, "override_image")
-
+            layout.operator("object.meshdeform_bind", text="Bind")
             split = layout.split()
 
             col = split.column()
-            col.itemL(text="Aspect Ratio:")
+            col.prop(md, "precision")
 
-            sub = col.column(align=True)
-            sub.itemR(md, "horizontal_aspect_ratio", text="Horizontal")
-            sub.itemR(md, "vertical_aspect_ratio", text="Vertical")
+            if wide_ui:
+                col = split.column()
+            col.prop(md, "dynamic")
+
+    def MIRROR(self, layout, ob, md, wide_ui):
+        layout.prop(md, "merge_limit")
+        if wide_ui:
+            split = layout.split(percentage=0.25)
+        else:
+            split = layout.split(percentage=0.4)
+
+        col = split.column()
+        col.label(text="Axis:")
+        col.prop(md, "x")
+        col.prop(md, "y")
+        col.prop(md, "z")
+
+        if wide_ui:
+            col = split.column()
+        else:
+            subsplit = layout.split()
+            col = subsplit.column()
+        col.label(text="Options:")
+        col.prop(md, "clip", text="Clipping")
+        col.prop(md, "mirror_vertex_groups", text="Vertex Groups")
+
+        col = split.column()
+        col.label(text="Textures:")
+        col.prop(md, "mirror_u", text="U")
+        col.prop(md, "mirror_v", text="V")
+
+        col = layout.column()
+        col.label(text="Mirror Object:")
+        col.prop(md, "mirror_object", text="")
+
+    def MULTIRES(self, layout, ob, md, wide_ui):
+        if wide_ui:
+            layout.row().prop(md, "subdivision_type", expand=True)
+        else:
+            layout.row().prop(md, "subdivision_type", text="")
+        layout.prop(md, "level")
+
+        split = layout.split()
+
+        col = split.column()
+        col.operator("object.multires_subdivide", text="Subdivide")
+
+        if wide_ui:
+            col = split.column()
+        col.operator("object.multires_higher_levels_delete", text="Delete Higher")
+
+    def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
+        layout.prop(md, "object")
+        layout.prop(md, "particle_system_number", text="Particle System")
+
+        split = layout.split()
+        col = split.column()
+        col.label(text="Create From:")
+        col.prop(md, "normal")
+        col.prop(md, "children")
+        col.prop(md, "size")
+
+        if wide_ui:
+            col = split.column()
+        col.label(text="Show Particles When:")
+        col.prop(md, "alive")
+        col.prop(md, "unborn")
+        col.prop(md, "dead")
+
+        layout.separator()
+
+        layout.prop(md, "path", text="Create Along Paths")
+
+        split = layout.split()
+        split.active = md.path
+        col = split.column()
+        col.row().prop(md, "axis", expand=True)
+        col.prop(md, "keep_shape")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "position", slider=True)
+        col.prop(md, "random_position", text="Random", slider=True)
+
+    def PARTICLE_SYSTEM(self, layout, ob, md, wide_ui):
+        layout.label(text="See Particle panel.")
+
+    def SHRINKWRAP(self, layout, ob, md, wide_ui):
+        split = layout.split()
+        col = split.column()
+        col.label(text="Target:")
+        col.prop(md, "target", text="")
+        if wide_ui:
+            col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "offset")
+        col.prop(md, "subsurf_levels")
+
+        if wide_ui:
+            col = split.column()
+            col.label(text="Mode:")
+        col.prop(md, "mode", text="")
+
+        if wide_ui:
+            split = layout.split(percentage=0.25)
+        else:
+            split = layout.split(percentage=0.35)
+        col = split.column()
+
+        if md.mode == 'PROJECT':
+            col.label(text="Axis:")
+            col.prop(md, "x")
+            col.prop(md, "y")
+            col.prop(md, "z")
 
             col = split.column()
-            col.itemL(text="Projectors:")
+            col.label(text="Direction:")
+            col.prop(md, "negative")
+            col.prop(md, "positive")
 
-            sub = col.column(align=True)
-            sub.itemR(md, "num_projectors", text="Number")
-            for proj in md.projectors:
-                sub.itemR(proj, "object", text="")
+            if wide_ui:
+                col = split.column()
+            else:
+                subsplit = layout.split()
+                col = subsplit.column()
+            col.label(text="Cull Faces:")
+            col.prop(md, "cull_front_faces", text="Front")
+            col.prop(md, "cull_back_faces", text="Back")
 
-    def WAVE(self, layout, ob, md):
+            layout.label(text="Auxiliary Target:")
+            layout.prop(md, "auxiliary_target", text="")
+
+        elif md.mode == 'NEAREST_SURFACEPOINT':
+            layout.prop(md, "keep_above_surface")
+
+    def SIMPLE_DEFORM(self, layout, ob, md, wide_ui):
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Motion:")
-        col.itemR(md, "x")
-        col.itemR(md, "y")
-        col.itemR(md, "cyclic")
+        col.label(text="Mode:")
+        col.prop(md, "mode", text="")
+
+        if wide_ui:
+            col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
+        split = layout.split()
 
         col = split.column()
-        col.itemR(md, "normals")
+        col.label(text="Origin:")
+        col.prop(md, "origin", text="")
+        sub = col.column()
+        sub.active = md.origin
+        sub.prop(md, "relative")
+
+        if wide_ui:
+            col = split.column()
+        col.label(text="Deform:")
+        col.prop(md, "factor")
+        col.prop(md, "limits", slider=True)
+        if md.mode in ('TAPER', 'STRETCH'):
+            col.prop(md, "lock_x_axis")
+            col.prop(md, "lock_y_axis")
+
+    def SMOKE(self, layout, ob, md, wide_ui):
+        layout.label(text="See Smoke panel.")
+
+    def SMOOTH(self, layout, ob, md, wide_ui):
+        split = layout.split(percentage=0.25)
+
+        col = split.column()
+        col.label(text="Axis:")
+        col.prop(md, "x")
+        col.prop(md, "y")
+        col.prop(md, "z")
+
+        col = split.column()
+        col.prop(md, "factor")
+        col.prop(md, "repeat")
+        col.label(text="Vertex Group:")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
+    def SOFT_BODY(self, layout, ob, md, wide_ui):
+        layout.label(text="See Soft Body panel.")
+
+    def SUBSURF(self, layout, ob, md, wide_ui):
+        if wide_ui:
+            layout.row().prop(md, "subdivision_type", expand=True)
+        else:
+            layout.row().prop(md, "subdivision_type", text="")
+
+        split = layout.split()
+        col = split.column()
+        col.label(text="Subdivisions:")
+        col.prop(md, "levels", text="View")
+        col.prop(md, "render_levels", text="Render")
+
+        if wide_ui:
+            col = split.column()
+        col.label(text="Options:")
+        col.prop(md, "optimal_draw", text="Optimal Display")
+        col.prop(md, "subsurf_uv")
+
+    def SURFACE(self, layout, ob, md, wide_ui):
+        layout.label(text="See Fields panel.")
+
+    def UV_PROJECT(self, layout, ob, md, wide_ui):
+        if ob.type == 'MESH':
+            split = layout.split()
+            col = split.column()
+            col.label(text="UV Layer:")
+            col.prop_object(md, "uv_layer", ob.data, "uv_textures", text="")
+
+            if wide_ui:
+                col = split.column()
+            col.label(text="Image:")
+            col.prop(md, "image", text="")
+
+            split = layout.split()
+            col = split.column()
+            col.prop(md, "override_image")
+            col.prop(md, "num_projectors", text="Projectors")
+            for proj in md.projectors:
+                col.prop(proj, "object", text="")
+
+            if wide_ui:
+                col = split.column()
+            sub = col.column(align=True)
+            sub.label(text="Aspect Ratio:")
+            sub.prop(md, "horizontal_aspect_ratio", text="Horizontal")
+            sub.prop(md, "vertical_aspect_ratio", text="Vertical")
+
+    def WAVE(self, layout, ob, md, wide_ui):
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Motion:")
+        col.prop(md, "x")
+        col.prop(md, "y")
+        col.prop(md, "cyclic")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "normals")
         sub = col.column()
         sub.active = md.normals
-        sub.itemR(md, "x_normal", text="X")
-        sub.itemR(md, "y_normal", text="Y")
-        sub.itemR(md, "z_normal", text="Z")
+        sub.prop(md, "x_normal", text="X")
+        sub.prop(md, "y_normal", text="Y")
+        sub.prop(md, "z_normal", text="Z")
 
         split = layout.split()
 
         col = split.column()
-        col.itemL(text="Time:")
+        col.label(text="Time:")
         sub = col.column(align=True)
-        sub.itemR(md, "time_offset", text="Offset")
-        sub.itemR(md, "lifetime", text="Life")
-        col.itemR(md, "damping_time", text="Damping")
+        sub.prop(md, "time_offset", text="Offset")
+        sub.prop(md, "lifetime", text="Life")
+        col.prop(md, "damping_time", text="Damping")
+
+        if wide_ui:
+            col = split.column()
+        col.label(text="Position:")
+        sub = col.column(align=True)
+        sub.prop(md, "start_position_x", text="X")
+        sub.prop(md, "start_position_y", text="Y")
+        col.prop(md, "falloff_radius", text="Falloff")
+
+        layout.separator()
+
+        layout.prop(md, "start_position_object")
+        layout.prop_object(md, "vertex_group", ob, "vertex_groups")
+        layout.prop(md, "texture")
+        layout.prop(md, "texture_coordinates")
+        if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
+            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
+        elif md.texture_coordinates == 'OBJECT':
+            layout.prop(md, "texture_coordinates_object")
+
+        layout.separator()
+
+        split = layout.split()
 
         col = split.column()
-        col.itemL(text="Position:")
-        sub = col.column(align=True)
-        sub.itemR(md, "start_position_x", text="X")
-        sub.itemR(md, "start_position_y", text="Y")
-        col.itemR(md, "falloff_radius", text="Falloff")
+        col.prop(md, "speed", slider=True)
+        col.prop(md, "height", slider=True)
 
-        layout.itemS()
-
-        layout.itemR(md, "start_position_object")
-        layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-        layout.itemR(md, "texture")
-        layout.itemR(md, "texture_coordinates")
-        if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
-            layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
-        elif md.texture_coordinates == 'OBJECT':
-            layout.itemR(md, "texture_coordinates_object")
-
-        layout.itemS()
-
-        flow = layout.column_flow()
-        flow.itemR(md, "speed", slider=True)
-        flow.itemR(md, "height", slider=True)
-        flow.itemR(md, "width", slider=True)
-        flow.itemR(md, "narrowness", slider=True)
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "width", slider=True)
+        col.prop(md, "narrowness", slider=True)
 
 bpy.types.register(DATA_PT_modifiers)
