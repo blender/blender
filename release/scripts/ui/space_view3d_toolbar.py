@@ -101,7 +101,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.label(text="Add:")
         col.operator("mesh.extrude_move")
         col.operator("mesh.subdivide")
-        col.operator("mesh.loopcut")
+        col.operator("mesh.loopcut_slide")
         col.operator("mesh.duplicate_move")
         col.operator("mesh.spin")
         col.operator("mesh.screw")

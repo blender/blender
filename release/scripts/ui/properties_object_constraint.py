@@ -258,7 +258,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         if con.use_fixed_position:
             col.prop(con, "offset_factor", text="Offset")
         else:
-            col.prop(con, "use_offset")
+            col.prop(con, "offset")
 
         row = layout.row()
         if wide_ui:
