@@ -195,6 +195,12 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 		icon= getname_anim_fcurve(name, ale->id, fcu);
 		uiItemL(col, name, icon);
 		
+	/* RNA-Path Editing - only really should be enabled when things aren't working */
+	col= uiLayoutColumn(layout, 1);
+		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)); 
+		uiItemR(col, "", ICON_RNA, &fcu_ptr, "rna_path", 0);
+		uiItemR(col, NULL, 0, &fcu_ptr, "array_index", 0);
+		
 	/* color settings */
 	col= uiLayoutColumn(layout, 1);
 		uiItemL(col, "Display Color:", 0);
@@ -279,6 +285,7 @@ static void driver_update_flags_cb (bContext *C, void *fcu_v, void *dummy_v)
 	ChannelDriver *driver= fcu->driver;
 	
 	/* clear invalid flags */
+	fcu->flag &= ~FCURVE_DISABLED; // XXX?
 	driver->flag &= ~DRIVER_FLAG_INVALID;
 }
 
@@ -323,7 +330,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
 		
 		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Remove Driver", 0, 0, 10*UI_UNIT_X, 18, NULL, 0.0, 0.0, 0, 0, "Remove this driver");
-		uiButSetFunc(but, driver_remove_cb, ale, NULL);
+		uiButSetNFunc(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
 		
 	/* driver-level settings - type, expressions, and errors */
 	RNA_pointer_create(ale->id, &RNA_Driver, driver, &driver_ptr);
@@ -443,7 +450,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
 		col= uiLayoutColumn(pa->layout, 1);
 		
-		ANIM_uiTemplate_fmodifier_draw(col, ale->id, &fcu->modifiers, fcm);
+		ANIM_uiTemplate_fmodifier_draw(C, col, ale->id, &fcu->modifiers, fcm);
 	}
 
 	MEM_freeN(ale);

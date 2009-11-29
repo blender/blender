@@ -45,6 +45,7 @@
 #include "ED_gpencil.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_object.h"
 #include "ED_physics.h"
 #include "ED_render.h"
@@ -111,6 +112,7 @@ void ED_spacetypes_init(void)
 	 * maybe we'll need to have them go after python operators too? */
 	ED_operatormacros_armature();
 	ED_operatormacros_mesh();
+	ED_operatormacros_node();
 	ED_operatormacros_object();
 }
 

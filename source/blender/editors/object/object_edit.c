@@ -2129,4 +2129,3 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to remove ", 0, INT_MAX);
 }
-

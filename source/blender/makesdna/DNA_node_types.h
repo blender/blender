@@ -40,6 +40,7 @@ struct bNodeLink;
 struct bNodeType;
 struct bNodeGroup;
 struct AnimData;
+struct bGPdata;
 struct uiBlock;
 
 #define NODE_MAXSTR 32
@@ -109,7 +110,6 @@ typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 	
 	char name[32];
-	char username[32];	/* custom name defined by user */
 	short type, flag;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
@@ -151,6 +151,7 @@ typedef struct bNode {
 #define NODE_TEST			256
 		/* composite: don't do node but pass on buffer(s) */
 #define NODE_MUTED			512
+#define NODE_CUSTOM_NAME		1024
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
@@ -168,6 +169,8 @@ typedef struct bNodeTree {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
 	
+	struct bGPdata *gpd;		/* grease pencil data */
+	
 	ListBase nodes, links;
 	
 	bNodeStack *stack;				/* stack is only while executing, no read/write in file */
@@ -177,6 +180,8 @@ typedef struct bNodeTree {
 	int stacksize;					/* amount of elements in stack */
 	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always 
 									   will increase this counter */
+	int flag, pad;					
+	
 	ListBase alltypes;				/* type definitions */
 	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
 
@@ -200,6 +205,9 @@ typedef struct bNodeTree {
 /* ntree->init, flag */
 #define NTREE_TYPE_INIT	1
 #define NTREE_EXEC_INIT	2
+
+/* ntree->flag */
+#define NTREE_DS_EXPAND	1	/* for animation editors */
 
 /* data structs, for node->storage */
 

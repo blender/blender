@@ -654,7 +654,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
-			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, "rna_builtin_properties_lookup_string", 0, 0);
+			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, "rna_builtin_properties_lookup_string");
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -662,7 +662,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 			cprop->begin= rna_builtin_properties_begin;
 			cprop->next= rna_builtin_properties_next;
 			cprop->get= rna_builtin_properties_get;
-			cprop->type= &RNA_Property;
+			cprop->item_type= &RNA_Property;
 #endif
 		}
 
@@ -1158,7 +1158,7 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 		}
 		case PROP_COLLECTION: {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-			cprop->type = (StructRNA*)type;
+			cprop->item_type = (StructRNA*)type;
 			break;
 		}
 		default:
@@ -1189,7 +1189,7 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 		}
 		case PROP_COLLECTION: {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-			cprop->type = type;
+			cprop->item_type = type;
 			break;
 		}
 		default:
@@ -1926,7 +1926,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 }
 
-void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring, const char *add, const char *remove)
+void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1946,8 +1946,6 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 			if(length) cprop->length= (PropCollectionLengthFunc)length;
 			if(lookupint) cprop->lookupint= (PropCollectionLookupIntFunc)lookupint;
 			if(lookupstring) cprop->lookupstring= (PropCollectionLookupStringFunc)lookupstring;
-			if(add) cprop->add= (FunctionRNA*)add;
-			if(remove) cprop->remove= (FunctionRNA*)remove;
 			break;
 		}
 		default:
@@ -1957,24 +1955,9 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 	}
 }
 
-void RNA_def_property_collection_active(PropertyRNA *prop, PropertyRNA *prop_act)
+void RNA_def_property_srna(PropertyRNA *prop, const char *type)
 {
-	if(!DefRNA.preprocess) {
-		fprintf(stderr, "RNA_def_property_collection_active: only during preprocessing.\n");
-		return;
-	}
-
-	switch(prop->type) {
-		case PROP_COLLECTION: {
-			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-			cprop->active= prop_act;
-			break;
-		}
-		default:
-			fprintf(stderr, "RNA_def_property_collection_active: %s.%s, type is not collection.\n", prop->identifier, prop_act->identifier);
-			DefRNA.error= 1;
-			break;
-	}
+	prop->srna= (StructRNA*)type;
 }
 
 /* Compact definitions */

@@ -138,17 +138,17 @@ void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 	{
 	case MOUSE_INVISIBLE:
 		{
-			BL_HideMouse();
+			BL_HideMouse(m_win);
 			break;
 		}
 	case MOUSE_WAIT:
 		{
-			BL_WaitMouse();
+			BL_WaitMouse(m_win);
 			break;
 		}
 	case MOUSE_NORMAL:
 		{
-			BL_NormalMouse();
+			BL_NormalMouse(m_win);
 			break;
 		}
 	default:
@@ -166,7 +166,7 @@ void KX_BlenderCanvas::SetMousePosition(int x,int y)
 	int winY = m_frame_rect.GetBottom();
 	int winH = m_frame_rect.GetHeight();
 	
-	BL_warp_pointer(winX + x, winY + (winH-y-1));
+	BL_warp_pointer(m_win, winX + x, winY + (winH-y-1));
 }
 
 

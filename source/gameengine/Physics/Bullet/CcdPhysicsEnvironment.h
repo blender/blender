@@ -199,7 +199,7 @@ protected:
 	
 		void	addCcdPhysicsController(CcdPhysicsController* ctrl);
 
-		void	removeCcdPhysicsController(CcdPhysicsController* ctrl);
+		bool	removeCcdPhysicsController(CcdPhysicsController* ctrl);
 
 		void	updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask);
 
@@ -242,13 +242,13 @@ protected:
 	
 		class btConstraintSolver*	GetConstraintSolver();
 
+		void MergeEnvironment(CcdPhysicsEnvironment *other);
+
 	protected:
 		
 		
 
-		
 		std::set<CcdPhysicsController*> m_controllers;
-		
 		std::set<CcdPhysicsController*> m_triggerControllers;
 
 		PHY_ResponseCallback	m_triggerCallbacks[PHY_NUM_RESPONSE];

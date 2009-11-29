@@ -911,7 +911,17 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".movie")
 				||	BLI_testextensie(file->relname, ".mp4")
 				||	BLI_testextensie(file->relname, ".m4v")
-				||	BLI_testextensie(file->relname, ".mv")) {
+				||	BLI_testextensie(file->relname, ".mv")
+				||	BLI_testextensie(file->relname, ".wmv")
+				||	BLI_testextensie(file->relname, ".ogv")
+				||	BLI_testextensie(file->relname, ".mpeg")
+				||	BLI_testextensie(file->relname, ".mpg")
+				||	BLI_testextensie(file->relname, ".mpg2")
+				||	BLI_testextensie(file->relname, ".vob")
+				||	BLI_testextensie(file->relname, ".mkv")
+				||	BLI_testextensie(file->relname, ".flv")
+				||	BLI_testextensie(file->relname, ".divx")
+				||	BLI_testextensie(file->relname, ".xvid")) {
 				file->flags |= MOVIEFILE;			
 			}
 			else if(BLI_testextensie(file->relname, ".wav")
@@ -954,8 +964,22 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				file->flags |= IMAGEFILE;			
 			}
 			else if(BLI_testextensie(file->relname, ".avi")
+				||	BLI_testextensie(file->relname, ".flc")
+				||	BLI_testextensie(file->relname, ".mov")
+				||	BLI_testextensie(file->relname, ".movie")
 				||	BLI_testextensie(file->relname, ".mp4")
-				||	BLI_testextensie(file->relname, ".mv")) {
+				||	BLI_testextensie(file->relname, ".m4v")
+				||	BLI_testextensie(file->relname, ".mv")
+				||	BLI_testextensie(file->relname, ".wmv")
+				||	BLI_testextensie(file->relname, ".ogv")
+				||	BLI_testextensie(file->relname, ".mpeg")
+				||	BLI_testextensie(file->relname, ".mpg")
+				||	BLI_testextensie(file->relname, ".mpg2")
+				||	BLI_testextensie(file->relname, ".vob")
+				||	BLI_testextensie(file->relname, ".mkv")
+				||	BLI_testextensie(file->relname, ".flv")
+				||	BLI_testextensie(file->relname, ".divx")
+				||	BLI_testextensie(file->relname, ".xvid")) {
 				file->flags |= MOVIEFILE;			
 			}
 			else if(BLI_testextensie(file->relname, ".wav")

@@ -251,17 +251,13 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 
 	/* note, commented out for follow constraint */
 	//if(cu->flag & CU_FOLLOW) {
-		
+
 		key_curve_tangent_weights(1.0f-fac, data, KEY_BSPLINE);
-		
-		dir[0]= data[0]*p0->vec[0] + data[1]*p1->vec[0] + data[2]*p2->vec[0] + data[3]*p3->vec[0] ;
-		dir[1]= data[0]*p0->vec[1] + data[1]*p1->vec[1] + data[2]*p2->vec[1] + data[3]*p3->vec[1] ;
-		dir[2]= data[0]*p0->vec[2] + data[1]*p1->vec[2] + data[2]*p2->vec[2] + data[3]*p3->vec[2] ;
-		
+
+		interp_v3_v3v3v3v3(dir, p0->vec, p1->vec, p2->vec, p3->vec, data);
+
 		/* make compatible with vectoquat */
-		dir[0]= -dir[0];
-		dir[1]= -dir[1];
-		dir[2]= -dir[2];
+		negate_v3(dir);
 	//}
 	
 	nu= cu->nurb.first;
@@ -703,7 +699,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						if(par->transflag & OB_DUPLIFACES_SCALE) {
 							float size= v4? area_quad_v3(v1, v2, v3, v4): area_tri_v3(v1, v2, v3);
 							size= sqrt(size) * par->dupfacesca;
-							mul_m3_fl(mat[0], size);
+							mul_m3_fl(mat, size);
 						}
 						
 						copy_m3_m3(mat3, mat);
@@ -940,7 +936,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			if(part->ren_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 				for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
 					mul_m4_m4m4(tmat, oblist[b]->obmat, pamat);
-					mul_mat3_m4_fl((float *)tmat, size*scale);
+					mul_mat3_m4_fl(tmat, size*scale);
 					if(par_space_mat)
 						mul_m4_m4m4(mat, tmat, par_space_mat);
 					else
@@ -962,7 +958,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				copy_m4_m4(mat, pamat);
 
 				mul_m4_m4m4(tmat, obmat, mat);
-				mul_mat3_m4_fl((float *)tmat, size*scale);
+				mul_mat3_m4_fl(tmat, size*scale);
 
 				if(part->draw & PART_DRAW_GLOBAL_OB)
 					VECADD(tmat[3], tmat[3], vec);

@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -83,6 +84,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -143,6 +145,11 @@ void free_edit_bone(bArmature *arm, EditBone *bone)
 {
 	if(arm->act_edbone==bone)
 		arm->act_edbone= NULL;
+
+	if(bone->prop) {
+		IDP_FreeProperty(bone->prop);
+		MEM_freeN(bone->prop);
+	}
 
 	BLI_freelinkN(arm->edbo, bone);
 }
@@ -1025,8 +1032,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 			}
 			
 			/* free any of the extra-data this pchan might have */
-			if (pchan->path) MEM_freeN(pchan->path);
-			free_constraints(&pchan->constraints);
+			free_pose_channel(pchan);
 			
 			/* get rid of unneeded bone */
 			free_edit_bone(arm, curbone);
@@ -1733,17 +1739,17 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	
 	/*  First erase any associated pose channel */
 	if (obedit->pose) {
-		bPoseChannel *chan, *next;
-		for (chan=obedit->pose->chanbase.first; chan; chan=next) {
-			next= chan->next;
-			curBone = editbone_name_exists(arm->edbo, chan->name);
+		bPoseChannel *pchan, *next;
+		for (pchan=obedit->pose->chanbase.first; pchan; pchan=next) {
+			next= pchan->next;
+			curBone = editbone_name_exists(arm->edbo, pchan->name);
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
-				free_constraints(&chan->constraints);
-				BLI_freelinkN (&obedit->pose->chanbase, chan);
+				free_pose_channel(pchan);
+				BLI_freelinkN (&obedit->pose->chanbase, pchan);
 			}
 			else {
-				for (con= chan->constraints.first; con; con= con->next) {
+				for (con= pchan->constraints.first; con; con= con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 					ListBase targets = {NULL, NULL};
 					bConstraintTarget *ct;
@@ -2522,12 +2528,12 @@ void updateDuplicateSubtargetObjects(EditBone *dupBone, ListBase *editbones, Obj
 	 * they point to has also been duplicated
 	 */
 	EditBone     *oldtarget, *newtarget;
-	bPoseChannel *chan;
+	bPoseChannel *pchan;
 	bConstraint  *curcon;
 	ListBase     *conlist;
 	
-	if ( (chan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
-		if ( (conlist = &chan->constraints) ) {
+	if ( (pchan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
+		if ( (conlist = &pchan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
 				 * this armature?
@@ -4839,7 +4845,16 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 
 static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
@@ -4850,8 +4865,21 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 		if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
 			pchan->size[2]= 1.0f;
 			
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
@@ -4880,10 +4908,20 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 
 static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		/* clear location */
 		if ((pchan->protectflag & OB_LOCK_LOCX)==0)
 			pchan->loc[0]= 0.0f;
 		if ((pchan->protectflag & OB_LOCK_LOCY)==0)
@@ -4891,8 +4929,21 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 		if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
 			pchan->loc[2]= 0.0f;
 			
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
@@ -4921,7 +4972,16 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 
 static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
@@ -5017,8 +5077,21 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			}
 		}
 		
-		/* the current values from IPO's may not be zero, so tag as unkeyed */
-		//pchan->bone->flag |= BONE_UNKEYED;
+		/* do auto-keyframing as appropriate */
+		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+		else {
+			/* add unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag |= BONE_UNKEYED;
+		}
 	}
 	CTX_DATA_END;
 	
@@ -5083,9 +5156,9 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int	sel=1;
 
-	/*	Determine if there are any selected bones
-	And therefore whether we are selecting or deselecting */
-	if (CTX_DATA_COUNT(C, selected_pchans) > 0)	sel=0;
+	/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
+	// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
+	if (CTX_DATA_COUNT(C, selected_pchans) > 1)	sel=0;
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
@@ -5411,7 +5484,7 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			// TODO: should we be using the database wide version instead (since drivers may break)
 			if (ob->adt) {
 				/* posechannels only... */
-				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.pose_channels", oldname, newname);
+				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.bones", oldname, newname);
 			}
 		}
 	}

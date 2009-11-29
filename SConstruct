@@ -224,6 +224,11 @@ if env['WITH_GHOST_COCOA'] == True:
 	env.Append(CFLAGS=['-DGHOST_COCOA']) 
 	env.Append(CXXFLAGS=['-DGHOST_COCOA'])
 	env.Append(CPPFLAGS=['-DGHOST_COCOA'])
+    
+if env['USE_QTKIT'] == True:
+	env.Append(CFLAGS=['-DUSE_QTKIT']) 
+	env.Append(CXXFLAGS=['-DUSE_QTKIT'])
+	env.Append(CPPFLAGS=['-DUSE_QTKIT'])
 
 #check for additional debug libnames
 

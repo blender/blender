@@ -40,7 +40,6 @@ void script_keymap(struct wmKeyConfig *keyconf);
 
 /* script_edit.c */
 void SCRIPT_OT_python_file_run(struct wmOperatorType *ot);
-void SCRIPT_OT_python_run_ui_scripts(struct wmOperatorType *ot);
 
 #endif /* ED_SCRIPT_INTERN_H */
 

@@ -131,7 +131,8 @@ void blf_glyph_cache_free(GlyphCacheBLF *gc)
 		}
 	}
 
-	glDeleteTextures(gc->cur_tex+1, gc->textures);
+	if (gc->cur_tex+1 > 0)
+		glDeleteTextures(gc->cur_tex+1, gc->textures);
 	free((void *)gc->textures);
 	MEM_freeN(gc);
 }

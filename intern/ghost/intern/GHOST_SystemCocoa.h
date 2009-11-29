@@ -246,6 +246,9 @@ protected:
 	/** Start time at initialization. */
 	GHOST_TUns64 m_start_time;
 	
+	/** Event has been processed directly by Cocoa and has sent a ghost event to be dispatched */
+	bool m_outsideLoopEventProcessed;
+	
 	/** Mouse buttons state */
 	GHOST_TUns32 m_pressedMouseButtons;
 	

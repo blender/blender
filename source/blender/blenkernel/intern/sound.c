@@ -384,6 +384,8 @@ void sound_update_playing(struct bContext *C)
 				}
 			}
 
+			AUD_setSoundVolume(handle->handle, handle->volume);
+			
 			if(action & 1)
 			{
 				if(handle->state == AUD_STATUS_INVALID)
@@ -468,7 +470,9 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 				frameskip -= s;
 				s = 0;
 			}
-
+			
+			AUD_setSoundVolume(handle->handle, handle->volume);
+			
 			limiter = AUD_limitSound(handle->source->handle, frameskip / fps, e / fps);
 			delayer = AUD_delaySound(limiter, s / fps);
 

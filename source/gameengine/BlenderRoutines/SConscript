@@ -2,7 +2,7 @@
 Import ('env')
 
 sources = env.Glob('*.cpp')
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 incs = '. #source/kernel/gen_system #intern/string #intern/guardedalloc'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'

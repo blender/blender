@@ -27,6 +27,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -48,6 +49,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
+#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 
@@ -72,9 +74,9 @@ static void rna_Pose_IK_update(bContext *C, PointerRNA *ptr)
 	BIK_clear_data(ob->pose);
 }
 
-static char *rna_PoseChannel_path(PointerRNA *ptr)
+static char *rna_PoseBone_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("pose.pose_channels[\"%s\"]", ((bPoseChannel*)ptr->data)->name);
+	return BLI_sprintfN("pose.bones[\"%s\"]", ((bPoseChannel*)ptr->data)->name);
 }
 
 static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
@@ -112,7 +114,7 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 	}
 }
 
-static IDProperty *rna_PoseChannel_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_PoseBone_idproperties(PointerRNA *ptr, int create)
 {
 	bPoseChannel *pchan= ptr->data;
 
@@ -414,6 +416,35 @@ static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *r
 }
 #endif
 
+static PointerRNA rna_PoseChannel_active_constraint_get(PointerRNA *ptr)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	bConstraint *con= constraints_get_active(&pchan->constraints);
+	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
+}
+
+static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA value)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	constraints_set_active(&pchan->constraints, (bConstraint *)value.data);
+}
+
+static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, bContext *C, int type)
+{
+	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	// TODO, pass object also
+	// TODO, new pose bones don't have updated draw flags
+	return add_pose_constraint(NULL, pchan, NULL, type);
+}
+
+static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, bContext *C, int index)
+{
+	// TODO
+	//ED_object_constraint_set_active(object, NULL);
+	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+	return remove_constraint_index(&pchan->constraints, index);
+}
+
 #else
 
 static void rna_def_bone_group(BlenderRNA *brna)
@@ -486,6 +517,50 @@ static EnumPropertyItem prop_solver_items[] = {
 	{ITASC_SOLVER_DLS, "DLS", 0, "DLS", "Damped Least Square with Numerical Filtering"},
 	{0, NULL, 0, NULL, NULL}};
 
+
+static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "PoseBoneConstraints");
+	srna= RNA_def_struct(brna, "PoseBoneConstraints", NULL);
+	RNA_def_struct_sdna(srna, "bPoseChannel");
+	RNA_def_struct_ui_text(srna, "PoseBone Constraints", "Collection of pose bone constraints.");
+
+	/* Collection active property */
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Constraint");
+	RNA_def_property_pointer_funcs(prop, "rna_PoseChannel_active_constraint_get", "rna_PoseChannel_active_constraint_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Constraint", "Active PoseChannel constraint.");
+
+
+	/* Constraint collection */
+	func= RNA_def_function(srna, "new", "rna_PoseChannel_constraints_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a constraint to this object");
+	/* return type */
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
+	/* return type */
+	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
+	RNA_def_function_return(func, parm);
+	/* object to add */
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_pose_channel(BlenderRNA *brna)
 {
 	// XXX: this RNA enum define is currently duplicated for objects, since there is some text here which is not applicable
@@ -503,16 +578,18 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "PoseChannel", NULL);
+	srna= RNA_def_struct(brna, "PoseBone", NULL);
 	RNA_def_struct_sdna(srna, "bPoseChannel");
-	RNA_def_struct_ui_text(srna, "Pose Channel", "Channel defining pose data for a bone in a Pose.");
-	RNA_def_struct_path_func(srna, "rna_PoseChannel_path");
-	RNA_def_struct_idproperties_func(srna, "rna_PoseChannel_idproperties");
+	RNA_def_struct_ui_text(srna, "Pose Bone", "Channel defining pose data for a bone in a Pose.");
+	RNA_def_struct_path_func(srna, "rna_PoseBone_path");
+	RNA_def_struct_idproperties_func(srna, "rna_PoseBone_idproperties");
 	
 	/* Bone Constraints */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
-	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel."); 
+	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel.");
+
+	rna_def_pose_channel_constraints(brna, prop);
 
 	/* Name + Selection Status */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -542,17 +619,17 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Bone", "Bone associated with this Pose Channel.");
+	RNA_def_property_ui_text(prop, "Bone", "Bone associated with this PoseBone.");
 
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "PoseChannel");
+	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Parent", "Parent of this pose channel.");
+	RNA_def_property_ui_text(prop, "Parent", "Parent of this pose bone.");
 
 	prop= RNA_def_property(srna, "child", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "PoseChannel");
+	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Child", "Child of this pose channel.");
+	RNA_def_property_ui_text(prop, "Child", "Child of this pose bone.");
 	
 	/* Transformation settings */
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
@@ -791,6 +868,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+
+	RNA_api_pose_channel(srna);
 }
 
 static void rna_def_pose_itasc(BlenderRNA *brna)
@@ -918,10 +997,10 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Pose", "A collection of pose channels, including settings for animating bones.");
 
 	/* pose channels */
-	prop= RNA_def_property(srna, "pose_channels", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
-	RNA_def_property_struct_type(prop, "PoseChannel");
-	RNA_def_property_ui_text(prop, "Pose Channels", "Individual pose channels for the armature.");
+	RNA_def_property_struct_type(prop, "PoseBone");
+	RNA_def_property_ui_text(prop, "Pose Bones", "Individual pose bones for the armature.");
 
 	/* bone groups */
 	prop= RNA_def_property(srna, "bone_groups", PROP_COLLECTION, PROP_NONE);

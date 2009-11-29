@@ -40,7 +40,6 @@
 #include "GPW_KeyboardDevice.h"
 #include "GPW_System.h"
 
-#include "SND_DeviceManager.h"
 
 #include "NG_NetworkScene.h"
 #include "NG_LoopBackNetworkDeviceInterface.h"
@@ -64,9 +63,6 @@ GPW_Engine::~GPW_Engine()
 
 bool GPW_Engine::Initialize(HDC hdc, int width, int height)
 {
-	SND_DeviceManager::Subscribe();
-	m_audiodevice = SND_DeviceManager::Instance();
-
 	m_keyboarddev = new GPW_KeyboardDevice();
 	m_mousedev = new GPC_MouseDevice();
 		

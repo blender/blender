@@ -124,7 +124,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (op) {
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 
-		if(RNA_struct_find_property(op->ptr, "filename"))
+		if(RNA_struct_find_property(op->ptr, "filemode"))
 			params->type = RNA_int_get(op->ptr, "filemode");
 		else
 			params->type = FILE_SPECIAL;
@@ -164,7 +164,12 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		if (params->filter != 0)
 			params->flag |= FILE_FILTER;
 
-		params->flag |= FILE_HIDE_DOT;
+		if (U.uiflag & USER_HIDE_DOT) {
+			params->flag |= FILE_HIDE_DOT;
+		} else {
+			params->flag &= ~FILE_HIDE_DOT;
+		}
+		
 
 		if (params->type == FILE_LOADLIB) {
 			params->flag |= RNA_boolean_get(op->ptr, "link") ? FILE_LINK : 0;

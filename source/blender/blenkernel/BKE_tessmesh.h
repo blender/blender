@@ -1,3 +1,6 @@
+#ifndef _BKE_TESSMESH_H
+#define _BKE_TESSMESH_H
+
 #include "bmesh.h"
 
 struct BMesh;
@@ -61,3 +64,5 @@ BMEditMesh *BMEdit_Create(BMesh *bm);
 BMEditMesh *BMEdit_Copy(BMEditMesh *tm);
 void BMEdit_Free(BMEditMesh *em);
 void BMEdit_UpdateLinkedCustomData(BMEditMesh *em);
+
+#endif /* _BKE_TESSMESH_H */

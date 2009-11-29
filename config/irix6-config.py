@@ -161,7 +161,7 @@ CXX = 'CC'
 
 CCFLAGS = ['-pipe','-fPIC', '-n32']
 
-CPPFLAGS = ['-DXP_UNIX']
+CPPFLAGS = []
 CXXFLAGS = ['-pipe','-fPIC', '-n32']
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']

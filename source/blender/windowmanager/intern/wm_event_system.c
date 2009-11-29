@@ -461,10 +461,18 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				WM_operator_free(op);
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
-			/* grab cursor during blocking modal ops (X11) */
-			if(ot->flag & OPTYPE_BLOCKING) {
+			/* grab cursor during blocking modal ops (X11)
+			 * Also check for macro
+			 * */
+			if(ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
 				int bounds[4] = {-1,-1,-1,-1};
-				int wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				int wrap;
+
+				if (op->opm) {
+					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
+				} else {
+					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				}
 
 				if(wrap) {
 					ARegion *ar= CTX_wm_region(C);
@@ -498,12 +506,25 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 	int retval;
 
 	/* dummie test */
-	if(ot && C && window) {
-		event= window->eventstate;
+	if(ot && C) {
+		switch(context) {
+			case WM_OP_INVOKE_DEFAULT:
+			case WM_OP_INVOKE_REGION_WIN:
+			case WM_OP_INVOKE_AREA:
+			case WM_OP_INVOKE_SCREEN:
+				/* window is needed for invoke, cancel operator */
+				if (window == NULL)
+					return 0;
+				else
+					event= window->eventstate;
+				break;
+			default:
+				event = NULL;
+		}
+
 		switch(context) {
 			
 			case WM_OP_EXEC_REGION_WIN:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_REGION_WIN: 
 			{
 				/* forces operator to go to the region window, for header menus */
@@ -527,7 +548,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_AREA:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_AREA:
 			{
 					/* remove region from context */
@@ -540,7 +560,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_SCREEN:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_SCREEN:
 			{
 				/* remove region + area from context */
@@ -556,7 +575,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_DEFAULT:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_DEFAULT:
 				return wm_operator_invoke(C, ot, event, properties, reports);
 		}
@@ -611,7 +629,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 /* ********************* handlers *************** */
 
 /* future extra customadata free? */
-static void wm_event_free_handler(wmEventHandler *handler)
+void wm_event_free_handler(wmEventHandler *handler)
 {
 	MEM_freeN(handler);
 }
@@ -756,6 +774,30 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 				return 1;
 		}
 	}
+	/* exception for numpad emulation */
+	else if(U.flag & USER_NONUMPAD) {
+		wmKeyMapItem tmp= *kmi;
+
+		switch(kmi->type) {
+			case PAD0: tmp.type = ZEROKEY; break;
+			case PAD1: tmp.type = ONEKEY; break;
+			case PAD2: tmp.type = TWOKEY; break;
+			case PAD3: tmp.type = THREEKEY; break;
+			case PAD4: tmp.type = FOURKEY; break;
+			case PAD5: tmp.type = FIVEKEY; break;
+			case PAD6: tmp.type = SIXKEY; break;
+			case PAD7: tmp.type = SEVENKEY; break;
+			case PAD8: tmp.type = EIGHTKEY; break;
+			case PAD9: tmp.type = NINEKEY; break;
+			case PADMINUS: tmp.type = MINUSKEY; break;
+			case PADPLUSKEY: tmp.type = EQUALKEY; break;
+			case PADSLASHKEY: tmp.type = BACKSLASHKEY; break;
+		}
+
+		if(tmp.type != kmi->type)
+			if(wm_eventmatch(winevent, &tmp))
+				return 1;
+	}
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
@@ -795,12 +837,17 @@ static int wm_event_always_pass(wmEvent *event)
 }
 
 /* operator exists */
-static void wm_event_modalkeymap(wmOperator *op, wmEvent *event)
+static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
 {
+	/* support for modal keymap in macros */
+	if (op->opm)
+		op = op->opm;
+
 	if(op->type->modalkeymap) {
+		wmKeyMap *keymap= WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
-		
-		for(kmi= op->type->modalkeymap->items.first; kmi; kmi= kmi->next) {
+
+		for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
 			if(wm_eventmatch(event, kmi)) {
 					
 				event->type= EVT_MODAL_MAP;
@@ -827,7 +874,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			wm_handler_op_context(C, handler);
 			wm_region_mouse_co(C, event);
-			wm_event_modalkeymap(op, event);
+			wm_event_modalkeymap(C, op, event);
 			
 			retval= ot->modal(C, op, event);
 

@@ -66,14 +66,13 @@
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 
-/* #include "BDR_gpencil.h" XXX */
-
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_types.h"
@@ -548,53 +547,25 @@ static void node_sync_cb(bContext *C, void *snode_v, void *node_v)
 
 /* **************  Socket callbacks *********** */
 
-static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
-{
-	if(node_v && ntree_v) {
-		NodeTagChanged(ntree_v, node_v); 
-		// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC); XXX
-	}
-}
-
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
-	ScrArea *sa= CTX_wm_area(C);
-	bNode *node;
 	bNodeSocket *sock= socket_v;
-	bNodeStack *ns= &sock->ns;
 	uiBlock *block;
-	uiBut *bt;
 	
-	/* a bit ugly... retrieve the node the socket comes from */
-	for(node= snode->nodetree->nodes.first; node; node= node->next) {
-		bNodeSocket *sockt;
-		for(sockt= node->inputs.first; sockt; sockt= sockt->next)
-			if(sockt==sock)
-				break;
-		if(sockt)
-			break;
-	}
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->nodetree;
+	PointerRNA ptr;
+	uiLayout *layout;
+	
+	RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
 	
 	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
-
-	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
 	
-	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, 0, "X ",	 0,40,180,20, ns->vec, ns->min, ns->max, 10, 0, "");
-	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
-	bt= uiDefButF(block, NUMSLI, 0, "Y ",	 0,20,180,20, ns->vec+1, ns->min, ns->max, 10, 0, "");
-	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
-	bt= uiDefButF(block, NUMSLI, 0, "Z ",	 0,0,180,20, ns->vec+2, ns->min, ns->max, 10, 0, "");
-	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
+	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, sock->locx, sock->locy-8, 140, 20, U.uistyles.first), 0);
 	
-	uiBlockSetDirection(block, UI_TOP);
-	uiEndBlock(C, block);
-	
-	ED_area_tag_redraw(sa);
+	uiItemR(layout, "", 0, &ptr, "default_value", UI_ITEM_R_EXPAND);
 	
 	return block;
 }
@@ -671,6 +642,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	int /*ofs,*/ color_id= node_get_colorid(node);
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
+	bNodeTree *ntree = snode->nodetree;
+	PointerRNA ptr;
 	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
@@ -705,10 +678,10 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		glEnable(GL_BLEND);
 		if(node->id->lib) {
 			float rgb[3] = {1.0f, 0.7f, 0.3f};
-			UI_icon_draw_aspect_color(iconofs, rct->ymax-NODE_DY, ICON_NODE, snode->aspect, rgb);
+			UI_icon_draw_aspect_color(iconofs, rct->ymax-NODE_DY, ICON_NODETREE, snode->aspect, rgb);
 		}
 		else {
-			UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_NODE, snode->aspect, 0.5f);
+			UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_NODETREE, snode->aspect, 0.5f);
 		}
 		glDisable(GL_BLEND);
 	}
@@ -746,12 +719,14 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_ThemeColor(TH_TEXT);
 	
-	if(node->flag & NODE_MUTED)
-		sprintf(showname, "[%s]", node->name);
-	else if(node->username[0])
-		sprintf(showname, "(%s) %s", node->username, node->name);
+	if(node->flag & NODE_CUSTOM_NAME)
+		BLI_strncpy(showname, node->name, 32);
 	else
-		BLI_strncpy(showname, node->name, 128);
+		/* todo: auto name display for node types */
+		BLI_strncpy(showname, node->name, 32);
+
+	//if(node->flag & NODE_MUTED)
+	//	sprintf(showname, "[%s]", showname);
 	
 	uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
 			 (int)(iconofs - rct->xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
@@ -789,13 +764,14 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
+			RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
+			
 			if(node->block && sock->link==NULL) {
-				float *butpoin= sock->ns.vec;
-				
+			
 				if(sock->type==SOCK_VALUE) {
-					bt= uiDefButF(node->block, NUM, B_NODE_EXEC, sock->name, 
-						  (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
-						  butpoin, sock->ns.min, sock->ns.max, 10, 2, "");
+					bt=uiDefButR(node->block, NUM, B_NODE_EXEC, sock->name,
+							 (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
+							  &ptr, "default_value", 0, sock->ns.min, sock->ns.max, -1, -1, NULL);
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 				}
 				else if(sock->type==SOCK_VECTOR) {
@@ -808,9 +784,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 					
 					if(labelw>0) width= 40; else width= (short)node->width-NODE_DY;
 					
-					bt= uiDefButF(node->block, COL, B_NODE_EXEC, "", 
-						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, width, 15, 
-						   butpoin, 0, 0, 0, 0, "");
+					bt=uiDefButR(node->block, COL, B_NODE_EXEC, "",
+								 (short)sock->locx+NODE_DYS, (short)(sock->locy)-8, width, 15, 
+								 &ptr, "default_value", 0, sock->ns.min, sock->ns.max, -1, -1, NULL);
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 					
 					if(labelw>0) uiDefBut(node->block, LABEL, 0, sock->name, 
@@ -820,7 +796,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			}
 			else {
 				
-				uiDefBut(node->block, LABEL, 0, sock->name, (short)(sock->locx+3.0f), (short)(sock->locy-9.0f), 
+				uiDefBut(node->block, LABEL, 0, sock->name, (short)(sock->locx+7), (short)(sock->locy-9.0f), 
 						 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
 			}
 		}
@@ -904,12 +880,15 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	
 	if(node->miniwidth>0.0f) {
 
-		if(node->flag & NODE_MUTED)
-			sprintf(showname, "[%s]", node->name);
-		else if(node->username[0])
-			sprintf(showname, "(%s)%s", node->username, node->name);
-		else
+
+		if(node->flag & NODE_CUSTOM_NAME)
 			BLI_strncpy(showname, node->name, 128);
+		else
+			/* todo: auto name display */
+			BLI_strncpy(showname, node->name, 128);
+	
+		//if(node->flag & NODE_MUTED)
+		//	sprintf(showname, "[%s]", showname);
 
 		uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 
 				 (int)(rct->xmax - rct->xmin-18.0f -12.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
@@ -1047,15 +1026,12 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* backdrop title */
 	UI_ThemeColor(TH_TEXT_HI);
 
-	if(gnode->username[0]) {
-		strcpy(showname,"(");
-		strcat(showname, gnode->username);
-		strcat(showname,") ");
-		strcat(showname, ngroup->id.name+2);
-	}
+	if (gnode->flag & NODE_CUSTOM_NAME)
+		strcat(showname, gnode->name);
 	else
 		strcpy(showname, ngroup->id.name+2);
 
+	// XXX this shows some scaling artifacts
 	UI_DrawString(rect.xmin+8.0f, rect.ymax+5.0f, showname);
 	
 	/* links from groupsockets to the internal nodes */
@@ -1127,37 +1103,15 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	}
 	
 	/* draw grease-pencil ('canvas' strokes) */
-	/*if ((snode->flag & SNODE_DISPGP) && (snode->nodetree))
-		draw_gpencil_2dview(sa, 1);*/
-	
-	/* restore viewport (not needed yet) */
-	/*mywinset(sa->win);*/
-
-	/* ortho at pixel level curarea */
-	/*myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);*/
-	
-	/* draw grease-pencil (screen strokes) */
-	/*if ((snode->flag & SNODE_DISPGP) && (snode->nodetree))
-		draw_gpencil_2dview(sa, 0);*/
-
-	//draw_area_emboss(sa);
-	
-	/* it is important to end a view in a transform compatible with buttons */
-	/*bwin_scalematrix(sa->win, snode->blockscale, snode->blockscale, snode->blockscale);
-	nodes_blockhandlers(sa);*/
-	
-	//curarea->win_swap= WIN_BACK_OK;
-	
-	/* in the end, this is a delayed previewrender test, to allow buttons to be first */
-	/*if(snode->flag & SNODE_DO_PREVIEW) {
-		addafterqueue(sa->win, RENDERPREVIEW, 1);
-		snode->flag &= ~SNODE_DO_PREVIEW;
-	}*/
-	
-	
+	if (/*(snode->flag & SNODE_DISPGP) &&*/ (snode->nodetree))
+		draw_gpencil_2dview((bContext*)C, 1);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
+	
+	/* draw grease-pencil (screen strokes, and also paintbuffer) */
+	if (/*(snode->flag & SNODE_DISPGP) && */(snode->nodetree))
+		draw_gpencil_2dview((bContext*)C, 0);
 	
 	/* scrollers */
 	scrollers= UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

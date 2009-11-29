@@ -1460,6 +1460,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
+	float cfra= (scene)? (float)(CFRA) : 0.0f;
 	short next= RNA_boolean_get(op->ptr, "next");
 	
 	/* sanity checks */
@@ -1478,21 +1479,18 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	/* build linked-list for searching */
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-	/* find nearest keyframe in the right direction */
-	ak= cfra_find_nearest_next_ak(keys.root, (float)scene->r.cfra, next);
+	/* find matching keyframe in the right direction */
+	if (next)
+		ak= (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
+	else
+		ak= (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
 	
 	/* set the new frame (if keyframe found) */
-	if (ak) {
-		if (next && ak->next)
-			scene->r.cfra= (int)ak->next->cfra;
-		else if (!next && ak->prev)
-			scene->r.cfra= (int)ak->prev->cfra;
-		else {
-			printf("ERROR: no suitable keyframe found. Using %f as new frame \n", ak->cfra);
-			scene->r.cfra= (int)ak->cfra; // XXX
-		}
-	}
-		
+	if (ak) 
+		CFRA= (int)ak->cfra;
+	else
+		BKE_report(op->reports, RPT_ERROR, "No more keyframes to jump to in this direction");
+	
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
 	
@@ -3681,6 +3679,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screenshot", F3KEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screencast", F3KEY, KM_PRESS, KM_ALT, 0);
 
@@ -3696,7 +3695,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
 	
 	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", F7KEY, KM_PRESS, 0, 0)->ptr, "path", "test.py");
-	WM_keymap_verify_item(keymap, "SCRIPT_OT_python_run_ui_scripts", F8KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_reload_scripts", F8KEY, KM_PRESS, 0, 0);
 
 	/* files */
 	WM_keymap_add_item(keymap, "FILE_OT_execute", RETKEY, KM_PRESS, 0, 0);

@@ -359,7 +359,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 	int attr_order = attrdef-Attributes;
 	int ival;
 	double dval;
-	char* sval;
+//	char* sval;
 	KX_GameObject *oval;
 
 	if (!constraint) {

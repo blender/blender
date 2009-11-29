@@ -313,7 +313,30 @@ void ui_bounds_block(uiBlock *block)
 	block->safety.ymax= block->maxy+xof;
 }
 
-static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int menu)
+static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
+{
+	wmWindow *window= CTX_wm_window(C);
+	int xmax, ymax;
+	int startx, starty;
+	int width, height;
+	
+	wm_window_get_size(window, &xmax, &ymax);
+	
+	ui_bounds_block(block);
+	
+	width= block->maxx - block->minx;
+	height= block->maxy - block->miny;
+	
+	startx = (xmax * 0.5f) - (width * 0.5f);
+	starty = (ymax * 0.5f) - (height * 0.5f);
+	
+	ui_block_translate(block, startx - block->minx, starty - block->miny);
+	
+	/* now recompute bounds and safety */
+	ui_bounds_block(block);
+	
+}
+static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_calc)
 {
 	wmWindow *window= CTX_wm_window(C);
 	int startx, starty, endx, endy, width, height;
@@ -323,13 +346,14 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int menu)
 
 	/* compute mouse position with user defined offset */
 	ui_bounds_block(block);
-	mx= window->eventstate->x + block->minx + block->mx;
-	my= window->eventstate->y + block->miny + block->my;
-
+	
 	wm_window_get_size(window, &xmax, &ymax);
 
+	mx= window->eventstate->x + block->minx + block->mx;
+	my= window->eventstate->y + block->miny + block->my;
+	
 	/* first we ensure wide enough text bounds */
-	if(menu) {
+	if(bounds_calc==UI_BLOCK_BOUNDS_POPUP_MENU) {
 		if(block->flag & UI_BLOCK_LOOP) {
 			block->bounds= 50;
 			ui_text_bounds_block(block, block->minx);
@@ -377,21 +401,21 @@ void uiBoundsBlock(uiBlock *block, int addval)
 		return;
 	
 	block->bounds= addval;
-	block->dobounds= 1;
+	block->dobounds= UI_BLOCK_BOUNDS;
 }
 
 /* used for pulldowns */
 void uiTextBoundsBlock(uiBlock *block, int addval)
 {
 	block->bounds= addval;
-	block->dobounds= 2;
+	block->dobounds= UI_BLOCK_BOUNDS_TEXT;
 }
 
 /* used for block popups */
 void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 {
 	block->bounds= addval;
-	block->dobounds= 3;
+	block->dobounds= UI_BLOCK_BOUNDS_POPUP_MOUSE;
 	block->mx= mx;
 	block->my= my;
 }
@@ -400,9 +424,16 @@ void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 void uiMenuPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 {
 	block->bounds= addval;
-	block->dobounds= 4;
+	block->dobounds= UI_BLOCK_BOUNDS_POPUP_MENU;
 	block->mx= mx;
 	block->my= my;
+}
+
+/* used for centered popups, i.e. splash */
+void uiCenteredBoundsBlock(uiBlock *block, int addval)
+{
+	block->bounds= addval;
+	block->dobounds= UI_BLOCK_BOUNDS_POPUP_CENTER;
 }
 
 /* ************** LINK LINE DRAWING  ************* */
@@ -627,9 +658,10 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
 	
 	/* after keymaps! */
-	if(block->dobounds == 1) ui_bounds_block(block);
-	else if(block->dobounds == 2) ui_text_bounds_block(block, 0.0f);
-	else if(block->dobounds) ui_popup_bounds_block(C, block, (block->dobounds == 4));
+	if(block->dobounds == UI_BLOCK_BOUNDS) ui_bounds_block(block);
+	else if(block->dobounds == UI_BLOCK_BOUNDS_TEXT) ui_text_bounds_block(block, 0.0f);
+	else if(block->dobounds == UI_BLOCK_BOUNDS_POPUP_CENTER) ui_centered_bounds_block(C, block);
+	else if(block->dobounds) ui_popup_bounds_block(C, block, block->dobounds);
 
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
 	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
@@ -1355,15 +1387,15 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
 	int do_split= scene->unit.flag & USER_UNIT_OPT_SPLIT;
 	int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
-	int precission= but->a2;
+	int precision= but->a2;
 
 	if(scene->unit.scale_length<0.0001) scene->unit.scale_length= 1.0; // XXX do_versions
 
 	/* Sanity checks */
-	if(precission>4)		precission= 4;
-	else if(precission==0)	precission= 2;
+	if(precision>4)		precision= 4;
+	else if(precision==0)	precision= 2;
 
-	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precission, scene->unit.system, unit_type, do_split, pad);
+	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision, scene->unit.system, unit_type, do_split, pad);
 }
 
 static float ui_get_but_step_unit(uiBut *but, double value, float step_default)

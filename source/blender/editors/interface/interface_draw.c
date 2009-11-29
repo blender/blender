@@ -43,6 +43,9 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -458,8 +461,47 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 	
 }
 
-/* ************** TEXT AND ICON DRAWING FUNCTIONS ************* */
+/* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
+void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect)
+{
+	extern char datatoc_splash_png[];
+	extern int datatoc_splash_png_size;
+	ImBuf *ibuf;
+	GLint scissor[4];
+	int w, h;
+	
+	/* hardcoded to splash, loading and freeing every draw, eek! */
+	ibuf= IMB_ibImageFromMemory((int *)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
+
+	if (!ibuf) return;
+	
+	/* scissor doesn't seem to be doing the right thing...?
+	//glColor4f(1.0, 0.f, 0.f, 1.f);
+	//fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax)
+
+	w = (rect->xmax - rect->xmin);
+	h = (rect->ymax - rect->ymin);
+	// prevent drawing outside widget area
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
+	glScissor(ar->winrct.xmin + rect->xmin, ar->winrct.ymin + rect->ymin, w, h);
+	*/
+	
+	glEnable(GL_BLEND);
+	glColor4f(0.0, 0.0, 0.0, 0.0);
+	
+	glaDrawPixelsSafe((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	//glaDrawPixelsTex((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+	
+	glDisable(GL_BLEND);
+	
+	/* 
+	// restore scissortest
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	*/
+	
+	IMB_freeImBuf(ibuf);
+}
 
 #if 0
 #ifdef INTERNATIONAL

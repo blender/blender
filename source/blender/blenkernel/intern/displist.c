@@ -479,7 +479,7 @@ static void init_fastshade_for_ob(Render *re, Object *ob, int *need_orco_r, floa
 	
 	invert_m4_m4(tmat, mat);
 	copy_m3_m4(imat, tmat);
-	if(ob->transflag & OB_NEG_SCALE) mul_m3_fl((float *)imat, -1.0);
+	if(ob->transflag & OB_NEG_SCALE) mul_m3_fl(imat, -1.0);
 	
 	if (need_orco_r) *need_orco_r= 0;
 	for(a=0; a<ob->totcol; a++) {

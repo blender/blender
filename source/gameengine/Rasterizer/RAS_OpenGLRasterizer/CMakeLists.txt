@@ -41,5 +41,7 @@ SET(INC
 	../../../../source/blender/blenloader
 )
 
+ADD_DEFINITIONS(-DGLEW_STATIC)
+
 BLENDERLIB(bf_oglrasterizer "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), [], libtype=['game','player'], priority=[40, 120] )

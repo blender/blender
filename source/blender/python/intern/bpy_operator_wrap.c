@@ -44,7 +44,7 @@
 #define PYOP_ATTR_UINAME		"bl_label"
 #define PYOP_ATTR_IDNAME		"bl_idname"		/* the name given by python */
 #define PYOP_ATTR_IDNAME_BL	"_bl_idname"	/* our own name converted into blender syntax, users wont see this */
-#define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
+#define PYOP_ATTR_DESCRIPTION	"__doc__"		/* use pythons docstring */
 #define PYOP_ATTR_REGISTER		"bl_register"	/* True/False. if this python operator should be registered */
 #define PYOP_ATTR_UNDO			"bl_undo"		/* True/False. if this python operator should be undone */
 
@@ -106,30 +106,12 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 	Py_DECREF(args);
 	
 	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
-		PyObject *class_dict= PyObject_GetAttrString(py_class_instance, "__dict__");
-		
-		/* Assign instance attributes from operator properties */
-		if(op) {
-			const char *arg_name;
-
-			RNA_STRUCT_BEGIN(op->ptr, prop) {
-				arg_name= RNA_property_identifier(prop);
-
-				if (strcmp(arg_name, "rna_type")==0) continue;
-
-				item = pyrna_prop_to_py(op->ptr, prop);
-				PyDict_SetItemString(class_dict, arg_name, item);
-				Py_DECREF(item);
-			}
-			RNA_STRUCT_END;
-		}
-
 		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
-		
+
 		if (mode==PYOP_INVOKE) {
 			item= PyObject_GetAttrString(py_class, "invoke");
 			args = PyTuple_New(3);
-			
+
 			RNA_pointer_create(NULL, &RNA_Event, event, &ptr_event);
 
 			// PyTuple_SET_ITEM "steals" object reference, it is
@@ -149,12 +131,11 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
 		}
 		PyTuple_SET_ITEM(args, 0, py_class_instance);
-	
+
 		ret = PyObject_Call(item, args, NULL);
-		
+
 		Py_DECREF(args);
 		Py_DECREF(item);
-		Py_DECREF(class_dict);
 	}
 	else {
 		PyErr_Print();
@@ -308,11 +289,18 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	 */
 	item= ((PyTypeObject*)py_class)->tp_dict;
 	if(item) {
+		/* only call this so pyrna_deferred_register_props gives a useful error
+		 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
+		 * later */
+		RNA_def_struct_identifier(ot->srna, ot->idname);
+
 		if(pyrna_deferred_register_props(ot->srna, item)!=0) {
-					PyErr_Print();
-					PyErr_Clear();
-				}
-			}
+			/* failed to register operator props */
+			PyErr_Print();
+			PyErr_Clear();
+
+		}
+	}
 	else {
 		PyErr_Clear();
 	}
@@ -341,7 +329,11 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 
 	// in python would be...
 	//PyObject *optype = PyObject_GetAttrString(PyObject_GetAttrString(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), "types"), "Operator");
-	base_class = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Operator");
+
+	//PyObject bpy_mod= PyDict_GetItemString(PyEval_GetGlobals(), "bpy");
+	PyObject *bpy_mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
+	base_class = PyObject_GetAttrStringArgs(bpy_mod, 2, "types", "Operator");
+	Py_DECREF(bpy_mod);
 
 	if(BPY_class_validate("Operator", py_class, base_class, pyop_class_attr_values, NULL) < 0) {
 		return NULL; /* BPY_class_validate sets the error */

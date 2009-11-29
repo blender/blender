@@ -33,6 +33,7 @@
 #include "ED_transform.h"
 
 #include "BLI_editVert.h"
+#include "BKE_tessmesh.h"
 
 /* ************************** Types ***************************** */
 
@@ -191,8 +192,11 @@ typedef struct TransDataSlideUv {
 } TransDataSlideUv;
 
 typedef struct TransDataSlideVert {
-	struct EditEdge *up, *down;
-	struct EditVert origvert;
+	struct BMVert vup, vdown;
+	struct BMVert origvert;
+
+	struct BMEdge *up, *down;
+	struct BMVert *v;
 } TransDataSlideVert;
 
 typedef struct SlideData {
@@ -291,6 +295,7 @@ typedef struct TransInfo {
 	void  	  (*customFree)(struct TransInfo *); /* if a special free function is needed */
 
 	/*************** NEW STUFF *********************/
+	short		launch_event; /* event type used to launch transform */
 
 	short		current_orientation;
 
@@ -326,9 +331,10 @@ typedef struct TransInfo {
 #define NDOF_INIT			1
 
 /* transinfo->state */
-#define TRANS_RUNNING	0
-#define TRANS_CONFIRM	1
-#define TRANS_CANCEL	2
+#define TRANS_STARTING  0
+#define TRANS_RUNNING	1
+#define TRANS_CONFIRM	2
+#define TRANS_CANCEL	3
 
 /* transinfo->flag */
 #define T_OBJECT		(1 << 0)

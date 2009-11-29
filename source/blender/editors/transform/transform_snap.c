@@ -1226,6 +1226,35 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, B
 			{
 				case SCE_SNAP_MODE_FACE:
 				{ 
+#if 1				// Added for durian
+					BVHTreeRayHit hit;
+					BVHTreeFromMesh treeData;
+
+					bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
+
+					hit.index = -1;
+					hit.dist = *depth;
+
+					if(treeData.tree && BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1)
+					{
+						if(hit.dist<=*depth) {
+							*depth= hit.dist;
+							copy_v3_v3(loc, hit.co);
+							copy_v3_v3(no, hit.no);
+
+							/* back to worldspace */
+							mul_m4_v3(obmat, loc);
+							copy_v3_v3(no, hit.no);
+
+							mul_m3_v3(timat, no);
+							normalize_v3(no);
+
+							retval |= 1;
+						}
+					}
+					break;
+
+#else
 					MVert *verts = dm->getVertArray(dm);
 					MFace *faces = dm->getTessFaceArray(dm);
 					int *index_array = NULL;
@@ -1306,6 +1335,7 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, B
 					{
 						EDBM_free_index_arrays(em);
 					}
+#endif
 					break;
 				}
 				case SCE_SNAP_MODE_VERTEX:

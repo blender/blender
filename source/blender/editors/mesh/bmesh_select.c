@@ -478,7 +478,7 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int 
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
 			mul_m4_v3(data->vc.obedit->obmat, vec);
 
-			if(view3d_test_clipping(data->vc.rv3d, vec)==0) {
+			if(view3d_test_clipping(data->vc.rv3d, vec, 1)==0) {
 				data->dist = distance;
 				data->closest = eed;
 			}

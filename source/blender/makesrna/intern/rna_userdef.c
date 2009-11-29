@@ -491,22 +491,22 @@ static void rna_def_userdef_theme_spaces_main(StructRNA *srna, int spacetype)
 	/* window */
 	prop= RNA_def_property(srna, "back", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Window Back", "");
+	RNA_def_property_ui_text(prop, "Window Background", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "title", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Window Title", "");
+	RNA_def_property_ui_text(prop, "Title", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "text", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Window Text", "");
+	RNA_def_property_ui_text(prop, "Text", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "text_hi", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Window Text Highlight", "");
+	RNA_def_property_ui_text(prop, "Text Highlight", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* header */
@@ -526,48 +526,48 @@ static void rna_def_userdef_theme_spaces_main(StructRNA *srna, int spacetype)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	/* buttons */
-	if(! ELEM(spacetype, SPACE_BUTS, SPACE_OUTLINER)) {
-		prop= RNA_def_property(srna, "button", PROP_FLOAT, PROP_COLOR);
-		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "Button Back", "");
-		RNA_def_property_update(prop, 0, "rna_userdef_update");
-		
-		prop= RNA_def_property(srna, "button_title", PROP_FLOAT, PROP_COLOR);
-		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "Button Title", "");
-		RNA_def_property_update(prop, 0, "rna_userdef_update");
-		
-		prop= RNA_def_property(srna, "button_text", PROP_FLOAT, PROP_COLOR);
-		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "Button Text", "");
-		RNA_def_property_update(prop, 0, "rna_userdef_update");
-		
-		prop= RNA_def_property(srna, "button_text_hi", PROP_FLOAT, PROP_COLOR);
-		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "Button Text Highlight", "");
-		RNA_def_property_update(prop, 0, "rna_userdef_update");
-	}
+//	if(! ELEM(spacetype, SPACE_BUTS, SPACE_OUTLINER)) {
+	prop= RNA_def_property(srna, "button", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Region Background", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "button_title", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Region Text Titles", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "button_text", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Region Text", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "button_text_hi", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Region Text Highlight", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+//	}
 	
 	/* list/channels */
 	if(ELEM5(spacetype, SPACE_IPO, SPACE_ACTION, SPACE_NLA, SPACE_NODE, SPACE_FILE)) {
 		prop= RNA_def_property(srna, "list", PROP_FLOAT, PROP_COLOR);
 		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "List Back", "");
+		RNA_def_property_ui_text(prop, "Source List", "");
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 		
 		prop= RNA_def_property(srna, "list_title", PROP_FLOAT, PROP_COLOR);
 		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "List Title", "");
+		RNA_def_property_ui_text(prop, "Source List Title", "");
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 		
 		prop= RNA_def_property(srna, "list_text", PROP_FLOAT, PROP_COLOR);
 		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "List Text", "");
+		RNA_def_property_ui_text(prop, "Source List Text", "");
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 		
 		prop= RNA_def_property(srna, "list_text_hi", PROP_FLOAT, PROP_COLOR);
 		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "List Text Highlight", "");
+		RNA_def_property_ui_text(prop, "Source List Text Highlight", "");
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 	}	
 }
@@ -1379,7 +1379,7 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "strips", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "strip");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "strips", "");
+	RNA_def_property_ui_text(prop, "Strips", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "strips_selected", PROP_FLOAT, PROP_COLOR);
@@ -1434,21 +1434,22 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	
 	static EnumPropertyItem active_theme_group[] = {
 		{0, "USER_INTERFACE", ICON_UI, "User Interface", ""},
-		{1, "VIEW_3D", ICON_VIEW3D, "View 3D", ""},
-		{2, "GRAPH_EDITOR", ICON_IPO, "Graph Editor", ""},
-		{3, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
-		{4, "NLA_EDITOR", ICON_NLA, "NLA Editor", ""},
-		{5, "DOPESHEET_EDITOR", ICON_ACTION, "Dopesheet Editor", ""},
-		{6, "IMAGE_EDITOR", ICON_IMAGE_COL, "Image Editor", ""},
-		{7, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Sequence Editor", ""},
-		{8, "PROPERTIES", ICON_BUTS, "Properties", ""},
-		{9, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
-		{10, "TIMELINE", ICON_TIME, "Timeline", ""},
-		{11, "NODE_EDITOR", ICON_NODE, "Node Editor", ""},
-		{12, "LOGIC_EDITOR", ICON_LOGIC, "Logic Editor", ""},
-		{13, "OUTLINER", ICON_OOPS, "Outliner", ""},
-		{14, "INFO", ICON_INFO, "Info", ""},
-		{15, "USER_PREFERENCES", ICON_PREFERENCES, "User Preferences", ""},
+		{1, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
+		{2, "TIMELINE", ICON_TIME, "Timeline", ""},
+		{3, "GRAPH_EDITOR", ICON_IPO, "Graph Editor", ""},
+		{4, "DOPESHEET_EDITOR", ICON_ACTION, "Dopesheet", ""},
+		{5, "NLA_EDITOR", ICON_NLA, "NLA Editor", ""},
+		{6, "IMAGE_EDITOR", ICON_IMAGE_COL, "UV/Image Editor", ""},
+		{7, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequence Editor", ""},
+		{8, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
+		{9, "NODE_EDITOR", ICON_NODETREE, "Node Editor", ""},
+		{10, "LOGIC_EDITOR", ICON_LOGIC, "Logic Editor", ""},
+		{11, "PROPERTIES", ICON_BUTS, "Properties", ""},
+		{12, "OUTLINER", ICON_OOPS, "Outliner", ""},
+		{14, "USER_PREFERENCES", ICON_PREFERENCES, "User Preferences", ""},
+		{15, "INFO", ICON_INFO, "Info", ""},
+		{16, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
+		{17, "CONSOLE", ICON_CONSOLE, "Console", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Theme", NULL);
@@ -2169,10 +2170,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_DONT_DOSCRIPTLINKS);
 	RNA_def_property_ui_text(prop, "Auto Run Python Scripts", "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source).");
 
-	prop= RNA_def_property(srna, "emulate_numpad", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_NONUMPAD);
-	RNA_def_property_ui_text(prop, "Emulate Numpad", "Causes the 1 to 0 keys to act as the numpad (useful for laptops).");
-
 	prop= RNA_def_property(srna, "prefetch_frames", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "prefetchframes");
 	RNA_def_property_range(prop, 0, 500);
@@ -2335,6 +2332,10 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_userdef_emulate_set");
 	RNA_def_property_ui_text(prop, "Emulate 3 Button Mouse", "Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option.)");
+
+	prop= RNA_def_property(srna, "emulate_numpad", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_NONUMPAD);
+	RNA_def_property_ui_text(prop, "Emulate Numpad", "Causes the 1 to 0 keys to act as the numpad (useful for laptops).");
 }
 
 static void rna_def_userdef_filepaths(BlenderRNA *brna)

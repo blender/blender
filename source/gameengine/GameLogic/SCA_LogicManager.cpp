@@ -119,7 +119,7 @@ void SCA_LogicManager::UnregisterGameObj(void* blendobj, CValue* gameobj)
 
 CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 {
-	STR_HashedString mn = "OB"+gameobjname;
+	STR_HashedString mn = gameobjname;
 	CValue** gameptr = m_mapStringToGameObjects[mn];
 	
 	if (gameptr)
@@ -252,7 +252,7 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 
 void* SCA_LogicManager::GetActionByName (const STR_String& actname)
 {
-	STR_HashedString an = "AC"+actname;
+	STR_HashedString an = actname;
 	void** actptr = m_mapStringToActions[an];
 
 	if (actptr)
@@ -265,7 +265,7 @@ void* SCA_LogicManager::GetActionByName (const STR_String& actname)
 
 void* SCA_LogicManager::GetMeshByName(const STR_String& meshname)
 {
-	STR_HashedString mn = "ME"+meshname;
+	STR_HashedString mn = meshname;
 	void** meshptr = m_mapStringToMeshes[mn];
 
 	if (meshptr)
@@ -282,6 +282,11 @@ void SCA_LogicManager::RegisterMeshName(const STR_String& meshname,void* mesh)
 	m_mapStringToMeshes.insert(mn,mesh);
 }
 
+void SCA_LogicManager::UnregisterMeshName(const STR_String& meshname,void* mesh)
+{
+	STR_HashedString mn = meshname;
+	m_mapStringToMeshes.remove(mn);
+}
 
 
 void SCA_LogicManager::RegisterActionName(const STR_String& actname,void* action)

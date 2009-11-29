@@ -163,7 +163,7 @@ void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_s
 /* seqeffects.c */
 // intern?
 struct SeqEffectHandle get_sequence_blend(struct Sequence *seq);
-void sequence_effect_speed_rebuild_map(struct Sequence *seq, int force);
+void sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq, int force);
 
 // extern
 struct SeqEffectHandle get_sequence_effect(struct Sequence *seq);
@@ -183,10 +183,44 @@ void fix_single_seq(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test);
 int shuffle_seq_time(ListBase * seqbasep);
-void free_imbuf_seq(struct ListBase * seqbasep, int check_mem_usage);
+void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
 
 void seq_update_sound(struct Sequence *seq);
 
 void clear_scene_in_allseqs(struct Scene *sce);
 
+struct Sequence *active_seq_get(struct Scene *scene);
+void active_seq_set(struct Scene *scene, struct Sequence *seq);
+
+/* api for adding new sequence strips */
+typedef struct SeqLoadInfo {
+	int start_frame;
+	int channel;
+	int flag;	/* use sound, replace sel */
+	int type;
+	int tot_success;
+	int tot_error;
+	int len;		/* only for image strips */
+	char path[512];
+	char name[32];
+} SeqLoadInfo;
+
+/* SeqLoadInfo.flag */
+#define SEQ_LOAD_REPLACE_SEL	1<<0
+#define SEQ_LOAD_FRAME_ADVANCE	1<<1
+#define SEQ_LOAD_MOVIE_SOUND	1<<2
+#define SEQ_LOAD_SOUND_CACHE	1<<3
+
+/* use as an api function */
+typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct SeqLoadInfo *);
+
+struct Sequence *alloc_sequence(ListBase *lb, int cfra, int machine);
+
+void seq_load_apply(struct Scene *scene, struct Sequence *seq, struct SeqLoadInfo *seq_load);
+
+void seqUniqueName(ListBase *seqbasep, struct Sequence *seq);
+
+struct Sequence *sequencer_add_image_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
+struct Sequence *sequencer_add_sound_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
+struct Sequence *sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 

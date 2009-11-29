@@ -104,27 +104,43 @@ void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel,
 
 /* ******************************* Methods ****************************** */
 
-/* Channel Drawing */
+/* Channel Drawing ------------------ */
+/* F-Curve */
 void draw_fcurve_channel(struct View2D *v2d, struct AnimData *adt, struct FCurve *fcu, float ypos);
+/* Action Group Summary */
 void draw_agroup_channel(struct View2D *v2d, struct AnimData *adt, struct bActionGroup *agrp, float ypos);
+/* Action Summary */
 void draw_action_channel(struct View2D *v2d, struct AnimData *adt, struct bAction *act, float ypos);
+/* Object Summary */
 void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Object *ob, float ypos);
+/* Scene Summary */
 void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos);
+/* DopeSheet Summary */
 void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypos);
+/* Grease Pencil Layer */ 
+// XXX not restored 
 void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos);
 
-/* Keydata Generation */
+/* Keydata Generation --------------- */
+/* F-Curve */
 void fcurve_to_keylist(struct AnimData *adt, struct FCurve *fcu, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+/* Action Group */
 void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+/* Action */
 void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+/* Object */
 void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+/* Scene */
 void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+/* DopeSheet Summary */
 void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+/* Grease Pencil Layer */
+// XXX not restored
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 
-/* Keyframe Finding */
-ActKeyColumn *cfra_find_actkeycolumn(ActKeyColumn *ak, float cframe);
-ActKeyColumn *cfra_find_nearest_next_ak(ActKeyColumn *ak, float cframe, short next);
+/* ActKeyColumn API ---------------- */
+/* Comparator callback used for ActKeyColumns and cframe float-value pointer */
+short compare_ak_cfraPtr(void *node, void *data);
 
 #endif  /*  ED_KEYFRAMES_DRAW_H */
 

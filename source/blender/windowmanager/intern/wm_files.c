@@ -89,7 +89,7 @@
 
 #include "GPU_draw.h"
 
-// XXX #include "BPY_extern.h"
+#include "BPY_extern.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -122,6 +122,8 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 		for(win= wm->windows.first; win; win= win->next) {
 		
 			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
+			WM_event_remove_handlers(C, &win->handlers);
+			WM_event_remove_handlers(C, &win->modalhandlers);
 			ED_screen_exit(C, win, win->screen);
 		}
 	}
@@ -256,8 +258,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		G.save_over = 1;
 
 		/* match the read WM with current WM */
-		wm_window_match_do(C, &wmbase); 
-		wm_check(C); /* opens window(s), checks keymaps */
+		wm_window_match_do(C, &wmbase);
+		WM_check(C); /* opens window(s), checks keymaps */
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
 
@@ -274,8 +276,11 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
-					   
+
 		CTX_wm_window_set(C, NULL); /* exits queues */
+
+		/* run any texts that were loaded in and flagged as modules */
+		BPY_load_user_modules(C);
 	}
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");
@@ -322,14 +327,14 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
-	wm_check(C); /* opens window(s), checks keymaps */
+	WM_check(C); /* opens window(s), checks keymaps */
 
 	strcpy(G.sce, scestr); /* restore */
 	
 	wm_init_userdef();
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
-	GPU_default_lights();
+	if (!G.background) GPU_default_lights();
 	
 	/* XXX */
 	G.save_over = 0;	// start with save preference untitled.blend

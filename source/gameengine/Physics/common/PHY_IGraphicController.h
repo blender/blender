@@ -32,7 +32,6 @@
 #include "PHY_IController.h"
 
 
-
 /**
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 	It contains the IMotionState and IDeformableMesh Interfaces.
@@ -50,7 +49,6 @@ class PHY_IGraphicController : public PHY_IController
 		virtual void setLocalAabb(const float* aabbMin,const float* aabbMax)=0;
 
 		virtual PHY_IGraphicController*	GetReplica(class PHY_IMotionState* motionstate) {return 0;}
-
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IController"); }

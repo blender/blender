@@ -33,6 +33,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -51,6 +52,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -66,6 +68,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_armature.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -75,7 +78,7 @@
 
 /******************************** API ****************************/
 
-int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
+ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
 {
 	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
@@ -83,7 +86,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 	if(mti->flags&eModifierTypeFlag_Single) {
 		if(modifiers_findByType(ob, type)) {
 			BKE_report(reports, RPT_WARNING, "Only one modifier of this type allowed.");
-			return 0;
+			return NULL;
 		}
 	}
 
@@ -131,7 +134,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
-	return 1;
+	return new_md;
 }
 
 int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
@@ -173,6 +176,9 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 			ob->pd->shape = PFIELD_SHAPE_PLANE;
 
         DAG_scene_sort(scene);
+	}
+	else if(md->type == eModifierType_Smoke) {
+		ob->dt = OB_SHADED;
 	}
 
 	BLI_remlink(&ob->modifiers, md);
@@ -325,7 +331,7 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	return 1;
 }
 
-int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md, int mode)
 {
 	DerivedMesh *dm;
 	Mesh *me = ob->data;
@@ -343,27 +349,64 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected.");
 
 	if (ob->type==OB_MESH) {
-		if(me->key) {
-			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
-			return 0;
+		if (mode == MODIFIER_APPLY_SHAPE) {
+			Key *key=me->key;
+			KeyBlock *kb;
+			int newkey=0;
+			
+			if(!modifier_sameTopology(md)) {
+				BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
+				return 0;
+			}
+			mesh_pmv_off(ob, me);
+			
+			dm = mesh_create_derived_for_modifier(scene, ob, md);
+			if (!dm) {
+				BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+				return 0;
+			}
+			
+			if(key == NULL) {
+				key= me->key= add_key((ID *)me);
+				key->type= KEY_RELATIVE;
+				newkey= 1;
+			}
+			kb= add_keyblock(scene, key);
+			
+			if (newkey) {
+				/* if that was the first key block added, then it was the basis.
+				 * Initialise it with the mesh, and add another for the modifier */
+				mesh_to_key(me, kb);
+				kb= add_keyblock(scene, key);
+			}
+			DM_to_meshkey(dm, me, kb);
+			converted = 1;
+			
+			dm->release(dm);
 		}
-	
-		mesh_pmv_off(ob, me);
+		else {	/* MODIFIER_APPLY_DATA */
+			if( me->key) {
+				BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
+				return 0;
+			}
+			
+			mesh_pmv_off(ob, me);
 
-	   /* Multires: ensure that recent sculpting is applied */
-	   if(md->type == eModifierType_Multires)
-			   multires_force_update(ob);
+			/* Multires: ensure that recent sculpting is applied */
+			if(md->type == eModifierType_Multires)
+				   multires_force_update(ob);
 
-		dm = mesh_create_derived_for_modifier(scene, ob, md);
-		if (!dm) {
-			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
-			return 0;
+			dm = mesh_create_derived_for_modifier(scene, ob, md);
+			if (!dm) {
+				BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+				return 0;
+			}
+
+			DM_to_mesh(dm, me);
+			converted = 1;
+
+			dm->release(dm);
 		}
-
-		DM_to_mesh(dm, me);
-		converted = 1;
-
-		dm->release(dm);
 	} 
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -595,8 +638,9 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
 	Object *ob= ptr.id.data;
 	ModifierData *md= ptr.data;
+	int apply_as= RNA_enum_get(op->ptr, "apply_as");
 
-	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md))
+	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -605,6 +649,11 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static EnumPropertyItem modifier_apply_as_items[] = {
+	{MODIFIER_APPLY_DATA, "DATA", 0, "Object Data", "Apply modifier to the object's data"},
+	{MODIFIER_APPLY_SHAPE, "SHAPE", 0, "New Shape", "Apply deform-only modifier to a new shape on this object"},
+	{0, NULL, 0, NULL, NULL}};
+
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 {
 	ot->name= "Apply Modifier";
@@ -612,11 +661,14 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_modifier_apply";
 	ot->poll= ED_operator_object_active;
 
+	//ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_apply_exec;
 	ot->poll= modifier_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "apply_as", modifier_apply_as_items, MODIFIER_APPLY_DATA, "Apply as", "How to apply the modifier to the geometry");
 }
 
 /************************ convert modifier operator *********************/
@@ -814,157 +866,6 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= meshdeform_poll;
 	ot->exec= meshdeform_bind_exec;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/******************** hook operators ************************/
-
-static int hook_poll(bContext *C)
-{
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
-	ID *id= ptr.id.data;
-	return (ptr.data && id && !id->lib);
-}
-
-static int hook_reset_exec(bContext *C, wmOperator *op)
-{
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
-	Object *ob= ptr.id.data;
-	HookModifierData *hmd= ptr.data;
-
-	if(hmd->object) {
-		bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
-		
-		if(hmd->subtarget[0] && pchan) {
-			float imat[4][4], mat[4][4];
-			
-			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
-			mul_m4_m4m4(mat, pchan->pose_mat, hmd->object->obmat);
-			
-			invert_m4_m4(imat, mat);
-			mul_serie_m4(hmd->parentinv, imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
-		}
-		else {
-			invert_m4_m4(hmd->object->imat, hmd->object->obmat);
-			mul_serie_m4(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
-		}
-	}
-
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_hook_reset(wmOperatorType *ot)
-{
-	ot->name= "Hook Reset";
-	ot->description= "Recalculate and and clear offset transformation.";
-	ot->idname= "OBJECT_OT_hook_reset";
-
-	ot->exec= hook_reset_exec;
-	ot->poll= hook_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int hook_recenter_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
-	Object *ob= ptr.id.data;
-	HookModifierData *hmd= ptr.data;
-	float bmat[3][3], imat[3][3];
-
-	copy_m3_m4(bmat, ob->obmat);
-	invert_m3_m3(imat, bmat);
-
-	VECSUB(hmd->cent, scene->cursor, ob->obmat[3]);
-	mul_m3_v3(imat, hmd->cent);
-
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_hook_recenter(wmOperatorType *ot)
-{
-	ot->name= "Hook Recenter";
-	ot->description= "Set hook center to cursor position.";
-	ot->idname= "OBJECT_OT_hook_recenter";
-
-	ot->exec= hook_recenter_exec;
-	ot->poll= hook_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int hook_select_exec(bContext *C, wmOperator *op)
-{
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
-	Object *ob= ptr.id.data;
-	HookModifierData *hmd= ptr.data;
-
-	object_hook_select(ob, hmd);
-
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
-	
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_hook_select(wmOperatorType *ot)
-{
-	ot->name= "Hook Select";
-	ot->description= "Selects effected vertices on mesh.";
-	ot->idname= "OBJECT_OT_hook_select";
-
-	ot->exec= hook_select_exec;
-	ot->poll= hook_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int hook_assign_exec(bContext *C, wmOperator *op)
-{
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
-	Object *ob= ptr.id.data;
-	HookModifierData *hmd= ptr.data;
-	float cent[3];
-	char name[32];
-	int *indexar, tot;
-		
-	if(!object_hook_index_array(ob, &tot, &indexar, name, cent)) {
-		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
-		return OPERATOR_CANCELLED;
-	}
-
-	if(hmd->indexar)
-		MEM_freeN(hmd->indexar);
-
-	VECCOPY(hmd->cent, cent);
-	hmd->indexar= indexar;
-	hmd->totindex= tot;
-
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_hook_assign(wmOperatorType *ot)
-{
-	ot->name= "Hook Assign";
-	ot->description= "Reassigns selected vertices to hook.";
-	ot->idname= "OBJECT_OT_hook_assign";
-
-	ot->exec= hook_assign_exec;
-	ot->poll= hook_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

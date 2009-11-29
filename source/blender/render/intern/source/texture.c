@@ -1611,17 +1611,17 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 				dxt[0] = mtex->size[0]*dx[mtex->projx - 1];
 				dyt[0] = mtex->size[0]*dy[mtex->projx - 1];
 			}
-			else dxt[0] = 0.f;
+			else dxt[0] = dyt[0] = 0.f;
 			if (mtex->projy) {
 				dxt[1] = mtex->size[1]*dx[mtex->projy - 1];
 				dyt[1] = mtex->size[1]*dy[mtex->projy - 1];
 			}
-			else dxt[1] = 0.f;
+			else dxt[1] = dyt[1] = 0.f;
 			if (mtex->projz) {
 				dxt[2] = mtex->size[2]*dx[mtex->projz - 1];
 				dyt[2] = mtex->size[2]*dy[mtex->projz - 1];
 			}
-			else dxt[2]= 0.f;
+			else dxt[2]= dyt[2] = 0.f;
 		}
 	}
 }

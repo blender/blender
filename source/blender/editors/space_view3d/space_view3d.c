@@ -175,6 +175,9 @@ void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
 	/* local viewmat and persmat, to calculate projections */
 	wmGetMatrix(rv3d->viewmatob);
 	wmGetSingleMatrix(rv3d->persmatob);
+
+	/* initializes object space clipping, speeds up clip tests */
+	ED_view3d_local_clipping(rv3d, ob->obmat);
 }
 
 /* ******************** default callbacks for view3d space ***************** */
@@ -367,6 +370,9 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	keymap= WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* own keymap, last so modes can override it */
@@ -676,7 +682,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(selected_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -693,7 +699,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 						if(selected_editable_objects)
 							CTX_data_id_list_add(result, &base->object->id);
 						else
-							CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+							CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 					}
 				}
 			}
@@ -710,7 +716,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(visible_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -726,7 +732,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 					if(selectable_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
 		}
@@ -736,7 +742,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	else if(CTX_data_equals(member, "active_base")) {
 		if(scene->basact && (scene->basact->lay & lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
-				CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, scene->basact);
+				CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, scene->basact);
 		
 		return 1;
 	}
@@ -773,7 +779,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
+	art->keymapflag= ED_KEYMAP_GPENCIL;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
 	art->free= view3d_main_area_free;

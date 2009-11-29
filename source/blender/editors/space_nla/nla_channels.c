@@ -189,6 +189,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_DSCUR:
 		case ANIMTYPE_DSSKEY:
 		case ANIMTYPE_DSWOR:
+		case ANIMTYPE_DSNTREE:
 		case ANIMTYPE_DSPART:
 		case ANIMTYPE_DSMBALL:
 		case ANIMTYPE_DSARM:

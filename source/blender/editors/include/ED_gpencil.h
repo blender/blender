@@ -73,7 +73,6 @@ void draw_gpencil_2dimage(struct bContext *C, struct ImBuf *ibuf);
 void draw_gpencil_2dview(struct bContext *C, short onlyv2d);
 void draw_gpencil_3dview(struct bContext *C, short only3d);
 void draw_gpencil_3dview_ext(struct Scene *scene, struct ARegion *ar, short only3d);
-void draw_gpencil_oglrender(struct bContext *C);
 
 void gpencil_panel_standard(const struct bContext *C, struct Panel *pa);
 

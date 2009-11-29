@@ -118,6 +118,12 @@ struct bActionGroup *action_groups_find_named(struct bAction *act, const char na
 /* Pose API ----------------- */	
 	
 /**
+ * Deallocates a pose channel.
+ * Does not free the pose channel itself.
+ */
+void free_pose_channel(struct bPoseChannel *pchan);
+
+/**
  * Removes and deallocates all channels from a pose.
  * Does not free the pose itself.
  */

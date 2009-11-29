@@ -66,6 +66,7 @@ typedef std::map<class SCA_ISensor*,controllerlist > sensormap_t;
 
 #include "SCA_ILogicBrick.h"
 #include "SCA_IActuator.h"
+#include "SCA_EventManager.h"
 
 
 class SCA_LogicManager
@@ -110,6 +111,7 @@ public:
 
 	void	AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor);
 	SCA_EventManager*	FindEventManager(int eventmgrtype);
+	vector<class SCA_EventManager*>	GetEventManagers() { return m_eventmanagers; }
 	
 	void	RemoveGameObject(const STR_String& gameobjname);
 
@@ -123,6 +125,9 @@ public:
 
 	// for the scripting... needs a FactoryManager later (if we would have time... ;)
 	void	RegisterMeshName(const STR_String& meshname,void* mesh);
+	void	UnregisterMeshName(const STR_String& meshname,void* mesh);
+	GEN_Map<STR_HashedString,void*>&	GetMeshMap() { return m_mapStringToMeshes; };
+	
 	void	RegisterActionName(const STR_String& actname,void* action);
 
 	void*	GetActionByName (const STR_String& actname);

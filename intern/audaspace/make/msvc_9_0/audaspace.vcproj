@@ -342,6 +342,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\intern\AUD_C-API.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\intern\AUD_ChannelMapperFactory.cpp"
 				>
 			</File>
@@ -758,10 +762,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\..\AUD_C-API.h"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -509,6 +509,7 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_RESIZE			5
 #define TFM_MODAL_SNAP_GEARS		6
 #define TFM_MODAL_SNAP_GEARS_OFF	7
+#define TFM_MODAL_SNAP_GEARS_TOGGLE	8
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 void transform_modal_keymap(wmKeyConfig *keyconf)
@@ -521,6 +522,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
 	{TFM_MODAL_SNAP_GEARS, "SNAP_GEARS", 0, "Snap On", ""},
 	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
+	{TFM_MODAL_SNAP_GEARS_TOGGLE, "SNAP_GEARS_TOGGLE", 0, "Snap Toggle", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -532,7 +534,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 
@@ -540,8 +542,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
 	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
 	
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS);
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_OFF);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_TOGGLE);
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
@@ -554,7 +555,8 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "TFM_OT_shrink_fatten");
 	WM_modalkeymap_assign(keymap, "TFM_OT_tilt");
 	WM_modalkeymap_assign(keymap, "TFM_OT_trackball");
-	
+	WM_modalkeymap_assign(keymap, "TFM_OT_mirror");
+	WM_modalkeymap_assign(keymap, "TFM_OT_edge_slide");
 }
 
 
@@ -572,6 +574,10 @@ void transformEvent(TransInfo *t, wmEvent *event)
 
 		t->redraw = 1;
 
+		if (t->state == TRANS_STARTING) {
+		    t->state = TRANS_RUNNING;
+		}
+
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
@@ -584,7 +590,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			case TFM_MODAL_CONFIRM:
 				t->state = TRANS_CONFIRM;
 				break;
-				
 			case TFM_MODAL_TRANSLATE:
 				/* only switch when... */
 				if( ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
@@ -632,6 +637,10 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				t->modifiers &= ~MOD_SNAP_GEARS;
 				t->redraw = 1;
 				break;
+			case TFM_MODAL_SNAP_GEARS_TOGGLE:
+				t->modifiers ^= MOD_SNAP_GEARS;
+				t->redraw = 1;
+				break;
 		}
 	}
 	/* else do non-mapped events */
@@ -641,12 +650,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			t->state = TRANS_CANCEL;
 			break;
 		/* enforce redraw of transform when modifiers are used */
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-			t->modifiers |= MOD_SNAP_GEARS;
-			t->redraw = 1;
-			break;
-
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers |= MOD_CONSTRAINT_PLANE;
@@ -940,24 +943,14 @@ void transformEvent(TransInfo *t, wmEvent *event)
 
 		//arrows_move_cursor(event->type);
 	}
-	else {
+	else if (event->val==KM_RELEASE) {
 		switch (event->type){
-		case LEFTMOUSE:
-			t->state = TRANS_CONFIRM;
-			break;
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers &= ~MOD_CONSTRAINT_PLANE;
 			t->redraw = 1;
 			break;
 
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-			t->modifiers &= ~MOD_SNAP_GEARS;
-			/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still
-			   after releasing modifer key */
-			//t->redraw = 1;
-			break;
 		case MIDDLEMOUSE:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
 				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
@@ -971,6 +964,13 @@ void transformEvent(TransInfo *t, wmEvent *event)
 ////			if (t->options & CTX_TWEAK)
 //				t->state = TRANS_CONFIRM;
 //			break;
+		}
+
+		/* confirm transform if launch key is released after mouse move */
+		/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
+		if (event->type == LEFTMOUSE /*t->launch_event*/ && t->state != TRANS_STARTING)
+		{
+			t->state = TRANS_CONFIRM;
 		}
 	}
 
@@ -1348,11 +1348,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
-	t->state = TRANS_RUNNING;
+	t->state = TRANS_STARTING;
 
 	t->options = options;
 
 	t->mode = mode;
+
+	t->launch_event = event ? event->type : -1;
 
 	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
 	{
@@ -1557,7 +1559,7 @@ int transformEnd(bContext *C, TransInfo *t)
 {
 	int exit_code = OPERATOR_RUNNING_MODAL;
 
-	if (t->state != TRANS_RUNNING)
+	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING)
 	{
 		/* handle restoring objects */
 		if(t->state == TRANS_CANCEL)
@@ -3928,9 +3930,176 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 }
 
 /* ********************  Edge Slide   *************** */
+#if 1
+static int createSlideVerts(TransInfo *t) {
+#else
+static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
+{
+	BMIter iter;
+	BMEdge *e2;
+
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+		if (BM_TestHFlag(e2, BM_SELECT) && e2 != e)
+			return e;
+	}
+
+	return NULL;
+}
+
+static BMLoop *get_next_loop(BMesh *bm, BMVert *v, BMFace *f, 
+                             BMEdge *olde, BMEdge *nexte)
+{
+	BMIter iter;
+	BMLoop *l, firstl;
+
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+		if (l->e == olde)
+			break;
+	}
+
+	firstl = l;
+	do {
+		l = BM_OtherFaceLoop(l->e, l->f, v);
+		if (l->radial.next->data == l)
+			return NULL;
+		
+		if (BM_OtherFaceLoop(l->e, l->f, v)->e == nexte)
+			return BM_OtherFaceLoop(l->e, l->f, v);
+		
+		if (l->e == nexte)
+			return l;
+
+		l = l->radial.next->data;
+	} while (l != firstl); 
+
+	return NULL;
+}
 
 static int createSlideVerts(TransInfo *t)
 {
+	Mesh *me = t->obedit->data;
+	BMEditMesh *em = me->edit_btmesh;
+	BMIter iter, iter2;
+	BMEdge *e, *e1, *e2;
+	BMVert *v, *first;
+	BMLoop *l, *l1, *l2;
+	TransDataSlideVert *tempsv;
+	GHash **uvarray= NULL;
+	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
+	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+	int uvlay_idx;
+	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
+	RegionView3D *v3d = t->ar->regiondata;
+	float projectMat[4][4];
+	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
+	float vec[3], i, j;
+	float totvec=0.0;
+
+	if (!v3d) {
+		/*ok, let's try to survive this*/
+		unit_m4(projectMat);
+	} else {
+		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
+	}
+	
+	/*ensure valid selection*/
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(v, BM_SELECT)) {
+			numsel = 0;
+			BM_ITER(e, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
+				if (BM_TestHFlag(e, BM_SELECT)) {
+					/*BMESH_TODO: this is probably very evil,
+					  set v->edge to a selected edge*/
+					v->edge = e;
+
+					numsel++;
+				}
+			}
+
+			if (numsel > 2) {
+				return 0; //invalid edge selection
+			}
+		}
+	}
+
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(e, BM_SELECT)) {
+			if (BM_Edge_FaceCount(e) > 2)
+				return 0; //can't handle more then 2 faces around an edge
+		}
+	}
+
+	j = 0;
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(v, BM_SELECT)) {
+			BMINDEX_SET(v, 1);
+			j += 1;
+		} else BMINDEX_SET(v, 0);
+	}
+
+	if (!j)
+		return 0;
+
+	tempsv = MEM_callocN(sizeof(TransDataSlideVert)*j, "tempsv");
+
+	j = 0;
+	while (1) {
+		v = NULL;
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BMINDEX_GET(v))
+				break;
+
+		}
+
+		if (!v)
+			break;
+
+		BMINDX_SET(v, 0);
+
+		if (!v->edge)
+			continue
+		
+		first = v;
+
+		/*walk along the edge loop*/
+		e = v->edge;
+
+		/*first, rewind*/
+		numsel = 0;
+		do {
+			e = get_other_edge(bm, v, e);
+			if (!e) {
+				e = v->edge;
+				break;
+			}
+
+			v = BM_OtherEdgeVert(e, v);
+			numsel += 1;
+		} while (e != v->edge);
+
+		l1 = l2 = l = NULL;
+
+		/*iterate over the loop*/
+		first = v;
+		do {
+			TransDataSlideVert *sv = tempsv + j;
+
+			sv->v = v;
+			sv->origvert = *v;
+
+			e = get_other_edge(bm, v, e);
+			if (!e) {
+				e = v->edge;
+				break;
+			}
+
+			v = BM_OtherEdgeVert(e, v);
+			j += 1
+		} while (e != v->edge);
+	}
+
+	MEM_freeN(tempsv);
+#endif
 #if 0
 	Mesh *me = t->obedit->data;
 	BMEditMesh *em = me->edit_btmesh;
@@ -4448,8 +4617,9 @@ void initEdgeSlide(TransInfo *t)
 
 	t->customFree = freeSlideVerts;
 
-	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
+	/* set custom point first if you want value to be initialized by init */
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
+	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;

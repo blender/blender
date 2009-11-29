@@ -54,12 +54,35 @@ void bpy_import_main_set(struct Main *maggie)
 	bpy_import_main= maggie;
 }
 
+PyObject *bpy_text_import( Text *text )
+{
+	char *buf = NULL;
+	char modulename[24];
+	int len;
 
-PyObject *bpy_text_import( char *name, int *found )
+	if( !text->compiled ) {
+		buf = txt_to_buf( text );
+		text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
+		MEM_freeN( buf );
+
+		if( PyErr_Occurred(  ) ) {
+			PyErr_Print(  );
+			PyErr_Clear(  );
+			PySys_SetObject("last_traceback", NULL);
+			free_compiled_text( text );
+			return NULL;
+		}
+	}
+
+	len= strlen(text->id.name+2) - 3;
+	strncpy(modulename, text->id.name+2, len);
+	return PyImport_ExecCodeModule(modulename, text->compiled);
+}
+
+PyObject *bpy_text_import_name( char *name, int *found )
 {
 	Text *text;
 	char txtname[22]; /* 21+NULL */
-	char *buf = NULL;
 	int namelen = strlen( name );
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
@@ -86,21 +109,7 @@ PyObject *bpy_text_import( char *name, int *found )
 	else
 		*found = 1;
 	
-	if( !text->compiled ) {
-		buf = txt_to_buf( text );
-		text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
-		MEM_freeN( buf );
-
-		if( PyErr_Occurred(  ) ) {
-			PyErr_Print(  );
-			PyErr_Clear(  );
-			PySys_SetObject("last_traceback", NULL);
-			free_compiled_text( text );
-			return NULL;
-		}
-	}
-
-	return PyImport_ExecCodeModule( name, text->compiled );
+	return bpy_text_import(text);
 }
 
 
@@ -195,7 +204,7 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 	PyErr_Fetch( &exception, &err, &tb );	/* get the python error incase we cant import as blender text either */
 	
 	/* importing from existing modules failed, see if we have this module as blender text */
-	newmodule = bpy_text_import( name, &found );
+	newmodule = bpy_text_import_name( name, &found );
 	
 	if( newmodule ) {/* found module as blender text, ignore above exception */
 		PyErr_Clear(  );

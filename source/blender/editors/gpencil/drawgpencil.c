@@ -765,31 +765,4 @@ void draw_gpencil_3dview (bContext *C, short only3d)
 	draw_gpencil_3dview_ext(scene, ar, only3d);
 }
 
-/* draw grease-pencil sketches to opengl render window assuming that matrices are already set correctly */
-// XXX porting note, ogl render will probably be a window with one 3d region
-void draw_gpencil_oglrender (bContext *C)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= (View3D *)sa->spacedata.first;
-	ARegion *ar= CTX_wm_region(C);
-	Scene *scene= CTX_data_scene(C);
-	bGPdata *gpd;
-	
-	/* assume gpencil data comes from v3d */
-	if (v3d == NULL) return;
-	gpd= gpencil_data_get_active(C);
-	if (gpd == NULL) return;
-	
-	/* pass 1: draw 3d-strokes ------------ > */
-	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, (GP_DRAWDATA_NOSTATUS|GP_DRAWDATA_ONLY3D));
-	
-	/* pass 2: draw 2d-strokes ------------ > */
-		/* adjust view matrices */
-	wmOrtho2(-0.375f, (float)(ar->winx)-0.375f, -0.375f, (float)(ar->winy)-0.375f); // XXX may not be correct anymore
-	glLoadIdentity();
-	
-		/* draw it! */
-	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, GP_DRAWDATA_NOSTATUS);
-}
-
 /* ************************************************** */

@@ -804,6 +804,23 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 
 }
 
+void	CcdPhysicsController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *env)
+{
+	// can safely assume CCD environment
+	CcdPhysicsEnvironment *physicsEnv = static_cast<CcdPhysicsEnvironment*>(env);
+
+	if (m_cci.m_physicsEnv != physicsEnv) 
+	{
+		// since the environment is changing, we must also move the controler to the
+		// new environement. Note that we don't handle sensor explicitely: this
+		// function can be called on sensor but only when they are not registered
+		if (m_cci.m_physicsEnv->removeCcdPhysicsController(this))
+		{
+			physicsEnv->addCcdPhysicsController(this);
+		}
+		m_cci.m_physicsEnv = physicsEnv;
+	}
+}
 
 void	CcdPhysicsController::SetCenterOfMassTransform(btTransform& xform)
 {

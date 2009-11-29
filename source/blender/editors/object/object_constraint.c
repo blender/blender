@@ -101,18 +101,7 @@ ListBase *get_active_constraints (Object *ob)
 /* single constraint */
 bConstraint *get_active_constraint (Object *ob)
 {
-	ListBase *lb= get_active_constraints(ob);
-
-	if (lb) {
-		bConstraint *con;
-		
-		for (con= lb->first; con; con=con->next) {
-			if (con->flag & CONSTRAINT_ACTIVE)
-				return con;
-		}
-	}
-	
-	return NULL;
+	return constraints_get_active(get_active_constraints(ob));
 }
 /* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
 /* ------------- PyConstraints ------------------ */
@@ -185,56 +174,6 @@ void update_pyconstraint_cb (void *arg1, void *arg2)
 	if (owner && con)
 		BPY_pyconstraint_update(owner, con);
 #endif
-}
-
-/* Creates a new constraint, initialises its data, and returns it */
-bConstraint *add_new_constraint (short type)
-{
-	bConstraint *con;
-	bConstraintTypeInfo *cti;
-
-	con = MEM_callocN(sizeof(bConstraint), "Constraint");
-	
-	/* Set up a generic constraint datablock */
-	con->type = type;
-	con->flag |= CONSTRAINT_EXPAND;
-	con->enforce = 1.0f;
-	
-	/* Load the data for it */
-	cti = constraint_get_typeinfo(con);
-	if (cti) {
-		con->data = MEM_callocN(cti->size, cti->structName);
-		
-		/* only constraints that change any settings need this */
-		if (cti->new_data)
-			cti->new_data(con->data);
-			
-		/* set the name based on the type of constraint */
-		strcpy(con->name, cti->name); 
-	}
-	else
-		strcpy(con->name, "Const");
-	
-	return con;
-}
-
-/* Adds the given constraint to the Object-level set of constraints for the given Object */
-void add_constraint_to_object (bConstraint *con, Object *ob)
-{
-	ListBase *list;
-	list = &ob->constraints;
-	
-	if (list) {
-		unique_constraint_name(con, list);
-		BLI_addtail(list, con);
-		
-		if (proxylocked_constraints_owner(ob, NULL))
-			con->flag |= CONSTRAINT_PROXY_LOCAL;
-		
-		con->flag |= CONSTRAINT_ACTIVE;
-		for (con= con->prev; con; con= con->prev)
-			con->flag &= ~CONSTRAINT_ACTIVE;
-	}
 }
 
 /* helper function for add_constriant - sets the last target for the active constraint */
@@ -401,9 +340,7 @@ static void test_constraints (Object *owner, const char substring[])
 				/* if the number of points does not match the amount required by the chain length,
 				 * free the points array and request a rebind...
 				 */
-				if ( (data->points == NULL) ||
-					 (!(data->flag & CONSTRAINT_SPLINEIK_NO_ROOT) && (data->numpoints != data->chainlen+1)) ||
-					 ( (data->flag & CONSTRAINT_SPLINEIK_NO_ROOT) && (data->numpoints != data->chainlen)) )
+				if ((data->points == NULL) || (data->numpoints != data->chainlen+1))
 				{
 					/* free the points array */
 					if (data->points) {
@@ -707,22 +644,13 @@ void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
 
 
 void ED_object_constraint_set_active(Object *ob, bConstraint *con)
-{
-	ListBase *lb;
-	bConstraint *origcon= con;
-	
+{	
 	/* lets be nice and escape if its active already */
-	if(con && (con->flag & CONSTRAINT_ACTIVE))
+	// NOTE: this assumes that the stack doesn't have other active ones set...
+	if (con && (con->flag & CONSTRAINT_ACTIVE))
 		return ;
 	
-	lb= get_active_constraints(ob);
-	if(lb == NULL)
-		return;
-	
-	for(con= lb->first; con; con= con->next) {
-		if(con==origcon) con->flag |= CONSTRAINT_ACTIVE;
-		else con->flag &= ~CONSTRAINT_ACTIVE;
-	}
+	constraints_set_active(get_active_constraints(ob), con);
 }
 
 void ED_object_constraint_update(Object *ob)
@@ -1076,9 +1004,14 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase *list, int type, short setTarget)
 {
 	Scene *scene= CTX_data_scene(C);
-	bPoseChannel *pchan= get_active_posechannel(ob);
+	bPoseChannel *pchan;
 	bConstraint *con;
 	
+	if(list == &ob->constraints)
+		pchan= NULL;
+	else
+		pchan= get_active_posechannel(ob);
+
 	/* check if constraint to be added is valid for the given constraints stack */
 	if (type == CONSTRAINT_TYPE_NULL) {
 		return OPERATOR_CANCELLED;
@@ -1097,32 +1030,10 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	}
 	
 	/* create a new constraint of the type requried, and add it to the active/given constraints list */
-	con = add_new_constraint(type);
-	
-	if (list) {
-		bConstraint *coniter; 
-		
-		/* add new constraint to end of list of constraints before ensuring that it has a unique name 
-		 * (otherwise unique-naming code will fail, since it assumes element exists in list)
-		 */
-		BLI_addtail(list, con);
-		unique_constraint_name(con, list);
-		
-		/* if the target list is a list on some PoseChannel belonging to a proxy-protected 
-		 * Armature layer, we must tag newly added constraints with a flag which allows them
-		 * to persist after proxy syncing has been done
-		 */
-		if (proxylocked_constraints_owner(ob, pchan))
-			con->flag |= CONSTRAINT_PROXY_LOCAL;
-		
-		/* make this constraint the active one 
-		 * 	- since constraint was added at end of stack, we can just go 
-		 * 	  through deactivating all previous ones
-		 */
-		con->flag |= CONSTRAINT_ACTIVE;
-		for (coniter= con->prev; coniter; coniter= coniter->prev)
-			coniter->flag &= ~CONSTRAINT_ACTIVE;
-	}
+	if(pchan)
+		con = add_pose_constraint(ob, pchan, NULL, type);
+	else
+		con = add_ob_constraint(ob, NULL, type);
 	
 	/* get the first selected object/bone, and make that the target
 	 *	- apart from the buttons-window add buttons, we shouldn't add in this way
@@ -1442,8 +1353,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *op)
 		for (con= pchan->constraints.first; con; con= next) {
 			next= con->next;
 			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
-				free_constraint_data(con);
-				BLI_freelinkN(&pchan->constraints, con);
+				remove_constraint(&pchan->constraints, con);
 			}
 		}
 		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);

@@ -337,6 +337,7 @@ static short IsectLLPt2Df(float x0,float y0,float x1,float y1,
 
 #define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 /* point in tri */
+// XXX was called IsectPT2Df
 int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 {
 	if (SIDE_OF_LINE(v1,v2,pt)>=0.0) {
@@ -432,7 +433,9 @@ int isect_ray_tri_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2
 	
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	/* note: these values were 0.000001 in 2.4x but for projection snapping on
+	 * a human head (1BU==1m), subsurf level 2, this gave many errors - campbell */
+	if ((a > -0.00000001) && (a < 0.00000001)) return 0;
 	f = 1.0f/a;
 	
 	sub_v3_v3v3(s, p1, v0);
@@ -1074,8 +1077,8 @@ void isect_point_face_uv_v2(int isquad, float v0[2], float v1[2], float v2[2], f
 	}
 }
 
-#if 0
-int isect_point_tri_v2(float v1[2], float v2[2], float v3[2], float pt[2])
+#if 0 // XXX this version used to be used in isect_point_tri_v2_int() and was called IsPointInTri2D
+int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 {
 	float inp1, inp2, inp3;
 	
@@ -1145,7 +1148,7 @@ int isect_point_tri_v2_int(int x1, int y1, int x2, int y2, int a, int b)
 	p[0]= (float)a;
 	p[1]= (float)b;
 	
-	return isect_point_tri_v2(v1, v2, v3, p);
+	return isect_point_tri_v2(p, v1, v2, v3);
 }
 
 static int point_in_slice(float p[3], float v1[3], float l1[3], float l2[3])

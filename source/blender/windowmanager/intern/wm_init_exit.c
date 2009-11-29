@@ -109,8 +109,10 @@ static void wm_free_reports(bContext *C)
 void WM_init(bContext *C)
 {
 	
-	wm_ghost_init(C);	/* note: it assigns C to ghost! */
-	wm_init_cursor_data();
+	if (!G.background) {
+		wm_ghost_init(C);	/* note: it assigns C to ghost! */
+		wm_init_cursor_data();
+	}
 	wm_operatortype_init();
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
@@ -131,10 +133,12 @@ void WM_init(bContext *C)
 	WM_read_homefile(C, NULL);
 	
 	wm_init_reports(C); /* reports cant be initialized before the wm */
-	
-	GPU_extensions_init();
 
-	UI_init();
+	if (!G.background) {
+		GPU_extensions_init();
+	
+		UI_init();
+	}
 	
 	//	clear_matcopybuf(); /* XXX */
 	
@@ -148,6 +152,19 @@ void WM_init(bContext *C)
 	
 	read_Blog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
+
+}
+
+void WM_init_splash(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *prevwin= CTX_wm_window(C);
+	
+	if(wm->windows.first) {
+		CTX_wm_window_set(C, wm->windows.first); 
+		WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
+		CTX_wm_window_set(C, prevwin);
+	}
 }
 
 /* free strings of open recent files */

@@ -104,6 +104,10 @@ RAS_MeshObject::~RAS_MeshObject()
 
 	for(it=m_Polygons.begin(); it!=m_Polygons.end(); it++)
 		delete (*it);
+
+	m_sharedvertex_map.clear();
+	m_Polygons.clear();
+	m_materials.clear();
 }
 
 bool RAS_MeshObject::MeshModified()

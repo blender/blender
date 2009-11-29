@@ -110,9 +110,11 @@ public:
 		if (m_invert) result = !result;
 		return result;
 	}
-
 	
 	virtual void EndFrame();
+
+	class PHY_IPhysicsController* GetPhysicsController() { return m_physCtrl; }
+
 
 	// todo: put some info for collision maybe
 

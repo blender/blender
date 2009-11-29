@@ -853,6 +853,7 @@ enum {
 #define SEQ_DRAW_COLOR_SEPERATED     4
 #define SEQ_DRAW_SAFE_MARGINS        8
 #define SEQ_DRAW_GPENCIL			16
+#define SEQ_NO_DRAW_CFRANUM			32
 
 /* space types, moved from DNA_screen_types.h */
 enum {

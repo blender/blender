@@ -1927,7 +1927,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		 */
 		if (data->type < 10) {
 			/* extract rotation (is in whatever space target should be in) */
-			mat4_to_eul( vec,tempmat);
+			mat4_to_eul(vec, tempmat);
 			vec[0] *= (float)(180.0/M_PI);
 			vec[1] *= (float)(180.0/M_PI);
 			vec[2] *= (float)(180.0/M_PI);
@@ -1935,7 +1935,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		}
 		else if (data->type < 20) {
 			/* extract scaling (is in whatever space target should be in) */
-			mat4_to_size( vec,tempmat);
+			mat4_to_size(vec, tempmat);
 			axis= data->type - 10;
 		}
 		else {
@@ -1947,7 +1947,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		/* Target defines the animation */
 		s = (vec[axis]-data->min) / (data->max-data->min);
 		CLAMP(s, 0, 1);
-		t = ( s * (data->end-data->start)) + data->start;
+		t = (s * (data->end-data->start)) + data->start;
 		
 		if (G.f & G_DEBUG)
 			printf("do Action Constraint %s - Ob %s Pchan %s \n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
@@ -1961,9 +1961,13 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			/* make a temporary pose and evaluate using that */
 			pose = MEM_callocN(sizeof(bPose), "pose");
 			
-			/* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set */
+			/* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set 
+			 *	- we need to manually copy over a few settings, including rotation order, otherwise this fails
+			 */
 			pchan = cob->pchan;
+			
 			tchan= verify_pose_channel(pose, pchan->name);
+			tchan->rotmode= pchan->rotmode;
 			
 			/* evaluate action using workob (it will only set the PoseChannel in question) */
 			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, pchan->name, t);
@@ -3638,6 +3642,121 @@ void free_constraints (ListBase *list)
 	BLI_freelistN(list);
 }
 
+
+/* Remove the specified constraint from the given constraint stack */
+int remove_constraint (ListBase *list, bConstraint *con)
+{
+	if (con) {
+		free_constraint_data(con);
+		BLI_freelinkN(list, con);
+		return 1;
+	}
+	else
+		return 0;
+}
+
+/* Remove the nth constraint from the given constraint stack */
+int remove_constraint_index (ListBase *list, int index)
+{
+	bConstraint *con= BLI_findlink(list, index);
+	
+	if (con)
+		return remove_constraint(list, con);
+	else 
+		return 0;
+}
+
+/* ......... */
+
+/* Creates a new constraint, initialises its data, and returns it */
+static bConstraint *add_new_constraint_internal (const char *name, short type)
+{
+	bConstraint *con= MEM_callocN(sizeof(bConstraint), "Constraint");
+	bConstraintTypeInfo *cti= get_constraint_typeinfo(type);
+	const char *newName;
+
+	/* Set up a generic constraint datablock */
+	con->type = type;
+	con->flag |= CONSTRAINT_EXPAND;
+	con->enforce = 1.0f;
+
+	/* Determine a basic name, and info */
+	if (cti) {
+		/* initialise constraint data */
+		con->data = MEM_callocN(cti->size, cti->structName);
+		
+		/* only constraints that change any settings need this */
+		if (cti->new_data)
+			cti->new_data(con->data);
+		
+		/* if no name is provided, use the type of the constraint as the name */
+		newName= (name && name[0]) ? name : cti->name;
+	}
+	else {
+		/* if no name is provided, use the generic "Const" name */
+		// NOTE: any constraint type that gets here really shouldn't get added...
+		newName= (name && name[0]) ? name : "Const";
+	}
+	
+	/* copy the name */
+	BLI_strncpy(con->name, newName, sizeof(con->name));
+	
+	/* return the new constraint */
+	return con;
+}
+
+/* if pchan is not NULL then assume we're adding a pose constraint */
+static bConstraint *add_new_constraint (Object *ob, bPoseChannel *pchan, const char *name, short type)
+{
+	bConstraint *con;
+	ListBase *list;
+	
+	/* add the constraint */
+	con= add_new_constraint_internal(name, type);
+	
+	/* find the constraint stack - bone or object? */
+	list = (pchan) ? (&pchan->constraints) : (&ob->constraints);
+	
+	if (list) {
+		/* add new constraint to end of list of constraints before ensuring that it has a unique name
+		 * (otherwise unique-naming code will fail, since it assumes element exists in list)
+		 */
+		BLI_addtail(list, con);
+		unique_constraint_name(con, list);
+		
+		/* if the target list is a list on some PoseChannel belonging to a proxy-protected
+		 * Armature layer, we must tag newly added constraints with a flag which allows them
+		 * to persist after proxy syncing has been done
+		 */
+		if (proxylocked_constraints_owner(ob, pchan))
+			con->flag |= CONSTRAINT_PROXY_LOCAL;
+		
+		/* make this constraint the active one */
+		constraints_set_active(list, con);
+	}
+	
+	return con;
+}
+
+/* ......... */
+
+/* Add new constraint for the given bone */
+bConstraint *add_pose_constraint (Object *ob, bPoseChannel *pchan, const char *name, short type)
+{
+	if (pchan == NULL)
+		return NULL;
+	
+	return add_new_constraint(ob, pchan, name, type);
+}
+
+/* Add new constraint for the given object */
+bConstraint *add_ob_constraint(Object *ob, const char *name, short type)
+{
+	return add_new_constraint(ob, NULL, name, type);
+}
+
+/* ......... */
+
 /* Reassign links that constraints have to other data (called during file loading?) */
 void relink_constraints (ListBase *conlist)
 {
@@ -3668,6 +3787,8 @@ void relink_constraints (ListBase *conlist)
 	}
 }
 
+/* ......... */
+
 /* duplicate all of the constraints in a constraint stack */
 void copy_constraints (ListBase *dst, ListBase *src)
 {
@@ -3682,6 +3803,7 @@ void copy_constraints (ListBase *dst, ListBase *src)
 		/* make a new copy of the constraint's data */
 		con->data = MEM_dupallocN(con->data);
 		
+		// NOTE: depreceated... old animation system
 		id_us_plus((ID *)con->ipo);
 		
 		/* only do specific constraints if required */
@@ -3689,6 +3811,8 @@ void copy_constraints (ListBase *dst, ListBase *src)
 			cti->copy_data(con, srccon);
 	}
 }
+
+/* ......... */
 
 /* finds the 'active' constraint in a constraint stack */
 bConstraint *constraints_get_active (ListBase *list)
@@ -3705,6 +3829,19 @@ bConstraint *constraints_get_active (ListBase *list)
 	
 	/* no active constraint found */
 	return NULL;
+}
+
+/* Set the given constraint as the active one (clearing all the others) */
+void constraints_set_active (ListBase *list, bConstraint *con)
+{
+	bConstraint *c;
+	
+	for (c= list->first; c; c= c->next) {
+		if (c == con) 
+			c->flag |= CONSTRAINT_ACTIVE;
+		else 
+			c->flag &= ~CONSTRAINT_ACTIVE;
+	}
 }
 
 /* -------- Constraints and Proxies ------- */

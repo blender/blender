@@ -1232,6 +1232,51 @@ void VIEW3D_OT_view_center(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	if (rv3d) {
+		if (rv3d->persp==RV3D_CAMOB) {
+			/* center the camera offset */
+			rv3d->camdx= rv3d->camdy= 0.0;
+		}
+		else {
+			/* non camera center */
+			float *curs= give_cursor(scene, v3d);
+			float new_ofs[3];
+			
+			new_ofs[0]= -curs[0];
+			new_ofs[1]= -curs[1];
+			new_ofs[2]= -curs[2];
+			
+			smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
+		}
+		
+		if (rv3d->viewlock & RV3D_BOXVIEW)
+			view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Center View to Cursor";
+	ot->description= "Centers the view so that the cursor is in the middle of the view.";
+	ot->idname= "VIEW3D_OT_view_center_cursor";
+	
+	/* api callbacks */
+	ot->exec= viewcenter_cursor_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
 /* ********************* Set render border operator ****************** */
 
 static int render_border_exec(bContext *C, wmOperator *op)
@@ -1829,6 +1874,42 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 
 /* ********************* set clipping operator ****************** */
 
+static void calc_clipping_plane(float clip[6][4], BoundBox *clipbb)
+{
+	int val;
+
+	for(val=0; val<4; val++) {
+
+		normal_tri_v3( clip[val],clipbb->vec[val], clipbb->vec[val==3?0:val+1], clipbb->vec[val+4]);
+
+		clip[val][3]=
+			- clip[val][0]*clipbb->vec[val][0]
+			- clip[val][1]*clipbb->vec[val][1]
+			- clip[val][2]*clipbb->vec[val][2];
+	}
+}
+
+static void calc_local_clipping(float clip_local[][4], BoundBox *clipbb, float mat[][4])
+{
+	BoundBox clipbb_local;
+	float imat[4][4];
+	int i;
+
+	invert_m4_m4(imat, mat);
+
+	for(i=0; i<8; i++) {
+		mul_v3_m4v3(clipbb_local.vec[i], imat, clipbb->vec[i]);
+	}
+
+	calc_clipping_plane(clip_local, &clipbb_local);
+}
+
+void ED_view3d_local_clipping(RegionView3D *rv3d, float mat[][4])
+{
+	if(rv3d->rflag & RV3D_CLIPPING)
+		calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);
+}
+
 static int view3d_clipping_exec(bContext *C, wmOperator *op)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -1879,14 +1960,8 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	}
 
 	/* then plane equations */
-	for(val=0; val<4; val++) {
+	calc_clipping_plane(rv3d->clip, rv3d->clipbb);
 
-		normal_tri_v3( rv3d->clip[val],rv3d->clipbb->vec[val], rv3d->clipbb->vec[val==3?0:val+1], rv3d->clipbb->vec[val+4]);
-
-		rv3d->clip[val][3]= - rv3d->clip[val][0]*rv3d->clipbb->vec[val][0]
-			- rv3d->clip[val][1]*rv3d->clipbb->vec[val][1]
-			- rv3d->clip[val][2]*rv3d->clipbb->vec[val][2];
-	}
 	return OPERATOR_FINISHED;
 }
 
@@ -2016,6 +2091,9 @@ static int manipulator_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(!(v3d->twflag & V3D_USE_MANIPULATOR)) return OPERATOR_PASS_THROUGH;
 	if(!(v3d->twflag & V3D_DRAW_MANIPULATOR)) return OPERATOR_PASS_THROUGH;
+
+	/* only no modifier or shift */
+	if(event->keymodifier != 0 && event->keymodifier != KM_SHIFT) return OPERATOR_PASS_THROUGH;
 
 	/* note; otherwise opengl won't work */
 	view3d_operator_needs_opengl(C);

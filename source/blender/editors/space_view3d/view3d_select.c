@@ -370,7 +370,7 @@ static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves
 	
 	{
 		bArmature *arm= ob->data;
-		if((arm->act_bone->flag & BONE_SELECTED)==0) {
+		if(arm->act_bone && (arm->act_bone->flag & BONE_SELECTED)==0) {
 			arm->act_bone= NULL;
 		}
 	}
@@ -1735,6 +1735,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		vc->em= ((Mesh *)vc->obedit->data)->edit_btmesh;
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
+		data.vc = vc;
 		data.select = selecting;
 		data.mval[0] = mval[0];
 		data.mval[1] = mval[1];

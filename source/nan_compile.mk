@@ -116,8 +116,7 @@ ifeq ($(OS),irix)
         CFLAGS += -fPIC -funsigned-char -fno-strict-aliasing -mabi=n32 -mips4
         CCFLAGS += -fPIC -fpermissive -funsigned-char -fno-strict-aliasing -mabi=n32 -mips4
         REL_CFLAGS += -O2
-        REL_CCFLAGS += -O2
-        CPPFLAGS += -DXP_UNIX
+        REL_CCFLAGS += -O2 
         DBG_CFLAGS += -g3 -gdwarf-2 -ggdb
         DBG_CCFLAGS += -g3 -gdwarf-2 -ggdb
     else

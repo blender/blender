@@ -136,7 +136,7 @@ CXX = 'g++'
 
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
-CPPFLAGS = ['-DXP_UNIX', '-DSUN_OGL_NO_VERTEX_MACROS']
+CPPFLAGS = ['-DSUN_OGL_NO_VERTEX_MACROS']
 CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']

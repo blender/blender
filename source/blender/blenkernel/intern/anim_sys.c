@@ -353,7 +353,7 @@ static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName
 
 /* Fix all RNA-Paths in the AnimData block used by the given ID block
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- * 		i.e. pose.pose_channels["Bone"]
+ * 		i.e. pose.bones["Bone"]
  */
 void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, char *oldName, char *newName)
 {
@@ -388,7 +388,7 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, c
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- * 		i.e. pose.pose_channels["Bone"]
+ * 		i.e. pose.bones["Bone"]
  */
 void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newName)
 {

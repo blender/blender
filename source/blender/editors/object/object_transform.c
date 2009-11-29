@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -61,6 +62,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -72,8 +74,16 @@
 
 static int object_location_clear_exec(bContext *C, wmOperator *op)
 {
-	int armature_clear= 0;
-
+	Scene *scene= CTX_data_scene(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	
+	/* clear location of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if((ob->protectflag & OB_LOCK_LOCX)==0)
@@ -82,13 +92,17 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 				ob->loc[1]= ob->dloc[1]= 0.0f;
 			if((ob->protectflag & OB_LOCK_LOCZ)==0)
 				ob->loc[2]= ob->dloc[2]= 0.0f;
+				
+			/* do auto-keyframing as appropriate */
+			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+				/* init cks for this object, then use the relative KeyingSets to keyframe it */
+				cks.id= &ob->id;
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			}
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-
-	if(armature_clear==0) /* in this case flush was done */
-		ED_anim_dag_flush_update(C);	
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -112,8 +126,16 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
-	int armature_clear= 0;
-
+	Scene *scene= CTX_data_scene(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	
+	/* clear rotation of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
@@ -206,13 +228,17 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
 				}
 			}
+			
+			/* do auto-keyframing as appropriate */
+			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+				/* init cks for this object, then use the relative KeyingSets to keyframe it */
+				cks.id= &ob->id;
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			}
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-
-	if(armature_clear==0) /* in this case flush was done */
-		ED_anim_dag_flush_update(C);	
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -236,8 +262,16 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
-	int armature_clear= 0;
-
+	Scene *scene= CTX_data_scene(C);
+	
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	
+	/* clear scales of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if((ob->protectflag & OB_LOCK_SCALEX)==0) {
@@ -252,13 +286,17 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 				ob->dsize[2]= 0.0f;
 				ob->size[2]= 1.0f;
 			}
+			
+			/* do auto-keyframing as appropriate */
+			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+				/* init cks for this object, then use the relative KeyingSets to keyframe it */
+				cks.id= &ob->id;
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			}
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-	
-	if(armature_clear==0) /* in this case flush was done */
-		ED_anim_dag_flush_update(C);	
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -475,8 +513,14 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0f;
 		if(apply_scale)
 			ob->size[0]= ob->size[1]= ob->size[2]= 1.0f;
-		if(apply_rot)
+		if(apply_rot) {
 			ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
+			ob->quat[1]= ob->quat[2]= ob->quat[3]= 0.0f;
+			ob->rotAxis[0]= ob->rotAxis[2]= 0.0f;
+			ob->rotAngle= 0.0f;
+			
+			ob->quat[0]= ob->rotAxis[1]= 1.0f;
+		}
 
 		where_is_object(scene, ob);
 		ignore_parent_tx(bmain, scene, ob);
@@ -501,10 +545,16 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		where_is_object(scene, ob);
-
+		
 		VECCOPY(ob->loc, ob->obmat[3]);
-		mat4_to_size( ob->size,ob->obmat);
-		mat4_to_eul( ob->rot,ob->obmat);
+		mat4_to_size(ob->size,ob->obmat);
+		
+		if (ob->rotmode == ROT_MODE_QUAT)
+			mat4_to_quat(ob->quat, ob->obmat);
+		else if (ob->rotmode == ROT_MODE_AXISANGLE)
+			mat4_to_axis_angle(ob->rotAxis, &ob->rotAngle, ob->obmat);
+		else
+			mat4_to_eul(ob->rot,ob->obmat);
 		
 		where_is_object(scene, ob);
 		
@@ -641,20 +691,12 @@ void texspace_edit(Scene *scene, View3D *v3d)
 	}
 }
 
-/************************ Mirror Menu ****************************/
-
-void mirrormenu(void)
-{
-// XXX		initTransform(TFM_MIRROR, CTX_NO_PET);
-// XXX		Transform();
-}
-
 /********************* Set Object Center ************************/
 
 static EnumPropertyItem prop_set_center_types[] = {
 	{0, "CENTER", 0, "ObData to Center", "Move object data around Object center"},
-	{1, "CENTERNEW", 0, "Center New", "Move Object center to center of object data"},
-	{2, "CENTERCURSOR", 0, "Center Cursor", "Move Object Center to position of the 3d cursor"},
+	{1, "CENTER_NEW", 0, "Center New", "Move Object center to center of object data"},
+	{2, "CENTER_CURSOR", 0, "Center Cursor", "Move Object Center to position of the 3d cursor"},
 	{0, NULL, 0, NULL, NULL}
 };
 

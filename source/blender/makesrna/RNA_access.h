@@ -203,6 +203,7 @@ extern StructRNA RNA_FModifierGenerator;
 extern StructRNA RNA_FModifierLimits;
 extern StructRNA RNA_FModifierNoise;
 extern StructRNA RNA_FModifierPython;
+extern StructRNA RNA_FModifierSound;
 extern StructRNA RNA_FieldSettings;
 extern StructRNA RNA_FileSelectParams;
 extern StructRNA RNA_FloatProperty;
@@ -310,10 +311,12 @@ extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeTree;
+extern StructRNA RNA_NodeSocket;
 extern StructRNA RNA_NoiseTexture;
 extern StructRNA RNA_NorController;
 extern StructRNA RNA_Nurb;
 extern StructRNA RNA_Object;
+extern StructRNA RNA_ObjectBase;
 extern StructRNA RNA_ObstacleFluidSettings;
 extern StructRNA RNA_Operator;
 extern StructRNA RNA_OperatorFileListElement;
@@ -345,7 +348,7 @@ extern StructRNA RNA_PointDensityTexture;
 extern StructRNA RNA_PointLamp;
 extern StructRNA RNA_PointerProperty;
 extern StructRNA RNA_Pose;
-extern StructRNA RNA_PoseChannel;
+extern StructRNA RNA_PoseBone;
 extern StructRNA RNA_Property;
 extern StructRNA RNA_PropertySensor;
 extern StructRNA RNA_PythonConstraint;
@@ -358,6 +361,7 @@ extern StructRNA RNA_RenderEngine;
 extern StructRNA RNA_RenderLayer;
 extern StructRNA RNA_RenderPass;
 extern StructRNA RNA_RenderResult;
+extern StructRNA RNA_RGBANodeSocket;
 extern StructRNA RNA_RigidBodyJointConstraint;
 extern StructRNA RNA_Scene;
 extern StructRNA RNA_SceneGameData;
@@ -515,7 +519,9 @@ extern StructRNA RNA_UserPreferencesFilePaths;
 extern StructRNA RNA_UserPreferencesSystem;
 extern StructRNA RNA_UserPreferencesView;
 extern StructRNA RNA_UserSolidLight;
+extern StructRNA RNA_ValueNodeSocket;
 extern StructRNA RNA_VectorFont;
+extern StructRNA RNA_VectorNodeSocket;
 extern StructRNA RNA_VertexGroup;
 extern StructRNA RNA_VertexGroupElement;
 extern StructRNA RNA_VertexPaint;
@@ -578,6 +584,8 @@ void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
 struct IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create);
+int RNA_struct_idproperties_check(PointerRNA *ptr);
+
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
@@ -678,7 +686,7 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_collection_lookup_index(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *t_ptr);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
-PropertyRNA *RNA_property_collection_active(PropertyRNA *prop);
+int RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
 
 /* efficient functions to set properties for arrays */
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array);
@@ -809,6 +817,7 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 
 /* check if the idproperty exists, for operators */
 int RNA_property_is_set(PointerRNA *ptr, const char *name);
+int RNA_property_is_idprop(PropertyRNA *prop);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);

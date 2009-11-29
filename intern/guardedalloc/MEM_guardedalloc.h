@@ -77,6 +77,12 @@ extern "C" {
 	short _MEM_freeN(void *vmemh, char *file, int line);
 	#define MEM_freeN(vmemh)	_MEM_freeN(vmemh, __FILE__, __LINE__)
 	
+
+	/**
+	 * Return zero if memory is not in allocated list
+	 */
+	short MEM_testN(void *vmemh);
+
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
@@ -105,6 +111,9 @@ extern "C" {
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. */ 
 	void MEM_printmemlist(void);
+
+	/** calls the function on all allocated memory blocks. */
+	void MEM_callbackmemlist(void (*func)(void*));
 
 	/** Print statistics about memory usage */
 	void MEM_printmemlist_stats(void);
