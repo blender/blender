@@ -820,16 +820,19 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 		return;
 	}
 
-	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
-				  "effect_fader", 0);
-
-	if (!fcu) {
+	if ((seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) != 0) {
 		sh.get_default_fac(seq, cfra, &fac, &facf);
 		if( scene->r.mode & R_FIELDS ); else facf= fac;
 	} else {
-		fac = facf = evaluate_fcurve(fcu, cfra);
-		if( scene->r.mode & R_FIELDS ) {
-			facf = evaluate_fcurve(fcu, cfra + 0.5);
+		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
+					  "effect_fader", 0);
+		if (fcu) {
+			fac = facf = evaluate_fcurve(fcu, cfra);
+			if( scene->r.mode & R_FIELDS ) {
+				facf = evaluate_fcurve(fcu, cfra + 0.5);
+			}
+		} else {
+			fac = facf = seq->effect_fader;
 		}
 	}
 
@@ -2122,16 +2125,19 @@ static void do_effect_seq_recursively(Scene *scene, Sequence *seq, TStripElem *s
 	se->se2 = 0;
 	se->se3 = 0;
 
-	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
-				  "effect_fader", 0);
-
-	if (!fcu) {
+	if ((seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) != 0) {
 		sh.get_default_fac(seq, cfra, &fac, &facf);
 		if( scene->r.mode & R_FIELDS ); else facf= fac;
 	} else {
-		fac = facf = evaluate_fcurve(fcu, cfra);
-		if( scene->r.mode & R_FIELDS ) {
-			facf = evaluate_fcurve(fcu, cfra + 0.5);
+		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, 
+					  "effect_fader", 0);
+		if (fcu) {
+			fac = facf = evaluate_fcurve(fcu, cfra);
+			if( scene->r.mode & R_FIELDS ) {
+				facf = evaluate_fcurve(fcu, cfra + 0.5);
+			}
+		} else {
+			fac = facf = seq->effect_fader;
 		}
 	}
 

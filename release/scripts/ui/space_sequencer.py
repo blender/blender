@@ -351,7 +351,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('COLOR', 'WIPE', 'GLOW', 'SPEED', 'TRANSFORM')
+        return strip.type in ('ADD','SUBTRACT','ALPHA_OVER','ALPHA_UNDER',
+                              'GAMMA_CROSS','MULTIPLY','OVER_DROP',
+                              'PLUGIN',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
 
     def draw(self, context):
         layout = self.layout
@@ -431,7 +434,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         if strip.type == 'SPEED':
             col.prop(strip, "speed_fader", text="Speed fader")
         else:
-            col.prop(strip, "effect_fader", text="Effect fader")
+            col.prop(strip, "use_effect_default_fade", "Default fade")
+            if not strip.use_effect_default_fade:
+                col.prop(strip, "effect_fader", text="Effect fader")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):

@@ -538,6 +538,12 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Effect fader position", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 
+	prop= RNA_def_property(srna, "use_effect_default_fade", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_EFFECT_DEFAULT_FADE);
+	RNA_def_property_ui_text(prop, "Use Default Fade", "Fade effect using the builtin default (usually make transition as long as effect strip).");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	
+
 	prop= RNA_def_property(srna, "speed_fader", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "speed_fader");
 	RNA_def_property_ui_text(prop, "Speed effect fader position", "");
@@ -637,7 +643,7 @@ static void rna_def_filter_video(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Use Translation", "Translate image before processing.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_translation_set");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
-	
+
 	prop= RNA_def_property(srna, "transform", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->transform");
 	RNA_def_property_ui_text(prop, "Transform", "");

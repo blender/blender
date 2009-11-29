@@ -513,6 +513,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		seq_tx_set_final_right(seq, end_frame);
 	}
 
+	seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
+
 	calc_sequence(seq);
 	
 	/* basic defaults */
