@@ -518,7 +518,7 @@ void default_tex(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *add_texture(char *name)
+Tex *add_texture(const char *name)
 {
 	Tex *tex;
 
