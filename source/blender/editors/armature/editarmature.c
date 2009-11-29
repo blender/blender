@@ -3993,25 +3993,38 @@ void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 }
 static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 {
-	int	sel=1;
+	int action = RNA_enum_get(op->ptr, "action");
 
-	/*	Determine if there are any selected bones
-	And therefore whether we are selecting or deselecting */
-	if (CTX_DATA_COUNT(C, selected_bones) > 0)	sel=0;
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		/*	Determine if there are any selected bones
+		And therefore whether we are selecting or deselecting */
+		if (CTX_DATA_COUNT(C, selected_bones) > 0)
+			action = SEL_DESELECT;
+	}
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
 		/* ignore bone if selection can't change */
 		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
-			if (sel==1) {
-				/* select bone */
+			switch (action) {
+			case SEL_SELECT:
 				ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				if(ebone->parent)
 					ebone->parent->flag |= (BONE_TIPSEL);
-			}
-			else {
-				/* deselect bone */
+				break;
+			case SEL_DESELECT:
 				ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				break;
+			case SEL_INVERT:
+				if (ebone->flag & BONE_SELECTED) {
+					ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				} else {
+					ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+					if(ebone->parent)
+						ebone->parent->flag |= (BONE_TIPSEL);
+				}
+				break;
 			}
 		}
 	}
@@ -4022,12 +4035,12 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_select_all_toggle(wmOperatorType *ot)
+void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all editbone";
-	ot->idname= "ARMATURE_OT_select_all_toggle";
+	ot->idname= "ARMATURE_OT_select_all";
 	
 	/* api callbacks */
 	ot->exec= armature_de_select_all_exec;
@@ -4036,6 +4049,7 @@ void ARMATURE_OT_select_all_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
+	WM_operator_properties_select_all(ot);
 }
 
 /* ********************* select hierarchy operator ************** */
@@ -5077,20 +5091,35 @@ void POSE_OT_select_inverse(wmOperatorType *ot)
 }
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
-	int	sel=1;
+	int action = RNA_enum_get(op->ptr, "action");
 
-	/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
-	// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
-	if (CTX_DATA_COUNT(C, selected_pose_bones) > 1)	sel=0;
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
+		// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
+		if (CTX_DATA_COUNT(C, selected_pose_bones) > 1)
+			action = SEL_DESELECT;
+	}
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) {
 		/* select pchan only if selectable, but deselect works always */
-		if (sel==0) {
+		switch (action) {
+		case SEL_SELECT:
+			if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
+				pchan->bone->flag |= BONE_SELECTED;
+			break;
+		case SEL_DESELECT:
 			pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			break;
+		case SEL_INVERT:
+			if (pchan->bone->flag & BONE_SELECTED) {
+				pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			} else if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
+					pchan->bone->flag |= BONE_SELECTED;
+			}
+			break;
 		}
-		else if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
-			pchan->bone->flag |= BONE_SELECTED;
 	}
 	CTX_DATA_END;
 
@@ -5099,12 +5128,12 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_select_all_toggle(wmOperatorType *ot)
+void POSE_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all bones";
-	ot->idname= "POSE_OT_select_all_toggle";
+	ot->idname= "POSE_OT_select_all";
 	
 	/* api callbacks */
 	ot->exec= pose_de_select_all_exec;
@@ -5113,6 +5142,7 @@ void POSE_OT_select_all_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
+	WM_operator_properties_select_all(ot);
 }
 
 static int pose_select_parent_exec(bContext *C, wmOperator *op)

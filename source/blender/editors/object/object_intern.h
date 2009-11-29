@@ -81,7 +81,7 @@ void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 
 /* object_select.c */
-void OBJECT_OT_select_all_toggle(struct wmOperatorType *ot);
+void OBJECT_OT_select_all(struct wmOperatorType *ot);
 void OBJECT_OT_select_inverse(struct wmOperatorType *ot);
 void OBJECT_OT_select_random(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
@@ -124,7 +124,7 @@ void make_editLatt(Object *obedit);
 void load_editLatt(Object *obedit);
 void remake_editLatt(Object *obedit);
 
-void LATTICE_OT_select_all_toggle(struct wmOperatorType *ot);
+void LATTICE_OT_select_all(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
 
 /* object_group.c */

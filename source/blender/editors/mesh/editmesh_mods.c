@@ -3372,12 +3372,31 @@ void EM_select_all(EditMesh *em)
 	EM_set_flag_all(em, SELECT);
 }
 
-static int toggle_select_all_exec(bContext *C, wmOperator *op)
+void EM_deselect_all(EditMesh *em)
+{
+	EM_clear_flag_all(em, SELECT);
+}
+
+static int select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	int action = RNA_enum_get(op->ptr, "action");
 	
-	EM_toggle_select_all(em);
+	switch (action) {
+	case SEL_TOGGLE:
+		EM_toggle_select_all(em);
+		break;
+	case SEL_SELECT:
+		EM_select_all(em);
+		break;
+	case SEL_DESELECT:
+		EM_deselect_all(em);
+		break;
+	case SEL_INVERT:
+		EM_select_swap(em);
+		break;
+	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);	
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -3385,19 +3404,21 @@ static int toggle_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_select_all_toggle(wmOperatorType *ot)
+void MESH_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect All";
-	ot->description= "(de)select all vertices, edges or faces.";
-	ot->idname= "MESH_OT_select_all_toggle";
+	ot->description= "Change selection of all vertices, edges or faces.";
+	ot->idname= "MESH_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= toggle_select_all_exec;
+	ot->exec= select_all_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /* ******************** **************** */

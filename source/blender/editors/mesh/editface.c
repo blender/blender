@@ -378,34 +378,44 @@ void select_linked_tfaces(bContext *C, Object *ob, short mval[2], int mode)
 	object_facesel_flush_dm(ob);
 }
 
-void deselectall_tface(Object *ob)
+void selectall_tface(Object *ob, int action)
 {
 	Mesh *me;
 	MFace *mface;
-	int a, sel;
+	int a;
 
 	me= get_mesh(ob);
 	if(me==0) return;
 	
-	mface= me->mface;
-	a= me->totface;
-	sel= 0;
-	while(a--) {
-		if(mface->flag & ME_HIDE);
-		else if(mface->flag & ME_FACE_SEL) {
-			sel= 1;
-			break;
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+
+		mface= me->mface;
+		a= me->totface;
+		while(a--) {
+			if((mface->flag & ME_HIDE) == 0 && mface->flag & ME_FACE_SEL) {
+				action = SEL_DESELECT;
+				break;
+			}
+			mface++;
 		}
-		mface++;
 	}
 	
 	mface= me->mface;
 	a= me->totface;
 	while(a--) {
-		if(mface->flag & ME_HIDE);
-		else {
-			if(sel) mface->flag &= ~ME_FACE_SEL;
-			else mface->flag |= ME_FACE_SEL;
+		if((mface->flag & ME_HIDE) == 0) {
+			switch (action) {
+			case SEL_SELECT:
+				mface->flag |= ME_FACE_SEL;
+				break;
+			case SEL_DESELECT:
+				mface->flag &= ~ME_FACE_SEL;
+				break;
+			case SEL_INVERT:
+				mface->flag ^= ME_FACE_SEL;
+				break;
+			}
 		}
 		mface++;
 	}
@@ -815,7 +825,7 @@ int face_select(struct bContext *C, Object *ob, short mval[2], int extend)
 	return 1;
 }
 
-void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select)
+void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select, int extend)
 {
 	Mesh *me;
 	MFace *mface;
@@ -836,6 +846,14 @@ void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select)
 	sx= (rect->xmax-rect->xmin+1);
 	sy= (rect->ymax-rect->ymin+1);
 	if(sx*sy<=0) return;
+
+	if (extend == 0 && select) {
+		mface= me->mface;
+		for(a=1; a<=me->totface; a++, mface++) {
+			if((mface->flag & ME_HIDE) == 0)
+				mface->flag &= ~ME_FACE_SEL;
+		}
+	}
 
 	view3d_validate_backbuf(&vc);
 

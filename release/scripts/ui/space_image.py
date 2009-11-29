@@ -75,7 +75,7 @@ class IMAGE_MT_select(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("uv.select_all_toggle")
+        layout.operator("uv.select_all")
         layout.operator("uv.select_inverse")
         layout.operator("uv.unlink_selection")
 

@@ -115,6 +115,10 @@ void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
 void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
 void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 
+/* object_lattice.c */
+
+void ED_setflagsLatt(struct Object *obedit, int flag);
+
 /* object_modifier.c */
 enum {
 	MODIFIER_APPLY_DATA=1,

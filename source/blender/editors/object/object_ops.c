@@ -98,7 +98,7 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_select_inverse);
 	WM_operatortype_append(OBJECT_OT_select_random);
-	WM_operatortype_append(OBJECT_OT_select_all_toggle);
+	WM_operatortype_append(OBJECT_OT_select_all);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
 	WM_operatortype_append(OBJECT_OT_select_by_layer);
 	WM_operatortype_append(OBJECT_OT_select_linked);
@@ -180,7 +180,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_shape_key_mirror);
 	WM_operatortype_append(OBJECT_OT_shape_key_move);
 
-	WM_operatortype_append(LATTICE_OT_select_all_toggle);
+	WM_operatortype_append(LATTICE_OT_select_all);
 	WM_operatortype_append(LATTICE_OT_make_regular);
 
 	WM_operatortype_append(OBJECT_OT_group_add);
@@ -261,7 +261,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* object mode supports PET now */
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
@@ -329,7 +329,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);
 	keymap->poll= ED_operator_editlattice;
 
-	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "LATTICE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	
 		/* menus */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);

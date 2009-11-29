@@ -197,6 +197,13 @@ void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperato
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
 void		WM_operator_properties_gesture_border(wmOperatorType *ot, int extend);
+void		WM_operator_properties_select_all(wmOperatorType *ot);
+
+/* MOVE THIS SOMEWHERE ELSE */
+#define	SEL_TOGGLE		0
+#define	SEL_SELECT		1
+#define SEL_DESELECT	2
+#define SEL_INVERT		3
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);

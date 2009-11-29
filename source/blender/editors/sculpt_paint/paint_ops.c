@@ -137,7 +137,7 @@ void ED_operatortypes_paint(void)
 	/* face-select */
 	WM_operatortype_append(PAINT_OT_face_select_linked);
 	WM_operatortype_append(PAINT_OT_face_select_linked_pick);
-	WM_operatortype_append(PAINT_OT_face_deselect_all);
+	WM_operatortype_append(PAINT_OT_face_select_all);
 }
 
 static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
@@ -238,7 +238,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Face Mask", 0, 0);
 	keymap->poll= facemask_paint_poll;
 
-	WM_keymap_add_item(keymap, "PAINT_OT_face_deselect_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_face_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, 0, 0);
 

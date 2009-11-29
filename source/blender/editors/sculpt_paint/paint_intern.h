@@ -96,7 +96,7 @@ void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
 
 void PAINT_OT_face_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
-void PAINT_OT_face_deselect_all(struct wmOperatorType *ot);
+void PAINT_OT_face_select_all(struct wmOperatorType *ot);
 
 int facemask_paint_poll(struct bContext *C);
 

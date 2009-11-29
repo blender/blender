@@ -83,6 +83,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatus);
+static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus);
+
 /* still need to eradicate a few :( */
 #define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
 
@@ -360,6 +363,26 @@ void free_editNurb(Object *obedit)
 		freeNurblist(cu->editnurb);
 		MEM_freeN(cu->editnurb);
 		cu->editnurb= NULL;
+	}
+}
+
+void CU_deselect_all(Object *obedit)
+{
+	ListBase *editnurb= curve_get_editcurve(obedit);
+
+	if (editnurb) {
+		selectend_nurb(obedit, FIRST, 0, DESELECT); /* set first control points as unselected */
+		select_adjacent_cp(editnurb, 1, 1, DESELECT); /* cascade selection */
+	}
+}
+
+void CU_select_all(Object *obedit)
+{
+	ListBase *editnurb= curve_get_editcurve(obedit);
+
+	if (editnurb) {
+		selectend_nurb(obedit, FIRST, 0, DESELECT); /* set first control points as unselected */
+		select_adjacent_cp(editnurb, 1, 1, DESELECT); /* cascade selection */
 	}
 }
 
@@ -1580,26 +1603,67 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
+	int action = RNA_enum_get(op->ptr, "action");
 	
-	if(nurb_has_selected_cps(editnurb)) { /* deselect all */
-		selectend_nurb(obedit, FIRST, 0, DESELECT); /* set first control points as unselected */
-		select_adjacent_cp(editnurb, 1, 1, DESELECT); /* cascade selection */	
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		if(nurb_has_selected_cps(editnurb))
+			action = SEL_DESELECT;
 	}
-	else { /* select all */
-		selectend_nurb(obedit, FIRST, 0, SELECT); /* set first control points as selected */
-		select_adjacent_cp(editnurb, 1, 1, SELECT); /* cascade selection */
- 	}
+
+	switch (action) {
+		case SEL_SELECT:
+			CU_select_all(obedit);
+			break;
+		case SEL_DESELECT:
+			CU_deselect_all(obedit);
+			break;
+		case SEL_INVERT:
+		{
+			Curve *cu= obedit->data;
+			Nurb *nu;
+			BPoint *bp;
+			BezTriple *bezt;
+			int a;
+
+			for(nu= editnurb->first; nu; nu= nu->next) {
+				if(nu->type == CU_BEZIER) {
+					bezt= nu->bezt;
+					a= nu->pntsu;
+					while(a--) {
+						if(bezt->hide==0) {
+							bezt->f2 ^= SELECT; /* always do the center point */
+							if((cu->drawflag & CU_HIDE_HANDLES)==0) {
+								bezt->f1 ^= SELECT;
+								bezt->f3 ^= SELECT;
+							}
+						}
+						bezt++;
+					}
+				}
+				else {
+					bp= nu->bp;
+					a= nu->pntsu*nu->pntsv;
+					while(a--) {
+						swap_selection_bpoint(bp);
+						bp++;
+					}
+				}
+			}
+			break;
+		}
+	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_select_all_toggle(wmOperatorType *ot)
+void CURVE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "CURVE_OT_select_all_toggle";
+	ot->idname= "CURVE_OT_select_all";
 	
 	/* api callbacks */
 	ot->exec= de_select_all_exec;

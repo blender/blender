@@ -364,7 +364,7 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("object.select_all_toggle", text="Select/Deselect All")
+        layout.operator("object.select_all", text="Select/Deselect All")
         layout.operator("object.select_inverse", text="Inverse")
         layout.operator("object.select_random", text="Random")
         layout.operator("object.select_mirror", text="Mirror")
@@ -388,7 +388,7 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("pose.select_all_toggle", text="Select/Deselect All")
+        layout.operator("pose.select_all", text="Select/Deselect All")
         layout.operator("pose.select_inverse", text="Inverse")
         layout.operator("pose.select_constraint_target", text="Constraint Target")
         layout.operator("pose.select_linked", text="Linked")
@@ -419,7 +419,7 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("particle.select_all_toggle", text="Select/Deselect All")
+        layout.operator("particle.select_all", text="Select/Deselect All")
         layout.operator("particle.select_linked")
         layout.operator("particle.select_inverse")
 
@@ -445,7 +445,7 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_all_toggle", text="Select/Deselect All")
+        layout.operator("mesh.select_all", text="Select/Deselect All")
         layout.operator("mesh.select_inverse", text="Inverse")
 
         layout.separator()
@@ -494,7 +494,7 @@ class VIEW3D_MT_select_edit_curve(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("curve.select_all_toggle", text="Select/Deselect All")
+        layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
         layout.operator("curve.select_every_nth")
@@ -523,7 +523,7 @@ class VIEW3D_MT_select_edit_surface(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("curve.select_all_toggle", text="Select/Deselect All")
+        layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
         layout.operator("curve.select_every_nth")
@@ -566,7 +566,7 @@ class VIEW3D_MT_select_edit_lattice(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("lattice.select_all_toggle", text="Select/Deselect All")
+        layout.operator("lattice.select_all", text="Select/Deselect All")
 
 
 class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
@@ -580,7 +580,7 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("armature.select_all_toggle", text="Select/Deselect All")
+        layout.operator("armature.select_all", text="Select/Deselect All")
         layout.operator("armature.select_inverse", text="Inverse")
 
         layout.separator()

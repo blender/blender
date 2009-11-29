@@ -141,7 +141,7 @@ void MESH_OT_knife_cut(struct wmOperatorType *ot);
 
 /* ******************* editmesh_mods.c */
 void MESH_OT_loop_select(struct wmOperatorType *ot);
-void MESH_OT_select_all_toggle(struct wmOperatorType *ot);
+void MESH_OT_select_all(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);
 void MESH_OT_select_inverse(struct wmOperatorType *ot);

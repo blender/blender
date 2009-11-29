@@ -668,6 +668,18 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
+void WM_operator_properties_select_all(wmOperatorType *ot) {
+	static EnumPropertyItem select_all_actions[] = {
+			{SEL_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle selection for all elements"},
+			{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
+			{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
+			{SEL_INVERT, "INVERT", 0, "Invert", "Invert selection of all elements"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
+	RNA_def_enum(ot->srna, "action", select_all_actions, SEL_TOGGLE, "Action", "Selection action to execute");
+}
+
 void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 {
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
@@ -677,7 +689,7 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 	if(extend)
-		RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 
