@@ -941,7 +941,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "keyframe_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bezt", "totvert");
-	RNA_def_property_struct_type(prop, "BezierCurvePoint");
+	RNA_def_property_struct_type(prop, "BezierSplinePoint");
 	RNA_def_property_ui_text(prop, "Keyframes", "User-editable keyframes");
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);

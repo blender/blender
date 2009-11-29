@@ -260,16 +260,6 @@ static void PYTHON_OT_draw(bContext *C, wmOperator *op, uiLayout *layout)
 	PYTHON_OT_generic(PYOP_DRAW, C, op->type, op, NULL, layout);
 }
 
-// void (*ui)(struct bContext *, struct PointerRNA *, struct uiLayout *);
-//
-//static int PYTHON_OT_ui(bContext *C, PointerRNA *, uiLayout *layout)
-//{
-//	PointerRNA ptr_context, ptr_layout;
-//	RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
-//	RNA_pointer_create(NULL, &RNA_UILayout, layout, &ptr_layout);
-//
-//}
-
 void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 {
 	PyObject *py_class = (PyObject *)userdata;
@@ -453,6 +443,3 @@ PyObject *PYOP_wrap_remove(PyObject *self, PyObject *value)
 
 	Py_RETURN_NONE;
 }
-
-
-
