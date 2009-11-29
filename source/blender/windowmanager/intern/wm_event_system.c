@@ -941,6 +941,10 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 	if(retval == (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH))
 		return WM_HANDLER_HANDLED;
 
+	/* Modal unhandled, break */
+	if(retval == (OPERATOR_PASS_THROUGH|OPERATOR_RUNNING_MODAL))
+		return (WM_HANDLER_BREAK|WM_HANDLER_MODAL);
+
 	if(retval & OPERATOR_PASS_THROUGH)
 		return WM_HANDLER_CONTINUE;
 
@@ -1159,7 +1163,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	}
 
 	/* test for CLICK event */
-	if (event->val == KM_RELEASE && action == WM_HANDLER_CONTINUE) {
+	if (event->val == KM_RELEASE && (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL))) {
 		wmWindow *win = CTX_wm_window(C);
 
 		if (win && win->last_type == event->type && win->last_val == KM_PRESS) {
@@ -1354,15 +1358,15 @@ void wm_event_do_handlers(bContext *C)
 			}
 			
 			/* store last event for this window */
-			if (action == WM_HANDLER_CONTINUE) {
-				/* mousemove event don't overwrite last type */
-				if (event->type != MOUSEMOVE) {
+			/* mousemove event don't overwrite last type */
+			if (event->type != MOUSEMOVE) {
+				if (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) {
 					win->last_type = event->type;
 					win->last_val = event->val;
+				} else {
+					win->last_type = -1;
+					win->last_val = 0;
 				}
-			} else {
-				win->last_type = -1;
-				win->last_val = 0;
 			}
 
 			/* unlink and free here, blender-quit then frees all */

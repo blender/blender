@@ -293,16 +293,16 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	TransInfo *t = op->customdata;
 
-	transformEvent(t, event);
+	exit_code = transformEvent(t, event);
 
 	transformApply(C, t);
 
+	exit_code |= transformEnd(C, t);
 
-	exit_code = transformEnd(C, t);
-
-	if (exit_code != OPERATOR_RUNNING_MODAL)
+	if ((exit_code & OPERATOR_RUNNING_MODAL) == 0)
 	{
 		transformops_exit(C, op);
+		exit_code &= ~OPERATOR_PASS_THROUGH; /* preventively remove passthrough */
 	}
 
 	return exit_code;

@@ -429,7 +429,7 @@ void TFM_OT_transform(struct wmOperatorType *ot);
 
 int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
-void transformEvent(TransInfo *t, struct wmEvent *event);
+int  transformEvent(TransInfo *t, struct wmEvent *event);
 void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 

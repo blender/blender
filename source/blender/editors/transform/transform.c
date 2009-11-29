@@ -560,10 +560,11 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 }
 
 
-void transformEvent(TransInfo *t, wmEvent *event)
+int transformEvent(TransInfo *t, wmEvent *event)
 {
 	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	char cmode = constraintModeToChar(t);
+	int handled = 1;
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
@@ -640,6 +641,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			case TFM_MODAL_SNAP_TOGGLE:
 				t->modifiers ^= MOD_SNAP;
 				t->redraw = 1;
+				break;
+			default:
+				handled = 0;
 				break;
 		}
 	}
@@ -898,6 +902,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 //		case NDOFMOTION:
 //            viewmoveNDOF(1);
   //         break;
+		default:
+			handled = 0;
+			break;
 		}
 
 		// Numerical input events
@@ -935,7 +942,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			case NDOF_REFRESH:
 				t->redraw = 1;
 				break;
-
+			default:
+				handled = 0;
+				break;
 		}
 
 		// Snapping events
@@ -964,6 +973,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 ////			if (t->options & CTX_TWEAK)
 //				t->state = TRANS_CONFIRM;
 //			break;
+		default:
+			handled = 0;
+			break;
 		}
 
 		/* confirm transform if launch key is released after mouse move */
@@ -977,6 +989,11 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	// Per transform event, if present
 	if (t->handleEvent)
 		t->redraw |= t->handleEvent(t, event);
+
+	if (handled || t->redraw)
+		return 0;
+	else
+		return OPERATOR_PASS_THROUGH;
 }
 
 int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float *vec)
