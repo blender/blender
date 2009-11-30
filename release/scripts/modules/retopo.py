@@ -20,16 +20,13 @@
 
 import bpy
 
-EPS = 0.001
-EPS_LINE_LINE = 0.02
-EPS_COLLAPSE = 0.05
-EPS_HUB = 0.002
+EPS_SPLINE_DIV = 15.0 # remove doubles is ~15th the length of the spline
 
-def get_hub(co, _hubs):
+def get_hub(co, _hubs, EPS_SPLINE):
     
     if 1:
         for hub in _hubs.values():
-            if (hub.co - co).length < EPS_HUB:
+            if (hub.co - co).length < EPS_SPLINE:
                 return hub
         
         key = co.toTuple(3)
@@ -48,7 +45,8 @@ def get_hub(co, _hubs):
         '''
         
 
-class Hub:
+class Hub(object):
+    __slots__ = "co", "key", "index", "links"
     def __init__(self, co, key, index):
         self.co = co.copy()
         self.key = key
@@ -122,9 +120,18 @@ class Hub:
 
 
 class Spline:
+    __slots__ = "points", "hubs", "length"
     def __init__(self, points):
         self.points = points
         self.hubs = []
+        
+        # calc length
+        f = 0.0
+        co_prev = self.points[0]
+        for co in self.points[1:]:
+            f += (co - co_prev).length
+            co_prev = co
+        self.length = f
 
     def link(self):
         if len(self.hubs) < 2:
@@ -174,7 +181,7 @@ def xsect_spline(sp_a, sp_b, _hubs):
     from Mathutils import MidpointVecs
     from Geometry import ClosestPointOnLine
     pt_a_prev = pt_b_prev = None
-    
+    EPS_SPLINE = (sp_a.length + sp_b.length) / (EPS_SPLINE_DIV * 2)
     pt_a_prev = sp_a.points[0]
     for a, pt_a in enumerate(sp_a.points[1:]):
         pt_b_prev = sp_b.points[0]
@@ -184,14 +191,16 @@ def xsect_spline(sp_a, sp_b, _hubs):
             # print(pt_a, pt_a_prev, pt_b, pt_b_prev)
             xsect = LineIntersect(pt_a, pt_a_prev, pt_b, pt_b_prev)
             if xsect is not None:
-                if (xsect[0]-xsect[1]).length <= EPS_LINE_LINE:
+                if (xsect[0]-xsect[1]).length <= EPS_SPLINE:
                     f = ClosestPointOnLine(xsect[1], pt_a, pt_a_prev)[1]
+                    # if f >= 0.0-EPS_SPLINE and f <= 1.0+EPS_SPLINE: # for some reason doesnt work so well, same below
                     if f >= 0.0 and f <= 1.0:
                         f = ClosestPointOnLine(xsect[0], pt_b, pt_b_prev)[1]
+                        # if f >= 0.0-EPS_SPLINE and f <= 1.0+EPS_SPLINE:
                         if f >= 0.0 and f <= 1.0:
                             # This wont happen often
                             co = MidpointVecs(xsect[0], xsect[1])
-                            hub = get_hub(co, _hubs)
+                            hub = get_hub(co, _hubs, EPS_SPLINE)
 
                             sp_a.hubs.append((a, hub))
                             sp_b.hubs.append((b, hub))
