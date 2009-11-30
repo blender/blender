@@ -377,6 +377,17 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting, short mode);
 
 
+/* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting 
+ *	- anim_data: list of the all the anim channels that can be chosen
+ *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
+ *	 	  then the channels under closed expanders get ignored...
+ *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
+ *		with the new state of the setting that we want flushed up/down the hierarchy 
+ *	- vizOn: whether the visibility setting has been enabled or disabled 
+ */
+void ANIM_visibility_flush_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, short vizOn);
+
+
 /* Deselect all animation channels */
 void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
 

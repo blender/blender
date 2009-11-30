@@ -352,6 +352,106 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 	BLI_freelistN(&anim_data);
 }
 
+/* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting 
+ *	- anim_data: list of the all the anim channels that can be chosen
+ *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
+ *	 	  then the channels under closed expanders get ignored...
+ *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
+ *		with the new state of the setting that we want flushed up/down the hierarchy 
+ *	- vizOn: whether the visibility setting has been enabled or disabled 
+ */
+void ANIM_visibility_flush_anim_channels (bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, short vizOn)
+{
+	bAnimListElem *ale, *match=NULL;
+	int prevLevel=0, matchLevel=0;
+	
+	/* find the channel that got changed */
+	for (ale= anim_data->first; ale; ale= ale->next) {
+		/* compare data, and type as main way of identifying the channel */
+		if ((ale->data == ale_setting->data) && (ale->type == ale_setting->type)) {
+			/* we also have to check the ID, this is assigned to, since a block may have multiple users */
+			// TODO: is the owner-data more revealing?
+			if (ale->id == ale_setting->id) {
+				match= ale;
+				break;
+			}
+		}
+	}
+	if (match == NULL) {
+		printf("ERROR: no channel matching the one changed was found \n");
+		return;
+	}
+	else {
+		bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale_setting);
+		
+		/* get the level of the channel that was affected
+		 * 	 - we define the level as simply being the offset for the start of the channel
+		 */
+		matchLevel= (acf->get_offset)? acf->get_offset(ac, ale_setting) : 0;
+	}
+	
+	/* flush up? 
+	 *	- only flush up if the current state is now enabled 
+	 *	  (otherwise, it's too much work to force the parents to be inactive too)
+	 */
+	if (vizOn) {
+		/* go backwards in the list, until the highest-ranking element (by indention has been covered) */
+		for (ale= match->prev; ale; ale= ale->prev) {
+			bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
+			int level;
+			
+			/* get the level of the current channel traversed 
+			 * 	 - we define the level as simply being the offset for the start of the channel
+			 */
+			level= (acf->get_offset)? acf->get_offset(ac, ale) : 0;
+			
+			/* if the level is 'less than' (i.e. more important) the level we're matching
+			 * but also 'less than' the level just tried (i.e. only the 1st group above grouped F-Curves, 
+			 * when toggling visibility of F-Curves, gets flushed), flush the new status...
+			 */
+			if (level < prevLevel)
+				ANIM_channel_setting_set(ac, ale, ACHANNEL_SETTING_VISIBLE, vizOn);
+			/* however, if the level is 'greater than' (i.e. less important than the previous channel,
+			 * stop searching, since we've already reached the bottom of another hierarchy
+			 */
+			else if (level > matchLevel)
+				break;
+			
+			/* store this level as the 'old' level now */
+			prevLevel= level;
+		}
+	}
+	
+	/* flush down (always) */
+	{
+		/* go forwards in the list, until the lowest-ranking element (by indention has been covered) */
+		for (ale= match->next; ale; ale= ale->next) {
+			bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
+			int level;
+			
+			/* get the level of the current channel traversed 
+			 * 	 - we define the level as simply being the offset for the start of the channel
+			 */
+			level= (acf->get_offset)? acf->get_offset(ac, ale) : 0;
+			
+			/* if the level is 'greater than' (i.e. less important) the channel that was changed, 
+			 * flush the new status...
+			 */
+			if (level > matchLevel)
+				ANIM_channel_setting_set(ac, ale, ACHANNEL_SETTING_VISIBLE, vizOn);
+			/* however, if the level is 'less than or equal to' the channel that was changed,
+			 * (i.e. the current channel is as important if not more important than the changed channel)
+			 * then we should stop, since we've found the last one of the children we should flush
+			 */
+			else
+				break;
+			
+			/* store this level as the 'old' level now */
+			prevLevel= level;
+		}
+	}
+}
+
 /* ************************************************************************** */
 /* OPERATORS */
 
@@ -895,12 +995,87 @@ void ANIM_OT_channels_delete (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ******************** Set Channel Visibility Operator *********************** */
+/* NOTE: this operator is only valid in the Graph Editor channels region */
+
+static int animchannels_visibility_set_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	ListBase all_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	
+	/* hide all channels not selected */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_UNSEL);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next)
+		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_CLEAR);
+	
+	BLI_freelistN(&anim_data);
+	
+	
+	/* get list of all channels that selection may need to be flushed to */
+	filter= ANIMFILTER_CHANNELS;
+	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
+	
+	/* make all the selected channels visible */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* hack: skip object channels for now, since flushing those will always flush everything, but they are always included */
+		// TODO: find out why this is the case, and fix that
+		if (ale->type == ANIMTYPE_OBJECT)
+			continue;
+		
+		/* enable the setting */
+		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_ADD);
+		
+		/* now, also flush selection status up/down as appropriate */
+		ANIM_visibility_flush_anim_channels(&ac, &all_data, ale, 1);
+	}
+	
+	BLI_freelistN(&anim_data);
+	BLI_freelistN(&all_data);
+	
+	
+	/* send notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_channels_visibility_set (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Visibility";
+	ot->idname= "ANIM_OT_channels_visibility_set";
+	ot->description= "Make only the selected animation channels visible in the Graph Editor.";
+	
+	/* api callbacks */
+	ot->exec= animchannels_visibility_set_exec;
+	ot->poll= ED_operator_ipo_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 /* ******************** Toggle Channel Visibility Operator *********************** */
+/* NOTE: this operator is only valid in the Graph Editor channels region */
 
 static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
+	ListBase all_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
 	short vis= ACHANNEL_SETFLAG_ADD;
@@ -908,6 +1083,10 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
+		
+	/* get list of all channels that selection may need to be flushed to */
+	filter= ANIMFILTER_CHANNELS;
+	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 		
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL);
@@ -922,14 +1101,19 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 		if (ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_VISIBLE))
 			vis= ACHANNEL_SETFLAG_CLEAR;
 	}
-		
+
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* change the setting */
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vis);
+		
+		/* now, also flush selection status up/down as appropriate */
+		//ANIM_visibility_flush_anim_channels(&ac, &all_data, ale, (vis == ACHANNEL_SETFLAG_ADD));
 	}
 	
 	/* cleanup */
 	BLI_freelistN(&anim_data);
+	BLI_freelistN(&all_data);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
@@ -1696,6 +1880,7 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_collapse);
 	
 	WM_operatortype_append(ANIM_OT_channels_visibility_toggle);
+	WM_operatortype_append(ANIM_OT_channels_visibility_set);
 }
 
 void ED_keymap_animchannels(wmKeyConfig *keyconf)
@@ -1742,7 +1927,8 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_to_bottom", PAGEDOWNKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	
 	/* Graph Editor only */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_toggle", VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_set", VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_toggle", VKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
 /* ************************************************************************** */
