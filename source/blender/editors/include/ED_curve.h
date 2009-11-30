@@ -45,6 +45,7 @@ void	ED_keymap_curve	(struct wmKeyConfig *keyconf);
 /* editcurve.c */
 void CU_deselect_all(struct Object *obedit);
 void CU_select_all(struct Object *obedit);
+void CU_select_swap(struct Object *obedit);
 
 
 void	undo_push_curve	(struct bContext *C, char *name);

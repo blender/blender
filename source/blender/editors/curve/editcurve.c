@@ -381,8 +381,46 @@ void CU_select_all(Object *obedit)
 	ListBase *editnurb= curve_get_editcurve(obedit);
 
 	if (editnurb) {
-		selectend_nurb(obedit, FIRST, 0, DESELECT); /* set first control points as unselected */
-		select_adjacent_cp(editnurb, 1, 1, DESELECT); /* cascade selection */
+		selectend_nurb(obedit, FIRST, 0, SELECT); /* set first control points as unselected */
+		select_adjacent_cp(editnurb, 1, 1, SELECT); /* cascade selection */
+	}
+}
+
+void CU_select_swap(Object *obedit)
+{
+	ListBase *editnurb= curve_get_editcurve(obedit);
+
+	if (editnurb) {
+		Curve *cu= obedit->data;
+		Nurb *nu;
+		BPoint *bp;
+		BezTriple *bezt;
+		int a;
+
+		for(nu= editnurb->first; nu; nu= nu->next) {
+			if(nu->type == CU_BEZIER) {
+				bezt= nu->bezt;
+				a= nu->pntsu;
+				while(a--) {
+					if(bezt->hide==0) {
+						bezt->f2 ^= SELECT; /* always do the center point */
+						if((cu->drawflag & CU_HIDE_HANDLES)==0) {
+							bezt->f1 ^= SELECT;
+							bezt->f3 ^= SELECT;
+						}
+					}
+					bezt++;
+				}
+			}
+			else {
+				bp= nu->bp;
+				a= nu->pntsu*nu->pntsv;
+				while(a--) {
+					swap_selection_bpoint(bp);
+					bp++;
+				}
+			}
+		}
 	}
 }
 
@@ -1604,7 +1642,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	int action = RNA_enum_get(op->ptr, "action");
-	
+
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
 		if(nurb_has_selected_cps(editnurb))
@@ -1619,39 +1657,8 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 			CU_deselect_all(obedit);
 			break;
 		case SEL_INVERT:
-		{
-			Curve *cu= obedit->data;
-			Nurb *nu;
-			BPoint *bp;
-			BezTriple *bezt;
-			int a;
-
-			for(nu= editnurb->first; nu; nu= nu->next) {
-				if(nu->type == CU_BEZIER) {
-					bezt= nu->bezt;
-					a= nu->pntsu;
-					while(a--) {
-						if(bezt->hide==0) {
-							bezt->f2 ^= SELECT; /* always do the center point */
-							if((cu->drawflag & CU_HIDE_HANDLES)==0) {
-								bezt->f1 ^= SELECT;
-								bezt->f3 ^= SELECT;
-							}
-						}
-						bezt++;
-					}
-				}
-				else {
-					bp= nu->bp;
-					a= nu->pntsu*nu->pntsv;
-					while(a--) {
-						swap_selection_bpoint(bp);
-						bp++;
-					}
-				}
-			}
+			CU_select_swap(obedit);
 			break;
-		}
 	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
@@ -1671,6 +1678,9 @@ void CURVE_OT_select_all(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_select_all(ot);
 }
 
 /********************** hide operator *********************/
