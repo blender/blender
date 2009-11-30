@@ -23,7 +23,7 @@ import bpy
 EPS = 0.001
 EPS_LINE_LINE = 0.02
 EPS_COLLAPSE = 0.05
-EPS_HUB = 0.05
+EPS_HUB = 0.002
 
 def get_hub(co, _hubs):
     
@@ -158,9 +158,7 @@ class Spline:
             hub_prev = hub
 
 def get_points(stroke):
-    from Mathutils import Vector
-    # TODO - why isnt point.co a Vector?
-    return [Vector(tuple(point.co)) for point in stroke.points]
+    return [point.co.copy() for point in stroke.points]
 
 def get_splines(gp):
     for l in gp.layers:

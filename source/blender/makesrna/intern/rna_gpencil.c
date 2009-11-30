@@ -77,7 +77,7 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bGPDspoint");
 	RNA_def_struct_ui_text(srna, "Grease Pencil Stroke Point", "Data point for freehand stroke curve.");
 	
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Coordinates", "");
