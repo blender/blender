@@ -890,8 +890,11 @@ int main(int argc, char **argv)
 		WM_exit(C);
 	}
 
-	if(!G.background && !file_loaded)
+	if(!G.background && !file_loaded) {
+		/* careful, calls wm_window_process_events but seems safe
+		 * since its called first in WM_main */
 		WM_init_splash(C);
+	}
 
 	WM_main(C);
 
