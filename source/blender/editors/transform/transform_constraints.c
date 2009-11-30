@@ -668,6 +668,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 	if (t->flag & T_PROP_EDIT) {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		float tmat[4][4], imat[4][4];
+		float center[3];
 
 		UI_ThemeColor(TH_GRID);
 
@@ -684,9 +685,11 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
 		glPushMatrix();
 
+		VECCOPY(center, t->center);
+
 		if((t->spacetype == SPACE_VIEW3D) && t->obedit)
 		{
-			glMultMatrixf(t->obedit->obmat); /* because t->center is in local space */
+			mul_m4_v3(t->obedit->obmat, center); /* because t->center is in local space */
 		}
 		else if(t->spacetype == SPACE_IMAGE)
 		{
@@ -697,7 +700,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		}
 
 		set_inverted_drawing(1);
-		drawcircball(GL_LINE_LOOP, t->center, t->prop_size, imat);
+		drawcircball(GL_LINE_LOOP, center, t->prop_size, imat);
 		set_inverted_drawing(0);
 
 		glPopMatrix();
