@@ -50,7 +50,7 @@ static void rgb_tobw(float r, float g, float b, float* out)
 static void fill_bins(bNode* node, CompBuf* in, int* bins)
 {
 	float value[4];
-    int ivalue;
+	int ivalue=0;
 	int x,y;
 
 	/*fill bins */

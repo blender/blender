@@ -16,7 +16,7 @@ incs += ' #/intern/audaspace/intern'
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 if not env['WITH_BF_PYTHON']:
 	defs.append('DISABLE_PYTHON')

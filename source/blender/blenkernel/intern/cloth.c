@@ -131,6 +131,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->avg_spring_len = 0.0;
 	clmd->sim_parms->presets = 2; /* cotton as start setting */
 	clmd->sim_parms->timescale = 1.0f; /* speed factor, describes how fast cloth moves */
+	clmd->sim_parms->reset = 0;
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 5.0;
@@ -403,7 +404,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 
 		/* Get the current position. */
 		VECCOPY(verts->xconst, mvert[i].co);
-		Mat4MulVecfl(ob->obmat, verts->xconst);
+		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
 	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights);
@@ -450,6 +451,18 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		cache->last_exact= 0;
 		return dm;
 	}
+
+	if(clmd->sim_parms->reset || (framenr == (startframe - clmd->sim_parms->preroll)))
+	{
+		clmd->sim_parms->reset = 0;
+		cache->flag |= PTCACHE_REDO_NEEDED;
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+		cache->simframe= 0;
+		cache->last_exact= 0;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->flag &= ~PTCACHE_REDO_NEEDED;
+		return result;
+	}
 	
 	/* verify we still have the same number of vertices, if not do nothing.
 	 * note that this should only happen if the number of vertices changes
@@ -468,7 +481,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	clmd->sim_parms->dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 
 	/* handle continuous simulation with the play button */
-	if(BKE_ptcache_get_continue_physics()) {
+	if(BKE_ptcache_get_continue_physics() || ((clmd->sim_parms->preroll > 0) && (framenr > startframe - clmd->sim_parms->preroll) && (framenr < startframe))) {
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
 		cache->last_exact= 0;
@@ -503,7 +516,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	if(!do_init_cloth(ob, clmd, result, framenr))
 		return result;
 
-	if(framenr == startframe) {
+	if((framenr == startframe) && (clmd->sim_parms->preroll == 0)) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 		do_init_cloth(ob, clmd, result, framenr);
 		cache->simframe= framenr;
@@ -723,7 +736,7 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *
 
 	if (clmd->clothObject) {
 		/* inverse matrix is not uptodate... */
-		Mat4Invert (ob->imat, ob->obmat);
+		invert_m4_m4(ob->imat, ob->obmat);
 
 		mvert = CDDM_get_verts(dm);
 		numverts = dm->getNumVerts(dm);
@@ -731,7 +744,7 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *
 		for (i = 0; i < numverts; i++)
 		{
 			VECCOPY (mvert[i].co, cloth->verts[i].x);
-			Mat4MulVecfl (ob->imat, mvert[i].co);	/* cloth is in global coords */
+			mul_m4_v3(ob->imat, mvert[i].co);	/* cloth is in global coords */
 		}
 	}
 }
@@ -867,7 +880,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		if(first)
 		{
 			VECCOPY ( verts->x, mvert[i].co );
-			Mat4MulVecfl ( ob->obmat, verts->x );
+			mul_m4_v3( ob->obmat, verts->x );
 		}
 		
 		/* no GUI interface yet */
@@ -884,7 +897,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		VECCOPY ( verts->xconst, verts->x );
 		VECCOPY ( verts->txold, verts->x );
 		VECCOPY ( verts->tx, verts->x );
-		VecMulf ( verts->v, 0.0f );
+		mul_v3_fl( verts->v, 0.0f );
 
 		verts->impulse_count = 0;
 		VECCOPY ( verts->impulse, tnull );

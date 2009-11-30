@@ -51,7 +51,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -143,7 +143,7 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	if(op->type->ui)
-		op->type->ui((bContext*)C, &ptr, pa->layout);
+		op->type->ui((bContext*)C, op, pa->layout);
 	else
 		uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
 }

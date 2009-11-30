@@ -485,7 +485,7 @@ static void rna_FieldSettings_shape_update(bContext *C, PointerRNA *ptr)
 		if(!md) {
 			if(pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield,PFIELD_GUIDE,PFIELD_TEXTURE)==0)
 				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
-					ED_object_modifier_add(NULL, scene, ob, eModifierType_Surface);
+					ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Surface);
 		}
 		else {
 			if(!pd || pd->shape != PFIELD_SHAPE_SURFACE)
@@ -620,7 +620,7 @@ static void rna_CollisionSettings_dependency_update(bContext *C, PointerRNA *ptr
 
 	/* add/remove modifier as needed */
 	if(ob->pd->deflect && !md)
-		ED_object_modifier_add(NULL, scene, ob, eModifierType_Collision);
+		ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Collision);
 	else if(!ob->pd->deflect && md)
 		ED_object_modifier_remove(NULL, scene, ob, md);
 
@@ -756,7 +756,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
 	prop= RNA_def_property(srna, "point_cache_list", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");
 
@@ -984,18 +984,18 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	static EnumPropertyItem field_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{PFIELD_FORCE, "FORCE", 0, "Force", ""},
-		{PFIELD_WIND, "WIND", 0, "Wind", ""},
-		{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
-		{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
-		{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
-		{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
-		{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
-		{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
-		{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
-		{PFIELD_BOID, "BOID", 0, "Boid", ""},
-		{PFIELD_TURBULENCE, "TURBULENCE", 0, "Turbulence", ""},
-		{PFIELD_DRAG, "DRAG", 0, "Drag", ""},
+		{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", ""},
+		{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", ""},
+		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", ""},
+		{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", ""},
+		{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", ""},
+		{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", ""},
+		{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones", ""},
+		{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", ""},
+		{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", ""},
+		{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
+		{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
+		{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem falloff_items[] = {

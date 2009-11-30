@@ -1230,7 +1230,7 @@ class ExportX3D(bpy.types.Operator):
 	
 	
 	def execute(self, context):
-		x3d_export(self.path, context, self.apply_modifiers, self.triangulate, self.compress)
+		x3d_export(self.properties.path, context, self.properties.apply_modifiers, self.properties.triangulate, self.properties.compress)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):
@@ -1244,7 +1244,7 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".x3d")
-    self.layout.item_stringO(ExportX3D.bl_idname, "path", default_path, text="X3D Extensible 3D (.x3d)...")
+    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 

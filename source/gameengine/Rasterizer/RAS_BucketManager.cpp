@@ -317,3 +317,44 @@ void RAS_BucketManager::ReleaseMaterials(RAS_IPolyMaterial * mat)
 	}
 }
 
+/* frees the bucket, only used when freeing scenes */
+void RAS_BucketManager::RemoveMaterial(RAS_IPolyMaterial * mat)
+{
+	BucketList::iterator bit, bitp;
+	list<RAS_MeshSlot>::iterator mit;
+	int i;
+
+
+	for(i=0; i<m_SolidBuckets.size(); i++) {
+		RAS_MaterialBucket *bucket = m_SolidBuckets[i];
+		if (mat == bucket->GetPolyMaterial()) {
+			m_SolidBuckets.erase(m_SolidBuckets.begin()+i);
+			delete bucket;
+			i--;
+		}
+	}
+
+	for(int i=0; i<m_AlphaBuckets.size(); i++) {
+		RAS_MaterialBucket *bucket = m_AlphaBuckets[i];
+		if (mat == bucket->GetPolyMaterial()) {
+			m_AlphaBuckets.erase(m_AlphaBuckets.begin()+i);
+			delete bucket;
+			i--;
+		}
+	}
+}
+
+//#include <stdio.h>
+
+void RAS_BucketManager::MergeBucketManager(RAS_BucketManager *other)
+{
+	/* concatinate lists */
+	// printf("BEFORE %d %d\n", GetSolidBuckets().size(), GetAlphaBuckets().size());
+	GetSolidBuckets().insert( GetSolidBuckets().end(), other->GetSolidBuckets().begin(), other->GetSolidBuckets().end() );
+	other->GetSolidBuckets().clear();
+
+	GetAlphaBuckets().insert( GetAlphaBuckets().end(), other->GetAlphaBuckets().begin(), other->GetAlphaBuckets().end() );
+	other->GetAlphaBuckets().clear();
+	//printf("AFTER %d %d\n", GetSolidBuckets().size(), GetAlphaBuckets().size());
+}
+

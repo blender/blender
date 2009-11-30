@@ -38,7 +38,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
@@ -153,10 +153,13 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_left", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_right", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
 	
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	
 
 	/* Mouse selection, a bit verbose :/ */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+
 
 	/* 2.4x method, now use Alt for handles and select the side based on which handle was selected */
 	/*
@@ -189,8 +192,14 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "linked_handle", 1);
 
 	/* match action editor */
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "left_right", 1);
+	kmi= WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "left_right", 1); /* grr, these conflict - only use left_right if not over an active seq */
+	RNA_boolean_set(kmi->ptr, "linked_time", 1);
 	/* adjusted since 2.4 */
+
+	kmi= WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
+	RNA_boolean_set(kmi->ptr, "linked_time", 1);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
@@ -202,11 +211,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "name", "SEQUENCER_MT_add");
+	WM_keymap_add_menu(keymap, "SEQUENCER_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
-	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
-
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
 }
 

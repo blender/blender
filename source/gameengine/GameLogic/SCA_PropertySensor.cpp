@@ -39,6 +39,7 @@
 #include "SCA_LogicManager.h"
 #include "BoolValue.h"
 #include "FloatValue.h"
+#include <stdio.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

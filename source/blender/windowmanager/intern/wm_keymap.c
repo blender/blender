@@ -88,9 +88,14 @@ void WM_keyconfig_userdef(wmWindowManager *wm)
 	wmKeyMap *km;
 	wmKeyMapItem *kmi;
 
-	for(km=U.keymaps.first; km; km=km->next)
-		for(kmi=km->items.first; kmi; kmi=kmi->next)
-			keymap_properties_set(kmi);
+	for(km=U.keymaps.first; km; km=km->next) {
+		/* modal keymaps don't have operator properties */
+		if ((km->flag & KEYMAP_MODAL) == 0) {
+			for(kmi=km->items.first; kmi; kmi=kmi->next) {
+				keymap_properties_set(kmi);
+			}
+		}
+	}
 }
 
 static wmKeyConfig *wm_keyconfig_list_find(ListBase *lb, char *idname)
@@ -188,6 +193,14 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, char *idname, int type, int v
 	return kmi;
 }
 
+/* menu wrapper for WM_keymap_add_item */
+wmKeyMapItem *WM_keymap_add_menu(wmKeyMap *keymap, char *idname, int type, int val, int modifier, int keymodifier)
+{
+	wmKeyMapItem *kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", type, val, modifier, keymodifier);
+	RNA_string_set(kmi->ptr, "name", idname);
+	return kmi;
+}
+
 void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
 	if(BLI_findindex(&keymap->items, kmi) != -1) {
@@ -258,7 +271,7 @@ wmKeyMap *WM_modalkeymap_get(wmKeyConfig *keyconf, char *idname)
 }
 
 
-void WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value)
+wmKeyMapItem *WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value)
 {
 	wmKeyMapItem *kmi= MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 	
@@ -266,6 +279,8 @@ void WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modifier, int 
 	kmi->propvalue= value;
 	
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
+
+	return kmi;
 }
 
 void WM_modalkeymap_assign(wmKeyMap *km, char *opname)
@@ -295,17 +310,25 @@ char *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len)
 
 	buf[0]= 0;
 
-	if(kmi->shift)
-		strcat(buf, "Shift ");
+	if (kmi->shift == KM_ANY &&
+		kmi->ctrl == KM_ANY &&
+		kmi->alt == KM_ANY &&
+		kmi->oskey == KM_ANY) {
 
-	if(kmi->ctrl)
-		strcat(buf, "Ctrl ");
+		strcat(buf, "Any ");
+	} else {
+		if(kmi->shift)
+			strcat(buf, "Shift ");
 
-	if(kmi->alt)
-		strcat(buf, "Alt ");
+		if(kmi->ctrl)
+			strcat(buf, "Ctrl ");
 
-	if(kmi->oskey)
-		strcat(buf, "Cmd ");
+		if(kmi->alt)
+			strcat(buf, "Alt ");
+
+		if(kmi->oskey)
+			strcat(buf, "Cmd ");
+	}
 		
 	if(kmi->keymodifier) {
 		strcat(buf, WM_key_event_string(kmi->keymodifier));
@@ -410,6 +433,36 @@ char *WM_key_event_operator_string(const bContext *C, const char *opname, int op
 
 /* ***************** user preferences ******************* */
 
+int WM_keymap_user_init(wmWindowManager *wm, wmKeyMap *keymap)
+{
+	wmKeyConfig *keyconf;
+	wmKeyMap *km;
+
+	if(!keymap)
+		return 0;
+
+	/* init from user key config */
+	keyconf= wm_keyconfig_list_find(&wm->keyconfigs, U.keyconfigstr);
+	if(keyconf) {
+		km= wm_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+		if(km) {
+			keymap->poll= km->poll; /* lazy init */
+			keymap->modal_items= km->modal_items;
+			return 1;
+		}
+	}
+
+	/* or from default */
+	km= wm_keymap_list_find(&wm->defaultconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	if(km) {
+		keymap->poll= km->poll; /* lazy init */
+		keymap->modal_items= km->modal_items;
+		return 1;
+	}
+
+	return 0;
+}
+
 wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
 {
 	wmKeyConfig *keyconf;
@@ -422,6 +475,7 @@ wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
 	km= wm_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 	if(km) {
 		km->poll= keymap->poll; /* lazy init */
+		km->modal_items= keymap->modal_items;
 		return km;
 	}
 	
@@ -431,6 +485,7 @@ wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
 		km= wm_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 		if(km) {
 			km->poll= keymap->poll; /* lazy init */
+			km->modal_items= keymap->modal_items;
 			return km;
 		}
 	}

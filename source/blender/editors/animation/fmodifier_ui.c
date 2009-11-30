@@ -47,7 +47,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -111,16 +111,6 @@ static void validate_fmodifier_cb (bContext *C, void *fcm_v, void *dummy)
 		fmi->verify_data(fcm);
 }
 
-/* callback to set the active modifier */
-static void activate_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
-{
-	ListBase *modifiers = (ListBase *)fmods_v;
-	FModifier *fcm= (FModifier *)fcm_v;
-	
-	/* call API function to set the active modifier for active modifier-stack */
-	set_active_fmodifier(modifiers, fcm);
-}
-
 /* callback to remove the given modifier  */
 static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 {
@@ -129,6 +119,10 @@ static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 	
 	/* remove the given F-Modifier from the active modifier-stack */
 	remove_fmodifier(modifiers, fcm);
+	
+	/* send notifiers */
+	// XXX for now, this is the only way to get updates in all the right places... but would be nice to have a special one in this case 
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 }
 
 /* --------------- */
@@ -247,7 +241,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 
 /* --------------- */
 
-/* draw settings for noise modifier */
+/* draw settings for generator modifier */
 static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	uiLayout *col;
@@ -323,6 +317,45 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	col= uiLayoutColumn(split, 0);
 	uiItemR(col, NULL, 0, &ptr, "phase", 0);
 	uiItemR(col, NULL, 0, &ptr, "depth", 0);
+}
+
+/* --------------- */
+
+/* draw settings for sound modifier */
+static void draw_modifier__sound(const bContext *C, uiLayout *layout, ID *id, FModifier *fcm, short width)
+{
+	FMod_Sound *data= (FMod_Sound *)fcm->data;
+	PointerRNA ptr;
+	
+	/* init the RNA-pointer */
+	RNA_pointer_create(id, &RNA_FModifierSound, fcm, &ptr);
+	
+	/* sound */
+	uiTemplateID(layout, (bContext*)C, &ptr, "sound", NULL, "sound.open", NULL);
+	
+	if (data->sound)
+	{
+		/* only sounds that are cached can be used, so display error if not cached */
+		if (data->sound->cache)
+		{
+			/* blending mode */
+			uiItemR(layout, NULL, 0, &ptr, "modification", 0);
+			
+			/* settings */
+			uiItemR(layout, NULL, 0, &ptr, "strength", 0);
+			uiItemR(layout, NULL, 0, &ptr, "delay", 0);
+		}
+		else
+		{
+			PointerRNA id_ptr;
+			
+			RNA_id_pointer_create((ID *)data->sound, &id_ptr);
+			
+			/* error message with a button underneath allowing users to rectify the issue */
+			uiItemL(layout, "Sound must be cached.", ICON_ERROR);
+			uiItemR(layout, NULL, 0, &id_ptr, "caching", UI_ITEM_R_TOGGLE);
+		}
+	}
 }
 
 /* --------------- */
@@ -590,13 +623,17 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 /* --------------- */
 
 
-void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
+void ANIM_uiTemplate_fmodifier_draw (const bContext *C, uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 	uiLayout *box, *row, *subrow;
 	uiBlock *block;
 	uiBut *but;
 	short width= 314;
+	PointerRNA ptr;
+	
+	/* init the RNA-pointer */
+	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 	
 	/* draw header */
 	{
@@ -606,31 +643,33 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		row= uiLayoutRow(box, 0);
 		block= uiLayoutGetBlock(row); // err...
 		
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
 		/* left-align -------------------------------------------- */
 		subrow= uiLayoutRow(row, 0);
 		uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
 		
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		
 		/* expand */
-		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	0, -1, UI_UNIT_X, UI_UNIT_Y, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded.");
+		uiItemR(subrow, "", 0, &ptr, "expanded", UI_ITEM_R_ICON_ONLY);
 		
 		/* checkbox for 'active' status (for now) */
-		but= uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_ACTIVE, B_REDR, ICON_RADIOBUT_OFF,	0, -1, UI_UNIT_X, UI_UNIT_Y, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is active one.");
-		uiButSetFunc(but, activate_fmodifier_cb, modifiers, fcm);
+		uiItemR(subrow, "", 0, &ptr, "active", UI_ITEM_R_ICON_ONLY);
 		
 		/* name */
 		if (fmi)
-			uiDefBut(block, LABEL, 1, fmi->name,	0, 0, 150, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+			uiItemL(subrow, fmi->name, 0);
 		else
-			uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	0, 0, 150, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+			uiItemL(subrow, "<Unknown Modifier>", 0);
 		
 		/* right-align ------------------------------------------- */
 		subrow= uiLayoutRow(row, 0);
 		uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
 		
+		
 		/* 'mute' button */
-		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_MUTED, B_REDR, ICON_MUTE_IPO_OFF,	0, 0, UI_UNIT_X, UI_UNIT_Y, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is temporarily muted (not evaluated).");
+		uiItemR(subrow, "", 0, &ptr, "muted", UI_ITEM_R_ICON_ONLY);
+		
+		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* delete button */
 		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier.");
@@ -665,11 +704,15 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 			case FMODIFIER_TYPE_LIMITS: /* Limits */
 				draw_modifier__limits(box, id, fcm, width);
 				break;
-			
+
 			case FMODIFIER_TYPE_NOISE: /* Noise */
 				draw_modifier__noise(box, id, fcm, width);
 				break;
-			
+
+			case FMODIFIER_TYPE_SOUND: /* Sound */
+				draw_modifier__sound(C, box, id, fcm, width);
+				break;
+
 			default: /* unknown type */
 				break;
 		}

@@ -36,12 +36,15 @@ SET(INC .
 	../../kernel/gen_system ../readstreamglue
 	../../../intern/elbeem/extern
 	../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
+	../python
 	../nodes
 	../gpu
 	../freestyle
 	../blenfont
 	${OPENGL_INCLUDE_DIR}
 )
+
+ADD_DEFINITIONS(-DGLEW_STATIC)
 
 IF(WITH_INTERNATIONAL)
 	ADD_DEFINITIONS(-DINTERNATIONAL)
@@ -85,4 +88,3 @@ IF(BF_BUILDINFO)
 ENDIF(BF_BUILDINFO)
 
 BLENDERLIB_NOLIST(bf_windowmanager "${SRC}" "${INC}")
-

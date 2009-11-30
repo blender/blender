@@ -47,10 +47,15 @@ struct GHash;
 
 #define RNA_MAX_ARRAY_DIMENSION 3
 
+
+/* store local properties here */
+#define RNA_IDP_UI "_RNA_UI"
+
 /* Function Callbacks */
 
 typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
+typedef int (*ItemEditableFunc)(struct PointerRNA *ptr, int index);
 typedef struct IDProperty* (*IDPropertiesFunc)(struct PointerRNA *ptr, int create);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
@@ -148,12 +153,19 @@ struct PropertyRNA {
 	UpdateFunc update;
 	int noteflag;
 
-	/* callback for testing if editable/evaluated */
+	/* callback for testing if editable */
 	EditableFunc editable;
+	/* callback for testing if array-item editable (if applicable) */
+	ItemEditableFunc itemeditable;
 
 	/* raw access */
 	int rawoffset;
 	RawPropertyType rawtype;
+
+	/* This is used for accessing props/functions of this property
+	 * any property can have this but should only be used for collections and arrays
+	 * since python will convert int/bool/pointer's */
+	struct StructRNA *srna;	/* attributes attached directly to this collection */
 };
 
 /* Property Types */
@@ -255,11 +267,8 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLengthFunc length;				/* optional */
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
-	FunctionRNA *add, *remove;
 
-	PropertyRNA *active;
-
-	struct StructRNA *type;
+	struct StructRNA *item_type;			/* the type of this item */
 } CollectionPropertyRNA;
 
 

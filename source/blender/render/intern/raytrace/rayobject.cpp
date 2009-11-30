@@ -29,7 +29,7 @@
 #include <assert.h>
 
 #include "BKE_utildefines.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "DNA_material_types.h"
 
 #include "RE_raytrace.h"
@@ -170,8 +170,8 @@ static inline int rayface_check_cullface(RayFace *face, Isect *is)
 	float nor[3];
 	
 	/* don't intersect if the ray faces along the face normal */
-	if(face->quad) CalcNormFloat4(face->v1, face->v2, face->v3, face->v4, nor);
-	else CalcNormFloat(face->v1, face->v2, face->v3, nor);
+	if(face->quad) normal_quad_v3( nor,face->v1, face->v2, face->v3, face->v4);
+	else normal_tri_v3( nor,face->v1, face->v2, face->v3);
 
 	return (INPR(nor, is->vec) < 0);
 }
@@ -376,7 +376,7 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 	RE_RC_COUNT(isec->raycounter->raycast.test);
 
 	/* Setup vars used on raycast */
-	isec->dist = VecLength(isec->vec);
+	isec->dist = len_v3(isec->vec);
 	
 	for(i=0; i<3; i++)
 	{
@@ -435,11 +435,11 @@ int RE_rayobject_intersect(RayObject *r, Isect *i)
 
 		if(face->ob->transform_primitives)
 		{
-			Mat4MulVecfl(face->ob->mat, nface.v1);
-			Mat4MulVecfl(face->ob->mat, nface.v2);
-			Mat4MulVecfl(face->ob->mat, nface.v3);
+			mul_m4_v3(face->ob->mat, nface.v1);
+			mul_m4_v3(face->ob->mat, nface.v2);
+			mul_m4_v3(face->ob->mat, nface.v3);
 			if(RE_rayface_isQuad(&nface))
-				Mat4MulVecfl(face->ob->mat, nface.v4);
+				mul_m4_v3(face->ob->mat, nface.v4);
 		}
 
 		return intersect_rayface(r, &nface, i);

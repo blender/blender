@@ -39,7 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_colortools.h"
@@ -438,7 +438,7 @@ void ED_spacetype_text(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	
 	art->init= text_header_area_init;
 	art->draw= text_header_area_draw;

@@ -102,6 +102,11 @@ public:
 	void DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const;
 	virtual bool Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const;
 
+	Material *GetBlenderMaterial() const
+	{
+		return m_material;
+	}
+
 	/**
 	 * Returns the Blender texture face structure that is used for this material.
 	 * @return The material's texture face.

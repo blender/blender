@@ -174,7 +174,7 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);
 PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type);
 ListBase CTX_data_collection_get(const bContext *C, const char *member);
 ListBase CTX_data_dir_get(const bContext *C);
-void CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);
+int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
 void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
@@ -248,9 +248,9 @@ int CTX_data_selected_editable_bones(const bContext *C, ListBase *list);
 int CTX_data_visible_bones(const bContext *C, ListBase *list);
 int CTX_data_editable_bones(const bContext *C, ListBase *list);
 
-struct bPoseChannel *CTX_data_active_pchan(const bContext *C);
-int CTX_data_selected_pchans(const bContext *C, ListBase *list);
-int CTX_data_visible_pchans(const bContext *C, ListBase *list);
+struct bPoseChannel *CTX_data_active_pose_bone(const bContext *C);
+int CTX_data_selected_pose_bones(const bContext *C, ListBase *list);
+int CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 
 #ifdef __cplusplus
 }

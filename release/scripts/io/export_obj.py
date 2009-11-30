@@ -85,19 +85,6 @@ def fixName(name):
 	else:
 		return name.replace(' ', '_')
 
-
-# this used to be in BPySys module
-# frankly, I don't understand how it works
-def BPySys_cleanName(name):
-
-	v = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,46,47,58,59,60,61,62,63,64,91,92,93,94,96,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254]
-
-	invalid = ''.join([chr(i) for i in v])
-
-	for ch in invalid:
-		name = name.replace(ch, '_')
-	return name
-
 # A Dict of Materials
 # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
 MTL_DICT = {} 	
@@ -485,10 +472,10 @@ def write(filename, objects, scene,
 					newob = bpy.data.add_object('MESH', 'temp_object')
 					newob.data = me
 					# if we forget to set Object.data - crash
-					scene.add_object(newob)
+					scene.objects.link(newob)
 					newob.convert_to_triface(scene)
 					# mesh will still be there
-					scene.remove_object(newob)
+					scene.objects.unlink(newob)
 			'''
 			
 			# Make our own list so it can be sorted to reduce context switching
@@ -884,7 +871,7 @@ def do_export(filename, context,
 		orig_frame = scn.current_frame
 		
 		if EXPORT_ALL_SCENES: # Add scene name into the context_name
-			context_name[1] = '_%s' % BPySys_cleanName(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
+			context_name[1] = '_%s' % bpy.utils.clean_name(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
 		
 		# Export an animation?
 		if EXPORT_ANIMATION:
@@ -972,24 +959,24 @@ class ExportOBJ(bpy.types.Operator):
 	
 	def execute(self, context):
 
-		do_export(self.path, context,
-				  EXPORT_TRI=self.use_triangles,
-				  EXPORT_EDGES=self.use_edges,
-				  EXPORT_NORMALS=self.use_normals,
-				  EXPORT_NORMALS_HQ=self.use_hq_normals,
-				  EXPORT_UV=self.use_uvs,
-				  EXPORT_MTL=self.use_materials,
-				  EXPORT_COPY_IMAGES=self.copy_images,
-				  EXPORT_APPLY_MODIFIERS=self.use_modifiers,
-				  EXPORT_ROTX90=self.use_rotate90,
-				  EXPORT_BLEN_OBS=self.use_blen_objects,
-				  EXPORT_GROUP_BY_OB=self.group_by_object,
-				  EXPORT_GROUP_BY_MAT=self.group_by_material,
-				  EXPORT_KEEP_VERT_ORDER=self.keep_vertex_order,
-				  EXPORT_POLYGROUPS=self.use_vertex_groups,
-				  EXPORT_CURVE_AS_NURBS=self.use_nurbs,
-				  EXPORT_SEL_ONLY=self.use_selection,
-				  EXPORT_ALL_SCENES=self.use_all_scenes)
+		do_export(self.properties.path, context,
+				  EXPORT_TRI=self.properties.use_triangles,
+				  EXPORT_EDGES=self.properties.use_edges,
+				  EXPORT_NORMALS=self.properties.use_normals,
+				  EXPORT_NORMALS_HQ=self.properties.use_hq_normals,
+				  EXPORT_UV=self.properties.use_uvs,
+				  EXPORT_MTL=self.properties.use_materials,
+				  EXPORT_COPY_IMAGES=self.properties.copy_images,
+				  EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
+				  EXPORT_ROTX90=self.properties.use_rotate90,
+				  EXPORT_BLEN_OBS=self.properties.use_blen_objects,
+				  EXPORT_GROUP_BY_OB=self.properties.group_by_object,
+				  EXPORT_GROUP_BY_MAT=self.properties.group_by_material,
+				  EXPORT_KEEP_VERT_ORDER=self.properties.keep_vertex_order,
+				  EXPORT_POLYGROUPS=self.properties.use_vertex_groups,
+				  EXPORT_CURVE_AS_NURBS=self.properties.use_nurbs,
+				  EXPORT_SEL_ONLY=self.properties.use_selection,
+				  EXPORT_ALL_SCENES=self.properties.use_all_scenes)
 
 		return ('FINISHED',)
 	
@@ -998,9 +985,9 @@ class ExportOBJ(bpy.types.Operator):
 		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 	
-	def poll(self, context): # Poll isnt working yet
-		print("Poll")
-		return context.active_object != None
+
+
+
 
 bpy.ops.add(ExportOBJ)
 
@@ -1008,7 +995,7 @@ import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".obj")
-    self.layout.item_stringO(ExportOBJ.bl_idname, "path", default_path, text="Wavefront (.obj)...")
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
@@ -1021,4 +1008,4 @@ if __name__ == "__main__":
 # - NURBS - needs API additions
 # - all scenes export
 # + normals calculation
-# - get rid of cleanName somehow
+

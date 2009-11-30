@@ -1192,11 +1192,11 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 #endif // XXX old animation system
 		
 			flag= setkeys(ctime, &key->block, k, t, 0);
-
+			
 			if(flag==0)
-				; /* do_key(a, a+step, tot, (char *)out, key, k, t, 0); */
+				do_key(a, a+step, tot, (char *)out, key, actkb, k, t, 0);
 			else
-				; /* cp_key(a, a+step, tot, (char *)out, key, k[2],0); */
+				cp_key(a, a+step, tot, (char *)out, key, actkb, k[2], NULL, 0);
 		}
 	}
 	else {
@@ -1395,6 +1395,49 @@ Key *ob_get_key(Object *ob)
 	return NULL;
 }
 
+KeyBlock *add_keyblock(Scene *scene, Key *key)
+{
+	KeyBlock *kb;
+	float curpos= -0.1;
+	int tot;
+	
+	kb= key->block.last;
+	if(kb) curpos= kb->pos;
+	
+	kb= MEM_callocN(sizeof(KeyBlock), "Keyblock");
+	BLI_addtail(&key->block, kb);
+	kb->type= KEY_CARDINAL;
+	
+	tot= BLI_countlist(&key->block);
+	if(tot==1) strcpy(kb->name, "Basis");
+	else sprintf(kb->name, "Key %d", tot-1);
+	
+	// XXX this is old anim system stuff? (i.e. the 'index' of the shapekey)
+	kb->adrcode= tot-1;
+	
+	key->totkey++;
+	if(key->totkey==1) key->refkey= kb;
+	
+	kb->slidermin= 0.0f;
+	kb->slidermax= 1.0f;
+	
+	// XXX kb->pos is the confusing old horizontal-line RVK crap in old IPO Editor...
+	if(key->type == KEY_RELATIVE) 
+		kb->pos= curpos+0.1;
+	else {
+#if 0 // XXX old animation system
+		curpos= bsystem_time(scene, 0, (float)CFRA, 0.0);
+		if(calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
+			curpos /= 100.0;
+		}
+		kb->pos= curpos;
+		
+		sort_keys(key);
+#endif // XXX old animation system
+	}
+	return kb;
+}
+
 /* only the active keyblock */
 KeyBlock *ob_get_keyblock(Object *ob) 
 {
@@ -1404,6 +1447,16 @@ KeyBlock *ob_get_keyblock(Object *ob)
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 		return kb;
 	}
+
+	return NULL;
+}
+
+KeyBlock *ob_get_reference_keyblock(Object *ob)
+{
+	Key *key= ob_get_key(ob);
+	
+	if (key)
+		return key->refkey;
 
 	return NULL;
 }

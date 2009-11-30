@@ -41,7 +41,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_vfontdata.h"
 
@@ -968,12 +968,12 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			float minx, maxx, miny, maxy;
 			float timeofs, sizefac;
 			
-			Mat4Invert(imat, ob->obmat);
-			Mat3CpyMat4(imat3, imat);
+			invert_m4_m4(imat, ob->obmat);
+			copy_m3_m4(imat3, imat);
 
-			Mat3CpyMat4(cmat, cu->textoncurve->obmat);
-			Mat3MulMat3(cmat, cmat, imat3);
-			sizefac= Normalize(cmat[0])/cu->fsize;
+			copy_m3_m4(cmat, cu->textoncurve->obmat);
+			mul_m3_m3m3(cmat, cmat, imat3);
+			sizefac= normalize_v3(cmat[0])/cu->fsize;
 			
 			minx=miny= 1.0e20f;
 			maxx=maxy= -1.0e20f;
@@ -1042,7 +1042,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				where_on_path(cu->textoncurve, ctime, vec, tvec, NULL, NULL);
 				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec, NULL, NULL);
 				
-				VecMulf(vec, sizefac);
+				mul_v3_fl(vec, sizefac);
 				
 				ct->rot= (float)(M_PI-atan2(rotvec[1], rotvec[0]));
 
@@ -1196,7 +1196,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 					vecyo[0] = ct->xof;
 					vecyo[1] = ct->yof;
 					vecyo[2] = 0;
-					Mat4MulVecfl(ob->obmat, vecyo);
+					mul_m4_v3(ob->obmat, vecyo);
 					VECCOPY(ob->loc, vecyo);
 					outta = 1;
 					cu->sepchar = 0;

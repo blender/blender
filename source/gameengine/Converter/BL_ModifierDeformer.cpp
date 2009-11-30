@@ -36,7 +36,7 @@
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
 #include "RAS_IPolygonMaterial.h"
-#include "BL_SkinMeshObject.h"
+#include "RAS_MeshObject.h"
 #include "PHY_IGraphicController.h"
 
 //#include "BL_ArmatureController.h"
@@ -64,7 +64,7 @@ extern "C"{
  #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS

@@ -32,7 +32,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -83,6 +83,38 @@ TransformModeItem transform_modes[] =
 	{OP_EDGE_SLIDE, TFM_EDGE_SLIDE},
 	{NULL, 0}
 };
+
+static int snap_type_exec(bContext *C, wmOperator *op)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+
+	ts->snap_mode = RNA_enum_get(op->ptr,"type");
+
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, NULL); /* header redraw */
+
+	return OPERATOR_FINISHED;
+}
+
+void TFM_OT_snap_type(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Snap Type";
+	ot->description= "Set the snap element type.";
+	ot->idname= "TFM_OT_snap_type";
+
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= snap_type_exec;
+
+	ot->poll= ED_operator_areaactive;
+
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "type", snap_element_items, 0, "Type", "Set the snap element type");
+
+}
 
 static int select_orientation_exec(bContext *C, wmOperator *op)
 {
@@ -261,16 +293,16 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	TransInfo *t = op->customdata;
 
-	transformEvent(t, event);
+	exit_code = transformEvent(t, event);
 
 	transformApply(C, t);
 
+	exit_code |= transformEnd(C, t);
 
-	exit_code = transformEnd(C, t);
-
-	if (exit_code != OPERATOR_RUNNING_MODAL)
+	if ((exit_code & OPERATOR_RUNNING_MODAL) == 0)
 	{
 		transformops_exit(C, op);
+		exit_code &= ~OPERATOR_PASS_THROUGH; /* preventively remove passthrough */
 	}
 
 	return exit_code;
@@ -293,6 +325,7 @@ static int transform_exec(bContext *C, wmOperator *op)
 
 	if (!transformops_data(C, op, NULL))
 	{
+		G.moving = 0;
 		return OPERATOR_CANCELLED;
 	}
 
@@ -313,6 +346,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (!transformops_data(C, op, event))
 	{
+		G.moving = 0;
 		return OPERATOR_CANCELLED;
 	}
 
@@ -320,12 +354,8 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return transform_exec(C, op);
 	}
 	else {
-		TransInfo *t = op->customdata;
-
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
-
-		t->flag |= T_MODAL; // XXX meh maybe somewhere else
 
 		op->flag |= OP_GRAB_POINTER; // XXX maybe we want this with the manipulator only?
 		return OPERATOR_RUNNING_MODAL;
@@ -339,16 +369,18 @@ void Properties_Proportional(struct wmOperatorType *ot)
 	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
 }
 
-void Properties_Snapping(struct wmOperatorType *ot, short align)
+void Properties_Snapping(struct wmOperatorType *ot, short fullsnap, short align)
 {
-	RNA_def_boolean(ot->srna, "snap", 0, "Snap to Point", "");
-	RNA_def_enum(ot->srna, "snap_mode", snap_mode_items, 0, "Mode", "");
-	RNA_def_float_vector(ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
+	RNA_def_boolean(ot->srna, "snap", 0, "Use Snapping Options", "");
 
-	if (align)
-	{
-		RNA_def_boolean(ot->srna, "snap_align", 0, "Align with Point Normal", "");
-		RNA_def_float_vector(ot->srna, "snap_normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "", -FLT_MAX, FLT_MAX);
+	if (fullsnap) {
+		RNA_def_enum(ot->srna, "snap_target", snap_target_items, 0, "Target", "");
+		RNA_def_float_vector(ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
+
+		if (align) {
+			RNA_def_boolean(ot->srna, "snap_align", 0, "Align with Point Normal", "");
+			RNA_def_float_vector(ot->srna, "snap_normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "", -FLT_MAX, FLT_MAX);
+		}
 	}
 }
 
@@ -385,7 +417,7 @@ void TFM_OT_translate(struct wmOperatorType *ot)
 
 	Properties_Constraints(ot);
 
-	Properties_Snapping(ot, 1);
+	Properties_Snapping(ot, 1, 1);
 }
 
 void TFM_OT_resize(struct wmOperatorType *ot)
@@ -411,7 +443,7 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 
 	Properties_Constraints(ot);
 
-	Properties_Snapping(ot, 0);
+	Properties_Snapping(ot, 1, 0);
 }
 
 
@@ -435,6 +467,8 @@ void TFM_OT_trackball(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_rotate(struct wmOperatorType *ot)
@@ -460,7 +494,7 @@ void TFM_OT_rotate(struct wmOperatorType *ot)
 
 	Properties_Constraints(ot);
 
-	Properties_Snapping(ot, 0);
+	Properties_Snapping(ot, 1, 0);
 }
 
 void TFM_OT_tilt(struct wmOperatorType *ot)
@@ -488,6 +522,8 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	Properties_Constraints(ot);
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_warp(struct wmOperatorType *ot)
@@ -511,7 +547,9 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
-	// XXX Shear axis?
+	Properties_Snapping(ot, 0, 0);
+
+	// XXX Warp axis?
 //	Properties_Constraints(ot);
 }
 
@@ -535,6 +573,8 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 
 	// XXX Shear axis?
 //	Properties_Constraints(ot);
@@ -560,6 +600,8 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_tosphere(struct wmOperatorType *ot)
@@ -583,6 +625,8 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_mirror(struct wmOperatorType *ot)
@@ -622,6 +666,8 @@ void TFM_OT_edge_slide(struct wmOperatorType *ot)
 	RNA_def_float_factor(ot->srna, "value", 0, -1.0f, 1.0f, "Factor", "", -1.0f, 1.0f);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+
+	Properties_Snapping(ot, 0, 0);
 }
 
 void TFM_OT_transform(struct wmOperatorType *ot)
@@ -698,6 +744,8 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TFM_OT_select_orientation);
 	WM_operatortype_append(TFM_OT_create_orientation);
 	WM_operatortype_append(TFM_OT_delete_orientation);
+
+	WM_operatortype_append(TFM_OT_snap_type);
 }
 
 void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid)
@@ -734,6 +782,11 @@ void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *ke
 			RNA_boolean_set(km->ptr, "use", 1);
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
+
+			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", LEFTCTRLKEY, KM_CLICK, 0, 0);
+			RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_snap_type", LEFTCTRLKEY, KM_CLICK, KM_SHIFT, 0);
 
 			break;
 		case SPACE_ACTION:
@@ -806,6 +859,9 @@ void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *ke
 			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
+
+			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", LEFTCTRLKEY, KM_CLICK, 0, 0);
+			RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
 			break;
 		default:
 			break;

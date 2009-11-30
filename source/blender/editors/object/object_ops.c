@@ -39,7 +39,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
@@ -124,6 +124,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_duplicates_make_real);
 	WM_operatortype_append(OBJECT_OT_duplicate);
 	WM_operatortype_append(OBJECT_OT_join);
+	WM_operatortype_append(OBJECT_OT_join_shapes);
 	WM_operatortype_append(OBJECT_OT_convert);
 
 	WM_operatortype_append(OBJECT_OT_modifier_add);
@@ -136,12 +137,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
 	WM_operatortype_append(OBJECT_OT_multires_higher_levels_delete);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
-	WM_operatortype_append(OBJECT_OT_hook_reset);
-	WM_operatortype_append(OBJECT_OT_hook_recenter);
-	WM_operatortype_append(OBJECT_OT_hook_select);
-	WM_operatortype_append(OBJECT_OT_hook_assign);
 	WM_operatortype_append(OBJECT_OT_explode_refresh);
-
+	
 	WM_operatortype_append(OBJECT_OT_constraint_add);
 	WM_operatortype_append(OBJECT_OT_constraint_add_with_targets);
 	WM_operatortype_append(POSE_OT_constraint_add);
@@ -169,9 +166,9 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize_all);
 	WM_operatortype_append(OBJECT_OT_vertex_group_invert);
+	WM_operatortype_append(OBJECT_OT_vertex_group_levels);
 	WM_operatortype_append(OBJECT_OT_vertex_group_blend);
 	WM_operatortype_append(OBJECT_OT_vertex_group_clean);
-	WM_operatortype_append(OBJECT_OT_vertex_group_menu);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);
@@ -188,6 +185,14 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_group_add);
 	WM_operatortype_append(OBJECT_OT_group_remove);
+
+	WM_operatortype_append(OBJECT_OT_hook_add_selobj);
+	WM_operatortype_append(OBJECT_OT_hook_add_newobj);
+	WM_operatortype_append(OBJECT_OT_hook_remove);
+	WM_operatortype_append(OBJECT_OT_hook_select);
+	WM_operatortype_append(OBJECT_OT_hook_assign);
+	WM_operatortype_append(OBJECT_OT_hook_reset);
+	WM_operatortype_append(OBJECT_OT_hook_recenter);
 }
 
 void ED_operatormacros_object(void)
@@ -223,6 +228,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
+	/* Objects, Regardless of Mode -------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
@@ -247,6 +253,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
+	/* Object Mode ---------------------------------------------------------------- */
 	/* Note: this keymap gets disabled in non-objectmode,  */
 	keymap= WM_keymap_find(keyconf, "Object Mode", 0, 0);
 	keymap->poll= object_mode_poll;
@@ -282,19 +289,13 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "name", "INFO_MT_add");
+	WM_keymap_add_menu(keymap, "INFO_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicates_make_real", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_object_apply");
-
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_single_user");
-    
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", LKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_links");
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_object_apply", AKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_make_single_user", UKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_make_links", LKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move_linked", DKEY, KM_PRESS, KM_ALT, 0);
@@ -305,19 +306,33 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_make_local", LKEY, KM_PRESS, 0, 0);
 
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
-	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_verify_item(keymap, "GROUP_OT_create", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
-	/* Lattice */
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", ONEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 1);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", TWOKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 2);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", THREEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 3);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", FOURKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 4);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", FIVEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "level", 5);
+
+	/* Lattice -------------------------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);
 	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	
+		/* menus */
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }
@@ -342,6 +357,5 @@ void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keym
 		RNA_string_set(km->ptr, "value_1", "DISABLED");
 		RNA_string_set(km->ptr, "value_2", "CONNECTED");
 	}
-
 }
 

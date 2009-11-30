@@ -32,6 +32,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "DNA_ID.h"
@@ -53,7 +54,7 @@
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
@@ -903,7 +904,11 @@ void nodeAddSockets(bNode *node, bNodeType *ntype)
 		}
 	}
 }
-
+/* Find the first available, non-duplicate name for a given node */
+void nodeUniqueName(bNodeTree *ntree, bNode *node)
+{
+	BLI_uniquename(&ntree->nodes, node, "Node", '.', offsetof(bNode, name), 32);
+}
 
 bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 {
@@ -937,6 +942,9 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	}
 	else
 		BLI_strncpy(node->name, ntype->name, NODE_MAXSTR);
+
+	nodeUniqueName(ntree, node);
+	
 	node->type= ntype->type;
 	node->flag= NODE_SELECT|ntype->flag;
 	node->width= ntype->width;
@@ -989,6 +997,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	bNodeSocket *sock, *oldsock;
 
 	*nnode= *node;
+	nodeUniqueName(ntree, nnode);
+	
 	BLI_addtail(&ntree->nodes, nnode);
 	
 	BLI_duplicatelist(&nnode->inputs, &node->inputs);
@@ -1062,6 +1072,11 @@ bNodeTree *ntreeAddTree(int type)
 	return ntree;
 }
 
+/* Warning: this function gets called during some rather unexpected times
+ *	- internal_select is only 1 when used for duplicating selected nodes (i.e. Shift-D duplicate operator)
+ *	- this gets called when executing compositing updates (for threaded previews)
+ *	- when the nodetree datablock needs to be copied (i.e. when users get copied)
+ */
 bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 {
 	bNodeTree *newtree;
@@ -1093,10 +1108,9 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 		if(internal_select==0 || (node->flag & NODE_SELECT)) {
 			nnode= nodeCopyNode(newtree, node, internal_select);	/* sets node->new */
 			if(internal_select) {
-				node->flag &= ~NODE_SELECT;
+				node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
 				nnode->flag |= NODE_SELECT;
 			}
-			node->flag &= ~NODE_ACTIVE;
 
 			/* deselect original sockets */
 			for(sock= node->inputs.first; sock; sock= sock->next) {
@@ -1661,7 +1675,9 @@ void ntreeSocketUseFlags(bNodeTree *ntree)
 	
 	/* tag all thats in use */
 	for(link= ntree->links.first; link; link= link->next) {
-		link->fromsock->flag |= SOCK_IN_USE;
+	
+		if(link->fromsock) // FIXME, see below
+			link->fromsock->flag |= SOCK_IN_USE;
 		if(link->tosock) // FIXME This can be NULL, when dragging a new link in the UI, should probably copy the node tree for preview render - campbell
 			link->tosock->flag |= SOCK_IN_USE;
 	}

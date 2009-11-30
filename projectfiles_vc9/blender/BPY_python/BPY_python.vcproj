@@ -388,6 +388,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\python\generic\IDProp.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\generic\Mathutils.c"
 					>
 				</File>

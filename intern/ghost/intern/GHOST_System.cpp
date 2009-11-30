@@ -275,7 +275,6 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool& isDown
 	return success;
 }
 
-
 GHOST_TSuccess GHOST_System::init()
 {
 	m_timerManager = new GHOST_TimerManager ();

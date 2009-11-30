@@ -260,6 +260,9 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	scene->r.psfra= (int)floor(sfra + 0.5f);
 	scene->r.pefra= (int)floor(efra + 0.5f);
 	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	
 	return OPERATOR_FINISHED;
 } 
 
@@ -399,24 +402,24 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
 	
 	/* Entire UI --------------------------------------- */
-	WM_operatortype_append(ANIM_OT_insert_keyframe);
-	WM_operatortype_append(ANIM_OT_delete_keyframe);
-	WM_operatortype_append(ANIM_OT_insert_keyframe_menu);
-	WM_operatortype_append(ANIM_OT_delete_keyframe_v3d);
-	WM_operatortype_append(ANIM_OT_insert_keyframe_button);
-	WM_operatortype_append(ANIM_OT_delete_keyframe_button);
+	WM_operatortype_append(ANIM_OT_keyframe_insert);
+	WM_operatortype_append(ANIM_OT_keyframe_delete);
+	WM_operatortype_append(ANIM_OT_keyframe_insert_menu);
+	WM_operatortype_append(ANIM_OT_keyframe_delete_v3d);
+	WM_operatortype_append(ANIM_OT_keyframe_insert_button);
+	WM_operatortype_append(ANIM_OT_keyframe_delete_button);
 	
 	
-	WM_operatortype_append(ANIM_OT_add_driver_button);
-	WM_operatortype_append(ANIM_OT_remove_driver_button);
+	WM_operatortype_append(ANIM_OT_driver_button_add);
+	WM_operatortype_append(ANIM_OT_driver_button_remove);
 	WM_operatortype_append(ANIM_OT_copy_driver_button);
 	WM_operatortype_append(ANIM_OT_paste_driver_button);
 	
 	WM_operatortype_append(ANIM_OT_copy_clipboard_button);
 
 	
-	WM_operatortype_append(ANIM_OT_add_keyingset_button);
-	WM_operatortype_append(ANIM_OT_remove_keyingset_button);
+	WM_operatortype_append(ANIM_OT_keyingset_button_add);
+	WM_operatortype_append(ANIM_OT_keyingset_button_remove);
 	
 	WM_operatortype_append(ANIM_OT_keying_set_add);
 	WM_operatortype_append(ANIM_OT_keying_set_remove);

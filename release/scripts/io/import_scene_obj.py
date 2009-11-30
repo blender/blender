@@ -807,7 +807,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 					blender_tface.uv2= verts_tex[face_vert_tex_indicies[1]]
 					blender_tface.uv3= verts_tex[face_vert_tex_indicies[2]]
 
-					if blender_face.verts[3] != 0:
+					if len(face_vert_loc_indicies)==4:
 						blender_tface.uv4= verts_tex[face_vert_tex_indicies[3]]
 
 # 					for ii, uv in enumerate(blender_face.uv):
@@ -864,7 +864,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	
 	ob= bpy.data.add_object("MESH", "Mesh")
 	ob.data= me
-	scn.add_object(ob)
+	scn.objects.link(ob)
 # 	ob= scn.objects.new(me)
 	new_objects.append(ob)
 
@@ -1601,18 +1601,18 @@ class IMPORT_OT_obj(bpy.types.Operator):
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
 
-		load_obj(self.path,
+		load_obj(self.properties.path,
 				 context,
-				 self.CLAMP_SIZE,
-				 self.CREATE_FGONS,
-				 self.CREATE_SMOOTH_GROUPS,
-				 self.CREATE_EDGES,
-				 self.SPLIT_OBJECTS,
-				 self.SPLIT_GROUPS,
-				 self.SPLIT_MATERIALS,
-				 self.ROTATE_X90,
-				 self.IMAGE_SEARCH,
-				 self.POLYGROUPS)
+				 self.properties.CLAMP_SIZE,
+				 self.properties.CREATE_FGONS,
+				 self.properties.CREATE_SMOOTH_GROUPS,
+				 self.properties.CREATE_EDGES,
+				 self.properties.SPLIT_OBJECTS,
+				 self.properties.SPLIT_GROUPS,
+				 self.properties.SPLIT_MATERIALS,
+				 self.properties.ROTATE_X90,
+				 self.properties.IMAGE_SEARCH,
+				 self.properties.POLYGROUPS)
 
 		return ('FINISHED',)
 	
@@ -1626,7 +1626,7 @@ bpy.ops.add(IMPORT_OT_obj)
 
 
 import dynamic_menu
-menu_func = lambda self, context: self.layout.itemO(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
+menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 

@@ -145,12 +145,12 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	y= 18;
 	
 	/* draw green box around/behind text */
-	UI_ThemeColorShadeAlpha(TH_CFRAME, 0, -100);
+	UI_ThemeColorShade(TH_CFRAME, 0);
 	glRectf(x, y,  x+slen,  y+15);
 	
 	/* draw current frame number - black text */
 	UI_ThemeColor(TH_TEXT);
-	UI_DrawString(x-5, y+3, str); // XXX may need to be updated for font stuff
+	UI_DrawString(x-5, y+3, str);
 	
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);
@@ -343,6 +343,7 @@ short ANIM_headerUI_standard_buttons (const bContext *C, bDopeSheet *ads, uiBloc
 		uiBlockBeginAlign(block);
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSCE, B_REDR, ICON_SCENE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Scene Animation");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOWOR, B_REDR, ICON_WORLD_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display World Animation");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NONTREE, B_REDR, ICON_NODETREE,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Node Tree Animation");
 			if (mainptr && mainptr->key.first)
 				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSHAPEKEYS, B_REDR, ICON_SHAPEKEY_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display ShapeKeys");
 			if (mainptr && mainptr->mat.first)

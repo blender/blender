@@ -231,7 +231,7 @@ public:
 	 * @return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const;
-
+	
 	/***************************************************************************************
 	 ** Other (internal) functionality.
 	 ***************************************************************************************/
@@ -332,7 +332,7 @@ protected:
 
     /** The N-degree of freedom device manager */
     GHOST_NDOFManager* m_ndofManager;
-
+	
 	/** Prints all the events. */
 #ifdef GHOST_DEBUG
 	GHOST_EventPrinter* m_eventPrinter;

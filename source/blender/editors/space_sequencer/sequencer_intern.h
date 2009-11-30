@@ -45,11 +45,11 @@ struct Scene;
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
-/* sequencer_header.c */
-// void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* sequencer_draw.c */
-void drawseqspace(const struct bContext *C, struct ARegion *ar);
+void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
+void draw_image_seq(struct Scene *scene, struct ARegion *ar, struct SpaceSeq *sseq);
+
 void seq_reset_imageofs(struct SpaceSeq *sseq);
 
 /* sequencer_edit.c */
@@ -59,13 +59,11 @@ int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
 int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
 void seq_rectf(struct Sequence *seq, struct rctf *rectf);
 void boundbox_seq(struct Scene *scene, struct rctf *rect);
-struct Sequence *get_last_seq(struct Scene *scene);
 struct Sequence *find_nearest_seq(struct Scene *scene, struct View2D *v2d, int *hand, short mval[2]);
 struct Sequence *find_neighboring_sequence(struct Scene *scene, struct Sequence *test, int lr, int sel);
 void deselect_all_seq(struct Scene *scene);
 void recurs_sel_seq(struct Sequence *seqm);
 int event_to_efftype(int event);
-void set_last_seq(struct Scene *scene, struct Sequence *seq);
 int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, char **error_str);
 struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
 

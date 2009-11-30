@@ -64,6 +64,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
@@ -599,6 +600,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
+			case ANIMTYPE_DSARM:
+			{
+				bArmature *arm= (bArmature *)data;
+				AnimData *adt= arm->adt;
+				
+				ale->flag= FILTER_ARM_OBJD(arm);
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
 			case ANIMTYPE_DSSKEY:
 			{
 				Key *key= (Key *)data;
@@ -618,6 +632,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				AnimData *adt= wo->adt;
 				
 				ale->flag= FILTER_WOR_SCED(wo); 
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
+			case ANIMTYPE_DSNTREE:
+			{
+				bNodeTree *ntree= (bNodeTree *)data;
+				AnimData *adt= ntree->adt;
+				
+				ale->flag= FILTER_NTREE_SCED(ntree); 
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
@@ -707,7 +734,6 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->flag= nlt->flag;
 				
-					// XXX or should this be done some other way?
 				ale->key_data= &nlt->strips;
 				ale->datatype= ALE_NLASTRIP;
 			}
@@ -728,12 +754,10 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
  
 /* ----------------------------------------- */
 
-
-static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, void *owner, short ownertype, int filter_mode, ID *owner_id)
+/* find the next F-Curve that is usable for inclusion */
+static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
-	bAnimListElem *ale = NULL;
-	FCurve *fcu;
-	int items = 0;
+	FCurve *fcu = NULL;
 	
 	/* loop over F-Curves - assume that the caller of this has already checked that these should be included 
 	 * NOTE: we need to check if the F-Curves belong to the same group, as this gets called for groups too...
@@ -752,13 +776,13 @@ static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve
 		{
 			Object *ob= (Object *)owner_id;
 			
-			/* only consider if F-Curve involves pose_channels */
-			if ((fcu->rna_path) && strstr(fcu->rna_path, "pose_channels")) {
+			/* only consider if F-Curve involves pose.bones */
+			if ((fcu->rna_path) && strstr(fcu->rna_path, "bones")) {
 				bPoseChannel *pchan;
 				char *bone_name;
 				
 				/* get bone-name, and check if this bone is selected */
-				bone_name= BLI_getQuotedStr(fcu->rna_path, "pose_channels[");
+				bone_name= BLI_getQuotedStr(fcu->rna_path, "bones[");
 				pchan= get_pose_channel(ob->pose, bone_name);
 				if (bone_name) MEM_freeN(bone_name);
 				
@@ -776,15 +800,39 @@ static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve
 				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
-						ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
-						
-						if (ale) {
-							BLI_addtail(anim_data, ale);
-							items++;
-						}
+						/* this F-Curve can be used, so return it */
+						return fcu;
 					}
 				}
 			}
+		}
+	}
+	
+	/* no (more) F-Curves from the list are suitable... */
+	return NULL;
+}
+
+static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, void *owner, short ownertype, int filter_mode, ID *owner_id)
+{
+	FCurve *fcu;
+	int items = 0;
+	
+	/* loop over every F-Curve able to be included 
+	 *	- this for-loop works like this: 
+	 *		1) the starting F-Curve is assigned to the fcu pointer so that we have a starting point to search from
+	 *		2) the first valid F-Curve to start from (which may include the one given as 'first') in the remaining 
+	 *		   list of F-Curves is found, and verified to be non-null
+	 *		3) the F-Curve referenced by fcu pointer is added to the list
+	 *		4) the fcu pointer is set to the F-Curve after the one we just added, so that we can keep going through 
+	 *		   the rest of the F-Curve list without an eternal loop. Back to step 2 :)
+	 */
+	for (fcu=first; ( (fcu = animdata_filter_fcurve_next(ads, fcu, grp, filter_mode, owner_id)) ); fcu=fcu->next)
+	{
+		bAnimListElem *ale = make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
+		
+		if (ale) {
+			BLI_addtail(anim_data, ale);
+			items++;
 		}
 	}
 	
@@ -802,50 +850,57 @@ static int animdata_filter_action (ListBase *anim_data, bDopeSheet *ads, bAction
 	/* loop over groups */
 	// TODO: in future, should we expect to need nested groups?
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
-		/* add this group as a channel first */
-		if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
-			/* check if filtering by selection */
-			if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
-				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
-				if (ale) {
-					BLI_addtail(anim_data, ale);
-					items++;
-				}
-			}
-		}
+		FCurve *first_fcu;
 		
 		/* store reference to last channel of group */
 		if (agrp->channels.last) 
 			lastchan= agrp->channels.last;
 		
+		/* get the first F-Curve in this group we can start to use, 
+		 * and if there isn't any F-Curve to start from, then don't 
+		 * this group at all...
+		 */
+		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_mode, owner_id);
 		
-		/* there are some situations, where only the channels of the action group should get considered */
-		if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
-			/* filters here are a bit convoulted...
-			 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
-			 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
-			 *
-			 * cases when we should include F-Curves inside group:
-			 *	- we don't care about visibility
-			 *	- group is expanded
-			 *	- we just need the F-Curves present
-			 */
-			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
-			{
-				/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
-				 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
-				 * all its sub-curves to be shown
+		if (first_fcu) {
+			/* add this group as a channel first */
+			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				/* check if filtering by selection */
+				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
+					ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+			}
+			
+			/* there are some situations, where only the channels of the action group should get considered */
+			if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
+				/* filters here are a bit convoulted...
+				 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
+				 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
+				 *
+				 * cases when we should include F-Curves inside group:
+				 *	- we don't care about visibility
+				 *	- group is expanded
+				 *	- we just need the F-Curves present
 				 */
-				if ( !(filter_mode & ANIMFILTER_CURVEVISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
+				if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
 				{
-					if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
-						items += animdata_filter_fcurves(anim_data, ads, agrp->channels.first, agrp, owner, ownertype, filter_mode, owner_id);
+					/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
+					 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
+					 * all its sub-curves to be shown
+					 */
+					if ( !(filter_mode & ANIMFILTER_CURVEVISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
+					{
+						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
+							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, owner, ownertype, filter_mode, owner_id);
+						}
 					}
 				}
 			}
 		}
-		
-		// TODO: but we still need to deal with the case when the group may be closed, but it has no visible curves too
 	}
 	
 	/* loop over un-grouped F-Curves (only if we're not only considering those channels in the animive group) */
@@ -1485,6 +1540,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
 {
 	World *wo= sce->world;
+	bNodeTree *ntree= sce->nodetree;
 	AnimData *adt= NULL;
 	bAnimListElem *ale;
 	int items = 0;
@@ -1590,6 +1646,50 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 			}
 		)
 	}
+	/* nodetree */
+	if ((ntree && ntree->adt) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
+		/* Action, Drivers, or NLA for Nodetree */
+		adt= ntree->adt;
+		ANIMDATA_FILTER_CASES(ntree,
+			{ /* AnimData blocks - do nothing... */ },
+			{ /* nla */
+				/* add NLA tracks */
+				items += animdata_filter_nla(anim_data, ads, adt, filter_mode, ntree, ANIMTYPE_DSNTREE, (ID *)ntree);
+			},
+			{ /* drivers */
+				/* include nodetree-expand widget? */
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+					ale= make_new_animlistelem(ntree, ANIMTYPE_DSNTREE, sce, ANIMTYPE_SCENE, (ID *)ntree);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+				
+				/* add F-Curve channels (drivers are F-Curves) */
+				if (FILTER_NTREE_SCED(ntree)/*EXPANDED_DRVD(adt)*/ || !(filter_mode & ANIMFILTER_CHANNELS)) {
+					// XXX owner info is messed up now...
+					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, ntree, ANIMTYPE_DSNTREE, filter_mode, (ID *)ntree);
+				}
+			},
+			{ /* action */
+				/* include nodetree-expand widget? */
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+					ale= make_new_animlistelem(ntree, ANIMTYPE_DSNTREE, sce, ANIMTYPE_SCENE, (ID *)sce);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+				
+				/* add channels */
+				if (FILTER_NTREE_SCED(ntree) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+					items += animdata_filter_action(anim_data, ads, adt->action, filter_mode, ntree, ANIMTYPE_DSNTREE, (ID *)ntree); 
+				}
+			}
+		)
+	}
+
 	
 	// TODO: scene compositing nodes (these aren't standard node-trees)
 	
@@ -1616,7 +1716,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 	/* scene-linked animation */
 	// TODO: sequencer, composite nodes - are we to include those here too?
 	{
-		short sceOk= 0, worOk= 0;
+		short sceOk= 0, worOk= 0, nodeOk=0;
 		
 		/* check filtering-flags if ok */
 		ANIMDATA_FILTER_CASES(sce, 
@@ -1643,17 +1743,30 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);, 
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);)
 		}
+		if (sce->nodetree) {
+			ANIMDATA_FILTER_CASES(sce->nodetree, 
+				{
+					/* for the special AnimData blocks only case, we only need to add
+					 * the block if it is valid... then other cases just get skipped (hence ok=0)
+					 */
+					ANIMDATA_ADD_ANIMDATA(sce->nodetree);
+					nodeOk=0;
+				},
+				nodeOk= !(ads->filterflag & ADS_FILTER_NONTREE);, 
+				nodeOk= !(ads->filterflag & ADS_FILTER_NONTREE);, 
+				nodeOk= !(ads->filterflag & ADS_FILTER_NONTREE);)
+		}
 		
 		/* if only F-Curves with visible flags set can be shown, check that 
 		 * datablocks haven't been set to invisible 
 		 */
 		if (filter_mode & ANIMFILTER_CURVEVISIBLE) {
 			if ((sce->adt) && (sce->adt->flag & ADT_CURVES_NOT_VISIBLE))
-				sceOk= worOk= 0;
+				sceOk= worOk= nodeOk= 0;
 		}
 		
 		/* check if not all bad (i.e. so there is something to show) */
-		if ( !(!sceOk && !worOk) ) {
+		if ( !(!sceOk && !worOk && !nodeOk) ) {
 			/* add scene data to the list of filtered channels */
 			items += animdata_filter_dopesheet_scene(anim_data, ads, sce, filter_mode);
 		}

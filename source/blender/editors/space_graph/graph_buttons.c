@@ -41,7 +41,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -195,6 +195,12 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 		icon= getname_anim_fcurve(name, ale->id, fcu);
 		uiItemL(col, name, icon);
 		
+	/* RNA-Path Editing - only really should be enabled when things aren't working */
+	col= uiLayoutColumn(layout, 1);
+		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)); 
+		uiItemR(col, "", ICON_RNA, &fcu_ptr, "rna_path", 0);
+		uiItemR(col, NULL, 0, &fcu_ptr, "array_index", 0);
+		
 	/* color settings */
 	col= uiLayoutColumn(layout, 1);
 		uiItemL(col, "Display Color:", 0);
@@ -229,13 +235,13 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 			DAG_scene_sort(scene);
 			
 			/* force an update of depsgraph */
-			ED_anim_dag_flush_update(C);
+			DAG_ids_flush_update(0);
 		}
 			break;
 	}
 	
 	/* default for now */
-	WM_event_add_notifier(C, NC_SCENE, scene); // XXX does this always work?
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene); // XXX could use better notifier
 }
 
 /* callback to remove the active driver */
@@ -279,6 +285,7 @@ static void driver_update_flags_cb (bContext *C, void *fcu_v, void *dummy_v)
 	ChannelDriver *driver= fcu->driver;
 	
 	/* clear invalid flags */
+	fcu->flag &= ~FCURVE_DISABLED; // XXX?
 	driver->flag &= ~DRIVER_FLAG_INVALID;
 }
 
@@ -323,7 +330,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
 		
 		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Remove Driver", 0, 0, 10*UI_UNIT_X, 18, NULL, 0.0, 0.0, 0, 0, "Remove this driver");
-		uiButSetFunc(but, driver_remove_cb, ale, NULL);
+		uiButSetNFunc(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
 		
 	/* driver-level settings - type, expressions, and errors */
 	RNA_pointer_create(ale->id, &RNA_Driver, driver, &driver_ptr);
@@ -335,7 +342,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
 		if (driver->type == DRIVER_TYPE_PYTHON) {
 			/* expression */
-			uiItemR(col, "Expr:", 0, &driver_ptr, "expression", 0);
+			uiItemR(col, "Expr", 0, &driver_ptr, "expression", 0);
 			
 			/* errors? */
 			if (driver->flag & DRIVER_FLAG_INVALID)
@@ -370,13 +377,13 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			uiItemR(row, "", 0, &dtar_ptr, "name", 0);
 			
 			/* remove button */
-			but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
+			but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
 			uiButSetFunc(but, driver_delete_var_cb, driver, dtar);
 		
 		
 		/* Target ID */
 		row= uiLayoutRow(box, 0);
-			uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value: ");
+			uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value:");
 		
 		/* Target Property */
 		// TODO: make this less technical...
@@ -393,7 +400,9 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				
 				/* array index */
 				// TODO: this needs selector which limits it to ok values
-				uiItemR(col, "Index", 0, &dtar_ptr, "array_index", 0);
+				// NOTE: for for now, the array index box still gets shown when non-zero (i.e. for tweaking rigs as necessary)
+				if (dtar->array_index)
+					uiItemR(col, "Index", 0, &dtar_ptr, "array_index", 0);
 		}
 	}
 	
@@ -443,7 +452,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
 		col= uiLayoutColumn(pa->layout, 1);
 		
-		ANIM_uiTemplate_fmodifier_draw(col, ale->id, &fcu->modifiers, fcm);
+		ANIM_uiTemplate_fmodifier_draw(C, col, ale->id, &fcu->modifiers, fcm);
 	}
 
 	MEM_freeN(ale);

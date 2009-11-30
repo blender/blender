@@ -31,6 +31,7 @@
 	meshtools.c: no editmode (violated already :), tools operating on meshes
 */
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -51,7 +52,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
@@ -62,6 +63,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -305,7 +307,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	faceofs= 0;
 	
 	/* inverse transform for all selected meshes in this object */
-	Mat4Invert(imat, ob->obmat);
+	invert_m4_m4(imat, ob->obmat);
 	
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		/* only join if this is a mesh */
@@ -342,11 +344,11 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				/* if this is the object we're merging into, no need to do anything */
 				if(base->object != ob) {
 					/* watch this: switch matmul order really goes wrong */
-					Mat4MulMat4(cmat, base->object->obmat, imat);
+					mul_m4_m4m4(cmat, base->object->obmat, imat);
 					
 					/* transform vertex coordinates into new space */
 					for(a=0, mv=mvert; a < me->totvert; a++, mv++) {
-						Mat4MulVecfl(cmat, mv->co);
+						mul_m4_v3(cmat, mv->co);
 					}
 					
 					/* for each shapekey in destination mesh:
@@ -366,7 +368,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 								fp2= ((float *)(okb->data));
 								for(a=0; a < me->totvert; a++, fp1+=3, fp2+=3) {
 									VECCOPY(fp1, fp2);
-									Mat4MulVecfl(cmat, fp1);
+									mul_m4_v3(cmat, fp1);
 								}
 							}
 							else {
@@ -543,6 +545,82 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/*********************** JOIN AS SHAPES ***************************/
+
+/* Append selected meshes vertex locations as shapes of the active mesh, 
+  return 0 if no join is made (error) and 1 of the join is done */
+
+int join_mesh_shapes_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	Mesh *me= (Mesh *)ob->data;
+	Mesh *selme=NULL;
+	DerivedMesh *dm=NULL;
+	Key *key=me->key;
+	KeyBlock *kb;
+	int ok=0, nonequal_verts=0;
+	
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		if (base->object == ob) continue;
+		
+		if (base->object->type==OB_MESH) {
+			selme = (Mesh *)base->object->data;
+			
+			if (selme->totvert==me->totvert)
+				ok++;
+			else
+				nonequal_verts=1;
+		}
+	}
+	CTX_DATA_END;
+	
+	if (!ok) {
+		if (nonequal_verts)
+			BKE_report(op->reports, RPT_ERROR, "Selected meshes must have equal numbers of vertices.");
+		else
+			BKE_report(op->reports, RPT_ERROR, "No additional selected meshes with equal vertex count to join.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(key == NULL) {
+		key= me->key= add_key((ID *)me);
+		key->type= KEY_RELATIVE;
+
+		/* first key added, so it was the basis. initialise it with the existing mesh */
+		kb= add_keyblock(scene, key);
+		mesh_to_key(me, kb);
+	}
+	
+	/* now ready to add new keys from selected meshes */
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		if (base->object == ob) continue;
+		
+		if(base->object->type==OB_MESH) {
+			selme = (Mesh *)base->object->data;
+			
+			if (selme->totvert==me->totvert) {
+				dm = mesh_get_derived_deform(scene, base->object, CD_MASK_BAREMESH);
+				
+				if (!dm) continue;
+					
+				kb= add_keyblock(scene, key);
+				strcpy(kb->name, base->object->id.name+2);
+				BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), 32);
+				
+				DM_to_meshkey(dm, me, kb);
+				
+				dm->release(dm);
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
 /* ********************** SORT FACES ******************* */
 
 static void permutate(void *list, int num, int size, int *index)
@@ -633,15 +711,15 @@ void sort_faces(Scene *scene, View3D *v3d)
 		float cur[3];
 		
 		if (event == 1)
-			Mat4MulMat4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
+			mul_m4_m4m4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
 		else if (event == 2) { /* sort from cursor */
 			if( v3d && v3d->localvd ) {
 				VECCOPY(cur, v3d->cursor);
 			} else {
 				VECCOPY(cur, scene->cursor);
 			}
-			Mat4Invert(mat, OBACT->obmat);
-			Mat4MulVecfl(mat, cur);
+			invert_m4_m4(mat, OBACT->obmat);
+			mul_m4_v3(mat, cur);
 		}
 		
 		mf= me->mface;
@@ -655,21 +733,21 @@ void sort_faces(Scene *scene, View3D *v3d)
 				else						face_sort_floats[i] = reverse;
 			} else {
 				/* find the faces center */
-				VecAddf(vec, (me->mvert+mf->v1)->co, (me->mvert+mf->v2)->co);
+				add_v3_v3v3(vec, (me->mvert+mf->v1)->co, (me->mvert+mf->v2)->co);
 				if (mf->v4) {
-					VecAddf(vec, vec, (me->mvert+mf->v3)->co);
-					VecAddf(vec, vec, (me->mvert+mf->v4)->co);
-					VecMulf(vec, 0.25f);
+					add_v3_v3v3(vec, vec, (me->mvert+mf->v3)->co);
+					add_v3_v3v3(vec, vec, (me->mvert+mf->v4)->co);
+					mul_v3_fl(vec, 0.25f);
 				} else {
-					VecAddf(vec, vec, (me->mvert+mf->v3)->co);
-					VecMulf(vec, 1.0f/3.0f);
+					add_v3_v3v3(vec, vec, (me->mvert+mf->v3)->co);
+					mul_v3_fl(vec, 1.0f/3.0f);
 				} /* done */
 				
 				if (event == 1) { /* sort on view axis */
-					Mat4MulVecfl(mat, vec);
+					mul_m4_v3(mat, vec);
 					face_sort_floats[i] = vec[2] * reverse;
 				} else { /* distance from cursor*/
-					face_sort_floats[i] = VecLenf(cur, vec) * reverse; /* back to front */
+					face_sort_floats[i] = len_v3v3(cur, vec) * reverse; /* back to front */
 				}
 			}
 		}
@@ -811,12 +889,12 @@ static intptr_t mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 			/* does mesh verts and editmode, code looks potential dangerous, octree should really be filled OK! */
 			if(mvert) {
 				vec= (mvert+(*bt)->index[a]-1)->co;
-				if(FloatCompare(vec, co, MOC_THRESH))
+				if(compare_v3v3(vec, co, MOC_THRESH))
 					return (*bt)->index[a]-1;
 			}
 			else {
 				EditVert *eve= (EditVert *)((*bt)->index[a]);
-				if(FloatCompare(eve->co, co, MOC_THRESH))
+				if(compare_v3v3(eve->co, co, MOC_THRESH))
 					return (*bt)->index[a];
 			}
 		}
@@ -881,12 +959,12 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		MeshOctree.offs[1]-= MOC_THRESH;
 		MeshOctree.offs[2]-= MOC_THRESH;
 		
-		VecSubf(MeshOctree.div, max, min);
+		sub_v3_v3v3(MeshOctree.div, max, min);
 		MeshOctree.div[0]+= 2*MOC_THRESH;	/* and divide with 2 threshold unit more extra (try 8x8 unit grid on paint) */
 		MeshOctree.div[1]+= 2*MOC_THRESH;
 		MeshOctree.div[2]+= 2*MOC_THRESH;
 		
-		VecMulf(MeshOctree.div, 1.0f/MOC_RES);
+		mul_v3_fl(MeshOctree.div, 1.0f/MOC_RES);
 		if(MeshOctree.div[0]==0.0f) MeshOctree.div[0]= 1.0f;
 		if(MeshOctree.div[1]==0.0f) MeshOctree.div[1]= 1.0f;
 		if(MeshOctree.div[2]==0.0f) MeshOctree.div[2]= 1.0f;

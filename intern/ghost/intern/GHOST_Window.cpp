@@ -53,6 +53,7 @@ GHOST_Window::GHOST_Window(
 	m_stereoVisual(stereoVisual)
 {
 	m_isUnsavedChanges = false;
+	m_canAcceptDragOperation = false;
 	
     m_cursorGrabAccumPos[0] = 0;
     m_cursorGrabAccumPos[1] = 0;
@@ -108,6 +109,8 @@ GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rec
 			m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1;
 		else if (bounds) {
 			m_cursorGrabBounds= *bounds;
+		} else { /* if bounds not defined, use window */
+			getClientBounds(m_cursorGrabBounds);
 		}
 		m_cursorGrab = mode;
 		return GHOST_kSuccess;
@@ -154,6 +157,15 @@ GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUn
 	}
 }
 
+void GHOST_Window::setAcceptDragOperation(bool canAccept)
+{
+	m_canAcceptDragOperation = canAccept;
+}
+
+bool GHOST_Window::canAcceptDragOperation() const
+{
+	return m_canAcceptDragOperation;
+}
 
 GHOST_TSuccess GHOST_Window::setModifiedState(bool isUnsavedChanges)
 {

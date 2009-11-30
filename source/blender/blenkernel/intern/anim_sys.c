@@ -36,7 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
@@ -353,7 +353,7 @@ static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName
 
 /* Fix all RNA-Paths in the AnimData block used by the given ID block
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- * 		i.e. pose.pose_channels["Bone"]
+ * 		i.e. pose.bones["Bone"]
  */
 void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, char *oldName, char *newName)
 {
@@ -388,7 +388,7 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, c
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- * 		i.e. pose.pose_channels["Bone"]
+ * 		i.e. pose.bones["Bone"]
  */
 void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newName)
 {
@@ -697,20 +697,26 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(&new_ptr, prop))
-						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
+					if (RNA_property_array_length(&new_ptr, prop)) {
+						if (RNA_property_editable_index(&new_ptr, prop, array_index))
+							RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
+					}
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(&new_ptr, prop))
-						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
+					if (RNA_property_array_length(&new_ptr, prop)){
+						if (RNA_property_editable_index(&new_ptr, prop, array_index))
+							RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
+					}
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(&new_ptr, prop))
-						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
+					if (RNA_property_array_length(&new_ptr, prop)) {
+						if (RNA_property_editable_index(&new_ptr, prop, array_index))
+							RNA_property_float_set_index(&new_ptr, prop, array_index, value);
+					}
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
 					break;
@@ -1434,20 +1440,26 @@ void nladata_flush_channels (ListBase *channels)
 		switch (RNA_property_type(prop)) 
 		{
 			case PROP_BOOLEAN:
-				if (RNA_property_array_length(ptr, prop))
-					RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
+				if (RNA_property_array_length(ptr, prop)) {
+					if (RNA_property_editable_index(ptr, prop, array_index))
+						RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
+				}
 				else
 					RNA_property_boolean_set(ptr, prop, (int)value);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(ptr, prop))
-					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
+				if (RNA_property_array_length(ptr, prop)) {
+					if (RNA_property_editable_index(ptr, prop, array_index))
+						RNA_property_int_set_index(ptr, prop, array_index, (int)value);
+				}
 				else
 					RNA_property_int_set(ptr, prop, (int)value);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(ptr, prop))
-					RNA_property_float_set_index(ptr, prop, array_index, value);
+				if (RNA_property_array_length(ptr, prop)) {
+					if (RNA_property_editable_index(ptr, prop, array_index))
+						RNA_property_float_set_index(ptr, prop, array_index, value);
+				}
 				else
 					RNA_property_float_set(ptr, prop, value);
 				break;

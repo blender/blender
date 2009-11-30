@@ -43,6 +43,7 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_report.h"
+#include "BKE_global.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -196,7 +197,7 @@ void WM_keymap_init(bContext *C)
 	WM_keyconfig_userdef(wm);
 }
 
-void wm_check(bContext *C)
+void WM_check(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	
@@ -208,19 +209,21 @@ void wm_check(bContext *C)
 	if(wm==NULL) return;
 	if(wm->windows.first==NULL) return;
 
-	/* case: fileread */
-	if((wm->initialized & WM_INIT_WINDOW) == 0) {
-		WM_keymap_init(C);
-		WM_autosave_init(C);
-	}
-	
-	/* case: no open windows at all, for old file reads */
-	wm_window_add_ghostwindows(wm);
-	
-	/* case: fileread */
-	if((wm->initialized & WM_INIT_WINDOW) == 0) {
-		ED_screens_initialize(wm);
-		wm->initialized |= WM_INIT_WINDOW;
+	if (!G.background) {
+		/* case: fileread */
+		if((wm->initialized & WM_INIT_WINDOW) == 0) {
+			WM_keymap_init(C);
+			WM_autosave_init(C);
+		}
+
+		/* case: no open windows at all, for old file reads */
+		wm_window_add_ghostwindows(wm);
+
+		/* case: fileread */
+		if((wm->initialized & WM_INIT_WINDOW) == 0) {
+			ED_screens_initialize(wm);
+			wm->initialized |= WM_INIT_WINDOW;
+		}
 	}
 }
 

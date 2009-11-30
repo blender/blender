@@ -132,7 +132,7 @@ typedef struct Sequence {
 	struct Sequence *next, *prev;
 	void *tmp; /* tmp var for copying, and tagging for linked selection */
 	void *lib; /* needed (to be like ipo), else it will raise libdata warnings, this should never be used */
-	char name[24]; /* name, not set by default and dosnt need to be unique as with ID's */
+	char name[24]; /* SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths */
 
 	int flag, type;	/*flags bitmap (see below) and the type of sequence*/
 	int len; /* the length of the contense of this strip - before handles are applied */
@@ -150,7 +150,8 @@ typedef struct Sequence {
 	struct Ipo *ipo;	// xxx depreceated... old animation system
 	struct Scene *scene;
 	struct anim *anim;
-	float facf0, facf1;
+	float effect_fader;
+	float speed_fader;
 
 	PluginSeq *plugin;
 
@@ -244,6 +245,7 @@ typedef struct SpeedControlVars {
 #define SEQ_SPEED_COMPRESS_IPO_Y 4
 
 /* ***************** SEQUENCE ****************** */
+#define SEQ_NAME_MAXSTR			24
 
 /* seq->flag */
 #define SEQ_LEFTSEL				2
@@ -266,6 +268,7 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_COLOR_BALANCE                  262144
 #define SEQ_USE_PROXY_CUSTOM_DIR               524288
 #define SEQ_USE_PROXY_CUSTOM_FILE             2097152
+#define SEQ_USE_EFFECT_DEFAULT_FADE           4194304
 
 /* deprecated, dont use a flag anymore*/
 /*#define SEQ_ACTIVE                            1048576*/

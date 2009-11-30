@@ -165,8 +165,6 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd)
 		qcd->cdSize = mySize;
 
 		GetCodecInfo (&ci, qtdata->gSpatialSettings.codecType, 0);
-		CopyPascalStringToC(ci.typeName, str);
-		sprintf(qcd->qtcodecname, "Codec: %s", str);
 	} else {
 		printf("Quicktime: QT_SaveCodecSettingsToScene failed\n"); 
 	}
@@ -599,6 +597,18 @@ static void check_renderbutton_framerate(RenderData *rd)
 	}
 }
 
+void quicktime_verify_image_type(RenderData *rd)
+{
+	if (rd->imtype == R_QUICKTIME) {
+		if ((rd->qtcodecsettings.codecType<= 0) ||
+			(rd->qtcodecsettings.codecSpatialQuality <0) ||
+			(rd->qtcodecsettings.codecSpatialQuality > 100)) {
+			
+			rd->qtcodecsettings.codecType = QT_CODECTYPE_JPEG;
+			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality*100)/codecLosslessQuality;
+		}
+	}
+}
 
 int get_qtcodec_settings(RenderData *rd) 
 {
@@ -620,12 +630,13 @@ int get_qtcodec_settings(RenderData *rd)
 		check_renderbutton_framerate(rd);
 	} else {
 		// configure the standard image compression dialog box
-		// set some default settings
+		// set some default settings: codec=jpeg, quality = max
+		qtdata->gSpatialSettings.codecType = kJPEGCodecType;
 		qtdata->gSpatialSettings.codec = anyCodec;         
-		qtdata->gSpatialSettings.spatialQuality = codecMaxQuality;
-		qtdata->gTemporalSettings.temporalQuality = codecMaxQuality;
+		qtdata->gSpatialSettings.spatialQuality = codecHighQuality;
+		qtdata->gTemporalSettings.temporalQuality = codecHighQuality;
 		qtdata->gTemporalSettings.keyFrameRate = 25;   
-		qtdata->aDataRateSetting.dataRate = 90 * 1024;          
+		qtdata->aDataRateSetting.dataRate = 5 * 1024 * 1024;          
 
 		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 		CheckError(err, "SCSetInfo1 error");
@@ -637,6 +648,8 @@ int get_qtcodec_settings(RenderData *rd)
 
 	check_renderbutton_framerate(rd);
 
+	/* Remove this dialog box pop up as this function is called from the render thread
+	 Anyway, all config should be done inside blender ui before starting render.
 	// put up the dialog box - it needs to be called from the main thread
 	err = SCRequestSequenceSettings(qtdata->theComponent);
  
@@ -648,7 +661,7 @@ int get_qtcodec_settings(RenderData *rd)
 	// get user selected data
 	SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 	SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
-	SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
+	SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);*/
 
 	QT_SaveCodecSettingsToScene(rd);
 

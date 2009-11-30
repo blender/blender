@@ -65,7 +65,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_rand.h"
@@ -91,6 +91,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
+#include "BKE_softbody.h"
 #include "BKE_smoke.h"
 #include "BKE_unit.h"
 #include "BKE_utildefines.h"
@@ -142,7 +143,7 @@ static void draw_empty_cone(float size);
 /* ************* only use while object drawing **************
  * or after running ED_view3d_init_mats_rv3d
  * */
-static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
+static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -151,16 +152,14 @@ static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
 	
 	/* clipplanes in eye space */
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		VECCOPY(vec4, vec);
-		Mat4MulVecfl(rv3d->viewmatob, vec4);
-		if(view3d_test_clipping(rv3d, vec4))
+		if(view3d_test_clipping(rv3d, vec, local))
 			return;
 	}
 	
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(rv3d->persmatob, vec4);
+	mul_m4_v4(rv3d->persmatob, vec4);
 	
 	/* clipplanes in window space */
 	if( vec4[3]>BL_NEAR_CLIP ) {	/* is the NEAR clipping cutoff for picking */
@@ -189,7 +188,7 @@ static void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr)
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(rv3d->persmatob, vec4);
+	mul_m4_v4(rv3d->persmatob, vec4);
 	
 	if( vec4[3]>BL_NEAR_CLIP ) {	/* is the NEAR clipping cutoff for picking */
 		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
@@ -456,8 +455,8 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 	
 	VECCOPY(vx, tmat[0]);
 	VECCOPY(vy, tmat[1]);
-	VecMulf(vx, rad);
-	VecMulf(vy, rad);
+	mul_v3_fl(vx, rad);
+	mul_v3_fl(vy, rad);
 	
 	glBegin(mode);
 	for(a=0; a<tot; a++) {
@@ -544,8 +543,8 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	/* project first and test */
 	for(vos= strings->first; vos; vos= vos->next) {
 		if(mat)
-			Mat4MulVecfl(mat, vos->vec);
-		view3d_project_short_clip(ar, vos->vec, vos->mval);
+			mul_m4_v3(mat, vos->vec);
+		view3d_project_short_clip(ar, vos->vec, vos->mval, 0);
 		if(vos->mval[0]!=IS_CLIPPED)
 			tot++;
 	}
@@ -674,7 +673,7 @@ static void drawshadbuflimits(Lamp *la, float mat[][4])
 	lavec[0]= -mat[2][0];
 	lavec[1]= -mat[2][1];
 	lavec[2]= -mat[2][2];
-	Normalize(lavec);
+	normalize_v3(lavec);
 
 	sta[0]= mat[3][0]+ la->clipsta*lavec[0];
 	sta[1]= mat[3][1]+ la->clipsta*lavec[1];
@@ -705,13 +704,13 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	/* camera is at 0,0,0 */
 	float temp[3],plane[3],mat1[3][3],mat2[3][3],mat3[3][3],mat4[3][3],q[4],co,si,angle;
 
-	Normalize(lvec);
-	Normalize(vvec);				/* is this the correct vector ? */
+	normalize_v3(lvec);
+	normalize_v3(vvec);				/* is this the correct vector ? */
 
-	Crossf(temp,vvec,lvec);		/* equation for a plane through vvec en lvec */
-	Crossf(plane,lvec,temp);		/* a plane perpendicular to this, parrallel with lvec */
+	cross_v3_v3v3(temp,vvec,lvec);		/* equation for a plane through vvec en lvec */
+	cross_v3_v3v3(plane,lvec,temp);		/* a plane perpendicular to this, parrallel with lvec */
 
-	Normalize(plane);
+	normalize_v3(plane);
 
 	/* now we've got two equations: one of a cone and one of a plane, but we have
 	three unknowns. We remove one unkown by rotating the plane to z=0 (the plane normal) */
@@ -724,7 +723,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	q[1] = plane[1] ; 
 	q[2] = -plane[0] ; 
 	q[3] = 0 ;
-	Normalize(&q[1]);
+	normalize_v3(&q[1]);
 
 	angle = saacos(plane[2])/2.0;
 	co = cos(angle);
@@ -735,7 +734,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	q[2] *= si;
 	q[3] =  0;
 
-	QuatToMat3(q,mat1);
+	quat_to_mat3(mat1,q);
 
 	/* rotate lamp vector now over acos(inp) degrees */
 
@@ -743,7 +742,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	vvec[1] = lvec[1] ; 
 	vvec[2] = lvec[2] ;
 
-	Mat3One(mat2);
+	unit_m3(mat2);
 	co = inp;
 	si = sqrt(1-inp*inp);
 
@@ -751,17 +750,17 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	mat2[1][0] = -si;
 	mat2[0][1] =  si;
 	mat2[1][1] =  co;
-	Mat3MulMat3(mat3,mat2,mat1);
+	mul_m3_m3m3(mat3,mat2,mat1);
 
 	mat2[1][0] =  si;
 	mat2[0][1] = -si;
-	Mat3MulMat3(mat4,mat2,mat1);
-	Mat3Transp(mat1);
+	mul_m3_m3m3(mat4,mat2,mat1);
+	transpose_m3(mat1);
 
-	Mat3MulMat3(mat2,mat1,mat3);
-	Mat3MulVecfl(mat2,lvec);
-	Mat3MulMat3(mat2,mat1,mat4);
-	Mat3MulVecfl(mat2,vvec);
+	mul_m3_m3m3(mat2,mat1,mat3);
+	mul_m3_v3(mat2,lvec);
+	mul_m3_m3m3(mat2,mat1,mat4);
+	mul_m3_v3(mat2,vvec);
 
 	return;
 }
@@ -789,9 +788,9 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 	lampsize= pixsize*((float)U.obcenter_dia*0.5f);
 
 	/* and view aligned matrix: */
-	Mat4CpyMat4(imat, rv3d->viewinv);
-	Normalize(imat[0]);
-	Normalize(imat[1]);
+	copy_m4_m4(imat, rv3d->viewinv);
+	normalize_v3(imat[0]);
+	normalize_v3(imat[1]);
 	
 	/* for AA effects */
 	glGetFloatv(GL_CURRENT_COLOR, curcol);
@@ -835,13 +834,13 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 		short axis;
 		
 		/* setup a 45 degree rotation matrix */
-		VecRotToMat3(imat[2], M_PI/4.0f, mat);
+		vec_rot_to_mat3( mat,imat[2], M_PI/4.0f);
 		
 		/* vectors */
 		VECCOPY(v1, imat[0]);
-		VecMulf(v1, circrad*1.2f);
+		mul_v3_fl(v1, circrad*1.2f);
 		VECCOPY(v2, imat[0]);
-		VecMulf(v2, circrad*2.5f);
+		mul_v3_fl(v2, circrad*2.5f);
 		
 		/* center */
 		glTranslatef(vec[0], vec[1], vec[2]);
@@ -852,8 +851,8 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 		for (axis=0; axis<8; axis++) {
 			glVertex3fv(v1);
 			glVertex3fv(v2);
-			Mat3MulVecfl(mat, v1);
-			Mat3MulVecfl(mat, v2);
+			mul_m3_v3(mat, v1);
+			mul_m3_v3(mat, v2);
 		}
 		glEnd();
 		
@@ -1144,11 +1143,11 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	if(flag==0) {
 		if(cam->flag & (CAM_SHOWLIMITS+CAM_SHOWMIST)) {
 			wmLoadMatrix(rv3d->viewmat);
-			Mat4CpyMat4(vec, ob->obmat);
-			Mat4Ortho(vec);
+			copy_m4_m4(vec, ob->obmat);
+			normalize_m4(vec);
 			wmMultMatrix(vec);
 
-			Mat4SwapMat4(rv3d->persmat, tmat);
+			swap_m4m4(rv3d->persmat, tmat);
 			wmGetSingleMatrix(rv3d->persmat);
 
 			if(cam->flag & CAM_SHOWLIMITS) {
@@ -1161,7 +1160,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 			if(cam->flag & CAM_SHOWMIST) 
 				if(wrld) draw_limit_line(wrld->miststa, wrld->miststa+wrld->mistdist, 0xFFFFFF);
 				
-			Mat4SwapMat4(rv3d->persmat, tmat);
+			swap_m4m4(rv3d->persmat, tmat);
 		}
 	}
 }
@@ -1207,9 +1206,11 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
 
+	ED_view3d_local_clipping(vc->rv3d, obedit->obmat); /* for local clipping lookups */
+
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
-			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s);
+			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s, 1);
 			if (s[0] != IS_CLIPPED)
 				func(userData, bp, s[0], s[1]);
 		}
@@ -1314,7 +1315,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 		short s[2]= {IS_CLIPPED, 0};
 
 		if (data->clipVerts) {
-			view3d_project_short_clip(data->vc.ar, co, s);
+			view3d_project_short_clip(data->vc.ar, co, s, 1);
 		} else {
 			view3d_project_short_noclip(data->vc.ar, co, s);
 		}
@@ -1334,6 +1335,9 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	if(clipVerts)
+		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	EM_init_index_arrays(vc->em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1349,8 +1353,8 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 
 	if (eed->h==0) {
 		if (data->clipVerts==1) {
-			view3d_project_short_clip(data->vc.ar, v0co, s[0]);
-			view3d_project_short_clip(data->vc.ar, v1co, s[1]);
+			view3d_project_short_clip(data->vc.ar, v0co, s[0], 1);
+			view3d_project_short_clip(data->vc.ar, v1co, s[1], 1);
 		} else {
 			view3d_project_short_noclip(data->vc.ar, v0co, s[0]);
 			view3d_project_short_noclip(data->vc.ar, v1co, s[1]);
@@ -1376,6 +1380,9 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEd
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	if(clipVerts)
+		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	EM_init_index_arrays(vc->em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1390,7 +1397,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 	short s[2];
 
 	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
-		view3d_project_short_clip(data->vc.ar, cent, s);
+		view3d_project_short_clip(data->vc.ar, cent, s, 1);
 
 		data->func(data->userData, efa, s[0], s[1], index);
 	}
@@ -1404,6 +1411,9 @@ void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFa
 	data.vc= *vc;
 	data.func = func;
 	data.userData = userData;
+
+	//if(clipVerts)
+	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
 	EM_init_index_arrays(vc->em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
@@ -1419,6 +1429,8 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	Nurb *nu;
 	int i;
 
+	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+
 	for (nu= cu->editnurb->first; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
@@ -1427,17 +1439,17 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 				if(bezt->hide==0) {
 					
 					if(cu->drawflag & CU_HIDE_HANDLES) {
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[1], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 					} else {
-						view3d_project_short_clip(vc->ar, bezt->vec[0], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[0], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[1], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[2], s);
+						view3d_project_short_clip(vc->ar, bezt->vec[2], s, 1);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 					}
@@ -1449,7 +1461,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 				BPoint *bp = &nu->bp[i];
 
 				if(bp->hide==0) {
-					view3d_project_short_clip(vc->ar, bp->vec, s);
+					view3d_project_short_clip(vc->ar, bp->vec, s, 1);
 					if (s[0] != IS_CLIPPED)
 						func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
@@ -2234,7 +2246,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	if(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))
 		return;
 
-	/* make the precission of the pronted value proportionate to the gridsize */
+	/* make the precision of the pronted value proportionate to the gridsize */
 
 	if (grid < 0.01f)
 		strcpy(conv_float, "%.6f");
@@ -2271,13 +2283,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				z= 0.5f*(v1[2]+v2[2]);
 				
 				if(v3d->flag & V3D_GLOBAL_STATS) {
-					Mat4MulVecfl(ob->obmat, v1);
-					Mat4MulVecfl(ob->obmat, v2);
+					mul_m4_v3(ob->obmat, v1);
+					mul_m4_v3(ob->obmat, v2);
 				}
 				if(unit->system)
-					bUnit_AsString(val, sizeof(val), VecLenf(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
+					bUnit_AsString(val, sizeof(val), len_v3v3(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
 				else
-					sprintf(val, conv_float, VecLenf(v1, v2));
+					sprintf(val, conv_float, len_v3v3(v1, v2));
 				
 				view3d_cached_text_draw_add(x, y, z, val, 0);
 			}
@@ -2302,16 +2314,16 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 					VECCOPY(v4, efa->v4->co);
 				}
 				if(v3d->flag & V3D_GLOBAL_STATS) {
-					Mat4MulVecfl(ob->obmat, v1);
-					Mat4MulVecfl(ob->obmat, v2);
-					Mat4MulVecfl(ob->obmat, v3);
-					if (efa->v4) Mat4MulVecfl(ob->obmat, v4);
+					mul_m4_v3(ob->obmat, v1);
+					mul_m4_v3(ob->obmat, v2);
+					mul_m4_v3(ob->obmat, v3);
+					if (efa->v4) mul_m4_v3(ob->obmat, v4);
 				}
 				
 				if (efa->v4)
-					area=  AreaQ3Dfl(v1, v2, v3, v4);
+					area=  area_quad_v3(v1, v2, v3, v4);
 				else
-					area = AreaT3Dfl(v1, v2, v3);
+					area = area_tri_v3(v1, v2, v3);
 
 				if(unit->system)
 					bUnit_AsString(val, sizeof(val), area*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE); // XXX should be B_UNIT_AREA
@@ -2343,10 +2355,10 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				VECCOPY(v4, v3);
 			}
 			if(v3d->flag & V3D_GLOBAL_STATS) {
-				Mat4MulVecfl(ob->obmat, v1);
-				Mat4MulVecfl(ob->obmat, v2);
-				Mat4MulVecfl(ob->obmat, v3);
-				Mat4MulVecfl(ob->obmat, v4);
+				mul_m4_v3(ob->obmat, v1);
+				mul_m4_v3(ob->obmat, v2);
+				mul_m4_v3(ob->obmat, v3);
+				mul_m4_v3(ob->obmat, v4);
 			}
 			
 			e1= efa->e1;
@@ -2358,30 +2370,30 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				
 			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
-				sprintf(val,"%.3f", RAD2DEG(VecAngle3(v4, v1, v2)));
-				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8f);
+				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v4, v1, v2)));
+				interp_v3_v3v3(fvec, efa->cent, efa->v1->co, 0.8f);
 				view3d_cached_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
-				sprintf(val,"%.3f", RAD2DEG(VecAngle3(v1, v2, v3)));
-				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8f);
+				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v1, v2, v3)));
+				interp_v3_v3v3(fvec, efa->cent, efa->v2->co, 0.8f);
 				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
 				if(efa->v4) 
-					sprintf(val,"%.3f", RAD2DEG(VecAngle3(v2, v3, v4)));
+					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v2, v3, v4)));
 				else
-					sprintf(val,"%.3f", RAD2DEG(VecAngle3(v2, v3, v1)));
-				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8f);
+					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v2, v3, v1)));
+				interp_v3_v3v3(fvec, efa->cent, efa->v3->co, 0.8f);
 				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
-					sprintf(val,"%.3f", RAD2DEG(VecAngle3(v3, v4, v1)));
-					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8f);
+					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v3, v4, v1)));
+					interp_v3_v3v3(fvec, efa->cent, efa->v4->co, 0.8f);
 					view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 				}
 			}
@@ -3434,7 +3446,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 		{
 			vec[0]=2.0f*pixsize;
 			vec[1]=vec[2]=0.0;
-			QuatMulVecf(state->rot,vec);
+			mul_qt_v3(state->rot,vec);
 			if(draw_as==PART_DRAW_AXIS) {
 				cd[1]=cd[2]=cd[4]=cd[5]=0.0;
 				cd[0]=cd[3]=1.0;
@@ -3462,7 +3474,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 				
 			vec[1]=2.0f*pixsize;
 			vec[0]=vec[2]=0.0;
-			QuatMulVecf(state->rot,vec);
+			mul_qt_v3(state->rot,vec);
 			if(draw_as==PART_DRAW_AXIS){
 				VECCOPY(vec2,state->co);
 			}		
@@ -3474,7 +3486,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 
 			vec[2]=2.0f*pixsize;
 			vec[0]=vec[1]=0.0;
-			QuatMulVecf(state->rot,vec);
+			mul_qt_v3(state->rot,vec);
 			if(draw_as==PART_DRAW_AXIS){
 				VECCOPY(vec2,state->co);
 			}
@@ -3489,9 +3501,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 		case PART_DRAW_LINE:
 		{
 			VECCOPY(vec,state->vel);
-			Normalize(vec);
+			normalize_v3(vec);
 			if(draw & PART_DRAW_VEL_LENGTH)
-				VecMulf(vec,VecLength(state->vel));
+				mul_v3_fl(vec,len_v3(state->vel));
 			VECADDFAC(pdd->vd,state->co,vec,-draw_line[0]); pdd->vd+=3;
 			VECADDFAC(pdd->vd,state->co,vec,draw_line[1]); pdd->vd+=3;
 			if(cd) {
@@ -3649,7 +3661,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
 		float mat[4][4];
-		Mat4MulMat4(mat, psys->imat, ob->obmat);
+		mul_m4_m4m4(mat, psys->imat, ob->obmat);
 		wmMultMatrix(mat);
 	}
 
@@ -3671,9 +3683,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			break;
 		case PART_DRAW_CIRC:
 			/* calculate view aligned matrix: */
-			Mat4CpyMat4(imat, rv3d->viewinv);
-			Normalize(imat[0]);
-			Normalize(imat[1]);
+			copy_m4_m4(imat, rv3d->viewinv);
+			normalize_v3(imat[0]);
+			normalize_v3(imat[1]);
 			/* no break! */
 		case PART_DRAW_CROSS:
 		case PART_DRAW_AXIS:
@@ -3729,9 +3741,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			break;
 	}
 	if(part->draw & PART_DRAW_SIZE && part->draw_as!=PART_DRAW_CIRC){
-		Mat4CpyMat4(imat, rv3d->viewinv);
-		Normalize(imat[0]);
-		Normalize(imat[1]);
+		copy_m4_m4(imat, rv3d->viewinv);
+		normalize_v3(imat[0]);
+		normalize_v3(imat[1]);
 	}
 
 	if(!create_cdata && pdd && pdd->cdata) {
@@ -3903,7 +3915,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					psys_get_particle_on_path(&sim,a,&state,need_v);
 					
 					if(psys->parent)
-						Mat4MulVecfl(psys->parent->obmat, state.co);
+						mul_m4_v3(psys->parent->obmat, state.co);
 
 					/* create actiual particle data */
 					if(draw_as == PART_DRAW_BB) {
@@ -3923,7 +3935,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				state.time=cfra;
 				if(psys_get_particle_state(&sim,a,&state,0)){
 					if(psys->parent)
-						Mat4MulVecfl(psys->parent->obmat, state.co);
+						mul_m4_v3(psys->parent->obmat, state.co);
 
 					/* create actiual particle data */
 					if(draw_as == PART_DRAW_BB) {
@@ -3946,7 +3958,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					VECCOPY(pdd->ved,state.co);
 					pdd->ved+=3;
 					VECCOPY(vel,state.vel);
-					VecMulf(vel,timestep);
+					mul_v3_fl(vel,timestep);
 					VECADD(pdd->ved,state.co,vel);
 					pdd->ved+=3;
 
@@ -4314,7 +4326,170 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 
 	glPointSize(1.0);
 }
+//static void ob_draw_RE_motion(float com[3],float rotscale[3][3],float tw,float th)
+static void ob_draw_RE_motion(float com[3],float rotscale[3][3],float itw,float ith,float drw_size)
+{
+	float tr[3][3];
+	float root[3],tip[3];
+	float tw,th;
+	/* take a copy for not spoiling original */
+	copy_m3_m3(tr,rotscale);
+	tw = itw * drw_size;
+	th = ith * drw_size;
 
+	glColor4ub(0x7F, 0x00, 0x00, 155);
+	glBegin(GL_LINES);
+	root[1] = root[2] = 0.0f;
+	root[0] = -drw_size;
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	tip[1] = tip[2] = 0.0f;
+	tip[0] = drw_size;
+	mul_m3_v3(tr,tip);
+	VECADD(tip,tip,com);
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[1] =0.0f; root[2] = tw;
+	root[0] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[1] =0.0f; root[2] = -tw;
+	root[0] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[1] =tw; root[2] = 0.0f;
+	root[0] =th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[1] =-tw; root[2] = 0.0f;
+	root[0] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	glColor4ub(0x00, 0x7F, 0x00, 155);
+
+	glBegin(GL_LINES);
+	root[0] = root[2] = 0.0f;
+	root[1] = -drw_size;
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	tip[0] = tip[2] = 0.0f;
+	tip[1] = drw_size;
+	mul_m3_v3(tr,tip);
+	VECADD(tip,tip,com);
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[0] =0.0f; root[2] = tw;
+	root[1] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[0] =0.0f; root[2] = -tw;
+	root[1] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[0] =tw; root[2] = 0.0f;
+	root[1] =th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[0] =-tw; root[2] = 0.0f;
+	root[1] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	glColor4ub(0x00, 0x00, 0x7F, 155);
+	glBegin(GL_LINES);
+	root[0] = root[1] = 0.0f;
+	root[2] = -drw_size;
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	tip[0] = tip[1] = 0.0f;
+	tip[2] = drw_size;
+	mul_m3_v3(tr,tip);
+	VECADD(tip,tip,com);
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[0] =0.0f; root[1] = tw;
+	root[2] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[0] =0.0f; root[1] = -tw;
+	root[2] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[0] = tw; root[1] = 0.0f;
+	root[2] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+
+	root[0] = -tw; root[1] = 0.0f;
+	root[2] = th;
+	glBegin(GL_LINES);
+	mul_m3_v3(tr,root);
+	VECADD(root,root,com);
+	glVertex3fv(root); 
+	glVertex3fv(tip); 
+	glEnd();
+}
+
+/*place to add drawers */
 unsigned int nurbcol[8]= {
 	0, 0x9090, 0x409030, 0x603080, 0, 0x40fff0, 0x40c033, 0xA090F0 };
 
@@ -4566,10 +4741,10 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 				float vec_a[3] = { fac,0, 0}; // Offset perpendicular to the curve
 				float vec_b[3] = {-fac,0, 0}; // Delta along the curve
 
-				QuatMulVecf(bevp->quat, vec_a);
-				QuatMulVecf(bevp->quat, vec_b);
-				VecAddf(vec_a, vec_a, bevp->vec);
-				VecAddf(vec_b, vec_b, bevp->vec);
+				mul_qt_v3(bevp->quat, vec_a);
+				mul_qt_v3(bevp->quat, vec_b);
+				add_v3_v3v3(vec_a, vec_a, bevp->vec);
+				add_v3_v3v3(vec_b, vec_b, bevp->vec);
 				
 				VECSUBFAC(vec_a, vec_a, bevp->dir, fac);
 				VECSUBFAC(vec_b, vec_b, bevp->dir, fac);
@@ -4711,8 +4886,8 @@ static void drawspiral(float *cent, float rad, float tmat[][4], int start)
 
 	VECCOPY(vx, tmat[0]);
 	VECCOPY(vy, tmat[1]);
-	VecMulf(vx, rad);
-	VecMulf(vy, rad);
+	mul_v3_fl(vx, rad);
+	mul_v3_fl(vy, rad);
 
 	VECCOPY(vec, cent);
 
@@ -4776,7 +4951,7 @@ static void drawtube(float *vec, float radius, float height, float tmat[][4])
 	float cur[3];
 	drawcircball(GL_LINE_LOOP, vec, radius, tmat);
 
-	VecCopyf(cur,vec);
+	copy_v3_v3(cur,vec);
 	cur[2]+=height;
 
 	drawcircball(GL_LINE_LOOP, cur, radius, tmat);
@@ -4797,7 +4972,7 @@ static void drawcone(float *vec, float radius, float height, float tmat[][4])
 {
 	float cur[3];
 
-	VecCopyf(cur,vec);
+	copy_v3_v3(cur,vec);
 	cur[2]+=height;
 
 	drawcircball(GL_LINE_LOOP, cur, radius, tmat);
@@ -4845,9 +5020,9 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	else UI_ThemeColor(TH_WIRE);
 
 	wmGetMatrix(tmat);
-	Mat4Invert(imat, tmat);
-	Normalize(imat[0]);
-	Normalize(imat[1]);
+	invert_m4_m4(imat, tmat);
+	normalize_v3(imat[0]);
+	normalize_v3(imat[1]);
 	
 	while(ml) {
 	
@@ -4904,14 +5079,14 @@ static void draw_forcefield(Scene *scene, Object *ob)
 	
 	/* calculus here, is reused in PFIELD_FORCE */
 	wmGetMatrix(tmat);
-	Mat4Invert(imat, tmat);
-//	Normalize(imat[0]);		// we don't do this because field doesnt scale either... apart from wind!
-//	Normalize(imat[1]);
+	invert_m4_m4(imat, tmat);
+//	normalize_v3(imat[0]);		// we don't do this because field doesnt scale either... apart from wind!
+//	normalize_v3(imat[1]);
 	
 	if (pd->forcefield == PFIELD_WIND) {
 		float force_val;
 		
-		Mat4One(tmat);
+		unit_m4(tmat);
 		UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 		
 		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
@@ -4947,7 +5122,7 @@ static void draw_forcefield(Scene *scene, Object *ob)
 	else if (pd->forcefield == PFIELD_VORTEX) {
 		float ffall_val, force_val;
 
-		Mat4One(tmat);
+		unit_m4(tmat);
 		//if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
 		//	ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
 		//else 
@@ -5008,7 +5183,7 @@ static void draw_forcefield(Scene *scene, Object *ob)
 	else if(pd->falloff==PFIELD_FALL_TUBE){
 		float radius,distance;
 
-		Mat4One(tmat);
+		unit_m4(tmat);
 
 		vec[0]=vec[1]=0.0f;
 		radius=(pd->flag&PFIELD_USEMAXR)?pd->maxrad:1.0f;
@@ -5030,7 +5205,7 @@ static void draw_forcefield(Scene *scene, Object *ob)
 	else if(pd->falloff==PFIELD_FALL_CONE){
 		float radius,distance;
 
-		Mat4One(tmat);
+		unit_m4(tmat);
 
 		radius=(pd->flag&PFIELD_USEMAXR)?pd->maxrad:1.0f;
 		radius*=(float)M_PI/180.0f;
@@ -5278,7 +5453,7 @@ static void draw_hooks(Object *ob)
 		if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 
-			VecMat4MulVecfl(vec, ob->obmat, hmd->cent);
+			mul_v3_m4v3(vec, ob->obmat, hmd->cent);
 
 			if(hmd->object) {
 				setlinestyle(3);
@@ -5310,7 +5485,7 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 	if(G.f & G_RENDER_SHADOW)
 		return;
 
-	EulToMat4(eu,mat);
+	eul_to_mat4(mat,eu);
 	glLineWidth (4.0f);
 	setlinestyle(2);
 	for (axis=0; axis<3; axis++) {
@@ -5319,7 +5494,7 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 
 		dir[axis] = 1.f;
 		glBegin(GL_LINES);
-		Mat4MulVecfl(mat,dir);
+		mul_m4_v3(mat,dir);
 		v[0] += dir[0];
 		v[1] += dir[1];
 		v[2] += dir[2];
@@ -5467,7 +5642,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if((flag & DRAW_CONSTCOLOR) == 0) {
 		project_short(ar, ob->obmat[3], &base->sx);
 
-		if((G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) UI_ThemeColor(TH_TRANSFORM);
+		if( (!scene->obedit) && (G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) UI_ThemeColor(TH_TRANSFORM);
 		else {
 
 			if(ob->type==OB_LAMP) UI_ThemeColor(TH_LAMP);
@@ -5709,6 +5884,23 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		default:
 			drawaxes(1.0, flag, OB_ARROWS);
 	}
+	if(ob->soft /*&& flag & OB_SBMOTION*/){
+		float mrt[3][3],msc[3][3],mtr[3][3]; 
+		SoftBody *sb = 0;
+		float tipw = 0.5f, tiph = 0.5f,drawsize = 4.0f;
+		if ((sb= ob->soft)){
+			if(sb->solverflags & SBSO_MONITOR ||sb->solverflags & SBSO_ESTIMATEIPO){
+
+				wmLoadMatrix(rv3d->viewmat);
+				copy_m3_m3(msc,sb->lscale);
+				copy_m3_m3(mrt,sb->lrot);
+				mul_m3_m3m3(mtr,mrt,msc); 
+				ob_draw_RE_motion(sb->lcom,mtr,tipw,tiph,drawsize);
+				wmMultMatrix(ob->obmat);
+			}
+		}
+	}
+
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob);
 
 	/* particle mode has to be drawn first so that possible child particles get cached in edit mode */
@@ -5895,7 +6087,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 			vec[0]= vec[1]= vec[2]= 0.0;
 			wmGetMatrix(tmat);
-			Mat4Invert(imat, tmat);
+			invert_m4_m4(imat, tmat);
 
 			setlinestyle(2);
 			drawcircball(GL_LINE_LOOP, vec, ob->inertia, imat);
@@ -5982,7 +6174,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 						if (cti->get_target_matrix) 
 							cti->get_target_matrix(curcon, cob, ct, bsystem_time(scene, ob, (float)(scene->r.cfra), give_timeoffset(ob)));
 						else
-							Mat4One(ct->matrix);
+							unit_m4(ct->matrix);
 						
 						setlinestyle(3);
 						glBegin(GL_LINES);

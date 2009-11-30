@@ -31,6 +31,8 @@
 
 #include "DNA_ID.h"
 
+#include "WM_types.h"
+
 #include "rna_internal.h"
 
 /* enum of ID-block types 
@@ -53,7 +55,7 @@ EnumPropertyItem id_type_items[] = {
 	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
 	{ID_MB, "META", ICON_META_DATA, "MetaBall", ""},
 	{ID_ME, "MESH", ICON_MESH_DATA, "Mesh", ""},
-	{ID_NT, "NODETREE", ICON_NODE, "NodeTree", ""},
+	{ID_NT, "NODETREE", ICON_NODETREE, "NodeTree", ""},
 	{ID_OB, "OBJECT", ICON_OBJECT_DATA, "Object", ""},
 	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
 	{ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
@@ -301,6 +303,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name.");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, sizeof(((ID*)NULL)->name)-2);
+	RNA_def_property_update(prop, NC_ID|ND_ID_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "users", PROP_INT, PROP_UNSIGNED);

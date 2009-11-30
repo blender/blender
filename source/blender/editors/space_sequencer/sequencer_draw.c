@@ -31,7 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -57,6 +57,7 @@
 #include "BIF_glutil.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
 #include "ED_space_api.h"
 #include "ED_sequencer.h"
 #include "ED_types.h"
@@ -76,18 +77,6 @@
 
 int no_rightbox=0, no_leftbox= 0;
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2);
-
-
-static void draw_cfra_seq(View2D *v2d, int cfra)
-{
-	glColor3ub(0x30, 0x90, 0x50);
-	glLineWidth(2.0);
-	glBegin(GL_LINES);
-	glVertex2f(cfra, v2d->cur.ymin);
-	glVertex2f(cfra, v2d->cur.ymax);
-	glEnd();
-	glLineWidth(1.0);
-}
 
 static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 {
@@ -525,7 +514,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 /*
 Draw a sequence strip, bounds check alredy made
 ARegion is currently only used to get the windows width in pixels
-so wave file sample drawing precission is zoom adjusted
+so wave file sample drawing precision is zoom adjusted
 */
 static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *seq, int outline_tint, float pixelx)
 {
@@ -622,8 +611,8 @@ void set_special_seq_update(int val)
 	else special_seq_update= 0;
 }
 
-
-static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
+// XXX todo: remove special offset code for image-buf calculations...
+void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 {
 	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 	struct ImBuf *ibuf;
@@ -779,6 +768,7 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	
 }
 
+// XXX part of wacko image-drawing system...
 void seq_reset_imageofs(SpaceSeq *sseq)
 {
 	sseq->xof = sseq->yof = sseq->zoom = 0;
@@ -874,109 +864,143 @@ void drawprefetchseqspace(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	}
 }
 
-void drawseqspace(const bContext *C, ARegion *ar)
+/* draw backdrop of the sequencer strips view */
+static void draw_seq_backdrop(View2D *v2d)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceSeq *sseq= sa->spacedata.first;
-	Scene *scene= CTX_data_scene(C);
-	View2D *v2d= &ar->v2d;
-	View2DScrollers *scrollers;
-	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq;
-	float col[3];
 	int i;
-
-	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
-		draw_image_seq(scene, ar, sseq);
-		return;
-	}
-
-	UI_GetThemeColor3fv(TH_BACK, col);
-	if(ed && ed->metastack.first) glClearColor(col[0], col[1], col[2]-0.1, 0.0);
-	else glClearColor(col[0], col[1], col[2], 0.0);
-
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	UI_view2d_view_ortho(C, v2d);
 	
+	/* darker grey overlay over the view backdrop */
 	UI_ThemeColorShade(TH_BACK, -20);
-	glRectf(v2d->cur.xmin,  0.0,  v2d->cur.xmax,  1.0);
+	glRectf(v2d->cur.xmin,  -1.0,  v2d->cur.xmax,  1.0);
 
-	boundbox_seq(scene, &v2d->tot);
-	
 	/* Alternating horizontal stripes */
 	i= MAX2(1, ((int)v2d->cur.ymin)-1);
 
 	glBegin(GL_QUADS);
-	while (i<v2d->cur.ymax) {
-		if (((int)i) & 1)
-			UI_ThemeColorShade(TH_BACK, -15);
-		else
-			UI_ThemeColorShade(TH_BACK, -25);
-		
-		glVertex2f(v2d->cur.xmax, i);
-		glVertex2f(v2d->cur.xmin, i);
-		glVertex2f(v2d->cur.xmin, i+1);
-		glVertex2f(v2d->cur.xmax, i+1);
-		i+=1.0;
-	}
-	glEnd();
-	
-	/* Force grid lines */
-	i= MAX2(1, ((int)v2d->cur.ymin)-1);
-	glBegin(GL_LINES);
-
-	while (i<v2d->cur.ymax) {
-		UI_ThemeColor(TH_GRID);
-		glVertex2f(v2d->cur.xmax, i);
-		glVertex2f(v2d->cur.xmin, i);
-		i+=1.0;
-	}
-	glEnd();
-	
-	UI_view2d_constant_grid_draw(C, v2d);
-
-	draw_cfra_seq(v2d, scene->r.cfra);
-
-	/* sequences: first deselect */
-	if(ed) {
-		Sequence *last_seq = get_last_seq(scene);
-		int sel = 0, j;
-		int outline_tint;
-		float pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
-		/* loop through twice, first unselected, then selected */
-		for (j=0; j<2; j++) {
-			seq= ed->seqbasep->first;
-			if (j==0)	outline_tint = -150;
-			else		outline_tint = -60;
+		while (i<v2d->cur.ymax) {
+			if (((int)i) & 1)
+				UI_ThemeColorShade(TH_BACK, -15);
+			else
+				UI_ThemeColorShade(TH_BACK, -25);
 			
-			while(seq) { /* bound box test, dont draw outside the view */
-				if (  ((seq->flag & SELECT) == sel) ||
-						seq == last_seq ||
-						MIN2(seq->startdisp, seq->start) > v2d->cur.xmax ||
-						MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin ||
-						seq->machine+1.0 < v2d->cur.ymin ||
-						seq->machine > v2d->cur.ymax)
-				{
-					/* dont draw */
-				} else {
-					draw_seq_strip(scene, ar, sseq, seq, outline_tint, pixelx);
-				}
-				seq= seq->next;
-			}
-			sel= SELECT; /* draw selected next time round */
+			glVertex2f(v2d->cur.xmax, i);
+			glVertex2f(v2d->cur.xmin, i);
+			glVertex2f(v2d->cur.xmin, i+1);
+			glVertex2f(v2d->cur.xmax, i+1);
+			
+			i+=1.0;
 		}
-		/* draw the last selected last, removes some overlapping error */
-		if (last_seq) {
-			draw_seq_strip(scene, ar, sseq, last_seq, 120, pixelx);
+	glEnd();
+	
+	/* Darker lines separating the horizontal bands */
+	i= MAX2(1, ((int)v2d->cur.ymin)-1);
+	UI_ThemeColor(TH_GRID);
+	
+	glBegin(GL_LINES);
+		while (i < v2d->cur.ymax) {
+			glVertex2f(v2d->cur.xmax, i);
+			glVertex2f(v2d->cur.xmin, i);
+			
+			i+=1.0;
 		}
+	glEnd();
+}
+
+/* draw the contents of the sequencer strips view */
+static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	SpaceSeq *sseq= CTX_wm_space_seq(C);
+	View2D *v2d= &ar->v2d;
+	Sequence *last_seq = active_seq_get(scene);
+	int sel = 0, j;
+	float pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
+	
+	/* loop through twice, first unselected, then selected */
+	for (j=0; j<2; j++) {
+		Sequence *seq;
+		int outline_tint= (j) ? -60 : -150; /* highlighting around strip edges indicating selection */
+		
+		/* loop through strips, checking for those that are visible */
+		for (seq= ed->seqbasep->first; seq; seq= seq->next) {
+			/* boundbox and selection tests for NOT drawing the strip... */
+			if ((seq->flag & SELECT) == sel) continue;
+			else if (seq == last_seq) continue;
+			else if (MIN2(seq->startdisp, seq->start) > v2d->cur.xmax) continue;
+			else if (MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin) continue;
+			else if (seq->machine+1.0 < v2d->cur.ymin) continue;
+			else if (seq->machine > v2d->cur.ymax) continue;
+			
+			/* strip passed all tests unscathed... so draw it now */
+			draw_seq_strip(scene, ar, sseq, seq, outline_tint, pixelx);
+		}
+		
+		/* draw selected next time round */
+		sel= SELECT; 
 	}
+	
+	/* draw the last selected last (i.e. 'active' in other parts of Blender), removes some overlapping error */
+	if (last_seq)
+		draw_seq_strip(scene, ar, sseq, last_seq, 120, pixelx);
+}
 
-	/* text draw cached, in pixelspace now */
-	UI_view2d_text_cache_draw(ar);
+/* Draw Timeline/Strip Editor Mode for Sequencer */
+void draw_timeline_seq(const bContext *C, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+	SpaceSeq *sseq= CTX_wm_space_seq(C);
+	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
+	float col[3];
+	int flag=0;
+	
+	/* clear and setup matrix */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	if (ed && ed->metastack.first) 
+		glClearColor(col[0], col[1], col[2]-0.1, 0.0);
+	else 
+		glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-	/* Draw markers */
-//	draw_markers_timespace(SCE_MARKERS, DRAW_MARKERS_LINES);
+	UI_view2d_view_ortho(C, v2d);
+	
+	
+	/* calculate extents of sequencer strips/data 
+	 * NOTE: needed for the scrollers later
+	 */
+	boundbox_seq(scene, &v2d->tot);
+	
+	
+	/* draw backdrop */
+	draw_seq_backdrop(v2d);
+	
+	/* regular grid-pattern over the rest of the view (i.e. frame grid lines) */
+	UI_view2d_constant_grid_draw(C, v2d);
+	
+
+	/* sequence strips (if there is data available to be drawn) */
+	if (ed) {
+		/* draw the data */
+		draw_seq_strips(C, ed, ar);
+		
+		/* text draw cached (for sequence names), in pixelspace now */
+		UI_view2d_text_cache_draw(ar);
+	}
+	
+	/* current frame */
+	UI_view2d_view_ortho(C, v2d);
+	if ((sseq->flag & SEQ_DRAWFRAMES)==0) 	flag |= DRAWCFRA_UNIT_SECONDS;
+	if ((sseq->flag & SEQ_NO_DRAW_CFRANUM)==0)  flag |= DRAWCFRA_SHOW_NUMBOX;
+	ANIM_draw_cfra(C, v2d, flag);
+	
+	/* markers */
+	UI_view2d_view_orthoSpecial(C, v2d, 1);
+	draw_markers_time(C, DRAW_MARKERS_LINES);
+	
+	/* preview range */
+	UI_view2d_view_ortho(C, v2d);
+	ANIM_draw_previewrange(C, v2d);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

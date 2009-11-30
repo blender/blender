@@ -51,7 +51,7 @@ KX_GameActuator::KX_GameActuator(SCA_IObject *gameobj,
 								   int mode,
 								   const STR_String& filename,
 								   const STR_String& loadinganimationname,
-								   KX_Scene* scene,
+								   SCA_IScene* scene,
 								   KX_KetsjiEngine* ketsjiengine)
 								   : SCA_IActuator(gameobj, KX_ACT_GAME)
 {

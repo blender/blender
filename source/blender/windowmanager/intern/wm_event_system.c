@@ -461,10 +461,18 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				WM_operator_free(op);
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
-			/* grab cursor during blocking modal ops (X11) */
-			if(ot->flag & OPTYPE_BLOCKING) {
+			/* grab cursor during blocking modal ops (X11)
+			 * Also check for macro
+			 * */
+			if(ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
 				int bounds[4] = {-1,-1,-1,-1};
-				int wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				int wrap;
+
+				if (op->opm) {
+					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
+				} else {
+					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				}
 
 				if(wrap) {
 					ARegion *ar= CTX_wm_region(C);
@@ -498,12 +506,25 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 	int retval;
 
 	/* dummie test */
-	if(ot && C && window) {
-		event= window->eventstate;
+	if(ot && C) {
+		switch(context) {
+			case WM_OP_INVOKE_DEFAULT:
+			case WM_OP_INVOKE_REGION_WIN:
+			case WM_OP_INVOKE_AREA:
+			case WM_OP_INVOKE_SCREEN:
+				/* window is needed for invoke, cancel operator */
+				if (window == NULL)
+					return 0;
+				else
+					event= window->eventstate;
+				break;
+			default:
+				event = NULL;
+		}
+
 		switch(context) {
 			
 			case WM_OP_EXEC_REGION_WIN:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_REGION_WIN: 
 			{
 				/* forces operator to go to the region window, for header menus */
@@ -527,7 +548,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_AREA:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_AREA:
 			{
 					/* remove region from context */
@@ -540,7 +560,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_SCREEN:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_SCREEN:
 			{
 				/* remove region + area from context */
@@ -556,7 +575,6 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				return retval;
 			}
 			case WM_OP_EXEC_DEFAULT:
-				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_DEFAULT:
 				return wm_operator_invoke(C, ot, event, properties, reports);
 		}
@@ -611,7 +629,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 /* ********************* handlers *************** */
 
 /* future extra customadata free? */
-static void wm_event_free_handler(wmEventHandler *handler)
+void wm_event_free_handler(wmEventHandler *handler)
 {
 	MEM_freeN(handler);
 }
@@ -756,6 +774,30 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 				return 1;
 		}
 	}
+	/* exception for numpad emulation */
+	else if(U.flag & USER_NONUMPAD) {
+		wmKeyMapItem tmp= *kmi;
+
+		switch(kmi->type) {
+			case PAD0: tmp.type = ZEROKEY; break;
+			case PAD1: tmp.type = ONEKEY; break;
+			case PAD2: tmp.type = TWOKEY; break;
+			case PAD3: tmp.type = THREEKEY; break;
+			case PAD4: tmp.type = FOURKEY; break;
+			case PAD5: tmp.type = FIVEKEY; break;
+			case PAD6: tmp.type = SIXKEY; break;
+			case PAD7: tmp.type = SEVENKEY; break;
+			case PAD8: tmp.type = EIGHTKEY; break;
+			case PAD9: tmp.type = NINEKEY; break;
+			case PADMINUS: tmp.type = MINUSKEY; break;
+			case PADPLUSKEY: tmp.type = EQUALKEY; break;
+			case PADSLASHKEY: tmp.type = BACKSLASHKEY; break;
+		}
+
+		if(tmp.type != kmi->type)
+			if(wm_eventmatch(winevent, &tmp))
+				return 1;
+	}
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
@@ -795,12 +837,17 @@ static int wm_event_always_pass(wmEvent *event)
 }
 
 /* operator exists */
-static void wm_event_modalkeymap(wmOperator *op, wmEvent *event)
+static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
 {
+	/* support for modal keymap in macros */
+	if (op->opm)
+		op = op->opm;
+
 	if(op->type->modalkeymap) {
+		wmKeyMap *keymap= WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
-		
-		for(kmi= op->type->modalkeymap->items.first; kmi; kmi= kmi->next) {
+
+		for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
 			if(wm_eventmatch(event, kmi)) {
 					
 				event->type= EVT_MODAL_MAP;
@@ -827,7 +874,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			wm_handler_op_context(C, handler);
 			wm_region_mouse_co(C, event);
-			wm_event_modalkeymap(op, event);
+			wm_event_modalkeymap(C, op, event);
 			
 			retval= ot->modal(C, op, event);
 
@@ -889,6 +936,14 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		if(ot)
 			retval= wm_operator_invoke(C, ot, event, properties, NULL);
 	}
+
+	/* Finished and pass through flag as handled */
+	if(retval == (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH))
+		return WM_HANDLER_HANDLED;
+
+	/* Modal unhandled, break */
+	if(retval == (OPERATOR_PASS_THROUGH|OPERATOR_RUNNING_MODAL))
+		return (WM_HANDLER_BREAK|WM_HANDLER_MODAL);
 
 	if(retval & OPERATOR_PASS_THROUGH)
 		return WM_HANDLER_CONTINUE;
@@ -1063,7 +1118,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		
 			/* modal+blocking handler */
 			if(handler->flag & WM_HANDLER_BLOCKING)
-				action= WM_HANDLER_BREAK;
+				action |= WM_HANDLER_BREAK;
 
 			if(handler->keymap) {
 				wmKeyMap *keymap= WM_keymap_active(wm, handler->keymap);
@@ -1075,28 +1130,28 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 							
 							event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 							
-							action= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
-							if(action==WM_HANDLER_BREAK)  /* not always_pass here, it denotes removed handler */
+							action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
+							if(action & WM_HANDLER_BREAK)  /* not always_pass here, it denotes removed handler */
 								break;
 						}
 					}
 				}
 			}
 			else if(handler->ui_handle) {
-				action= wm_handler_ui_call(C, handler, event);
+				action |= wm_handler_ui_call(C, handler, event);
 			}
 			else if(handler->type==WM_HANDLER_FILESELECT) {
 				/* screen context changes here */
-				action= wm_handler_fileselect_call(C, handlers, handler, event);
+				action |= wm_handler_fileselect_call(C, handlers, handler, event);
 			}
 			else {
 				/* modal, swallows all */
-				action= wm_handler_operator_call(C, handlers, handler, event, NULL);
+				action |= wm_handler_operator_call(C, handlers, handler, event, NULL);
 			}
 
-			if(action==WM_HANDLER_BREAK) {
+			if(action & WM_HANDLER_BREAK) {
 				if(always_pass)
-					action= WM_HANDLER_CONTINUE;
+					action &= ~WM_HANDLER_BREAK;
 				else
 					break;
 			}
@@ -1106,6 +1161,22 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		if(CTX_wm_window(C)==NULL)
 			break;
 	}
+
+	/* test for CLICK event */
+	if (event->val == KM_RELEASE && (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL))) {
+		wmWindow *win = CTX_wm_window(C);
+
+		if (win && win->last_type == event->type && win->last_val == KM_PRESS) {
+			event->val = KM_CLICK;
+			action |= wm_handlers_do(C, event, handlers);
+
+			/* revert value if not handled */
+			if ((action & WM_HANDLER_BREAK) == 0) {
+				event->val = KM_RELEASE;
+			}
+		}
+	}
+
 	return action;
 }
 
@@ -1203,7 +1274,7 @@ void wm_event_do_handlers(bContext *C)
 			wm_event_free_all(win);
 		
 		while( (event= win->queue.first) ) {
-			int action;
+			int action = WM_HANDLER_CONTINUE;
 
 			CTX_wm_window_set(C, win);
 			
@@ -1215,7 +1286,7 @@ void wm_event_do_handlers(bContext *C)
 			wm_window_make_drawable(C, win);
 			
 			/* first we do priority handlers, modal + some limited keymaps */
-			action= wm_handlers_do(C, event, &win->modalhandlers);
+			action |= wm_handlers_do(C, event, &win->modalhandlers);
 			
 			/* fileread case */
 			if(CTX_wm_window(C)==NULL)
@@ -1224,7 +1295,7 @@ void wm_event_do_handlers(bContext *C)
 			/* builtin tweak, if action is break it removes tweak */
 			wm_tweakevent_test(C, event, action);
 
-			if(action==WM_HANDLER_CONTINUE) {
+			if((action & WM_HANDLER_BREAK) == 0) {
 				ScrArea *sa;
 				ARegion *ar;
 				int doit= 0;
@@ -1241,15 +1312,15 @@ void wm_event_do_handlers(bContext *C)
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
 
-						if(action==WM_HANDLER_CONTINUE) {
+						if((action & WM_HANDLER_BREAK) == 0) {
 							for(ar=sa->regionbase.first; ar; ar= ar->next) {
 								if(wm_event_inside_i(event, &ar->winrct)) {
 									CTX_wm_region_set(C, ar);
-									action= wm_handlers_do(C, event, &ar->handlers);
+									action |= wm_handlers_do(C, event, &ar->handlers);
 
 									doit |= (BLI_in_rcti(&ar->winrct, event->x, event->y));
 									
-									if(action==WM_HANDLER_BREAK)
+									if(action & WM_HANDLER_BREAK)
 										break;
 								}
 							}
@@ -1257,8 +1328,8 @@ void wm_event_do_handlers(bContext *C)
 
 						CTX_wm_region_set(C, NULL);
 
-						if(action==WM_HANDLER_CONTINUE)
-							action= wm_handlers_do(C, event, &sa->handlers);
+						if((action & WM_HANDLER_BREAK) == 0)
+							action |= wm_handlers_do(C, event, &sa->handlers);
 
 						CTX_wm_area_set(C, NULL);
 
@@ -1266,12 +1337,12 @@ void wm_event_do_handlers(bContext *C)
 					}
 				}
 				
-				if(action==WM_HANDLER_CONTINUE) {
+				if((action & WM_HANDLER_BREAK) == 0) {
 					/* also some non-modal handlers need active area/region */
 					CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
 					CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
 
-					action= wm_handlers_do(C, event, &win->handlers);
+					action |= wm_handlers_do(C, event, &win->handlers);
 
 					/* fileread case */
 					if(CTX_wm_window(C)==NULL)
@@ -1286,6 +1357,18 @@ void wm_event_do_handlers(bContext *C)
 				}
 			}
 			
+			/* store last event for this window */
+			/* mousemove event don't overwrite last type */
+			if (event->type != MOUSEMOVE) {
+				if (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) {
+					win->last_type = event->type;
+					win->last_val = event->val;
+				} else {
+					win->last_type = -1;
+					win->last_val = 0;
+				}
+			}
+
 			/* unlink and free here, blender-quit then frees all */
 			BLI_remlink(&win->queue, event);
 			wm_event_free(event);

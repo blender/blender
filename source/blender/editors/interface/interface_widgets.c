@@ -35,7 +35,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 
@@ -806,6 +806,60 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	}
 }
 
+static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+{
+	int border= (but->flag & UI_BUT_ALIGN_RIGHT)? 8: 10;
+	int okwidth= rect->xmax-rect->xmin - border;
+	char *cpoin=NULL;
+	char *cpend = but->drawstr + strlen(but->drawstr);
+	
+	/* need to set this first */
+	uiStyleFontSet(fstyle);
+	
+	but->strwidth= BLF_width(but->drawstr);
+	but->ofs= 0;
+	
+	/* find the space after ':' separator */
+	cpoin= strrchr(but->drawstr, ':');
+	
+	if (cpoin && (cpoin < cpend-2)) {
+		char *cp2 = cpoin;
+		
+		/* chop off the leading text, starting from the right */
+		while (but->strwidth > okwidth && cp2 > but->drawstr) {
+			/* shift the text after and including cp2 back by 1 char, +1 to include null terminator */
+			memmove(cp2-1, cp2, strlen(cp2)+1);
+			cp2--;
+			
+			but->strwidth= BLF_width(but->drawstr+but->ofs);
+			if(but->strwidth < 10) break;
+		}
+	
+	
+		/* after the leading text is gone, chop off the : and following space, with ofs */
+		while ((but->strwidth > okwidth) && (but->ofs < 2))
+		{
+			but->ofs++;
+			but->strwidth= BLF_width(but->drawstr+but->ofs);
+			if(but->strwidth < 10) break;
+		}
+		
+	}
+
+	/* once the label's gone, chop off the least significant digits */
+	while(but->strwidth > okwidth ) {
+		int pos= strlen(but->drawstr);
+		
+		but->drawstr[ pos-1 ] = 0;
+		pos--;
+		
+		but->strwidth= BLF_width(but->drawstr+but->ofs);
+		if(but->strwidth < 10) break;
+	}
+	
+}
+
+
 static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
 //	int transopts;
@@ -893,9 +947,12 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 {
 	
 	if(but==NULL) return;
-	
-	/* cutting off from left part */
-	if ELEM5(but->type, NUM, NUMABS, NUMSLI, SLI, TEX) {	
+
+	/* clip but->drawstr to fit in available space */
+	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
+		ui_text_label_rightclip(fstyle, but, rect);
+	}
+	else if (but->type == TEX) {	
 		ui_text_leftclip(fstyle, but, rect);
 	}
 	else but->ofs= 0;
@@ -1666,8 +1723,8 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 {
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->ymax - rect->ymin);
-	int textoffs;
-	
+	float textofs = rad*0.75;
+
 	widget_init(&wtb);
 	
 	/* fully rounded */
@@ -1677,12 +1734,13 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	if(!(state & UI_TEXTINPUT)) {
 		widget_num_tria(&wtb.tria1, rect, 0.6f, 'l');
 		widget_num_tria(&wtb.tria2, rect, 0.6f, 'r');
-	}	
+	}
+
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	rect->xmin += rad*0.75f;
-	rect->xmax -= rad*0.75f;
+	rect->xmin += textofs;
+	rect->xmax -= textofs;
 }
 
 
@@ -1889,7 +1947,6 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	rcti rect1;
 	double value;
 	float offs, fac;
-	int textoffs;
 	char outline[3];
 	
 	widget_init(&wtb);
@@ -1899,7 +1956,6 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	
 	/* fully rounded */
 	offs= 0.5f*(rect->ymax - rect->ymin);
-	textoffs= offs;
 	round_box_edges(&wtb, roundboxalign, rect, offs);
 
 	wtb.outline= 0;
@@ -1941,8 +1997,8 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	rect->xmin += textoffs;
-	rect->xmax -= textoffs;
+	rect->xmin += offs*0.75f;
+	rect->xmax -= offs*0.75f;
 }
 
 static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -2495,6 +2551,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				
 			case BUT_NORMAL:
 				ui_draw_but_NORMAL(but, &tui->wcol_regular, rect);
+				break;
+				
+			case BUT_IMAGE:
+				ui_draw_but_IMAGE(ar, but, &tui->wcol_regular, rect);
 				break;
 				
 			case BUT_CURVE:

@@ -263,9 +263,9 @@ class ExportPLY(bpy.types.Operator):
 	
 	path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
 	use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True)
-	use_normals = BoolProperty(name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True)
-	use_uvs = BoolProperty(name="Export UVs", description="Exort the active UV layer", default= True)
-	use_colors = BoolProperty(name="Export Vertex Colors", description="Exort the active vertex color layer", default= True)
+	use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default= True)
+	use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default= True)
+	use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default= True)
 	
 	
 	def poll(self, context):
@@ -274,14 +274,14 @@ class ExportPLY(bpy.types.Operator):
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
 
-		if not self.path:
+		if not self.properties.path:
 			raise Exception("filename not set")
 			
-		write(self.path, context.scene, context.active_object,\
-			EXPORT_APPLY_MODIFIERS = self.use_modifiers,
-			EXPORT_NORMALS = self.use_normals,
-			EXPORT_UV = self.use_uvs,
-			EXPORT_COLORS = self.use_colors,
+		write(self.properties.path, context.scene, context.active_object,\
+			EXPORT_APPLY_MODIFIERS = self.properties.use_modifiers,
+			EXPORT_NORMALS = self.properties.use_normals,
+			EXPORT_UV = self.properties.use_uvs,
+			EXPORT_COLORS = self.properties.use_colors,
 		)
 
 		return ('FINISHED',)
@@ -291,14 +291,25 @@ class ExportPLY(bpy.types.Operator):
 		wm.add_fileselect(self)
 		return ('RUNNING_MODAL',)
 
+	def draw(self, context):
+		layout = self.layout
+		props = self.properties
+
+		row = layout.row()
+		row.prop(props, "use_modifiers")
+		row.prop(props, "use_normals")
+		row = layout.row()
+		row.prop(props, "use_uvs")
+		row.prop(props, "use_colors")
+
 
 bpy.ops.add(ExportPLY)
 
 import dynamic_menu
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".ply")
-    self.layout.item_stringO(ExportPLY.bl_idname, "path", default_path, text="Stanford (.ply)...")
+	default_path = bpy.data.filename.replace(".blend", ".ply")
+	self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)...").path = default_path
 
 menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 

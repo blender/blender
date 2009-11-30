@@ -57,13 +57,14 @@
 #include "BKE_font.h"
 #include "BKE_mball.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_constraint_types.h"
 
 #include "MEM_guardedalloc.h"
 

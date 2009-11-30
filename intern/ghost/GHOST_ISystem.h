@@ -351,6 +351,11 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
 
+	
+	/***************************************************************************************
+	 ** Access to clipboard.
+	 ***************************************************************************************/
+	
 	/**
 	 * Returns the selection buffer
 	 * @return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer
@@ -363,6 +368,7 @@ public:
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
+	
 protected:
 	/**
 	 * Initialize the system.

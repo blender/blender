@@ -46,7 +46,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 
 #include "BKE_anim.h"
@@ -126,7 +126,7 @@ void ED_object_base_init_from_view(bContext *C, Base *base, int view_align)
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			if(rv3d) {
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
-				QuatToEul(rv3d->viewquat, ob->rot);
+				quat_to_eul( ob->rot,rv3d->viewquat);
 				rv3d->viewquat[0]= -rv3d->viewquat[0];
 			}
 		}
@@ -235,19 +235,18 @@ void OBJECT_OT_add(wmOperatorType *ot)
 /********************* Add Effector Operator ********************/
 /* copy from rna_object_force.c*/
 static EnumPropertyItem field_type_items[] = {
-	{0, "NONE", 0, "None", ""},
-	{PFIELD_FORCE, "FORCE", 0, "Force", ""},
-	{PFIELD_WIND, "WIND", 0, "Wind", ""},
-	{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
-	{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
-	{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
-	{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
-	{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
-	{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
-	{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
-	{PFIELD_BOID, "BOID", 0, "Boid", ""},
-	{PFIELD_TURBULENCE, "TURBULENCE", 0, "Turbulence", ""},
-	{PFIELD_DRAG, "DRAG", 0, "Drag", ""},
+	{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", ""},
+	{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", ""},
+	{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", ""},
+	{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", ""},
+	{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", ""},
+	{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", ""},
+	{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones", ""},
+	{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", ""},
+	{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", ""},
+	{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
+	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
+	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 void add_effector_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
@@ -755,7 +754,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if(islamp) reshadeall_displist(scene);	/* only frees displist */
 	
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
 	
@@ -928,7 +927,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		ob->disp.first= ob->disp.last= NULL;
 		ob->transflag &= ~OB_DUPLI;	
 		
-		Mat4CpyMat4(ob->obmat, dob->mat);
+		copy_m4_m4(ob->obmat, dob->mat);
 		ED_object_apply_obmat(ob);
 	}
 	
@@ -951,7 +950,7 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1262,9 +1261,8 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 			Group *group;
 			for(group= G.main->group.first; group; group= group->id.next) {
 				if(object_in_group(ob, group))
-					add_to_group(group, obn);
+					add_to_group(group, obn, scene, basen);
 			}
-			obn->flag |= OB_FROMGROUP; /* this flag is unset with copy_object() */
 		}
 		
 		/* duplicates using userflags */
@@ -1481,7 +1479,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	copy_object_set_idnew(C, dupflag);
 
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -1508,6 +1506,18 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 }
 
 /**************************** Join *************************/
+static int join_poll(bContext *C)
+{
+	Object *ob= CTX_data_active_object(C);
+	
+	if (!ob) return 0;
+	
+	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE))
+		return ED_operator_screenactive(C);
+	else
+		return 0;
+}
+
 
 static int join_exec(bContext *C, wmOperator *op)
 {
@@ -1516,10 +1526,6 @@ static int join_exec(bContext *C, wmOperator *op)
 
 	if(scene->obedit) {
 		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
-		return OPERATOR_CANCELLED;
-	}
-	else if(!ob) {
-		BKE_report(op->reports, RPT_ERROR, "Can't join unless there is an active object.");
 		return OPERATOR_CANCELLED;
 	}
 	else if(object_data_is_libdata(ob)) {
@@ -1533,9 +1539,7 @@ static int join_exec(bContext *C, wmOperator *op)
 		return join_curve_exec(C, op);
 	else if(ob->type == OB_ARMATURE)
 		return join_armature_exec(C, op);
-
-	BKE_report(op->reports, RPT_ERROR, "This object type doesn't support joining.");
-
+	
 	return OPERATOR_CANCELLED;
 }
 
@@ -1548,9 +1552,57 @@ void OBJECT_OT_join(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= join_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= join_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/**************************** Join as Shape Key*************************/
+static int join_shapes_poll(bContext *C)
+{
+	Object *ob= CTX_data_active_object(C);
+	
+	if (!ob) return 0;
+	
+	/* only meshes supported at the moment */
+	if (ob->type == OB_MESH)
+		return ED_operator_screenactive(C);
+	else
+		return 0;
+}
+
+static int join_shapes_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	if(scene->obedit) {
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
+		return OPERATOR_CANCELLED;
+	}
+	else if(object_data_is_libdata(ob)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(ob->type == OB_MESH)
+		return join_mesh_shapes_exec(C, op);
+	
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_join_shapes(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Join as Shapes";
+	ot->description = "Merge selected objects to shapes of active object.";
+	ot->idname= "OBJECT_OT_join_shapes";
+	
+	/* api callbacks */
+	ot->exec= join_shapes_exec;
+	ot->poll= join_shapes_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

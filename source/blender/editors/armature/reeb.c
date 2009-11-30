@@ -45,7 +45,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
@@ -498,12 +498,12 @@ void repositionNodes(ReebGraph *rg)
 			float p[3];
 			
 			VECCOPY(p, ((ReebArc*)arc)->buckets[0].p);
-			VecMulf(p, 1.0f / arc->head->degree);
-			VecAddf(arc->head->p, arc->head->p, p);
+			mul_v3_fl(p, 1.0f / arc->head->degree);
+			add_v3_v3v3(arc->head->p, arc->head->p, p);
 			
 			VECCOPY(p, ((ReebArc*)arc)->buckets[((ReebArc*)arc)->bcount - 1].p);
-			VecMulf(p, 1.0f / arc->tail->degree);
-			VecAddf(arc->tail->p, arc->tail->p, p);
+			mul_v3_fl(p, 1.0f / arc->tail->degree);
+			add_v3_v3v3(arc->tail->p, arc->tail->p, p);
 		}
 	}
 }
@@ -634,15 +634,15 @@ void verifyMultiResolutionLinks(ReebGraph *rg, int level)
 void addVertToBucket(EmbedBucket *b, float co[3])
 {
 	b->nv++;
-	VecLerpf(b->p, b->p, co, 1.0f / b->nv);
+	interp_v3_v3v3(b->p, b->p, co, 1.0f / b->nv);
 }
 
 void removeVertFromBucket(EmbedBucket *b, float co[3])
 {
-	VecMulf(b->p, (float)b->nv);
-	VecSubf(b->p, b->p, co);
+	mul_v3_fl(b->p, (float)b->nv);
+	sub_v3_v3v3(b->p, b->p, co);
 	b->nv--;
-	VecMulf(b->p, 1.0f / (float)b->nv);
+	mul_v3_fl(b->p, 1.0f / (float)b->nv);
 }
 
 void mergeBuckets(EmbedBucket *bDst, EmbedBucket *bSrc)
@@ -650,7 +650,7 @@ void mergeBuckets(EmbedBucket *bDst, EmbedBucket *bSrc)
 	if (bDst->nv > 0 && bSrc->nv > 0)
 	{
 		bDst->nv += bSrc->nv;
-		VecLerpf(bDst->p, bDst->p, bSrc->p, (float)bSrc->nv / (float)(bDst->nv));
+		interp_v3_v3v3(bDst->p, bDst->p, bSrc->p, (float)bSrc->nv / (float)(bDst->nv));
 	}
 	else if (bSrc->nv > 0)
 	{
@@ -797,7 +797,7 @@ static void interpolateBuckets(ReebArc *arc, float *start_p, float *end_p, int s
 	{
 		EmbedBucket *empty = arc->buckets + j;
 		empty->nv = 1;
-		VecLerpf(empty->p, start_p, end_p, (float)(j - start_index + 1) / total);
+		interp_v3_v3v3(empty->p, start_p, end_p, (float)(j - start_index + 1) / total);
 	}
 }
 
@@ -873,20 +873,20 @@ static void ExtendArcBuckets(ReebArc *arc)
 			previous = iter->p, IT_next(iter)
 		)
 	{
-		average_length += VecLenf(previous, iter->p);
+		average_length += len_v3v3(previous, iter->p);
 	}
 	average_length /= (arc->bcount - 1);
 	
 	first_bucket = arc->buckets;
 	last_bucket = arc->buckets + (arc->bcount - 1);
 	
-	length = VecLenf(first_bucket->p, arc->head->p);
+	length = len_v3v3(first_bucket->p, arc->head->p);
 	if (length > 2 * average_length)
 	{
 		padding_head = (int)floor(length / average_length);
 	}
 
-	length = VecLenf(last_bucket->p, arc->tail->p);
+	length = len_v3v3(last_bucket->p, arc->tail->p);
 	if (length > 2 * average_length)
 	{
 		padding_tail = (int)floor(length / average_length);
@@ -945,12 +945,12 @@ void calculateArcLength(ReebArc *arc)
 	{
 		vec1 = iter->p;
 		
-		arc->length += VecLenf(vec0, vec1);
+		arc->length += len_v3v3(vec0, vec1);
 		
 		vec0 = vec1;
 	}
 	
-	arc->length += VecLenf(arc->tail->p, vec1);	
+	arc->length += len_v3v3(arc->tail->p, vec1);	
 }
 
 void calculateGraphLength(ReebGraph *rg)
@@ -982,8 +982,8 @@ void REEB_RadialSymmetry(BNode* root_node, RadialArc* ring, int count)
 		float normal[3];
 		int j = i + 1;
 
-		VecAddf(tangent, ring[i].n, ring[j].n);
-		Crossf(normal, tangent, axis);
+		add_v3_v3v3(tangent, ring[i].n, ring[j].n);
+		cross_v3_v3v3(normal, tangent, axis);
 		
 		node1 = (ReebNode*)BLI_otherNode(ring[i].arc, root_node);
 		node2 = (ReebNode*)BLI_otherNode(ring[j].arc, root_node);
@@ -993,7 +993,7 @@ void REEB_RadialSymmetry(BNode* root_node, RadialArc* ring, int count)
 
 		/* mirror first node and mix with the second */
 		BLI_mirrorAlongAxis(node1->p, root_node->p, normal);
-		VecLerpf(node2->p, node2->p, node1->p, 1.0f / (j + 1));
+		interp_v3_v3v3(node2->p, node2->p, node1->p, 1.0f / (j + 1));
 		
 		/* Merge buckets
 		 * there shouldn't be any null arcs here, but just to be safe 
@@ -1030,7 +1030,7 @@ void REEB_RadialSymmetry(BNode* root_node, RadialArc* ring, int count)
 				/* mirror on axis */
 				BLI_mirrorAlongAxis(bucket1->p, root_node->p, normal);
 				/* add bucket2 in bucket1 */
-				VecLerpf(bucket2->p, bucket2->p, bucket1->p, (float)bucket1->nv / (float)(bucket2->nv));
+				interp_v3_v3v3(bucket2->p, bucket2->p, bucket1->p, (float)bucket1->nv / (float)(bucket2->nv));
 			}
 		}
 	}
@@ -1044,8 +1044,8 @@ void REEB_RadialSymmetry(BNode* root_node, RadialArc* ring, int count)
 		float normal[3];
 		int j = i - 1;
 
-		VecAddf(tangent, ring[i].n, ring[j].n);
-		Crossf(normal, tangent, axis);
+		add_v3_v3v3(tangent, ring[i].n, ring[j].n);
+		cross_v3_v3v3(normal, tangent, axis);
 		
 		node1 = (ReebNode*)BLI_otherNode(ring[i].arc, root_node);
 		node2 = (ReebNode*)BLI_otherNode(ring[j].arc, root_node);
@@ -1111,8 +1111,8 @@ void REEB_AxialSymmetry(BNode* root_node, BNode* node1, BNode* node2, struct BAr
 	BLI_mirrorAlongAxis(p, root_node->p, nor);
 
 	/* average with node1 */
-	VecAddf(node1->p, node1->p, p);
-	VecMulf(node1->p, 0.5f);
+	add_v3_v3v3(node1->p, node1->p, p);
+	mul_v3_fl(node1->p, 0.5f);
 	
 	/* mirror back on node2 */
 	VECCOPY(node2->p, node1->p);
@@ -1153,7 +1153,7 @@ void REEB_AxialSymmetry(BNode* root_node, BNode* node1, BNode* node2, struct BAr
 			/* mirror on axis */
 			BLI_mirrorAlongAxis(bucket2->p, root_node->p, nor);
 			/* add bucket2 in bucket1 */
-			VecLerpf(bucket1->p, bucket1->p, bucket2->p, (float)bucket2->nv / (float)(bucket1->nv));
+			interp_v3_v3v3(bucket1->p, bucket1->p, bucket2->p, (float)bucket2->nv / (float)(bucket1->nv));
 
 			/* copy and mirror back to bucket2 */			
 			bucket2->nv = bucket1->nv;
@@ -1200,8 +1200,8 @@ void postprocessGraph(ReebGraph *rg, char mode)
 
 		for(index = 1; index < bcount - 1; index++)
 		{
-			VecLerpf(buckets[index].p, buckets[index].p, buckets[index - 1].p, fac1 / (fac1 + fac2));
-			VecLerpf(buckets[index].p, buckets[index].p, buckets[index + 1].p, fac3 / (fac1 + fac2 + fac3));
+			interp_v3_v3v3(buckets[index].p, buckets[index].p, buckets[index - 1].p, fac1 / (fac1 + fac2));
+			interp_v3_v3v3(buckets[index].p, buckets[index].p, buckets[index + 1].p, fac3 / (fac1 + fac2 + fac3));
 		}
 	}
 }
@@ -1339,7 +1339,7 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 				{
 					if (end_node->subgraph_index != subgraph)
 					{
-						float distance = VecLenf(start_node->p, end_node->p);
+						float distance = len_v3v3(start_node->p, end_node->p);
 						
 						if (distance < threshold && distance < min_distance)
 						{
@@ -1597,7 +1597,7 @@ void filterNullReebGraph(ReebGraph *rg)
 			
 			blend = (float)newNode->degree / (float)(newNode->degree + removedNode->degree); // blending factors
 			
-			VecLerpf(newNode->p, removedNode->p, newNode->p, blend);
+			interp_v3_v3v3(newNode->p, removedNode->p, newNode->p, blend);
 			
 			filterArc(rg, newNode, removedNode, arc, 0);
 
@@ -1808,16 +1808,16 @@ int filterSmartReebGraph(ReebGraph *rg, float threshold)
 					
 					VECCOPY(midpoint, vec1);
 					
-					distance = VecLenf(midpoint, efa->cent);
+					distance = len_v3v3(midpoint, efa->cent);
 					
 					if (min_distance == -1 || distance < min_distance)
 					{
 						min_distance = distance;
 					
-						VecSubf(tangent, vec1, vec0);
-						Normalize(tangent);
+						sub_v3_v3v3(tangent, vec1, vec0);
+						normalize_v3(tangent);
 						
-						angle = Inpf(tangent, efa->n);
+						angle = dot_v3v3(tangent, efa->n);
 					}
 					
 					previous = bucket;
@@ -1829,7 +1829,7 @@ int filterSmartReebGraph(ReebGraph *rg, float threshold)
 				efa->tmp.fp = saacos(fabs(angle));
 #endif
 #else
-				VecAddf(avg_vec, avg_vec, efa->n);		
+				add_v3_v3v3(avg_vec, avg_vec, efa->n);		
 #endif
 			}
 
@@ -1837,8 +1837,8 @@ int filterSmartReebGraph(ReebGraph *rg, float threshold)
 #if 0			
 			avg_angle /= total;
 #else
-			VecMulf(avg_vec, 1.0 / total);
-			avg_angle = Inpf(avg_vec, avg_vec);
+			mul_v3_fl(avg_vec, 1.0 / total);
+			avg_angle = dot_v3v3(avg_vec, avg_vec);
 #endif
 			
 			arc->angle = avg_angle;
@@ -2064,8 +2064,8 @@ void REEB_exportGraph(ReebGraph *rg, int count)
 			fprintf(f, "b nv:%i %f %f %f\n", arc->buckets[i].nv, arc->buckets[i].p[0], arc->buckets[i].p[1], arc->buckets[i].p[2]);
 		}
 		
-		VecAddf(p, arc->tail->p, arc->head->p);
-		VecMulf(p, 0.5f);
+		add_v3_v3v3(p, arc->tail->p, arc->head->p);
+		mul_v3_fl(p, 0.5f);
 		
 		fprintf(f, "angle %0.3f %0.3f %0.3f %0.3f %i\n", p[0], p[1], p[2], arc->angle, BLI_ghash_size(arc->faces));
 		exportNode(f, "v2", arc->tail);
@@ -2501,7 +2501,7 @@ ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 			float co[3];
 			float f = (arc->buckets[i].val - offset) / len;
 			
-			VecLerpf(co, v1->p, v2->p, f);
+			interp_v3_v3v3(co, v1->p, v2->p, f);
 			addVertToBucket(&(arc->buckets[i]), co);
 		}
 #endif
@@ -2690,16 +2690,16 @@ static float cotan_weight(float *v1, float *v2, float *v3)
 {
 	float a[3], b[3], c[3], clen;
 
-	VecSubf(a, v2, v1);
-	VecSubf(b, v3, v1);
-	Crossf(c, a, b);
+	sub_v3_v3v3(a, v2, v1);
+	sub_v3_v3v3(b, v3, v1);
+	cross_v3_v3v3(c, a, b);
 
-	clen = VecLength(c);
+	clen = len_v3(c);
 
 	if (clen == 0.0f)
 		return 0.0f;
 	
-	return Inpf(a, b)/clen;
+	return dot_v3v3(a, b)/clen;
 }
 
 void addTriangle(EditVert *v1, EditVert *v2, EditVert *v3, int e1, int e2, int e3)
@@ -3077,7 +3077,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 		{
 			if (eed->v1->h == 0 && eed->v2->h == 0)
 			{
-				eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
+				eed->tmp.fp = len_v3v3(eed->v1->co, eed->v2->co);
 			}
 		}
 
@@ -3112,7 +3112,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 						/* vertex is already processed and distance is smaller than current minimum */
 						if (closest_eve->f1 == 1)
 						{
-							float distance = VecLenf(closest_eve->co, eve->co);
+							float distance = len_v3v3(closest_eve->co, eve->co);
 							if (distance < min_distance)
 							{
 								min_distance = distance;
@@ -3688,7 +3688,7 @@ void REEB_draw()
 		
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
 		{
-			VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
+			interp_v3_v3v3(vec, arc->head->p, arc->tail->p, 0.5f);
 			s += sprintf(s, "%i (%i-%i-%i) ", i, arc->symmetry_level, arc->symmetry_flag, arc->symmetry_group);
 		
 			if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)

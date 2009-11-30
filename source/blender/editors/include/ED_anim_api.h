@@ -140,6 +140,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSCUR,
 	ANIMTYPE_DSSKEY,
 	ANIMTYPE_DSWOR,
+	ANIMTYPE_DSNTREE,
 	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
 	ANIMTYPE_DSARM,
@@ -202,6 +203,7 @@ typedef enum eAnimFilter_Flags {
 #define EXPANDED_SCEC(sce) ((sce->flag & SCE_DS_COLLAPSED)==0)
 	/* 'Sub-Scene' channels (flags stored in Data block) */
 #define FILTER_WOR_SCED(wo) ((wo->flag & WO_DS_EXPAND))
+#define FILTER_NTREE_SCED(ntree) ((ntree->flag & NTREE_DS_EXPAND))
 	/* 'Object' channels */
 #define SEL_OBJC(base) ((base->flag & SELECT))
 #define EXPANDED_OBJC(ob) ((ob->nlaflag & OB_ADS_COLLAPSED)==0)
@@ -309,7 +311,7 @@ typedef enum eAnimChannels_SetFlag {
 	ACHANNEL_SETFLAG_TOGGLE
 } eAnimChannels_SetFlag;
 
-/* types of settings for AnimChanels */
+/* types of settings for AnimChannels */
 typedef enum eAnimChannel_Settings {
  	ACHANNEL_SETTING_SELECT = 0,
 	ACHANNEL_SETTING_PROTECT,			// warning: for drawing UI's, need to check if this is off (maybe inverse this later)
@@ -416,7 +418,7 @@ short ANIM_headerUI_standard_buttons(const struct bContext *C, struct bDopeSheet
 /* F-MODIFIER TOOLS */
 
 /* draw a given F-Modifier for some layout/UI-Block */
-void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
+void ANIM_uiTemplate_fmodifier_draw(const struct bContext *C, struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */
@@ -478,11 +480,6 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 
 
 /* --------- anim_deps.c, animation updates -------- */
-
-	/* generic update flush, does tagged objects only, reads from Context screen (layers) and scene */
-void ED_anim_dag_flush_update(const struct bContext *C);
-	/* only flush object */
-void ED_anim_object_flush_update(const struct bContext *C, struct Object *ob);
 
 /* pose <-> action syncing */
 void ANIM_action_to_pose_sync(struct Object *ob);

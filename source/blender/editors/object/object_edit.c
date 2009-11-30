@@ -67,7 +67,7 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
@@ -161,16 +161,16 @@ void ED_object_apply_obmat(Object *ob)
 	/* from obmat to loc rot size */
 	
 	if(ob==NULL) return;
-	Mat3CpyMat4(mat, ob->obmat);
+	copy_m3_m4(mat, ob->obmat);
 	
 	VECCOPY(ob->loc, ob->obmat[3]);
 
-	Mat3ToEul(mat, ob->rot);
-	EulToMat3(ob->rot, tmat);
+	mat3_to_eul( ob->rot,mat);
+	eul_to_mat3( tmat,ob->rot);
 
-	Mat3Inv(imat, tmat);
+	invert_m3_m3(imat, tmat);
 	
-	Mat3MulMat3(tmat, imat, mat);
+	mul_m3_m3m3(tmat, imat, mat);
 	
 	ob->size[0]= tmat[0][0];
 	ob->size[1]= tmat[1][1];
@@ -1062,7 +1062,7 @@ void flip_subdivison(Scene *scene, View3D *v3d, int level)
 		}
 	}
 	
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 }
  
 static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
@@ -1549,8 +1549,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 	if(do_scene_sort)
 		DAG_scene_sort(scene);
 
-	ED_anim_dag_flush_update(C);	
-
+	DAG_ids_flush_update(0);
 }
 
 void copy_attr_menu(Scene *scene, View3D *v3d)
@@ -1733,85 +1732,6 @@ void image_aspect(Scene *scene, View3D *v3d)
 	}
 	
 }
-
-void set_ob_ipoflags(Scene *scene, View3D *v3d)
-{
-#if 0 // XXX old animation system
-	Base *base;
-	int set= 1;
-	
-	if (!v3d) {
-		error("Can't do this! Open a 3D window");
-		return;
-	}
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if(base->object->ipoflag & OB_DRAWKEY) {
-				set= 0;
-				break;
-			}
-		}
-	}
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if(set) {
-				base->object->ipoflag |= OB_DRAWKEY;
-				if(base->object->ipo) base->object->ipo->showkey= 1;
-			}
-			else {
-				base->object->ipoflag &= ~OB_DRAWKEY;
-				if(base->object->ipo) base->object->ipo->showkey= 0;
-			}
-		}
-	}
-#endif // XXX old animation system
-}
-
-
-void select_select_keys(Scene *scene, View3D *v3d)
-{
-#if 0 // XXX old animation system
-	Base *base;
-	IpoCurve *icu;
-	BezTriple *bezt;
-	int a;
-	
-	if (!v3d) {
-		error("Can't do this! Open a 3D window");
-		return;
-	}
-	
-	if(scene->id.lib) return;
-
-	if(okee("Show and select all keys")==0) return;
-
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if(base->object->ipo) {
-				base->object->ipoflag |= OB_DRAWKEY;
-				base->object->ipo->showkey= 1;
-				icu= base->object->ipo->curve.first;
-				while(icu) {
-					a= icu->totvert;
-					bezt= icu->bezt;
-					while(a--) {
-						bezt->f1 |= SELECT;
-						bezt->f2 |= SELECT;
-						bezt->f3 |= SELECT;
-						bezt++;
-					}
-					icu= icu->next;
-				}
-			}
-		}
-	}
-
-
-#endif  // XXX old animation system
-}
-
 
 int vergbaseco(const void *a1, const void *a2)
 {
@@ -2135,4 +2055,3 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to remove ", 0, INT_MAX);
 }
-

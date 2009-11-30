@@ -32,7 +32,7 @@
 #include <string.h>
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "DNA_ID.h"
 #include "DNA_node_types.h"
@@ -94,59 +94,7 @@
 
 #include "node_intern.h"
 
-
-/* autocomplete callback for buttons */
-static void autocomplete_vcol(bContext *C, char *str, void *arg_v)
-{
-	Mesh *me;
-	CustomDataLayer *layer;
-	AutoComplete *autocpl;
-	int a;
-
-	if(str[0]==0)
-		return;
-
-	autocpl= autocomplete_begin(str, 32);
-		
-	/* search if str matches the beginning of name */
-	for(me= G.main->mesh.first; me; me=me->id.next)
-		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
-			if(layer->type == CD_MCOL)
-				autocomplete_do_name(autocpl, layer->name);
-	
-	autocomplete_end(autocpl, str);
-}
-
-static int verify_valid_vcol_name(char *str)
-{
-	Mesh *me;
-	CustomDataLayer *layer;
-	int a;
-	
-	if(str[0]==0)
-		return 1;
-
-	/* search if str matches the name */
-	for(me= G.main->mesh.first; me; me=me->id.next)
-		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
-			if(layer->type == CD_MCOL)
-				if(strcmp(layer->name, str)==0)
-					return 1;
-	
-	return 0;
-}
-
 /* ****************** GENERAL CALLBACKS FOR NODES ***************** */
-
-static void node_ID_title_cb(bContext *C, void *node_v, void *unused_v)
-{
-	bNode *node= node_v;
-	
-	if(node->id) {
-		test_idbutton(node->id->name+2);	/* library.c, verifies unique name */
-		BLI_strncpy(node->name, node->id->name+2, 21);
-	}
-}
 
 #if 0
 /* XXX not used yet, make compiler happy :) */
@@ -197,40 +145,28 @@ static void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
+	PointerRNA sockptr;
+	PropertyRNA *prop;
 	
-	uiDefButF(block, NUM, B_NODE_EXEC, "", 
-			  (short)butr->xmin, (short)butr->ymin, butr->xmax-butr->xmin, 20, 
-			  sock->ns.vec, sock->ns.min, sock->ns.max, 10, 2, "");
+	/* first socket stores value */
+	prop = RNA_struct_find_property(ptr, "outputs");
+	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
+	
+	uiItemR(layout, "", 0, &sockptr, "default_value", 0);
 }
 
 static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
-
-	if(sock) {
-		/* enforce square box drawing */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
-		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-				  (short)butr->xmin, (short)butr->ymin, butr->xmax-butr->xmin, 12, 
-				  sock->ns.vec, 0.0f, 1.0f, 3, 0, "");
-		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-				  (short)butr->xmin, (short)butr->ymin+15, butr->xmax-butr->xmin, butr->xmax-butr->xmin -15 -15, 
-				  sock->ns.vec, 0.0f, 1.0f, 2, 0, "");
-		uiDefButF(block, COL, B_NOP, "",		
-				  (short)butr->xmin, (short)butr->ymax-12, butr->xmax-butr->xmin, 12, 
-				  sock->ns.vec, 0.0, 0.0, -1, 0, "");
-		/* the -1 above prevents col button to popup a color picker */
-		
-		uiBlockSetEmboss(block, UI_EMBOSS);
-	}
+	uiLayout *col;
+	PointerRNA sockptr;
+	PropertyRNA *prop;
+	
+	/* first socket stores value */
+	prop = RNA_struct_find_property(ptr, "outputs");
+	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
+	
+	col = uiLayoutColumn(layout, 0);
+	uiItemR(col, "", 0, &sockptr, "default_value", 0);
 }
 
 static void node_buts_mix_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -423,11 +359,6 @@ static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 	node->menunr= 0;
 }
 
-static void node_texmap_cb(bContext *C, void *texmap_v, void *unused_v)
-{
-	init_mapping(texmap_v);
-}
-
 static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node= ptr->data;
@@ -576,36 +507,6 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 }
 
 /* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
-
-static void node_browse_image_cb(bContext *C, void *ntree_v, void *node_v)
-{
-	bNodeTree *ntree= ntree_v;
-	bNode *node= node_v;
-	
-	nodeSetActive(ntree, node);
-	
-	if(node->menunr<1) return;
-	if(node->menunr==32767) {	/* code for Load New */
-		/// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_LOADIMAGE); XXX
-	}
-	else {
-		if(node->id) node->id->us--;
-		node->id= BLI_findlink(&G.main->image, node->menunr-1);
-		id_us_plus(node->id);
-
-		BLI_strncpy(node->name, node->id->name+2, 21);
-
-		NodeTagChanged(ntree, node); 
-		BKE_image_signal((Image *)node->id, node->storage, IMA_SIGNAL_USER_NEW_IMAGE);
-		// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC); XXX
-	}
-	node->menunr= 0;
-}
-
-static void node_active_cb(bContext *C, void *ntree_v, void *node_v)
-{
-	nodeSetActive(ntree_v, node_v);
-}
 
 static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
@@ -1276,41 +1177,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *C, PointerRNA *pt
 
 static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	bNodeTree *ntree= ptr->id.data;
-	rctf *butr= &node->butr;
-	char *strp;
-	uiBut *bt;
-
-	uiBlockBeginAlign(block);
-	
-	/* browse button */
-	IMAnames_to_pupstring(&strp, NULL, "LOAD NEW %x32767", &(G.main->image), NULL, NULL);
-	node->menunr= 0;
-	bt= uiDefButS(block, MENU, B_NOP, strp, 
-				  butr->xmin, butr->ymin, 19, 19, 
-				  &node->menunr, 0, 0, 0, 0, "Browses existing choices");
-	uiButSetFunc(bt, node_browse_image_cb, ntree, node);
-	if(strp) MEM_freeN(strp);
-	
-	/* Add New button */
-	if(node->id==NULL) {
-		bt= uiDefBut(block, BUT, B_NODE_LOADIMAGE, "Load New",
-					 butr->xmin+19, butr->ymin, (short)(butr->xmax-butr->xmin-19.0f), 19, 
-					 NULL, 0.0, 0.0, 0, 0, "Add new Image");
-		uiButSetFunc(bt, node_active_cb, ntree, node);
-	}
-	else {
-		/* name button */
-		short xmin= (short)butr->xmin, xmax= (short)butr->xmax;
-		short width= xmax - xmin - 19;
-		
-		bt= uiDefBut(block, TEX, B_NOP, "IM:",
-					 xmin+19, butr->ymin, width, 19, 
-					 node->id->name+2, 0.0, 19.0, 0, 0, "Image name");
-		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-	}
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 }
 
 static void node_texture_buts_output(uiLayout *layout, bContext *C, PointerRNA *ptr)

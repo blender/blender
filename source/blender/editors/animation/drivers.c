@@ -36,7 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
@@ -53,6 +53,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -147,7 +148,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	FCurve *fcu;
-	int array_index_max = array_index+1;
+	int array_index_max;
 	int done = 0;
 	
 	/* validate pointer first - exit if failure */
@@ -159,9 +160,15 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	
 	/* key entire array convenience method */
 	if (array_index == -1) {
+		array_index_max= RNA_property_array_length(&ptr, prop);
 		array_index= 0;
-		array_index_max= RNA_property_array_length(&ptr, prop) + 1;
 	}
+	else
+		array_index_max= array_index;
+	
+	/* maximum index should be greater than the start index */
+	if (array_index == array_index_max)
+		array_index_max += 1;
 	
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
@@ -169,14 +176,17 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 		fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
 		
 		if (fcu && fcu->driver) {
-			fcu->driver->type= type;
+			ChannelDriver *driver= fcu->driver;
+			
+			/* set the type of the driver */
+			driver->type= type;
 			
 			/* fill in current value for python */
 			if (type == DRIVER_TYPE_PYTHON) {
 				PropertyType proptype= RNA_property_type(prop);
 				int array= RNA_property_array_length(&ptr, prop);
-				char *expression= fcu->driver->expression;
-				int val, maxlen= sizeof(fcu->driver->expression);
+				char *expression= driver->expression;
+				int val, maxlen= sizeof(driver->expression);
 				float fval;
 				
 				if (proptype == PROP_BOOLEAN) {
@@ -392,7 +402,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL); // XXX
@@ -401,11 +411,11 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_add_driver_button (wmOperatorType *ot)
+void ANIM_OT_driver_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Driver";
-	ot->idname= "ANIM_OT_add_driver_button";
+	ot->idname= "ANIM_OT_driver_button_add";
 	ot->description= "Add driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */
@@ -456,7 +466,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL);  // XXX
@@ -465,11 +475,11 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_remove_driver_button (wmOperatorType *ot)
+void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Driver";
-	ot->idname= "ANIM_OT_remove_driver_button";
+	ot->idname= "ANIM_OT_driver_button_remove";
 	ot->description= "Remove the driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */

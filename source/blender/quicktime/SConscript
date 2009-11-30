@@ -1,8 +1,14 @@
 #!/usr/bin/python
 Import ('env')
 
-source_files = ['apple/quicktime_import.c',
+
+if env['USE_QTKIT']:
+    source_files = ['apple/qtkit_import.m',
+                'apple/qtkit_export.m']
+else:
+    source_files = ['apple/quicktime_import.c',
                 'apple/quicktime_export.c']
+
 
 incs  = ['.',
 		 '../quicktime',

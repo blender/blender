@@ -442,7 +442,7 @@ void IDP_RemFromGroup(IDProperty *group, IDProperty *prop)
 	BLI_remlink(&group->data.group, prop);
 }
 
-IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, char *name)
+IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
 {
 	IDProperty *loop;
 	for (loop=prop->data.group.first; loop; loop=loop->next) {

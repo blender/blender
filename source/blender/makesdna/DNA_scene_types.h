@@ -78,7 +78,7 @@ typedef struct AviCodecData {
 } AviCodecData;
 
 typedef struct QuicktimeCodecData {
-
+	/*Old quicktime implementation compatibility fields, read only in 2.5 - deprecated*/
 	void			*cdParms;   /* codec/compressor options */
 	void			*pad;	    /* padding */
 
@@ -87,6 +87,22 @@ typedef struct QuicktimeCodecData {
 
 	char			qtcodecname[128];
 } QuicktimeCodecData;
+	
+typedef struct QuicktimeCodecSettings {
+	/* Codec settings detailed for 2.5 implementation*/
+	int codecType; /* Types defined in quicktime_export.h */
+	int	codecSpatialQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
+
+	/* Settings not available in current QTKit API */
+	int	codec;
+	int	codecFlags;
+	int	colorDepth;
+	int	codecTemporalQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
+	int	minSpatialQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
+	int	minTemporalQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
+	int	keyFrameRate;
+	int	bitRate;	/* bitrate in bps */
+} QuicktimeCodecSettings;
 
 typedef struct FFMpegCodecData {
 	int type;
@@ -181,6 +197,7 @@ typedef struct RenderData {
 	
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
+	struct QuicktimeCodecSettings qtcodecsettings;
 	struct FFMpegCodecData ffcodecdata;
 	
 	int cfra, sfra, efra;	/* frames as in 'images' */
@@ -547,7 +564,6 @@ typedef struct Sculpt {
 typedef struct VPaint {
 	Paint paint;
 
-	float gamma, mul;			/* should become part of struct Brush? */
 	short mode, flag;
 	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
@@ -559,11 +575,10 @@ typedef struct VPaint {
 /* VPaint flag */
 #define VP_COLINDEX	1
 #define VP_AREA		2
-#define VP_SOFT		4
+
 #define VP_NORMALS	8
 #define VP_SPRAY	16
 // #define VP_MIRROR_X	32 // depricated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X)
-#define VP_HARD		64
 #define VP_ONLYVGROUP	128
 
 
@@ -1003,10 +1018,11 @@ typedef struct Scene {
 #define SCE_SNAP_TARGET_MEDIAN	2
 #define SCE_SNAP_TARGET_ACTIVE	3
 /* toolsettings->snap_mode */
-#define SCE_SNAP_MODE_VERTEX	0
-#define SCE_SNAP_MODE_EDGE		1
-#define SCE_SNAP_MODE_FACE		2
-#define SCE_SNAP_MODE_VOLUME	3
+#define SCE_SNAP_MODE_INCREMENT	0
+#define SCE_SNAP_MODE_VERTEX	1
+#define SCE_SNAP_MODE_EDGE		2
+#define SCE_SNAP_MODE_FACE		3
+#define SCE_SNAP_MODE_VOLUME	4
 
 /* toolsettings->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */

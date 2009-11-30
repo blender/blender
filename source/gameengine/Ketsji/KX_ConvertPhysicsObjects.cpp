@@ -32,12 +32,12 @@
 
 #include "MT_assert.h"
 
+#include "KX_SoftBodyDeformer.h"
 #include "KX_ConvertPhysicsObject.h"
 #include "BL_DeformableGameObject.h"
 #include "RAS_MeshObject.h"
 #include "KX_Scene.h"
 #include "SYS_System.h"
-#include "BL_SkinMeshObject.h"
 #include "BulletSoftBody/btSoftBody.h"
 
 #include "PHY_Pro.h" //todo cleanup
@@ -78,126 +78,6 @@ extern "C"{
 #endif //_MSC_VER 
 #endif //WIN32
 
-
-							
-	class KX_SoftBodyDeformer : public RAS_Deformer
-	{
-		class RAS_MeshObject*			m_pMeshObject;
-		class BL_DeformableGameObject*	m_gameobj;
-
-	public:
-		KX_SoftBodyDeformer(RAS_MeshObject*	pMeshObject,BL_DeformableGameObject*	gameobj)
-			:m_pMeshObject(pMeshObject),
-			m_gameobj(gameobj)
-		{
-			//printf("KX_SoftBodyDeformer\n");
-		};
-
-		virtual ~KX_SoftBodyDeformer()
-		{
-			//printf("~KX_SoftBodyDeformer\n");
-		};
-		virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
-		{
-			void **h_obj = (*map)[m_gameobj];
-
-			if (h_obj) {
-				m_gameobj = (BL_DeformableGameObject*)(*h_obj);
-				m_pMeshObject = m_gameobj->GetMesh(0);
-			} else {
-				m_gameobj = NULL;
-				m_pMeshObject = NULL;
-			}
-		}
-		virtual bool Apply(class RAS_IPolyMaterial *polymat)
-		{
-			KX_BulletPhysicsController* ctrl = (KX_BulletPhysicsController*) m_gameobj->GetPhysicsController();
-			if (!ctrl)
-				return false;
-
-			btSoftBody* softBody= ctrl->GetSoftBody();
-			if (!softBody)
-				return false;
-
-			//printf("apply\n");
-			RAS_MeshSlot::iterator it;
-			RAS_MeshMaterial *mmat;
-			RAS_MeshSlot *slot;
-			size_t i;
-
-			// update the vertex in m_transverts
-			Update();
-
-
-
-			// The vertex cache can only be updated for this deformer:
-			// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
-			// share the same mesh (=the same cache). As the rendering is done per polymaterial
-			// cycling through the objects, the entire mesh cache cannot be updated in one shot.
-			mmat = m_pMeshObject->GetMeshMaterial(polymat);
-			if(!mmat->m_slots[(void*)m_gameobj])
-				return true;
-
-			slot = *mmat->m_slots[(void*)m_gameobj];
-
-			// for each array
-			for(slot->begin(it); !slot->end(it); slot->next(it)) 
-			{
-				btSoftBody::tNodeArray&   nodes(softBody->m_nodes);
-
-				int index = 0;
-				for(i=it.startvertex; i<it.endvertex; i++,index++) {
-					RAS_TexVert& v = it.vertex[i];
-					btAssert(v.getSoftBodyIndex() >= 0);
-
-					MT_Point3 pt (
-						nodes[v.getSoftBodyIndex()].m_x.getX(),
-						nodes[v.getSoftBodyIndex()].m_x.getY(),
-						nodes[v.getSoftBodyIndex()].m_x.getZ());
-					v.SetXYZ(pt);
-
-					MT_Vector3 normal (
-						nodes[v.getSoftBodyIndex()].m_n.getX(),
-						nodes[v.getSoftBodyIndex()].m_n.getY(),
-						nodes[v.getSoftBodyIndex()].m_n.getZ());
-					v.SetNormal(normal);
-
-				}
-			}
-			return true;
-		}
-		virtual bool Update(void)
-		{
-			//printf("update\n");
-			m_bDynamic = true;
-			return true;//??
-		}
-		virtual bool UpdateBuckets(void)
-		{
-			// this is to update the mesh slots outside the rasterizer, 
-			// no need to do it for this deformer, it's done in any case in Apply()
-			return false;
-		}
-
-		virtual RAS_Deformer *GetReplica()
-		{
-			KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(*this);
-			deformer->ProcessReplica();
-			return deformer;
-		}
-		virtual void ProcessReplica()
-		{
-			// we have two pointers to deal with but we cannot do it now, will be done in Relink
-			m_bDynamic = false;
-		}
-		virtual bool SkipVertexTransform()
-		{
-			return true;
-		}
-
-	protected:
-		//class RAS_MeshObject	*m_pMesh;
-	};
 
 
 // forward declarations
@@ -608,7 +488,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	physicscontroller->SetObject(gameobj->GetSGNode());
 
-
+#if 0
 	///test for soft bodies
 	if (objprop->m_softbody && physicscontroller)
 	{
@@ -620,6 +500,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			gameobj->SetDeformer(softbodyDeformer);
 		}
 	}
+#endif
 
 }
 
@@ -651,7 +532,7 @@ bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *fro
 	
 	shapeInfo = spc->GetShapeInfo();
 	
-	if(shapeInfo->m_shapeType != PHY_SHAPE_MESH || spc->GetSoftBody())
+	if(shapeInfo->m_shapeType != PHY_SHAPE_MESH/* || spc->GetSoftBody()*/)
 		return false;
 	
 	spc->DeleteControllerShape();

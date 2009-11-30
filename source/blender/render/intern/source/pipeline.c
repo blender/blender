@@ -53,7 +53,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
@@ -1268,7 +1268,7 @@ void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->clipend= clipend;
 	re->r.mode &= ~R_ORTHO;
 
-	i_window(re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend, re->winmat);
+	perspective_m4( re->winmat,re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 	
 }
 
@@ -1281,14 +1281,14 @@ void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->clipend= clipend;
 	re->r.mode |= R_ORTHO;
 
-	i_ortho(re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend, re->winmat);
+	orthographic_m4( re->winmat,re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 }
 
 void RE_SetView(Render *re, float mat[][4])
 {
 	/* re->ok flag? */
-	Mat4CpyMat4(re->viewmat, mat);
-	Mat4Invert(re->viewinv, re->viewmat);
+	copy_m4_m4(re->viewmat, mat);
+	invert_m4_m4(re->viewinv, re->viewmat);
 }
 
 /* image and movie output has to move to either imbuf or kernel */
@@ -1515,7 +1515,7 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 		R.viewplane.xmin = viewplane->xmin + R.panodxv;
 		R.viewplane.xmax = viewplane->xmax + R.panodxv;
 		RE_SetWindow(re, &R.viewplane, R.clipsta, R.clipend);
-		Mat4CpyMat4(R.winmat, re->winmat);
+		copy_m4_m4(R.winmat, re->winmat);
 		
 		/* rotate database according to part coordinates */
 		project_renderdata(re, projectverto, 1, -R.panodxp*phi, 1);
@@ -2471,7 +2471,7 @@ static void do_render_seq(Render * re)
 		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 			Editing * ed = re->scene->ed;
 			if (ed) {
-				free_imbuf_seq(&ed->seqbase, TRUE);
+				free_imbuf_seq(re->scene, &ed->seqbase, TRUE);
 			}
 		}
 	}

@@ -73,11 +73,11 @@ extern "C" {
 #include "BKE_image.h"
 
 extern "C" {
-//XXX #include "BDR_drawmesh.h"
-//XXX #include "BIF_mywindow.h"
-//XXX #include "BIF_toolbox.h"
-//XXX #include "BIF_graphics.h" /* For CURSOR_NONE CURSOR_WAIT CURSOR_STD */
-void wm_window_swap_buffers(wmWindow *win); // wm_window.h
+#include "WM_api.h"
+#include "WM_types.h"
+#include "wm_event_system.h"
+#include "wm_cursors.h"
+#include "wm_window.h"
 }
 
 /* end of blender block */
@@ -90,16 +90,14 @@ void spack(unsigned int ucol)
 	glColor3ub(cp[3], cp[2], cp[1]);
 }
 
-void BL_warp_pointer(int x,int y)
+void BL_warp_pointer(wmWindow *win, int x,int y)
 {
-	//XXX warp_pointer(x,y);
+	WM_cursor_warp(win, x, y);
 }
 
 void BL_SwapBuffers(wmWindow *win)
 {
-	//wmWindow *window= CTX_wm_window(C);
 	wm_window_swap_buffers(win);
-	//XXX myswapbuffers();
 }
 
 void DisableForText()
@@ -194,21 +192,21 @@ void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int widt
 	glEnable(GL_DEPTH_TEST);
 }
 
-void BL_HideMouse()
+void BL_HideMouse(wmWindow *win)
 {
-	//XXX set_cursor(CURSOR_NONE);
+	WM_cursor_set(win, CURSOR_NONE);
 }
 
 
-void BL_WaitMouse()
+void BL_WaitMouse(wmWindow *win)
 {
-	//XXX set_cursor(CURSOR_WAIT);
+	WM_cursor_set(win, CURSOR_WAIT);
 }
 
 
-void BL_NormalMouse()
+void BL_NormalMouse(wmWindow *win)
 {
-	//XXX set_cursor(CURSOR_STD);
+	WM_cursor_set(win, CURSOR_STD);
 }
 #define MAX_FILE_LENGTH 512
 

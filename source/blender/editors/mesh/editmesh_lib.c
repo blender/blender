@@ -47,7 +47,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 
 #include "BKE_customdata.h"
@@ -272,14 +272,14 @@ void EM_editselection_center(float *center, EditSelection *ese)
 {
 	if (ese->type==EDITVERT) {
 		EditVert *eve= ese->data;
-		VecCopyf(center, eve->co);
+		copy_v3_v3(center, eve->co);
 	} else if (ese->type==EDITEDGE) {
 		EditEdge *eed= ese->data;
-		VecAddf(center, eed->v1->co, eed->v2->co);
-		VecMulf(center, 0.5);
+		add_v3_v3v3(center, eed->v1->co, eed->v2->co);
+		mul_v3_fl(center, 0.5);
 	} else if (ese->type==EDITFACE) {
 		EditFace *efa= ese->data;
-		VecCopyf(center, efa->cent);
+		copy_v3_v3(center, efa->cent);
 	}
 }
 
@@ -287,26 +287,26 @@ void EM_editselection_normal(float *normal, EditSelection *ese)
 {
 	if (ese->type==EDITVERT) {
 		EditVert *eve= ese->data;
-		VecCopyf(normal, eve->no);
+		copy_v3_v3(normal, eve->no);
 	} else if (ese->type==EDITEDGE) {
 		EditEdge *eed= ese->data;
 		float plane[3]; /* need a plane to correct the normal */
 		float vec[3]; /* temp vec storage */
 		
-		VecAddf(normal, eed->v1->no, eed->v2->no);
-		VecSubf(plane, eed->v2->co, eed->v1->co);
+		add_v3_v3v3(normal, eed->v1->no, eed->v2->no);
+		sub_v3_v3v3(plane, eed->v2->co, eed->v1->co);
 		
 		/* the 2 vertex normals will be close but not at rightangles to the edge
 		for rotate about edge we want them to be at right angles, so we need to
 		do some extra colculation to correct the vert normals,
 		we need the plane for this */
-		Crossf(vec, normal, plane);
-		Crossf(normal, plane, vec); 
-		Normalize(normal);
+		cross_v3_v3v3(vec, normal, plane);
+		cross_v3_v3v3(normal, plane, vec); 
+		normalize_v3(normal);
 		
 	} else if (ese->type==EDITFACE) {
 		EditFace *efa= ese->data;
-		VecCopyf(normal, efa->n);
+		copy_v3_v3(normal, efa->n);
 	}
 }
 
@@ -321,7 +321,7 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 		
 		if (ese->prev) { /*use previously selected data to make a usefull vertex plane */
 			EM_editselection_center(vec, ese->prev);
-			VecSubf(plane, vec, eve->co);
+			sub_v3_v3v3(plane, vec, eve->co);
 		} else {
 			/* make a fake  plane thats at rightangles to the normal
 			we cant make a crossvec from a vec thats the same as the vec
@@ -330,7 +330,7 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 			if (eve->no[0]<0.5)			vec[0]=1;
 			else if (eve->no[1]<0.5)	vec[1]=1;
 			else						vec[2]=1;
-			Crossf(plane, eve->no, vec);
+			cross_v3_v3v3(plane, eve->no, vec);
 		}
 	} else if (ese->type==EDITEDGE) {
 		EditEdge *eed= ese->data;
@@ -341,41 +341,41 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 		(running along the edge).. to flip less often.
 		at least its more pradictable */
 		if (eed->v2->co[1] > eed->v1->co[1]) /*check which to do first */
-			VecSubf(plane, eed->v2->co, eed->v1->co);
+			sub_v3_v3v3(plane, eed->v2->co, eed->v1->co);
 		else
-			VecSubf(plane, eed->v1->co, eed->v2->co);
+			sub_v3_v3v3(plane, eed->v1->co, eed->v2->co);
 		
 	} else if (ese->type==EDITFACE) {
 		EditFace *efa= ese->data;
 		float vec[3];
 		if (efa->v4) { /*if its a quad- set the plane along the 2 longest edges.*/
 			float vecA[3], vecB[3];
-			VecSubf(vecA, efa->v4->co, efa->v3->co);
-			VecSubf(vecB, efa->v1->co, efa->v2->co);
-			VecAddf(plane, vecA, vecB);
+			sub_v3_v3v3(vecA, efa->v4->co, efa->v3->co);
+			sub_v3_v3v3(vecB, efa->v1->co, efa->v2->co);
+			add_v3_v3v3(plane, vecA, vecB);
 			
-			VecSubf(vecA, efa->v1->co, efa->v4->co);
-			VecSubf(vecB, efa->v2->co, efa->v3->co);
-			VecAddf(vec, vecA, vecB);						
+			sub_v3_v3v3(vecA, efa->v1->co, efa->v4->co);
+			sub_v3_v3v3(vecB, efa->v2->co, efa->v3->co);
+			add_v3_v3v3(vec, vecA, vecB);						
 			/*use the biggest edge length*/
 			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
+				copy_v3_v3(plane, vec);
 		} else {
 			/*start with v1-2 */
-			VecSubf(plane, efa->v1->co, efa->v2->co);
+			sub_v3_v3v3(plane, efa->v1->co, efa->v2->co);
 			
 			/*test the edge between v2-3, use if longer */
-			VecSubf(vec, efa->v2->co, efa->v3->co);
+			sub_v3_v3v3(vec, efa->v2->co, efa->v3->co);
 			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
+				copy_v3_v3(plane, vec);
 			
 			/*test the edge between v1-3, use if longer */
-			VecSubf(vec, efa->v3->co, efa->v1->co);
+			sub_v3_v3v3(vec, efa->v3->co, efa->v1->co);
 			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
+				copy_v3_v3(plane, vec);
 		}
 	}
-	Normalize(plane);
+	normalize_v3(plane);
 }
 
 
@@ -908,9 +908,9 @@ void EM_free_data_layer(EditMesh *em, CustomData *data, int type)
 static void add_normal_aligned(float *nor, float *add)
 {
 	if( INPR(nor, add) < -0.9999f)
-		VecSubf(nor, nor, add);
+		sub_v3_v3v3(nor, nor, add);
 	else
-		VecAddf(nor, nor, add);
+		add_v3_v3v3(nor, nor, add);
 }
 
 static void set_edge_directions_f2(EditMesh *em, int val)
@@ -1097,7 +1097,7 @@ short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor)
 			}
 		}
 	}
-	Normalize(nor);
+	normalize_v3(nor);
 	
 	/* set correct selection */
 	EM_clear_flag_all(em, SELECT);
@@ -1216,20 +1216,20 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *n
 				float mtx[4][4];
 				if (mmd->mirror_ob) {
 					float imtx[4][4];
-					Mat4Invert(imtx, mmd->mirror_ob->obmat);
-					Mat4MulMat4(mtx, obedit->obmat, imtx);
+					invert_m4_m4(imtx, mmd->mirror_ob->obmat);
+					mul_m4_m4m4(mtx, obedit->obmat, imtx);
 				}
 
 				for (eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f2 == 1) {
 						float co1[3], co2[3];
 
-						VecCopyf(co1, eed->v1->co);
-						VecCopyf(co2, eed->v2->co);
+						copy_v3_v3(co1, eed->v1->co);
+						copy_v3_v3(co2, eed->v2->co);
 
 						if (mmd->mirror_ob) {
-							VecMat4MulVecfl(co1, mtx, co1);
-							VecMat4MulVecfl(co2, mtx, co2);
+							mul_v3_m4v3(co1, mtx, co1);
+							mul_v3_m4v3(co2, mtx, co2);
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)
@@ -1380,7 +1380,7 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *n
 		}
 	}
 	
-	Normalize(nor);	// translation normal grab
+	normalize_v3(nor);	// translation normal grab
 	
 	/* step 7: redo selection */
 	EM_clear_flag_all(em, SELECT);
@@ -1503,20 +1503,20 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 				float mtx[4][4];
 				if (mmd->mirror_ob) {
 					float imtx[4][4];
-					Mat4Invert(imtx, mmd->mirror_ob->obmat);
-					Mat4MulMat4(mtx, obedit->obmat, imtx);
+					invert_m4_m4(imtx, mmd->mirror_ob->obmat);
+					mul_m4_m4m4(mtx, obedit->obmat, imtx);
 				}
 
 				for (eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f2 == 2) {
 						float co1[3], co2[3];
 
-						VecCopyf(co1, eed->v1->co);
-						VecCopyf(co2, eed->v2->co);
+						copy_v3_v3(co1, eed->v1->co);
+						copy_v3_v3(co2, eed->v2->co);
 
 						if (mmd->mirror_ob) {
-							VecMat4MulVecfl(co1, mtx, co1);
-							VecMat4MulVecfl(co2, mtx, co2);
+							mul_v3_m4v3(co1, mtx, co1);
+							mul_v3_m4v3(co2, mtx, co2);
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)
@@ -1652,7 +1652,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 		efa= nextvl;
 	}
 	
-	Normalize(nor);	// for grab
+	normalize_v3(nor);	// for grab
 	
 	/* for all vertices with eve->tmp.v!=0 
 		if eve->f1==1: make edge
@@ -1704,7 +1704,7 @@ void rotateflag(EditMesh *em, short flag, float *cent, float rotmat[][3])
 			eve->co[0]-=cent[0];
 			eve->co[1]-=cent[1];
 			eve->co[2]-=cent[2];
-			Mat3MulVecfl(rotmat,eve->co);
+			mul_m3_v3(rotmat,eve->co);
 			eve->co[0]+=cent[0];
 			eve->co[1]+=cent[1];
 			eve->co[2]+=cent[2];
@@ -1913,24 +1913,24 @@ void recalc_editnormals(EditMesh *em)
 
 	for(efa= em->faces.first; efa; efa=efa->next) {
 		if(efa->v4) {
-			CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
-			CalcCent4f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-			VecAddf(efa->v4->no, efa->v4->no, efa->n);
+			normal_quad_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+			cent_quad_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+			add_v3_v3v3(efa->v4->no, efa->v4->no, efa->n);
 		}
 		else {
-			CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
-			CalcCent3f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
+			normal_tri_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co);
+			cent_tri_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
 		}
-		VecAddf(efa->v1->no, efa->v1->no, efa->n);
-		VecAddf(efa->v2->no, efa->v2->no, efa->n);
-		VecAddf(efa->v3->no, efa->v3->no, efa->n);
+		add_v3_v3v3(efa->v1->no, efa->v1->no, efa->n);
+		add_v3_v3v3(efa->v2->no, efa->v2->no, efa->n);
+		add_v3_v3v3(efa->v3->no, efa->v3->no, efa->n);
 	}
 
 	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 	for(eve= em->verts.first; eve; eve=eve->next) {
-		if (Normalize(eve->no)==0.0) {
+		if (normalize_v3(eve->no)==0.0) {
 			VECCOPY(eve->no, eve->co);
-			Normalize(eve->no);
+			normalize_v3(eve->no);
 		}
 	}
 }
@@ -1996,8 +1996,8 @@ int convex(float *v1, float *v2, float *v3, float *v4)
 	float nor[3], nor1[3], nor2[3], vec[4][2];
 	
 	/* define projection, do both trias apart, quad is undefined! */
-	CalcNormFloat(v1, v2, v3, nor1);
-	CalcNormFloat(v1, v3, v4, nor2);
+	normal_tri_v3( nor1,v1, v2, v3);
+	normal_tri_v3( nor2,v1, v3, v4);
 	nor[0]= ABS(nor1[0]) + ABS(nor2[0]);
 	nor[1]= ABS(nor1[1]) + ABS(nor2[1]);
 	nor[2]= ABS(nor1[2]) + ABS(nor2[2]);
@@ -2022,7 +2022,7 @@ int convex(float *v1, float *v2, float *v3, float *v4)
 	}
 	
 	/* linetests, the 2 diagonals have to instersect to be convex */
-	if( IsectLL2Df(vec[0], vec[2], vec[1], vec[3]) > 0 ) return 1;
+	if( isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0 ) return 1;
 	return 0;
 }
 
@@ -2037,22 +2037,22 @@ int convex(float *v1, float *v2, float *v3, float *v4)
 
 float EM_face_area(EditFace *efa)
 {
-	if(efa->v4) return AreaQ3Dfl(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-	else return AreaT3Dfl(efa->v1->co, efa->v2->co, efa->v3->co);
+	if(efa->v4) return area_quad_v3(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+	else return area_tri_v3(efa->v1->co, efa->v2->co, efa->v3->co);
 }
 
 float EM_face_perimeter(EditFace *efa)
 {	
 	if(efa->v4) return
-		VecLenf(efa->v1->co, efa->v2->co)+
-		VecLenf(efa->v2->co, efa->v3->co)+
-		VecLenf(efa->v3->co, efa->v4->co)+
-		VecLenf(efa->v4->co, efa->v1->co);
+		len_v3v3(efa->v1->co, efa->v2->co)+
+		len_v3v3(efa->v2->co, efa->v3->co)+
+		len_v3v3(efa->v3->co, efa->v4->co)+
+		len_v3v3(efa->v4->co, efa->v1->co);
 	
 	else return
-		VecLenf(efa->v1->co, efa->v2->co)+
-		VecLenf(efa->v2->co, efa->v3->co)+
-		VecLenf(efa->v3->co, efa->v1->co);
+		len_v3v3(efa->v1->co, efa->v2->co)+
+		len_v3v3(efa->v2->co, efa->v3->co)+
+		len_v3v3(efa->v3->co, efa->v1->co);
 }
 
 void EM_fgon_flags(EditMesh *em)
@@ -2240,7 +2240,7 @@ UvVertMap *EM_make_uv_vert_map(EditMesh *em, int selected, int do_face_idx_array
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				uv2 = tf->uv[iterv->tfindex];
 				
-				Vec2Subf(uvdiff, uv2, uv);
+				sub_v2_v2v2(uvdiff, uv2, uv);
 
 				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
 					if(lastv) lastv->next= next;

@@ -106,7 +106,7 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
@@ -129,17 +129,17 @@ void setTransformViewMatrices(TransInfo *t)
 	if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW) {
 		RegionView3D *rv3d = t->ar->regiondata;
 
-		Mat4CpyMat4(t->viewmat, rv3d->viewmat);
-		Mat4CpyMat4(t->viewinv, rv3d->viewinv);
-		Mat4CpyMat4(t->persmat, rv3d->persmat);
-		Mat4CpyMat4(t->persinv, rv3d->persinv);
+		copy_m4_m4(t->viewmat, rv3d->viewmat);
+		copy_m4_m4(t->viewinv, rv3d->viewinv);
+		copy_m4_m4(t->persmat, rv3d->persmat);
+		copy_m4_m4(t->persinv, rv3d->persinv);
 		t->persp = rv3d->persp;
 	}
 	else {
-		Mat4One(t->viewmat);
-		Mat4One(t->viewinv);
-		Mat4One(t->persmat);
-		Mat4One(t->persinv);
+		unit_m4(t->viewmat);
+		unit_m4(t->viewinv);
+		unit_m4(t->persmat);
+		unit_m4(t->persinv);
 		t->persp = RV3D_ORTHO;
 	}
 
@@ -507,8 +507,9 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_TRANSLATE			3
 #define TFM_MODAL_ROTATE			4
 #define TFM_MODAL_RESIZE			5
-#define TFM_MODAL_SNAP_GEARS		6
-#define TFM_MODAL_SNAP_GEARS_OFF	7
+#define TFM_MODAL_SNAP_ON		6
+#define TFM_MODAL_SNAP_OFF	7
+#define TFM_MODAL_SNAP_TOGGLE	8
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 void transform_modal_keymap(wmKeyConfig *keyconf)
@@ -519,8 +520,9 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 	{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
 	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
-	{TFM_MODAL_SNAP_GEARS, "SNAP_GEARS", 0, "Snap On", ""},
-	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
+	{TFM_MODAL_SNAP_ON, "SNAP_ON", 0, "Snap On", ""},
+	{TFM_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Snap Off", ""},
+	{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -532,7 +534,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 
@@ -540,8 +542,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
 	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
 	
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS);
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_OFF);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_CLICK, KM_ANY, 0, TFM_MODAL_SNAP_TOGGLE);
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
@@ -554,14 +555,16 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "TFM_OT_shrink_fatten");
 	WM_modalkeymap_assign(keymap, "TFM_OT_tilt");
 	WM_modalkeymap_assign(keymap, "TFM_OT_trackball");
-	
+	WM_modalkeymap_assign(keymap, "TFM_OT_mirror");
+	WM_modalkeymap_assign(keymap, "TFM_OT_edge_slide");
 }
 
 
-void transformEvent(TransInfo *t, wmEvent *event)
+int transformEvent(TransInfo *t, wmEvent *event)
 {
 	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	char cmode = constraintModeToChar(t);
+	int handled = 1;
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
@@ -571,6 +574,10 @@ void transformEvent(TransInfo *t, wmEvent *event)
 		t->mval[1] = event->y - t->ar->winrct.ymin;
 
 		t->redraw = 1;
+
+		if (t->state == TRANS_STARTING) {
+		    t->state = TRANS_RUNNING;
+		}
 
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
@@ -584,7 +591,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			case TFM_MODAL_CONFIRM:
 				t->state = TRANS_CONFIRM;
 				break;
-				
 			case TFM_MODAL_TRANSLATE:
 				/* only switch when... */
 				if( ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
@@ -624,13 +630,20 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				}
 				break;
 				
-			case TFM_MODAL_SNAP_GEARS:
-				t->modifiers |= MOD_SNAP_GEARS;
+			case TFM_MODAL_SNAP_ON:
+				t->modifiers |= MOD_SNAP;
 				t->redraw = 1;
 				break;
-			case TFM_MODAL_SNAP_GEARS_OFF:
-				t->modifiers &= ~MOD_SNAP_GEARS;
+			case TFM_MODAL_SNAP_OFF:
+				t->modifiers &= ~MOD_SNAP;
 				t->redraw = 1;
+				break;
+			case TFM_MODAL_SNAP_TOGGLE:
+				t->modifiers ^= MOD_SNAP;
+				t->redraw = 1;
+				break;
+			default:
+				handled = 0;
 				break;
 		}
 	}
@@ -641,12 +654,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			t->state = TRANS_CANCEL;
 			break;
 		/* enforce redraw of transform when modifiers are used */
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-			t->modifiers |= MOD_SNAP_GEARS;
-			t->redraw = 1;
-			break;
-
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers |= MOD_CONSTRAINT_PLANE;
@@ -661,7 +668,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				getmouseco_sc(mval);
 				BIF_selectOrientation();
 				calc_manipulator_stats(curarea);
-				Mat3CpyMat4(t->spacemtx, G.vd->twmat);
+				copy_m3_m4(t->spacemtx, G.vd->twmat);
 				warp_pointer(mval[0], mval[1]);
 #endif
 			}
@@ -895,6 +902,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 //		case NDOFMOTION:
 //            viewmoveNDOF(1);
   //         break;
+		default:
+			handled = 0;
+			break;
 		}
 
 		// Numerical input events
@@ -932,7 +942,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			case NDOF_REFRESH:
 				t->redraw = 1;
 				break;
-
+			default:
+				handled = 0;
+				break;
 		}
 
 		// Snapping events
@@ -940,24 +952,14 @@ void transformEvent(TransInfo *t, wmEvent *event)
 
 		//arrows_move_cursor(event->type);
 	}
-	else {
+	else if (event->val==KM_RELEASE) {
 		switch (event->type){
-		case LEFTMOUSE:
-			t->state = TRANS_CONFIRM;
-			break;
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers &= ~MOD_CONSTRAINT_PLANE;
 			t->redraw = 1;
 			break;
 
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-			t->modifiers &= ~MOD_SNAP_GEARS;
-			/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still
-			   after releasing modifer key */
-			//t->redraw = 1;
-			break;
 		case MIDDLEMOUSE:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
 				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
@@ -971,12 +973,27 @@ void transformEvent(TransInfo *t, wmEvent *event)
 ////			if (t->options & CTX_TWEAK)
 //				t->state = TRANS_CONFIRM;
 //			break;
+		default:
+			handled = 0;
+			break;
+		}
+
+		/* confirm transform if launch key is released after mouse move */
+		/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
+		if (event->type == LEFTMOUSE /*t->launch_event*/ && t->state != TRANS_STARTING)
+		{
+			t->state = TRANS_CONFIRM;
 		}
 	}
 
 	// Per transform event, if present
 	if (t->handleEvent)
 		t->redraw |= t->handleEvent(t, event);
+
+	if (handled || t->redraw)
+		return 0;
+	else
+		return OPERATOR_PASS_THROUGH;
 }
 
 int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float *vec)
@@ -1112,11 +1129,11 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 		VECCOPY(vecrot, t->center);
 		if(t->flag & T_EDIT) {
 			Object *ob= t->obedit;
-			if(ob) Mat4MulVecfl(ob->obmat, vecrot);
+			if(ob) mul_m4_v3(ob->obmat, vecrot);
 		}
 		else if(t->flag & T_POSE) {
 			Object *ob=t->poseobj;
-			if(ob) Mat4MulVecfl(ob->obmat, vecrot);
+			if(ob) mul_m4_v3(ob->obmat, vecrot);
 		}
 
 		projectFloatView(t, vecrot, cent);	// no overflow in extreme cases
@@ -1280,28 +1297,30 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
-	if (t->flag & T_MODAL)
-	{
+	if (t->flag & T_MODAL) {
+
 		/* save settings if not set in operator */
-		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional")) {
 			ts->proportional = proportional;
 		}
 
-		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size")) {
 			ts->proportional_size = t->prop_size;
 		}
 			
-		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff")) {
 			ts->prop_mode = t->prop_mode;
 		}
 		
-		if(t->spacetype == SPACE_VIEW3D)
-		{
-			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation"))
-			{
+		/* do we check for parameter? */
+		if (t->modifiers & MOD_SNAP) {
+			ts->snap_flag |= SCE_SNAP;
+		} else {
+			ts->snap_flag &= ~SCE_SNAP;
+		}
+
+		if(t->spacetype == SPACE_VIEW3D) {
+			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation")) {
 				View3D *v3d = t->view;
 	
 				v3d->twmode = t->current_orientation;
@@ -1348,11 +1367,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
-	t->state = TRANS_RUNNING;
+	t->state = TRANS_STARTING;
 
 	t->options = options;
 
 	t->mode = mode;
+
+	t->launch_event = event ? event->type : -1;
 
 	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
 	{
@@ -1368,12 +1389,12 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
-		Mat3One(t->spacemtx);
+		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 	}
 	else
-		Mat3One(t->spacemtx);
+		unit_m3(t->spacemtx);
 
 	createTransData(C, t);			// make TransData structs from selection
 
@@ -1557,7 +1578,7 @@ int transformEnd(bContext *C, TransInfo *t)
 {
 	int exit_code = OPERATOR_RUNNING_MODAL;
 
-	if (t->state != TRANS_RUNNING)
+	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING)
 	{
 		/* handle restoring objects */
 		if(t->state == TRANS_CANCEL)
@@ -1652,8 +1673,8 @@ static void protectedAxisAngleBits(short protectflag, float axis[3], float *angl
 		/* axis-angle get limited with euler... */
 		float eul[3], oldeul[3];
 		
-		AxisAngleToEulO(axis, *angle, eul, EULER_ORDER_DEFAULT);
-		AxisAngleToEulO(oldAxis, oldAngle, oldeul, EULER_ORDER_DEFAULT);
+		axis_angle_to_eulO( eul, EULER_ORDER_DEFAULT,axis, *angle);
+		axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,oldAxis, oldAngle);
 		
 		if (protectflag & OB_LOCK_ROTX)
 			eul[0]= oldeul[0];
@@ -1662,7 +1683,7 @@ static void protectedAxisAngleBits(short protectflag, float axis[3], float *angl
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
 		
-		EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, axis, angle);
+		eulO_to_axis_angle( axis, angle,eul, EULER_ORDER_DEFAULT);
 		
 		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
 		if (IS_EQ(axis[0], axis[1]) && IS_EQ(axis[1], axis[2])) {
@@ -1695,8 +1716,8 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 		float eul[3], oldeul[3], quat1[4];
 		
 		QUATCOPY(quat1, quat);
-		QuatToEul(quat, eul);
-		QuatToEul(oldquat, oldeul);
+		quat_to_eul( eul,quat);
+		quat_to_eul( oldeul,oldquat);
 		
 		if (protectflag & OB_LOCK_ROTX)
 			eul[0]= oldeul[0];
@@ -1705,11 +1726,11 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
 		
-		EulToQuat(eul, quat);
+		eul_to_quat( quat,eul);
 		
 		/* quaternions flip w sign to accumulate rotations correctly */
 		if ( (quat1[0]<0.0f && quat[0]>0.0f) || (quat1[0]>0.0f && quat[0]<0.0f) ) {
-			QuatMulf(quat, -1.0f);
+			mul_qt_fl(quat, -1.0f);
 		}
 	}
 }
@@ -1728,7 +1749,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		 *	- current space should be local
 		 */
 		memset(&cob, 0, sizeof(bConstraintOb));
-		Mat4One(cob.matrix);
+		unit_m4(cob.matrix);
 		VECCOPY(cob.matrix[3], td->loc);
 		
 		/* Evaluate valid constraints */
@@ -1749,8 +1770,8 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					Mat4CpyMat4(tmat, cob.matrix);
-					Mat4MulMat34(cob.matrix, td->mtx, tmat);
+					copy_m4_m4(tmat, cob.matrix);
+					mul_m4_m3m4(cob.matrix, td->mtx, tmat);
 				}
 				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
 					/* skip... incompatable spacetype */
@@ -1763,8 +1784,8 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					Mat4CpyMat4(tmat, cob.matrix);
-					Mat4MulMat34(cob.matrix, td->smtx, tmat);
+					copy_m4_m4(tmat, cob.matrix);
+					mul_m4_m3m4(cob.matrix, td->smtx, tmat);
 				}
 			}
 		}
@@ -1789,21 +1810,21 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 		if (td->rotOrder == ROT_MODE_QUAT) {
 			/* quats */
 			if (td->ext)
-				QuatToMat4(td->ext->quat, cob.matrix);
+				quat_to_mat4( cob.matrix,td->ext->quat);
 			else
 				return;
 		}
 		else if (td->rotOrder == ROT_MODE_AXISANGLE) {
 			/* axis angle */
 			if (td->ext)
-				AxisAngleToMat4(&td->ext->quat[1], td->ext->quat[0], cob.matrix);
+				axis_angle_to_mat4( cob.matrix,&td->ext->quat[1], td->ext->quat[0]);
 			else
 				return;
 		}
 		else {
 			/* eulers */
 			if (td->ext)
-				EulOToMat4(td->ext->rot, td->rotOrder, cob.matrix);
+				eulO_to_mat4( cob.matrix,td->ext->rot, td->rotOrder);
 			else
 				return;
 		}
@@ -1826,8 +1847,8 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					Mat4CpyMat4(tmat, cob.matrix);
-					Mat4MulMat34(cob.matrix, td->mtx, tmat);
+					copy_m4_m4(tmat, cob.matrix);
+					mul_m4_m3m4(cob.matrix, td->mtx, tmat);
 				}
 				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
 					/* skip... incompatable spacetype */
@@ -1840,8 +1861,8 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					Mat4CpyMat4(tmat, cob.matrix);
-					Mat4MulMat34(cob.matrix, td->smtx, tmat);
+					copy_m4_m4(tmat, cob.matrix);
+					mul_m4_m3m4(cob.matrix, td->smtx, tmat);
 				}
 			}
 		}
@@ -1849,15 +1870,15 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 		/* copy results from cob->matrix */
 		if (td->rotOrder == ROT_MODE_QUAT) {
 			/* quats */
-			Mat4ToQuat(cob.matrix, td->ext->quat);
+			mat4_to_quat( td->ext->quat,cob.matrix);
 		}
 		else if (td->rotOrder == ROT_MODE_AXISANGLE) {
 			/* axis angle */
-			Mat4ToAxisAngle(cob.matrix, &td->ext->quat[1], &td->ext->quat[0]);
+			mat4_to_axis_angle( &td->ext->quat[1], &td->ext->quat[0],cob.matrix);
 		}
 		else {
 			/* eulers */
-			Mat4ToEulO(cob.matrix, td->ext->rot, td->rotOrder);
+			mat4_to_eulO( td->ext->rot, td->rotOrder,cob.matrix);
 		}
 	}
 }
@@ -1883,7 +1904,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			if (td->flag & TD_SINGLESIZE)
 				return;
 			
-			SizeToMat4(td->ext->size, cob.matrix);
+			size_to_mat4( cob.matrix,td->ext->size);
 		}
 		
 		/* Evaluate valid constraints */
@@ -1904,8 +1925,8 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					Mat4CpyMat4(tmat, cob.matrix);
-					Mat4MulMat34(cob.matrix, td->mtx, tmat);
+					copy_m4_m4(tmat, cob.matrix);
+					mul_m4_m3m4(cob.matrix, td->mtx, tmat);
 				}
 				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
 					/* skip... incompatable spacetype */
@@ -1918,8 +1939,8 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					Mat4CpyMat4(tmat, cob.matrix);
-					Mat4MulMat34(cob.matrix, td->smtx, tmat);
+					copy_m4_m4(tmat, cob.matrix);
+					mul_m4_m3m4(cob.matrix, td->smtx, tmat);
 				}
 			}
 		}
@@ -1934,7 +1955,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			if (td->flag & TD_SINGLESIZE)
 				return;
 			
-			Mat4ToSize(cob.matrix, td->ext->size);
+			mat4_to_size( td->ext->size,cob.matrix);
 		}
 	}
 }
@@ -1964,11 +1985,11 @@ void initWarp(TransInfo *t)
 	for(i = 0; i < t->total; i++) {
 		float center[3];
 		VECCOPY(center, t->data[i].center);
-		Mat3MulVecfl(t->data[i].mtx, center);
-		Mat4MulVecfl(t->viewmat, center);
-		VecSubf(center, center, t->viewmat[3]);
+		mul_m3_v3(t->data[i].mtx, center);
+		mul_m4_v3(t->viewmat, center);
+		sub_v3_v3v3(center, center, t->viewmat[3]);
 		if (i)
-			MinMax3(min, max, center);
+			minmax_v3_v3v3(min, max, center);
 		else {
 			VECCOPY(max, center);
 			VECCOPY(min, center);
@@ -2022,12 +2043,12 @@ int Warp(TransInfo *t, short mval[2])
 	VECCOPY(cursor, curs);
 	VECCOPY(gcursor, cursor);
 	if (t->flag & T_EDIT) {
-		VecSubf(cursor, cursor, t->obedit->obmat[3]);
-		VecSubf(gcursor, gcursor, t->obedit->obmat[3]);
-		Mat3MulVecfl(t->data->smtx, gcursor);
+		sub_v3_v3v3(cursor, cursor, t->obedit->obmat[3]);
+		sub_v3_v3v3(gcursor, gcursor, t->obedit->obmat[3]);
+		mul_m3_v3(t->data->smtx, gcursor);
 	}
-	Mat4MulVecfl(t->viewmat, cursor);
-	VecSubf(cursor, cursor, t->viewmat[3]);
+	mul_m4_v3(t->viewmat, cursor);
+	sub_v3_v3v3(cursor, cursor, t->viewmat[3]);
 	
 	/* amount of degrees for warp */
 	circumfac = 360.0f * t->values[0];
@@ -2065,9 +2086,9 @@ int Warp(TransInfo *t, short mval[2])
 		
 		/* translate point to center, rotate in such a way that outline==distance */
 		VECCOPY(vec, td->iloc);
-		Mat3MulVecfl(td->mtx, vec);
-		Mat4MulVecfl(t->viewmat, vec);
-		VecSubf(vec, vec, t->viewmat[3]);
+		mul_m3_v3(td->mtx, vec);
+		mul_m4_v3(t->viewmat, vec);
+		sub_v3_v3v3(vec, vec, t->viewmat[3]);
 		
 		dist= vec[0]-cursor[0];
 		
@@ -2082,13 +2103,13 @@ int Warp(TransInfo *t, short mval[2])
 		loc[1]= co*vec[1]+cursor[1];
 		loc[2]= vec[2];
 		
-		Mat4MulVecfl(t->viewinv, loc);
-		VecSubf(loc, loc, t->viewinv[3]);
-		Mat3MulVecfl(td->smtx, loc);
+		mul_m4_v3(t->viewinv, loc);
+		sub_v3_v3v3(loc, loc, t->viewinv[3]);
+		mul_m3_v3(td->smtx, loc);
 		
-		VecSubf(loc, loc, td->iloc);
-		VecMulf(loc, td->factor);
-		VecAddf(td->loc, td->iloc, loc);
+		sub_v3_v3v3(loc, loc, td->iloc);
+		mul_v3_fl(loc, td->factor);
+		add_v3_v3v3(td->loc, td->iloc, loc);
 	}
 	
 	recalcData(t);
@@ -2151,8 +2172,8 @@ int Shear(TransInfo *t, short mval[2])
 	int i;
 	char str[50];
 	
-	Mat3CpyMat4(persmat, t->viewmat);
-	Mat3Inv(persinv, persmat);
+	copy_m3_m4(persmat, t->viewmat);
+	invert_m3_m3(persinv, persmat);
 	
 	value = 0.05f * t->values[0];
 	
@@ -2173,7 +2194,7 @@ int Shear(TransInfo *t, short mval[2])
 		sprintf(str, "Shear: %.3f %s", value, t->proptext);
 	}
 	
-	Mat3One(smat);
+	unit_m3(smat);
 	
 	// Custom data signals shear direction
 	if (t->customData == 0)
@@ -2181,8 +2202,8 @@ int Shear(TransInfo *t, short mval[2])
 	else
 		smat[0][1] = value;
 	
-	Mat3MulMat3(tmat, smat, persmat);
-	Mat3MulMat3(totmat, persinv, tmat);
+	mul_m3_m3m3(tmat, smat, persmat);
+	mul_m3_m3m3(totmat, persinv, tmat);
 	
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -2193,22 +2214,22 @@ int Shear(TransInfo *t, short mval[2])
 		
 		if (t->obedit) {
 			float mat3[3][3];
-			Mat3MulMat3(mat3, totmat, td->mtx);
-			Mat3MulMat3(tmat, td->smtx, mat3);
+			mul_m3_m3m3(mat3, totmat, td->mtx);
+			mul_m3_m3m3(tmat, td->smtx, mat3);
 		}
 		else {
-			Mat3CpyMat3(tmat, totmat);
+			copy_m3_m3(tmat, totmat);
 		}
-		VecSubf(vec, td->center, t->center);
+		sub_v3_v3v3(vec, td->center, t->center);
 		
-		Mat3MulVecfl(tmat, vec);
+		mul_m3_v3(tmat, vec);
 		
-		VecAddf(vec, vec, t->center);
-		VecSubf(vec, vec, td->center);
+		add_v3_v3v3(vec, vec, t->center);
+		sub_v3_v3v3(vec, vec, td->center);
 		
-		VecMulf(vec, td->factor);
+		mul_v3_fl(vec, td->factor);
 		
-		VecAddf(td->loc, td->iloc, vec);
+		add_v3_v3v3(td->loc, td->iloc, vec);
 	}
 	
 	recalcData(t);
@@ -2281,12 +2302,12 @@ static void TransMat3ToSize( float mat[][3], float smat[][3], float *size)
 {
 	float vec[3];
 	
-	VecCopyf(vec, mat[0]);
-	size[0]= Normalize(vec);
-	VecCopyf(vec, mat[1]);
-	size[1]= Normalize(vec);
-	VecCopyf(vec, mat[2]);
-	size[2]= Normalize(vec);
+	copy_v3_v3(vec, mat[0]);
+	size[0]= normalize_v3(vec);
+	copy_v3_v3(vec, mat[1]);
+	size[1]= normalize_v3(vec);
+	copy_v3_v3(vec, mat[2]);
+	size[2]= normalize_v3(vec);
 	
 	/* first tried with dotproduct... but the sign flip is crucial */
 	if( VECSIGNFLIP(mat[0], smat[0]) ) size[0]= -size[0];
@@ -2300,11 +2321,11 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	float vec[3];
 	
 	if (t->flag & T_EDIT) {
-		Mat3MulMat3(smat, mat, td->mtx);
-		Mat3MulMat3(tmat, td->smtx, smat);
+		mul_m3_m3m3(smat, mat, td->mtx);
+		mul_m3_m3m3(tmat, td->smtx, smat);
 	}
 	else {
-		Mat3CpyMat3(tmat, mat);
+		copy_m3_m3(tmat, mat);
 	}
 	
 	if (t->con.applySize) {
@@ -2339,13 +2360,13 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		if (t->flag & (T_OBJECT|T_TEXTURE|T_POSE)) {
 			float obsizemat[3][3];
 			// Reorient the size mat to fit the oriented object.
-			Mat3MulMat3(obsizemat, tmat, td->axismtx);
-			//printmatrix3("obsizemat", obsizemat);
+			mul_m3_m3m3(obsizemat, tmat, td->axismtx);
+			//print_m3("obsizemat", obsizemat);
 			TransMat3ToSize(obsizemat, td->axismtx, fsize);
-			//printvecf("fsize", fsize);
+			//print_v3("fsize", fsize);
 		}
 		else {
-			Mat3ToSize(tmat, fsize);
+			mat3_to_size( fsize,tmat);
 		}
 		
 		protectedSizeBits(td->protectflag, fsize);
@@ -2375,26 +2396,26 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	
 	/* For individual element center, Editmode need to use iloc */
 	if (t->flag & T_POINTS)
-		VecSubf(vec, td->iloc, center);
+		sub_v3_v3v3(vec, td->iloc, center);
 	else
-		VecSubf(vec, td->center, center);
+		sub_v3_v3v3(vec, td->center, center);
 	
-	Mat3MulVecfl(tmat, vec);
+	mul_m3_v3(tmat, vec);
 	
-	VecAddf(vec, vec, center);
+	add_v3_v3v3(vec, vec, center);
 	if (t->flag & T_POINTS)
-		VecSubf(vec, vec, td->iloc);
+		sub_v3_v3v3(vec, vec, td->iloc);
 	else
-		VecSubf(vec, vec, td->center);
+		sub_v3_v3v3(vec, vec, td->center);
 	
-	VecMulf(vec, td->factor);
+	mul_v3_fl(vec, td->factor);
 	
 	if (t->flag & (T_OBJECT|T_POSE)) {
-		Mat3MulVecfl(td->smtx, vec);
+		mul_m3_v3(td->smtx, vec);
 	}
 	
 	protectedTransBits(td->protectflag, vec);
-	VecAddf(td->loc, td->iloc, vec);
+	add_v3_v3v3(td->loc, td->iloc, vec);
 	
 	constraintTransLim(t, td);
 }
@@ -2435,13 +2456,13 @@ int Resize(TransInfo *t, short mval[2])
 	
 	VECCOPY(t->values, size);
 	
-	SizeToMat3(size, mat);
+	size_to_mat3( mat,size);
 	
 	if (t->con.applySize) {
 		t->con.applySize(t, NULL, mat);
 	}
 	
-	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	copy_m3_m3(t->mat, mat);	// used in manipulator
 	
 	headerResize(t, size, str);
 	
@@ -2457,7 +2478,7 @@ int Resize(TransInfo *t, short mval[2])
 	
 	/* evil hack - redo resize if cliping needed */
 	if (t->flag & T_CLIP_UV && clipUVTransform(t, size, 1)) {
-		SizeToMat3(size, mat);
+		size_to_mat3( mat,size);
 		
 		if (t->con.applySize)
 			t->con.applySize(t, NULL, mat);
@@ -2496,7 +2517,7 @@ void initToSphere(TransInfo *t)
 	
 	// Calculate average radius
 	for(i = 0 ; i < t->total; i++, td++) {
-		t->val += VecLenf(t->center, td->iloc);
+		t->val += len_v3v3(t->center, td->iloc);
 	}
 	
 	t->val /= (float)t->total;
@@ -2543,15 +2564,15 @@ int ToSphere(TransInfo *t, short mval[2])
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		VecSubf(vec, td->iloc, t->center);
+		sub_v3_v3v3(vec, td->iloc, t->center);
 		
-		radius = Normalize(vec);
+		radius = normalize_v3(vec);
 		
 		tratio = ratio * td->factor;
 		
-		VecMulf(vec, radius * (1.0f - tratio) + t->val * tratio);
+		mul_v3_fl(vec, radius * (1.0f - tratio) + t->val * tratio);
 		
-		VecAddf(td->loc, t->center, vec);
+		add_v3_v3v3(td->loc, t->center, vec);
 	}
 	
 	
@@ -2604,25 +2625,25 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 	}
 	
 	if (t->flag & T_POINTS) {
-		Mat3MulMat3(totmat, mat, td->mtx);
-		Mat3MulMat3(smat, td->smtx, totmat);
+		mul_m3_m3m3(totmat, mat, td->mtx);
+		mul_m3_m3m3(smat, td->smtx, totmat);
 		
-		VecSubf(vec, td->iloc, center);
-		Mat3MulVecfl(smat, vec);
+		sub_v3_v3v3(vec, td->iloc, center);
+		mul_m3_v3(smat, vec);
 		
-		VecAddf(td->loc, vec, center);
+		add_v3_v3v3(td->loc, vec, center);
 		
-		VecSubf(vec,td->loc,td->iloc);
+		sub_v3_v3v3(vec,td->loc,td->iloc);
 		protectedTransBits(td->protectflag, vec);
-		VecAddf(td->loc, td->iloc, vec);
+		add_v3_v3v3(td->loc, td->iloc, vec);
 		
 		
 		if(td->flag & TD_USEQUAT) {
-			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-			Mat3ToQuat(fmat, quat);	// Actual transform
+			mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+			mat3_to_quat( quat,fmat);	// Actual transform
 			
 			if(td->ext->quat){
-				QuatMul(td->ext->quat, quat, td->ext->iquat);
+				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				
 				/* is there a reason not to have this here? -jahka */
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
@@ -2645,28 +2666,28 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		float pmtx[3][3], imtx[3][3];
 		
 		// Extract and invert armature object matrix
-		Mat3CpyMat4(pmtx, t->poseobj->obmat);
-		Mat3Inv(imtx, pmtx);
+		copy_m3_m4(pmtx, t->poseobj->obmat);
+		invert_m3_m3(imtx, pmtx);
 		
 		if ((td->flag & TD_NO_LOC) == 0)
 		{
-			VecSubf(vec, td->center, center);
+			sub_v3_v3v3(vec, td->center, center);
 			
-			Mat3MulVecfl(pmtx, vec);	// To Global space
-			Mat3MulVecfl(mat, vec);		// Applying rotation
-			Mat3MulVecfl(imtx, vec);	// To Local space
+			mul_m3_v3(pmtx, vec);	// To Global space
+			mul_m3_v3(mat, vec);		// Applying rotation
+			mul_m3_v3(imtx, vec);	// To Local space
 			
-			VecAddf(vec, vec, center);
+			add_v3_v3v3(vec, vec, center);
 			/* vec now is the location where the object has to be */
 			
-			VecSubf(vec, vec, td->center); // Translation needed from the initial location
+			sub_v3_v3v3(vec, vec, td->center); // Translation needed from the initial location
 			
-			Mat3MulVecfl(pmtx, vec);	// To Global space
-			Mat3MulVecfl(td->smtx, vec);// To Pose space
+			mul_m3_v3(pmtx, vec);	// To Global space
+			mul_m3_v3(td->smtx, vec);// To Pose space
 			
 			protectedTransBits(td->protectflag, vec);
 			
-			VecAddf(td->loc, td->iloc, vec);
+			add_v3_v3v3(td->loc, td->iloc, vec);
 			
 			constraintTransLim(t, td);
 		}
@@ -2675,11 +2696,11 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion/axis-angle? */
 			if (td->rotOrder == ROT_MODE_QUAT) {
-				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+				mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				
-				Mat3ToQuat(fmat, quat);	// Actual transform
+				mat3_to_quat( quat,fmat);	// Actual transform
 				
-				QuatMul(td->ext->quat, quat, td->ext->iquat);
+				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				/* this function works on end result */
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 				
@@ -2688,13 +2709,13 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				/* calculate effect based on quats */
 				float iquat[4], tquat[4];
 				
-				AxisAngleToQuat(iquat, td->ext->irotAxis, td->ext->irotAngle);
+				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
-				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-				Mat3ToQuat(fmat, quat);	// Actual transform
-				QuatMul(tquat, quat, iquat);
+				mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+				mat3_to_quat( quat,fmat);	// Actual transform
+				mul_qt_qtqt(tquat, quat, iquat);
 				
-				QuatToAxisAngle(tquat, td->ext->rotAxis, td->ext->rotAngle); 
+				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,tquat); 
 				
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
@@ -2702,17 +2723,17 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			else { 
 				float eulmat[3][3];
 				
-				Mat3MulMat3(totmat, mat, td->mtx);
-				Mat3MulMat3(smat, td->smtx, totmat);
+				mul_m3_m3m3(totmat, mat, td->mtx);
+				mul_m3_m3m3(smat, td->smtx, totmat);
 				
 				/* calculate the total rotatation in eulers */
 				VECCOPY(eul, td->ext->irot);
-				EulOToMat3(eul, td->rotOrder, eulmat);
+				eulO_to_mat3( eulmat,eul, td->rotOrder);
 				
 				/* mat = transform, obmat = bone rotation */
-				Mat3MulMat3(fmat, smat, eulmat);
+				mul_m3_m3m3(fmat, smat, eulmat);
 				
-				Mat3ToCompatibleEulO(fmat, eul, td->ext->rot, td->rotOrder);
+				mat3_to_compatible_eulO( eul, td->ext->rot, td->rotOrder,fmat);
 				
 				/* and apply (to end result only) */
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
@@ -2726,16 +2747,16 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		if ((td->flag & TD_NO_LOC) == 0)
 		{
 			/* translation */
-			VecSubf(vec, td->center, center);
-			Mat3MulVecfl(mat, vec);
-			VecAddf(vec, vec, center);
+			sub_v3_v3v3(vec, td->center, center);
+			mul_m3_v3(mat, vec);
+			add_v3_v3v3(vec, vec, center);
 			/* vec now is the location where the object has to be */
-			VecSubf(vec, vec, td->center);
-			Mat3MulVecfl(td->smtx, vec);
+			sub_v3_v3v3(vec, vec, td->center);
+			mul_m3_v3(td->smtx, vec);
 			
 			protectedTransBits(td->protectflag, vec);
 			
-			VecAddf(td->loc, td->iloc, vec);
+			add_v3_v3v3(td->loc, td->iloc, vec);
 		}
 		
 		
@@ -2745,10 +2766,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion? */
  	  	    if ((td->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
-				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-				Mat3ToQuat(fmat, quat);	// Actual transform
+				mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+				mat3_to_quat( quat,fmat);	// Actual transform
 				
-				QuatMul(td->ext->quat, quat, td->ext->iquat);
+				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				/* this function works on end result */
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 			}
@@ -2756,13 +2777,13 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				/* calculate effect based on quats */
 				float iquat[4], tquat[4];
 				
-				AxisAngleToQuat(iquat, td->ext->irotAxis, td->ext->irotAngle);
+				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
-				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-				Mat3ToQuat(fmat, quat);	// Actual transform
-				QuatMul(tquat, quat, iquat);
+				mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+				mat3_to_quat( quat,fmat);	// Actual transform
+				mul_qt_qtqt(tquat, quat, iquat);
 				
-				QuatToAxisAngle(quat, td->ext->rotAxis, td->ext->rotAngle); 
+				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,quat); 
 				
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
@@ -2770,19 +2791,19 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			else {
 				float obmat[3][3];
 				
-				Mat3MulMat3(totmat, mat, td->mtx);
-				Mat3MulMat3(smat, td->smtx, totmat);
+				mul_m3_m3m3(totmat, mat, td->mtx);
+				mul_m3_m3m3(smat, td->smtx, totmat);
 				
 				/* calculate the total rotatation in eulers */
-				VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
-				EulOToMat3(eul, td->rotOrder, obmat);
+				add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
+				eulO_to_mat3( obmat,eul, td->rotOrder);
 				/* mat = transform, obmat = object rotation */
-				Mat3MulMat3(fmat, smat, obmat);
+				mul_m3_m3m3(fmat, smat, obmat);
 				
-				Mat3ToCompatibleEulO(fmat, eul, td->ext->rot, td->rotOrder);
+				mat3_to_compatible_eulO( eul, td->ext->rot, td->rotOrder,fmat);
 				
 				/* correct back for delta rot */
-				VecSubf(eul, eul, td->ext->drot);
+				sub_v3_v3v3(eul, eul, td->ext->drot);
 				
 				/* and apply */
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
@@ -2800,7 +2821,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	float mat[3][3];
 	int i;
 	
-	VecRotToMat3(axis, angle, mat);
+	vec_rot_to_mat3( mat,axis, angle);
 	
 	for(i = 0 ; i < t->total; i++, td++) {
 		
@@ -2812,10 +2833,10 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		
 		if (t->con.applyRot) {
 			t->con.applyRot(t, td, axis, NULL);
-			VecRotToMat3(axis, angle * td->factor, mat);
+			vec_rot_to_mat3( mat,axis, angle * td->factor);
 		}
 		else if (t->flag & T_PROP_EDIT) {
-			VecRotToMat3(axis, angle * td->factor, mat);
+			vec_rot_to_mat3( mat,axis, angle * td->factor);
 		}
 		
 		ElementRotation(t, td, mat, t->around);
@@ -2832,8 +2853,8 @@ int Rotation(TransInfo *t, short mval[2])
 	float mat[3][3];
 	
 	VECCOPY(axis, t->viewinv[2]);
-	VecMulf(axis, -1.0f);
-	Normalize(axis);
+	mul_v3_fl(axis, -1.0f);
+	normalize_v3(axis);
 	
 	final = t->values[0];
 	
@@ -2869,11 +2890,11 @@ int Rotation(TransInfo *t, short mval[2])
 		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
 	}
 	
-	VecRotToMat3(axis, final, mat);
+	vec_rot_to_mat3( mat,axis, final);
 	
 	// TRANSFORM_FIX_ME
 //	t->values[0] = final;		// used in manipulator
-//	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+//	copy_m3_m3(t->mat, mat);	// used in manipulator
 	
 	applyRotation(t, final, axis);
 	
@@ -2914,10 +2935,10 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 	float mat[3][3], smat[3][3], totmat[3][3];
 	int i;
 
-	VecRotToMat3(axis1, angles[0], smat);
-	VecRotToMat3(axis2, angles[1], totmat);
+	vec_rot_to_mat3( smat,axis1, angles[0]);
+	vec_rot_to_mat3( totmat,axis2, angles[1]);
 
-	Mat3MulMat3(mat, smat, totmat);
+	mul_m3_m3m3(mat, smat, totmat);
 
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -2927,10 +2948,10 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			continue;
 
 		if (t->flag & T_PROP_EDIT) {
-			VecRotToMat3(axis1, td->factor * angles[0], smat);
-			VecRotToMat3(axis2, td->factor * angles[1], totmat);
+			vec_rot_to_mat3( smat,axis1, td->factor * angles[0]);
+			vec_rot_to_mat3( totmat,axis2, td->factor * angles[1]);
 
-			Mat3MulMat3(mat, smat, totmat);
+			mul_m3_m3m3(mat, smat, totmat);
 		}
 
 		ElementRotation(t, td, mat, t->around);
@@ -2946,8 +2967,8 @@ int Trackball(TransInfo *t, short mval[2])
 
 	VECCOPY(axis1, t->persinv[0]);
 	VECCOPY(axis2, t->persinv[1]);
-	Normalize(axis1);
-	Normalize(axis2);
+	normalize_v3(axis1);
+	normalize_v3(axis2);
 
 	phi[0] = t->values[0];
 	phi[1] = t->values[1];
@@ -2972,13 +2993,13 @@ int Trackball(TransInfo *t, short mval[2])
 		sprintf(str, "Trackball: %.2f %.2f %s", 180.0*phi[0]/M_PI, 180.0*phi[1]/M_PI, t->proptext);
 	}
 
-	VecRotToMat3(axis1, phi[0], smat);
-	VecRotToMat3(axis2, phi[1], totmat);
+	vec_rot_to_mat3( smat,axis1, phi[0]);
+	vec_rot_to_mat3( totmat,axis2, phi[1]);
 
-	Mat3MulMat3(mat, smat, totmat);
+	mul_m3_m3m3(mat, smat, totmat);
 
 	// TRANSFORM_FIX_ME
-	//Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	//copy_m3_m3(t->mat, mat);	// used in manipulator
 
 	applyTrackball(t, axis1, axis2, phi);
 
@@ -3030,7 +3051,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
-		dist = VecLength(t->num.val);
+		dist = len_v3(t->num.val);
 	}
 	else {
 		float dvec[3];
@@ -3038,7 +3059,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		VECCOPY(dvec, vec);
 		applyAspectRatio(t, dvec);
 
-		dist = VecLength(vec);
+		dist = len_v3(vec);
 		if(t->scene->unit.system) {
 			int i, do_split= t->scene->unit.flag & USER_UNIT_OPT_SPLIT ? 1:0;
 
@@ -3113,12 +3134,12 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 				float mat[3][3];
 				float angle;
 				
-				Crossf(axis, original_normal, t->tsnap.snapNormal);
-				angle = saacos(Inpf(original_normal, t->tsnap.snapNormal));
+				cross_v3_v3v3(axis, original_normal, t->tsnap.snapNormal);
+				angle = saacos(dot_v3v3(original_normal, t->tsnap.snapNormal));
 				
-				AxisAngleToQuat(quat, axis, angle);
+				axis_angle_to_quat(quat, axis, angle);
 				
-				QuatToMat3(quat, mat);
+				quat_to_mat3( mat,quat);
 				
 				ElementRotation(t, td, mat, V3D_LOCAL);
 			}
@@ -3126,7 +3147,7 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 			{
 				float mat[3][3];
 				
-				Mat3One(mat);
+				unit_m3(mat);
 				
 				ElementRotation(t, td, mat, V3D_LOCAL);
 			}
@@ -3140,12 +3161,12 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 			VECCOPY(tvec, vec);
 		}
 		
-		Mat3MulVecfl(td->smtx, tvec);
-		VecMulf(tvec, td->factor);
+		mul_m3_v3(td->smtx, tvec);
+		mul_v3_fl(tvec, td->factor);
 		
 		protectedTransBits(td->protectflag, tvec);
 		
-		VecAddf(td->loc, td->iloc, tvec);
+		add_v3_v3v3(td->loc, td->iloc, tvec);
 		
 		constraintTransLim(t, td);
 	}
@@ -3252,10 +3273,10 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 			continue;
 
 		VECCOPY(vec, td->axismtx[2]);
-		VecMulf(vec, distance);
-		VecMulf(vec, td->factor);
+		mul_v3_fl(vec, distance);
+		mul_v3_fl(vec, td->factor);
 
-		VecAddf(td->loc, td->iloc, vec);
+		add_v3_v3v3(td->loc, td->iloc, vec);
 	}
 
 	recalcData(t);
@@ -3462,23 +3483,23 @@ int PushPull(TransInfo *t, short mval[2])
 		if (td->flag & TD_SKIP)
 			continue;
 
-		VecSubf(vec, t->center, td->center);
+		sub_v3_v3v3(vec, t->center, td->center);
 		if (t->con.applyRot && t->con.mode & CON_APPLY) {
 			t->con.applyRot(t, td, axis, NULL);
 			if (isLockConstraint(t)) {
 				float dvec[3];
-				Projf(dvec, vec, axis);
-				VecSubf(vec, vec, dvec);
+				project_v3_v3v3(dvec, vec, axis);
+				sub_v3_v3v3(vec, vec, dvec);
 			}
 			else {
-				Projf(vec, vec, axis);
+				project_v3_v3v3(vec, vec, axis);
 			}
 		}
-		Normalize(vec);
-		VecMulf(vec, distance);
-		VecMulf(vec, td->factor);
+		normalize_v3(vec);
+		mul_v3_fl(vec, distance);
+		mul_v3_fl(vec, td->factor);
 
-		VecAddf(td->loc, td->iloc, vec);
+		add_v3_v3v3(td->loc, td->iloc, vec);
 	}
 
 	recalcData(t);
@@ -3791,8 +3812,8 @@ static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3])
 	float tmat[3][3], smat[3][3], oldy;
 	float sizemat[3][3];
 
-	Mat3MulMat3(smat, mat, td->mtx);
-	Mat3MulMat3(tmat, td->smtx, smat);
+	mul_m3_m3m3(smat, mat, td->mtx);
+	mul_m3_m3m3(tmat, td->smtx, smat);
 
 	if (t->con.applySize) {
 		t->con.applySize(t, td, tmat);
@@ -3800,9 +3821,9 @@ static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3])
 
 	/* we've tucked the scale in loc */
 	oldy= td->iloc[1];
-	SizeToMat3(td->iloc, sizemat);
-	Mat3MulMat3(tmat, tmat, sizemat);
-	Mat3ToSize(tmat, td->loc);
+	size_to_mat3( sizemat,td->iloc);
+	mul_m3_m3m3(tmat, tmat, sizemat);
+	mat3_to_size( td->loc,tmat);
 	td->loc[1]= oldy;
 }
 
@@ -3834,13 +3855,13 @@ int BoneSize(TransInfo *t, short mval[2])
 		constraintNumInput(t, size);
 	}
 	
-	SizeToMat3(size, mat);
+	size_to_mat3( mat,size);
 	
 	if (t->con.applySize) {
 		t->con.applySize(t, NULL, mat);
 	}
 	
-	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	copy_m3_m3(t->mat, mat);	// used in manipulator
 	
 	headerBoneSize(t, size, str);
 	
@@ -3955,7 +3976,7 @@ static int createSlideVerts(TransInfo *t)
 
 	if (!v3d) {
 		/*ok, let's try to survive this*/
-		Mat4One(projectMat);
+		unit_m4(projectMat);
 	} else {
 		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
 	}
@@ -4248,12 +4269,12 @@ static int createSlideVerts(TransInfo *t)
 				}
 
 				if (ev == tempsv->up->v1) {
-					VecSubf(vec, co, co2);
+					sub_v3_v3v3(vec, co, co2);
 				} else {
-					VecSubf(vec, co2, co);
+					sub_v3_v3v3(vec, co2, co);
 				}
 
-				VecAddf(start, start, vec);
+				add_v3_v3v3(start, start, vec);
 
 				if (v3d) {
 					view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
@@ -4261,12 +4282,12 @@ static int createSlideVerts(TransInfo *t)
 				}
 
 				if (ev == tempsv->down->v1) {
-					VecSubf(vec, co2, co);
+					sub_v3_v3v3(vec, co2, co);
 				} else {
-					VecSubf(vec, co, co2);
+					sub_v3_v3v3(vec, co, co2);
 				}
 
-				VecAddf(end, end, vec);
+				add_v3_v3v3(end, end, vec);
 
 				totvec += 1.0f;
 				nearest = (EditVert*)look->link;
@@ -4278,12 +4299,12 @@ static int createSlideVerts(TransInfo *t)
 		look = look->next;
 	}
 
-	VecAddf(start, start, end);
-	VecMulf(start, 0.5*(1.0/totvec));
+	add_v3_v3v3(start, start, end);
+	mul_v3_fl(start, 0.5*(1.0/totvec));
 	VECCOPY(vec, start);
 	start[0] = t->mval[0];
 	start[1] = t->mval[1];
-	VecAddf(end, start, vec);
+	add_v3_v3v3(end, start, vec);
 	
 	sld->start[0] = (short) start[0];
 	sld->start[1] = (short) start[1];
@@ -4444,8 +4465,9 @@ void initEdgeSlide(TransInfo *t)
 
 	t->customFree = freeSlideVerts;
 
-	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
+	/* set custom point first if you want value to be initialized by init */
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
+	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
@@ -4484,7 +4506,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 	upVert = editedge_getOtherVert(tempsv->up, centerVert);
 	downVert = editedge_getOtherVert(tempsv->down, centerVert);
 
-	len = MIN2(perc, VecLenf(upVert->co,downVert->co));
+	len = MIN2(perc, len_v3v3(upVert->co,downVert->co));
 	len = MAX2(len, 0);
 
 	//Adjust Edgeloop
@@ -4496,13 +4518,13 @@ int doEdgeSlide(TransInfo *t, float perc)
 			tempsv = BLI_ghash_lookup(vertgh,ev);
 
 			tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
-			VecLerpf(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
+			interp_v3_v3v3(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
 
 			if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
 				for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 					suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
 					if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-						Vec2Lerpf(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
+						interp_v2_v2v2(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
 						fuv_link = suv->fuv_list;
 						while (fuv_link) {
 							VECCOPY2D(((float *)fuv_link->link), uv_tmp);
@@ -4522,17 +4544,17 @@ int doEdgeSlide(TransInfo *t, float perc)
 			float newlen;
 			ev = look->link;
 			tempsv = BLI_ghash_lookup(vertgh,ev);
-			newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
+			newlen = (len / len_v3v3(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
 			if(newlen > 1.0) {newlen = 1.0;}
 			if(newlen < 0.0) {newlen = 0.0;}
 			if(flip == 0) {
-				VecLerpf(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));
+				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));
 				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
 					/* dont do anything if no UVs */
 					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
 						if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-							Vec2Lerpf(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
+							interp_v2_v2v2(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
 							fuv_link = suv->fuv_list;
 							while (fuv_link) {
 								VECCOPY2D(((float *)fuv_link->link), uv_tmp);
@@ -4542,14 +4564,14 @@ int doEdgeSlide(TransInfo *t, float perc)
 					}
 				}
 			} else{
-				VecLerpf(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));
+				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));
 
 				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
 					/* dont do anything if no UVs */
 					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
 						if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-							Vec2Lerpf(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
+							interp_v2_v2v2(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
 							fuv_link = suv->fuv_list;
 							while (fuv_link) {
 								VECCOPY2D(((float *)fuv_link->link), uv_tmp);
@@ -4775,7 +4797,7 @@ int Mirror(TransInfo *t, short mval[2])
 	if (t->con.mode & CON_APPLY) {
 		size[0] = size[1] = size[2] = -1;
 
-		SizeToMat3(size, mat);
+		size_to_mat3( mat,size);
 
 		if (t->con.applySize) {
 			t->con.applySize(t, NULL, mat);
@@ -4801,7 +4823,7 @@ int Mirror(TransInfo *t, short mval[2])
 	{
 		size[0] = size[1] = size[2] = 1;
 
-		SizeToMat3(size, mat);
+		size_to_mat3( mat,size);
 
 		for(i = 0, td=t->data; i < t->total; i++, td++) {
 			if (td->flag & TD_NOACTION)
@@ -4864,9 +4886,9 @@ int Align(TransInfo *t, short mval[2])
 			}
 		}
 
-		Mat3Inv(invmat, td->axismtx);
+		invert_m3_m3(invmat, td->axismtx);
 
-		Mat3MulMat3(mat, t->spacemtx, invmat);
+		mul_m3_m3m3(mat, t->spacemtx, invmat);
 
 		ElementRotation(t, td, mat, t->around);
 	}
@@ -5082,7 +5104,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
 		/* check if any need to apply nla-mapping */
-		if (adt) {
+		if (adt && t->spacetype != SPACE_SEQ) {
 			deltax = t->values[0];
 
 			if (autosnap == SACTSNAP_STEP) {

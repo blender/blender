@@ -39,7 +39,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
@@ -153,17 +153,27 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_loopcut);
 }
 
+int ED_operator_editmesh_face_select(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_MESH) {
+		EditMesh *em = ((Mesh *)obedit->data)->edit_mesh;
+		if (em && em->selectmode & SCE_SELECT_FACE) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void ED_operatormacros_mesh(void)
 {
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
-
-	/*combining operators with invoke and exec portions doesn't work yet.
+	int constraint_axis[3] = {0, 0, 1};
 	
-	ot= WM_operatortype_append_macro("MESH_OT_loopcut", "Loopcut", OPTYPE_UNDO|OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "MESH_OT_edgering_select");
-	WM_operatortype_macro_define(ot, "MESH_OT_subdivide");
-	*/
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loopcut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
+	WM_operatortype_macro_define(ot, "TFM_OT_edge_slide");
 
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
@@ -174,6 +184,14 @@ void ED_operatormacros_mesh(void)
 	WM_operatortype_macro_define(ot, "MESH_OT_rip");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
+
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_move_along_normals", "Extrude Along Normals", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->poll = ED_operator_editmesh_face_select; /* restrict extrude along normals to face select */
+	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_enum_set(otmacro->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
+	RNA_boolean_set_array(otmacro->ptr, "constraint_axis", constraint_axis);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
@@ -190,7 +208,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "EditMesh", 0, 0);
 	keymap->poll= ED_operator_editmesh;
 	
-	WM_keymap_add_item(keymap, "MESH_OT_loopcut", RKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */
@@ -226,11 +244,12 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 	WM_keymap_add_item(keymap, "MESH_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-	
+
 	/* tools */
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
 	
+	WM_keymap_add_item(keymap, "MESH_OT_extrude_move_along_normals", EKEY, KM_PRESS, 0, 0); /* this first so it's selected if possible */
 	WM_keymap_add_item(keymap, "MESH_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
@@ -261,15 +280,13 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_skin", FKEY, KM_PRESS, KM_CTRL|KM_ALT, 0); /* python */
 	WM_keymap_add_item(keymap, "MESH_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "name", "INFO_MT_mesh_add");
+	WM_keymap_add_menu(keymap, "INFO_MT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_split", YKEY, KM_PRESS, 0, 0);
-						/* use KM_RELEASE because same key is used for tweaks
-						 * TEMPORARY REMAP TO ALT+CTRL TO AVOID CONFLICT 
-						 * */
-	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_RELEASE, KM_CTRL|KM_ALT, 0);
+
+	/* use KM_CLICK because same key is used for tweaks */
+	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_delete", DELKEY, KM_PRESS, 0, 0);
@@ -280,21 +297,14 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, 0, KKEY);
 
 	/* menus */
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", WKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_edit_mesh_specials");
-
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", FKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_edit_mesh_faces");
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_specials", WKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_faces", FKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_edges", EKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_vertices", VKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_uv_map", UKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_vertex_group", GKEY, KM_PRESS, KM_CTRL, 0);
 	
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", EKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_edit_mesh_edges");
-
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", VKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_edit_mesh_vertices");
-
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
-    RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_uv_map");
-
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }
 

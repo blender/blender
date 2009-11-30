@@ -105,7 +105,7 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_listbase.h"
 
 /* property update functions */
@@ -917,6 +917,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem integrator_type_items[] = {
 		{PART_INT_EULER, "EULER", 0, "Euler", ""},
+		{PART_INT_VERLET, "VERLET", 0, "Verlet", ""},
 		{PART_INT_MIDPOINT, "MIDPOINT", 0, "Midpoint", ""},
 		{PART_INT_RK4, "RK4", 0, "RK4", ""},
 		{0, NULL, 0, NULL, NULL}

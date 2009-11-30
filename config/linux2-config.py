@@ -155,15 +155,17 @@ WITH_BF_COLLADA = False
 BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
-BF_OPENCOLLADA = ''
-BF_OPENCOLLADA_LIB = 'OpenCollada'
-BF_OPENCOLLADA_LIBPATH = '/usr/lib'
+BF_OPENCOLLADA = '/usr'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre Buffer ftoa'
+BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 BF_PCRE = ''
 BF_PCRE_LIB = 'pcre'
 BF_PCRE_LIBPATH = '/usr/lib'
 BF_EXPAT = '/usr'
 BF_EXPAT_LIB = 'expat'
 BF_EXPAT_LIBPATH = '/usr/lib'
+
+WITH_BF_OPENMP = True
 
 ##
 CC = 'gcc'
@@ -173,7 +175,7 @@ CXX = 'g++'
 
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
-CPPFLAGS = ['-DXP_UNIX']
+CPPFLAGS = []
 CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']

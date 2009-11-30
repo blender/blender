@@ -1556,10 +1556,11 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 	screen->animtimer= NULL;
 	
 	if(enable) {
-		struct ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
+		ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
 		
 		screen->animtimer= WM_event_add_timer(wm, win, TIMER0, (1.0/FPS));
 		sad->ar= CTX_wm_region(C);
+		sad->sfra = scene->r.cfra;
 		sad->redraws= redraws;
 		sad->flag |= (enable < 0)? ANIMPLAY_FLAG_REVERSE: 0;
 		sad->flag |= (sync == 0)? ANIMPLAY_FLAG_NO_SYNC: (sync == 1)? ANIMPLAY_FLAG_SYNC: 0;

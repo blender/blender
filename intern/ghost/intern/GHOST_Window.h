@@ -184,6 +184,17 @@ public:
 	virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect& bounds);
 
 	/**
+	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
+	 */
+	virtual void setAcceptDragOperation(bool canAccept);
+	
+	/**
+	 * Returns acceptance of the dropped object
+	 * Usually called by the "object dropped" event handling function
+	 */
+	virtual bool canAcceptDragOperation() const;
+	
+	/**
 	 * Sets the window "modified" status, indicating unsaved changes
 	 * @param isUnsavedChanges Unsaved changes or not
 	 * @return Indication of success.
@@ -294,6 +305,9 @@ protected:
 	/** The current shape of the cursor */
 	GHOST_TStandardCursor m_cursorShape;
     
+	/** The acceptance of the "drop candidate" of the current drag'n'drop operation */
+	bool m_canAcceptDragOperation;
+	
 	/** Modified state : are there unsaved changes */
 	bool m_isUnsavedChanges;
 	

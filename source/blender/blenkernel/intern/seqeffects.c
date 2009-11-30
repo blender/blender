@@ -36,11 +36,13 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_anim_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_global.h"
+#include "BKE_fcurve.h"
 #include "BKE_plugin_types.h"
 #include "BKE_sequence.h"
 #include "BKE_texture.h"
@@ -48,6 +50,8 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+
+#include "RNA_access.h"
 
 /* **** XXX **** */
 static void error() {}
@@ -242,7 +246,6 @@ static void do_plugin_effect(Sequence * seq,int cfra,
 		
 		if(seq->plugin->cfra) 
 			*(seq->plugin->cfra)= cfra;
-// XXX			*(seq->plugin->cfra)= frame_to_float(scene, cfra);
 		
 		cp = PIL_dynlib_find_symbol(
 			seq->plugin->handle, "seqname");
@@ -2777,14 +2780,13 @@ static void store_icu_yrange_speed(struct Sequence * seq,
 		}
 	}	
 }
-
-void sequence_effect_speed_rebuild_map(Sequence * seq, int force)
+void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 {
-	float facf0 = seq->facf0;
-	//float ctime, div;
+	float ctime, div;
 	int cfra;
 	float fallback_fac;
 	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
+	FCurve *fcu= NULL;
 
 	/* if not already done, load / initialize data */
 	get_sequence_effect(seq);
@@ -2796,6 +2798,11 @@ void sequence_effect_speed_rebuild_map(Sequence * seq, int force)
 	                     input strip ... */
 		return;
 	}
+
+	/* XXX - new in 2.5x. should we use the animation system this way?
+	 * The fcurve is needed because many frames need evaluating at once - campbell */
+	fcu= id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_fader", 0);
+
 
 	if (!v->frameMap || v->length != seq->len) {
 		if (v->frameMap) MEM_freeN(v->frameMap);
@@ -2811,8 +2818,7 @@ void sequence_effect_speed_rebuild_map(Sequence * seq, int force)
 	/* if there is no IPO, try to make retiming easy by stretching the
 	   strip */
 	// XXX old animation system - seq
-	if (/*!seq->ipo &&*/ seq->seq1->enddisp != seq->seq1->start
-	    && seq->seq1->len != 0) {
+	if (!fcu && seq->seq1->enddisp != seq->seq1->start && seq->seq1->len != 0) {
 		fallback_fac = (float) seq->seq1->len / 
 			(float) (seq->seq1->enddisp - seq->seq1->start);
 		/* FIXME: this strip stretching gets screwed by stripdata
@@ -2829,32 +2835,29 @@ void sequence_effect_speed_rebuild_map(Sequence * seq, int force)
 
 	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
 		float cursor = 0;
+		float facf;
 
 		v->frameMap[0] = 0;
 		v->lastValidFrame = 0;
 
 		for (cfra = 1; cfra < v->length; cfra++) {
-#if 0 // XXX old animation system
-			if(seq->ipo) {
-				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-					ctime = frame_to_float(scene, seq->startdisp + cfra);
-					div = 1.0;
-				} else {
-					ctime= frame_to_float(scene, cfra);
-					div= v->length / 100.0f;
-					if(div==0.0) return;
-				}
-		
-				calc_ipo(seq->ipo, ctime/div);
-				execute_ipo((ID *)seq, seq->ipo);
-			} else 
-#endif // XXX old animation system
-			{
-				seq->facf0 = fallback_fac;
+			if(fcu) {
+                               if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+                                       ctime = seq->startdisp + cfra;
+				       div = 1.0;
+                               } else {
+                                       ctime= cfra;
+                                       div= v->length / 100.0f;
+                                       if(div==0.0) return;
+                               }
+			       
+			       facf = evaluate_fcurve(fcu, ctime/div);
+			} else {
+				facf = fallback_fac;
 			}
-			seq->facf0 *= v->globalSpeed;
+			facf *= v->globalSpeed;
 
-			cursor += seq->facf0;
+			cursor += facf;
 
 			if (cursor >= v->length) {
 				v->frameMap[cfra] = v->length - 1;
@@ -2864,40 +2867,39 @@ void sequence_effect_speed_rebuild_map(Sequence * seq, int force)
 			}
 		}
 	} else {
+		float facf;
+
 		v->lastValidFrame = 0;
 		for (cfra = 0; cfra < v->length; cfra++) {
-#if 0 // XXX old animation system
-			if(seq->ipo) {
-				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-					ctime = frame_to_float(scene, seq->startdisp + cfra);
-					div = 1.0;
-				} else {
-					ctime= frame_to_float(scene, cfra);
-					div= v->length / 100.0f;
-					if(div==0.0) return;
-				}
+
+			if(fcu) {
+                               if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+                                       ctime = seq->startdisp + cfra;
+                                       div = 1.0;
+                               } else {
+                                       ctime= cfra;
+                                       div= v->length / 100.0f;
+                                       if(div==0.0) return;
+                               }
 		
-				calc_ipo(seq->ipo, ctime/div);
-				execute_ipo((ID *)seq, seq->ipo);
+			       facf = evaluate_fcurve(fcu, ctime / div);
+			       if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+				       facf *= v->length;
+			       }
 			}
-#endif // XXX old animation system
 			
-			if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-				seq->facf0 *= v->length;
+			if (!fcu) {
+				facf = (float) cfra * fallback_fac;
 			}
-			if (/*!seq->ipo*/ 1) { // XXX old animation system - seq
-				seq->facf0 = (float) cfra * fallback_fac;
-			}
-			seq->facf0 *= v->globalSpeed;
-			if (seq->facf0 >= v->length) {
-				seq->facf0 = v->length - 1;
+			facf *= v->globalSpeed;
+			if (facf >= v->length) {
+				facf = v->length - 1;
 			} else {
 				v->lastValidFrame = cfra;
 			}
-			v->frameMap[cfra] = seq->facf0;
+			v->frameMap[cfra] = facf;
 		}
 	}
-	seq->facf0 = facf0;
 }
 
 /*

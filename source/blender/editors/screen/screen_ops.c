@@ -31,7 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_dlrbTree.h"
@@ -400,7 +400,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 	for(az= sa->actionzones.first; az; az= az->next) {
 		if(BLI_in_rcti(&az->rect, x, y)) {
 			if(az->type == AZONE_AREA) {
-				if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) 
+				if(isect_point_tri_v2_int(az->x1, az->y1, az->x2, az->y2, x, y)) 
 					break;
 			}
 			else if(az->type == AZONE_REGION) {
@@ -1468,6 +1468,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
+	float cfra= (scene)? (float)(CFRA) : 0.0f;
 	short next= RNA_boolean_get(op->ptr, "next");
 	
 	/* sanity checks */
@@ -1486,21 +1487,18 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	/* build linked-list for searching */
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-	/* find nearest keyframe in the right direction */
-	ak= cfra_find_nearest_next_ak(keys.root, (float)scene->r.cfra, next);
+	/* find matching keyframe in the right direction */
+	if (next)
+		ak= (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
+	else
+		ak= (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
 	
 	/* set the new frame (if keyframe found) */
-	if (ak) {
-		if (next && ak->next)
-			scene->r.cfra= (int)ak->next->cfra;
-		else if (!next && ak->prev)
-			scene->r.cfra= (int)ak->prev->cfra;
-		else {
-			printf("ERROR: no suitable keyframe found. Using %f as new frame \n", ak->cfra);
-			scene->r.cfra= (int)ak->cfra; // XXX
-		}
-	}
-		
+	if (ak) 
+		CFRA= (int)ak->cfra;
+	else
+		BKE_report(op->reports, RPT_ERROR, "No more keyframes to jump to in this direction");
+	
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
 	
@@ -1996,52 +1994,6 @@ static void SCREEN_OT_redo_last(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 }
 
-/* ************** region split operator ***************************** */
-
-/* insert a region in the area region list */
-static int region_split_exec(bContext *C, wmOperator *op)
-{
-	ARegion *ar= CTX_wm_region(C);
-	
-	if(ar->regiontype==RGN_TYPE_HEADER)
-		BKE_report(op->reports, RPT_ERROR, "Cannot split header");
-	else if(ar->alignment==RGN_ALIGN_QSPLIT)
-		BKE_report(op->reports, RPT_ERROR, "Cannot split further");
-	else {
-		ScrArea *sa= CTX_wm_area(C);
-		ARegion *newar= BKE_area_region_copy(sa->type, ar);
-		int dir= RNA_enum_get(op->ptr, "type");
-	
-		BLI_insertlinkafter(&sa->regionbase, ar, newar);
-		
-		newar->alignment= ar->alignment;
-		
-		if(dir=='h')
-			ar->alignment= RGN_ALIGN_HSPLIT;
-		else
-			ar->alignment= RGN_ALIGN_VSPLIT;
-		
-		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-	}
-	
-	return OPERATOR_FINISHED;
-}
-
-static void SCREEN_OT_region_split(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Split Region";
-	ot->description= "Split area by directional position.";
-	ot->idname= "SCREEN_OT_region_split";
-	
-	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= region_split_exec;
-	ot->poll= ED_operator_areaactive;
-	
-	RNA_def_enum(ot->srna, "type", prop_direction_items, 'h', "Direction", "");
-}
-
 /* ************** region four-split operator ***************************** */
 
 /* insert a region in the area region list */
@@ -2167,7 +2119,104 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_areaactive;
 	ot->flag= 0;
+}
 
+/* ************** header flip operator ***************************** */
+
+/* flip a header region alignment */
+static int header_flip_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	
+	/* find the header region 
+	 *	- try context first, but upon failing, search all regions in area...
+	 */
+	if((ar == NULL) || (ar->regiontype != RGN_TYPE_HEADER)) {
+		ScrArea *sa= CTX_wm_area(C);
+		
+		/* loop over all regions until a matching one is found */
+		for (ar= sa->regionbase.first; ar; ar= ar->next) {
+			if(ar->regiontype == RGN_TYPE_HEADER)
+				break;
+		}
+		
+		/* don't do anything if no region */
+		if(ar == NULL)
+			return OPERATOR_CANCELLED;
+	}	
+	
+	/* copied from SCREEN_OT_region_flip */
+	if(ar->alignment==RGN_ALIGN_TOP)
+		ar->alignment= RGN_ALIGN_BOTTOM;
+	else if(ar->alignment==RGN_ALIGN_BOTTOM)
+		ar->alignment= RGN_ALIGN_TOP;
+	else if(ar->alignment==RGN_ALIGN_LEFT)
+		ar->alignment= RGN_ALIGN_RIGHT;
+	else if(ar->alignment==RGN_ALIGN_RIGHT)
+		ar->alignment= RGN_ALIGN_LEFT;
+	
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	printf("executed header region flip\n");
+	
+	return OPERATOR_FINISHED;
+}
+
+
+static void SCREEN_OT_header_flip(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Flip Header Region";
+	ot->idname= "SCREEN_OT_header_flip";
+	
+	/* api callbacks */
+	ot->exec= header_flip_exec;
+	
+	ot->poll= ED_operator_areaactive;
+	ot->flag= 0;
+}
+
+/* ************** header tools operator ***************************** */
+
+static int header_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup= uiPupMenuBegin(C, "Header", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	// XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator
+	if (ar->alignment == RGN_ALIGN_TOP)
+		uiItemO(layout, "Flip to Bottom", 0, "SCREEN_OT_header_flip");	
+	else
+		uiItemO(layout, "Flip to Top", 0, "SCREEN_OT_header_flip");
+	
+	uiItemS(layout);
+	
+	/* file browser should be fullscreen all the time, but other regions can be maximised/restored... */
+	if (sa->spacetype != SPACE_FILE) {
+		if (sa->full) 
+			uiItemO(layout, "Tile Window", 0, "SCREEN_OT_screen_full_area");
+		else
+			uiItemO(layout, "Maximize Window", 0, "SCREEN_OT_screen_full_area");
+	}
+	
+	uiPupMenuEnd(C, pup);
+
+	return OPERATOR_CANCELLED;
+}
+
+void SCREEN_OT_header_toolbox(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Header Toolbox";
+	ot->description="Display header region toolbox";
+	ot->idname= "SCREEN_OT_header_toolbox";
+	
+	/* api callbacks */
+	ot->invoke= header_toolbox_invoke;
 }
 
 /* ****************** anim player, with timer ***************** */
@@ -2311,8 +2360,6 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		// TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this?
 		wt->timestep= (1.0/FPS);
 		
-		//WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-		
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_PASS_THROUGH;
@@ -2340,6 +2387,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	bScreen *screen= CTX_wm_screen(C);
 	
 	if(screen->animtimer) {
+		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0);
 		sound_stop_all(C);
 	}
@@ -2402,8 +2450,19 @@ static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	
-	if(screen->animtimer)
+	if(screen->animtimer) {
+		ScreenAnimData *sad= screen->animtimer->customdata;
+		Scene *scene= CTX_data_scene(C);
+		
+		/* reset current frame before stopping, and just send a notifier to deal with the rest 
+		 * (since playback still needs to be stopped)
+		 */
+		scene->r.cfra= sad->sfra;
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+		
+		/* call the other "toggling" operator to clean up now */
 		return screen_animation_play(C, op, event);
+	}
 	
 	return OPERATOR_PASS_THROUGH;
 }
@@ -2412,7 +2471,7 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cancel Animation";
-	ot->description= "Cancel animation.";
+	ot->description= "Cancel animation, returning to the original frame.";
 	ot->idname= "SCREEN_OT_animation_cancel";
 	
 	/* api callbacks */
@@ -2961,7 +3020,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	multires_force_update(CTX_data_active_object(C));
 	
 	/* get editmode results */
-	ED_object_exit_editmode(C, EM_DO_UNDO);	/* 0 = does not exit editmode */
+	ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);	/* 0 = does not exit editmode */
 	
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render
@@ -3600,10 +3659,11 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_area_join);
 	WM_operatortype_append(SCREEN_OT_area_dupli);
 	WM_operatortype_append(SCREEN_OT_area_swap);
-	WM_operatortype_append(SCREEN_OT_region_split);
 	WM_operatortype_append(SCREEN_OT_region_foursplit);
-	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_region_scale);
+	WM_operatortype_append(SCREEN_OT_region_flip);
+	WM_operatortype_append(SCREEN_OT_header_flip);
+	WM_operatortype_append(SCREEN_OT_header_toolbox);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
 	WM_operatortype_append(SCREEN_OT_screenshot);
@@ -3683,7 +3743,11 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 			/* area move after action zones */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
 
-
+	/* Header Editing ------------------------------------------------ */
+	keymap= WM_keymap_find(keyconf, "Header", 0, 0);
+	
+	WM_keymap_add_item(keymap, "SCREEN_OT_header_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
+	
 	/* Screen General ------------------------------------------------ */
 	keymap= WM_keymap_find(keyconf, "Screen", 0, 0);
 	
@@ -3695,22 +3759,17 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screenshot", F3KEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screencast", F3KEY, KM_PRESS, KM_ALT, 0);
 
 	 /* tests */
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0);
-	
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
-
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
-	
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
-	
-	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", F7KEY, KM_PRESS, 0, 0)->ptr, "path", "test.py");
-	WM_keymap_verify_item(keymap, "SCRIPT_OT_python_run_ui_scripts", F8KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_reload_scripts", F8KEY, KM_PRESS, 0, 0);
 
 	/* files */
 	WM_keymap_add_item(keymap, "FILE_OT_execute", RETKEY, KM_PRESS, 0, 0);

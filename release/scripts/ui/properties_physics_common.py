@@ -17,104 +17,122 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import bpy
+
+narrowui = 180
 
 
-def point_cache_ui(self, cache, enabled, particles, smoke):
+def point_cache_ui(self, context, cache, enabled, particles, smoke):
     layout = self.layout
+
+    wide_ui = context.region.width > narrowui
     layout.set_context_pointer("PointCache", cache)
 
     row = layout.row()
     row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
     col = row.column(align=True)
-    col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
-    col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
+    col.operator("ptcache.add", icon='ICON_ZOOMIN', text="")
+    col.operator("ptcache.remove", icon='ICON_ZOOMOUT', text="")
 
     row = layout.row()
-    row.itemL(text="File Name:")
+    row.label(text="File Name:")
     if particles:
-        row.itemR(cache, "external")
+        row.prop(cache, "external")
 
     if cache.external:
         split = layout.split(percentage=0.80)
-        split.itemR(cache, "name", text="")
-        split.itemR(cache, "index", text="")
+        split.prop(cache, "name", text="")
+        split.prop(cache, "index", text="")
 
-        layout.itemL(text="File Path:")
-        layout.itemR(cache, "filepath", text="")
+        layout.label(text="File Path:")
+        layout.prop(cache, "filepath", text="")
 
-        layout.itemL(text=cache.info)
+        layout.label(text=cache.info)
     else:
-        layout.itemR(cache, "name", text="")
+        layout.prop(cache, "name", text="")
 
         if not particles:
             row = layout.row()
             row.enabled = enabled
-            row.itemR(cache, "start_frame")
-            row.itemR(cache, "end_frame")
+            row.prop(cache, "start_frame")
+            row.prop(cache, "end_frame")
 
         row = layout.row()
 
         if cache.baked == True:
-            row.itemO("ptcache.free_bake", text="Free Bake")
+            row.operator("ptcache.free_bake", text="Free Bake")
         else:
-            row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
+            row.operator("ptcache.bake", text="Bake").bake = True
 
         sub = row.row()
         sub.enabled = (cache.frames_skipped or cache.outdated) and enabled
-        sub.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
+        sub.operator("ptcache.bake", "bake", False, text="Calculate to Current Frame")
 
         row = layout.row()
         row.enabled = enabled
-        row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
+        row.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
         if not smoke:
-            row.itemR(cache, "step")
+            row.prop(cache, "step")
 
         if not smoke:
             row = layout.row()
             sub = row.row()
             sub.enabled = enabled
-            sub.itemR(cache, "quick_cache")
-            row.itemR(cache, "disk_cache")
+            sub.prop(cache, "quick_cache")
+            row.prop(cache, "disk_cache")
 
-        layout.itemL(text=cache.info)
+        layout.label(text=cache.info)
 
-        layout.itemS()
+        layout.separator()
 
         row = layout.row()
-        row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
-        row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-        layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
+        row.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
+        row.operator("ptcache.free_bake_all", text="Free All Bakes")
+        layout.operator("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
 
 
-def effector_weights_ui(self, weights):
-        layout = self.layout
-
-        layout.itemR(weights, "group")
-
-        split = layout.split()
-        split.itemR(weights, "gravity", slider=True)
-        split.itemR(weights, "all", slider=True)
-
-        layout.itemS()
-
-        flow = layout.column_flow()
-        flow.itemR(weights, "force", slider=True)
-        flow.itemR(weights, "vortex", slider=True)
-        flow.itemR(weights, "magnetic", slider=True)
-        flow.itemR(weights, "wind", slider=True)
-        flow.itemR(weights, "curveguide", slider=True)
-        flow.itemR(weights, "texture", slider=True)
-        flow.itemR(weights, "harmonic", slider=True)
-        flow.itemR(weights, "charge", slider=True)
-        flow.itemR(weights, "lennardjones", slider=True)
-        flow.itemR(weights, "turbulence", slider=True)
-        flow.itemR(weights, "drag", slider=True)
-        flow.itemR(weights, "boid", slider=True)
-
-
-def basic_force_field_settings_ui(self, field):
+def effector_weights_ui(self, context, weights):
     layout = self.layout
+
+    wide_ui = context.region.width > narrowui
+
+    layout.prop(weights, "group")
+
+    split = layout.split()
+
+    col = split.column()
+    col.prop(weights, "gravity", slider=True)
+
+    if wide_ui:
+        col = split.column()
+    col.prop(weights, "all", slider=True)
+
+    layout.separator()
+
+    split = layout.split()
+
+    col = split.column()
+    col.prop(weights, "force", slider=True)
+    col.prop(weights, "vortex", slider=True)
+    col.prop(weights, "magnetic", slider=True)
+    col.prop(weights, "wind", slider=True)
+    col.prop(weights, "curveguide", slider=True)
+    col.prop(weights, "texture", slider=True)
+
+    if wide_ui:
+        col = split.column()
+    col.prop(weights, "harmonic", slider=True)
+    col.prop(weights, "charge", slider=True)
+    col.prop(weights, "lennardjones", slider=True)
+    col.prop(weights, "turbulence", slider=True)
+    col.prop(weights, "drag", slider=True)
+    col.prop(weights, "boid", slider=True)
+
+
+def basic_force_field_settings_ui(self, context, field):
+    layout = self.layout
+
+    wide_ui = context.region.width > narrowui
+
     split = layout.split()
 
     if not field or field.type == 'NONE':
@@ -123,59 +141,69 @@ def basic_force_field_settings_ui(self, field):
     col = split.column()
 
     if field.type == 'DRAG':
-        col.itemR(field, "linear_drag", text="Linear")
+        col.prop(field, "linear_drag", text="Linear")
     else:
-        col.itemR(field, "strength")
+        col.prop(field, "strength")
 
     if field.type == 'TURBULENCE':
-        col.itemR(field, "size")
-        col.itemR(field, "flow")
+        col.prop(field, "size")
+        col.prop(field, "flow")
     elif field.type == 'HARMONIC':
-        col.itemR(field, "harmonic_damping", text="Damping")
+        col.prop(field, "harmonic_damping", text="Damping")
     elif field.type == 'VORTEX' and field.shape != 'POINT':
-        col.itemR(field, "inflow")
+        col.prop(field, "inflow")
     elif field.type == 'DRAG':
-        col.itemR(field, "quadratic_drag", text="Quadratic")
+        col.prop(field, "quadratic_drag", text="Quadratic")
     else:
-        col.itemR(field, "flow")
+        col.prop(field, "flow")
 
-    col = split.column()
-    col.itemR(field, "noise")
-    col.itemR(field, "seed")
+    if wide_ui:
+        col = split.column()
+    col.prop(field, "noise")
+    col.prop(field, "seed")
     if field.type == 'TURBULENCE':
-        col.itemR(field, "global_coordinates", text="Global")
+        col.prop(field, "global_coordinates", text="Global")
 
     split = layout.split()
 
     col = split.column()
-    col.itemL(text="Effect point:")
-    col.itemR(field, "do_location")
-    col.itemR(field, "do_rotation")
+    col.label(text="Effect point:")
+    col.prop(field, "do_location")
+    col.prop(field, "do_rotation")
 
-    sub = split.column()
-    sub.itemL(text="Collision:")
-    sub.itemR(field, "do_absorption")
+    if wide_ui:
+        col = split.column()
+    col.label(text="Collision:")
+    col.prop(field, "do_absorption")
 
 
-def basic_force_field_falloff_ui(self, field):
+def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
+
+    wide_ui = context.region.width > narrowui
+
+    # XXX: This doesn't update for some reason.
+    #if wide_ui:
+    #    split = layout.split()
+    #else:
     split = layout.split(percentage=0.35)
 
     if not field or field.type == 'NONE':
         return
 
     col = split.column()
-    col.itemR(field, "z_direction", text="")
-    col.itemR(field, "use_min_distance", text="Use Minimum")
-    col.itemR(field, "use_max_distance", text="Use Maximum")
+    col.prop(field, "z_direction", text="")
+    col.prop(field, "use_min_distance", text="Use Minimum")
+    col.prop(field, "use_max_distance", text="Use Maximum")
 
-    col = split.column()
-    col.itemR(field, "falloff_power", text="Power")
+    if wide_ui:
+        col = split.column()
+    col.prop(field, "falloff_power", text="Power")
 
     sub = col.column()
     sub.active = field.use_min_distance
-    sub.itemR(field, "minimum_distance", text="Distance")
+    sub.prop(field, "minimum_distance", text="Distance")
 
     sub = col.column()
     sub.active = field.use_max_distance
-    sub.itemR(field, "maximum_distance", text="Distance")
+    sub.prop(field, "maximum_distance", text="Distance")

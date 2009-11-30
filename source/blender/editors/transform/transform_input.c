@@ -28,7 +28,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "WM_types.h"
 
@@ -45,9 +45,9 @@ void InputVector(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 	{
 		/* calculate the main translation and the precise one separate */
 		convertViewVec(t, dvec, (short)(mval[0] - mi->precision_mval[0]), (short)(mval[1] - mi->precision_mval[1]));
-		VecMulf(dvec, 0.1f);
+		mul_v3_fl(dvec, 0.1f);
 		convertViewVec(t, vec, (short)(mi->precision_mval[0] - t->imval[0]), (short)(mi->precision_mval[1] - t->imval[1]));
-		VecAddf(output, vec, dvec);
+		add_v3_v3v3(output, vec, dvec);
 	}
 	else
 	{
@@ -133,9 +133,9 @@ void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float 
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
-	Projf(vec, vec, t->viewinv[0]);
+	project_v3_v3v3(vec, vec, t->viewinv[0]);
 
-	output[0] = Inpf(t->viewinv[0], vec) * 2.0f;
+	output[0] = dot_v3v3(t->viewinv[0], vec) * 2.0f;
 }
 
 void InputVerticalRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
@@ -158,15 +158,21 @@ void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float ou
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
-	Projf(vec, vec, t->viewinv[1]);
+	project_v3_v3v3(vec, vec, t->viewinv[1]);
 
-	output[0] = Inpf(t->viewinv[1], vec) * 2.0f;
+	output[0] = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 }
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2])
 {
-	short *data = mi->data;
+	short *data;
+
+	if (mi->data == NULL) {
+		mi->data = MEM_callocN(sizeof(short) * 4, "custom points");
+	}
 	
+	data = mi->data;
+
 	data[0] = start[0];
 	data[1] = start[1];
 	data[2] = end[0];
@@ -180,28 +186,30 @@ void InputCustomRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[
 	short *data = mi->data;
 	short dx, dy;
 	
-	dx = data[2] - data[0];
-	dy = data[3] - data[1];
-	
-	length = (float)sqrtf(dx*dx + dy*dy);
-	
-	if (mi->precision) {
-		/* deal with Shift key by adding motion / 10 to motion before shift press */
-		short mdx, mdy;
-		mdx = (mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f) - data[2];
-		mdy = (mi->precision_mval[1] + (float)(mval[1] - mi->precision_mval[1]) / 10.0f) - data[3];
+	if (data) {
+		dx = data[2] - data[0];
+		dy = data[3] - data[1];
 		
-		distance = (mdx*dx + mdy*dy) / length;
-	}
-	else {
-		short mdx, mdy;
-		mdx = mval[0] - data[2];
-		mdy = mval[1] - data[3];
+		length = (float)sqrtf(dx*dx + dy*dy);
 		
-		distance = (mdx*dx + mdy*dy) / length;
-	}
+		if (mi->precision) {
+			/* deal with Shift key by adding motion / 10 to motion before shift press */
+			short mdx, mdy;
+			mdx = (mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f) - data[2];
+			mdy = (mi->precision_mval[1] + (float)(mval[1] - mi->precision_mval[1]) / 10.0f) - data[3];
 
-	output[0] = distance / length;
+			distance = (mdx*dx + mdy*dy) / length;
+		}
+		else {
+			short mdx, mdy;
+			mdx = mval[0] - data[2];
+			mdy = mval[1] - data[3];
+
+			distance = (mdx*dx + mdy*dy) / length;
+		}
+
+		output[0] = distance / length;
+	}
 }
 
 void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
@@ -335,7 +343,6 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	case INPUT_CUSTOM_RATIO:
 		mi->apply = InputCustomRatio;
 		t->helpline = HLP_NONE;
-		mi->data = MEM_callocN(sizeof(short) * 4, "custom points");
 		break;
 	case INPUT_NONE:
 	default:

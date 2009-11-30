@@ -33,7 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
@@ -241,10 +241,10 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
 	if ((ob->recalc & OB_RECALC)==0) {
 		ob->recalc |= OB_RECALC;
-		ED_anim_object_flush_update(C, ob);
+		DAG_id_update_flags(&ob->id);
 	}
 	else
-		ED_anim_object_flush_update(C, ob);
+		DAG_id_update_flags(&ob->id);
 	
 	/* calculate path over requested range */
 	for (CFRA=sfra; CFRA<=efra; CFRA++) {
@@ -279,7 +279,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 							VECCOPY(fp, pchan->pose_tail);
 						}
 						
-						Mat4MulVecfl(ob->obmat, fp);
+						mul_m4_v3(ob->obmat, fp);
 					}
 				}
 			}
@@ -355,10 +355,10 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
 	if ((ob->recalc & OB_RECALC)==0) {
 		ob->recalc |= OB_RECALC;
-		ED_anim_object_flush_update(C, ob);
+		DAG_id_update_flags(&ob->id);
 	}
 	else
-		ED_anim_object_flush_update(C, ob);
+		DAG_id_update_flags(&ob->id);
 	
 	/* alloc the path cache arrays */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -405,7 +405,7 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 							VECCOPY(fp, pchan->pose_tail);
 						}
 						
-						Mat4MulVecfl(ob->obmat, fp);
+						mul_m4_v3(ob->obmat, fp);
 					}
 				}
 			}
@@ -814,13 +814,13 @@ void pose_copy_menu(Scene *scene)
 							float tmp_quat[4];
 							
 							/* need to convert to quat first (in temp var)... */
-							Mat4ToQuat(delta_mat, tmp_quat);
-							QuatToAxisAngle(tmp_quat, pchan->rotAxis, &pchan->rotAngle);
+							mat4_to_quat( tmp_quat,delta_mat);
+							quat_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,tmp_quat);
 						}
 						else if (pchan->rotmode == ROT_MODE_QUAT)
-							Mat4ToQuat(delta_mat, pchan->quat);
+							mat4_to_quat( pchan->quat,delta_mat);
 						else
-							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
+							mat4_to_eulO( pchan->eul, pchan->rotmode,delta_mat);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -828,7 +828,7 @@ void pose_copy_menu(Scene *scene)
 						float delta_mat[4][4], size[4];
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
-						Mat4ToSize(delta_mat, size);
+						mat4_to_size( size,delta_mat);
 						VECCOPY(pchan->size, size);
 					}
 				}
@@ -1020,23 +1020,23 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				else if (pchan->rotmode > 0) {
 					/* quat/axis-angle to euler */
 					if (chan->rotmode == ROT_MODE_AXISANGLE)
-						AxisAngleToEulO(chan->rotAxis, chan->rotAngle, pchan->eul, pchan->rotmode);
+						axis_angle_to_eulO( pchan->eul, pchan->rotmode,chan->rotAxis, chan->rotAngle);
 					else
-						QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
+						quat_to_eulO( pchan->eul, pchan->rotmode,chan->quat);
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					/* quat/euler to axis angle */
 					if (chan->rotmode > 0)
-						EulOToAxisAngle(chan->eul, chan->rotmode, pchan->rotAxis, &pchan->rotAngle);
+						eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,chan->eul, chan->rotmode);
 					else	
-						QuatToAxisAngle(chan->quat, pchan->rotAxis, &pchan->rotAngle);
+						quat_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,chan->quat);
 				}
 				else {
 					/* euler/axis-angle to quat */
 					if (chan->rotmode > 0)
-						EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
+						eulO_to_quat( pchan->quat,chan->eul, chan->rotmode);
 					else
-						AxisAngleToQuat(pchan->quat, chan->rotAxis, pchan->rotAngle);
+						axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
 				}
 				
 				/* paste flipped pose? */
@@ -1051,10 +1051,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 						float eul[3];
 						
-						AxisAngleToEulO(pchan->rotAxis, pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
+						axis_angle_to_eulO( eul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
 						eul[1]*= -1;
 						eul[2]*= -1;
-						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, &pchan->rotAngle);
+						eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,eul, EULER_ORDER_DEFAULT);
 						
 						// experimental method (uncomment to test):
 #if 0
@@ -1066,10 +1066,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else {
 						float eul[3];
 						
-						QuatToEul(pchan->quat, eul);
+						quat_to_eul( eul,pchan->quat);
 						eul[1]*= -1;
 						eul[2]*= -1;
-						EulToQuat(eul, pchan->quat);
+						eul_to_quat( pchan->quat,eul);
 					}
 				}
 				
@@ -1329,7 +1329,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	
 	/* add selected bones to group then */
 	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
 		pchan->agrp_index= pose->active_group;
 		done= 1;
 	}
@@ -1388,7 +1388,7 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *op)
 	
 	/* add selected bones to ungroup then */
 	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
-	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 		// NOTE: sync this view3d_context() in space_view3d.c
@@ -1464,7 +1464,7 @@ static short pose_select_same_layer (Object *ob)
 	bPose *pose= (ob)? ob->pose : NULL;
 	bArmature *arm= (ob)? ob->data : NULL;
 	bPoseChannel *pchan;
-	short layers= 0, changed= 0;
+	int layers= 0, changed= 0;
 	
 	if (ELEM3(NULL, ob, pose, arm))
 		return 0;
@@ -1530,7 +1530,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 	arm= ob->data;
 	
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
 		bone_flip_name(newname, 1);	// 1 = do strip off number extensions
@@ -1577,7 +1577,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	arm= ob->data;
 	
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
 		bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]);
@@ -1670,7 +1670,7 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* sanity checking */
 	if (arm == NULL)
@@ -1691,7 +1691,7 @@ static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
@@ -1723,7 +1723,7 @@ void POSE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers to make visible");
 }
 
 void ARMATURE_OT_armature_layers (wmOperatorType *ot)
@@ -1742,7 +1742,7 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers to make visible");
 }
 
 /* ------------------- */
@@ -1750,17 +1750,17 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get layers that are active already */
 	memset(&layers, 0, sizeof(layers)); /* set all layers to be off by default */
 	
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pchans) 
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
 	{
 		short bit;
 		
 		/* loop over the bits for this pchan's layers, adding layers where they're needed */
-		for (bit= 0; bit < 16; bit++) {
+		for (bit= 0; bit < 32; bit++) {
 			if (pchan->bone->layer & (1<<bit))
 				layers[bit]= 1;
 		}
@@ -1780,13 +1780,13 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
 	
 	/* set layers of pchans based on the values set in the operator props */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pchans) 
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_Bone, pchan->bone, &ptr);
@@ -1816,7 +1816,7 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ------------------- */
@@ -1824,7 +1824,7 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get layers that are active already */
 	memset(&layers, 0, sizeof(layers)); /* set all layers to be off by default */
@@ -1834,7 +1834,7 @@ static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 		short bit;
 		
 		/* loop over the bits for this pchan's layers, adding layers where they're needed */
-		for (bit= 0; bit < 16; bit++) {
+		for (bit= 0; bit < 32; bit++) {
 			if (ebone->layer & (1<<bit))
 				layers[bit]= 1;
 		}
@@ -1854,7 +1854,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
-	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
+	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
@@ -1890,7 +1890,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ********************************************** */

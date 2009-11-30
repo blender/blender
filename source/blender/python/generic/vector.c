@@ -29,7 +29,7 @@
 
 #include "BLI_blenlib.h"
 #include "BKE_utildefines.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #define MAX_DIMENSIONS 4
 /* Swizzle axes get packed into a single value that is used as a closure. Each
@@ -347,7 +347,7 @@ static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 	vec[1] = -self->vec[1];
 	vec[2] = -self->vec[2];
 
-	vectoquat(vec, track, up, quat);
+	vec_to_quat( quat,vec, track, up);
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
@@ -379,7 +379,7 @@ static PyObject *Vector_Reflect( VectorObject * self, VectorObject * value )
 	if (self->size > 2)		vec[2] = self->vec[2];
 	else					vec[2] = 0.0;
 	
-	VecReflect(reflect, vec, mirror);
+	reflect_v3_v3v3(reflect, vec, mirror);
 	
 	return newVectorObject(reflect, self->size, Py_NEW, NULL);
 }
@@ -402,7 +402,7 @@ static PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
 		return NULL;
 	
 	vecCross = (VectorObject *)newVectorObject(NULL, 3, Py_NEW, NULL);
-	Crossf(vecCross->vec, self->vec, value->vec);
+	cross_v3_v3v3(vecCross->vec, self->vec, value->vec);
 	return (PyObject *)vecCross;
 }
 
@@ -626,36 +626,30 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 {
 	int i;
-
 	VectorObject *vec1 = NULL, *vec2 = NULL;
+
+	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
+		return NULL;
+	}
+	vec1 = (VectorObject*)v1;
+	vec2 = (VectorObject*)v2;
 	
-	if VectorObject_Check(v1)
-		vec1= (VectorObject *)v1;
-	
-	if VectorObject_Check(v2)
-		vec2= (VectorObject *)v2;
-	
-	/* make sure v1 is always the vector */
-	if (vec1 && vec2 ) {
-		
-		if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
-			return NULL;
-		
-		/*VECTOR + VECTOR*/
-		if(vec1->size != vec2->size) {
-			PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation\n");
-			return NULL;
-		}
-		for(i = 0; i < vec1->size; i++) {
-			vec1->vec[i] +=	vec2->vec[i];
-		}
-		Py_INCREF( v1 );
-		return v1;
+	if(vec1->size != vec2->size) {
+		PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation\n");
+		return NULL;
 	}
 	
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
+		return NULL;
+
+	for(i = 0; i < vec1->size; i++) {
+		vec1->vec[i] = vec1->vec[i] + vec2->vec[i];
+	}
+
 	BaseMath_WriteCallback(vec1);
-	PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
-	return NULL;
+	Py_INCREF( v1 );
+	return v1;
 }
 
 /*------------------------obj - obj------------------------------

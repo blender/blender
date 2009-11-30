@@ -160,6 +160,19 @@ void SCA_ISensor::RegisterToManager()
 	m_eventmgr->RegisterSensor(this);
 }
 
+void SCA_ISensor::Replace_EventManager(class SCA_LogicManager* logicmgr)
+{
+	if(m_links) { /* true if we're used currently */
+
+		m_eventmgr->RemoveSensor(this);
+		m_eventmgr= logicmgr->FindEventManager(m_eventmgr->GetType());
+		m_eventmgr->RegisterSensor(this);
+	}
+	else {
+		m_eventmgr= logicmgr->FindEventManager(m_eventmgr->GetType());
+	}
+}
+
 void SCA_ISensor::LinkToController(SCA_IController* controller)
 {
 	m_linkedcontrollers.push_back(controller);

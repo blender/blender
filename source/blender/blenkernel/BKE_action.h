@@ -118,6 +118,12 @@ struct bActionGroup *action_groups_find_named(struct bAction *act, const char na
 /* Pose API ----------------- */	
 	
 /**
+ * Deallocates a pose channel.
+ * Does not free the pose channel itself.
+ */
+void free_pose_channel(struct bPoseChannel *pchan);
+
+/**
  * Removes and deallocates all channels from a pose.
  * Does not free the pose itself.
  */
@@ -134,7 +140,11 @@ void free_pose(struct bPose *pose);
  */ 
 void copy_pose(struct bPose **dst, struct bPose *src, int copyconstraints);
 
-
+/**
+ * Copy the internal members of each pose channel including constraints
+ * and ID-Props, used when duplicating bones in editmode.
+ */
+void duplicate_pose_channel_data(struct bPoseChannel *pchan, const struct bPoseChannel *pchan_from);
 
 /**
  * Return a pointer to the pose channel of the given name

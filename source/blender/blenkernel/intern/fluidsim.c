@@ -40,7 +40,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h" // N_T
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -563,13 +563,13 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 	float vec[3];
 
 	VECCOPY(vec, mvert[0].co); 
-	Mat4MulVecfl(obmat, vec);
+	mul_m4_v3(obmat, vec);
 	bbsx = vec[0]; bbsy = vec[1]; bbsz = vec[2];
 	bbex = vec[0]; bbey = vec[1]; bbez = vec[2];
 
 	for(i = 1; i < totvert; i++) {
 		VECCOPY(vec, mvert[i].co);
-		Mat4MulVecfl(obmat, vec);
+		mul_m4_v3(obmat, vec);
 
 		if(vec[0] < bbsx){ bbsx= vec[0]; }
 		if(vec[1] < bbsy){ bbsy= vec[1]; }
@@ -626,7 +626,7 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 	verts = MEM_callocN( totvert*3*sizeof(float), "elbeemmesh_vertices");
 	for(i=0; i<totvert; i++) {
 		VECCOPY( &verts[i*3], mvert[i].co);
-		if(useGlobalCoords) { Mat4MulVecfl(ob->obmat, &verts[i*3]); }
+		if(useGlobalCoords) { mul_m4_v3(ob->obmat, &verts[i*3]); }
 	}
 	*vertices = verts;
 

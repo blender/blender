@@ -37,7 +37,7 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 #include "BLI_memarena.h"
@@ -613,7 +613,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 	char *clipflag;
 	
 	minz= 1.0e30f; maxz= -1.0e30f;
-	Mat4CpyMat4(viewmat, lar->shb->viewmat);
+	copy_m4_m4(viewmat, lar->shb->viewmat);
 	
 	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW)) lay= lar->lay;
 
@@ -628,9 +628,9 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 		obr= obi->obr;
 
 		if(obi->flag & R_TRANSFORMED)
-			Mat4MulMat4(obviewmat, obi->mat, viewmat);
+			mul_m4_m4m4(obviewmat, obi->mat, viewmat);
 		else
-			Mat4CpyMat4(obviewmat, viewmat);
+			copy_m4_m4(obviewmat, viewmat);
 
 		memset(clipflag, 0, sizeof(char)*obr->totvert);
 
@@ -661,7 +661,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 			
 			if(clipflag[a]) {
 				VECCOPY(vec, ver->co);
-				Mat4MulVecfl(obviewmat, vec);
+				mul_m4_v3(obviewmat, vec);
 				/* Z on visible side of lamp space */
 				if(vec[2] < 0.0f) {
 					float inpr, z= -vec[2];
@@ -669,7 +669,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 					/* since vec is rotated in lampspace, this is how to get the cosine of angle */
 					/* precision is set 20% larger */
 					vec[2]*= 1.2f;
-					Normalize(vec);
+					normalize_v3(vec);
 					inpr= - vec[2];
 
 					if(inpr>=lar->spotsi) {
@@ -764,8 +764,8 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	shb->pixsize= (shb->d)/temp;
 	wsize= shb->pixsize*(shb->size/2.0);
 	
-	i_window(-wsize, wsize, -wsize, wsize, shb->d, shb->clipend, shb->winmat);
-	Mat4MulMat4(shb->persmat, shb->viewmat, shb->winmat);
+	perspective_m4( shb->winmat,-wsize, wsize, -wsize, wsize, shb->d, shb->clipend);
+	mul_m4_m4m4(shb->persmat, shb->viewmat, shb->winmat);
 
 	if(ELEM3(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP)) {
 		shb->totbuf= lar->buffers;
@@ -1107,7 +1107,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	VECCOPY(co, rco);
 	co[3]= 1.0f;
 
-	Mat4MulVec4fl(shb->persmat, co);	/* rational hom co */
+	mul_m4_v4(shb->persmat, co);	/* rational hom co */
 
 	xs1= siz*(1.0f+co[0]/co[3]);
 	ys1= siz*(1.0f+co[1]/co[3]);
@@ -1148,7 +1148,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	co[1]= rco[1]+dxco[1];
 	co[2]= rco[2]+dxco[2];
 	co[3]= 1.0;
-	Mat4MulVec4fl(shb->persmat,co);     /* rational hom co */
+	mul_m4_v4(shb->persmat,co);     /* rational hom co */
 	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
 	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
 	
@@ -1156,7 +1156,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	co[1]= rco[1]+dyco[1];
 	co[2]= rco[2]+dyco[2];
 	co[3]= 1.0;
-	Mat4MulVec4fl(shb->persmat,co);     /* rational hom co */
+	mul_m4_v4(shb->persmat,co);     /* rational hom co */
 	dy[0]= xs1- siz*(1.0+co[0]/co[3]);
 	dy[1]= ys1- siz*(1.0+co[1]/co[3]);
 	
@@ -1292,7 +1292,7 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[1]= p1[1];
 	co[2]= p1[2]/lar->sh_zfac;
 	co[3]= 1.0;
-	Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
+	mul_m4_v4(shb->winmat, co);	/* rational hom co */
 	xf1= siz*(1.0+co[0]/co[3]);
 	yf1= siz*(1.0+co[1]/co[3]);
 	zf1= (co[2]/co[3]);
@@ -1302,7 +1302,7 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[1]= p2[1];
 	co[2]= p2[2]/lar->sh_zfac;
 	co[3]= 1.0;
-	Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
+	mul_m4_v4(shb->winmat, co);	/* rational hom co */
 	xf2= siz*(1.0+co[0]/co[3]);
 	yf2= siz*(1.0+co[1]/co[3]);
 	zf2= (co[2]/co[3]);
@@ -1635,9 +1635,9 @@ static void bspface_init_strand(BSPFace *face)
 	
 	face->radline= 0.5f*VecLen2f(face->v1, face->v2);
 	
-	VecMidf(face->vec1, face->v1, face->v2);
+	mid_v3_v3v3(face->vec1, face->v1, face->v2);
 	if(face->v4)
-		VecMidf(face->vec2, face->v3, face->v4);
+		mid_v3_v3v3(face->vec2, face->v3, face->v4);
 	else
 		VECCOPY(face->vec2, face->v3);
 	
@@ -1659,7 +1659,7 @@ static int point_behind_strand(float *p, BSPFace *face)
 	/* v1 - v2 is radius, v1 - v3 length */
 	float dist, rc[2], pt[2];
 	
-	/* using code from PdistVL2Dfl(), distance vec to line-piece */
+	/* using code from dist_to_line_segment_v2(), distance vec to line-piece */
 
 	if(face->len==0.0f) {
 		rc[0]= p[0]-face->vec1[0];
@@ -1977,9 +1977,9 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 		obr= obi->obr;
 
 		if(obi->flag & R_TRANSFORMED)
-			Mat4MulMat4(winmat, obi->mat, shb->persmat);
+			mul_m4_m4m4(winmat, obi->mat, shb->persmat);
 		else
-			Mat4CpyMat4(winmat, shb->persmat);
+			copy_m4_m4(winmat, shb->persmat);
 
 		for(a=0; a<obr->totvlak; a++) {
 			
@@ -2055,7 +2055,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 	RE_vlakren_get_normal(&R, obi, vlr, nor);
 	VECCOPY(v1, vlr->v1->co);
 	if(obi->flag & R_TRANSFORMED)
-		Mat4MulVecfl(obi->mat, v1);
+		mul_m4_v3(obi->mat, v1);
 
 	/* from shadepixel() */
 	dface= v1[0]*nor[0] + v1[1]*nor[1] + v1[2]*nor[2];
@@ -2093,7 +2093,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 	}
 	
 	/* move 3d vector to lampbuf */
-	Mat4MulVec4fl(shb->persmat, hoco);	/* rational hom co */
+	mul_m4_v4(shb->persmat, hoco);	/* rational hom co */
 	
 	/* clip We can test for -1.0/1.0 because of the properties of the
 	 * coordinate transformations. */

@@ -52,7 +52,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -176,7 +176,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			if(eve->f & SELECT) {
 				evedef= eve;
 				tot++;
-				VecAddf(median, median, eve->co);
+				add_v3_v3v3(median, median, eve->co);
 			}
 			eve= eve->next;
 		}
@@ -232,18 +232,18 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				a= nu->pntsu;
 				while(a--) {
 					if(bezt->f2 & SELECT) {
-						VecAddf(median, median, bezt->vec[1]);
+						add_v3_v3v3(median, median, bezt->vec[1]);
 						tot++;
 						median[4]+= bezt->weight;
 						totweight++;
 					}
 					else {
 						if(bezt->f1 & SELECT) {
-							VecAddf(median, median, bezt->vec[0]);
+							add_v3_v3v3(median, median, bezt->vec[0]);
 							tot++;
 						}
 						if(bezt->f3 & SELECT) {
-							VecAddf(median, median, bezt->vec[2]);
+							add_v3_v3v3(median, median, bezt->vec[2]);
 							tot++;
 						}
 					}
@@ -255,7 +255,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				a= nu->pntsu*nu->pntsv;
 				while(a--) {
 					if(bp->f1 & SELECT) {
-						VecAddf(median, median, bp->vec);
+						add_v3_v3v3(median, median, bp->vec);
 						median[3]+= bp->vec[3];
 						totw++;
 						tot++;
@@ -277,7 +277,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 		bp= lt->editlatt->def;
 		while(a--) {
 			if(bp->f1 & SELECT) {
-				VecAddf(median, median, bp->vec);
+				add_v3_v3v3(median, median, bp->vec);
 				tot++;
 				median[4]+= bp->weight;
 				totweight++;
@@ -296,7 +296,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 	if(totweight) median[4] /= (float)totweight;
 	
 	if(v3d->flag & V3D_GLOBAL_STATS)
-		Mat4MulVecfl(ob->obmat, median);
+		mul_m4_v3(ob->obmat, median);
 	
 	if(block) {	// buttons
 		int but_y;
@@ -371,11 +371,11 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 		memcpy(ve_median, tfp->ve_median, sizeof(tfp->ve_median));
 		
 		if(v3d->flag & V3D_GLOBAL_STATS) {
-			Mat4Invert(ob->imat, ob->obmat);
-			Mat4MulVecfl(ob->imat, median);
-			Mat4MulVecfl(ob->imat, ve_median);
+			invert_m4_m4(ob->imat, ob->obmat);
+			mul_m4_v3(ob->imat, median);
+			mul_m4_v3(ob->imat, ve_median);
 		}
-		VecSubf(median, ve_median, median);
+		sub_v3_v3v3(median, ve_median, median);
 		median[3]= ve_median[3]-median[3];
 		median[4]= ve_median[4]-median[4];
 		
@@ -388,7 +388,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			eve= em->verts.first;
 			while(eve) {
 				if(eve->f & SELECT) {
-					VecAddf(eve->co, eve->co, median);
+					add_v3_v3v3(eve->co, eve->co, median);
 				}
 				eve= eve->next;
 			}
@@ -423,17 +423,17 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 					a= nu->pntsu;
 					while(a--) {
 						if(bezt->f2 & SELECT) {
-							VecAddf(bezt->vec[0], bezt->vec[0], median);
-							VecAddf(bezt->vec[1], bezt->vec[1], median);
-							VecAddf(bezt->vec[2], bezt->vec[2], median);
+							add_v3_v3v3(bezt->vec[0], bezt->vec[0], median);
+							add_v3_v3v3(bezt->vec[1], bezt->vec[1], median);
+							add_v3_v3v3(bezt->vec[2], bezt->vec[2], median);
 							bezt->weight+= median[4];
 						}
 						else {
 							if(bezt->f1 & SELECT) {
-								VecAddf(bezt->vec[0], bezt->vec[0], median);
+								add_v3_v3v3(bezt->vec[0], bezt->vec[0], median);
 							}
 							if(bezt->f3 & SELECT) {
-								VecAddf(bezt->vec[2], bezt->vec[2], median);
+								add_v3_v3v3(bezt->vec[2], bezt->vec[2], median);
 							}
 						}
 						bezt++;
@@ -444,7 +444,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 					a= nu->pntsu*nu->pntsv;
 					while(a--) {
 						if(bp->f1 & SELECT) {
-							VecAddf(bp->vec, bp->vec, median);
+							add_v3_v3v3(bp->vec, bp->vec, median);
 							bp->vec[3]+= median[3];
 							bp->weight+= median[4];
 						}
@@ -466,7 +466,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			bp= lt->editlatt->def;
 			while(a--) {
 				if(bp->f1 & SELECT) {
-					VecAddf(bp->vec, bp->vec, median);
+					add_v3_v3v3(bp->vec, bp->vec, median);
 					bp->weight+= median[4];
 				}
 				bp++;
@@ -504,7 +504,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	
 	split = uiLayoutSplit(layout, 0.8);
 	
-	if (ptr->type == &RNA_PoseChannel) {
+	if (ptr->type == &RNA_PoseBone) {
 		PointerRNA boneptr;
 		Bone *bone;
 		
@@ -521,38 +521,33 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	split = uiLayoutSplit(layout, 0.8);
 	
 	switch(RNA_enum_get(ptr, "rotation_mode")) {
-		case ROT_MODE_XYZ:
-		case ROT_MODE_XZY:
-		case ROT_MODE_YXZ:
-		case ROT_MODE_YZX:
-		case ROT_MODE_ZXY:
-		case ROT_MODE_ZYX:
+		case ROT_MODE_QUAT: /* quaternion */
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "Rotation", 0, ptr, "rotation_quaternion", 0);
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "4L", 0, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
+			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
+				uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			else
+				uiItemL(colsub, "", 0);
+			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			break;
+		case ROT_MODE_AXISANGLE: /* axis angle */
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "Rotation", 0, ptr, "rotation_axis_angle", 0);
+			colsub = uiLayoutColumn(split, 1);
+			uiItemR(colsub, "4L", 0, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
+			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
+				uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			else
+				uiItemL(colsub, "", 0);
+			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			break;
+		default: /* euler rotations */
 			colsub = uiLayoutColumn(split, 1);
 			uiItemR(colsub, "Rotation", 0, ptr, "rotation_euler", 0);
 			colsub = uiLayoutColumn(split, 1);
 			uiItemL(colsub, "", 0);
-			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-			break;
-		case ROT_MODE_QUAT:
-			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "Rotation", 0, ptr, "rotation_quaternion", 0);
-			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "W", 0, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
-			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-			else
-				uiItemL(colsub, "", 0);
-			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-			break;
-		case ROT_MODE_AXISANGLE:
-			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "Rotation", 0, ptr, "rotation_axis_angle", 0);
-			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "W", 0, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
-			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
-			else
-				uiItemL(colsub, "", 0);
 			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
 			break;
 	}
@@ -591,7 +586,7 @@ static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 		return; 
 	}
 
-	RNA_pointer_create(&ob->id, &RNA_PoseChannel, pchan, &pchanptr);
+	RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan, &pchanptr);
 
 	col= uiLayoutColumn(layout, 0);
 	
@@ -606,13 +601,13 @@ static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 		float quat[4];
 		/* convert to euler, passing through quats... */
-		AxisAngleToQuat(quat, pchan->rotAxis, pchan->rotAngle);
-		QuatToEul(quat, tfp->ob_eul);
+		axis_angle_to_quat(quat, pchan->rotAxis, pchan->rotAngle);
+		quat_to_eul( tfp->ob_eul,quat);
 	}
 	else if (pchan->rotmode == ROT_MODE_QUAT)
-		QuatToEul(pchan->quat, tfp->ob_eul);
+		quat_to_eul( tfp->ob_eul,pchan->quat);
 	else
-		VecCopyf(tfp->ob_eul, pchan->eul);
+		copy_v3_v3(tfp->ob_eul, pchan->eul);
 	tfp->ob_eul[0]*= 180.0/M_PI;
 	tfp->ob_eul[1]*= 180.0/M_PI;
 	tfp->ob_eul[2]*= 180.0/M_PI;
@@ -823,13 +818,13 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 				float quat[4];
 				/* convert to axis-angle, passing through quats  */
-				EulToQuat(eul, quat);
-				QuatToAxisAngle(quat, pchan->rotAxis, &pchan->rotAngle);
+				eul_to_quat( quat,eul);
+				quat_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,quat);
 			}
 			else if (pchan->rotmode == ROT_MODE_QUAT)
-				EulToQuat(eul, pchan->quat);
+				eul_to_quat( pchan->quat,eul);
 			else
-				VecCopyf(pchan->eul, eul);
+				copy_v3_v3(pchan->eul, eul);
 		}
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:

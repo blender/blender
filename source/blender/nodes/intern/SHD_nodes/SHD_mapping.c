@@ -49,7 +49,7 @@ static void node_shader_exec_mapping(void *data, bNode *node, bNodeStack **in, b
 	/* stack order input:  vector */
 	/* stack order output: vector */
 	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
-	Mat4MulVecfl(texmap->mat, vec);
+	mul_m4_v3(texmap->mat, vec);
 	
 	if(texmap->flag & TEXMAP_CLIP_MIN) {
 		if(vec[0]<texmap->min[0]) vec[0]= texmap->min[0];

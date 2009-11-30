@@ -83,11 +83,13 @@ typedef struct NumInput {
 */
 
 typedef struct TransSnap {
+	short	mode;
 	short	modePoint;
 	short	modeTarget;
-	short	mode;
+	short	modeSelect;
 	short	align;
 	short	project;
+	short	peel;
 	short  	status;
 	float	snapPoint[3]; /* snapping from this point */
 	float	snapTarget[3]; /* to this point */
@@ -291,6 +293,7 @@ typedef struct TransInfo {
 	void  	  (*customFree)(struct TransInfo *); /* if a special free function is needed */
 
 	/*************** NEW STUFF *********************/
+	short		launch_event; /* event type used to launch transform */
 
 	short		current_orientation;
 
@@ -326,9 +329,10 @@ typedef struct TransInfo {
 #define NDOF_INIT			1
 
 /* transinfo->state */
-#define TRANS_RUNNING	0
-#define TRANS_CONFIRM	1
-#define TRANS_CANCEL	2
+#define TRANS_STARTING  0
+#define TRANS_RUNNING	1
+#define TRANS_CONFIRM	2
+#define TRANS_CANCEL	3
 
 /* transinfo->flag */
 #define T_OBJECT		(1 << 0)
@@ -369,7 +373,7 @@ typedef struct TransInfo {
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02
-#define	MOD_SNAP_GEARS			0x04
+#define	MOD_SNAP				0x04
 #define	MOD_CONSTRAINT_PLANE	0x08
 
 
@@ -410,14 +414,9 @@ typedef struct TransInfo {
 #define TD_MIRROR_EDGE	 	(1 << 16) 	/* For editmode mirror, clamp to x = 0 */
 
 /* transsnap->status */
-#define SNAP_ON			1
-#define SNAP_FORCED		2
-#define TARGET_INIT		4
-#define POINT_INIT		8
-
-/* transsnap->modePoint */
-#define SNAP_GRID			0
-#define SNAP_GEO			1
+#define SNAP_FORCED		1
+#define TARGET_INIT		2
+#define POINT_INIT		4
 
 /* transsnap->modeTarget */
 #define SNAP_CLOSEST		0
@@ -430,7 +429,7 @@ void TFM_OT_transform(struct wmOperatorType *ot);
 
 int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
-void transformEvent(TransInfo *t, struct wmEvent *event);
+int  transformEvent(TransInfo *t, struct wmEvent *event);
 void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
@@ -535,7 +534,7 @@ void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
-void gimbal_axis(struct Object *ob, float gmat[][3]);
+int gimbal_axis(struct Object *ob, float gmat[][3]); /* return 0 when no gimbal for selection */
 int calc_manipulator_stats(const struct bContext *C);
 float get_drawsize(struct ARegion *ar, float *co);
 

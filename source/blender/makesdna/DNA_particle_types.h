@@ -391,6 +391,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_INT_EULER		0
 #define PART_INT_MIDPOINT	1
 #define PART_INT_RK4		2
+#define PART_INT_VERLET		3
 
 /* part->rotmode */
 #define PART_ROT_NOR		1

@@ -35,7 +35,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
@@ -828,27 +828,38 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 	
 	// XXX it would be good to have boundbox checks for some of these...
 	if(flag & ED_KEYMAP_UI) {
+		/* user interface widgets */
 		UI_add_region_handlers(handlers);
 	}
 	if(flag & ED_KEYMAP_VIEW2D) {
+		/* 2d-viewport handling+manipulation */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "View2D", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_MARKERS) {
+		/* time-markers */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 		// XXX need boundbox check urgently!!!
 	}
 	if(flag & ED_KEYMAP_ANIMATION) {
+		/* frame changing and timeline operators (for time spaces) */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Animation", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_FRAMES) {
+		/* frame changing/jumping (for all spaces) */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_GPENCIL) {
+		/* grease pencil */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
+	if(flag & ED_KEYMAP_HEADER) {
+		/* standard keymap for headers regions */
+		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Header", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 }
@@ -1272,7 +1283,15 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			}
 
 			if(open) {
-				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+				short panelContext;
+				
+				/* panel context can either be toolbar region or normal panels region */
+				if (ar->regiontype == RGN_TYPE_TOOLS)
+					panelContext= UI_LAYOUT_TOOLBAR;
+				else
+					panelContext= UI_LAYOUT_PANEL;
+				
+				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, panelContext,
 					style->panelspace, 0, w-2*style->panelspace, em, style);
 
 				pt->draw(C, panel);

@@ -89,7 +89,7 @@
 #include "BPY_extern.h"
 #endif
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "FRS_freestyle_config.h"
@@ -423,6 +423,7 @@ Scene *add_scene(char *name)
 	pset->brushtype= PE_BRUSH_NONE;
 	pset->draw_step= 2;
 	pset->fade_frames= 2;
+	pset->selectmode= SCE_SELECT_PATH;
 	for(a=0; a<PE_TOT_BRUSH; a++) {
 		pset->brush[a].strength= 50;
 		pset->brush[a].size= 50;
@@ -661,7 +662,7 @@ int next_object(Scene *scene, int val, Base **base, Object **ob)
 				/* handle dupli's */
 				if(dupob) {
 					
-					Mat4CpyMat4(dupob->ob->obmat, dupob->mat);
+					copy_m4_m4(dupob->ob->obmat, dupob->mat);
 					
 					(*base)->flag |= OB_FROMDUPLI;
 					*ob= dupob->ob;
@@ -674,7 +675,7 @@ int next_object(Scene *scene, int val, Base **base, Object **ob)
 					(*base)->flag &= ~OB_FROMDUPLI;
 					
 					for(dupob= duplilist->first; dupob; dupob= dupob->next) {
-						Mat4CpyMat4(dupob->ob->obmat, dupob->omat);
+						copy_m4_m4(dupob->ob->obmat, dupob->omat);
 					}
 					
 					free_object_duplilist(duplilist);

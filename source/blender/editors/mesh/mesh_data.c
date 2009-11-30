@@ -38,6 +38,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
@@ -49,7 +50,7 @@
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 
@@ -62,6 +63,8 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_view3d.h"
+
+#include "RE_render_ext.h"
 
 #include "mesh_intern.h"
 
@@ -193,11 +196,12 @@ int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 
 int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 {
+	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
-	cdl= (index == -1)? NULL: &me->fdata.layers[index];
+ 	index= CustomData_get_active_layer_index(data, CD_MTFACE);
+	cdl= (index == -1) ? NULL: &data->layers[index];
 
 	if(!cdl)
 		return 0;
@@ -252,11 +256,12 @@ int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 
 int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 {
+	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
-	cdl= (index == -1)? NULL: &me->fdata.layers[index];
+ 	index= CustomData_get_active_layer_index(data, CD_MCOL);
+	cdl= (index == -1)? NULL: &data->layers[index];
 
 	if(!cdl)
 		return 0;
@@ -389,13 +394,15 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 
 static int sticky_add_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Mesh *me= ob->data;
 
-	if(me->msticky)
-		return OPERATOR_CANCELLED;
+	/*if(me->msticky)
+		return OPERATOR_CANCELLED;*/
 
-	// XXX RE_make_sticky();
+	RE_make_sticky(scene, v3d);
 
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
@@ -459,7 +466,7 @@ static void mesh_calc_edges(Mesh *mesh, int update)
 	MFace *mf = mesh->mface;
 	MEdge *med, *med_orig;
 	EdgeHash *eh = BLI_edgehash_new();
-	int i, *index, totedge, totface = mesh->totface;
+	int i, totedge, totface = mesh->totface;
 
 	if(mesh->totedge==0)
 		update= 0;
@@ -498,7 +505,7 @@ static void mesh_calc_edges(Mesh *mesh, int update)
 	ehi = BLI_edgehashIterator_new(eh);
 	med = CustomData_get_layer(&edata, CD_MEDGE);
 	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
-	    BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
+	    BLI_edgehashIterator_step(ehi), ++i, ++med) {
 
 		if(update && (med_orig=BLI_edgehashIterator_getValue(ehi))) {
 			*med= *med_orig; /* copy from the original */
@@ -566,7 +573,7 @@ void ED_mesh_transform(Mesh *me, float *mat)
 	MVert *mvert= me->mvert;
 
 	for(i= 0; i < me->totvert; i++, mvert++)
-		Mat4MulVecfl((float (*)[4])mat, mvert->co);
+		mul_m4_v3((float (*)[4])mat, mvert->co);
 
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }

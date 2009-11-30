@@ -38,7 +38,7 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -133,7 +133,7 @@ void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
 	wmSubWindow *swin= swin_from_swinid(win, swinid);
 
 	if(swin)
-		Mat4MulMat4(mat, swin->viewmat, swin->winmat);
+		mul_m4_m4m4(mat, swin->viewmat, swin->winmat);
 }
 
 /* always sets pixel-precise 2D window/view matrices */
@@ -155,8 +155,8 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 	swin->swinid= freewinid;
 	swin->winrct= *winrct;
 
-	Mat4One(swin->viewmat);
-	Mat4One(swin->winmat);
+	unit_m4(swin->viewmat);
+	unit_m4(swin->winmat);
 	
 	/* and we appy it all right away */
 	wmSubWindowSet(win, swin->swinid);
@@ -279,9 +279,9 @@ void wmLoadMatrix(float mat[][4])
 	glLoadMatrixf(mat);
 	
 	if (glaGetOneInteger(GL_MATRIX_MODE)==GL_MODELVIEW)
-		Mat4CpyMat4(_curswin->viewmat, mat);
+		copy_m4_m4(_curswin->viewmat, mat);
 	else
-		Mat4CpyMat4(_curswin->winmat, mat);
+		copy_m4_m4(_curswin->winmat, mat);
 }
 
 void wmGetMatrix(float mat[][4])
@@ -289,9 +289,9 @@ void wmGetMatrix(float mat[][4])
 	if(_curswin==NULL) return;
 	
 	if (glaGetOneInteger(GL_MATRIX_MODE)==GL_MODELVIEW) {
-		Mat4CpyMat4(mat, _curswin->viewmat);
+		copy_m4_m4(mat, _curswin->viewmat);
 	} else {
-		Mat4CpyMat4(mat, _curswin->winmat);
+		copy_m4_m4(mat, _curswin->winmat);
 	}
 }
 
@@ -317,8 +317,8 @@ void wmPushMatrix(void)
 		printf("wmPushMatrix error already pushed\n");
 	debugpush= 1;
 	
-	Mat4CpyMat4(_curswin->viewmat1, _curswin->viewmat);
-	Mat4CpyMat4(_curswin->winmat1, _curswin->winmat);
+	copy_m4_m4(_curswin->viewmat1, _curswin->viewmat);
+	copy_m4_m4(_curswin->winmat1, _curswin->winmat);
 }
 
 void wmPopMatrix(void)
@@ -329,8 +329,8 @@ void wmPopMatrix(void)
 		printf("wmPopMatrix error nothing popped\n");
 	debugpush= 0;
 	
-	Mat4CpyMat4(_curswin->viewmat, _curswin->viewmat1);
-	Mat4CpyMat4(_curswin->winmat, _curswin->winmat1);
+	copy_m4_m4(_curswin->viewmat, _curswin->viewmat1);
+	copy_m4_m4(_curswin->winmat, _curswin->winmat1);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(&_curswin->winmat[0][0]);
@@ -342,7 +342,7 @@ void wmPopMatrix(void)
 void wmGetSingleMatrix(float mat[][4])
 {
 	if(_curswin)
-		Mat4MulMat4(mat, _curswin->viewmat, _curswin->winmat);
+		mul_m4_m4m4(mat, _curswin->viewmat, _curswin->winmat);
 }
 
 void wmScale(float x, float y, float z)
@@ -363,9 +363,9 @@ void wmLoadIdentity(void)
 	if(_curswin==NULL) return;
 	
 	if (glaGetOneInteger(GL_MATRIX_MODE)==GL_MODELVIEW)
-		Mat4One(_curswin->viewmat);
+		unit_m4(_curswin->viewmat);
 	else
-		Mat4One(_curswin->winmat);
+		unit_m4(_curswin->winmat);
 	
 	glLoadIdentity();
 }

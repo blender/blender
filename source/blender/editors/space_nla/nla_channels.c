@@ -53,7 +53,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_animsys.h"
@@ -189,6 +189,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_DSCUR:
 		case ANIMTYPE_DSSKEY:
 		case ANIMTYPE_DSWOR:
+		case ANIMTYPE_DSNTREE:
 		case ANIMTYPE_DSPART:
 		case ANIMTYPE_DSMBALL:
 		case ANIMTYPE_DSARM:
@@ -428,11 +429,11 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_add_tracks (wmOperatorType *ot)
+void NLA_OT_tracks_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Track(s)";
-	ot->idname= "NLA_OT_add_tracks";
+	ot->idname= "NLA_OT_tracks_add";
 	ot->description= "Add NLA-Tracks above/after the selected tracks.";
 	
 	/* api callbacks */

@@ -39,7 +39,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
@@ -172,6 +172,14 @@ void ED_operatormacros_armature(void)
 	RNA_enum_set(otmacro->ptr, "forked", 0);
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	
+	// XXX would it be nicer to just be able to have standard extrude_move, but set the forked property separate?
+	// that would require fixing a properties bug 19733
+	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked", OPTYPE_UNDO|OPTYPE_REGISTER);
+	otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
+	RNA_enum_set(otmacro->ptr, "forked", 1);
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
 }
 
 void ED_keymap_armature(wmKeyConfig *keyconf)
@@ -207,8 +215,6 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_switch_direction", FKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_bone_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-		/* only the menu-version of subdivide is registered in keymaps for now */
-	WM_keymap_add_item(keymap, "ARMATURE_OT_subdivide_multi", WKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
@@ -234,9 +240,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_move", EKEY, KM_PRESS, KM_SHIFT, 0);
-	//	RNA_boolean_set(kmi->ptr, "forked", 1); // XXX this doesn't work ok for macros it seems...
-	WM_keymap_add_item(keymap, "ARMATURE_OT_click_extrude", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_forked", EKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_click_extrude", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_fill", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
 	
@@ -261,6 +266,9 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 		/* 	2) set roll */
 	kmi= WM_keymap_add_item(keymap, "TFM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONE_ROLL);
+		
+		/* menus */
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_armature_specials", WKEY, KM_PRESS, 0, 0);
 
 	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
@@ -311,8 +319,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "POSE_OT_ik_add", IKEY, KM_PRESS, /*KM_CTRL|*/KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_ik_clear", IKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", GKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_pose_group");
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_group", GKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* set flags */
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);
@@ -332,8 +339,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
-	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* Pose -> PoseLib ------------- */
 	/* only set in posemode, by space_view3d listener */

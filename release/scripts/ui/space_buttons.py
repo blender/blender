@@ -34,11 +34,11 @@ class Buttons_HT_header(bpy.types.Header):
 
         if context.area.show_menus:
             sub = row.row(align=True)
-            sub.itemM("Buttons_MT_view", text="View")
+            sub.menu("Buttons_MT_view", text="View")
 
         row = layout.row()
-        row.itemR(so, "buttons_context", expand=True, text="")
-        row.itemR(scene, "current_frame")
+        row.prop(so, "buttons_context", expand=True, text="")
+        row.prop(scene, "current_frame")
 
 
 class Buttons_MT_view(bpy.types.Menu):
@@ -49,7 +49,7 @@ class Buttons_MT_view(bpy.types.Menu):
         so = context.space_data
 
         col = layout.column()
-        col.itemR(so, "panel_alignment", expand=True)
+        col.prop(so, "panel_alignment", expand=True)
 
 bpy.types.register(Buttons_HT_header)
 bpy.types.register(Buttons_MT_view)

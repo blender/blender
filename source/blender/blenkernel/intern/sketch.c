@@ -30,7 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BKE_sketch.h"
 #include "BKE_utildefines.h"
@@ -73,7 +73,7 @@ void sk_initPoint(SK_Point *pt, SK_DrawData *dd, float *no)
 	if (no)
 	{
 		VECCOPY(pt->no, no);
-		Normalize(pt->no);
+		normalize_v3(pt->no);
 	}
 	else
 	{
@@ -235,7 +235,7 @@ void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], f
 
 	total = end - start;
 
-	VecSubf(delta_p, p_end, p_start);
+	sub_v3_v3v3(delta_p, p_end, p_start);
 
 	prev = stk->points + start;
 	next = stk->points + end;
@@ -259,8 +259,8 @@ void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], f
 		float *p = stk->points[start + 1 + i].p;
 
 		VECCOPY(p, delta_p);
-		VecMulf(p, delta);
-		VecAddf(p, p, p_start);
+		mul_v3_fl(p, delta);
+		add_v3_v3v3(p, p, p_start);
 	}
 }
 
@@ -320,9 +320,9 @@ void sk_flattenStroke(SK_Stroke *stk, int start, int end)
 
 	VECCOPY(normal, stk->points[start].no);
 
-	VecSubf(distance, stk->points[end].p, stk->points[start].p);
-	Projf(normal, distance, normal);
-	limit = Normalize(normal);
+	sub_v3_v3v3(distance, stk->points[end].p, stk->points[start].p);
+	project_v3_v3v3(normal, distance, normal);
+	limit = normalize_v3(normal);
 
 	for (i = 1; i < total - 1; i++)
 	{
@@ -330,14 +330,14 @@ void sk_flattenStroke(SK_Stroke *stk, int start, int end)
 		float offset[3];
 		float *p = stk->points[start + i].p;
 
-		VecSubf(distance, p, stk->points[start].p);
-		Projf(distance, distance, normal);
+		sub_v3_v3v3(distance, p, stk->points[start].p);
+		project_v3_v3v3(distance, distance, normal);
 
 		VECCOPY(offset, normal);
-		VecMulf(offset, d);
+		mul_v3_fl(offset, d);
 
-		VecSubf(p, p, distance);
-		VecAddf(p, p, offset);
+		sub_v3_v3v3(p, p, distance);
+		add_v3_v3v3(p, p, offset);
 	}
 }
 

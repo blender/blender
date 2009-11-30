@@ -36,6 +36,7 @@ struct bContext;
 struct Base;
 struct View3D;
 struct bConstraint;
+struct bPoseChannel;
 struct KeyBlock;
 struct Lattice;
 struct Mesh;
@@ -91,10 +92,8 @@ int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
 
 /* constraints */
-struct bConstraint *add_new_constraint(short type);
-void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
-
 struct ListBase *get_active_constraints(struct Object *ob);
+struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r);
 struct bConstraint *get_active_constraint(struct Object *ob);
 
 void object_test_constraints(struct Object *ob);
@@ -105,7 +104,7 @@ void ED_object_constraint_update(struct Object *ob);
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob);
 
 /* object_lattice.c */
-void mouse_lattice(struct bContext *C, short mval[2], int extend);
+int  mouse_lattice(struct bContext *C, short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, char *name);
 
 /* object_shapekey.c */
@@ -117,12 +116,17 @@ void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb)
 void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 
 /* object_modifier.c */
-int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, int type);
+enum {
+	MODIFIER_APPLY_DATA=1,
+	MODIFIER_APPLY_SHAPE,
+} eModifier_Apply_Mode;
+
+struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, char *name, int type);
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_convert(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
 #endif /* ED_OBJECT_H */

@@ -38,7 +38,7 @@ int tot_hints    = 0;
 #include "BLI_memarena.h"
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "reorganize.h"
 #include "bvh.h"

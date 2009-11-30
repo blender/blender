@@ -297,6 +297,7 @@ DO_INLINE void sub_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], f
 ///////////////////////////
 // 3x3 matrix
 ///////////////////////////
+#if 0
 /* printf 3x3 matrix on console: for debug output */
 static void print_fmatrix(float m3[3][3])
 {
@@ -304,6 +305,7 @@ static void print_fmatrix(float m3[3][3])
 	printf("%f\t%f\t%f\n",m3[1][0],m3[1][1],m3[1][2]);
 	printf("%f\t%f\t%f\n\n",m3[2][0],m3[2][1],m3[2][2]);
 }
+#endif
 
 /* copy 3x3 matrix */
 DO_INLINE void cp_fmatrix(float to[3][3], float from[3][3])
@@ -972,6 +974,7 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 		
 	}
 }
+#if 0
 /*
 // version 1.3
 static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
@@ -1143,6 +1146,7 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 	
 	return iterations<conjgrad_looplimit;
 }
+#endif
 
 // outer product is NOT cross product!!!
 DO_INLINE void dfdx_spring_type1(float to[3][3], float extent[3], float length, float L, float dot, float k)
@@ -1550,28 +1554,28 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 				CalcFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],triunnormal);
 			
 			VECCOPY(trinormal, triunnormal);
-			Normalize(trinormal);
+			normalize_v3(trinormal);
 			
 			// add wind from v1
 			VECCOPY(tmp, trinormal);
-			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v1], triunnormal));
+			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v1], triunnormal));
 			VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], tmp, factor);
 			
 			// add wind from v2
 			VECCOPY(tmp, trinormal);
-			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v2], triunnormal));
+			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v2], triunnormal));
 			VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], tmp, factor);
 			
 			// add wind from v3
 			VECCOPY(tmp, trinormal);
-			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v3], triunnormal));
+			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v3], triunnormal));
 			VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], tmp, factor);
 			
 			// add wind from v4
 			if(mfaces[i].v4)
 			{
 				VECCOPY(tmp, trinormal);
-				VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v4], triunnormal));
+				mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v4], triunnormal));
 				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], tmp, factor);
 			}
 		}
@@ -1652,7 +1656,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
 			{			
 				VECSUB(id->V[i], verts[i].xconst, verts[i].xold);
-				// VecMulf(id->V[i], clmd->sim_parms->stepsPerFrame);
+				// mul_v3_fl(id->V[i], clmd->sim_parms->stepsPerFrame);
 			}
 		}	
 	}
@@ -1725,7 +1729,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 					
 					VECCOPY(id->Xnew[i], verts[i].tx);
 					VECCOPY(id->Vnew[i], verts[i].tv);
-					VecMulf(id->Vnew[i], clmd->sim_parms->stepsPerFrame);
+					mul_v3_fl(id->Vnew[i], clmd->sim_parms->stepsPerFrame);
 				}
 			}
 			

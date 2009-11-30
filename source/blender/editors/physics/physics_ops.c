@@ -75,7 +75,7 @@ static void operatortypes_particle(void)
 
 	WM_operatortype_append(PARTICLE_OT_new);
 	WM_operatortype_append(PARTICLE_OT_new_target);
-	WM_operatortype_append(PARTICLE_OT_remove_target);
+	WM_operatortype_append(PARTICLE_OT_target_remove);
 	WM_operatortype_append(PARTICLE_OT_target_move_up);
 	WM_operatortype_append(PARTICLE_OT_target_move_down);
 	WM_operatortype_append(PARTICLE_OT_connect_hair);
@@ -108,8 +108,8 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
@@ -149,7 +149,7 @@ static void operatortypes_pointcache(void)
 	WM_operatortype_append(PTCACHE_OT_bake);
 	WM_operatortype_append(PTCACHE_OT_free_bake);
 	WM_operatortype_append(PTCACHE_OT_bake_from_cache);
-	WM_operatortype_append(PTCACHE_OT_add_new);
+	WM_operatortype_append(PTCACHE_OT_add);
 	WM_operatortype_append(PTCACHE_OT_remove);
 }
 

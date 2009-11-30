@@ -124,7 +124,7 @@ float area_tri_v3(float *v1, float *v2, float *v3)  /* Triangles */
 #define MAX3(x,y,z)		MAX2(MAX2((x),(y)) , (z))
 
 
-float area_poly_v3(int nr, float *verts, float *normal)
+float area_poly_v3(int nr, float verts[][3], float *normal)
 {
 	float x, y, z, area, max;
 	float *cur, *prev;
@@ -142,13 +142,13 @@ float area_poly_v3(int nr, float *verts, float *normal)
 	}
 
 	/* The Trapezium Area Rule */
-	prev= verts+3*(nr-1);
-	cur= verts;
+	prev= verts[nr-1];
+	cur= verts[0];
 	area= 0;
 	for(a=0; a<nr; a++) {
 		area+= (cur[px]-prev[px])*(cur[py]+prev[py]);
-		prev= cur;
-		cur+=3;
+		prev= verts[a];
+		cur= verts[a+1];
 	}
 
 	return (float)fabs(0.5*area/max);
@@ -232,7 +232,7 @@ float dist_to_line_segment_v3(float *v1, float *v2, float *v3)
 /******************************* Intersection ********************************/
 
 /* intersect Line-Line, shorts */
-short isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4)
+int isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4)
 {
 	/* return:
 	-1: colliniar
@@ -257,7 +257,7 @@ short isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4)
 }
 
 /* intersect Line-Line, floats */
-short isect_line_line_v2(float *v1, float *v2, float *v3, float *v4)
+int isect_line_line_v2(float *v1, float *v2, float *v3, float *v4)
 {
 	/* return:
 	-1: colliniar
@@ -337,6 +337,7 @@ static short IsectLLPt2Df(float x0,float y0,float x1,float y1,
 
 #define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 /* point in tri */
+// XXX was called IsectPT2Df
 int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 {
 	if (SIDE_OF_LINE(v1,v2,pt)>=0.0) {
@@ -432,7 +433,9 @@ int isect_ray_tri_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2
 	
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	/* note: these values were 0.000001 in 2.4x but for projection snapping on
+	 * a human head (1BU==1m), subsurf level 2, this gave many errors - campbell */
+	if ((a > -0.00000001) && (a < 0.00000001)) return 0;
 	f = 1.0f/a;
 	
 	sub_v3_v3v3(s, p1, v0);
@@ -1074,8 +1077,8 @@ void isect_point_face_uv_v2(int isquad, float v0[2], float v1[2], float v2[2], f
 	}
 }
 
-#if 0
-int isect_point_tri_v2(float v1[2], float v2[2], float v3[2], float pt[2])
+#if 0 // XXX this version used to be used in isect_point_tri_v2_int() and was called IsPointInTri2D
+int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 {
 	float inp1, inp2, inp3;
 	
@@ -1145,7 +1148,7 @@ int isect_point_tri_v2_int(int x1, int y1, int x2, int y2, int a, int b)
 	p[0]= (float)a;
 	p[1]= (float)b;
 	
-	return isect_point_tri_v2(v1, v2, v3, p);
+	return isect_point_tri_v2(p, v1, v2, v3);
 }
 
 static int point_in_slice(float p[3], float v1[3], float l1[3], float l2[3])
@@ -1533,7 +1536,6 @@ void map_to_sphere(float *u, float *v,float x, float y, float z)
 /* from BKE_mesh.h */
 #define STD_UV_CONNECT_LIMIT	0.0001f
 
-#if 0
 void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, float *tang, float *uv)
 {
 	VertexTangent *vt;
@@ -1594,5 +1596,162 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
 		negate_v3(tang);
 }
-#endif
 
+/********************************************************/
+
+/* vector clouds */
+/* void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,float (*rpos)[3], float *rweight,
+  							   float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3])
+
+input
+(
+int list_size
+4 lists as pointer to array[list_size]
+1. current pos array of 'new' positions 
+2. current weight array of 'new'weights (may be NULL pointer if you have no weights )
+3. reference rpos array of 'old' positions
+4. reference rweight array of 'old'weights (may be NULL pointer if you have no weights )
+)
+output  
+(
+float lloc[3] center of mass pos
+float rloc[3] center of mass rpos
+float lrot[3][3] rotation matrix
+float lscale[3][3] scale matrix
+pointers may be NULL if not needed
+)
+
+*/
+/* can't believe there is none in math utils */
+float _det_m3(float m2[3][3])
+{
+    float det = 0.f;
+    if (m2){
+    det= m2[0][0]* (m2[1][1]*m2[2][2] - m2[1][2]*m2[2][1])
+        -m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
+        +m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
+    }
+    return det;
+}
+
+
+void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,float (*rpos)[3], float *rweight,
+							float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3])
+{
+	float accu_com[3]= {0.0f,0.0f,0.0f}, accu_rcom[3]= {0.0f,0.0f,0.0f};
+	float accu_weight = 0.0f,accu_rweight = 0.0f,eps = 0.000001f;
+
+	int a;
+	/* first set up a nice default response */
+	if (lloc) zero_v3(lloc);
+	if (rloc) zero_v3(rloc);
+	if (lrot) unit_m3(lrot);
+	if (lscale) unit_m3(lscale);
+	/* do com for both clouds */
+	if (pos && rpos && (list_size > 0)) /* paranoya check */
+	{
+		/* do com for both clouds */
+		for(a=0; a<list_size; a++){
+			if (weight){
+				float v[3];
+				copy_v3_v3(v,pos[a]);
+				mul_v3_fl(v,weight[a]);
+				add_v3_v3v3(accu_com,accu_com,v);
+				accu_weight +=weight[a]; 
+			}
+			else add_v3_v3v3(accu_com,accu_com,pos[a]);
+
+			if (rweight){
+				float v[3];
+				copy_v3_v3(v,rpos[a]);
+				mul_v3_fl(v,rweight[a]);
+				add_v3_v3v3(accu_rcom,accu_rcom,v);
+				accu_rweight +=rweight[a]; 
+			}
+			else add_v3_v3v3(accu_rcom,accu_rcom,rpos[a]);
+
+		}
+		if (!weight || !rweight){
+			accu_weight = accu_rweight = list_size;
+		}
+
+		mul_v3_fl(accu_com,1.0f/accu_weight);
+		mul_v3_fl(accu_rcom,1.0f/accu_rweight);
+		if (lloc) copy_v3_v3(lloc,accu_com);
+		if (rloc) copy_v3_v3(rloc,accu_rcom);
+		if (lrot || lscale){ /* caller does not want rot nor scale, strange but legal */
+			/*so now do some reverse engeneering and see if we can split rotation from scale ->Polardecompose*/
+			/* build 'projection' matrix */
+			float m[3][3],mr[3][3],q[3][3],qi[3][3];
+			float va[3],vb[3],stunt[3];
+			float odet,ndet;
+			int i=0,imax=15;
+			zero_m3(m);
+			zero_m3(mr);
+
+			/* build 'projection' matrix */
+			for(a=0; a<list_size; a++){
+				sub_v3_v3v3(va,rpos[a],accu_rcom);
+				/* mul_v3_fl(va,bp->mass);  mass needs renormalzation here ?? */
+				sub_v3_v3v3(vb,pos[a],accu_com);
+				/* mul_v3_fl(va,rp->mass); */
+				m[0][0] += va[0] * vb[0];
+				m[0][1] += va[0] * vb[1];
+				m[0][2] += va[0] * vb[2];
+
+				m[1][0] += va[1] * vb[0];
+				m[1][1] += va[1] * vb[1];
+				m[1][2] += va[1] * vb[2];
+
+				m[2][0] += va[2] * vb[0];
+				m[2][1] += va[2] * vb[1];
+				m[2][2] += va[2] * vb[2];
+
+				/* building the referenc matrix on the fly
+				needed to scale properly later*/
+
+				mr[0][0] += va[0] * va[0];
+				mr[0][1] += va[0] * va[1];
+				mr[0][2] += va[0] * va[2];
+
+				mr[1][0] += va[1] * va[0];
+				mr[1][1] += va[1] * va[1];
+				mr[1][2] += va[1] * va[2];
+
+				mr[2][0] += va[2] * va[0];
+				mr[2][1] += va[2] * va[1];
+				mr[2][2] += va[2] * va[2];
+			}
+			copy_m3_m3(q,m);
+			stunt[0] = q[0][0]; stunt[1] = q[1][1]; stunt[2] = q[2][2];
+			/* renormalizing for numeric stability */
+			mul_m3_fl(q,1.f/len_v3(stunt)); 
+
+			/* this is pretty much Polardecompose 'inline' the algo based on Higham's thesis */
+			/* without the far case ... but seems to work here pretty neat                   */
+			odet = 0.f;
+			ndet = _det_m3(q);
+			while((odet-ndet)*(odet-ndet) > eps && i<imax){
+				invert_m3_m3(qi,q);
+				transpose_m3(qi);
+				add_m3_m3m3(q,q,qi);
+				mul_m3_fl(q,0.5f);
+				odet =ndet;
+				ndet =_det_m3(q);
+				i++;
+			}
+
+			if (i){
+				float scale[3][3];
+				float irot[3][3];
+				if(lrot) copy_m3_m3(lrot,q);
+				invert_m3_m3(irot,q);
+				invert_m3_m3(qi,mr);
+				mul_m3_m3m3(q,m,qi); 
+				mul_m3_m3m3(scale,irot,q); 
+				if(lscale) copy_m3_m3(lscale,scale);
+
+			}
+		}
+	}
+}

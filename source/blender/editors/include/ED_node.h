@@ -44,7 +44,10 @@ void ED_node_changed_update(struct ID *id, struct bNode *node);
 /* node_edit.c */
 void ED_node_shader_default(struct Material *ma);
 void ED_node_composit_default(struct Scene *sce);
-void ED_node_texture_default(struct Tex *tex);;
+void ED_node_texture_default(struct Tex *tex);
+
+/* node ops.c */
+void ED_operatormacros_node(void);
 
 #endif /* ED_NODE_H */
 

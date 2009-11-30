@@ -34,7 +34,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include "DNA_scene_types.h"
 #include "RAS_CameraData.h"
 #include "RAS_MeshObject.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "ImageRender.h"
 #include "ImageBase.h"
@@ -589,15 +589,15 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
                 {
                     v4 = polygon->GetVertex(3);
                     mirrorVerts.push_back(v4);
-                    area = CalcNormFloat4((float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ(), normal);
+                    area = normal_quad_v3( normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ());
                 } else
                 {
-                    area = CalcNormFloat((float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), normal);
+                    area = normal_tri_v3( normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ());
                 }
                 area = fabs(area);
                 mirrorArea += area;
-                VecMulf(normal, area);
-                VecAddf(mirrorNormal, mirrorNormal, normal);
+                mul_v3_fl(normal, area);
+                add_v3_v3v3(mirrorNormal, mirrorNormal, normal);
             }
         }
     }
@@ -607,8 +607,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
        THRWEXCP(MirrorSizeInvalid, S_OK);
     }
     // compute average normal of mirror faces
-    VecMulf(mirrorNormal, 1.0f/mirrorArea);
-    if (Normalize(mirrorNormal) == 0.f)
+    mul_v3_fl(mirrorNormal, 1.0f/mirrorArea);
+    if (normalize_v3(mirrorNormal) == 0.f)
     {
         // no normal
         THRWEXCP(MirrorNormalInvalid, S_OK);
@@ -622,26 +622,26 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 		fabs(mirrorNormal[2]) > fabs(mirrorNormal[0]))
 	{
 		// the mirror is more horizontal than vertical
-        VecCopyf(axis, yaxis);
+        copy_v3_v3(axis, yaxis);
 	}
 	else
 	{
 		// the mirror is more vertical than horizontal
-        VecCopyf(axis, zaxis);
+        copy_v3_v3(axis, zaxis);
 	}
-    dist = Inpf(mirrorNormal, axis);
+    dist = dot_v3v3(mirrorNormal, axis);
     if (fabs(dist) < FLT_EPSILON)
     {
         // the mirror is already fully aligned with up axis
-        VecCopyf(mirrorUp, axis);
+        copy_v3_v3(mirrorUp, axis);
     }
     else
     {
         // projection of axis to mirror plane through normal
-        VecCopyf(vec, mirrorNormal);
-        VecMulf(vec, dist);
-        VecSubf(mirrorUp, axis, vec);
-        if (Normalize(mirrorUp) == 0.f)
+        copy_v3_v3(vec, mirrorNormal);
+        mul_v3_fl(vec, dist);
+        sub_v3_v3v3(mirrorUp, axis, vec);
+        if (normalize_v3(mirrorUp) == 0.f)
         {
             // should not happen
             THRWEXCP(MirrorHorizontal, S_OK);
@@ -650,12 +650,12 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
     }
     // compute rotation matrix between local coord and mirror coord
     // to match camera orientation, we select mirror z = -normal, y = up, x = y x z
-    VecCopyf(mirrorMat[2], mirrorNormal);
-    VecMulf(mirrorMat[2], -1.0f);
-    VecCopyf(mirrorMat[1], mirrorUp);
-    Crossf(mirrorMat[0], mirrorMat[1], mirrorMat[2]);
+    copy_v3_v3(mirrorMat[2], mirrorNormal);
+    mul_v3_fl(mirrorMat[2], -1.0f);
+    copy_v3_v3(mirrorMat[1], mirrorUp);
+    cross_v3_v3v3(mirrorMat[0], mirrorMat[1], mirrorMat[2]);
     // transpose to make it a orientation matrix from local space to mirror space
-    Mat3Transp(mirrorMat);
+    transpose_m3(mirrorMat);
     // transform all vertex to plane coordinates and determine mirror position
     left = FLT_MAX; 
     right = -FLT_MAX;
@@ -664,8 +664,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
     back = -FLT_MAX; // most backward vertex (=highest Z coord in mirror space)
     for (it = mirrorVerts.begin(); it != mirrorVerts.end(); it++)
     {   
-        VecCopyf(vec, (float*)(*it)->getXYZ());
-        Mat3MulVecfl(mirrorMat, vec);
+        copy_v3_v3(vec, (float*)(*it)->getXYZ());
+        mul_m3_v3(mirrorMat, vec);
         if (vec[0] < left)
             left = vec[0];
         if (vec[0] > right)
@@ -690,8 +690,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
     vec[1] = (top+bottom)*0.5f;
     vec[2] = back;
     // convert it in local space: transpose again the matrix to get back to mirror to local transform
-    Mat3Transp(mirrorMat);
-    Mat3MulVecfl(mirrorMat, vec);
+    transpose_m3(mirrorMat);
+    mul_m3_v3(mirrorMat, vec);
     // mirror position in local space
     m_mirrorPos.setValue(vec[0], vec[1], vec[2]);
     // mirror normal vector (pointed towards the back of the mirror) in local space

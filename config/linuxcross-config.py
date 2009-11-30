@@ -119,7 +119,7 @@ CXX = 'i586-mingw32msvc-g++'
 
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 
-CPPFLAGS = [ '-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS' ]
+CPPFLAGS = ['-DWIN32', '-DFREE_WINDOWS']
 CXXFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = [ '-O2' ]
 REL_CCFLAGS = [ '-O2' ]

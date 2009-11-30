@@ -55,20 +55,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* ***************** depsgraph calls and anim updates ************* */
-/* ***************** only these can be called from editors ******** */
-
-void ED_anim_dag_flush_update(const bContext *C)
-{
-	DAG_ids_flush_update(0);
-}
-
-/* flushes changes from object to all relations in scene */
-void ED_anim_object_flush_update(const bContext *C, Object *ob)
-{
-	DAG_id_update_flags(&ob->id);
-}
-
 /* **************************** pose <-> action syncing ******************************** */
 /* Summary of what needs to be synced between poses and actions:
  *	1) Flags

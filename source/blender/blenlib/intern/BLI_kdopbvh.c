@@ -37,7 +37,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_kdopbvh.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -332,10 +332,12 @@ static void sort(BVHNode **a0, int begin, int end, int axis)
 		bvh_insertionsort(a, begin, end, axis);
 	}
 }
+#if 0
 static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 {
 	sort(tree->nodes, start, end, axis);
 }
+#endif
 
 //after a call to this function you can expect one of:
 //      every node to left of a[n] are smaller or equal to it
@@ -1532,6 +1534,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	}
 }
 
+#if 0
 static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 {
 	while(node)
@@ -1562,6 +1565,7 @@ static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 		}	
 	}
 }
+#endif
 
 int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
 {
@@ -1578,7 +1582,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 	VECCOPY(data.ray.direction, dir);
 	data.ray.radius = radius;
 
-	Normalize(data.ray.direction);
+	normalize_v3(data.ray.direction);
 
 	for(i=0; i<3; i++)
 	{
@@ -1635,7 +1639,7 @@ float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, fl
 	data.ray.origin[1] = light_start[1];
 	data.ray.origin[2] = light_start[2];
 	
-	Normalize(data.ray.direction);
+	normalize_v3(data.ray.direction);
 	VECCOPY(data.ray_dot_axis, data.ray.direction);
 	
 	dist = ray_nearest_hit(&data, bv);

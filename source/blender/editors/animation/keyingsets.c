@@ -36,7 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
@@ -53,6 +53,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -366,7 +367,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -375,11 +376,11 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_add_keyingset_button (wmOperatorType *ot)
+void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add to Keying Set";
-	ot->idname= "ANIM_OT_add_keyingset_button";
+	ot->idname= "ANIM_OT_keyingset_button_add";
 	
 	/* callbacks */
 	ot->exec= add_keyingset_button_exec; 
@@ -444,7 +445,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -453,11 +454,11 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_remove_keyingset_button (wmOperatorType *ot)
+void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove from Keying Set";
-	ot->idname= "ANIM_OT_remove_keyingset_button";
+	ot->idname= "ANIM_OT_keyingset_button_remove";
 	
 	/* callbacks */
 	ot->exec= remove_keyingset_button_exec; 
@@ -1219,7 +1220,7 @@ static short modifykey_get_context_v3d_data (bContext *C, ListBase *dsources, Ke
 		//}
 #endif
 		
-		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 		{
 			/* add a new keying-source */
 			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
@@ -1293,6 +1294,10 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
+	
+	/* sanity checks */
+	if (ks == NULL)
+		return 0;
 	
 	/* get flags to use */
 	if (mode == MODIFYKEY_MODE_INSERT) {
@@ -1395,7 +1400,7 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 				// FIXME: this currently only works with a few hardcoded cases
 				if ((ksp->templates & KSP_TEMPLATE_PCHAN) && (cks->pchan)) {
 					/* add basic pose-channel path access */
-					BLI_dynstr_append(pathds, "pose.pose_channels[\"");
+					BLI_dynstr_append(pathds, "pose.bones[\"");
 					BLI_dynstr_append(pathds, cks->pchan->name);
 					BLI_dynstr_append(pathds, "\"]");
 					

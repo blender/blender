@@ -4,7 +4,7 @@ import sys
 Import ('env')
 
 sources = env.Glob('*.cpp')
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 incs = '. #source/blender/python/generic' # Only for Mathutils! and bpy_internal_import.h, be very careful
 

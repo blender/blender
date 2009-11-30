@@ -24,7 +24,7 @@ extern "C" {
 	
 	#include "BKE_mesh.h"
 	#include "BKE_scene.h"
-	#include "BLI_arithb.h"
+	#include "BLI_math.h"
 	
 #ifdef __cplusplus
 }

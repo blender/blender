@@ -34,12 +34,12 @@
 
 /********************************* Init **************************************/
 
-void zero_m3(float *m)
+void zero_m3(float m[3][3])
 {
 	memset(m, 0, 3*3*sizeof(float));
 }
 
-void zero_m4(float *m)
+void zero_m4(float m[4][4])
 {
 	memset(m, 0, 4*4*sizeof(float));
 }
@@ -183,6 +183,7 @@ void mul_m4_m4m3(float (*m1)[4], float (*m3)[4], float (*m2)[3])
 	m1[2][1]= m2[2][0]*m3[0][1] + m2[2][1]*m3[1][1] + m2[2][2]*m3[2][1];
 	m1[2][2]= m2[2][0]*m3[0][2] + m2[2][1]*m3[1][2] + m2[2][2]*m3[2][2];
 }
+
 /* m1 = m2 * m3, ignore the elements on the 4th row/column of m3*/
 void mul_m3_m3m4(float m1[][3], float m2[][3], float m3[][4])
 {
@@ -199,8 +200,6 @@ void mul_m3_m3m4(float m1[][3], float m2[][3], float m3[][4])
     m1[2][1] = m2[2][0] * m3[0][1] + m2[2][1] * m3[1][1] +m2[2][2] * m3[2][1];
     m1[2][2] = m2[2][0] * m3[0][2] + m2[2][1] * m3[1][2] +m2[2][2] * m3[2][2];
 }
-
-
 
 void mul_m4_m3m4(float (*m1)[4], float (*m3)[3], float (*m2)[4])
 {
@@ -223,7 +222,6 @@ void mul_serie_m3(float answ[][3],
 	float temp[3][3];
 	
 	if(m1==0 || m2==0) return;
-
 	
 	mul_m3_m3m3(answ, m2, m1);
 	if(m3) {
@@ -304,7 +302,7 @@ void mul_v3_m4v3(float *in, float mat[][4], float *vec)
 	in[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2] + mat[3][2];
 }
 
-void mul_no_transl_m4v3(float mat[][4], float *vec)
+void mul_mat3_m4_v3(float mat[][4], float *vec)
 {
 	float x,y;
 
@@ -340,15 +338,19 @@ void mul_m4_v4(float mat[][4], float *vec)
 	vec[3]=x*mat[0][3] + y*mat[1][3] + z*mat[2][3] + mat[3][3]*vec[3];
 }
 
-void mul_m3_v3(float mat[][3], float *vec)
+void mul_v3_m3v3(float r[3], float M[3][3], float a[3])
 {
-	float x,y;
+	r[0]= M[0][0]*a[0] + M[1][0]*a[1] + M[2][0]*a[2];
+	r[1]= M[0][1]*a[0] + M[1][1]*a[1] + M[2][1]*a[2];
+	r[2]= M[0][2]*a[0] + M[1][2]*a[1] + M[2][2]*a[2];
+}
 
-	x=vec[0]; 
-	y=vec[1];
-	vec[0]= x*mat[0][0] + y*mat[1][0] + mat[2][0]*vec[2];
-	vec[1]= x*mat[0][1] + y*mat[1][1] + mat[2][1]*vec[2];
-	vec[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2];
+void mul_m3_v3(float M[3][3], float r[3])
+{
+	float tmp[3];
+
+	mul_v3_m3v3(tmp, M, r);
+	copy_v3_v3(r, tmp);
 }
 
 void mul_transposed_m3_v3(float mat[][3], float *vec)
@@ -362,30 +364,31 @@ void mul_transposed_m3_v3(float mat[][3], float *vec)
 	vec[2]= x*mat[2][0] + y*mat[2][1] + mat[2][2]*vec[2];
 }
 
-void mul_m3_fl(float *m, float f)
+void mul_m3_fl(float m[3][3], float f)
 {
-	int i;
+	int i, j;
 
-	for(i=0;i<9;i++) m[i]*=f;
+	for(i=0;i<3;i++)
+		for(j=0;j<3;j++)
+			m[i][j] *= f;
 }
 
-void mul_m4_fl(float *m, float f)
+void mul_m4_fl(float m[4][4], float f)
 {
-	int i;
+	int i, j;
 
-	for(i=0;i<16;i++) m[i]*=f;	/* count to 12: without vector component */
+	for(i=0;i<4;i++)
+		for(j=0;j<4;j++)
+			m[i][j] *= f;
 }
 
-void mul_no_transl_m4_fl(float *m, float f)		/* only scale component */
+void mul_mat3_m4_fl(float m[4][4], float f)
 {
-	int i,j;
+	int i, j;
 
-	for(i=0; i<3; i++) {
-		for(j=0; j<3; j++) {
-			
-			m[4*i+j] *= f;
-		}
-	}
+	for(i=0; i<3; i++)
+		for(j=0; j<3; j++)
+			m[i][j] *= f;
 }
 
 void mul_m3_v3_double(float mat[][3], double *vec)
@@ -417,10 +420,21 @@ void add_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 			m1[i][j]= m2[i][j] + m3[i][j];
 }
 
-void invert_m3_m3(float m1[][3], float m2[][3])
+int invert_m3(float m[3][3])
 {
-	short a,b;
+	float tmp[3][3];
+	int success;
+
+	success= invert_m3_m3(tmp, m);
+	copy_m3_m3(m, tmp);
+
+	return success;
+}
+
+int invert_m3_m3(float m1[3][3], float m2[3][3])
+{
 	float det;
+	int a, b, success;
 
 	/* calc adjoint */
 	adjoint_m3_m3(m1,m2);
@@ -430,6 +444,8 @@ void invert_m3_m3(float m1[][3], float m2[][3])
 	    -m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
 	    +m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
 
+	success= (det != 0);
+
 	if(det==0) det=1;
 	det= 1/det;
 	for(a=0;a<3;a++) {
@@ -437,6 +453,19 @@ void invert_m3_m3(float m1[][3], float m2[][3])
 			m1[a][b]*=det;
 		}
 	}
+
+	return success;
+}
+
+int invert_m4(float m[4][4])
+{
+	float tmp[4][4];
+	int success;
+
+	success= invert_m4_m4(tmp, m);
+	copy_m4_m4(m, tmp);
+
+	return success;
 }
 
 /*
@@ -448,7 +477,7 @@ void invert_m3_m3(float m1[][3], float m2[][3])
  *					Mark Segal - 1992
  */
 
-int invert_m4_m4(float inverse[][4], float mat[][4])
+int invert_m4_m4(float inverse[4][4], float mat[4][4])
 {
 	int i, j, k;
 	double temp;

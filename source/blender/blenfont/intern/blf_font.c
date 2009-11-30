@@ -46,7 +46,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
 #include "BLI_string.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "BIF_gl.h"
 #include "BLF_api.h"
@@ -459,7 +459,7 @@ static void blf_font_fill(FontBLF *font)
 	font->pos[0]= 0.0f;
 	font->pos[1]= 0.0f;
 	font->angle= 0.0f;
-	Mat4One(font->mat);
+	unit_m4(font->mat);
 	font->clip_rec.xmin= 0.0f;
 	font->clip_rec.xmax= 0.0f;
 	font->clip_rec.ymin= 0.0f;

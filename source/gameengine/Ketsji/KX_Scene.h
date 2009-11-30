@@ -73,7 +73,6 @@ class KX_Camera;
 class KX_GameObject;
 class KX_LightObject;
 class RAS_BucketManager;
-class RAS_BucketManager;
 class RAS_MaterialBucket;
 class RAS_IPolyMaterial;
 class RAS_IRasterizer;
@@ -82,6 +81,9 @@ class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
 struct KX_ClientObjectInfo;
+
+/* for ID freeing */
+#define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
 
 /**
  * The KX_Scene holds all data for an independent scene. It relates
@@ -93,6 +95,8 @@ class KX_Scene : public PyObjectPlus, public SCA_IScene
 
 #ifndef DISABLE_PYTHON
 	PyObject*	m_attr_dict;
+	PyObject*	m_draw_call_pre;
+	PyObject*	m_draw_call_post;
 #endif
 
 	struct CullingInfo {
@@ -284,6 +288,12 @@ public:
 	void RenderBuckets(const MT_Transform& cameratransform,
 						RAS_IRasterizer* rasty,
 						RAS_IRenderTools* rendertools);
+
+	/**
+	 * Run the registered python drawing functions.
+	 */
+	void RunDrawingCallbacks(PyObject* cb_list);
+
 	/**
 	 * Update all transforms according to the scenegraph.
 	 */
@@ -321,6 +331,10 @@ public:
 	);
 
 		CListValue*				
+	GetTempObjectList(
+	);
+
+		CListValue*
 	GetObjectList(
 	);
 
@@ -471,6 +485,7 @@ public:
 	KX_Camera* GetpCamera();
 	NG_NetworkDeviceInterface* GetNetworkDeviceInterface();
 	NG_NetworkScene* GetNetworkScene();
+	KX_BlenderSceneConverter *GetSceneConverter() { return m_sceneConverter; }
 
 	/**
 	 * Replicate the logic bricks associated to this object.
@@ -536,6 +551,10 @@ public:
 	static PyObject*	pyattr_get_cameras(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_drawing_callback_pre(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_drawing_callback_post(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	virtual PyObject* py_repr(void) { return PyUnicode_FromString(GetName().ReadPtr()); }
 	
@@ -543,6 +562,8 @@ public:
 	static PyMappingMethods	Mapping;
 	static PySequenceMethods	Sequence;
 
+	PyObject* GetPreDrawCB() { return m_draw_call_pre; };
+	PyObject* GetPostDrawCB() { return m_draw_call_post; };
 #endif
 
 	/**
@@ -567,6 +588,15 @@ public:
 	 * Returns the Blender scene this was made from
 	 */
 	struct Scene *GetBlenderScene() { return m_blenderScene; }
+
+	bool MergeScene(KX_Scene *other);
+
+
+	//void PrintStats(int verbose_level) {
+	//	m_bucketmanager->PrintStats(verbose_level)
+	//}
+
+
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

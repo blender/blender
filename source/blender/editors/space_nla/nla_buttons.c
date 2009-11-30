@@ -41,7 +41,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
@@ -155,6 +155,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 			case ANIMTYPE_DSCUR:
 			case ANIMTYPE_DSSKEY:
 			case ANIMTYPE_DSWOR:
+			case ANIMTYPE_DSNTREE:
 			case ANIMTYPE_DSPART:
 			case ANIMTYPE_DSMBALL:
 			case ANIMTYPE_DSARM:
@@ -246,7 +247,7 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	/* Active Action Properties ------------------------------------- */
 	/* action */
 	row= uiLayoutRow(layout, 1);
-		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACT_OT_new", NULL, NULL /*"ACT_OT_unlink"*/); // XXX: need to make these operators
+		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACTION_OT_new", NULL, NULL /*"ACTION_OT_unlink"*/); // XXX: need to make these operators
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);
@@ -433,7 +434,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
 	for (fcm= strip->modifiers.first; fcm; fcm= fcm->next) {
 		col= uiLayoutColumn(pa->layout, 1);
 		
-		ANIM_uiTemplate_fmodifier_draw(col, strip_ptr.id.data, &strip->modifiers, fcm);
+		ANIM_uiTemplate_fmodifier_draw(C, col, strip_ptr.id.data, &strip->modifiers, fcm);
 	}
 }
 

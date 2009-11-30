@@ -1,4 +1,4 @@
-# $Id$
+ # $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -70,7 +70,6 @@ OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
 OPTION(WITH_SDL           "Enable SDL for sound and joystick support" ON)
 OPTION(WITH_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org/)" OFF)
 OPTION(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
-OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 OPTION(WITH_FFTW3         "Enable FFTW3 support" OFF)
 OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
@@ -82,26 +81,22 @@ OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 
+# Unix defaults to OpenMP On
+IF (UNIX)
+	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+ELSE(UNIX)
+	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
+ENDIF(UNIX)
+
 IF (APPLE)
-OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
-OPTION(WITH_LIBS10.5	  "Use 10.5 libs (needed for 64bit builds)" OFF)
+	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
+	OPTION(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
+	OPTION(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 ENDIF (APPLE)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
-
-IF (WITH_OPENCOLLADA AND NOT APPLE)
-SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
-SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA})
-SET(OPENCOLLADA_LIB OpenCollada)
-SET(PCRE /usr CACHE FILEPATH "PCRE Directory")
-SET(PCRE_LIBPATH ${PCRE}/lib)
-SET(PCRE_LIB pcre)
-SET(EXPAT /usr CACHE FILEPATH "Expat Directory")
-SET(EXPAT_LIBPATH ${EXPAT}/lib)
-SET(EXPAT_LIB expat)
-ENDIF (WITH_OPENCOLLADA AND NOT APPLE)
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
@@ -119,6 +114,8 @@ INCLUDE(CMake/macros.cmake)
 #Platform specifics
 
 IF(UNIX AND NOT APPLE)
+
+
 	IF(WITH_OPENAL)
 		FIND_PACKAGE(OpenAL)
 		IF(OPENAL_FOUND)
@@ -217,6 +214,20 @@ IF(UNIX AND NOT APPLE)
 
 	FIND_PACKAGE(ZLIB REQUIRED)
 
+	IF (WITH_OPENCOLLADA)
+		SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
+		SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
+		SET(OPENCOLLADA_LIB OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre ftoa Buffer)
+		SET(OPENCOLLADA_INC ${OPENCOLLADA})
+		SET(PCRE /usr CACHE FILEPATH "PCRE Directory")
+		SET(PCRE_LIBPATH ${PCRE}/lib)
+		SET(PCRE_LIB pcre)
+		SET(EXPAT /usr CACHE FILEPATH "Expat Directory")
+		SET(EXPAT_LIBPATH ${EXPAT}/lib)
+		SET(EXPAT_LIB expat)
+	ENDIF (WITH_OPENCOLLADA)
+
+
 	# Could use ${X11_Xinput_LIB} ${X11_X11_LIB} too
 	SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11")
 
@@ -232,7 +243,7 @@ IF(UNIX AND NOT APPLE)
 	ENDIF(WITH_OPENMP)
 
 
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -DXP_UNIX -Wno-char-subscripts")
+	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
 
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
@@ -400,6 +411,16 @@ IF(WIN32)
   
 	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
+	SET(OPENCOLLADA ${LIBDIR}/opencollada)
+	SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
+	SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
+	SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 )
+	#pcre is bundled with openCollada
+	#SET(PCRE ${LIBDIR}/pcre)
+	#SET(PCRE_LIBPATH ${PCRE}/lib)
+	SET(PCRE_LIB pcre)
+
+
 	IF(CMAKE_CL_64)
 		SET(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
 	ELSE(CMAKE_CL_64)
@@ -510,11 +531,21 @@ IF(APPLE)
 	SET(LLIBS stdc++ SystemStubs)
 
 	IF (WITH_COCOA)
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -DGHOST_COCOA")
-	SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
+		SET(PLATFORM_CFLAGS "-pipe -funsigned-char -DGHOST_COCOA")
+		SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio")
+		IF(USE_QTKIT)
+			SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DUSE_QTKIT")
+			SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
+			IF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+				SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
+				#libSDL still needs 32bit carbon quicktime 
+			ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+		ELSEIF(WITH_QUICKTIME)
+			SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
+		ENDIF(USE_QTKIT)
 	ELSE (WITH_COCOA)
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
-	SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
+		SET(PLATFORM_CFLAGS "-pipe -funsigned-char")
+		SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
 	ENDIF (WITH_COCOA)
 
 	IF(WITH_OPENMP)
@@ -532,10 +563,10 @@ IF(APPLE)
 		#SET(PCRE ${LIBDIR}/pcre)
 		#SET(PCRE_LIBPATH ${PCRE}/lib)
 		SET(PCRE_LIB pcre)
-		#native OSX libxml2 is used
+		#libxml2 is used
 		#SET(EXPAT ${LIBDIR}/expat)
 		#SET(EXPAT_LIBPATH ${EXPAT}/lib)
-		#SET(EXPAT_LIB expat)
+		SET(EXPAT_LIB)
 	ENDIF (WITH_OPENCOLLADA)
 
 	SET(SDL ${LIBDIR}/sdl)
@@ -556,14 +587,22 @@ IF(APPLE)
 
 	SET(EXETYPE MACOSX_BUNDLE)
 
-
+	SET(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
+	SET(CMAKE_CXX_FLAGS_DEBUG "-fno-strict-aliasing -g")
 	IF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
-		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
-		SET(CMAKE_C_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
+		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
+		SET(CMAKE_C_FLAGS_RELEASE "-O3 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
 	ELSEIF(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
-		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
-		SET(CMAKE_C_FLAGS_RELEASE "-O3 -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+		SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+		SET(CMAKE_C_FLAGS_RELEASE "-O3 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+	ELSE(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
+		SET(CMAKE_C_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
+		SET(CMAKE_CXX_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
 	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
+
+	# Better warnings
+	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement")
+	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
 ENDIF(APPLE)
 

@@ -688,19 +688,19 @@ int main(int argc, char** argv)
 						if ((!fullScreenParFound) && (!windowParFound))
 						{
 							// Only use file settings when command line did not override
-							if (scene->r.fullscreen) {
+							if (scene->gm.fullscreen) {
 								//printf("fullscreen option found in Blender file\n");
 								fullScreen = true;
-								fullScreenWidth= scene->r.xplay;
-								fullScreenHeight= scene->r.yplay;
-								fullScreenFrequency= scene->r.freqplay;
-								fullScreenBpp = scene->r.depth;
+								fullScreenWidth= scene->gm.xplay;
+								fullScreenHeight= scene->gm.yplay;
+								fullScreenFrequency= scene->gm.freqplay;
+								fullScreenBpp = scene->gm.depth;
 							}
 							else
 							{
 								fullScreen = false;
-								windowWidth = scene->r.xplay;
-								windowHeight = scene->r.yplay;
+								windowWidth = scene->gm.xplay;
+								windowHeight = scene->gm.yplay;
 							}
 						}
 						
@@ -708,9 +708,11 @@ int main(int argc, char** argv)
 						// Check whether the game should be displayed in stereo
 						if (!stereoParFound)
 						{
-							stereomode = (RAS_IRasterizer::StereoMode) scene->r.stereomode;
-							if (stereomode == RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-								stereoWindow = true;
+							if(scene->gm.stereoflag == STEREO_ENABLED){
+								stereomode = (RAS_IRasterizer::StereoMode) scene->gm.stereomode;
+								if (stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+									stereoWindow = true;
+							}
 						}
 						
 						//					GPG_Application app (system, maggie, startscenename);

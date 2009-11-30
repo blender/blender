@@ -39,13 +39,13 @@ struct ARegion;
 // special swapbuffers, that takes care of which area (viewport) needs to be swapped
 void	BL_SwapBuffers(struct wmWindow *win);
 
-void	BL_warp_pointer(int x,int y);
+void	BL_warp_pointer(struct wmWindow *win,int x,int y);
 
 void	BL_MakeScreenShot(struct ARegion *ar, const char* filename);
 
-void	BL_HideMouse();
-void	BL_NormalMouse();
-void	BL_WaitMouse();
+void	BL_HideMouse(struct wmWindow *win);
+void	BL_NormalMouse(struct wmWindow *win);
+void	BL_WaitMouse(struct wmWindow *win);
 
 void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height);
 void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int width, int height);

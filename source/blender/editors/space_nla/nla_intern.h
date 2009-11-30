@@ -88,11 +88,11 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot);
 
 /* --- */
 
-void NLA_OT_add_actionclip(wmOperatorType *ot);
-void NLA_OT_add_transition(wmOperatorType *ot);
+void NLA_OT_actionclip_add(wmOperatorType *ot);
+void NLA_OT_transition_add(wmOperatorType *ot);
 
-void NLA_OT_add_meta(wmOperatorType *ot);
-void NLA_OT_remove_meta(wmOperatorType *ot);
+void NLA_OT_meta_add(wmOperatorType *ot);
+void NLA_OT_meta_remove(wmOperatorType *ot);
 
 void NLA_OT_duplicate(wmOperatorType *ot);
 void NLA_OT_delete(wmOperatorType *ot);
@@ -116,7 +116,7 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot);
 
 void NLA_OT_channels_click(wmOperatorType *ot);
 
-void NLA_OT_add_tracks(wmOperatorType *ot);
+void NLA_OT_tracks_add(wmOperatorType *ot);
 void NLA_OT_delete_tracks(wmOperatorType *ot);
 
 /* **************************************** */

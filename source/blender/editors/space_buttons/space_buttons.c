@@ -38,7 +38,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_colortools.h"
@@ -308,6 +308,10 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_PROPERTIES)
 				ED_area_tag_redraw(sa);
 			break;
+		case NC_ID:
+			if(wmn->data == ND_ID_RENAME)
+				ED_area_tag_redraw(sa);
+			break;
 	}
 
 	if(wmn->data == ND_KEYS)
@@ -345,7 +349,7 @@ void ED_spacetype_buttons(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= BUTS_HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= buttons_header_area_init;
 	art->draw= buttons_header_area_draw;

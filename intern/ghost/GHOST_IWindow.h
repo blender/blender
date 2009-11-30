@@ -149,6 +149,17 @@ public:
 	virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
 
 	/**
+	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
+	 */
+	virtual void setAcceptDragOperation(bool canAccept) = 0;
+	
+	/**
+	 * Returns acceptance of the dropped object
+	 * Usually called by the "object dropped" event handling function
+	 */
+	virtual bool canAcceptDragOperation() const = 0;
+	
+	/**
 	 * Returns the state of the window (normal, minimized, maximized).
 	 * @return The state of the window.
 	 */

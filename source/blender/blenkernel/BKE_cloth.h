@@ -38,7 +38,7 @@
 #include "BKE_DerivedMesh.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_edgehash.h"
 
 #include "DNA_cloth_types.h"

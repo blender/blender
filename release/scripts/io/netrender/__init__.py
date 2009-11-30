@@ -18,21 +18,17 @@
 
 # This directory is a Python package.
 
-import model
-import operators
-import client
-import slave
-import master
-import master_html
-import utils
-import balancing
-import ui
+from netrender import model
+from netrender import operators
+from netrender import client
+from netrender import slave
+from netrender import master
+from netrender import master_html
+from netrender import utils
+from netrender import balancing
+from netrender import ui
 
-# store temp data in bpy module
-
-import bpy
-
-bpy.netrender_jobs = []
-bpy.netrender_slaves = []
-bpy.netrender_blacklist = []
+jobs = []
+slaves = []
+blacklist = []
 

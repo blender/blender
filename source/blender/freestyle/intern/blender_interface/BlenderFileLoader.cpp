@@ -66,7 +66,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	// M allows to recover world coordinates from camera coordinates
 	// M => obr->ob->imat * obr->obmat  (multiplication from left to right)
 	float M[4][4];
-	Mat4MulMat4(M, obr->ob->imat, obr->ob->obmat); 
+	mul_m4_m4m4(M, obr->ob->imat, obr->ob->obmat); 
 	
 	// We compute a normal per vertex and manages the smoothing of the shape:
 	// Lib3dsVector *normalL=(Lib3dsVector*)malloc(3*sizeof(Lib3dsVector)*mesh->faces);
@@ -128,7 +128,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	pvtmp[1] = obr->vertnodes[0].vert->co[1];
 	pvtmp[2] = obr->vertnodes[0].vert->co[2];
 	
-	Mat4MulVecfl( M, pvtmp);
+	mul_m4_v3( M, pvtmp);
 	
 	minBBox[0] = pvtmp[0];
 	maxBBox[0] = pvtmp[0];
@@ -197,7 +197,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 				//lib3ds_vector_transform(pv, M, mesh->pointL[f->points[i]].pos); //fills the cells of the pv array
 				for(j=0; j<3; j++)
 					pv[j] = fv[i]->co[j];
-				Mat4MulVecfl( M, pv);
+				mul_m4_v3( M, pv);
 	
 				for(j=0; j<3; j++) // we parse the xyz coordinates of the vertex i
 				{
@@ -234,8 +234,8 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 			vec02[2] = pv_ptr[2][2] - pv_ptr[0][2];
 			
 			float n[3];
-			Crossf(n, vec01, vec02);
-			Normalize(n);
+			cross_v3_v3v3(n, vec01, vec02);
+			normalize_v3(n);
 			
 			for(i=0; i<3; ++i) {
 				for(j=0; j<3; ++j) {
@@ -277,7 +277,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 					//lib3ds_vector_transform(pv, M, mesh->pointL[f->points[i]].pos); //fills the cells of the pv array
 					for(j=0; j<3; j++)
 						pv[j] = fv[i]->co[j];
-					Mat4MulVecfl( M, pv);
+					mul_m4_v3( M, pv);
 
 					for(j=0; j<3; j++) // we parse the xyz coordinates of the vertex i
 					{
@@ -314,8 +314,8 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 				vec02[2] = pv_ptr[2][2] - pv_ptr[0][2];
 
 				float n[3];
-				Crossf(n, vec01, vec02);
-				Normalize(n);
+				cross_v3_v3v3(n, vec01, vec02);
+				normalize_v3(n);
 				
 				for(i=0; i<3; ++i) {
 					for(j=0; j<3; ++j) {

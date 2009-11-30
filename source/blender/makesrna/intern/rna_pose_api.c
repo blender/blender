@@ -43,14 +43,21 @@
 /* #include "DNA_anim_types.h" */
 #include "DNA_action_types.h" /* bPose */
 
+
 #else
 
 void RNA_api_pose(StructRNA *srna)
 {
 	/* FunctionRNA *func; */
 	/* PropertyRNA *parm; */
-
 }
+
+void RNA_api_pose_channel(StructRNA *srna)
+{
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
+}
+
 
 #endif
 

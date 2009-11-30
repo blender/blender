@@ -49,41 +49,82 @@
 
 void node_operatortypes(void)
 {
+	WM_operatortype_append(NODE_OT_properties);
+	
 	WM_operatortype_append(NODE_OT_select);
-	WM_operatortype_append(NODE_OT_select_extend);
 	WM_operatortype_append(NODE_OT_select_all);
 	WM_operatortype_append(NODE_OT_select_linked_to);
 	WM_operatortype_append(NODE_OT_select_linked_from);
-	WM_operatortype_append(NODE_OT_visibility_toggle);
-	WM_operatortype_append(NODE_OT_view_all);
 	WM_operatortype_append(NODE_OT_select_border);
-	WM_operatortype_append(NODE_OT_delete);
-	WM_operatortype_append(NODE_OT_link);
-	WM_operatortype_append(NODE_OT_resize);
-	WM_operatortype_append(NODE_OT_links_cut);
+	
+	WM_operatortype_append(NODE_OT_view_all);
+	WM_operatortype_append(NODE_OT_visibility_toggle);
+	WM_operatortype_append(NODE_OT_mute);
+	WM_operatortype_append(NODE_OT_hide);
+	WM_operatortype_append(NODE_OT_show_cyclic_dependencies);
+	
 	WM_operatortype_append(NODE_OT_duplicate);
+	WM_operatortype_append(NODE_OT_delete);
+	WM_operatortype_append(NODE_OT_resize);
+	
+	WM_operatortype_append(NODE_OT_link);
+	WM_operatortype_append(NODE_OT_link_make);
+	WM_operatortype_append(NODE_OT_links_cut);
+	
 	WM_operatortype_append(NODE_OT_group_make);
 	WM_operatortype_append(NODE_OT_group_ungroup);
 	WM_operatortype_append(NODE_OT_group_edit);
 }
 
+void ED_operatormacros_node(void)
+{
+	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
+	
+	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+}
+
 void node_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Node", SPACE_NODE, 0);
+	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
-	/* mouse select in nodes used to be both keys, it's UI elements... */
-	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select_extend", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
+	/* Entire Editor only ----------------- */
+	keymap= WM_keymap_find(keyconf, "Node Generic", SPACE_NODE, 0);
 	
-	WM_keymap_add_item(keymap, "NODE_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
+	/* Main Area only ----------------- */
+	keymap= WM_keymap_find(keyconf, "Node", SPACE_NODE, 0);
+	
+	/* mouse select in nodes used to be both keys, but perhaps this should be reduced? 
+	 * NOTE: mouse-clicks on left-mouse will fall through to allow transform-tweak, but also link/resize
+	 */
+	WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
+	kmi= WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
+	
+	/* each of these falls through if not handled... */
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_visibility_toggle", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "NODE_OT_links_cut", RIGHTMOUSE, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_menu(keymap, "NODE_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	WM_keymap_add_item(keymap, "NODE_OT_hide", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_mute", MKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "NODE_OT_show_cyclic_dependencies", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
@@ -98,8 +139,5 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
 	
-	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "name", "NODE_MT_add");
-
 	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);
 }

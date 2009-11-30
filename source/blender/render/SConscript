@@ -31,8 +31,11 @@ if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 
 if env['OURPLATFORM'] == 'linux2':
-    cflags = ['-O2','-msse2','-mfpmath=sse', '-pthread']
-    cxxflags = ['-O2','-msse2','-mfpmath=sse', '-pthread']
+#	SSE is NOT safe all the time on linux, plus that ignores users compile flags and therefore no no
+#    cflags = ['-O2','-msse2','-mfpmath=sse', '-pthread']
+#    cxxflags = ['-O2','-msse2','-mfpmath=sse', '-pthread']
+    cflags = env['CCFLAGS']
+    cxxflags = env['CXXFLAGS']
     incs += ' ../../../extern/binreloc/include'
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):

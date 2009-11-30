@@ -545,6 +545,14 @@ def UnixPyBundle(target=None, source=None, env=None):
 	py_src =	env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
 	py_target =	env.subst( dir + '/python/lib/python'+env['BF_PYTHON_VERSION'] )
 	
+	# This is a bit weak, but dont install if its been installed before, makes rebuilds quite slow.
+	if os.path.exists(py_target):
+		print 'Using existing python from:'
+		print '\t"%s"' %			py_target
+		print '\t(skipping copy)\n'
+		return
+		
+	
 	# Copied from source/creator/CMakeLists.txt, keep in sync.
 	print 'Install python from:'
 	print '\t"%s" into...' %	py_src

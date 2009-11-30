@@ -59,7 +59,7 @@
 #include "BKE_mesh.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

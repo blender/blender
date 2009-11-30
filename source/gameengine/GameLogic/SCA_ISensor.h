@@ -133,6 +133,7 @@ public:
 
 	virtual void RegisterToManager();
 	virtual void UnregisterToManager();
+	void Replace_EventManager(class SCA_LogicManager* logicmgr);
 	void ReserveController(int num)
 	{
 		m_linkedcontrollers.reserve(num);

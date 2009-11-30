@@ -19,6 +19,8 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = 180
+
 
 class SceneButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -35,11 +37,15 @@ class SCENE_PT_scene(SceneButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        wide_ui = context.region.width > narrowui
         scene = context.scene
 
-        layout.itemR(scene, "camera")
-        layout.itemR(scene, "set", text="Background")
+        if wide_ui:
+            layout.prop(scene, "camera")
+            layout.prop(scene, "set", text="Background")
+        else:
+            layout.prop(scene, "camera", text="")
+            layout.prop(scene, "set", text="")
 
 
 class SCENE_PT_unit(SceneButtonsPanel):
@@ -48,16 +54,21 @@ class SCENE_PT_unit(SceneButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        wide_ui = context.region.width > narrowui
         unit = context.scene.unit_settings
 
         col = layout.column()
-        col.row().itemR(unit, "system", expand=True)
+        col.row().prop(unit, "system", expand=True)
 
-        row = layout.row()
-        row.active = (unit.system != 'NONE')
-        row.itemR(unit, "scale_length", text="Scale")
-        row.itemR(unit, "use_separate")
+        split = layout.split()
+        split.active = (unit.system != 'NONE')
+
+        col = split.column()
+        col.prop(unit, "scale_length", text="Scale")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(unit, "use_separate")
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel):
@@ -67,44 +78,46 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-
+        wide_ui = context.region.width > narrowui
         row = layout.row()
 
         col = row.column()
         col.template_list(scene, "keying_sets", scene, "active_keying_set_index", rows=2)
 
         col = row.column(align=True)
-        col.itemO("anim.keying_set_add", icon='ICON_ZOOMIN', text="")
-        col.itemO("anim.keying_set_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("anim.keying_set_add", icon='ICON_ZOOMIN', text="")
+        col.operator("anim.keying_set_remove", icon='ICON_ZOOMOUT', text="")
 
         ks = scene.active_keying_set
         if ks:
             row = layout.row()
 
             col = row.column()
-            col.itemR(ks, "name")
-            col.itemR(ks, "absolute")
+            col.prop(ks, "name")
+            col.prop(ks, "absolute")
 
-            col = row.column()
-            col.itemL(text="Keyframing Settings:")
-            col.itemR(ks, "insertkey_needed", text="Needed")
-            col.itemR(ks, "insertkey_visual", text="Visual")
+            if wide_ui:
+                col = row.column()
+            col.label(text="Keyframing Settings:")
+            col.prop(ks, "insertkey_needed", text="Needed")
+            col.prop(ks, "insertkey_visual", text="Visual")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel):
     bl_label = "Active Keying Set"
 
     def poll(self, context):
-        return (context.scene != None) and (context.scene.active_keying_set != None)
+        return (context.scene.active_keying_set is not None)
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
         ks = scene.active_keying_set
+        wide_ui = context.region.width > narrowui
 
         row = layout.row()
-        row.itemL(text="Paths:")
+        row.label(text="Paths:")
 
         row = layout.row()
 
@@ -112,13 +125,13 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
         col.template_list(ks, "paths", ks, "active_path_index", rows=2)
 
         col = row.column(align=True)
-        col.itemO("anim.keying_set_path_add", icon='ICON_ZOOMIN', text="")
-        col.itemO("anim.keying_set_path_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("anim.keying_set_path_add", icon='ICON_ZOOMIN', text="")
+        col.operator("anim.keying_set_path_remove", icon='ICON_ZOOMOUT', text="")
 
         ksp = ks.active_path
         if ksp:
             col = layout.column()
-            col.itemL(text="Target:")
+            col.label(text="Target:")
             col.template_any_ID(ksp, "id", "id_type")
             col.template_path_builder(ksp, "rna_path", ksp.id)
 
@@ -126,16 +139,17 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
             row = layout.row()
 
             col = row.column()
-            col.itemL(text="Array Target:")
-            col.itemR(ksp, "entire_array")
-            if ksp.entire_array == False:
-                col.itemR(ksp, "array_index")
+            col.label(text="Array Target:")
+            col.prop(ksp, "entire_array")
+            if ksp.entire_array is False:
+                col.prop(ksp, "array_index")
 
-            col = row.column()
-            col.itemL(text="F-Curve Grouping:")
-            col.itemR(ksp, "grouping")
+            if wide_ui:
+                col = row.column()
+            col.label(text="F-Curve Grouping:")
+            col.prop(ksp, "grouping")
             if ksp.grouping == 'NAMED':
-                col.itemR(ksp, "group")
+                col.prop(ksp, "group")
 
 
 class SCENE_PT_physics(SceneButtonsPanel):
@@ -143,16 +157,20 @@ class SCENE_PT_physics(SceneButtonsPanel):
     COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
     def draw_header(self, context):
-        self.layout.itemR(context.scene, "use_gravity", text="")
+        self.layout.prop(context.scene, "use_gravity", text="")
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
+        wide_ui = context.region.width > narrowui
 
         layout.active = scene.use_gravity
 
-        layout.itemR(scene, "gravity", text="")
+        if wide_ui:
+            layout.prop(scene, "gravity", text="")
+        else:
+            layout.column().prop(scene, "gravity", text="")
 
 bpy.types.register(SCENE_PT_scene)
 bpy.types.register(SCENE_PT_unit)

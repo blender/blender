@@ -38,7 +38,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
@@ -417,6 +417,13 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_NODE:
+			switch(wmn->action) {
+				case NA_EDITED:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
@@ -586,7 +593,7 @@ void ED_spacetype_ipo(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= graph_region_listener;
 	art->init= graph_header_area_init;
 	art->draw= graph_header_area_draw;
