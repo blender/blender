@@ -320,7 +320,11 @@ static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
 	int startx, starty;
 	int width, height;
 	
-	wm_window_get_size(window, &xmax, &ymax);
+	/* note: this is used for the splash where window bounds event has not been
+	 * updated by ghost, get the window bounds from ghost directly */
+
+	// wm_window_get_size(window, &xmax, &ymax);
+	wm_window_get_size_ghost(window, &xmax, &ymax);
 	
 	ui_bounds_block(block);
 	

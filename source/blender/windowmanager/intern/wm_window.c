@@ -936,6 +936,15 @@ void wm_window_get_size(wmWindow *win, int *width_r, int *height_r)
 	*height_r= win->sizey;
 }
 
+/* exceptional case: - splash is called before events are processed
+ * this means we dont actually know the window size so get this from GHOST */
+void wm_window_get_size_ghost(wmWindow *win, int *width_r, int *height_r)
+{
+	GHOST_RectangleHandle bounds= GHOST_GetClientBounds(win->ghostwin);
+	*width_r= GHOST_GetWidthRectangle(bounds);
+	*height_r= GHOST_GetHeightRectangle(bounds);
+}
+
 void wm_window_set_size(wmWindow *win, int width, int height) 
 {
 	GHOST_SetClientSize(win->ghostwin, width, height);

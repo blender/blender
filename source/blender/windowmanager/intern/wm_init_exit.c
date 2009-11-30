@@ -161,10 +161,6 @@ void WM_init_splash(bContext *C)
 	
 	if(wm->windows.first) {
 		CTX_wm_window_set(C, wm->windows.first);
-
-		/* needed to get the right screen size for centering the splash */
-		wm_window_process_events(C);
-
 		WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
 		CTX_wm_window_set(C, prevwin);
 	}
