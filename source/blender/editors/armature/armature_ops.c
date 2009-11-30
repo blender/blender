@@ -162,7 +162,7 @@ void ED_operatormacros_armature(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "ARMATURE_OT_duplicate");
 	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
