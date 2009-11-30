@@ -1139,7 +1139,7 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 void ARMATURE_OT_separate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Separate Armature";
+	ot->name= "Separate Bones";
 	ot->idname= "ARMATURE_OT_separate";
 	ot->description= "Isolate selected bones into a separate armature.";
 	
@@ -3573,7 +3573,7 @@ void ARMATURE_OT_subdivide_multi(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* Properties */
-	RNA_def_int(ot->srna, "number_cuts", 2, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "number_cuts", 2, 1, INT_MAX, "Number of Cuts", "", 1, 10);
 }
 
 
@@ -3631,7 +3631,7 @@ void ARMATURE_OT_subdivs(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 	
 	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
-	RNA_def_int(ot->srna, "number_cuts", 2, 1, 10, "Number of Cuts", "", 1, INT_MAX); 
+	RNA_def_int(ot->srna, "number_cuts", 2, 1, INT_MAX, "Number of Cuts", "", 1, 10); 
 }
 
 /* ----------- */

@@ -2314,7 +2314,6 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-//	PropertyRNA *prop_act;
 	FunctionRNA *func;
 	
 	static EnumPropertyItem audio_distance_model_items[] = {
