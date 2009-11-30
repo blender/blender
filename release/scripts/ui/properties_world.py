@@ -219,6 +219,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 
         col = split.column()
         col.prop(ao, "energy")
+        col.prop(ao, "indirect_energy")
 
         if wide_ui:
             col = split.column()

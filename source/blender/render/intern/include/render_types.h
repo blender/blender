@@ -398,7 +398,8 @@ typedef struct StrandSurface {
 	int (*face)[4];
 	float (*co)[3];
 	/* for occlusion caching */
-	float (*col)[3];
+	float (*ao)[3];
+	float (*indirect)[3];
 	/* for speedvectors */
 	float (*prevco)[3], (*nextco)[3];
 	int totvert, totface;
