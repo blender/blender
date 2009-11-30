@@ -344,10 +344,6 @@
 				RelativePath="..\..\source\blender\bmesh\bmesh_walkers.h"
 				>
 			</File>
-			<File
-				RelativePath="..\..\source\blender\bmesh\editmesh_tools.c"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>
