@@ -1981,9 +1981,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_TEX);
 	RNA_def_property_ui_text(prop, "Duplicate Texture", "Causes texture data to be duplicated with the object.");
 	
-	prop= RNA_def_property(srna, "duplicate_ipo", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "duplicate_fcurve", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_IPO);
-	RNA_def_property_ui_text(prop, "Duplicate Ipo", "Causes ipo data to be duplicated with the object.");
+	RNA_def_property_ui_text(prop, "Duplicate F-Curve", "Causes F-curve data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_action", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ACT);

@@ -244,7 +244,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         sub1.prop(edit, "duplicate_lamp", text="Lamp")
         sub1.prop(edit, "duplicate_material", text="Material")
         sub1.prop(edit, "duplicate_texture", text="Texture")
-        sub1.prop(edit, "duplicate_ipo", text="F-Curve")
+        sub1.prop(edit, "duplicate_fcurve", text="F-Curve")
         sub1.prop(edit, "duplicate_action", text="Action")
         sub1.prop(edit, "duplicate_particle", text="Particle")
 
