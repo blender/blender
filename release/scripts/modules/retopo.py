@@ -156,20 +156,20 @@ class Spline:
             hub.links.append(hub_prev)
             hub_prev.links.append(hub)
             hub_prev = hub
+
+def get_points(stroke):
+    from Mathutils import Vector
+    # TODO - why isnt point.co a Vector?
+    return [Vector(tuple(point.co)) for point in stroke.points]
+
+def get_splines(gp):
+    for l in gp.layers:
+        if l.active: # XXX - should be layers.active
+            break
     
-
-
-def get_points(spline):
-    points = spline.points
-
-    if len(spline.bezier_points):
-        points = spline.bezier_points
-
-    return [point.co.copy().resize3D() for point in points]
-
-
-def get_splines(data):
-    return [Spline(get_points(spline)) for spline in data.splines]
+    frame = l.active_frame
+    
+    return [Spline(get_points(stroke)) for stroke in frame.strokes]
 
 def xsect_spline(sp_a, sp_b, _hubs):
     from Mathutils import LineIntersect
@@ -203,9 +203,8 @@ def xsect_spline(sp_a, sp_b, _hubs):
         pt_a_prev = pt_a
 
 
-def calculate(scene, obj):
-    data = obj.data
-    splines = get_splines(data)
+def calculate(gp):
+    splines = get_splines(gp)
     _hubs = {}
     
     for i, sp in enumerate(splines):
@@ -265,22 +264,21 @@ def calculate(scene, obj):
     
     
 def main():
-    # first convert gpencil
-    # *** evil!
-    scene = bpy.context.scene
-    
-    bpy.ops.gpencil.convert(type='PATH')
-        
-    
     scene = bpy.context.scene
     obj = bpy.context.object
-    if not obj:
-        raise Exception("no active object")
     
-    obj_new = calculate(scene, obj)
+    gp = None
     
-    # obj.selected = False
-    scene.objects.unlink(obj)
+    if obj:
+        gp = obj.grease_pencil
+    
+    if not gp:
+        gp = scene.grease_pencil
+
+    if not gp:
+        raise Exception("no active grease pencil")
+    
+    obj_new = calculate(gp)
     
     scene.objects.active = obj_new
     obj_new.selected = True
