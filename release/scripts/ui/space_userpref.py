@@ -88,7 +88,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub1.prop(view, "show_playback_fps", text="Playback FPS")
         sub1.prop(view, "global_scene")
         sub1.prop(view, "pin_floating_panels")
-        sub1.prop(view, "object_center_size")
+        sub1.prop(view, "object_origin_size")
         sub1.separator()
         sub1.separator()
         sub1.separator()

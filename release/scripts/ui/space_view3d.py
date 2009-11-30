@@ -146,9 +146,9 @@ class VIEW3D_MT_transform(bpy.types.Menu):
 
         layout.operator_context = 'EXEC_AREA'
 
-        layout.operator("object.center_set", text="ObData to Centroid").type = 'CENTER'
-        layout.operator("object.center_set", text="Centroid to ObData").type = 'CENTER_NEW'
-        layout.operator("object.center_set", text="Centroid to 3D Cursor").type = 'CENTER_CURSOR'
+        layout.operator("object.center_set", text="Object Data to Origin").type = 'CENTER'
+        layout.operator("object.center_set", text="Origin to Object Data").type = 'CENTER_NEW'
+        layout.operator("object.center_set", text="Origin to 3D Cursor").type = 'CENTER_CURSOR'
 
 
 class VIEW3D_MT_mirror(bpy.types.Menu):
@@ -195,7 +195,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
 
         layout.operator("view3d.snap_selected_to_grid", text="Selection to Grid")
         layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor")
-        layout.operator("view3d.snap_selected_to_center", text="Selection to Center")
+        layout.operator("view3d.snap_selected_to_center", text="Selection to Origin")
 
         layout.separator()
 
@@ -1621,7 +1621,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         col.prop(view, "display_y_axis", text="Y Axis")
         col.prop(view, "display_z_axis", text="Z Axis")
         col.prop(view, "outline_selected")
-        col.prop(view, "all_object_centers")
+        col.prop(view, "all_object_origins")
         col.prop(view, "relationship_lines")
         if ob and ob.type == 'MESH':
             mesh = ob.data
