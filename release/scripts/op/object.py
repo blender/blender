@@ -95,5 +95,20 @@ class SubsurfSet(bpy.types.Operator):
         return ('FINISHED',)
 
 
+class Retopo(bpy.types.Operator):
+    '''TODO - doc'''
+
+    bl_idname = "object.retopology"
+    bl_label = "Retopology from Grease Pencil"
+    bl_register = True
+    bl_undo = True
+
+    def execute(self, context):
+        import retopo
+        retopo.main()
+        return ('FINISHED',)
+
+
 bpy.ops.add(SelectPattern)
 bpy.ops.add(SubsurfSet)
+bpy.ops.add(Retopo)

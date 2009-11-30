@@ -531,7 +531,7 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	}
 	
 	/* restore old active object */
-	BASACT= base;
+	// BASACT= base; // removing since this is expected new objects are active.
 }
 
 /* --- */

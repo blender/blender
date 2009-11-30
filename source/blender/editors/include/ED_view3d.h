@@ -117,7 +117,12 @@ unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, short mval[2], i
 										void *handle, unsigned int (*indextest)(void *handle, unsigned int index));
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
+/* draws and does a 4x4 sample */
 int view_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, short *mval, float mouse_worldloc[3]);
+
+/* only draw so view_autodist_simple can be called many times after */
+int view_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d);
+int view_autodist_simple(struct ARegion *ar, short *mval, float mouse_worldloc[3]);
 
 /* select */
 #define MAXPICKBUF      10000

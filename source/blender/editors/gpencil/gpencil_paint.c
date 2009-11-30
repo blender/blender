@@ -151,6 +151,21 @@ static int gpencil_draw_poll (bContext *C)
 	return (gpencil_data_get_pointers(C, NULL) != NULL);
 }
 
+static int gpencil_project_check(tGPsdata *p)
+{
+	bGPdata *gpd= p->gpd;
+
+	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
+	if(	(gpd->sbuffer_sflag & GP_STROKE_3DSPACE) &&
+		(p->scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE) &&
+		(p->scene->toolsettings->snap_flag & SCE_SNAP_PROJECT) )
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 /* ******************************************* */
 /* Calculations/Conversions */
 
@@ -211,24 +226,29 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		const short mx=mval[0], my=mval[1];
-		float rvec[3], dvec[3];
-		
-		/* Current method just converts each point in screen-coordinates to 
-		 * 3D-coordinates using the 3D-cursor as reference. In general, this 
-		 * works OK, but it could of course be improved.
-		 *
-		 * TODO:
-		 *	- investigate using nearest point(s) on a previous stroke as
-		 *	  reference point instead or as offset, for easier stroke matching
-		 *	- investigate projection onto geometry (ala retopo)
-		 */
-		gp_get_3d_reference(p, rvec);
-		
-		/* method taken from editview.c - mouse_cursor() */
-		project_short_noclip(p->ar, rvec, mval);
-		window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(out, rvec, dvec);
+		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out))) {
+			/* pass */
+		}
+		else {
+			const short mx=mval[0], my=mval[1];
+			float rvec[3], dvec[3];
+
+			/* Current method just converts each point in screen-coordinates to
+			 * 3D-coordinates using the 3D-cursor as reference. In general, this
+			 * works OK, but it could of course be improved.
+			 *
+			 * TODO:
+			 *	- investigate using nearest point(s) on a previous stroke as
+			 *	  reference point instead or as offset, for easier stroke matching
+			 */
+
+			gp_get_3d_reference(p, rvec);
+
+			/* method taken from editview.c - mouse_cursor() */
+			project_short_noclip(p->ar, rvec, mval);
+			window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
+			sub_v3_v3v3(out, rvec, dvec);
+		}
 	}
 	
 	/* 2d - on 'canvas' (assume that p->v2d is set) */
@@ -1114,6 +1134,12 @@ static void gpencil_draw_exit (bContext *C, wmOperator *op)
 	}
 	
 	/* cleanup */
+	if(gpencil_project_check(p)) {
+		View3D *v3d= p->sa->spacedata.first;
+		view3d_operator_needs_opengl(C);
+		view_autodist_init(p->scene, p->ar, v3d);
+	}
+
 	gp_paint_cleanup(p);
 	gp_session_cleanup(p);
 	
