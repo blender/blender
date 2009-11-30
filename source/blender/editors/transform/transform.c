@@ -502,14 +502,21 @@ static char *transform_to_undostr(TransInfo *t)
 /* ************************************************* */
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
-#define TFM_MODAL_CANCEL			1
-#define TFM_MODAL_CONFIRM			2
-#define TFM_MODAL_TRANSLATE			3
-#define TFM_MODAL_ROTATE			4
-#define TFM_MODAL_RESIZE			5
+#define TFM_MODAL_CANCEL		1
+#define TFM_MODAL_CONFIRM		2
+#define TFM_MODAL_TRANSLATE		3
+#define TFM_MODAL_ROTATE		4
+#define TFM_MODAL_RESIZE		5
 #define TFM_MODAL_SNAP_ON		6
-#define TFM_MODAL_SNAP_OFF	7
+#define TFM_MODAL_SNAP_OFF		7
 #define TFM_MODAL_SNAP_TOGGLE	8
+#define TFM_MODAL_AXIS_X		9
+#define TFM_MODAL_AXIS_Y		10
+#define TFM_MODAL_AXIS_Z		11
+#define TFM_MODAL_PLANE_X		12
+#define TFM_MODAL_PLANE_Y		13
+#define TFM_MODAL_PLANE_Z		14
+#define TFM_MODAL_CONS_OFF		15
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 void transform_modal_keymap(wmKeyConfig *keyconf)
@@ -523,6 +530,13 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_SNAP_ON, "SNAP_ON", 0, "Snap On", ""},
 	{TFM_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Snap Off", ""},
 	{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
+	{TFM_MODAL_AXIS_X, "AXIS_X", 0, "Orientation X axis", ""},
+	{TFM_MODAL_AXIS_Y, "AXIS_Y", 0, "Orientation Y axis", ""},
+	{TFM_MODAL_AXIS_Z, "AXIS_Z", 0, "Orientation Z axis", ""},
+	{TFM_MODAL_PLANE_X, "PLANE_X", 0, "Orientation X plane", ""},
+	{TFM_MODAL_PLANE_Y, "PLANE_Y", 0, "Orientation Y plane", ""},
+	{TFM_MODAL_PLANE_Z, "PLANE_Z", 0, "Orientation Z plane", ""},
+	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -641,6 +655,93 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			case TFM_MODAL_SNAP_TOGGLE:
 				t->modifiers ^= MOD_SNAP;
 				t->redraw = 1;
+				break;
+			case TFM_MODAL_AXIS_X:
+				if ((t->flag & T_NO_CONSTRAINT)==0) {
+					if (cmode == 'X') {
+						stopConstraint(t);
+					}
+					else {
+						if (t->flag & T_2D_EDIT) {
+							setConstraint(t, mati, (CON_AXIS0), "along X axis");
+						}
+						else {
+							setUserConstraint(t, t->current_orientation, (CON_AXIS0), "along %s X");
+						}
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_AXIS_Y:
+				if ((t->flag & T_NO_CONSTRAINT)==0) {
+					if (cmode == 'Y') {
+						stopConstraint(t);
+					}
+					else {
+						if (t->flag & T_2D_EDIT) {
+							setConstraint(t, mati, (CON_AXIS1), "along Y axis");
+						}
+						else {
+							setUserConstraint(t, t->current_orientation, (CON_AXIS1), "along %s Y");
+						}
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_AXIS_Z:
+				if ((t->flag & T_NO_CONSTRAINT)==0) {
+					if (cmode == 'Z') {
+						stopConstraint(t);
+					}
+					else {
+						if (t->flag & T_2D_EDIT) {
+							setConstraint(t, mati, (CON_AXIS0), "along Z axis");
+						}
+						else {
+							setUserConstraint(t, t->current_orientation, (CON_AXIS2), "along %s Z");
+						}
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_PLANE_X:
+				if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))== 0) {
+					if (cmode == 'X') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_PLANE_Y:
+				if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))== 0) {
+					if (cmode == 'Y') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_PLANE_Z:
+				if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))== 0) {
+					if (cmode == 'Z') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_CONS_OFF:
+				if ((t->flag & T_NO_CONSTRAINT)==0) {
+					stopConstraint(t);
+					t->redraw = 1;
+				}
 				break;
 			default:
 				handled = 0;
