@@ -46,20 +46,21 @@ def load_scripts(reload_scripts=False):
     for base_path in utils.script_paths():
         for path_subdir in ("ui", "op", "io"):
             path = os.path.join(base_path, path_subdir)
-            sys.path.insert(0, path)
-            for f in sorted(os.listdir(path)):
-                if f.endswith(".py"):
-                    # python module
-                    mod = test_import(f[0:-3])
-                elif "." not in f:
-                    # python package
-                    mod = test_import(f)
-                else:
-                    mod = None
+            if os.path.isdir(path):
+                sys.path.insert(0, path)
+                for f in sorted(os.listdir(path)):
+                    if f.endswith(".py"):
+                        # python module
+                        mod = test_import(f[0:-3])
+                    elif "." not in f:
+                        # python package
+                        mod = test_import(f)
+                    else:
+                        mod = None
 
-                if reload_scripts and mod:
-                    print("Reloading:", mod)
-                    reload(mod)
+                    if reload_scripts and mod:
+                        print("Reloading:", mod)
+                        reload(mod)
 
 def _main():
 

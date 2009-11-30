@@ -57,12 +57,26 @@ _scripts = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardi
 _scripts = (os.path.normpath(_scripts), )
 
 def script_paths(*args):
+    scripts = list(_scripts)
+    
+    # add user scripts dir
+    user_script_path = bpy.context.user_preferences.filepaths.python_scripts_directory
+
+    if not user_script_path:
+        # XXX - WIN32 needs checking, perhaps better call a blender internal function.
+        user_script_path = os.path.join(os.path.expanduser("~"), ".blender", "scripts")
+
+    user_script_path = os.path.normpath(user_script_path)
+
+    if user_script_path not in scripts and os.path.isdir(user_script_path):
+        scripts.append(user_script_path)
+
     if not args:
-        return _scripts
+        return scripts
 
     subdir = os.path.join(*args)
     script_paths = []
-    for path in _scripts:
+    for path in scripts:
         script_paths.append(os.path.join(path, subdir))
 
     return script_paths

@@ -253,6 +253,9 @@ static PyObject *Vector_ToTuple(VectorObject * self, PyObject *value)
 		return NULL;
 	}
 
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
 	ret= PyTuple_New(self->size);
 
 	for(x = 0; x < self->size; x++) {
