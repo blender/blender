@@ -93,6 +93,7 @@ static EnumPropertyItem transform_orientation_items[] = {
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_paint.h"
 
 #include "ED_image.h"
@@ -1306,6 +1307,11 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "only_selected_curves_handles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_SELCUVERTSONLY);
 	RNA_def_property_ui_text(prop, "Only Selected Curve Keyframes", "Only keyframes of selected F-Curves are visible and editable.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	prop= RNA_def_property(srna, "only_selected_keyframe_handles", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_SELVHANDLESONLY);
+	RNA_def_property_ui_text(prop, "Only Selected Keyframes Handles", "Only show and edit handles of selected keyframes.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	/* editing */

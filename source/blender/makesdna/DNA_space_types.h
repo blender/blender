@@ -726,6 +726,7 @@ enum FileSortTypeE {
 #define SIPO_DRAWNAMES			(1<<6)
 #define SIPO_SLIDERS			(1<<7)
 #define SIPO_NODRAWCURSOR		(1<<8)
+#define SIPO_SELVHANDLESONLY	(1<<9)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {
