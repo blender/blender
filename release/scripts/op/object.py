@@ -40,11 +40,20 @@ class SelectPattern(bpy.types.Operator):
         else:
             pattern_match = lambda a, b: fnmatch.fnmatchcase(a.upper(), b.upper())
 
-        for ob in context.visible_objects:
-            if pattern_match(ob.name, self.properties.pattern):
-                ob.selected = True
+        obj = context.object
+        if obj and obj.mode == 'POSE':
+            items = obj.data.bones
+        elif obj and obj.type == 'ARMATURE' and obj.mode == 'EDIT':
+            items = obj.data.edit_bones
+        else:
+            items = context.visible_objects
+
+        # Can be pose bones or objects
+        for item in items:
+            if pattern_match(item.name, self.properties.pattern):
+                item.selected = True
             elif not self.properties.extend:
-                ob.selected = False
+                item.selected = False
 
         return ('FINISHED',)
 
@@ -54,7 +63,6 @@ class SelectPattern(bpy.types.Operator):
         return ('RUNNING_MODAL',)
     
     def draw(self, context):
-        print("WoW")
         layout = self.layout
         props = self.properties
         
@@ -62,7 +70,6 @@ class SelectPattern(bpy.types.Operator):
         row = layout.row()
         row.prop(props, "case_sensitive")
         row.prop(props, "extend")
-        
 
 
 class SubsurfSet(bpy.types.Operator):

@@ -407,6 +407,8 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
         props = layout.operator("pose.select_hierarchy", text="Extend Child")
         props.extend = True
         props.direction = 'CHILD'
+        
+        layout.operator("object.select_pattern", text="Select Pattern...")
 
 
 class VIEW3D_MT_select_particle(bpy.types.Menu):
@@ -597,6 +599,8 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
         props = layout.operator("armature.select_hierarchy", text="Extend Child")
         props.extend = True
         props.direction = 'CHILD'
+        
+        layout.operator("object.select_pattern", text="Select Pattern...")
 
 
 class VIEW3D_MT_select_face(bpy.types.Menu):# XXX no matching enum
