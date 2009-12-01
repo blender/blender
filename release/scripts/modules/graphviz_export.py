@@ -53,7 +53,7 @@ def graph_armature(obj, path, FAKE_PARENT=True):
             
             label.append("%s = %s" % (key, value))
         
-        opts = ["shape=box", "regular=1", "style=filled", "fillcolor=white", 'width="2.33"', 'height="0.35"', "fixedsize=false", 'label="%s"' % ("\\n".join(label))]
+        opts = ["shape=box", "regular=1", "style=filled", "fillcolor=white", 'width="2.33"', 'height="0.35"', "fixedsize=false", 'label="%s"' % compat_str('\n'.join(label))]
         
         fw('"%s" [%s];\n' % (bone.name, ','.join(opts)))
     
@@ -85,7 +85,7 @@ def graph_armature(obj, path, FAKE_PARENT=True):
             subtarget = constraint.subtarget
             if subtarget:
                 # TODO, not internal links
-                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="red"']
+                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="red"', 'labelfontsize=8']
                 label = "%s\n%s" % (constraint.type, constraint.name)
                 opts.append('label="%s"' % compat_str(label))
                 fw('"%s" -> "%s" [%s] ;\n' % (subtarget, pbone.name, ','.join(opts)))
@@ -102,7 +102,7 @@ def graph_armature(obj, path, FAKE_PARENT=True):
     
     animation_data = obj.animation_data
     if animation_data:
-        for fcurve_driver in obj.animation_data.drivers:
+        for fcurve_driver in animation_data.drivers:
             rna_path = fcurve_driver.rna_path
             pbone = rna_path_as_pbone(rna_path)
                 
@@ -111,7 +111,7 @@ def graph_armature(obj, path, FAKE_PARENT=True):
                     pbone_target = rna_path_as_pbone(target.rna_path)
                     rna_path_target = target.rna_path
                     if pbone_target:
-                        opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"'] # , 
+                        opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=8"] # , 
                         display_source = rna_path.replace("pose.bones", "")
                         display_target = rna_path_target.replace("pose.bones", "")
                         label = "%s\\n%s" % (display_source, display_target)
