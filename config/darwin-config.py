@@ -40,11 +40,17 @@ if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 # Can be customized
 
 if MACOSX_ARCHITECTURE == 'ppc':
-	MAC_MIN_VERS = '10.3'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-	LCGDIR = '#../lib/darwin-6.1-powerpc'
-	CC = 'gcc-3.3'
-	CXX = 'g++-3.3'
+# ppc release are now made for 10.4
+#	MAC_MIN_VERS = '10.3'
+#	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
+#	LCGDIR = '#../lib/darwin-6.1-powerpc'
+#	CC = 'gcc-3.3'
+#	CXX = 'g++-3.3'
+	MAC_MIN_VERS = '10.4'
+	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
+	LCGDIR = '#../lib/darwin-8.0.0-powerpc'
+	CC = 'gcc-4.0'
+	CXX = 'g++-4.0'
 elif MACOSX_ARCHITECTURE == 'i386':
 	MAC_MIN_VERS = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
@@ -249,7 +255,7 @@ BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
 #OpenCollada flags
-WITH_BF_COLLADA = True
+WITH_BF_COLLADA = False
 BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
@@ -303,8 +309,8 @@ if MAC_MIN_VERS == '10.3':
 	LLIBS.append('crt3.o')
 	
 if USE_SDK==True:
-	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS]	
-	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-syslibroot '+MACOSX_SDK]+PLATFORM_LINKFLAGS
+	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]	
+	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-syslibroot '+MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
 	
