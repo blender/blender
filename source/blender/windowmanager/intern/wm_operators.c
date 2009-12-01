@@ -1955,7 +1955,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case GESTURE_MODAL_CANCEL:
 		case GESTURE_MODAL_CONFIRM:
 			wm_gesture_end(C, op);
-			return OPERATOR_CANCELLED;
+			return OPERATOR_FINISHED; /* use finish or we dont get an undo */
 		}
 	}
 //	// Allow view navigation???
