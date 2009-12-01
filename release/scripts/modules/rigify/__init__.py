@@ -79,9 +79,6 @@ def get_bone_data(obj, bone_name):
     
     return arm, pbone, bone
 
-def bone_basename(name):
-    return name.split(".")[0]
-
 def copy_bone_simple(arm, from_bone, name, parent=False):
     ebone = arm.edit_bones[from_bone]
     ebone_new = arm.edit_bones.new(name)

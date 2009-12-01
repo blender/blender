@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-from rigify import get_bone_data, bone_basename, empty_layer
+from rigify import get_bone_data, empty_layer
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 from functools import reduce
 
@@ -35,7 +35,7 @@ def main(obj, orig_bone_name):
     children = orig_pbone.children_recursive
     tot_len = reduce(lambda f, pbone: f + pbone.bone.length, children, orig_pbone.bone.length)
     
-    base_name = bone_basename(orig_pbone.name)
+    base_name = orig_pbone.basename
     
     # first make a new bone at the location of the finger
     control_ebone = arm.edit_bones.new(base_name)

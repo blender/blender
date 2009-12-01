@@ -46,6 +46,7 @@ class _GenericBone:
     functions for bones, common between Armature/Pose/Edit bones.
     internal subclassing use only.
     '''
+    
     def parent_index(self, parent_test):
         '''
         The same as 'bone in other_bone.parent_recursive' but saved generating a list.
@@ -62,6 +63,10 @@ class _GenericBone:
             i += 1
         
         return 0
+
+    @property
+    def basename(self):
+        return self.name.rsplit(".", 1)[0]
 
     @property
     def parent_recursive(self):
@@ -95,6 +100,35 @@ class _GenericBone:
         # sort by distance to parent
         bones_children.sort(key=lambda bone_pair: bone_pair[0])
         return [bone for index, bone in bones_children]
+
+    @property
+    def children_recursive_basename(self):
+        '''
+        Returns a chain of children with the same base name as this bone
+        Only direct chains are supported, forks caused by multiple children with matching basenames will.
+        '''
+        basename = self.basename
+        chain = []
+
+        child = self
+        while True:
+            children = child.children
+            children_basename = []
+
+            for child in children:
+                if basename == child.basename:
+                    children_basename.append(child)
+
+            if len(children_basename) == 1:
+                child = children_basename[0]
+                chain.append(child)
+            else:
+                if len(children_basename):
+                    print("multiple basenames found, this is probably not what you want!", bone.name, children_basename)
+
+                break
+        
+        return chain
 
     @property
     def _other_bones(self):
