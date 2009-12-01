@@ -31,9 +31,9 @@ def compat_str(text):
     text = text.replace('"', '\\"')
     return text
 
-def graph_armature(obj, path):
+def graph_armature(obj, path, FAKE_PARENT=True):
     
-    file = open("/tmp/test.dot", "w")
+    file = open(path, "w")
     fw = file.write
     fw(header)
     fw('label = "%s::%s" ;' % (bpy.data.filename.split("/")[-1].split("\\")[-1], obj.name))
@@ -57,14 +57,26 @@ def graph_armature(obj, path):
         
         fw('"%s" [%s];\n' % (bone.name, ','.join(opts)))
     
+    # Root node.
+    if FAKE_PARENT:
+        fw('"Object::%s" [];\n' % obj.name)
+    
     for bone in arm.bones:
         parent = bone.parent
         if parent:
-            opts = ["dir=forward", "weight=2", "arrowhead=normal"]
-            if not bone.connected:
-                opts.append("style=dotted")
+            parent_name = parent.name
+            connected = bone.connected
+        elif FAKE_PARENT:
+            parent_name = 'Object::%s' % obj.name
+            connected = False
+        else:
+            continue
             
-            fw('"%s" -> "%s" [%s] ;\n' % (bone.name, parent.name, ','.join(opts)))
+        opts = ["dir=forward", "weight=2", "arrowhead=normal"]
+        if not connected:
+            opts.append("style=dotted")
+        
+        fw('"%s" -> "%s" [%s] ;\n' % (bone.name, parent_name, ','.join(opts)))
     del bone    
     
     # constraints
@@ -73,7 +85,7 @@ def graph_armature(obj, path):
             subtarget = constraint.subtarget
             if subtarget:
                 # TODO, not internal links
-                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="red"'] # , 
+                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="red"']
                 label = "%s\n%s" % (constraint.type, constraint.name)
                 opts.append('label="%s"' % compat_str(label))
                 fw('"%s" -> "%s" [%s] ;\n' % (subtarget, pbone.name, ','.join(opts)))
@@ -88,21 +100,23 @@ def graph_armature(obj, path):
         bone_name = rna_path.split("[")[1].split("]")[0]
         return obj.pose.bones[bone_name[1:-1]]
     
-    for fcurve_driver in obj.animation_data.drivers:
-        rna_path = fcurve_driver.rna_path
-        pbone = rna_path_as_pbone(rna_path)
-            
-        if pbone:
-            for target in fcurve_driver.driver.targets:
-                pbone_target = rna_path_as_pbone(target.rna_path)
-                rna_path_target = target.rna_path
-                if pbone_target:
-                    opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"'] # , 
-                    display_source = rna_path.replace("pose.bones", "")
-                    display_target = rna_path_target.replace("pose.bones", "")
-                    label = "%s\\n%s" % (display_source, display_target)
-                    opts.append('label="%s"' % compat_str(label))
-                    fw('"%s" -> "%s" [%s] ;\n' % (pbone_target.name, pbone.name, ','.join(opts)))
+    animation_data = obj.animation_data
+    if animation_data:
+        for fcurve_driver in obj.animation_data.drivers:
+            rna_path = fcurve_driver.rna_path
+            pbone = rna_path_as_pbone(rna_path)
+                
+            if pbone:
+                for target in fcurve_driver.driver.targets:
+                    pbone_target = rna_path_as_pbone(target.rna_path)
+                    rna_path_target = target.rna_path
+                    if pbone_target:
+                        opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"'] # , 
+                        display_source = rna_path.replace("pose.bones", "")
+                        display_target = rna_path_target.replace("pose.bones", "")
+                        label = "%s\\n%s" % (display_source, display_target)
+                        opts.append('label="%s"' % compat_str(label))
+                        fw('"%s" -> "%s" [%s] ;\n' % (pbone_target.name, pbone.name, ','.join(opts)))
     
     fw(footer)
     file.close()
