@@ -392,6 +392,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 
 #pragma mark Cocoa objects
 
+static bool justGotFocus = false;
+
 /**
  * CocoaAppDelegate
  * ObjC object to capture applicationShouldTerminate, and send quit event
@@ -403,6 +405,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 - (void)applicationWillTerminate:(NSNotification *)aNotification;
+- (void)applicationWillBecomeActive:(NSNotification *)aNotification;
 @end
 
 @implementation CocoaAppDelegate : NSObject
@@ -435,6 +438,11 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 {
 	/*G.afbreek = 0; //Let Cocoa perform the termination at the end
 	WM_exit(C);*/
+}
+
+- (void)applicationWillBecomeActive:(NSNotification *)aNotification
+{
+	justGotFocus = true;
 }
 @end
 
@@ -529,6 +537,9 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
 				
 				[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
+				
+				menuItem = [windowMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
+				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
 				
 				menuItem = [[NSMenuItem	alloc] init];
 				[menuItem setSubmenu:windowMenu];
@@ -706,14 +717,33 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-	unsigned int modifiers = [[NSApp currentEvent] modifierFlags];
-	//Direct query to modifierFlags can be used in 10.6
+#ifdef MAC_OS_X_VERSION_10_6
+	unsigned int modifiers = [NSEvent modifierFlags];
 
     keys.set(GHOST_kModifierKeyCommand, (modifiers & NSCommandKeyMask) ? true : false);
     keys.set(GHOST_kModifierKeyLeftAlt, (modifiers & NSAlternateKeyMask) ? true : false);
     keys.set(GHOST_kModifierKeyLeftShift, (modifiers & NSShiftKeyMask) ? true : false);
     keys.set(GHOST_kModifierKeyLeftControl, (modifiers & NSControlKeyMask) ? true : false);
-	
+
+#else
+	if (justGotFocus) {
+			//TODO: need to find a better workaround for the missing cocoa "getModifierFlag" function in 10.4/10.5
+		justGotFocus = false;
+		keys.set(GHOST_kModifierKeyCommand, false);
+		keys.set(GHOST_kModifierKeyLeftAlt, false);
+		keys.set(GHOST_kModifierKeyLeftShift, false);
+		keys.set(GHOST_kModifierKeyLeftControl, false);
+	}
+	else {
+		unsigned int modifiers = [[NSApp currentEvent] modifierFlags];
+		
+		keys.set(GHOST_kModifierKeyCommand, (modifiers & NSCommandKeyMask) ? true : false);
+		keys.set(GHOST_kModifierKeyLeftAlt, (modifiers & NSAlternateKeyMask) ? true : false);
+		keys.set(GHOST_kModifierKeyLeftShift, (modifiers & NSShiftKeyMask) ? true : false);
+		keys.set(GHOST_kModifierKeyLeftControl, (modifiers & NSControlKeyMask) ? true : false);
+	}
+
+#endif
     return GHOST_kSuccess;
 }
 
