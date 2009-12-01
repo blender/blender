@@ -46,7 +46,11 @@ class _GenericBone:
     functions for bones, common between Armature/Pose/Edit bones.
     internal subclassing use only.
     '''
-    
+
+    def translate(self, vec):
+        self.head += vec
+        self.tail += vec
+
     def parent_index(self, parent_test):
         '''
         The same as 'bone in other_bone.parent_recursive' but saved generating a list.

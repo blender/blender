@@ -26,12 +26,26 @@ footer = '''
 }
 '''
 
-def compat_str(text):
+def compat_str(text, line_length=22):
+
+    if line_length:
+        text_ls = []
+        while len(text) > line_length:
+            text_ls.append(text[:line_length])
+            text = text[line_length:]
+        
+        if text:
+            text_ls.append(text)
+        text = '\n  '.join(text_ls)
+    
+    
+    #text = text.replace('.', '.\n')
+    #text = text.replace(']', ']\n')
     text = text.replace("\n", "\\n")
     text = text.replace('"', '\\"')
-    return text
+    return "* " + text
 
-def graph_armature(obj, path, FAKE_PARENT=True):
+def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True):
     
     file = open(path, "w")
     fw = file.write
@@ -40,8 +54,15 @@ def graph_armature(obj, path, FAKE_PARENT=True):
     
     arm = obj.data
     
-    for bone in arm.bones:
-        label = [bone.name]
+    bones = [bone.name for bone in arm.bones]
+    bones.sort()
+    print("")
+    for bone in bones:
+        b = arm.bones[bone]
+        print(">>", bone, ["*>", "->"][b.connected], getattr(getattr(b, "parent", ""), "name", ""))
+        label = [bone]
+        bone = arm.bones[bone]
+        
         for key, value in obj.pose.bones[bone.name].items():
             if key.startswith("_"):
                 continue
@@ -53,7 +74,13 @@ def graph_armature(obj, path, FAKE_PARENT=True):
             
             label.append("%s = %s" % (key, value))
         
-        opts = ["shape=box", "regular=1", "style=filled", "fillcolor=white", 'width="2.33"', 'height="0.35"', "fixedsize=false", 'label="%s"' % compat_str('\n'.join(label))]
+        opts = ["shape=box", "regular=1", "style=filled", 'width="2.33"', 'height="0.35"', "fixedsize=false", 'label="%s"' % compat_str('\n'.join(label))]
+        
+        if bone.name.startswith('ORG'):
+            opts.append("fillcolor=yellow")
+        else:
+            opts.append("fillcolor=white")
+        
         
         fw('"%s" [%s];\n' % (bone.name, ','.join(opts)))
     
@@ -80,43 +107,45 @@ def graph_armature(obj, path, FAKE_PARENT=True):
     del bone    
     
     # constraints
-    for pbone in obj.pose.bones:
-        for constraint in pbone.constraints:
-            subtarget = constraint.subtarget
-            if subtarget:
-                # TODO, not internal links
-                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="red"', 'labelfontsize=8']
-                label = "%s\n%s" % (constraint.type, constraint.name)
-                opts.append('label="%s"' % compat_str(label))
-                fw('"%s" -> "%s" [%s] ;\n' % (subtarget, pbone.name, ','.join(opts)))
+    if CONSTRAINTS:
+        for pbone in obj.pose.bones:
+            for constraint in pbone.constraints:
+                subtarget = constraint.subtarget
+                if subtarget:
+                    # TODO, not internal links
+                    opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="red"', 'labelfontsize=4']
+                    label = "%s\n%s" % (constraint.type, constraint.name)
+                    opts.append('label="%s"' % compat_str(label))
+                    fw('"%s" -> "%s" [%s] ;\n' % (subtarget, pbone.name, ','.join(opts)))
     
     # Drivers
-    def rna_path_as_pbone(rna_path):
-        if not rna_path.startswith("pose.bones["):
-            return None
+    if DRIVERS:
+        def rna_path_as_pbone(rna_path):
+            if not rna_path.startswith("pose.bones["):
+                return None
 
-        #rna_path_bone = rna_path[:rna_path.index("]") + 1]
-        #return obj.path_resolve(rna_path_bone)
-        bone_name = rna_path.split("[")[1].split("]")[0]
-        return obj.pose.bones[bone_name[1:-1]]
-    
-    animation_data = obj.animation_data
-    if animation_data:
-        for fcurve_driver in animation_data.drivers:
-            rna_path = fcurve_driver.rna_path
-            pbone = rna_path_as_pbone(rna_path)
-                
-            if pbone:
-                for target in fcurve_driver.driver.targets:
-                    pbone_target = rna_path_as_pbone(target.rna_path)
-                    rna_path_target = target.rna_path
-                    if pbone_target:
-                        opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=8"] # , 
-                        display_source = rna_path.replace("pose.bones", "")
-                        display_target = rna_path_target.replace("pose.bones", "")
-                        label = "%s\\n%s" % (display_source, display_target)
-                        opts.append('label="%s"' % compat_str(label))
-                        fw('"%s" -> "%s" [%s] ;\n' % (pbone_target.name, pbone.name, ','.join(opts)))
+            #rna_path_bone = rna_path[:rna_path.index("]") + 1]
+            #return obj.path_resolve(rna_path_bone)
+            bone_name = rna_path.split("[")[1].split("]")[0]
+            return obj.pose.bones[bone_name[1:-1]]
+        
+        animation_data = obj.animation_data
+        if animation_data:
+            for fcurve_driver in animation_data.drivers:
+                rna_path = fcurve_driver.rna_path
+                pbone = rna_path_as_pbone(rna_path)
+                    
+                if pbone:
+                    for target in fcurve_driver.driver.targets:
+                        pbone_target = rna_path_as_pbone(target.rna_path)
+                        rna_path_target = target.rna_path
+                        if pbone_target:
+                            opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"] # , 
+                            display_source = rna_path.replace("pose.bones", "")
+                            display_target = rna_path_target.replace("pose.bones", "")
+                            label = "%s\\n%s" % (display_source, display_target)
+                            opts.append('label="%s"' % compat_str(label))
+                            fw('"%s" -> "%s" [%s] ;\n' % (pbone_target.name, pbone.name, ','.join(opts)))
     
     fw(footer)
     file.close()
@@ -129,5 +158,5 @@ if __name__ == "__main__":
     import bpy
     import os
     path ="/tmp/test.dot"
-    graph_armature(bpy.context.object, path)
+    graph_armature(bpy.context.object, path, CONSTRAINTS=False, DRIVERS=False)
     os.system("dot -Tpng %s > %s; eog %s &" % (path, path + '.png', path + '.png'))
