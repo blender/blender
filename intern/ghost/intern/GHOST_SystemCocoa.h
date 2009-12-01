@@ -200,6 +200,12 @@ public:
      */
     GHOST_TSuccess handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa* window);
 	
+	/**
+     * Handles the Cocoa event telling the application has become active (again)
+     * @return Indication whether the event was handled. 
+     */
+    GHOST_TSuccess handleApplicationBecomeActiveEvent();
+	
 	
 	/**
      * Handles a drag'n'drop destination event. Called by GHOST_WindowCocoa window subclass

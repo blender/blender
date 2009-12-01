@@ -392,8 +392,6 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 
 #pragma mark Cocoa objects
 
-static bool justGotFocus = false;
-
 /**
  * CocoaAppDelegate
  * ObjC object to capture applicationShouldTerminate, and send quit event
@@ -442,7 +440,7 @@ static bool justGotFocus = false;
 
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification
 {
-	justGotFocus = true;
+	systemCocoa->handleApplicationBecomeActiveEvent();
 }
 @end
 
@@ -717,33 +715,11 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-#ifdef MAC_OS_X_VERSION_10_6
-	unsigned int modifiers = [NSEvent modifierFlags];
-
-    keys.set(GHOST_kModifierKeyCommand, (modifiers & NSCommandKeyMask) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftAlt, (modifiers & NSAlternateKeyMask) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftShift, (modifiers & NSShiftKeyMask) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftControl, (modifiers & NSControlKeyMask) ? true : false);
-
-#else
-	if (justGotFocus) {
-			//TODO: need to find a better workaround for the missing cocoa "getModifierFlag" function in 10.4/10.5
-		justGotFocus = false;
-		keys.set(GHOST_kModifierKeyCommand, false);
-		keys.set(GHOST_kModifierKeyLeftAlt, false);
-		keys.set(GHOST_kModifierKeyLeftShift, false);
-		keys.set(GHOST_kModifierKeyLeftControl, false);
-	}
-	else {
-		unsigned int modifiers = [[NSApp currentEvent] modifierFlags];
-		
-		keys.set(GHOST_kModifierKeyCommand, (modifiers & NSCommandKeyMask) ? true : false);
-		keys.set(GHOST_kModifierKeyLeftAlt, (modifiers & NSAlternateKeyMask) ? true : false);
-		keys.set(GHOST_kModifierKeyLeftShift, (modifiers & NSShiftKeyMask) ? true : false);
-		keys.set(GHOST_kModifierKeyLeftControl, (modifiers & NSControlKeyMask) ? true : false);
-	}
-
-#endif
+	keys.set(GHOST_kModifierKeyCommand, (m_modifierMask & NSCommandKeyMask) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftAlt, (m_modifierMask & NSAlternateKeyMask) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftShift, (m_modifierMask & NSShiftKeyMask) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftControl, (m_modifierMask & NSControlKeyMask) ? true : false);
+	
     return GHOST_kSuccess;
 }
 
@@ -871,6 +847,45 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	
 	
     return anyProcessed || m_outsideLoopEventProcessed;
+}
+
+//Note: called from NSApplication delegate
+GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
+{
+	//Update the modifiers key mask, as its status may have changed when the application was not active
+	//(that is when update events are sent to another application)
+	unsigned int modifiers;
+	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+
+#ifdef MAC_OS_X_VERSION_10_6
+	modifiers = [NSEvent modifierFlags];
+#else
+	//If build against an older SDK, check if running on 10.6 to use the correct function
+	if ([NSEvent respondsToSelector:@selector(modifierFlags)]) {
+		modifiers = (unsigned int)[NSEvent modifierFlags];
+	}
+	else {
+		//TODO: need to find a better workaround for the missing cocoa "getModifierFlag" function in 10.4/10.5
+		modifiers = 0;
+	}
+#endif
+	
+	if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
+	}
+	if ((modifiers & NSControlKeyMask) != (m_modifierMask & NSControlKeyMask)) {
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSControlKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl) );
+	}
+	if ((modifiers & NSAlternateKeyMask) != (m_modifierMask & NSAlternateKeyMask)) {
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSAlternateKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
+	}
+	if ((modifiers & NSCommandKeyMask) != (m_modifierMask & NSCommandKeyMask)) {
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
+	}
+	
+	m_modifierMask = modifiers;
+	
+	return GHOST_kSuccess;
 }
 
 //Note: called from NSWindow delegate
