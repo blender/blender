@@ -4501,7 +4501,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 		return 0;
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob!=find_basis_mball(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=find_basis_mball(re->scene, ob))
 		return 0;
 	
 	if(nolamps && (ob->type==OB_LAMP))
