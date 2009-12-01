@@ -32,6 +32,8 @@
 
 #include "ED_transform.h"
 
+#include "DNA_listBase.h"
+
 #include "BLI_editVert.h"
 
 /* ************************** Types ***************************** */
@@ -82,6 +84,11 @@ typedef struct NumInput {
 		Negative	: number is negative
 */
 
+typedef struct TransSnapPoint {
+	struct TransSnapPoint *next,*prev;
+	float co[3];
+} TransSnapPoint;
+
 typedef struct TransSnap {
 	short	mode;
 	short	modePoint;
@@ -95,6 +102,7 @@ typedef struct TransSnap {
 	float	snapTarget[3]; /* to this point */
 	float	snapNormal[3];
 	float	snapTangent[3];
+	ListBase points;
 	float	dist; // Distance from snapPoint to snapTarget
 	double	last;
 	void  (*applySnap)(struct TransInfo *, float *);
@@ -417,6 +425,7 @@ typedef struct TransInfo {
 #define SNAP_FORCED		1
 #define TARGET_INIT		2
 #define POINT_INIT		4
+#define MULTI_POINTS	8
 
 /* transsnap->modeTarget */
 #define SNAP_CLOSEST		0
@@ -596,6 +605,10 @@ int  handleSnapping(TransInfo *t, struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);
 int usingSnappingNormal(TransInfo *t);
 int validSnappingNormal(TransInfo *t);
+
+void getSnapPoint(TransInfo *t, float vec[3]);
+void addSnapPoint(TransInfo *t);
+void removeSnapPoint(TransInfo *t);
 
 /********************** Mouse Input ******************************/
 

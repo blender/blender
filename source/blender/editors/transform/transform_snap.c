@@ -123,9 +123,14 @@ int BIF_snappingSupported(Object *obedit)
 	return status;
 }
 
+int validSnap(TransInfo *t) {
+	return (t->tsnap.status & (POINT_INIT|TARGET_INIT)) == (POINT_INIT|TARGET_INIT) ||
+			(t->tsnap.status & (MULTI_POINTS|TARGET_INIT)) == (MULTI_POINTS|TARGET_INIT);
+}
+
 void drawSnapping(const struct bContext *C, TransInfo *t)
 {
-	if ((t->tsnap.status & (POINT_INIT|TARGET_INIT)) == (POINT_INIT|TARGET_INIT) &&
+	if (validSnap(t) &&
 		(t->modifiers & MOD_SNAP))
 		{
 		
@@ -134,6 +139,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 		glColor4ub(col[0], col[1], col[2], 128);
 		
 		if (t->spacetype == SPACE_VIEW3D) {
+			TransSnapPoint *p;
 			View3D *v3d = CTX_wm_view3d(C);
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			float tmat[4][4], imat[4][4];
@@ -141,14 +147,18 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			
 			glDisable(GL_DEPTH_TEST);
 	
-			size = get_drawsize(t->ar, t->tsnap.snapPoint);
-			
-			size *= 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
+			size = 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
 			
 			copy_m4_m4(tmat, rv3d->viewmat);
 			invert_m4_m4(imat, tmat);
 
-			drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, size, imat);
+			for (p = t->tsnap.points.first; p; p = p->next) {
+				drawcircball(GL_LINE_LOOP, p->co, size * get_drawsize(t->ar, p->co), imat);
+			}
+
+			if (t->tsnap.status & POINT_INIT) {
+				drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, size * get_drawsize(t->ar, t->tsnap.snapPoint), imat);
+			}
 			
 			/* draw normal if needed */
 			if (usingSnappingNormal(t) && validSnappingNormal(t))
@@ -302,7 +312,7 @@ void applySnapping(TransInfo *t, float *vec)
 	
 			t->tsnap.last = current;
 		}
-		if ((t->tsnap.status & (POINT_INIT|TARGET_INIT)) == (POINT_INIT|TARGET_INIT))
+		if (validSnap(t))
 		{
 			t->tsnap.applySnap(t, vec);
 		}
@@ -331,7 +341,7 @@ int usingSnappingNormal(TransInfo *t)
 
 int validSnappingNormal(TransInfo *t)
 {
-	if ((t->tsnap.status & (POINT_INIT|TARGET_INIT)) == (POINT_INIT|TARGET_INIT))
+	if (validSnap(t))
 	{
 		if (dot_v3v3(t->tsnap.snapNormal, t->tsnap.snapNormal) > 0)
 		{
@@ -502,11 +512,59 @@ void setSnappingCallback(TransInfo *t, short snap_target)
 	}
 }
 
+void addSnapPoint(TransInfo *t)
+{
+	if (t->tsnap.status & POINT_INIT) {
+		TransSnapPoint *p = MEM_callocN(sizeof(TransSnapPoint), "SnapPoint");
+
+		VECCOPY(p->co, t->tsnap.snapPoint);
+
+		BLI_addtail(&t->tsnap.points, p);
+
+		t->tsnap.status |= MULTI_POINTS;
+	}
+}
+
+void removeSnapPoint(TransInfo *t)
+{
+	if (t->tsnap.status & MULTI_POINTS) {
+		BLI_freelinkN(&t->tsnap.points, t->tsnap.points.last);
+
+		if (t->tsnap.points.first == NULL)
+			t->tsnap.status &= ~MULTI_POINTS;
+	}
+}
+
+void getSnapPoint(TransInfo *t, float vec[3])
+{
+	if (t->tsnap.points.first) {
+		TransSnapPoint *p;
+		int total = 0;
+
+		vec[0] = vec[1] = vec[2] = 0;
+
+		for (p = t->tsnap.points.first; p; p = p->next, total++) {
+			add_v3_v3(vec, p->co);
+		}
+
+		if (t->tsnap.status & POINT_INIT) {
+			add_v3_v3(vec, t->tsnap.snapPoint);
+			total++;
+		}
+
+		mul_v3_fl(vec, 1.0f / total);
+	} else {
+		VECCOPY(vec, t->tsnap.snapPoint)
+	}
+}
+
 /********************** APPLY **************************/
 
 void ApplySnapTranslation(TransInfo *t, float vec[3])
 {
-	sub_v3_v3v3(vec, t->tsnap.snapPoint, t->tsnap.snapTarget);
+	float point[3];
+	getSnapPoint(t, point);
+	sub_v3_v3v3(vec, point, t->tsnap.snapTarget);
 }
 
 void ApplySnapRotation(TransInfo *t, float *vec)
@@ -515,7 +573,9 @@ void ApplySnapRotation(TransInfo *t, float *vec)
 		*vec = t->tsnap.dist;
 	}
 	else {
-		*vec = RotationBetween(t, t->tsnap.snapTarget, t->tsnap.snapPoint);
+		float point[3];
+		getSnapPoint(t, point);
+		*vec = RotationBetween(t, t->tsnap.snapTarget, point);
 	}
 }
 
@@ -525,7 +585,9 @@ void ApplySnapResize(TransInfo *t, float vec[3])
 		vec[0] = vec[1] = vec[2] = t->tsnap.dist;
 	}
 	else {
-		vec[0] = vec[1] = vec[2] = ResizeBetween(t, t->tsnap.snapTarget, t->tsnap.snapPoint);
+		float point[3];
+		getSnapPoint(t, point);
+		vec[0] = vec[1] = vec[2] = ResizeBetween(t, t->tsnap.snapTarget, point);
 	}
 }
 

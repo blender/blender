@@ -517,6 +517,8 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_PLANE_Y		13
 #define TFM_MODAL_PLANE_Z		14
 #define TFM_MODAL_CONS_OFF		15
+#define TFM_MODAL_ADD_SNAP		16
+#define TFM_MODAL_REMOVE_SNAP	17
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 void transform_modal_keymap(wmKeyConfig *keyconf)
@@ -537,6 +539,8 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_PLANE_Y, "PLANE_Y", 0, "Orientation Y plane", ""},
 	{TFM_MODAL_PLANE_Z, "PLANE_Z", 0, "Orientation Z plane", ""},
 	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
+	{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, "Add Snap Point", ""},
+	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -558,6 +562,9 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_CLICK, KM_ANY, 0, TFM_MODAL_SNAP_TOGGLE);
 	
+	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
+	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
+
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
 	WM_modalkeymap_assign(keymap, "TFM_OT_translate");
@@ -742,6 +749,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					stopConstraint(t);
 					t->redraw = 1;
 				}
+				break;
+			case TFM_MODAL_ADD_SNAP:
+				addSnapPoint(t);
+				t->redraw = 1;
+				break;
+			case TFM_MODAL_REMOVE_SNAP:
+				removeSnapPoint(t);
+				t->redraw = 1;
 				break;
 			default:
 				handled = 0;

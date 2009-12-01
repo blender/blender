@@ -1095,6 +1095,8 @@ void postTrans (TransInfo *t)
 		MEM_freeN(t->data);
 	}
 	
+	BLI_freelistN(&t->tsnap.points);
+
 	if (t->ext) MEM_freeN(t->ext);
 	if (t->data2d) {
 		MEM_freeN(t->data2d);
