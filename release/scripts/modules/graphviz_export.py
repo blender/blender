@@ -26,7 +26,7 @@ footer = '''
 }
 '''
 
-def compat_str(text, line_length=22):
+def compat_str(text, line_length=0):
 
     if line_length:
         text_ls = []
@@ -88,7 +88,9 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True):
     if FAKE_PARENT:
         fw('"Object::%s" [];\n' % obj.name)
     
-    for bone in arm.bones:
+    for bone in bones:
+        bone = arm.bones[bone]
+        
         parent = bone.parent
         if parent:
             parent_name = parent.name
@@ -131,7 +133,11 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True):
         
         animation_data = obj.animation_data
         if animation_data:
-            for fcurve_driver in animation_data.drivers:
+            
+            fcurve_drivers = [fcurve_driver for fcurve_driver in animation_data.drivers]
+            fcurve_drivers.sort(key=lambda fcurve_driver: fcurve_driver.rna_path)
+            
+            for fcurve_driver in fcurve_drivers:
                 rna_path = fcurve_driver.rna_path
                 pbone = rna_path_as_pbone(rna_path)
                     
@@ -158,5 +164,5 @@ if __name__ == "__main__":
     import bpy
     import os
     path ="/tmp/test.dot"
-    graph_armature(bpy.context.object, path, CONSTRAINTS=False, DRIVERS=False)
+    graph_armature(bpy.context.object, path, CONSTRAINTS=True, DRIVERS=True)
     os.system("dot -Tpng %s > %s; eog %s &" % (path, path + '.png', path + '.png'))

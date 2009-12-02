@@ -31,7 +31,9 @@ def auto_class_instance(slots, name="ContainerClass"):
     return auto_class(slots, name)()
 
 def bone_class_instance(obj, slots, name="BoneContainer"):
-    for member in slots[:]:
+    slots = slots[:] # dont modify the original
+    for i in range(len(slots)):
+        member = slots[i]
         slots.append(member + "_b") # bone bone
         slots.append(member + "_p") # pose bone
         slots.append(member + "_e") # edit bone

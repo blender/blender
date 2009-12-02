@@ -114,6 +114,7 @@ def main(obj, orig_bone_name):
     # - copy (*use original name*)
     # - reverse (MCH-rev_*)
     spine_chain_attrs = [("spine_%.2d" % (i + 1)) for i in range(len(spine_chain_orig))]
+
     mt_chain = bone_class_instance(obj, spine_chain_attrs) # ORG_*
     rv_chain = bone_class_instance(obj, spine_chain_attrs) # *
     ex_chain = bone_class_instance(obj, spine_chain_attrs) # MCH-rev_*
@@ -152,7 +153,7 @@ def main(obj, orig_bone_name):
     
     # ex_chain needs to interlace bones!
     # Note, skip the first bone
-    for i in range(1, len(spine_chain_orig)): # similar to neck
+    for i in range(1, len(spine_chain_attrs)): # similar to neck
         child_name_orig = spine_chain_orig[i]
         spine_e = getattr(mt_chain, spine_chain_attrs[i] + "_e")
         
@@ -174,14 +175,218 @@ def main(obj, orig_bone_name):
     # Rotate the rev chain 180 about the by the first bones center point
     pivot = (rv_chain.spine_01_e.head + rv_chain.spine_01_e.tail) * 0.5
     matrix = RotationMatrix(radians(180), 3, 'X')
-    for i in range(len(spine_chain_orig)): # similar to neck
+    for i in range(len(spine_chain_attrs)): # similar to neck
         spine_e = getattr(rv_chain, spine_chain_attrs[i] + "_e")
         # use the first bone as the pivot
 
         spine_e.head = ((spine_e.head - pivot) * matrix) + pivot
         spine_e.tail = ((spine_e.tail - pivot) * matrix) + pivot
         spine_e.roll += pi # 180d roll
-
-    # done with editmode
-    # TODO, posemode
+        del spine_e
     
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # refresh pose bones
+    mt.update()
+    ex.update()
+    df.update()
+    mt_chain.update()
+    ex_chain.update()
+    rv_chain.update()
+    
+    # df.pelvis_p / DEF-wgt_pelvis
+    con = df.pelvis_p.constraints.new('COPY_LOCATION')
+    con.target = obj
+    con.subtarget = ex.pelvis
+    con.owner_space = 'LOCAL'
+    con.target_space = 'LOCAL'
+    
+    con = df.pelvis_p.constraints.new('COPY_ROTATION')
+    con.target = obj
+    con.subtarget = ex.pelvis
+    con.owner_space = 'LOCAL'
+    con.target_space = 'LOCAL'    
+    
+    # df.ribcage_p / DEF-wgt_rib_cage
+    con = df.ribcage_p.constraints.new('COPY_ROTATION')
+    con.target = obj
+    con.subtarget = ex.ribcage
+    con.owner_space = 'LOCAL'
+    con.target_space = 'LOCAL'
+    
+    con = df.ribcage_p.constraints.new('COPY_LOCATION')
+    con.target = obj
+    con.subtarget = ex.ribcage
+    con.owner_space = 'LOCAL'
+    con.target_space = 'LOCAL'
+    
+    con = ex.ribcage_hinge_p.constraints.new('COPY_ROTATION')
+    con.name = "hinge"
+    con.target = obj
+    con.subtarget = mt.pelvis
+    
+    # add driver
+    hinge_driver_path = mt.ribcage_p.path_to_id() + '["hinge"]'
+    
+    fcurve = con.driver_add("influence", 0)
+    driver = fcurve.driver
+    tar = driver.targets.new()
+    driver.type = 'AVERAGE'
+    tar.name = "var"
+    tar.id_type = 'OBJECT'
+    tar.id = obj
+    tar.rna_path = hinge_driver_path
+    
+    mod = fcurve.modifiers[0]
+    mod.poly_order = 1
+    mod.coefficients[0] = 1.0
+    mod.coefficients[1] = -1.0
+    
+    
+    
+    con = ex.spine_rotate_p.constraints.new('COPY_ROTATION')
+    con.target = obj
+    con.subtarget = mt.ribcage
+
+
+    # ex.pelvis_p / MCH-wgt_pelvis
+    con = ex.pelvis_p.constraints.new('COPY_LOCATION')
+    con.target = obj
+    con.subtarget = mt_chain.spine_01
+
+    con = ex.pelvis_p.constraints.new('COPY_ROTATION')
+    con.target = obj
+    con.subtarget = mt_chain.spine_01
+    
+    # ex.ribcage_p / MCH-wgt_rib_cage
+    con = ex.ribcage_p.constraints.new('COPY_LOCATION')
+    con.target = obj
+    con.subtarget = getattr(mt_chain, spine_chain_attrs[-1])
+    con.head_tail = 0.0
+
+    con = ex.ribcage_p.constraints.new('COPY_ROTATION')
+    con.target = obj
+    con.subtarget = getattr(mt_chain, spine_chain_attrs[-1])    
+    
+    # mt.pelvis_p / rib_cage
+    con = mt.ribcage_p.constraints.new('COPY_LOCATION')
+    con.target = obj
+    con.subtarget = mt.pelvis
+    con.head_tail = 0.0
+    
+    # This stores all important ID props
+    prop = rna_idprop_ui_prop_get(mt.ribcage_p, "hinge", create=True)
+    mt.ribcage_p["hinge"] = 1.0
+    prop["soft_min"] = 0.0
+    prop["soft_max"] = 1.0
+    
+    prop = rna_idprop_ui_prop_get(mt.ribcage_p, "pivot_slide", create=True)
+    mt.ribcage_p["pivot_slide"] = 0.5
+    prop["soft_min"] = 1.0 / len(spine_chain_attrs)
+    prop["soft_max"] = 1.0
+    
+    for i in range(len(spine_chain_attrs) - 1):
+        prop_name = "bend_%.2d" % (i + 1)
+        prop = rna_idprop_ui_prop_get(mt.ribcage_p, prop_name, create=True)
+        mt.ribcage_p[prop_name] = 1.0
+        prop["soft_min"] = 0.0
+        prop["soft_max"] = 1.0
+    
+    # Create a fake connected parent/child relationship with bone location constraints
+    # positioned at the tip.
+    
+    # reverse bones / MCH-rev_spine.##
+    for i in range(1, len(spine_chain_attrs)):
+        spine_p = getattr(rv_chain, spine_chain_attrs[i] + "_p")
+        spine_fake_parent_name = getattr(rv_chain, spine_chain_attrs[i - 1])
+        
+        con = spine_p.constraints.new('COPY_LOCATION')
+        con.target = obj
+        con.subtarget = spine_fake_parent_name
+        con.head_tail = 1.0
+        del spine_p, spine_fake_parent_name, con
+    
+    
+    # Constrain 'inbetween' bones
+    
+    # b01/max(0.001,b01+b02+b03+b04+b05)
+    target_names = [("b%.2d" % (i + 1)) for i in range(len(spine_chain_attrs) - 1)]
+    expression_suffix = "/max(0.001,%s)" % "+".join(target_names)
+    
+    rib_driver_path = mt.ribcage_p.path_to_id()
+    
+    for i in range(1, len(spine_chain_attrs)):
+        
+        spine_p = getattr(ex_chain, spine_chain_attrs[i] + "_p")
+        spine_p_parent = spine_p.parent # interlaced bone
+
+        con = spine_p_parent.constraints.new('COPY_ROTATION')
+        con.target = obj
+        con.subtarget = ex.spine_rotate
+        con.owner_space = 'LOCAL'
+        con.target_space = 'LOCAL'
+        del spine_p
+        
+        # add driver
+        fcurve = con.driver_add("influence", 0)
+        driver = fcurve.driver
+        driver.type = 'SCRIPTED'
+        # b01/max(0.001,b01+b02+b03+b04+b05)
+        driver.expression = target_names[i - 1] + expression_suffix
+        fcurve.modifiers.remove(0) # grr dont need a modifier
+
+        for j in range(len(spine_chain_attrs) - 1):
+            tar = driver.targets.new()
+            tar.name = target_names[j]
+            tar.id_type = 'OBJECT'
+            tar.id = obj
+            tar.rna_path = rib_driver_path + ('["bend_%.2d"]' % (j + 1))
+    
+    
+    # original bone drivers
+    # note: the first bone has a lot more constraints, but also this simple one is first.
+    for i in range(len(spine_chain_attrs)):
+        spine_p = getattr(mt_chain, spine_chain_attrs[i] + "_p")
+        
+        con = spine_p.constraints.new('COPY_ROTATION')
+        con.target = obj
+        con.subtarget = getattr(ex_chain, spine_chain_attrs[i]) # lock to the copy's rotation
+        del spine_p
+    
+    # pivot slide: - lots of copy location constraints.
+    
+    con = mt_chain.spine_01_p.constraints.new('COPY_LOCATION')
+    con.name = "base"
+    con.target = obj
+    con.subtarget = rv_chain.spine_01 # lock to the reverse location
+    
+    for i in range(1, len(spine_chain_attrs) + 1):
+        con = mt_chain.spine_01_p.constraints.new('COPY_LOCATION')
+        con.name = "slide_%d" % i
+        con.target = obj
+        
+        if i == len(spine_chain_attrs):
+            attr = spine_chain_attrs[i - 1]
+        else:
+            attr = spine_chain_attrs[i]
+
+        con.subtarget = getattr(rv_chain, attr) # lock to the reverse location
+        
+        if i == len(spine_chain_attrs):
+            con.head_tail = 1.0
+
+        fcurve = con.driver_add("influence", 0)
+        driver = fcurve.driver
+        tar = driver.targets.new()
+        driver.type = 'AVERAGE'
+        tar.name = "var"
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = rib_driver_path + '["pivot_slide"]'
+        
+        mod = fcurve.modifiers[0]
+        mod.poly_order = 1
+        mod.coefficients[0] = - (i - 1)
+        mod.coefficients[1] = len(spine_chain_attrs)
+
