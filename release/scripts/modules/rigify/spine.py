@@ -20,6 +20,70 @@ import bpy
 from rigify import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
+
+def metarig_template():
+    bpy.ops.object.mode_set(mode='EDIT')
+    obj = bpy.context.object
+    arm = obj.data
+    bone = arm.edit_bones.new('pelvis')
+    bone.head[:] = -0.0000, -0.2559, 0.8673
+    bone.tail[:] = -0.0000, -0.2559, -0.1327
+    bone.roll = 0.0000
+    bone.connected = False
+    bone = arm.edit_bones.new('rib_cage')
+    bone.head[:] = -0.0000, -0.2559, 0.8673
+    bone.tail[:] = -0.0000, -0.2559, 1.8673
+    bone.roll = -0.0000
+    bone.connected = False
+    bone.parent = arm.edit_bones['pelvis']
+    bone = arm.edit_bones.new('spine.01')
+    bone.head[:] = -0.0000, -0.0000, 0.0000
+    bone.tail[:] = -0.0000, -0.2559, 0.8673
+    bone.roll = -0.0000
+    bone.connected = False
+    bone.parent = arm.edit_bones['rib_cage']
+    bone = arm.edit_bones.new('spine.02')
+    bone.head[:] = -0.0000, -0.2559, 0.8673
+    bone.tail[:] = -0.0000, -0.3321, 1.7080
+    bone.roll = -0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['spine.01']
+    bone = arm.edit_bones.new('spine.03')
+    bone.head[:] = -0.0000, -0.3321, 1.7080
+    bone.tail[:] = -0.0000, -0.0787, 2.4160
+    bone.roll = 0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['spine.02']
+    bone = arm.edit_bones.new('spine.04')
+    bone.head[:] = -0.0000, -0.0787, 2.4160
+    bone.tail[:] = -0.0000, 0.2797, 3.0016
+    bone.roll = 0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['spine.03']
+    bone = arm.edit_bones.new('spine.05')
+    bone.head[:] = -0.0000, 0.2797, 3.0016
+    bone.tail[:] = -0.0000, 0.4633, 3.6135
+    bone.roll = 0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['spine.04']
+    bone = arm.edit_bones.new('spine.06')
+    bone.head[:] = -0.0000, 0.4633, 3.6135
+    bone.tail[:] = -0.0000, 0.3671, 4.3477
+    bone.roll = -0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['spine.05']
+    bone = arm.edit_bones.new('spine.07')
+    bone.head[:] = -0.0000, 0.3671, 4.3477
+    bone.tail[:] = -0.0000, 0.0175, 5.0033
+    bone.roll = -0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['spine.06']
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    pbone = obj.pose.bones['rib_cage']
+    pbone['type'] = 'spine'
+
+
 def validate(obj, orig_bone_name):
     '''
     The bone given is the second in a chain.

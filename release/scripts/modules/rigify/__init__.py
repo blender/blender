@@ -231,5 +231,65 @@ def generate_rig(context, ob):
     
     context.user_preferences.edit.global_undo = global_undo
 
+
+def write_meta_rig(obj, func_name="metarig_template"):
+    ''' Must be in editmode
+    '''
+    code = []
+
+    code.append("def %s():" % func_name)
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    code.append("    bpy.ops.object.mode_set(mode='EDIT')")
+
+    code.append("    obj = bpy.context.object")
+    code.append("    arm = obj.data")
+
+    arm = obj.data
+    # write parents first
+    bones = [(len(bone.parent_recursive), bone.name) for bone in arm.edit_bones]
+    bones.sort(key=lambda item: item[0])
+    bones = [item[1] for item in bones]
+
+    
+    
+    for bone_name in bones:
+        bone = arm.edit_bones[bone_name]
+        code.append("    bone = arm.edit_bones.new('%s')" % bone.name)
+        code.append("    bone.head[:] = %.4f, %.4f, %.4f" % bone.head.toTuple(4))
+        code.append("    bone.tail[:] = %.4f, %.4f, %.4f" % bone.tail.toTuple(4))
+        code.append("    bone.roll = %.4f" % bone.roll)
+        code.append("    bone.connected = %s" % str(bone.connected))
+        if bone.parent:
+            code.append("    bone.parent = arm.edit_bones['%s']" % bone.parent.name)
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    code.append("")
+    code.append("    bpy.ops.object.mode_set(mode='OBJECT')")
+    
+    for bone_name in bones:
+        pbone = obj.pose.bones[bone_name]
+        pbone_written = False
+        
+        # Only 1 level of props, simple types supported
+        for key, value in pbone.items():
+            if key.startswith("_"):
+                continue
+
+            if type(value) not in (float, str, int):
+                print("Unsupported ID Prop:", str((key, value)))
+                continue
+
+            if type(value) == str:
+                value = "'" + value + "'"
+            
+            if not pbone_written: # only write bones we need
+                code.append("    pbone = obj.pose.bones['%s']" % bone_name)
+            
+            code.append("    pbone['%s'] = %s" % (key, value))
+    
+    return "\n".join(code)
+
+
 if __name__ == "__main__":
     generate_rig(bpy.context, bpy.context.object)

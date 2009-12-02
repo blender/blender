@@ -21,6 +21,39 @@ from rigify import bone_class_instance, copy_bone_simple, add_pole_target_bone, 
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 
 
+def metarig_template():
+    bpy.ops.object.mode_set(mode='EDIT')
+    obj = bpy.context.object
+    arm = obj.data
+    bone = arm.edit_bones.new('shoulder')
+    bone.head[:] = 0.0000, -0.4515, 0.0000
+    bone.tail[:] = 1.0000, -0.0794, 0.3540
+    bone.roll = -0.2227
+    bone.connected = False
+    bone = arm.edit_bones.new('upper_arm')
+    bone.head[:] = 1.1319, -0.0808, -0.0101
+    bone.tail[:] = 3.0319, 0.2191, -0.1101
+    bone.roll = 1.6152
+    bone.connected = False
+    bone.parent = arm.edit_bones['shoulder']
+    bone = arm.edit_bones.new('forearm')
+    bone.head[:] = 3.0319, 0.2191, -0.1101
+    bone.tail[:] = 4.8319, -0.0809, -0.0242
+    bone.roll = 1.5153
+    bone.connected = True
+    bone.parent = arm.edit_bones['upper_arm']
+    bone = arm.edit_bones.new('hand')
+    bone.head[:] = 4.8319, -0.0809, -0.0242
+    bone.tail[:] = 5.7590, -0.1553, -0.1392
+    bone.roll = -3.0083
+    bone.connected = True
+    bone.parent = arm.edit_bones['forearm']
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    pbone = obj.pose.bones['upper_arm']
+    pbone['type'] = 'arm'
+
+
 def main(obj, orig_bone_name):
     """
     the bone with the 'arm' property is the upper arm, this assumes a chain as follows.

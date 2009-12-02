@@ -21,6 +21,34 @@ from rigify import get_bone_data, empty_layer
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 from functools import reduce
 
+
+def metarig_template():
+    bpy.ops.object.mode_set(mode='EDIT')
+    obj = bpy.context.object
+    arm = obj.data
+    bone = arm.edit_bones.new('finger.01')
+    bone.head[:] = 0.0000, 0.0000, 0.0000
+    bone.tail[:] = 0.8788, -0.4584, -0.1327
+    bone.roll = -2.8722
+    bone.connected = False
+    bone = arm.edit_bones.new('finger.02')
+    bone.head[:] = 0.8788, -0.4584, -0.1327
+    bone.tail[:] = 1.7483, -0.9059, -0.3643
+    bone.roll = -2.7099
+    bone.connected = True
+    bone.parent = arm.edit_bones['finger.01']
+    bone = arm.edit_bones.new('finger.03')
+    bone.head[:] = 1.7483, -0.9059, -0.3643
+    bone.tail[:] = 2.2478, -1.1483, -0.7408
+    bone.roll = -2.1709
+    bone.connected = True
+    bone.parent = arm.edit_bones['finger.02']
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    pbone = obj.pose.bones['finger.01']
+    pbone['type'] = 'finger'
+
+
 def main(obj, orig_bone_name):
     
     # *** EDITMODE

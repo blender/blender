@@ -20,6 +20,58 @@ import bpy
 from rigify import get_bone_data, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 
+
+def metarig_template():
+    bpy.ops.object.mode_set(mode='EDIT')
+    obj = bpy.context.object
+    arm = obj.data
+    bone = arm.edit_bones.new('hand')
+    bone.head[:] = 0.0082, -1.2492, 0.0000
+    bone.tail[:] = 0.0423, -0.4150, 0.0000
+    bone.roll = 0.0000
+    bone.connected = False
+    bone = arm.edit_bones.new('palm.03')
+    bone.head[:] = 0.0000, 0.0000, -0.0000
+    bone.tail[:] = 0.0506, 1.2781, -0.1299
+    bone.roll = -3.1396
+    bone.connected = False
+    bone.parent = arm.edit_bones['hand']
+    bone = arm.edit_bones.new('palm.04')
+    bone.head[:] = 0.5000, -0.0000, 0.0000
+    bone.tail[:] = 0.6433, 1.2444, -0.1299
+    bone.roll = -3.1357
+    bone.connected = False
+    bone.parent = arm.edit_bones['hand']
+    bone = arm.edit_bones.new('palm.05')
+    bone.head[:] = 1.0000, 0.0000, 0.0000
+    bone.tail[:] = 1.3961, 1.0084, -0.1299
+    bone.roll = -3.1190
+    bone.connected = False
+    bone.parent = arm.edit_bones['hand']
+    bone = arm.edit_bones.new('palm.02')
+    bone.head[:] = -0.5000, 0.0000, -0.0000
+    bone.tail[:] = -0.5674, 1.2022, -0.1299
+    bone.roll = 3.1386
+    bone.connected = False
+    bone.parent = arm.edit_bones['hand']
+    bone = arm.edit_bones.new('palm.01')
+    bone.head[:] = -1.0000, 0.0000, -0.0000
+    bone.tail[:] = -1.3286, 1.0590, -0.1299
+    bone.roll = 3.1239
+    bone.connected = False
+    bone.parent = arm.edit_bones['hand']
+    bone = arm.edit_bones.new('palm.06')
+    bone.head[:] = 1.3536, -0.2941, 0.0000
+    bone.tail[:] = 2.1109, 0.4807, -0.1299
+    bone.roll = -3.0929
+    bone.connected = False
+    bone.parent = arm.edit_bones['hand']
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    pbone = obj.pose.bones['hand']
+    pbone['type'] = 'palm'
+
+
 def main(obj, orig_bone_name):
     arm, palm_pbone, palm_ebone = get_bone_data(obj, orig_bone_name)
     children = [ebone.name for ebone in palm_ebone.children]

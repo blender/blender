@@ -21,6 +21,57 @@ from rigify import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 
+def metarig_template():
+    bpy.ops.object.mode_set(mode='EDIT')
+    obj = bpy.context.object
+    arm = obj.data
+    bone = arm.edit_bones.new('body')
+    bone.head[:] = -0.0000, -0.2771, -1.3345
+    bone.tail[:] = -0.0000, -0.1708, -0.3984
+    bone.roll = 0.0000
+    bone.connected = False
+    bone = arm.edit_bones.new('head')
+    bone.head[:] = -0.0000, -0.1708, -0.1984
+    bone.tail[:] = 0.0000, -0.1708, 1.6016
+    bone.roll = -0.0000
+    bone.connected = False
+    bone.parent = arm.edit_bones['body']
+    bone = arm.edit_bones.new('neck.01')
+    bone.head[:] = 0.0000, -0.1708, -0.1984
+    bone.tail[:] = -0.0000, -0.0994, 0.1470
+    bone.roll = -0.0000
+    bone.connected = False
+    bone.parent = arm.edit_bones['head']
+    bone = arm.edit_bones.new('neck.02')
+    bone.head[:] = -0.0000, -0.0994, 0.1470
+    bone.tail[:] = 0.0000, -0.2428, 0.5162
+    bone.roll = -0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['neck.01']
+    bone = arm.edit_bones.new('neck.03')
+    bone.head[:] = 0.0000, -0.2428, 0.5162
+    bone.tail[:] = 0.0000, -0.4190, 0.8722
+    bone.roll = -0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['neck.02']
+    bone = arm.edit_bones.new('neck.04')
+    bone.head[:] = 0.0000, -0.4190, 0.8722
+    bone.tail[:] = 0.0000, -0.5111, 1.1956
+    bone.roll = 0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['neck.03']
+    bone = arm.edit_bones.new('neck.05')
+    bone.head[:] = 0.0000, -0.5111, 1.1956
+    bone.tail[:] = 0.0000, -0.5391, 1.6081
+    bone.roll = 0.0000
+    bone.connected = True
+    bone.parent = arm.edit_bones['neck.04']
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    pbone = obj.pose.bones['head']
+    pbone['type'] = 'neck'
+
+
 def main(obj, orig_bone_name):
     from Mathutils import Vector
     
