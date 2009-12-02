@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+import bpy
+
 header = '''
 digraph ancestors           {
 graph [fontsize=30 labelloc="t" label="" splines=false overlap=true, rankdir=BT];
@@ -84,6 +86,8 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True):
         
         fw('"%s" [%s];\n' % (bone.name, ','.join(opts)))
     
+    fw('\n\n# Hierarchy:\n')
+    
     # Root node.
     if FAKE_PARENT:
         fw('"Object::%s" [];\n' % obj.name)
@@ -110,7 +114,10 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True):
     
     # constraints
     if CONSTRAINTS:
-        for pbone in obj.pose.bones:
+        fw('\n\n# Constraints:\n')
+        for bone in bones:
+            pbone = obj.pose.bones[bone]
+            # must be ordered
             for constraint in pbone.constraints:
                 subtarget = constraint.subtarget
                 if subtarget:
@@ -122,6 +129,7 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True):
     
     # Drivers
     if DRIVERS:
+        fw('\n\n# Drivers:\n')
         def rna_path_as_pbone(rna_path):
             if not rna_path.startswith("pose.bones["):
                 return None
@@ -156,9 +164,13 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True):
     fw(footer)
     file.close()
     
+    '''
     print(".", end='')
     import sys
     sys.stdout.flush()
+    '''
+    print("\nSaved:", path)
+    return True
 
 if __name__ == "__main__":
     import bpy
