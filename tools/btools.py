@@ -75,6 +75,7 @@ def validate_arguments(args, bc):
 			'BF_MSVS',
 			'WITH_BF_FHS',
 			'BF_VERSION',
+			'BF_GHOST_DEBUG'
 			]
 	
 	# Have options here that scons expects to be lists
@@ -418,8 +419,9 @@ def read_opts(cfg, args):
 		(BoolVariable('WITH_BF_FHS', 'Use the Unix "Filesystem Hierarchy Standard" rather then a redistributable directory layout', False)),
 		('BF_VERSION', 'The root path for Unix (non-apple)', '2.5'),
 
-		(BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False))
-
+		(BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False)),
+		
+		(BoolVariable('BF_GHOST_DEBUG', 'Make GHOST print events and info to stdout. (very verbose)', False))
 	) # end of opts.AddOptions()
 
 	return localopts

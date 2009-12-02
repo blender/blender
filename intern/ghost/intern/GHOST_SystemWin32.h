@@ -51,6 +51,7 @@ class GHOST_EventCursor;
 class GHOST_EventKey;
 class GHOST_EventWheel;
 class GHOST_EventWindow;
+class GHOST_EventDragnDrop;
 
 /**
  * WIN32 Implementation of GHOST_System class.
@@ -181,6 +182,18 @@ public:
 	 * @return				No return
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
+	
+	/**
+	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
+	 * Called by GHOST_DropTargetWin32 class.
+	 * @param eventType The type of drag'n'drop event
+	 * @param draggedObjectType The type object concerned (currently array of file names, string, ?bitmap)
+	 * @param mouseX x mouse coordinate (in window coordinates)
+	 * @param mouseY y mouse coordinate
+	 * @param window The window on which the event occured
+	 * @return Indication whether the event was handled. 
+	 */
+	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);
 	 
 protected:
 	/**
@@ -228,7 +241,7 @@ protected:
 	 * @param window	The window receiving the event (the active window).
 	 * @return The event created.
 	 */
-	static GHOST_EventCursor* processCursorEvent(GHOST_TEventType type, GHOST_IWindow *window);
+	static GHOST_EventCursor* processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow);
 
 	/**
 	 * Creates a mouse wheel event.
@@ -255,7 +268,12 @@ protected:
 	 * @return The event created.
 	 */
 	static GHOST_Event* processWindowEvent(GHOST_TEventType type, GHOST_IWindow* window);
-
+	/** 
+	 * Handles minimum window size.
+	 * @param minmax	The MINMAXINFO structure.
+	 */
+	static void processMinMaxInfo(MINMAXINFO * minmax);
+	
 	/**
 	 * Returns the local state of the modifier keys (from the message queue).
 	 * @param keys The state of the keys.

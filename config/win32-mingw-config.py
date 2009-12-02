@@ -145,7 +145,7 @@ C_WARN = [ '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 
 CC_WARN = [ '-Wall' ]
 
-LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
+LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++','-lole32','-luuid']
 
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g']
