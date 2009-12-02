@@ -10109,6 +10109,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
+		{
+			bScreen *screen;
+			ScrArea *sa;
+			SpaceLink *sl;
+			
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					for(sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							if (v3d->drawtype == OB_SHADED) v3d->drawtype = OB_SOLID;
+						}
+					}
+				}
+			}
+		}
+		
 		/* only convert old 2.50 files with color management */
 		if (main->versionfile == 250) {
 			Scene *sce=main->scene.first;
