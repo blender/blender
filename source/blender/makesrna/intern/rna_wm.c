@@ -255,6 +255,8 @@ EnumPropertyItem keymap_modifiers_items[] = {
 
 #include "BKE_idprop.h"
 
+#include "MEM_guardedalloc.h"
+
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
 	wmWindowManager *wm= ptr->id.data;
@@ -558,6 +560,8 @@ static void rna_wmKeyMapItem_idname_set(PointerRNA *ptr, const char *value)
 
 	WM_operator_bl_idname(idname, value);
 	BLI_strncpy(kmi->idname, idname, sizeof(kmi->idname));
+
+	WM_keymap_properties_reset(kmi);
 }
 
 #else
