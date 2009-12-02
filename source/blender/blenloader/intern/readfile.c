@@ -10064,7 +10064,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 8))
 	{
 		{
 			Scene *sce= main->scene.first;
@@ -10108,7 +10108,47 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob=ob->id.next;
 			}
 		}
+		
+		/* only convert old 2.50 files with color management */
+		if (main->versionfile == 250) {
+			Scene *sce=main->scene.first;
+			Material *ma=main->mat.first;
+			World *wo=main->world.first;
+			int convert=0;
+			
+			/* convert to new color management system:
+			 while previously colors were stored as srgb, 
+			 now they are stored as linear internally, 
+			 with screen gamma correction in certain places in the UI. */
+
+			/* don't know what scene is active, so we'll convert if any scene has it enabled... */
+			while (sce) {
+				if(sce->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					convert=1;
+				sce=sce->id.next;
+			}
+			
+			if (convert) {
+				while(ma) {
+					srgb_to_linearrgb_v3_v3(&ma->r, &ma->r);
+					srgb_to_linearrgb_v3_v3(&ma->specr, &ma->specr);
+					srgb_to_linearrgb_v3_v3(&ma->mirr, &ma->mirr);
+					srgb_to_linearrgb_v3_v3(ma->sss_col, ma->sss_col);
+					ma=ma->id.next;
+				}
+				
+				while(wo) {
+					srgb_to_linearrgb_v3_v3(&wo->ambr, &wo->ambr);
+					srgb_to_linearrgb_v3_v3(&wo->horr, &wo->horr);
+					srgb_to_linearrgb_v3_v3(&wo->zenr, &wo->zenr);
+					wo=wo->id.next;
+				}
+			}
+		}
 	}
+	
+	/* put 2.50 compatibility code here until next subversion bump */
+	
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

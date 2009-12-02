@@ -409,10 +409,10 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		}
 	}
 	else {
-		if(ELEM(subtype, PROP_COLOR, PROP_RGB))
+		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA))
 			uiDefAutoButR(block, ptr, prop, -1, "", 0, 0, 0, w, UI_UNIT_Y);
 
-		if(!ELEM(subtype, PROP_COLOR, PROP_RGB) || expand) {
+		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {
 			/* layout for known array subtypes */
 			char str[3];
 
@@ -439,7 +439,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 					but->type= TOG;
 			}
 		}
-		else if(ELEM(subtype, PROP_COLOR, PROP_RGB) && len == 4) {
+		else if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && len == 4) {
 			but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, w, UI_UNIT_Y);
 			if(slider && but->type==NUM)
 				but->type= NUMSLI;

@@ -1790,14 +1790,17 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 {
 	uiBlock *block;
 	wmWindow *window;
+	Scene *scn;
 	int getsizex, getsizey;
 
 	window= CTX_wm_window(C);
+	scn = CTX_data_scene(C);
 
 	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->active= 1;
 	block->dt= dt;
 	block->evil_C= (void*)C; // XXX
+	if (scn) block->color_profile= (scn->r.color_mgt_flag & R_COLOR_MANAGEMENT);
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
 	if(region)
@@ -2295,6 +2298,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	if(ELEM(but->type, HSVCUBE, HSVCIRCLE)) { /* hsv buttons temp storage */
 		float rgb[3];
 		ui_get_but_vectorf(but, rgb);
+
 		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
 	}
 

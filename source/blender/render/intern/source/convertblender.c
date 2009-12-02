@@ -4848,8 +4848,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
-	else VECCOPY(amb, &re->wrld.ambr);
+	VECCOPY(amb, &re->wrld.ambr);
 	init_render_materials(re->r.mode, amb);
 	set_node_shader_lamp_loop(shade_material_loop);
 
@@ -5538,8 +5537,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	/* still bad... doing all */
 	init_render_textures(re);
 	
-	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
-	else VECCOPY(amb, &re->wrld.ambr);
+	VECCOPY(amb, &re->wrld.ambr);
 	init_render_materials(re->r.mode, amb);
 	
 	set_node_shader_lamp_loop(shade_material_loop);

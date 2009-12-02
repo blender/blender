@@ -2051,8 +2051,13 @@ void do_material_tex(ShadeInput *shi)
 				else texres.tin= texres.ta;
 				
 				/* inverse gamma correction */
-				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-					color_manage_linearize(tcol, tcol);
+				if (tex->type==TEX_IMAGE) {
+					Image *ima = tex->ima;
+					ImBuf *ibuf = BKE_image_get_ibuf(ima, &tex->iuser);
+					
+					/* don't linearize float buffers, assumed to be linear */
+					if (ibuf && !(ibuf->rect_float) && R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+						srgb_to_linearrgb_v3_v3(tcol, tcol);
 				}
 				
 				if(mtex->mapto & MAP_COL) {
@@ -2404,11 +2409,6 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 						texres.tin= texres.ta;
 				}
 				
-				/* inverse gamma correction */
-				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-					color_manage_linearize(tcol, tcol);
-				}
-				
 				/* used for emit */
 				if((mapto_flag & MAP_EMISSION_COL) && (mtex->mapto & MAP_EMISSION_COL)) {
 					float colemitfac= mtex->colemitfac*stencilTin;
@@ -2556,8 +2556,13 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 		else texres.tin= texres.ta;
 
 		/* inverse gamma correction */
-		if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-			color_manage_linearize(&texres.tr, &texres.tr);
+		if (mtex->tex->type==TEX_IMAGE) {
+			Image *ima = mtex->tex->ima;
+			ImBuf *ibuf = BKE_image_get_ibuf(ima, &mtex->tex->iuser);
+			
+			/* don't linearize float buffers, assumed to be linear */
+			if (ibuf && !(ibuf->rect_float) && R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+				srgb_to_linearrgb_v3_v3(&texres.tr, &texres.tr);
 		}
 
 		fact= texres.tin*mtex->colfac;
@@ -2605,6 +2610,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag, short thread)
 {
 	MTex *mtex;
+	Tex *tex;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float *co, fact, stencilTin=1.0;
 	float tempvec[3], texvec[3], dxt[3], dyt[3];
@@ -2618,7 +2624,8 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 		if(R.wrld.mtex[tex_nr]) {
 			mtex= R.wrld.mtex[tex_nr];
 			
-			if(mtex->tex==0) continue;
+			tex= mtex->tex;
+			if(tex==0) continue;
 			/* if(mtex->mapto==0) continue; */
 			
 			/* which coords */
@@ -2700,7 +2707,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
 			
 			/* texture */
-			if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
+			if(tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 		
 			rgb= multitex(mtex->tex, texvec, dxt, dyt, R.osa, &texres, thread, mtex->which_output);
 			
@@ -2748,8 +2755,13 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 				tcol[0]= texres.tr; tcol[1]= texres.tg; tcol[2]= texres.tb;
 
 				/* inverse gamma correction */
-				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-					color_manage_linearize(tcol, tcol);
+				if (tex->type==TEX_IMAGE) {
+					Image *ima = tex->ima;
+					ImBuf *ibuf = BKE_image_get_ibuf(ima, &tex->iuser);
+					
+					/* don't linearize float buffers, assumed to be linear */
+					if (ibuf && !(ibuf->rect_float) && R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+						srgb_to_linearrgb_v3_v3(tcol, tcol);
 				}
 
 				if(mtex->mapto & WOMAP_HORIZ) {
@@ -2947,8 +2959,13 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				else texres.tin= texres.ta;
 
 				/* inverse gamma correction */
-				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-					color_manage_linearize(&texres.tr, &texres.tr);
+				if (tex->type==TEX_IMAGE) {
+					Image *ima = tex->ima;
+					ImBuf *ibuf = BKE_image_get_ibuf(ima, &tex->iuser);
+					
+					/* don't linearize float buffers, assumed to be linear */
+					if (ibuf && !(ibuf->rect_float) && R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+						srgb_to_linearrgb_v3_v3(&texres.tr, &texres.tr);
 				}
 
 				/* lamp colors were premultiplied with this */

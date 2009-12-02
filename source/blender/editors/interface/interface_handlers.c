@@ -2697,7 +2697,13 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 {
 	float x, y;
 	int changed= 1;
-
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+			color_profile = BLI_PR_NONE;
+	}
+		
 	/* relative position within box */
 	x= ((float)mx-but->x1)/(but->x2-but->x1);
 	y= ((float)my-but->y1)/(but->y2-but->y1);
@@ -2719,8 +2725,12 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	else if(but->a1==3) {
 		but->hsv[0]= x; 
 	}
-	else
+	else {
+		/* vertical 'value' strip */
 		but->hsv[2]= y; 
+		if (color_profile)
+			but->hsv[2] = srgb_to_linearrgb(but->hsv[2]);
+	}
 
 	ui_set_but_hsv(but);	// converts to rgb
 	

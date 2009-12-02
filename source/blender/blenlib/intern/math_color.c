@@ -208,17 +208,17 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int colorspace)
 {
 	switch (colorspace) { 
-	case BLI_CS_SMPTE:
+	case BLI_XYZ_SMPTE:
 		*r = (3.50570f	 * xc) + (-1.73964f	 * yc) + (-0.544011f * zc);
 		*g = (-1.06906f	 * xc) + (1.97781f	 * yc) + (0.0351720f * zc);
 		*b = (0.0563117f * xc) + (-0.196994f * yc) + (1.05005f	 * zc);
 		break;
-	case BLI_CS_REC709:
+	case BLI_XYZ_REC709_SRGB:
 		*r = (3.240476f	 * xc) + (-1.537150f * yc) + (-0.498535f * zc);
 		*g = (-0.969256f * xc) + (1.875992f  * yc) + (0.041556f  * zc);
 		*b = (0.055648f	 * xc) + (-0.204043f * yc) + (1.057311f  * zc);
 		break;
-	case BLI_CS_CIE:
+	case BLI_XYZ_CIE:
 		*r = (2.28783848734076f	* xc) + (-0.833367677835217f	* yc) + (-0.454470795871421f	* zc);
 		*g = (-0.511651380743862f * xc) + (1.42275837632178f * yc) + (0.0888930017552939f * zc);
 		*b = (0.00572040983140966f	* xc) + (-0.0159068485104036f	* yc) + (1.0101864083734f	* zc);
@@ -273,6 +273,61 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b= (float)(((col)>>16)&0xFF);
 	*b /= 255.0f;
 }
+
+/* ********************************* color transforms ********************************* */
+
+
+void gamma_correct(float *c, float gamma)
+{
+	*c = powf((*c), gamma);
+}
+
+float rec709_to_linearrgb(float c)
+{
+	if (c < 0.081f)
+		return (c < 0.0f)? 0.0f: c * (1.0f/4.5f);
+	else
+		return powf((c + 0.099f)*(1.0f/1.099f), (1.0f/0.45f));
+}
+
+float linearrgb_to_rec709(float c)
+{
+	if (c < 0.018f)
+		return (c < 0.0f)? 0.0f: c * 4.5f;
+	else
+		return 1.099f * powf(c, 0.45f) - 0.099f;
+}
+
+float srgb_to_linearrgb(float c)
+{
+	if (c < 0.04045f)
+		return (c < 0.0f)? 0.0f: c * (1.0f/12.92f);
+	else
+		return powf((c + 0.055f)*(1.0f/1.055f), 2.4f);
+}
+
+float linearrgb_to_srgb(float c)
+{
+	if (c < 0.0031308f)
+		return (c < 0.0f)? 0.0f: c * 12.92f;
+	else
+		return  1.055f * powf(c, 1.0f/2.4f) - 0.055f;
+}
+
+void srgb_to_linearrgb_v3_v3(float *col_to, float *col_from)
+{
+	col_to[0] = srgb_to_linearrgb(col_from[0]);
+	col_to[1] = srgb_to_linearrgb(col_from[1]);
+	col_to[2] = srgb_to_linearrgb(col_from[2]);
+}
+
+void linearrgb_to_srgb_v3_v3(float *col_to, float *col_from)
+{
+	col_to[0] = linearrgb_to_srgb(col_from[0]);
+	col_to[1] = linearrgb_to_srgb(col_from[1]);
+	col_to[2] = linearrgb_to_srgb(col_from[2]);
+}
+
 
 void minmax_rgb(short c[])
 {
