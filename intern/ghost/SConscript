@@ -15,23 +15,35 @@ pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window', 'GHOST_DropTarget'
 
 if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6', 'irix6'):
 	for f in pf:
-		sources.remove('intern' + os.sep + f + 'Win32.cpp')
-		sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+		try:
+			sources.remove('intern' + os.sep + f + 'Win32.cpp')
+			sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+		except ValueError:
+			pass
 elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
 	for f in pf:
-		sources.remove('intern' + os.sep + f + 'X11.cpp')
-		sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+		try:
+			sources.remove('intern' + os.sep + f + 'X11.cpp')
+			sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+		except ValueError:
+			pass
 elif window_system == 'darwin':
 	if env['WITH_GHOST_COCOA']:
 		for f in pf:
-			sources.remove('intern' + os.sep + f + 'Win32.cpp')
-			sources.remove('intern' + os.sep + f + 'X11.cpp')
-			sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+			try:
+				sources.remove('intern' + os.sep + f + 'Win32.cpp')
+				sources.remove('intern' + os.sep + f + 'X11.cpp')
+				sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+			except ValueError:
+				pass
 	else:
 		for f in pf:
-			sources.remove('intern' + os.sep + f + 'Win32.cpp')
-			sources.remove('intern' + os.sep + f + 'X11.cpp')
-			sources.remove('intern' + os.sep + f + 'Cocoa.mm')
+			try:
+				sources.remove('intern' + os.sep + f + 'Win32.cpp')
+				sources.remove('intern' + os.sep + f + 'X11.cpp')
+				sources.remove('intern' + os.sep + f + 'Cocoa.mm')
+			except ValueError:
+				pass
 
 else:
 	print "Unknown window system specified."
