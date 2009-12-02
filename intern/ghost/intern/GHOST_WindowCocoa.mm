@@ -230,6 +230,28 @@ extern "C" {
 - (void)keyDown:(NSEvent *)theEvent
 {}
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+//Cmd+key are handled differently before 10.5
+- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
+{
+	NSString *chars = [theEvent charactersIgnoringModifiers];
+	
+	if ([chars length] <1) 
+		return NO;
+	
+	//Let cocoa handle menu shortcuts
+	switch ([chars characterAtIndex:0]) {
+		case 'q':
+		case 'w':
+		case 'h':
+		case 'm':
+			return NO;
+		default:
+			return YES;
+	}
+}
+#endif
+
 - (BOOL)isOpaque
 {
     return YES;
