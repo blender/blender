@@ -896,7 +896,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 
 	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
 		name= ui_item_name_add_colon(name, namestr);
-	else if(type == PROP_BOOLEAN && len)
+	else if(type == PROP_BOOLEAN && len && index == RNA_NO_INDEX)
 		name= ui_item_name_add_colon(name, namestr);
 	else if(type == PROP_ENUM && index != RNA_ENUM_VALUE)
 		name= ui_item_name_add_colon(name, namestr);
