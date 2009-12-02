@@ -628,7 +628,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
 	uiItemR(layout, NULL, 0, ptr, "gamma_correction", 0);
 
 	col = uiLayoutColumn(layout, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer")==0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer")==1);
 	uiItemR(col, NULL, 0, ptr, "f_stop", 0);
 
 	uiItemR(layout, NULL, 0, ptr, "max_blur", 0);
@@ -643,7 +643,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
 	col = uiLayoutColumn(layout, 0);
 	uiItemR(col, NULL, 0, ptr, "use_zbuffer", 0);
 	sub = uiLayoutColumn(col, 0);
-	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer"));
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer")==0);
 	uiItemR(sub, NULL, 0, ptr, "z_scale", 0);
 }
 
