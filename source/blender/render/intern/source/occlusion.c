@@ -111,6 +111,7 @@ typedef struct OcclusionTree {
 
 	int dothreadedbuild;
 	int totbuildthread;
+	int doindirect;
 
 	OcclusionCache *cache;
 } OcclusionTree;
@@ -652,6 +653,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	/* parameters */
 	tree->error= get_render_aosss_error(&re->r, re->wrld.ao_approx_error);
 	tree->distfac= (re->wrld.aomode & WO_AODIST)? re->wrld.aodistfac: 0.0f;
+	tree->doindirect= (re->wrld.ao_indirect_energy > 0.0f && re->wrld.ao_indirect_bounces > 0);
 
 	/* allocation */
 	tree->arena= BLI_memarena_new(0x8000 * sizeof(OccNode));
@@ -664,7 +666,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	tree->co= MEM_callocN(sizeof(float)*3*totface, "OcclusionCo");
 	tree->occlusion= MEM_callocN(sizeof(float)*totface, "OcclusionOcclusion");
 
-	if(re->wrld.ao_indirect_energy != 0.0f)
+	if(tree->doindirect)
 		tree->rad= MEM_callocN(sizeof(float)*3*totface, "OcclusionRad");
 
 	/* make array of face pointers */
@@ -693,7 +695,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	tree->maxdepth= 1;
 	occ_build_recursive(tree, tree->root, 0, totface, 1);
 
-	if(re->wrld.ao_indirect_energy != 0.0f) {
+	if(tree->doindirect) {
 		occ_build_shade(re, tree);
 		occ_sum_occlusion(tree, tree->root);
 	}
@@ -1299,14 +1301,53 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 	if(bentn) normalize_v3(bentn);
 }
 
+static void occ_compute_bounces(Render *re, OcclusionTree *tree, int totbounce)
+{
+	float (*rad)[3], (*sum)[3], (*tmp)[3], co[3], n[3], occ;
+	int bounce, i;
+
+	rad= MEM_callocN(sizeof(float)*3*tree->totface, "OcclusionBounceRad");
+	sum= MEM_dupallocN(tree->rad);
+
+	for(bounce=1; bounce<totbounce; bounce++) {
+		for(i=0; i<tree->totface; i++) {
+			occ_face(&tree->face[i], co, n, NULL);
+			madd_v3_v3fl(co, n, 1e-8f);
+
+			occ_lookup(tree, 0, &tree->face[i], co, n, &occ, rad[i], NULL);
+			rad[i][0]= MAX2(rad[i][0], 0.0f);
+			rad[i][1]= MAX2(rad[i][1], 0.0f);
+			rad[i][2]= MAX2(rad[i][2], 0.0f);
+			add_v3_v3(sum[i], rad[i]);
+
+			if(re->test_break(re->tbh))
+				break;
+		}
+
+		if(re->test_break(re->tbh))
+			break;
+
+		tmp= tree->rad;
+		tree->rad= rad;
+		rad= tmp;
+
+		occ_sum_occlusion(tree, tree->root);
+	}
+
+	MEM_freeN(rad);
+	MEM_freeN(tree->rad);
+	tree->rad= sum;
+
+	if(!re->test_break(re->tbh))
+		occ_sum_occlusion(tree, tree->root);
+}
+
 static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 {
-	float *occ, (*rad)[3]= NULL, co[3], n[3];
+	float *occ, co[3], n[3];
 	int pass, i;
 	
 	occ= MEM_callocN(sizeof(float)*tree->totface, "OcclusionPassOcc");
-	if(tree->rad)
-		rad= MEM_callocN(sizeof(float)*3*tree->totface, "OcclusionPassRad");
 
 	for(pass=0; pass<totpass; pass++) {
 		for(i=0; i<tree->totface; i++) {
@@ -1314,7 +1355,7 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 			negate_v3(n);
 			VECADDFAC(co, co, n, 1e-8f);
 
-			occ_lookup(tree, 0, &tree->face[i], co, n, &occ[i], NULL, (rad)? rad[i]: NULL);
+			occ_lookup(tree, 0, &tree->face[i], co, n, &occ[i], NULL, NULL);
 			if(re->test_break(re->tbh))
 				break;
 		}
@@ -1326,41 +1367,27 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 			tree->occlusion[i] -= occ[i]; //MAX2(1.0f-occ[i], 0.0f);
 			if(tree->occlusion[i] < 0.0f)
 				tree->occlusion[i]= 0.0f;
-
-			if(rad) {
-				sub_v3_v3(tree->rad[i], rad[i]);
-
-				if(tree->rad[i][0] < 0.0f)
-					tree->rad[i][0]= 0.0f;
-				if(tree->rad[i][1] < 0.0f)
-					tree->rad[i][1]= 0.0f;
-				if(tree->rad[i][2] < 0.0f)
-					tree->rad[i][2]= 0.0f;
-			}
 		}
 
 		occ_sum_occlusion(tree, tree->root);
 	}
 
 	MEM_freeN(occ);
-	if(rad)
-		MEM_freeN(rad);
 }
 
 static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, float *co, float *n, int thread, int onlyshadow, float *ao, float *indirect)
 {
 	float nn[3], bn[3], fac, occ, occlusion, correction, rad[3];
-	int aocolor, aorad;
+	int aocolor;
 
 	aocolor= re->wrld.aocolor;
 	if(onlyshadow)
 		aocolor= WO_AOPLAIN;
-	aorad= (re->wrld.ao_indirect_energy != 0.0f);
 
 	VECCOPY(nn, n);
 	negate_v3(nn);
 
-	occ_lookup(tree, thread, exclude, co, nn, &occ, (aorad)? rad: NULL, (aocolor)? bn: NULL);
+	occ_lookup(tree, thread, exclude, co, nn, &occ, (tree->doindirect)? rad: NULL, (aocolor)? bn: NULL);
 
 	correction= re->wrld.ao_approx_correction;
 
@@ -1398,7 +1425,7 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 		ao[2]= occlusion;
 	}
 
-	if(aorad) copy_v3_v3(indirect, rad);
+	if(tree->doindirect) copy_v3_v3(indirect, rad);
 	else zero_v3(indirect);
 }
 
@@ -1600,8 +1627,10 @@ void make_occ_tree(Render *re)
 	re->occlusiontree= occ_tree_build(re);
 	
 	if(re->occlusiontree) {
-		if(re->wrld.ao_approx_passes)
+		if(re->wrld.ao_approx_passes > 0)
 			occ_compute_passes(re, re->occlusiontree, re->wrld.ao_approx_passes);
+		if(re->wrld.ao_indirect_bounces > 1)
+			occ_compute_bounces(re, re->occlusiontree, re->wrld.ao_indirect_bounces);
 
 		for(mesh=re->strandsurface.first; mesh; mesh=mesh->next) {
 			if(!mesh->face || !mesh->co || !mesh->ao)

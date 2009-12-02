@@ -318,6 +318,11 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 10, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Indirect", "Use approximate ambient occlusion for indirect diffuse lighting.");
 	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	prop= RNA_def_property(srna, "indirect_bounces", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "ao_indirect_bounces");
+	RNA_def_property_ui_text(prop, "Bounces", "Number of indirect diffuse light bounces to use for approximate ambient occlusion.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
 }
 
 static void rna_def_world_mist(BlenderRNA *brna)

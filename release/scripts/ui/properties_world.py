@@ -224,6 +224,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
         if wide_ui:
             col = split.column()
         col.prop(ao, "color")
+        col.prop(ao, "indirect_bounces")
 
 bpy.types.register(WORLD_PT_context_world)
 bpy.types.register(WORLD_PT_preview)

@@ -107,7 +107,8 @@ typedef struct World {
 	short aomode, aosamp, aomix, aocolor;
 	float ao_adapt_thresh, ao_adapt_speed_fac;
 	float ao_approx_error, ao_approx_correction;
-	float ao_indirect_energy, aopad;
+	float ao_indirect_energy;
+	short ao_indirect_bounces, ao_pad;
 	short ao_samp_method, ao_gather_method, ao_approx_passes;
 	
 	/* assorted settings (in the middle of ambient occlusion settings for padding reasons) */
