@@ -76,7 +76,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         row.prop(toolsettings, "snap", text="")
         row.prop(toolsettings, "snap_element", text="", icon_only=True)
         if toolsettings.snap_element != 'INCREMENT':
-            row.prop(toolsettings, "snap_target", text="", icon_only=True)
+            row.prop(toolsettings, "snap_target", text="")
             if obj and obj.mode == 'OBJECT':
                 row.prop(toolsettings, "snap_align_rotation", text="")
         if toolsettings.snap_element == 'VOLUME':
