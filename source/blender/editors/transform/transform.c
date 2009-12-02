@@ -126,7 +126,7 @@
 
 void setTransformViewMatrices(TransInfo *t)
 {
-	if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW) {
+	if(t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
 		RegionView3D *rv3d = t->ar->regiondata;
 
 		copy_m4_m4(t->viewmat, rv3d->viewmat);

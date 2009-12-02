@@ -139,7 +139,7 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         if context.edit_object and context.edit_object.type == 'ARMATURE':
             layout.operator("armature.align")
         else:
-            layout.operator_context = 'EXEC_AREA'
+            layout.operator_context = 'EXEC_REGION_WIN'
             layout.operator("tfm.transform", text="Align to Transform Orientation").mode = 'ALIGN' # XXX see alignmenu() in edit.c of b2.4x to get this working
 
         layout.separator()
