@@ -746,8 +746,6 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	bool anyProcessed = false;
 	NSEvent *event;
 	
-	m_outsideLoopEventProcessed = false;
-	
 	//	SetMouseCoalescingEnabled(false, NULL);
 	//TODO : implement timer ??
 	
@@ -844,9 +842,12 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		} while (event!= nil);		
 	//} while (waitForEvent && !anyProcessed); Needed only for timer implementation
 	
+	if (m_outsideLoopEventProcessed) {
+		m_outsideLoopEventProcessed = false;
+		return true;
+	}
 	
-	
-    return anyProcessed || m_outsideLoopEventProcessed;
+    return anyProcessed;
 }
 
 //Note: called from NSApplication delegate
