@@ -4713,7 +4713,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 
 				if(ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) && event->val==KM_PRESS)
 					if(saferct && !BLI_in_rctf(&saferct->parent, event->x, event->y))
-						menu->menuretval= UI_RETURN_OK;
+						menu->menuretval= UI_RETURN_OUT;
 			}
 
 			if(menu->menuretval);
