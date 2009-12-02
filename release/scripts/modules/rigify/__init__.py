@@ -226,10 +226,13 @@ def generate_rig(context, ob):
     # context.scene.update()
     
     # Only for demo'ing
-    ob.restrict_view = True
+    
+    # ob.restrict_view = True
     ob_new.data.draw_axes = False
     
     context.user_preferences.edit.global_undo = global_undo
+    
+    return ob_new
 
 
 def write_meta_rig(obj, func_name="metarig_template"):
@@ -291,5 +294,67 @@ def write_meta_rig(obj, func_name="metarig_template"):
     return "\n".join(code)
 
 
+def generate_test(context):
+    import os
+    new_objects = []
+    
+    scene = context.scene
+    def create_empty_armature(name):
+        ob_new = bpy.data.add_object('ARMATURE', name)
+        armature = bpy.data.add_armature(name)
+        ob_new.data = armature
+        scene.objects.link(ob_new)
+        scene.objects.active = ob_new
+
+    print(os.path.basename(__file__))
+    files = os.listdir(os.path.dirname(__file__))
+    for f in files:
+        if f.startswith("_"):
+            continue
+
+        if not f.endswith(".py"):
+            continue
+
+        module_name = f[:-3]
+        submodule = __import__(name="%s.%s" % (__package__, module_name), fromlist=[module_name])
+
+        metarig_template = getattr(submodule, "metarig_template", None)
+
+        if metarig_template:
+            create_empty_armature("meta_" + module_name) # sets active
+            metarig_template()
+            ob = context.object
+            ob_new = generate_rig(context, ob)
+            
+            new_objects.append((ob, ob_new))
+        else:
+            print("note: rig type '%s' has no metarig_template(), can't test this", module_name)
+    
+    return new_objects
+
+def generate_test_all(context):
+    import rigify
+    import graphviz_export
+    import os
+    reload(rigify)
+    reload(graphviz_export)
+    
+    new_objects = rigify.generate_test(context)
+    
+    base_name = os.path.splitext(bpy.data.filename)[0]
+    for obj, obj_new in new_objects:
+        
+        for ob in (obj, obj_new):
+            fn = base_name + "-" + bpy.utils.clean_name(ob.name)
+            
+            path_dot = fn + ".dot"
+            path_png = fn + ".png"
+            saved = graphviz_export.graph_armature(ob, path_dot, CONSTRAINTS=True, DRIVERS=True)
+
+            if saved:
+                os.system("dot -Tpng %s > %s; eog %s" % (path_dot, path_png, path_png))
+    
+
 if __name__ == "__main__":
     generate_rig(bpy.context, bpy.context.object)
+

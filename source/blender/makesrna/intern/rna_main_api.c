@@ -33,21 +33,22 @@
 #include "RNA_types.h"
 #include "RNA_enum_types.h"
 
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-
 #ifdef RNA_RUNTIME
 
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_armature.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 static Mesh *rna_Main_add_mesh(Main *main, char *name)
 {
@@ -64,6 +65,23 @@ static void rna_Main_remove_mesh(Main *main, ReportList *reports, Mesh *me)
 		BKE_report(reports, RPT_ERROR, "Mesh must have zero users to be removed.");
 	
 	/* XXX python now has invalid pointer? */
+}
+
+static void rna_Main_remove_armature(Main *main, ReportList *reports, bArmature *arm)
+{
+	if(arm->id.us == 0)
+		free_libblock(&main->armature, arm);
+	else
+		BKE_report(reports, RPT_ERROR, "Armature must have zero users to be removed.");
+
+	/* XXX python now has invalid pointer? */
+}
+
+static bArmature *rna_Main_add_armature(Main *main, char *name)
+{
+	bArmature *arm= add_armature(name);
+	arm->id.us--;
+	return arm;
 }
 
 static Lamp *rna_Main_add_lamp(Main *main, char *name)
@@ -162,6 +180,19 @@ void RNA_api_main(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove a mesh if it has zero users.");
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "add_armature", "rna_Main_add_armature");
+	RNA_def_function_ui_description(func, "Add a new armature.");
+	parm= RNA_def_string(func, "name", "Armature", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "armature", "Armature", "", "New armature.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove_armature", "rna_Main_remove_armature");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove an armature if it has zero users.");
+	parm= RNA_def_pointer(func, "armature", "Armature", "", "Armature to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "add_lamp", "rna_Main_add_lamp");
