@@ -44,6 +44,7 @@ typedef struct QuicktimeCodecTypeDesc {
 // quicktime movie output functions
 struct RenderData;
 struct Scene;
+struct wmOperatorType;
 
 void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty);	//for movie handle (BKE writeavi.c now)
 void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
@@ -57,7 +58,7 @@ int quicktime_rnatmpvalue_from_codectype(int codecType);
 int quicktime_codecType_from_rnatmpvalue(int rnatmpvalue);
 
 #ifndef USE_QTKIT
-int request_qtcodec_settings(struct RenderData *rd); //Raise quicktime standard dialog to request codec settings
+void SCENE_OT_render_data_set_quicktime_codec(struct wmOperatorType *ot); //Operator to raise quicktime standard dialog to request codec settings
 #endif
 
 

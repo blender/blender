@@ -34,6 +34,7 @@ SET(INC
 	.
 	../quicktime
 	../makesdna
+	../makesrna
 	../../../intern/guardedalloc
 	../blenlib
 	../blenkernel
@@ -43,6 +44,7 @@ SET(INC
 	../blenloader
 	../render/extern/include
 	../include
+	../windowmanager
 )
 
 SET(INC ${INC} ${QUICKTIME_INC})

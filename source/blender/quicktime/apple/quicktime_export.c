@@ -32,9 +32,14 @@
 #if defined(_WIN32) || defined(__APPLE__)
 
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "BKE_global.h"
 #include "BKE_scene.h"
+#include "BKE_context.h"
 
 #include "BLI_blenlib.h"
 
@@ -730,10 +735,50 @@ int get_qtcodec_settings(RenderData *rd)
 	return err;
 }
 
-int request_qtcodec_settings(RenderData *rd)
+static int request_qtcodec_settings(bContext *C, wmOperator *op)
 {
 	OSErr	err = noErr;
+	Scene *scene = CTX_data_scene(C);
+	RenderData *rd = &scene->r;
 
+	// erase any existing codecsetting
+	if(qtdata) {
+		if(qtdata->theComponent) CloseComponent(qtdata->theComponent);
+		free_qtcomponentdata();
+	}
+	
+	// allocate new
+	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeComponentData");
+	qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
+	
+	// get previous selected codecsetting, from qtatom or detailed settings
+	if(rd->qtcodecdata && rd->qtcodecdata->cdParms) {
+		QT_GetCodecSettingsFromScene(rd);
+	} else {
+		SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
+		SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
+		SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+		
+		qtdata->gSpatialSettings.codecType = rd->qtcodecsettings.codecType;
+		qtdata->gSpatialSettings.codec = (CodecComponent)rd->qtcodecsettings.codec;      
+		qtdata->gSpatialSettings.spatialQuality = (rd->qtcodecsettings.codecSpatialQuality * codecLosslessQuality) /100;
+		qtdata->gTemporalSettings.temporalQuality = (rd->qtcodecsettings.codecTemporalQuality * codecLosslessQuality) /100;
+		qtdata->gTemporalSettings.keyFrameRate = rd->qtcodecsettings.keyFrameRate;
+		qtdata->gTemporalSettings.frameRate = ((float)(rd->frs_sec << 16) / rd->frs_sec_base);
+		qtdata->aDataRateSetting.dataRate = rd->qtcodecsettings.bitRate;
+		qtdata->gSpatialSettings.depth = rd->qtcodecsettings.colorDepth;
+		qtdata->aDataRateSetting.minSpatialQuality = (rd->qtcodecsettings.minSpatialQuality * codecLosslessQuality) / 100;
+		qtdata->aDataRateSetting.minTemporalQuality = (rd->qtcodecsettings.minTemporalQuality * codecLosslessQuality) / 100;
+		
+		qtdata->aDataRateSetting.frameDuration = rd->frs_sec;		
+		
+		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+		CheckError(err, "SCSetInfo1 error");
+		err = SCSetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
+		CheckError(err, "SCSetInfo2 error");
+		err = SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
+		CheckError(err, "SCSetInfo3 error");
+	}
 		// put up the dialog box - it needs to be called from the main thread
 	err = SCRequestSequenceSettings(qtdata->theComponent);
  
@@ -800,6 +845,27 @@ int request_qtcodec_settings(RenderData *rd)
 	}
 
 	return 1;
+}
+
+static int ED_operator_setqtcodec(bContext *C)
+{
+	return G.have_quicktime != FALSE;
+}
+
+
+void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
+{
+	/* identifiers */
+    ot->name= "Change codec";
+    ot->description= "Change Quicktime codec Settings";
+    ot->idname= "SCENE_OT_render_data_set_quicktime_codec";
+	
+    /* api callbacks */
+    ot->exec= request_qtcodec_settings;
+    ot->poll= ED_operator_setqtcodec;
+	
+    /* flags */
+    ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 #endif /* _WIN32 || __APPLE__ */

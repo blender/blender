@@ -344,6 +344,10 @@ class RENDER_PT_output(RenderButtonsPanel):
             split = layout.split()
             split.prop(rd, "tiff_bit")
 
+        elif rd.file_format == 'QUICKTIME_CARBON':
+            split = layout.split()
+            split.operator("scene.render_data_set_quicktime_codec")
+
         elif rd.file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
             col = split.column()

@@ -13,6 +13,8 @@ else:
 incs  = ['.',
 		 '../quicktime',
 		 '../makesdna',
+		 '../makesrna',
+		 '../windowmanager',
 		 '#/intern/guardedalloc',
 		 '../blenlib',
 		 '../blenkernel',
