@@ -153,7 +153,7 @@ BF_JACK_INC = '${BF_JACK}/include/jack'
 BF_JACK_LIB = 'jack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
 
-WITH_BF_SNDFILE = False
+WITH_BF_SNDFILE = True
 BF_SNDFILE = LIBDIR + '/sndfile'
 BF_SNDFILE_INC = '${BF_SNDFILE}/include'
 BF_SNDFILE_LIB = 'sndfile'
@@ -211,7 +211,7 @@ BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
-WITH_BF_FFTW3 = False
+WITH_BF_FFTW3 = True
 BF_FFTW3 = LIBDIR + '/fftw3'
 BF_FFTW3_INC = '${BF_FFTW3}/include'
 BF_FFTW3_LIB = 'libfftw3'
