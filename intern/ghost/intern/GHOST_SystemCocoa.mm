@@ -863,7 +863,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 #else
 	//If build against an older SDK, check if running on 10.6 to use the correct function
 	if ([NSEvent respondsToSelector:@selector(modifierFlags)]) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 		modifiers = (unsigned int)[NSEvent modifierFlags];
+#else
+		modifiers = (NSUInteger)[NSEvent modifierFlags];
+#endif
 	}
 	else {
 		//TODO: need to find a better workaround for the missing cocoa "getModifierFlag" function in 10.4/10.5
