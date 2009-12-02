@@ -33,19 +33,13 @@
 
 #define __AIFF__
 
-/* Quicktime codec types defines */
-#define QT_CODECTYPE_JPEG				1
-#define QT_CODECTYPE_MJPEGA				2
-#define QT_CODECTYPE_MJPEGB				3
-#define QT_CODECTYPE_DVCPAL				4
-#define QT_CODECTYPE_DVCNTSC			5
-#define QT_CODECTYPE_MPEG4				6
-#define QT_CODECTYPE_H263				7
-#define QT_CODECTYPE_H264				8
-#define QT_CODECTYPE_RAW				9
-#define QT_CODECTYPE_DVCPROHD720p		10
-#define	QT_CODECTYPE_DVCPROHD1080i50	11
-#define QT_CODECTYPE_DVCPROHD1080i60	12
+
+/*Codec list*/
+typedef struct QuicktimeCodecTypeDesc {
+	int codecType;
+	int rnatmpvalue;
+	char * codecName;
+} QuicktimeCodecTypeDesc ;
 
 // quicktime movie output functions
 struct RenderData;
@@ -55,10 +49,99 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty);
 void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
 void end_qt(void);
 
+/*RNA helper functions */
 void quicktime_verify_image_type(struct RenderData *rd); //used by RNA for defaults values init, if needed
+int quicktime_get_num_codecs();
+QuicktimeCodecTypeDesc* quicktime_get_codecType_desc(int indexValue);
+int quicktime_rnatmpvalue_from_codectype(int codecType);
+int quicktime_codecType_from_rnatmpvalue(int rnatmpvalue);
+
+#ifndef USE_QTKIT
+int request_qtcodec_settings(struct RenderData *rd); //Raise quicktime standard dialog to request codec settings
+#endif
+
 
 void free_qtcomponentdata(void);
 void makeqtstring(struct RenderData *rd, char *string);		//for playanim.c
+
+
+
+#if (defined(USE_QTKIT) && defined(MAC_OS_X_VERSION_10_6) && __LP64__)
+//Include the quicktime codec types constants that are missing in QTKitDefines.h in 10.6 / 64bit
+enum {
+	kRawCodecType						= 'raw ',
+	kCinepakCodecType 					= 'cvid',
+	kGraphicsCodecType					= 'smc ',
+	kAnimationCodecType 				= 'rle ',
+	kVideoCodecType 					= 'rpza',
+	kComponentVideoCodecType			= 'yuv2',
+	kJPEGCodecType						= 'jpeg',
+	kMotionJPEGACodecType 				= 'mjpa',
+	kMotionJPEGBCodecType 				= 'mjpb',
+	kSGICodecType 						= '.SGI',
+	kPlanarRGBCodecType 				= '8BPS',
+	kMacPaintCodecType					= 'PNTG',
+	kGIFCodecType 						= 'gif ',
+	kPhotoCDCodecType 					= 'kpcd',
+	kQuickDrawGXCodecType 				= 'qdgx',
+	kAVRJPEGCodecType 					= 'avr ',
+	kOpenDMLJPEGCodecType 				= 'dmb1',
+	kBMPCodecType 						= 'WRLE',
+	kWindowsRawCodecType				= 'WRAW',
+	kVectorCodecType					= 'path',
+	kQuickDrawCodecType 				= 'qdrw',
+	kWaterRippleCodecType 				= 'ripl',
+	kFireCodecType						= 'fire',
+	kCloudCodecType 					= 'clou',
+	kH261CodecType						= 'h261',
+	kH263CodecType						= 'h263',
+	kDVCNTSCCodecType					= 'dvc ',	/* DV - NTSC and DVCPRO NTSC (available in QuickTime 6.0 or later)*/
+	/* NOTE: kDVCProNTSCCodecType is deprecated.	*/
+	/* Use kDVCNTSCCodecType instead -- as far as the codecs are concerned, */
+	/* the two data formats are identical.*/
+	kDVCPALCodecType					= 'dvcp',
+	kDVCProPALCodecType 				= 'dvpp',	/* available in QuickTime 6.0 or later*/
+	kDVCPro50NTSCCodecType				= 'dv5n',
+	kDVCPro50PALCodecType 				= 'dv5p',
+	kDVCPro100NTSCCodecType 			= 'dv1n',
+	kDVCPro100PALCodecType				= 'dv1p',
+	kDVCPROHD720pCodecType				= 'dvhp',
+	kDVCPROHD1080i60CodecType			= 'dvh6',
+	kDVCPROHD1080i50CodecType			= 'dvh5',
+	kBaseCodecType						= 'base',
+	kFLCCodecType 						= 'flic',
+	kTargaCodecType 					= 'tga ',
+	kPNGCodecType 						= 'png ',
+	kTIFFCodecType						= 'tiff',	/* NOTE: despite what might seem obvious from the two constants*/
+	/* below and their names, they really are correct. 'yuvu' really */
+	/* does mean signed, and 'yuvs' really does mean unsigned. Really. */
+	kComponentVideoSigned 				= 'yuvu',
+	kComponentVideoUnsigned 			= 'yuvs',
+	kCMYKCodecType						= 'cmyk',
+	kMicrosoftVideo1CodecType			= 'msvc',
+	kSorensonCodecType					= 'SVQ1',
+	kSorenson3CodecType 				= 'SVQ3',	/* available in QuickTime 5 and later*/
+	kIndeo4CodecType					= 'IV41',
+	kMPEG4VisualCodecType 				= 'mp4v',
+	k64ARGBCodecType					= 'b64a',
+	k48RGBCodecType 					= 'b48r',
+	k32AlphaGrayCodecType 				= 'b32a',
+	k16GrayCodecType					= 'b16g',
+	kMpegYUV420CodecType				= 'myuv',
+	kYUV420CodecType					= 'y420',
+	kSorensonYUV9CodecType				= 'syv9',
+	k422YpCbCr8CodecType				= '2vuy',	/* Component Y'CbCr 8-bit 4:2:2	*/
+	k444YpCbCr8CodecType				= 'v308',	/* Component Y'CbCr 8-bit 4:4:4	*/
+	k4444YpCbCrA8CodecType				= 'v408',	/* Component Y'CbCrA 8-bit 4:4:4:4 */
+	k422YpCbCr16CodecType 				= 'v216',	/* Component Y'CbCr 10,12,14,16-bit 4:2:2*/
+	k422YpCbCr10CodecType 				= 'v210',	/* Component Y'CbCr 10-bit 4:2:2 */
+	k444YpCbCr10CodecType 				= 'v410',	/* Component Y'CbCr 10-bit 4:4:4 */
+	k4444YpCbCrA8RCodecType 			= 'r408',	/* Component Y'CbCrA 8-bit 4:4:4:4, rendering format. full range alpha, zero biased yuv*/
+	kJPEG2000CodecType					= 'mjp2',
+	kPixletCodecType					= 'pxlt',
+	kH264CodecType						= 'avc1'
+};
+#endif
 
 #endif //(_WIN32) || (__APPLE__)
 
