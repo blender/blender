@@ -77,7 +77,9 @@ def script_paths(*args):
     subdir = os.path.join(*args)
     script_paths = []
     for path in scripts:
-        script_paths.append(os.path.join(path, subdir))
+        path_subdir = os.path.join(path, subdir)
+        if os.path.isdir(path_subdir):
+            script_paths.append(path_subdir)
 
     return script_paths
 
