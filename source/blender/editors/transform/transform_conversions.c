@@ -5316,9 +5316,6 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 	}
 	else {
-		// t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
-		t->options |= CTX_NO_PET;
-		
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
 

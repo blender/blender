@@ -269,6 +269,7 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 			if (op->type->idname == tmode->idname)
 			{
 				mode = tmode->mode;
+				break;
 			}
 		}
 
