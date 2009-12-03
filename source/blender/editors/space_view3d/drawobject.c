@@ -3795,6 +3795,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				pdd->vedata = MEM_callocN(2 * (totpart + totchild) * 3 * sizeof(float), "particle_vedata");
 
 			need_v = 1;
+		} else if (pdd->vedata) {
+			/* velocity data not needed, so free it */
+			MEM_freeN(pdd->vedata);
+			pdd->vedata= NULL;
 		}
 
 		pdd->vd= pdd->vdata;
@@ -3954,7 +3958,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			if(drawn) {
 				/* additional things to draw for each particle	*/
 				/* (velocity, size and number)					*/
-				if(pdd->vedata){
+				if((part->draw & PART_DRAW_VEL) && pdd->vedata){
 					VECCOPY(pdd->ved,state.co);
 					pdd->ved+=3;
 					VECCOPY(vel,state.vel);
@@ -4193,14 +4197,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 		glDisable(GL_DEPTH_TEST);
 
 	/* get selection theme colors */
-	UI_GetThemeColor3ubv(TH_VERTEX_SELECT, sel);
-	UI_GetThemeColor3ubv(TH_VERTEX, nosel);
-	sel_col[0]=(float)sel[0]/255.0f;
-	sel_col[1]=(float)sel[1]/255.0f;
-	sel_col[2]=(float)sel[2]/255.0f;
-	nosel_col[0]=(float)nosel[0]/255.0f;
-	nosel_col[1]=(float)nosel[1]/255.0f;
-	nosel_col[2]=(float)nosel[2]/255.0f;
+	UI_GetThemeColor3fv(TH_VERTEX_SELECT, sel_col);
+	UI_GetThemeColor3fv(TH_VERTEX, nosel_col);
 
 	/* draw paths */
 	if(timed) {
