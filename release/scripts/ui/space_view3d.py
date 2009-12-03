@@ -376,7 +376,6 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
         layout.operator("particle.select_all_toggle", text="Select/Deselect All")
         layout.operator("particle.select_linked")
         layout.operator("particle.select_inverse")
-        layout.itemO("particle.select_inverse")
 
         layout.separator()
 
@@ -410,8 +409,6 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
         layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
         layout.operator("mesh.faces_select_interior", text="Interior Faces")
         layout.operator("mesh.select_axis", text="Side of Active")
-        layout.itemO("mesh.faces_select_interior", text="Interior Faces")
-        layout.itemO("mesh.select_axis", text="Side of Active")
 
         layout.separator()
 

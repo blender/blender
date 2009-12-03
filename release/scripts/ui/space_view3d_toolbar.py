@@ -105,7 +105,6 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.operator("mesh.duplicate_move")
         col.operator("mesh.spin")
         col.operator("mesh.screw")
-        col.itemO("mesh.flip_normals")
 
         col = layout.column(align=True)
         col.label(text="Remove:")
