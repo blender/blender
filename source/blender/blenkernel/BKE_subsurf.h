@@ -73,6 +73,7 @@ typedef struct CCGDerivedMesh {
 
 	struct DMGridData **gridData;
 	struct DMGridAdjacency *gridAdjacency;
+	int *gridOffset;
 	struct _CCGFace **gridFaces;
 
 	struct {

@@ -379,14 +379,10 @@ void GPU_drawobject_free( DerivedMesh *dm )
 	dm->drawObject = 0;
 }
 
-/* Convenience struct for building the VBO.
-   TODO: check that (lack-of) padding is OK,
-   also check performance of short vs float for normals */
+/* Convenience struct for building the VBO. */
 typedef struct {
 	float co[3];
 	short no[3];
-	
-	char pad[14];
 } VertexBufferFormat;
 
 typedef struct {

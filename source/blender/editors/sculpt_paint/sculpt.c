@@ -1726,11 +1726,16 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	SculptSession *ss= vc->obact->sculpt;
 	StrokeCache *cache= ss->cache;
 	float ray_start[3], ray_normal[3];
+	float obimat[4][4];
 	float mval[2] = {mouse[0] - vc->ar->winrct.xmin,
 			 mouse[1] - vc->ar->winrct.ymin};
 	SculptRaycastData srd;
 
 	viewray(vc->ar, vc->v3d, mval, ray_start, ray_normal);
+
+	invert_m4_m4(obimat, ss->ob->obmat);
+	mul_m4_v3(obimat, ray_start);
+	mul_mat3_m4_v3(obimat, ray_normal);
 
 	srd.ss = vc->obact->sculpt;
 	srd.ray_start = ray_start;

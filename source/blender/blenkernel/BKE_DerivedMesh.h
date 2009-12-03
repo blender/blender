@@ -151,6 +151,7 @@ struct DerivedMesh {
 	int (*getGridSize)(DerivedMesh *dm);
 	DMGridData **(*getGridData)(DerivedMesh *dm);
 	DMGridAdjacency *(*getGridAdjacency)(DerivedMesh *dm);
+	int *(*getGridOffset)(DerivedMesh *dm);
 
 	/* Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new

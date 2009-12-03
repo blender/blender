@@ -1894,6 +1894,7 @@ static void ccgDM_release(DerivedMesh *dm) {
 		if(ccgdm->gridFaces) MEM_freeN(ccgdm->gridFaces);
 		if(ccgdm->gridData) MEM_freeN(ccgdm->gridData);
 		if(ccgdm->gridAdjacency) MEM_freeN(ccgdm->gridAdjacency);
+		if(ccgdm->gridOffset) MEM_freeN(ccgdm->gridOffset);
 		if(ccgdm->freeSS) ccgSubSurf_free(ccgdm->ss);
 		MEM_freeN(ccgdm->edgeFlags);
 		MEM_freeN(ccgdm->faceFlags);
@@ -2112,7 +2113,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
 	ccgdm->gridData = gridData;
 	ccgdm->gridFaces = gridFaces;
 	ccgdm->gridAdjacency = gridAdjacency;
-	MEM_freeN(gridOffset);
+	ccgdm->gridOffset = gridOffset;
 }
 
 static DMGridData **ccgDM_getGridData(DerivedMesh *dm)
@@ -2129,6 +2130,14 @@ static DMGridAdjacency *ccgDM_getGridAdjacency(DerivedMesh *dm)
 
 	ccgdm_create_grids(dm);
 	return ccgdm->gridAdjacency;
+}
+
+static int *ccgDM_getGridOffset(DerivedMesh *dm)
+{
+	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
+
+	ccgdm_create_grids(dm);
+	return ccgdm->gridOffset;
 }
 
 static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
@@ -2209,6 +2218,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getGridSize = ccgDM_getGridSize;
 	ccgdm->dm.getGridData = ccgDM_getGridData;
 	ccgdm->dm.getGridAdjacency = ccgDM_getGridAdjacency;
+	ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
 	ccgdm->dm.getPBVH = ccgDM_getPBVH;
 
 	ccgdm->dm.getVertCos = ccgdm_getVertCos;

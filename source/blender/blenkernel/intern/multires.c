@@ -248,39 +248,45 @@ void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Object
 	int lvl = multires_get_level(ob, mmd, 0);
 	int levels = mmd->totlvl - lvl;
 	MDisps *mdisps;
-	
+
 	CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
 	mdisps= CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	multires_force_update(ob);
 
 	if(mdisps && levels > 0 && direction == 1) {
-		int nsize = multires_side_tot[lvl];
-		int hsize = multires_side_tot[mmd->totlvl];
-		int i;
+		if(lvl > 0) {
+			int nsize = multires_side_tot[lvl];
+			int hsize = multires_side_tot[mmd->totlvl];
+			int i;
 
-		for(i = 0; i < me->totface; ++i) {
-			MDisps *mdisp= &mdisps[i];
-			float (*disps)[3], (*ndisps)[3], (*hdisps)[3];
-			int nvert = (me->mface[i].v4)? 4: 3;
-			int totdisp = multires_grid_tot[lvl]*nvert;
-			int S;
+			for(i = 0; i < me->totface; ++i) {
+				MDisps *mdisp= &mdisps[i];
+				float (*disps)[3], (*ndisps)[3], (*hdisps)[3];
+				int nvert = (me->mface[i].v4)? 4: 3;
+				int totdisp = multires_grid_tot[lvl]*nvert;
+				int S;
 
-			disps = MEM_callocN(sizeof(float) * 3 * totdisp, "multires disps");
+				disps = MEM_callocN(sizeof(float) * 3 * totdisp, "multires disps");
 
-			ndisps = disps;
-			hdisps = mdisp->disps;
+				ndisps = disps;
+				hdisps = mdisp->disps;
 
-			for(S = 0; S < nvert; S++) {
-				multires_copy_grid(ndisps, hdisps, nsize, hsize);
+				for(S = 0; S < nvert; S++) {
+					multires_copy_grid(ndisps, hdisps, nsize, hsize);
 
-				ndisps += nsize*nsize;
-				hdisps += hsize*hsize;
+					ndisps += nsize*nsize;
+					hdisps += hsize*hsize;
+				}
+
+				MEM_freeN(mdisp->disps);
+				mdisp->disps = disps;
+				mdisp->totdisp = totdisp;
 			}
-
-			MEM_freeN(mdisp->disps);
-			mdisp->disps = disps;
-			mdisp->totdisp = totdisp;
+		}
+		else {
+			CustomData_external_remove(&me->fdata, CD_MDISPS, me->totface);
+			CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
 		}
 	}
 
@@ -409,105 +415,27 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int updat
 	multires_set_tot_level(ob, mmd, totlvl);
 }
 
-static void grid_adjacent_rotate(int rotation, int gridSize, int *x, int *y)
+static void grid_tangent(int gridSize, int index, int x, int y, int axis, DMGridData **gridData, float t[3])
 {
-	/* we rotate (rotation * 90°) counterclockwise around center */
-	int nx, ny;
-
-	switch(rotation) {
-		case 0: nx = *x; ny = *y; break;
-		case 1: nx = *y; ny = *x; break;
-		case 2: nx = *x; ny = *y; break; //gridSize - 1 - *x; ny = gridSize - 1 - *y; break;
-		case 3: nx = *y; ny = *x; break;
-	}
-
-	*x = nx;
-	*y = ny;
-}
-
-static void grid_adjacent_jump(DMGridAdjacency *adj, int gridSize, int *index, int *x, int *y)
-{
-	if(*x < 0) {
-		if(adj->index[3] == -1) {
-			/* no adjacent grid, clamp */
-			*x = 0;
-		}
-		else {
-			/* jump to adjacent grid */
-			*index = adj->index[3];
-			*x += gridSize;
-			grid_adjacent_rotate(adj->rotation[3], gridSize, x, y);
-		}
-	}
-	else if(*x >= gridSize) {
-		if(adj->index[1] == -1) {
-			/* no adjacent grid, take a step back */
-			*x = gridSize - 1;
-		}
-		else {
-			/* jump to adjacent grid */
-			*index = adj->index[1];
-			*x -= gridSize;
-			grid_adjacent_rotate(adj->rotation[1], gridSize, x, y);
-		}
-	}
-	else if(*y < 0) {
-		if(adj->index[0] == -1) {
-			/* no adjacent grid, clamp */
-			*y = 0;
-		}
-		else {
-			/* jump to adjacent grid */
-			*index = adj->index[0];
-			*y += gridSize;
-			grid_adjacent_rotate(adj->rotation[0], gridSize, x, y);
-		}
-	}
-	else if(*y >= gridSize) {
-		if(adj->index[2] == -1) {
-			/* no adjacent grid, take a step back */
-			*y = gridSize - 1;
-		}
-		else {
-			/* jump to adjacent grid */
-			*index = adj->index[2];
-			*y -= gridSize;
-			grid_adjacent_rotate(adj->rotation[2], gridSize, x, y);
-		}
-	}
-}
-
-static void grid_tangent(DMGridAdjacency *adj, int gridSize, int index, int x, int y, int axis, DMGridData **gridData, float t[3])
-{
-	int jindex = index, jx = x, jy = y;
-
 	if(axis == 0) {
-		if(adj->index[1] == -1 && x == gridSize - 1) {
-			if(adj->index[2] == -1 && y == gridSize - 1)
+		if(x == gridSize - 1) {
+			if(y == gridSize - 1)
 				sub_v3_v3v3(t, gridData[index][x + gridSize*(y - 1)].co, gridData[index][x - 1 + gridSize*(y - 1)].co);
 			else
 				sub_v3_v3v3(t, gridData[index][x + gridSize*y].co, gridData[index][x - 1 + gridSize*y].co);
 		}
-		else {
-			jx += 1;
-			grid_adjacent_jump(adj, gridSize, &jindex, &jx, &jy);
-			sub_v3_v3v3(t, gridData[jindex][jx + gridSize*jy].co, gridData[index][x + gridSize*y].co);
-		}
+		else
+			sub_v3_v3v3(t, gridData[index][x + 1 + gridSize*y].co, gridData[index][x + gridSize*y].co);
 	}
 	else if(axis == 1) {
-		if(adj->index[2] == -1 && y == gridSize - 1) {
-			if(adj->index[1] == -1 && x == gridSize - 1) {
+		if(y == gridSize - 1) {
+			if(x == gridSize - 1)
 				sub_v3_v3v3(t, gridData[index][x - 1 + gridSize*y].co, gridData[index][x - 1 + gridSize*(y - 1)].co);
-			}
-			else {
+			else
 				sub_v3_v3v3(t, gridData[index][x + gridSize*y].co, gridData[index][x + gridSize*(y - 1)].co);
-			}
 		}
-		else {
-			jy += 1;
-			grid_adjacent_jump(adj, gridSize, &jindex, &jx, &jy);
-			sub_v3_v3v3(t, gridData[jindex][jx + gridSize*jy].co, gridData[index][x + gridSize*y].co);
-		}
+		else
+			sub_v3_v3v3(t, gridData[index][x + gridSize*(y + 1)].co, gridData[index][x + gridSize*y].co);
 	}
 }
 
@@ -515,28 +443,36 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*)dm;
 	DMGridData **gridData, **subGridData;
-	DMGridAdjacency *gridAdjacency;
 	MFace *mface = me->mface;
 	MDisps *mdisps = CustomData_get_layer(&me->fdata, CD_MDISPS);
-	int i, S, x, y, numGrids, gIndex, gridSize, dGridSize, dSkip;
+	int *gridOffset;
+	int i, numGrids, gridSize, dGridSize, dSkip;
 
 	numGrids = dm->getNumGrids(dm);
 	gridSize = dm->getGridSize(dm);
 	gridData = dm->getGridData(dm);
-	gridAdjacency = dm->getGridAdjacency(dm);
+	gridOffset = dm->getGridOffset(dm);
 	subGridData = (oldGridData)? oldGridData: gridData;
 
 	dGridSize = multires_side_tot[totlvl];
 	dSkip = (dGridSize-1)/(gridSize-1);
 
-	for(gIndex = 0, i = 0; i < me->totface; ++i) {
+	#pragma omp parallel for private(i) schedule(static)
+	for(i = 0; i < me->totface; ++i) {
 		const int numVerts = mface[i].v4 ? 4 : 3;
 		MDisps *mdisp = &mdisps[i];
+		int S, x, y, gIndex = gridOffset[i];
+
+		/* when adding new faces in edit mode, need to allocate disps */
+		if(!mdisp->disps)
+		#pragma omp critical
+		{
+			multires_reallocate_mdisps(me, mdisps, totlvl);
+		}
 
 		for(S = 0; S < numVerts; ++S, ++gIndex) {
 			DMGridData *grid = gridData[gIndex];
 			DMGridData *subgrid = subGridData[gIndex];
-			DMGridAdjacency *adj = &gridAdjacency[gIndex];
 			float (*dispgrid)[3] = &mdisp->disps[S*dGridSize*dGridSize];
 
 			for(y = 0; y < gridSize; y++) {
@@ -548,11 +484,15 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int
 					float mat[3][3], tx[3], ty[3], disp[3], d[3];
 
 					/* construct tangent space matrix */
-					grid_tangent(adj, gridSize, gIndex, x, y, 0, subGridData, tx);
+					grid_tangent(gridSize, gIndex, x, y, 0, subGridData, tx);
 					normalize_v3(tx);
 
-					grid_tangent(adj, gridSize, gIndex, x, y, 1, subGridData, ty);
+					grid_tangent(gridSize, gIndex, x, y, 1, subGridData, ty);
 					normalize_v3(ty);
+
+					//mul_v3_fl(tx, 1.0f/(gridSize-1));
+					//mul_v3_fl(ty, 1.0f/(gridSize-1));
+					//cross_v3_v3v3(no, tx, ty);
 
 					column_vectors_to_mat3(mat, tx, ty, no);
 
