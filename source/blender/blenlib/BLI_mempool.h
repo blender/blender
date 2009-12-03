@@ -31,6 +31,11 @@
 #ifndef BLI_MEMPOOL_H
 #define BLI_MEMPOOL_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct BLI_mempool;
 typedef struct BLI_mempool BLI_mempool;
 
@@ -40,5 +45,8 @@ void *BLI_mempool_calloc(BLI_mempool *pool);
 void BLI_mempool_free(BLI_mempool *pool, void *addr);
 void BLI_mempool_destroy(BLI_mempool *pool);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

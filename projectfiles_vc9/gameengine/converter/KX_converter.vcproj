@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="KX_converter"
 	ProjectGUID="{F90BD995-FFA4-4B18-81E8-FA4322C939E8}"
 	RootNamespace="KX_converter"

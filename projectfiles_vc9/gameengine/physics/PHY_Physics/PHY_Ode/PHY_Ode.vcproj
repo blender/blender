@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="PHY_Ode"
 	ProjectGUID="{EC405272-28E3-4840-AAC2-53D6DE4E163D}"
 	RootNamespace="PHY_Ode"
@@ -192,7 +192,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\source\gameengine\physics\common"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\source\gameengine\physics\common;..\..\..\..\..\source\blender\bmesh"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
