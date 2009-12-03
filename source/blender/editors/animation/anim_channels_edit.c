@@ -1104,11 +1104,16 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* hack: skip object channels for now, since flushing those will always flush everything, but they are always included */
+		// TODO: find out why this is the case, and fix that
+		if (ale->type == ANIMTYPE_OBJECT)
+			continue;
+		
 		/* change the setting */
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vis);
 		
 		/* now, also flush selection status up/down as appropriate */
-		//ANIM_visibility_flush_anim_channels(&ac, &all_data, ale, (vis == ACHANNEL_SETFLAG_ADD));
+		ANIM_visibility_flush_anim_channels(&ac, &all_data, ale, (vis == ACHANNEL_SETFLAG_ADD));
 	}
 	
 	/* cleanup */
