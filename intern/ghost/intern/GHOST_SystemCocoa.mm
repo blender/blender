@@ -389,6 +389,28 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 	}
 }
 
+#if defined(WITH_QUICKTIME) && !defined(USE_QTKIT)
+//Need to place this quicktime function in an ObjC file
+//It is used to avoid memory leak when raising the quicktime "compression settings" standard dialog
+extern "C" {
+	struct bContext;
+	struct wmOperator;
+	extern int fromcocoa_request_qtcodec_settings(bContext *C, wmOperator *op);
+
+
+int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
+{
+	int result;
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	result = fromcocoa_request_qtcodec_settings(C, op);
+	
+	[pool drain];
+	return result;
+}
+};
+#endif
+
 
 #pragma mark Cocoa objects
 

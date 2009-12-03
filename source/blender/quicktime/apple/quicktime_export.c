@@ -783,7 +783,7 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 	err = SCRequestSequenceSettings(qtdata->theComponent);
  
 	if (err == scUserCancelled) {
-		return 0;
+		return OPERATOR_FINISHED;
 	}
 
 		// update runtime codecsettings for use with the codec dialog
@@ -844,13 +844,24 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 		}
 	}
 
-	return 1;
+	return OPERATOR_FINISHED;
 }
 
 static int ED_operator_setqtcodec(bContext *C)
 {
 	return G.have_quicktime != FALSE;
 }
+
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+//Need to set up a Cocoa NSAutoReleasePool to avoid memory leak
+//And it must be done in an objC file, so use a GHOST_SystemCocoa.mm function for that
+extern int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op);
+
+int fromcocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
+{
+	return request_qtcodec_settings(C, op);
+}
+#endif
 
 
 void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
@@ -861,7 +872,11 @@ void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
     ot->idname= "SCENE_OT_render_data_set_quicktime_codec";
 	
     /* api callbacks */
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+	ot->exec = cocoa_request_qtcodec_settings;
+#else
     ot->exec= request_qtcodec_settings;
+#endif
     ot->poll= ED_operator_setqtcodec;
 	
     /* flags */

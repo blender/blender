@@ -12,6 +12,7 @@ if window_system == 'darwin':
 
 
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window', 'GHOST_DropTarget']
+defs=['_USE_MATH_DEFINES']
 
 if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6', 'irix6'):
 	for f in pf:
@@ -29,6 +30,10 @@ elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64
 			pass
 elif window_system == 'darwin':
 	if env['WITH_GHOST_COCOA']:
+		if env['WITH_BF_QUICKTIME']:
+			defs.append('WITH_QUICKTIME')
+		if env['USE_QTKIT']:
+			defs.append('USE_QTKIT')
 		for f in pf:
 			try:
 				sources.remove('intern' + os.sep + f + 'Win32.cpp')
@@ -49,7 +54,6 @@ else:
 	print "Unknown window system specified."
 	Exit()
 
-defs=['_USE_MATH_DEFINES']
 if env['BF_GHOST_DEBUG']:
 	defs.append('BF_GHOST_DEBUG')
 	

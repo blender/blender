@@ -30,4 +30,9 @@ incs.append(env['BF_QUICKTIME_INC'])
 types = ['core','player']
 priorities = [200,235]
 
-env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=['WITH_QUICKTIME'], libtype=types, priority=priorities)
+defs=['WITH_QUICKTIME']
+
+if env['WITH_GHOST_COCOA']:
+	defs.append('GHOST_COCOA')
+
+env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities)
