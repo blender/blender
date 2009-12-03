@@ -507,8 +507,8 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_TRANSLATE		3
 #define TFM_MODAL_ROTATE		4
 #define TFM_MODAL_RESIZE		5
-#define TFM_MODAL_SNAP_ON		6
-#define TFM_MODAL_SNAP_OFF		7
+#define TFM_MODAL_SNAP_INV_ON	6
+#define TFM_MODAL_SNAP_INV_OFF	7
 #define TFM_MODAL_SNAP_TOGGLE	8
 #define TFM_MODAL_AXIS_X		9
 #define TFM_MODAL_AXIS_Y		10
@@ -529,8 +529,8 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 	{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
 	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
-	{TFM_MODAL_SNAP_ON, "SNAP_ON", 0, "Snap On", ""},
-	{TFM_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Snap Off", ""},
+	{TFM_MODAL_SNAP_INV_ON, "SNAP_INV_ON", 0, "Invert Snap On", ""},
+	{TFM_MODAL_SNAP_INV_OFF, "SNAP_INV_OFF", 0, "Invert Snap Off", ""},
 	{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
 	{TFM_MODAL_AXIS_X, "AXIS_X", 0, "Orientation X axis", ""},
 	{TFM_MODAL_AXIS_Y, "AXIS_Y", 0, "Orientation Y axis", ""},
@@ -560,7 +560,10 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
 	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
 	
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_CLICK, KM_ANY, 0, TFM_MODAL_SNAP_TOGGLE);
+	WM_modalkeymap_add_item(keymap, TABKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_SNAP_TOGGLE);
+
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_INV_ON);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_INV_OFF);
 	
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
@@ -651,12 +654,12 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				}
 				break;
 				
-			case TFM_MODAL_SNAP_ON:
-				t->modifiers |= MOD_SNAP;
+			case TFM_MODAL_SNAP_INV_ON:
+				t->modifiers |= MOD_SNAP_INVERT;
 				t->redraw = 1;
 				break;
-			case TFM_MODAL_SNAP_OFF:
-				t->modifiers &= ~MOD_SNAP;
+			case TFM_MODAL_SNAP_INV_OFF:
+				t->modifiers &= ~MOD_SNAP_INVERT;
 				t->redraw = 1;
 				break;
 			case TFM_MODAL_SNAP_TOGGLE:

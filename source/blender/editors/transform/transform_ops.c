@@ -784,10 +784,10 @@ void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *ke
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
-			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", LEFTCTRLKEY, KM_CLICK, 0, 0);
+			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_snap_type", LEFTCTRLKEY, KM_CLICK, KM_SHIFT, 0);
+			km = WM_keymap_add_item(keymap, "TFM_OT_snap_type", TABKEY, KM_PRESS, KM_SHIFT|KM_CLICK, 0);
 
 			break;
 		case SPACE_ACTION:
@@ -861,7 +861,7 @@ void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *ke
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
-			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", LEFTCTRLKEY, KM_CLICK, 0, 0);
+			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
 			break;
 		default:

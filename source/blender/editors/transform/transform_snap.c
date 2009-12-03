@@ -90,7 +90,7 @@
 
 /********************* PROTOTYPES ***********************/
 
-void setSnappingCallback(TransInfo *t, short snap_target);
+void setSnappingCallback(TransInfo *t);
 
 void ApplySnapTranslation(TransInfo *t, float vec[3]);
 void ApplySnapRotation(TransInfo *t, float *vec);
@@ -123,15 +123,20 @@ int BIF_snappingSupported(Object *obedit)
 	return status;
 }
 
-int validSnap(TransInfo *t) {
+int validSnap(TransInfo *t)
+{
 	return (t->tsnap.status & (POINT_INIT|TARGET_INIT)) == (POINT_INIT|TARGET_INIT) ||
 			(t->tsnap.status & (MULTI_POINTS|TARGET_INIT)) == (MULTI_POINTS|TARGET_INIT);
 }
 
+int activeSnap(TransInfo *t)
+{
+	return (t->modifiers & (MOD_SNAP|MOD_SNAP_INVERT)) == MOD_SNAP || (t->modifiers & (MOD_SNAP|MOD_SNAP_INVERT)) == MOD_SNAP_INVERT;
+}
+
 void drawSnapping(const struct bContext *C, TransInfo *t)
 {
-	if (validSnap(t) &&
-		(t->modifiers & MOD_SNAP))
+	if (validSnap(t) && activeSnap(t))
 		{
 		
 		char col[4] = {1, 0, 1};
@@ -232,7 +237,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 void applyProject(TransInfo *t)
 {
 	/* XXX FLICKER IN OBJECT MODE */
-	if ((t->tsnap.project) && (t->modifiers & MOD_SNAP) && (t->modifiers & MOD_SNAP))
+	if ((t->tsnap.project) && activeSnap(t))
 	{
 		TransData *td = t->data;
 		float tvec[3];
@@ -268,7 +273,7 @@ void applyProject(TransInfo *t)
 			
 			project_float(t->ar, iloc, mval);
 			
-			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeTarget))
+			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.target))
 			{
 //				if(t->flag & (T_EDIT|T_POSE)) {
 //					mul_m4_v3(imat, loc);
@@ -298,8 +303,7 @@ void applySnapping(TransInfo *t, float *vec)
 	
 		t->tsnap.applySnap(t, vec);
 	}
-	else if ((t->tsnap.mode != SCE_SNAP_MODE_INCREMENT) &&
-		(t->modifiers & MOD_SNAP))
+	else if ((t->tsnap.mode != SCE_SNAP_MODE_INCREMENT) && activeSnap(t))
 	{
 		double current = PIL_check_seconds_timer();
 		
@@ -325,7 +329,7 @@ void resetSnapping(TransInfo *t)
 	t->tsnap.align = 0;
 	t->tsnap.mode = 0;
 	t->tsnap.modeSelect = 0;
-	t->tsnap.modeTarget = 0;
+	t->tsnap.target = 0;
 	t->tsnap.last = 0;
 	t->tsnap.applySnap = NULL;
 
@@ -352,11 +356,67 @@ int validSnappingNormal(TransInfo *t)
 	return 0;
 }
 
-void initSnapping(TransInfo *t, wmOperator *op)
+void initSnappingMode(TransInfo *t)
 {
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
 	Scene *scene = t->scene;
+
+	resetSnapping(t);
+
+	/* force project off when not supported */
+	if (ts->snap_mode != SCE_SNAP_MODE_FACE)
+	{
+		t->tsnap.project = 0;
+	}
+
+	t->tsnap.mode = ts->snap_mode;
+
+	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
+			(t->flag & T_CAMERA) == 0) { // Not with camera selected in camera view
+		setSnappingCallback(t);
+
+		/* Edit mode */
+		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
+			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
+		{
+			if (t->flag & T_PROP_EDIT)
+			{
+				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
+			}
+			else
+			{
+				t->tsnap.modeSelect = SNAP_ALL;
+			}
+		}
+		/* Particles edit mode*/
+		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
+			(obedit == NULL && BASACT && BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT ))
+		{
+			t->tsnap.modeSelect = SNAP_ALL;
+		}
+		/* Object mode */
+		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
+			(obedit == NULL) ) // Object Mode
+		{
+			t->tsnap.modeSelect = SNAP_NOT_SELECTED;
+		}
+		else
+		{
+			/* Grid if snap is not possible */
+			t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
+		}
+	}
+	else
+	{
+		/* Always grid outside of 3D view */
+		t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
+	}
+}
+
+void initSnapping(TransInfo *t, wmOperator *op)
+{
+	ToolSettings *ts = t->settings;
 	short snap_target = t->settings->snap_target;
 	
 	resetSnapping(t);
@@ -405,76 +465,27 @@ void initSnapping(TransInfo *t, wmOperator *op)
 		t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
 	}
 	
-	/* force project off when not supported */
-	if (ts->snap_mode != SCE_SNAP_MODE_FACE)
-	{
-		t->tsnap.project = 0;
-	}
-	
-	t->tsnap.mode = ts->snap_mode;
+	t->tsnap.target = snap_target;
 
-	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
-			(t->flag & T_CAMERA) == 0) { // Not with camera selected in camera view
-		setSnappingCallback(t, snap_target);
-
-		/* Edit mode */
-		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
-		{
-			if (t->flag & T_PROP_EDIT)
-			{
-				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
-			}
-			else
-			{
-				t->tsnap.modeSelect = SNAP_ALL;
-			}
-		}
-		/* Particles edit mode*/
-		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(obedit == NULL && BASACT && BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT ))
-		{
-			t->tsnap.modeSelect = SNAP_ALL;
-		}
-		/* Object mode */
-		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(obedit == NULL) ) // Object Mode
-		{
-			t->tsnap.modeSelect = SNAP_NOT_SELECTED;
-		}
-		else
-		{	
-			/* Grid if snap is not possible */
-			t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
-		}
-	}
-	else
-	{
-		/* Always grid outside of 3D view */
-		t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
-	}
+	initSnappingMode(t);
 }
 
-void setSnappingCallback(TransInfo *t, short snap_target)
+void setSnappingCallback(TransInfo *t)
 {
 	t->tsnap.calcSnap = CalcSnapGeometry;
 
-	switch(snap_target)
+	switch(t->tsnap.target)
 	{
 		case SCE_SNAP_TARGET_CLOSEST:
-			t->tsnap.modeTarget = SNAP_CLOSEST;
 			t->tsnap.targetSnap = TargetSnapClosest;
 			break;
 		case SCE_SNAP_TARGET_CENTER:
-			t->tsnap.modeTarget = SNAP_CENTER;
 			t->tsnap.targetSnap = TargetSnapCenter;
 			break;
 		case SCE_SNAP_TARGET_MEDIAN:
-			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 			break;
 		case SCE_SNAP_TARGET_ACTIVE:
-			t->tsnap.modeTarget = SNAP_ACTIVE;
 			t->tsnap.targetSnap = TargetSnapActive;
 			break;
 
@@ -491,8 +502,8 @@ void setSnappingCallback(TransInfo *t, short snap_target)
 		t->tsnap.distance = RotationBetween;
 		
 		// Can't do TARGET_CENTER with rotation, use TARGET_MEDIAN instead
-		if (snap_target == SCE_SNAP_TARGET_CENTER) {
-			t->tsnap.modeTarget = SNAP_MEDIAN;
+		if (t->tsnap.target == SCE_SNAP_TARGET_CENTER) {
+			t->tsnap.target = SCE_SNAP_TARGET_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}
 		break;
@@ -501,8 +512,8 @@ void setSnappingCallback(TransInfo *t, short snap_target)
 		t->tsnap.distance = ResizeBetween;
 		
 		// Can't do TARGET_CENTER with resize, use TARGET_MEDIAN instead
-		if (snap_target == SCE_SNAP_TARGET_CENTER) {
-			t->tsnap.modeTarget = SNAP_MEDIAN;
+		if (t->tsnap.target == SCE_SNAP_TARGET_CENTER) {
+			t->tsnap.target = SCE_SNAP_TARGET_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}
 		break;
@@ -569,7 +580,7 @@ void ApplySnapTranslation(TransInfo *t, float vec[3])
 
 void ApplySnapRotation(TransInfo *t, float *vec)
 {
-	if (t->tsnap.modeTarget == SNAP_CLOSEST) {
+	if (t->tsnap.target == SCE_SNAP_TARGET_CLOSEST) {
 		*vec = t->tsnap.dist;
 	}
 	else {
@@ -581,7 +592,7 @@ void ApplySnapRotation(TransInfo *t, float *vec)
 
 void ApplySnapResize(TransInfo *t, float vec[3])
 {
-	if (t->tsnap.modeTarget == SNAP_CLOSEST) {
+	if (t->tsnap.target == SCE_SNAP_TARGET_CLOSEST) {
 		vec[0] = vec[1] = vec[2] = t->tsnap.dist;
 	}
 	else {
@@ -887,7 +898,7 @@ void TargetSnapActive(TransInfo *t)
 		/* No active, default to median */
 		else
 		{
-			t->tsnap.modeTarget = SNAP_MEDIAN;
+			t->tsnap.target = SCE_SNAP_TARGET_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 			TargetSnapMedian(t);
 		}		
@@ -1907,10 +1918,10 @@ void snapGrid(TransInfo *t, float *val) {
 		invert = U.flag & USER_AUTOGRABGRID;
 
 	if(invert) {
-		action = (t->modifiers & MOD_SNAP) ? NO_GEARS: BIG_GEARS;
+		action = activeSnap(t) ? NO_GEARS: BIG_GEARS;
 	}
 	else {
-		action = (t->modifiers & MOD_SNAP) ? BIG_GEARS : NO_GEARS;
+		action = activeSnap(t) ? BIG_GEARS : NO_GEARS;
 	}
 
 	if (action == BIG_GEARS && (t->modifiers & MOD_PRECISION)) {

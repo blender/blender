@@ -91,8 +91,8 @@ typedef struct TransSnapPoint {
 
 typedef struct TransSnap {
 	short	mode;
+	short	target;
 	short	modePoint;
-	short	modeTarget;
 	short	modeSelect;
 	short	align;
 	short	project;
@@ -382,7 +382,8 @@ typedef struct TransInfo {
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02
 #define	MOD_SNAP				0x04
-#define	MOD_CONSTRAINT_PLANE	0x08
+#define	MOD_SNAP_INVERT			0x08
+#define	MOD_CONSTRAINT_PLANE	0x10
 
 
 /* ******************************************************************************** */
@@ -426,13 +427,6 @@ typedef struct TransInfo {
 #define TARGET_INIT		2
 #define POINT_INIT		4
 #define MULTI_POINTS	8
-
-/* transsnap->modeTarget */
-#define SNAP_CLOSEST		0
-#define SNAP_CENTER			1
-#define SNAP_MEDIAN			2
-#define SNAP_ACTIVE			3
-
 
 void TFM_OT_transform(struct wmOperatorType *ot);
 
@@ -596,6 +590,9 @@ typedef enum {
 
 void snapGrid(TransInfo *t, float *val);
 void snapGridAction(TransInfo *t, float *val, GearsType action);
+
+int activeSnap(TransInfo *t);
+int validSnap(TransInfo *t);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applyProject(TransInfo *t);
