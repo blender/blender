@@ -147,9 +147,9 @@ class VIEW3D_MT_transform(bpy.types.Menu):
 
         layout.operator_context = 'EXEC_AREA'
 
-        layout.operator("object.center_set", text="Object Data to Origin").type = 'CENTER'
-        layout.operator("object.center_set", text="Origin to Object Data").type = 'CENTER_NEW'
-        layout.operator("object.center_set", text="Origin to 3D Cursor").type = 'CENTER_CURSOR'
+        layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
+        layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
+        layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
 
 
 class VIEW3D_MT_mirror(bpy.types.Menu):

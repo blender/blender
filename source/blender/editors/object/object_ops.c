@@ -71,7 +71,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_location_apply);
 	WM_operatortype_append(OBJECT_OT_scale_apply);
 	WM_operatortype_append(OBJECT_OT_rotation_apply);
-	WM_operatortype_append(OBJECT_OT_center_set);
+	WM_operatortype_append(OBJECT_OT_origin_set);
 	
 	WM_operatortype_append(OBJECT_OT_mode_set);
 	WM_operatortype_append(OBJECT_OT_editmode_toggle);
@@ -251,7 +251,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "mode", OB_MODE_WEIGHT_PAINT);
 		RNA_boolean_set(kmi->ptr, "toggle", 1);
 	
-	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_origin_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
 	/* Object Mode ---------------------------------------------------------------- */
 	/* Note: this keymap gets disabled in non-objectmode,  */

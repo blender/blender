@@ -695,14 +695,14 @@ void texspace_edit(Scene *scene, View3D *v3d)
 /********************* Set Object Center ************************/
 
 static EnumPropertyItem prop_set_center_types[] = {
-	{0, "CENTER", 0, "ObData to Centroi", "Move object data to Object centroid"},
-	{1, "CENTER_NEW", 0, "Centroid to ObData", "Move Object centroid to center of object data"},
-	{2, "CENTER_CURSOR", 0, "Centroid to 3D Cursor", "Move Object centroid to position of the 3d cursor"},
+	{0, "GEOMETRY_ORIGIN", 0, "Geometry to Origin", "Move object geometry to object origin"},
+	{1, "ORIGIN_GEOMETRY", 0, "Origin to Geometry", "Move object origin to center of object geometry"},
+	{2, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor", "Move object origin to position of the 3d cursor"},
 	{0, NULL, 0, NULL, NULL}
 };
 
 /* 0 == do center, 1 == center new, 2 == center cursor */
-static int object_center_set_exec(bContext *C, wmOperator *op)
+static int object_origin_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1026,16 +1026,16 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_center_set(wmOperatorType *ot)
+void OBJECT_OT_origin_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Center";
-	ot->description = "Set the object's center, by either moving the data, or set to center of data, or use 3d cursor";
-	ot->idname= "OBJECT_OT_center_set";
+	ot->name= "Set Origin";
+	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor";
+	ot->idname= "OBJECT_OT_origin_set";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= object_center_set_exec;
+	ot->exec= object_origin_set_exec;
 	
 	ot->poll= ED_operator_view3d_active;
 	

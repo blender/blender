@@ -53,7 +53,7 @@ void OBJECT_OT_visual_transform_apply(struct wmOperatorType *ot);
 void OBJECT_OT_location_apply(struct wmOperatorType *ot);
 void OBJECT_OT_scale_apply(struct wmOperatorType *ot);
 void OBJECT_OT_rotation_apply(struct wmOperatorType *ot);
-void OBJECT_OT_center_set(struct wmOperatorType *ot);
+void OBJECT_OT_origin_set(struct wmOperatorType *ot);
 
 /* object_relations.c */
 void OBJECT_OT_parent_set(struct wmOperatorType *ot);
