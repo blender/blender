@@ -119,7 +119,7 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True):
             pbone = obj.pose.bones[bone]
             # must be ordered
             for constraint in pbone.constraints:
-                subtarget = constraint.subtarget
+                subtarget = getattr(constraint, "subtarget", "")
                 if subtarget:
                     # TODO, not internal links
                     opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="red"', 'labelfontsize=4']

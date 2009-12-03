@@ -47,15 +47,123 @@ def _bone_class_instance_update(self):
     pbones = self.obj.pose.bones
     ebones = arm.edit_bones
     
-    for member in self.__slots__:
-        if not member[-2] == "_":
-            name = getattr(self, member, None)
-            if name is not None:
-                setattr(self, member + "_b", bbones.get(name, None))
-                setattr(self, member + "_p", pbones.get(name, None))
-                setattr(self, member + "_e", ebones.get(name, None))
+    for member in self.attr_names:
+        name = getattr(self, member, None)
+        if name is not None:
+            setattr(self, member + "_b", bbones.get(name, None))
+            setattr(self, member + "_p", pbones.get(name, None))
+            setattr(self, member + "_e", ebones.get(name, None))
+
+
+def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
+    orig_name_ls = []
+    new_name_ls = []
+    new_slot_ls = []
+
+    for attr in self.attr_names:
+        bone_name_orig = getattr(self, attr)
+        ebone = getattr(self, attr + "_e")
+        # orig_names[attr] = bone_name_orig
+        
+        # insert prefix
+        bone_name = "ORG-" + bone_name_orig
+        ebone.name = bone_name
+        bone_name = ebone.name # cant be sure we get what we ask for
+        setattr(self, attr, bone_name)
+
+        new_slot_ls.append(attr)
+        orig_name_ls.append(bone_name)
+        new_name_ls.append(bone_name_orig)
+
+    new_bones = copy_bone_simple_list(self.obj.data, orig_name_ls, new_name_ls, True)
+    new_bc = bone_class_instance(self.obj, new_slot_ls)
+
+    for i, attr in enumerate(new_slot_ls):
+        ebone = new_bones[i]
+        setattr(new_bc, attr + "_e", ebone)
+        setattr(new_bc, attr, ebone.name)
+
+    return new_bc
+
+
+def _bone_class_instance_blend(self, from_bc, to_bc, blend_target=None, use_loc=True, use_rot=True):
+    '''
+    Use for blending bone chains.
+    
+    blend_target = (bone_name, bone_property)
+    default to the last bone, blend prop
+    
+    XXX - toggles editmode, need to re-validate all editbones :(
+    '''
+    if self.attr_names != to_bc.attr_names:
+        raise Exception("can only blend between matching chains")
+
+    obj = self.obj
+    
+    if obj.mode == 'EDIT':
+        raise Exception("blending cant be called in editmode")
+    
+    # setup the blend property
+    if blend_target:
+        prop_bone_name, prop_name = blend_target
+    else:
+        prop_bone_name, prop_name = self.attr_names[-1], "blend"
+
+    prop_pbone = obj.pose.bones[prop_bone_name]
+    if prop_pbone.get(prop_bone_name, None) is None:
+        prop = rna_idprop_ui_prop_get(prop_pbone, prop_name, create=True)
+        prop_pbone[prop_name] = 0.5
+        prop["soft_min"] = 0.0
+        prop["soft_max"] = 1.0
+
+    driver_path = prop_pbone.path_to_id() + ('["%s"]' % prop_name)
+
+    def blend_target(driver):
+        tar = driver.targets.new()
+        tar.name = prop_bone_name
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = driver_path
+
+    for attr in self.attr_names:
+        new_pbone = getattr(self, attr + "_p")
+        from_bone_name = getattr(from_bc, attr)
+        to_bone_name = getattr(to_bc, attr)
+        if use_loc:
+            con = new_pbone.constraints.new('COPY_LOCATION')
+            con.target = obj
+            con.subtarget = from_bone_name
+
+            con = new_pbone.constraints.new('COPY_LOCATION')
+            con.target = obj
+            con.subtarget = to_bone_name
+            
+            fcurve = con.driver_add("influence", 0)
+            driver = fcurve.driver
+            driver.type = 'AVERAGE'
+            fcurve.modifiers.remove(0) # grr dont need a modifier
+
+            blend_target(driver)
+        
+        if use_rot:
+            con = new_pbone.constraints.new('COPY_ROTATION')
+            con.target = obj
+            con.subtarget = from_bone_name
+
+            con = new_pbone.constraints.new('COPY_ROTATION')
+            con.target = obj
+            con.subtarget = to_bone_name
+            
+            fcurve = con.driver_add("influence", 0)
+            driver = fcurve.driver
+            driver.type = 'AVERAGE'
+            fcurve.modifiers.remove(0) # grr dont need a modifier
+
+            blend_target(driver)
+
 
 def bone_class_instance(obj, slots, name="BoneContainer"):
+    attr_names = tuple(slots) # dont modify the original
     slots = slots[:] # dont modify the original
     for i in range(len(slots)):
         member = slots[i]
@@ -63,7 +171,14 @@ def bone_class_instance(obj, slots, name="BoneContainer"):
         slots.append(member + "_p") # pose bone
         slots.append(member + "_e") # edit bone
 
-    class_dict = {"obj":obj, "update":_bone_class_instance_update}
+    class_dict = { \
+        "obj":obj, \
+        "attr_names":attr_names, \
+        "update":_bone_class_instance_update, \
+        "copy":_bone_class_instance_copy, \
+        "blend":_bone_class_instance_blend, \
+    }
+
     instance = auto_class_instance(slots, name, class_dict)
     return instance
 
@@ -92,6 +207,31 @@ def copy_bone_simple(arm, from_bone, name, parent=False):
     ebone_new.tail = ebone.tail
     ebone_new.roll = ebone.roll
     return ebone_new
+
+
+def copy_bone_simple_list(arm, from_bones, to_bones, parent=False):
+    dup_bones = {}
+    
+    if len(from_bones) != len(to_bones):
+        raise Exception("bone list sizes must match")
+    
+    copy_bones = [copy_bone_simple(arm, bone_name, to_bones[i], True) for i, bone_name in enumerate(from_bones)]
+
+    # now we need to re-parent
+    for ebone in copy_bones:
+        parent = ebone.parent
+        if parent:
+            try:
+                i = from_bones.index(parent.name)
+            except:
+                i = -1
+
+            if i == -1:
+                ebone.parent = None
+            else:
+                ebone.parent = copy_bones[i]
+    
+    return copy_bones
 
 
 def add_stretch_to(obj, from_name, to_name, name):

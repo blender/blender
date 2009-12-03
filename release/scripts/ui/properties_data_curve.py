@@ -133,8 +133,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
         if obj and obj.type == 'SURFACE':
             return False
 
-        curve = context.curve
-        return (curve and curve.active_spline)
+        return context.curve
 
     def draw(self, context):
         layout = self.layout
