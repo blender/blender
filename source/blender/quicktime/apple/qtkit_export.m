@@ -57,8 +57,8 @@
 #import <Cocoa/Cocoa.h>
 #import <QTKit/QTKit.h>
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
-#error OSX 10.5 minimum is needed for QTKit
+#if (MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4) || !__LP64__
+#error 64 bit build & OSX 10.5 minimum are needed for QTKit
 #endif
 
 #include "quicktime_import.h"
