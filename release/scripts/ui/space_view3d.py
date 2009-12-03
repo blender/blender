@@ -269,13 +269,18 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout.operator("view3d.view_all")
 
         layout.separator()
-
-        layout.operator("screen.region_foursplit", text="Toggle Quad View")
-        layout.operator("screen.screen_full_area", text="Toggle Full Screen")
-
+        
+        layout.operator("screen.animation_play", text="Playback Animation")
+        
         layout.separator()
+        
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.region_foursplit")
+        layout.operator("screen.screen_full_area")
 
-        layout.operator("screen.animation_play", text="Playback Animation", icon='ICON_PLAY')
+        
+
+        
 
 
 class VIEW3D_MT_view_navigation(bpy.types.Menu):

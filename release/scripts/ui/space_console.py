@@ -69,7 +69,11 @@ class CONSOLE_MT_console(bpy.types.Menu):
         layout.operator("console.copy")
         layout.operator("console.paste")
         layout.menu("CONSOLE_MT_language")
-
+        
+        layout.separator()
+       
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
 
 class CONSOLE_MT_report(bpy.types.Menu):
     bl_label = "Report"

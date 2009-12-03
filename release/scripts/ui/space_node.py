@@ -82,6 +82,10 @@ class NODE_MT_view(bpy.types.Menu):
         layout.separator()
 
         layout.operator("node.view_all")
+        
+        layout.separator()
+       
+        layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 
 

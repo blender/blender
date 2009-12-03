@@ -100,19 +100,6 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         layout.separator()
         layout.operator("sequencer.view_all")
         layout.operator("sequencer.view_selected")
-        layout.separator()
-        layout.operator("screen.screen_full_area", text="Toggle Full Screen")
-        """
-
-
-    /* Lock Time */
-    uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWSYNC_SCREEN_TIME)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
-            "Lock Time to Other Windows|", 0, yco-=20,
-            menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-
-    /* Draw time or frames.*/
-    uiDefMenuSep(block);
-        """
 
         layout.prop(st, "draw_frames")
         layout.prop(st, "show_cframe_indicator")
@@ -121,12 +108,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if st.display_mode == 'WAVEFORM':
             layout.prop(st, "separate_color_preview")
 
-        """
-    if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
-    else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-
-        """
-
+        layout.separator()
+       
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
 
 class SEQUENCER_MT_select(bpy.types.Menu):
     bl_label = "Select"
