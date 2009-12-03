@@ -3582,14 +3582,11 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static void selectrandom_mesh(EditMesh *em, float perc) /* randomly selects a user-set % of vertices/edges/faces */
+static void selectrandom_mesh(EditMesh *em, float randfac) /* randomly selects a user-set % of vertices/edges/faces */
 {
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	float randfac= perc;
-	/* Get the percentage of vertices to randomly select as 'randfac' */
-// XXX	if(button(&randfac,0, 100,"Percentage:")==0) return;
 
 	BLI_srand( BLI_rand() ); /* random seed */
 	
@@ -3629,7 +3626,10 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
-	selectrandom_mesh(em, RNA_float_get(op->ptr,"percent"));
+	if(!RNA_boolean_get(op->ptr, "extend"))
+		EM_deselect_all(em);
+	
+	selectrandom_mesh(em, RNA_float_get(op->ptr, "percentage")/100.0f);
 		
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
@@ -3646,14 +3646,14 @@ void MESH_OT_select_random(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= mesh_select_random_exec;
-	ot->invoke= WM_operator_props_popup;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percentage", 50.f, 0.0f, 100.0f, "Percentage", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
 }
 
 void EM_select_by_material(EditMesh *em, int index) 
