@@ -66,8 +66,8 @@ def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
         # orig_names[attr] = bone_name_orig
         
         # insert prefix
-        bone_name = "ORG-" + bone_name_orig
-        ebone.name = bone_name
+        bone_name = from_prefix + bone_name_orig
+        ebone.name = to_prefix + bone_name
         bone_name = ebone.name # cant be sure we get what we ask for
         setattr(self, attr, bone_name)
 
@@ -86,7 +86,7 @@ def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
     return new_bc
 
 
-def _bone_class_instance_blend(self, from_bc, to_bc, blend_target=None, use_loc=True, use_rot=True):
+def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_prop="blend", use_loc=True, use_rot=True):
     '''
     Use for blending bone chains.
     
@@ -104,23 +104,21 @@ def _bone_class_instance_blend(self, from_bc, to_bc, blend_target=None, use_loc=
         raise Exception("blending cant be called in editmode")
     
     # setup the blend property
-    if blend_target:
-        prop_bone_name, prop_name = blend_target
-    else:
-        prop_bone_name, prop_name = self.attr_names[-1], "blend"
+    if target_bone is None:
+        target_bone = self.attr_names[-1]
 
-    prop_pbone = obj.pose.bones[prop_bone_name]
-    if prop_pbone.get(prop_bone_name, None) is None:
-        prop = rna_idprop_ui_prop_get(prop_pbone, prop_name, create=True)
-        prop_pbone[prop_name] = 0.5
+    prop_pbone = obj.pose.bones[target_bone]
+    if prop_pbone.get(target_bone, None) is None:
+        prop = rna_idprop_ui_prop_get(prop_pbone, target_prop, create=True)
+        prop_pbone[target_prop] = 0.5
         prop["soft_min"] = 0.0
         prop["soft_max"] = 1.0
 
-    driver_path = prop_pbone.path_to_id() + ('["%s"]' % prop_name)
+    driver_path = prop_pbone.path_to_id() + ('["%s"]' % target_prop)
 
     def blend_target(driver):
         tar = driver.targets.new()
-        tar.name = prop_bone_name
+        tar.name = target_bone
         tar.id_type = 'OBJECT'
         tar.id = obj
         tar.rna_path = driver_path
@@ -342,8 +340,12 @@ def generate_rig(context, ob):
     
     # enter armature editmode
     
+    # Only reference bones that have a type, means we can rename any others without lookup errors
+    pose_names = [pbone.name for pbone in ob_new.pose.bones if "type" in pbone]
     
-    for pbone_name in ob_new.pose.bones.keys():
+    #for pbone_name in ob_new.pose.bones.keys():
+    for pbone_name in pose_names:
+    
         bone_type = ob_new.pose.bones[pbone_name].get("type", "")
 
         if bone_type == "":
