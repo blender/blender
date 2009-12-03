@@ -98,6 +98,7 @@ static EnumPropertyItem transform_orientation_items[] = {
 
 #include "ED_image.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -227,6 +228,12 @@ static void rna_Space3DView_lock_camera_and_layers_set(PointerRNA *ptr, int valu
 	}
 }
 
+static void rna_Space3DView_layer_set(PointerRNA *ptr, const int *values)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	
+	v3d->lay= ED_view3d_scene_layer_set(v3d->lay, values);
+}
 
 /* Space Image Editor */
 
@@ -863,9 +870,17 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scenelock", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_lock_camera_and_layers_set");
-	RNA_def_property_ui_text(prop, "Lock Camera and Layers", "Lock the active camera and layers to scene.");
+	RNA_def_property_ui_text(prop, "Lock Camera and Layers", "Use the scene's active camera and layers in this view, rather than local layers.");
 	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
+	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
+	RNA_def_property_array(prop, 20);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_layer_set");
+	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible in this 3D View.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
 	prop= RNA_def_property(srna, "used_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_used", 1);
 	RNA_def_property_array(prop, 20);

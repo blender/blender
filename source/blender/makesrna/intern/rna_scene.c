@@ -183,31 +183,11 @@ static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value)
 	scene->set= set;
 }
 
-static int layer_set(int lay, const int *values)
-{
-	int i, tot= 0;
-
-	/* ensure we always have some layer selected */
-	for(i=0; i<20; i++)
-		if(values[i])
-			tot++;
-	
-	if(tot==0)
-		return lay;
-
-	for(i=0; i<20; i++) {
-		if(values[i]) lay |= (1<<i);
-		else lay &= ~(1<<i);
-	}
-
-	return lay;
-}
-
 static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 {
 	Scene *scene= (Scene*)ptr->data;
 
-	scene->lay= layer_set(scene->lay, values);
+	scene->lay= ED_view3d_scene_layer_set(scene->lay, values);
 }
 
 static void rna_Scene_layer_update(bContext *C, PointerRNA *ptr)
@@ -555,7 +535,7 @@ static int rna_SceneRenderData_use_game_engine_get(PointerRNA *ptr)
 static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 {
 	SceneRenderLayer *rl= (SceneRenderLayer*)ptr->data;
-	rl->lay= layer_set(rl->lay, values);
+	rl->lay= ED_view3d_scene_layer_set(rl->lay, values);
 }
 
 static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)

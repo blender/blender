@@ -33,13 +33,14 @@ class VIEW3D_HT_header(bpy.types.Header):
         obj = context.active_object
         toolsettings = context.scene.tool_settings
         
-        row = layout.row(align=True)
+        row = layout.row()
         row.template_header()
-
+        
+        sub = row.row(align=True)
+        
         # Menus
         if context.area.show_menus:
-            sub = row.row(align=True)
-
+            
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
@@ -49,20 +50,20 @@ class VIEW3D_HT_header(bpy.types.Header):
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif obj:
-                if mode_string not in ['PAINT_WEIGHT', 'PAINT_TEXTURE']:
+                if mode_string not in ('PAINT_WEIGHT'):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
                 sub.menu("VIEW3D_MT_object")
 
-        layout.template_header_3D()
+        row.template_header_3D()
 
         # Particle edit
         if obj and obj.mode == 'PARTICLE_EDIT':
-            layout.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True)
+            row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
 
         # Occlude geometry
         if obj and view.viewport_shading in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
-            layout.prop(view, "occlude_geometry", text="")
+            row.prop(view, "occlude_geometry", text="")
 
         # Proportional editing
         if obj and obj.mode in ('OBJECT', 'EDIT'):
