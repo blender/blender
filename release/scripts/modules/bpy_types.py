@@ -88,6 +88,11 @@ class _GenericBone:
     @property
     def length(self):
         return (self.head - self.tail).length
+    
+    @length.setter
+    def length(self, value):
+        """The distance from head to tail"""
+        self.tail = self.head + ((self.tail - self.head).normalize() * value)
 
     @property
     def children(self):

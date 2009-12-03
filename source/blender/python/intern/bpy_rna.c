@@ -1738,19 +1738,22 @@ static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObjec
 	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
 	
 	if (prop==NULL) {
+		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
+#if 0
 		// XXX - This currently allows anything to be assigned to an rna prop, need to see how this should be used
 		// but for now it makes porting scripts confusing since it fails silently.
 		// edit: allowing this for setting classes internal attributes.
 		// edit: allow this for any attribute that alredy exists as a python attr
 		if (	(name[0]=='_' /* || pyrna_struct_pydict_contains(self, pyname) */ ) &&
 				!BPy_StructRNA_CheckExact(self) &&
-				PyObject_GenericSetAttr((PyObject *)self, pyname, value) >= 0) {
+
 			return 0;
 		} else
 		{
 			PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%.200s\" not found", name);
 			return -1;
 		}
+#endif
 	}		
 	
 	if (!RNA_property_editable(&self->ptr, prop)) {
@@ -2984,6 +2987,9 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 		PyObject *base_compare= pyrna_srna_PyBase(srna);
 		PyObject *bases= PyObject_GetAttrString(newclass, "__bases__");
 
+		// XXX - highly dodgy!, this stops blender from creating __dict__ in instances
+		((PyTypeObject *)newclass)->tp_dictoffset = 0;
+
 		if(PyTuple_GET_SIZE(bases)) {
 			PyObject *base= PyTuple_GET_ITEM(bases, 0);
 
@@ -3038,6 +3044,9 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		/* PyObSpit("new class ref", newclass); */
 
 		if (newclass) {
+
+			// XXX - highly dodgy!, this stops blender from creating __dict__ in instances
+			((PyTypeObject *)newclass)->tp_dictoffset = 0;
 
 			/* srna owns one, and the other is owned by the caller */
 			pyrna_subtype_set_rna(newclass, srna);
