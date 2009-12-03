@@ -1065,12 +1065,25 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 		int tot= rres.rectx*rres.recty;
 		char *cp= (char *)rect;
 		
-		for(;tot>0; tot--, cp+=4, fp+=4) {
-			cp[0] = FTOCHAR(fp[0]);
-			cp[1] = FTOCHAR(fp[1]);
-			cp[2] = FTOCHAR(fp[2]);
-			cp[3] = FTOCHAR(fp[3]);
+		if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+			/* Finally convert back to sRGB rendered image */ 
+			for(;tot>0; tot--, cp+=4, fp+=4) {
+				cp[0] = FTOCHAR(linearrgb_to_srgb(fp[0]));
+				cp[1] = FTOCHAR(linearrgb_to_srgb(fp[1]));
+				cp[2] = FTOCHAR(linearrgb_to_srgb(fp[2]));
+				cp[3] = FTOCHAR(fp[3]);
+			}
 		}
+		else {
+			/* Color management is off : no conversion necessary */
+			for(;tot>0; tot--, cp+=4, fp+=4) {
+				cp[0] = FTOCHAR(fp[0]);
+				cp[1] = FTOCHAR(fp[1]);
+				cp[2] = FTOCHAR(fp[2]);
+				cp[3] = FTOCHAR(fp[3]);
+			}
+		}
+
 	}
 	else
 		/* else fill with black */
