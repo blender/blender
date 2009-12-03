@@ -31,6 +31,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
+#include "BLI_math.h"
 
 #include "imbuf.h"
 #include "imbuf_patch.h"
