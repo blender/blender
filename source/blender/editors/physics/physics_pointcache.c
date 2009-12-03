@@ -83,6 +83,7 @@ static int ptcache_poll(bContext *C)
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	wmWindow *win = CTX_wm_window(C);
 	PTCacheBaker baker;
 
 
@@ -94,8 +95,14 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	baker.quick_step = 1;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
-	baker.progressbar = (void (*)(void *, int))WM_timecursor;
-	baker.progresscontext = CTX_wm_window(C);
+
+	if (win) {
+		baker.progressbar = (void (*)(void *, int))WM_timecursor;
+		baker.progresscontext = win;
+	} else {
+		baker.progressbar = NULL;
+		baker.progresscontext = NULL;
+	}
 
 	BKE_ptcache_make_cache(&baker);
 
@@ -156,6 +163,7 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 static int ptcache_bake_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	wmWindow *win = CTX_wm_window(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
 	Object *ob= ptr.id.data;
 	PointCache *cache= ptr.data;
@@ -178,8 +186,14 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 	baker.quick_step = 1;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
-	baker.progressbar = (void (*)(void *, int))WM_timecursor;
-	baker.progresscontext = CTX_wm_window(C);
+
+	if (win) {
+		baker.progressbar = (void (*)(void *, int))WM_timecursor;
+		baker.progresscontext = win;
+	} else {
+		baker.progressbar = NULL;
+		baker.progresscontext = NULL;
+	}
 
 	BKE_ptcache_make_cache(&baker);
 
