@@ -553,7 +553,7 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= posemode_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flag */
 	ot->flag= OPTYPE_REGISTER;
@@ -1651,6 +1651,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
+	ot->poll= ED_operator_object_active_editable;
 	ot->exec= shade_smooth_exec;
 
 	/* flags */
@@ -1664,8 +1665,9 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
+	ot->poll= ED_operator_object_active_editable;
 	ot->exec= shade_smooth_exec;
-
+	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -1958,7 +1960,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= object_mode_set_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2013,6 +2015,7 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= game_property_new;
+	ot->poll= ED_operator_object_active_editable;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2049,6 +2052,7 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= game_property_remove;
+	ot->poll= ED_operator_object_active_editable;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

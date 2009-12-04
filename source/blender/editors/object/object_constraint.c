@@ -885,7 +885,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= object_constraints_clear_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 }
 
 /************************ add constraint operators *********************/
@@ -1212,7 +1212,7 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_constraint_add_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1231,7 +1231,7 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_constraint_add_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

@@ -119,7 +119,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_location_clear_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -255,7 +255,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_rotation_clear_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -313,7 +313,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_scale_clear_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -357,7 +357,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_origin_clear_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -579,7 +579,7 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= visual_transform_apply_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -599,7 +599,7 @@ void OBJECT_OT_location_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= location_apply_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -619,7 +619,7 @@ void OBJECT_OT_scale_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= scale_apply_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -639,7 +639,7 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= rotation_apply_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

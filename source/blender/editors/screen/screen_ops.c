@@ -218,6 +218,12 @@ int ED_operator_object_active(bContext *C)
 	return NULL != CTX_data_active_object(C);
 }
 
+int ED_operator_object_active_editable(bContext *C)
+{
+	Object *ob=CTX_data_active_object(C);
+	return ((ob != NULL) && !(ob->id.lib));
+}
+
 int ED_operator_editmesh(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);

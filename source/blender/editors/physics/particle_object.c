@@ -56,6 +56,7 @@
 #include "WM_types.h"
 
 #include "ED_particle.h"
+#include "ED_screen.h"
 
 #include "physics_intern.h"
 
@@ -83,8 +84,9 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 	ot->description="Add a particle system.";
 	
 	/* api callbacks */
+	ot->poll= ED_operator_object_active_editable;
 	ot->exec= particle_system_add_exec;
-
+	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -120,6 +122,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 	ot->description="Remove the selected particle system.";
 	
 	/* api callbacks */
+	ot->poll= ED_operator_object_active_editable;
 	ot->exec= particle_system_remove_exec;
 
 	/* flags */

@@ -999,7 +999,7 @@ static int convert_poll(bContext *C)
 	Object *obact= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
 
-	return (!scene->id.lib && obact && scene->obedit != obact && (obact->flag & SELECT));
+	return (!scene->id.lib && obact && scene->obedit != obact && (obact->flag & SELECT) && !(obact->id.lib));
 }
 
 static int convert_exec(bContext *C, wmOperator *op)
@@ -1510,7 +1510,7 @@ static int join_poll(bContext *C)
 {
 	Object *ob= CTX_data_active_object(C);
 	
-	if (!ob) return 0;
+	if (!ob || ob->id.lib) return 0;
 	
 	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE))
 		return ED_operator_screenactive(C);
@@ -1563,7 +1563,7 @@ static int join_shapes_poll(bContext *C)
 {
 	Object *ob= CTX_data_active_object(C);
 	
-	if (!ob) return 0;
+	if (!ob || ob->id.lib) return 0;
 	
 	/* only meshes supported at the moment */
 	if (ob->type == OB_MESH)
