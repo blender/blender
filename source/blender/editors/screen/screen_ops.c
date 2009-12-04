@@ -1851,7 +1851,8 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_FINISHED;
 			}
 			break;
-			
+		
+		case RIGHTMOUSE:
 		case ESCKEY:
 			return area_join_cancel(C, op);
 	}
