@@ -275,7 +275,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout.separator()
         
         layout.operator("screen.area_dupli")
-        layout.operator("screen.region_foursplit")
+        layout.operator("screen.region_quadview")
         layout.operator("screen.screen_full_area")
 
         
