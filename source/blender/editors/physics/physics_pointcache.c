@@ -109,9 +109,11 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 
 	if (win) {
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
+		baker.progressend = (void (*)(void *))WM_cursor_restore;
 		baker.progresscontext = win;
 	} else {
 		baker.progressbar = bake_console_progress;
+		baker.progressend = NULL;
 		baker.progresscontext = NULL;
 	}
 
@@ -200,10 +202,12 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 
 	if (win) {
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
+		baker.progressend = (void (*)(void *))WM_cursor_restore;
 		baker.progresscontext = win;
 	} else {
 		printf("\n"); /* empty first line before console reports */
 		baker.progressbar = bake_console_progress;
+		baker.progressend = NULL;
 		baker.progresscontext = NULL;
 	}
 

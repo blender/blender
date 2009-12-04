@@ -212,7 +212,7 @@ void WM_timecursor(wmWindow *win, int nr)
 	unsigned char bitmap[16][2];
 	int i, idx;
 	
-	if(win->lastcursor != 0)
+	if(win->lastcursor == 0)
 		win->lastcursor= win->cursor; 
 	
 	memset(&bitmap, 0x00, sizeof(bitmap));

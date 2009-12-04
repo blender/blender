@@ -2232,6 +2232,7 @@ void BKE_ptcache_quick_cache_all(Scene *scene)
 	baker.break_test=NULL;
 	baker.pid=NULL;
 	baker.progressbar=NULL;
+	baker.progressend=NULL;
 	baker.progresscontext=NULL;
 	baker.render=0;
 	baker.anim_init = 0;
@@ -2360,6 +2361,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		if(baker->break_test && baker->break_test(baker->break_data))
 			break;
 	}
+	baker->progressend(baker->progresscontext);
 
 	/* clear baking flag */
 	if(pid) {
@@ -2400,7 +2402,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 
 	scene->r.framelen = frameleno;
 	CFRA = cfrao;
-
+	
 	if(bake) /* already on cfra unless baking */
 		scene_update_for_newframe(scene, scene->lay);
 
