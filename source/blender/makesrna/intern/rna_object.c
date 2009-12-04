@@ -65,6 +65,16 @@ static EnumPropertyItem parent_type_items[] = {
 	{PARVERT3, "VERTEX_3", 0, "3 Vertices", ""},
 	{PARBONE, "BONE", 0, "Bone", ""},
 	{0, NULL, 0, NULL, NULL}};
+	
+static EnumPropertyItem collision_bounds_items[] = {
+	{OB_BOUND_BOX, "BOX", 0, "Box", ""},
+	{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
+	{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
+	{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
+	{OB_BOUND_POLYT, "CONVEX_HULL", 0, "Convex Hull", ""},
+	{OB_BOUND_POLYH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
+	//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem object_type_items[] = {
 	{OB_MESH, "MESH", 0, "Mesh", ""},
@@ -79,8 +89,7 @@ EnumPropertyItem object_type_items[] = {
 	{0, "", 0, NULL, NULL},
 	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
 	{OB_LAMP, "LAMP", 0, "Lamp", ""},
-	{0, NULL, 0, NULL, NULL}
-};
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -288,6 +297,28 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *p
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT1);
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT3);
 		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
+static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Object *ob= (Object*)ptr->data;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+
+	RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_POLYH);
+	RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_POLYT);
+
+	if(ob->body_type!=OB_BODY_TYPE_SOFT) {
+		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CONE);
+		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CYLINDER);
+		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_SPHERE);
+		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_BOX);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -1042,16 +1073,6 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 		{OB_BODY_TYPE_SENSOR, "SENSOR", 0, "Sensor", "Collision Sensor, detects static and dynamic objects but not the other collision sensor objects"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem collision_bounds_items[] = {
-		{OB_BOUND_BOX, "BOX", 0, "Box", ""},
-		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
-		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
-		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
-		{OB_BOUND_POLYT, "CONVEX_HULL", 0, "Convex Hull", ""},
-		{OB_BOUND_POLYH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
-		//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "GameObjectSettings", NULL);
 	RNA_def_struct_sdna(srna, "Object");
 	RNA_def_struct_nested(brna, srna, "Object");
@@ -1201,6 +1222,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "collision_bounds", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "boundtype");
 	RNA_def_property_enum_items(prop, collision_bounds_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Object_collision_bounds_itemf");
 	RNA_def_property_ui_text(prop, "Collision Bounds",  "Selects the collision type.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
