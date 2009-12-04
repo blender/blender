@@ -233,7 +233,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 	CTX_wm_window_set(C, win);	/* needed by handlers */
 	WM_event_remove_handlers(C, &win->handlers);
 	WM_event_remove_handlers(C, &win->modalhandlers);
-	ED_screen_exit(C, win, win->screen);
+	ED_screen_exit(C, win, win->screen); /* will free the current screen if it is a temp layout */
 	wm_window_free(C, wm, win);
 	
 	/* check remaining windows */
