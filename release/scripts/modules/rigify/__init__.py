@@ -92,10 +92,7 @@ def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
         new_slot_ls.append(attr)
         from_name_ls.append(bone_name)
         new_name_ls.append(to_prefix + bone_name_orig)
-    print("RUN!")
-    print("from_name_ls", from_name_ls)
-    print("new_name_ls", new_name_ls)
-    
+        
     new_bones = copy_bone_simple_list(self.obj.data, from_name_ls, new_name_ls, True)
     new_bc = bone_class_instance(self.obj, new_slot_ls)
 
@@ -148,16 +145,8 @@ def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_pr
         new_pbone = getattr(self, attr + "_p")
         from_bone_name = getattr(from_bc, attr)
         to_bone_name = getattr(to_bc, attr)
-
-        a = getattr(from_bc, attr+"_p")
-        b = getattr(to_bc, attr+"_p")
         
-        if a.name != from_bone_name:
-            raise Exception("a")
-        if b.name != to_bone_name:
-            raise Exception("b")
         if from_bone_name == to_bone_name:
-            print(from_bc, to_bc)
             raise Exception("Matching from/to bone names:" + from_bone_name)
         
         if use_loc:
@@ -177,7 +166,6 @@ def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_pr
             blend_target(driver)
         
         if use_rot:
-            print(from_bone_name, to_bone_name)
             con = new_pbone.constraints.new('COPY_ROTATION')
             con.target = obj
             con.subtarget = from_bone_name
@@ -358,8 +346,6 @@ def generate_rig(context, ob):
     
     global_undo = context.user_preferences.edit.global_undo
     context.user_preferences.edit.global_undo = False
-    
-    # add_stretch_to(ob, "a", "b", "c")
 
     bpy.ops.object.mode_set(mode='OBJECT')
     
@@ -482,7 +468,6 @@ def generate_test(context):
         scene.objects.link(ob_new)
         scene.objects.active = ob_new
 
-    print(os.path.basename(__file__))
     files = os.listdir(os.path.dirname(__file__))
     for f in files:
         if f.startswith("_"):
@@ -508,6 +493,7 @@ def generate_test(context):
     
     return new_objects
 
+
 def generate_test_all(context):
     import rigify
     import graphviz_export
@@ -519,7 +505,6 @@ def generate_test_all(context):
     
     base_name = os.path.splitext(bpy.data.filename)[0]
     for obj, obj_new in new_objects:
-        
         for ob in (obj, obj_new):
             fn = base_name + "-" + bpy.utils.clean_name(ob.name)
             
@@ -529,6 +514,15 @@ def generate_test_all(context):
 
             #if saved:
             #    os.system("dot -Tpng %s > %s; eog %s" % (path_dot, path_png, path_png))
+
+    i = 0
+    for obj, obj_new in new_objects:
+        obj.data.drawtype = 'STICK'
+        obj.location[1] += i
+        obj_new.location[1] += i
+        obj_new.selected = False
+        obj.selected = True
+        i += 4
     
 
 if __name__ == "__main__":
