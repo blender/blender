@@ -20,6 +20,7 @@
 
 import bpy
 
+
 def rna_idprop_ui_get(item, create=True):
     try:
         return item['_RNA_UI']
@@ -57,7 +58,7 @@ def rna_idprop_ui_prop_clear(item, prop):
         pass
 
 
-def draw(layout, context, context_member, use_edit = True):
+def draw(layout, context, context_member, use_edit=True):
 
     def assign_props(prop, val, key):
         prop.path = context_member
@@ -69,7 +70,7 @@ def draw(layout, context, context_member, use_edit = True):
             pass
 
     rna_item = eval("context." + context_member)
-    
+
     # poll should really get this...
     if not rna_item:
         return
@@ -137,6 +138,7 @@ rna_property = StringProperty(name="Property Name",
 
 rna_min = FloatProperty(name="Min", default=0.0, precision=3)
 rna_max = FloatProperty(name="Max", default=1.0, precision=3)
+
 
 class WM_OT_properties_edit(bpy.types.Operator):
     '''Internal use (edit a property path)'''
@@ -206,15 +208,15 @@ class WM_OT_properties_edit(bpy.types.Operator):
         prop_ui = rna_idprop_ui_prop_get(item, self.properties.property, False) # dont create
         if prop_ui:
             self.properties.min = prop_ui.get("min", -1000000000)
-            self.properties.max = prop_ui.get("max",  1000000000)
-            self.properties.description = prop_ui.get("description",  "")
+            self.properties.max = prop_ui.get("max", 1000000000)
+            self.properties.description = prop_ui.get("description", "")
 
         if 0:
-            _message= "PyConsole, press Ctrl+D to unlock the BGE"
+            _message = "PyConsole, press Ctrl+D to unlock the BGE"
             import sys
 
             # evaluate commands in current namespace
-            frame= sys._getframe()
+            frame = sys._getframe()
             namespace = frame.f_globals.copy()
             namespace.update(frame.f_locals)
 
@@ -252,7 +254,7 @@ class WM_OT_properties_add(bpy.types.Operator):
             i = 1
             while prop_new in names:
                 prop_new = prop + str(i)
-                i+=1
+                i += 1
 
             return prop_new
 
@@ -260,6 +262,7 @@ class WM_OT_properties_add(bpy.types.Operator):
 
         item[property] = 1.0
         return ('FINISHED',)
+
 
 class WM_OT_properties_remove(bpy.types.Operator):
     '''Internal use (edit a property path)'''
@@ -273,4 +276,3 @@ class WM_OT_properties_remove(bpy.types.Operator):
         item = eval("context.%s" % self.properties.path)
         del item[self.properties.property]
         return ('FINISHED',)
-

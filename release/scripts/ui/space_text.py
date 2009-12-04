@@ -123,7 +123,6 @@ class TEXT_PT_find(bpy.types.Panel):
         row.prop(st, "find_all", text="All")
 
 
-
 class TEXT_MT_text(bpy.types.Menu):
     bl_label = "Text"
 
@@ -160,9 +159,9 @@ class TEXT_MT_text(bpy.types.Menu):
         layout.operator("text.properties", icon='ICON_MENU_PANEL')
 
         layout.menu("TEXT_MT_templates")
-        
+
         layout.separator()
-       
+
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 

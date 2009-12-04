@@ -76,9 +76,9 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
         col.operator("outliner.show_one_level")
         col.operator("outliner.show_hierarchy")
-        
+
         layout.separator()
-       
+
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 

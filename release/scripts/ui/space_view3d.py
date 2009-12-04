@@ -32,15 +32,15 @@ class VIEW3D_HT_header(bpy.types.Header):
         edit_object = context.edit_object
         obj = context.active_object
         toolsettings = context.scene.tool_settings
-        
+
         row = layout.row()
         row.template_header()
-        
+
         sub = row.row(align=True)
-        
+
         # Menus
         if context.area.show_menus:
-            
+
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
@@ -269,18 +269,14 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout.operator("view3d.view_all")
 
         layout.separator()
-        
+
         layout.operator("screen.animation_play", text="Playback Animation")
-        
+
         layout.separator()
-        
+
         layout.operator("screen.area_dupli")
         layout.operator("screen.region_quadview")
         layout.operator("screen.screen_full_area")
-
-        
-
-        
 
 
 class VIEW3D_MT_view_navigation(bpy.types.Menu):
@@ -413,7 +409,7 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
         props = layout.operator("pose.select_hierarchy", text="Extend Child")
         props.extend = True
         props.direction = 'CHILD'
-        
+
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
@@ -605,7 +601,7 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
         props = layout.operator("armature.select_hierarchy", text="Extend Child")
         props.extend = True
         props.direction = 'CHILD'
-        
+
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 

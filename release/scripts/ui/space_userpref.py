@@ -1415,9 +1415,9 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
 
 class WM_OT_keymap_restore(bpy.types.Operator):
-    "Restore key map"
+    "Restore key map(s)."
     bl_idname = "wm.keymap_restore"
-    bl_label = "Restore Key Map"
+    bl_label = "Restore Key Map(s)"
 
     all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")
 

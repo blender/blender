@@ -84,7 +84,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             cloth = md.settings
 
             split = layout.split()
-            
+
             split.active = cloth_panel_enabled(md)
 
             col = split.column()

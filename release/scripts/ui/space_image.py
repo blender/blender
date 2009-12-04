@@ -61,9 +61,9 @@ class IMAGE_MT_view(bpy.types.Menu):
             layout.operator("image.view_selected")
 
         layout.operator("image.view_all")
-       
+
         layout.separator()
-       
+
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 

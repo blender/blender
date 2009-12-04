@@ -109,9 +109,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
             layout.prop(st, "separate_color_preview")
 
         layout.separator()
-       
+
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
+
 
 class SEQUENCER_MT_select(bpy.types.Menu):
     bl_label = "Select"
@@ -336,8 +337,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('ADD','SUBTRACT','ALPHA_OVER','ALPHA_UNDER',
-                              'GAMMA_CROSS','MULTIPLY','OVER_DROP',
+        return strip.type in ('ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                              'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
 
