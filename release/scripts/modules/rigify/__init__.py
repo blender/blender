@@ -55,8 +55,22 @@ def _bone_class_instance_update(self):
             setattr(self, member + "_e", ebones.get(name, None))
 
 
+def _bone_class_instance_rename(self, attr, new_name):
+    ''' Rename bones, editmode only
+    '''
+    
+    if self.obj.mode != 'EDIT':
+        raise Exception("Only rename in editmode supported")
+    
+    ebone = getattr(self, attr + "_e")
+    ebone.name = new_name
+    
+    # we may not get what is asked for so get the name from the editbone
+    setattr(self, attr, ebone.name)
+    
+
 def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
-    orig_name_ls = []
+    from_name_ls = []
     new_name_ls = []
     new_slot_ls = []
 
@@ -66,16 +80,23 @@ def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
         # orig_names[attr] = bone_name_orig
         
         # insert prefix
-        bone_name = from_prefix + bone_name_orig
-        ebone.name = to_prefix + bone_name
-        bone_name = ebone.name # cant be sure we get what we ask for
+        if from_prefix:
+            bone_name = from_prefix + bone_name_orig
+            ebone.name = bone_name
+            bone_name = ebone.name # cant be sure we get what we ask for
+        else:
+            bone_name = bone_name_orig
+            
         setattr(self, attr, bone_name)
 
         new_slot_ls.append(attr)
-        orig_name_ls.append(bone_name)
-        new_name_ls.append(bone_name_orig)
-
-    new_bones = copy_bone_simple_list(self.obj.data, orig_name_ls, new_name_ls, True)
+        from_name_ls.append(bone_name)
+        new_name_ls.append(to_prefix + bone_name_orig)
+    print("RUN!")
+    print("from_name_ls", from_name_ls)
+    print("new_name_ls", new_name_ls)
+    
+    new_bones = copy_bone_simple_list(self.obj.data, from_name_ls, new_name_ls, True)
     new_bc = bone_class_instance(self.obj, new_slot_ls)
 
     for i, attr in enumerate(new_slot_ls):
@@ -95,7 +116,7 @@ def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_pr
     
     XXX - toggles editmode, need to re-validate all editbones :(
     '''
-    if self.attr_names != to_bc.attr_names:
+    if self.attr_names != from_bc.attr_names or self.attr_names != to_bc.attr_names:
         raise Exception("can only blend between matching chains")
 
     obj = self.obj
@@ -127,6 +148,18 @@ def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_pr
         new_pbone = getattr(self, attr + "_p")
         from_bone_name = getattr(from_bc, attr)
         to_bone_name = getattr(to_bc, attr)
+
+        a = getattr(from_bc, attr+"_p")
+        b = getattr(to_bc, attr+"_p")
+        
+        if a.name != from_bone_name:
+            raise Exception("a")
+        if b.name != to_bone_name:
+            raise Exception("b")
+        if from_bone_name == to_bone_name:
+            print(from_bc, to_bc)
+            raise Exception("Matching from/to bone names:" + from_bone_name)
+        
         if use_loc:
             con = new_pbone.constraints.new('COPY_LOCATION')
             con.target = obj
@@ -144,6 +177,7 @@ def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_pr
             blend_target(driver)
         
         if use_rot:
+            print(from_bone_name, to_bone_name)
             con = new_pbone.constraints.new('COPY_ROTATION')
             con.target = obj
             con.subtarget = from_bone_name
@@ -173,6 +207,7 @@ def bone_class_instance(obj, slots, name="BoneContainer"):
         "obj":obj, \
         "attr_names":attr_names, \
         "update":_bone_class_instance_update, \
+        "rename":_bone_class_instance_rename, \
         "copy":_bone_class_instance_copy, \
         "blend":_bone_class_instance_blend, \
     }

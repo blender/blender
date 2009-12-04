@@ -1984,7 +1984,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
 	{"rna_actuator.c", NULL, RNA_def_actuator},
-	{"rna_armature.c", NULL, RNA_def_armature},
+	{"rna_armature.c", "rna_armature_api.c", RNA_def_armature},
 	{"rna_boid.c", NULL, RNA_def_boid},
 	{"rna_brush.c", NULL, RNA_def_brush},
 	{"rna_camera.c", NULL, RNA_def_camera},

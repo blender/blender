@@ -618,6 +618,8 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tail Selected", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
+	RNA_api_armature_edit_bone(srna);
+
 	RNA_define_verify_sdna(1);
 }
 

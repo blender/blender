@@ -103,7 +103,7 @@ def main(obj, orig_bone_name):
     mt_chain = bone_class_instance(obj, ["thigh", "shin", "foot", "toe"])
     mt = bone_class_instance(obj, ["hips", "heel"])
     #ex = bone_class_instance(obj, [""])
-    ex = bone_class_instance(obj, ["thigh_socket", "foot_roll_1", "foot_roll_2", "foot_roll_3"])
+    ex = bone_class_instance(obj, ["thigh_socket", "thigh_hinge", "foot_roll_1", "foot_roll_2", "foot_roll_3"])
     # children of ik_foot
     ik = bone_class_instance(obj, ["foot", "foot_roll", "foot_roll_01", "foot_roll_02", "knee_target"])
     
@@ -132,22 +132,29 @@ def main(obj, orig_bone_name):
     ex.thigh_socket = ex.thigh_socket_e.name
     ex.thigh_socket_e.tail = ex.thigh_socket_e.head + Vector(0.0, 0.0, ex.thigh_socket_e.length / 4.0)
 
+    ex.thigh_hinge_e = copy_bone_simple(arm, mt_chain.thigh, "MCH-%s_hinge" % mt_chain.thigh, parent=True)
+    ex.thigh_hinge = ex.thigh_hinge_e.name
+    ex.thigh_hinge_e.tail = ex.thigh_hinge_e.head + Vector(0.0, 0.0, mt_chain.thigh_e.head.length)
+    ex.thigh_hinge_e.translate(Vector(-(mt.hips_e.head.x - mt_chain.thigh_e.head.x), 0.0, 0.0))
+    ex.thigh_hinge_e.length = mt.hips_e.length
+    
+
+
     # Make a new chain, ORG are the original bones renamed.
     fk_chain = mt_chain.copy(from_prefix="ORG-") # fk has no prefix!
     ik_chain = fk_chain.copy(to_prefix="MCH-")
+    
+    fk_chain.thigh_e.connected = False
+    fk_chain.thigh_e.parent = ex.thigh_hinge_e
 
     # fk_chain.thigh_socket_e.parent = MCH-leg_hinge
-    
+
     # simple rename
-    fk_chain.thigh_e.name = fk_chain.thigh_e.name + "_ik"
-    fk_chain.thigh = ik_chain.thigh_e.name
-    
-    fk_chain.shin_e.name = fk_chain.shin_e.name + "_ik"
-    fk_chain.shin = ik_chain.shin_e.name
-    
-    
+    ik_chain.rename("thigh", ik_chain.thigh + "_ik")
+    ik_chain.rename("shin", ik_chain.shin + "_ik")
+
     # ik foot, no parents
-    base_foot_name = ik_chain.foot # whatever the foot is called, use that!
+    base_foot_name = fk_chain.foot # whatever the foot is called, use that!
     ik.foot_e = copy_bone_simple(arm, fk_chain.foot, "%s_ik" % base_foot_name)
     ik.foot = ik.foot_e.name
     ik.foot_e.tail.z = ik.foot_e.head.z
@@ -175,20 +182,17 @@ def main(obj, orig_bone_name):
     del base_foot_name
     
     # rename 'MCH-toe' --> to 'toe_ik' and make the child of ik.foot_roll_01
-    fk_chain.toe_e.name = ik_chain.toe + "_ik"
-    fk_chain.toe = fk_chain.toe_e.name
-    fk_chain.toe_e.connected = True
-    fk_chain.toe_e.parent = ik.foot_roll_01_e
+    # ------------------ FK or IK?
+    ik_chain.rename("toe", fk_chain.toe + "_ik") # only fk for the basename
+    ik_chain.toe_e.connected = False
+    ik_chain.toe_e.parent = ik.foot_roll_01_e
     
     # re-parent ik_chain.foot to the 
-    fk_chain.foot_e.connected = False
-    fk_chain.foot_e.parent = ik.foot_roll_02_e
+    ik_chain.foot_e.connected = False
+    ik_chain.foot_e.parent = ik.foot_roll_02_e
     
-    
-    # add remaining ik helper bones.
     
     # knee target is the heel moved up and forward on its local axis
-    
     ik.knee_target_e = copy_bone_simple(arm, mt.heel, "knee_target")
     ik.knee_target = ik.knee_target_e.name
     offset = ik.knee_target_e.tail - ik.knee_target_e.head
@@ -198,6 +202,10 @@ def main(obj, orig_bone_name):
     ik.knee_target_e.translate(offset)
     ik.knee_target_e.length *= 0.5
     ik.knee_target_e.parent = ik.foot_e
+
+    # roll the bone to point up... could also point in the same direction as ik.foot_roll
+    # ik.foot_roll_02_e.matrix * Vector(0.0, 0.0, 1.0) # ACK!, no rest matrix in editmode
+    ik.foot_roll_01_e.align((0.0, 0.0, -1.0))
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -210,7 +218,75 @@ def main(obj, orig_bone_name):
     con = fk_chain.thigh_p.constraints.new('COPY_LOCATION')
     con.target = obj
     con.subtarget = ex.thigh_socket
+
+    # hinge
+    prop = rna_idprop_ui_prop_get(fk_chain.thigh_p, "hinge", create=True)
+    fk_chain.thigh_p["hinge"] = 0.5
+    prop["soft_min"] = 0.0
+    prop["soft_max"] = 1.0
+    
+    con = ex.thigh_hinge_p.constraints.new('COPY_ROTATION')
+    con.target = obj
+    con.subtarget = mt.hips
+    
+    # add driver
+    hinge_driver_path = fk_chain.thigh_p.path_to_id() + '["hinge"]'
+    
+    fcurve = con.driver_add("influence", 0)
+    driver = fcurve.driver
+    tar = driver.targets.new()
+    driver.type = 'AVERAGE'
+    tar.name = "var"
+    tar.id_type = 'OBJECT'
+    tar.id = obj
+    tar.rna_path = hinge_driver_path
+
+    mod = fcurve.modifiers[0]
+    mod.poly_order = 1
+    mod.coefficients[0] = 1.0
+    mod.coefficients[1] = -1.0
     
     
     # adds constraints to the original bones.
     mt_chain.blend(fk_chain, ik_chain, target_bone=ik.foot, target_prop="ik", use_loc=False)
+    
+    
+    # IK
+    con = ik_chain.shin_p.constraints.new('IK')
+    con.chain_length = 2
+    con.iterations = 500
+    con.pole_angle = -90.0 # XXX - in deg!
+    con.use_tail = True
+    con.use_stretch = True
+    con.use_target = True
+    con.use_rotation = False
+    con.weight = 1.0
+    
+    con.target = obj
+    con.subtarget = ik.foot
+    
+    con.pole_target = obj
+    con.pole_subtarget = ik.knee_target
+    
+    # foot roll
+    cons = [ \
+        (ik.foot_roll_01_p.constraints.new('COPY_ROTATION'), ik.foot_roll_01_p.constraints.new('LIMIT_ROTATION')), \
+        (ik.foot_roll_02_p.constraints.new('COPY_ROTATION'), ik.foot_roll_02_p.constraints.new('LIMIT_ROTATION'))
+    ]
+    
+    for con, con_l in cons:
+        con.target = obj
+        con.subtarget = ik.foot_roll
+        con.use_x, con.use_y, con.use_z = True, False, False
+        con.target_space = con.owner_space = 'LOCAL'
+        
+        con = con_l
+        con.use_limit_x, con.use_limit_y, con.use_limit_z = True, False, False
+        con.owner_space = 'LOCAL'
+        
+        if con_l is cons[-1][-1]:
+            con.minimum_x = 0.0
+            con.maximum_x = 180.0 # XXX -deg
+        else:
+            con.minimum_x = -180.0 # XXX -deg
+            con.maximum_x = 0.0

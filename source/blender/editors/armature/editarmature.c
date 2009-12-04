@@ -2026,7 +2026,7 @@ float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3])
 
 
 /* Set roll value for given bone -> Z-Axis Point up (original method) */
-void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
+static void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
 {
 	float	delta[3], curmat[3][3];
 	float	xaxis[3]={1.0f, 0.0f, 0.0f}, yaxis[3], zaxis[3]={0.0f, 0.0f, 1.0f};
@@ -2054,16 +2054,13 @@ void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
 	mat3_to_vec_roll(diffmat, delta, &ebone->roll);
 }
 
-/* Set roll value for given bone -> Z-Axis point towards cursor */
-void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
+void auto_align_ebone_topoint(EditBone *ebone, float *cursor)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	float  	*cursor= give_cursor(scene, v3d);
 	float	delta[3], curmat[3][3];
 	float	mat[4][4], tmat[4][4], imat[4][4];
 	float 	rmat[4][4], rot[3];
 	float	vec[3];
-	
+
 	/* find the current bone matrix as a 4x4 matrix (in Armature Space) */
 	sub_v3_v3v3(delta, ebone->tail, ebone->head);
 	vec_roll_to_mat3(delta, ebone->roll, curmat);
@@ -2071,8 +2068,7 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 	VECCOPY(mat[3], ebone->head);
 	
 	/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
-	mul_m4_m4m4(tmat, mat, obedit->obmat);
-	invert_m4_m4(imat, tmat);
+	invert_m4_m4(imat, mat);
 	
 	/* find position of cursor relative to bone */
 	mul_v3_m4v3(vec, imat, cursor);
@@ -2093,6 +2089,18 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 	}
 }
 
+static void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
+{
+	float cursor_local[3];
+	float  	*cursor= give_cursor(scene, v3d);
+	float imat[3][3];
+
+	copy_m3_m4(imat, scene->obedit->obmat);
+	invert_m3(imat);
+	copy_v3_v3(cursor_local, cursor);
+	mul_m3_v3(imat, cursor_local);
+	auto_align_ebone_topoint(ebone, cursor_local);
+}
 
 static EnumPropertyItem prop_calc_roll_types[] = {
 	{0, "GLOBALUP", 0, "Z-Axis Up", ""},
