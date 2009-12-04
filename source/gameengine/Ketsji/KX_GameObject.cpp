@@ -2606,8 +2606,8 @@ static PyObject *none_tuple_4()
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
-				   "rayCast(to,from,dist,prop,face,xray,poly): cast a ray and return 3-tuple (object,hit,normal) or 4-tuple (object,hit,normal,polygon) of contact point with object within dist that matches prop.\n"
-				   " If no hit, return (None,None,None) or (None,None,None,None).\n"
+				   "rayCast(to,from,dist,prop,face,xray,poly): cast a ray and return 3-tuple (object,hit,normal) or 4-tuple (object,hit,normal,polygon) or 4-tuple (object,hit,normal,polygon,hituv) of contact point with object within dist that matches prop.\n"
+				   " If no hit, return (None,None,None) or (None,None,None,None) or (None,None,None,None,None).\n"
 " to   = 3-tuple or object reference for destination of ray (if object, use center of object)\n"
 " from = 3-tuple or object reference for origin of ray (if object, use center of object)\n"
 "        Can be None or omitted => start from self object center\n"
@@ -2617,6 +2617,8 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 " xray = X-ray option: 1=>skip objects that don't match prop; 0 or omitted => stop on first object\n"
 " poly = polygon option: 1=>return value is a 4-tuple and the 4th element is a KX_PolyProxy object\n"
 "                           which can be None if hit object has no mesh or if there is no hit\n"
+"                        2=>return value is a 5-tuple, the 4th element is the KX_PolyProxy object\n"
+"                           and the 5th element is the vector of UV coordinates at the hit point of the None if there is no UV mapping\n"
 "        If 0 or omitted, return value is a 3-tuple\n"
 "Note: The object on which you call this method matters: the ray will ignore it.\n"
 "      prop and xray option interact as follow:\n"
@@ -2697,12 +2699,12 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		m_testPropName.SetLength(0);
 	m_xray = xray;
 	// to get the hit results
-	KX_RayCast::Callback<KX_GameObject> callback(this,spc,NULL,face);
+	KX_RayCast::Callback<KX_GameObject> callback(this,spc,NULL,face,(poly==2));
 	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
 	if (m_pHitObject)
 	{
-		PyObject* returnValue = (poly) ? PyTuple_New(4) : PyTuple_New(3);
+		PyObject* returnValue = (poly==2) ? PyTuple_New(5) : (poly) ? PyTuple_New(4) : PyTuple_New(3);
 		if (returnValue) { // unlikely this would ever fail, if it does python sets an error
 			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->GetProxy());
 			PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(callback.m_hitPoint));
@@ -2715,11 +2717,25 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 					RAS_Polygon* polygon = callback.m_hitMesh->GetPolygon(callback.m_hitPolygon);
 					KX_PolyProxy* polyproxy = new KX_PolyProxy(callback.m_hitMesh, polygon);
 					PyTuple_SET_ITEM(returnValue, 3, polyproxy->NewProxy(true));
+					if (poly == 2)
+					{
+						if (callback.m_hitUVOK)
+							PyTuple_SET_ITEM(returnValue, 4, PyObjectFrom(callback.m_hitUV));
+						else {
+							Py_INCREF(Py_None);
+							PyTuple_SET_ITEM(returnValue, 4, Py_None);
+						}
+					}
 				}
 				else
 				{
 					Py_INCREF(Py_None);
 					PyTuple_SET_ITEM(returnValue, 3, Py_None);
+					if (poly==2)
+					{
+						Py_INCREF(Py_None);
+						PyTuple_SET_ITEM(returnValue, 4, Py_None);
+					}
 				}
 			}
 		}

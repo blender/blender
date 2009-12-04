@@ -40,8 +40,8 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 
-KX_RayCast::KX_RayCast(KX_IPhysicsController* ignoreController, bool faceNormal)
-	:PHY_IRayCastFilterCallback(dynamic_cast<PHY_IPhysicsController*>(ignoreController), faceNormal) 
+KX_RayCast::KX_RayCast(KX_IPhysicsController* ignoreController, bool faceNormal, bool faceUV)
+	:PHY_IRayCastFilterCallback(dynamic_cast<PHY_IPhysicsController*>(ignoreController), faceNormal, faceUV) 
 {
 }
 
@@ -50,6 +50,8 @@ void KX_RayCast::reportHit(PHY_RayCastResult* result)
 	m_hitFound = true;
 	m_hitPoint.setValue((const float*)result->m_hitPoint);
 	m_hitNormal.setValue((const float*)result->m_hitNormal);
+	m_hitUVOK = result->m_hitUVOK;
+	m_hitUV.setValue((const float*)result->m_hitUV);
 	m_hitMesh = result->m_meshObject;
 	m_hitPolygon = result->m_polygon;
 }

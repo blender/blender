@@ -828,7 +828,8 @@ btSoftBody*		btSoftBodyHelpers::CreateFromTriMesh(btSoftBodyWorldInfo& worldInfo
 #undef IDX
 		psb->appendFace(idx[0],idx[1],idx[2]);
 	}
-	psb->randomizeConstraints();
+	// don't randomize now, let's give a chance to the application to set face data 
+	//psb->randomizeConstraints();
 	return(psb);
 }
 
