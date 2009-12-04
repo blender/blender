@@ -114,11 +114,12 @@ static SpaceLink *image_new(const bContext *C)
 	simage= MEM_callocN(sizeof(SpaceImage), "initimage");
 	simage->spacetype= SPACE_IMAGE;
 	simage->zoom= 1;
+	simage->lock= 1;
 	
 	simage->iuser.ok= 1;
 	simage->iuser.fie_ima= 2;
 	simage->iuser.frames= 100;
-	
+
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for image");
 	
