@@ -1614,13 +1614,13 @@ void ED_screen_animation_timer_update(bContext *C, int redraws)
 void ED_update_for_newframe(const bContext *C, int mute)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	Scene *scene= screen->scene;
+	Scene *scene= CTX_data_scene(C);
 	
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
-	scene_update_for_newframe(scene, BKE_screen_visible_layers(screen)); /* BKE_scene.h */
+	scene_update_for_newframe(scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
 	
 	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );
