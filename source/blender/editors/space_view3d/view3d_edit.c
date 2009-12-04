@@ -1208,10 +1208,6 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 		new_dist*= size;
 	}
 
-	v3d->cursor[0]= -new_ofs[0];
-	v3d->cursor[1]= -new_ofs[1];
-	v3d->cursor[2]= -new_ofs[2];
-
 	if (rv3d->persp==RV3D_CAMOB) {
 		rv3d->persp= RV3D_PERSP;
 		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
