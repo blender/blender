@@ -84,11 +84,11 @@ void bake_console_progress(void *arg, int nr)
 {
 	printf("\rbake: %3i%%", nr);
 	fflush(stdout);
+}
 
-	/* endline for last report */
-	if (nr == 100) {
-		printf("\n");
-	}
+void bake_console_progress_end(void *arg, int nr)
+{
+	printf("\n");
 }
 
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
@@ -113,7 +113,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 		baker.progresscontext = win;
 	} else {
 		baker.progressbar = bake_console_progress;
-		baker.progressend = NULL;
+		baker.progressend = bake_console_progress_end;
 		baker.progresscontext = NULL;
 	}
 
@@ -207,7 +207,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 	} else {
 		printf("\n"); /* empty first line before console reports */
 		baker.progressbar = bake_console_progress;
-		baker.progressend = NULL;
+		baker.progressend = bake_console_progress_end;
 		baker.progresscontext = NULL;
 	}
 

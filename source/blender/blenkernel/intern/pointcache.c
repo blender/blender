@@ -2361,7 +2361,9 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		if(baker->break_test && baker->break_test(baker->break_data))
 			break;
 	}
-	baker->progressend(baker->progresscontext);
+
+	if (baker->progressend)
+		baker->progressend(baker->progresscontext);
 
 	/* clear baking flag */
 	if(pid) {
