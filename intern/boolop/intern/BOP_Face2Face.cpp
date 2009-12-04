@@ -310,7 +310,7 @@ void BOP_intersectCoplanarFaces(BOP_Mesh*  mesh,
 	}
   
 	MT_Vector3 p3p1 = p1-p3;
-	MT_Plane3 plane3((p3p1.cross(normal).normalized()),p3);
+	MT_Plane3 plane3((p3p1.cross(normal).safe_normalized()),p3);
 	
 	sA.m_cfg1 = BOP_Segment::createVertexCfg(3);
 	sA.m_v1 = faceA->getVertex(2);
@@ -528,7 +528,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 		invertB = false;
 		if (face[1] == 1) {
 
-			// invertA¿?
+			// invertAÃ¸?
 			for(i=0;i<size;i++) {
 				if (position[i] == 1) {
 					invertA = true;
@@ -537,7 +537,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
         			else if (position[i] == 0) break;
       			}
 
-			// invertB¿?
+			// invertBÃ¸?
 			if (size == 4) {
 				for(i=0;i<size;i++) {
 					if (position[i] == 3) {
@@ -549,7 +549,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 			}
 		}
 		else if (face[1] == 2) {
-			// invertB¿?
+			// invertBÃ¸?
 			for(i=0;i<size;i++) {
 				if (position[i] == 2) {
 					invertB = true;
