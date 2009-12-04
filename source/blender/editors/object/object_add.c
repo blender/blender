@@ -742,7 +742,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if(CTX_data_edit_object(C)) 
 		return OPERATOR_CANCELLED;
 	
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+	CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 
 		if(base->object->type==OB_LAMP) islamp= 1;
 		
