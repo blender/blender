@@ -80,6 +80,17 @@ static int ptcache_poll(bContext *C)
 	return (ptr.data && ptr.id.data);
 }
 
+void bake_console_progress(void *arg, int nr)
+{
+	printf("\rbake: %3i%%", nr);
+	fflush(stdout);
+
+	/* endline for last report */
+	if (nr == 100) {
+		printf("\n");
+	}
+}
+
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -100,7 +111,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
 		baker.progresscontext = win;
 	} else {
-		baker.progressbar = NULL;
+		baker.progressbar = bake_console_progress;
 		baker.progresscontext = NULL;
 	}
 
@@ -191,7 +202,8 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
 		baker.progresscontext = win;
 	} else {
-		baker.progressbar = NULL;
+		printf("\n"); /* empty first line before console reports */
+		baker.progressbar = bake_console_progress;
 		baker.progresscontext = NULL;
 	}
 
