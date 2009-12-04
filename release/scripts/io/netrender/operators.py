@@ -43,32 +43,41 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
 		path, name = os.path.split(filename)
 		root, ext = os.path.splitext(name)
 		default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
+		relative_path = os.sep + os.sep + "blendcache_" + root + os.sep
 			
 		# Force all point cache next to the blend file
 		for object in bpy.data.objects:
 			for modifier in object.modifiers:
 				if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-					modifier.settings.path = default_path
+					modifier.settings.path = relative_path
 					bpy.ops.fluid.bake({"active_object": object, "scene": scene})
 				elif modifier.type == "CLOTH":
+					modifier.point_cache.step = 1
 					modifier.point_cache.disk_cache = True
 					modifier.point_cache.external = False
 				elif modifier.type == "SOFT_BODY":
+					modifier.point_cache.step = 1
 					modifier.point_cache.disk_cache = True
 					modifier.point_cache.external = False
 				elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
+					modifier.domain_settings.point_cache_low.step = 1
 					modifier.domain_settings.point_cache_low.disk_cache = True
 					modifier.domain_settings.point_cache_low.external = False
+					modifier.domain_settings.point_cache_high.step = 1
 					modifier.domain_settings.point_cache_high.disk_cache = True
 					modifier.domain_settings.point_cache_high.external = False
 	
 			# particles modifier are stupid and don't contain data
 			# we have to go through the object property
 			for psys in object.particle_systems:
+				psys.point_cache.step = 1
 				psys.point_cache.disk_cache = True
 				psys.point_cache.external = False
+				psys.point_cache.filepath = relative_path
 		
 		bpy.ops.ptcache.bake_all()
+		
+		#bpy.ops.wm.save_mainfile(path = path + os.sep + root + "_baked.blend")
 		
 		return ('FINISHED',)
 	
