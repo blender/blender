@@ -1555,6 +1555,10 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char name[FILE_MAX];
 
+	/* cancel if no active window */
+	if (CTX_wm_window(C) == NULL)
+		return OPERATOR_CANCELLED;
+
 	save_set_compress(op);
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
@@ -1577,7 +1581,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
-	ot->poll= WM_operator_winactive;
+	ot->poll= NULL;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
