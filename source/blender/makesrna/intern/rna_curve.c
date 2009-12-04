@@ -229,6 +229,38 @@ static void rna_Curve_update_deps(bContext *C, PointerRNA *ptr)
 	rna_Curve_update_data(C, ptr);
 }
 
+static void rna_Curve_resolution_u_update_data(bContext *C, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Nurb *nu=NULL;
+	
+	if (cu->editnurb) nu= cu->editnurb->first;
+	else nu=cu->nurb.first;
+	
+	while(nu) {
+		nu->resolu= cu->resolu;
+		nu= nu->next;
+	}
+	
+	rna_Curve_update_data(C, ptr);
+}
+
+static void rna_Curve_resolution_v_update_data(bContext *C, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Nurb *nu=NULL;
+	
+	if (cu->editnurb) nu= cu->editnurb->first;
+	else nu=cu->nurb.first;
+	
+	while(nu) {
+		nu->resolv= cu->resolv;
+		nu= nu->next;
+	}
+	
+	rna_Curve_update_data(C, ptr);
+}
+
 /* name functions that ignore the first two ID characters */
 void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
@@ -792,13 +824,13 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_resolution_u_update_data");
 	
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_resolution_v_update_data");
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
