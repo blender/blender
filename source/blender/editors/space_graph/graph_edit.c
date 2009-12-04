@@ -792,7 +792,15 @@ static void delete_graph_keys (bAnimContext *ac)
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		delete_fcurve_keys((FCurve *)ale->key_data); // XXX... this doesn't delete empty curves anymore
+		FCurve *fcu= (FCurve *)ale->key_data;
+		AnimData *adt= ale->adt;
+		
+		/* delete selected keyframes only */
+		delete_fcurve_keys(fcu); 
+		
+		/* Only delete curve too if it won't be doing anything anymore */
+		if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
+			ANIM_fcurve_delete_from_animdata(ac, ale->adt, fcu);
 	}
 	
 	/* free filtered list */

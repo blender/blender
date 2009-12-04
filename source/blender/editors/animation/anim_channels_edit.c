@@ -86,9 +86,9 @@
 #include "WM_types.h"
 
 /* ************************************************************************** */
-/* CHANNELS API */
+/* CHANNELS API - Exposed API */
 
-/* -------------------------- Exposed API ----------------------------------- */
+/* -------------------------- Selection ------------------------------------- */
 
 /* Set the given animation-channel as the active one for the active context */
 // TODO: extend for animdata types...
@@ -352,6 +352,8 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 	BLI_freelistN(&anim_data);
 }
 
+/* ---------------------------- Graph Editor ------------------------------------- */
+
 /* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting 
  *	- anim_data: list of the all the anim channels that can be chosen
  *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
@@ -450,6 +452,35 @@ void ANIM_visibility_flush_anim_channels (bAnimContext *ac, ListBase *anim_data,
 			prevLevel= level;
 		}
 	}
+}
+
+/* -------------------------- F-Curves ------------------------------------- */
+
+/* Delete the given F-Curve from its AnimData block */
+void ANIM_fcurve_delete_from_animdata (bAnimContext *ac, AnimData *adt, FCurve *fcu)
+{
+	/* - if no AnimData, we've got nowhere to remove the F-Curve from 
+	 *	(this doesn't guarantee that the F-Curve is in there, but at least we tried
+	 * - if no F-Curve, there is nothing to remove
+	 */
+	if (ELEM(NULL, adt, fcu))
+		return;
+		
+	/* remove from whatever list it came from
+	 *	- Action Group
+	 *	- Action
+	 *	- Drivers
+	 *	- TODO... some others?
+	 */
+	if (fcu->grp)
+		action_groups_remove_channel(adt->action, fcu);
+	else if ((ac) && (ac->datatype == ANIMCONT_DRIVERS))
+		BLI_remlink(&adt->drivers, fcu);
+	else if (adt->action)
+		BLI_remlink(&adt->action->curves, fcu);
+		
+	/* free the F-Curve itself */
+	free_fcurve(fcu);
 }
 
 /* ************************************************************************** */
@@ -945,28 +976,8 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 				AnimData *adt= ale->adt;
 				FCurve *fcu= (FCurve *)ale->data;
 				
-				/* if no AnimData, we've got nowhere to remove the F-Curve from */
-				if (adt == NULL)
-					continue;
-					
-				/* remove from whatever list it came from
-				 *	- Action Group
-				 *	- Action
-				 *	- Drivers
-				 *	- TODO... some others?
-				 *
-				 *	note: this isn't well tested, we could also try remove
-				 *	      from all lists just to be safe - campbell
-				 */
-				if (fcu->grp)
-					action_groups_remove_channel(adt->action, fcu);
-				else if (ac.datatype == ANIMCONT_DRIVERS)
-					BLI_remlink(&adt->drivers, fcu);
-				else if (adt->action)
-					BLI_remlink(&adt->action->curves, fcu);
-					
-				/* free the F-Curve itself */
-				free_fcurve(fcu);
+				/* try to free F-Curve */
+				ANIM_fcurve_delete_from_animdata(&ac, adt, fcu);
 			}
 		}
 		

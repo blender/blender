@@ -863,6 +863,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
  */
 short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {
+	AnimData *adt= BKE_animdata_from_id(id);
 	FCurve *fcu = NULL;
 	
 	/* get F-Curve
@@ -871,7 +872,6 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	 */
 	if (act == NULL) {
 		/* if no action is provided, use the default one attached to this ID-block */
-		AnimData *adt= BKE_animdata_from_id(id);
 		act= adt->action;
 		
 		/* apply NLA-mapping to frame to use (if applicable) */
@@ -913,11 +913,9 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 			/* delete the key at the index (will sanity check + do recalc afterwards) */
 			delete_fcurve_key(fcu, i, 1);
 			
-			/* Only delete curve too if there are no points (we don't need to check for drivers, as they're kept separate) */
-			if (fcu->totvert == 0) {
-				BLI_remlink(&act->curves, fcu);
-				free_fcurve(fcu);
-			}
+			/* Only delete curve too if it won't be doing anything anymore */
+			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
+				ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
 			
 			/* return success */
 			return 1;

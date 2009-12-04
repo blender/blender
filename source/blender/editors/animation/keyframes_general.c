@@ -110,14 +110,6 @@ void delete_fcurve_keys(FCurve *fcu)
 			MEM_freeN(fcu->bezt);
 		fcu->bezt= NULL;
 	}
-	
-#if 0 // XXX for now, we don't get rid of empty curves...
-	/* Only delete if there isn't an ipo-driver still hanging around on an empty curve */
-	if ((icu->totvert==0) && (icu->driver==NULL)) {
-		BLI_remlink(&ipo->curve, icu);
-		free_ipo_curve(icu);
-	}
-#endif 
 }
 
 /* ---------------- */

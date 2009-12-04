@@ -394,6 +394,10 @@ void ANIM_deselect_anim_channels(void *data, short datatype, short test, short s
 /* Set the 'active' channel of type channel_type, in the given action */
 void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type);
 
+
+/* Delete the F-Curve from the given AnimData block (if possible), as appropriate according to animation context */
+void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, struct AnimData *adt, struct FCurve *fcu);
+
 /* ************************************************ */
 /* DRAWING API */
 /* anim_draw.c */
