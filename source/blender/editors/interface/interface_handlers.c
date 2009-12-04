@@ -2990,6 +2990,16 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap, 
 	offsx= cumap->curr.xmin;
 	offsy= cumap->curr.ymin;
 
+	if(snap) {
+		float d[2];
+
+		d[0]= mx - data->dragstartx;
+		d[1]= my - data->dragstarty;
+
+		if(len_v2(d) < 3.0f)
+			snap= 0;
+	}
+
 	if(data->dragsel != -1) {
 		int moved_point= 0;		/* for ctrl grid, can't use orig coords because of sorting */
 		
@@ -3126,10 +3136,13 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			if(sel!= -1) {
 				/* ok, we move a point */
 				/* deselect all if this one is deselect. except if we hold shift */
-				if(event->shift==0 && (cmp[sel].flag & SELECT)==0)
+				if(event->shift==0) {
 					for(a=0; a<cuma->totpoint; a++)
 						cmp[a].flag &= ~SELECT;
-				cmp[sel].flag |= SELECT;
+					cmp[sel].flag |= SELECT;
+				}
+				else
+					cmp[sel].flag ^= SELECT;
 			}
 			else {
 				/* move the view */
@@ -3150,7 +3163,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
 		if(event->type == MOUSEMOVE) {
 			if(mx!=data->draglastx || my!=data->draglasty) {
-				if(ui_numedit_but_CURVE(but, data, event->shift, mx, my))
+				if(ui_numedit_but_CURVE(but, data, event->ctrl, mx, my))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
