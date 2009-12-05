@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 import os
 
@@ -58,7 +60,7 @@ _scripts = (os.path.normpath(_scripts), )
 
 def script_paths(*args):
     scripts = list(_scripts)
-    
+
     # add user scripts dir
     user_script_path = bpy.context.user_preferences.filepaths.python_scripts_directory
 
@@ -84,11 +86,11 @@ def script_paths(*args):
     return script_paths
 
 
-_presets = os.path.join(_scripts[0], "presets") # FIXME - multiple paths 
+_presets = os.path.join(_scripts[0], "presets") # FIXME - multiple paths
 
 def preset_paths(subdir):
-	'''
-	Returns a list of paths for a spesific preset.
-	'''
-	
-	return (os.path.join(_presets, subdir), )
+    '''
+    Returns a list of paths for a spesific preset.
+    '''
+
+    return (os.path.join(_presets, subdir), )

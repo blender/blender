@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 # internal blender C module
 import _bpy
 from _bpy import types, props
@@ -38,8 +40,8 @@ def load_scripts(reload_scripts=False):
     import os
     import traceback
     import time
-    
-    
+
+
     t_main = time.time()
 
     def test_import(module_name):
@@ -52,7 +54,7 @@ def load_scripts(reload_scripts=False):
         except:
             traceback.print_exc()
             return None
-        
+
 
     for base_path in utils.script_paths():
         for path_subdir in ("ui", "op", "io"):

@@ -16,12 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 from rigify import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 # not used, defined for completeness
 METARIG_NAMES = ("body", "head")
+
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
@@ -84,7 +87,7 @@ def metarig_definition(obj, orig_bone_name):
     arm = obj.data
     head = arm.bones[orig_bone_name]
     body = head.parent
-    
+
     children = head.children
     if len(children) != 1:
         print("expected the head to have only 1 child.")
@@ -97,7 +100,7 @@ def metarig_definition(obj, orig_bone_name):
 
 def main(obj, bone_definition, base_names):
     from Mathutils import Vector
-    
+
     arm = obj.data
 
     # Initialize container classes for convenience
@@ -115,12 +118,12 @@ def main(obj, bone_definition, base_names):
 
     neck_chain_basename = mt_chain.neck_01_e.basename
     neck_chain_segment_length = mt_chain.neck_01_e.length
-    
-    ex = bone_class_instance(obj, ["body", "head", "head_hinge","neck_socket"]) # hinge & extras
-    
+
+    ex = bone_class_instance(obj, ["body", "head", "head_hinge", "neck_socket"]) # hinge & extras
+
     # Add the head hinge at the bodys location, becomes the parent of the original head
-    
-    
+
+
     # Copy the head bone and offset
     ex.head_e = copy_bone_simple(arm, mt.head, "MCH_%s" % mt.head, parent=True)
     ex.head = ex.head_e.name
@@ -128,7 +131,7 @@ def main(obj, bone_definition, base_names):
     head_length = ex.head_e.length
     ex.head_e.head.y += head_length / 2.0
     ex.head_e.tail.y += head_length / 2.0
-    
+
     # Yes, use the body bone but call it a head hinge
     ex.head_hinge_e = copy_bone_simple(arm, mt.body, "MCH_%s_hinge" % mt.head, parent=True)
     ex.head_hinge = ex.head_hinge_e.name
@@ -137,7 +140,7 @@ def main(obj, bone_definition, base_names):
 
     # reparent the head, assume its not connected
     mt.head_e.parent = ex.head_hinge_e
-    
+
     # Insert the neck socket, the head copys this loation
     ex.neck_socket_e = arm.edit_bones.new("MCH-%s_socked" % neck_chain_basename)
     ex.neck_socket = ex.neck_socket_e.name
@@ -145,60 +148,60 @@ def main(obj, bone_definition, base_names):
     ex.neck_socket_e.head = mt.head_e.head
     ex.neck_socket_e.tail = mt.head_e.head - Vector(0.0, neck_chain_segment_length / 2.0, 0.0)
     ex.neck_socket_e.roll = 0.0
-    
+
     # offset the head, not really needed since it has a copyloc constraint
     mt.head_e.head.y += head_length / 4.0
     mt.head_e.tail.y += head_length / 4.0
 
     for i, attr in enumerate(mt_chain.attr_names):
         neck_e = getattr(mt_chain, attr + "_e")
-        
+
         # dont store parent names, re-reference as each chain bones parent.
         neck_e_parent = arm.edit_bones.new("MCH-rot_%s" % neck_e.name)
         neck_e_parent.head = neck_e.head
         neck_e_parent.tail = neck_e.head + Vector(0.0, 0.0, neck_chain_segment_length / 2.0)
         neck_e_parent.roll = 0.0
-        
+
         orig_parent = neck_e.parent
         neck_e.connected = False
         neck_e.parent = neck_e_parent
         neck_e_parent.connected = False
-        
+
         if i == 0:
             neck_e_parent.parent = mt.body_e
         else:
             neck_e_parent.parent = orig_parent
-    
-    
+
+
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     mt.update()
     mt_chain.update()
     ex.update()
-    
+
     # Simple one off constraints, no drivers
     con = mt.head_p.constraints.new('COPY_LOCATION')
     con.target = obj
     con.subtarget = ex.neck_socket
-    
+
     con = ex.head_p.constraints.new('COPY_ROTATION')
     con.target = obj
     con.subtarget = mt.head
-    
+
     # driven hinge
     prop = rna_idprop_ui_prop_get(mt.head_p, "hinge", create=True)
     mt.head_p["hinge"] = 0.0
     prop["soft_min"] = 0.0
     prop["soft_max"] = 1.0
-    
+
     con = ex.head_hinge_p.constraints.new('COPY_ROTATION')
     con.name = "hinge"
     con.target = obj
     con.subtarget = mt.body
-    
+
     # add driver
     hinge_driver_path = mt.head_p.path_to_id() + '["hinge"]'
-    
+
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
     tar = driver.targets.new()
@@ -207,36 +210,36 @@ def main(obj, bone_definition, base_names):
     tar.id_type = 'OBJECT'
     tar.id = obj
     tar.rna_path = hinge_driver_path
-    
+
     #mod = fcurve_driver.modifiers.new('GENERATOR')
     mod = fcurve.modifiers[0]
     mod.poly_order = 1
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
-    
+
     head_driver_path = mt.head_p.path_to_id()
-    
+
     # b01/max(0.001,b01+b02+b03+b04+b05)
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
     expression_suffix = "/max(0.001,%s)" % "+".join(target_names)
-    
+
 
     for i, attr in enumerate(mt_chain.attr_names):
         neck_p = getattr(mt_chain, attr + "_p")
         neck_p.lock_location = True, True, True
         neck_p.lock_location = True, True, True
         neck_p.lock_rotations_4d = True
-        
+
         # Add bend prop
         prop_name = "bend_%.2d" % (i + 1)
         prop = rna_idprop_ui_prop_get(mt.head_p, prop_name, create=True)
         mt.head_p[prop_name] = 1.0
         prop["soft_min"] = 0.0
         prop["soft_max"] = 1.0
-        
+
         # add parent constraint
         neck_p_parent = neck_p.parent
-        
+
         # add constraint
         con = neck_p_parent.constraints.new('COPY_ROTATION')
         con.name = "Copy Rotation"
@@ -244,7 +247,7 @@ def main(obj, bone_definition, base_names):
         con.subtarget = ex.head
         con.owner_space = 'LOCAL'
         con.target_space = 'LOCAL'
-        
+
         fcurve = con.driver_add("influence", 0)
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
@@ -258,6 +261,6 @@ def main(obj, bone_definition, base_names):
             tar.id_type = 'OBJECT'
             tar.id = obj
             tar.rna_path = head_driver_path + ('["bend_%.2d"]' % (j + 1))
-    
+
     # no blending the result of this
     return None

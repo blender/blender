@@ -59,7 +59,7 @@ class bpy_ops(object):
 
     def add(self, pyop):
         op_add(pyop)
-    
+
     def add_macro(self, pyop):
         op_add_macro(pyop)
 

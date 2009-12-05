@@ -793,7 +793,6 @@ static void delete_graph_keys (bAnimContext *ac)
 	/* loop through filtered data and delete selected keys */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-		AnimData *adt= ale->adt;
 		
 		/* delete selected keyframes only */
 		delete_fcurve_keys(fcu); 

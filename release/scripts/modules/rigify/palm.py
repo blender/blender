@@ -16,12 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 from rigify import get_bone_data, copy_bone_simple
-from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
+from rna_prop_ui import rna_idprop_ui_prop_get
 
 # not used, defined for completeness
 METARIG_NAMES = tuple()
+
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
@@ -84,73 +87,73 @@ def metarig_definition(obj, orig_bone_name):
     arm = obj.data
     bone_definition = [orig_bone_name]
     palm_ebone = arm.bones[orig_bone_name]
-    
+
     children = [ebone.name for ebone in palm_ebone.children]
     children.sort() # simply assume the pinky has the lowest name
     bone_definition.extend(children)
-    
+
     return bone_definition
 
 
 def main(obj, bone_definition, base_names):
     arm, palm_pbone, palm_ebone = get_bone_data(obj, bone_definition[0])
     children = bone_definition[1:]
-    
+
     # Make a copy of the pinky
     # simply assume the pinky has the lowest name
     pinky_ebone = arm.edit_bones[children[0]]
     ring_ebone = arm.edit_bones[children[1]]
-    
+
     control_ebone = copy_bone_simple(arm, pinky_ebone.name, "palm_control", parent=True)
-    control_name = control_ebone.name 
-    
+    control_name = control_ebone.name
+
     offset = (pinky_ebone.head - ring_ebone.head)
-    
+
     control_ebone.translate(offset)
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
-    
-    
+
+
     arm, control_pbone, control_ebone = get_bone_data(obj, control_name)
     arm, pinky_pbone, pinky_ebone = get_bone_data(obj, children[0])
-    
+
     control_pbone.rotation_mode = 'YZX'
     control_pbone.lock_rotation = False, True, True
-    
+
     driver_fcurves = pinky_pbone.driver_add("rotation_euler")
-    
-    
+
+
     controller_path = control_pbone.path_to_id()
-    
+
     # add custom prop
     control_pbone["spread"] = 0.0
     prop = rna_idprop_ui_prop_get(control_pbone, "spread", create=True)
     prop["soft_min"] = -1.0
     prop["soft_max"] = 1.0
-    
-    
+
+
     # *****
     driver = driver_fcurves[0].driver
     driver.type = 'AVERAGE'
-    
+
     tar = driver.targets.new()
     tar.name = "x"
     tar.id_type = 'OBJECT'
     tar.id = obj
     tar.rna_path = controller_path + ".rotation_euler[0]"
-    
-    
+
+
     # *****
     driver = driver_fcurves[1].driver
     driver.expression = "-x/4.0"
-    
+
     tar = driver.targets.new()
     tar.name = "x"
     tar.id_type = 'OBJECT'
     tar.id = obj
     tar.rna_path = controller_path + ".rotation_euler[0]"
-    
-    
+
+
     # *****
     driver = driver_fcurves[2].driver
     driver.expression = "(1.0-cos(x))-s"
@@ -159,7 +162,7 @@ def main(obj, bone_definition, base_names):
     tar.id_type = 'OBJECT'
     tar.id = obj
     tar.rna_path = controller_path + ".rotation_euler[0]"
-    
+
     tar = driver.targets.new()
     tar.name = "s"
     tar.id_type = 'OBJECT'
@@ -170,17 +173,17 @@ def main(obj, bone_definition, base_names):
     for i, child_name in enumerate(children):
         child_pbone = obj.pose.bones[child_name]
         child_pbone.rotation_mode = 'YZX'
-        
+
         if child_name != children[-1] and child_name != children[0]:
-            
+
             # this is somewhat arbitrary but seems to look good
-            inf = i / (len(children)+1)
+            inf = i / (len(children) + 1)
             inf = 1.0 - inf
             inf = ((inf * inf) + inf) / 2.0
-            
+
             # used for X/Y constraint
             inf_minor = inf * inf
-            
+
             con = child_pbone.constraints.new('COPY_ROTATION')
             con.name = "Copy Z Rot"
             con.target = obj
@@ -200,6 +203,6 @@ def main(obj, bone_definition, base_names):
 
     child_pbone = obj.pose.bones[children[-1]]
     child_pbone.rotation_mode = 'QUATERNION'
-    
+
     # no blending the result of this
     return None

@@ -211,28 +211,6 @@ class WM_OT_properties_edit(bpy.types.Operator):
             self.properties.max = prop_ui.get("max", 1000000000)
             self.properties.description = prop_ui.get("description", "")
 
-        if 0:
-            _message = "PyConsole, press Ctrl+D to unlock the BGE"
-            import sys
-
-            # evaluate commands in current namespace
-            frame = sys._getframe()
-            namespace = frame.f_globals.copy()
-            namespace.update(frame.f_locals)
-
-            import code
-
-            # Autocomp in python, not as comprehensive as IPython
-            import rlcompleter
-
-            try: # ick, some pythons dont have this
-                import readline
-                readline.parse_and_bind("tab: complete")
-            except:
-                pass
-
-            code.interact(banner=_message, local=namespace)
-
         wm = context.manager
         wm.invoke_props_popup(self, event)
         return ('RUNNING_MODAL',)

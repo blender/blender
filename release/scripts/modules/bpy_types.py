@@ -15,6 +15,9 @@
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 from _bpy import types as bpy_types
 
 StructRNA = bpy_types.Struct.__bases__[0]
@@ -57,7 +60,7 @@ class _GenericBone:
         '''
         # use the name so different types can be tested.
         name = parent_test.name
-        
+
         parent = self.parent
         i = 1
         while parent:
@@ -65,7 +68,7 @@ class _GenericBone:
                 return i
             parent = parent.parent
             i += 1
-        
+
         return 0
 
     @property
@@ -76,19 +79,19 @@ class _GenericBone:
     def parent_recursive(self):
         parent_list = []
         parent = self.parent
-        
+
         while parent:
             if parent:
                 parent_list.append(parent)
-            
+
             parent = parent.parent
-        
+
         return parent_list
 
     @property
     def length(self):
         return (self.head - self.tail).length
-    
+
     @length.setter
     def length(self, value):
         """The distance from head to tail"""
@@ -105,7 +108,7 @@ class _GenericBone:
             index = bone.parent_index(self)
             if index:
                 bones_children.append((index, bone))
-        
+
         # sort by distance to parent
         bones_children.sort(key=lambda bone_pair: bone_pair[0])
         return [bone for index, bone in bones_children]
@@ -136,21 +139,21 @@ class _GenericBone:
                     print("multiple basenames found, this is probably not what you want!", bone.name, children_basename)
 
                 break
-        
+
         return chain
 
     @property
     def _other_bones(self):
         id_data = self.id_data
         id_data_type = type(id_data)
-        
+
         if id_data_type == bpy_types.Object:
             bones = id_data.pose.bones
         elif id_data_type == bpy_types.Armature:
             bones = id_data.edit_bones
             if not bones: # not in editmode
                 bones = id_data.bones
-        
+
         return bones
 
 
@@ -166,34 +169,36 @@ class EditBone(StructRNA, _GenericBone):
     pass
 
 
-def ord_ind(i1,i2):
-    if i1<i2: return i1,i2
-    return i2,i1
+def ord_ind(i1, i2):
+    if i1 < i2:
+        return i1, i2
+    return i2, i1
+
 
 class Mesh(bpy_types.ID):
-    
+
     def from_pydata(self, verts, edges, faces):
         '''
         Make a mesh from a list of verts/edges/faces
         Until we have a nicer way to make geometry, use this.
         '''
         self.add_geometry(len(verts), len(edges), len(faces))
-        
+
         verts_flat = [f for v in verts for f in v]
         self.verts.foreach_set("co", verts_flat)
         del verts_flat
-        
+
         edges_flat = [i for e in edges for i in e]
         self.edges.foreach_set("verts", edges_flat)
         del edges_flat
-        
+
         def treat_face(f):
             if len(f) == 3:
                 return f[0], f[1], f[2], 0
             elif f[3] == 0:
                 return f[3], f[0], f[1], f[2]
             return f
-        
+
         faces_flat = [v for f in faces for v in treat_face(f)]
         self.faces.foreach_set("verts_raw", faces_flat)
         del faces_flat
@@ -233,17 +238,21 @@ class MeshFace(StructRNA):
     @property
     def edge_keys(self):
         verts = tuple(self.verts)
-        if len(verts)==3:
-            return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[0])
+        if len(verts) == 3:
+            return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[0])
 
-        return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
+        return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[3]), ord_ind(verts[3], verts[0])
 
 
 import collections
+
+
 class OrderedMeta(type):
+
     def __init__(cls, name, bases, attributes):
         super(OrderedMeta, cls).__init__(name, bases, attributes)
         cls.order = list(attributes.keys())
+
     def __prepare__(name, bases, **kwargs):
         return collections.OrderedDict()
 
@@ -252,32 +261,35 @@ class OrderedMeta(type):
 class Operator(StructRNA, metaclass=OrderedMeta):
     pass
 
+
 class Macro(StructRNA, metaclass=OrderedMeta):
     # bpy_types is imported before ops is defined
     # so we have to do a local import on each run
+
     @classmethod
     def define(self, opname):
         from _bpy import ops
         return ops.macro_define(self, opname)
 
+
 class Menu(StructRNA):
-    
+
     def path_menu(self, searchpaths, operator):
         layout = self.layout
         # hard coded to set the operators 'path' to the filename.
-        
+
         import os
 
         def path_to_name(f):
             ''' Only capitalize all lowercase names, mixed case use them as is.
             '''
             f_base = os.path.splitext(f)[0]
-            
+
             # string replacements
             f_base = f_base.replace("_colon_", ":")
-            
+
             f_base = f_base.replace("_", " ")
-            
+
             if f_base.lower() == f_base:
                 return ' '.join([w[0].upper() + w[1:] for w in f_base.split()])
             else:
@@ -298,7 +310,7 @@ class Menu(StructRNA):
                 continue
 
             layout.operator(operator, text=path_to_name(f)).path = path
-    
+
     def draw_preset(self, context):
         '''Define these on the subclass
          - preset_operator

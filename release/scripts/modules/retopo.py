@@ -118,7 +118,7 @@ class Hub(object):
         return faces
 
 
-class Spline:
+class Spline(object):
     __slots__ = "points", "hubs", "length"
 
     def __init__(self, points):
@@ -170,13 +170,15 @@ def get_points(stroke):
 
 
 def get_splines(gp):
+    l = None
     for l in gp.layers:
         if l.active: # XXX - should be layers.active
             break
-
-    frame = l.active_frame
-
-    return [Spline(get_points(stroke)) for stroke in frame.strokes]
+    if l:
+        frame = l.active_frame
+        return [Spline(get_points(stroke)) for stroke in frame.strokes]
+    else:
+        return []
 
 
 def xsect_spline(sp_a, sp_b, _hubs):
