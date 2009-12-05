@@ -1088,89 +1088,56 @@ static void node_texture_buts_bricks(uiLayout *layout, bContext *C, PointerRNA *
 	uiItemR(col, "Frequency", 0, ptr, "squash_frequency", 0);
 }
 
-/* Copied from buttons_shading.c -- needs unifying */
-static char* noisebasis_menu()
-{
-	static char nbmenu[256];
-	sprintf(nbmenu, "Noise Basis %%t|Blender Original %%x%d|Original Perlin %%x%d|Improved Perlin %%x%d|Voronoi F1 %%x%d|Voronoi F2 %%x%d|Voronoi F3 %%x%d|Voronoi F4 %%x%d|Voronoi F2-F1 %%x%d|Voronoi Crackle %%x%d|CellNoise %%x%d", TEX_BLENDER, TEX_STDPERLIN, TEX_NEWPERLIN, TEX_VORONOI_F1, TEX_VORONOI_F2, TEX_VORONOI_F3, TEX_VORONOI_F4, TEX_VORONOI_F2F1, TEX_VORONOI_CRACKLE, TEX_CELLNOISE);
-	return nbmenu;
-}
-
 static void node_texture_buts_proc(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
+	PointerRNA tex_ptr;
 	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
+	ID *id= ptr->id.data;
 	Tex *tex = (Tex *)node->storage;
-	short x,y,w,h;
+	uiLayout *col, *row;
 	
-	x = butr->xmin;
-	y = butr->ymin;
-	w = butr->xmax - x;
-	h = butr->ymax - y;
-	
+	RNA_pointer_create(id, &RNA_Texture, tex, &tex_ptr);
+
+	col= uiLayoutColumn(layout, 0);
+
 	switch( tex->type ) {
 		case TEX_BLEND:
-			uiBlockBeginAlign( block );
-			uiDefButS( block, MENU, B_NODE_EXEC,
-				"Linear %x0|Quad %x1|Ease %x2|Diag %x3|Sphere %x4|Halo %x5|Radial %x6",
-				x, y+20, w, 20, &tex->stype, 0, 1, 0, 0, "Blend Type" );
-			uiDefButBitS(block, TOG, TEX_FLIPBLEND, B_NODE_EXEC, "Flip XY", x, y, w, 20,
-				&tex->flag, 0, 0, 0, 0, "Flips the direction of the progression 90 degrees");
-			uiBlockEndAlign( block );
+			uiItemR(col, "", 0, &tex_ptr, "progression", 0);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, NULL, 0, &tex_ptr, "flip_axis", UI_ITEM_R_EXPAND);
 			break;
-			
+
 		case TEX_MARBLE:
-			uiBlockBeginAlign(block);
-		
-			uiDefButS(block, ROW, B_NODE_EXEC, "Soft",       0*w/3+x, 40+y, w/3, 18, &tex->stype, 2.0, (float)TEX_SOFT, 0, 0, "Uses soft marble"); 
-			uiDefButS(block, ROW, B_NODE_EXEC, "Sharp",      1*w/3+x, 40+y, w/3, 18, &tex->stype, 2.0, (float)TEX_SHARP, 0, 0, "Uses more clearly defined marble"); 
-			uiDefButS(block, ROW, B_NODE_EXEC, "Sharper",    2*w/3+x, 40+y, w/3, 18, &tex->stype, 2.0, (float)TEX_SHARPER, 0, 0, "Uses very clearly defined marble"); 
-			
-			uiDefButS(block, ROW, B_NODE_EXEC, "Soft noise", 0*w/2+x, 20+y, w/2, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
-			uiDefButS(block, ROW, B_NODE_EXEC, "Hard noise", 1*w/2+x, 20+y, w/2, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
-			
-			uiDefButS(block, ROW, B_NODE_EXEC, "Sin",        0*w/3+x,  0+y, w/3, 18, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands."); 
-			uiDefButS(block, ROW, B_NODE_EXEC, "Saw",        1*w/3+x,  0+y, w/3, 18, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands"); 
-			uiDefButS(block, ROW, B_NODE_EXEC, "Tri",        2*w/3+x,  0+y, w/3, 18, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses a triangle wave to produce bands"); 
-		
-			uiBlockEndAlign(block);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, NULL, 0, &tex_ptr, "stype", UI_ITEM_R_EXPAND);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, NULL, 0, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, NULL, 0, &tex_ptr, "noisebasis2", UI_ITEM_R_EXPAND);
 			break;
-			
+
 		case TEX_WOOD:
-			uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), x, y+64, w, 18, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
-			
-			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, B_TEXPRV,             "Bands",     x,  40+y, w/2, 18, &tex->stype, 2.0, (float)TEX_BANDNOISE, 0, 0, "Uses standard noise"); 
-			uiDefButS(block, ROW, B_TEXPRV,             "Rings", w/2+x,  40+y, w/2, 18, &tex->stype, 2.0, (float)TEX_RINGNOISE, 0, 0, "Lets Noise return RGB value"); 
-			
-			uiDefButS(block, ROW, B_NODE_EXEC, "Sin", 0*w/3+x,  20+y, w/3, 18, &tex->noisebasis2, 8.0, (float)TEX_SIN, 0, 0, "Uses a sine wave to produce bands."); 
-			uiDefButS(block, ROW, B_NODE_EXEC, "Saw", 1*w/3+x,  20+y, w/3, 18, &tex->noisebasis2, 8.0, (float)TEX_SAW, 0, 0, "Uses a saw wave to produce bands"); 
-			uiDefButS(block, ROW, B_NODE_EXEC, "Tri", 2*w/3+x,  20+y, w/3, 18, &tex->noisebasis2, 8.0, (float)TEX_TRI, 0, 0, "Uses a triangle wave to produce bands");
-			
-			uiDefButS(block, ROW, B_NODE_EXEC, "Soft noise", 0*w/2+x, 0+y, w/2, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
-			uiDefButS(block, ROW, B_NODE_EXEC, "Hard noise", 1*w/2+x, 0+y, w/2, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
-			uiBlockEndAlign(block);
+			uiItemR(col, "", 0, &tex_ptr, "noise_basis", 0);
+			uiItemR(col, "", 0, &tex_ptr, "stype", 0);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, NULL, 0, &tex_ptr, "noisebasis2", UI_ITEM_R_EXPAND);
+			row= uiLayoutRow(col, 0);
+			uiLayoutSetActive(row, !(RNA_enum_get(&tex_ptr, "stype")==TEX_BAND || RNA_enum_get(&tex_ptr, "stype")==TEX_RING)); 
+			uiItemR(row, NULL, 0, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND);
 			break;
 			
 		case TEX_CLOUDS:
-			uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), x, y+60, w, 18, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
-			
-			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, B_TEXPRV, "B/W",       x, y+38, w/2, 18, &tex->stype, 2.0, (float)TEX_DEFAULT, 0, 0, "Uses standard noise"); 
-			uiDefButS(block, ROW, B_TEXPRV, "Color", w/2+x, y+38, w/2, 18, &tex->stype, 2.0, (float)TEX_COLOR, 0, 0, "Lets Noise return RGB value"); 
-			uiDefButS(block, ROW, B_TEXPRV, "Soft",      x, y+20, w/2, 18, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
-			uiDefButS(block, ROW, B_TEXPRV, "Hard",  w/2+x, y+20, w/2, 18, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
-			uiBlockEndAlign(block);
-			
-			uiDefButS(block, NUM, B_TEXPRV, "Depth:", x, y, w, 18, &tex->noisedepth, 0.0, 6.0, 0, 0, "Sets the depth of the cloud calculation");
+			uiItemR(col, "", 0, &tex_ptr, "noise_basis", 0);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, NULL, 0, &tex_ptr, "stype", UI_ITEM_R_EXPAND);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, NULL, 0, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND);
+			uiItemR(col, "Depth", 0, &tex_ptr, "noise_depth", UI_ITEM_R_EXPAND);
 			break;
 			
 		case TEX_DISTNOISE:
-			uiBlockBeginAlign(block);
-			uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), x, y+18, w, 18, &tex->noisebasis2, 0,0,0,0, "Sets the noise basis to distort");
-			uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), x, y,    w, 18, &tex->noisebasis,  0,0,0,0, "Sets the noise basis which does the distortion");
-			uiBlockEndAlign(block);
+			uiItemR(col, "", 0, &tex_ptr, "noise_basis", 0);
+			uiItemR(col, "", 0, &tex_ptr, "noise_distortion", 0);
 			break;
 	}
 }
