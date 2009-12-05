@@ -252,6 +252,13 @@ class OrderedMeta(type):
 class Operator(StructRNA, metaclass=OrderedMeta):
     pass
 
+class Macro(StructRNA, metaclass=OrderedMeta):
+    # bpy_types is imported before ops is defined
+    # so we have to do a local import on each run
+    @classmethod
+    def define(self, opname):
+        from _bpy import ops
+        return ops.macro_define(self, opname)
 
 class Menu(StructRNA):
     

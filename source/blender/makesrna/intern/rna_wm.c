@@ -309,6 +309,12 @@ static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, op->type->srna, op->properties);
 }
 
+static PointerRNA rna_OperatorTypeMacro_properties_get(PointerRNA *ptr)
+{
+	wmOperatorTypeMacro *otmacro= (wmOperatorTypeMacro*)ptr->data;
+	wmOperatorType *ot = WM_operatortype_exists(otmacro->idname);
+	return rna_pointer_inherit_refine(ptr, ot->srna, otmacro->properties);
+}
 
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
 {
@@ -591,6 +597,50 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator.");
 	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
 	RNA_def_struct_idproperties_func(srna, "rna_OperatorProperties_idproperties");
+}
+
+static void rna_def_macro_operator(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Macro", NULL);
+	RNA_def_struct_ui_text(srna, "Macro Operator", "Storage of a macro operator being executed, or registered after execution.");
+	RNA_def_struct_sdna(srna, "wmOperator");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_name_property(srna, prop);
+
+	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "OperatorProperties");
+	RNA_def_property_ui_text(prop, "Properties", "");
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
+}
+
+static void rna_def_operator_type_macro(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "OperatorTypeMacro", NULL);
+	RNA_def_struct_ui_text(srna, "OperatorTypeMacro", "Storage of a sub operator in a macro after it has been added.");
+	RNA_def_struct_sdna(srna, "wmOperatorTypeMacro");
+
+//	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+//	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+//	RNA_def_property_string_sdna(prop, NULL, "idname");
+//	RNA_def_property_ui_text(prop, "Name", "Name of the sub operator.");
+//	RNA_def_struct_name_property(srna, prop);
+
+	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "OperatorProperties");
+	RNA_def_property_ui_text(prop, "Properties", "");
+	RNA_def_property_pointer_funcs(prop, "rna_OperatorTypeMacro_properties_get", NULL, NULL);
 }
 
 static void rna_def_operator_utils(BlenderRNA *brna)
@@ -911,6 +961,8 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_operator(brna);
 	rna_def_operator_utils(brna);
 	rna_def_operator_filelist_element(brna);
+	rna_def_macro_operator(brna);
+	rna_def_operator_type_macro(brna);
 	rna_def_event(brna);
 	rna_def_window(brna);
 	rna_def_windowmanager(brna);

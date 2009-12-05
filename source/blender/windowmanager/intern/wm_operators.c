@@ -353,6 +353,27 @@ wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
 	return ot;
 }
 
+void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), void *userdata)
+{
+	wmOperatorType *ot;
+
+	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
+	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+
+	ot->exec= wm_macro_exec;
+	ot->invoke= wm_macro_invoke;
+	ot->modal= wm_macro_modal;
+	ot->cancel= wm_macro_cancel;
+	ot->poll= NULL;
+
+	opfunc(ot, userdata);
+
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)");
+	RNA_def_struct_identifier(ot->srna, ot->idname);
+
+	BLI_addtail(&global_ops, ot);
+}
+
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
 {
 	wmOperatorTypeMacro *otmacro= MEM_callocN(sizeof(wmOperatorTypeMacro), "wmOperatorTypeMacro");

@@ -180,6 +180,7 @@ wmOperatorType *WM_operatortype_exists(const char *idname);
 wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
+void		WM_operatortype_append_macro_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
 wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
