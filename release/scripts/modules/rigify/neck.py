@@ -20,6 +20,8 @@ import bpy
 from rigify import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
+# not used, defined for completeness
+METARIG_NAMES = ("body", "head")
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
@@ -72,30 +74,43 @@ def metarig_template():
     pbone['type'] = 'neck'
 
 
-def main(obj, orig_bone_name):
+def metarig_definition(obj, orig_bone_name):
+    '''
+    The bone given is the head, its parent is the body,
+    # its only child the first of a chain with matching basenames.
+    eg.
+        body -> head -> neck_01 -> neck_02 -> neck_03.... etc
+    '''
+    arm = obj.data
+    head = arm.bones[orig_bone_name]
+    body = head.parent
+    
+    children = head.children
+    if len(children) != 1:
+        print("expected the head to have only 1 child.")
+
+    child = children[0]
+    bone_definition = [body.name, head.name, child.name]
+    bone_definition.extend([child.name for child in child.children_recursive_basename])
+    return bone_definition
+
+
+def main(obj, bone_definition, base_names):
     from Mathutils import Vector
     
     arm = obj.data
 
     # Initialize container classes for convenience
     mt = bone_class_instance(obj, ["body", "head"]) # meta
-    mt.head = orig_bone_name
-    mt.update()
-    mt.body = mt.head_e.parent.name
+    mt.body = bone_definition[0]
+    mt.head = bone_definition[1]
     mt.update()
 
-    # child chain of the 'head'
-    children = mt.head_e.children
-    if len(children) != 1:
-        print("expected the head to have only 1 child.")
+    neck_chain = bone_definition[2:]
 
-    child = children[0]
-    neck_chain = [child] + child.children_recursive_basename
-    neck_chain = [child.name for child in neck_chain]
-    
     mt_chain = bone_class_instance(obj, [("neck_%.2d" % (i + 1)) for i in range(len(neck_chain))]) # 99 bones enough eh?
-    for i, child_name in enumerate(neck_chain):
-        setattr(mt_chain, ("neck_%.2d" % (i + 1)), child_name)
+    for i, attr in enumerate(mt_chain.attr_names):
+        setattr(mt_chain, attr, neck_chain[i])
     mt_chain.update()
 
     neck_chain_basename = mt_chain.neck_01_e.basename
@@ -135,8 +150,8 @@ def main(obj, orig_bone_name):
     mt.head_e.head.y += head_length / 4.0
     mt.head_e.tail.y += head_length / 4.0
 
-    for i in range(len(neck_chain)):
-        neck_e = getattr(mt_chain, "neck_%.2d_e" % (i + 1))
+    for i, attr in enumerate(mt_chain.attr_names):
+        neck_e = getattr(mt_chain, attr + "_e")
         
         # dont store parent names, re-reference as each chain bones parent.
         neck_e_parent = arm.edit_bones.new("MCH-rot_%s" % neck_e.name)
@@ -205,9 +220,9 @@ def main(obj, orig_bone_name):
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
     expression_suffix = "/max(0.001,%s)" % "+".join(target_names)
     
-    
-    for i in range(len(neck_chain)):
-        neck_p = getattr(mt_chain, "neck_%.2d_p" % (i + 1))
+
+    for i, attr in enumerate(mt_chain.attr_names):
+        neck_p = getattr(mt_chain, attr + "_p")
         neck_p.lock_location = True, True, True
         neck_p.lock_location = True, True, True
         neck_p.lock_rotations_4d = True
@@ -243,3 +258,6 @@ def main(obj, orig_bone_name):
             tar.id_type = 'OBJECT'
             tar.id = obj
             tar.rna_path = head_driver_path + ('["bend_%.2d"]' % (j + 1))
+    
+    # no blending the result of this
+    return None

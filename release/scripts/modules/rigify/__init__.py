@@ -91,6 +91,7 @@ def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
 
         new_slot_ls.append(attr)
         from_name_ls.append(bone_name)
+        bone_name_orig = bone_name_orig.replace("ORG-", "") # XXX - we need a better way to do this
         new_name_ls.append(to_prefix + bone_name_orig)
         
     new_bones = copy_bone_simple_list(self.obj.data, from_name_ls, new_name_ls, True)
@@ -103,8 +104,10 @@ def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
 
     return new_bc
 
+def _bone_class_instance_names(self):
+    return [getattr(self, attr) for attr in self.attr_names]
 
-def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_prop="blend", use_loc=True, use_rot=True):
+def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_prop="blend"):
     '''
     Use for blending bone chains.
     
@@ -113,78 +116,19 @@ def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_pr
     
     XXX - toggles editmode, need to re-validate all editbones :(
     '''
+
     if self.attr_names != from_bc.attr_names or self.attr_names != to_bc.attr_names:
         raise Exception("can only blend between matching chains")
-
-    obj = self.obj
     
-    if obj.mode == 'EDIT':
-        raise Exception("blending cant be called in editmode")
+    apply_bones = [getattr(self, attr) for attr in self.attr_names]
+    from_bones = [getattr(from_bc, attr) for attr in from_bc.attr_names]
+    to_bones = [getattr(to_bc, attr) for attr in to_bc.attr_names]
     
-    # setup the blend property
-    if target_bone is None:
-        target_bone = self.attr_names[-1]
-
-    prop_pbone = obj.pose.bones[target_bone]
-    if prop_pbone.get(target_bone, None) is None:
-        prop = rna_idprop_ui_prop_get(prop_pbone, target_prop, create=True)
-        prop_pbone[target_prop] = 0.5
-        prop["soft_min"] = 0.0
-        prop["soft_max"] = 1.0
-
-    driver_path = prop_pbone.path_to_id() + ('["%s"]' % target_prop)
-
-    def blend_target(driver):
-        tar = driver.targets.new()
-        tar.name = target_bone
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.rna_path = driver_path
-
-    for attr in self.attr_names:
-        new_pbone = getattr(self, attr + "_p")
-        from_bone_name = getattr(from_bc, attr)
-        to_bone_name = getattr(to_bc, attr)
-        
-        if from_bone_name == to_bone_name:
-            raise Exception("Matching from/to bone names:" + from_bone_name)
-        
-        if use_loc:
-            con = new_pbone.constraints.new('COPY_LOCATION')
-            con.target = obj
-            con.subtarget = from_bone_name
-
-            con = new_pbone.constraints.new('COPY_LOCATION')
-            con.target = obj
-            con.subtarget = to_bone_name
-            
-            fcurve = con.driver_add("influence", 0)
-            driver = fcurve.driver
-            driver.type = 'AVERAGE'
-            fcurve.modifiers.remove(0) # grr dont need a modifier
-
-            blend_target(driver)
-        
-        if use_rot:
-            con = new_pbone.constraints.new('COPY_ROTATION')
-            con.target = obj
-            con.subtarget = from_bone_name
-
-            con = new_pbone.constraints.new('COPY_ROTATION')
-            con.target = obj
-            con.subtarget = to_bone_name
-            
-            fcurve = con.driver_add("influence", 0)
-            driver = fcurve.driver
-            driver.type = 'AVERAGE'
-            fcurve.modifiers.remove(0) # grr dont need a modifier
-
-            blend_target(driver)
-
+    blend_bone_list(self.obj, apply_bones, from_bones, to_bones, target_bone, target_prop)
 
 def bone_class_instance(obj, slots, name="BoneContainer"):
     attr_names = tuple(slots) # dont modify the original
-    slots = slots[:] # dont modify the original
+    slots = list(slots) # dont modify the original
     for i in range(len(slots)):
         member = slots[i]
         slots.append(member + "_b") # bone bone
@@ -196,6 +140,7 @@ def bone_class_instance(obj, slots, name="BoneContainer"):
         "attr_names":attr_names, \
         "update":_bone_class_instance_update, \
         "rename":_bone_class_instance_rename, \
+        "names":_bone_class_instance_names, \
         "copy":_bone_class_instance_copy, \
         "blend":_bone_class_instance_blend, \
     }
@@ -253,6 +198,78 @@ def copy_bone_simple_list(arm, from_bones, to_bones, parent=False):
                 ebone.parent = copy_bones[i]
     
     return copy_bones
+
+def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, target_prop="blend"):
+    
+    if obj.mode == 'EDIT':
+        raise Exception("blending cant be called in editmode")
+    
+    # setup the blend property
+    if target_bone is None:
+        target_bone = apply_bones[-1] # default to the last bone
+
+    prop_pbone = obj.pose.bones[target_bone]
+    if prop_pbone.get(target_bone, None) is None:
+        prop = rna_idprop_ui_prop_get(prop_pbone, target_prop, create=True)
+        prop_pbone[target_prop] = 0.5
+        prop["soft_min"] = 0.0
+        prop["soft_max"] = 1.0
+
+    driver_path = prop_pbone.path_to_id() + ('["%s"]' % target_prop)
+
+    def blend_target(driver):
+        tar = driver.targets.new()
+        tar.name = target_bone
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = driver_path
+    
+    def blend_location(new_pbone, from_bone_name, to_bone_name):
+        con = new_pbone.constraints.new('COPY_LOCATION')
+        con.target = obj
+        con.subtarget = from_bone_name
+
+        con = new_pbone.constraints.new('COPY_LOCATION')
+        con.target = obj
+        con.subtarget = to_bone_name
+        
+        fcurve = con.driver_add("influence", 0)
+        driver = fcurve.driver
+        driver.type = 'AVERAGE'
+        fcurve.modifiers.remove(0) # grr dont need a modifier
+
+        blend_target(driver)
+
+    def blend_rotation(new_pbone, from_bone_name, to_bone_name):
+        con = new_pbone.constraints.new('COPY_ROTATION')
+        con.target = obj
+        con.subtarget = from_bone_name
+
+        con = new_pbone.constraints.new('COPY_ROTATION')
+        con.target = obj
+        con.subtarget = to_bone_name
+        
+        fcurve = con.driver_add("influence", 0)
+        driver = fcurve.driver
+        driver.type = 'AVERAGE'
+        fcurve.modifiers.remove(0) # grr dont need a modifier
+
+        blend_target(driver)
+
+    for i, new_bone_name in enumerate(apply_bones):
+        from_bone_name = from_bones[i]
+        to_bone_name = to_bones[i]
+        
+        # allow skipping some bones by having None in the list
+        if None in (new_bone_name, from_bone_name, to_bone_name):
+            continue
+
+        new_pbone = obj.pose.bones[new_bone_name]
+
+        if not new_pbone.bone.connected:
+            blend_location(new_pbone, from_bone_name, to_bone_name)
+        
+        blend_rotation(new_pbone, from_bone_name, to_bone_name)
 
 
 def add_stretch_to(obj, from_name, to_name, name):
@@ -342,8 +359,9 @@ def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
     return poll_name
 
 
-def generate_rig(context, ob):
-    
+def generate_rig(context, obj_orig, prefix="ORG-"):
+    from collections import OrderedDict
+
     global_undo = context.user_preferences.edit.global_undo
     context.user_preferences.edit.global_undo = False
 
@@ -351,50 +369,118 @@ def generate_rig(context, ob):
     
     
     # copy object and data
-    ob.selected = False
-    ob_new = ob.copy()
-    ob_new.data = ob.data.copy()
+    obj_orig.selected = False
+    obj = obj_orig.copy()
+    obj.data = obj_orig.data.copy()
     scene = context.scene
-    scene.objects.link(ob_new)
-    scene.objects.active = ob_new
-    ob_new.selected = True
+    scene.objects.link(obj)
+    scene.objects.active = obj
+    obj.selected = True
     
-    # enter armature editmode
+    arm = obj.data
     
-    # Only reference bones that have a type, means we can rename any others without lookup errors
-    pose_names = [pbone.name for pbone in ob_new.pose.bones if "type" in pbone]
+    # original name mapping
+    base_names = {}
     
-    #for pbone_name in ob_new.pose.bones.keys():
-    for pbone_name in pose_names:
+    bpy.ops.object.mode_set(mode='EDIT')
+    for bone in arm.edit_bones:
+        bone_name = bone.name
+        bone.name = prefix + bone_name
+        base_names[bone.name] = bone_name # new -> old mapping
+    bpy.ops.object.mode_set(mode='OBJECT')
     
-        bone_type = ob_new.pose.bones[pbone_name].get("type", "")
+    # key: bone name
+    # value: {type:definition, ...}
+    #    where type is the submodule name - leg, arm etc
+    #    and definition is a list of bone names 
+    bone_definitions = {}
+    
+    # key: bone name
+    # value: [functions, ...]
+    #    each function is from the module. eg leg.ik, arm.main
+    bone_typeinfos = {}
+    
+    # inspect all bones and assign their definitions before modifying
+    for pbone in obj.pose.bones:
+        bone_name = pbone.name
+        bone_type = obj.pose.bones[bone_name].get("type", "")
+        bone_type_list = [bt for bt in bone_type.replace(",", " ").split()]
 
-        if bone_type == "":
-        	continue
+        for bone_type in bone_type_list:
+            type_pair = bone_type.split(".")
+            
+            # 'leg.ik' will look for an ik function in the leg module
+            # 'leg' will look up leg.main
+            if len(type_pair) == 1:
+                type_pair = type_pair[0], "main"
+            
+            submod_name, func_name = type_pair
+            
+            # from rigify import leg
+            submod = __import__(name="%s.%s" % (__package__, submod_name), fromlist=[submod_name])
+            reload(submod)
+            
+            bone_def_dict = bone_definitions.setdefault(bone_name, {})
 
-        # submodule = getattr(self, bone_type)
-        # exec("from rigify import %s as submodule")
-        submodule = __import__(name="%s.%s" % (__package__, bone_type), fromlist=[bone_type])
+            # Only calculate bone definitions once
+            if submod_name not in bone_def_dict:
+                metarig_definition_func = getattr(submod, "metarig_definition")
+                bone_def_dict[submod_name] = metarig_definition_func(obj, bone_name)
+            
+            
+            bone_typeinfo = bone_typeinfos.setdefault(bone_name, [])
+            type_func = getattr(submod, func_name)
+            bone_typeinfo.append((submod_name, type_func))
 
-        reload(submodule) # XXX, dev only
-
+    
+    # now we have all the info about bones we can start operating on them
+    
+    for pbone in obj.pose.bones:
+        bone_name = pbone.name
         
-        # Toggle editmode so the pose data is always up to date
-        bpy.ops.object.mode_set(mode='EDIT')
-        submodule.main(ob_new, pbone_name)
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if bone_name not in bone_typeinfos:
+            continue
+            
+        bone_def_dict = bone_definitions[bone_name]
+        
+        # Only blend results from the same submodule, eg.
+        #    leg.ik and arm.fk could not be blended.
+        results = OrderedDict()
+        
+        for submod_name, type_func in bone_typeinfos[bone_name]:
+            # this bones definition of the current typeinfo
+            definition = bone_def_dict[submod_name]
+            
+            bpy.ops.object.mode_set(mode='EDIT')
+            ret = type_func(obj, definition, base_names)
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            if ret: 
+                result_submod = results.setdefault(submod_name, [])
+                
+                if result_submod and len(result_submod[-1]) != len(ret):
+                    raise Exception("bone lists not compatible: %s, %s" % (result_submod[-1], ret))
+
+                result_submod.append(ret)
+        
+        for result_submod in results.values():
+            # blend 2 chains
+            definition = bone_def_dict[submod_name]
+            
+            if len(result_submod) == 2:
+                blend_bone_list(obj, definition, result_submod[0], result_submod[1])
     
     # needed to update driver deps
     # context.scene.update()
     
     # Only for demo'ing
     
-    # ob.restrict_view = True
-    ob_new.data.draw_axes = False
+    # obj.restrict_view = True
+    obj.data.draw_axes = False
     
     context.user_preferences.edit.global_undo = global_undo
     
-    return ob_new
+    return obj
 
 
 def write_meta_rig(obj, func_name="metarig_template"):
@@ -462,11 +548,11 @@ def generate_test(context):
     
     scene = context.scene
     def create_empty_armature(name):
-        ob_new = bpy.data.add_object('ARMATURE', name)
+        obj_new = bpy.data.add_object('ARMATURE', name)
         armature = bpy.data.add_armature(name)
-        ob_new.data = armature
-        scene.objects.link(ob_new)
-        scene.objects.active = ob_new
+        obj_new.data = armature
+        scene.objects.link(obj_new)
+        scene.objects.active = obj_new
 
     files = os.listdir(os.path.dirname(__file__))
     for f in files:
@@ -484,10 +570,10 @@ def generate_test(context):
         if metarig_template:
             create_empty_armature("meta_" + module_name) # sets active
             metarig_template()
-            ob = context.object
-            ob_new = generate_rig(context, ob)
+            obj = context.object
+            obj_new = generate_rig(context, obj)
             
-            new_objects.append((ob, ob_new))
+            new_objects.append((obj, obj_new))
         else:
             print("note: rig type '%s' has no metarig_template(), can't test this", module_name)
     
@@ -505,12 +591,12 @@ def generate_test_all(context):
     
     base_name = os.path.splitext(bpy.data.filename)[0]
     for obj, obj_new in new_objects:
-        for ob in (obj, obj_new):
-            fn = base_name + "-" + bpy.utils.clean_name(ob.name)
+        for obj in (obj, obj_new):
+            fn = base_name + "-" + bpy.utils.clean_name(obj.name)
             
             path_dot = fn + ".dot"
             path_png = fn + ".png"
-            saved = graphviz_export.graph_armature(ob, path_dot, CONSTRAINTS=True, DRIVERS=True)
+            saved = graphviz_export.graph_armature(obj, path_dot, CONSTRAINTS=True, DRIVERS=True)
 
             #if saved:
             #    os.system("dot -Tpng %s > %s; eog %s" % (path_dot, path_png, path_png))

@@ -20,6 +20,8 @@ import bpy
 from rigify import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
+# not used, defined for completeness
+METARIG_NAMES = ("pelvis", "ribcage")
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
@@ -84,48 +86,59 @@ def metarig_template():
     pbone['type'] = 'spine'
 
 
-def validate(obj, orig_bone_name):
+def metarig_definition(obj, orig_bone_name):
     '''
     The bone given is the second in a chain.
     Expects at least 1 parent and a chain of children withe the same basename
     eg.
         pelvis -> rib_cage -> spine.01 -> spine.02 -> spine.03
+
+    note: same as neck.
     '''
-    orig_bone = obj.data.bones[orig_bone_name]
-    if not orig_bone.parent:
-        return "expected spine bone '%s' to have a parent" % orig_bone_name
+    arm = obj.data
+    ribcage = arm.bones[orig_bone_name]
+    pelvis = ribcage.parent
     
-    children = orig_bone.children
-
+    children = ribcage.children
     if len(children) != 1:
-        return "expected spine bone '%s' to have only 1 child for the sine chain" % orig_bone_name
-    
-    children_spine = children[0].children_recursive_basename
+        print("expected the ribcage to have only 1 child.")
 
-    if len(children_spine) == 0:
-        return "expected '%s' to define a chain of children with its basename (2 or more)" % children[0]
+    child = children[0]
+    bone_definition = [pelvis.name, ribcage.name, child.name]
+    bone_definition.extend([child.name for child in child.children_recursive_basename])
+    return bone_definition
 
-    return ''
+def fk(*args):
+    main(*args)
 
-def main(obj, orig_bone_name):
+def main(obj, bone_definition, base_names):
     from Mathutils import Vector, Matrix, RotationMatrix
     from math import radians, pi
-    
+
     arm = obj.data
 
     # Initialize container classes for convenience
     mt = bone_class_instance(obj, ["pelvis", "ribcage"]) # meta
-    mt.ribcage = orig_bone_name
-    mt.update()
-    mt.pelvis = mt.ribcage_e.parent.name
+    mt.pelvis = bone_definition[0]
+    mt.ribcage = bone_definition[1]
     mt.update()
 
+    spine_chain_orig = bone_definition[2:]
+    spine_chain = [arm.edit_bones[child_name] for child_name in spine_chain_orig]
+    spine_chain_basename = base_names[spine_chain[0].name].rsplit(".", 1) # probably 'ORG-spine.01' -> 'spine'
+    spine_chain_len = len(spine_chain_orig)
+
+    '''
     children = mt.ribcage_e.children
     child = children[0] # validate checks for 1 only.
     spine_chain_basename = child.basename # probably 'spine'
     spine_chain_segment_length = child.length
     spine_chain = [child] + child.children_recursive_basename
     spine_chain_orig = [child.name for child in spine_chain]
+    '''
+    
+    child = spine_chain[0]
+    spine_chain_segment_length = child.length
     child.parent = mt.pelvis_e # was mt.ribcage
     
     # The first bone in the chain happens to be the basis of others, create them now
@@ -177,16 +190,17 @@ def main(obj, orig_bone_name):
     # - original (ORG_*)
     # - copy (*use original name*)
     # - reverse (MCH-rev_*)
-    spine_chain_attrs = [("spine_%.2d" % (i + 1)) for i in range(len(spine_chain_orig))]
+    spine_chain_attrs = [("spine_%.2d" % (i + 1)) for i in range(spine_chain_len)]
 
     mt_chain = bone_class_instance(obj, spine_chain_attrs) # ORG_*
     rv_chain = bone_class_instance(obj, spine_chain_attrs) # *
     ex_chain = bone_class_instance(obj, spine_chain_attrs) # MCH-rev_*
+    del spine_chain_attrs
     
     for i, child_name in enumerate(spine_chain):
         child_name_orig = spine_chain_orig[i]
 
-        attr = spine_chain_attrs[i] # eg. spine_04
+        attr = mt_chain.attr_names[i] # eg. spine_04
 
         setattr(mt_chain, attr, spine_chain[i]) # use the new name
 
@@ -203,12 +217,12 @@ def main(obj, orig_bone_name):
 
     # Now we need to re-parent these chains
     for i, child_name in enumerate(spine_chain_orig):        
-        attr = spine_chain_attrs[i] + "_e"
+        attr = ex_chain.attr_names[i] + "_e"
         
         if i == 0:
             getattr(ex_chain, attr).parent = mt.pelvis_e
         else:
-            attr_parent = spine_chain_attrs[i-1] + "_e"
+            attr_parent = ex_chain.attr_names[i-1] + "_e"
             getattr(ex_chain, attr).parent = getattr(ex_chain, attr_parent)
         
         # intentional! get the parent from the other paralelle chain member
@@ -217,9 +231,9 @@ def main(obj, orig_bone_name):
     
     # ex_chain needs to interlace bones!
     # Note, skip the first bone
-    for i in range(1, len(spine_chain_attrs)): # similar to neck
+    for i in range(1, spine_chain_len): # similar to neck
         child_name_orig = spine_chain_orig[i]
-        spine_e = getattr(mt_chain, spine_chain_attrs[i] + "_e")
+        spine_e = getattr(mt_chain, mt_chain.attr_names[i] + "_e")
         
         # dont store parent names, re-reference as each chain bones parent.
         spine_e_parent = arm.edit_bones.new("MCH-rot_%s" % child_name_orig)
@@ -227,7 +241,7 @@ def main(obj, orig_bone_name):
         spine_e_parent.tail = spine_e.head + Vector(0.0, 0.0, spine_chain_segment_length / 2.0)
         spine_e_parent.roll = 0.0
         
-        spine_e = getattr(ex_chain, spine_chain_attrs[i] + "_e")
+        spine_e = getattr(ex_chain, ex_chain.attr_names[i] + "_e")
         orig_parent = spine_e.parent
         spine_e.connected = False
         spine_e.parent = spine_e_parent
@@ -239,8 +253,8 @@ def main(obj, orig_bone_name):
     # Rotate the rev chain 180 about the by the first bones center point
     pivot = (rv_chain.spine_01_e.head + rv_chain.spine_01_e.tail) * 0.5
     matrix = RotationMatrix(radians(180), 3, 'X')
-    for i in range(len(spine_chain_attrs)): # similar to neck
-        spine_e = getattr(rv_chain, spine_chain_attrs[i] + "_e")
+    for i, attr in enumerate(rv_chain.attr_names): # similar to neck
+        spine_e = getattr(rv_chain, attr + "_e")
         # use the first bone as the pivot
 
         spine_e.head = ((spine_e.head - pivot) * matrix) + pivot
@@ -326,12 +340,12 @@ def main(obj, orig_bone_name):
     # ex.ribcage_p / MCH-wgt_rib_cage
     con = ex.ribcage_p.constraints.new('COPY_LOCATION')
     con.target = obj
-    con.subtarget = getattr(mt_chain, spine_chain_attrs[-1])
+    con.subtarget = getattr(mt_chain, mt_chain.attr_names[-1])
     con.head_tail = 0.0
 
     con = ex.ribcage_p.constraints.new('COPY_ROTATION')
     con.target = obj
-    con.subtarget = getattr(mt_chain, spine_chain_attrs[-1])    
+    con.subtarget = getattr(mt_chain, mt_chain.attr_names[-1])    
     
     # mt.pelvis_p / rib_cage
     con = mt.ribcage_p.constraints.new('COPY_LOCATION')
@@ -347,10 +361,10 @@ def main(obj, orig_bone_name):
     
     prop = rna_idprop_ui_prop_get(mt.ribcage_p, "pivot_slide", create=True)
     mt.ribcage_p["pivot_slide"] = 0.5
-    prop["soft_min"] = 1.0 / len(spine_chain_attrs)
+    prop["soft_min"] = 1.0 / spine_chain_len
     prop["soft_max"] = 1.0
     
-    for i in range(len(spine_chain_attrs) - 1):
+    for i in range(spine_chain_len - 1):
         prop_name = "bend_%.2d" % (i + 1)
         prop = rna_idprop_ui_prop_get(mt.ribcage_p, prop_name, create=True)
         mt.ribcage_p[prop_name] = 1.0
@@ -361,9 +375,9 @@ def main(obj, orig_bone_name):
     # positioned at the tip.
     
     # reverse bones / MCH-rev_spine.##
-    for i in range(1, len(spine_chain_attrs)):
-        spine_p = getattr(rv_chain, spine_chain_attrs[i] + "_p")
-        spine_fake_parent_name = getattr(rv_chain, spine_chain_attrs[i - 1])
+    for i in range(1, spine_chain_len):
+        spine_p = getattr(rv_chain, rv_chain.attr_names[i] + "_p")
+        spine_fake_parent_name = getattr(rv_chain, rv_chain.attr_names[i - 1])
         
         con = spine_p.constraints.new('COPY_LOCATION')
         con.target = obj
@@ -375,14 +389,14 @@ def main(obj, orig_bone_name):
     # Constrain 'inbetween' bones
     
     # b01/max(0.001,b01+b02+b03+b04+b05)
-    target_names = [("b%.2d" % (i + 1)) for i in range(len(spine_chain_attrs) - 1)]
+    target_names = [("b%.2d" % (i + 1)) for i in range(spine_chain_len - 1)]
     expression_suffix = "/max(0.001,%s)" % "+".join(target_names)
     
     rib_driver_path = mt.ribcage_p.path_to_id()
     
-    for i in range(1, len(spine_chain_attrs)):
+    for i in range(1, spine_chain_len):
         
-        spine_p = getattr(ex_chain, spine_chain_attrs[i] + "_p")
+        spine_p = getattr(ex_chain, ex_chain.attr_names[i] + "_p")
         spine_p_parent = spine_p.parent # interlaced bone
 
         con = spine_p_parent.constraints.new('COPY_ROTATION')
@@ -400,7 +414,7 @@ def main(obj, orig_bone_name):
         driver.expression = target_names[i - 1] + expression_suffix
         fcurve.modifiers.remove(0) # grr dont need a modifier
 
-        for j in range(len(spine_chain_attrs) - 1):
+        for j in range(spine_chain_len - 1):
             tar = driver.targets.new()
             tar.name = target_names[j]
             tar.id_type = 'OBJECT'
@@ -410,12 +424,12 @@ def main(obj, orig_bone_name):
     
     # original bone drivers
     # note: the first bone has a lot more constraints, but also this simple one is first.
-    for i in range(len(spine_chain_attrs)):
-        spine_p = getattr(mt_chain, spine_chain_attrs[i] + "_p")
+    for i in attr, enumerate(mt_chain.attr_names):
+        spine_p = getattr(mt_chain, attr + "_p")
         
         con = spine_p.constraints.new('COPY_ROTATION')
         con.target = obj
-        con.subtarget = getattr(ex_chain, spine_chain_attrs[i]) # lock to the copy's rotation
+        con.subtarget = getattr(ex_chain, attr) # lock to the copy's rotation
         del spine_p
     
     # pivot slide: - lots of copy location constraints.
@@ -425,19 +439,19 @@ def main(obj, orig_bone_name):
     con.target = obj
     con.subtarget = rv_chain.spine_01 # lock to the reverse location
     
-    for i in range(1, len(spine_chain_attrs) + 1):
+    for i in range(1, spine_chain_len + 1):
         con = mt_chain.spine_01_p.constraints.new('COPY_LOCATION')
         con.name = "slide_%d" % i
         con.target = obj
         
-        if i == len(spine_chain_attrs):
-            attr = spine_chain_attrs[i - 1]
+        if i == spine_chain_len:
+            attr = mt_chain.attr_names[i - 1]
         else:
-            attr = spine_chain_attrs[i]
+            attr = mt_chain.attr_names[i]
 
         con.subtarget = getattr(rv_chain, attr) # lock to the reverse location
         
-        if i == len(spine_chain_attrs):
+        if i == spine_chain_len:
             con.head_tail = 1.0
 
         fcurve = con.driver_add("influence", 0)
@@ -452,5 +466,8 @@ def main(obj, orig_bone_name):
         mod = fcurve.modifiers[0]
         mod.poly_order = 1
         mod.coefficients[0] = - (i - 1)
-        mod.coefficients[1] = len(spine_chain_attrs)
+        mod.coefficients[1] = spine_chain_len
+    
+    # no support for blending chains
+    return None
 

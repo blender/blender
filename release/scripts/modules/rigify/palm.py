@@ -20,6 +20,8 @@ import bpy
 from rigify import get_bone_data, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 
+# not used, defined for completeness
+METARIG_NAMES = tuple()
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
@@ -72,20 +74,39 @@ def metarig_template():
     pbone['type'] = 'palm'
 
 
-def main(obj, orig_bone_name):
-    arm, palm_pbone, palm_ebone = get_bone_data(obj, orig_bone_name)
+def metarig_definition(obj, orig_bone_name):
+    '''
+    The bone given is the first in a chain
+    Expects an array of children sorted with the little finger lowest.
+    eg.
+        parent -> [pinky, ring... etc]
+    '''
+    arm = obj.data
+    bone_definition = [orig_bone_name]
+    palm_ebone = arm.bones[orig_bone_name]
+    
     children = [ebone.name for ebone in palm_ebone.children]
     children.sort() # simply assume the pinky has the lowest name
+    bone_definition.extend(children)
+    
+    return bone_definition
+
+
+def main(obj, bone_definition, base_names):
+    arm, palm_pbone, palm_ebone = get_bone_data(obj, bone_definition[0])
+    children = bone_definition[1:]
     
     # Make a copy of the pinky
+    # simply assume the pinky has the lowest name
     pinky_ebone = arm.edit_bones[children[0]]
+    ring_ebone = arm.edit_bones[children[1]]
+    
     control_ebone = copy_bone_simple(arm, pinky_ebone.name, "palm_control", parent=True)
     control_name = control_ebone.name 
     
-    offset = (arm.edit_bones[children[0]].head - arm.edit_bones[children[1]].head)
+    offset = (pinky_ebone.head - ring_ebone.head)
     
-    control_ebone.head += offset
-    control_ebone.tail += offset
+    control_ebone.translate(offset)
     
     bpy.ops.object.mode_set(mode='OBJECT')
     
@@ -179,4 +200,6 @@ def main(obj, orig_bone_name):
 
     child_pbone = obj.pose.bones[children[-1]]
     child_pbone.rotation_mode = 'QUATERNION'
-
+    
+    # no blending the result of this
+    return None

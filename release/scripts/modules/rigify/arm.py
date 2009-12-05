@@ -20,6 +20,7 @@ import bpy
 from rigify import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 
+METARIG_NAMES = "shoulder", "arm", "forearm", "hand"
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
@@ -54,7 +55,38 @@ def metarig_template():
     pbone['type'] = 'arm'
 
 
-def main(obj, orig_bone_name):
+def metarig_definition(obj, orig_bone_name):
+    mt = bone_class_instance(obj, METARIG_NAMES) # meta
+    mt.arm = orig_bone_name
+    mt.update()
+    
+    mt.shoulder_p = mt.arm_p.parent
+    mt.shoulder = mt.shoulder_p.name
+    
+    if not mt.shoulder_p:
+        raise Exception("could not find 'arm' parent, skipping:", orig_bone_name)
+
+    # We could have some bones attached, find the bone that has this as its 2nd parent
+    hands = []
+    for pbone in obj.pose.bones:
+        index = pbone.parent_index(mt.arm_p)
+        if index == 2:
+            hands.append(pbone)
+
+    if len(hands) > 1:
+        raise Exception("more then 1 hand found on:", orig_bone_name)
+
+    # first add the 2 new bones
+    mt.hand_p = hands[0]
+    mt.hand = mt.hand_p.name
+
+    mt.forearm_p = mt.hand_p.parent
+    mt.forearm = mt.forearm_p.name
+    
+    return mt.names()
+
+
+def main(obj, definitions, base_names):
     """
     the bone with the 'arm' property is the upper arm, this assumes a chain as follows.
     [shoulder, upper_arm, forearm, hand]
@@ -64,48 +96,18 @@ def main(obj, orig_bone_name):
     - Original
     - IK, MCH-%s_ik
     - IKSwitch, MCH-%s ()
+    
+    
     """
     
     # Since there are 3 chains, this gets confusing so divide into 3 chains
     # Initialize container classes for convenience
-    mt = bone_class_instance(obj, ["shoulder", "arm", "forearm", "hand"]) # meta
+    mt = bone_class_instance(obj, METARIG_NAMES) # meta
+    mt.shoulder, mt.arm, mt.forearm, mt.hand = definitions
+    
     ik = bone_class_instance(obj, ["arm", "forearm", "pole", "hand"]) # ik
     sw = bone_class_instance(obj, ["socket", "shoulder", "arm", "forearm", "hand"]) # hinge
     ex = bone_class_instance(obj, ["arm_hinge"]) # hinge & extras
-    
-    
-    def chain_init():
-        '''
-        Sanity check and return the arm as a list of bone names.
-        '''
-        # do a sanity check
-        mt.arm = orig_bone_name
-        mt.update()
-        
-        mt.shoulder_p = mt.arm_p.parent
-        mt.shoulder = mt.shoulder_p.name
-        
-        if not mt.shoulder_p:
-            print("could not find 'arm' parent, skipping:", orig_bone_name)
-            return
-
-        # We could have some bones attached, find the bone that has this as its 2nd parent
-        hands = []
-        for pbone in obj.pose.bones:
-            index = pbone.parent_index(mt.arm_p)
-            if index == 2:
-                hands.append(pbone)
-
-        if len(hands) > 1:
-            print("more then 1 hand found on:", orig_bone_name)
-            return
-
-        # first add the 2 new bones
-        mt.hand_p = hands[0]
-        mt.hand = mt.hand_p.name
-
-        mt.forearm_p = mt.hand_p.parent
-        mt.forearm = mt.forearm_p.name
     
     arm = obj.data
     
@@ -345,4 +347,6 @@ def main(obj, orig_bone_name):
     chain_shoulder()
     
     # Shoulder with its delta and hinge.
-
+    
+    # TODO - return a list for fk and IK
+    return None

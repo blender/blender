@@ -19,23 +19,39 @@
 import bpy
 from rigify import get_bone_data
 
-def main(obj, delta_name):
+# not used, defined for completeness
+METARIG_NAMES = tuple()
+
+def metarig_definition(obj, orig_bone_name):
     '''
-    Use this bone to define a delta thats applied to its child in pose mode.
+    The bone given is the head, its parent is the body,
+    # its only child the first of a chain with matching basenames.
+    eg.
+        body -> head -> neck_01 -> neck_02 -> neck_03.... etc
     '''
-    
     arm = obj.data
-    
-    mode_orig = obj.mode
-    bpy.ops.object.mode_set(mode='OBJECT')
-    
-    delta_pbone = obj.pose.bones[delta_name]
-    children = delta_pbone.children
+    delta = arm.bones[orig_bone_name]
+    children = delta.children
     
     if len(children) != 1:
         print("only 1 child supported for delta")
     
-    child_name = children[0].name
+    bone_definition = [delta.name, children[0].name]
+    
+    return bone_definition
+
+def main(obj, bone_definition, base_names):
+    '''
+    Use this bone to define a delta thats applied to its child in pose mode.
+    '''
+    
+    mode_orig = obj.mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    delta_name, child_name = bone_definition
+    
+    delta_pbone = obj.pose.bones[delta_name]
+
     arm, child_pbone, child_bone = get_bone_data(obj, child_name)
     
     delta_phead = delta_pbone.head.copy()
@@ -62,7 +78,7 @@ def main(obj, delta_name):
     child_tail = child_ebone.tail.copy()
     
     arm.edit_bones.remove(delta_ebone)
-    del delta_ebone # cant use thz
+    del delta_ebone # cant use this
     
     bpy.ops.object.mode_set(mode='OBJECT')
     
@@ -107,3 +123,6 @@ def main(obj, delta_name):
     
     bpy.ops.object.mode_set(mode=mode_orig)
 
+    # no blendeing
+    return None
+    

@@ -17,10 +17,11 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-from rigify import get_bone_data, empty_layer
+from rigify import get_bone_data, empty_layer, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 from functools import reduce
 
+METARIG_NAMES = "finger_01", "finger_02", "finger_03"
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
@@ -48,13 +49,43 @@ def metarig_template():
     pbone = obj.pose.bones['finger.01']
     pbone['type'] = 'finger'
 
+def metarig_definition(obj, orig_bone_name):
+    '''
+    The bone given is the first in a chain
+    Expects a chain of at least 2 children.
+    eg.
+        finger -> finger_01 -> finger_02
+    '''
+    
+    bone_definition = []
 
-def main(obj, orig_bone_name):
+    orig_bone = obj.data.bones[orig_bone_name]
+
+    bone_definition.append(orig_bone.name)
+    
+    bone = orig_bone
+    chain = 0
+    while chain < 2: # first 2 bones only have 1 child
+        children = bone.children
+
+        if len(children) != 1:
+            raise Exception("expected the chain to have 2 children without a fork")
+        bone = children[0]
+        bone_definition.append(bone.name) # finger_02, finger_03
+        chain += 1
+    
+    if len(bone_definition) != len(METARIG_NAMES):
+        raise Exception("internal problem, expected %d bones" % len(METARIG_NAMES))
+    
+    return bone_definition
+    
+
+def main(obj, bone_definition, base_names):
     
     # *** EDITMODE
     
     # get assosiated data 
-    arm, orig_pbone, orig_ebone = get_bone_data(obj, orig_bone_name)
+    arm, orig_pbone, orig_ebone = get_bone_data(obj, bone_definition[0])
     
     obj.animation_data_create() # needed if its a new armature with no keys
     
@@ -63,22 +94,16 @@ def main(obj, orig_bone_name):
     children = orig_pbone.children_recursive
     tot_len = reduce(lambda f, pbone: f + pbone.bone.length, children, orig_pbone.bone.length)
     
-    base_name = orig_pbone.basename
+    base_name = base_names[bone_definition[0]].rsplit(".", 1)[0]
     
     # first make a new bone at the location of the finger
-    control_ebone = arm.edit_bones.new(base_name)
+    #control_ebone = arm.edit_bones.new(base_name)
+    control_ebone = copy_bone_simple(arm, base_name, base_name)
     control_bone_name = control_ebone.name # we dont know if we get the name requested
     
     control_ebone.connected = orig_ebone.connected
     control_ebone.parent = orig_ebone.parent
-    
-    # Place the finger bone
-    head = orig_ebone.head.copy()
-    tail = orig_ebone.tail.copy()
-    
-    control_ebone.head = head
-    control_ebone.tail = head + ((tail - head).normalize() * tot_len)
-    control_ebone.roll = orig_ebone.roll
+    control_ebone.length = tot_len
     
     # now add bones inbetween this and its children recursively
     
@@ -99,18 +124,9 @@ def main(obj, orig_bone_name):
         driver_bone_name = child_bone_name.split('.')
         driver_bone_name = driver_bone_name[0] + "_driver." + ".".join(driver_bone_name[1:])
         
-        driver_ebone = arm.edit_bones.new(driver_bone_name)
-        driver_bone_name = driver_ebone.name # cant be too sure!
+        driver_ebone = copy_bone_simple(arm, child_ebone.name, driver_bone_name)
+        driver_ebone.length *= 0.5
         driver_ebone.layer = other_layer
-        
-        new_len = pbone_child.bone.length / 2.0
-
-        head = child_ebone.head.copy()
-        tail = child_ebone.tail.copy()
-        
-        driver_ebone.head = head
-        driver_ebone.tail = head + ((tail - head).normalize() * new_len)
-        driver_ebone.roll = child_ebone.roll
         
         # Insert driver_ebone in the chain without connected parents
         driver_ebone.connected = False
@@ -129,7 +145,7 @@ def main(obj, orig_bone_name):
     bpy.ops.object.mode_set(mode='OBJECT')
     
     
-    arm, orig_pbone, orig_bone = get_bone_data(obj, orig_bone_name)
+    arm, orig_pbone, orig_bone = get_bone_data(obj, bone_definition[0])
     arm, control_pbone, control_bone= get_bone_data(obj, control_bone_name)
     
     
@@ -198,4 +214,6 @@ def main(obj, orig_bone_name):
         driver_pbone.lock_rotation = child_pbone.lock_rotation = (False, True, True)
         
         i += 1
-
+    
+    # no blending the result of this
+    return None
