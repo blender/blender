@@ -98,7 +98,7 @@ def main(obj, bone_definition, base_names):
     
     # first make a new bone at the location of the finger
     #control_ebone = arm.edit_bones.new(base_name)
-    control_ebone = copy_bone_simple(arm, base_name, base_name)
+    control_ebone = copy_bone_simple(arm, bone_definition[0], base_name)
     control_bone_name = control_ebone.name # we dont know if we get the name requested
     
     control_ebone.connected = orig_ebone.connected

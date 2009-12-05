@@ -123,10 +123,12 @@ def main(obj, bone_definition, base_names):
     mt.ribcage = bone_definition[1]
     mt.update()
 
-    spine_chain_orig = bone_definition[2:]
+    spine_chain_orig = tuple(bone_definition[2:])
     spine_chain = [arm.edit_bones[child_name] for child_name in spine_chain_orig]
-    spine_chain_basename = base_names[spine_chain[0].name].rsplit(".", 1) # probably 'ORG-spine.01' -> 'spine'
+    spine_chain_basename = base_names[spine_chain[0].name].rsplit(".", 1)[0] # probably 'ORG-spine.01' -> 'spine'
     spine_chain_len = len(spine_chain_orig)
+    print(spine_chain_orig)
+    print(spine_chain_len)
 
     '''
     children = mt.ribcage_e.children
@@ -180,10 +182,6 @@ def main(obj, bone_definition, base_names):
     ex.ribcage_e.translate(Vector(0.0, -ex.ribcage_e.length / 2.0, 0.0))
     ex.ribcage_e.parent = mt.ribcage_e
 
-    # rename!
-    for child in spine_chain:
-        child.name = "ORG-" + child.name
-
     spine_chain = [child.name for child in spine_chain]
 
     # We have 3 spine chains
@@ -198,11 +196,11 @@ def main(obj, bone_definition, base_names):
     del spine_chain_attrs
     
     for i, child_name in enumerate(spine_chain):
-        child_name_orig = spine_chain_orig[i]
+        child_name_orig = base_names[spine_chain_orig[i]]
 
         attr = mt_chain.attr_names[i] # eg. spine_04
 
-        setattr(mt_chain, attr, spine_chain[i]) # use the new name
+        setattr(mt_chain, attr, spine_chain_orig[i]) # the original bone
 
         ebone = copy_bone_simple(arm, child_name, child_name_orig) # use the original name
         setattr(ex_chain, attr, ebone.name)
@@ -210,7 +208,7 @@ def main(obj, bone_definition, base_names):
         ebone = copy_bone_simple(arm, child_name, "MCH-rev_%s" % child_name_orig)
         setattr(rv_chain, attr, ebone.name)
         ebone.connected = False
-
+    
     mt_chain.update()
     ex_chain.update()
     rv_chain.update()
@@ -284,7 +282,7 @@ def main(obj, bone_definition, base_names):
     con.target = obj
     con.subtarget = ex.pelvis
     con.owner_space = 'LOCAL'
-    con.target_space = 'LOCAL'    
+    con.target_space = 'LOCAL'
     
     # df.ribcage_p / DEF-wgt_rib_cage
     con = df.ribcage_p.constraints.new('COPY_ROTATION')
@@ -332,10 +330,14 @@ def main(obj, bone_definition, base_names):
     con = ex.pelvis_p.constraints.new('COPY_LOCATION')
     con.target = obj
     con.subtarget = mt_chain.spine_01
+    con.owner_space = 'WORLD'
+    con.target_space = 'WORLD'
 
     con = ex.pelvis_p.constraints.new('COPY_ROTATION')
     con.target = obj
     con.subtarget = mt_chain.spine_01
+    con.owner_space = 'WORLD'
+    con.target_space = 'WORLD'
     
     # ex.ribcage_p / MCH-wgt_rib_cage
     con = ex.ribcage_p.constraints.new('COPY_LOCATION')
@@ -424,7 +426,7 @@ def main(obj, bone_definition, base_names):
     
     # original bone drivers
     # note: the first bone has a lot more constraints, but also this simple one is first.
-    for i in attr, enumerate(mt_chain.attr_names):
+    for i, attr in enumerate(mt_chain.attr_names):
         spine_p = getattr(mt_chain, attr + "_p")
         
         con = spine_p.constraints.new('COPY_ROTATION')

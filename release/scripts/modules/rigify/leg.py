@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-from rigify import bone_class_instance, copy_bone_simple, copy_bone_simple_list, add_pole_target_bone, add_stretch_to
+from rigify import bone_class_instance, copy_bone_simple, copy_bone_simple_list, add_pole_target_bone, add_stretch_to, blend_bone_list
 from rna_prop_ui import rna_idprop_ui_get, rna_idprop_ui_prop_get
 
 METARIG_NAMES = "hips", "thigh", "shin", "foot", "toe", "heel"
@@ -249,7 +249,9 @@ def ik(obj, bone_definition, base_names):
         else:
             con.minimum_x = -180.0 # XXX -deg
             con.maximum_x = 0.0
-
+    
+    bpy.ops.object.mode_set(mode='EDIT')
+    
     return None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe, None
 
 
@@ -323,5 +325,14 @@ def fk(obj, bone_definition, base_names):
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
     
+    bpy.ops.object.mode_set(mode='EDIT')
+    
     # dont blend the hips or heel
     return None, fk_chain.thigh, fk_chain.shin, fk_chain.foot, fk_chain.toe, None
+
+def main(obj, bone_definition, base_names):
+    bones_ik = ik(obj, bone_definition, base_names)
+    bones_fk = fk(obj, bone_definition, base_names)
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    blend_bone_list(obj, bone_definition, bones_ik, bones_fk)

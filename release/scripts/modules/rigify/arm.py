@@ -338,10 +338,7 @@ def main(obj, definitions, base_names):
         bpy.ops.object.mode_set(mode='EDIT')
         
         # remove the shoulder and re-parent 
-        
-        
-    
-    chain_init()
+
     chain_ik()
     chain_switch()
     chain_shoulder()

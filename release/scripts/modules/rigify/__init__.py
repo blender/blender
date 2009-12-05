@@ -164,7 +164,7 @@ def get_bone_data(obj, bone_name):
 def copy_bone_simple(arm, from_bone, name, parent=False):
     ebone = arm.edit_bones[from_bone]
     ebone_new = arm.edit_bones.new(name)
-    
+
     if parent:
         ebone_new.connected = ebone.connected
         ebone_new.parent = ebone.parent
@@ -429,6 +429,7 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
             
             
             bone_typeinfo = bone_typeinfos.setdefault(bone_name, [])
+
             type_func = getattr(submod, func_name)
             bone_typeinfo.append((submod_name, type_func))
 
