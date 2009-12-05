@@ -25,6 +25,7 @@ StructRNA = bpy_types.Struct.__bases__[0]
 
 
 class Context(StructRNA):
+    __slots__ = ()
 
     def copy(self):
         new_context = {}
@@ -37,6 +38,7 @@ class Context(StructRNA):
 
 
 class Object(bpy_types.ID):
+    __slots__ = ()
 
     @property
     def children(self):
@@ -49,6 +51,7 @@ class _GenericBone:
     functions for bones, common between Armature/Pose/Edit bones.
     internal subclassing use only.
     '''
+    __slots__ = ()
 
     def translate(self, vec):
         self.head += vec
@@ -158,15 +161,15 @@ class _GenericBone:
 
 
 class PoseBone(StructRNA, _GenericBone):
-    pass
+    __slots__ = ()
 
 
 class Bone(StructRNA, _GenericBone):
-    pass
+    __slots__ = ()
 
 
 class EditBone(StructRNA, _GenericBone):
-    pass
+    __slots__ = ()
 
 
 def ord_ind(i1, i2):
@@ -176,6 +179,7 @@ def ord_ind(i1, i2):
 
 
 class Mesh(bpy_types.ID):
+    __slots__ = ()
 
     def from_pydata(self, verts, edges, faces):
         '''
@@ -227,6 +231,7 @@ class Mesh(bpy_types.ID):
 
 
 class MeshEdge(StructRNA):
+    __slots__ = ()
 
     @property
     def key(self):
@@ -234,6 +239,7 @@ class MeshEdge(StructRNA):
 
 
 class MeshFace(StructRNA):
+    __slots__ = ()
 
     @property
     def edge_keys(self):
@@ -259,12 +265,13 @@ class OrderedMeta(type):
 
 # Only defined so operators members can be used by accessing self.order
 class Operator(StructRNA, metaclass=OrderedMeta):
-    pass
+    __slots__ = ()
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):
     # bpy_types is imported before ops is defined
     # so we have to do a local import on each run
+    __slots__ = ()
 
     @classmethod
     def define(self, opname):
@@ -273,6 +280,7 @@ class Macro(StructRNA, metaclass=OrderedMeta):
 
 
 class Menu(StructRNA):
+    __slots__ = ()
 
     def path_menu(self, searchpaths, operator):
         layout = self.layout

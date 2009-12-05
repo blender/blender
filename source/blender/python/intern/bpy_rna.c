@@ -2986,16 +2986,18 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 	if(newclass) {
 		PyObject *base_compare= pyrna_srna_PyBase(srna);
 		PyObject *bases= PyObject_GetAttrString(newclass, "__bases__");
+		//PyObject *slots= PyObject_GetAttrString(newclass, "__slots__"); // cant do this because it gets superclasses values!
+		PyObject *slots = PyDict_GetItemString(((PyTypeObject *)newclass)->tp_dict, "__slots__");
 
-		// XXX - highly dodgy!, this stops blender from creating __dict__ in instances
-		((PyTypeObject *)newclass)->tp_dictoffset = 0;
-
-		if(PyTuple_GET_SIZE(bases)) {
+		if(slots==NULL) {
+			fprintf(stderr, "pyrna_srna_ExternalType: expected class '%s' to have __slots__ defined\n\nSee bpy_types.py\n", idname);
+			newclass= NULL;
+		}
+		else if(PyTuple_GET_SIZE(bases)) {
 			PyObject *base= PyTuple_GET_ITEM(bases, 0);
 
 			if(base_compare != base) {
-				PyLineSpit();
-				fprintf(stderr, "pyrna_srna_ExternalType: incorrect subclassing of SRNA '%s'\n", idname);
+				fprintf(stderr, "pyrna_srna_ExternalType: incorrect subclassing of SRNA '%s'\nSee bpy_types.py\n", idname);
 				PyObSpit("Expected! ", base_compare);
 				newclass= NULL;
 			}
@@ -3038,16 +3040,12 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		if(!descr) descr= "(no docs)";
 		
 		/* always use O not N when calling, N causes refcount errors */
-		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(O){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
+		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(O){sssss()}", idname, py_base, "__module__","bpy.types", "__doc__",descr, "__slots__");
 		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */
 
 		/* PyObSpit("new class ref", newclass); */
 
 		if (newclass) {
-
-			// XXX - highly dodgy!, this stops blender from creating __dict__ in instances
-			((PyTypeObject *)newclass)->tp_dictoffset = 0;
-
 			/* srna owns one, and the other is owned by the caller */
 			pyrna_subtype_set_rna(newclass, srna);
 
