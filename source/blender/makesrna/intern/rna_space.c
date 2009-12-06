@@ -1284,7 +1284,14 @@ static void rna_def_space_graph(BlenderRNA *brna)
 		//{V3D_CENTROID, "MEDIAN_POINT", 0, "Median Point", ""},
 		//{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
-	
+
+	static EnumPropertyItem autosnap_items[] = {
+		{SACTSNAP_OFF, "NONE", 0, "None", ""},
+		{SACTSNAP_STEP, "STEP", 0, "Step", "Snap to 1.0 frame/second intervals."},
+		{SACTSNAP_FRAME, "FRAME", 0, "Frame", "Snap to actual frames/seconds (nla-action time)."},
+		{SACTSNAP_MARKER, "MARKER", 0, "Marker", "Snap to nearest marker."},
+		{0, NULL, 0, NULL, NULL}};
+
 	
 	srna= RNA_def_struct(brna, "SpaceGraphEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceIpo");
@@ -1351,8 +1358,19 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, gpivot_items);
 	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
-	
-	// TODO... autosnap, dopesheet?
+
+	/* dopesheet */
+	prop= RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "DopeSheet");
+	RNA_def_property_pointer_sdna(prop, NULL, "ads");
+	RNA_def_property_ui_text(prop, "DopeSheet", "Settings for filtering animation data.");
+
+	/* autosnap */
+	prop= RNA_def_property(srna, "autosnap", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "autosnap");
+	RNA_def_property_enum_items(prop, autosnap_items);
+	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 }
 
 static void rna_def_space_nla(BlenderRNA *brna)
