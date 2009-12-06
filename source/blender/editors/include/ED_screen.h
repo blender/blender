@@ -134,6 +134,7 @@ int		ED_operator_logic_active(struct bContext *C);
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_object_active_editable(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);
+int		ED_operator_editmesh_view3d(struct bContext *C);
 int		ED_operator_editarmature(struct bContext *C);
 int		ED_operator_editcurve(struct bContext *C);
 int		ED_operator_editsurf(struct bContext *C);
