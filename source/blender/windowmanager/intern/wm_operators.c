@@ -774,6 +774,38 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	return block;
 }
 
+
+static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
+{
+	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op= data->op;
+	PointerRNA ptr;
+	uiBlock *block;
+	uiLayout *layout;
+	uiStyle *style= U.uistyles.first;
+
+	block= uiBeginBlock(C, ar, "opui_popup", UI_EMBOSS);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
+
+	if(op->type->ui)
+		op->type->ui((bContext*)C, op, layout);
+
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+
+	return block;
+}
+
 int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int retval= OPERATOR_CANCELLED;
@@ -785,6 +817,15 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 		uiPupBlock(C, wm_block_create_redo, op);
 
 	return retval;
+}
+
+void WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
+{
+	struct { wmOperator *op; int width; int height; } data;
+	data.op = op;
+	data.width = width;
+	data.height = height;
+	uiPupBlock(C, wm_operator_create_ui, &data);
 }
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
