@@ -622,7 +622,7 @@ static void delete_action_keys (bAnimContext *ac)
 			
 			/* Only delete curve too if it won't be doing anything anymore */
 			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
-				ANIM_fcurve_delete_from_animdata(ac, ale->adt, fcu);
+				ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
 		}
 		//else
 		//	delete_gplayer_frames((bGPDlayer *)ale->data);

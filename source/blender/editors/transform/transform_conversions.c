@@ -2926,11 +2926,11 @@ static void posttrans_gpd_clean (bGPdata *gpd)
  */
 static void posttrans_fcurve_clean (FCurve *fcu)
 {
-	float *selcache;	/* cache for frame numbers of selected frames (icu->totvert*sizeof(float)) */
+	float *selcache;	/* cache for frame numbers of selected frames (fcu->totvert*sizeof(float)) */
 	int len, index, i;	/* number of frames in cache, item index */
 
 	/* allocate memory for the cache */
-	// TODO: investigate using GHash for this instead?
+	// TODO: investigate using BezTriple columns instead?
 	if (fcu->totvert == 0)
 		return;
 	selcache= MEM_callocN(sizeof(float)*fcu->totvert, "FCurveSelFrameNums");
@@ -2996,7 +2996,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
 
-	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached
+	/* loop through relevant data, removing keyframes as appropriate
 	 *  	- all keyframes are converted in/out of global time
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -4773,7 +4773,7 @@ void special_aftertrans_update(TransInfo *t)
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 			
-			/* these should all be ipo-blocks */
+			/* these should all be F-Curves */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
