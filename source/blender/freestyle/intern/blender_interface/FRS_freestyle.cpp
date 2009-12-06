@@ -39,6 +39,9 @@ extern "C" {
 	float freestyle_proj[4][4];
 	int freestyle_viewport[4];
 	
+	// current scene
+	Scene *freestyle_scene;
+
 	string default_module_path;
 
 	//=======================================================
@@ -54,6 +57,7 @@ extern "C" {
 		controller = new Controller();
 		view = new AppView;
 		controller->setView(view);
+		freestyle_scene = NULL;
 			
 		default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
 			
@@ -203,6 +207,7 @@ extern "C" {
 		
 		init_view(re);
 		init_camera(re);
+		freestyle_scene = re->scene;
 		
 		for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl; srl= srl->next) {
 			if( !(srl->layflag & SCE_LAY_DISABLE) &&
@@ -238,6 +243,7 @@ extern "C" {
 			}
 		}
 		
+		freestyle_scene = NULL;
 	}
 
 	//=======================================================

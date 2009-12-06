@@ -10,6 +10,7 @@ extern "C" {
 	
 	#include "BKE_context.h"
 	
+	extern Scene *freestyle_scene;
 	extern float freestyle_viewpoint[3];
 	extern float freestyle_mv[4][4];
 	extern float freestyle_proj[4][4];
