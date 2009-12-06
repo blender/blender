@@ -171,7 +171,7 @@ void ED_operatormacros_mesh(void)
 	wmOperatorTypeMacro *otmacro;
 	int constraint_axis[3] = {0, 0, 1};
 	
-	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loopcut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loop Cut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
 	WM_operatortype_macro_define(ot, "TFM_OT_edge_slide");
 
