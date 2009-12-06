@@ -39,7 +39,6 @@ SET(INC .
 	../python
 	../nodes
 	../gpu
-	../freestyle
 	../blenfont
 	${OPENGL_INCLUDE_DIR}
 )
