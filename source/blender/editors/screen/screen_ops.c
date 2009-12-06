@@ -218,6 +218,12 @@ int ED_operator_object_active(bContext *C)
 	return NULL != CTX_data_active_object(C);
 }
 
+int ED_operator_object_active_editable(bContext *C)
+{
+	Object *ob=CTX_data_active_object(C);
+	return ((ob != NULL) && !(ob->id.lib));
+}
+
 int ED_operator_editmesh(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -1851,7 +1857,8 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_FINISHED;
 			}
 			break;
-			
+		
+		case RIGHTMOUSE:
 		case ESCKEY:
 			return area_join_cancel(C, op);
 	}
@@ -1997,7 +2004,7 @@ static void SCREEN_OT_redo_last(wmOperatorType *ot)
 /* ************** region four-split operator ***************************** */
 
 /* insert a region in the area region list */
-static int region_foursplit_exec(bContext *C, wmOperator *op)
+static int region_quadview_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	
@@ -2069,16 +2076,16 @@ static int region_foursplit_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void SCREEN_OT_region_foursplit(wmOperatorType *ot)
+static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Quad View";
 	ot->description= "Split selected area into camera, front, right & top views.";
-	ot->idname= "SCREEN_OT_region_foursplit";
+	ot->idname= "SCREEN_OT_region_quadview";
 	
 	/* api callbacks */
 //	ot->invoke= WM_operator_confirm;
-	ot->exec= region_foursplit_exec;
+	ot->exec= region_quadview_exec;
 	ot->poll= ED_operator_areaactive;
 	ot->flag= 0;
 }
@@ -3659,7 +3666,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_area_join);
 	WM_operatortype_append(SCREEN_OT_area_dupli);
 	WM_operatortype_append(SCREEN_OT_area_swap);
-	WM_operatortype_append(SCREEN_OT_region_foursplit);
+	WM_operatortype_append(SCREEN_OT_region_quadview);
 	WM_operatortype_append(SCREEN_OT_region_scale);
 	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_header_flip);
@@ -3764,7 +3771,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screencast", F3KEY, KM_PRESS, KM_ALT, 0);
 
 	 /* tests */
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_quadview", QKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);

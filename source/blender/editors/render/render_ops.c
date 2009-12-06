@@ -34,6 +34,10 @@
 
 #include "render_intern.h" // own include
 
+#if (defined(WITH_QUICKTIME) && !defined(USE_QTKIT))
+#include "quicktime_export.h"
+#endif
+
 /***************************** render ***********************************/
 
 void ED_operatortypes_render(void)
@@ -57,6 +61,10 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(SCENE_OT_freestyle_module_move_up);
 	WM_operatortype_append(SCENE_OT_freestyle_module_move_down);
 
+#if (defined(WITH_QUICKTIME) && !defined(USE_QTKIT))
+	WM_operatortype_append(SCENE_OT_render_data_set_quicktime_codec);
+#endif
+	
 	WM_operatortype_append(TEXTURE_OT_slot_move);
 }
 

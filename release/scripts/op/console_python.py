@@ -22,10 +22,12 @@ import bpy
 
 language_id = 'python'
 
+
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
         bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
             type=text_type)
+
 
 def get_console(console_id):
     '''
@@ -69,6 +71,7 @@ def get_console(console_id):
 # Both prompts must be the same length
 PROMPT = '>>> '
 PROMPT_MULTI = '... '
+
 
 def execute(context):
     sc = context.space_data

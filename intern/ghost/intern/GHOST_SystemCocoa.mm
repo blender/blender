@@ -389,6 +389,28 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 	}
 }
 
+#if defined(WITH_QUICKTIME) && !defined(USE_QTKIT)
+//Need to place this quicktime function in an ObjC file
+//It is used to avoid memory leak when raising the quicktime "compression settings" standard dialog
+extern "C" {
+	struct bContext;
+	struct wmOperator;
+	extern int fromcocoa_request_qtcodec_settings(bContext *C, wmOperator *op);
+
+
+int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
+{
+	int result;
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	result = fromcocoa_request_qtcodec_settings(C, op);
+	
+	[pool drain];
+	return result;
+}
+};
+#endif
+
 
 #pragma mark Cocoa objects
 
@@ -403,6 +425,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 - (void)applicationWillTerminate:(NSNotification *)aNotification;
+- (void)applicationWillBecomeActive:(NSNotification *)aNotification;
 @end
 
 @implementation CocoaAppDelegate : NSObject
@@ -435,6 +458,11 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 {
 	/*G.afbreek = 0; //Let Cocoa perform the termination at the end
 	WM_exit(C);*/
+}
+
+- (void)applicationWillBecomeActive:(NSNotification *)aNotification
+{
+	systemCocoa->handleApplicationBecomeActiveEvent();
 }
 @end
 
@@ -529,6 +557,9 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
 				
 				[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
+				
+				menuItem = [windowMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
+				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
 				
 				menuItem = [[NSMenuItem	alloc] init];
 				[menuItem setSubmenu:windowMenu];
@@ -706,13 +737,10 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-	unsigned int modifiers = [[NSApp currentEvent] modifierFlags];
-	//Direct query to modifierFlags can be used in 10.6
-
-    keys.set(GHOST_kModifierKeyCommand, (modifiers & NSCommandKeyMask) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftAlt, (modifiers & NSAlternateKeyMask) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftShift, (modifiers & NSShiftKeyMask) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftControl, (modifiers & NSControlKeyMask) ? true : false);
+	keys.set(GHOST_kModifierKeyCommand, (m_modifierMask & NSCommandKeyMask) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftAlt, (m_modifierMask & NSAlternateKeyMask) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftShift, (m_modifierMask & NSShiftKeyMask) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftControl, (m_modifierMask & NSControlKeyMask) ? true : false);
 	
     return GHOST_kSuccess;
 }
@@ -739,8 +767,6 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 {
 	bool anyProcessed = false;
 	NSEvent *event;
-	
-	m_outsideLoopEventProcessed = false;
 	
 	//	SetMouseCoalescingEnabled(false, NULL);
 	//TODO : implement timer ??
@@ -838,9 +864,55 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		} while (event!= nil);		
 	//} while (waitForEvent && !anyProcessed); Needed only for timer implementation
 	
+	if (m_outsideLoopEventProcessed) {
+		m_outsideLoopEventProcessed = false;
+		return true;
+	}
 	
+    return anyProcessed;
+}
+
+//Note: called from NSApplication delegate
+GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
+{
+	//Update the modifiers key mask, as its status may have changed when the application was not active
+	//(that is when update events are sent to another application)
+	unsigned int modifiers;
+	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+
+#ifdef MAC_OS_X_VERSION_10_6
+	modifiers = [NSEvent modifierFlags];
+#else
+	//If build against an older SDK, check if running on 10.6 to use the correct function
+	if ([NSEvent respondsToSelector:@selector(modifierFlags)]) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+		modifiers = (unsigned int)[NSEvent modifierFlags];
+#else
+		modifiers = (NSUInteger)[NSEvent modifierFlags];
+#endif
+	}
+	else {
+		//TODO: need to find a better workaround for the missing cocoa "getModifierFlag" function in 10.4/10.5
+		modifiers = 0;
+	}
+#endif
 	
-    return anyProcessed || m_outsideLoopEventProcessed;
+	if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
+	}
+	if ((modifiers & NSControlKeyMask) != (m_modifierMask & NSControlKeyMask)) {
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSControlKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl) );
+	}
+	if ((modifiers & NSAlternateKeyMask) != (m_modifierMask & NSAlternateKeyMask)) {
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSAlternateKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
+	}
+	if ((modifiers & NSCommandKeyMask) != (m_modifierMask & NSCommandKeyMask)) {
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
+	}
+	
+	m_modifierMask = modifiers;
+	
+	return GHOST_kSuccess;
 }
 
 //Note: called from NSWindow delegate

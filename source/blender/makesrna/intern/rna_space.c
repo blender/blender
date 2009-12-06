@@ -93,10 +93,12 @@ static EnumPropertyItem transform_orientation_items[] = {
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_paint.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -226,6 +228,12 @@ static void rna_Space3DView_lock_camera_and_layers_set(PointerRNA *ptr, int valu
 	}
 }
 
+static void rna_Space3DView_layer_set(PointerRNA *ptr, const int *values)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	
+	v3d->lay= ED_view3d_scene_layer_set(v3d->lay, values);
+}
 
 /* Space Image Editor */
 
@@ -631,12 +639,12 @@ static void rna_def_background_image(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xof");
-	RNA_def_property_ui_text(prop, "X Offset", "Offsets image horizontally from the view center");
+	RNA_def_property_ui_text(prop, "X Offset", "Offsets image horizontally from the world origin");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yof");
-	RNA_def_property_ui_text(prop, "Y Offset", "Offsets image vertically from the view center");
+	RNA_def_property_ui_text(prop, "Y Offset", "Offsets image vertically from the world origin");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
@@ -661,14 +669,14 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 		{OB_BOUNDBOX, "BOUNDBOX", ICON_BBOX, "Bounding Box", "Display the object's local bounding boxes only"},
 		{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
 		{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid, lit with default OpenGL lights"},
-		{OB_SHADED, "SHADED", ICON_SMOOTH, "Shaded", "Display the object solid, with preview shading interpolated at vertices"},
+		//{OB_SHADED, "SHADED", ICON_SMOOTH, "Shaded", "Display the object solid, with preview shading interpolated at vertices"},
 		{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Textured", "Display the object solid, with face-assigned textures"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem pivot_items[] = {
 		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", ""},
 		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", ""},
-		{V3D_LOCAL, "INDIVIDUAL_CENTERS", ICON_ROTATECOLLECTION, "Individual Centers", ""},
+		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION, "Individual Origins", ""},
 		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point", ""},
 		{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -769,9 +777,9 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Outline Selected", "Show an outline highlight around selected objects in non-wireframe views.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
-	prop= RNA_def_property(srna, "all_object_centers", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "all_object_origins", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DRAW_CENTERS);
-	RNA_def_property_ui_text(prop, "All Object Centers", "Show the object center dot for all (selected and unselected) objects.");
+	RNA_def_property_ui_text(prop, "All Object Origins", "Show the object origin center dot for all (selected and unselected) objects.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "relationship_lines", PROP_BOOLEAN, PROP_NONE);
@@ -862,9 +870,17 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scenelock", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_lock_camera_and_layers_set");
-	RNA_def_property_ui_text(prop, "Lock Camera and Layers", "Lock the active camera and layers to scene.");
+	RNA_def_property_ui_text(prop, "Lock Camera and Layers", "Use the scene's active camera and layers in this view, rather than local layers.");
 	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
+	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
+	RNA_def_property_array(prop, 20);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_layer_set");
+	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible in this 3D View.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
 	prop= RNA_def_property(srna, "used_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_used", 1);
 	RNA_def_property_array(prop, 20);
@@ -1306,6 +1322,11 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "only_selected_curves_handles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_SELCUVERTSONLY);
 	RNA_def_property_ui_text(prop, "Only Selected Curve Keyframes", "Only keyframes of selected F-Curves are visible and editable.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	prop= RNA_def_property(srna, "only_selected_keyframe_handles", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_SELVHANDLESONLY);
+	RNA_def_property_ui_text(prop, "Only Selected Keyframes Handles", "Only show and edit handles of selected keyframes.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	/* editing */

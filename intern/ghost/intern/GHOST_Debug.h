@@ -37,12 +37,17 @@
 #ifdef WIN32
 	#ifdef _DEBUG
 		#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
-		#define GHOST_DEBUG
+		// #define GHOST_DEBUG
 	#endif // _DEBUG
 #endif // WIN32
 
+#ifdef BF_GHOST_DEBUG 
+	#define GHOST_DEBUG // spit ghost events to stdout
+#endif // BF_GHOST_DEBUG 
+
 #ifdef GHOST_DEBUG
 	#include <iostream>
+	#include <stdio.h> //for printf()
 #endif // GHOST_DEBUG
 
 

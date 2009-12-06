@@ -232,6 +232,7 @@ void WM_operator_properties_free(struct PointerRNA *ptr){}
 void WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring){}
 void WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot){}
 void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType*, void*), void *userdata){}
+void WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType*, void*), void *userdata){}
 void WM_operator_bl_idname(char *to, const char *from){}
 void WM_operator_py_idname(char *to, const char *from){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}

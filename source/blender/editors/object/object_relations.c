@@ -475,7 +475,7 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= parent_clear_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -733,7 +733,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	ot->invoke= parent_set_invoke;
 	ot->exec= parent_set_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -788,7 +788,7 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= parent_noinv_set_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

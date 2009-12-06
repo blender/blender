@@ -1041,6 +1041,7 @@ void ambient_occlusion_to_diffuse(ShadeInput *shi, float *diff)
 			}
 			
 			VECMUL(diff, f);
+			madd_v3_v3fl(diff, shi->indirect, R.wrld.ao_indirect_energy*shi->amb);
 		}
 		else
 			diff[0]= diff[1]= diff[2]= 0.0f;

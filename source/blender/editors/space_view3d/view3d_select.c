@@ -1262,13 +1262,17 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 		}
 	}
 }
-static void do_nurbs_box_select(ViewContext *vc, rcti *rect, int select)
+static void do_nurbs_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
 	struct { ViewContext vc; rcti *rect; int select; } data;
 	
 	data.vc = *vc;
 	data.rect = rect;
 	data.select = select;
+
+	if (extend == 0 && select) {
+		CU_deselect_all(vc->obedit);
+	}
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_nurbs_box_select__doSelect, &data);
@@ -1282,13 +1286,17 @@ static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, i
 		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
-static void do_lattice_box_select(ViewContext *vc, rcti *rect, int select)
+static void do_lattice_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
 	struct { ViewContext vc; rcti *rect; int select, pass, done; } data;
 
 	data.vc= *vc;
 	data.rect = rect;
 	data.select = select;
+
+	if (extend == 0 && select) {
+		ED_setflagsLatt(vc->obedit, 0);
+	}
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	lattice_foreachScreenVert(vc, do_lattice_box_select__doSelect, &data);
@@ -1327,7 +1335,7 @@ static void do_mesh_box_select__doSelectFace(void *userData, EditFace *efa, int 
 		EM_select_face_fgon(data->vc.em, efa, data->select);
 	}
 }
-static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
+static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
 	struct { ViewContext vc; rcti *rect; short select, pass, done; } data;
 	ToolSettings *ts= vc->scene->toolsettings;
@@ -1338,6 +1346,11 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 	data.select = select;
 	data.pass = 0;
 	data.done = 0;
+
+	if (extend == 0 && select)
+	{
+		EM_deselect_all(vc->em);
+	}
 
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
@@ -1387,6 +1400,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	unsigned int buffer[4*MAXPICKBUF];
 	int a, index;
+	int extend;
 	short hits, selecting;
 
 	view3d_operator_needs_opengl(C);
@@ -1399,31 +1413,41 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	extend = RNA_boolean_get(op->ptr, "extend");
 	
 	if(obedit==NULL && (paint_facesel_test(OBACT))) {
-		face_borderselect(C, obact, &rect, selecting);
+		face_borderselect(C, obact, &rect, selecting, extend);
 		return OPERATOR_FINISHED;
 	}
 	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
-		return PE_border_select(C, &rect, selecting);
+		return PE_border_select(C, &rect, selecting, extend);
 	}
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
 			vc.em= me->edit_mesh;
-			do_mesh_box_select(&vc, &rect, selecting);
+			do_mesh_box_select(&vc, &rect, selecting, extend);
 //			if (EM_texFaceCheck())
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			
 		}
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-			do_nurbs_box_select(&vc, &rect, selecting);
+			do_nurbs_box_select(&vc, &rect, selecting, extend);
 		}
 		else if(obedit->type==OB_MBALL) {
 			MetaBall *mb = (MetaBall*)obedit->data;
 			hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 			
+			if (extend == 0 && selecting) {
+				ml= mb->editelems->first;
+
+				while(ml) {
+					ml->flag &= ~SELECT;
+					ml= ml->next;
+				}
+			}
+
 			ml= mb->editelems->first;
 			
 			while(ml) {
@@ -1452,6 +1476,17 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			for(ebone= arm->edbo->first; ebone; ebone= ebone->next)
 				ebone->flag &= ~BONE_DONE;
 			
+			if (extend==0 && selecting) {
+				/*	Set the flags */
+				CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
+					/* ignore bone if selection can't change */
+					if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
+						ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+					}
+				}
+				CTX_DATA_END;
+			}
+
 			hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 			
 			/* first we only check points inside the border */
@@ -1500,7 +1535,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			ED_armature_sync_selection(arm->edbo);
 		}
 		else if(obedit->type==OB_LATTICE) {
-			do_lattice_box_select(&vc, &rect, selecting);
+			do_lattice_box_select(&vc, &rect, selecting, extend);
 		}
 	}
 	else {	/* no editmode, unified for bones and objects */
@@ -1516,6 +1551,25 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		else
 			bone_only= 0;
 		
+		if (extend == 0 && selecting) {
+			base= FIRSTBASE;
+
+			if (bone_only) {
+				CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) {
+					pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+				}
+				CTX_DATA_END;
+			} else {
+				while(base) {
+					Base *next = base->next;
+					if(base->lay & v3d->lay) {
+						ED_base_object_select(base, BA_DESELECT);
+					}
+					base= next;
+				}
+			}
+		}
+
 		/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
 		vbuffer = MEM_mallocN(4 * (totobj+MAXPICKBUF) * sizeof(unsigned int), "selection buffer");
 		hits= view3d_opengl_select(&vc, vbuffer, 4*(totobj+MAXPICKBUF), &rect);

@@ -32,13 +32,14 @@ class VIEW3D_HT_header(bpy.types.Header):
         edit_object = context.edit_object
         obj = context.active_object
         toolsettings = context.scene.tool_settings
-        
-        row = layout.row(align=True)
+
+        row = layout.row()
         row.template_header()
+
+        sub = row.row(align=True)
 
         # Menus
         if context.area.show_menus:
-            sub = row.row(align=True)
 
             sub.menu("VIEW3D_MT_view")
 
@@ -49,20 +50,20 @@ class VIEW3D_HT_header(bpy.types.Header):
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif obj:
-                if mode_string not in ['PAINT_WEIGHT', 'PAINT_TEXTURE']:
+                if mode_string not in ('PAINT_WEIGHT'):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
                 sub.menu("VIEW3D_MT_object")
 
-        layout.template_header_3D()
+        row.template_header_3D()
 
         # Particle edit
         if obj and obj.mode == 'PARTICLE_EDIT':
-            layout.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True)
+            row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
 
         # Occlude geometry
         if obj and view.viewport_shading in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
-            layout.prop(view, "occlude_geometry", text="")
+            row.prop(view, "occlude_geometry", text="")
 
         # Proportional editing
         if obj and obj.mode in ('OBJECT', 'EDIT'):
@@ -76,7 +77,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         row.prop(toolsettings, "snap", text="")
         row.prop(toolsettings, "snap_element", text="", icon_only=True)
         if toolsettings.snap_element != 'INCREMENT':
-            row.prop(toolsettings, "snap_target", text="", icon_only=True)
+            row.prop(toolsettings, "snap_target", text="")
             if obj and obj.mode == 'OBJECT':
                 row.prop(toolsettings, "snap_align_rotation", text="")
         if toolsettings.snap_element == 'VOLUME':
@@ -139,16 +140,16 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         if context.edit_object and context.edit_object.type == 'ARMATURE':
             layout.operator("armature.align")
         else:
-            layout.operator_context = 'EXEC_AREA'
+            layout.operator_context = 'EXEC_REGION_WIN'
             layout.operator("tfm.transform", text="Align to Transform Orientation").mode = 'ALIGN' # XXX see alignmenu() in edit.c of b2.4x to get this working
 
         layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
 
-        layout.operator("object.center_set", text="ObData to Centroid").type = 'CENTER'
-        layout.operator("object.center_set", text="Centroid to ObData").type = 'CENTER_NEW'
-        layout.operator("object.center_set", text="Centroid to 3D Cursor").type = 'CENTER_CURSOR'
+        layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
+        layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
+        layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
 
 
 class VIEW3D_MT_mirror(bpy.types.Menu):
@@ -195,7 +196,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
 
         layout.operator("view3d.snap_selected_to_grid", text="Selection to Grid")
         layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor")
-        layout.operator("view3d.snap_selected_to_center", text="Selection to Center")
+        layout.operator("view3d.snap_selected_to_center", text="Selection to Origin")
 
         layout.separator()
 
@@ -269,12 +270,13 @@ class VIEW3D_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("screen.region_foursplit", text="Toggle Quad View")
-        layout.operator("screen.screen_full_area", text="Toggle Full Screen")
+        layout.operator("screen.animation_play", text="Playback Animation")
 
         layout.separator()
 
-        layout.operator("screen.animation_play", text="Playback Animation", icon='ICON_PLAY')
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.region_quadview")
+        layout.operator("screen.screen_full_area")
 
 
 class VIEW3D_MT_view_navigation(bpy.types.Menu):
@@ -364,7 +366,7 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("object.select_all_toggle", text="Select/Deselect All")
+        layout.operator("object.select_all", text="Select/Deselect All")
         layout.operator("object.select_inverse", text="Inverse")
         layout.operator("object.select_random", text="Random")
         layout.operator("object.select_mirror", text="Mirror")
@@ -388,7 +390,7 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("pose.select_all_toggle", text="Select/Deselect All")
+        layout.operator("pose.select_all", text="Select/Deselect All")
         layout.operator("pose.select_inverse", text="Inverse")
         layout.operator("pose.select_constraint_target", text="Constraint Target")
         layout.operator("pose.select_linked", text="Linked")
@@ -408,6 +410,8 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
         props.extend = True
         props.direction = 'CHILD'
 
+        layout.operator("object.select_pattern", text="Select Pattern...")
+
 
 class VIEW3D_MT_select_particle(bpy.types.Menu):
     bl_label = "Select"
@@ -419,7 +423,7 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("particle.select_all_toggle", text="Select/Deselect All")
+        layout.operator("particle.select_all", text="Select/Deselect All")
         layout.operator("particle.select_linked")
         layout.operator("particle.select_inverse")
 
@@ -445,7 +449,7 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_all_toggle", text="Select/Deselect All")
+        layout.operator("mesh.select_all", text="Select/Deselect All")
         layout.operator("mesh.select_inverse", text="Inverse")
 
         layout.separator()
@@ -494,7 +498,7 @@ class VIEW3D_MT_select_edit_curve(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("curve.select_all_toggle", text="Select/Deselect All")
+        layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
         layout.operator("curve.select_every_nth")
@@ -523,7 +527,7 @@ class VIEW3D_MT_select_edit_surface(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("curve.select_all_toggle", text="Select/Deselect All")
+        layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
         layout.operator("curve.select_every_nth")
@@ -566,7 +570,7 @@ class VIEW3D_MT_select_edit_lattice(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("lattice.select_all_toggle", text="Select/Deselect All")
+        layout.operator("lattice.select_all", text="Select/Deselect All")
 
 
 class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
@@ -580,7 +584,7 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("armature.select_all_toggle", text="Select/Deselect All")
+        layout.operator("armature.select_all", text="Select/Deselect All")
         layout.operator("armature.select_inverse", text="Inverse")
 
         layout.separator()
@@ -597,6 +601,8 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
         props = layout.operator("armature.select_hierarchy", text="Extend Child")
         props.extend = True
         props.direction = 'CHILD'
+
+        layout.operator("object.select_pattern", text="Select Pattern...")
 
 
 class VIEW3D_MT_select_face(bpy.types.Menu):# XXX no matching enum
@@ -1621,7 +1627,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         col.prop(view, "display_y_axis", text="Y Axis")
         col.prop(view, "display_z_axis", text="Z Axis")
         col.prop(view, "outline_selected")
-        col.prop(view, "all_object_centers")
+        col.prop(view, "all_object_origins")
         col.prop(view, "relationship_lines")
         if ob and ob.type == 'MESH':
             mesh = ob.data

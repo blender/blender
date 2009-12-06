@@ -22,6 +22,20 @@ subject to the following restrictions:
 struct KX_ClientObjectInfo;
 class PHY_Shape;
 
+struct	PHY__Vector2
+{
+	float	m_vec[2];
+
+	operator const float* () const 
+	{ 
+		return &m_vec[0];
+	}	
+	operator float* () 
+	{ 
+		return &m_vec[0];
+	}	
+};
+
 struct	PHY__Vector3
 {
 	float	m_vec[4];

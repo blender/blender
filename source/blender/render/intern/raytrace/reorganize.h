@@ -26,12 +26,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
 #include <stdio.h>
 #include <algorithm>
 #include <math.h>
 #include <vector>
 #include <queue>
+
+#ifdef _WIN32
+#define INFINITY FLT_MAX // in mingw math.h: (1.0F/0.0F). This generates compile error, though.
+#endif
 
 extern int tot_pushup;
 extern int tot_pushdown;

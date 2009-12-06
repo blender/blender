@@ -16,7 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
+
 
 def collect_baseclasses(_class, bases):
 
@@ -29,6 +32,7 @@ def collect_baseclasses(_class, bases):
 
     return bases
 
+
 def collect_subclasses(_class, subs):
 
     if _class is type or _class is object:
@@ -39,6 +43,7 @@ def collect_subclasses(_class, subs):
         collect_subclasses(_subclass, subs)
 
     return subs
+
 
 class DynMenu(bpy.types.Menu):
 
@@ -60,6 +65,7 @@ class DynMenu(bpy.types.Menu):
             # print("drawwing", subclass) # , dir(subclass))
             subclass.internal_draw(self, context)
             # print("subclass.internal_draw", subclass.internal_draw)
+
 
 def setup(menu_class):
     '''
@@ -87,6 +93,7 @@ def setup(menu_class):
             subclass.internal_draw = draw
 
     root_class.draw = DynMenu.draw
+
 
 def add(menu_class, func):
     '''

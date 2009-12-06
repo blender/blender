@@ -32,6 +32,8 @@
 
 #include "ED_transform.h"
 
+#include "DNA_listBase.h"
+
 #include "BLI_editVert.h"
 
 /* ************************** Types ***************************** */
@@ -82,10 +84,15 @@ typedef struct NumInput {
 		Negative	: number is negative
 */
 
+typedef struct TransSnapPoint {
+	struct TransSnapPoint *next,*prev;
+	float co[3];
+} TransSnapPoint;
+
 typedef struct TransSnap {
 	short	mode;
+	short	target;
 	short	modePoint;
-	short	modeTarget;
 	short	modeSelect;
 	short	align;
 	short	project;
@@ -95,6 +102,7 @@ typedef struct TransSnap {
 	float	snapTarget[3]; /* to this point */
 	float	snapNormal[3];
 	float	snapTangent[3];
+	ListBase points;
 	float	dist; // Distance from snapPoint to snapTarget
 	double	last;
 	void  (*applySnap)(struct TransInfo *, float *);
@@ -374,7 +382,8 @@ typedef struct TransInfo {
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02
 #define	MOD_SNAP				0x04
-#define	MOD_CONSTRAINT_PLANE	0x08
+#define	MOD_SNAP_INVERT			0x08
+#define	MOD_CONSTRAINT_PLANE	0x10
 
 
 /* ******************************************************************************** */
@@ -417,13 +426,7 @@ typedef struct TransInfo {
 #define SNAP_FORCED		1
 #define TARGET_INIT		2
 #define POINT_INIT		4
-
-/* transsnap->modeTarget */
-#define SNAP_CLOSEST		0
-#define SNAP_CENTER			1
-#define SNAP_MEDIAN			2
-#define SNAP_ACTIVE			3
-
+#define MULTI_POINTS	8
 
 void TFM_OT_transform(struct wmOperatorType *ot);
 
@@ -588,6 +591,9 @@ typedef enum {
 void snapGrid(TransInfo *t, float *val);
 void snapGridAction(TransInfo *t, float *val, GearsType action);
 
+int activeSnap(TransInfo *t);
+int validSnap(TransInfo *t);
+
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applyProject(TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
@@ -596,6 +602,10 @@ int  handleSnapping(TransInfo *t, struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);
 int usingSnappingNormal(TransInfo *t);
 int validSnappingNormal(TransInfo *t);
+
+void getSnapPoint(TransInfo *t, float vec[3]);
+void addSnapPoint(TransInfo *t);
+void removeSnapPoint(TransInfo *t);
 
 /********************** Mouse Input ******************************/
 

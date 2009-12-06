@@ -486,7 +486,7 @@ def write(filename, batch_objects = None, \
 			self.blenBone =			blenBone
 			self.blenMeshes =		{}					# fbxMeshObName : mesh
 			self.fbxArm =			fbxArm
-			self.restMatrix =		blenBone.armature_matrix
+			self.restMatrix =		blenBone.matrix_local
 # 			self.restMatrix =		blenBone.matrix['ARMATURESPACE']
 			
 			# not used yet
@@ -664,13 +664,13 @@ def write(filename, batch_objects = None, \
 			
 			# we know we have a matrix
 			# matrix = mtx4_z90 * (ob.matrix['ARMATURESPACE'] * matrix_mod)
-			matrix = mtx4_z90 * ob.armature_matrix # dont apply armature matrix anymore
+			matrix = mtx4_z90 * ob.matrix_local # dont apply armature matrix anymore
 # 			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 			
 			parent = ob.parent
 			if parent:
 				#par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
-				par_matrix = mtx4_z90 * parent.armature_matrix # dont apply armature matrix anymore
+				par_matrix = mtx4_z90 * parent.matrix_local # dont apply armature matrix anymore
 # 				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 				matrix = matrix * par_matrix.copy().invert()
 				
@@ -841,7 +841,7 @@ def write(filename, batch_objects = None, \
 		"""
 		
 		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %
-				   (my_bone.blenBone.armature_head - my_bone.blenBone.armature_tail).length)
+				   (my_bone.blenBone.head_local - my_bone.blenBone.tail_local).length)
 # 			(my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']).length)
 		
 		#file.write('\n\t\t\tProperty: "LimbLength", "double", "",1')

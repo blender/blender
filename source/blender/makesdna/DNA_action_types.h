@@ -244,7 +244,7 @@ typedef enum eRotationModes {
  * though there is a define for it (hack for the outliner).
  */
 typedef struct bPose {
-	ListBase chanbase; 			/* list of pose channels */
+	ListBase chanbase; 			/* list of pose channels, PoseBones in RNA */
 	
 	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
 	

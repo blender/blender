@@ -112,6 +112,7 @@ wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
+void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi);
 
 wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, struct EnumPropertyItem *items);
 wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, char *idname);
@@ -167,6 +168,7 @@ int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
 int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
+void		WM_operator_ui_popup	(struct bContext *C, struct wmOperator *op, int width, int height);
 
 int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, char *message);
 
@@ -179,6 +181,7 @@ wmOperatorType *WM_operatortype_exists(const char *idname);
 wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
+void		WM_operatortype_append_macro_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
 wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
@@ -197,6 +200,13 @@ void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperato
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
 void		WM_operator_properties_gesture_border(wmOperatorType *ot, int extend);
+void		WM_operator_properties_select_all(wmOperatorType *ot);
+
+/* MOVE THIS SOMEWHERE ELSE */
+#define	SEL_TOGGLE		0
+#define	SEL_SELECT		1
+#define SEL_DESELECT	2
+#define SEL_INVERT		3
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);

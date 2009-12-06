@@ -1738,19 +1738,22 @@ static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObjec
 	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
 	
 	if (prop==NULL) {
+		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
+#if 0
 		// XXX - This currently allows anything to be assigned to an rna prop, need to see how this should be used
 		// but for now it makes porting scripts confusing since it fails silently.
 		// edit: allowing this for setting classes internal attributes.
 		// edit: allow this for any attribute that alredy exists as a python attr
 		if (	(name[0]=='_' /* || pyrna_struct_pydict_contains(self, pyname) */ ) &&
 				!BPy_StructRNA_CheckExact(self) &&
-				PyObject_GenericSetAttr((PyObject *)self, pyname, value) >= 0) {
+
 			return 0;
 		} else
 		{
 			PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%.200s\" not found", name);
 			return -1;
 		}
+#endif
 	}		
 	
 	if (!RNA_property_editable(&self->ptr, prop)) {
@@ -2983,13 +2986,18 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 	if(newclass) {
 		PyObject *base_compare= pyrna_srna_PyBase(srna);
 		PyObject *bases= PyObject_GetAttrString(newclass, "__bases__");
+		//PyObject *slots= PyObject_GetAttrString(newclass, "__slots__"); // cant do this because it gets superclasses values!
+		PyObject *slots = PyDict_GetItemString(((PyTypeObject *)newclass)->tp_dict, "__slots__");
 
-		if(PyTuple_GET_SIZE(bases)) {
+		if(slots==NULL) {
+			fprintf(stderr, "pyrna_srna_ExternalType: expected class '%s' to have __slots__ defined\n\nSee bpy_types.py\n", idname);
+			newclass= NULL;
+		}
+		else if(PyTuple_GET_SIZE(bases)) {
 			PyObject *base= PyTuple_GET_ITEM(bases, 0);
 
 			if(base_compare != base) {
-				PyLineSpit();
-				fprintf(stderr, "pyrna_srna_ExternalType: incorrect subclassing of SRNA '%s'\n", idname);
+				fprintf(stderr, "pyrna_srna_ExternalType: incorrect subclassing of SRNA '%s'\nSee bpy_types.py\n", idname);
 				PyObSpit("Expected! ", base_compare);
 				newclass= NULL;
 			}
@@ -3032,13 +3040,12 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		if(!descr) descr= "(no docs)";
 		
 		/* always use O not N when calling, N causes refcount errors */
-		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(O){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
+		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(O){sssss()}", idname, py_base, "__module__","bpy.types", "__doc__",descr, "__slots__");
 		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */
 
 		/* PyObSpit("new class ref", newclass); */
 
 		if (newclass) {
-
 			/* srna owns one, and the other is owned by the caller */
 			pyrna_subtype_set_rna(newclass, srna);
 

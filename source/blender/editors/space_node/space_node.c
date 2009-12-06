@@ -182,6 +182,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_MATERIAL:
 			if(wmn->data==ND_SHADING)
 				ED_area_tag_refresh(sa);
+			else if(wmn->data==ND_SHADING_DRAW)
+				ED_area_tag_refresh(sa);
 			break;
 		case NC_TEXTURE:
 			if(wmn->data==ND_NODES)

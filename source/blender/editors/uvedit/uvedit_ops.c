@@ -1323,7 +1323,7 @@ void UV_OT_select_inverse(wmOperatorType *ot)
 
 /* ******************** (de)select all operator **************** */
 
-static int de_select_all_exec(bContext *C, wmOperator *op)
+static int select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene;
 	ToolSettings *ts;
@@ -1332,7 +1332,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	EditFace *efa;
 	Image *ima;
 	MTFace *tf;
-	int sel;
+	int action = RNA_enum_get(op->ptr, "action");
 	
 	scene= CTX_data_scene(C);
 	ts= CTX_data_tool_settings(C);
@@ -1341,18 +1341,33 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	ima= CTX_data_edit_image(C);
 	
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		EM_toggle_select_all(em);
+		switch (action) {
+		case SEL_TOGGLE:
+			EM_toggle_select_all(em);
+			break;
+		case SEL_SELECT:
+			EM_select_all(em);
+			break;
+		case SEL_DESELECT:
+			EM_deselect_all(em);
+			break;
+		case SEL_INVERT:
+			EM_select_swap(em);
+			break;
+		}
 	}
 	else {
-		sel= 0;
 
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (action == SEL_TOGGLE) {
+			action = SEL_SELECT;
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(tf->flag & (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4)) {
-					sel= 1;
-					break;
+				if(uvedit_face_visible(scene, ima, efa, tf)) {
+					if(tf->flag & (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4)) {
+						action = SEL_DESELECT;
+						break;
+					}
 				}
 			}
 		}
@@ -1361,13 +1376,27 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(efa->v4) {
-					if(sel) tf->flag &= ~(TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
-					else tf->flag |= (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
-				}
-				else {
-					if(sel) tf->flag &= ~(TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
-					else tf->flag |= (TF_SEL1+TF_SEL2+TF_SEL3);
+				char select_flag;
+
+				if(efa->v4)
+					select_flag = (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
+				else
+					select_flag = (TF_SEL1+TF_SEL2+TF_SEL3);
+
+				switch (action) {
+				case SEL_SELECT:
+					tf->flag |= select_flag;
+					break;
+				case SEL_DESELECT:
+					tf->flag &= ~select_flag;
+					break;
+				case SEL_INVERT:
+					if ((tf->flag & select_flag) == select_flag) {
+						tf->flag &= ~select_flag;
+					} else {
+						tf->flag &= ~select_flag;
+					}
+					break;
 				}
 			}
 		}
@@ -1379,17 +1408,19 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void UV_OT_select_all_toggle(wmOperatorType *ot)
+void UV_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->description= "(de)select all UV vertices.";
-	ot->idname= "UV_OT_select_all_toggle";
+	ot->description= "Change selection of all UV vertices.";
+	ot->idname= "UV_OT_select_all";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= de_select_all_exec;
+	ot->exec= select_all_exec;
 	ot->poll= ED_operator_uvedit;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /* ******************** mouse select operator **************** */
@@ -3065,7 +3096,7 @@ void UV_OT_tile_set(wmOperatorType *ot)
 
 void ED_operatortypes_uvedit(void)
 {
-	WM_operatortype_append(UV_OT_select_all_toggle);
+	WM_operatortype_append(UV_OT_select_all);
 	WM_operatortype_append(UV_OT_select_inverse);
 	WM_operatortype_append(UV_OT_select);
 	WM_operatortype_append(UV_OT_select_loop);
@@ -3121,7 +3152,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	/* selection manipulation */
 	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "UV_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);
 

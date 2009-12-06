@@ -39,6 +39,7 @@
 #endif
 
 #include "GHOST_SystemWin32.h"
+#include "GHOST_EventDragnDrop.h"
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
@@ -138,10 +139,15 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	m_displayManager = new GHOST_DisplayManagerWin32 ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
+	
+	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
+	OleInitialize(0);
 }
 
 GHOST_SystemWin32::~GHOST_SystemWin32()
 {
+	// Shutdown COM
+	OleUninitialize();
 }
 
 
@@ -187,7 +193,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	bool stereoVisual, const GHOST_TEmbedderWindowID parentWindow )
 {
 	GHOST_Window* window = 0;
-	window = new GHOST_WindowWin32 (title, left, top, width, height, state, type, stereoVisual);
+	window = new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual);
 	if (window) {
 		if (window->getValid()) {
 			// Store the pointer to the window
@@ -248,10 +254,12 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 GHOST_TSuccess GHOST_SystemWin32::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
 	POINT point;
-	::GetCursorPos(&point);
-	x = point.x;
-	y = point.y;
-	return GHOST_kSuccess;
+	if(::GetCursorPos(&point)){
+		x = point.x;
+		y = point.y;
+		return GHOST_kSuccess;
+	}
+	return GHOST_kFailure;
 }
 
 
@@ -499,11 +507,56 @@ GHOST_EventButton* GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, 
 }
 
 
-GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *window)
+GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow)
 {
-	GHOST_TInt32 x, y;
-	getSystem()->getCursorPosition(x, y);
-	return new GHOST_EventCursor (getSystem()->getMilliSeconds(), type, window, x, y);
+	GHOST_TInt32 x_screen, y_screen;
+	GHOST_SystemWin32 * system = ((GHOST_SystemWin32 * ) getSystem());
+	GHOST_WindowWin32 * window = ( GHOST_WindowWin32 * ) Iwindow;
+	
+	system->getCursorPosition(x_screen, y_screen);
+
+	if(window->getCursorGrabMode() != GHOST_kGrabDisable && window->getCursorGrabMode() != GHOST_kGrabNormal)
+	{
+		GHOST_TInt32 x_new= x_screen;
+		GHOST_TInt32 y_new= y_screen;
+		GHOST_TInt32 x_accum, y_accum;
+		GHOST_Rect bounds;
+
+		/* fallback to window bounds */
+		if(window->getCursorGrabBounds(bounds)==GHOST_kFailure){
+			window->getClientBounds(bounds);
+		}
+
+		/* could also clamp to screen bounds
+		 * wrap with a window outside the view will fail atm  */
+
+		bounds.wrapPoint(x_new, y_new, 2); /* offset of one incase blender is at screen bounds */
+
+		window->getCursorGrabAccum(x_accum, y_accum);
+		if(x_new != x_screen|| y_new != y_screen) {
+			/* when wrapping we don't need to add an event because the
+			 * setCursorPosition call will cause a new event after */
+			system->setCursorPosition(x_new, y_new); /* wrap */
+			window->setCursorGrabAccum(x_accum + (x_screen - x_new), y_accum + (y_screen - y_new));
+		}else{
+			return new GHOST_EventCursor(system->getMilliSeconds(),
+										 GHOST_kEventCursorMove,
+										 window,
+										 x_screen + x_accum,
+										 y_screen + y_accum
+			);
+		}
+
+	}
+	else {
+		return new GHOST_EventCursor(system->getMilliSeconds(),
+									 GHOST_kEventCursorMove,
+									 window,
+									 x_screen,
+									 y_screen
+		);
+	}
+	return NULL;
 }
 
 
@@ -547,6 +600,26 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool k
 GHOST_Event* GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_IWindow* window)
 {
 	return new GHOST_Event(getSystem()->getMilliSeconds(), type, window);
+}
+
+GHOST_TSuccess GHOST_SystemWin32::pushDragDropEvent(GHOST_TEventType eventType, 
+													GHOST_TDragnDropTypes draggedObjectType,
+													GHOST_IWindow* window,
+													int mouseX, int mouseY,
+													void* data)
+{
+	GHOST_SystemWin32* system = ((GHOST_SystemWin32*)getSystem());
+	return system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
+													  eventType,
+													  draggedObjectType,
+													  window,mouseX,mouseY,data)
+			);
+}
+
+void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
+{
+	minmax->ptMinTrackSize.x=320;
+	minmax->ptMinTrackSize.y=240;
 }
 
 
@@ -792,6 +865,15 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 */
 					event = processWindowEvent(GHOST_kEventWindowUpdate, window);
 					::ValidateRect(hwnd, NULL);
+					break;
+				case WM_GETMINMAXINFO:
+					/* The WM_GETMINMAXINFO message is sent to a window when the size or 
+					 * position of the window is about to change. An application can use 
+					 * this message to override the window's default maximized size and 
+					 * position, or its default minimum or maximum tracking size. 
+					 */
+					processMinMaxInfo((MINMAXINFO *) lParam);
+					/* Let DefWindowProc handle it. */
 					break;
 				case WM_SIZE:
 					/* The WM_SIZE message is sent to a window after its size has changed.

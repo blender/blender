@@ -273,22 +273,24 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 }
 
 
-static int face_deselect_all_exec(bContext *C, wmOperator *op)
+static int face_select_all_exec(bContext *C, wmOperator *op)
 {
-	deselectall_tface(CTX_data_active_object(C));
+	selectall_tface(CTX_data_active_object(C), RNA_enum_get(op->ptr, "action"));
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
 
 
-void PAINT_OT_face_deselect_all(wmOperatorType *ot)
+void PAINT_OT_face_select_all(wmOperatorType *ot)
 {
-	ot->name= "Select Linked";
-    ot->description= "Select linked faces under the mouse.";
-	ot->idname= "PAINT_OT_face_deselect_all";
+	ot->name= "Face Selection";
+    ot->description= "Change selection for all faces.";
+	ot->idname= "PAINT_OT_face_select_all";
 
-	ot->exec= face_deselect_all_exec;
+	ot->exec= face_select_all_exec;
 	ot->poll= facemask_paint_poll;
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }

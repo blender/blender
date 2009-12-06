@@ -2155,7 +2155,7 @@ static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay
 		for(win=wm->windows.first; win; win=win->next) {
 			if(win->screen) {
 				if(!*sce) *sce= win->screen->scene;
-				*lay |= BKE_screen_visible_layers(win->screen);
+				*lay |= BKE_screen_visible_layers(win->screen, win->screen->scene);
 			}
 		}
 	}

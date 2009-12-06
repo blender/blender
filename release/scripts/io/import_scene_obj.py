@@ -1277,7 +1277,7 @@ def load_obj(filepath,
 	
 	# deselect all
 # 	if context.selected_objects:
-# 		bpy.ops.OBJECT_OT_select_all_toggle()
+# 		bpy.ops.OBJECT_OT_select_all()
 
 	scene = context.scene
 # 	scn = bpy.data.scenes.active
@@ -1640,5 +1640,5 @@ menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 # search image in bpy.config.textureDir - load_image
 # replaced BPyImage.comprehensiveImageLoad with a simplified version that only checks additional directory specified, but doesn't search dirs recursively (obj_image_load)
 # bitmask won't work? - 132
-# uses operator bpy.ops.OBJECT_OT_select_all_toggle() to deselect all (not necessary?)
+# uses operator bpy.ops.OBJECT_OT_select_all() to deselect all (not necessary?)
 # uses bpy.sys.time()

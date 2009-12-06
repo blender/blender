@@ -537,15 +537,9 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short th
 		/* the fraction of how far we are above the bottom of the screen */
 		blend= fabs(0.5+ view[1]);
 	}
-	
-	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-		color_manage_linearize(hor, &R.wrld.horr);
-		color_manage_linearize(zen, &R.wrld.zenr);
-	}
-	else {
-		VECCOPY(hor, &R.wrld.horr);
-		VECCOPY(zen, &R.wrld.zenr);
-	}
+
+	VECCOPY(hor, &R.wrld.horr);
+	VECCOPY(zen, &R.wrld.zenr);
 
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and color blend are added.           */
@@ -633,10 +627,7 @@ void shadeSkyPixel(float *collector, float fx, float fy, short thread)
 	} 
 	else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/* 2. solid color */
-		if(R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
-			color_manage_linearize(collector, &R.wrld.horr);
-		else
-			VECCOPY(collector, &R.wrld.horr);
+		VECCOPY(collector, &R.wrld.horr);
 
 		collector[3] = 0.0f;
 	} 

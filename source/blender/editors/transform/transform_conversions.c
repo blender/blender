@@ -1056,7 +1056,15 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 	ListBase *edbo = arm->edbo;
 	TransData *td;
 	float mtx[3][3], smtx[3][3], delta[3], bonemat[3][3];
-
+	
+	/* special hack for envelope drawmode and scaling:
+	 * 	to allow scaling the size of the envelope around single points,
+	 *	mode should become TFM_BONE_ENVELOPE in this case
+	 */
+	// TODO: maybe we need a separate hotkey for it, but this is consistent with 2.4x for now
+	if ((t->mode == TFM_RESIZE) && (arm->drawtype==ARM_ENVELOPE))
+		t->mode= TFM_BONE_ENVELOPE;
+	
 	t->total = 0;
 	for (ebo = edbo->first; ebo; ebo = ebo->next)
 	{
@@ -2918,11 +2926,11 @@ static void posttrans_gpd_clean (bGPdata *gpd)
  */
 static void posttrans_fcurve_clean (FCurve *fcu)
 {
-	float *selcache;	/* cache for frame numbers of selected frames (icu->totvert*sizeof(float)) */
+	float *selcache;	/* cache for frame numbers of selected frames (fcu->totvert*sizeof(float)) */
 	int len, index, i;	/* number of frames in cache, item index */
 
 	/* allocate memory for the cache */
-	// TODO: investigate using GHash for this instead?
+	// TODO: investigate using BezTriple columns instead?
 	if (fcu->totvert == 0)
 		return;
 	selcache= MEM_callocN(sizeof(float)*fcu->totvert, "FCurveSelFrameNums");
@@ -2988,7 +2996,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
 
-	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached
+	/* loop through relevant data, removing keyframes as appropriate
 	 *  	- all keyframes are converted in/out of global time
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -4765,7 +4773,7 @@ void special_aftertrans_update(TransInfo *t)
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 			
-			/* these should all be ipo-blocks */
+			/* these should all be F-Curves */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
@@ -5316,9 +5324,6 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 	}
 	else {
-		// t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
-		t->options |= CTX_NO_PET;
-		
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
 

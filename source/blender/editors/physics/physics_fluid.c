@@ -1200,6 +1200,6 @@ void FLUID_OT_bake(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= fluid_bake_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 }
 

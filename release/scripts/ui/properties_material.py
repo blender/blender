@@ -495,7 +495,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         col.prop(sss, "ior")
         col.prop(sss, "scale")
         col.prop(sss, "color", text="")
-        col.prop(sss, "radius", text="RGB Radius")
+        col.prop(sss, "radius", text="RGB Radius", expand=True)
 
         if wide_ui:
             col = split.column()

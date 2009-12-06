@@ -693,7 +693,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 		return quatitem[index];
 	else if((index < 4) && ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION))
 		return vectoritem[index];
-	else if ((index < 4) && ELEM(subtype, PROP_COLOR, PROP_RGB))
+	else if ((index < 4) && ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA))
 		return coloritem[index];
 
 	return '\0';
@@ -731,7 +731,7 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name)
 				return 3;
 		}
 	}
-	else if (ELEM(subtype, PROP_COLOR, PROP_RGB)) {
+	else if (ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA)) {
 		switch (name) {
 			case 'R':
 				return 0;

@@ -90,7 +90,8 @@ void TIME_OT_start_frame_set (wmOperatorType *ot)
 	ot->exec= time_set_sfra_exec;
 	ot->poll= ED_operator_timeline_active;
 	
-	// XXX properties???
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }	
 
 
@@ -129,7 +130,50 @@ void TIME_OT_end_frame_set (wmOperatorType *ot)
 	ot->exec= time_set_efra_exec;
 	ot->poll= ED_operator_timeline_active;
 	
-	// XXX properties???
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************ View All Operator *******************************/
+
+static int time_view_all_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	View2D *v2d= (ar) ? &ar->v2d : NULL;
+	float extra;
+	
+	if ELEM(NULL, scene, ar)
+		return OPERATOR_CANCELLED;
+		
+	/* set extents of view to start/end frames (Preview Range too) */
+	v2d->cur.xmin= (float)PSFRA;
+	v2d->cur.xmax= (float)PEFRA;
+	
+	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
+	extra= 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
+	v2d->cur.xmin -= extra;
+	v2d->cur.xmax += extra;
+	
+	/* this only affects this TimeLine instance, so just force redraw of this region */
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void TIME_OT_view_all (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View All";
+	ot->idname= "TIME_OT_view_all";
+	ot->description= "Show the entire playable frame range";
+	
+	/* api callbacks */
+	ot->exec= time_view_all_exec;
+	ot->poll= ED_operator_timeline_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************** registration **********************************/
@@ -138,6 +182,7 @@ void time_operatortypes(void)
 {
 	WM_operatortype_append(TIME_OT_start_frame_set);
 	WM_operatortype_append(TIME_OT_end_frame_set);
+	WM_operatortype_append(TIME_OT_view_all);
 }
 
 void time_keymap(wmKeyConfig *keyconf)
@@ -146,5 +191,6 @@ void time_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "TIME_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TIME_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 }
 

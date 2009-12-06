@@ -233,7 +233,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 	CTX_wm_window_set(C, win);	/* needed by handlers */
 	WM_event_remove_handlers(C, &win->handlers);
 	WM_event_remove_handlers(C, &win->modalhandlers);
-	ED_screen_exit(C, win, win->screen);
+	ED_screen_exit(C, win, win->screen); /* will free the current screen if it is a temp layout */
 	wm_window_free(C, wm, win);
 	
 	/* check remaining windows */
@@ -934,6 +934,15 @@ void wm_window_get_size(wmWindow *win, int *width_r, int *height_r)
 {
 	*width_r= win->sizex;
 	*height_r= win->sizey;
+}
+
+/* exceptional case: - splash is called before events are processed
+ * this means we dont actually know the window size so get this from GHOST */
+void wm_window_get_size_ghost(wmWindow *win, int *width_r, int *height_r)
+{
+	GHOST_RectangleHandle bounds= GHOST_GetClientBounds(win->ghostwin);
+	*width_r= GHOST_GetWidthRectangle(bounds);
+	*height_r= GHOST_GetHeightRectangle(bounds);
 }
 
 void wm_window_set_size(wmWindow *win, int width, int height) 

@@ -29,6 +29,8 @@
 
 /* these are used for operator methods, used by bpy_operator.c */
 PyObject *PYOP_wrap_add(PyObject *self, PyObject *args);
+PyObject *PYOP_wrap_add_macro(PyObject *self, PyObject *args);
+PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args);
 PyObject *PYOP_wrap_remove(PyObject *self, PyObject *args);
 
 #endif

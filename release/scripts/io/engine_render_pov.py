@@ -757,6 +757,7 @@ class PovrayRender(bpy.types.RenderEngine):
 				pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine'
 			
 		if 1:
+			# TODO, when povray isnt found this gives a cryptic error, would be nice to be able to detect if it exists
 			self._process = subprocess.Popen([pov_binary, self._temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
 		else:
 			# This works too but means we have to wait until its done

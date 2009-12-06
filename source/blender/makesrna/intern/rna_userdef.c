@@ -1729,7 +1729,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "rotate_around_selection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_SELECTION);
-	RNA_def_property_ui_text(prop, "Rotate Around Selection", "Use selection as the orbiting center.");
+	RNA_def_property_ui_text(prop, "Rotate Around Selection", "Use selection as the pivot point.");
 
 	/* select with */
 	
@@ -1804,10 +1804,10 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_range(prop, 4, 40);
 	RNA_def_property_ui_text(prop, "Manipulator Hotspot", "Hotspot in pixels for clicking widget handles.");
 
-	prop= RNA_def_property(srna, "object_center_size", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "object_origin_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "obcenter_dia");
 	RNA_def_property_range(prop, 4, 10);
-	RNA_def_property_ui_text(prop, "Object Center Size", "Diameter in Pixels for Object/Lamp center display.");
+	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Lamp origin display.");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 
@@ -1981,9 +1981,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_TEX);
 	RNA_def_property_ui_text(prop, "Duplicate Texture", "Causes texture data to be duplicated with the object.");
 	
-	prop= RNA_def_property(srna, "duplicate_ipo", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "duplicate_fcurve", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_IPO);
-	RNA_def_property_ui_text(prop, "Duplicate Ipo", "Causes ipo data to be duplicated with the object.");
+	RNA_def_property_ui_text(prop, "Duplicate F-Curve", "Causes F-curve data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_action", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ACT);

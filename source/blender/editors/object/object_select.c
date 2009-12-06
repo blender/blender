@@ -707,49 +707,64 @@ void OBJECT_OT_select_inverse(wmOperatorType *ot)
 
 /**************************** (De)select All ****************************/
 
-static int object_select_de_select_all_exec(bContext *C, wmOperator *op)
+static int object_select_all_exec(bContext *C, wmOperator *op)
 {
+	int action = RNA_enum_get(op->ptr, "action");
 	
-	int a=0, ok=0; 
-	
+	/* passthrough if no objects are visible */
+	if (CTX_DATA_COUNT(C, visible_bases) == 0) return OPERATOR_PASS_THROUGH;
+
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			if (base->flag & SELECT) {
+				action = SEL_DESELECT;
+				break;
+			}
+		}
+		CTX_DATA_END;
+	}
+
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (base->flag & SELECT) {
-			ok= a= 1;
+		switch (action) {
+		case SEL_SELECT:
+			ED_base_object_select(base, BA_SELECT);
+			break;
+		case SEL_DESELECT:
+			ED_base_object_select(base, BA_DESELECT);
+			break;
+		case SEL_INVERT:
+			if (base->flag & SELECT) {
+				ED_base_object_select(base, BA_DESELECT);
+			} else {
+				ED_base_object_select(base, BA_SELECT);
+			}
 			break;
 		}
-		else ok=1;
 	}
 	CTX_DATA_END;
 	
-	if (!ok) return OPERATOR_PASS_THROUGH;
-	
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (a) ED_base_object_select(base, BA_DESELECT);
-		else ED_base_object_select(base, BA_SELECT);
-	}
-	CTX_DATA_END;
-	
-	/* undo? */
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_select_all_toggle(wmOperatorType *ot)
+void OBJECT_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all";
-	ot->description = "(de)select all visible objects in scene.";
-	ot->idname= "OBJECT_OT_select_all_toggle";
+	ot->description = "Change selection of all visible objects in scene.";
+	ot->idname= "OBJECT_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= object_select_de_select_all_exec;
+	ot->exec= object_select_all_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
+
+	WM_operator_properties_select_all(ot);
 }
 
 /**************************** Select Mirror ****************************/

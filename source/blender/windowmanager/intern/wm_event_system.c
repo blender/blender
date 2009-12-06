@@ -382,10 +382,13 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 	if(ot->macro.first) {
 		static wmOperator *motherop= NULL;
 		wmOperatorTypeMacro *otmacro;
+		int root = 0;
 		
 		/* ensure all ops are in execution order in 1 list */
-		if(motherop==NULL) 
-			motherop= op;
+		if(motherop==NULL) {
+			motherop = op;
+			root = 1;
+		}
 		
 		for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
 			wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
@@ -395,7 +398,8 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 			opm->opm= motherop; /* pointer to mom, for modal() */
 		}
 		
-		motherop= NULL;
+		if (root)
+			motherop= NULL;
 	}
 	
 	return op;

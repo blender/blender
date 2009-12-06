@@ -160,6 +160,11 @@ class TEXT_MT_text(bpy.types.Menu):
 
         layout.menu("TEXT_MT_templates")
 
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
+
 
 class TEXT_MT_templates(bpy.types.Menu):
     '''

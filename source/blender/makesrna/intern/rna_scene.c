@@ -183,31 +183,11 @@ static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value)
 	scene->set= set;
 }
 
-static int layer_set(int lay, const int *values)
-{
-	int i, tot= 0;
-
-	/* ensure we always have some layer selected */
-	for(i=0; i<20; i++)
-		if(values[i])
-			tot++;
-	
-	if(tot==0)
-		return lay;
-
-	for(i=0; i<20; i++) {
-		if(values[i]) lay |= (1<<i);
-		else lay &= ~(1<<i);
-	}
-
-	return lay;
-}
-
 static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 {
 	Scene *scene= (Scene*)ptr->data;
 
-	scene->lay= layer_set(scene->lay, values);
+	scene->lay= ED_view3d_scene_layer_set(scene->lay, values);
 }
 
 static void rna_Scene_layer_update(bContext *C, PointerRNA *ptr)
@@ -410,6 +390,48 @@ static void rna_SceneRenderData_jpeg2k_depth_set(PointerRNA *ptr, int value)
 }
 #endif
 
+#ifdef WITH_QUICKTIME
+static int rna_SceneRenderData_qtcodecsettings_codecType_get(PointerRNA *ptr)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	
+	return quicktime_rnatmpvalue_from_codectype(rd->qtcodecsettings.codecType);
+}
+
+static void rna_SceneRenderData_qtcodecsettings_codecType_set(PointerRNA *ptr, int value)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+
+	rd->qtcodecsettings.codecType = quicktime_codecType_from_rnatmpvalue(value);
+}
+
+static EnumPropertyItem *rna_SceneRenderData_qtcodecsettings_codecType_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem *item= NULL;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	QuicktimeCodecTypeDesc *codecTypeDesc;
+	int i=1, totitem= 0;
+	char id[5];
+	
+	for(i=0;i<quicktime_get_num_codecs();i++) {
+		codecTypeDesc = quicktime_get_codecType_desc(i);
+		if (!codecTypeDesc) break;
+		
+		tmp.value= codecTypeDesc->rnatmpvalue;
+		*((int*)id) = codecTypeDesc->codecType;
+		id[4] = 0;
+		tmp.identifier= id; 
+		tmp.name= codecTypeDesc->codecName;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+	
+	return item;	
+}	
+#endif
+
 static int rna_SceneRenderData_active_layer_index_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -513,7 +535,7 @@ static int rna_SceneRenderData_use_game_engine_get(PointerRNA *ptr)
 static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 {
 	SceneRenderLayer *rl= (SceneRenderLayer*)ptr->data;
-	rl->lay= layer_set(rl->lay, values);
+	rl->lay= ED_view3d_scene_layer_set(rl->lay, values);
 }
 
 static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)
@@ -1530,7 +1552,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #	ifdef USE_QTKIT
 		{R_QUICKTIME, "QUICKTIME_QTKIT", ICON_FILE_MOVIE, "QuickTime", ""},
 #	else
-		{R_QUICKTIME, "QUICKTIME", ICON_FILE_MOVIE, "QuickTime", ""},
+		{R_QUICKTIME, "QUICKTIME_CARBON", ICON_FILE_MOVIE, "QuickTime", ""},
 #	endif
 #endif
 #ifdef __sgi
@@ -1581,18 +1603,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 #ifdef	WITH_QUICKTIME
 	static EnumPropertyItem quicktime_codec_type_items[] = {
-		{QT_CODECTYPE_RAW, "RAW", 0, "Uncompressed", ""},
-		{QT_CODECTYPE_JPEG, "JPEG", 0, "JPEG", ""},
-		{QT_CODECTYPE_MJPEGA, "MJPEG_A", 0, "M-JPEG A", ""},
-		{QT_CODECTYPE_MJPEGB, "MJPEG_B", 0, "M-JPEG B", ""},
-		{QT_CODECTYPE_DVCPAL, "DVCPAL", 0, "DV PAL", ""},
-		{QT_CODECTYPE_DVCNTSC, "DVCNTSC", 0, "DV/DVCPRO NTSC", ""},
-		{QT_CODECTYPE_DVCPROHD720p, "DVCPROHD720P", 0, "DVCPRO HD 720p"},
-		{QT_CODECTYPE_DVCPROHD1080i50, "DVCPROHD1080I50", 0, "DVCPRO HD 1080i50"},
-		{QT_CODECTYPE_DVCPROHD1080i60, "DVCPROHD1080I60", 0, "DVCPRO HD 1080i60"},
-		{QT_CODECTYPE_MPEG4, "MPEG4", 0, "MPEG4", ""},
-		{QT_CODECTYPE_H263, "H263", 0, "H.263", ""},
-		{QT_CODECTYPE_H264, "H264", 0, "H.264", ""},
+		{0, "codec", 0, "codec", ""},
 		{0, NULL, 0, NULL, NULL}};
 #endif
 
@@ -1791,6 +1802,9 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "quicktime_codec_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.codecType");
 	RNA_def_property_enum_items(prop, quicktime_codec_type_items);
+	RNA_def_property_enum_funcs(prop, "rna_SceneRenderData_qtcodecsettings_codecType_get",
+								"rna_SceneRenderData_qtcodecsettings_codecType_set",
+								"rna_SceneRenderData_qtcodecsettings_codecType_itemf");
 	RNA_def_property_ui_text(prop, "Codec", "QuickTime codec type");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
@@ -2392,7 +2406,6 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-//	PropertyRNA *prop_act;
 	FunctionRNA *func;
 	
 	static EnumPropertyItem audio_distance_model_items[] = {

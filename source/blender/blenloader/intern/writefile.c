@@ -475,6 +475,8 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	/* for link_list() speed, we write per list */
 	
+	if(ntree->adt) write_animdata(wd, ntree->adt);
+	
 	for(node= ntree->nodes.first; node; node= node->next)
 		writestruct(wd, DATA, "bNode", 1, node);
 

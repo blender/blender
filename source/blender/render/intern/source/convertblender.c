@@ -4501,7 +4501,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 		return 0;
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob!=find_basis_mball(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=find_basis_mball(re->scene, ob))
 		return 0;
 	
 	if(nolamps && (ob->type==OB_LAMP))
@@ -4848,8 +4848,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
-	else VECCOPY(amb, &re->wrld.ambr);
+	VECCOPY(amb, &re->wrld.ambr);
 	init_render_materials(re->r.mode, amb);
 	set_node_shader_lamp_loop(shade_material_loop);
 
@@ -5538,8 +5537,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	/* still bad... doing all */
 	init_render_textures(re);
 	
-	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
-	else VECCOPY(amb, &re->wrld.ambr);
+	VECCOPY(amb, &re->wrld.ambr);
 	init_render_materials(re->r.mode, amb);
 	
 	set_node_shader_lamp_loop(shade_material_loop);

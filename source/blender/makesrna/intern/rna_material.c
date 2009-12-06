@@ -1239,7 +1239,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Subsurface Scattering", "Diffuse subsurface scattering settings for a Material datablock.");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_RGB|PROP_UNIT_LENGTH);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_COLOR|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "sss_radius");
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 10000, 1, 3);

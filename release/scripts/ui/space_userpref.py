@@ -88,7 +88,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub1.prop(view, "show_playback_fps", text="Playback FPS")
         sub1.prop(view, "global_scene")
         sub1.prop(view, "pin_floating_panels")
-        sub1.prop(view, "object_center_size")
+        sub1.prop(view, "object_origin_size")
         sub1.separator()
         sub1.separator()
         sub1.separator()
@@ -244,7 +244,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         sub1.prop(edit, "duplicate_lamp", text="Lamp")
         sub1.prop(edit, "duplicate_material", text="Material")
         sub1.prop(edit, "duplicate_texture", text="Texture")
-        sub1.prop(edit, "duplicate_ipo", text="F-Curve")
+        sub1.prop(edit, "duplicate_fcurve", text="F-Curve")
         sub1.prop(edit, "duplicate_action", text="Action")
         sub1.prop(edit, "duplicate_particle", text="Particle")
 
@@ -1415,9 +1415,9 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
 
 class WM_OT_keymap_restore(bpy.types.Operator):
-    "Restore key map"
+    "Restore key map(s)."
     bl_idname = "wm.keymap_restore"
-    bl_label = "Restore Key Map"
+    bl_label = "Restore Key Map(s)"
 
     all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")
 

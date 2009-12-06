@@ -542,7 +542,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_add_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -574,7 +574,6 @@ void OBJECT_OT_modifier_remove(wmOperatorType *ot)
 	ot->name= "Remove Modifier";
 	ot->description= "Remove a modifier from the active object.";
 	ot->idname= "OBJECT_OT_modifier_remove";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_remove_exec;
 	ot->poll= modifier_poll;
@@ -605,7 +604,6 @@ void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
 	ot->name= "Move Up Modifier";
 	ot->description= "Move modifier up in the stack.";
 	ot->idname= "OBJECT_OT_modifier_move_up";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_move_up_exec;
 	ot->poll= modifier_poll;
@@ -636,7 +634,6 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 	ot->name= "Move Down Modifier";
 	ot->description= "Move modifier down in the stack.";
 	ot->idname= "OBJECT_OT_modifier_move_down";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_move_down_exec;
 	ot->poll= modifier_poll;
@@ -674,7 +671,6 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->name= "Apply Modifier";
 	ot->description= "Apply modifier and remove from the stack.";
 	ot->idname= "OBJECT_OT_modifier_apply";
-	ot->poll= ED_operator_object_active;
 
 	//ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_apply_exec;
@@ -709,7 +705,6 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 	ot->name= "Convert Modifier";
 	ot->description= "Convert particles to a mesh object.";
 	ot->idname= "OBJECT_OT_modifier_convert";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_convert_exec;
 	ot->poll= modifier_poll;
@@ -740,7 +735,6 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 	ot->name= "Copy Modifier";
 	ot->description= "Duplicate modifier at the same position in the stack.";
 	ot->idname= "OBJECT_OT_modifier_copy";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_copy_exec;
 	ot->poll= modifier_poll;
@@ -769,7 +763,7 @@ void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
 {
 	ot->name= "Delete Higher Levels";
 	ot->idname= "OBJECT_OT_multires_higher_levels_delete";
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 
 	ot->exec= multires_higher_levels_delete_exec;
 	

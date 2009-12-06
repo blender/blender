@@ -127,7 +127,7 @@ def clientSendJob(conn, scene, anim = False):
 	# FLUID + POINT CACHE
 	###########################
 	root, ext = os.path.splitext(name)
-	default_path = path + "blendcache_" + root + os.sep # need an API call for that
+	default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
 
 	for object in bpy.data.objects:
 		for modifier in object.modifiers:

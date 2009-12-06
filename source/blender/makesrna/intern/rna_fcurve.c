@@ -862,7 +862,7 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_struct_type(prop, "FModifier");
 	RNA_def_property_pointer_funcs(prop, "rna_FCurve_active_modifier_get", "rna_FCurve_active_modifier_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active fcurve modifier", "Active fcurve modifier.");
+	RNA_def_property_ui_text(prop, "Active F-Curve Modifier", "Active F-Curve Modifier.");
 
 	/* Constraint collection */
 	func= RNA_def_function(srna, "new", "rna_FCurve_modifiers_new");
@@ -910,6 +910,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
 	RNA_def_property_enum_items(prop, prop_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Extrapolation", "");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this so that animation gets evaluated
 
 	/* Pointers */
 	prop= RNA_def_property(srna, "driver", PROP_POINTER, PROP_NONE);
@@ -920,18 +921,22 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property affected by F-Curve.");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this to that animation gets evaluated
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property affected by F-Curve if applicable.");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this so that animation gets evaluated
 	
 	/* Color */
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_mode_color_items);
 	RNA_def_property_ui_text(prop, "Color Mode", "Method used to determine color of F-Curve in Graph Editor.");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "Color of the F-Curve in the Graph Editor.");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	
 	
 	/* Collections */
 	prop= RNA_def_property(srna, "sampled_points", PROP_COLLECTION, PROP_NONE);

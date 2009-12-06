@@ -58,52 +58,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-/* ********************************* color transforms ********************************* */
-
-/*Transform linear RGB values to nonlinear RGB values. Rec.
-  709 is ITU-R Recommendation BT. 709 (1990) ``Basic
-  Parameter Values for the HDTV Standard for the Studio and
-  for International Programme Exchange'', formerly CCIR Rec.
-  709.*/
-void gamma_correct_rec709(float *c, float gamma)
-{
-	/* Rec. 709 gamma correction. */
-	const float cc = 0.018f;
-	
-	if (*c < cc)
-	    *c *= ((1.099f * (float)powf(cc, gamma)) - 0.099f) * (1.0f/cc);
-	else 
-	    *c = (1.099f * (float)powf(*c, gamma)) - 0.099f;
-}
-
-void gamma_correct(float *c, float gamma)
-{
-	*c = powf((*c), gamma);
-}
-
-float srgb_to_linearrgb(float c)
-{
-	if (c < 0.04045f)
-		return (c < 0.0f)? 0.0f: c*(1.0f/12.92f);
-	else
-		return powf((c + 0.055f)*(1.0f/1.055f), 2.4f);
-}
-
-float linearrgb_to_srgb(float c)
-{
-	if (c < 0.0031308f)
-		return (c < 0.0f)? 0.0f: c * 12.92f;
-	else
-		return  1.055f * powf(c, 1.0f/2.4f) - 0.055f;
-}
-
-/* utility function convert an RGB triplet from sRGB to linear RGB color space */
-void color_manage_linearize(float *col_to, float *col_from)
-{
-	col_to[0] = srgb_to_linearrgb(col_from[0]);
-	col_to[1] = srgb_to_linearrgb(col_from[1]);
-	col_to[2] = srgb_to_linearrgb(col_from[2]);
-}
 
 void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
 {

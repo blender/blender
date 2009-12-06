@@ -1095,6 +1095,8 @@ void postTrans (TransInfo *t)
 		MEM_freeN(t->data);
 	}
 	
+	BLI_freelistN(&t->tsnap.points);
+
 	if (t->ext) MEM_freeN(t->ext);
 	if (t->data2d) {
 		MEM_freeN(t->data2d);
@@ -1355,7 +1357,7 @@ void calculateCenter(TransInfo *t)
 	/* for panning from cameraview */
 	if(t->flag & T_OBJECT)
 	{
-		if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW)
+		if(t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;

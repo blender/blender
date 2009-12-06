@@ -303,6 +303,8 @@ struct uiBlock {
 
 	int active;					// to keep blocks while drawing and free them afterwards
 	int puphash;				// popup menu hash for memory
+	
+	int color_profile;				// color profile for correcting linear colors for display
 
 	void *evil_C;				// XXX hack for dynamic operator enums
 };

@@ -49,7 +49,7 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 
 	if (event->getType() == GHOST_kEventWindowUpdate) return false;
 
-	std::cout << "GHOST_EventPrinter::processEvent, time: " << (GHOST_TInt32)event->getTime() << ", type: ";
+	std::cout << "\nGHOST_EventPrinter::processEvent, time: " << (GHOST_TInt32)event->getTime() << ", type: ";
 	switch (event->getType()) {
 	case GHOST_kEventUnknown:
 		std::cout << "GHOST_kEventUnknown"; handled = false;	
@@ -125,19 +125,21 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 	case GHOST_kEventDraggingDropDone:
 		{
 			GHOST_TEventDragnDropData* dragnDropData = (GHOST_TEventDragnDropData*)((GHOST_IEvent*)event)->getData();
-			std::cout << "GHOST_kEventDraggingDropDone, dragged object type : " << dragnDropData->dataType;
+			std::cout << "GHOST_kEventDraggingDropDone,";
 			std::cout << " mouse at x=" << dragnDropData->x << " y=" << dragnDropData->y;
 			switch (dragnDropData->dataType) {
 				case GHOST_kDragnDropTypeString:
-					std::cout << " string received = " << (char*)dragnDropData->data;
+					std::cout << " type : GHOST_kDragnDropTypeString,";
+					std::cout << "\n  String received = " << (char*)dragnDropData->data;
 					break;
 				case GHOST_kDragnDropTypeFilenames:
 				{
 					GHOST_TStringArray *strArray = (GHOST_TStringArray*)dragnDropData->data;
 					int i;
-					std::cout << "\nReceived " << strArray->count << " filenames";
+					std::cout << " type : GHOST_kDragnDropTypeFilenames,";
+					std::cout << "\n  Received " << strArray->count << " filename" << (strArray->count > 1 ? "s:" : ":");
 					for (i=0;i<strArray->count;i++)
-						std::cout << " Filename #" << i << ": " << strArray->strings[i];
+						std::cout << "\n	File[" << i << "] : " << strArray->strings[i];
 				}
 					break;
 				default:
@@ -192,7 +194,6 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 		std::cout << "not found"; handled = false; 
 		break;
 	}
-	std::cout << "\n";
 	return handled;
 }
 

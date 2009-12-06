@@ -409,10 +409,10 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		}
 	}
 	else {
-		if(ELEM(subtype, PROP_COLOR, PROP_RGB))
+		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA))
 			uiDefAutoButR(block, ptr, prop, -1, "", 0, 0, 0, w, UI_UNIT_Y);
 
-		if(!ELEM(subtype, PROP_COLOR, PROP_RGB) || expand) {
+		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {
 			/* layout for known array subtypes */
 			char str[3];
 
@@ -439,7 +439,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 					but->type= TOG;
 			}
 		}
-		else if(ELEM(subtype, PROP_COLOR, PROP_RGB) && len == 4) {
+		else if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && len == 4) {
 			but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, w, UI_UNIT_Y);
 			if(slider && but->type==NUM)
 				but->type= NUMSLI;
@@ -896,7 +896,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 
 	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
 		name= ui_item_name_add_colon(name, namestr);
-	else if(type == PROP_BOOLEAN && len)
+	else if(type == PROP_BOOLEAN && len && index == RNA_NO_INDEX)
 		name= ui_item_name_add_colon(name, namestr);
 	else if(type == PROP_ENUM && index != RNA_ENUM_VALUE)
 		name= ui_item_name_add_colon(name, namestr);

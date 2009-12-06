@@ -32,6 +32,7 @@
 
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
+#include "MT_Vector2.h"
 #include "MT_Point3.h"
 #include "MT_Vector3.h"
 
@@ -59,8 +60,10 @@ public:
 	MT_Vector3				m_hitNormal;
 	const RAS_MeshObject*	m_hitMesh;
 	int						m_hitPolygon;
+	int                     m_hitUVOK;		// !=0 if UV coordinate in m_hitUV is valid
+	MT_Vector2				m_hitUV;
 
-	KX_RayCast(KX_IPhysicsController* ignoreController, bool faceNormal);
+	KX_RayCast(KX_IPhysicsController* ignoreController, bool faceNormal, bool faceUV);
 	virtual ~KX_RayCast() {}
 
 	/**
@@ -102,8 +105,8 @@ template<class T> class KX_RayCast::Callback : public KX_RayCast
 	T *self;
 	void *data;
 public:
-	Callback(T *_self, KX_IPhysicsController* controller=NULL, void *_data = NULL, bool faceNormal=false)
-		: KX_RayCast(controller, faceNormal),
+	Callback(T *_self, KX_IPhysicsController* controller=NULL, void *_data = NULL, bool faceNormal=false, bool faceUV=false)
+		: KX_RayCast(controller, faceNormal, faceUV),
 		self(_self),
 		data(_data)
 	{

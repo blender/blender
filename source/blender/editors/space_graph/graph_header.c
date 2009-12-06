@@ -91,6 +91,7 @@ static void graph_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 		uiItemO(layout, "Show Handles", ICON_CHECKBOX_HLT, "GRAPH_OT_handles_view_toggle");
 	
 	uiItemR(layout, NULL, 0, &spaceptr, "only_selected_curves_handles", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "only_selected_keyframe_handles", 0);
 	
 	
 	if (sipo->flag & SIPO_DRAWTIME)

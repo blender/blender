@@ -1208,10 +1208,6 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 		new_dist*= size;
 	}
 
-	v3d->cursor[0]= -new_ofs[0];
-	v3d->cursor[1]= -new_ofs[1];
-	v3d->cursor[2]= -new_ofs[2];
-
 	if (rv3d->persp==RV3D_CAMOB) {
 		rv3d->persp= RV3D_PERSP;
 		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
@@ -2205,7 +2201,53 @@ int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mou
 	return 1;
 }
 
+int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d) //, float *autodist )
+{
+	RegionView3D *rv3d= ar->regiondata;
 
+	/* Get Z Depths, needed for perspective, nice for ortho */
+	draw_depth(scene, ar, v3d, NULL);
+
+	/* force updating */
+	if (rv3d->depths) {
+		rv3d->depths->damaged = 1;
+	}
+
+	view3d_update_depths(ar, v3d);
+	return 1;
+}
+
+// no 4x4 sampling, run view_autodist_init first
+int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3] ) //, float *autodist )
+{
+	RegionView3D *rv3d= ar->regiondata;
+	bglMats mats; /* ZBuffer depth vars, could cache? */
+	float depth;
+	double cent[2],  p[3];
+
+	if (mval[0] < 0) return 0;
+	if (mval[1] < 0) return 0;
+	if (mval[0] >= rv3d->depths->w) return 0;
+	if (mval[1] >= rv3d->depths->h) return 0;
+
+	/* Get Z Depths, needed for perspective, nice for ortho */
+	bgl_get_mats(&mats);
+	depth= rv3d->depths->depths[mval[1]*rv3d->depths->w+mval[0]];
+
+	if (depth==MAXFLOAT)
+		return 0;
+
+	cent[0] = (double)mval[0];
+	cent[1] = (double)mval[1];
+
+	if (!gluUnProject(cent[0], cent[1], depth, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
+		return 0;
+
+	mouse_worldloc[0] = (float)p[0];
+	mouse_worldloc[1] = (float)p[1];
+	mouse_worldloc[2] = (float)p[2];
+	return 1;
+}
 
 /* ********************* NDOF ************************ */
 /* note: this code is confusing and unclear... (ton) */

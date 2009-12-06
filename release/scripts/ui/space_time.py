@@ -91,6 +91,7 @@ class TIME_MT_view(bpy.types.Menu):
         st = context.space_data
 
         layout.operator("anim.time_toggle")
+        layout.operator("time.view_all")
 
         layout.separator()
 

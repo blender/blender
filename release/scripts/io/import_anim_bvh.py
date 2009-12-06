@@ -399,7 +399,7 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 #XXX - sloppy operator code
 	
 	bpy.ops.armature.delete()
-	bpy.ops.armature.select_all_toggle()
+	bpy.ops.armature.select_all()
 	bpy.ops.armature.delete()
 
 	ZERO_AREA_BONES= []
@@ -484,7 +484,7 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 		pass 
 	
 	
-	bpy.ops.pose.select_all_toggle() # set
+	bpy.ops.pose.select_all() # set
 	bpy.ops.anim.keyframe_insert_menu(type=-4) # XXX -     -4 ???
 	
 

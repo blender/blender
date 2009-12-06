@@ -311,7 +311,7 @@ static Object *rna_Object_find_armature(Object *ob)
 
 int rna_Object_is_visible(Object *ob, bContext *C)
 {
-	return ob->lay & CTX_data_scene(C)->lay;
+	return !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->lay & CTX_data_scene(C)->lay;
 }
 
 /*

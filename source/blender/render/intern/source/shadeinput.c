@@ -91,42 +91,16 @@ extern struct Render R;
  * doing inverse gamma correction where applicable */
 void shade_input_init_material(ShadeInput *shi)
 {
-	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-		color_manage_linearize(&shi->r, &shi->mat->r);
-		color_manage_linearize(&shi->specr, &shi->mat->specr);
-		color_manage_linearize(&shi->mirr, &shi->mat->mirr);
-		
-		/* material ambr / ambg / ambb is overwritten from world
-		color_manage_linearize(shi->ambr, shi->mat->ambr);
-		*/
-		
-		/* note, keep this synced with render_types.h */
-		memcpy(&shi->amb, &shi->mat->amb, 11*sizeof(float));
-		shi->har= shi->mat->har;
-	} else {
-		/* note, keep this synced with render_types.h */
-		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-		shi->har= shi->mat->har;
-	}
-
-}
-
-static void shadeinput_colors_linearize(ShadeInput *shi)
-{
-	color_manage_linearize(&shi->r, &shi->r);
-	color_manage_linearize(&shi->specr, &shi->specr);
-	color_manage_linearize(&shi->mirr, &shi->mirr);
+	/* note, keep this synced with render_types.h */
+	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
+	shi->har= shi->mat->har;
 }
 
 /* also used as callback for nodes */
 /* delivers a fully filled in ShadeResult, for all passes */
 void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 {
-	/* because node materials don't have access to rendering context,
-	 * inverse gamma correction must happen here. evil. */
-	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT && shi->nodes == 1)
-		shadeinput_colors_linearize(shi);
-	
+
 	shade_lamp_loop(shi, shr);	/* clears shr */
 	
 	if(shi->translucency!=0.0f) {
@@ -626,7 +600,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 	
 	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
 		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
-			color_manage_linearize(shi->vcol, shi->vcol);
+			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);
 		}
 	}
 	
@@ -1291,7 +1265,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	*/
 	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
 		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
-			color_manage_linearize(shi->vcol, shi->vcol);
+			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);
 		}
 	}
 	
