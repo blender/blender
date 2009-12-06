@@ -94,8 +94,6 @@
 
 #include "BKE_utildefines.h" // O_BINARY FALSE
 
-#include "FRS_freestyle.h"
-
 Global G;
 UserDef U;
 ListBase WMlist= {NULL, NULL};
@@ -657,6 +655,7 @@ void BKE_write_undo(bContext *C, char *name)
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
 void BKE_undo_step(bContext *C, int step)
 {
+
 	if(step==0) {
 		read_undosave(C, curundo);
 	}
