@@ -1343,6 +1343,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		/* only allow scrolling in vertical direction */
 		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
+		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)
@@ -1357,6 +1359,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);
 		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
 		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
+		v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
+		v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)
