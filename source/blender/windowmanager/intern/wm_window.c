@@ -972,6 +972,13 @@ void wm_window_swap_buffers(wmWindow *win)
 #endif
 }
 
+void wm_get_cursor_position(wmWindow *win, int *x, int *y)
+{
+	GHOST_GetCursorPosition(g_system, x, y);
+	GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
+	*y = (win->sizey-1) - *y;
+}
+
 /* ******************* exported api ***************** */
 
 
