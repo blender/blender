@@ -1942,7 +1942,6 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 		mul_v3_fl(fly->rv3d->ofs, -1.0f); /*flip the vector*/
 
 		fly->rv3d->dist=0.0;
-		fly->rv3d->viewbut=0;
 
 		/* used for recording */
 //XXX2.5		if(v3d->camera->ipoflag & OB_ACTION_OB)
@@ -1982,7 +1981,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	if (fly->state == FLY_CANCEL) {
 	/* Revert to original view? */
 		if (fly->persp_backup==RV3D_CAMOB) { /* a camera view */
-			rv3d->viewbut=1;
+
 			VECCOPY(v3d->camera->loc, fly->ofs_backup);
 			VECCOPY(v3d->camera->rot, fly->rot_backup);
 			DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);

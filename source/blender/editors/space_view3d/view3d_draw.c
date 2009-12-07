@@ -343,7 +343,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 					}
 				}
 				else {	// start blending out
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
+					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*6));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 
 					UI_ThemeColor(TH_GRID);
@@ -351,7 +351,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 				}
 			}
 			else {	// start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10))
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*6));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 
 				UI_ThemeColor(TH_GRID);
@@ -370,21 +370,21 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 					}
 					else {
-						UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
+						UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*6));
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx*sublines);
 					}
 				}
 				else {
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
+					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*6));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 					UI_ThemeColor(TH_GRID);
 					drawgrid_draw(ar, wx, wy, x, y, dx*sublines);
 				}
 			}
 			else {
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*6));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 				UI_ThemeColor(TH_GRID);
 				drawgrid_draw(ar, wx, wy, x, y, dx*sublines);
