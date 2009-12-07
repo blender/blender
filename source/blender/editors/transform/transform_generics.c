@@ -108,6 +108,7 @@
 #include "RNA_access.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "UI_resources.h"
 
@@ -1065,7 +1066,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
-void postTrans (TransInfo *t)
+void postTrans (bContext *C, TransInfo *t)
 {
 	TransData *td;
 	
@@ -1073,7 +1074,8 @@ void postTrans (TransInfo *t)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
 	if (t->draw_handle_pixel)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
-	
+	if (t->draw_handle_cursor)
+		WM_paint_cursor_end(CTX_wm_manager(C), t->draw_handle_cursor);
 
 	if (t->customFree) {
 		/* Can take over freeing t->data and data2d etc... */

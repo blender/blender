@@ -321,6 +321,7 @@ typedef struct TransInfo {
     struct Object   *obedit;
     void		*draw_handle_view;
     void		*draw_handle_pixel;
+    void		*draw_handle_cursor;
 } TransInfo;
 
 
@@ -633,7 +634,7 @@ void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2])
 /*********************** Generics ********************************/
 
 int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, struct wmEvent *event);
-void postTrans (TransInfo *t);
+void postTrans (struct bContext *C, TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options);

@@ -1148,7 +1148,7 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
 	special_aftertrans_update(t);
 
-	postTrans(t);
+	postTrans(C, t);
 
 	MEM_freeN(t);
 
@@ -1239,11 +1239,14 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 	glEnd();
 }
 
-void drawHelpline(const struct bContext *C, TransInfo *t)
+static void drawHelpline(bContext *C, int x, int y, void *customdata)
 {
+	TransInfo *t = (TransInfo*)customdata;
+
 	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR))
 	{
 		float vecrot[3], cent[2];
+		int mval[2] = {x, y};
 
 		VECCOPY(vecrot, t->center);
 		if(t->flag & T_EDIT) {
@@ -1270,7 +1273,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 				glVertex2fv(cent);
 				glEnd();
 
-				glTranslatef(t->mval[0], t->mval[1], 0);
+				glTranslatef(mval[0], mval[1], 0);
 				glRotatef(-180 / M_PI * atan2f(cent[0] - t->mval[0], cent[1] - t->mval[1]), 0, 0, 1);
 
 				setlinestyle(0);
@@ -1282,7 +1285,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 			case HLP_HARROW:
 				UI_ThemeColor(TH_WIRE);
 
-				glTranslatef(t->mval[0], t->mval[1], 0);
+				glTranslatef(mval[0], mval[1], 0);
 
 				glLineWidth(3.0);
 				drawArrow(RIGHT, 5, 10, 5);
@@ -1292,7 +1295,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 			case HLP_VARROW:
 				UI_ThemeColor(TH_WIRE);
 
-				glTranslatef(t->mval[0], t->mval[1], 0);
+				glTranslatef(mval[0], mval[1], 0);
 
 				glLineWidth(3.0);
 				glBegin(GL_LINES);
@@ -1315,7 +1318,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 					glVertex2fv(cent);
 					glEnd();
 
-					glTranslatef(cent[0], cent[1], 0);
+					glTranslatef(cent[0] - t->mval[0] + mval[0], cent[1] - t->mval[1] + mval[1], 0);
 
 					setlinestyle(0);
 					glLineWidth(3.0);
@@ -1344,7 +1347,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 					char col[3], col2[3];
 					UI_GetThemeColor3ubv(TH_GRID, col);
 
-					glTranslatef(t->mval[0], t->mval[1], 0);
+					glTranslatef(mval[0], mval[1], 0);
 
 					glLineWidth(3.0);
 
@@ -1379,9 +1382,9 @@ void drawTransformView(const struct bContext *C, struct ARegion *ar, void *arg)
 
 void drawTransformPixel(const struct bContext *C, struct ARegion *ar, void *arg)
 {
-	TransInfo *t = arg;
-
-	drawHelpline(C, t);
+//	TransInfo *t = arg;
+//
+//	drawHelpline(C, t->mval[0], t->mval[1], t);
 }
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
@@ -1505,12 +1508,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		initTransformOrientation(C, t);
 
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), NULL, drawHelpline, t);
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 	}
 	else
 		unit_m3(t->spacemtx);
@@ -1518,7 +1522,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	createTransData(C, t);			// make TransData structs from selection
 
 	if (t->total == 0) {
-		postTrans(t);
+		postTrans(C, t);
 		return 0;
 	}
 
@@ -1714,7 +1718,7 @@ int transformEnd(bContext *C, TransInfo *t)
 		special_aftertrans_update(t);
 
 		/* free data */
-		postTrans(t);
+		postTrans(C, t);
 
 		/* send events out for redraws */
 		viewRedrawPost(t);
