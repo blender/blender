@@ -179,6 +179,7 @@ static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	int i;
 	
 	/* Sculpt mode */
 	keymap= WM_keymap_find(keyconf, "Sculpt", 0, 0);
@@ -192,6 +193,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.sculpt.active_brush_index");
+
+	for(i=1; i<=5; i++)
+		RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0)->ptr, "level", i);
 
 	/* Vertex Paint mode */
 	keymap= WM_keymap_find(keyconf, "Vertex Paint", 0, 0);
