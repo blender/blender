@@ -910,6 +910,7 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 	// TODO: the flags for individual targets need to be used too for more fine-grained support...
 	switch (driver->type) {
 		case DRIVER_TYPE_AVERAGE: /* average values of driver targets */
+		case DRIVER_TYPE_SUM: /* sum values of driver targets */
 		{
 			/* check how many targets there are first (i.e. just one?) */
 			if (driver->targets.first == driver->targets.last) {
@@ -921,19 +922,22 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				/* more than one target, so average the values of the targets */
 				int tot = 0;
 				float value = 0.0f;
-				
+
 				/* loop through targets, adding (hopefully we don't get any overflow!) */
 				for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
-					value += driver_get_target_value(driver, dtar); 
+					value += driver_get_target_value(driver, dtar);
 					tot++;
 				}
-				
+
 				/* return the average of these */
-				return (value / (float)tot);
+				if(driver->type == DRIVER_TYPE_AVERAGE)
+					return (value / (float)tot);
+				else
+					return value;
+
 			}
 		}
 			break;
-		
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
 #ifndef DISABLE_PYTHON

@@ -309,6 +309,8 @@ typedef enum eDriver_Types {
 	DRIVER_TYPE_PYTHON,
 		/* rotational difference (must use rotation channels only) */
 	DRIVER_TYPE_ROTDIFF,
+		/* sum of all values */
+	DRIVER_TYPE_SUM,
 } eDriver_Types;
 
 /* driver flags */

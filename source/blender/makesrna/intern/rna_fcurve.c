@@ -789,6 +789,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_type_items[] = {
 		{DRIVER_TYPE_AVERAGE, "AVERAGE", 0, "Averaged Value", ""},
+		{DRIVER_TYPE_SUM, "SUM", 0, "Sum Values", ""},
 		{DRIVER_TYPE_PYTHON, "SCRIPTED", 0, "Scripted Expression", ""},
 		{DRIVER_TYPE_ROTDIFF, "ROTDIFF", 0, "Rotational Difference", ""},
 		{0, NULL, 0, NULL, NULL}};
