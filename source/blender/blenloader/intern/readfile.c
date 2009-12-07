@@ -10162,6 +10162,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+		/* clear hanging 'temp' screens from older 2.5 files*/
+		if (main->versionfile == 250) {
+			bScreen *screen;
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				if (screen->full == SCREENTEMP)
+					free_libblock(&main->screen, screen);
+			}
+		}
 	}
 	
 	/* put 2.50 compatibility code here until next subversion bump */
