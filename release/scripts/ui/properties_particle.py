@@ -208,6 +208,10 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
         layout = self.layout
 
         psys = context.particle_system
+
+        if not psys.cloth:
+            return
+
         #part = psys.settings
         cloth = psys.cloth.settings
 
@@ -298,8 +302,8 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel):
         sub.prop(part, "random_factor")
 
         #if part.type=='REACTOR':
-        #	sub.prop(part, "reactor_factor")
-        #	sub.prop(part, "reaction_shape", slider=True)
+        #    sub.prop(part, "reactor_factor")
+        #    sub.prop(part, "reaction_shape", slider=True)
 
 
 class PARTICLE_PT_rotation(ParticleButtonsPanel):

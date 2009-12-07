@@ -1174,8 +1174,11 @@ static void update_velocities(Object *ob, PTCacheEdit *edit)
 		}
 	}
 }
+
 void PE_update_object(Scene *scene, Object *ob, int useflag)
 {
+	/* use this to do partial particle updates, not usable when adding or
+	   removing, then a full redo is necessary and calling this may crash */
 	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	POINT_P;
@@ -2064,6 +2067,12 @@ static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psy
 			edit->mirror_cache= NULL;
 		}
 
+		if(psys->child) {
+			MEM_freeN(psys->child);
+			psys->child= NULL;
+			psys->totchild=0;
+		}
+
 		edit->totpoint= psys->totpart= new_totpart;
 	}
 
@@ -2330,7 +2339,6 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
 	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles.", totremoved);
 
-	PE_update_object(scene, ob, 0);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 
@@ -2507,7 +2515,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 		recalc_lengths(data.edit);
 	}
 
-	PE_update_object(data.scene, data.ob, 0);
 	DAG_id_flush_update(&data.ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
 
@@ -3733,7 +3740,6 @@ void PE_undo_step(Scene *scene, int step)
 		}
 	}
 
-	PE_update_object(scene, OBACT, 0);
 	DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 }
 

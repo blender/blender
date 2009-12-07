@@ -4166,6 +4166,16 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		wmLoadMatrix(rv3d->viewmat);
 }
 
+static void draw_update_ptcache_edit(Scene *scene, Object *ob, PTCacheEdit *edit)
+{
+	if(edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED)
+		PE_update_object(scene, ob, 0);
+
+	/* create path and child path cache if it doesn't exist already */
+	if(edit->pathcache==0)
+		psys_cache_edit_paths(scene, ob, edit, CFRA);
+}
+
 static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, PTCacheEdit *edit, int dt)
 {
 	ParticleCacheKey **cache, *path, *pkey;
@@ -4177,14 +4187,6 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	float sel_col[3];
 	float nosel_col[3];
 	float *pathcol = NULL, *pcol;
-
-
-	if(edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED)
-		PE_update_object(scene, ob, 0);
-
-	/* create path and child path cache if it doesn't exist already */
-	if(edit->pathcache==0)
-		psys_cache_edit_paths(scene, ob, edit, CFRA);
 
 	if(edit->pathcache==0)
 		return;
@@ -5900,7 +5902,39 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob);
 
-	/* particle mode has to be drawn first so that possible child particles get cached in edit mode */
+	/* code for new particle system */
+	if(		(warning_recursive==0) &&
+			(ob->particlesystem.first) &&
+			(flag & DRAW_PICKING)==0 &&
+			(ob!=scene->obedit)	
+	  ) {
+		ParticleSystem *psys;
+		PTCacheEdit *edit = PE_get_current(scene, ob);
+
+		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
+		//glDepthMask(GL_FALSE);
+
+		wmLoadMatrix(rv3d->viewmat);
+		
+		view3d_cached_text_draw_begin();
+
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			/* run this so that possible child particles get cached */
+			if(edit && edit->psys == psys)
+				draw_update_ptcache_edit(scene, ob, edit);
+
+			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
+		}
+		
+		view3d_cached_text_draw_end(v3d, ar, 0, NULL);
+
+		wmMultMatrix(ob->obmat);
+		
+		//glDepthMask(GL_TRUE);
+		if(col) cpack(col);
+	}
+
+	/* draw edit particles last so that they can draw over child particles */
 	if(		(warning_recursive==0) &&
 			(flag & DRAW_PICKING)==0 &&
 			(!scene->obedit)	
@@ -5914,31 +5948,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				wmMultMatrix(ob->obmat);
 			}
 		}
-	}
-
-	/* code for new particle system */
-	if(		(warning_recursive==0) &&
-			(ob->particlesystem.first) &&
-			(flag & DRAW_PICKING)==0 &&
-			(ob!=scene->obedit)	
-	  ) {
-		ParticleSystem *psys;
-		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
-		//glDepthMask(GL_FALSE);
-
-		wmLoadMatrix(rv3d->viewmat);
-		
-		view3d_cached_text_draw_begin();
-
-		for(psys=ob->particlesystem.first; psys; psys=psys->next)
-			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
-		
-		view3d_cached_text_draw_end(v3d, ar, 0, NULL);
-
-		wmMultMatrix(ob->obmat);
-		
-		//glDepthMask(GL_TRUE);
-		if(col) cpack(col);
 	}
 
 	/* draw code for smoke */

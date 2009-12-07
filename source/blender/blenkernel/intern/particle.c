@@ -2332,6 +2332,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 	ctx->totparent= totparent;
 	ctx->parent_pass= 0;
 	ctx->cfra= cfra;
+	ctx->editupdate= editupdate;
 
 	psys->lattice = psys_get_lattice(&ctx->sim);
 
@@ -2614,6 +2615,9 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 			if(ctx->ma && (part->draw & PART_DRAW_MAT_COL))
 				get_strand_normal(ctx->ma, ornor, cur_length, (state-1)->vel);
 		}
+
+		if(k == ctx->steps)
+			VECSUB(state->vel,state->co,(state-1)->co);
 
 		/* check if path needs to be cut before actual end of data points */
 		if(k){

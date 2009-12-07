@@ -10165,7 +10165,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	/* put 2.50 compatibility code here until next subversion bump */
-	
+	{
+		Scene *sce= main->scene.first;
+
+		for(sce=main->scene.first; sce; sce=sce->id.next)
+			if(!sce->toolsettings->particle.selectmode)
+				sce->toolsettings->particle.selectmode= SCE_SELECT_PATH;
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

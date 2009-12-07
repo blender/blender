@@ -2925,6 +2925,8 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 					psys_find_parents(sim);
 			}
 		}
+		else
+			psys_free_children(psys);
 	}
 
 	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->flag & PTCACHE_BAKED)==0)
