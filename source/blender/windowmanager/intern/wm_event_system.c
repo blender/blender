@@ -1163,11 +1163,11 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		
 		/* fileread case */
 		if(CTX_wm_window(C)==NULL)
-			break;
+			return action;
 	}
 
 	/* test for CLICK event */
-	if (event->val == KM_RELEASE && (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL))) {
+	if ((action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) && event->val == KM_RELEASE) {
 		wmWindow *win = CTX_wm_window(C);
 
 		if (win && win->last_type == event->type && win->last_val == KM_PRESS) {
