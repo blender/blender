@@ -438,14 +438,19 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
             bone_typeinfo.append((submod_name, type_func))
 
 
-    # now we have all the info about bones we can start operating on them
+    # sort bones, not needed but gives more pradictable execution which may be useful in rare cases
+    bones_sorted = obj.pose.bones.values()
+    bones_sorted.sort(key=lambda pbone: pbone.name) # first sort by names
+    bones_sorted.sort(key=lambda pbone: - len(pbone.parent_recursive)) # children before parents
 
-    for pbone in obj.pose.bones:
+    # now we have all the info about bones we can start operating on them
+    # for pbone in obj.pose.bones:
+    for pbone in bones_sorted:
         bone_name = pbone.name
 
         if bone_name not in bone_typeinfos:
             continue
-
+        
         bone_def_dict = bone_definitions[bone_name]
 
         # Only blend results from the same submodule, eg.

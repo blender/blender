@@ -76,7 +76,8 @@ class _GenericBone:
 
     @property
     def basename(self):
-        return self.name.rsplit(".", 1)[0]
+        #return self.name.rsplit(".", 1)[0]
+        return self.name.split(".")[0]
 
     @property
     def parent_recursive(self):

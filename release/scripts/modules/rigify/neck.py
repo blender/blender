@@ -159,8 +159,9 @@ def main(obj, bone_definition, base_names):
         # dont store parent names, re-reference as each chain bones parent.
         neck_e_parent = arm.edit_bones.new("MCH-rot_%s" % neck_e.name)
         neck_e_parent.head = neck_e.head
-        neck_e_parent.tail = neck_e.head + Vector(0.0, 0.0, neck_chain_segment_length / 2.0)
-        neck_e_parent.roll = 0.0
+        neck_e_parent.tail = neck_e.head + ((mt.head_e.tail - mt.head_e.head).normalize() * neck_chain_segment_length / 2.0)
+        neck_e_parent.roll = neck_e.roll
+        
 
         orig_parent = neck_e.parent
         neck_e.connected = False

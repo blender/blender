@@ -64,10 +64,11 @@ def metarig_definition(obj, orig_bone_name):
     mt.update()
 
     mt.shoulder_p = mt.arm_p.parent
-    mt.shoulder = mt.shoulder_p.name
-
+    
     if not mt.shoulder_p:
         raise Exception("could not find 'arm' parent, skipping:", orig_bone_name)
+    print(mt.shoulder_p)
+    mt.shoulder = mt.shoulder_p.name
 
     # We could have some bones attached, find the bone that has this as its 2nd parent
     hands = []
@@ -119,13 +120,13 @@ def main(obj, definitions, base_names):
         mt.update()
 
         # Add the edit bones
-        ik.hand_e = copy_bone_simple(arm, mt.hand, prefix % mt.hand)
+        ik.hand_e = copy_bone_simple(arm, mt.hand, prefix % base_names[mt.hand])
         ik.hand = ik.hand_e.name
 
-        ik.arm_e = copy_bone_simple(arm, mt.arm, prefix % mt.arm)
+        ik.arm_e = copy_bone_simple(arm, mt.arm, prefix % base_names[mt.arm])
         ik.arm = ik.arm_e.name
 
-        ik.forearm_e = copy_bone_simple(arm, mt.forearm, prefix % mt.forearm)
+        ik.forearm_e = copy_bone_simple(arm, mt.forearm, prefix % base_names[mt.forearm])
         ik.forearm = ik.forearm_e.name
 
         ik.arm_e.parent = mt.arm_e.parent
@@ -164,32 +165,27 @@ def main(obj, definitions, base_names):
 
         bpy.ops.object.mode_set(mode='EDIT')
 
-        ik.arm = ik.arm
-        ik.forearm = ik.forearm
-        ik.hand = ik.hand
-        ik.pole = ik.pole
-
     def chain_switch(prefix="MCH-%s"):
-
+        print(mt.obj.mode)
         sw.update()
         mt.update()
 
-        sw.shoulder_e = copy_bone_simple(arm, mt.shoulder, prefix % mt.shoulder)
+        sw.shoulder_e = copy_bone_simple(arm, mt.shoulder, prefix % base_names[mt.shoulder])
         sw.shoulder = sw.shoulder_e.name
         sw.shoulder_e.parent = mt.shoulder_e.parent
         sw.shoulder_e.connected = mt.shoulder_e.connected
 
-        sw.arm_e = copy_bone_simple(arm, mt.arm, prefix % mt.arm)
+        sw.arm_e = copy_bone_simple(arm, mt.arm, prefix % base_names[mt.arm])
         sw.arm = sw.arm_e.name
         sw.arm_e.parent = sw.shoulder_e
         sw.arm_e.connected = arm.edit_bones[mt.shoulder].connected
 
-        sw.forearm_e = copy_bone_simple(arm, mt.forearm, prefix % mt.forearm)
+        sw.forearm_e = copy_bone_simple(arm, mt.forearm, prefix % base_names[mt.forearm])
         sw.forearm = sw.forearm_e.name
         sw.forearm_e.parent = sw.arm_e
         sw.forearm_e.connected = arm.edit_bones[mt.forearm].connected
 
-        sw.hand_e = copy_bone_simple(arm, mt.hand, prefix % mt.hand)
+        sw.hand_e = copy_bone_simple(arm, mt.hand, prefix % base_names[mt.hand])
         sw.hand = sw.hand_e.name
         sw.hand_e.parent = sw.forearm_e
         sw.hand_e.connected = arm.edit_bones[mt.hand].connected
@@ -271,7 +267,7 @@ def main(obj, definitions, base_names):
 
     def chain_shoulder(prefix="MCH-%s"):
 
-        sw.socket_e = copy_bone_simple(arm, mt.arm, (prefix % mt.arm) + "_socket")
+        sw.socket_e = copy_bone_simple(arm, mt.arm, (prefix % base_names[mt.arm]) + "_socket")
         sw.socket = sw.socket_e.name
         sw.socket_e.tail = arm.edit_bones[mt.shoulder].tail
 
@@ -287,7 +283,7 @@ def main(obj, definitions, base_names):
 
         # ***** add the shoulder hinge
         # yes this is correct, the shoulder copy gets the arm's name
-        ex.arm_hinge_e = copy_bone_simple(arm, mt.shoulder, (prefix % mt.arm) + "_hinge")
+        ex.arm_hinge_e = copy_bone_simple(arm, mt.shoulder, (prefix % base_names[mt.arm]) + "_hinge")
         ex.arm_hinge = ex.arm_hinge_e.name
         offset = ex.arm_hinge_e.length / 2.0
 

@@ -105,7 +105,7 @@ def metarig_definition(obj, orig_bone_name):
     children = bone.children
     # Now there must be 2 children, only one connected
     if len(children) != 2:
-        raise Exception("expected the foot to have 2 children")
+        raise Exception("expected the foot bone:'%s' to have 2 children" % bone.name )
 
     if children[0].connected == children[1].connected:
         raise Exception("expected one bone to be connected")

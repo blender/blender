@@ -81,24 +81,27 @@ def main(obj, bone_definition, base_names):
     child_head = child_ebone.head.copy()
     child_tail = child_ebone.tail.copy()
 
-    arm.edit_bones.remove(delta_ebone)
-    del delta_ebone # cant use this
+    #arm.edit_bones.remove(delta_ebone)
+    #del delta_ebone # cant use this
+    del child_pbone
 
     bpy.ops.object.mode_set(mode='OBJECT')
-
+    
+    
 
     # Move the child bone to the deltas location
     obj.animation_data_create()
-    child_pbone = obj.pose.bones[child_name]
-
+    delta_pbone = obj.pose.bones[delta_name]
+    # child_pbone = obj.pose.bones[child_name]
+    
     # ------------------- drivers
 
-    child_pbone.rotation_mode = 'XYZ'
+    delta_pbone.rotation_mode = 'XYZ'
 
     rot = delta_pmatrix.invert().rotationPart() * child_pmatrix.rotationPart()
     rot = rot.invert().toEuler()
 
-    fcurve_drivers = child_pbone.driver_add("rotation_euler", -1)
+    fcurve_drivers = delta_pbone.driver_add("rotation_euler", -1)
     for i, fcurve_driver in enumerate(fcurve_drivers):
         driver = fcurve_driver.driver
         driver.type = 'AVERAGE'
@@ -111,7 +114,7 @@ def main(obj, bone_definition, base_names):
     # tricky, find the transform to drive the bone to this location.
     delta_head_offset = child_pmatrix.rotationPart() * (delta_phead - child_phead)
 
-    fcurve_drivers = child_pbone.driver_add("location", -1)
+    fcurve_drivers = delta_pbone.driver_add("location", -1)
     for i, fcurve_driver in enumerate(fcurve_drivers):
         driver = fcurve_driver.driver
         driver.type = 'AVERAGE'

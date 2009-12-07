@@ -102,11 +102,15 @@ def metarig_definition(obj, orig_bone_name):
     ribcage = arm.bones[orig_bone_name]
     pelvis = ribcage.parent
 
+    if pelvis is None:
+        raise Exception("expected the ribcage bone:'%s' to have a parent (ribcage)." % ribcage.name)
+
     children = ribcage.children
     if len(children) != 1:
-        print("expected the ribcage to have only 1 child.")
+        raise Exception("expected the ribcage to have only 1 child.")
 
     child = children[0]
+    
     bone_definition = [pelvis.name, ribcage.name, child.name]
     bone_definition.extend([child.name for child in child.children_recursive_basename])
     return bone_definition
@@ -132,17 +136,6 @@ def main(obj, bone_definition, base_names):
     spine_chain = [arm.edit_bones[child_name] for child_name in spine_chain_orig]
     spine_chain_basename = base_names[spine_chain[0].name].rsplit(".", 1)[0] # probably 'ORG-spine.01' -> 'spine'
     spine_chain_len = len(spine_chain_orig)
-    print(spine_chain_orig)
-    print(spine_chain_len)
-
-    '''
-    children = mt.ribcage_e.children
-    child = children[0] # validate checks for 1 only.
-    spine_chain_basename = child.basename # probably 'spine'
-    spine_chain_segment_length = child.length
-    spine_chain = [child] + child.children_recursive_basename
-    spine_chain_orig = [child.name for child in spine_chain]
-    '''
 
     child = spine_chain[0]
     spine_chain_segment_length = child.length
@@ -241,8 +234,9 @@ def main(obj, bone_definition, base_names):
         # dont store parent names, re-reference as each chain bones parent.
         spine_e_parent = arm.edit_bones.new("MCH-rot_%s" % child_name_orig)
         spine_e_parent.head = spine_e.head
-        spine_e_parent.tail = spine_e.head + Vector(0.0, 0.0, spine_chain_segment_length / 2.0)
-        spine_e_parent.roll = 0.0
+        spine_e_parent.tail = spine_e.head + ((mt.ribcage_e.tail - mt.ribcage_e.head).normalize() * spine_chain_segment_length / 2.0)
+        spine_e_parent.roll = mt.ribcage_e.roll
+
 
         spine_e = getattr(ex_chain, ex_chain.attr_names[i] + "_e")
         orig_parent = spine_e.parent
