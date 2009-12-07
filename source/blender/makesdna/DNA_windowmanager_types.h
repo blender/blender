@@ -139,7 +139,10 @@ typedef struct wmWindow {
 	
 	void *ghostwin;		/* dont want to include ghost.h stuff */
 	
-	int winid, pad;		/* winid also in screens, is for retrieving this window after read */
+	int winid;		/* winid also in screens, is for retrieving this window after read */
+
+	short grabcursor; /* 1 if cursor is grabbed */
+	short pad;
 	
 	struct bScreen *screen;		/* active screen */
 	struct bScreen *newscreen;	/* temporary when switching */
