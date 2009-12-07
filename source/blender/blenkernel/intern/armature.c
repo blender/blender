@@ -184,6 +184,9 @@ static void	copy_bonechildren (Bone* newBone, Bone* oldBone, Bone* actBone, Bone
 	if(oldBone == actBone)
 		*newActBone= newBone;
 
+	if(oldBone->prop)
+		newBone->prop= IDP_CopyProperty(oldBone->prop);
+
 	/*	Copy this bone's list*/
 	BLI_duplicatelist(&newBone->childbase, &oldBone->childbase);
 	
