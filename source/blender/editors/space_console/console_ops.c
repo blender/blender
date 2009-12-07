@@ -369,9 +369,6 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 	ot->exec= move_exec;
 	ot->poll= console_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to.");
 }
@@ -414,9 +411,6 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	ot->exec= insert_exec;
 	ot->invoke= insert_invoke;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
@@ -482,9 +476,6 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 	ot->exec= delete_exec;
 	ot->poll= console_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete.");
 }
@@ -525,9 +516,6 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= clear_exec;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "scrollback", 1, "Scrollback", "Clear the scrollback history");
@@ -587,9 +575,6 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= history_cycle_exec;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "reverse cycle history");
@@ -635,9 +620,6 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= history_append_exec;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
@@ -683,9 +665,6 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= scrollback_append_exec;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
@@ -727,9 +706,6 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 	ot->poll= console_edit_poll;
 	ot->exec= copy_exec;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 }
 
@@ -762,9 +738,6 @@ void CONSOLE_OT_paste(wmOperatorType *ot)
 	ot->poll= console_edit_poll;
 	ot->exec= paste_exec;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 }
 
@@ -795,9 +768,6 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= zoom_exec;
 	ot->poll= console_poll;
-
-	/* flags */
-	/* ot->flag= OPTYPE_REGISTER; */ /* super annoying */
 	
 	/* properties */
 	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "Scale the view font.", 0, 1000);
