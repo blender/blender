@@ -1252,8 +1252,14 @@ void init_userdef_do_versions(void)
 		/* new audio system */
 		if(U.audiochannels == 0)
 			U.audiochannels = 2;
-		if(U.audiodevice == 0)
+		if(U.audiodevice == 0) {
+#ifdef WITH_OPENAL
 			U.audiodevice = 2;
+#endif
+#ifdef WITH_SDL
+			U.audiodevice = 1;
+#endif
+		}
 		if(U.audioformat == 0)
 			U.audioformat = 0x24;
 		if(U.audiorate == 0)
