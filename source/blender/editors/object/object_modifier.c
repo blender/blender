@@ -43,6 +43,7 @@
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_action.h"
 #include "BKE_curve.h"
@@ -78,7 +79,7 @@
 
 /******************************** API ****************************/
 
-ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
+ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, char *name, int type)
 {
 	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
@@ -94,7 +95,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *
 		/* don't need to worry about the new modifier's name, since that is set to the number
 		 * of particle systems which shouldn't have too many duplicates 
 		 */
-		object_add_particle_system(scene, ob);
+		new_md = object_add_particle_system(scene, ob, name);
 	}
 	else {
 		/* get new modifier data to add */
@@ -110,8 +111,12 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *
 		}
 		else
 			BLI_addtail(&ob->modifiers, new_md);
-		
+
+		if(name)
+			BLI_strncpy(new_md->name, name, sizeof(new_md->name));
+
 		/* make sure modifier data has unique name */
+
 		modifier_unique_name(&ob->modifiers, new_md);
 		
 		/* special cases */
@@ -148,8 +153,10 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 		if(obmd==md)
 			break;
 	
-	if(!obmd)
+	if(!obmd) {
+		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'.", ob->id.name, md->name);
 		return 0;
+	}
 
 	/* special cases */
 	if(md->type == eModifierType_ParticleSystem) {
@@ -178,7 +185,7 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
         DAG_scene_sort(scene);
 	}
 	else if(md->type == eModifierType_Smoke) {
-		ob->dt = OB_SHADED;
+		ob->dt = OB_TEXTURE;
 	}
 
 	BLI_remlink(&ob->modifiers, md);
@@ -331,12 +338,104 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	return 1;
 }
 
+static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+{
+	if (ob->type==OB_MESH) {
+		DerivedMesh *dm;
+		Mesh *me= ob->data;
+		Key *key=me->key;
+		KeyBlock *kb;
+		
+		if(!modifier_sameTopology(md)) {
+			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
+			return 0;
+		}
+		mesh_pmv_off(ob, me);
+		
+		dm = mesh_create_derived_for_modifier(scene, ob, md);
+		if (!dm) {
+			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+			return 0;
+		}
+		
+		if(key == NULL) {
+			key= me->key= add_key((ID *)me);
+			key->type= KEY_RELATIVE;
+			/* if that was the first key block added, then it was the basis.
+			 * Initialise it with the mesh, and add another for the modifier */
+			kb= add_keyblock(scene, key);
+			mesh_to_key(me, kb);
+		}
+
+		kb= add_keyblock(scene, key);
+		DM_to_meshkey(dm, me, kb);
+		
+		dm->release(dm);
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
+		return 0;
+	}
+	return 1;
+}
+
+static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+{
+	if (ob->type==OB_MESH) {
+		DerivedMesh *dm;
+		Mesh *me = ob->data;
+		if( me->key) {
+			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
+			return 0;
+		}
+		
+		mesh_pmv_off(ob, me);
+		
+		/* Multires: ensure that recent sculpting is applied */
+		if(md->type == eModifierType_Multires)
+			multires_force_update(ob);
+		
+		dm = mesh_create_derived_for_modifier(scene, ob, md);
+		if (!dm) {
+			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+			return 0;
+		}
+		
+		DM_to_mesh(dm, me);
+		
+		dm->release(dm);
+	} 
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		Curve *cu = ob->data;
+		int numVerts;
+		float (*vertexCos)[3];
+		
+		
+		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
+		
+		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
+			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
+			return 0;
+		}
+		
+		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
+		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
+
+		MEM_freeN(vertexCos);
+		
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
+		return 0;
+	}
+	return 1;
+}
+
 int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md, int mode)
 {
-	DerivedMesh *dm;
-	Mesh *me = ob->data;
-	int converted = 0;
-
 	if (scene->obedit) {
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in editmode");
 		return 0;
@@ -348,102 +447,18 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	if (md!=ob->modifiers.first)
 		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected.");
 
-	if (ob->type==OB_MESH) {
-		if (mode == MODIFIER_APPLY_SHAPE) {
-			Key *key=me->key;
-			KeyBlock *kb;
-			int newkey=0;
-			
-			if(!modifier_sameTopology(md)) {
-				BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
-				return 0;
-			}
-			mesh_pmv_off(ob, me);
-			
-			dm = mesh_create_derived_for_modifier(scene, ob, md);
-			if (!dm) {
-				BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
-				return 0;
-			}
-			
-			if(key == NULL) {
-				key= me->key= add_key((ID *)me);
-				key->type= KEY_RELATIVE;
-				newkey= 1;
-			}
-			kb= add_keyblock(scene, key);
-			
-			if (newkey) {
-				/* if that was the first key block added, then it was the basis.
-				 * Initialise it with the mesh, and add another for the modifier */
-				mesh_to_key(me, kb);
-				kb= add_keyblock(scene, key);
-			}
-			DM_to_meshkey(dm, me, kb);
-			converted = 1;
-			
-			dm->release(dm);
-		}
-		else {	/* MODIFIER_APPLY_DATA */
-			if( me->key) {
-				BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
-				return 0;
-			}
-			
-			mesh_pmv_off(ob, me);
-
-			/* Multires: ensure that recent sculpting is applied */
-			if(md->type == eModifierType_Multires)
-				   multires_force_update(ob);
-
-			dm = mesh_create_derived_for_modifier(scene, ob, md);
-			if (!dm) {
-				BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
-				return 0;
-			}
-
-			DM_to_mesh(dm, me);
-			converted = 1;
-
-			dm->release(dm);
-		}
-	} 
-	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		Curve *cu = ob->data;
-		int numVerts;
-		float (*vertexCos)[3];
-
-		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
-
-		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
-			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
+	if (mode == MODIFIER_APPLY_SHAPE) {
+		if (!modifier_apply_shape(reports, scene, ob, md))
 			return 0;
-		}
-
-		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
-		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
-		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
-
-		converted = 1;
-
-		MEM_freeN(vertexCos);
-
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	}
-	else {
-		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
-		return 0;
+	} else {
+		if (!modifier_apply_obdata(reports, scene, ob, md))
+			return 0;
 	}
 
-	if (converted) {
-		BLI_remlink(&ob->modifiers, md);
-		modifier_free(md);
+	BLI_remlink(&ob->modifiers, md);
+	modifier_free(md);
 
-		return 1;
-	}
-
-	return 0;
+	return 1;
 }
 
 int ED_object_modifier_copy(ReportList *reports, Object *ob, ModifierData *md)
@@ -474,7 +489,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
     Object *ob = CTX_data_active_object(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
-	if(!ED_object_modifier_add(op->reports, scene, ob, type))
+	if(!ED_object_modifier_add(op->reports, scene, ob, NULL, type))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
@@ -527,7 +542,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_add_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -559,7 +574,6 @@ void OBJECT_OT_modifier_remove(wmOperatorType *ot)
 	ot->name= "Remove Modifier";
 	ot->description= "Remove a modifier from the active object.";
 	ot->idname= "OBJECT_OT_modifier_remove";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_remove_exec;
 	ot->poll= modifier_poll;
@@ -590,7 +604,6 @@ void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
 	ot->name= "Move Up Modifier";
 	ot->description= "Move modifier up in the stack.";
 	ot->idname= "OBJECT_OT_modifier_move_up";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_move_up_exec;
 	ot->poll= modifier_poll;
@@ -621,7 +634,6 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 	ot->name= "Move Down Modifier";
 	ot->description= "Move modifier down in the stack.";
 	ot->idname= "OBJECT_OT_modifier_move_down";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_move_down_exec;
 	ot->poll= modifier_poll;
@@ -659,7 +671,6 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->name= "Apply Modifier";
 	ot->description= "Apply modifier and remove from the stack.";
 	ot->idname= "OBJECT_OT_modifier_apply";
-	ot->poll= ED_operator_object_active;
 
 	//ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_apply_exec;
@@ -694,7 +705,6 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 	ot->name= "Convert Modifier";
 	ot->description= "Convert particles to a mesh object.";
 	ot->idname= "OBJECT_OT_modifier_convert";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_convert_exec;
 	ot->poll= modifier_poll;
@@ -725,7 +735,6 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 	ot->name= "Copy Modifier";
 	ot->description= "Duplicate modifier at the same position in the stack.";
 	ot->idname= "OBJECT_OT_modifier_copy";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_copy_exec;
 	ot->poll= modifier_poll;
@@ -841,7 +850,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		int mode= mmd->modifier.mode;
 
 		/* force modifier to run, it will call binding routine */
-		mmd->bindfunc= harmonic_coordinates_bind;
+		mmd->bindfunc= mesh_deform_bind;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
 		if(ob->type == OB_MESH) {

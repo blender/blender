@@ -100,19 +100,6 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         layout.separator()
         layout.operator("sequencer.view_all")
         layout.operator("sequencer.view_selected")
-        layout.separator()
-        layout.operator("screen.screen_full_area", text="Toggle Full Screen")
-        """
-
-
-    /* Lock Time */
-    uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWSYNC_SCREEN_TIME)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
-            "Lock Time to Other Windows|", 0, yco-=20,
-            menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-
-    /* Draw time or frames.*/
-    uiDefMenuSep(block);
-        """
 
         layout.prop(st, "draw_frames")
         layout.prop(st, "show_cframe_indicator")
@@ -121,11 +108,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if st.display_mode == 'WAVEFORM':
             layout.prop(st, "separate_color_preview")
 
-        """
-    if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
-    else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+        layout.separator()
 
-        """
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
 
 
 class SEQUENCER_MT_select(bpy.types.Menu):
@@ -351,7 +337,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('COLOR', 'WIPE', 'GLOW', 'SPEED', 'TRANSFORM')
+        return strip.type in ('ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                              'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'PLUGIN',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
 
     def draw(self, context):
         layout = self.layout
@@ -431,7 +420,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         if strip.type == 'SPEED':
             col.prop(strip, "speed_fader", text="Speed fader")
         else:
-            col.prop(strip, "effect_fader", text="Effect fader")
+            col.prop(strip, "use_effect_default_fade", "Default fade")
+            if not strip.use_effect_default_fade:
+                col.prop(strip, "effect_fader", text="Effect fader")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
@@ -522,7 +513,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         row.prop(strip.sound, "caching")
 
         layout.prop(strip, "volume")
-        
+
 
 class SEQUENCER_PT_scene(SequencerButtonsPanel):
     bl_label = "Scene"
@@ -541,7 +532,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
         layout = self.layout
 
         strip = act_strip(context)
-        
+
         layout.template_ID(strip, "scene")
 
 

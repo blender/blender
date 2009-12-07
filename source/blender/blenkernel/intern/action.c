@@ -456,6 +456,8 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	chan->ikrotweight = chan->iklinweight = 0.0f;
 	unit_m4(chan->constinv);
 	
+	chan->protectflag = OB_LOCK_ROT4D;	/* lock by components by default */
+	
 	BLI_addtail(&pose->chanbase, chan);
 	
 	return chan;
@@ -1083,7 +1085,10 @@ void copy_pose_result(bPose *to, bPose *from)
 			
 			VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
 			VECCOPY(pchanto->pose_tail, pchanfrom->pose_tail);
+			
+			pchanto->rotmode= pchanfrom->rotmode;
 			pchanto->flag= pchanfrom->flag;
+			pchanto->protectflag= pchanfrom->protectflag;
 		}
 	}
 }

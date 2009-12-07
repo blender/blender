@@ -65,17 +65,16 @@ typedef struct EditBone
 							their parents.	Therefore any rotations specified during the
 							animation are automatically relative to the bones' rest positions*/
 	int		flag;
-
-	int		parNr;		/* Used for retrieving values from the menu system */
+	int		layer;
 	
 	float dist, weight;
 	float xwidth, length, zwidth;	/* put them in order! transform uses this as scale */
 	float ease1, ease2;
 	float rad_head, rad_tail;
-	short layer, segments;
 	
 	float oldlength;				/* for envelope scaling */
-
+	
+	short segments;
 } EditBone;
 
 #define	BONESEL_ROOT	0x10000000
@@ -166,7 +165,8 @@ void BDR_drawSketch(const struct bContext *vc);
 int BDR_drawSketchNames(struct ViewContext *vc);
 
 /* meshlaplacian.c */
-void harmonic_coordinates_bind(struct Scene *scene, struct MeshDeformModifierData *mmd,
+void mesh_deform_bind(struct Scene *scene, struct DerivedMesh *dm,
+	struct MeshDeformModifierData *mmd,
 	float *vertexcos, int totvert, float cagemat[][4]);
 
 #endif /* ED_ARMATURE_H */

@@ -412,6 +412,7 @@ void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
 
 	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
 	{
+		PyObject* args= PyTuple_New(0); // save python creating each call
 		PyObject* func;
 		PyObject* ret;
 
@@ -419,7 +420,7 @@ void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
 		for (int pos=0; pos < len; pos++)
 		{
 			func= PyList_GET_ITEM(cb_list, pos);
-			ret= PyObject_CallObject(func, NULL);
+			ret= PyObject_Call(func, args, NULL);
 			if (ret==NULL) {
 				PyErr_Print();
 				PyErr_Clear();
@@ -428,6 +429,8 @@ void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
 				Py_DECREF(ret);
 			}
 		}
+
+		Py_DECREF(args);
 	}
 }
 
@@ -1103,8 +1106,10 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 
 			
 			if (oldblendobj==NULL) {
-				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
-				bHasShapeKey= bHasDvert= bHasArmature=bHasModifier=bHasSoftBody= false;
+				if (bHasModifier || bHasShapeKey || bHasDvert || bHasArmature) {
+					std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
+					bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
+				}
 			}
 			
 			if (bHasModifier)

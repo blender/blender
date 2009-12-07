@@ -229,6 +229,7 @@ static void nupdate_abk_bezt (void *node, void *data)
 	/* just add the BezTriple to the buffer if there's space, or allocate a new one */
 	if (abk->numBezts >= sizeof(abk->bezts)/sizeof(BezTriple)) {
 		// TODO: need to allocate new array to cater...
+		// FIXME: urgent... is a problem when working with duplicate keyframes
 		//bezts_extra= MEM_callocN(...);
 		printf("FIXME: nupdate_abk_bezt() missing case for too many overlapping BezTriples \n");
 	}

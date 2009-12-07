@@ -885,6 +885,17 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 			
 		case ID_SEQ: /* sequencer strip */
 			//SEQ_FAC1:
+			switch (adrcode) {
+			case SEQ_FAC1:
+				propname= "effect_fader";
+				break;
+			case SEQ_FAC_SPEED:
+				propname= "speed_fader";
+				break;
+			case SEQ_FAC_OPACITY:
+				propname= "blend_opacity";
+				break;
+			}
 			//	poin= &(seq->facf0); // XXX this doesn't seem to be included anywhere in sequencer RNA...
 			break;
 			
@@ -1604,6 +1615,7 @@ void do_versions_ipos_to_animato(Main *main)
 	ListBase drivers = {NULL, NULL};
 	ID *id;
 	AnimData *adt;
+	Scene *scene;
 	
 	if (main == NULL) {
 		printf("Argh! Main is NULL in do_versions_ipos_to_animato() \n");
@@ -1781,6 +1793,51 @@ void do_versions_ipos_to_animato(Main *main)
 		}
 	}
 	
+	/* sequence strips */
+	for(scene = main->scene.first; scene; scene = scene->id.next) {
+		if(scene->ed && scene->ed->seqbasep) {
+			Sequence * seq;
+
+			for(seq = scene->ed->seqbasep->first; 
+			    seq; seq = seq->next) {
+				short adrcode = SEQ_FAC1;
+
+				if (G.f & G_DEBUG) 
+					printf("\tconverting sequence strip %s \n", seq->name+2);
+
+				if (!seq->ipo || !seq->ipo->curve.first) {
+					seq->flag |= 
+						SEQ_USE_EFFECT_DEFAULT_FADE;
+					continue;
+				}
+				
+				/* patch adrcode, so that we can map
+				   to different DNA variables later 
+				   (semi-hack (tm) )
+				*/
+				switch(seq->type) {
+				case SEQ_IMAGE:
+				case SEQ_META:
+				case SEQ_SCENE:
+				case SEQ_MOVIE:
+				case SEQ_COLOR:
+					adrcode = SEQ_FAC_OPACITY;
+					break;
+				case SEQ_SPEED:
+					adrcode = SEQ_FAC_SPEED;
+					break;
+				}
+				((IpoCurve*) seq->ipo->curve.first)
+					->adrcode = adrcode;
+				ipo_to_animdata((ID*) seq, seq->ipo,
+						NULL, NULL);
+				seq->ipo->id.us--;
+				seq->ipo = NULL;
+			}
+		}
+	}
+
+
 	/* textures */
 	for (id= main->tex.first; id; id= id->next) {
 		Tex *te= (Tex *)id;

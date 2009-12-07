@@ -523,9 +523,10 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 
 	case V3D_MANIP_GIMBAL:
 		unit_m3(t->spacemtx);
-		if(ob)
-			gimbal_axis(ob, t->spacemtx);
-		break;
+		if (gimbal_axis(ob, t->spacemtx)) {
+			break;
+		}
+		/* no gimbal fallthrough to normal */
 	case V3D_MANIP_NORMAL:
 		if(obedit || (ob && ob->mode & OB_MODE_POSE)) {
 			strcpy(t->spacename, "normal");

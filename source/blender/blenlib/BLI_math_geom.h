@@ -148,6 +148,12 @@ void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang,
 void tangent_from_uv(float *uv1, float *uv2, float *uv3,
 	float *co1, float *co2, float *co3, float *n, float *tang);
 
+/********************************* vector clouds******************************/
+
+
+void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,float (*rpos)[3], float *rweight,
+							float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3]);
+
 #ifdef __cplusplus
 }
 #endif

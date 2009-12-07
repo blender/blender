@@ -68,7 +68,7 @@
 
 void ED_operatortypes_mesh(void)
 {
-	WM_operatortype_append(MESH_OT_select_all_toggle);
+	WM_operatortype_append(MESH_OT_select_all);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
 	WM_operatortype_append(MESH_OT_select_inverse);
@@ -171,7 +171,7 @@ void ED_operatormacros_mesh(void)
 	wmOperatorTypeMacro *otmacro;
 	int constraint_axis[3] = {0, 0, 1};
 	
-	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loopcut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loop Cut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
 	WM_operatortype_macro_define(ot, "TFM_OT_edge_slide");
 
@@ -222,7 +222,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_shortest_path", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "MESH_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);

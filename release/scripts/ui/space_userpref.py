@@ -88,7 +88,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub1.prop(view, "show_playback_fps", text="Playback FPS")
         sub1.prop(view, "global_scene")
         sub1.prop(view, "pin_floating_panels")
-        sub1.prop(view, "object_center_size")
+        sub1.prop(view, "object_origin_size")
         sub1.separator()
         sub1.separator()
         sub1.separator()
@@ -119,11 +119,11 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub1 = sub.column()
 
 #Toolbox doesn't exist yet
-#		sub1.label(text="Toolbox:")
-#		sub1.prop(view, "use_column_layout")
-#		sub1.label(text="Open Toolbox Delay:")
-#		sub1.prop(view, "open_left_mouse_delay", text="Hold LMB")
-#		sub1.prop(view, "open_right_mouse_delay", text="Hold RMB")
+#       sub1.label(text="Toolbox:")
+#       sub1.prop(view, "use_column_layout")
+#       sub1.label(text="Open Toolbox Delay:")
+#       sub1.prop(view, "open_left_mouse_delay", text="Hold LMB")
+#       sub1.prop(view, "open_right_mouse_delay", text="Hold RMB")
 
         #manipulator
         sub1.prop(view, "use_manipulator")
@@ -244,7 +244,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         sub1.prop(edit, "duplicate_lamp", text="Lamp")
         sub1.prop(edit, "duplicate_material", text="Material")
         sub1.prop(edit, "duplicate_texture", text="Texture")
-        sub1.prop(edit, "duplicate_ipo", text="F-Curve")
+        sub1.prop(edit, "duplicate_fcurve", text="F-Curve")
         sub1.prop(edit, "duplicate_action", text="Action")
         sub1.prop(edit, "duplicate_particle", text="Particle")
 
@@ -264,6 +264,9 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         userpref = context.user_preferences
         system = userpref.system
+        lamp0 = system.solid_lights[0]
+        lamp1 = system.solid_lights[1]
+        lamp2 = system.solid_lights[2]
 
         split = layout.split()
 
@@ -320,6 +323,34 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub = col.split(percentage=0.9)
 
         sub1 = sub.column()
+
+        sub1.label(text="Solid OpenGL lights:")
+
+        sub2 = sub1.split()
+
+        col = sub2.column()
+        col.prop(lamp0, "enabled")
+        sub = col.column()
+        sub.active = lamp0.enabled
+        sub.prop(lamp0, "diffuse_color")
+        sub.prop(lamp0, "specular_color")
+        sub.prop(lamp0, "direction")
+
+        col = sub2.column()
+        col.prop(lamp1, "enabled")
+        sub = col.column()
+        sub.active = lamp1.enabled
+        sub.prop(lamp1, "diffuse_color")
+        sub.prop(lamp1, "specular_color")
+        sub.prop(lamp1, "direction")
+
+        col = sub2.column()
+        col.prop(lamp2, "enabled")
+        sub = col.column()
+        sub.active = lamp2.enabled
+        sub.prop(lamp2, "diffuse_color")
+        sub.prop(lamp2, "specular_color")
+        sub.prop(lamp2, "direction")
 
         sub1.label(text="OpenGL:")
         sub1.prop(system, "clip_alpha", slider=True)
@@ -1136,6 +1167,9 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         sub.label(text="Zoom Style:")
         sub.row().prop(inputs, "viewport_zoom_style", expand=True)
+        if inputs.viewport_zoom_style == 'DOLLY':
+            sub.row().prop(inputs, "zoom_axis", expand=True)
+            sub.prop(inputs, "invert_zoom_direction")
 
         #sub.prop(inputs, "use_middle_mouse_paste")
 
@@ -1143,7 +1177,6 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         #sub = col.column()
         #sub.label(text="Mouse Wheel:")
-        #sub.prop(view, "wheel_invert_zoom", text="Invert Zoom")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
@@ -1382,9 +1415,9 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
 
 class WM_OT_keymap_restore(bpy.types.Operator):
-    "Restore key map"
+    "Restore key map(s)."
     bl_idname = "wm.keymap_restore"
-    bl_label = "Restore Key Map"
+    bl_label = "Restore Key Map(s)"
 
     all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")
 

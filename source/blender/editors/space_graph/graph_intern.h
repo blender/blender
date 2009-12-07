@@ -90,7 +90,7 @@ void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPH_OT_view_all(struct wmOperatorType *ot);
 
 void GRAPH_OT_click_insert(struct wmOperatorType *ot);
-void GRAPH_OT_insert_keyframe(struct wmOperatorType *ot);
+void GRAPH_OT_keyframe_insert(struct wmOperatorType *ot);
 
 void GRAPH_OT_copy(struct wmOperatorType *ot);
 void GRAPH_OT_paste(struct wmOperatorType *ot);

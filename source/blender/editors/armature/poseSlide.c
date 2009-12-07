@@ -178,7 +178,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	/* for each Pose-Channel which gets affected, get the F-Curves for that channel 
 	 * and set the relevant transform flags...
 	 */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
 	{
 		ListBase curves = {NULL, NULL};
 		int transFlags = action_get_item_transforms(act, pso->ob, pchan, &curves);

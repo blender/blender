@@ -31,6 +31,7 @@
 	meshtools.c: no editmode (violated already :), tools operating on meshes
 */
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -62,6 +63,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -540,6 +542,82 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
+	return OPERATOR_FINISHED;
+}
+
+/*********************** JOIN AS SHAPES ***************************/
+
+/* Append selected meshes vertex locations as shapes of the active mesh, 
+  return 0 if no join is made (error) and 1 of the join is done */
+
+int join_mesh_shapes_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	Mesh *me= (Mesh *)ob->data;
+	Mesh *selme=NULL;
+	DerivedMesh *dm=NULL;
+	Key *key=me->key;
+	KeyBlock *kb;
+	int ok=0, nonequal_verts=0;
+	
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		if (base->object == ob) continue;
+		
+		if (base->object->type==OB_MESH) {
+			selme = (Mesh *)base->object->data;
+			
+			if (selme->totvert==me->totvert)
+				ok++;
+			else
+				nonequal_verts=1;
+		}
+	}
+	CTX_DATA_END;
+	
+	if (!ok) {
+		if (nonequal_verts)
+			BKE_report(op->reports, RPT_ERROR, "Selected meshes must have equal numbers of vertices.");
+		else
+			BKE_report(op->reports, RPT_ERROR, "No additional selected meshes with equal vertex count to join.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(key == NULL) {
+		key= me->key= add_key((ID *)me);
+		key->type= KEY_RELATIVE;
+
+		/* first key added, so it was the basis. initialise it with the existing mesh */
+		kb= add_keyblock(scene, key);
+		mesh_to_key(me, kb);
+	}
+	
+	/* now ready to add new keys from selected meshes */
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		if (base->object == ob) continue;
+		
+		if(base->object->type==OB_MESH) {
+			selme = (Mesh *)base->object->data;
+			
+			if (selme->totvert==me->totvert) {
+				dm = mesh_get_derived_deform(scene, base->object, CD_MASK_BAREMESH);
+				
+				if (!dm) continue;
+					
+				kb= add_keyblock(scene, key);
+				strcpy(kb->name, base->object->id.name+2);
+				BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), 32);
+				
+				DM_to_meshkey(dm, me, kb);
+				
+				dm->release(dm);
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
+	
 	return OPERATOR_FINISHED;
 }
 

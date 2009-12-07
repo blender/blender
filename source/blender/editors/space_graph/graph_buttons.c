@@ -400,7 +400,9 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				
 				/* array index */
 				// TODO: this needs selector which limits it to ok values
-				uiItemR(col, "Index", 0, &dtar_ptr, "array_index", 0);
+				// NOTE: for for now, the array index box still gets shown when non-zero (i.e. for tweaking rigs as necessary)
+				if (dtar->array_index)
+					uiItemR(col, "Index", 0, &dtar_ptr, "array_index", 0);
 		}
 	}
 	

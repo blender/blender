@@ -153,7 +153,7 @@ typedef struct ShadeInput
 	float dxstrand, dystrand;
 	
 	/* AO is a pre-process now */
-	float ao[3];
+	float ao[3], indirect[3];
 	
 	int xs, ys;				/* pixel to be rendered */
 	int mask;				/* subsample mask */

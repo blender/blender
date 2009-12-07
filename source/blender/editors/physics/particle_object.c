@@ -56,6 +56,7 @@
 #include "WM_types.h"
 
 #include "ED_particle.h"
+#include "ED_screen.h"
 
 #include "physics_intern.h"
 
@@ -69,7 +70,7 @@ static int particle_system_add_exec(bContext *C, wmOperator *op)
 	if(!scene || !ob)
 		return OPERATOR_CANCELLED;
 
-	object_add_particle_system(scene, ob);
+	object_add_particle_system(scene, ob, NULL);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
@@ -83,8 +84,9 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 	ot->description="Add a particle system.";
 	
 	/* api callbacks */
+	ot->poll= ED_operator_object_active_editable;
 	ot->exec= particle_system_add_exec;
-
+	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -120,6 +122,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 	ot->description="Remove the selected particle system.";
 	
 	/* api callbacks */
+	ot->poll= ED_operator_object_active_editable;
 	ot->exec= particle_system_remove_exec;
 
 	/* flags */
@@ -266,11 +269,11 @@ static int remove_particle_target_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_remove_target(wmOperatorType *ot)
+void PARTICLE_OT_target_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Particle Target";
-	ot->idname= "PARTICLE_OT_remove_target";
+	ot->idname= "PARTICLE_OT_target_remove";
 	ot->description="Remove the selected particle target.";
 	
 	/* api callbacks */

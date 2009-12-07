@@ -181,11 +181,11 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_select_all_toggle (wmOperatorType *ot)
+void ACTION_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "ACT_OT_select_all_toggle";
+	ot->idname= "ACTION_OT_select_all_toggle";
 	ot->description= "Toggle selection of all keyframes.";
 	
 	/* api callbacks */
@@ -342,11 +342,11 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ACT_OT_select_border(wmOperatorType *ot)
+void ACTION_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "ACT_OT_select_border";
+	ot->idname= "ACTION_OT_select_border";
 	ot->description= "Select all keyframes within the specified region.";
 	
 	/* api callbacks */
@@ -556,11 +556,11 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_select_column (wmOperatorType *ot)
+void ACTION_OT_select_column (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "ACT_OT_select_column";
+	ot->idname= "ACTION_OT_select_column";
 	ot->description= "Select all keyframes on the specified frame(s).";
 	
 	/* api callbacks */
@@ -979,11 +979,11 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
-void ACT_OT_clickselect (wmOperatorType *ot)
+void ACTION_OT_clickselect (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
-	ot->idname= "ACT_OT_clickselect";
+	ot->idname= "ACTION_OT_clickselect";
 	ot->description= "Select keyframes by clicking on them.";
 	
 	/* api callbacks - absolutely no exec() this yet... */

@@ -517,6 +517,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_VIEW3D)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			if(wmn->data == ND_ID_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -637,6 +641,10 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_ID:
+			if(wmn->data == ND_ID_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -831,7 +839,7 @@ void ED_spacetype_view3d(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= view3d_header_area_listener;
 	art->init= view3d_header_area_init;
 	art->draw= view3d_header_area_draw;

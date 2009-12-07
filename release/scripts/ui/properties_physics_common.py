@@ -30,7 +30,7 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
     row = layout.row()
     row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
     col = row.column(align=True)
-    col.operator("ptcache.add_new", icon='ICON_ZOOMIN', text="")
+    col.operator("ptcache.add", icon='ICON_ZOOMIN', text="")
     col.operator("ptcache.remove", icon='ICON_ZOOMOUT', text="")
 
     row = layout.row()

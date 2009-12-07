@@ -439,10 +439,15 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
 	glBindTexture(GL_TEXTURE_2D, texid);
 
-	 /* don't want nasty border artifacts */
-	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	/* don't want nasty border artifacts */
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+#ifdef __APPLE__
+	/* workaround for os x 10.5/10.6 driver bug: http://lists.apple.com/archives/Mac-opengl/2008/Jul/msg00117.html */
+	glPixelZoom(1.f, 1.f);
+#endif
+	
 	for (subpart_y=0; subpart_y<nsubparts_y; subpart_y++) {
 		for (subpart_x=0; subpart_x<nsubparts_x; subpart_x++) {
 			int subpart_w= (subpart_x==nsubparts_x-1)?(img_w-subpart_x*tex_w):tex_w;
@@ -476,6 +481,11 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	glBindTexture(GL_TEXTURE_2D, ltexid);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, lrowlength);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	
+#ifdef __APPLE__
+	/* workaround for os x 10.5/10.6 driver bug (above) */
+	glPixelZoom(xzoom, yzoom);
+#endif
 }
 
 void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect)

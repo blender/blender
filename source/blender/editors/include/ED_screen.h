@@ -132,7 +132,9 @@ int		ED_operator_nla_active(struct bContext *C);
 int		ED_operator_logic_active(struct bContext *C);
 
 int		ED_operator_object_active(struct bContext *C);
+int		ED_operator_object_active_editable(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);
+int		ED_operator_editmesh_view3d(struct bContext *C);
 int		ED_operator_editarmature(struct bContext *C);
 int		ED_operator_editcurve(struct bContext *C);
 int		ED_operator_editsurf(struct bContext *C);
@@ -152,6 +154,7 @@ int		ED_operator_posemode(struct bContext *C);
 #define ED_KEYMAP_ANIMATION	8
 #define ED_KEYMAP_FRAMES	16
 #define ED_KEYMAP_GPENCIL	32
+#define ED_KEYMAP_HEADER	64
 
 #endif /* ED_SCREEN_H */
 

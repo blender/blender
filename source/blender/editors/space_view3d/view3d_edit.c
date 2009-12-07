@@ -863,8 +863,19 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 		zfac = vod->dist0 * ((float)len2/len1) / vod->rv3d->dist;
 	}
 	else {	/* USER_ZOOM_DOLLY */
-		float len1 = (vod->ar->winrct.ymax - y) + 5;
-		float len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
+		float len1, len2;
+		
+		if (U.uiflag & USER_ZOOM_DOLLY_HORIZ) {
+			len1 = (vod->ar->winrct.xmax - x) + 5;
+			len2 = (vod->ar->winrct.xmax - vod->origx) + 5;
+		}
+		else {
+			len1 = (vod->ar->winrct.ymax - y) + 5;
+			len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
+		}
+		if (U.uiflag & USER_ZOOM_INVERT)
+			SWAP(float, len1, len2);
+		
 		zfac = vod->dist0 * (2.0*((len2/len1)-1.0) + 1.0) / vod->rv3d->dist;
 	}
 
@@ -1206,10 +1217,6 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 		if(size<1.0f) size= 1.0f/size;
 		new_dist*= size;
 	}
-
-	v3d->cursor[0]= -new_ofs[0];
-	v3d->cursor[1]= -new_ofs[1];
-	v3d->cursor[2]= -new_ofs[2];
 
 	if (rv3d->persp==RV3D_CAMOB) {
 		rv3d->persp= RV3D_PERSP;
@@ -1631,36 +1638,43 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	static int perspo=RV3D_PERSP;
-	int viewnum, align_active;
+	int viewnum, align_active, nextperspo;
 
 	viewnum = RNA_enum_get(op->ptr, "type");
 	align_active = RNA_boolean_get(op->ptr, "align_active");
 
+
 	/* Use this to test if we started out with a camera */
+
+	if (rv3d->persp == RV3D_CAMOB) {
+		nextperspo= rv3d->lpersp;
+	} else {
+		nextperspo= perspo;
+	}
 
 	switch (viewnum) {
 		case RV3D_VIEW_BOTTOM :
-			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, viewnum, perspo, align_active);
+			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_BACK:
-			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, perspo, align_active);
+			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_LEFT:
-			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, viewnum, perspo, align_active);
+			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_TOP:
-			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, viewnum, perspo, align_active);
+			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_FRONT:
-			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, perspo, align_active);
+			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_RIGHT:
-			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, perspo, align_active);
+			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_CAMERA:
@@ -2174,7 +2188,53 @@ int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mou
 	return 1;
 }
 
+int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d) //, float *autodist )
+{
+	RegionView3D *rv3d= ar->regiondata;
 
+	/* Get Z Depths, needed for perspective, nice for ortho */
+	draw_depth(scene, ar, v3d, NULL);
+
+	/* force updating */
+	if (rv3d->depths) {
+		rv3d->depths->damaged = 1;
+	}
+
+	view3d_update_depths(ar, v3d);
+	return 1;
+}
+
+// no 4x4 sampling, run view_autodist_init first
+int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3] ) //, float *autodist )
+{
+	RegionView3D *rv3d= ar->regiondata;
+	bglMats mats; /* ZBuffer depth vars, could cache? */
+	float depth;
+	double cent[2],  p[3];
+
+	if (mval[0] < 0) return 0;
+	if (mval[1] < 0) return 0;
+	if (mval[0] >= rv3d->depths->w) return 0;
+	if (mval[1] >= rv3d->depths->h) return 0;
+
+	/* Get Z Depths, needed for perspective, nice for ortho */
+	bgl_get_mats(&mats);
+	depth= rv3d->depths->depths[mval[1]*rv3d->depths->w+mval[0]];
+
+	if (depth==MAXFLOAT)
+		return 0;
+
+	cent[0] = (double)mval[0];
+	cent[1] = (double)mval[1];
+
+	if (!gluUnProject(cent[0], cent[1], depth, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
+		return 0;
+
+	mouse_worldloc[0] = (float)p[0];
+	mouse_worldloc[1] = (float)p[1];
+	mouse_worldloc[2] = (float)p[2];
+	return 1;
+}
 
 /* ********************* NDOF ************************ */
 /* note: this code is confusing and unclear... (ton) */

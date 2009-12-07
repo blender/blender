@@ -1059,24 +1059,16 @@ static short test_special_char(char ch)
 
 static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 {
-	char *str;
-	int x, changed;
-	
-	str= data->str;
-	changed= (but->selsta != but->selend);
-	
-	for(x=0; x< strlen(str); x++) {
-		if (but->selend + x <= strlen(str) ) {
-			str[but->selsta + x]= str[but->selend + x];
-		} else {
-			str[but->selsta + x]= '\0';
-			break;
-		}
+	char *str= data->str;
+	int len= strlen(str);
+	int change= 0;
+	if(but->selsta != but->selend && len) {
+		memmove( str+but->selsta, str+but->selend, len+1 );
+		change= 1;
 	}
-
+	
 	but->pos = but->selend = but->selsta;
-
-	return changed;
+	return change;
 }
 
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
@@ -1365,8 +1357,10 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 			buf[i]= 0;
 
 			/* paste over the current selection */
-			if ((but->selend - but->selsta) > 0)
+			if ((but->selend - but->selsta) > 0) {
 				ui_textedit_delete_selection(but, data);
+				len= strlen(str);
+			}
 			
 			for (y=0; y<strlen(buf); y++)
 			{
@@ -2703,7 +2697,13 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 {
 	float x, y;
 	int changed= 1;
-
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+			color_profile = BLI_PR_NONE;
+	}
+		
 	/* relative position within box */
 	x= ((float)mx-but->x1)/(but->x2-but->x1);
 	y= ((float)my-but->y1)/(but->y2-but->y1);
@@ -2725,8 +2725,12 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	else if(but->a1==3) {
 		but->hsv[0]= x; 
 	}
-	else
+	else {
+		/* vertical 'value' strip */
 		but->hsv[2]= y; 
+		if (color_profile)
+			but->hsv[2] = srgb_to_linearrgb(but->hsv[2]);
+	}
 
 	ui_set_but_hsv(but);	// converts to rgb
 	
@@ -2986,6 +2990,16 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap, 
 	offsx= cumap->curr.xmin;
 	offsy= cumap->curr.ymin;
 
+	if(snap) {
+		float d[2];
+
+		d[0]= mx - data->dragstartx;
+		d[1]= my - data->dragstarty;
+
+		if(len_v2(d) < 3.0f)
+			snap= 0;
+	}
+
 	if(data->dragsel != -1) {
 		int moved_point= 0;		/* for ctrl grid, can't use orig coords because of sorting */
 		
@@ -3122,10 +3136,13 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			if(sel!= -1) {
 				/* ok, we move a point */
 				/* deselect all if this one is deselect. except if we hold shift */
-				if(event->shift==0 && (cmp[sel].flag & SELECT)==0)
+				if(event->shift==0) {
 					for(a=0; a<cuma->totpoint; a++)
 						cmp[a].flag &= ~SELECT;
-				cmp[sel].flag |= SELECT;
+					cmp[sel].flag |= SELECT;
+				}
+				else
+					cmp[sel].flag ^= SELECT;
 			}
 			else {
 				/* move the view */
@@ -3146,7 +3163,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
 		if(event->type == MOUSEMOVE) {
 			if(mx!=data->draglastx || my!=data->draglasty) {
-				if(ui_numedit_but_CURVE(but, data, event->shift, mx, my))
+				if(ui_numedit_but_CURVE(but, data, event->ctrl, mx, my))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
@@ -3409,24 +3426,24 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		/* Keyframes */
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {
-				uiItemBooleanO(layout, "Replace Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
-				uiItemBooleanO(layout, "Replace Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
-				uiItemBooleanO(layout, "Delete Keyframes", 0, "ANIM_OT_delete_keyframe_button", "all", 1);
-				uiItemBooleanO(layout, "Delete Single Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Replace Keyframes", 0, "ANIM_OT_keyframe_insert_button", "all", 1);
+				uiItemBooleanO(layout, "Replace Single Keyframe", 0, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Keyframes", 0, "ANIM_OT_keyframe_delete_button", "all", 1);
+				uiItemBooleanO(layout, "Delete Single Keyframe", 0, "ANIM_OT_keyframe_delete_button", "all", 0);
 			}
 			else {
-				uiItemBooleanO(layout, "Replace Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
-				uiItemBooleanO(layout, "Delete Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Replace Keyframe", 0, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Keyframe", 0, "ANIM_OT_keyframe_delete_button", "all", 0);
 			}
 		}
 		else if(but->flag & UI_BUT_DRIVEN);
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			if(length) {
-				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
-				uiItemBooleanO(layout, "Insert Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_keyframe_insert_button", "all", 1);
+				uiItemBooleanO(layout, "Insert Single Keyframe", 0, "ANIM_OT_keyframe_insert_button", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_keyframe_insert_button", "all", 0);
 		}
 		
 		/* Drivers */
@@ -3434,11 +3451,11 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 
 			if(length) {
-				uiItemBooleanO(layout, "Delete Drivers", 0, "ANIM_OT_remove_driver_button", "all", 1);
-				uiItemBooleanO(layout, "Delete Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Drivers", 0, "ANIM_OT_driver_button_remove", "all", 1);
+				uiItemBooleanO(layout, "Delete Single Driver", 0, "ANIM_OT_driver_button_remove", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Delete Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Driver", 0, "ANIM_OT_driver_button_remove", "all", 0);
 
 			uiItemO(layout, "Copy Driver", 0, "ANIM_OT_copy_driver_button");
 			if (ANIM_driver_can_paste())
@@ -3449,11 +3466,11 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 
 			if(length) {
-				uiItemBooleanO(layout, "Add Drivers", 0, "ANIM_OT_add_driver_button", "all", 1);
-				uiItemBooleanO(layout, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Add Drivers", 0, "ANIM_OT_driver_button_add", "all", 1);
+				uiItemBooleanO(layout, "Add Single Driver", 0, "ANIM_OT_driver_button_add", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_driver_button_add", "all", 0);
 
 			if (ANIM_driver_can_paste())
 				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
@@ -3464,13 +3481,13 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 
 			if(length) {
-				uiItemBooleanO(layout, "Add All to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 1);
-				uiItemBooleanO(layout, "Add Single to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
-				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
+				uiItemBooleanO(layout, "Add All to Keying Set", 0, "ANIM_OT_keyingset_button_add", "all", 1);
+				uiItemBooleanO(layout, "Add Single to Keying Set", 0, "ANIM_OT_keyingset_button_add", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_keyingset_button_remove");
 			}
 			else {
-				uiItemBooleanO(layout, "Add to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
-				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
+				uiItemBooleanO(layout, "Add to Keying Set", 0, "ANIM_OT_keyingset_button_add", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_keyingset_button_remove");
 			}
 		}
 		
@@ -4709,7 +4726,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 
 				if(ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) && event->val==KM_PRESS)
 					if(saferct && !BLI_in_rctf(&saferct->parent, event->x, event->y))
-						menu->menuretval= UI_RETURN_OK;
+						menu->menuretval= UI_RETURN_OUT;
 			}
 
 			if(menu->menuretval);

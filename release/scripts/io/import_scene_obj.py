@@ -807,7 +807,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 					blender_tface.uv2= verts_tex[face_vert_tex_indicies[1]]
 					blender_tface.uv3= verts_tex[face_vert_tex_indicies[2]]
 
-					if blender_face.verts[3] != 0:
+					if len(face_vert_loc_indicies)==4:
 						blender_tface.uv4= verts_tex[face_vert_tex_indicies[3]]
 
 # 					for ii, uv in enumerate(blender_face.uv):
@@ -1277,7 +1277,7 @@ def load_obj(filepath,
 	
 	# deselect all
 # 	if context.selected_objects:
-# 		bpy.ops.OBJECT_OT_select_all_toggle()
+# 		bpy.ops.OBJECT_OT_select_all()
 
 	scene = context.scene
 # 	scn = bpy.data.scenes.active
@@ -1640,5 +1640,5 @@ menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 # search image in bpy.config.textureDir - load_image
 # replaced BPyImage.comprehensiveImageLoad with a simplified version that only checks additional directory specified, but doesn't search dirs recursively (obj_image_load)
 # bitmask won't work? - 132
-# uses operator bpy.ops.OBJECT_OT_select_all_toggle() to deselect all (not necessary?)
+# uses operator bpy.ops.OBJECT_OT_select_all() to deselect all (not necessary?)
 # uses bpy.sys.time()

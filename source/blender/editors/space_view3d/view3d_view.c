@@ -1304,6 +1304,74 @@ static unsigned int free_localbit(void)
 	return 0;
 }
 
+static void copy_view3d_lock_space(View3D *v3d, Scene *scene)
+{
+	int bit;
+	
+	if(v3d->scenelock && v3d->localvd==NULL) {
+		v3d->lay= scene->lay;
+		v3d->camera= scene->camera;
+		
+		if(v3d->camera==NULL) {
+			ARegion *ar;
+			
+			for(ar=v3d->regionbase.first; ar; ar= ar->next) {
+				if(ar->regiontype == RGN_TYPE_WINDOW) {
+					RegionView3D *rv3d= ar->regiondata;
+					if(rv3d->persp==RV3D_CAMOB)
+						rv3d->persp= RV3D_PERSP;
+				}
+			}
+		}
+		
+		if((v3d->lay & v3d->layact) == 0) {
+			for(bit= 0; bit<32; bit++) {
+				if(v3d->lay & (1<<bit)) {
+					v3d->layact= 1<<bit;
+					break;
+				}
+			}
+		}
+	}
+}
+
+void ED_view3d_scene_layers_update(Main *bmain, Scene *scene)
+{
+	bScreen *sc;
+	ScrArea *sa;
+	SpaceLink *sl;
+	
+	/* from scene copy to the other views */
+	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
+		if(sc->scene!=scene)
+			continue;
+		
+		for(sa=sc->areabase.first; sa; sa=sa->next)
+			for(sl=sa->spacedata.first; sl; sl=sl->next)
+				if(sl->spacetype==SPACE_VIEW3D)
+					copy_view3d_lock_space((View3D*)sl, scene);
+	}
+}
+
+int ED_view3d_scene_layer_set(int lay, const int *values)
+{
+	int i, tot= 0;
+	
+	/* ensure we always have some layer selected */
+	for(i=0; i<20; i++)
+		if(values[i])
+			tot++;
+	
+	if(tot==0)
+		return lay;
+	
+	for(i=0; i<20; i++) {
+		if(values[i]) lay |= (1<<i);
+		else lay &= ~(1<<i);
+	}
+	
+	return lay;
+}
 
 static void initlocalview(Scene *scene, ScrArea *sa)
 {
@@ -1915,7 +1983,6 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 		mul_v3_fl(fly->rv3d->ofs, -1.0f); /*flip the vector*/
 
 		fly->rv3d->dist=0.0;
-		fly->rv3d->viewbut=0;
 
 		/* used for recording */
 //XXX2.5		if(v3d->camera->ipoflag & OB_ACTION_OB)
@@ -1955,7 +2022,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	if (fly->state == FLY_CANCEL) {
 	/* Revert to original view? */
 		if (fly->persp_backup==RV3D_CAMOB) { /* a camera view */
-			rv3d->viewbut=1;
+
 			VECCOPY(v3d->camera->loc, fly->ofs_backup);
 			VECCOPY(v3d->camera->rot, fly->rot_backup);
 			DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);
@@ -2008,7 +2075,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
 void flyEvent(FlyInfo *fly, wmEvent *event)
 {
-	if (event->type == TIMER) {
+	if (event->type == TIMER && event->customdata == fly->timer) {
 		fly->redraw = 1;
 	}
 	else if (event->type == MOUSEMOVE) {
@@ -2467,7 +2534,7 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	flyEvent(fly, event);
 
-	if(event->type==TIMER)
+	if(event->type==TIMER && event->customdata == fly->timer)
 		flyApply(fly);
 
 	if(fly->redraw) {;

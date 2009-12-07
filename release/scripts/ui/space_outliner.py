@@ -53,8 +53,8 @@ class OUTLINER_HT_header(bpy.types.Header):
                 row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
 
                 row = layout.row(align=True)
-                row.operator("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
-                row.operator("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
+                row.operator("anim.keyframe_insert", text="", icon='ICON_KEY_HLT')
+                row.operator("anim.keyframe_delete", text="", icon='ICON_KEY_DEHLT')
             else:
                 row = layout.row(align=False)
                 row.label(text="No Keying Set active")
@@ -76,6 +76,11 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
         col.operator("outliner.show_one_level")
         col.operator("outliner.show_hierarchy")
+
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
 
 
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):

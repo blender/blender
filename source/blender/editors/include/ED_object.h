@@ -36,6 +36,7 @@ struct bContext;
 struct Base;
 struct View3D;
 struct bConstraint;
+struct bPoseChannel;
 struct KeyBlock;
 struct Lattice;
 struct Mesh;
@@ -92,6 +93,7 @@ int object_data_is_libdata(struct Object *ob);
 
 /* constraints */
 struct ListBase *get_active_constraints(struct Object *ob);
+struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r);
 struct bConstraint *get_active_constraint(struct Object *ob);
 
 void object_test_constraints(struct Object *ob);
@@ -113,13 +115,17 @@ void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
 void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
 void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 
+/* object_lattice.c */
+
+void ED_setflagsLatt(struct Object *obedit, int flag);
+
 /* object_modifier.c */
 enum {
 	MODIFIER_APPLY_DATA=1,
 	MODIFIER_APPLY_SHAPE,
 } eModifier_Apply_Mode;
 
-struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, int type);
+struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, char *name, int type);
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);

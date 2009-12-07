@@ -49,10 +49,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "quicktime_import.h"
-#include "quicktime_export.h"
-
-
 #ifdef __APPLE__
 /* evil */
 #ifndef __AIFF__
@@ -60,6 +56,14 @@
 #endif
 #import <Cocoa/Cocoa.h>
 #import <QTKit/QTKit.h>
+
+#if (MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4) || !__LP64__
+#error 64 bit build & OSX 10.5 minimum are needed for QTKit
+#endif
+
+#include "quicktime_import.h"
+#include "quicktime_export.h"
+
 #endif /* __APPLE__ */
 
 typedef struct QuicktimeExport {
@@ -73,36 +77,65 @@ typedef struct QuicktimeExport {
 
 static struct QuicktimeExport *qtexport;
 
+#pragma mark rna helper functions
+
+
+static QuicktimeCodecTypeDesc qtCodecList[] = {
+	{kRawCodecType, 1, "Uncompressed"},
+	{kJPEGCodecType, 2, "JPEG"},
+	{kMotionJPEGACodecType, 3, "M-JPEG A"},
+	{kMotionJPEGBCodecType, 4, "M-JPEG B"},
+	{kDVCPALCodecType, 5, "DV PAL"},
+	{kDVCNTSCCodecType, 6, "DV/DVCPRO NTSC"},
+	{kDVCPROHD720pCodecType, 7, "DVCPRO HD 720p"},
+	{kDVCPROHD1080i50CodecType, 8, "DVCPRO HD 1080i50"},
+	{kDVCPROHD1080i60CodecType, 9, "DVCPRO HD 1080i60"},
+	{kMPEG4VisualCodecType, 10, "MPEG4"},
+	{kH263CodecType, 11, "H.263"},
+	{kH264CodecType, 12, "H.264"},
+	{0,0,NULL}};
+
+static int qtCodecCount = 12;
+
+int quicktime_get_num_codecs() {
+	return qtCodecCount;
+}
+
+QuicktimeCodecTypeDesc* quicktime_get_codecType_desc(int indexValue) {
+	if ((indexValue>=0) && (indexValue < qtCodecCount))
+		return &qtCodecList[indexValue];
+	else
+		return NULL;
+}
+
+int quicktime_rnatmpvalue_from_codectype(int codecType) {
+	int i;
+	for (i=0;i<qtCodecCount;i++) {
+		if (qtCodecList[i].codecType == codecType)
+			return qtCodecList[i].rnatmpvalue;
+	}
+
+	return 0;
+}
+
+int quicktime_codecType_from_rnatmpvalue(int rnatmpvalue) {
+	int i;
+	for (i=0;i<qtCodecCount;i++) {
+		if (qtCodecList[i].rnatmpvalue == rnatmpvalue)
+			return qtCodecList[i].codecType;
+	}
+	
+	return 0;	
+}
+
 
 static NSString *stringWithCodecType(int codecType) {
-	switch (codecType) {
-		case QT_CODECTYPE_RAW:
-			return @"raw ";
-		case QT_CODECTYPE_MJPEGA:
-			return @"mjpa";
-		case QT_CODECTYPE_MJPEGB:
-			return @"mjpb";
-		case QT_CODECTYPE_DVCPAL:
-			return @"dvcp";
-		case QT_CODECTYPE_DVCNTSC:
-			return @"dvc ";
-		case QT_CODECTYPE_MPEG4:
-			return @"mp4v";
-		case QT_CODECTYPE_H263:
-			return @"h263";
-		case QT_CODECTYPE_H264:
-			return @"avc1";
-		case QT_CODECTYPE_DVCPROHD720p:
-			return @"dvhp";
-		case QT_CODECTYPE_DVCPROHD1080i50:
-			return @"dvh5";
-		case QT_CODECTYPE_DVCPROHD1080i60:
-			return @"dvh6";
-			
-		case QT_CODECTYPE_JPEG:
-		default:
-			return @"jpeg";	
-	}
+	char str[5];
+	
+	*((int*)str) = EndianU32_NtoB(codecType);
+	str[4] = 0;
+	
+	return [NSString stringWithCString:str encoding:NSASCIIStringEncoding];
 }
 
 void makeqtstring (RenderData *rd, char *string) {
@@ -119,6 +152,7 @@ void makeqtstring (RenderData *rd, char *string) {
 	}
 }
 
+#pragma mark export functions
 
 void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty)
 {
@@ -127,9 +161,12 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty)
 	char name[2048];
 
 	
-	if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
-
 	if (G.afbreek != 1) {
+		
+		if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
+		
+		[QTMovie enterQTKitOnThread];		
+		
 		/* Check first if the QuickTime 7.2.1 initToWritableFile: method is available */
 		if ([[[[QTMovie alloc] init] autorelease] respondsToSelector:@selector(initToWritableFile:error:)] != YES) {
 			G.afbreek = 1;
@@ -144,6 +181,7 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty)
 			if(qtexport->movie == nil) {
 				G.afbreek = 1;
 				NSLog(@"Unable to create quicktime movie : %@",[error localizedDescription]);
+				[QTMovie exitQTKitOnThread];
 			} else {
 				[qtexport->movie retain];
 				[qtexport->filename retain];
@@ -235,6 +273,8 @@ void end_qt(void)
 		[qtexport->frameAttributes release];
 		[qtexport->movie release];
 		}
+	
+	[QTMovie exitQTKitOnThread];
 
 	if(qtexport) {
 		MEM_freeN(qtexport);
@@ -253,7 +293,7 @@ void quicktime_verify_image_type(RenderData *rd)
 			(rd->qtcodecsettings.codecSpatialQuality <0) ||
 			(rd->qtcodecsettings.codecSpatialQuality > 100)) {
 			
-			rd->qtcodecsettings.codecType = QT_CODECTYPE_JPEG;
+			rd->qtcodecsettings.codecType = kJPEGCodecType;
 			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality*100)/codecLosslessQuality;
 		}
 	}

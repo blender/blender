@@ -114,11 +114,12 @@ static SpaceLink *image_new(const bContext *C)
 	simage= MEM_callocN(sizeof(SpaceImage), "initimage");
 	simage->spacetype= SPACE_IMAGE;
 	simage->zoom= 1;
+	simage->lock= 1;
 	
 	simage->iuser.ok= 1;
 	simage->iuser.fie_ima= 2;
 	simage->iuser.frames= 100;
-	
+
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for image");
 	
@@ -569,7 +570,7 @@ void ED_spacetype_image(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->init= image_header_area_init;
 	art->draw= image_header_area_draw;
 	

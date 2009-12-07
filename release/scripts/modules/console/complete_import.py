@@ -69,10 +69,13 @@ def get_root_modules():
 
     modules += sys.builtin_module_names
 
+    # needed for modules defined in C
+    modules += sys.modules.keys()
+
     modules = list(set(modules))
     if '__init__' in modules:
         modules.remove('__init__')
-    modules = sorted(set(modules))
+    modules = sorted(modules)
     if store:
         ROOT_MODULES = modules
     return modules

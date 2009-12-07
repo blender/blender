@@ -1958,6 +1958,7 @@ class KX_GameObject(SCA_IObject):
 		Look from a point/object to another point/object and find first object hit within dist that matches prop.
 		if poly is 0, returns a 3-tuple with object reference, hit point and hit normal or (None,None,None) if no hit.
 		if poly is 1, returns a 4-tuple with in addition a L{KX_PolyProxy} as 4th element.
+		if poly is 2, returns a 5-tuple with in addition a 2D vector with the UV mapping of the hit point as 5th element.
 		
 		Ex::
 			# shoot along the axis gun-gunAim (gunAim should be collision-free)
@@ -1996,13 +1997,18 @@ class KX_GameObject(SCA_IObject):
 		@type face: int
 		@param xray: X-ray option: 1=>skip objects that don't match prop; 0 or omitted => stop on first object
 		@type xray: int
-		@param poly: polygon option: 1=>return value is a 4-tuple and the 4th element is a L{KX_PolyProxy}
+		@param poly: polygon option: 0,1 or 2 to return a 3-, 4- or 5-tuple with information on the face hit
+		    0 or omitted=> return value is a 3-tuple (object, hitpoint, hitnormal) or (None,None,None) if no hit
+		    1=>return value is a 4-tuple and the 4th element is a L{KX_PolyProxy} or None if no hit or the object doesn't use a mesh collision shape.
+		    2=>return value is a 5-tuple and the 5th element is a 2-tuple (u,v) with the UV mapping of the hit point or None if no hit, or the object doesn't use a mesh collision shape, or doesn't have a UV mapping.
 		@type poly: int
 		@rtype:    3-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz))
 		        or 4-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz), L{KX_PolyProxy})
-		@return: (object,hitpoint,hitnormal) or (object,hitpoint,hitnormal,polygon)
-		         If no hit, returns (None,None,None) or (None,None,None,None)
-		         If the object hit is not a static mesh, polygon is None
+		        or 5-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz), L{KX_PolyProxy}, 2-tuple (u,v))
+		@return: (object,hitpoint,hitnormal) or (object,hitpoint,hitnormal,polygon) or (object,hitpoint,hitnormal,polygon,hituv)
+		         object, hitpoint and hitnormal are None if no hit.
+		         polygon is valid only if the object is valid and is a static object, a dynamic object using mesh collision shape or a soft body object, otherwise it is None
+		         hituv is valid only if polygon is valid and the object has a UV mapping, otherwise it is None
 		"""
 	def setCollisionMargin(margin):
 		"""

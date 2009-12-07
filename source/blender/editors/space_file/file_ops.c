@@ -386,12 +386,12 @@ static int bookmark_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void FILE_OT_add_bookmark(wmOperatorType *ot)
+void FILE_OT_bookmark_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Bookmark";
 	ot->description= "Add a bookmark for the selected/active directory.";
-	ot->idname= "FILE_OT_add_bookmark";
+	ot->idname= "FILE_OT_bookmark_add";
 	
 	/* api callbacks */
 	ot->exec= bookmark_add_exec;

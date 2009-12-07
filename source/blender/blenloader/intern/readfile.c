@@ -1708,6 +1708,9 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 {
 	FCurve *fcu;
 	
+	if (list == NULL)
+		return;
+	
 	/* relink ID-block references... */
 	for (fcu= list->first; fcu; fcu= fcu->next) {
 		/* driver data */
@@ -1853,6 +1856,9 @@ static void lib_link_nladata_strips(FileData *fd, ID *id, ListBase *list)
 	for (strip= list->first; strip; strip= strip->next) {
 		/* check strip's children */
 		lib_link_nladata_strips(fd, id, &strip->strips);
+		
+		/* check strip's F-Curves */
+		lib_link_fcurves(fd, id, &strip->fcurves);
 		
 		/* reassign the counted-reference to action */
 		strip->act = newlibadr_us(fd, id->lib, strip->act);
@@ -2391,7 +2397,9 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
 	arm->sketch = NULL;
+	
 	arm->adt= newdataadr(fd, arm->adt);
+	direct_link_animdata(fd, arm->adt);
 	
 	bone=arm->bonebase.first;
 	while (bone) {
@@ -10058,7 +10066,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 8))
 	{
 		{
 			Scene *sce= main->scene.first;
@@ -10094,6 +10102,77 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ntree= ntree->id.next;
 			}
 		}
+		{
+			Object *ob=main->object.first;
+			while (ob) {
+				/* shaded mode disabled for now */
+				if (ob->dt == OB_SHADED) ob->dt = OB_TEXTURE;
+				ob=ob->id.next;
+			}
+		}
+		
+		{
+			bScreen *screen;
+			ScrArea *sa;
+			SpaceLink *sl;
+			
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					for(sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							if (v3d->drawtype == OB_SHADED) v3d->drawtype = OB_SOLID;
+						}
+					}
+				}
+			}
+		}
+		
+		/* only convert old 2.50 files with color management */
+		if (main->versionfile == 250) {
+			Scene *sce=main->scene.first;
+			Material *ma=main->mat.first;
+			World *wo=main->world.first;
+			int convert=0;
+			
+			/* convert to new color management system:
+			 while previously colors were stored as srgb, 
+			 now they are stored as linear internally, 
+			 with screen gamma correction in certain places in the UI. */
+
+			/* don't know what scene is active, so we'll convert if any scene has it enabled... */
+			while (sce) {
+				if(sce->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					convert=1;
+				sce=sce->id.next;
+			}
+			
+			if (convert) {
+				while(ma) {
+					srgb_to_linearrgb_v3_v3(&ma->r, &ma->r);
+					srgb_to_linearrgb_v3_v3(&ma->specr, &ma->specr);
+					srgb_to_linearrgb_v3_v3(&ma->mirr, &ma->mirr);
+					srgb_to_linearrgb_v3_v3(ma->sss_col, ma->sss_col);
+					ma=ma->id.next;
+				}
+				
+				while(wo) {
+					srgb_to_linearrgb_v3_v3(&wo->ambr, &wo->ambr);
+					srgb_to_linearrgb_v3_v3(&wo->horr, &wo->horr);
+					srgb_to_linearrgb_v3_v3(&wo->zenr, &wo->zenr);
+					wo=wo->id.next;
+				}
+			}
+		}
+	}
+	
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
+		Scene *sce= main->scene.first;
+
+		for(sce=main->scene.first; sce; sce=sce->id.next)
+			if(!sce->toolsettings->particle.selectmode)
+				sce->toolsettings->particle.selectmode= SCE_SELECT_PATH;
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10513,6 +10592,9 @@ static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *lis
 	for (strip= list->first; strip; strip= strip->next) {
 		/* check child strips */
 		expand_animdata_nlastrips(fd, mainvar, &strip->strips);
+		
+		/* check F-Curves */
+		expand_fcurves(fd, mainvar, &strip->fcurves);
 		
 		/* check F-Modifiers */
 		expand_fmodifiers(fd, mainvar, &strip->modifiers);

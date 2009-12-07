@@ -555,7 +555,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= run_script_exec;
-	ot->poll= text_edit_poll;
+//	ot->poll= text_edit_poll; // dont do this since linked texts cant run
 }
 
 

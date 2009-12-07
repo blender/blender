@@ -60,10 +60,56 @@ void ui_template_fix_linking()
 void uiTemplateHeader(uiLayout *layout, bContext *C, int menus)
 {
 	uiBlock *block;
-	
+
 	block= uiLayoutAbsoluteBlock(layout);
 	if(menus) ED_area_header_standardbuttons(C, block, 0);
 	else ED_area_header_switchbutton(C, block, 0);
+}
+
+/********************** DopeSheet Filter Template *************************/
+
+void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	Main *mainptr= CTX_data_main(C);
+	ScrArea *sa= CTX_wm_area(C);
+	uiLayout *row= layout;
+	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
+
+	/* more 'generic' filtering options */
+	if (nlaActive)
+		row= uiLayoutRow(layout, 1);
+
+	uiItemR(row, "", 0, ptr, "only_selected", 0);
+
+	if (nlaActive)
+		uiItemR(row, "", 0, ptr, "include_missing_nla", 0);
+
+	if (nlaActive)
+		row= layout;
+
+	/* datatype based - only available datatypes are shown */
+	row= uiLayoutRow(layout, 1);
+
+	uiItemR(row, "", 0, ptr, "display_scene", 0);
+	uiItemR(row, "", 0, ptr, "display_world", 0);
+	uiItemR(row, "", 0, ptr, "display_node", 0);
+
+	if (mainptr && mainptr->key.first)
+		uiItemR(row, "", 0, ptr, "display_shapekeys", 0);
+	if (mainptr && mainptr->mat.first)
+		uiItemR(row, "", 0, ptr, "display_material", 0);
+	if (mainptr && mainptr->lamp.first)
+		uiItemR(row, "", 0, ptr, "display_lamp", 0);
+	if (mainptr && mainptr->camera.first)
+		uiItemR(row, "", 0, ptr, "display_camera", 0);
+	if (mainptr && mainptr->curve.first)
+		uiItemR(row, "", 0, ptr, "display_curve", 0);
+	if (mainptr && mainptr->mball.first)
+		uiItemR(row, "", 0, ptr, "display_metaball", 0);
+	if (mainptr && mainptr->armature.first)
+		uiItemR(row, "", 0, ptr, "display_armature", 0);
+	if (mainptr && mainptr->particle.first)
+		uiItemR(row, "", 0, ptr, "display_particle", 0);
 }
 
 /********************** Search Callbacks *************************/
@@ -669,12 +715,12 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 			}
-			else 
+			else {
 				uiItemEnumO(row, "Apply", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_DATA);
-			
-			if (modifier_sameTopology(md))
-				uiItemEnumO(row, "Apply as Shape", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_SHAPE);
-			
+				
+				if (modifier_sameTopology(md))
+					uiItemEnumO(row, "Apply as Shape", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_SHAPE);
+			}
 			
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
@@ -1878,51 +1924,94 @@ void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
 
 /********************* Layer Buttons Template ************************/
 
+static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
+{
+	uiBut *but = arg1;
+	int cur = GET_INT_FROM_POINTER(arg2);
+	wmWindow *win= CTX_wm_window(C);
+	int i, tot, shift= win->eventstate->shift;
+
+	if(!shift) {
+		tot= RNA_property_array_length(&but->rnapoin, but->rnaprop);
+		
+		/* Normally clicking only selects one layer */
+		RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, cur, 1);
+		for(i = 0; i < tot; ++i) {
+			if(i != cur)
+				RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, i, 0);
+		}
+	}
+}
+
 // TODO:
-//	- option for showing extra info like whether layer has contents?
 //	- for now, grouping of layers is determined by dividing up the length of 
 //	  the array of layer bitflags
 
-void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
+void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
+		      PointerRNA *used_ptr, char *used_propname, int active_layer)
 {
-	uiLayout *uRow, *uSplit, *uCol;
-	PropertyRNA *prop;
+	uiLayout *uRow, *uCol;
+	PropertyRNA *prop, *used_prop= NULL;
 	int groups, cols, layers;
 	int group, col, layer, row;
+	int cols_per_group = 5;
+	const char *desc;
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if (!prop) {
 		printf("uiTemplateLayer: layers property not found: %s\n", propname);
 		return;
 	}
+
+	desc= RNA_property_description(prop);
 	
 	/* the number of layers determines the way we group them 
 	 *	- we want 2 rows only (for now)
 	 *	- the number of columns (cols) is the total number of buttons per row
 	 *	  the 'remainder' is added to this, as it will be ok to have first row slightly wider if need be
-	 *	- for now, only split into groups if if group will have at least 5 items
+	 *	- for now, only split into groups if group will have at least 5 items
 	 */
 	layers= RNA_property_array_length(ptr, prop);
 	cols= (layers / 2) + (layers % 2);
-	groups= ((cols / 2) < 5) ? (1) : (cols / 2);
+	groups= ((cols / 2) < cols_per_group) ? (1) : (cols / cols_per_group);
+
+	if(used_ptr && used_propname) {
+		used_prop= RNA_struct_find_property(used_ptr, used_propname);
+		if (!used_prop) {
+			printf("uiTemplateLayer: used layers property not found: %s\n", used_propname);
+			return;
+		}
+
+		if(RNA_property_array_length(used_ptr, used_prop) < layers)
+			used_prop = NULL;
+	}
 	
 	/* layers are laid out going across rows, with the columns being divided into groups */
-	if (groups > 1)
-		uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
-	else	
-		uSplit= layout;
 	
 	for (group= 0; group < groups; group++) {
-		uCol= uiLayoutColumn(uSplit, 1);
+		uCol= uiLayoutColumn(layout, 1);
 		
 		for (row= 0; row < 2; row++) {
+			uiBlock *block;
+			uiBut *but;
+
 			uRow= uiLayoutRow(uCol, 1);
-			layer= groups*cols*row + cols*group;
+			block= uiLayoutGetBlock(uRow);
+			layer= groups*cols_per_group*row + cols_per_group*group;
 			
 			/* add layers as toggle buts */
-			for (col= 0; (col < cols) && (layer < layers); col++, layer++) {
-				int icon=0; // XXX - add some way of setting this...
-				uiItemFullR(uRow, "", icon, ptr, prop, layer, 0, UI_ITEM_R_TOGGLE);
+			for (col= 0; (col < cols_per_group) && (layer < layers); col++, layer++) {
+				int icon = 0;
+				int butlay = 1 << layer;
+
+				if(active_layer & butlay)
+					icon = ICON_LAYER_ACTIVE;
+				else if(used_prop && RNA_property_boolean_get_index(used_ptr, used_prop, layer))
+					icon = ICON_LAYER_USED;
+				
+				but= uiDefAutoButR(block, ptr, prop, layer, "", icon, 0, 0, 10, 10);
+				uiButSetFunc(but, handle_layer_buttons, but, SET_INT_IN_POINTER(layer));
+				but->type= TOG;
 			}
 		}
 	}

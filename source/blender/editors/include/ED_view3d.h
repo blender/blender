@@ -121,7 +121,12 @@ unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, short mval[2], i
 										void *handle, unsigned int (*indextest)(void *handle, unsigned int index));
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
+/* draws and does a 4x4 sample */
 int view_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, short *mval, float mouse_worldloc[3]);
+
+/* only draw so view_autodist_simple can be called many times after */
+int view_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d);
+int view_autodist_simple(struct ARegion *ar, short *mval, float mouse_worldloc[3]);
 
 /* select */
 #define MAXPICKBUF      10000
@@ -143,6 +148,7 @@ struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
 
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene);
+int ED_view3d_scene_layer_set(int lay, const int *values);
 
 int ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,

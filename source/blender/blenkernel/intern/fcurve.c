@@ -822,7 +822,7 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 	}
 	
 	/* get property to read from, and get value as appropriate */
-	if (RNA_path_resolve(&id_ptr, path, &ptr, &prop)) {
+	if (RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(&ptr, prop))

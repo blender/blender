@@ -382,7 +382,7 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 		case ALE_GROUP: /* action group */
 			return agrp_keys_bezier_loop(bed, (bActionGroup *)ale->data, bezt_ok, bezt_cb, fcu_cb);
 		case ALE_ACT: /* action */
-			return act_keys_bezier_loop(bed, (bAction *)ale->data, bezt_ok, bezt_cb, fcu_cb);
+			return act_keys_bezier_loop(bed, (bAction *)ale->key_data, bezt_ok, bezt_cb, fcu_cb);
 			
 		case ALE_OB: /* object */
 			return ob_keys_bezier_loop(bed, (Object *)ale->key_data, bezt_ok, bezt_cb, fcu_cb, filterflag);

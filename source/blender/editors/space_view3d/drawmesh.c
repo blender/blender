@@ -341,8 +341,9 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 struct TextureDrawState {
 	Object *ob;
 	int islit, istex;
+	int color_profile;
 	unsigned char obcol[4];
-} Gtexdraw = {NULL, 0, 0, {0, 0, 0, 0}};
+} Gtexdraw = {NULL, 0, 0, 0, {0, 0, 0, 0}};
 
 static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
@@ -371,6 +372,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 
 	Gtexdraw.ob = ob;
 	Gtexdraw.istex = istex;
+	Gtexdraw.color_profile = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, 0, 0, Gtexdraw.islit, 0, 0, 0);
 	glShadeModel(GL_SMOOTH);
@@ -413,7 +415,13 @@ static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
 		if (tface) glColor3f(1.0, 1.0, 1.0);
 		else {
 			Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
-			if(ma) glColor3f(ma->r, ma->g, ma->b);
+			if(ma) {
+				float col[3];
+				if(Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
+				else copy_v3_v3(col, &ma->r);
+				
+				glColor3fv(col);
+			}
 			else glColor3f(1.0, 1.0, 1.0);
 		}
 		return 2; /* Don't set color */
@@ -478,13 +486,19 @@ static void add_tface_color_layer(DerivedMesh *dm)
 				}
 			}
 			else {
+				float col[3];
 				Material *ma= give_current_material(Gtexdraw.ob, mface[i].mat_nr+1);
-				if(ma) 
+				
+				if(ma) {
+					if(Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
+					else copy_v3_v3(col, &ma->r);
+					
 					for(j=0;j<4;j++) {
-						finalCol[i*4+j].b = ma->b;
-						finalCol[i*4+j].g = ma->g;
-						finalCol[i*4+j].r = ma->r;
+						finalCol[i*4+j].b = col[2];
+						finalCol[i*4+j].g = col[1];
+						finalCol[i*4+j].r = col[0];
 					}
+				}
 				else
 					for(j=0;j<4;j++) {
 						finalCol[i*4+j].b = 255;

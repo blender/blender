@@ -72,14 +72,14 @@ class TIME_HT_header(bpy.types.Header):
             subsub = row.row()
             subsub.prop(tools, "record_with_nla", toggle=True)
 
-        layout.prop(scene, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
+        layout.prop(scene, "sync_audio", text="Realtime", toggle=True, icon='ICON_SPEAKER')
 
         layout.separator()
 
         row = layout.row(align=True)
         row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
-        row.operator("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
-        row.operator("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
+        row.operator("anim.keyframe_insert", text="", icon='ICON_KEY_HLT')
+        row.operator("anim.keyframe_delete", text="", icon='ICON_KEY_DEHLT')
 
 
 class TIME_MT_view(bpy.types.Menu):
@@ -91,6 +91,7 @@ class TIME_MT_view(bpy.types.Menu):
         st = context.space_data
 
         layout.operator("anim.time_toggle")
+        layout.operator("time.view_all")
 
         layout.separator()
 
@@ -145,7 +146,7 @@ class TIME_MT_playback(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(scene, "sync_audio", icon='ICON_SPEAKER')
+        layout.prop(scene, "sync_audio", text="Realtime Playback", icon='ICON_SPEAKER')
         layout.prop(scene, "mute_audio")
         layout.prop(scene, "scrub_audio")
 

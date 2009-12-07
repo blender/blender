@@ -492,6 +492,9 @@ typedef struct BooleanModifierData {
 #define MOD_MDEF_INVERT_VGROUP	(1<<0)
 #define MOD_MDEF_DYNAMIC_BIND	(1<<1)
 
+#define MOD_MDEF_VOLUME			0
+#define MOD_MDEF_SURFACE		1
+
 typedef struct MDefInfluence {
 	int vertex;
 	float weight;
@@ -508,7 +511,7 @@ typedef struct MeshDeformModifierData {
 	struct Object *object;			/* mesh object */
 	char defgrp_name[32];			/* optional vertexgroup name */
 
-	short gridsize, flag, pad[2];
+	short gridsize, flag, mode, pad;
 
 	/* variables filled in when bound */
 	float *bindweights, *bindcos;	/* computed binding weights */
@@ -523,7 +526,8 @@ typedef struct MeshDeformModifierData {
 	float bindmat[4][4];			/* matrix of cage at binding time */
 
 	/* runtime */
-	void (*bindfunc)(struct Scene *scene, struct MeshDeformModifierData *mmd,
+	void (*bindfunc)(struct Scene *scene, struct DerivedMesh *dm,
+		struct MeshDeformModifierData *mmd,
 		float *vertexcos, int totvert, float cagemat[][4]);
 } MeshDeformModifierData;
 

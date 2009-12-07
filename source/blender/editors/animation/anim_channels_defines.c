@@ -2340,13 +2340,10 @@ static void achannel_setting_widget_cb(bContext *C, void *poin, void *poin2)
 static void achannel_setting_visible_widget_cb(bContext *C, void *ale_npoin, void *dummy_poin)
 {
 	bAnimListElem *ale_setting= (bAnimListElem *)ale_npoin;
-	int prevLevel=0, matchLevel=0;
-	short vizOn = 0;
-	
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale, *match=NULL;
 	int filter;
+	short vizOn = 0;
 	
 	/* send notifiers before doing anything else... */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
@@ -2374,91 +2371,8 @@ static void achannel_setting_visible_widget_cb(bContext *C, void *ale_npoin, voi
 	filter= ANIMFILTER_CHANNELS;
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
-	/* find the channel that got changed */
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		/* compare data, and type as main way of identifying the channel */
-		if ((ale->data == ale_setting->data) && (ale->type == ale_setting->type)) {
-			/* we also have to check the ID, this is assigned to, since a block may have multiple users */
-			// TODO: is the owner-data more revealing?
-			if (ale->id == ale_setting->id) {
-				match= ale;
-				break;
-			}
-		}
-	}
-	if (match == NULL) {
-		printf("ERROR: no channel matching the one changed was found \n");
-		BLI_freelistN(&anim_data);
-		return;
-	}
-	else {
-		bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale_setting);
-		
-		/* get the level of the channel that was affected
-		 * 	 - we define the level as simply being the offset for the start of the channel
-		 */
-		matchLevel= (acf->get_offset)? acf->get_offset(&ac, ale_setting) : 0;
-	}
-	
-	/* flush up? 
-	 *	- only flush up if the current state is now enabled 
-	 *	  (otherwise, it's too much work to force the parents to be inactive too)
-	 */
-	if (vizOn) {
-		/* go backwards in the list, until the highest-ranking element (by indention has been covered) */
-		for (ale= match->prev; ale; ale= ale->prev) {
-			bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
-			int level;
-			
-			/* get the level of the current channel traversed 
-			 * 	 - we define the level as simply being the offset for the start of the channel
-			 */
-			level= (acf->get_offset)? acf->get_offset(&ac, ale) : 0;
-			
-			/* if the level is 'less than' (i.e. more important) the previous channel, 
-			 * flush the new status...
-			 */
-			if (level < matchLevel)
-				ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vizOn);
-			/* however, if the level is 'greater than' (i.e. less important than the previous channel,
-			 * stop searching, since we've already reached the bottom of another hierarchy
-			 */
-			else if (level > matchLevel)
-				break;
-			
-			/* store this level as the 'old' level now */
-			prevLevel= level;
-		}
-	}
-	
-	/* flush down (always) */
-	{
-		/* go forwards in the list, until the lowest-ranking element (by indention has been covered) */
-		for (ale= match->next; ale; ale= ale->next) {
-			bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
-			int level;
-			
-			/* get the level of the current channel traversed 
-			 * 	 - we define the level as simply being the offset for the start of the channel
-			 */
-			level= (acf->get_offset)? acf->get_offset(&ac, ale) : 0;
-			
-			/* if the level is 'greater than' (i.e. less important) the channel that was changed, 
-			 * flush the new status...
-			 */
-			if (level > matchLevel)
-				ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vizOn);
-			/* however, if the level is 'less than or equal to' the channel that was changed,
-			 * (i.e. the current channel is as important if not more important than the changed channel)
-			 * then we should stop, since we've found the last one of the children we should flush
-			 */
-			else
-				break;
-			
-			/* store this level as the 'old' level now */
-			prevLevel= level;
-		}
-	}
+	/* call API method to flush the setting */
+	ANIM_visibility_flush_anim_channels(&ac, &anim_data, ale_setting, vizOn);
 	
 	/* free temp data */
 	BLI_freelistN(&anim_data);

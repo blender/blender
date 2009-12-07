@@ -60,7 +60,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	if (!PyArg_ParseTuple(args, "sO|O!i:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context))
 		return NULL;
 
-	ot= WM_operatortype_find(opname, TRUE);
+	ot= WM_operatortype_exists(opname);
 
 	if (ot == NULL) {
 		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\"could not be found", opname);
@@ -245,6 +245,8 @@ PyObject *BPY_operator_module( void )
 	static PyMethodDef pyop_dir_meth =		{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL};
 	static PyMethodDef pyop_getrna_meth =	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL};
 	static PyMethodDef pyop_add_meth =		{"add", (PyCFunction) PYOP_wrap_add, METH_O, NULL};
+	static PyMethodDef pyop_add_macro_meth ={"add_macro", (PyCFunction) PYOP_wrap_add_macro, METH_O, NULL};
+	static PyMethodDef pyop_macro_def_meth ={"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL};
 	static PyMethodDef pyop_remove_meth =	{"remove", (PyCFunction) PYOP_wrap_remove, METH_O, NULL};
 
 	PyObject *submodule = PyModule_New("_bpy.ops");
@@ -255,6 +257,8 @@ PyObject *BPY_operator_module( void )
 	PyModule_AddObject( submodule, "dir",		PyCFunction_New(&pyop_dir_meth,		NULL) );
 	PyModule_AddObject( submodule, "get_rna",	PyCFunction_New(&pyop_getrna_meth,	NULL) );
 	PyModule_AddObject( submodule, "add",		PyCFunction_New(&pyop_add_meth,		NULL) );
+	PyModule_AddObject( submodule, "add_macro",	PyCFunction_New(&pyop_add_macro_meth,		NULL) );
+	PyModule_AddObject( submodule, "macro_define",PyCFunction_New(&pyop_macro_def_meth,		NULL) );
 	PyModule_AddObject( submodule, "remove",	PyCFunction_New(&pyop_remove_meth,	NULL) );
 
 	return submodule;

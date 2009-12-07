@@ -212,7 +212,7 @@ static void rna_Nurb_type_set(PointerRNA *ptr, int value)
 static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)nu->bp, sizeof(BPoint*), nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu, 0, NULL);
+	rna_iterator_array_begin(iter, (void*)nu->bp, sizeof(BPoint), nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu, 0, NULL);
 }
 
 static void rna_Curve_update_data(bContext *C, PointerRNA *ptr)
@@ -226,6 +226,38 @@ static void rna_Curve_update_data(bContext *C, PointerRNA *ptr)
 static void rna_Curve_update_deps(bContext *C, PointerRNA *ptr)
 {
 	DAG_scene_sort(CTX_data_scene(C));
+	rna_Curve_update_data(C, ptr);
+}
+
+static void rna_Curve_resolution_u_update_data(bContext *C, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Nurb *nu=NULL;
+	
+	if (cu->editnurb) nu= cu->editnurb->first;
+	else nu=cu->nurb.first;
+	
+	while(nu) {
+		nu->resolu= cu->resolu;
+		nu= nu->next;
+	}
+	
+	rna_Curve_update_data(C, ptr);
+}
+
+static void rna_Curve_resolution_v_update_data(bContext *C, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Nurb *nu=NULL;
+	
+	if (cu->editnurb) nu= cu->editnurb->first;
+	else nu=cu->nurb.first;
+	
+	while(nu) {
+		nu->resolv= cu->resolv;
+		nu= nu->next;
+	}
+	
 	rna_Curve_update_data(C, ptr);
 }
 
@@ -298,9 +330,9 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "CurvePoint", NULL);
+	srna= RNA_def_struct(brna, "SplinePoint", NULL);
 	RNA_def_struct_sdna(srna, "BPoint");
-	RNA_def_struct_ui_text(srna, "CurvePoint", "Curve point without handles.");
+	RNA_def_struct_ui_text(srna, "SplinePoint", "Spline point without handles.");
 
 	/* Boolean values */
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
@@ -314,10 +346,15 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Vector value */
-	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_array(prop, 4);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vec[3]");
+	RNA_def_property_ui_text(prop, "Weight", "Nurbs weight");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Number values */
@@ -327,7 +364,8 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3d View");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "weight_softbody", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.01f, 100.0f);
 	RNA_def_property_ui_text(prop, "Weight", "Softbody goal weight");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
@@ -345,7 +383,7 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "BezierCurvePoint", NULL);
+	srna= RNA_def_struct(brna, "BezierSplinePoint", NULL);
 	RNA_def_struct_sdna(srna, "BezTriple");
 	RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles.");
 
@@ -402,7 +440,7 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "control_point", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_ctrlpoint_get", "rna_BezTriple_ctrlpoint_set", NULL);
 	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
@@ -541,13 +579,13 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xof");
 	RNA_def_property_range(prop, -50.0f, 50.0f);
-	RNA_def_property_ui_text(prop, "X Offset", "Horizontal offset from the object center");
+	RNA_def_property_ui_text(prop, "X Offset", "Horizontal offset from the object origin");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yof");
 	RNA_def_property_range(prop, -50.0f, 50.0f);
-	RNA_def_property_ui_text(prop, "Y Offset", "Vertical offset from the object center");
+	RNA_def_property_ui_text(prop, "Y Offset", "Vertical offset from the object origin");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "ul_position", PROP_FLOAT, PROP_NONE);
@@ -786,13 +824,13 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_resolution_u_update_data");
 	
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_resolution_v_update_data");
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
@@ -888,12 +926,12 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bp", NULL);
-	RNA_def_property_struct_type(prop, "CurvePoint");
+	RNA_def_property_struct_type(prop, "SplinePoint");
 	RNA_def_property_collection_funcs(prop, "rna_BPoint_array_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_Nurb_length", 0, 0);
 	RNA_def_property_ui_text(prop, "Points", "Collection of points that make up this poly or nurbs spline.");
 
 	prop= RNA_def_property(srna, "bezier_points", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "BezierCurvePoint");
+	RNA_def_property_struct_type(prop, "BezierSplinePoint");
 	RNA_def_property_collection_sdna(prop, NULL, "bezt", "pntsu");
 	RNA_def_property_ui_text(prop, "Bezier Points", "Collection of points for bezier curves only.");
 

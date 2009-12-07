@@ -637,7 +637,7 @@ static char *sensor_name(int type)
 
 static char *sensor_pup(void)
 {
-	/* the number needs to match defines in game.h */
+	/* the number needs to match defines in DNA_sensor_types.h */
 	return "Sensors %t|Always %x0|Delay %x13|Keyboard %x3|Mouse %x5|"
 		"Touch %x1|Collision %x6|Near %x2|Radar %x7|"
 		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11|Actuator %x12|Armature %x14";
@@ -3396,9 +3396,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 							//uiButSetFunc(but, sca_move_controller, cont, NULL);
 
 							uiBlockBeginAlign(block);
-							but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 							uiButSetFunc(but, sca_move_controller, cont, (void *)TRUE);
-							but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 							uiButSetFunc(but, sca_move_controller, cont, (void *)FALSE);
 							uiBlockEndAlign(block);
 
@@ -3488,9 +3488,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
 
 						uiBlockBeginAlign(block);
-						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 						uiButSetFunc(but, sca_move_sensor, sens, (void *)TRUE);
-						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 						uiButSetFunc(but, sca_move_sensor, sens, (void *)FALSE);
 						uiBlockEndAlign(block);
 					}
@@ -3568,9 +3568,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 						// uiButSetFunc(but, sca_move_actuator, act, NULL);
 
 						uiBlockBeginAlign(block);
-						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
 						uiButSetFunc(but, sca_move_actuator, act, (void *)TRUE);
-						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
 						uiButSetFunc(but, sca_move_actuator, act, (void *)FALSE);
 						uiBlockEndAlign(block);
 

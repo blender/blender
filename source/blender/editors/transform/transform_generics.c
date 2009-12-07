@@ -108,6 +108,7 @@
 #include "RNA_access.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "UI_resources.h"
 
@@ -930,6 +931,11 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	unit_m3(t->mat);
 	
+	/* if there's an event, we're modal */
+	if (event) {
+		t->flag |= T_MODAL;
+	}
+
 	t->spacetype = sa->spacetype;
 	if(t->spacetype == SPACE_VIEW3D)
 	{
@@ -1010,11 +1016,15 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 		else
 		{
-			if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
-				t->flag |= T_PROP_EDIT;
-				
-				if(ts->proportional == PROP_EDIT_CONNECTED)
-					t->flag |= T_PROP_CONNECTED;
+			/* use settings from scene only if modal */
+			if (t->flag & T_MODAL)
+			{
+				if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
+					t->flag |= T_PROP_EDIT;
+
+					if(ts->proportional == PROP_EDIT_CONNECTED)
+						t->flag |= T_PROP_CONNECTED;
+				}
 			}
 		}
 		
@@ -1048,7 +1058,6 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->options |= CTX_NO_PET;
 	}
 	
-	
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
 	initNDofInput(&t->ndof);
@@ -1057,7 +1066,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
-void postTrans (TransInfo *t)
+void postTrans (bContext *C, TransInfo *t)
 {
 	TransData *td;
 	
@@ -1065,7 +1074,8 @@ void postTrans (TransInfo *t)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
 	if (t->draw_handle_pixel)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
-	
+	if (t->draw_handle_cursor)
+		WM_paint_cursor_end(CTX_wm_manager(C), t->draw_handle_cursor);
 
 	if (t->customFree) {
 		/* Can take over freeing t->data and data2d etc... */
@@ -1087,6 +1097,8 @@ void postTrans (TransInfo *t)
 		MEM_freeN(t->data);
 	}
 	
+	BLI_freelistN(&t->tsnap.points);
+
 	if (t->ext) MEM_freeN(t->ext);
 	if (t->data2d) {
 		MEM_freeN(t->data2d);
@@ -1347,7 +1359,7 @@ void calculateCenter(TransInfo *t)
 	/* for panning from cameraview */
 	if(t->flag & T_OBJECT)
 	{
-		if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW)
+		if(t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;

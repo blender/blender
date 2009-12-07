@@ -83,12 +83,18 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("wm.save_mainfile", text="Save", icon='ICON_FILE_TICK')
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_as_mainfile", text="Save As...")
-        layout.operator("screen.userpref_show", text="User Preferences...", icon='ICON_PREFERENCES')
 
         layout.separator()
+
+        layout.operator("screen.userpref_show", text="User Preferences...", icon='ICON_PREFERENCES')
+        layout.operator("wm.read_homefile", text="Load Factory Settings").factory = True
+
+        layout.separator()
+
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.link_append", text="Link")
         layout.operator("wm.link_append", text="Append").link = False
+
         layout.separator()
 
         layout.menu("INFO_MT_file_import")
@@ -179,7 +185,7 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.operator_context = 'EXEC_SCREEN'
 
-        # layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+        #layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
         layout.menu("INFO_MT_mesh_add", icon='ICON_OUTLINER_OB_MESH')
 
         layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
@@ -189,7 +195,7 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator_context = 'INVOKE_SCREEN'
+        layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice", icon='ICON_OUTLINER_OB_LATTICE').type = 'LATTICE'

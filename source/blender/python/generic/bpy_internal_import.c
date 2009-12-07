@@ -74,8 +74,9 @@ PyObject *bpy_text_import( Text *text )
 		}
 	}
 
-	len= strlen(text->id.name+2) - 3;
+	len= strlen(text->id.name+2);
 	strncpy(modulename, text->id.name+2, len);
+	modulename[len - 3]= '\0'; /* remove .py */
 	return PyImport_ExecCodeModule(modulename, text->compiled);
 }
 

@@ -33,6 +33,7 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
         bpy.ops.tfm.edge_slide(value=1.0)
         bpy.ops.mesh.select_more()
         bpy.ops.mesh.remove_doubles()
+
         return ('FINISHED',)
 
 rna_path_prop = StringProperty(name="Context Attributes",
@@ -358,8 +359,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.manager
-        wm.invoke_props_popup(self, event)
-        return ('RUNNING_MODAL',)
+        return wm.invoke_props_popup(self, event)
 
 
 class WM_OT_reload_scripts(bpy.types.Operator):

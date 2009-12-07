@@ -475,7 +475,7 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= parent_clear_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -620,15 +620,15 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 
 						switch (partype) {
 						case PAR_CURVE: /* curve deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Curve);
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Curve);
 							((CurveModifierData *)md)->object= par;
 							break;
 						case PAR_LATTICE: /* lattice deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Lattice);
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Lattice);
 							((LatticeModifierData *)md)->object= par;
 							break;
 						default: /* armature deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, eModifierType_Armature);
+							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Armature);
 							((ArmatureModifierData *)md)->object= par;
 							break;
 						}
@@ -733,7 +733,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	ot->invoke= parent_set_invoke;
 	ot->exec= parent_set_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -788,7 +788,7 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= parent_noinv_set_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

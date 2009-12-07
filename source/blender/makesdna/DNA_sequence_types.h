@@ -268,6 +268,7 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_COLOR_BALANCE                  262144
 #define SEQ_USE_PROXY_CUSTOM_DIR               524288
 #define SEQ_USE_PROXY_CUSTOM_FILE             2097152
+#define SEQ_USE_EFFECT_DEFAULT_FADE           4194304
 
 /* deprecated, dont use a flag anymore*/
 /*#define SEQ_ACTIVE                            1048576*/

@@ -275,6 +275,8 @@ typedef struct Ipo {
 #define SEQ_TOTNAM	1
 
 #define SEQ_FAC1	1
+#define SEQ_FAC_SPEED   2
+#define SEQ_FAC_OPACITY 3
 
 /* ********* Curve (ID_CU) *********** */
 

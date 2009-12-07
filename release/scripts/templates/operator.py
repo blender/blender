@@ -41,8 +41,7 @@ class ExportSomeData(bpy.types.Operator):
             return ('RUNNING_MODAL',)
         elif 0:
             # Redo popup
-            wm.invoke_props_popup(self, event) #
-            return ('RUNNING_MODAL',)
+            return wm.invoke_props_popup(self, event) #
         elif 0:
             return self.execute(context)
 

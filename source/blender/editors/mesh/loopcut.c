@@ -455,7 +455,7 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	ot->invoke= ringsel_invoke;
 	ot->modal= ringsel_modal;
 	ot->cancel= ringsel_cancel;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -474,7 +474,7 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	ot->invoke= ringcut_invoke;
 	ot->modal= ringsel_modal;
 	ot->cancel= ringsel_cancel;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

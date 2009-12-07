@@ -151,6 +151,21 @@ static int gpencil_draw_poll (bContext *C)
 	return (gpencil_data_get_pointers(C, NULL) != NULL);
 }
 
+/* check if projecting strokes into 3d-geometry in the 3D-View */
+static int gpencil_project_check (tGPsdata *p)
+{
+	bGPdata *gpd= p->gpd;
+	
+	if(	(gpd->sbuffer_sflag & GP_STROKE_3DSPACE) &&
+		(p->scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE) &&
+		(p->scene->toolsettings->snap_flag & SCE_SNAP_PROJECT) )
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 /* ******************************************* */
 /* Calculations/Conversions */
 
@@ -211,24 +226,31 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		const short mx=mval[0], my=mval[1];
-		float rvec[3], dvec[3];
-		
-		/* Current method just converts each point in screen-coordinates to 
-		 * 3D-coordinates using the 3D-cursor as reference. In general, this 
-		 * works OK, but it could of course be improved.
-		 *
-		 * TODO:
-		 *	- investigate using nearest point(s) on a previous stroke as
-		 *	  reference point instead or as offset, for easier stroke matching
-		 *	- investigate projection onto geometry (ala retopo)
-		 */
-		gp_get_3d_reference(p, rvec);
-		
-		/* method taken from editview.c - mouse_cursor() */
-		project_short_noclip(p->ar, rvec, mval);
-		window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(out, rvec, dvec);
+		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out))) {
+			/* projecting onto 3D-Geometry
+			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
+			 */
+		}
+		else {
+			const short mx=mval[0], my=mval[1];
+			float rvec[3], dvec[3];
+			
+			/* Current method just converts each point in screen-coordinates to
+			 * 3D-coordinates using the 3D-cursor as reference. In general, this
+			 * works OK, but it could of course be improved.
+			 *
+			 * TODO:
+			 *	- investigate using nearest point(s) on a previous stroke as
+			 *	  reference point instead or as offset, for easier stroke matching
+			 */
+			
+			gp_get_3d_reference(p, rvec);
+			
+			/* method taken from editview.c - mouse_cursor() */
+			project_short_noclip(p->ar, rvec, mval);
+			window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
+			sub_v3_v3v3(out, rvec, dvec);
+		}
 	}
 	
 	/* 2d - on 'canvas' (assume that p->v2d is set) */
@@ -1114,6 +1136,14 @@ static void gpencil_draw_exit (bContext *C, wmOperator *op)
 	}
 	
 	/* cleanup */
+	if(gpencil_project_check(p)) {
+		View3D *v3d= p->sa->spacedata.first;
+		
+		/* need to restore the original projection settings before packing up */
+		view3d_operator_needs_opengl(C);
+		view_autodist_init(p->scene, p->ar, v3d);
+	}
+
 	gp_paint_cleanup(p);
 	gp_session_cleanup(p);
 	
@@ -1180,8 +1210,8 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 {
 	tGPsdata *p= op->customdata;
 	ARegion *ar= p->ar;
-	//PointerRNA itemptr;
-	//float mousef[2];
+	PointerRNA itemptr;
+	float mousef[2];
 	int tablet=0;
 
 	/* convert from window-space to area-space mouse coordintes */
@@ -1216,7 +1246,6 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 			return;
 	}
 	
-#if 0 // NOTE: disabled for now, since creating this data is currently useless anyways (and slows things down)
 	/* fill in stroke data (not actually used directly by gpencil_draw_apply) */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
@@ -1224,7 +1253,6 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 	mousef[1]= p->mval[1];
 	RNA_float_set_array(&itemptr, "mouse", mousef);
 	RNA_float_set(&itemptr, "pressure", p->pressure);
-#endif 
 	
 	/* apply the current latest drawing point */
 	gpencil_draw_apply(C, op, p);
@@ -1235,7 +1263,7 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 
 /* ------------------------------- */
 
-/* operator 'redo' (i.e. after changing some properties) */
+/* operator 'redo' (i.e. after changing some properties, but also for repeat last) */
 static int gpencil_draw_exec (bContext *C, wmOperator *op)
 {
 	tGPsdata *p = NULL;
@@ -1436,6 +1464,5 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	
 	/* settings for drawing */
 	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
-		// xxx the stuff below is used only for redo operator, but is not really working
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

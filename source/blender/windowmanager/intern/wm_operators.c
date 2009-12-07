@@ -353,6 +353,27 @@ wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
 	return ot;
 }
 
+void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), void *userdata)
+{
+	wmOperatorType *ot;
+
+	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
+	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+
+	ot->exec= wm_macro_exec;
+	ot->invoke= wm_macro_invoke;
+	ot->modal= wm_macro_modal;
+	ot->cancel= wm_macro_cancel;
+	ot->poll= NULL;
+
+	opfunc(ot, userdata);
+
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)");
+	RNA_def_struct_identifier(ot->srna, ot->idname);
+
+	BLI_addtail(&global_ops, ot);
+}
+
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
 {
 	wmOperatorTypeMacro *otmacro= MEM_callocN(sizeof(wmOperatorTypeMacro), "wmOperatorTypeMacro");
@@ -465,8 +486,11 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	PointerRNA opptr_default;
 	PropertyRNA *prop_default;
 	char *buf_default;
-	if(!all_args) {
+	if(all_args==0 || opptr==NULL) {
 		WM_operator_properties_create_ptr(&opptr_default, ot);
+
+		if(opptr==NULL)
+			opptr = &opptr_default;
 	}
 
 
@@ -510,7 +534,7 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	}
 	RNA_PROP_END;
 
-	if(all_args==0)
+	if(all_args==0 || opptr==&opptr_default )
 		WM_operator_properties_free(&opptr_default);
 
 	BLI_dynstr_append(dynstr, ")");
@@ -665,6 +689,18 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
+void WM_operator_properties_select_all(wmOperatorType *ot) {
+	static EnumPropertyItem select_all_actions[] = {
+			{SEL_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle selection for all elements"},
+			{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
+			{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
+			{SEL_INVERT, "INVERT", 0, "Invert", "Invert selection of all elements"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
+	RNA_def_enum(ot->srna, "action", select_all_actions, SEL_TOGGLE, "Action", "Selection action to execute");
+}
+
 void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 {
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
@@ -674,7 +710,7 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 	if(extend)
-		RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 
@@ -728,9 +764,41 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiItemL(layout, op->type->name, 0);
 
 	if(op->type->ui)
-		op->type->ui((bContext*)C, &ptr, layout);
+		op->type->ui((bContext*)C, op, layout);
 	else
 		uiDefAutoButsRNA(C, layout, &ptr, columns);
+
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+
+	return block;
+}
+
+
+static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
+{
+	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op= data->op;
+	PointerRNA ptr;
+	uiBlock *block;
+	uiLayout *layout;
+	uiStyle *style= U.uistyles.first;
+
+	block= uiBeginBlock(C, ar, "opui_popup", UI_EMBOSS);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
+
+	if(op->type->ui)
+		op->type->ui((bContext*)C, op, layout);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -749,6 +817,15 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 		uiPupBlock(C, wm_block_create_redo, op);
 
 	return retval;
+}
+
+void WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
+{
+	struct { wmOperator *op; int width; int height; } data;
+	data.op = op;
+	data.width = width;
+	data.height = height;
+	uiPupBlock(C, wm_operator_create_ui, &data);
 }
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
@@ -775,7 +852,7 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiItemL(layout, op->type->name, 0);
 
 	if(op->type->ui)
-		op->type->ui(C, op->ptr, layout);
+		op->type->ui(C, op, layout);
 	else
 		uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	
@@ -1540,6 +1617,10 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char name[FILE_MAX];
 
+	/* cancel if no active window */
+	if (CTX_wm_window(C) == NULL)
+		return OPERATOR_CANCELLED;
+
 	save_set_compress(op);
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
@@ -1562,7 +1643,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
-	ot->poll= WM_operator_winactive;
+	ot->poll= NULL;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
@@ -1940,7 +2021,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case GESTURE_MODAL_CANCEL:
 		case GESTURE_MODAL_CONFIRM:
 			wm_gesture_end(C, op);
-			return OPERATOR_CANCELLED;
+			return OPERATOR_FINISHED; /* use finish or we dont get an undo */
 		}
 	}
 //	// Allow view navigation???
@@ -2297,7 +2378,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(event->ctrl) {
 			if(mode == WM_RADIALCONTROL_STRENGTH)
-				new_value = ((int)(new_value * 100) / 10*10) / 100.0f;
+				new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
 			else
 				new_value = ((int)new_value + 5) / 10*10;
 		}
@@ -2662,12 +2743,12 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	{GESTURE_MODAL_BORDER_BEGIN,	"BEGIN", 0, "Begin", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Gesture Border");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Border");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Gesture Border", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Border", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
@@ -2685,7 +2766,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 #endif
 
 	/* assign map to operators */
-	WM_modalkeymap_assign(keymap, "ACT_OT_select_border");
+	WM_modalkeymap_assign(keymap, "ACTION_OT_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_previewrange_set");
 	WM_modalkeymap_assign(keymap, "CONSOLE_OT_select_border");
@@ -2697,10 +2778,11 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
+	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
-	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); // XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel
 }
 
 /* default keymap for windows and screens, only call once per WM */

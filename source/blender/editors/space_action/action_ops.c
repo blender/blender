@@ -63,30 +63,30 @@ void action_operatortypes(void)
 {
 	/* keyframes */
 		/* selection */
-	WM_operatortype_append(ACT_OT_clickselect);
-	WM_operatortype_append(ACT_OT_select_all_toggle);
-	WM_operatortype_append(ACT_OT_select_border);
-	WM_operatortype_append(ACT_OT_select_column);
+	WM_operatortype_append(ACTION_OT_clickselect);
+	WM_operatortype_append(ACTION_OT_select_all_toggle);
+	WM_operatortype_append(ACTION_OT_select_border);
+	WM_operatortype_append(ACTION_OT_select_column);
 	
 		/* editing */
-	WM_operatortype_append(ACT_OT_snap);
-	WM_operatortype_append(ACT_OT_mirror);
-	WM_operatortype_append(ACT_OT_frame_jump);
-	WM_operatortype_append(ACT_OT_handle_type);
-	WM_operatortype_append(ACT_OT_interpolation_type);
-	WM_operatortype_append(ACT_OT_extrapolation_type);
-	WM_operatortype_append(ACT_OT_keyframe_type);
-	WM_operatortype_append(ACT_OT_sample);
-	WM_operatortype_append(ACT_OT_clean);
-	WM_operatortype_append(ACT_OT_delete);
-	WM_operatortype_append(ACT_OT_duplicate);
-	WM_operatortype_append(ACT_OT_insert_keyframe);
-	WM_operatortype_append(ACT_OT_copy);
-	WM_operatortype_append(ACT_OT_paste);
-	WM_operatortype_append(ACT_OT_new);
+	WM_operatortype_append(ACTION_OT_snap);
+	WM_operatortype_append(ACTION_OT_mirror);
+	WM_operatortype_append(ACTION_OT_frame_jump);
+	WM_operatortype_append(ACTION_OT_handle_type);
+	WM_operatortype_append(ACTION_OT_interpolation_type);
+	WM_operatortype_append(ACTION_OT_extrapolation_type);
+	WM_operatortype_append(ACTION_OT_keyframe_type);
+	WM_operatortype_append(ACTION_OT_sample);
+	WM_operatortype_append(ACTION_OT_clean);
+	WM_operatortype_append(ACTION_OT_delete);
+	WM_operatortype_append(ACTION_OT_duplicate);
+	WM_operatortype_append(ACT_OT_keyframe_insert);
+	WM_operatortype_append(ACTION_OT_copy);
+	WM_operatortype_append(ACTION_OT_paste);
+	WM_operatortype_append(ACTION_OT_new);
 	
-	WM_operatortype_append(ACT_OT_previewrange_set);
-	WM_operatortype_append(ACT_OT_view_all);
+	WM_operatortype_append(ACTION_OT_previewrange_set);
+	WM_operatortype_append(ACTION_OT_view_all);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -97,69 +97,69 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* action_select.c - selection tools */
 		/* click-select */
-	WM_keymap_add_item(keymap, "ACT_OT_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
-	kmi= WM_keymap_add_item(keymap, "ACT_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
 		RNA_boolean_set(kmi->ptr, "column", 1);
-	kmi= WM_keymap_add_item(keymap, "ACT_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	kmi= WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
-	kmi= WM_keymap_add_item(keymap, "ACT_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi= WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT|KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
 		RNA_boolean_set(kmi->ptr, "column", 1);
-	kmi= WM_keymap_add_item(keymap, "ACT_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "left_right", ACTKEYS_LRSEL_TEST);
 	
 		/* deselect all */
-	WM_keymap_add_item(keymap, "ACT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ACT_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
+	WM_keymap_add_item(keymap, "ACTION_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ACTION_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	
 		/* borderselect */
-	WM_keymap_add_item(keymap, "ACT_OT_select_border", BKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ACT_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
+	WM_keymap_add_item(keymap, "ACTION_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ACTION_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
 	
 		/* column select */
-	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_select_column", KKEY, KM_PRESS, 0, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_KEYS);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_select_column", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_CFRA);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_select_column", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_select_column", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, 0, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_KEYS);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_CFRA);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
 	
 	/* action_edit.c */
 		/* snap - current frame to selected keys */
 		// TODO: maybe since this is called jump, we're better to have it on <something>-J?
-	WM_keymap_add_item(keymap, "ACT_OT_frame_jump", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_frame_jump", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 		
 		/* menu + single-step transform */
-	WM_keymap_add_item(keymap, "ACT_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* menu + set setting */
-	WM_keymap_add_item(keymap, "ACT_OT_handle_type", HKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0); 
-	WM_keymap_add_item(keymap, "ACT_OT_keyframe_type", RKEY, KM_PRESS, 0, 0); 
+	WM_keymap_add_item(keymap, "ACTION_OT_handle_type", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0); 
+	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_type", RKEY, KM_PRESS, 0, 0); 
 	
 		/* destructive */
-	WM_keymap_add_item(keymap, "ACT_OT_clean", OKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_clean", OKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
 	
-	WM_keymap_add_item(keymap, "ACT_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "ACT_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_insert_keyframe", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACT_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
 	
 		/* copy/paste */
-	WM_keymap_add_item(keymap, "ACT_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* auto-set range */
-	WM_keymap_add_item(keymap, "ACT_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	
 	/* transform system */
 	transform_keymap_for_space(keyconf, keymap, SPACE_ACTION);
 	
 		/* test */
-	/* WM_keymap_add_item(keymap, "ACT_OT_test", QKEY, KM_PRESS, 0, 0); */
+	/* WM_keymap_add_item(keymap, "ACTION_OT_test", QKEY, KM_PRESS, 0, 0); */
 }
 
 /* --------------- */

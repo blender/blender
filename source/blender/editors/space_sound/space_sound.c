@@ -246,7 +246,7 @@ void ED_spacetype_sound(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sound region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	
 	art->init= sound_header_area_init;
 	art->draw= sound_header_area_draw;

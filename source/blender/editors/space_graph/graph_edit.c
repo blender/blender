@@ -386,7 +386,7 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_ghost_curves_clear (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Create Ghost Curves";
+	ot->name= "Clear Ghost Curves";
 	ot->idname= "GRAPH_OT_ghost_curves_clear";
 	ot->description= "Clear F-Curve snapshots (Ghosts) for active Graph Editor.";
 	
@@ -481,11 +481,11 @@ static int graphkeys_insertkey_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_insert_keyframe (wmOperatorType *ot)
+void GRAPH_OT_keyframe_insert (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframes";
-	ot->idname= "GRAPH_OT_insert_keyframe";
+	ot->idname= "GRAPH_OT_keyframe_insert";
 	ot->description= "Insert keyframes for the specified channels.";
 	
 	/* api callbacks */
@@ -792,7 +792,15 @@ static void delete_graph_keys (bAnimContext *ac)
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		delete_fcurve_keys((FCurve *)ale->key_data); // XXX... this doesn't delete empty curves anymore
+		FCurve *fcu= (FCurve *)ale->key_data;
+		AnimData *adt= ale->adt;
+		
+		/* delete selected keyframes only */
+		delete_fcurve_keys(fcu); 
+		
+		/* Only delete curve too if it won't be doing anything anymore */
+		if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
+			ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
 	}
 	
 	/* free filtered list */

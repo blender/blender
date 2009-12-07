@@ -34,12 +34,6 @@ struct CurveMap;
 struct ImBuf;
 struct rctf;
 
-void 				gamma_correct_rec709(float *c, float gamma);
-void				gamma_correct(float *c, float gamma);
-float				srgb_to_linearrgb(float c);
-float				linearrgb_to_srgb(float c);
-void				color_manage_linearize(float *col_to, float *col_from);
-
 void				floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w);
 void				floatbuf_to_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w);
 

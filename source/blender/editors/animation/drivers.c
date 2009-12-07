@@ -411,11 +411,11 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_add_driver_button (wmOperatorType *ot)
+void ANIM_OT_driver_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Driver";
-	ot->idname= "ANIM_OT_add_driver_button";
+	ot->idname= "ANIM_OT_driver_button_add";
 	ot->description= "Add driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */
@@ -475,11 +475,11 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_remove_driver_button (wmOperatorType *ot)
+void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Driver";
-	ot->idname= "ANIM_OT_remove_driver_button";
+	ot->idname= "ANIM_OT_driver_button_remove";
 	ot->description= "Remove the driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */

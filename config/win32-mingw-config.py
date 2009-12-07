@@ -127,8 +127,15 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
              '${BF_OPENGL}/lib/libXmu.a', '${BF_OPENGL}/lib/libXext.a',
              '${BF_OPENGL}/lib/libX11.a', '${BF_OPENGL}/lib/libXi.a' ]
 
-# Disable Collada by default
-WITH_BF_COLLADA = False
+WITH_BF_COLLADA = True
+BF_COLLADA = '#source/blender/collada'
+BF_COLLADA_INC = '${BF_COLLADA}'
+BF_COLLADA_LIB = 'bf_collada'
+
+BF_OPENCOLLADA = LIBDIR + '/opencollada'
+BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver xml2 pcre'
+BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
 ##
 CC = 'gcc'
@@ -145,7 +152,7 @@ C_WARN = [ '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 
 CC_WARN = [ '-Wall' ]
 
-LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
+LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++','-lole32','-luuid']
 
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g']

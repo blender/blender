@@ -344,6 +344,10 @@ class RENDER_PT_output(RenderButtonsPanel):
             split = layout.split()
             split.prop(rd, "tiff_bit")
 
+        elif rd.file_format == 'QUICKTIME_CARBON':
+            split = layout.split()
+            split.operator("scene.render_data_set_quicktime_codec")
+
         elif rd.file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
             col = split.column()
@@ -401,8 +405,8 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.label(text="Mux:")
         col.prop(rd, "ffmpeg_muxrate", text="Rate")
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
-        
-        # Audio: 
+
+        # Audio:
         layout.prop(rd, "ffmpeg_multiplex_audio", text="Audio")
 
         sub = layout.column()

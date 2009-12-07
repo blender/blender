@@ -135,7 +135,7 @@ void BIF_selectOrientation(void);
 /* to be able to add operator properties to other operators */
 
 void Properties_Proportional(struct wmOperatorType *ot);
-void Properties_Snapping(struct wmOperatorType *ot, short align);
+void Properties_Snapping(struct wmOperatorType *ot, short fullsnap, short align);
 void Properties_Constraints(struct wmOperatorType *ot);
 
 /* view3d manipulators */

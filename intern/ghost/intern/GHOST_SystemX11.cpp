@@ -66,8 +66,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <iostream>
 #include <vector>
 #include <stdio.h> // for fprintf only
+#include <cstdlib> // for exit
 
 typedef struct NDOFPlatformInfo {
 	Display *display;
@@ -96,7 +98,10 @@ GHOST_SystemX11(
 {
 	m_display = XOpenDisplay(NULL);
 	
-	if (!m_display) return;
+	if (!m_display) {
+		std::cerr << "Unable to open a display" << std::endl;
+		abort(); //was return before, but this would just mean it will crash later
+	}
 	
 #ifdef __sgi
 	m_delete_window_atom 

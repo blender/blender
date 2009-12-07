@@ -1430,7 +1430,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_VELOCITY: return "PROP_VELOCITY";
 		case PROP_ACCELERATION: return "PROP_ACCELERATION";
 		case PROP_XYZ: return "PROP_XYZ";
-		case PROP_RGB: return "PROP_RGB";
+		case PROP_COLOR_GAMMA: return "PROP_COLOR_GAMMA";
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		default: {
@@ -1984,7 +1984,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
 	{"rna_actuator.c", NULL, RNA_def_actuator},
-	{"rna_armature.c", NULL, RNA_def_armature},
+	{"rna_armature.c", "rna_armature_api.c", RNA_def_armature},
 	{"rna_boid.c", NULL, RNA_def_boid},
 	{"rna_brush.c", NULL, RNA_def_brush},
 	{"rna_camera.c", NULL, RNA_def_camera},

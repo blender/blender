@@ -2268,12 +2268,13 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 	EffectedPoint epoint;
 	ParticleKey states[5], tkey;
 	float timestep = psys_get_timestep(sim);
-	float force[3],impulse[3],dx[4][3],dv[4][3];
+	float force[3],impulse[3],dx[4][3],dv[4][3],oldpos[3];
 	float dtime=dfra*timestep, time, pa_mass=part->mass, fac, fra=sim->psys->cfra;
 	int i, steps=1;
 	
 	/* maintain angular velocity */
 	VECCOPY(pa->state.ave,pa->prev_state.ave);
+	VECCOPY(oldpos,pa->state.co);
 
 	if(part->flag & PART_SIZEMASS)
 		pa_mass*=pa->size;
@@ -2287,6 +2288,9 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 			break;
 		case PART_INT_RK4:
 			steps=4;
+			break;
+		case PART_INT_VERLET:
+			steps=1;
 			break;
 	}
 
@@ -2392,6 +2396,13 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 						VECADDFAC(pa->state.vel,pa->state.vel,dv[2],1.0f/3.0f);
 						VECADDFAC(pa->state.vel,pa->state.vel,dv[3],1.0f/6.0f);
 				}
+				break;
+			case PART_INT_VERLET:   /* Verlet integration */
+				VECADDFAC(pa->state.vel,pa->state.vel,force,dtime);
+				VECADDFAC(pa->state.co,pa->state.co,pa->state.vel,dtime);
+
+				VECSUB(pa->state.vel,pa->state.co,oldpos);
+				mul_v3_fl(pa->state.vel,1.0f/dtime);
 				break;
 		}
 	}
@@ -2915,6 +2926,8 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 					psys_find_parents(sim);
 			}
 		}
+		else
+			psys_free_children(psys);
 	}
 
 	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->flag & PTCACHE_BAKED)==0)

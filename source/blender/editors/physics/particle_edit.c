@@ -1174,8 +1174,11 @@ static void update_velocities(Object *ob, PTCacheEdit *edit)
 		}
 	}
 }
+
 void PE_update_object(Scene *scene, Object *ob, int useflag)
 {
+	/* use this to do partial particle updates, not usable when adding or
+	   removing, then a full redo is necessary and calling this may crash */
 	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	POINT_P;
@@ -1261,29 +1264,51 @@ static void toggle_key_select(PEData *data, int point_index, int key_index)
 
 /************************ de select all operator ************************/
 
-static int de_select_all_exec(bContext *C, wmOperator *op)
+static int select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	POINT_P; KEY_K;
-	int sel= 0;
-	
-	LOOP_VISIBLE_POINTS {
-		LOOP_SELECTED_KEYS {
-			sel= 1;
-			key->flag &= ~PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC;
+	int action = RNA_enum_get(op->ptr, "action");
+
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		LOOP_VISIBLE_POINTS {
+			LOOP_SELECTED_KEYS {
+				action = SEL_DESELECT;
+				break;
+			}
+
+			if (action == SEL_DESELECT)
+				break;
 		}
 	}
 
-	if(sel==0) {
-		LOOP_VISIBLE_POINTS {
-			LOOP_KEYS {
-				if(!(key->flag & PEK_SELECT)) {
+	LOOP_VISIBLE_POINTS {
+		LOOP_VISIBLE_KEYS {
+			switch (action) {
+			case SEL_SELECT:
+				if ((key->flag & PEK_SELECT) == 0) {
 					key->flag |= PEK_SELECT;
 					point->flag |= PEP_EDIT_RECALC;
 				}
+				break;
+			case SEL_DESELECT:
+				if (key->flag & PEK_SELECT) {
+					key->flag &= ~PEK_SELECT;
+					point->flag |= PEP_EDIT_RECALC;
+				}
+				break;
+			case SEL_INVERT:
+				if ((key->flag & PEK_SELECT) == 0) {
+					key->flag |= PEK_SELECT;
+					point->flag |= PEP_EDIT_RECALC;
+				} else {
+					key->flag &= ~PEK_SELECT;
+					point->flag |= PEP_EDIT_RECALC;
+				}
+				break;
 			}
 		}
 	}
@@ -1294,18 +1319,20 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_select_all_toggle(wmOperatorType *ot)
+void PARTICLE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->idname= "PARTICLE_OT_select_all_toggle";
+	ot->name= "Selection of all particles";
+	ot->idname= "PARTICLE_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= de_select_all_exec;
+	ot->exec= select_all_exec;
 	ot->poll= PE_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /************************ pick select operator ************************/
@@ -1472,7 +1499,7 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 
 /************************ border select operator ************************/
 
-int PE_border_select(bContext *C, rcti *rect, int select)
+int PE_border_select(bContext *C, rcti *rect, int select, int extend)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -1481,6 +1508,17 @@ int PE_border_select(bContext *C, rcti *rect, int select)
 
 	if(!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
+
+	if (extend == 0 && select) {
+		POINT_P; KEY_K;
+
+		LOOP_VISIBLE_POINTS {
+			LOOP_SELECTED_KEYS {
+				key->flag &= ~PEK_SELECT;
+				point->flag |= PEP_EDIT_RECALC;
+			}
+		}
+	}
 
 	PE_set_view3d_data(C, &data);
 	data.rect= rect;
@@ -2029,6 +2067,12 @@ static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psy
 			edit->mirror_cache= NULL;
 		}
 
+		if(psys->child) {
+			MEM_freeN(psys->child);
+			psys->child= NULL;
+			psys->totchild=0;
+		}
+
 		edit->totpoint= psys->totpart= new_totpart;
 	}
 
@@ -2295,7 +2339,6 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
 	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles.", totremoved);
 
-	PE_update_object(scene, ob, 0);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 
@@ -2472,7 +2515,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 		recalc_lengths(data.edit);
 	}
 
-	PE_update_object(data.scene, data.ob, 0);
 	DAG_id_flush_update(&data.ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
 
@@ -3698,7 +3740,6 @@ void PE_undo_step(Scene *scene, int step)
 		}
 	}
 
-	PE_update_object(scene, OBACT, 0);
 	DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 }
 
@@ -3983,6 +4024,7 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			psys->flag &= ~PSYS_EDITED;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}

@@ -64,7 +64,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			"scene", "selected_objects", "selected_bases",
 			"selected_editable_objects", "selected_editable_bases",
 			"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
-			"visible_pchans", "selected_pchans", "active_bone", "active_pose_bone",
+			"visible_pose_bones", "selected_pose_bones", "active_bone", "active_pose_bone",
 			"active_base", "active_object", "object", "edit_object",
 			"sculpt_object", "vertex_paint_object", "weight_paint_object",
 			"texture_paint_object", "particle_edit_object", NULL};
@@ -192,7 +192,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			return 1;
 		}
 	}
-	else if(CTX_data_equals(member, "visible_pchans")) {
+	else if(CTX_data_equals(member, "visible_pose_bones")) {
 		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
 		
@@ -207,7 +207,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			return 1;
 		}
 	}
-	else if(CTX_data_equals(member, "selected_pchans")) {
+	else if(CTX_data_equals(member, "selected_pose_bones")) {
 		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
 		

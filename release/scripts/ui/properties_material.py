@@ -481,7 +481,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         mat = active_node_mat(context.material)
         sss = mat.subsurface_scattering
         wide_ui = context.region.width > narrowui
-        
+
         layout.active = (sss.enabled) and (not mat.shadeless)
 
         row = layout.row().split()
@@ -495,7 +495,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
         col.prop(sss, "ior")
         col.prop(sss, "scale")
         col.prop(sss, "color", text="")
-        col.prop(sss, "radius", text="RGB Radius")
+        col.prop(sss, "radius", text="RGB Radius", expand=True)
 
         if wide_ui:
             col = split.column()

@@ -545,7 +545,7 @@ static short apply_targetless_ik(Object *ob)
 static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
 {
 	Bone *bone= pchan->bone;
-	float pmat[3][3], omat[3][3];
+	float pmat[3][3], omat[3][3], bmat[3][3];
 	float cmat[3][3], tmat[3][3];
 	float vec[3];
 
@@ -604,6 +604,11 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	copy_m3_m4(omat, ob->obmat);
 
+	if (t->mode==TFM_TRANSLATION && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
+		unit_m3(bmat);
+	else
+		copy_m3_m3(bmat, pchan->bone->bone_mat);
+
 	if (pchan->parent) {
 		if(pchan->bone->flag & BONE_HINGE)
 			copy_m3_m4(pmat, pchan->parent->bone->arm_mat);
@@ -613,19 +618,19 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, pchan->bone->bone_mat, pmat, omat, cmat, 0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, pmat, omat, cmat, 0,0,0,0);    // dang mulserie swaps args
 		}
 		else
-			mul_serie_m3(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
 	}
 	else {
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, pchan->bone->bone_mat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
 		}
 		else
-			mul_m3_m3m3(td->mtx, omat, pchan->bone->bone_mat);  // Mat3MulMat3 has swapped args!
+			mul_m3_m3m3(td->mtx, omat, bmat);  // Mat3MulMat3 has swapped args!
 	}
 
 	invert_m3_m3(td->smtx, td->mtx);
@@ -1051,7 +1056,15 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 	ListBase *edbo = arm->edbo;
 	TransData *td;
 	float mtx[3][3], smtx[3][3], delta[3], bonemat[3][3];
-
+	
+	/* special hack for envelope drawmode and scaling:
+	 * 	to allow scaling the size of the envelope around single points,
+	 *	mode should become TFM_BONE_ENVELOPE in this case
+	 */
+	// TODO: maybe we need a separate hotkey for it, but this is consistent with 2.4x for now
+	if ((t->mode == TFM_RESIZE) && (arm->drawtype==ARM_ENVELOPE))
+		t->mode= TFM_BONE_ENVELOPE;
+	
 	t->total = 0;
 	for (ebo = edbo->first; ebo; ebo = ebo->next)
 	{
@@ -2913,11 +2926,11 @@ static void posttrans_gpd_clean (bGPdata *gpd)
  */
 static void posttrans_fcurve_clean (FCurve *fcu)
 {
-	float *selcache;	/* cache for frame numbers of selected frames (icu->totvert*sizeof(float)) */
+	float *selcache;	/* cache for frame numbers of selected frames (fcu->totvert*sizeof(float)) */
 	int len, index, i;	/* number of frames in cache, item index */
 
 	/* allocate memory for the cache */
-	// TODO: investigate using GHash for this instead?
+	// TODO: investigate using BezTriple columns instead?
 	if (fcu->totvert == 0)
 		return;
 	selcache= MEM_callocN(sizeof(float)*fcu->totvert, "FCurveSelFrameNums");
@@ -2983,7 +2996,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
 
-	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached
+	/* loop through relevant data, removing keyframes as appropriate
 	 *  	- all keyframes are converted in/out of global time
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -4760,7 +4773,7 @@ void special_aftertrans_update(TransInfo *t)
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 			
-			/* these should all be ipo-blocks */
+			/* these should all be F-Curves */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
@@ -5311,9 +5324,6 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 	}
 	else {
-		// t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
-		t->options |= CTX_NO_PET;
-		
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
 
