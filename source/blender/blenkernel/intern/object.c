@@ -982,7 +982,7 @@ Object *add_only_object(int type, char *name)
 	unit_m4(ob->constinv);
 	unit_m4(ob->parentinv);
 	unit_m4(ob->obmat);
-	ob->dt= OB_SHADED;
+	ob->dt= OB_TEXTURE;
 	ob->empty_drawtype= OB_ARROWS;
 	ob->empty_drawsize= 1.0;
 

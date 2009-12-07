@@ -224,7 +224,7 @@ static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
 		case MOD_SMOKE_TYPE_COLL:
 		case 0:
 		default:
-			ob->dt = OB_SHADED;
+			ob->dt = OB_TEXTURE;
 			break;
 	}
 	
