@@ -1278,9 +1278,9 @@ static void rna_def_space_graph(BlenderRNA *brna)
 		
 		/* this is basically the same as the one for the 3D-View, but with some entries ommitted */
 	static EnumPropertyItem gpivot_items[] = {
-		{V3D_CENTER, "BOUNDING_BOX_CENTER", 0, "Bounding Box Center", ""},
-		{V3D_CURSOR, "CURSOR", 0, "2D Cursor", ""},
-		{V3D_LOCAL, "INDIVIDUAL_CENTERS", 0, "Individual Centers", ""},
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", ""},
+		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},
+		{V3D_LOCAL, "INDIVIDUAL_CENTERS", ICON_ROTATECOLLECTION, "Individual Centers", ""},
 		//{V3D_CENTROID, "MEDIAN_POINT", 0, "Median Point", ""},
 		//{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
