@@ -4024,6 +4024,7 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			psys->flag &= ~PSYS_EDITED;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}

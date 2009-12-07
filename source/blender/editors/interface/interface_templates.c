@@ -715,12 +715,12 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 			}
-			else 
+			else {
 				uiItemEnumO(row, "Apply", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_DATA);
-			
-			if (modifier_sameTopology(md))
-				uiItemEnumO(row, "Apply as Shape", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_SHAPE);
-			
+				
+				if (modifier_sameTopology(md))
+					uiItemEnumO(row, "Apply as Shape", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_SHAPE);
+			}
 			
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
@@ -1951,7 +1951,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 		      PointerRNA *used_ptr, char *used_propname, int active_layer)
 {
 	uiLayout *uRow, *uCol;
-	PropertyRNA *prop, *used_prop;
+	PropertyRNA *prop, *used_prop= NULL;
 	int groups, cols, layers;
 	int group, col, layer, row;
 	int cols_per_group = 5;

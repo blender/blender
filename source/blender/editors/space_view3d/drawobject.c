@@ -5920,8 +5920,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			/* run this so that possible child particles get cached */
-			if(edit && edit->psys == psys)
-				draw_update_ptcache_edit(scene, ob, edit);
+			if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT)
+				if(edit && edit->psys == psys)
+					draw_update_ptcache_edit(scene, ob, edit);
 
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		}
