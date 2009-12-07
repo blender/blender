@@ -636,6 +636,7 @@ uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
+void uiTemplateDopeSheetFilter(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
 void uiTemplateAnyID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 

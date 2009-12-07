@@ -60,10 +60,56 @@ void ui_template_fix_linking()
 void uiTemplateHeader(uiLayout *layout, bContext *C, int menus)
 {
 	uiBlock *block;
-	
+
 	block= uiLayoutAbsoluteBlock(layout);
 	if(menus) ED_area_header_standardbuttons(C, block, 0);
 	else ED_area_header_switchbutton(C, block, 0);
+}
+
+/********************** DopeSheet Filter Template *************************/
+
+void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	Main *mainptr= CTX_data_main(C);
+	ScrArea *sa= CTX_wm_area(C);
+	uiLayout *row= layout;
+	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
+
+	/* more 'generic' filtering options */
+	if (nlaActive)
+		row= uiLayoutRow(layout, 1);
+
+	uiItemR(row, "", 0, ptr, "only_selected", 0);
+
+	if (nlaActive)
+		uiItemR(row, "", 0, ptr, "include_missing_nla", 0);
+
+	if (nlaActive)
+		row= layout;
+
+	/* datatype based - only available datatypes are shown */
+	row= uiLayoutRow(layout, 1);
+
+	uiItemR(row, "", 0, ptr, "display_scene", 0);
+	uiItemR(row, "", 0, ptr, "display_world", 0);
+	uiItemR(row, "", 0, ptr, "display_node", 0);
+
+	if (mainptr && mainptr->key.first)
+		uiItemR(row, "", 0, ptr, "display_shapekeys", 0);
+	if (mainptr && mainptr->mat.first)
+		uiItemR(row, "", 0, ptr, "display_material", 0);
+	if (mainptr && mainptr->lamp.first)
+		uiItemR(row, "", 0, ptr, "display_lamp", 0);
+	if (mainptr && mainptr->camera.first)
+		uiItemR(row, "", 0, ptr, "display_camera", 0);
+	if (mainptr && mainptr->curve.first)
+		uiItemR(row, "", 0, ptr, "display_curve", 0);
+	if (mainptr && mainptr->mball.first)
+		uiItemR(row, "", 0, ptr, "display_metaball", 0);
+	if (mainptr && mainptr->armature.first)
+		uiItemR(row, "", 0, ptr, "display_armature", 0);
+	if (mainptr && mainptr->particle.first)
+		uiItemR(row, "", 0, ptr, "display_particle", 0);
 }
 
 /********************** Search Callbacks *************************/

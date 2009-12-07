@@ -254,6 +254,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_boolean(func, "menus", 1, "", "The header has menus, and should show menu expander.");
 
+	func= RNA_def_function(srna, "template_dopesheet_filter", "uiTemplateDopeSheetFilter");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "dopesheet", "DopeSheet", "", "DopeSheet settings holding filter options.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+
 	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
