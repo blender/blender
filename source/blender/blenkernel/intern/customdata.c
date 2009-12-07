@@ -440,29 +440,30 @@ static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, fl
 }
 #endif
 
+static int mdisp_corners(MDisps *s)
+{
+	/* silly trick because we don't get it from callback */
+	return (s->totdisp % (3*3) == 0)? 3: 4;
+}
+
 static void layerSwap_mdisps(void *data, int *ci)
 {
-	// XXX
-#if 0
 	MDisps *s = data;
 	float (*d)[3] = NULL;
-	int x, y, st;
+	int corners, cornersize, S;
 
-	if(!(ci[0] == 2 && ci[1] == 3 && ci[2] == 0 && ci[3] == 1)) return;
+	/* this function is untested .. */
+	corners = mdisp_corners(s);
+	cornersize = s->totdisp/corners;
 
 	d = MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
-	st = sqrt(s->totdisp);
 
-	for(y = 0; y < st; ++y) {
-		for(x = 0; x < st; ++x) {
-			copy_v3_v3(d[(st - y - 1) * st + (st - x - 1)], s->disps[y * st + x]);
-		}
-	}
+	for(S = 0; S < corners; S++)
+		memcpy(d + cornersize*S, s->disps + cornersize*ci[S], cornersize*3*sizeof(float));
 	
 	if(s->disps)
 		MEM_freeN(s->disps);
 	s->disps = d;
-#endif
 }
 
 static void layerInterp_mdisps(void **sources, float *weights, float *sub_weights,

@@ -905,6 +905,10 @@ static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int
 	float bstrength= ss->cache->bstrength;
 	int iteration, n;
 
+	/* XXX not working for multires yet */
+	if(!ss->fmap)
+		return;
+
 	for(iteration = 0; iteration < 2; ++iteration) {
 		#pragma omp parallel for private(n) schedule(static)
 		for(n=0; n<totnode; n++) {
@@ -999,7 +1003,6 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 
 		BLI_pbvh_node_mark_update(nodes[n]);
 	}
-
 }
 
 static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int totnode)
@@ -1009,6 +1012,10 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	float area_normal[3], offset[3];
 	float lim= ss->cache->radius / 4;
 	int n;
+
+	/* XXX not working yet for multires */
+	if(!ss->mvert)
+		return;
 
 	if(ss->cache->flip)
 		lim = -lim;
@@ -1081,10 +1088,10 @@ static void do_inflate_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, in
 			if(sculpt_brush_test(&test, vd.co)) {
 				float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
 				float add[3];
+
+				if(vd.fno) copy_v3_v3(add, vd.fno);
+				else normal_short_to_float_v3(add, vd.no);
 				
-				add[0]= vd.no[0]/32767.0f;
-				add[1]= vd.no[1]/32767.0f;
-				add[2]= vd.no[2]/32767.0f;
 				mul_v3_fl(add, fade * ss->cache->radius);
 				add[0]*= ss->cache->scale[0];
 				add[1]*= ss->cache->scale[1];
@@ -1116,16 +1123,17 @@ static void calc_flatten_center(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
+		int j;
 		
 		sculpt_undo_push_node(ss, nodes[n]);
 		sculpt_brush_test_init(ss, &test);
 
 		BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
-				for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i) {
-					if(test.dist > outer_dist[i]) {
-						copy_v3_v3(outer_co[i], vd.co);
-						outer_dist[i] = test.dist;
+				for(j = 0; j < FLATTEN_SAMPLE_SIZE; ++j) {
+					if(test.dist > outer_dist[j]) {
+						copy_v3_v3(outer_co[j], vd.co);
+						outer_dist[j] = test.dist;
 						break;
 					}
 				}
@@ -1424,9 +1432,9 @@ void sculpt_update_mesh_elements(bContext *C, int need_fmap)
 	if((ss->multires = sculpt_multires_active(ob))) {
 		ss->totvert = dm->getNumVerts(dm);
 		ss->totface = dm->getNumFaces(dm);
-		ss->mvert = dm->getVertDataArray(dm, CD_MVERT);
-		ss->mface = dm->getFaceDataArray(dm, CD_MFACE);
-		ss->face_normals = dm->getFaceDataArray(dm, CD_NORMAL);
+		ss->mvert= NULL;
+		ss->mface= NULL;
+		ss->face_normals= NULL;
 	}
 	else {
 		Mesh *me = get_mesh(ob);
@@ -1439,7 +1447,7 @@ void sculpt_update_mesh_elements(bContext *C, int need_fmap)
 
 	ss->ob = ob;
 	ss->tree = dm->getPBVH(ob, dm);
-	ss->fmap = (need_fmap)? dm->getFaceMap(dm): NULL;
+	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(dm): NULL;
 
 	if((ob->shapeflag & OB_SHAPE_LOCK) && !sculpt_multires_active(ob)) {
 		ss->kb= ob_get_keyblock(ob);

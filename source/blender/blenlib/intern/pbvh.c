@@ -1012,12 +1012,12 @@ void BLI_pbvh_node_get_verts(PBVHNode *node, int **vert_indices, int *totvert, i
 void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *totvert)
 {
 	if(bvh->grids) {
-		*totvert= node->totprim*bvh->gridsize*bvh->gridsize;
-		*uniquevert= *totvert;
+		if(totvert) *totvert= node->totprim*bvh->gridsize*bvh->gridsize;
+		if(uniquevert) *uniquevert= *totvert;
 	}
 	else {
-		*uniquevert= node->uniq_verts;
-		*totvert= node->uniq_verts + node->face_verts;
+		if(totvert) *totvert= node->uniq_verts + node->face_verts;
+		if(uniquevert) *uniquevert= node->uniq_verts;
 	}
 }
 
@@ -1030,10 +1030,10 @@ void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int 
 		if(gridsize) *gridsize= bvh->gridsize;
 	}
 	else {
-		*grid_indices= NULL;
-		*totgrid= 0;
-		*maxgrid= 0;
-		*gridsize= 0;
+		if(grid_indices) *grid_indices= NULL;
+		if(totgrid) *totgrid= 0;
+		if(maxgrid) *maxgrid= 0;
+		if(gridsize) *gridsize= 0;
 	}
 }
 
