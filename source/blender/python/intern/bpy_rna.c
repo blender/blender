@@ -381,23 +381,22 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 
 static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 {
-	PyObject *ret= NULL;
+	PyObject *item, *ret= NULL;
 
 	if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
 		const char *identifier[RNA_ENUM_BITFLAG_SIZE + 1];
-		int index;
 
-		if ((index=RNA_property_enum_bitflag_identifiers(BPy_GetContext(), ptr, prop, val, identifier))) {
-			ret= PyTuple_New(index);
-			index= 0;
+		ret= PySet_New(NULL);
 
-			while(identifier[index]) {
-				PyTuple_SET_ITEM(ret, index, PyUnicode_FromString(identifier[index]));
-				index++;
+		if (RNA_property_enum_bitflag_identifiers(BPy_GetContext(), ptr, prop, val, identifier)) {
+			int index;
+
+			for(index=0; identifier[index]; index++) {
+				item= PyUnicode_FromString(identifier[index]);
+				PySet_Add(ret, item);
+				Py_DECREF(item);
 			}
-		}
-		else {
-			ret= PyTuple_New(0);
+
 		}
 	}
 	else {
@@ -559,7 +558,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const cha
 
 static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw);
 
-PyObject *pyrna_func_to_py(BPy_DummyPointerRNA *pyrna, FunctionRNA *func)
+static PyObject *pyrna_func_to_py(BPy_DummyPointerRNA *pyrna, FunctionRNA *func)
 {
 	static PyMethodDef func_meth = {"<generic rna function>", (PyCFunction)pyrna_func_call, METH_VARARGS|METH_KEYWORDS, "python rna function"};
 	PyObject *self;
@@ -582,6 +581,7 @@ PyObject *pyrna_func_to_py(BPy_DummyPointerRNA *pyrna, FunctionRNA *func)
 	
 	return ret;
 }
+
 
 
 int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix)
@@ -678,28 +678,36 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		}
 		case PROP_ENUM:
 		{
-			int val, i;
+			int val= 0, tmpval;
 
 			if (PyUnicode_Check(value)) {
 				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix))
 					return -1;
 			}
-			else if (PyTuple_Check(value)) {
-				/* tuple of enum items, concatenate all values with OR */
-				val= 0;
-				for (i= 0; i < PyTuple_Size(value); i++) {
-					int tmpval;
+			else if (PyAnySet_Check(value)) {
+				if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+					/* set of enum items, concatenate all values with OR */
 
-					/* PyTuple_GET_ITEM returns a borrowed reference */
-					if (!pyrna_string_to_enum(PyTuple_GET_ITEM(value, i), ptr, prop, &tmpval, error_prefix))
-						return -1;
+					/* set looping */
+					Py_ssize_t pos = 0;
+					PyObject *key;
+					long hash;
 
-					val |= tmpval;
+					while (_PySet_NextEntry(value, &pos, &key, &hash)) {
+						if (!pyrna_string_to_enum(key, ptr, prop, &tmpval, error_prefix))
+							return -1;
+
+						val |= tmpval;
+					}
+				}
+				else {
+					PyErr_Format(PyExc_TypeError, "%.200s, %.200s.%.200s is not a bitflag enum type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
+					return -1;
 				}
 			}
 			else {
 				char *enum_str= pyrna_enum_as_string(ptr, prop);
-				PyErr_Format(PyExc_TypeError, "%.200s expected a string enum or a tuple of strings in (%.200s)", error_prefix, enum_str);
+				PyErr_Format(PyExc_TypeError, "%.200s expected a string enum or a set of strings in (%.200s)", error_prefix, enum_str);
 				MEM_freeN(enum_str);
 				return -1;
 			}
