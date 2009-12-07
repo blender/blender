@@ -2378,7 +2378,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(event->ctrl) {
 			if(mode == WM_RADIALCONTROL_STRENGTH)
-				new_value = ((int)(new_value * 100) / 10*10) / 100.0f;
+				new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
 			else
 				new_value = ((int)new_value + 5) / 10*10;
 		}
