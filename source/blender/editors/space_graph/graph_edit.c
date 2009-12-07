@@ -386,7 +386,7 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_ghost_curves_clear (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Create Ghost Curves";
+	ot->name= "Clear Ghost Curves";
 	ot->idname= "GRAPH_OT_ghost_curves_clear";
 	ot->description= "Clear F-Curve snapshots (Ghosts) for active Graph Editor.";
 	
