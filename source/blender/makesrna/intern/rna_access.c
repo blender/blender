@@ -972,6 +972,18 @@ int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **id
 	return 0;
 }
 
+int RNA_enum_bitflag_identifiers(EnumPropertyItem *item, const int value, const char **identifier)
+{
+	int index= 0;
+	for (; item->identifier; item++) {
+		if(item->identifier[0] && item->value & value) {
+			identifier[index++] = item->identifier;
+		}
+	}
+	identifier[index]= NULL;
+	return index;
+}
+
 int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name)
 {
 	for (; item->identifier; item++) {
@@ -991,6 +1003,22 @@ int RNA_property_enum_identifier(bContext *C, PointerRNA *ptr, PropertyRNA *prop
 	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
 	if(item) {
 		result= RNA_enum_identifier(item, value, identifier);
+		if(free)
+			MEM_freeN(item);
+
+		return result;
+	}
+	return 0;
+}
+
+int RNA_property_enum_bitflag_identifiers(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
+{
+	EnumPropertyItem *item= NULL;
+	int result, free;
+
+	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+	if(item) {
+		result= RNA_enum_bitflag_identifiers(item, value, identifier);
 		if(free)
 			MEM_freeN(item);
 

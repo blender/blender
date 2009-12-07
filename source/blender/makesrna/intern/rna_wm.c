@@ -243,6 +243,13 @@ EnumPropertyItem keymap_modifiers_items[] = {
 		{2, "SECOND", 0, "Second", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem operator_return_items[] = {
+		{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", ""},
+		{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", ""},
+		{OPERATOR_FINISHED, "FINISHED", 0, "Finished", ""},
+		{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", ""}, // used as a flag
+		{0, NULL, 0, NULL, NULL}};
+
 #define KMI_TYPE_KEYBOARD	0
 #define KMI_TYPE_MOUSE		1
 #define KMI_TYPE_TWEAK		2

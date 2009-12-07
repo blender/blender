@@ -146,7 +146,11 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "event", "Event", "", "Event.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_function_return(func, RNA_def_int(func, "mode",  0, 0, INT_MAX, "Mode", "", 0, INT_MAX)); // XXX, should be an enum/flag thingo
+
+	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
+	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	RNA_def_function_return(func, parm);
+
 
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");

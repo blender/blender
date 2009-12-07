@@ -379,6 +379,70 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 	return 1;
 }
 
+static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
+{
+	PyObject *ret= NULL;
+
+	if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+		const char *identifier[RNA_ENUM_BITFLAG_SIZE + 1];
+		int index;
+
+		if ((index=RNA_property_enum_bitflag_identifiers(BPy_GetContext(), ptr, prop, val, identifier))) {
+			ret= PyTuple_New(index);
+			index= 0;
+
+			while(identifier[index]) {
+				PyTuple_SET_ITEM(ret, index, PyUnicode_FromString(identifier[index]));
+				index++;
+			}
+		}
+		else {
+			ret= PyTuple_New(0);
+		}
+	}
+	else {
+		const char *identifier;
+		if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
+			ret = PyUnicode_FromString(identifier);
+		} else {
+			EnumPropertyItem *item;
+			int free= FALSE;
+
+			/* don't throw error here, can't trust blender 100% to give the
+			 * right values, python code should not generate error for that */
+			RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
+			if(item && item->identifier) {
+				ret= PyUnicode_FromString(item->identifier);
+			}
+			else {
+				char *ptr_name= RNA_struct_name_get_alloc(ptr, NULL, FALSE);
+
+				/* prefer not fail silently incase of api errors, maybe disable it later */
+				printf("RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'\n", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
+
+#if 0           // gives python decoding errors while generating docs :(
+				char error_str[256];
+				snprintf(error_str, sizeof(error_str), "RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
+				PyErr_Warn(PyExc_RuntimeWarning, error_str);
+#endif
+
+				if(ptr_name)
+					MEM_freeN(ptr_name);
+
+				ret = PyUnicode_FromString( "" );
+			}
+
+			if(free)
+				MEM_freeN(item);
+
+			/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
+			ret = NULL;*/
+		}
+	}
+
+	return ret;
+}
+
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
@@ -409,46 +473,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	case PROP_ENUM:
 	{
-		const char *identifier;
-		int val = RNA_property_enum_get(ptr, prop);
-		
-		if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
-			ret = PyUnicode_FromString( identifier );
-		} else {
-			EnumPropertyItem *item;
-			int free= FALSE;
-
-			/* don't throw error here, can't trust blender 100% to give the
-			 * right values, python code should not generate error for that */
-			RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
-			if(item && item->identifier) {
-				ret = PyUnicode_FromString( item->identifier );
-			}
-			else {
-    			char *ptr_name= RNA_struct_name_get_alloc(ptr, NULL, FALSE);
-			
-				/* prefer not fail silently incase of api errors, maybe disable it later */
-				printf("RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'\n", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
-
-#if 0           // gives python decoding errors while generating docs :(
-				char error_str[256];
-				snprintf(error_str, sizeof(error_str), "RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
-				PyErr_Warn(PyExc_RuntimeWarning, error_str);
-#endif
-
-	            if(ptr_name) 
-		            MEM_freeN(ptr_name);
-
-				ret = PyUnicode_FromString( "" );
-			}
-
-			if(free)
-				MEM_freeN(item);
-
-			/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
-			ret = NULL;*/
-		}
-
+		ret= pyrna_enum_to_py(ptr, prop, RNA_property_enum_get(ptr, prop));
 		break;
 	}
 	case PROP_POINTER:
@@ -2422,22 +2447,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		}
 		case PROP_ENUM:
 		{
-			const char *identifier;
-			int val = *(int*)data;
-			
-			if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
-				ret = PyUnicode_FromString( identifier );
-			} else {
-				/* prefer not fail silently incase of api errors, maybe disable it later */
-				char error_str[128];
-				sprintf(error_str, "RNA Warning: Current value \"%d\" matches no enum", val);
-				PyErr_Warn(PyExc_RuntimeWarning, error_str);
-				
-				ret = PyUnicode_FromString( "" );
-				/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
-				ret = NULL;*/
-			}
-
+			ret= pyrna_enum_to_py(ptr, prop, *(int*)data);
 			break;
 		}
 		case PROP_POINTER:
