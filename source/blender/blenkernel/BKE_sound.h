@@ -41,6 +41,8 @@ void sound_init();
 
 void sound_exit();
 
+void sound_disable();
+
 struct bSound* sound_new_file(struct Main *main, char* filename);
 
 // XXX unused currently
