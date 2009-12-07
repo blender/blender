@@ -364,12 +364,6 @@ def main(obj, bone_definition, base_names):
     prop["soft_min"] = 1.0 / spine_chain_len
     prop["soft_max"] = 1.0
 
-    for i in range(spine_chain_len - 1):
-        prop_name = "bend_%.2d" % (i + 1)
-        prop = rna_idprop_ui_prop_get(mt.ribcage_p, prop_name, create=True)
-        mt.ribcage_p[prop_name] = 1.0
-        prop["soft_min"] = 0.0
-        prop["soft_max"] = 1.0
 
     # Create a fake connected parent/child relationship with bone location constraints
     # positioned at the tip.
@@ -387,14 +381,31 @@ def main(obj, bone_definition, base_names):
 
 
     # Constrain 'inbetween' bones
-
-    # b01/max(0.001,b01+b02+b03+b04+b05)
     target_names = [("b%.2d" % (i + 1)) for i in range(spine_chain_len - 1)]
-    expression_suffix = "/max(0.001,%s)" % "+".join(target_names)
-
     rib_driver_path = mt.ribcage_p.path_to_id()
 
+    mt.ribcage_p["bend_tot"] = 0.0
+    fcurve = mt.ribcage_p.driver_add('["bend_tot"]', 0)
+    driver = fcurve.driver
+    driver.type = 'SUM'
+    fcurve.modifiers.remove(0) # grr dont need a modifier
+    
+    for i in range(spine_chain_len - 1):
+        tar = driver.targets.new()
+        tar.name = target_names[i]
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = rib_driver_path + ('["bend_%.2d"]' % (i + 1))
+        print(rib_driver_path)
+
     for i in range(1, spine_chain_len):
+
+        # Add bend prop
+        prop_name = "bend_%.2d" % i
+        prop = rna_idprop_ui_prop_get(mt.ribcage_p, prop_name, create=True)
+        mt.ribcage_p[prop_name] = 1.0
+        prop["soft_min"] = 0.0
+        prop["soft_max"] = 1.0
 
         spine_p = getattr(ex_chain, ex_chain.attr_names[i] + "_p")
         spine_p_parent = spine_p.parent # interlaced bone
@@ -410,16 +421,24 @@ def main(obj, bone_definition, base_names):
         fcurve = con.driver_add("influence", 0)
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
-        # b01/max(0.001,b01+b02+b03+b04+b05)
-        driver.expression = target_names[i - 1] + expression_suffix
+        driver.expression = "bend/bend_tot"
+        
         fcurve.modifiers.remove(0) # grr dont need a modifier
+        
 
-        for j in range(spine_chain_len - 1):
-            tar = driver.targets.new()
-            tar.name = target_names[j]
-            tar.id_type = 'OBJECT'
-            tar.id = obj
-            tar.rna_path = rib_driver_path + ('["bend_%.2d"]' % (j + 1))
+        # add target
+        tar = driver.targets.new()
+        tar.name = "bend_tot"
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = rib_driver_path + ('["bend_tot"]')
+        
+        tar = driver.targets.new()
+        tar.name = "bend"
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = rib_driver_path + ('["%s"]' % prop_name)
+            
 
 
     # original bone drivers

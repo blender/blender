@@ -220,10 +220,21 @@ def main(obj, bone_definition, base_names):
 
     head_driver_path = mt.head_p.path_to_id()
 
-    # b01/max(0.001,b01+b02+b03+b04+b05)
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
-    expression_suffix = "/max(0.001,%s)" % "+".join(target_names)
+    
+    mt.head_p["bend_tot"] = 0.0
+    fcurve = mt.head_p.driver_add('["bend_tot"]', 0)
+    driver = fcurve.driver
+    driver.type = 'SUM'
+    fcurve.modifiers.remove(0) # grr dont need a modifier
 
+    for i in range(len(neck_chain)):
+        tar = driver.targets.new()
+        tar.name = target_names[i]
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
+    
 
     for i, attr in enumerate(mt_chain.attr_names):
         neck_p = getattr(mt_chain, attr + "_p")
@@ -252,16 +263,23 @@ def main(obj, bone_definition, base_names):
         fcurve = con.driver_add("influence", 0)
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
-        # b01/max(0.001,b01+b02+b03+b04+b05)
-        driver.expression = target_names[i] + expression_suffix
+        driver.expression = "bend/bend_tot"
+        
         fcurve.modifiers.remove(0) # grr dont need a modifier
+        
 
-        for j in range(len(neck_chain)):
-            tar = driver.targets.new()
-            tar.name = target_names[j]
-            tar.id_type = 'OBJECT'
-            tar.id = obj
-            tar.rna_path = head_driver_path + ('["bend_%.2d"]' % (j + 1))
+        # add target
+        tar = driver.targets.new()
+        tar.name = "bend_tot"
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = head_driver_path + ('["bend_tot"]')
+        
+        tar = driver.targets.new()
+        tar.name = "bend"
+        tar.id_type = 'OBJECT'
+        tar.id = obj
+        tar.rna_path = head_driver_path + ('["%s"]' % prop_name)
 
     # no blending the result of this
     return None
