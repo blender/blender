@@ -83,6 +83,13 @@ static EnumPropertyItem transform_orientation_items[] = {
 	{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
 	{0, NULL, 0, NULL, NULL}};
 
+static EnumPropertyItem autosnap_items[] = {
+	{SACTSNAP_OFF, "NONE", 0, "None", ""},
+	{SACTSNAP_STEP, "STEP", 0, "Step", "Snap to 1.0 frame/second intervals."},
+	{SACTSNAP_FRAME, "FRAME", 0, "Frame", "Snap to actual frames/seconds (nla-action time)."},
+	{SACTSNAP_MARKER, "MARKER", 0, "Marker", "Snap to nearest marker."},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -1262,8 +1269,19 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NOTRANSKEYCULL);
 	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Show handles of Bezier control points.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
-	
-	// TODO... autosnap, dopesheet?
+
+	/* dopesheet */
+	prop= RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "DopeSheet");
+	RNA_def_property_pointer_sdna(prop, NULL, "ads");
+	RNA_def_property_ui_text(prop, "DopeSheet", "Settings for filtering animation data.");
+
+	/* autosnap */
+	prop= RNA_def_property(srna, "autosnap", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "autosnap");
+	RNA_def_property_enum_items(prop, autosnap_items);
+	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
 }
 
 static void rna_def_space_graph(BlenderRNA *brna)
@@ -1283,13 +1301,6 @@ static void rna_def_space_graph(BlenderRNA *brna)
 		{V3D_LOCAL, "INDIVIDUAL_CENTERS", ICON_ROTATECOLLECTION, "Individual Centers", ""},
 		//{V3D_CENTROID, "MEDIAN_POINT", 0, "Median Point", ""},
 		//{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem autosnap_items[] = {
-		{SACTSNAP_OFF, "NONE", 0, "None", ""},
-		{SACTSNAP_STEP, "STEP", 0, "Step", "Snap to 1.0 frame/second intervals."},
-		{SACTSNAP_FRAME, "FRAME", 0, "Frame", "Snap to actual frames/seconds (nla-action time)."},
-		{SACTSNAP_MARKER, "MARKER", 0, "Marker", "Snap to nearest marker."},
 		{0, NULL, 0, NULL, NULL}};
 
 	
@@ -1398,9 +1409,19 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SNLA_NOSTRIPCURVES);
 	RNA_def_property_ui_text(prop, "Show Control Curves", "Show influence curves on strips.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NLA, NULL);
-	
-	/* editing */
-	// TODO... autosnap, dopesheet?
+
+	/* dopesheet */
+	prop= RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "DopeSheet");
+	RNA_def_property_pointer_sdna(prop, NULL, "ads");
+	RNA_def_property_ui_text(prop, "DopeSheet", "Settings for filtering animation data.");
+
+	/* autosnap */
+	prop= RNA_def_property(srna, "autosnap", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "autosnap");
+	RNA_def_property_enum_items(prop, autosnap_items);
+	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NLA, NULL);
 }
 
 static void rna_def_space_time(BlenderRNA *brna)
