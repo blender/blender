@@ -293,8 +293,8 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("view3d.zoom", text="Zoom In").delta = 1.0
-        layout.operator("view3d.zoom", text="Zoom Out").delta = -1.0
+        layout.operator("view3d.zoom", text="Zoom In").delta = 1
+        layout.operator("view3d.zoom", text="Zoom Out").delta = -1
 
         layout.separator()
 
