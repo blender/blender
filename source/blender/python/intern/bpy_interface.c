@@ -280,6 +280,14 @@ void BPY_start_python_path(void)
 	/* set the environment path */
 	printf("found bundled python: %s\n", py_path_bundle);
 
+#ifdef __APPLE__
+	/* OSX allow file/directory names to contain : character (represented as / in the Finder)
+	 but current Python lib (release 3.1.1) doesn't handle these correctly */
+	if(strchr(py_path_bundle, ':'))
+		printf("Warning : Blender application is located in a path containing : or / chars\
+			   \nThis may make python import function fail\n");
+#endif
+	
 #if 0
 	BLI_setenv("PYTHONHOME", py_path_bundle);
 	BLI_setenv("PYTHONPATH", py_path_bundle);
