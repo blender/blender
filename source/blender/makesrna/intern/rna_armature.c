@@ -279,10 +279,6 @@ static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
 	EditBone *ebone= (EditBone*)(ptr->data);
 	EditBone *pbone, *parbone= (EditBone*)value.data;
 
-	/* within same armature */
-	if(value.id.data != ptr->id.data)
-		return;
-
 	if(parbone == NULL) {
 		if(ebone->parent && !(ebone->parent->flag & BONE_ROOTSEL))
 			ebone->parent->flag &= ~BONE_TIPSEL;
@@ -291,6 +287,10 @@ static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
 		ebone->flag &= ~BONE_CONNECTED;
 	}
 	else {
+		/* within same armature */
+		if(value.id.data != ptr->id.data)
+			return;
+
 		/* make sure this is a valid child */
 		if(parbone == ebone)
 			return;
