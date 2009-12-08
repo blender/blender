@@ -92,6 +92,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	const MT_Point3& RayTarget() const;
 	const MT_Point3& HitPosition() const;
 	const MT_Vector3& HitNormal() const;
+	const MT_Vector2& HitUV() const;
 	
 #ifndef DISABLE_PYTHON
 
@@ -106,6 +107,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	static PyObject*	pyattr_get_hit_object(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_hit_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_hit_normal(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hit_uv(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 		
 #endif // DISABLE_PYTHON
 
@@ -163,6 +165,11 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * (in game world coordinates) the face normal of the vertex where
 	 * the object was hit.  */
 	MT_Vector3		 m_hitNormal;
+
+	/**
+	 * UV texture coordinate of the hit point if any, (0,0) otherwise
+	 */
+	MT_Vector2		 m_hitUV;
 
 	/**
 	 * The KX scene that holds the camera. The camera position
