@@ -84,10 +84,10 @@ static EnumPropertyItem transform_orientation_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem autosnap_items[] = {
-	{SACTSNAP_OFF, "NONE", 0, "None", ""},
-	{SACTSNAP_STEP, "STEP", 0, "Step", "Snap to 1.0 frame/second intervals."},
-	{SACTSNAP_FRAME, "FRAME", 0, "Frame", "Snap to actual frames/seconds (nla-action time)."},
-	{SACTSNAP_MARKER, "MARKER", 0, "Marker", "Snap to nearest marker."},
+	{SACTSNAP_OFF, "NONE", 0, "No Auto-Snap", ""},
+	{SACTSNAP_STEP, "STEP", 0, "Time Step", "Snap to 1.0 frame/second intervals."},
+	{SACTSNAP_FRAME, "FRAME", 0, "Nearest Frame", "Snap to actual frames/seconds (nla-action time)."},
+	{SACTSNAP_MARKER, "MARKER", 0, "Nearest Marker", "Snap to nearest marker."},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -462,6 +462,12 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 		/* force depsgraph flush too */
 		DAG_id_flush_update(&obact->id, OB_RECALC_OB|OB_RECALC_DATA);
 	}
+}
+
+static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
+{
+	SpaceIpo *sipo= (SpaceIpo*)(ptr->data);
+	return (sipo->ghostCurves.first != NULL);
 }
 
 #else
@@ -1290,7 +1296,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem mode_items[] = {
-		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curves", ""},
+		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curve Editor", ""},
 		{SIPO_MODE_DRIVERS, "DRIVERS", 0, "Drivers", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
@@ -1381,6 +1387,13 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "autosnap");
 	RNA_def_property_enum_items(prop, autosnap_items);
 	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	/* readonly state info */
+	prop= RNA_def_property(srna, "has_ghost_curves", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", 0); /* XXX: hack to make this compile, since this property doesn't actually exist*/
+	RNA_def_property_boolean_funcs(prop, "rna_SpaceGraphEditor_has_ghost_curves_get", NULL);
+	RNA_def_property_ui_text(prop, "Has Ghost Curves", "Graph Editor instance has some ghost curves stored.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 }
 

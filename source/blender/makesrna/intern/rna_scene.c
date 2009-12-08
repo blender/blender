@@ -2453,6 +2453,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Animation Data (for Scene) */
 	rna_def_animdata_common(srna);
 	
+	/* Readonly Properties */
+	prop= RNA_def_property(srna, "nla_tweakmode_on", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_NLA_EDIT_ON);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* DO NOT MAKE THIS EDITABLE, OR NLA EDITOR BREAKS */
+	RNA_def_property_ui_text(prop, "NLA TweakMode", "Indicates whether there is any action referenced by NLA being edited. Strictly read-only.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	
 	/* Nodes (Compositing) */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree.");
