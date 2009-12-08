@@ -29,6 +29,7 @@ class INFO_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
+        window = context.window
         scene = context.scene
         rd = scene.render_data
 
@@ -45,7 +46,12 @@ class INFO_HT_header(bpy.types.Header):
                 sub.menu("INFO_MT_render")
             sub.menu("INFO_MT_help")
 
-        layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
+        if window.screen.fullscreen:
+            layout.operator("screen.back_to_previous", icon="ICON_SCREEN_BACK", text="Back to Previous")
+            layout.separator()
+        else:
+            layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
+        
         layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
 
         layout.separator()

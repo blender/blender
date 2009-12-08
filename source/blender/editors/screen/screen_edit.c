@@ -1312,7 +1312,13 @@ void ED_screen_delete(bContext *C, bScreen *sc)
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *newsc;
 	int delete= 1;
-
+	
+	/* don't allow deleting temp fullscreens for now */
+	if (sc->full == SCREENFULL) {
+		return;
+	}
+	
+		
 	/* screen can only be in use by one window at a time, so as
 	   long as we are able to find a screen that is unused, we
 	   can safely assume ours is not in use anywhere an delete it */
@@ -1536,15 +1542,40 @@ int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 	return 1;
 }
 
-void ED_screen_full_prevspace(bContext *C)
+void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 {
 	wmWindow *win= CTX_wm_window(C);
-	ScrArea *sa= CTX_wm_area(C);
-	
-	ED_area_prevspace(C);
+
+	ED_area_prevspace(C, sa);
 	
 	if(sa->full)
 		ed_screen_fullarea(C, win, sa);
+}
+
+/* restore a screen / area back to default operation, after temp fullscreen modes */
+void ED_screen_full_restore(bContext *C, ScrArea *sa)
+{
+	wmWindow *win= CTX_wm_window(C);
+	SpaceLink *sl = sa->spacedata.first;
+	
+	/* if fullscreen area has a secondary space (such as as file browser or fullscreen render 
+	 * overlaid on top of a existing setup) then return to the previous space */
+	
+	if (sl->next) {
+		/* specific checks for space types */
+		if (sl->spacetype == SPACE_IMAGE) {
+			SpaceImage *sima= sa->spacedata.first;
+			if (sima->flag & SI_PREVSPACE)
+				sima->flag &= ~SI_PREVSPACE;
+			if (sima->flag & SI_FULLWINDOW)
+				sima->flag &= ~SI_FULLWINDOW;
+		}
+		ED_screen_full_prevspace(C, sa);
+	}
+	/* otherwise just tile the area again */
+	else {
+		ed_screen_fullarea(C, win, sa);
+	}
 }
 
 /* redraws: uses defines from stime->redraws 

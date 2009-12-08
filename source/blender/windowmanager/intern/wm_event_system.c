@@ -1029,9 +1029,9 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				char *path= RNA_string_get_alloc(handler->op->ptr, "path", NULL, 0);
 				
 				if(screen != handler->filescreen)
-					ED_screen_full_prevspace(C);
+					ED_screen_full_prevspace(C, CTX_wm_area(C));
 				else
-					ED_area_prevspace(C);
+					ED_area_prevspace(C, CTX_wm_area(C));
 				
 				/* remlink now, for load file case */
 				BLI_remlink(handlers, handler);

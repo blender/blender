@@ -1544,10 +1544,10 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 	int tot= BLI_countlist(&CTX_data_main(C)->screen);
 	int delta= RNA_int_get(op->ptr, "delta");
 	
-	/* this screen is 'fake', solve later XXX */
+	/* return to previous state before switching screens */
 	if(sa && sa->full)
-		return OPERATOR_CANCELLED;
-	
+		ED_screen_full_restore(C, sa);
+		
 	if(delta==1) {
 		while(tot--) {
 			screen= screen->id.next;
@@ -3412,10 +3412,10 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 		
 		if(sima->flag & SI_FULLWINDOW) {
 			sima->flag &= ~SI_FULLWINDOW;
-			ED_screen_full_prevspace(C);
+			ED_screen_full_prevspace(C, sa);
 		}
 		else
-			ED_area_prevspace(C);
+			ED_area_prevspace(C, sa);
 
 		return OPERATOR_FINISHED;
 	}
@@ -3459,7 +3459,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *unused, wmEvent *eve
 			
 			if(sima->flag & SI_FULLWINDOW) {
 				sima->flag &= ~SI_FULLWINDOW;
-				ED_screen_full_prevspace(C);
+				ED_screen_full_prevspace(C, sa);
 			}
 			else if(sima->next) {
 				ED_area_newspace(C, sa, sima->next->spacetype);
@@ -3483,6 +3483,40 @@ static void SCREEN_OT_render_view_show(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= render_view_show_invoke;
+	ot->poll= ED_operator_screenactive;
+}
+
+/* *********************** generic fullscreen 'back' button *************** */
+
+
+static int fullscreen_back_exec(bContext *C, wmOperator *op)
+{
+	bScreen *screen = CTX_wm_screen(C);
+	ScrArea *sa=NULL;
+
+	/* search current screen for 'fullscreen' areas */
+	for (sa=screen->areabase.first; sa; sa=sa->next) {
+		if (sa->full) break;
+	}
+	if (!sa) {
+		BKE_report(op->reports, RPT_ERROR, "No fullscreen areas were found.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	ED_screen_full_restore(C, sa);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Back to Previous Screen";
+	ot->description= "Revert back to the original screen layout, before fullscreen area overlay.";
+	ot->idname= "SCREEN_OT_back_to_previous";
+	
+	/* api callbacks */
+	ot->exec= fullscreen_back_exec;
 	ot->poll= ED_operator_screenactive;
 }
 
@@ -3672,6 +3706,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_header_toolbox);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
+	WM_operatortype_append(SCREEN_OT_back_to_previous);
 	WM_operatortype_append(SCREEN_OT_screenshot);
 	WM_operatortype_append(SCREEN_OT_screencast);
 	WM_operatortype_append(SCREEN_OT_userpref_show);
