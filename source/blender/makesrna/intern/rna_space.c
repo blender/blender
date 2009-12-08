@@ -464,6 +464,19 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 	}
 }
 
+static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceAction *saction= (SpaceAction*)(ptr->data);
+
+	/* special exception for ShapeKey Editor mode:
+	 * 		enable 'show sliders' by default, since one of the main
+	 *		points of the ShapeKey Editor is to provide a one-stop shop
+	 *		for controlling the shapekeys, whose main control is the value
+	 */
+	if (saction->mode == SACTCONT_SHAPEKEY)
+		saction->flag |= SACTION_SLIDERS;
+}
+
 static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 {
 	SpaceIpo *sipo= (SpaceIpo*)(ptr->data);
@@ -1251,7 +1264,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, "rna_SpaceDopeSheetEditor_mode_update");
 	
 	/* display */
 	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
