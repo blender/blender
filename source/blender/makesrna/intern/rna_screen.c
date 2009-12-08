@@ -61,13 +61,13 @@ static void rna_Screen_scene_set(PointerRNA *ptr, PointerRNA value)
 	sc->newscene= value.data;
 }
 
-static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
+static void rna_Screen_scene_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bScreen *sc= (bScreen*)ptr->data;
 
 	/* exception: can't set screens inside of area/region handers */
 	if(sc->newscene) {
-		WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, sc->newscene);
+		WM_main_add_notifier(NC_SCENE|ND_SCENEBROWSE, sc->newscene);
 		sc->newscene= NULL;
 	}
 }
@@ -94,10 +94,8 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 {
 	ScrArea *sa= (ScrArea*)ptr->data;
 
-	if(sa) {
-		ED_area_newspace(C, sa, sa->butspacetype); /* XXX - this uses the window */
-		ED_area_tag_redraw(sa);
-	}
+	ED_area_newspace(C, sa, sa->butspacetype); /* XXX - this uses the window */
+	ED_area_tag_redraw(sa);
 }
 
 #else
@@ -135,8 +133,8 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Type", "Space type.");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Area_type_update");
-
 
 	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
 }

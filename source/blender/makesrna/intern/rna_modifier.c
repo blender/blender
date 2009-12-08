@@ -192,19 +192,19 @@ static char *rna_Modifier_path(PointerRNA *ptr)
 	return BLI_sprintfN("modifiers[\"%s\"]", ((ModifierData*)ptr->data)->name);
 }
 
-static void rna_Modifier_update(bContext *C, PointerRNA *ptr)
+static void rna_Modifier_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ptr->id.data);
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ptr->id.data);
 }
 
-static void rna_Modifier_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_Modifier_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	rna_Modifier_update(C, ptr);
-    DAG_scene_sort(CTX_data_scene(C));
+	rna_Modifier_update(bmain, scene, ptr);
+    DAG_scene_sort(scene);
 }
 
-static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
+static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)ptr->data;
 	Object *ob= (Object*)ptr->id.data;
@@ -229,7 +229,7 @@ static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
 	}
 	
 	// update dependancy since a domain - other type switch could have happened
-	rna_Modifier_dependency_update(C, ptr);
+	rna_Modifier_dependency_update(bmain, scene, ptr);
 }
 
 static void rna_ExplodeModifier_vgroup_get(PointerRNA *ptr, char *value)

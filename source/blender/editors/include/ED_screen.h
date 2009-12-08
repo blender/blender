@@ -98,7 +98,7 @@ void	ED_screen_delete_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void	ED_screen_animation_timer(struct bContext *C, int redraws, int sync, int enable);
-void	ED_screen_animation_timer_update(struct bContext *C, int redraws);
+void	ED_screen_animation_timer_update(struct bScreen *screen, int redraws);
 int		ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_screen_full_prevspace(struct bContext *C, ScrArea *sa);
 void	ED_screen_full_restore(struct bContext *C, ScrArea *sa);

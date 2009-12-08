@@ -264,9 +264,8 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(elem->name, name, sizeof(elem->name));
 }
 
-static void rna_Sequence_update(bContext *C, PointerRNA *ptr)
+static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= (Scene*)ptr->id.data;
 	Editing *ed= seq_give_editing(scene, FALSE);
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE);
@@ -275,13 +274,12 @@ static void rna_Sequence_update(bContext *C, PointerRNA *ptr)
 		seq_update_sound(ptr->data);
 }
 
-static void rna_Sequence_mute_update(bContext *C, PointerRNA *ptr)
+static void rna_Sequence_mute_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= (Scene*)ptr->id.data;
 	Editing *ed= seq_give_editing(scene, FALSE);
 
 	seq_update_muting(ed);
-	rna_Sequence_update(C, ptr);
+	rna_Sequence_update(bmain, scene, ptr);
 }
 
 #else

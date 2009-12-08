@@ -54,7 +54,7 @@ static void rna_Scene_set_frame(Scene *scene, bContext *C, int frame)
 	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
 	scene_update_for_newframe(scene, (1<<20) - 1);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	WM_main_add_notifier(NC_SCENE|ND_FRAME, scene);
 }
 
 static KeyingSet *rna_Scene_add_keying_set(Scene *sce, ReportList *reports, 

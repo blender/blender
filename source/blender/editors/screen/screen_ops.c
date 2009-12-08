@@ -2418,7 +2418,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 			ED_screen_animation_timer(C, stime->redraws, sync, mode);
 			
 			/* update region if TIME_REGION was set, to leftmost 3d window */
-			ED_screen_animation_timer_update(C, stime->redraws);
+			ED_screen_animation_timer_update(screen, stime->redraws);
 		}
 		else {
 			int redraws = TIME_REGION|TIME_ALL_3D_WIN;

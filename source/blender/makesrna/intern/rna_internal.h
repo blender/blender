@@ -194,10 +194,10 @@ void rna_object_vgroup_name_set(struct PointerRNA *ptr, const char *value, char 
 void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 
-void rna_Object_update(struct bContext *C, struct PointerRNA *ptr);
-void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
-void rna_Mesh_update_draw(struct bContext *C, struct PointerRNA *ptr);
-void rna_TextureSlot_update(struct bContext *C, struct PointerRNA *ptr);
+void rna_Object_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_Object_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_Mesh_update_draw(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_TextureSlot_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 
 char *rna_TextureSlot_path(struct PointerRNA *ptr);
 

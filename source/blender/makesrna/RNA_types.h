@@ -166,6 +166,9 @@ typedef enum PropertyFlag {
 	/* flag contains multiple enums */
 	PROP_ENUM_FLAG = 1<<21,
 
+	/* need context for update function */
+	PROP_CONTEXT_UPDATE = 1<<22,
+
 	/* internal flags */
 	PROP_BUILTIN = 1<<7,
 	PROP_EXPORT = 1<<8,

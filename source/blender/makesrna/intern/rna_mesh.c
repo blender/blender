@@ -50,26 +50,26 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static void rna_Mesh_update_data(bContext *C, PointerRNA *ptr)
+static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
 	DAG_id_flush_update(id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 }
 
-static void rna_Mesh_update_select(bContext *C, PointerRNA *ptr)
+static void rna_Mesh_update_select(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, id);
+	WM_main_add_notifier(NC_GEOM|ND_SELECT, id);
 }
 
-void rna_Mesh_update_draw(bContext *C, PointerRNA *ptr)
+void rna_Mesh_update_draw(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 }
 
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)

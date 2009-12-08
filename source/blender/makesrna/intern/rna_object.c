@@ -114,56 +114,56 @@ EnumPropertyItem object_type_items[] = {
 
 #include "BLI_editVert.h" /* for EditMesh->mat_nr */
 
+#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_particle.h"
 
-void rna_Object_update(bContext *C, PointerRNA *ptr)
+void rna_Object_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
 }
 
-void rna_Object_matrix_update(bContext *C, PointerRNA *ptr)
+void rna_Object_matrix_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ED_object_apply_obmat(ptr->id.data);
-	rna_Object_update(C, ptr);
+	rna_Object_update(bmain, scene, ptr);
 }
 
-void rna_Object_update_data(bContext *C, PointerRNA *ptr)
+void rna_Object_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ptr->id.data);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
 }
 
-void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
+void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
-	Scene *scene= CTX_data_scene(C);
 	int editmode= (scene->obedit == ob && ob->type == OB_MESH);
 
 	if(editmode) {
 		/* exit/enter editmode to get new shape */
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO);
-		ED_object_enter_editmode(C, EM_WAITCURSOR);
+		load_editMesh(scene, ob);
+		make_editMesh(scene, ob);
 	}
 
-	rna_Object_update_data(C, ptr);
+	rna_Object_update_data(bmain, scene, ptr);
 }
 
-static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
-	DAG_scene_sort(CTX_data_scene(C));
+	DAG_scene_sort(scene);
 }
 
 /* when changing the selection flag the scene needs updating */
-static void rna_Object_select_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_select_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
-	ED_base_object_select(object_in_scene(ob, CTX_data_scene(C)), mode);
+	ED_base_object_select(object_in_scene(ob, scene), mode);
 }
 
-static void rna_Base_select_update(bContext *C, PointerRNA *ptr)
+static void rna_Base_select_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Base *base= (Base*)ptr->data;
 	short mode = base->flag & BA_SELECT ? BA_SELECT : BA_DESELECT;
@@ -182,10 +182,9 @@ static void rna_Object_layer_update__internal(Scene *scene, Base *base, Object *
 	}
 }
 
-static void rna_Object_layer_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	Scene *scene= CTX_data_scene(C);
 	Base *base;
 
 	base= object_in_scene(ob, scene);
@@ -196,11 +195,10 @@ static void rna_Object_layer_update(bContext *C, PointerRNA *ptr)
 	rna_Object_layer_update__internal(scene, base, ob);
 }
 
-static void rna_Base_layer_update(bContext *C, PointerRNA *ptr)
+static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Base *base= (Base*)ptr->id.data;
 	Object *ob= (Object*)base->object;
-	Scene *scene= CTX_data_scene(C);
 
 	ob->lay= base->lay;
 
@@ -527,9 +525,8 @@ static void rna_Object_active_particle_system_index_set(PointerRNA *ptr, int val
 	psys_set_current_num(ob, value);
 }
 
-static void rna_Object_particle_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_particle_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= (Object*)ptr->id.data;
 
 	PE_current_changed(scene, ob);
@@ -973,7 +970,7 @@ static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 
 static bConstraint *rna_Object_constraint_new(Object *object, bContext *C, int type)
 {
-	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	return add_ob_constraint(object, NULL, type);
 }
 
@@ -982,7 +979,7 @@ static int rna_Object_constraint_remove(Object *object, bContext *C, int index)
 	int ok = remove_constraint_index(&object->constraints, index);
 	if(ok) {
 		ED_object_constraint_set_active(object, NULL);
-		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+		WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
 	}
 
 	return ok;

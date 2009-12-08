@@ -215,21 +215,21 @@ static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA 
 	rna_iterator_array_begin(iter, (void*)nu->bp, sizeof(BPoint), nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu, 0, NULL);
 }
 
-static void rna_Curve_update_data(bContext *C, PointerRNA *ptr)
+static void rna_Curve_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 	
 	DAG_id_flush_update(id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 }
 
-static void rna_Curve_update_deps(bContext *C, PointerRNA *ptr)
+static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_scene_sort(CTX_data_scene(C));
-	rna_Curve_update_data(C, ptr);
+	DAG_scene_sort(scene);
+	rna_Curve_update_data(bmain, scene, ptr);
 }
 
-static void rna_Curve_resolution_u_update_data(bContext *C, PointerRNA *ptr)
+static void rna_Curve_resolution_u_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
 	Nurb *nu=NULL;
@@ -242,10 +242,10 @@ static void rna_Curve_resolution_u_update_data(bContext *C, PointerRNA *ptr)
 		nu= nu->next;
 	}
 	
-	rna_Curve_update_data(C, ptr);
+	rna_Curve_update_data(bmain, scene, ptr);
 }
 
-static void rna_Curve_resolution_v_update_data(bContext *C, PointerRNA *ptr)
+static void rna_Curve_resolution_v_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
 	Nurb *nu=NULL;
@@ -258,7 +258,7 @@ static void rna_Curve_resolution_v_update_data(bContext *C, PointerRNA *ptr)
 		nu= nu->next;
 	}
 	
-	rna_Curve_update_data(C, ptr);
+	rna_Curve_update_data(bmain, scene, ptr);
 }
 
 /* name functions that ignore the first two ID characters */
@@ -293,34 +293,34 @@ void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(cu->str, value, len+1);
 }
 
-static void rna_Nurb_update_handle_data(bContext *C, PointerRNA *ptr)
+static void rna_Nurb_update_handle_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
 
 	if(nu->type == CU_BEZIER)
 		calchandlesNurb(nu);
 
-	rna_Curve_update_data(C, ptr);
+	rna_Curve_update_data(bmain, scene, ptr);
 }
 
-static void rna_Nurb_update_knot_u(bContext *C, PointerRNA *ptr)
+static void rna_Nurb_update_knot_u(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
 
 	clamp_nurb_order_u(nu);
 	makeknots(nu, 1);
 
-	rna_Curve_update_data(C, ptr);
+	rna_Curve_update_data(bmain, scene, ptr);
 }
 
-static void rna_Nurb_update_knot_v(bContext *C, PointerRNA *ptr)
+static void rna_Nurb_update_knot_v(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
 
 	clamp_nurb_order_v(nu);
 	makeknots(nu, 2);
 
-	rna_Curve_update_data(C, ptr);
+	rna_Curve_update_data(bmain, scene, ptr);
 }
 
 #else

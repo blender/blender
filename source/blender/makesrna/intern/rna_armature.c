@@ -47,13 +47,13 @@
 
 #include "ED_armature.h"
 
-static void rna_Armature_update_data(bContext *C, PointerRNA *ptr)
+static void rna_Armature_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
 	DAG_id_flush_update(id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
-	//WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
+	//WM_main_add_notifier(NC_OBJECT|ND_POSE, NULL);
 }
 
 
@@ -103,11 +103,11 @@ void rna_Armature_edit_bone_remove(bArmature *arm, EditBone *ebone)
 	ED_armature_edit_bone_remove(arm, ebone);
 }
 
-static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
+static void rna_Armature_redraw_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 }
 
 static char *rna_Bone_path(PointerRNA *ptr)
@@ -304,7 +304,7 @@ static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-static void rna_Armature_editbone_transform_update(bContext *C, PointerRNA *ptr)
+static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bArmature *arm= (bArmature*)ptr->id.data;
 	EditBone *ebone= (EditBone*)ptr->data;
@@ -339,7 +339,7 @@ static void rna_Armature_editbone_transform_update(bContext *C, PointerRNA *ptr)
 		}
 	}
 
-	rna_Armature_update_data(C, ptr);
+	rna_Armature_update_data(bmain, scene, ptr);
 }
 
 static void rna_Armature_bones_next(CollectionPropertyIterator *iter)

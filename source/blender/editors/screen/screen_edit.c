@@ -1632,10 +1632,8 @@ static ARegion *time_top_left_3dwindow(bScreen *screen)
 	return aret;
 }
 
-void ED_screen_animation_timer_update(bContext *C, int redraws)
+void ED_screen_animation_timer_update(bScreen *screen, int redraws)
 {
-	bScreen *screen= CTX_wm_screen(C);
-	
 	if(screen && screen->animtimer) {
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;

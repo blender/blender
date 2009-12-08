@@ -348,13 +348,13 @@ static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
 	win->newscreen= value.data;
 }
 
-static void rna_Window_screen_update(bContext *C, PointerRNA *ptr)
+static void rna_Window_screen_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	wmWindow *win= (wmWindow*)ptr->data;
 
 	/* exception: can't set screens inside of area/region handers */
 	if(win->newscreen) {
-		WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, win->newscreen);
+		WM_main_add_notifier(NC_SCREEN|ND_SCREENBROWSE, win->newscreen);
 		win->newscreen= NULL;
 	}
 }

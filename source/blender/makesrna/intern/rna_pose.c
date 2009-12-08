@@ -58,14 +58,14 @@
 
 #include "MEM_guardedalloc.h"
 
-static void rna_Pose_update(bContext *C, PointerRNA *ptr)
+static void rna_Pose_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 }
 
-static void rna_Pose_IK_update(bContext *C, PointerRNA *ptr)
+static void rna_Pose_IK_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 	Object *ob= ptr->id.data;
@@ -142,11 +142,10 @@ static void rna_Pose_ik_solver_set(struct PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_Pose_ik_solver_update(bContext *C, PointerRNA *ptr)
+static void rna_Pose_ik_solver_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 	bPose *pose = ptr->data;
-	Scene *scene = CTX_data_scene(C);
 
 	pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 	DAG_scene_sort(scene);
@@ -242,7 +241,7 @@ static StructRNA *rna_Pose_ikparam_typef(PointerRNA *ptr)
 	}
 }
 
-static void rna_Itasc_update(bContext *C, PointerRNA *ptr)
+static void rna_Itasc_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
 	bItasc *itasc = ptr->data;
@@ -267,13 +266,13 @@ static void rna_Itasc_update(bContext *C, PointerRNA *ptr)
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 
-static void rna_Itasc_update_rebuild(bContext *C, PointerRNA *ptr)
+static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 	bPose *pose = ob->pose;
 
 	pose->flag |= POSE_RECALC;	// checks & sorts pose channels
-	rna_Itasc_update(C, ptr);
+	rna_Itasc_update(bmain, scene, ptr);
 }
 
 static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
@@ -431,7 +430,7 @@ static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA va
 
 static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, bContext *C, int type)
 {
-	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	//WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	// TODO, pass object also
 	// TODO, new pose bones don't have updated draw flags
 	return add_pose_constraint(NULL, pchan, NULL, type);
@@ -441,7 +440,7 @@ static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, bContext *C, 
 {
 	// TODO
 	//ED_object_constraint_set_active(object, NULL);
-	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+	//WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
 	return remove_constraint_index(&pchan->constraints, index);
 }
 

@@ -83,7 +83,7 @@ static EnumPropertyItem transform_orientation_items[] = {
 	{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem autosnap_items[] = {
+EnumPropertyItem autosnap_items[] = {
 	{SACTSNAP_OFF, "NONE", 0, "No Auto-Snap", ""},
 	{SACTSNAP_STEP, "STEP", 0, "Time Step", "Snap to 1.0 frame/second intervals."},
 	{SACTSNAP_FRAME, "FRAME", 0, "Nearest Frame", "Snap to actual frames/seconds (nla-action time)."},
@@ -249,12 +249,9 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
 }
 
-static void rna_SpaceImageEditor_paint_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceImageEditor_paint_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
-
-	if(scene)
-		paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
+	paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
@@ -322,7 +319,7 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	return item;
 }
 
-static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	ImBuf *ibuf;
@@ -332,7 +329,7 @@ static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
 	curvemapping_do_ibuf(sima->cumap, ibuf);
 	ED_space_image_release_buffer(sima, lock);
 
-	WM_event_add_notifier(C, NC_IMAGE, sima->image);
+	WM_main_add_notifier(NC_IMAGE, sima->image);
 }
 
 
@@ -432,10 +429,12 @@ static void rna_View3D_display_background_image_set(PointerRNA *ptr, int value)
 
 /* Space Time */
 
-static void rna_SpaceTime_redraw_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceTime_redraw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceTime *st= (SpaceTime*)ptr->data;
-	ED_screen_animation_timer_update(C, st->redraws);
+	bScreen *screen= (bScreen*)ptr->id.data;
+
+	ED_screen_animation_timer_update(screen, st->redraws);
 }
 
 /* Space Dopesheet */
@@ -446,10 +445,10 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA valu
 	saction->action= value.data;
 }
 
-static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceAction *saction= (SpaceAction*)(ptr->data);
-	Object *obact= CTX_data_active_object(C);
+	Object *obact= (scene->basact)? scene->basact->object: NULL;
 
 	/* we must set this action to be the one used by active object (if not pinned) */
 	if(obact && saction->pin == 0) {
@@ -464,7 +463,7 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 	}
 }
 
-static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceDopeSheetEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceAction *saction= (SpaceAction*)(ptr->data);
 

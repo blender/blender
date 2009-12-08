@@ -100,9 +100,10 @@ static void rna_Paint_active_brush_set(PointerRNA *ptr, PointerRNA value)
 	paint_brush_set(ptr->data, value.data);
 }
 
-static void rna_ParticleEdit_redo(bContext *C, PointerRNA *ptr)
+static void rna_ParticleEdit_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	PTCacheEdit *edit = PE_get_current(CTX_data_scene(C), CTX_data_active_object(C));
+	Object *ob= (scene->basact)? scene->basact->object: NULL;
+	PTCacheEdit *edit = PE_get_current(scene, ob);
 
 	if(!edit)
 		return;
@@ -110,9 +111,9 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *ptr)
 	psys_free_path_cache(edit->psys, edit);
 }
 
-static void rna_ParticleEdit_update(bContext *C, PointerRNA *ptr)
+static void rna_ParticleEdit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = CTX_data_active_object(C);
+	Object *ob= (scene->basact)? scene->basact->object: NULL;
 
 	if(ob) DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
@@ -120,7 +121,8 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA *ptr)
 static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Scene *scene= CTX_data_scene(C);
-	PTCacheEdit *edit = PE_get_current(scene, CTX_data_active_object(C));
+	Object *ob= (scene->basact)? scene->basact->object: NULL;
+	PTCacheEdit *edit = PE_get_current(scene, ob);
 	
 	if(edit && edit->psys)
 		return particle_edit_hair_brush_items;

@@ -569,9 +569,8 @@ void wm_autosave_location(char *filename)
 	BLI_make_file_string("/", filename, U.tempdir, pidstr);
 }
 
-void WM_autosave_init(bContext *C)
+void WM_autosave_init(wmWindowManager *wm)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
 	wm_autosave_timer_ended(wm);
 
 	if(U.flag & USER_AUTOSAVE)

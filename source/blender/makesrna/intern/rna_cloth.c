@@ -45,15 +45,15 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 
-static void rna_cloth_update(bContext *C, PointerRNA *ptr)
+static void rna_cloth_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
-static void rna_cloth_reset(bContext *C, PointerRNA *ptr)
+static void rna_cloth_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
@@ -61,7 +61,7 @@ static void rna_cloth_reset(bContext *C, PointerRNA *ptr)
 	settings->reset = 1;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
 

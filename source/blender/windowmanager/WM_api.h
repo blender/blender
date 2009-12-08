@@ -74,7 +74,7 @@ int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
 void		WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
-void		WM_autosave_init	(struct bContext *C);
+void		WM_autosave_init	(struct wmWindowManager *wm);
 
 			/* mouse cursors */
 void		WM_cursor_set		(struct wmWindow *win, int curs);

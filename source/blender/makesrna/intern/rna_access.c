@@ -29,6 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
+#include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
@@ -37,6 +38,7 @@
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
@@ -1103,23 +1105,41 @@ int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 	return 0;
 }
 
-void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
+static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)
 {
 	int is_rna = (prop->magic == RNA_MAGIC);
 	prop= rna_ensure_property(prop);
 
 	if(is_rna) {
-		if(prop->update)
-			prop->update(C, ptr);
+		if(prop->update) {
+			/* ideally no context would be needed for update, but there's some
+			   parts of the code that need it still, so we have this exception */
+			if(prop->flag & PROP_CONTEXT_UPDATE) {
+				if(C) ((ContextUpdateFunc)prop->update)(C, ptr);
+			}
+			else
+				prop->update(bmain, scene, ptr);
+		}
 		if(prop->noteflag)
-			WM_event_add_notifier(C, prop->noteflag, ptr->id.data);
+			WM_main_add_notifier(prop->noteflag, ptr->id.data);
 	}
 	else {
 		/* WARNING! This is so property drivers update the display!
 		 * not especially nice  */
 		DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
+
+}
+
+void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
+{
+	rna_property_update(C, CTX_data_main(C), CTX_data_scene(C), ptr, prop);
+}
+
+void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)
+{
+	rna_property_update(NULL, bmain, scene, ptr, prop);
 }
 
 /* Property Data */

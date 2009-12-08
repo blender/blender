@@ -76,10 +76,10 @@ static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	set_current_brush_texture(br, value.data);
 }
 
-static void rna_Brush_update(bContext *C, PointerRNA *ptr)
+static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, br);
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
 }
 
 static float rna_BrushTextureSlot_angle_get(PointerRNA *ptr)

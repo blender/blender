@@ -190,9 +190,8 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 	scene->lay= ED_view3d_scene_layer_set(scene->lay, values);
 }
 
-static void rna_Scene_layer_update(bContext *C, PointerRNA *ptr)
+static void rna_Scene_layer_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	Scene *scene= (Scene*)ptr->data;
 
 	ED_view3d_scene_layers_update(bmain, scene);
@@ -269,7 +268,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 	data->r.pefra= value;
 }
 
-static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
+static void rna_Scene_frame_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	//Scene *scene= ptr->id.data;
 	//ED_update_for_newframe(C);
@@ -538,7 +537,7 @@ static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 	rl->lay= ED_view3d_scene_layer_set(rl->lay, values);
 }
 
-static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)
+static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
@@ -555,7 +554,7 @@ static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_composit_default(scene);
 }
 
-static void rna_Physics_update(bContext *C, PointerRNA *ptr)
+static void rna_Physics_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 	Base *base;
