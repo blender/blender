@@ -360,7 +360,7 @@ def main(obj, bone_definition, base_names):
     prop["soft_max"] = 1.0
 
     prop = rna_idprop_ui_prop_get(mt.ribcage_p, "pivot_slide", create=True)
-    mt.ribcage_p["pivot_slide"] = 0.5
+    mt.ribcage_p["pivot_slide"] = 1.0 / spine_chain_len
     prop["soft_min"] = 1.0 / spine_chain_len
     prop["soft_max"] = 1.0
 

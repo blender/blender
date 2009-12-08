@@ -276,7 +276,8 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
         if not (new_pbone.bone.connected or (False not in new_pbone.lock_location)):
             blend_location(new_pbone, from_bone_name, to_bone_name)
 
-        blend_rotation(new_pbone, from_bone_name, to_bone_name)
+        if not (False not in new_pbone.lock_rotation): # TODO. 4D chech?
+            blend_rotation(new_pbone, from_bone_name, to_bone_name)
 
 
 def add_stretch_to(obj, from_name, to_name, name):
@@ -364,7 +365,7 @@ def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
     return poll_name
 
 
-def generate_rig(context, obj_orig, prefix="ORG-"):
+def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     from collections import OrderedDict
 
     global_undo = context.user_preferences.edit.global_undo
@@ -372,15 +373,20 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
+    scene = context.scene
 
     # copy object and data
     obj_orig.selected = False
     obj = obj_orig.copy()
     obj.data = obj_orig.data.copy()
-    scene = context.scene
     scene.objects.link(obj)
     scene.objects.active = obj
     obj.selected = True
+    
+    if META_DEF:
+        obj_def = obj_orig.copy()
+        obj_def.data = obj_orig.data.copy()
+        scene.objects.link(obj_def)
 
     arm = obj.data
 
@@ -481,8 +487,21 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
             if len(result_submod) == 2:
                 blend_bone_list(obj, definition, result_submod[0], result_submod[1])
 
-    # needed to update driver deps
-    # context.scene.update()
+
+    if META_DEF:
+        # for pbone in obj_def.pose.bones:
+        for bone_name, bone_name_new in base_names.items():
+            #pbone_from = bone_name
+            pbone = obj_def.pose.bones[bone_name_new]
+            
+            con = pbone.constraints.new('COPY_ROTATION')
+            con.target = obj
+            con.subtarget = bone_name
+
+            if not pbone.bone.connected:
+                con = pbone.constraints.new('COPY_LOCATION')
+                con.target = obj
+                con.subtarget = bone_name
 
     # Only for demo'ing
 

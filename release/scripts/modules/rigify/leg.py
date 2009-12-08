@@ -225,7 +225,7 @@ def ik(obj, bone_definition, base_names):
     con.weight = 1.0
 
     con.target = obj
-    con.subtarget = ik.foot
+    con.subtarget = ik_chain.foot
 
     con.pole_target = obj
     con.pole_subtarget = ik.knee_target
@@ -279,7 +279,7 @@ def fk(obj, bone_definition, base_names):
     ex.thigh_socket = ex.thigh_socket_e.name
     ex.thigh_socket_e.tail = ex.thigh_socket_e.head + Vector(0.0, 0.0, ex.thigh_socket_e.length / 4.0)
 
-    ex.thigh_hinge_e = copy_bone_simple(arm, mt_chain.thigh, "MCH-%s_hinge" % base_names[mt_chain.thigh], parent=True)
+    ex.thigh_hinge_e = copy_bone_simple(arm, mt_chain.thigh, "MCH-%s_hinge" % base_names[mt_chain.thigh])
     ex.thigh_hinge = ex.thigh_hinge_e.name
     ex.thigh_hinge_e.tail = ex.thigh_hinge_e.head + Vector(0.0, 0.0, mt_chain.thigh_e.head.length)
     ex.thigh_hinge_e.translate(Vector( - (mt.hips_e.head.x - mt_chain.thigh_e.head.x), 0.0, 0.0))
