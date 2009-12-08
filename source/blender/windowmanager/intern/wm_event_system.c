@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -41,6 +42,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_animsys.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -147,6 +149,40 @@ static wmNotifier *wm_notifier_next(wmWindowManager *wm)
 	return note;
 }
 
+static void wm_data_handle_update(Scene *scene)
+{
+	Scene *sce;
+	Base *base;
+
+	/* XXX make lock in future, or separated derivedmesh users in scene */
+	if(G.rendering)
+		return;
+
+	/* update all objects, drivers, matrices, displists, etc. Flags set by depgraph or manual, 
+		no layer check here, gets correct flushed */
+	/* sets first, we allow per definition current scene to have dependencies on sets */
+	if(scene->set) {
+		for(SETLOOPER(scene->set, base))
+			object_handle_update(scene, base->object);
+	}
+	
+	for(base= scene->base.first; base; base= base->next) {
+		object_handle_update(scene, base->object);
+	}
+
+	/* recalc scene animation data here (for sequencer). actually
+	   this should be doing all datablocks including e.g. materials,
+	   but for now this solves some update issues - brecht. */
+	{
+		AnimData *adt= BKE_animdata_from_id(&scene->id);
+
+		if(adt && (adt->recalc & ADT_RECALC_ANIM))
+			BKE_animsys_evaluate_animdata(&scene->id, adt, scene->r.cfra, 0);
+	}
+
+	BKE_ptcache_quick_cache_all(scene);
+}
+
 /* called in mainloop */
 void wm_event_do_notifiers(bContext *C)
 {
@@ -246,9 +282,7 @@ void wm_event_do_notifiers(bContext *C)
 	
 	/* cached: editor refresh callbacks now, they get context */
 	for(win= wm->windows.first; win; win= win->next) {
-		Scene *sce, *scene= win->screen->scene;
 		ScrArea *sa;
-		Base *base;
 		
 		CTX_wm_window_set(C, win);
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
@@ -258,23 +292,9 @@ void wm_event_do_notifiers(bContext *C)
 			}
 		}
 		
-		if(G.rendering==0) { // XXX make lock in future, or separated derivedmesh users in scene
-			
-			/* update all objects, drivers, matrices, displists, etc. Flags set by depgraph or manual, 
-				no layer check here, gets correct flushed */
-			/* sets first, we allow per definition current scene to have dependencies on sets */
-			if(scene->set) {
-				for(SETLOOPER(scene->set, base))
-					object_handle_update(scene, base->object);
-			}
-			
-			for(base= scene->base.first; base; base= base->next) {
-				object_handle_update(scene, base->object);
-			}
-
-			BKE_ptcache_quick_cache_all(scene);
-		}		
+		wm_data_handle_update(win->screen->scene);
 	}
+
 	CTX_wm_window_set(C, NULL);
 }
 

@@ -273,23 +273,6 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 	}
 }
 
-/* tags the given ID block for refreshes (if applicable) due to 
- * Animation Editor editing
- */
-static void animedit_refresh_id_tags (Scene *scene, ID *id)
-{
-	if (id) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		
-		/* tag AnimData for refresh so that other views will update in realtime with these changes */
-		if (adt)
-			adt->recalc |= ADT_RECALC_ANIM;
-			
-		/* set recalc flags */
-		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
-	}
-}
-
 /* for the realtime animation recording feature, handle overlapping data */
 static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 {
@@ -378,7 +361,7 @@ void recalcData(TransInfo *t)
 		/* just tag these animdata-blocks to recalc, assuming that some data there changed */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, ale->id);
+			ANIM_list_elem_update(t->scene, ale);
 		}
 		
 		/* now free temp channels */
@@ -426,7 +409,7 @@ void recalcData(TransInfo *t)
 				calchandles_fcurve(fcu);
 				
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, ale->id);
+			ANIM_list_elem_update(t->scene, ale);
 		}
 		
 		/* do resort and other updates? */
@@ -457,7 +440,7 @@ void recalcData(TransInfo *t)
 				continue;
 			
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, tdn->id);
+			ANIM_id_update(t->scene, tdn->id);
 			
 			/* if cancelling transform, just write the values without validating, then move on */
 			if (t->state == TRANS_CANCEL) {
