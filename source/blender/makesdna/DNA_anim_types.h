@@ -291,7 +291,8 @@ typedef struct ChannelDriver {
 	/* python expression to execute (may call functions defined in an accessory file) 
 	 * which relates the target 'variables' in some way to yield a single usable value
 	 */
-	char expression[256]; 
+	char expression[256];
+	void *expr_comp; /* PyObject - compiled expression, dont save this */
 	
 	float curval;		/* result of previous evaluation, for subtraction from result under certain circumstances */
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
@@ -322,6 +323,8 @@ typedef enum eDriver_Flags {
 		/* driver does replace value, but overrides (for layering of animation over driver) */
 		// TODO: this needs to be implemented at some stage or left out...
 	DRIVER_FLAG_LAYERING	= (1<<2),
+
+	DRIVER_FLAG_RECOMPILE	= (1<<3), /* use when the expression needs to be recompiled */
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */

@@ -758,7 +758,12 @@ void fcurve_free_driver(FCurve *fcu)
 		dtarn= dtar->next;
 		driver_free_target(driver, dtar);
 	}
-	
+
+#ifndef DISABLE_PYTHON
+	if(driver->expr_comp)
+		BPY_DECREF(driver->expr_comp);
+#endif
+
 	/* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
 	MEM_freeN(driver);
 	fcu->driver= NULL;

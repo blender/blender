@@ -549,7 +549,9 @@ int BPY_run_script_space_listener(bContext *C, SpaceScript * sc)
 
 void BPY_DECREF(void *pyob_ptr)
 {
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 	Py_DECREF((PyObject *)pyob_ptr);
+	PyGILState_Release(gilstate);
 }
 
 #if 0
@@ -721,7 +723,7 @@ static float pydriver_error(ChannelDriver *driver)
 float BPY_pydriver_eval (ChannelDriver *driver)
 {
 	PyObject *driver_vars=NULL;
-	PyObject *retval;
+	PyObject *retval= NULL;
 	PyGILState_STATE gilstate;
 	
 	DriverTarget *dtar;
@@ -772,10 +774,20 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 			BPy_errors_to_report(NULL); // TODO - reports
 		}
 	}
-	
+
+#if 0 // slow
 	/* execute expression to get a value */
 	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict, driver_vars);
-	
+#else
+	if(driver->flag & DRIVER_FLAG_RECOMPILE || driver->expr_comp==NULL) {
+		Py_XDECREF(driver->expr_comp);
+		driver->expr_comp= Py_CompileString(expr, "<bpy driver>", Py_eval_input);
+		driver->flag &= ~DRIVER_FLAG_RECOMPILE;
+	}
+	if(driver->expr_comp)
+		retval= PyEval_EvalCode(driver->expr_comp, bpy_pydriver_Dict, driver_vars);
+#endif
+
 	/* decref the driver vars first...  */
 	Py_DECREF(driver_vars);
 	

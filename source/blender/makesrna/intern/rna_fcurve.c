@@ -105,6 +105,13 @@ static void rna_ChannelDriver_update_data(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
 }
 
+static void rna_ChannelDriver_update_expr(bContext *C, PointerRNA *ptr)
+{
+	ChannelDriver *driver= ptr->data;
+	driver->flag |= DRIVER_FLAG_RECOMPILE;
+	rna_ChannelDriver_update_data(C, ptr);
+}
+
 static void rna_DriverTarget_update_data(bContext *C, PointerRNA *ptr)
 {
 	PointerRNA driverptr;
@@ -807,7 +814,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	/* String values */
 	prop= RNA_def_property(srna, "expression", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Expression", "Expression to use for Scripted Expression.");
-	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data");
+	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_expr");
 
 	/* Collections */
 	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
