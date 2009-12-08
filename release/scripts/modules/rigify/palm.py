@@ -85,7 +85,7 @@ def metarig_definition(obj, orig_bone_name):
         [pinky, ring... etc]
     '''
     arm = obj.data
-    
+
     palm_bone = arm.bones[orig_bone_name]
     palm_parent = palm_bone.parent
     palm_base = palm_bone.basename

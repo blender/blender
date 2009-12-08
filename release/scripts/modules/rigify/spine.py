@@ -110,7 +110,7 @@ def metarig_definition(obj, orig_bone_name):
         raise Exception("expected the ribcage to have only 1 child.")
 
     child = children[0]
-    
+
     bone_definition = [pelvis.name, ribcage.name, child.name]
     bone_definition.extend([child.name for child in child.children_recursive_basename])
     return bone_definition
@@ -389,7 +389,7 @@ def main(obj, bone_definition, base_names):
     driver = fcurve.driver
     driver.type = 'SUM'
     fcurve.modifiers.remove(0) # grr dont need a modifier
-    
+
     for i in range(spine_chain_len - 1):
         tar = driver.targets.new()
         tar.name = target_names[i]
@@ -422,9 +422,9 @@ def main(obj, bone_definition, base_names):
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"
-        
+
         fcurve.modifiers.remove(0) # grr dont need a modifier
-        
+
 
         # add target
         tar = driver.targets.new()
@@ -432,13 +432,13 @@ def main(obj, bone_definition, base_names):
         tar.id_type = 'OBJECT'
         tar.id = obj
         tar.rna_path = rib_driver_path + ('["bend_tot"]')
-        
+
         tar = driver.targets.new()
         tar.name = "bend"
         tar.id_type = 'OBJECT'
         tar.id = obj
         tar.rna_path = rib_driver_path + ('["%s"]' % prop_name)
-            
+
 
 
     # original bone drivers

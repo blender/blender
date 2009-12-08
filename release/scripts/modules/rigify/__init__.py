@@ -450,7 +450,7 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
 
         if bone_name not in bone_typeinfos:
             continue
-        
+
         bone_def_dict = bone_definitions[bone_name]
 
         # Only blend results from the same submodule, eg.

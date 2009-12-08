@@ -161,7 +161,7 @@ def main(obj, bone_definition, base_names):
         neck_e_parent.head = neck_e.head
         neck_e_parent.tail = neck_e.head + ((mt.head_e.tail - mt.head_e.head).normalize() * neck_chain_segment_length / 2.0)
         neck_e_parent.roll = neck_e.roll
-        
+
 
         orig_parent = neck_e.parent
         neck_e.connected = False
@@ -221,7 +221,7 @@ def main(obj, bone_definition, base_names):
     head_driver_path = mt.head_p.path_to_id()
 
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
-    
+
     mt.head_p["bend_tot"] = 0.0
     fcurve = mt.head_p.driver_add('["bend_tot"]', 0)
     driver = fcurve.driver
@@ -234,7 +234,7 @@ def main(obj, bone_definition, base_names):
         tar.id_type = 'OBJECT'
         tar.id = obj
         tar.rna_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
-    
+
 
     for i, attr in enumerate(mt_chain.attr_names):
         neck_p = getattr(mt_chain, attr + "_p")
@@ -264,9 +264,9 @@ def main(obj, bone_definition, base_names):
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"
-        
+
         fcurve.modifiers.remove(0) # grr dont need a modifier
-        
+
 
         # add target
         tar = driver.targets.new()
@@ -274,7 +274,7 @@ def main(obj, bone_definition, base_names):
         tar.id_type = 'OBJECT'
         tar.id = obj
         tar.rna_path = head_driver_path + ('["bend_tot"]')
-        
+
         tar = driver.targets.new()
         tar.name = "bend"
         tar.id_type = 'OBJECT'

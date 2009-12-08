@@ -64,7 +64,7 @@ def metarig_definition(obj, orig_bone_name):
     mt.update()
 
     mt.shoulder_p = mt.arm_p.parent
-    
+
     if not mt.shoulder_p:
         raise Exception("could not find 'arm' parent, skipping:", orig_bone_name)
     print(mt.shoulder_p)
