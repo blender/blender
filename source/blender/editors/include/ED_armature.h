@@ -27,22 +27,23 @@
 #ifndef ED_ARMATURE_H
 #define ED_ARMATURE_H
 
-struct bContext;
-struct Scene;
-struct Object;
-struct Base;
-struct Bone;
 struct bArmature;
+struct Base;
+struct bContext;
+struct Bone;
 struct bPoseChannel;
-struct wmOperator;
-struct wmKeyConfig;
+struct DerivedMesh;
+struct IDProperty;
 struct ListBase;
+struct MeshDeformModifierData;
+struct Object;
+struct RegionView3D;
+struct Scene;
+struct SK_Sketch;
 struct View3D;
 struct ViewContext;
-struct RegionView3D;
-struct SK_Sketch;
-struct IDProperty;
-struct MeshDeformModifierData;
+struct wmKeyConfig;
+struct wmOperator;
 
 typedef struct EditBone
 {

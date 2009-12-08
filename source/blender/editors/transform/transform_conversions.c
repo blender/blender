@@ -2371,7 +2371,7 @@ void flushTransSeq(TransInfo *t)
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
-			if (seq->type != SEQ_META && seq_tx_test(seq)) /* for meta's, their children move */
+			if (seq->type != SEQ_META && (seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
 				seq->start= new_frame - tdsq->start_offset;
 
 			if (seq->depth==0) {
