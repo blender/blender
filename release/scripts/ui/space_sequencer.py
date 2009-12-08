@@ -223,7 +223,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
                 layout.operator("sequencer.effect_reassign_inputs")
             elif stype == 'IMAGE':
                 layout.separator()
-                layout.operator("sequencer.image_change")
+                # layout.operator("sequencer.image_change")
                 layout.operator("sequencer.rendersize")
             elif stype == 'SCENE':
                 layout.separator()
