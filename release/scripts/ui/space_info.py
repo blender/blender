@@ -79,7 +79,7 @@ class INFO_MT_file(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_AREA'
+        layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_mainfile", text="Save", icon='ICON_FILE_TICK')
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_as_mainfile", text="Save As...")

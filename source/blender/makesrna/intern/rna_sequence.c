@@ -396,7 +396,6 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_SCENE, "SCENE", 0, "Scene", ""}, 
 		{SEQ_MOVIE, "MOVIE", 0, "Movie", ""}, 
 		{SEQ_SOUND, "SOUND", 0, "Sound", ""},
-		{SEQ_EFFECT, "REPLACE", 0, "Replace", ""}, 
 		{SEQ_CROSS, "CROSS", 0, "Cross", ""}, 
 		{SEQ_ADD, "ADD", 0, "Add", ""}, 
 		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""}, 

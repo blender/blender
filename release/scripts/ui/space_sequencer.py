@@ -178,6 +178,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator("sequencer.effect_strip_add", text="Subtract").type = 'SUBTRACT'
         layout.operator("sequencer.effect_strip_add", text="Alpha Over").type = 'ALPHA_OVER'
         layout.operator("sequencer.effect_strip_add", text="Alpha Under").type = 'ALPHA_UNDER'
+        layout.operator("sequencer.effect_strip_add", text="Cross").type = 'CROSS'
         layout.operator("sequencer.effect_strip_add", text="Gamma Cross").type = 'GAMMA_CROSS'
         layout.operator("sequencer.effect_strip_add", text="Multiply").type = 'MULTIPLY'
         layout.operator("sequencer.effect_strip_add", text="Over Drop").type = 'OVER_DROP'
@@ -338,7 +339,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             return False
 
         return strip.type in ('ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-                              'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
 
