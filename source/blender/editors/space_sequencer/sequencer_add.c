@@ -218,7 +218,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -297,8 +297,9 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	}
 
 	sort_seq(scene);
+	seq_update_muting(ed);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -425,7 +426,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	/* last active name */
 	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR-1);
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -557,7 +558,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
 	return OPERATOR_FINISHED;
 }
 

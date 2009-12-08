@@ -4234,6 +4234,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				seq->anim= 0;
 			}
 			SEQ_END
+
+			if(sce->ed)
+				seq_update_muting(sce->ed);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);

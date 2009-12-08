@@ -186,6 +186,7 @@ int shuffle_seq_time(ListBase * seqbasep);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
 
 void seq_update_sound(struct Sequence *seq);
+void seq_update_muting(struct Editing *ed);
 
 void clear_scene_in_allseqs(struct Scene *sce);
 

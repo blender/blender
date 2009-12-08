@@ -3477,16 +3477,55 @@ int shuffle_seq_time(ListBase * seqbasep)
 	return offset? 0:1;
 }
 
-
-void seq_update_sound(struct Sequence *seq)
+void seq_update_sound(Sequence *seq)
 {
-	if(seq->type == SEQ_SOUND)
+	if(seq->type == SEQ_SOUND && seq->sound_handle)
 	{
 		seq->sound_handle->startframe = seq->startdisp;
 		seq->sound_handle->endframe = seq->enddisp;
 		seq->sound_handle->frameskip = seq->startofs + seq->anim_startofs;
-		seq->sound_handle->mute = seq->flag & SEQ_MUTE ? 1 : 0;
 		seq->sound_handle->changed = -1;
+		/* mute is set in seq_update_muting_recursive */
+	}
+}
+
+static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, int mute)
+{
+	Sequence *seq;
+	int seqmute;
+
+	/* for sound we go over full meta tree to update muted state,
+	   since sound is played outside of evaluating the imbufs, */
+	for(seq=seqbasep->first; seq; seq=seq->next) {
+		seqmute= (mute || (seq->flag & SEQ_MUTE));
+
+		if(seq->type == SEQ_META) {
+			/* if this is the current meta sequence, unmute because
+			   all sequences above this were set to mute */
+			if(seq == metaseq)
+				seqmute= 0;
+
+			seq_update_muting_recursive(&seq->seqbase, metaseq, seqmute);
+		}
+		else if(seq->type == SEQ_SOUND) {
+			if(seq->sound_handle && seqmute != seq->sound_handle->mute) {
+				seq->sound_handle->mute = seqmute;
+				seq->sound_handle->changed = -1;
+			}
+		}
+	}
+}
+
+void seq_update_muting(Editing *ed)
+{
+	if(ed) {
+		/* mute all sounds up to current metastack list */
+		MetaStack *ms= ed->metastack.last;
+
+		if(ms)
+			seq_update_muting_recursive(&ed->seqbase, ms->parseq, 1);
+		else
+			seq_update_muting_recursive(&ed->seqbase, NULL, 0);
 	}
 }
 

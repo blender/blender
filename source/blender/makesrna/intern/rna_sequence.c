@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -269,11 +270,18 @@ static void rna_Sequence_update(bContext *C, PointerRNA *ptr)
 	Editing *ed= seq_give_editing(scene, FALSE);
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE);
+
+	if(RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
+		seq_update_sound(ptr->data);
 }
 
-static void rna_Sequence_sound_update(bContext *C, PointerRNA *ptr)
+static void rna_Sequence_mute_update(bContext *C, PointerRNA *ptr)
 {
-	/* TODO */
+	Scene *scene= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
+
+	seq_update_muting(ed);
+	rna_Sequence_update(C, ptr);
 }
 
 #else
@@ -480,22 +488,22 @@ static void rna_def_sequence(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
 	RNA_def_property_ui_text(prop, "Selected", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER_SELECT, NULL);
 
 	prop= RNA_def_property(srna, "left_handle_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_LEFTSEL);
 	RNA_def_property_ui_text(prop, "Left Handle Selected", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER_SELECT, NULL);
 
 	prop= RNA_def_property(srna, "right_handle_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_RIGHTSEL);
 	RNA_def_property_ui_text(prop, "Right Handle Selected", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER_SELECT, NULL);
 
 	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MUTE);
 	RNA_def_property_ui_text(prop, "Mute", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_mute_update");
 
 	prop= RNA_def_property(srna, "frame_locked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_IPO_FRAME_LOCKED);
@@ -834,18 +842,18 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sound");
 	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this sequence.");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_sound_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
 	RNA_def_property_ui_text(prop, "Filename", "");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoundSequence_filename_set");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_sound_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");
 	RNA_def_property_ui_text(prop, "Directory", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_sound_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	rna_def_input(srna);
 	
@@ -855,7 +863,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "volume");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_sound_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
 static void rna_def_effect(BlenderRNA *brna)
