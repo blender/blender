@@ -837,7 +837,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 static int wm_event_always_pass(wmEvent *event)
 {
 	/* some events we always pass on, to ensure proper communication */
-	return ELEM4(event->type, TIMER, TIMER0, TIMER1, TIMER2);
+	return ELEM5(event->type, TIMER, TIMER0, TIMER1, TIMER2, WINDEACTIVATE);
 }
 
 /* operator exists */
@@ -1812,5 +1812,13 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 		case GHOST_kEventUnknown:
 		case GHOST_kNumEventTypes:
 			break;
+
+		case GHOST_kEventWindowDeactivate: {
+			event.type= WINDEACTIVATE;
+			wm_event_add(win, &event);
+
+			break;
+		}
+
 	}
 }

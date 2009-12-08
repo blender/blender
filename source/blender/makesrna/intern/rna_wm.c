@@ -226,6 +226,7 @@ EnumPropertyItem event_type_items[] = {
 	{PAGEDOWNKEY, "PAGE_DOWN", 0, "Page Down", ""},
 	{ENDKEY, "END", 0, "End", ""},
 	{0, "", 0, NULL, NULL},
+	{WINDEACTIVATE, "WINDOW_DEACTIVATE", 0, "Window Deactivate", ""},
 	{TIMER, "TIMER", 0, "Timer", ""},
 	{TIMER0, "TIMER0", 0, "Timer 0", ""},
 	{TIMER1, "TIMER1", 0, "Timer 1", ""},

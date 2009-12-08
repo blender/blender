@@ -574,6 +574,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		
 		switch(type) {
 			case GHOST_kEventWindowDeactivate:
+				wm_event_add_ghostevent(win, type, data);
 				win->active= 0; /* XXX */
 				break;
 			case GHOST_kEventWindowActivate: 
