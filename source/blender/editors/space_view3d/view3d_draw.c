@@ -1949,7 +1949,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	Base *base;
 	int bwinx, bwiny;
 
-	wmPushMatrix();
+	glPushMatrix();
 
 	/* set temporary new size */
 	bwinx= ar->winx;
@@ -2024,7 +2024,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	ar->winx= bwinx;
 	ar->winy= bwiny;
 
-	wmPopMatrix();
+	glPopMatrix();
 }
 
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
