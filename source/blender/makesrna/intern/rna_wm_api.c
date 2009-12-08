@@ -52,6 +52,21 @@ static wmKeyMap *rna_keymap_add(wmKeyConfig *keyconf, char *idname, int spaceid,
 	}
 }
 
+static wmKeyMap *rna_keymap_find(wmKeyConfig *keyconf, char *idname, int spaceid, int regionid)
+{
+	return WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
+}
+
+static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *keyconf, char *idname)
+{
+	wmOperatorType *ot = WM_operatortype_find(idname, 0);
+
+	if (!ot)
+		return NULL;
+	else
+		return ot->modalkeymap;
+}
+
 static wmKeyMap *rna_keymap_active(wmKeyMap *km, bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -174,6 +189,20 @@ void RNA_api_keyconfig(StructRNA *srna)
 	RNA_def_enum(func, "region_type", region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
 	RNA_def_boolean(func, "modal", 0, "Modal", "");
 	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Added key map.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "find_keymap", "rna_keymap_find");
+	parm= RNA_def_string(func, "name", "", 0, "Name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_enum(func, "space_type", space_type_items, SPACE_EMPTY, "Space Type", "");
+	RNA_def_enum(func, "region_type", region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
+	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "find_keymap_modal", "rna_keymap_find_modal");
+	parm= RNA_def_string(func, "name", "", 0, "Operator Name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map.");
 	RNA_def_function_return(func, parm);
 }
 
