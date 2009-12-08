@@ -272,7 +272,8 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
 
         new_pbone = obj.pose.bones[new_bone_name]
 
-        if not new_pbone.bone.connected:
+        # if the bone is connected or its location is totally locked then dont add location blending.
+        if not (new_pbone.bone.connected or (False not in new_pbone.lock_location)):
             blend_location(new_pbone, from_bone_name, to_bone_name)
 
         blend_rotation(new_pbone, from_bone_name, to_bone_name)
