@@ -51,7 +51,7 @@ def compat_str(text, line_length=0):
     return "* " + text
 
 
-def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=False):
+def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=True):
     CONSTRAINTS = DRIVERS = True
 
     fileobject = open(path, "w")
@@ -131,7 +131,7 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, 
                     if XTRA_INFO:
                         label = "%s\n%s" % (constraint.type, constraint.name)
                         opts.append('label="%s"' % compat_str(label))
-                    fw('"%s" -> "%s" [%s] ;\n' % (subtarget, pbone.name, ','.join(opts)))
+                    fw('"%s" -> "%s" [%s] ;\n' % (pbone.name, subtarget, ','.join(opts)))
 
     # Drivers
     if DRIVERS:

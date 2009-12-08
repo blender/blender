@@ -77,8 +77,8 @@ def metarig_definition(obj, orig_bone_name):
         if index == 2:
             hands.append(pbone)
 
-    if len(hands) > 1:
-        raise Exception("more then 1 hand found on:", orig_bone_name)
+    if len(hands) != 1:
+        raise Exception("Expected more then 1 hand found on:", orig_bone_name)
 
     # first add the 2 new bones
     mt.hand_p = hands[0]
