@@ -56,7 +56,7 @@ static void rna_Group_objects_link(Group *group, bContext *C, ReportList *report
 		return;
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, &object->id);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, &object->id);
 }
 
 static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
@@ -66,7 +66,7 @@ static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *repo
 		return;
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, &object->id);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, &object->id);
 }
 
 #else

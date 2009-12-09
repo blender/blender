@@ -48,9 +48,9 @@
 #include "DNA_object_types.h"
 // #include "GPU_draw.h"
 
-static void rna_userdef_update(bContext *C, PointerRNA *ptr)
+static void rna_userdef_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
 #if 0
@@ -132,14 +132,13 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesSystem, ptr->data);
 }
 
-static void rna_UserDef_audio_update(bContext *C, PointerRNA *ptr)
+static void rna_UserDef_audio_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	sound_init(C);
+	sound_init();
 }
 
-static void rna_UserDef_weight_color_update(bContext *C, PointerRNA *ptr)
+static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	Object *ob;
 
 	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight):NULL);
@@ -149,22 +148,25 @@ static void rna_UserDef_weight_color_update(bContext *C, PointerRNA *ptr)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 
-	rna_userdef_update(C, ptr);
+	rna_userdef_update(bmain, scene, ptr);
 }
 
 // XXX - todo, this is not accessible from here and it only works when the userprefs are in the same window.
 // extern int GPU_default_lights(void);
-static void rna_UserDef_viewport_lights_update(bContext *C, PointerRNA *ptr)
+static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	// GPU_default_lights();
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
-	rna_userdef_update(C, ptr);
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	rna_userdef_update(bmain, scene, ptr);
 }
 
-static void rna_userdef_autosave_update(bContext *C, PointerRNA *ptr)
+static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	WM_autosave_init(C);
-	rna_userdef_update(C, ptr);
+	wmWindowManager *wm= bmain->wm.first;
+
+	if(wm)
+		WM_autosave_init(wm);
+	rna_userdef_update(bmain, scene, ptr);
 }
 
 #else

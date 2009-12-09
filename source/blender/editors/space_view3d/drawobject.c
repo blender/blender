@@ -3024,7 +3024,7 @@ static int drawDispListwire(ListBase *dlbase)
 
 	if(dlbase==NULL) return 1;
 	
-	glDisableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
 
 	for(dl= dlbase->first; dl; dl= dl->next) {
@@ -3101,7 +3101,7 @@ static int drawDispListwire(ListBase *dlbase)
 		}
 	}
 	
-	glEnableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
 	
 	return 0;
@@ -3120,6 +3120,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 	glGetFloatv(GL_CURRENT_COLOR, curcol);
 
 	glEnable(GL_LIGHTING);
+	glEnableClientState(GL_VERTEX_ARRAY);
 	
 	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
 	else glFrontFace(GL_CCW);
@@ -3178,10 +3179,12 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 				
 				if(dl->rt & CU_SMOOTH) glShadeModel(GL_SMOOTH);
 				else glShadeModel(GL_FLAT);
-				
+
+				glEnableClientState(GL_NORMAL_ARRAY);
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 				glNormalPointer(GL_FLOAT, 0, dl->nors);
 				glDrawElements(GL_QUADS, 4*dl->totindex, GL_UNSIGNED_INT, dl->index);
+				glDisableClientState(GL_NORMAL_ARRAY);
 			}			
 			break;
 
@@ -3191,32 +3194,35 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 			glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 			
 			/* voor polys only one normal needed */
-			if(index3_nors_incr==0) {
-				glDisableClientState(GL_NORMAL_ARRAY);
-				glNormal3fv(ndata);
+			if(index3_nors_incr) {
+				glEnableClientState(GL_NORMAL_ARRAY);
+				glNormalPointer(GL_FLOAT, 0, dl->nors);
 			}
 			else
-				glNormalPointer(GL_FLOAT, 0, dl->nors);
+				glNormal3fv(ndata);
 			
 			glDrawElements(GL_TRIANGLES, 3*dl->parts, GL_UNSIGNED_INT, dl->index);
 			
-			if(index3_nors_incr==0)
-				glEnableClientState(GL_NORMAL_ARRAY);
+			if(index3_nors_incr)
+				glDisableClientState(GL_NORMAL_ARRAY);
 
 			break;
 
 		case DL_INDEX4:
 			GPU_enable_material(dl->col+1, (glsl)? &gattribs: NULL);
 			
+			glEnableClientState(GL_NORMAL_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 			glNormalPointer(GL_FLOAT, 0, dl->nors);
 			glDrawElements(GL_QUADS, 4*dl->parts, GL_UNSIGNED_INT, dl->index);
+			glDisableClientState(GL_NORMAL_ARRAY);
 
 			break;
 		}
 		dl= dl->next;
 	}
 
+	glDisableClientState(GL_VERTEX_ARRAY);
 	glShadeModel(GL_FLAT);
 	glDisable(GL_LIGHTING);
 	glFrontFace(GL_CCW);
@@ -3230,7 +3236,7 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 	if(lb==NULL) return;
 
 	glShadeModel(GL_SMOOTH);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 	
 	dl= lb->first;
@@ -3269,7 +3275,7 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 	}
 	
 	glShadeModel(GL_FLAT);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 }
 
@@ -4010,13 +4016,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 /* 6. */
 
 	glGetIntegerv(GL_POLYGON_MODE, polygonmode);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
 
 	if(draw_as==PART_DRAW_PATH){
 		ParticleCacheKey **cache, *path;
 		float *cd2=0,*cdata2=0;
-
-		glEnableClientState(GL_VERTEX_ARRAY);
 
 		/* setup gl flags */
 		if(ob_dt > OB_WIRE) {
@@ -4145,7 +4149,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		glDisableClientState(GL_COLOR_ARRAY);
 		cpack(0xC0C0C0);
 		
-		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, pdd->vedata);
 		
 		glDrawArrays(GL_LINES, 0, 2*totve);
@@ -4158,7 +4161,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	
 	glDisable(GL_LIGHTING);
 	glDisableClientState(GL_COLOR_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
 
 	if(states)
 		MEM_freeN(states);
@@ -4223,7 +4227,6 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	}
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 
 	glEnable(GL_COLOR_MATERIAL);
@@ -4333,7 +4336,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
 	glDisableClientState(GL_COLOR_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 

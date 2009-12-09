@@ -190,9 +190,8 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 	scene->lay= ED_view3d_scene_layer_set(scene->lay, values);
 }
 
-static void rna_Scene_layer_update(bContext *C, PointerRNA *ptr)
+static void rna_Scene_layer_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	Scene *scene= (Scene*)ptr->data;
 
 	ED_view3d_scene_layers_update(bmain, scene);
@@ -269,7 +268,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 	data->r.pefra= value;
 }
 
-static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
+static void rna_Scene_frame_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	//Scene *scene= ptr->id.data;
 	//ED_update_for_newframe(C);
@@ -538,7 +537,7 @@ static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 	rl->lay= ED_view3d_scene_layer_set(rl->lay, values);
 }
 
-static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)
+static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
@@ -555,7 +554,7 @@ static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_composit_default(scene);
 }
 
-static void rna_Physics_update(bContext *C, PointerRNA *ptr)
+static void rna_Physics_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 	Base *base;
@@ -2452,6 +2451,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	
 	/* Animation Data (for Scene) */
 	rna_def_animdata_common(srna);
+	
+	/* Readonly Properties */
+	prop= RNA_def_property(srna, "nla_tweakmode_on", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_NLA_EDIT_ON);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* DO NOT MAKE THIS EDITABLE, OR NLA EDITOR BREAKS */
+	RNA_def_property_ui_text(prop, "NLA TweakMode", "Indicates whether there is any action referenced by NLA being edited. Strictly read-only.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
 	
 	/* Nodes (Compositing) */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);

@@ -91,7 +91,7 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 #include "BKE_depsgraph.h"
 #include "BKE_animsys.h"
 
-static void rna_ChannelDriver_update_data(bContext *C, PointerRNA *ptr)
+static void rna_ChannelDriver_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 	ChannelDriver *driver= ptr->data;
@@ -99,13 +99,20 @@ static void rna_ChannelDriver_update_data(bContext *C, PointerRNA *ptr)
 	driver->flag &= ~DRIVER_FLAG_INVALID;
 	
 	// TODO: this really needs an update guard...
-	DAG_scene_sort(CTX_data_scene(C));
+	DAG_scene_sort(scene);
 	DAG_id_flush_update(id, OB_RECALC_OB|OB_RECALC_DATA);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
+	WM_main_add_notifier(NC_SCENE|ND_FRAME, scene);
 }
 
-static void rna_DriverTarget_update_data(bContext *C, PointerRNA *ptr)
+static void rna_ChannelDriver_update_expr(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ChannelDriver *driver= ptr->data;
+	driver->flag |= DRIVER_FLAG_RECOMPILE;
+	rna_ChannelDriver_update_data(bmain, scene, ptr);
+}
+
+static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	PointerRNA driverptr;
 	ChannelDriver *driver;
@@ -118,7 +125,7 @@ static void rna_DriverTarget_update_data(bContext *C, PointerRNA *ptr)
 
 		if(driver && BLI_findindex(&driver->targets, ptr->data) != -1) {
 			RNA_pointer_create(ptr->id.data, &RNA_Driver, driver, &driverptr);
-			rna_ChannelDriver_update_data(C, &driverptr);
+			rna_ChannelDriver_update_data(bmain, scene, &driverptr);
 			return;
 		}
 	}
@@ -260,7 +267,7 @@ static void rna_FModifier_active_set(PointerRNA *ptr, int value)
 	fm->flag |= FMODIFIER_FLAG_ACTIVE;
 }
 
-static void rna_FModifier_active_update(bContext *C, PointerRNA *ptr)
+static void rna_FModifier_active_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	FModifier *fm, *fmo= (FModifier*)ptr->data;
 
@@ -789,6 +796,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_type_items[] = {
 		{DRIVER_TYPE_AVERAGE, "AVERAGE", 0, "Averaged Value", ""},
+		{DRIVER_TYPE_SUM, "SUM", 0, "Sum Values", ""},
 		{DRIVER_TYPE_PYTHON, "SCRIPTED", 0, "Scripted Expression", ""},
 		{DRIVER_TYPE_ROTDIFF, "ROTDIFF", 0, "Rotational Difference", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -806,7 +814,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	/* String values */
 	prop= RNA_def_property(srna, "expression", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Expression", "Expression to use for Scripted Expression.");
-	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data");
+	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_expr");
 
 	/* Collections */
 	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);

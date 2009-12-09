@@ -1399,7 +1399,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	/* as last: */
 	sort_seq(scene);
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1451,21 +1451,18 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if ((seq->flag & SEQ_LOCK)==0) {
 			if(selected){ /* mute unselected */
-				if (seq->flag & SELECT) {
+				if(seq->flag & SELECT)
 					seq->flag |= SEQ_MUTE;
-					seq_update_sound(seq);
-				}
 			}
 			else {
-				if ((seq->flag & SELECT)==0) {
+				if((seq->flag & SELECT)==0)
 					seq->flag |= SEQ_MUTE;
-					seq_update_sound(seq);
-				}
 			}
 		}
 	}
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	seq_update_muting(ed);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1505,21 +1502,18 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if ((seq->flag & SEQ_LOCK)==0) {
 			if(selected){ /* unmute unselected */
-				if (seq->flag & SELECT) {
+				if(seq->flag & SELECT)
 					seq->flag &= ~SEQ_MUTE;
-					seq_update_sound(seq);
-				}
 			}
 			else {
-				if ((seq->flag & SELECT)==0) {
+				if((seq->flag & SELECT)==0)
 					seq->flag &= ~SEQ_MUTE;
-					seq_update_sound(seq);
-				}
 			}
 		}
 	}
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	seq_update_muting(ed);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1559,7 +1553,7 @@ static int sequencer_lock_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -1596,7 +1590,7 @@ static int sequencer_unlock_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -1633,7 +1627,7 @@ static int sequencer_reload_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -1665,7 +1659,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -1741,9 +1735,7 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 		sort_seq(scene);
 	}
 
-	if (changed) {
-		ED_area_tag_redraw(CTX_wm_area(C));
-	}
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1803,7 +1795,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 	recurs_dupli_seq(scene, ed->seqbasep, &new);
 	addlisttolist(ed->seqbasep, &new);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -1894,8 +1886,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 		ms= ms->prev;
 	}
 
-	//ED_area_tag_redraw(CTX_wm_area(C));
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, NULL); /* redraw other sequencer views */
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1986,7 +1977,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	/* as last: */
 	sort_seq(scene);
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -2063,7 +2054,9 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	seq_update_muting(ed);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2164,7 +2157,9 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	seq_update_muting(ed);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2233,8 +2228,10 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
 	SEQ_END;
 
 	sort_seq(scene);
+	seq_update_muting(ed);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2459,16 +2456,16 @@ static int next_prev_edit_internal(Scene *scene, int side)
 	return change;
 }
 
-/* select less operator */
+/* move frame to next edit point operator */
 static int sequencer_next_edit_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	if (next_prev_edit_internal(scene, SEQ_SIDE_RIGHT)) {
-		ED_area_tag_redraw(CTX_wm_area(C));
-		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-	}
-	
+	if(!next_prev_edit_internal(scene, SEQ_SIDE_RIGHT))
+		return OPERATOR_CANCELLED;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2494,9 +2491,10 @@ static int sequencer_previous_edit_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	if (next_prev_edit_internal(scene, SEQ_SIDE_LEFT)) {
-		ED_area_tag_redraw(CTX_wm_area(C));
-	}
+	if(!next_prev_edit_internal(scene, SEQ_SIDE_LEFT))
+		return OPERATOR_CANCELLED;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2578,10 +2576,13 @@ static int sequencer_swap_internal_exec(bContext *C, int side)
 				swap_sequence(active_seq, seq);
 				break;
 		}
-		ED_area_tag_redraw(CTX_wm_area(C));
+
+		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+		return OPERATOR_FINISHED;
 	}
 
-	return OPERATOR_FINISHED;
+	return OPERATOR_CANCELLED;
 }
 
 static int sequencer_swap_right_exec(bContext *C, wmOperator *op)

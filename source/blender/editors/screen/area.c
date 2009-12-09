@@ -1089,30 +1089,11 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 	}
 }
 
-void ED_area_prevspace(bContext *C)
+void ED_area_prevspace(bContext *C, ScrArea *sa)
 {
-	SpaceLink *sl= CTX_wm_space_data(C);
-	ScrArea *sa= CTX_wm_area(C);
-
-	/* cleanup */
-#if 0 // XXX needs to be space type specific
-	if(sfile->spacetype==SPACE_FILE) {
-		if(sfile->pupmenu) {
-			MEM_freeN(sfile->pupmenu);
-			sfile->pupmenu= NULL;
-		}
-	}
-#endif
+	SpaceLink *sl = (sa) ? sa->spacedata.first : CTX_wm_space_data(C);
 
 	if(sl->next) {
-
-#if 0 // XXX check whether this is still needed
-		if (sfile->spacetype == SPACE_SCRIPT) {
-			SpaceScript *sc = (SpaceScript *)sfile;
-			if (sc->script) sc->script->flags &=~SCRIPT_FILESEL;
-		}
-#endif
-
 		/* workaround for case of double prevspace, render window
 		   with a file browser on top of it */
 		if(sl->next->spacetype == SPACE_FILE && sl->next->next)
@@ -1193,7 +1174,8 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	ScrArea *sa= CTX_wm_area(C);
 	int xco= 8;
 	
-	xco= ED_area_header_switchbutton(C, block, yco);
+	if (!sa->full)
+		xco= ED_area_header_switchbutton(C, block, yco);
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 

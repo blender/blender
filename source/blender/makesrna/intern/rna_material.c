@@ -64,20 +64,20 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 
 #include "ED_node.h"
 
-static void rna_Material_update(bContext *C, PointerRNA *ptr)
+static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
 	DAG_id_flush_update(&ma->id, 0);
-	WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, ma);
+	WM_main_add_notifier(NC_MATERIAL|ND_SHADING, ma);
 }
 
-static void rna_Material_draw_update(bContext *C, PointerRNA *ptr)
+static void rna_Material_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
 	DAG_id_flush_update(&ma->id, 0);
-	WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, ma);
+	WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
 }
 
 static PointerRNA rna_Material_mirror_get(PointerRNA *ptr)

@@ -141,7 +141,7 @@ typedef struct wmWindow {
 	
 	int winid;		/* winid also in screens, is for retrieving this window after read */
 
-	short grabcursor; /* 1 if cursor is grabbed */
+	short grabcursor; /* cursor grab mode */
 	short pad;
 	
 	struct bScreen *screen;		/* active screen */

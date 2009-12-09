@@ -81,7 +81,7 @@ void	ED_area_tag_refresh(ScrArea *sa);
 void	ED_area_do_refresh(struct bContext *C, ScrArea *sa);
 void	ED_area_headerprint(ScrArea *sa, const char *str);
 void	ED_area_newspace(struct bContext *C, ScrArea *sa, int type);
-void	ED_area_prevspace(struct bContext *C);
+void	ED_area_prevspace(struct bContext *C, ScrArea *sa);
 void	ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
 
 /* screens */
@@ -98,9 +98,10 @@ void	ED_screen_delete_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void	ED_screen_animation_timer(struct bContext *C, int redraws, int sync, int enable);
-void	ED_screen_animation_timer_update(struct bContext *C, int redraws);
+void	ED_screen_animation_timer_update(struct bScreen *screen, int redraws);
 int		ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
-void	ED_screen_full_prevspace(struct bContext *C);
+void	ED_screen_full_prevspace(struct bContext *C, ScrArea *sa);
+void	ED_screen_full_restore(struct bContext *C, ScrArea *sa);
 
 void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 

@@ -73,19 +73,23 @@ def _bone_class_instance_rename(self, attr, new_name):
     setattr(self, attr, ebone.name)
 
 
-def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
+def _bone_class_instance_copy(self, from_fmt="%s", to_fmt="%s", exclude_attrs=(), base_names=None):
     from_name_ls = []
     new_name_ls = []
     new_slot_ls = []
 
     for attr in self.attr_names:
+        
+        if attr in exclude_attrs:
+            continue
+        
         bone_name_orig = getattr(self, attr)
         ebone = getattr(self, attr + "_e")
         # orig_names[attr] = bone_name_orig
 
-        # insert prefix
-        if from_prefix:
-            bone_name = from_prefix + bone_name_orig
+        # insert formatting
+        if from_fmt != "%s":
+            bone_name = from_fmt % bone_name_orig
             ebone.name = bone_name
             bone_name = ebone.name # cant be sure we get what we ask for
         else:
@@ -95,8 +99,9 @@ def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
 
         new_slot_ls.append(attr)
         from_name_ls.append(bone_name)
-        bone_name_orig = bone_name_orig.replace("ORG-", "") # XXX - we need a better way to do this
-        new_name_ls.append(to_prefix + bone_name_orig)
+        if base_names:
+            bone_name_orig = base_names[bone_name_orig]
+        new_name_ls.append(to_fmt % bone_name_orig)
 
     new_bones = copy_bone_simple_list(self.obj.data, from_name_ls, new_name_ls, True)
     new_bc = bone_class_instance(self.obj, new_slot_ls)
@@ -134,6 +139,10 @@ def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_pr
 
 
 def bone_class_instance(obj, slots, name="BoneContainer"):
+    
+    if len(slots) != len(set(slots)):
+        raise Exception("duplicate entries found %s" % attr_names)
+
     attr_names = tuple(slots) # dont modify the original
     slots = list(slots) # dont modify the original
     for i in range(len(slots)):
@@ -210,6 +219,11 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
     if obj.mode == 'EDIT':
         raise Exception("blending cant be called in editmode")
 
+    if len(apply_bones) != len(from_bones):
+        raise Exception("lists differ in length (from -> apply): \n\t%s\n\t%s" % (from_bones, apply_bones))
+    if len(apply_bones) != len(to_bones):
+        raise Exception("lists differ in length (to -> apply): \n\t%s\n\t%s" % (to_bones, apply_bones))
+
     # setup the blend property
     if target_bone is None:
         target_bone = apply_bones[-1] # default to the last bone
@@ -272,10 +286,12 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
 
         new_pbone = obj.pose.bones[new_bone_name]
 
-        if not new_pbone.bone.connected:
+        # if the bone is connected or its location is totally locked then dont add location blending.
+        if not (new_pbone.bone.connected or (False not in new_pbone.lock_location)):
             blend_location(new_pbone, from_bone_name, to_bone_name)
 
-        blend_rotation(new_pbone, from_bone_name, to_bone_name)
+        if not (False not in new_pbone.lock_rotation): # TODO. 4D chech?
+            blend_rotation(new_pbone, from_bone_name, to_bone_name)
 
 
 def add_stretch_to(obj, from_name, to_name, name):
@@ -317,7 +333,8 @@ def add_stretch_to(obj, from_name, to_name, name):
     con.volume = 'NO_VOLUME'
 
     bpy.ops.object.mode_set(mode=mode_orig)
-
+    
+    return stretch_name
 
 def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
     '''
@@ -342,11 +359,18 @@ def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
     parent_dir = parent_head - parent_tail
 
     distance = (base_dir.length + parent_dir.length)
-
+    
     if mode == 'CROSS':
+        # direction from the angle of the joint
         offset = base_dir.copy().normalize() - parent_dir.copy().normalize()
         offset.length = distance
+    elif mode == 'ZAVERAGE':
+        # between both bones Z axis
+        z_axis_a = base_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
+        z_axis_b = parent_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
+        offset = (z_axis_a + z_axis_b).normalize() * distance
     else:
+        # preset axis
         offset = Vector(0, 0, 0)
         if mode[0] == "+":
             val = distance
@@ -363,7 +387,7 @@ def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
     return poll_name
 
 
-def generate_rig(context, obj_orig, prefix="ORG-"):
+def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     from collections import OrderedDict
 
     global_undo = context.user_preferences.edit.global_undo
@@ -371,20 +395,28 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
+    scene = context.scene
 
     # copy object and data
     obj_orig.selected = False
     obj = obj_orig.copy()
     obj.data = obj_orig.data.copy()
-    scene = context.scene
     scene.objects.link(obj)
     scene.objects.active = obj
     obj.selected = True
+    
+    if META_DEF:
+        obj_def = obj_orig.copy()
+        obj_def.data = obj_orig.data.copy()
+        scene.objects.link(obj_def)
 
     arm = obj.data
 
     # original name mapping
     base_names = {}
+    
+    # add all new parentless children to this bone
+    root_bone = None
 
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in arm.edit_bones:
@@ -407,10 +439,23 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
     # inspect all bones and assign their definitions before modifying
     for pbone in obj.pose.bones:
         bone_name = pbone.name
-        bone_type = obj.pose.bones[bone_name].get("type", "")
-        bone_type_list = [bt for bt in bone_type.replace(",", " ").split()]
+        bone_type = pbone.get("type", "")
+        if bone_type:
+            bone_type_list = [bt for bt in bone_type.replace(",", " ").split()]
+            
+            # not essential but means running autorig again wont do anything
+            del pbone["type"]
+        else:
+            bone_type_list = []
+            
+        if bone_type_list == ["root"]: # special case!
+            if root_bone:
+                raise Exception("cant have more then 1 root bone, found '%s' and '%s' to have type==root" % (root_bone, bone_name))
+            root_bone = bone_name
+            bone_type_list[:] = []
 
         for bone_type in bone_type_list:
+            
             type_pair = bone_type.split(".")
 
             # 'leg.ik' will look for an ik function in the leg module
@@ -450,7 +495,7 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
 
         if bone_name not in bone_typeinfos:
             continue
-        
+
         bone_def_dict = bone_definitions[bone_name]
 
         # Only blend results from the same submodule, eg.
@@ -478,10 +523,34 @@ def generate_rig(context, obj_orig, prefix="ORG-"):
             definition = bone_def_dict[submod_name]
 
             if len(result_submod) == 2:
-                blend_bone_list(obj, definition, result_submod[0], result_submod[1])
+                blend_bone_list(obj, definition, result_submod[0], result_submod[1], target_bone=bone_name)
 
-    # needed to update driver deps
-    # context.scene.update()
+    if root_bone:
+        # assign all new parentless bones to this
+        
+        bpy.ops.object.mode_set(mode='EDIT')
+        root_ebone = arm.edit_bones[root_bone]
+        for ebone in arm.edit_bones:
+            if ebone.parent is None and ebone.name not in base_names:
+                ebone.connected = False
+                ebone.parent = root_ebone
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+
+    if META_DEF:
+        # for pbone in obj_def.pose.bones:
+        for bone_name, bone_name_new in base_names.items():
+            #pbone_from = bone_name
+            pbone = obj_def.pose.bones[bone_name_new]
+            
+            con = pbone.constraints.new('COPY_ROTATION')
+            con.target = obj
+            con.subtarget = bone_name
+
+            if not pbone.bone.connected:
+                con = pbone.constraints.new('COPY_LOCATION')
+                con.target = obj
+                con.subtarget = bone_name
 
     # Only for demo'ing
 

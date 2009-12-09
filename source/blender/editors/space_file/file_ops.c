@@ -29,6 +29,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_global.h"
+#include "BKE_report.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
@@ -745,32 +746,55 @@ int file_next_exec(bContext *C, wmOperator *unused)
 	return OPERATOR_FINISHED;
 }
 
-int file_directory_new_exec(bContext *C, wmOperator *unused)
+/* create a new, non-existing folder name, returns 1 if successful, 0 if name couldn't be created.
+   The actual name is returned in 'name', 'folder' contains the complete path, including the new folder name.
+*/
+static int new_folder_path(const char* parent, char *folder, char *name)
 {
-	char tmpstr[FILE_MAX];
-	char tmpdir[FILE_MAXFILE];
 	int i = 1;
+	int len = 0;
 
+	BLI_strncpy(name, "New Folder", FILE_MAXFILE);
+	BLI_join_dirfile(folder, parent, name);
+	/* check whether folder with the name already exists, in this case
+	   add number to the name. Check length of generated name to avoid
+	   crazy case of huge number of folders each named 'New Folder (x)' */
+	while (BLI_exists(folder) && (len<FILE_MAXFILE)) {
+		len = BLI_snprintf(name, FILE_MAXFILE, "New Folder(%d)", i);
+		BLI_join_dirfile(folder, parent, name);
+		i++;
+	}
+
+	return (len<FILE_MAXFILE);
+}
+
+int file_directory_new_exec(bContext *C, wmOperator *op)
+{
+	char name[FILE_MAXFILE];
+	char path[FILE_MAX];
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
-	if(sfile->params) {
-		 
-		BLI_strncpy(tmpstr, sfile->params->dir, FILE_MAX);
-		BLI_join_dirfile(tmpstr, tmpstr, "New Folder");
-		while (BLI_exists(tmpstr)) {
-			BLI_snprintf(tmpdir, FILE_MAXFILE, "New Folder(%d)", i++);
-			BLI_strncpy(tmpstr, sfile->params->dir, FILE_MAX);
-			BLI_join_dirfile(tmpstr, tmpstr, tmpdir);
-		}
-		BLI_recurdir_fileops(tmpstr);
-		if (BLI_exists(tmpstr)) {
-			BLI_strncpy(sfile->params->renamefile, tmpdir, FILE_MAXFILE);
-		} else {
-			filelist_free(sfile->files);
-			filelist_parent(sfile->files);
-			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), FILE_MAX);
-		} 
-	}		
+	if(!sfile->params) {
+		BKE_report(op->reports,RPT_WARNING, "No parent directory given.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* create a new, non-existing folder name */
+	if (!new_folder_path(sfile->params->dir, path, name)) {
+		BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder name.");
+		return OPERATOR_CANCELLED;
+	}
+		
+	/* rename the file */
+	BLI_recurdir_fileops(path);
+
+	if (!BLI_exists(path)) {
+		BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder.");
+		return OPERATOR_CANCELLED;
+	} 
+
+	/* now remember file to jump into editing */
+	BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;

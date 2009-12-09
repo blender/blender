@@ -69,6 +69,7 @@
 
 /* SYSTEM : 0x01x */
 #define	INPUTCHANGE		0x0103	/* input connected or disconnected */
+#define WINDEACTIVATE	0x0104	/* window is deactivated, focus lost */
 
 #define TIMER			0x0110	/* timer event, passed on to all queues */
 #define TIMER0			0x0111	/* timer event, slot for internal use */

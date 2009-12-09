@@ -1167,21 +1167,28 @@ static PyMappingMethods pyrna_prop_as_mapping = {
 static int pyrna_prop_contains(BPy_PropertyRNA *self, PyObject *value)
 {
 	PointerRNA newptr; /* not used, just so RNA_property_collection_lookup_string runs */
-	char *keyname = _PyUnicode_AsString(value);
 
-	if(keyname==NULL) {
-		PyErr_SetString(PyExc_TypeError, "PropertyRNA - key in prop, key must be a string type");
+	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+		/* key in dict style check */
+		char *keyname = _PyUnicode_AsString(value);
+
+		if(keyname==NULL) {
+			PyErr_SetString(PyExc_TypeError, "PropertyRNA - key in prop, key must be a string type");
+			return -1;
+		}
+
+
+		if (RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr))
+			return 1;
+	}
+	else if (RNA_property_array_check(&self->ptr, self->prop)) {
+		/* value in list style check */
+		return pyrna_array_contains_py(&self->ptr, self->prop, value);
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "PropertyRNA - type is not an array or a collection");
 		return -1;
 	}
-
-	if (RNA_property_type(self->prop) != PROP_COLLECTION) {
-		PyErr_SetString(PyExc_TypeError, "PropertyRNA - key in prop, is only valid for collection types");
-		return -1;
-	}
-
-
-	if (RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr))
-		return 1;
 
 	return 0;
 }
@@ -2264,6 +2271,9 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 		}
 	}
 
+	if(array)
+		PyMem_Free(array);
+
 	if(PyErr_Occurred()) {
 		/* Maybe we could make our own error */
 		PyErr_Print();
@@ -2274,9 +2284,6 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 		PyErr_SetString(PyExc_SystemError, "internal error setting the array");
 		return NULL;
 	}
-
-	if(array)
-		PyMem_Free(array);
 
 	Py_RETURN_NONE;
 }

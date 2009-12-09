@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -39,8 +40,10 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -54,6 +57,61 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+/* tags the given anim list element for refreshes (if applicable)
+ * due to Animation Editor editing */
+void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
+{
+	ID *id;
+	FCurve *fcu;
+	AnimData *adt;
+
+	id= ale->id;
+	if(!id)
+		return;
+	
+	/* tag AnimData for refresh so that other views will update in realtime with these changes */
+	adt= BKE_animdata_from_id(id);
+	if(adt)
+		adt->recalc |= ADT_RECALC_ANIM;
+
+	/* update data */
+	fcu= (ale->datatype == ALE_FCURVE)? ale->key_data: NULL;
+		
+	if(fcu && fcu->rna_path) {
+		/* if we have an fcurve, call the update for the property we
+		   are editing, this is then expected to do the proper redraws
+		   and depsgraph updates  */
+		PointerRNA id_ptr, ptr;
+		PropertyRNA *prop;
+
+		RNA_id_pointer_create(id, &id_ptr);
+			
+		if(RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop))
+			RNA_property_update_main(G.main, scene, &ptr, prop);
+	}
+	else {
+		/* in other case we do standard depsgaph update, ideally
+		   we'd be calling property update functions here too ... */
+		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
+	}
+}
+
+/* tags the given ID block for refreshes (if applicable) due to 
+ * Animation Editor editing */
+void ANIM_id_update(Scene *scene, ID *id)
+{
+	if(id) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		
+		/* tag AnimData for refresh so that other views will update in realtime with these changes */
+		if (adt)
+			adt->recalc |= ADT_RECALC_ANIM;
+			
+		/* set recalc flags */
+		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
+	}
+}
 
 /* **************************** pose <-> action syncing ******************************** */
 /* Summary of what needs to be synced between poses and actions:

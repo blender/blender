@@ -144,13 +144,13 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "include_missing_nla", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NLA_NOACT);
-	RNA_def_property_ui_text(prop, "Include Missing NLA", "Include Animation Data blocks with no NLA Data.");
+	RNA_def_property_ui_text(prop, "Include Missing NLA", "Include Animation Data blocks with no NLA data. (NLA Editor only)");
 	RNA_def_property_ui_icon(prop, ICON_ACTION, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 
 	prop= RNA_def_property(srna, "collapse_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ADS_FLAG_SUMMARY_COLLAPSED);
-	RNA_def_property_ui_text(prop, "Collapse Summary", "Collapse summary when shown, so all other channels get hidden.");
+	RNA_def_property_ui_text(prop, "Collapse Summary", "Collapse summary when shown, so all other channels get hidden. (DopeSheet Window Editors Only)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 }
 

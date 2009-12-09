@@ -217,7 +217,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
         wm.invoke_props_popup(self, event)
         return ('RUNNING_MODAL',)
-        
+
 
 
 class WM_OT_properties_add(bpy.types.Operator):

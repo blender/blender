@@ -496,6 +496,9 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 
 /* --------- anim_deps.c, animation updates -------- */
 
+void ANIM_id_update(struct Scene *scene, struct ID *id);
+void ANIM_list_elem_update(struct Scene *scene, bAnimListElem *ale);
+
 /* pose <-> action syncing */
 void ANIM_action_to_pose_sync(struct Object *ob);
 void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);

@@ -78,6 +78,12 @@ static int rna_Screen_animation_playing_get(PointerRNA *ptr)
 	return (sc->animtimer != NULL);
 }
 
+static int rna_Screen_fullscreen_get(PointerRNA *ptr)
+{
+	bScreen *sc= (bScreen*)ptr->data;
+	return (sc->full == SCREENFULL);
+}
+
 static void rna_Area_type_set(PointerRNA *ptr, int value)
 {
 	ScrArea *sa= (ScrArea*)ptr->data;
@@ -88,10 +94,8 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 {
 	ScrArea *sa= (ScrArea*)ptr->data;
 
-	if(sa) {
-		ED_area_newspace(C, sa, sa->butspacetype); /* XXX - this uses the window */
-		ED_area_tag_redraw(sa);
-	}
+	ED_area_newspace(C, sa, sa->butspacetype); /* XXX - this uses the window */
+	ED_area_tag_redraw(sa);
 }
 
 #else
@@ -129,8 +133,8 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Type", "Space type.");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Area_type_update");
-
 
 	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
 }
@@ -174,6 +178,7 @@ static void rna_def_screen(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Screen_scene_set", NULL);
 	RNA_def_property_ui_text(prop, "Scene", "Active scene to be edited in the screen.");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Screen_scene_update");
 	
 	prop= RNA_def_property(srna, "areas", PROP_COLLECTION, PROP_NONE);
@@ -185,6 +190,11 @@ static void rna_def_screen(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Screen_animation_playing_get", NULL);
 	RNA_def_property_ui_text(prop, "Animation Playing", "Animation playback is active.");
+	
+	prop= RNA_def_property(srna, "fullscreen", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Screen_fullscreen_get", NULL);
+	RNA_def_property_ui_text(prop, "Fullscreen", "An area is maximised, filling this screen.");
 }
 
 void RNA_def_screen(BlenderRNA *brna)

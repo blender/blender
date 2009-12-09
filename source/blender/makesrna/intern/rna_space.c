@@ -83,6 +83,13 @@ static EnumPropertyItem transform_orientation_items[] = {
 	{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem autosnap_items[] = {
+	{SACTSNAP_OFF, "NONE", 0, "No Auto-Snap", ""},
+	{SACTSNAP_STEP, "STEP", 0, "Time Step", "Snap to 1.0 frame/second intervals."},
+	{SACTSNAP_FRAME, "FRAME", 0, "Nearest Frame", "Snap to actual frames/seconds (nla-action time)."},
+	{SACTSNAP_MARKER, "MARKER", 0, "Nearest Marker", "Snap to nearest marker."},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -242,12 +249,9 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
 }
 
-static void rna_SpaceImageEditor_paint_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceImageEditor_paint_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
-
-	if(scene)
-		paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
+	paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
@@ -315,7 +319,7 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	return item;
 }
 
-static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	ImBuf *ibuf;
@@ -325,7 +329,7 @@ static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
 	curvemapping_do_ibuf(sima->cumap, ibuf);
 	ED_space_image_release_buffer(sima, lock);
 
-	WM_event_add_notifier(C, NC_IMAGE, sima->image);
+	WM_main_add_notifier(NC_IMAGE, sima->image);
 }
 
 
@@ -425,10 +429,12 @@ static void rna_View3D_display_background_image_set(PointerRNA *ptr, int value)
 
 /* Space Time */
 
-static void rna_SpaceTime_redraw_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceTime_redraw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceTime *st= (SpaceTime*)ptr->data;
-	ED_screen_animation_timer_update(C, st->redraws);
+	bScreen *screen= (bScreen*)ptr->id.data;
+
+	ED_screen_animation_timer_update(screen, st->redraws);
 }
 
 /* Space Dopesheet */
@@ -439,10 +445,10 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA valu
 	saction->action= value.data;
 }
 
-static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceAction *saction= (SpaceAction*)(ptr->data);
-	Object *obact= CTX_data_active_object(C);
+	Object *obact= (scene->basact)? scene->basact->object: NULL;
 
 	/* we must set this action to be the one used by active object (if not pinned) */
 	if(obact && saction->pin == 0) {
@@ -455,6 +461,25 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 		/* force depsgraph flush too */
 		DAG_id_flush_update(&obact->id, OB_RECALC_OB|OB_RECALC_DATA);
 	}
+}
+
+static void rna_SpaceDopeSheetEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	SpaceAction *saction= (SpaceAction*)(ptr->data);
+
+	/* special exception for ShapeKey Editor mode:
+	 * 		enable 'show sliders' by default, since one of the main
+	 *		points of the ShapeKey Editor is to provide a one-stop shop
+	 *		for controlling the shapekeys, whose main control is the value
+	 */
+	if (saction->mode == SACTCONT_SHAPEKEY)
+		saction->flag |= SACTION_SLIDERS;
+}
+
+static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
+{
+	SpaceIpo *sipo= (SpaceIpo*)(ptr->data);
+	return (sipo->ghostCurves.first != NULL);
 }
 
 #else
@@ -1238,7 +1263,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, "rna_SpaceDopeSheetEditor_mode_update");
 	
 	/* display */
 	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
@@ -1262,8 +1287,19 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NOTRANSKEYCULL);
 	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Show handles of Bezier control points.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
-	
-	// TODO... autosnap, dopesheet?
+
+	/* dopesheet */
+	prop= RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "DopeSheet");
+	RNA_def_property_pointer_sdna(prop, NULL, "ads");
+	RNA_def_property_ui_text(prop, "DopeSheet", "Settings for filtering animation data.");
+
+	/* autosnap */
+	prop= RNA_def_property(srna, "autosnap", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "autosnap");
+	RNA_def_property_enum_items(prop, autosnap_items);
+	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
 }
 
 static void rna_def_space_graph(BlenderRNA *brna)
@@ -1272,7 +1308,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem mode_items[] = {
-		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curves", ""},
+		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curve Editor", ""},
 		{SIPO_MODE_DRIVERS, "DRIVERS", 0, "Drivers", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
@@ -1280,16 +1316,9 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	static EnumPropertyItem gpivot_items[] = {
 		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", ""},
 		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},
-		{V3D_LOCAL, "INDIVIDUAL_CENTERS", ICON_ROTATECOLLECTION, "Individual Centers", ""},
+		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION, "Individual Centers", ""},
 		//{V3D_CENTROID, "MEDIAN_POINT", 0, "Median Point", ""},
 		//{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem autosnap_items[] = {
-		{SACTSNAP_OFF, "NONE", 0, "None", ""},
-		{SACTSNAP_STEP, "STEP", 0, "Step", "Snap to 1.0 frame/second intervals."},
-		{SACTSNAP_FRAME, "FRAME", 0, "Frame", "Snap to actual frames/seconds (nla-action time)."},
-		{SACTSNAP_MARKER, "MARKER", 0, "Marker", "Snap to nearest marker."},
 		{0, NULL, 0, NULL, NULL}};
 
 	
@@ -1371,6 +1400,13 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, autosnap_items);
 	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	/* readonly state info */
+	prop= RNA_def_property(srna, "has_ghost_curves", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", 0); /* XXX: hack to make this compile, since this property doesn't actually exist*/
+	RNA_def_property_boolean_funcs(prop, "rna_SpaceGraphEditor_has_ghost_curves_get", NULL);
+	RNA_def_property_ui_text(prop, "Has Ghost Curves", "Graph Editor instance has some ghost curves stored.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 }
 
 static void rna_def_space_nla(BlenderRNA *brna)
@@ -1398,9 +1434,19 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SNLA_NOSTRIPCURVES);
 	RNA_def_property_ui_text(prop, "Show Control Curves", "Show influence curves on strips.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NLA, NULL);
-	
-	/* editing */
-	// TODO... autosnap, dopesheet?
+
+	/* dopesheet */
+	prop= RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "DopeSheet");
+	RNA_def_property_pointer_sdna(prop, NULL, "ads");
+	RNA_def_property_ui_text(prop, "DopeSheet", "Settings for filtering animation data.");
+
+	/* autosnap */
+	prop= RNA_def_property(srna, "autosnap", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "autosnap");
+	RNA_def_property_enum_items(prop, autosnap_items);
+	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NLA, NULL);
 }
 
 static void rna_def_space_time(BlenderRNA *brna)

@@ -46,14 +46,15 @@
 #include "BKE_main.h"
 
 #include "ED_armature.h"
+#include "BKE_armature.h"
 
-static void rna_Armature_update_data(bContext *C, PointerRNA *ptr)
+static void rna_Armature_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
 	DAG_id_flush_update(id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
-	//WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
+	//WM_main_add_notifier(NC_OBJECT|ND_POSE, NULL);
 }
 
 
@@ -103,11 +104,11 @@ void rna_Armature_edit_bone_remove(bArmature *arm, EditBone *ebone)
 	ED_armature_edit_bone_remove(arm, ebone);
 }
 
-static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
+static void rna_Armature_redraw_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 }
 
 static char *rna_Bone_path(PointerRNA *ptr)
@@ -279,10 +280,6 @@ static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
 	EditBone *ebone= (EditBone*)(ptr->data);
 	EditBone *pbone, *parbone= (EditBone*)value.data;
 
-	/* within same armature */
-	if(value.id.data != ptr->id.data)
-		return;
-
 	if(parbone == NULL) {
 		if(ebone->parent && !(ebone->parent->flag & BONE_ROOTSEL))
 			ebone->parent->flag &= ~BONE_TIPSEL;
@@ -291,6 +288,10 @@ static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
 		ebone->flag &= ~BONE_CONNECTED;
 	}
 	else {
+		/* within same armature */
+		if(value.id.data != ptr->id.data)
+			return;
+
 		/* make sure this is a valid child */
 		if(parbone == ebone)
 			return;
@@ -304,7 +305,22 @@ static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-static void rna_Armature_editbone_transform_update(bContext *C, PointerRNA *ptr)
+static void rna_EditBone_matrix_get(PointerRNA *ptr, float *values)
+{
+	EditBone *ebone= (EditBone*)(ptr->data);
+
+	float	delta[3], tmat[3][3], mat[4][4];
+
+	/* Find the current bone matrix */
+	sub_v3_v3v3(delta, ebone->tail, ebone->head);
+	vec_roll_to_mat3(delta, ebone->roll, tmat);
+	copy_m4_m3(mat, tmat);
+	VECCOPY(mat[3], ebone->head);
+
+	memcpy(values, mat, 16 * sizeof(float));
+}
+
+static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bArmature *arm= (bArmature*)ptr->id.data;
 	EditBone *ebone= (EditBone*)ptr->data;
@@ -339,7 +355,7 @@ static void rna_Armature_editbone_transform_update(bContext *C, PointerRNA *ptr)
 		}
 	}
 
-	rna_Armature_update_data(C, ptr);
+	rna_Armature_update_data(bmain, scene, ptr);
 }
 
 static void rna_Armature_bones_next(CollectionPropertyIterator *iter)
@@ -617,6 +633,14 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
 	RNA_def_property_ui_text(prop, "Tail Selected", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+
+	/* calculated and read only, not actual data access */
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
+	//RNA_def_property_float_sdna(prop, NULL, ""); // doesnt access any real data
+	RNA_def_property_array(prop, 16);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Editbone Matrix", "Read-only matrix calculated from the roll (armature space).");
+	RNA_def_property_float_funcs(prop, "rna_EditBone_matrix_get", NULL, NULL); // TODO - this could be made writable also
 
 	RNA_api_armature_edit_bone(srna);
 

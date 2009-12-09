@@ -4232,6 +4232,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				seq->anim= 0;
 			}
 			SEQ_END
+
+			if(sce->ed)
+				seq_update_muting(sce->ed);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -10162,6 +10165,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					srgb_to_linearrgb_v3_v3(&wo->zenr, &wo->zenr);
 					wo=wo->id.next;
 				}
+			}
+		}
+		/* clear hanging 'temp' screens from older 2.5 files*/
+		if (main->versionfile == 250) {
+			bScreen *screen;
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				if (screen->full == SCREENTEMP)
+					free_libblock(&main->screen, screen);
 			}
 		}
 	}

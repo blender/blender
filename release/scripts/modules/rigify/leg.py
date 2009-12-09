@@ -146,7 +146,7 @@ def ik(obj, bone_definition, base_names):
 
 
     # Make a new chain, ORG are the original bones renamed.
-    ik_chain = mt_chain.copy(to_prefix="MCH-")
+    ik_chain = mt_chain.copy(to_fmt="MCH-%s")
 
     # simple rename
     ik_chain.rename("thigh", ik_chain.thigh + "_ik")
@@ -213,6 +213,11 @@ def ik(obj, bone_definition, base_names):
     mt_chain.update()
     ik_chain.update()
 
+    # Set IK dof
+    ik_chain.shin_p.ik_dof_x = True
+    ik_chain.shin_p.ik_dof_y = False
+    ik_chain.shin_p.ik_dof_z = False
+
     # IK
     con = ik_chain.shin_p.constraints.new('IK')
     con.chain_length = 2
@@ -225,7 +230,7 @@ def ik(obj, bone_definition, base_names):
     con.weight = 1.0
 
     con.target = obj
-    con.subtarget = ik.foot
+    con.subtarget = ik_chain.foot
 
     con.pole_target = obj
     con.pole_subtarget = ik.knee_target
@@ -279,7 +284,7 @@ def fk(obj, bone_definition, base_names):
     ex.thigh_socket = ex.thigh_socket_e.name
     ex.thigh_socket_e.tail = ex.thigh_socket_e.head + Vector(0.0, 0.0, ex.thigh_socket_e.length / 4.0)
 
-    ex.thigh_hinge_e = copy_bone_simple(arm, mt_chain.thigh, "MCH-%s_hinge" % base_names[mt_chain.thigh], parent=True)
+    ex.thigh_hinge_e = copy_bone_simple(arm, mt_chain.thigh, "MCH-%s_hinge" % base_names[mt_chain.thigh])
     ex.thigh_hinge = ex.thigh_hinge_e.name
     ex.thigh_hinge_e.tail = ex.thigh_hinge_e.head + Vector(0.0, 0.0, mt_chain.thigh_e.head.length)
     ex.thigh_hinge_e.translate(Vector( - (mt.hips_e.head.x - mt_chain.thigh_e.head.x), 0.0, 0.0))
@@ -338,4 +343,4 @@ def main(obj, bone_definition, base_names):
     bones_fk = fk(obj, bone_definition, base_names)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    blend_bone_list(obj, bone_definition, bones_ik, bones_fk)
+    blend_bone_list(obj, bone_definition, bones_ik, bones_fk, target_bone=bone_definition[1])

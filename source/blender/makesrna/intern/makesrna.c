@@ -1763,7 +1763,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	rna_print_c_string(f, prop->description); fprintf(f, ",\n\t");
 	fprintf(f, "%d,\n", prop->icon);
 	fprintf(f, "\t%s, %s|%s, %s, %d, {%d, %d, %d}, %d,\n", rna_property_typename(prop->type), rna_property_subtypename(prop->subtype), rna_property_subtype_unit(prop->subtype), rna_function_string(prop->getlength), prop->arraydimension, prop->arraylength[0], prop->arraylength[1], prop->arraylength[2], prop->totarraylength);
-	fprintf(f, "\t%s, %d, %s, %s,\n", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable), rna_function_string(prop->itemeditable));
+	fprintf(f, "\t%s%s, %d, %s, %s,\n", (prop->flag & PROP_CONTEXT_UPDATE)? "(UpdateFunc)": "", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable), rna_function_string(prop->itemeditable));
 
 	if(prop->flag & PROP_RAW_ACCESS) rna_set_raw_offset(f, srna, prop);
 	else fprintf(f, "\t0, 0");
@@ -2050,11 +2050,13 @@ static void rna_generate(BlenderRNA *brna, FILE *f, char *filename, char *api_fi
 	fprintf(f, "#include <stddef.h>\n\n");
 
 	fprintf(f, "#include \"DNA_ID.h\"\n");
+	fprintf(f, "#include \"DNA_scene_types.h\"\n");
 
 	fprintf(f, "#include \"BLI_blenlib.h\"\n\n");
 
 	fprintf(f, "#include \"BKE_context.h\"\n");
 	fprintf(f, "#include \"BKE_library.h\"\n");
+	fprintf(f, "#include \"BKE_main.h\"\n");
 	fprintf(f, "#include \"BKE_report.h\"\n");
 	fprintf(f, "#include \"BKE_utildefines.h\"\n\n");
 

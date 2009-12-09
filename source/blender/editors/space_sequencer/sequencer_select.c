@@ -256,7 +256,8 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 			seq->flag |= SELECT;
 		}
 	}
-	ED_area_tag_redraw(CTX_wm_area(C));
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -297,7 +298,8 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 			seq->flag |= SELECT;
 		}
 	}
-	ED_area_tag_redraw(CTX_wm_area(C));
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -508,7 +510,8 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 #endif
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+
 	/* allowing tweaks */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
@@ -594,9 +597,10 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	if (select_more_less_seq__internal(scene, 0, 0)) {
-		ED_area_tag_redraw(CTX_wm_area(C));
-	}
+	if(!select_more_less_seq__internal(scene, 0, 0))
+		return OPERATOR_CANCELLED;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -624,9 +628,10 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	if (select_more_less_seq__internal(scene, 1, 0)) {
-		ED_area_tag_redraw(CTX_wm_area(C));
-	}
+	if(!select_more_less_seq__internal(scene, 1, 0))
+		return OPERATOR_CANCELLED;
+ 
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -681,7 +686,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -716,7 +721,7 @@ static int sequencer_select_linked_exec(bContext *C, wmOperator *op)
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -768,7 +773,7 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -805,7 +810,7 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 
 	select_active_side(ed->seqbasep, RNA_enum_get(op->ptr, "side"), seq_act->machine, seq_act->startdisp);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
 
 	return OPERATOR_FINISHED;
 }

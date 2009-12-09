@@ -86,14 +86,14 @@ def main(obj, bone_definition, base_names):
     del child_pbone
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    
-    
+
+
 
     # Move the child bone to the deltas location
     obj.animation_data_create()
     delta_pbone = obj.pose.bones[delta_name]
     # child_pbone = obj.pose.bones[child_name]
-    
+
     # ------------------- drivers
 
     delta_pbone.rotation_mode = 'XYZ'

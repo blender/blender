@@ -72,17 +72,16 @@ static StructRNA* rna_FluidSettings_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_fluid_update(bContext *C, PointerRNA *ptr)
+static void rna_fluid_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
-static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
+static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	Object *ob= (Object*)ptr->id.data;
 	FluidsimModifierData *fluidmd;
 	ParticleSystemModifierData *psmd;
@@ -132,7 +131,7 @@ static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
 		}
 	}
 
-	rna_fluid_update(C, ptr);
+	rna_fluid_update(bmain, scene, ptr);
 }
 
 static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *value)

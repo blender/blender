@@ -632,10 +632,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_graph\graph_header.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\space_graph\graph_intern.h"
 				>
 			</File>
@@ -836,10 +832,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_action\action_header.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\space_action\action_intern.h"
 				>
 			</File>
@@ -873,10 +865,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_nla\nla_edit.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\space_nla\nla_header.c"
 				>
 			</File>
 			<File

@@ -168,6 +168,7 @@ typedef struct wmNotifier {
 #define ND_KEYINGSET		(12<<16)
 #define ND_SCENEDELETE		(13<<16)
 #define ND_LAYER			(14<<16)
+#define	ND_SEQUENCER_SELECT	(15<<16)
 
 	/* NC_OBJECT Object */
 #define	ND_TRANSFORM		(16<<16)

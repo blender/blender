@@ -16,7 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
 import bpy
 
 
@@ -51,9 +50,10 @@ class GRAPH_HT_header(bpy.types.Header):
         row.operator("graph.paste", text="", icon='ICON_PASTEDOWN')
 
         row = layout.row(align=True)
-        # these likely need new icons
-        row.operator("graph.ghost_curves_create", text="", icon='ICON_GHOST_ENABLED')
-        row.operator("graph.ghost_curves_clear", text="", icon='ICON_GHOST_DISABLED')
+        if st.has_ghost_curves:
+            row.operator("graph.ghost_curves_clear", text="", icon='ICON_GHOST_DISABLED')
+        else:
+            row.operator("graph.ghost_curves_create", text="", icon='ICON_GHOST_ENABLED')
 
 
 class GRAPH_MT_view(bpy.types.Menu):
@@ -67,7 +67,7 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.column()
 
         layout.separator()
-        layout.operator("graph.properties")
+        layout.operator("graph.properties", icon="ICON_MENU_PANEL")
 
         layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "show_cursor")
@@ -75,7 +75,10 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.prop(st, "automerge_keyframes")
 
         layout.separator()
-        layout.operator("graph.handles_view_toggle")
+        if st.show_handles:
+            layout.operator("graph.handles_view_toggle", icon="ICON_CHECKBOX_HLT", text="Show All Handles")
+        else:
+            layout.operator("graph.handles_view_toggle", icon="ICON_CHECKBOX_DEHLT", text="Show All Handles")
         layout.prop(st, "only_selected_curves_handles")
         layout.prop(st, "only_selected_keyframe_handles")
         layout.operator("anim.time_toggle")

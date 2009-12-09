@@ -826,7 +826,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	handle= construct_param_handle(scene, em, 0, fill_holes, 0, correct_aspect);
+	handle= construct_param_handle(scene, em, 0, fill_holes, 1, correct_aspect);
 
 	param_lscm_begin(handle, PARAM_FALSE, method == 0);
 	param_lscm_solve(handle);

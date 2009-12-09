@@ -31,6 +31,13 @@
 #include <config.h>
 #endif
 
+static int sound_disabled = 0;
+
+void sound_disable()
+{
+	sound_disabled = 1;
+}
+
 void sound_init()
 {
 	AUD_Specs specs;
@@ -41,6 +48,9 @@ void sound_init()
 	specs.channels = U.audiochannels;
 	specs.format = U.audioformat;
 	specs.rate = U.audiorate;
+
+	if (sound_disabled)
+		device = 0;
 
 	if(buffersize < 128)
 		buffersize = AUD_DEFAULT_BUFFER_SIZE;

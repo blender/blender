@@ -226,6 +226,7 @@ EnumPropertyItem event_type_items[] = {
 	{PAGEDOWNKEY, "PAGE_DOWN", 0, "Page Down", ""},
 	{ENDKEY, "END", 0, "End", ""},
 	{0, "", 0, NULL, NULL},
+	{WINDEACTIVATE, "WINDOW_DEACTIVATE", 0, "Window Deactivate", ""},
 	{TIMER, "TIMER", 0, "Timer", ""},
 	{TIMER0, "TIMER0", 0, "Timer 0", ""},
 	{TIMER1, "TIMER1", 0, "Timer 1", ""},
@@ -771,6 +772,7 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Screen", "Active screen showing in the window.");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
 }
 

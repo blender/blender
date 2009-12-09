@@ -82,20 +82,20 @@ static void rna_World_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	set_current_world_texture(wo, value.data);
 }
 
-static void rna_World_update(bContext *C, PointerRNA *ptr)
+static void rna_World_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
 	DAG_id_flush_update(&wo->id, 0);
-	WM_event_add_notifier(C, NC_WORLD, wo);
+	WM_main_add_notifier(NC_WORLD, wo);
 }
 
-static void rna_World_draw_update(bContext *C, PointerRNA *ptr)
+static void rna_World_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
 	DAG_id_flush_update(&wo->id, 0);
-	WM_event_add_notifier(C, NC_WORLD|ND_WORLD_DRAW, wo);
+	WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, wo);
 }
 
 #else

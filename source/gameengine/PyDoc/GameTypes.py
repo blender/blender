@@ -2414,6 +2414,10 @@ class KX_MouseFocusSensor(SCA_MouseSensor):
 	@type hitPosition: list (vector of 3 floats)
 	@ivar hitNormal: the worldspace normal from the face at point of intersection.
 	@type hitNormal: list (normalized vector of 3 floats)
+	@ivar hitUV: the UV coordinates at the point of intersection.
+		If the object has no UV mapping, it returns [0,0].
+		The UV coordinates are not normalized, they can be < 0 or > 1 depending on the UV mapping.
+	@type hitUV: list (vector of 2 floats)
 	@ivar usePulseFocus: When enabled, moving the mouse over a different object generates a pulse. (only used when the 'Mouse Over Any' sensor option is set)
 	@type usePulseFocus: bool
 	"""

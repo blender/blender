@@ -32,8 +32,6 @@
 
 #include "BKE_global.h"
 
-#include "MEM_guardedalloc.h"
-
 #define MAX_ARRAY_DIMENSION 10
 
 typedef void (*ItemConvertFunc)(PyObject *, char *);
@@ -258,7 +256,7 @@ static int py_to_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *p
 
 	if (totitem) {
 		if (!param_data || RNA_property_flag(prop) & PROP_DYNAMIC)
-			data= MEM_callocN(item_size * totitem, "pyrna primitive type array");
+			data= PyMem_MALLOC(item_size * totitem);
 		else
 			data= param_data;
 
@@ -273,7 +271,7 @@ static int py_to_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *p
 		else {
 			/* NULL can only pass through in case RNA property arraylength is 0 (impossible?) */
 			rna_set_array(ptr, prop, data);
-			MEM_freeN(data);
+			PyMem_FREE(data);
 		}
 	}
 
@@ -512,4 +510,95 @@ PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop)
 	if (ret) return ret;
 
 	return pyrna_prop_CreatePyObject(ptr, prop);
+}
+
+/* TODO, multi-dimensional arrays */
+int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
+{
+	int len= RNA_property_array_length(ptr, prop);
+	int type;
+	int i;
+
+	if(len==0) /* possible with dynamic arrays */
+		return 0;
+
+	if (RNA_property_array_dimension(ptr, prop, NULL) > 1) {
+		PyErr_SetString(PyExc_TypeError, "PropertyRNA - multi dimensional arrays not supported yet");
+		return -1;
+	}
+
+	type= RNA_property_type(prop);
+
+	switch (type) {
+		case PROP_FLOAT:
+		{
+			float value_f= PyFloat_AsDouble(value);
+			if(value_f==-1 && PyErr_Occurred()) {
+				PyErr_Clear();
+				return 0;
+			}
+			else {
+				float tmp[32];
+				float *tmp_arr;
+
+				if(len * sizeof(float) > sizeof(tmp)) {
+					tmp_arr= PyMem_MALLOC(len * sizeof(float));
+				}
+				else {
+					tmp_arr= tmp;
+				}
+
+				RNA_property_float_get_array(ptr, prop, tmp_arr);
+
+				for(i=0; i<len; i++)
+					if(tmp_arr[i] == value_f)
+						break;
+
+				if(tmp_arr != tmp)
+					PyMem_FREE(tmp_arr);
+
+				return i<len ? 1 : 0;
+			}
+			break;
+		}
+		case PROP_BOOLEAN:
+		case PROP_INT:
+		{
+			int value_i= PyLong_AsSsize_t(value);
+			if(value_i==-1 && PyErr_Occurred()) {
+				PyErr_Clear();
+				return 0;
+			}
+			else {
+				int tmp[32];
+				int *tmp_arr;
+
+				if(len * sizeof(int) > sizeof(tmp)) {
+					tmp_arr= PyMem_MALLOC(len * sizeof(int));
+				}
+				else {
+					tmp_arr= tmp;
+				}
+
+				if(type==PROP_BOOLEAN)
+					RNA_property_boolean_get_array(ptr, prop, tmp_arr);
+				else
+					RNA_property_int_get_array(ptr, prop, tmp_arr);
+
+				for(i=0; i<len; i++)
+					if(tmp_arr[i] == value_i)
+						break;
+
+				if(tmp_arr != tmp)
+					PyMem_FREE(tmp_arr);
+
+				return i<len ? 1 : 0;
+			}
+			break;
+		}
+	}
+
+	/* should never reach this */
+	PyErr_SetString(PyExc_TypeError, "PropertyRNA - type not in float/bool/int");
+	return -1;
 }

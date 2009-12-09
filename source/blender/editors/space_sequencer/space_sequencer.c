@@ -232,6 +232,7 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_MARKERS:
 				case ND_SEQUENCER:
+				case ND_SEQUENCER_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -266,6 +267,7 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		switch(wmn->data) {
 			case ND_FRAME:
 			case ND_SEQUENCER:
+			case ND_SEQUENCER_SELECT:
 				ED_region_tag_redraw(ar);
 				break;
 		}

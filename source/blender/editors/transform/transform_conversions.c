@@ -2212,7 +2212,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
 		if(modifiers_getCageIndex(t->obedit, NULL, 1)>=0) {
-			if(modifiers_isDeformed(t->scene, t->obedit)) {
+			if(modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
 				totleft= editmesh_get_first_deform_matrices(t->obedit, em, &defmats, &defcos);
@@ -2371,7 +2371,7 @@ void flushTransSeq(TransInfo *t)
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
-			if (seq->type != SEQ_META && seq_tx_test(seq)) /* for meta's, their children move */
+			if (seq->type != SEQ_META && (seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
 				seq->start= new_frame - tdsq->start_offset;
 
 			if (seq->depth==0) {

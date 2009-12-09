@@ -266,7 +266,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "INDIVIDUAL_CENTERS");
+	RNA_string_set(kmi->ptr, "value", "INDIVIDUAL_ORIGINS");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_ALT, 0);
 	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");

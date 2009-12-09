@@ -8,7 +8,8 @@ sources = env.Glob('intern/*.cpp')
 defs = 'NOGUI ELBEEM_BLENDER=1'
 
 if env['WITH_BF_OPENMP']:
-    defs += ' PARALLEL'
+    if env['OURPLATFORM'] != 'darwin':
+        defs += ' PARALLEL'
 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
     defs += ' USE_MSVC6FIXES'

@@ -41,6 +41,9 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
+
+#include "GHOST_C-api.h"
 
 #include "ED_screen.h"
 
@@ -74,7 +77,7 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 			for(pc= wm->paintcursors.first; pc; pc= pc->next) {
 				if(pc->poll == NULL || pc->poll(C)) {
 					ARegion *ar= CTX_wm_region(C);
-					if (win->grabcursor) {
+					if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
 						int x = 0, y = 0;
 						wm_get_cursor_position(win, &x, &y);
 						pc->draw(C, x - ar->winrct.xmin, y - ar->winrct.ymin, pc->customdata);

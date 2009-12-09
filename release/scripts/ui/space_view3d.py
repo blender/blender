@@ -50,7 +50,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif obj:
-                if mode_string not in ('PAINT_WEIGHT'):
+                if mode_string not in ('PAINT_WEIGHT', 'PAINT_TEXTURE'):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
                 sub.menu("VIEW3D_MT_object")
@@ -293,8 +293,8 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("view3d.zoom", text="Zoom In").delta = 1.0
-        layout.operator("view3d.zoom", text="Zoom Out").delta = -1.0
+        layout.operator("view3d.zoom", text="Zoom In").delta = 1
+        layout.operator("view3d.zoom", text="Zoom Out").delta = -1
 
         layout.separator()
 
