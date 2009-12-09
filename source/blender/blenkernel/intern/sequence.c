@@ -3533,13 +3533,14 @@ void seq_update_muting(Editing *ed)
 /* XXX - hackish function needed for transforming strips! TODO - have some better solution */
 void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 {
+	char str[32];
+	FCurve *fcu;
+
 	if(scene->adt==NULL || ofs==0)
 		return;
 
-	char str[32];
 	sprintf(str, "[\"%s\"]", seq->name+2);
 
-	FCurve *fcu;
 	for (fcu= scene->adt->action->curves.first; fcu; fcu= fcu->next) {
 		if(strstr(fcu->rna_path, "sequence_editor.sequences_all[") && strstr(fcu->rna_path, str)) {
 			int i;
