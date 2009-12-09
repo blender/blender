@@ -2346,6 +2346,7 @@ void flushTransNodes(TransInfo *t)
 }
 
 /* *** SEQUENCE EDITOR *** */
+#define XXX_DURIAN_ANIM_TX_HACK
 void flushTransSeq(TransInfo *t)
 {
 	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check alredy done */
@@ -2374,6 +2375,13 @@ void flushTransSeq(TransInfo *t)
 			if (seq->type != SEQ_META && (seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
 				seq->start= new_frame - tdsq->start_offset;
 
+#ifdef XXX_DURIAN_ANIM_TX_HACK
+			if (seq->type != SEQ_META && seq != seq_prev) {
+				int ofs = (new_frame - tdsq->start_offset) - seq->start;
+				seq_offset_animdata(t->scene, seq, ofs);
+			}
+#endif
+            
 			if (seq->depth==0) {
 				seq->machine= (int)floor(td2d->loc[1] + 0.5f);
 				CLAMP(seq->machine, 1, MAXSEQ);
@@ -3828,6 +3836,19 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
  */
 static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count, int *flag)
 {
+ 
+#ifdef XXX_DURIAN_ANIM_TX_HACK
+	/* hack */
+	if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
+		Sequence *seq_t[3] = {seq->seq1, seq->seq2, seq->seq3};
+		int i;
+		for(i=0; i<3; i++) {
+			if (seq_t[i] && ((seq_t[i])->flag & SELECT) && !(seq_t[i]->flag & SEQ_LOCK) && !(seq_t[i]->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
+				seq->flag |= SELECT;
+		}
+	}
+#endif
+    
 	/* for extend we need to do some tricks */
 	if (t->mode == TFM_TIME_EXTEND) {
 
