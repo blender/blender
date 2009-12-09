@@ -221,6 +221,7 @@ typedef struct TransformVars {
 	float rotFin;
 	int percent;
 	int interpolation;
+	int uniform_scale; /* preserve aspect/ratio when scaling */
 } TransformVars;
 
 typedef struct SolidColorVars {

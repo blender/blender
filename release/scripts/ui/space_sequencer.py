@@ -401,14 +401,23 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             layout.separator()
 
             col = layout.column(align=True)
-            col.label(text="Scale X:")
-            col.prop(strip, "scale_start_x", text="Start")
-            col.prop(strip, "scale_end_x", text="End")
+            col.prop(strip, "uniform_scale")
+            
+            if (strip.uniform_scale):
+                col = layout.column(align=True)
+                col.label(text="Scale:")
+                col.prop(strip, "scale_start_x", text="Start")
+                col.prop(strip, "scale_end_x", text="End")
+            else:
+                col = layout.column(align=True)
+                col.label(text="Scale X:")
+                col.prop(strip, "scale_start_x", text="Start")
+                col.prop(strip, "scale_end_x", text="End")
 
-            col = layout.column(align=True)
-            col.label(text="Scale Y:")
-            col.prop(strip, "scale_start_y", text="Start")
-            col.prop(strip, "scale_end_y", text="End")
+                col = layout.column(align=True)
+                col.label(text="Scale Y:")
+                col.prop(strip, "scale_start_y", text="Start")
+                col.prop(strip, "scale_end_y", text="End")
 
             layout.separator()
 
@@ -420,10 +429,11 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "speed_fader", text="Speed fader")
-        else:
-            col.prop(strip, "use_effect_default_fade", "Default fade")
-            if not strip.use_effect_default_fade:
-                col.prop(strip, "effect_fader", text="Effect fader")
+        elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE',
+                            'TRANSFORM'):
+                col.prop(strip, "use_effect_default_fade", "Default fade")
+                if not strip.use_effect_default_fade:
+                    col.prop(strip, "effect_fader", text="Effect fader")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):

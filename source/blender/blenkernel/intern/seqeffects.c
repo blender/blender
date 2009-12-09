@@ -2007,8 +2007,12 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 	yo = y;
 
 	//factor scale
-	factxScale = scale->ScalexIni + (scale->ScalexFin - scale->ScalexIni) * facf0;
-	factyScale = scale->ScaleyIni + (scale->ScaleyFin - scale->ScaleyIni) * facf0;
+	if (scale->uniform_scale) {
+		factxScale = factyScale = scale->ScalexIni + (scale->ScalexFin - scale->ScalexIni) * facf0;
+	} else {
+		factxScale = scale->ScalexIni + (scale->ScalexFin - scale->ScalexIni) * facf0;
+		factyScale = scale->ScaleyIni + (scale->ScaleyFin - scale->ScaleyIni) * facf0;
+	}
 
 	//Factor translate
 	if(!scale->percent){
@@ -3080,6 +3084,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 		rval.free = free_transform_effect;
 		rval.copy = copy_transform_effect;
 		rval.execute = do_transform_effect;
+		rval.get_default_fac = get_default_fac_fade;
 		break;
 	case SEQ_SPEED:
 		rval.init = init_speed_effect;
