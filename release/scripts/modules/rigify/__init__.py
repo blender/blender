@@ -294,6 +294,28 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
             blend_rotation(new_pbone, from_bone_name, to_bone_name)
 
 
+def get_side_name(name):
+    '''
+    Returns the last part of a string (typically a bone's name) indicating
+    whether it is a a left or right (or center, or whatever) bone.
+    Returns an empty string if nothing is found.
+    '''
+    if name[-2] in "-._":
+        return name[-2:]
+    else:
+        return ""
+
+def get_base_name(name):
+    '''
+    Returns the part of a string (typically a bone's name) corresponding to it's
+    base name (no sidedness, no ORG prefix).
+    '''
+    if name[-2] in "-._":
+        return name[:-2]
+    else:
+        return name
+    
+
 def add_stretch_to(obj, from_name, to_name, name):
     '''
     Adds a bone that stretches from one to another
@@ -336,7 +358,7 @@ def add_stretch_to(obj, from_name, to_name, name):
     
     return stretch_name
 
-def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
+def add_pole_target_bone(obj, base_bone_name, name, mode='CROSS'):
     '''
     Does not actually create a poll target, just the bone to use as a poll target
     '''
@@ -345,8 +367,8 @@ def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
 
     arm = obj.data
 
-    poll_ebone = arm.edit_bones.new(base_name + "_poll")
-    base_ebone = arm.edit_bones[base_name]
+    poll_ebone = arm.edit_bones.new(name)
+    base_ebone = arm.edit_bones[base_bone_name]
     poll_name = poll_ebone.name
     parent_ebone = base_ebone.parent
 

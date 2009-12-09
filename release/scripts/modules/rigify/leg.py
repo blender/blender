@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import bone_class_instance, copy_bone_simple, blend_bone_list
+from rigify import bone_class_instance, copy_bone_simple, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 METARIG_NAMES = "hips", "thigh", "shin", "foot", "toe", "heel"
@@ -152,15 +152,19 @@ def ik(obj, bone_definition, base_names):
     ik_chain.rename("thigh", ik_chain.thigh + "_ik")
     ik_chain.rename("shin", ik_chain.shin + "_ik")
 
-    # ik foot, no parents
-    base_foot_name = base_names[mt_chain.foot] # whatever the foot is called, use that!, XXX - ORG!
-    ik.foot_e = copy_bone_simple(arm, mt_chain.foot, "%s_ik" % base_foot_name)
+    # make sure leg is child of hips
+    ik_chain.thigh_e.parent = mt.hips_e
+
+    # ik foot: no parents
+    base_foot_name = get_base_name(base_names[mt_chain.foot])
+    ik.foot_e = copy_bone_simple(arm, mt_chain.foot, base_foot_name + "_ik" + get_side_name(base_names[mt_chain.foot]))
     ik.foot = ik.foot_e.name
     ik.foot_e.tail.z = ik.foot_e.head.z
     ik.foot_e.roll = 0.0
+    ik.foot_e.local_location = False
 
-    # heel pointing backwards, half length
-    ik.foot_roll_e = copy_bone_simple(arm, mt.heel, "%s_roll" % base_foot_name)
+    # foot roll: heel pointing backwards, half length
+    ik.foot_roll_e = copy_bone_simple(arm, mt.heel, base_foot_name + "_roll" + get_side_name(base_names[mt_chain.foot]))
     ik.foot_roll = ik.foot_roll_e.name
     ik.foot_roll_e.tail = ik.foot_roll_e.head + (ik.foot_roll_e.head - ik.foot_roll_e.tail) / 2.0
     ik.foot_roll_e.parent = ik.foot_e # heel is disconnected
@@ -182,7 +186,7 @@ def ik(obj, bone_definition, base_names):
 
     # rename 'MCH-toe' --> to 'toe_ik' and make the child of ik.foot_roll_01
     # ------------------ FK or IK?
-    ik_chain.rename("toe", base_names[mt_chain.toe] + "_ik")
+    ik_chain.rename("toe", get_base_name(base_names[mt_chain.toe]) + "_ik" + get_side_name(base_names[mt_chain.toe]))
     ik_chain.toe_e.connected = False
     ik_chain.toe_e.parent = ik.foot_roll_01_e
 
@@ -201,6 +205,7 @@ def ik(obj, bone_definition, base_names):
     ik.knee_target_e.translate(offset)
     ik.knee_target_e.length *= 0.5
     ik.knee_target_e.parent = ik.foot_e
+    ik.knee_target_e.local_location = False
 
     # roll the bone to point up... could also point in the same direction as ik.foot_roll
     # ik.foot_roll_02_e.matrix * Vector(0.0, 0.0, 1.0) # ACK!, no rest matrix in editmode
@@ -217,6 +222,12 @@ def ik(obj, bone_definition, base_names):
     ik_chain.shin_p.ik_dof_x = True
     ik_chain.shin_p.ik_dof_y = False
     ik_chain.shin_p.ik_dof_z = False
+
+    # Set rotation modes and axis locks
+    ik.foot_roll_p.rotation_mode = 'XYZ'
+    ik.foot_roll_p.lock_rotation = False, True, True
+    ik_chain.toe_p.rotation_mode = 'YXZ'
+    ik_chain.toe_p.lock_rotation = False, True, True
 
     # IK
     con = ik_chain.shin_p.constraints.new('IK')
@@ -284,13 +295,10 @@ def fk(obj, bone_definition, base_names):
     ex.thigh_socket = ex.thigh_socket_e.name
     ex.thigh_socket_e.tail = ex.thigh_socket_e.head + Vector(0.0, 0.0, ex.thigh_socket_e.length / 4.0)
 
-    ex.thigh_hinge_e = copy_bone_simple(arm, mt_chain.thigh, "MCH-%s_hinge" % base_names[mt_chain.thigh])
+    ex.thigh_hinge_e = copy_bone_simple(arm, mt.hips, "MCH-%s_hinge" % base_names[mt_chain.thigh], parent=False)
     ex.thigh_hinge = ex.thigh_hinge_e.name
-    ex.thigh_hinge_e.tail = ex.thigh_hinge_e.head + Vector(0.0, 0.0, mt_chain.thigh_e.head.length)
-    ex.thigh_hinge_e.translate(Vector( - (mt.hips_e.head.x - mt_chain.thigh_e.head.x), 0.0, 0.0))
-    ex.thigh_hinge_e.length = mt.hips_e.length
 
-    fk_chain = mt_chain.copy() # fk has no prefix!
+    fk_chain = mt_chain.copy(base_names=base_names) # fk has no prefix!
 
     fk_chain.thigh_e.connected = False
     fk_chain.thigh_e.parent = ex.thigh_hinge_e
@@ -300,6 +308,13 @@ def fk(obj, bone_definition, base_names):
     ex.update()
     mt_chain.update()
     fk_chain.update()
+
+    # Set rotation modes and axis locks
+    fk_chain.shin_p.rotation_mode = 'XYZ'
+    fk_chain.shin_p.lock_rotation = False, True, True
+    fk_chain.foot_p.rotation_mode = 'YXZ'
+    fk_chain.toe_p.rotation_mode = 'YXZ'
+    fk_chain.toe_p.lock_rotation = False, True, True
 
     con = fk_chain.thigh_p.constraints.new('COPY_LOCATION')
     con.target = obj

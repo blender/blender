@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list
+from rigify import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from Mathutils import Vector
 
@@ -69,9 +69,6 @@ def metarig_definition(obj, orig_bone_name):
 
     if not mt.shoulder_p:
         raise Exception("could not find '%s' parent, skipping:" % orig_bone_name)
-        
-    if mt.arm_p.parent.bone.connected:
-        raise Exception("expected '%s' to be disconnected from its parent" % orig_bone_name)
 
     mt.shoulder = mt.shoulder_p.name
 
@@ -79,11 +76,11 @@ def metarig_definition(obj, orig_bone_name):
     hands = []
     for pbone in obj.pose.bones:
         index = pbone.parent_index(mt.arm_p)
-        if index == 2:
+        if index == 2 and pbone.bone.connected and pbone.bone.parent.connected:
             hands.append(pbone)
 
     if len(hands) != 1:
-        raise Exception("Expected more then 1 hand found on:", orig_bone_name)
+        raise Exception("Found %s possible hands attached to this arm, expected 1 from bone: %s" % ([pbone.name for pbone in hands], orig_bone_name))
 
     # first add the 2 new bones
     mt.hand_p = hands[0]
@@ -106,12 +103,18 @@ def ik(obj, definitions, base_names):
     # IK needs no parent_index
     ik_chain.hand_e.connected = False
     ik_chain.hand_e.parent = None
+    ik_chain.hand_e.local_location = False
+    ik_chain.rename("hand", get_base_name(base_names[mt.hand]) + "_ik" + get_side_name(mt.hand))
 
     ik_chain.arm_e.connected = False
     ik_chain.arm_e.parent = mt.shoulder_e
     
     # Add the bone used for the arms poll target
-    ik.pole = add_pole_target_bone(obj, mt.forearm, "elbow_poll", mode='ZAVERAGE')
+    #ik.pole = add_pole_target_bone(obj, mt.forearm, get_base_name(base_names[mt.forearm]) + "_target" + get_side_name(mt.forearm), mode='ZAVERAGE')
+    ik.pole = add_pole_target_bone(obj, mt.forearm, "elbow_target" + get_side_name(mt.forearm), mode='ZAVERAGE')
+ 
+    ik.update()
+    ik.pole_e.local_location = False
     
     # update bones after this!
     ik.hand_vis = add_stretch_to(obj, mt.hand, ik_chain.hand, "VIS-%s_ik" % base_names[mt.hand])
@@ -178,7 +181,7 @@ def fk(obj, definitions, base_names):
     ex.socket = ex.socket_e.name
     ex.socket_e.connected = False
     ex.socket_e.parent = mt.shoulder_e
-    ex.socket_e.tail = mt.shoulder_e.tail
+    ex.socket_e.length *= 0.5
     
     # insert the 'DLT-hand', between the forearm and the hand
     # copies forarm rotation

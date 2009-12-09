@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_bone_data, copy_bone_simple
+from rigify import get_bone_data, copy_bone_simple, get_side_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 # not used, defined for completeness
@@ -105,7 +105,10 @@ def main(obj, bone_definition, base_names):
     pinky_ebone = arm.edit_bones[children[0]]
     ring_ebone = arm.edit_bones[children[1]]
 
-    control_ebone = copy_bone_simple(arm, pinky_ebone.name, "palm_control", parent=True)
+    # FIXME, why split the second one?
+    base_name = base_names[pinky_ebone.name].rsplit('.', 2)[0]
+
+    control_ebone = copy_bone_simple(arm, pinky_ebone.name, base_name + get_side_name(base_names[pinky_ebone.name]), parent=True)
     control_name = control_ebone.name
 
     offset = (pinky_ebone.head - ring_ebone.head)

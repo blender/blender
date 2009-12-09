@@ -148,6 +148,7 @@ def main(obj, bone_definition, base_names):
 
     ex.pelvis_copy_e = copy_bone_simple(arm, mt.pelvis, base_names[mt.pelvis]) # no parent
     ex.pelvis_copy = ex.pelvis_copy_e.name
+    ex.pelvis_copy_e.local_location = False
 
     # copy the pelvis, offset to make MCH-spine_rotate and MCH-ribcage_hinge
     ex.ribcage_hinge_e = copy_bone_simple(arm, mt.pelvis, "MCH-%s_hinge" % base_names[mt.ribcage])

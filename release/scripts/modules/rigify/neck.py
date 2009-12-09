@@ -135,7 +135,7 @@ def main(obj, bone_definition, base_names):
     ex.head_e.tail.y += head_length / 2.0
 
     # Yes, use the body bone but call it a head hinge
-    ex.head_hinge_e = copy_bone_simple(arm, mt.body, "MCH_%s_hinge" % base_names[mt.head], parent=True)
+    ex.head_hinge_e = copy_bone_simple(arm, mt.body, "MCH_%s_hinge" % base_names[mt.head], parent=False)
     ex.head_hinge_e.connected = False
     ex.head_hinge = ex.head_hinge_e.name
     ex.head_hinge_e.head.y += head_length / 4.0

@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_bone_data, empty_layer, copy_bone_simple
+from rigify import get_bone_data, empty_layer, copy_bone_simple, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from functools import reduce
 
@@ -98,11 +98,12 @@ def main(obj, bone_definition, base_names):
     children = orig_pbone.children_recursive
     tot_len = reduce(lambda f, pbone: f + pbone.bone.length, children, orig_pbone.bone.length)
 
-    base_name = base_names[bone_definition[0]].rsplit(".", 1)[0]
+    # FIXME, the line below is far too arbitrary
+    base_name = base_names[bone_definition[0]].rsplit(".", 2)[0]
 
     # first make a new bone at the location of the finger
     #control_ebone = arm.edit_bones.new(base_name)
-    control_ebone = copy_bone_simple(arm, bone_definition[0], base_name)
+    control_ebone = copy_bone_simple(arm, bone_definition[0], base_name + get_side_name(base_names[bone_definition[0]]), parent=True)
     control_bone_name = control_ebone.name # we dont know if we get the name requested
 
     control_ebone.connected = orig_ebone.connected
