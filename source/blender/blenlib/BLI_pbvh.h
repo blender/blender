@@ -27,6 +27,7 @@
 
 struct MFace;
 struct MVert;
+struct DMGridAdjacency;
 struct DMGridData;
 struct PBVH;
 struct PBVHNode;
@@ -47,7 +48,8 @@ typedef void (*BLI_pbvh_HitCallback)(PBVHNode *node, void *data);
 PBVH *BLI_pbvh_new(void);
 void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
 		    int totface, int totvert);
-void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids, int totgrid,
+void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
+	struct DMGridAdjacency *gridadj, int totgrid,
 	int gridsize, void **gridfaces);
 void BLI_pbvh_free(PBVH *bvh);
 
@@ -94,7 +96,8 @@ typedef enum {
 void BLI_pbvh_node_mark_update(PBVHNode *node);
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node,
-	int **grid_indices, int *totgrid, int *maxgrid, int *gridsize);
+	int **grid_indices, int *totgrid, int *maxgrid, int *gridsize,
+	struct DMGridData ***griddata, struct DMGridAdjacency **gridadj);
 void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node,
 	int *uniquevert, int *totvert);
 
@@ -105,7 +108,7 @@ void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max
 
 void BLI_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
 void BLI_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);
-void BLI_pbvh_get_grid_updates(PBVH *bvh, void ***gridfaces, int *totface);
+void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *totface);
 
 /* Vertex Iterator */
 

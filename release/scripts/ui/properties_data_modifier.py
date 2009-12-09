@@ -438,6 +438,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "levels", text="Preview")
         col.prop(md, "sculpt_levels", text="Sculpt")
         col.prop(md, "render_levels", text="Render")
+        col.prop(md, "optimal_display")
 
         if wide_ui:
             col = split.column()
@@ -604,7 +605,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Options:")
-        col.prop(md, "optimal_draw", text="Optimal Display")
+        col.prop(md, "optimal_display")
 
     def SURFACE(self, layout, ob, md, wide_ui):
         layout.label(text="See Fields panel.")

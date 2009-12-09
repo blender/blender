@@ -534,9 +534,9 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Levels", "Number of subdivisions to perform when rendering.");
 
-	prop= RNA_def_property(srna, "optimal_draw", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_ControlEdges);
-	RNA_def_property_ui_text(prop, "Optimal Draw", "Skip drawing/rendering of interior subdivided edges");
+	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
 	prop= RNA_def_property(srna, "subsurf_uv", PROP_BOOLEAN, PROP_NONE);
@@ -583,6 +583,11 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", "rna_MultiresModifier_external_set");
 	RNA_def_property_editable_func(prop, "rna_MultiresModifier_external_editable");
 	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory.");
+
+	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", eMultiresModifierFlag_ControlEdges);
+	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_lattice(BlenderRNA *brna)

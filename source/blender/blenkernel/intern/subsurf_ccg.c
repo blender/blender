@@ -1235,7 +1235,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 		CCGFace **faces;
 		int totface;
 
-		BLI_pbvh_get_grid_updates(ccgdm->pbvh, (void***)&faces, &totface);
+		BLI_pbvh_get_grid_updates(ccgdm->pbvh, 1, (void***)&faces, &totface);
 		if(totface) {
 			ccgSubSurf_updateFromFaces(ss, 0, faces, totface);
 			ccgSubSurf_updateNormals(ss, faces, totface);
@@ -2155,8 +2155,8 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		numGrids = ccgDM_getNumGrids(dm);
 
 		ccgdm->pbvh = BLI_pbvh_new();
-		BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, numGrids, gridSize,
-			(void**)ccgdm->gridFaces);
+		BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
+			numGrids, gridSize, (void**)ccgdm->gridFaces);
 	}
 	else if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;

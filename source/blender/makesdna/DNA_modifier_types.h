@@ -586,8 +586,12 @@ typedef struct MultiresModifierData {
 	ModifierData modifier;
 
 	char lvl, sculptlvl, renderlvl, totlvl;
-	char simple, pad[3];
+	char simple, flags, pad[2];
 } MultiresModifierData;
+
+typedef enum {
+	eMultiresModifierFlag_ControlEdges = (1<<0),
+} MultiresModifierFlag;
 
 typedef struct FluidsimModifierData {
 	ModifierData modifier;

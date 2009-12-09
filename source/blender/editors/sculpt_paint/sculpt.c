@@ -415,7 +415,8 @@ static SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 	unode->node= node;
 
 	BLI_pbvh_node_num_verts(ss->tree, node, &totvert, &allvert);
-	BLI_pbvh_node_get_grids(ss->tree, node, &grids, &totgrid, &maxgrid, &gridsize);
+	BLI_pbvh_node_get_grids(ss->tree, node, &grids, &totgrid,
+		&maxgrid, &gridsize, NULL, NULL);
 
 	unode->totvert= totvert;
 	/* we will use this while sculpting, is mapalloc slow to access then? */
@@ -795,9 +796,9 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 			BLI_pbvh_vertex_iter_end;
 		}
 
+		#pragma omp critical
 		{
 			/* we sum per node and add together later for threads */
-			#pragma omp critical
 			add_v3_v3v3(out, out, nout);
 			add_v3_v3v3(out_flip, out_flip, nout_flip);
 		}
@@ -903,43 +904,128 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 		copy_v3_v3(avg, ss->mvert[vert].co);
 }
 
-static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int totnode)
+static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node)
 {
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength= ss->cache->bstrength;
-	int iteration, n;
+	PBVHVertexIter vd;
+	SculptBrushTest test;
+	
+	sculpt_brush_test_init(ss, &test);
 
-	/* XXX not working for multires yet */
-	if(!ss->fmap)
-		return;
+	BLI_pbvh_vertex_iter_begin(ss->tree, node, vd, PBVH_ITER_UNIQUE) {
+		if(sculpt_brush_test(&test, vd.co)) {
+			float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
+			float avg[3], val[3];
+			
+			neighbor_average(ss, avg, vd.vert_indices[vd.i]);
+			val[0] = vd.co[0]+(avg[0]-vd.co[0])*fade;
+			val[1] = vd.co[1]+(avg[1]-vd.co[1])*fade;
+			val[2] = vd.co[2]+(avg[2]-vd.co[2])*fade;
+			
+			sculpt_clip(sd, ss, vd.co, val);			
+			if(vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+		}
+	}
+	BLI_pbvh_vertex_iter_end;
+}
+
+static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node)
+{
+	Brush *brush = paint_brush(&sd->paint);
+	SculptBrushTest test;
+	DMGridData **griddata, *data;
+	DMGridAdjacency *gridadj, *adj;
+	float bstrength= ss->cache->bstrength;
+	float co[3], (*tmpgrid)[3];
+	int v1, v2, v3, v4;
+	int *grid_indices, totgrid, gridsize, i, x, y;
+			
+	sculpt_brush_test_init(ss, &test);
+
+	BLI_pbvh_node_get_grids(ss->tree, node, &grid_indices, &totgrid,
+		NULL, &gridsize, &griddata, &gridadj);
+
+	#pragma omp critical
+	tmpgrid= MEM_mallocN(sizeof(float)*3*gridsize*gridsize, "tmpgrid");
+
+	for(i = 0; i < totgrid; ++i) {
+		data = griddata[grid_indices[i]];
+		adj = &gridadj[grid_indices[i]];
+
+		memset(tmpgrid, 0, sizeof(float)*3*gridsize*gridsize);
+
+		/* average grid values */
+		for(y = 0; y < gridsize-1; ++y)  {
+			for(x = 0; x < gridsize-1; ++x)  {
+				v1 = x + y*gridsize;
+				v2 = (x + 1) + y*gridsize;
+				v3 = (x + 1) + (y + 1)*gridsize;
+				v4 = x + (y + 1)*gridsize;
+
+				cent_quad_v3(co, data[v1].co, data[v2].co, data[v3].co, data[v4].co);
+				mul_v3_fl(co, 0.25f);
+
+				add_v3_v3(tmpgrid[v1], co);
+				add_v3_v3(tmpgrid[v2], co);
+				add_v3_v3(tmpgrid[v3], co);
+				add_v3_v3(tmpgrid[v4], co);
+			}
+		}
+
+		/* blend with existing coordinates */
+		for(y = 0; y < gridsize; ++y)  {
+			for(x = 0; x < gridsize; ++x)  {
+				if(x == 0 && adj->index[0] == -1) continue;
+				if(x == gridsize - 1 && adj->index[2] == -1) continue;
+				if(y == 0 && adj->index[3] == -1) continue;
+				if(y == gridsize - 1 && adj->index[1] == -1) continue;
+
+				copy_v3_v3(co, data[x + y*gridsize].co);
+
+				if(sculpt_brush_test(&test, co)) {
+					float fade = tex_strength(ss, brush, co, test.dist)*bstrength;
+					float avg[3], val[3];
+
+					copy_v3_v3(avg, tmpgrid[x + y*gridsize]);
+					if(x == 0 || x == gridsize - 1)
+						mul_v3_fl(avg, 2.0f);
+					if(y == 0 || y == gridsize - 1)
+						mul_v3_fl(avg, 2.0f);
+
+					val[0] = co[0]+(avg[0]-co[0])*fade;
+					val[1] = co[1]+(avg[1]-co[1])*fade;
+					val[2] = co[2]+(avg[2]-co[2])*fade;
+					
+					sculpt_clip(sd, ss, data[x + y*gridsize].co, val);
+				}
+			}
+		}
+	}
+
+	#pragma omp critical
+	MEM_freeN(tmpgrid);
+}
+
+static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int totnode)
+{
+	int iteration, n;
 
 	for(iteration = 0; iteration < 2; ++iteration) {
 		#pragma omp parallel for private(n) schedule(static)
 		for(n=0; n<totnode; n++) {
-			PBVHVertexIter vd;
-			SculptBrushTest test;
-			
 			sculpt_undo_push_node(ss, nodes[n]);
-			sculpt_brush_test_init(ss, &test);
 
-			BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
-				if(sculpt_brush_test(&test, vd.co)) {
-					float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
-					float avg[3], val[3];
-					
-					neighbor_average(ss, avg, vd.vert_indices[vd.i]);
-					val[0] = vd.co[0]+(avg[0]-vd.co[0])*fade;
-					val[1] = vd.co[1]+(avg[1]-vd.co[1])*fade;
-					val[2] = vd.co[2]+(avg[2]-vd.co[2])*fade;
-					
-					sculpt_clip(sd, ss, vd.co, val);			
-					if(vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-				}
-			}
-			BLI_pbvh_vertex_iter_end;
+			if(ss->fmap)
+				do_mesh_smooth_brush(sd, ss, nodes[n]);
+			else
+				do_multires_smooth_brush(sd, ss, nodes[n]);
 
 			BLI_pbvh_node_mark_update(nodes[n]);
 		}
+
+		if(!ss->fmap)
+			multires_stitch_grids(ss->ob);
 	}
 }
 

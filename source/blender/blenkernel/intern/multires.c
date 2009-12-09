@@ -39,6 +39,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_pbvh.h"
 
 #include "BKE_btex.h"
 #include "BKE_cdderivedmesh.h"
@@ -60,8 +61,8 @@
 
 /* MULTIRES MODIFIER */
 static const int multires_max_levels = 13;
-static const int multires_grid_tot[] = {1, 4, 9, 25, 81, 289, 1089, 4225, 16641, 66049, 263169, 1050625, 4198401, 16785409};
-static const int multires_side_tot[] = {1, 2, 3, 5,  9,  17,  33,   65,   129,   257,   513,    1025,    2049,    4097};
+static const int multires_grid_tot[] = {0, 4, 9, 25, 81, 289, 1089, 4225, 16641, 66049, 263169, 1050625, 4198401, 16785409};
+static const int multires_side_tot[] = {0, 2, 3, 5,  9,  17,  33,   65,   129,   257,   513,    1025,    2049,    4097};
 
 static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int add, DMGridData **oldGridData, int totlvl);
 
@@ -307,7 +308,7 @@ static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lv
 	return multires_dm_create_from_derived(&mmd, 1, dm, ob, 0, 0);
 }
 
-static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int simple)
+static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int simple, int optimal)
 {
 	SubsurfModifierData smd;
 
@@ -316,6 +317,8 @@ static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl
 	smd.flags |= eSubsurfModifierFlag_SubsurfUv;
 	if(simple)
 		smd.subdivType = ME_SIMPLE_SUBSURF;
+	if(optimal)
+		smd.flags |= eSubsurfModifierFlag_ControlEdges;
 
 	return subsurf_make_derived_from_derived(dm, &smd, 0, NULL, 0, 0);
 }
@@ -363,7 +366,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int updat
 
 		/* create subsurf DM from original mesh at high level */
 		cddm = CDDM_from_mesh(me, NULL);
-		highdm = subsurf_dm_create_local(ob, cddm, totlvl, simple);
+		highdm = subsurf_dm_create_local(ob, cddm, totlvl, simple, 0);
 
 		/* create multires DM from original mesh at low level */
 		lowdm = multires_dm_create_local(ob, cddm, lvl, lvl, simple);
@@ -551,7 +554,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 
 			/* create subsurf DM from original mesh at high level */
 			cddm = CDDM_from_mesh(me, NULL);
-			highdm = subsurf_dm_create_local(ob, cddm, totlvl, mmd->simple);
+			highdm = subsurf_dm_create_local(ob, cddm, totlvl, mmd->simple, 0);
 
 			/* create multires DM from original mesh and displacements */
 			lowdm = multires_dm_create_local(ob, cddm, lvl, totlvl, mmd->simple);
@@ -602,7 +605,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			DerivedMesh *cddm, *subdm;
 
 			cddm = CDDM_from_mesh(me, NULL);
-			subdm = subsurf_dm_create_local(ob, cddm, mmd->totlvl, mmd->simple);
+			subdm = subsurf_dm_create_local(ob, cddm, mmd->totlvl, mmd->simple, 0);
 			cddm->release(cddm);
 
 			multiresModifier_disp_run(dm, me, 1, 0, subdm->getGridData(subdm), mmd->totlvl);
@@ -629,6 +632,25 @@ void multires_force_update(Object *ob)
 	}
 }
 
+void multires_stitch_grids(Object *ob)
+{
+	/* utility for smooth brush */
+	if(ob && ob->derivedFinal) {
+		CCGDerivedMesh *ccgdm = (CCGDerivedMesh*)ob->derivedFinal;
+		CCGFace **faces;
+		int totface;
+
+		if(ccgdm->pbvh) {
+			BLI_pbvh_get_grid_updates(ccgdm->pbvh, 0, (void***)&faces, &totface);
+
+			if(totface) {
+				ccgSubSurf_stitchFaces(ccgdm->ss, 0, faces, totface);
+				MEM_freeN(faces);
+			}
+		}
+	}
+}
+
 struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
 						    int useRenderParams, int isFinalCalc)
 {
@@ -642,7 +664,8 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, i
 	if(lvl == 0)
 		return dm;
 
-	result = subsurf_dm_create_local(ob, dm, lvl, 0);
+	result = subsurf_dm_create_local(ob, dm, lvl,
+		mmd->simple, mmd->flags & eMultiresModifierFlag_ControlEdges);
 
 	if(!local_mmd) {
 		ccgdm = (CCGDerivedMesh*)result;
@@ -679,6 +702,36 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, i
 
 /**** Old Multires code ****
 ***************************/
+
+#if 0
+static void mdisp_copy_grid(float (*new)[3], int newstride, float (*old)[3], int oldstride, int xoff, int yoff, int xsize, int ysize)
+{
+	int x, y;
+
+	for(y = 0; y < ysize; ++y)
+		for(x = 0; x < xsize; ++x)
+			copy_v3_v3(disps[x + y*side], mdisp->disps[(x + xoffs) + (y + yoffs)*oldside]);
+
+}
+
+static void mdisps_convert(MFace *mface, MDisps *mdisp, int lvl)
+{
+	int side = multires_side_tot[lvl];
+	int nvert = (mface->v4)? 4: 3;
+	int totdisp = multires_grid_tot[lvl]*nvert;
+	int x, y;
+	float (*disps)[3];
+
+	disps = MEM_callocN(sizeof(float) * 3 * totdisp, "multires disps");
+
+
+
+static const int multires_max_levels = 13;
+static const int multires_grid_tot[] = {1, 4, 9, 25, 81, 289, 1089, 4225, 16641, 66049, 263169, 1050625, 4198401, 16785409};
+static const int multires_side_tot[] = {1, 2, 3, 5,  9,  17,  33,   65,   129,   257,   513,    1025,    2049,    4097};
+
+}
+#endif
 
 /* Does not actually free lvl itself */
 static void multires_free_level(MultiresLevel *lvl)

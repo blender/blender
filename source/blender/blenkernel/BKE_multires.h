@@ -27,24 +27,22 @@
  * ***** END GPL LICENSE BLOCK *****
  */ 
 
+#ifndef BKE_MULTIRES_H
+#define BKE_MULTIRES_H
+
 struct DerivedMesh;
 struct Mesh;
 struct MFace;
+struct Multires;
 struct MultiresModifierData;
 struct Object;
-
-typedef struct MultiresSubsurf {
-	struct MultiresModifierData *mmd;
-	struct Object *ob;
-	int local_mmd;
-} MultiresSubsurf;
 
 void multires_mark_as_modified(struct Object *ob);
 
 void multires_force_update(struct Object *ob);
 
-struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*, int local_mmd, struct DerivedMesh*,
-						    struct Object *, int, int);
+struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
+	int local_mmd, struct DerivedMesh*, struct Object *, int, int);
 
 struct MultiresModifierData *find_multires_modifier(struct Object *ob);
 void multiresModifier_join(struct Object *);
@@ -53,7 +51,11 @@ void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object 
 				int updateblock, int simple);
 int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *dst, struct Object *src);
 
+void multires_stitch_grids(struct Object *);
+
 /* Related to the old multires */
-struct Multires;
 void multires_load_old(struct DerivedMesh *, struct Multires *);
 void multires_free(struct Multires*);
+
+#endif
+

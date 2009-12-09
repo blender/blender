@@ -114,6 +114,7 @@ struct PBVH {
 
 	/* Grid Data */
 	DMGridData **grids;
+	DMGridAdjacency *gridadj;
 	void **gridfaces;
 	int totgrid;
 	int gridsize;
@@ -510,14 +511,15 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 }
 
 /* Do a full rebuild with on Grids data structure */
-void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, int totgrid,
-	int gridsize, void **gridfaces)
+void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj,
+	int totgrid, int gridsize, void **gridfaces)
 {
 	BBC *prim_bbc = NULL;
 	BB cb;
 	int i, j;
 
 	bvh->grids= grids;
+	bvh->gridadj= gridadj;
 	bvh->gridfaces= gridfaces;
 	bvh->totgrid= totgrid;
 	bvh->gridsize= gridsize;
@@ -948,7 +950,7 @@ void BLI_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3])
 	copy_v3_v3(bb_max, bb.bmax);
 }
 
-void BLI_pbvh_get_grid_updates(PBVH *bvh, void ***gridfaces, int *totface)
+void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *totface)
 {
 	PBVHIter iter;
 	PBVHNode *node;
@@ -965,10 +967,12 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, void ***gridfaces, int *totface)
 		if(node->flag & PBVH_UpdateNormals) {
 			for(i = 0; i < node->totprim; ++i) {
 				face= bvh->gridfaces[node->prim_indices[i]];
-				BLI_ghash_insert(map, face, face);
+				if(!BLI_ghash_lookup(map, face))
+					BLI_ghash_insert(map, face, face);
 			}
 
-			node->flag &= ~PBVH_UpdateNormals;
+			if(clear)
+				node->flag &= ~PBVH_UpdateNormals;
 		}
 	}
 
@@ -1021,19 +1025,23 @@ void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 	}
 }
 
-void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize)
+void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize, DMGridData ***griddata, DMGridAdjacency **gridadj)
 {
 	if(bvh->grids) {
 		if(grid_indices) *grid_indices= node->prim_indices;
 		if(totgrid) *totgrid= node->totprim;
 		if(maxgrid) *maxgrid= bvh->totgrid;
 		if(gridsize) *gridsize= bvh->gridsize;
+		if(griddata) *griddata= bvh->grids;
+		if(gridadj) *gridadj= bvh->gridadj;
 	}
 	else {
 		if(grid_indices) *grid_indices= NULL;
 		if(totgrid) *totgrid= 0;
 		if(maxgrid) *maxgrid= 0;
 		if(gridsize) *gridsize= 0;
+		if(griddata) *griddata= NULL;
+		if(gridadj) *gridadj= NULL;
 	}
 }
 
