@@ -44,7 +44,7 @@
 #ifdef RNA_RUNTIME
 
 /* build a temp referene to the parent */
-static int meta_tmp_ref(Sequence *seq_par, Sequence *seq)
+static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
 {
 	for (; seq; seq= seq->next) {
 		seq->tmp= seq_par;
