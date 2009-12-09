@@ -340,6 +340,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy_driver.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_interface.c"
 					>
 				</File>
