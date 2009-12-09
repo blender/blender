@@ -73,19 +73,23 @@ def _bone_class_instance_rename(self, attr, new_name):
     setattr(self, attr, ebone.name)
 
 
-def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
+def _bone_class_instance_copy(self, from_fmt="%s", to_fmt="%s", exclude_attrs=(), base_names=None):
     from_name_ls = []
     new_name_ls = []
     new_slot_ls = []
 
     for attr in self.attr_names:
+        
+        if attr in exclude_attrs:
+            continue
+        
         bone_name_orig = getattr(self, attr)
         ebone = getattr(self, attr + "_e")
         # orig_names[attr] = bone_name_orig
 
-        # insert prefix
-        if from_prefix:
-            bone_name = from_prefix + bone_name_orig
+        # insert formatting
+        if from_fmt != "%s":
+            bone_name = from_fmt % bone_name_orig
             ebone.name = bone_name
             bone_name = ebone.name # cant be sure we get what we ask for
         else:
@@ -95,8 +99,9 @@ def _bone_class_instance_copy(self, from_prefix="", to_prefix=""):
 
         new_slot_ls.append(attr)
         from_name_ls.append(bone_name)
-        bone_name_orig = bone_name_orig.replace("ORG-", "") # XXX - we need a better way to do this
-        new_name_ls.append(to_prefix + bone_name_orig)
+        if base_names:
+            bone_name_orig = base_names[bone_name_orig]
+        new_name_ls.append(to_fmt % bone_name_orig)
 
     new_bones = copy_bone_simple_list(self.obj.data, from_name_ls, new_name_ls, True)
     new_bc = bone_class_instance(self.obj, new_slot_ls)
@@ -134,6 +139,10 @@ def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_pr
 
 
 def bone_class_instance(obj, slots, name="BoneContainer"):
+    
+    if len(slots) != len(set(slots)):
+        raise Exception("duplicate entries found %s" % attr_names)
+
     attr_names = tuple(slots) # dont modify the original
     slots = list(slots) # dont modify the original
     for i in range(len(slots)):
@@ -209,6 +218,11 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
 
     if obj.mode == 'EDIT':
         raise Exception("blending cant be called in editmode")
+
+    if len(apply_bones) != len(from_bones):
+        raise Exception("lists differ in length (from -> apply): \n\t%s\n\t%s" % (from_bones, apply_bones))
+    if len(apply_bones) != len(to_bones):
+        raise Exception("lists differ in length (to -> apply): \n\t%s\n\t%s" % (to_bones, apply_bones))
 
     # setup the blend property
     if target_bone is None:
@@ -319,7 +333,8 @@ def add_stretch_to(obj, from_name, to_name, name):
     con.volume = 'NO_VOLUME'
 
     bpy.ops.object.mode_set(mode=mode_orig)
-
+    
+    return stretch_name
 
 def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
     '''

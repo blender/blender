@@ -691,8 +691,15 @@ def op2epy(BASEPATH):
         operators = dir(op_mod)
         for op in sorted(operators):
             # rna = getattr(bpy.types, op).bl_rna
-            rna = getattr(op_mod, op).get_rna()
-            write_func(rna, '', out, 'OPERATOR')
+            try:
+                rna = getattr(op_mod, op).get_rna()
+            except AttributeError:
+                rna = None
+            except TypeError:
+                rna = None
+
+            if rna:
+                write_func(rna, '', out, 'OPERATOR')
 
         out.write('\n')
         out.close()

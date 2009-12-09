@@ -41,31 +41,31 @@ def metarig_template():
     bone.roll = -3.1396
     bone.connected = False
     bone.parent = arm.edit_bones['hand']
-    bone = arm.edit_bones.new('palm.04')
+    bone = arm.edit_bones.new('palm.02')
     bone.head[:] = 0.5000, -0.0000, 0.0000
     bone.tail[:] = 0.6433, 1.2444, -0.1299
     bone.roll = -3.1357
     bone.connected = False
     bone.parent = arm.edit_bones['hand']
-    bone = arm.edit_bones.new('palm.05')
+    bone = arm.edit_bones.new('palm.01')
     bone.head[:] = 1.0000, 0.0000, 0.0000
     bone.tail[:] = 1.3961, 1.0084, -0.1299
     bone.roll = -3.1190
     bone.connected = False
     bone.parent = arm.edit_bones['hand']
-    bone = arm.edit_bones.new('palm.02')
+    bone = arm.edit_bones.new('palm.04')
     bone.head[:] = -0.5000, 0.0000, -0.0000
     bone.tail[:] = -0.5674, 1.2022, -0.1299
     bone.roll = 3.1386
     bone.connected = False
     bone.parent = arm.edit_bones['hand']
-    bone = arm.edit_bones.new('palm.01')
+    bone = arm.edit_bones.new('palm.05')
     bone.head[:] = -1.0000, 0.0000, -0.0000
     bone.tail[:] = -1.3286, 1.0590, -0.1299
     bone.roll = 3.1239
     bone.connected = False
     bone.parent = arm.edit_bones['hand']
-    bone = arm.edit_bones.new('palm.06')
+    bone = arm.edit_bones.new('thumb')
     bone.head[:] = 1.3536, -0.2941, 0.0000
     bone.tail[:] = 2.1109, 0.4807, -0.1299
     bone.roll = -3.0929
@@ -73,16 +73,16 @@ def metarig_template():
     bone.parent = arm.edit_bones['hand']
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    pbone = obj.pose.bones['palm.05']
+    pbone = obj.pose.bones['palm.01']
     pbone['type'] = 'palm'
 
 
 def metarig_definition(obj, orig_bone_name):
     '''
     The bone given is the first in an array of siblings with a matching basename
-    sorted with the little finger lowest.
+    sorted with pointer first, little finger last.
     eg.
-        [pinky, ring... etc]
+        [pointer, middle, ring, pinky... ] # any number of fingers
     '''
     arm = obj.data
 
@@ -91,6 +91,7 @@ def metarig_definition(obj, orig_bone_name):
     palm_base = palm_bone.basename
     bone_definition = [bone.name for bone in palm_parent.children if bone.basename == palm_base]
     bone_definition.sort()
+    bone_definition.reverse()
 
     return [palm_parent.name] + bone_definition
 

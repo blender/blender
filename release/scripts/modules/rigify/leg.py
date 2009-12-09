@@ -146,7 +146,7 @@ def ik(obj, bone_definition, base_names):
 
 
     # Make a new chain, ORG are the original bones renamed.
-    ik_chain = mt_chain.copy(to_prefix="MCH-")
+    ik_chain = mt_chain.copy(to_fmt="MCH-%s")
 
     # simple rename
     ik_chain.rename("thigh", ik_chain.thigh + "_ik")
