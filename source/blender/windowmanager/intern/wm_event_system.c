@@ -214,21 +214,25 @@ void wm_event_do_notifiers(bContext *C)
 				if(note->category==NC_SCREEN) {
 					if(note->data==ND_SCREENBROWSE) {
 						ED_screen_set(C, note->reference);	// XXX hrms, think this over!
-						printf("screen set %p\n", note->reference);
+						if(G.f & G_DEBUG)
+							printf("screen set %p\n", note->reference);
 					}
 					else if(note->data==ND_SCREENDELETE) {
 						ED_screen_delete(C, note->reference);	// XXX hrms, think this over!
-						printf("screen delete %p\n", note->reference);
+						if(G.f & G_DEBUG)
+							printf("screen delete %p\n", note->reference);
 					}
 				}
 				else if(note->category==NC_SCENE) {
 					if(note->data==ND_SCENEBROWSE) {
 						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
-						printf("scene set %p\n", note->reference);
+						if(G.f & G_DEBUG)
+							printf("scene set %p\n", note->reference);
 					}
 					if(note->data==ND_SCENEDELETE) {
 						ED_screen_delete_scene(C, note->reference);	// XXX hrms, think this over!
-						printf("scene delete %p\n", note->reference);
+						if(G.f & G_DEBUG)
+							printf("scene delete %p\n", note->reference);
 					}
 					else if(note->data==ND_FRAME)
 						do_anim= 1;
