@@ -183,8 +183,8 @@ typedef struct MetaStack {
 } MetaStack;
 
 typedef struct Editing {
-	ListBase *seqbasep;
-	ListBase seqbase;
+	ListBase *seqbasep; /* pointer to the current list of seq's being edited (can be within a meta strip) */
+	ListBase seqbase;	/* pointer to the top-most seq's */
 	ListBase metastack;
 	
 	/* Context vars, used to be static */

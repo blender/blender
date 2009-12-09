@@ -43,6 +43,51 @@
 
 #ifdef RNA_RUNTIME
 
+/* build a temp referene to the parent */
+static int meta_tmp_ref(Sequence *seq_par, Sequence *seq)
+{
+	for (; seq; seq= seq->next) {
+		seq->tmp= seq_par;
+		if(seq->type == SEQ_META) {
+			meta_tmp_ref(seq, seq->seqbase.first);
+		}
+	}
+}
+
+static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Scene *sce= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(sce, FALSE);
+
+	meta_tmp_ref(NULL, ed->seqbase.first);
+
+	rna_iterator_listbase_begin(iter, &ed->seqbase, NULL);
+}
+
+static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *iter)
+{
+	ListBaseIterator *internal= iter->internal;
+	Sequence *seq= (Sequence*)internal->link;
+
+	if(seq->seqbase.first)
+		internal->link= (Link*)seq->seqbase.first;
+	else if(seq->next)
+		internal->link= (Link*)seq->next;
+	else {
+		internal->link= NULL;
+
+		do {
+			seq= seq->tmp; // XXX - seq's dont reference their parents!
+			if(seq && seq->next) {
+				internal->link= (Link*)seq->next;
+				break;
+			}
+		} while(seq);
+	}
+
+	iter->valid= (internal->link != NULL);
+}
+
 static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
@@ -222,7 +267,7 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	 * TODO: would be nice to make SequenceEditor data a datablock of its own (for shorter paths)
 	 */
 	if (seq->name+2)
-		return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"]", seq->name+2);
 	else
 		return BLI_strdup("");
 }
@@ -612,6 +657,12 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Sequences", "");
+
+	prop= RNA_def_property(srna, "sequences_all", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
+	RNA_def_property_struct_type(prop, "Sequence");
+	RNA_def_property_ui_text(prop, "Sequences", "");
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_sequences_all_begin", "rna_SequenceEditor_sequences_all_next", 0, 0, 0, 0, 0);
 
 	prop= RNA_def_property(srna, "meta_stack", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
