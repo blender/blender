@@ -741,12 +741,12 @@ float dof_camera(Object *ob)
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
 		 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
-		float mat[4][4], obmat[4][4];
+		float mat[4][4], imat[4][4], obmat[4][4];
 		
 		copy_m4_m4(obmat, ob->obmat);
 		normalize_m4(obmat);
-		invert_m4_m4(ob->imat, obmat);
-		mul_m4_m4m4(mat, cam->dof_ob->obmat, ob->imat);
+		invert_m4_m4(imat, obmat);
+		mul_m4_m4m4(mat, cam->dof_ob->obmat, imat);
 		return (float)fabs(mat[3][2]);
 	}
 	return cam->YF_dofdist;
