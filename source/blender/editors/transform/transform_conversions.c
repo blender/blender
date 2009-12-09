@@ -2212,7 +2212,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
 		if(modifiers_getCageIndex(t->obedit, NULL, 1)>=0) {
-			if(modifiers_isDeformed(t->scene, t->obedit)) {
+			if(modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
 				totleft= editmesh_get_first_deform_matrices(t->obedit, em, &defmats, &defcos);

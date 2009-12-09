@@ -9151,15 +9151,15 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 }
 
 /* Takes an object and returns its first selected lattice, else just its
-* armature
-* This should work for multiple armatures per object
+* lattice
+* This should work for multiple lattics per object
 */
 Object *modifiers_isDeformedByLattice(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	LatticeModifierData *lmd= NULL;
 	
-	/* return the first selected armature, this lets us use multiple armatures
+	/* return the first selected lattice, this lets us use multiple lattices
 	*/
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Lattice) {
@@ -9192,13 +9192,9 @@ int modifiers_usesArmature(Object *ob, bArmature *arm)
 	return 0;
 }
 
-int modifier_isDeformer(ModifierData *md)
+int modifier_isCorrectableDeformed(ModifierData *md)
 {
 	if (md->type==eModifierType_Armature)
-		return 1;
-	if (md->type==eModifierType_Curve)
-		return 1;
-	if (md->type==eModifierType_Lattice)
 		return 1;
 	if (md->type==eModifierType_ShapeKey)
 		return 1;
@@ -9206,14 +9202,14 @@ int modifier_isDeformer(ModifierData *md)
 	return 0;
 }
 
-int modifiers_isDeformed(Scene *scene, Object *ob)
+int modifiers_isCorrectableDeformed(Scene *scene, Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
 		if(ob->mode==OB_MODE_EDIT && (md->mode & eModifierMode_Editmode)==0);
 		else 
-			if(modifier_isDeformer(md))
+			if(modifier_isCorrectableDeformed(md))
 				return 1;
 	}
 	return 0;

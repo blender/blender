@@ -2513,7 +2513,7 @@ int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deform
 	}
 
 	for(; md && i <= cageIndex; md = md->next, i++)
-		if(editmesh_modifier_is_enabled(md, dm) && modifier_isDeformer(md))
+		if(editmesh_modifier_is_enabled(md, dm) && modifier_isCorrectableDeformed(md))
 			numleft++;
 
 	if(dm)
