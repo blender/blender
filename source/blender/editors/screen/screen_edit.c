@@ -1468,7 +1468,7 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 				// default. So use the old headertype instead
 			
 			area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
-			if (sa->flag |= AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
+			if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
 			old->full= NULL;
 			
 			/* animtimer back */
