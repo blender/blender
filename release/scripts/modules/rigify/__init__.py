@@ -414,6 +414,9 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
     # original name mapping
     base_names = {}
+    
+    # add all new parentless children to this bone
+    root_bone = None
 
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in arm.edit_bones:
@@ -444,6 +447,12 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             del pbone["type"]
         else:
             bone_type_list = []
+            
+        if bone_type_list == ["root"]: # special case!
+            if root_bone:
+                raise Exception("cant have more then 1 root bone, found '%s' and '%s' to have type==root" % (root_bone, bone_name))
+            root_bone = bone_name
+            bone_type_list[:] = []
 
         for bone_type in bone_type_list:
             
@@ -516,6 +525,17 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             if len(result_submod) == 2:
                 blend_bone_list(obj, definition, result_submod[0], result_submod[1], target_bone=bone_name)
 
+    if root_bone:
+        # assign all new parentless bones to this
+        
+        bpy.ops.object.mode_set(mode='EDIT')
+        root_ebone = arm.edit_bones[root_bone]
+        for ebone in arm.edit_bones:
+            if ebone.parent is None and ebone.name not in base_names:
+                ebone.connected = False
+                ebone.parent = root_ebone
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
 
     if META_DEF:
         # for pbone in obj_def.pose.bones:
