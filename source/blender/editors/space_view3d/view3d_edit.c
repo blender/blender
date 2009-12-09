@@ -236,10 +236,13 @@ typedef struct ViewOpsData {
 
 	float oldquat[4];
 	float trackvec[3];
-	float ofs[3], obofs[3];
 	float reverse, dist0;
 	float grid, far;
 	short axis_snap; /* view rotate only */
+
+	/* use for orbit selection and auto-dist */
+	float ofs[3], dyn_ofs[3];
+	short use_dyn_ofs;
 
 	int origx, origy, oldx, oldy;
 	int origkey; /* the key that triggered the operator */
@@ -292,14 +295,56 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 	vod->origx= vod->oldx= event->x;
 	vod->origy= vod->oldy= event->y;
 	vod->origkey= event->type; /* the key that triggered the operator.  */
-	
-	if (U.uiflag & USER_ORBIT_SELECTION)
-	{
+	vod->use_dyn_ofs= (U.uiflag & USER_ORBIT_SELECTION) ? 1:0;
+
+	if (vod->use_dyn_ofs) {
 		VECCOPY(vod->ofs, rv3d->ofs);
 		/* If there's no selection, lastofs is unmodified and last value since static */
 		calculateTransformCenter(C, event, V3D_CENTROID, lastofs);
-		VECCOPY(vod->obofs, lastofs);
-		mul_v3_fl(vod->obofs, -1.0f);
+		VECCOPY(vod->dyn_ofs, lastofs);
+		mul_v3_fl(vod->dyn_ofs, -1.0f);
+	}
+	else if (U.uiflag & USER_ORBIT_ZBUF) {
+
+		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
+
+		if((vod->use_dyn_ofs=view_autodist(CTX_data_scene(C), vod->ar, v3d, event->mval, vod->dyn_ofs))) {
+			if (rv3d->persp==RV3D_PERSP) {
+				float my_origin[3]; /* original G.vd->ofs */
+				float my_pivot[3]; /* view */
+				float dvec[3];
+
+				// locals for dist correction
+				float mat[3][3];
+				float upvec[3];
+
+				VECCOPY(my_origin, rv3d->ofs);
+				negate_v3(my_origin);				/* ofs is flipped */
+
+				/* Set the dist value to be the distance from this 3d point */
+				/* this means youll always be able to zoom into it and panning wont go bad when dist was zero */
+
+				/* remove dist value */
+				upvec[0] = upvec[1] = 0;
+				upvec[2] = rv3d->dist;
+				copy_m3_m4(mat, rv3d->viewinv);
+
+				mul_m3_v3(mat, upvec);
+				sub_v3_v3v3(my_pivot, rv3d->ofs, upvec);
+				negate_v3(my_pivot);				/* ofs is flipped */
+
+				/* find a new ofs value that is allong the view axis (rather then the mouse location) */
+				closest_to_line_v3(dvec, vod->dyn_ofs, my_pivot, my_origin);
+				vod->dist0 = rv3d->dist = len_v3v3(my_pivot, dvec);
+
+				negate_v3(dvec);
+				VECCOPY(rv3d->ofs, dvec);
+			}
+			negate_v3(vod->dyn_ofs);
+			VECCOPY(vod->ofs, rv3d->ofs);
+		} else {
+			vod->ofs[0] = vod->ofs[1] = vod->ofs[2] = 0.0f;
+		}
 	}
 
 	/* lookup, we dont pass on v3d to prevent confusement */
@@ -413,7 +458,6 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 {
 	RegionView3D *rv3d= vod->rv3d;
-	int use_sel= U.uiflag & USER_ORBIT_SELECTION;
 
 	rv3d->view= 0; /* need to reset everytime because of view snapping */
 
@@ -449,7 +493,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		q1[3]*= si;
 		mul_qt_qtqt(rv3d->viewquat, q1, vod->oldquat);
 
-		if (use_sel) {
+		if (vod->use_dyn_ofs) {
 			/* compute the post multiplication quat, to rotate the offset correctly */
 			QUATCOPY(q1, vod->oldquat);
 			conjugate_qt(q1);
@@ -457,9 +501,9 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 			conjugate_qt(q1); /* conj == inv for unit quat */
 			VECCOPY(rv3d->ofs, vod->ofs);
-			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
 			mul_qt_v3(q1, rv3d->ofs);
-			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
 		}
 	}
 	else {
@@ -491,11 +535,11 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		q1[3] = si * xvec[2];
 		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
-		if (use_sel) {
+		if (vod->use_dyn_ofs) {
 			conjugate_qt(q1); /* conj == inv for unit quat */
-			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
 			mul_qt_v3(q1, rv3d->ofs);
-			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
 		}
 
 		/* Perform the orbital rotation */
@@ -505,11 +549,11 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		q1[3] = sin(phi);
 		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
-		if (use_sel) {
+		if (vod->use_dyn_ofs) {
 			conjugate_qt(q1);
-			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
 			mul_qt_v3(q1, rv3d->ofs);
-			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->obofs);
+			add_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
 		}
 	}
 
