@@ -429,10 +429,17 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # inspect all bones and assign their definitions before modifying
     for pbone in obj.pose.bones:
         bone_name = pbone.name
-        bone_type = obj.pose.bones[bone_name].get("type", "")
-        bone_type_list = [bt for bt in bone_type.replace(",", " ").split()]
+        bone_type = pbone.get("type", "")
+        if bone_type:
+            bone_type_list = [bt for bt in bone_type.replace(",", " ").split()]
+            
+            # not essential but means running autorig again wont do anything
+            del pbone["type"]
+        else:
+            bone_type_list = []
 
         for bone_type in bone_type_list:
+            
             type_pair = bone_type.split(".")
 
             # 'leg.ik' will look for an ik function in the leg module
@@ -500,7 +507,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             definition = bone_def_dict[submod_name]
 
             if len(result_submod) == 2:
-                blend_bone_list(obj, definition, result_submod[0], result_submod[1])
+                blend_bone_list(obj, definition, result_submod[0], result_submod[1], target_bone=bone_name)
 
 
     if META_DEF:

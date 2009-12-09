@@ -245,4 +245,4 @@ def main(obj, bone_definition, base_names):
     bones_fk = fk(obj, bone_definition, base_names)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    blend_bone_list(obj, bone_definition, bones_ik, bones_fk)
+    blend_bone_list(obj, bone_definition, bones_ik, bones_fk, target_bone=bone_definition[1])
