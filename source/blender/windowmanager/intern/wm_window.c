@@ -977,7 +977,12 @@ void wm_get_cursor_position(wmWindow *win, int *x, int *y)
 {
 	GHOST_GetCursorPosition(g_system, x, y);
 	GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+	//Cocoa has silly exception that should be fixed at the ghost level
+	//(ghost is an allegory for an invisible system specific code)
+#else
 	*y = (win->sizey-1) - *y;
+#endif
 }
 
 /* ******************* exported api ***************** */

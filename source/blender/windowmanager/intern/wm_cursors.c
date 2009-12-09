@@ -181,7 +181,7 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 			else if (tabletdata->Active == GHOST_kTabletModeNone)
 				GHOST_SetCursorGrab(win->ghostwin, mode, bounds);
 
-			win->grabcursor = 1;
+			win->grabcursor = mode;
 		}
 	}
 }
@@ -191,7 +191,7 @@ void WM_cursor_ungrab(wmWindow *win)
 	if ((G.f & G_DEBUG) == 0) {
 		if(win && win->ghostwin) {
 			GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL);
-			win->grabcursor = 0;
+			win->grabcursor = GHOST_kGrabDisable;
 		}
 	}
 }
