@@ -126,7 +126,12 @@ def ik(obj, definitions, base_names):
     mt.update()
     ik.update()
     ik_chain.update()
-    
+
+    # Set IK dof
+    ik_chain.forearm_p.ik_dof_x = True
+    ik_chain.forearm_p.ik_dof_y = False
+    ik_chain.forearm_p.ik_dof_z = False
+
     con = ik_chain.forearm_p.constraints.new('IK')
     con.target = obj
     con.subtarget = ik_chain.hand
@@ -190,6 +195,11 @@ def fk(obj, definitions, base_names):
     mt.update()
     ex.update()
     fk_chain.update()
+
+    # Set rotation modes and axis locks
+    fk_chain.forearm_p.rotation_mode = 'XYZ'
+    fk_chain.forearm_p.lock_rotation = (False, True, True)
+    fk_chain.hand_p.rotation_mode = 'ZXY'
 
     con = fk_chain.arm_p.constraints.new('COPY_LOCATION')
     con.target = obj

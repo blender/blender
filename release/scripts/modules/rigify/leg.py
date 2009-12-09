@@ -213,6 +213,11 @@ def ik(obj, bone_definition, base_names):
     mt_chain.update()
     ik_chain.update()
 
+    # Set IK dof
+    ik_chain.shin_p.ik_dof_x = True
+    ik_chain.shin_p.ik_dof_y = False
+    ik_chain.shin_p.ik_dof_z = False
+
     # IK
     con = ik_chain.shin_p.constraints.new('IK')
     con.chain_length = 2

@@ -43,7 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
-#include "BKE_main.h""
+#include "BKE_main.h"
 
 #include "ED_armature.h"
 #include "BKE_armature.h"
