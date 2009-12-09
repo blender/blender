@@ -359,11 +359,18 @@ def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
     parent_dir = parent_head - parent_tail
 
     distance = (base_dir.length + parent_dir.length)
-
+    
     if mode == 'CROSS':
+        # direction from the angle of the joint
         offset = base_dir.copy().normalize() - parent_dir.copy().normalize()
         offset.length = distance
+    elif mode == 'ZAVERAGE':
+        # between both bones Z axis
+        z_axis_a = base_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
+        z_axis_b = parent_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
+        offset = (z_axis_a + z_axis_b).normalize() * distance
     else:
+        # preset axis
         offset = Vector(0, 0, 0)
         if mode[0] == "+":
             val = distance

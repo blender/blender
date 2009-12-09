@@ -111,7 +111,7 @@ def ik(obj, definitions, base_names):
     ik_chain.arm_e.parent = mt.shoulder_e
     
     # Add the bone used for the arms poll target
-    ik.pole = add_pole_target_bone(obj, mt.forearm, "elbow_poll", mode='+Z')
+    ik.pole = add_pole_target_bone(obj, mt.forearm, "elbow_poll", mode='ZAVERAGE')
     
     # update bones after this!
     ik.hand_vis = add_stretch_to(obj, mt.hand, ik_chain.hand, "VIS-%s_ik" % base_names[mt.hand])

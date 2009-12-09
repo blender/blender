@@ -192,7 +192,9 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 			}
 
 			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dtar->name);
-			BPy_errors_to_report(NULL); // TODO - reports
+			// BPy_errors_to_report(NULL); // TODO - reports
+			PyErr_Print();
+			PyErr_Clear();
 		}
 	}
 
