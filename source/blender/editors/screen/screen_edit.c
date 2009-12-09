@@ -1468,7 +1468,7 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 				// default. So use the old headertype instead
 			
 			area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
-			
+			if (sa->flag |= AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
 			old->full= NULL;
 			
 			/* animtimer back */
@@ -1502,7 +1502,7 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 		/* returns the top small area */
 		newa= area_split(win, sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
 		ED_area_newspace(C, newa, SPACE_INFO);
-
+		
 		/* use random area when we have no active one, e.g. when the
 		   mouse is outside of the window and we open a file browser */
 		if(!sa)
@@ -1511,11 +1511,12 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 		/* copy area */
 		newa= newa->prev;
 		area_copy_data(newa, sa, 1);	/* 1 = swap spacelist */
+		sa->flag |= AREA_TEMP_INFO;
 
 		sa->full= oldscreen;
 		newa->full= oldscreen;
 		newa->next->full= oldscreen; // XXX
-
+		
 		ED_screen_set(C, sc);
 	}
 
@@ -1530,13 +1531,26 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 {
 	wmWindow *win= CTX_wm_window(C);
+	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *newsa= NULL;
 
-	if(!sa || sa->full==0)
+	if(!sa || sa->full==0) {
 		newsa= ed_screen_fullarea(C, win, sa);
-	if(!newsa)
-		newsa= sa;
-
+	}
+	
+	if(!newsa) {
+		if (sa->full) {
+			/* if this has been called from the temporary info header generated in
+			 * temp fullscreen layouts, find the correct fullscreen area to change
+			 * to create a new space inside */
+			for (newsa = screen->areabase.first; newsa; newsa=newsa->next) {
+				if (!(sa->flag & AREA_TEMP_INFO))
+					break;
+			}
+		} else
+			newsa= sa;
+	}
+	
 	ED_area_newspace(C, newsa, type);
 	
 	return 1;
@@ -1567,10 +1581,14 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 			SpaceImage *sima= sa->spacedata.first;
 			if (sima->flag & SI_PREVSPACE)
 				sima->flag &= ~SI_PREVSPACE;
-			if (sima->flag & SI_FULLWINDOW)
+			if (sima->flag & SI_FULLWINDOW) {
 				sima->flag &= ~SI_FULLWINDOW;
-		}
-		ED_screen_full_prevspace(C, sa);
+				ED_screen_full_prevspace(C, sa);
+			}
+		} else if (sl->spacetype == SPACE_FILE) {
+			ED_screen_full_prevspace(C, sa);
+		} else
+			ed_screen_fullarea(C, win, sa);
 	}
 	/* otherwise just tile the area again */
 	else {

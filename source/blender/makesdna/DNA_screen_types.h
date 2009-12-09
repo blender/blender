@@ -170,9 +170,10 @@ typedef struct ARegion {
 #define WIN_EQUAL		3
 
 /* area->flag */
-#define HEADER_NO_PULLDOWN	1
-#define AREA_FLAG_DRAWJOINTO 2
-#define AREA_FLAG_DRAWJOINFROM 4
+#define HEADER_NO_PULLDOWN		1
+#define AREA_FLAG_DRAWJOINTO	2
+#define AREA_FLAG_DRAWJOINFROM	4
+#define AREA_TEMP_INFO			8
 
 /* If you change EDGEWIDTH, also do the global arrat edcol[]  */
 #define EDGEWIDTH	1
