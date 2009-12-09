@@ -388,15 +388,9 @@ GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, G
 
 	DEBUG_VBO("GPU_buffer_setup\n");
 
-	if( globalPool == 0 ) {
+	if( globalPool == 0 )
 		globalPool = GPU_buffer_pool_new();
 
-		/* somehow GL_NORMAL_ARRAY is enabled on startup and causes edge drawing code to crash */
-		glDisableClientState( GL_VERTEX_ARRAY );
-		glDisableClientState( GL_NORMAL_ARRAY );
-		glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-		glDisableClientState( GL_COLOR_ARRAY );
-	}
 	buffer = GPU_buffer_alloc(size,globalPool);
 	if( buffer == 0 ) {
 		dm->drawObject->legacy = 1;
