@@ -838,8 +838,6 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			t->tsnap.snapPoint[0] *= aspx;
 			t->tsnap.snapPoint[1] *= aspy;
 
-			mul_m4_v3(t->obedit->obmat, t->tsnap.snapPoint);
-			
 			t->tsnap.status |=  POINT_INIT;
 		}
 		else

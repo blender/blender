@@ -288,8 +288,7 @@ class IMAGE_HT_header(bpy.types.Header):
 
             row = layout.row(align=True)
             row.prop(settings, "snap", text="")
-            if settings.snap:
-                row.prop(settings, "snap_mode", text="")
+            row.prop(settings, "snap_element", text="", icon_only=True)
 
             # mesh = context.edit_object.data
             # row.prop_object(mesh, "active_uv_layer", mesh, "uv_textures")
