@@ -35,12 +35,13 @@
 
 struct bContext;
 struct Brush;
+struct KeyBlock;
 struct Mesh;
+struct MultiresModifierData;
 struct Object;
 struct Scene;
 struct Sculpt;
 struct SculptStroke;
-struct MultiresModifierData;
 
 /* Interface */
 void sculptmode_selectbrush_menu(void);
@@ -57,7 +58,9 @@ char sculpt_modifiers_active(struct Object *ob);
 void sculpt(Sculpt *sd);
 
 int sculpt_poll(struct bContext *C);
-void sculpt_update_mesh_elements(struct bContext *C, int need_fmap);
+void sculpt_update_mesh_elements(struct Scene *scene, struct Object *ob, int need_fmap);
+void sculpt_key_to_mesh(struct KeyBlock *kb, struct Object *ob);
+void sculpt_mesh_to_key(struct Object *ob, struct KeyBlock *kb);
 
 /* Stroke */
 struct SculptStroke *sculpt_stroke_new(const int max);
