@@ -1079,9 +1079,9 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 
 	uiStyleFontSet(&style->widget);
 
-	origstr= MEM_callocN(sizeof(char)*(data->maxlen+1), "ui_textedit origstr");
+	origstr= MEM_callocN(sizeof(char)*data->maxlen, "ui_textedit origstr");
 	
-	BLI_strncpy(origstr, but->drawstr, data->maxlen+1);
+	BLI_strncpy(origstr, but->drawstr, data->maxlen);
 	but->pos= strlen(origstr)-but->ofs;
 	
 	/* XXX solve generic */
@@ -1130,7 +1130,7 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 			changed= ui_textedit_delete_selection(but, data);
 
 		len= strlen(str);
-		if(len < data->maxlen) {
+		if(len+1 < data->maxlen) {
 			for(x= data->maxlen; x>but->pos; x--)
 				str[x]= str[x-1];
 			str[but->pos]= ascii;
@@ -1365,7 +1365,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 			for (y=0; y<strlen(buf); y++)
 			{
 				/* add contents of buffer */
-				if(len < data->maxlen) {
+				if(len+1 < data->maxlen) {
 					for(x= data->maxlen; x>but->pos; x--)
 						str[x]= str[x-1];
 					str[but->pos]= buf[y];
@@ -1411,8 +1411,8 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 	/* retrieve string */
 	data->maxlen= ui_get_but_string_max_length(but);
-	data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
-	ui_get_but_string(but, data->str, data->maxlen+1);
+	data->str= MEM_callocN(sizeof(char)*data->maxlen, "textedit str");
+	ui_get_but_string(but, data->str, data->maxlen);
 
 	data->origstr= BLI_strdup(data->str);
 	data->selextend= 0;
