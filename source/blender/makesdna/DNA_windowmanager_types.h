@@ -60,7 +60,7 @@ struct uiLayout;
 #define OP_MAX_TYPENAME	64
 #define KMAP_MAX_NAME	64
 
-
+/* keep in sync with 'wm_report_items' in wm_rna.c */
 typedef enum ReportType {
 	RPT_DEBUG					= 1<<0,
 	RPT_INFO					= 1<<1,
