@@ -124,24 +124,24 @@ class VIEW3D_MT_transform(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("tfm.translate", text="Grab/Move")
+        layout.operator("transform.translate", text="Grab/Move")
         # TODO: sub-menu for grab per axis
-        layout.operator("tfm.rotate", text="Rotate")
+        layout.operator("transform.rotate", text="Rotate")
         # TODO: sub-menu for rot per axis
-        layout.operator("tfm.resize", text="Scale")
+        layout.operator("transform.resize", text="Scale")
         # TODO: sub-menu for scale per axis
 
         layout.separator()
 
-        layout.operator("tfm.tosphere", text="To Sphere")
-        layout.operator("tfm.shear", text="Shear")
-        layout.operator("tfm.warp", text="Warp")
-        layout.operator("tfm.transform", text="Push/Pull").mode = 'PUSHPULL'
+        layout.operator("transform.tosphere", text="To Sphere")
+        layout.operator("transform.shear", text="Shear")
+        layout.operator("transform.warp", text="Warp")
+        layout.operator("transform.transform", text="Push/Pull").mode = 'PUSHPULL'
         if context.edit_object and context.edit_object.type == 'ARMATURE':
             layout.operator("armature.align")
         else:
             layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator("tfm.transform", text="Align to Transform Orientation").mode = 'ALIGN' # XXX see alignmenu() in edit.c of b2.4x to get this working
+            layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN' # XXX see alignmenu() in edit.c of b2.4x to get this working
 
         layout.separator()
 
@@ -158,32 +158,32 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("tfm.mirror", text="Interactive Mirror")
+        layout.operator("transform.mirror", text="Interactive Mirror")
 
         layout.separator()
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        props = layout.operator("tfm.mirror", text="X Global")
+        props = layout.operator("transform.mirror", text="X Global")
         props.constraint_axis = (True, False, False)
         props.constraint_orientation = 'GLOBAL'
-        props = layout.operator("tfm.mirror", text="Y Global")
+        props = layout.operator("transform.mirror", text="Y Global")
         props.constraint_axis = (False, True, False)
         props.constraint_orientation = 'GLOBAL'
-        props = layout.operator("tfm.mirror", text="Z Global")
+        props = layout.operator("transform.mirror", text="Z Global")
         props.constraint_axis = (False, False, True)
         props.constraint_orientation = 'GLOBAL'
 
         if context.edit_object:
             layout.separator()
 
-            props = layout.operator("tfm.mirror", text="X Local")
+            props = layout.operator("transform.mirror", text="X Local")
             props.constraint_axis = (True, False, False)
             props.constraint_orientation = 'LOCAL'
-            props = layout.operator("tfm.mirror", text="Y Local")
+            props = layout.operator("transform.mirror", text="Y Local")
             props.constraint_axis = (False, True, False)
             props.constraint_orientation = 'LOCAL'
-            props = layout.operator("tfm.mirror", text="Z Local")
+            props = layout.operator("transform.mirror", text="Z Local")
             props.constraint_axis = (False, False, True)
             props.constraint_orientation = 'LOCAL'
 
@@ -918,7 +918,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_snap")
         if arm.drawtype in ('BBONE', 'ENVELOPE'):
-            layout.operator("tfm.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
+            layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
 
         layout.menu("VIEW3D_MT_pose_transform")
 
@@ -1177,7 +1177,7 @@ class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("TFM_OT_edge_slide", text="Edge Slide")
+        layout.operator("TRANSFORM_OT_edge_slide", text="Edge Slide")
         layout.operator("mesh.loop_multi_select", text="Edge Loop")
 
         # uiItemO(layout, "Loopcut", 0, "mesh.loop_cut"); // CutEdgeloop(em, 1);
@@ -1298,7 +1298,7 @@ class VIEW3D_MT_edit_curve_ctrlpoints(bpy.types.Menu):
         edit_object = context.edit_object
 
         if edit_object.type == 'CURVE':
-            layout.operator("tfm.transform").mode = 'TILT'
+            layout.operator("transform.transform").mode = 'TILT'
             layout.operator("curve.tilt_clear")
             layout.operator("curve.separate")
 
@@ -1458,9 +1458,9 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
         layout.menu("VIEW3D_MT_edit_armature_roll")
 
         if arm.drawtype == 'ENVELOPE':
-            layout.operator("tfm.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
+            layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
         else:
-            layout.operator("tfm.transform", text="Scale B-Bone Width").mode = 'BONESIZE'
+            layout.operator("transform.transform", text="Scale B-Bone Width").mode = 'BONESIZE'
 
         layout.separator()
 
@@ -1544,7 +1544,7 @@ class VIEW3D_MT_edit_armature_roll(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("tfm.transform", text="Set Roll").mode = 'BONE_ROLL'
+        layout.operator("transform.transform", text="Set Roll").mode = 'BONE_ROLL'
 
 # ********** Panel **********
 
@@ -1769,13 +1769,13 @@ class VIEW3D_PT_transform_orientations(bpy.types.Panel):
         col = layout.column()
 
         col.prop(view, "transform_orientation")
-        col.operator("tfm.create_orientation", text="Create")
+        col.operator("transform.create_orientation", text="Create")
 
         orientation = view.current_orientation
 
         if orientation:
             col.prop(orientation, "name")
-            col.operator("tfm.delete_orientation", text="Delete")
+            col.operator("transform.delete_orientation", text="Delete")
 
 
 class VIEW3D_PT_etch_a_ton(bpy.types.Panel):

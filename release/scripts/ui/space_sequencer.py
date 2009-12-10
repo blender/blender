@@ -199,8 +199,8 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator("tfm.transform", text="Grab/Move").mode = 'TRANSLATION'
-        layout.operator("tfm.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
+        layout.operator("transform.transform", text="Grab/Move").mode = 'TRANSLATION'
+        layout.operator("transform.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
         #  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
         layout.separator()
 

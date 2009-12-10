@@ -203,7 +203,7 @@ void ED_operatormacros_object(void)
 	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
-		otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
 
@@ -212,7 +212,7 @@ void ED_operatormacros_object(void)
 	if(ot) {
 		otmacro= WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		RNA_boolean_set(otmacro->ptr, "linked", 1);
-		otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
 }

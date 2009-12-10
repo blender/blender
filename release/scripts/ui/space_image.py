@@ -150,9 +150,9 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("tfm.translate")
-        layout.operator("tfm.rotate")
-        layout.operator("tfm.resize")
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize")
 
 
 class IMAGE_MT_uvs_snap(bpy.types.Menu):
@@ -179,8 +179,8 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.operator("tfm.mirror", text="X Axis").constraint_axis[0] = True
-        layout.operator("tfm.mirror", text="Y Axis").constraint_axis[1] = True
+        layout.operator("transform.mirror", text="X Axis").constraint_axis[0] = True
+        layout.operator("transform.mirror", text="Y Axis").constraint_axis[1] = True
 
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):

@@ -153,9 +153,9 @@ class NLA_MT_edit_transform(bpy.types.Menu):
         layout = self.layout
 
         layout.column()
-        layout.operator("tfm.translate", text="Grab/Move")
-        layout.operator("tfm.transform", text="Extend").mode = 'TIME_EXTEND'
-        layout.operator("tfm.resize", text="Scale")
+        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
+        layout.operator("transform.resize", text="Scale")
 
 
 bpy.types.register(NLA_HT_header) # header/menu classes

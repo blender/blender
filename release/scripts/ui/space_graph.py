@@ -181,10 +181,10 @@ class GRAPH_MT_key_transform(bpy.types.Menu):
         layout = self.layout
 
         layout.column()
-        layout.operator("tfm.translate", text="Grab/Move")
-        layout.operator("tfm.transform", text="Extend").mode = 'TIME_EXTEND'
-        layout.operator("tfm.rotate", text="Rotate")
-        layout.operator("tfm.resize", text="Scale")
+        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
+        layout.operator("transform.rotate", text="Rotate")
+        layout.operator("transform.resize", text="Scale")
 
 
 bpy.types.register(GRAPH_HT_header) # header/menu classes

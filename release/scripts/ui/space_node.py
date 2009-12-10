@@ -109,9 +109,9 @@ class NODE_MT_node(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("tfm.translate")
-        layout.operator("tfm.rotate")
-        layout.operator("tfm.resize")
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize")
 
         layout.separator()
 

@@ -569,18 +569,18 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
 
 	/* assign map to operators */
-	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
-	WM_modalkeymap_assign(keymap, "TFM_OT_translate");
-	WM_modalkeymap_assign(keymap, "TFM_OT_rotate");
-	WM_modalkeymap_assign(keymap, "TFM_OT_tosphere");
-	WM_modalkeymap_assign(keymap, "TFM_OT_resize");
-	WM_modalkeymap_assign(keymap, "TFM_OT_shear");
-	WM_modalkeymap_assign(keymap, "TFM_OT_warp");
-	WM_modalkeymap_assign(keymap, "TFM_OT_shrink_fatten");
-	WM_modalkeymap_assign(keymap, "TFM_OT_tilt");
-	WM_modalkeymap_assign(keymap, "TFM_OT_trackball");
-	WM_modalkeymap_assign(keymap, "TFM_OT_mirror");
-	WM_modalkeymap_assign(keymap, "TFM_OT_edge_slide");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_transform");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_translate");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_rotate");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_tosphere");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_resize");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_shear");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_warp");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_shrink_fatten");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_tilt");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_trackball");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_mirror");
+	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_edge_slide");
 }
 
 
