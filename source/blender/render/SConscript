@@ -1,6 +1,13 @@
 #!/usr/bin/python
 Import ('env')
 
+sources = env.Glob('intern/source/*.c')
+raysources = env.Glob('intern/raytrace/*.cpp')
+
+incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
+incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf'
+incs += ' ../include ../blenloader ../../../intern/smoke/extern'
+
 cflags = env['CCFLAGS']
 cxxflags = env['CXXFLAGS']
 
@@ -26,13 +33,6 @@ if env['OURPLATFORM'] == 'linux2':
         cflags = env['CCFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
         cxxflags = env['CXXFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
     incs += ' ../../../extern/binreloc/include'
-
-sources = env.Glob('intern/source/*.c')
-raysources = env.Glob('intern/raytrace/*.cpp')
-
-incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
-incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf'
-incs += ' ../include ../blenloader ../../../intern/smoke/extern'
 
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
