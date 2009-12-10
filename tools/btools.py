@@ -76,7 +76,8 @@ def validate_arguments(args, bc):
             'WITH_BF_FHS',
             'BF_VERSION',
             'BF_GHOST_DEBUG',
-            'WITH_BF_RAYOPTIMIZATION'
+            'WITH_BF_RAYOPTIMIZATION',
+            'BF_RAYOPTIMIZATION_SSE_FLAGS'
             ]
     
     # Have options here that scons expects to be lists
@@ -423,7 +424,9 @@ def read_opts(cfg, args):
         (BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False)),
         
         (BoolVariable('BF_GHOST_DEBUG', 'Make GHOST print events and info to stdout. (very verbose)', False)),
-        (BoolVariable('WITH_BF_RAYOPTIMIZATION', 'Enable raytracer SSE/SIMD optimization.', False))
+        
+        (BoolVariable('WITH_BF_RAYOPTIMIZATION', 'Enable raytracer SSE/SIMD optimization.', False)),
+        ('BF_RAYOPTIMIZATION_SSE_FLAGS', 'SSE flags', '')
     ) # end of opts.AddOptions()
 
     return localopts

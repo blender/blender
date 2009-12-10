@@ -4,18 +4,28 @@ Import ('env')
 cflags = env['CCFLAGS']
 cxxflags = env['CXXFLAGS']
 
+defs = []
+
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
     if env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CCFLAGS'] + ['/arch:SSE']
+        cflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
 
 if env['OURPLATFORM'] == 'win32-mingw':
     if env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CCFLAGS'] + ['-mfpmath=sse']
+        cflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags = env['CXXFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
 
 if env['OURPLATFORM'] == 'darwin':
     if env['MACOSX_ARCHITECTURE'] in ('i386', 'x86_64') and env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CFLAGS'] + ['-mfpmath=sse']
-        cxxflags = env['CXXFLAGS'] + ['-mfpmath=sse']
+        cflags = env['CFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags = env['CXXFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        
+if env['OURPLATFORM'] == 'linux2':
+    if env['WITH_BF_RAYOPTIMIZATION']:
+        cflags = env['CCFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags = env['CXXFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+    incs += ' ../../../extern/binreloc/include'
 
 sources = env.Glob('intern/source/*.c')
 raysources = env.Glob('intern/raytrace/*.cpp')
@@ -24,23 +34,12 @@ incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
 incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf'
 incs += ' ../include ../blenloader ../../../intern/smoke/extern'
 
-defs = []
-
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']
 
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
-
-if env['OURPLATFORM'] == 'linux2':
-#    SSE is NOT safe all the time on linux, plus that ignores users compile flags and therefore no no
-#    cflags = ['-O2','-msse2','-mfpmath=sse', '-pthread']
-#    cxxflags = ['-O2','-msse2','-mfpmath=sse', '-pthread']
-    if env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CCFLAGS'] +  ['-O2','-msse2','-mfpmath=sse', '-pthread']
-        cxxflags = env['CXXFLAGS'] +  ['-O2','-msse2','-mfpmath=sse', '-pthread']
-    incs += ' ../../../extern/binreloc/include'
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
