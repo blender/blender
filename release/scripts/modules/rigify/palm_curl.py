@@ -118,9 +118,9 @@ def main(obj, bone_definition, base_names):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-
-    arm, control_pbone, control_ebone = get_bone_data(obj, control_name)
-    arm, pinky_pbone, pinky_ebone = get_bone_data(obj, children[0])
+    arm = obj.data
+    control_pbone = obj.pose.bones[control_name]
+    pinky_pbone = obj.pose.bones[children[0]]
 
     control_pbone.rotation_mode = 'YZX'
     control_pbone.lock_rotation = False, True, True

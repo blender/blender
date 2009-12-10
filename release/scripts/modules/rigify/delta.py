@@ -75,7 +75,7 @@ def main(obj, bone_definition, base_names):
     '''
     Use this bone to define a delta thats applied to its child in pose mode.
     '''
-
+    return
     mode_orig = obj.mode
     bpy.ops.object.mode_set(mode='OBJECT')
 

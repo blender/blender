@@ -19,8 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import EMPTY_LAYER
-from rigify_utils import copy_bone_simple, get_side_name, get_base_name
+from rigify_utils import copy_bone_simple, get_side_name, get_base_name, EMPTY_LAYER
 from rna_prop_ui import rna_idprop_ui_prop_get
 from functools import reduce
 
@@ -90,7 +89,9 @@ def main(obj, bone_definition, base_names):
     # *** EDITMODE
 
     # get assosiated data
-    arm, orig_pbone, orig_ebone = get_bone_data(obj, bone_definition[0])
+    arm = obj.data
+    orig_pbone = obj.pose.bones[bone_definition[0]]
+    orig_ebone = arm.edit_bones[bone_definition[0]]
 
     obj.animation_data_create() # needed if its a new armature with no keys
 
@@ -117,7 +118,7 @@ def main(obj, bone_definition, base_names):
     children = [pbone.name for pbone in children]
 
     # set an alternate layer for driver bones
-    other_layer = empty_layer[:]
+    other_layer = EMPTY_LAYER[:]
     other_layer[8] = True
 
 

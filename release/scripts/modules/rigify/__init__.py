@@ -24,8 +24,7 @@ from Mathutils import Vector
 # TODO, have these in a more general module
 from rna_prop_ui import rna_idprop_ui_prop_get
 
-EMPTY_LAYER = [False] * 32
-DELIMITER = '-._'
+
 
 def submodule_func_from_type(bone_type):
     type_pair = bone_type.split(".")
@@ -39,7 +38,7 @@ def submodule_func_from_type(bone_type):
 
     # from rigify import leg
     submod = __import__(name="%s.%s" % (__package__, submod_name), fromlist=[submod_name])
-    
+    reload(submod)
     return submod, getattr(submod, func_name)
     
 
@@ -63,6 +62,8 @@ def validate_rig(context, obj):
 
 def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     from collections import OrderedDict
+    import rigify_utils
+    reload(rigify_utils)
 
     global_undo = context.user_preferences.edit.global_undo
     context.user_preferences.edit.global_undo = False
@@ -110,6 +111,12 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # value: [functions, ...]
     #    each function is from the module. eg leg.ik, arm.main
     bone_typeinfos = {}
+    
+    # key: bone name
+    # value: [new_bone_name, ...]
+    #   where each bone with a 'type' stores a list of bones that it created
+    #   ...needed so we can override the root parent
+    bone_genesis = {}
 
     # inspect all bones and assign their definitions before modifying
     for pbone in obj.pose.bones:
@@ -162,6 +169,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         # Only blend results from the same submodule, eg.
         #    leg.ik and arm.fk could not be blended.
         results = OrderedDict()
+        
+        bone_names_pre = set([bone.name for bone in arm.bones])
 
         for submod_name, type_func in bone_typeinfos[bone_name]:
             # this bones definition of the current typeinfo
@@ -186,15 +195,41 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             if len(result_submod) == 2:
                 blend_bone_list(obj, definition, result_submod[0], result_submod[1], target_bone=bone_name)
 
+
+        bone_names_post = set([bone.name for bone in arm.bones])
+        
+        # Store which bones were created from this one
+        bone_genesis[bone_name] = list(bone_names_post - bone_names_pre)
+    
+    # need a reverse lookup on bone_genesis so as to know immediately
+    # where a bone comes from
+    bone_genesis_reverse = {}
+    for bone_name, bone_children in bone_genesis.items():
+        for bone_child_name in bone_children:
+            bone_genesis_reverse[bone_child_name] = bone_name
+    
+
     if root_bone:
         # assign all new parentless bones to this
         
         bpy.ops.object.mode_set(mode='EDIT')
         root_ebone = arm.edit_bones[root_bone]
         for ebone in arm.edit_bones:
-            if ebone.parent is None and ebone.name not in base_names:
+            bone_name = ebone.name
+            if ebone.parent is None and bone_name not in base_names:
+                # check for override
+                bone_creator = bone_genesis_reverse[bone_name]
+                pbone_creator = obj.pose.bones[bone_creator]
+                root_bone_override = pbone_creator.get("root", "")
+
+                if root_bone_override:
+                    root_ebone_tmp = arm.edit_bones[root_bone_override]
+                else:
+                    root_ebone_tmp = root_ebone
+                
                 ebone.connected = False
                 ebone.parent = root_ebone
+
         bpy.ops.object.mode_set(mode='OBJECT')
         
 
@@ -277,9 +312,11 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
 
 def generate_test_all(context, GRAPH=False):
     import rigify
+    import rigify_utils
     import graphviz_export
     import os
     reload(rigify)
+    reload(rigify_utils)
     reload(graphviz_export)
 
     new_objects = rigify.generate_test(context)

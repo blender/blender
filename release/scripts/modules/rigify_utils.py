@@ -25,6 +25,13 @@
 # for rigify so in some cases seemingly generic functions make assumptions
 # that a generic function would need to check for.
 
+import bpy
+from Mathutils import Vector
+from rna_prop_ui import rna_idprop_ui_prop_get
+
+DELIMITER = '-._'
+EMPTY_LAYER = [False] * 32
+
 def add_stretch_to(obj, from_name, to_name, name):
     '''
     Adds a bone that stretches from one to another
