@@ -297,9 +297,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
         row = layout.row()
         if strip.mute == True:
-            row.prop(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_ON', text="")
+            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON', text="")
         elif strip.mute is False:
-            row.prop(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_OFF', text="")
+            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_OFF', text="")
 
         sub = row.row()
         sub.active = (not strip.mute)
@@ -517,9 +517,9 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 
         row = layout.row()
         if strip.sound.packed_file:
-            row.operator("sound.unpack", icon='ICON_PACKAGE', text="Unpack")
+            row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
         else:
-            row.operator("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
+            row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
 
         row.prop(strip.sound, "caching")
 

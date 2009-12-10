@@ -46,14 +46,14 @@ class GRAPH_HT_header(bpy.types.Header):
         layout.prop(st, "pivot_point", text="", icon_only=True)
 
         row = layout.row(align=True)
-        row.operator("graph.copy", text="", icon='ICON_COPYDOWN')
-        row.operator("graph.paste", text="", icon='ICON_PASTEDOWN')
+        row.operator("graph.copy", text="", icon='COPYDOWN')
+        row.operator("graph.paste", text="", icon='PASTEDOWN')
 
         row = layout.row(align=True)
         if st.has_ghost_curves:
-            row.operator("graph.ghost_curves_clear", text="", icon='ICON_GHOST_DISABLED')
+            row.operator("graph.ghost_curves_clear", text="", icon='GHOST_DISABLED')
         else:
-            row.operator("graph.ghost_curves_create", text="", icon='ICON_GHOST_ENABLED')
+            row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
 
 
 class GRAPH_MT_view(bpy.types.Menu):
@@ -67,7 +67,7 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.column()
 
         layout.separator()
-        layout.operator("graph.properties", icon="ICON_MENU_PANEL")
+        layout.operator("graph.properties", icon='MENU_PANEL')
 
         layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "show_cursor")
@@ -76,9 +76,9 @@ class GRAPH_MT_view(bpy.types.Menu):
 
         layout.separator()
         if st.show_handles:
-            layout.operator("graph.handles_view_toggle", icon="ICON_CHECKBOX_HLT", text="Show All Handles")
+            layout.operator("graph.handles_view_toggle", icon='CHECKBOX_HLT', text="Show All Handles")
         else:
-            layout.operator("graph.handles_view_toggle", icon="ICON_CHECKBOX_DEHLT", text="Show All Handles")
+            layout.operator("graph.handles_view_toggle", icon='CHECKBOX_DEHLT', text="Show All Handles")
         layout.prop(st, "only_selected_curves_handles")
         layout.prop(st, "only_selected_keyframe_handles")
         layout.operator("anim.time_toggle")

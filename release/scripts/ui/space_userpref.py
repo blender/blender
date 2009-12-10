@@ -1215,16 +1215,16 @@ class USERPREF_PT_input(bpy.types.Panel):
             row = subcol.row()
 
             if kmi.expanded:
-                row.prop(kmi, "expanded", text="", icon='ICON_TRIA_DOWN')
+                row.prop(kmi, "expanded", text="", icon='TRIA_DOWN')
             else:
-                row.prop(kmi, "expanded", text="", icon='ICON_TRIA_RIGHT')
+                row.prop(kmi, "expanded", text="", icon='TRIA_RIGHT')
 
             itemrow = row.row()
             itemrow.enabled = km.user_defined
             if kmi.active:
-                itemrow.prop(kmi, "active", text="", icon='ICON_CHECKBOX_HLT')
+                itemrow.prop(kmi, "active", text="", icon='CHECKBOX_HLT')
             else:
-                itemrow.prop(kmi, "active", text="", icon='ICON_CHECKBOX_DEHLT')
+                itemrow.prop(kmi, "active", text="", icon='CHECKBOX_DEHLT')
 
             itemcol = itemrow.column()
             itemcol.active = kmi.active
@@ -1286,11 +1286,11 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                 itemcol.separator()
 
-            itemrow.operator("wm.keyitem_remove", text="", icon='ICON_ZOOMOUT')
+            itemrow.operator("wm.keyitem_remove", text="", icon='ZOOMOUT')
 
         itemrow = col.row()
         itemrow.label()
-        itemrow.operator("wm.keyitem_add", text="", icon='ICON_ZOOMIN')
+        itemrow.operator("wm.keyitem_add", text="", icon='ZOOMIN')
         itemrow.enabled = km.user_defined
 
 bpy.types.register(USERPREF_HT_header)

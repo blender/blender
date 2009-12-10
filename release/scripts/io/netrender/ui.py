@@ -71,7 +71,7 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 		if scene.network_render.mode == "RENDER_MASTER":
 			col.prop(scene.network_render, "server_broadcast")
 		else:
-			col.operator("render.netclientscan", icon="ICON_FILE_REFRESH", text="")
+			col.operator("render.netclientscan", icon='FILE_REFRESH', text="")
 
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
@@ -93,9 +93,9 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.operator("render.netclientanim", icon='ICON_RENDER_ANIMATION')
-		col.operator("render.netclientsend", icon="ICON_FILE_BLEND")
-		col.operator("render.netclientweb", icon="ICON_QUESTION")
+		col.operator("render.netclientanim", icon='RENDER_ANIMATION')
+		col.operator("render.netclientsend", icon='FILE_BLEND')
+		col.operator("render.netclientweb", icon='QUESTION')
 		col.prop(scene.network_render, "job_name")
 		row = col.row()
 		row.prop(scene.network_render, "priority")
@@ -120,8 +120,8 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 		row.template_list(netsettings, "slaves", netsettings, "active_slave_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.operator("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
-		sub.operator("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
+		sub.operator("render.netclientslaves", icon='FILE_REFRESH', text="")
+		sub.operator("render.netclientblacklistslave", icon='ZOOMOUT', text="")
 		
 		if len(netrender.slaves) == 0 and len(netsettings.slaves) > 0:
 			while(len(netsettings.slaves) > 0):
@@ -156,7 +156,7 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 		row.template_list(netsettings, "slaves_blacklist", netsettings, "active_blacklisted_slave_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.operator("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
+		sub.operator("render.netclientwhitelistslave", icon='ZOOMOUT', text="")
 
 		if len(netrender.blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
 			while(len(netsettings.slaves_blacklist) > 0):
@@ -191,10 +191,10 @@ class RENDER_PT_network_jobs(RenderButtonsPanel):
 		row.template_list(netsettings, "jobs", netsettings, "active_job_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.operator("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
-		sub.operator("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
-		sub.operator("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
-		sub.operator("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
+		sub.operator("render.netclientstatus", icon='FILE_REFRESH', text="")
+		sub.operator("render.netclientcancel", icon='ZOOMOUT', text="")
+		sub.operator("render.netclientcancelall", icon='PANEL_CLOSE', text="")
+		sub.operator("render.netclientdownload", icon='RENDER_ANIMATION', text="")
 
 		if len(netrender.jobs) == 0 and len(netsettings.jobs) > 0:
 			while(len(netsettings.jobs) > 0):

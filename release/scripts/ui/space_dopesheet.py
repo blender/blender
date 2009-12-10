@@ -57,8 +57,8 @@ class DOPESHEET_HT_header(bpy.types.Header):
             layout.prop(st, "autosnap", text="")
 
         row = layout.row(align=True)
-        row.operator("action.copy", text="", icon='ICON_COPYDOWN')
-        row.operator("action.paste", text="", icon='ICON_PASTEDOWN')
+        row.operator("action.copy", text="", icon='COPYDOWN')
+        row.operator("action.paste", text="", icon='PASTEDOWN')
 
 
 class DOPESHEET_MT_view(bpy.types.Menu):

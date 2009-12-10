@@ -114,12 +114,12 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
         row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index", rows=rows)
 
         col = row.column(align=True)
-        col.operator("object.vertex_group_add", icon='ICON_ZOOMIN', text="")
-        col.operator("object.vertex_group_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
+        col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
 
-        col.operator("object.vertex_group_copy", icon='ICON_COPY_ID', text="")
+        col.operator("object.vertex_group_copy", icon='COPY_ID', text="")
         if ob.data.users > 1:
-            col.operator("object.vertex_group_copy_to_linked", icon='ICON_LINK_AREA', text="")
+            col.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA', text="")
 
         if group:
             row = layout.row()
@@ -170,15 +170,15 @@ class DATA_PT_shape_keys(DataButtonsPanel):
         col = row.column()
 
         sub = col.column(align=True)
-        sub.operator("object.shape_key_add", icon='ICON_ZOOMIN', text="")
-        sub.operator("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
+        sub.operator("object.shape_key_add", icon='ZOOMIN', text="")
+        sub.operator("object.shape_key_remove", icon='ZOOMOUT', text="")
 
         if kb:
             col.separator()
 
             sub = col.column(align=True)
-            sub.operator("object.shape_key_move", icon='ICON_TRIA_UP', text="").type = 'UP'
-            sub.operator("object.shape_key_move", icon='ICON_TRIA_DOWN', text="").type = 'DOWN'
+            sub.operator("object.shape_key_move", icon='TRIA_UP', text="").type = 'UP'
+            sub.operator("object.shape_key_move", icon='TRIA_DOWN', text="").type = 'DOWN'
 
             split = layout.split(percentage=0.4)
             row = split.row()
@@ -198,18 +198,18 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
             if ob.shape_key_lock:
-                subsub.prop(ob, "shape_key_lock", icon='ICON_PINNED', text="")
+                subsub.prop(ob, "shape_key_lock", icon='PINNED', text="")
             else:
-                subsub.prop(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
+                subsub.prop(ob, "shape_key_lock", icon='UNPINNED', text="")
             if kb.mute:
-                subsub.prop(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
+                subsub.prop(kb, "mute", icon='MUTE_IPO_ON', text="")
             else:
-                subsub.prop(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
+                subsub.prop(kb, "mute", icon='MUTE_IPO_OFF', text="")
             sub.prop(ob, "shape_key_edit_mode", text="")
 
             sub = row.row(align=True)
-            sub.operator("object.shape_key_mirror", icon='ICON_ARROW_LEFTRIGHT', text="")
-            sub.operator("object.shape_key_clear", icon='ICON_X', text="")
+            sub.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT', text="")
+            sub.operator("object.shape_key_clear", icon='X', text="")
 
 
             row = layout.row()
@@ -256,8 +256,8 @@ class DATA_PT_uv_texture(DataButtonsPanel):
         col.template_list(me, "uv_textures", me, "active_uv_texture_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("mesh.uv_texture_add", icon='ICON_ZOOMIN', text="")
-        col.operator("mesh.uv_texture_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("mesh.uv_texture_add", icon='ZOOMIN', text="")
+        col.operator("mesh.uv_texture_remove", icon='ZOOMOUT', text="")
 
         lay = me.active_uv_texture
         if lay:
@@ -278,8 +278,8 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
         col.template_list(me, "vertex_colors", me, "active_vertex_color_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("mesh.vertex_color_add", icon='ICON_ZOOMIN', text="")
-        col.operator("mesh.vertex_color_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")
+        col.operator("mesh.vertex_color_remove", icon='ZOOMOUT', text="")
 
         lay = me.active_vertex_color
         if lay:

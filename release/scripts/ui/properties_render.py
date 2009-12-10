@@ -53,11 +53,11 @@ class RENDER_PT_render(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.operator("screen.render", text="Image", icon='ICON_RENDER_STILL')
+        col.operator("screen.render", text="Image", icon='RENDER_STILL')
 
         if wide_ui:
             col = split.column()
-        col.operator("screen.render", text="Animation", icon='ICON_RENDER_ANIMATION').animation = True
+        col.operator("screen.render", text="Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.prop(rd, "display_mode", text="Display")
 
@@ -78,8 +78,8 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("scene.render_layer_add", icon='ICON_ZOOMIN', text="")
-        col.operator("scene.render_layer_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
+        col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
         rl = rd.layers[rd.active_layer_index]
 
@@ -145,19 +145,19 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "pass_diffuse")
         row = col.row()
         row.prop(rl, "pass_specular")
-        row.prop(rl, "pass_specular_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_specular_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_shadow")
-        row.prop(rl, "pass_shadow_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_shadow_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_ao")
-        row.prop(rl, "pass_ao_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_ao_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_reflection")
-        row.prop(rl, "pass_reflection_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_reflection_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_refraction")
-        row.prop(rl, "pass_refraction_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_refraction_exclude", text="", icon='X')
 
 
 class RENDER_PT_shading(RenderButtonsPanel):

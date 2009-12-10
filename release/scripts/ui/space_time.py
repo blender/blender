@@ -54,32 +54,32 @@ class TIME_HT_header(bpy.types.Header):
         layout.separator()
 
         row = layout.row(align=True)
-        row.operator("screen.frame_jump", text="", icon='ICON_REW').end = False
-        row.operator("screen.keyframe_jump", text="", icon='ICON_PREV_KEYFRAME').next = False
+        row.operator("screen.frame_jump", text="", icon='REW').end = False
+        row.operator("screen.keyframe_jump", text="", icon='PREV_KEYFRAME').next = False
         if not screen.animation_playing:
-            row.operator("screen.animation_play", text="", icon='ICON_PLAY_REVERSE').reverse = True
-            row.operator("screen.animation_play", text="", icon='ICON_PLAY')
+            row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
+            row.operator("screen.animation_play", text="", icon='PLAY')
         else:
             sub = row.row()
             sub.scale_x = 2.0
-            sub.operator("screen.animation_play", text="", icon='ICON_PAUSE')
-        row.operator("screen.keyframe_jump", text="", icon='ICON_NEXT_KEYFRAME').next = True
-        row.operator("screen.frame_jump", text="", icon='ICON_FF').end = True
+            sub.operator("screen.animation_play", text="", icon='PAUSE')
+        row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
+        row.operator("screen.frame_jump", text="", icon='FF').end = True
 
         row = layout.row(align=True)
-        row.prop(tools, "enable_auto_key", text="", toggle=True, icon='ICON_REC')
+        row.prop(tools, "enable_auto_key", text="", toggle=True, icon='REC')
         if screen.animation_playing and tools.enable_auto_key:
             subsub = row.row()
             subsub.prop(tools, "record_with_nla", toggle=True)
 
-        layout.prop(scene, "sync_audio", text="Realtime", toggle=True, icon='ICON_SPEAKER')
+        layout.prop(scene, "sync_audio", text="Realtime", toggle=True, icon='SPEAKER')
 
         layout.separator()
 
         row = layout.row(align=True)
         row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
-        row.operator("anim.keyframe_insert", text="", icon='ICON_KEY_HLT')
-        row.operator("anim.keyframe_delete", text="", icon='ICON_KEY_DEHLT')
+        row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
+        row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
 
 class TIME_MT_view(bpy.types.Menu):
@@ -146,7 +146,7 @@ class TIME_MT_playback(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(scene, "sync_audio", text="Realtime Playback", icon='ICON_SPEAKER')
+        layout.prop(scene, "sync_audio", text="Realtime Playback", icon='SPEAKER')
         layout.prop(scene, "mute_audio")
         layout.prop(scene, "scrub_audio")
 

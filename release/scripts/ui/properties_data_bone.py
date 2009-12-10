@@ -43,7 +43,7 @@ class BONE_PT_context_bone(BoneButtonsPanel):
             bone = context.edit_bone
 
         row = layout.row()
-        row.label(text="", icon='ICON_BONE_DATA')
+        row.label(text="", icon='BONE_DATA')
         row.prop(bone, "name", text="")
 
 

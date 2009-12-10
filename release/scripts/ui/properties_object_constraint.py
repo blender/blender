@@ -59,7 +59,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
             if wide_ui:
                 if target and owner:
-                    row.label(icon='ICON_ARROW_LEFTRIGHT')
+                    row.label(icon='ARROW_LEFTRIGHT')
             else:
                 row = layout.row()
             if owner:

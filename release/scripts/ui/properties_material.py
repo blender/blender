@@ -89,9 +89,9 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
             row.template_list(ob, "materials", ob, "active_material_index", rows=2)
 
             col = row.column(align=True)
-            col.operator("object.material_slot_add", icon='ICON_ZOOMIN', text="")
-            col.operator("object.material_slot_remove", icon='ICON_ZOOMOUT', text="")
-            col.operator("object.material_slot_copy", icon='ICON_COPY_ID', text="")
+            col.operator("object.material_slot_add", icon='ZOOMIN', text="")
+            col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
+            col.operator("object.material_slot_copy", icon='COPY_ID', text="")
 
             if ob.mode == 'EDIT':
                 row = layout.row(align=True)

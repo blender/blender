@@ -66,8 +66,8 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
             row.template_list(ob, "particle_systems", ob, "active_particle_system_index", rows=2)
 
             col = row.column(align=True)
-            col.operator("object.particle_system_add", icon='ICON_ZOOMIN', text="")
-            col.operator("object.particle_system_remove", icon='ICON_ZOOMOUT', text="")
+            col.operator("object.particle_system_add", icon='ZOOMIN', text="")
+            col.operator("object.particle_system_remove", icon='ZOOMOUT', text="")
 
         if psys and not psys.settings:
             split = layout.split(percentage=0.32)
@@ -457,12 +457,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             col = row.column()
             sub = col.row()
             subsub = sub.column(align=True)
-            subsub.operator("particle.new_target", icon='ICON_ZOOMIN', text="")
-            subsub.operator("particle.target_remove", icon='ICON_ZOOMOUT', text="")
+            subsub.operator("particle.new_target", icon='ZOOMIN', text="")
+            subsub.operator("particle.target_remove", icon='ZOOMOUT', text="")
             sub = col.row()
             subsub = sub.column(align=True)
-            subsub.operator("particle.target_move_up", icon='VICON_MOVE_UP', text="")
-            subsub.operator("particle.target_move_down", icon='VICON_MOVE_DOWN', text="")
+            subsub.operator("particle.target_move_up", icon='MOVE_UP_VEC', text="")
+            subsub.operator("particle.target_move_down", icon='MOVE_DOWN_VEC', text="")
 
             key = psys.active_particle_target
             if key:
@@ -512,11 +512,11 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
         #row.template_list(boids, "states", boids, "active_boid_state_index", compact="True")
         #col = row.row()
         #sub = col.row(align=True)
-        #sub.operator("boid.state_add", icon='ICON_ZOOMIN', text="")
-        #sub.operator("boid.state_del", icon='ICON_ZOOMOUT', text="")
+        #sub.operator("boid.state_add", icon='ZOOMIN', text="")
+        #sub.operator("boid.state_del", icon='ZOOMOUT', text="")
         #sub = row.row(align=True)
-        #sub.operator("boid.state_move_up", icon='VICON_MOVE_UP', text="")
-        #sub.operator("boid.state_move_down", icon='VICON_MOVE_DOWN', text="")
+        #sub.operator("boid.state_move_up", icon='MOVE_UP_VEC', text="")
+        #sub.operator("boid.state_move_down", icon='MOVE_DOWN_VEC', text="")
 
         state = boids.active_boid_state
 
@@ -535,12 +535,12 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
         col = row.column()
         sub = col.row()
         subsub = sub.column(align=True)
-        subsub.operator_menu_enum("boid.rule_add", "type", icon='ICON_ZOOMIN', text="")
-        subsub.operator("boid.rule_del", icon='ICON_ZOOMOUT', text="")
+        subsub.operator_menu_enum("boid.rule_add", "type", icon='ZOOMIN', text="")
+        subsub.operator("boid.rule_del", icon='ZOOMOUT', text="")
         sub = col.row()
         subsub = sub.column(align=True)
-        subsub.operator("boid.rule_move_up", icon='VICON_MOVE_UP', text="")
-        subsub.operator("boid.rule_move_down", icon='VICON_MOVE_DOWN', text="")
+        subsub.operator("boid.rule_move_up", icon='MOVE_UP_VEC', text="")
+        subsub.operator("boid.rule_move_down", icon='MOVE_DOWN_VEC', text="")
 
         rule = state.active_boid_rule
 
@@ -548,8 +548,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
             row = layout.row()
             row.prop(rule, "name", text="")
             #somebody make nice icons for boids here please! -jahka
-            row.prop(rule, "in_air", icon='VICON_MOVE_UP', text="")
-            row.prop(rule, "on_land", icon='VICON_MOVE_DOWN', text="")
+            row.prop(rule, "in_air", icon='MOVE_UP_VEC', text="")
+            row.prop(rule, "on_land", icon='MOVE_DOWN_VEC', text="")
 
             row = layout.row()
 
@@ -695,10 +695,10 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
                 col = row.column()
                 sub = col.row()
                 subsub = sub.column(align=True)
-                subsub.operator("particle.dupliob_copy", icon='ICON_ZOOMIN', text="")
-                subsub.operator("particle.dupliob_remove", icon='ICON_ZOOMOUT', text="")
-                subsub.operator("particle.dupliob_move_up", icon='VICON_MOVE_UP', text="")
-                subsub.operator("particle.dupliob_move_down", icon='VICON_MOVE_DOWN', text="")
+                subsub.operator("particle.dupliob_copy", icon='ZOOMIN', text="")
+                subsub.operator("particle.dupliob_remove", icon='ZOOMOUT', text="")
+                subsub.operator("particle.dupliob_move_up", icon='MOVE_UP_VEC', text="")
+                subsub.operator("particle.dupliob_move_down", icon='MOVE_DOWN_VEC', text="")
 
                 weight = part.active_dupliweight
                 if weight:

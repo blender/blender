@@ -42,7 +42,7 @@ class TEXT_HT_header(bpy.types.Header):
         if text and text.modified:
             row = layout.row()
             # row.color(redalert)
-            row.operator("text.resolve_conflict", text="", icon='ICON_HELP')
+            row.operator("text.resolve_conflict", text="", icon='HELP')
 
         layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
 
@@ -104,14 +104,14 @@ class TEXT_PT_find(bpy.types.Panel):
         col = layout.column(align=True)
         row = col.row()
         row.prop(st, "find_text", text="")
-        row.operator("text.find_set_selected", text="", icon='ICON_TEXT')
+        row.operator("text.find_set_selected", text="", icon='TEXT')
         col.operator("text.find")
 
         # replace
         col = layout.column(align=True)
         row = col.row()
         row.prop(st, "replace_text", text="")
-        row.operator("text.replace_set_selected", text="", icon='ICON_TEXT')
+        row.operator("text.replace_set_selected", text="", icon='TEXT')
         col.operator("text.replace")
 
         # mark
@@ -156,7 +156,7 @@ class TEXT_MT_text(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("text.properties", icon='ICON_MENU_PANEL')
+        layout.operator("text.properties", icon='MENU_PANEL')
 
         layout.menu("TEXT_MT_templates")
 

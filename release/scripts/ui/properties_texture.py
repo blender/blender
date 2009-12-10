@@ -99,8 +99,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             row.template_list(idblock, "textures", idblock, "active_texture_index", rows=2)
 
             col = row.column(align=True)
-            col.operator("texture.slot_move", text="", icon='ICON_TRIA_UP').type = 'UP'
-            col.operator("texture.slot_move", text="", icon='ICON_TRIA_DOWN').type = 'DOWN'
+            col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
+            col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
 
 
         if wide_ui:

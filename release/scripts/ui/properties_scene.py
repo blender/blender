@@ -85,8 +85,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         col.template_list(scene, "keying_sets", scene, "active_keying_set_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("anim.keying_set_add", icon='ICON_ZOOMIN', text="")
-        col.operator("anim.keying_set_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
+        col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
         ks = scene.active_keying_set
         if ks:
@@ -125,8 +125,8 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
         col.template_list(ks, "paths", ks, "active_path_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("anim.keying_set_path_add", icon='ICON_ZOOMIN', text="")
-        col.operator("anim.keying_set_path_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("anim.keying_set_path_add", icon='ZOOMIN', text="")
+        col.operator("anim.keying_set_path_remove", icon='ZOOMOUT', text="")
 
         ksp = ks.active_path
         if ksp:

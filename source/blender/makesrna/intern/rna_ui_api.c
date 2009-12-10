@@ -64,7 +64,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout, char *name, int icon, char *opna
 
 #else
 
-#define DEF_ICON(name) {name, #name, 0, #name, ""},
+#define DEF_ICON(name) {name, (#name)+5, 0, (#name)+5, ""},
 static EnumPropertyItem icon_items[] = {
 #include "UI_icons.h"
 		{0, NULL, 0, NULL, NULL}};

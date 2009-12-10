@@ -87,16 +87,16 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         # OpenGL render
         row = layout.row(align=True)
-        row.operator("screen.opengl_render", text="", icon='ICON_RENDER_STILL')
-        props = row.operator("screen.opengl_render", text="", icon='ICON_RENDER_ANIMATION')
+        row.operator("screen.opengl_render", text="", icon='RENDER_STILL')
+        props = row.operator("screen.opengl_render", text="", icon='RENDER_ANIMATION')
         props.animation = True
 
         # Pose
         if obj and obj.mode == 'POSE':
             row = layout.row(align=True)
-            row.operator("pose.copy", text="", icon='ICON_COPYDOWN')
-            row.operator("pose.paste", text="", icon='ICON_PASTEDOWN')
-            props = row.operator("pose.paste", text="", icon='ICON_PASTEFLIPDOWN')
+            row.operator("pose.copy", text="", icon='COPYDOWN')
+            row.operator("pose.paste", text="", icon='PASTEDOWN')
+            props = row.operator("pose.paste", text="", icon='PASTEFLIPDOWN')
             props.flipped = 1
 
 
@@ -230,8 +230,8 @@ class VIEW3D_MT_view(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("view3d.properties", icon='ICON_MENU_PANEL')
-        layout.operator("view3d.toolbar", icon='ICON_MENU_PANEL')
+        layout.operator("view3d.properties", icon='MENU_PANEL')
+        layout.operator("view3d.toolbar", icon='MENU_PANEL')
 
         layout.separator()
 
@@ -1594,14 +1594,14 @@ class VIEW3D_PT_3dview_name(bpy.types.Panel):
 
         ob = context.active_object
         row = layout.row()
-        row.label(text="", icon='ICON_OBJECT_DATA')
+        row.label(text="", icon='OBJECT_DATA')
         row.prop(ob, "name", text="")
 
         if ob.type == 'ARMATURE' and ob.mode in ('EDIT', 'POSE'):
             bone = context.active_bone
             if bone:
                 row = layout.row()
-                row.label(text="", icon='ICON_BONE_DATA')
+                row.label(text="", icon='BONE_DATA')
                 row.prop(bone, "name", text="")
 
 

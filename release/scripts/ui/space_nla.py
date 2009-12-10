@@ -53,7 +53,7 @@ class NLA_MT_view(bpy.types.Menu):
 
         layout.column()
 
-        layout.operator("nla.properties", icon="ICON_MENU_PANEL")
+        layout.operator("nla.properties", icon='MENU_PANEL')
 
         layout.separator()
         layout.prop(st, "show_cframe_indicator")

@@ -34,7 +34,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         show_uvedit = sima.show_uvedit
 
-        layout.operator("image.properties", icon='ICON_MENU_PANEL')
+        layout.operator("image.properties", icon='MENU_PANEL')
 
         layout.separator()
 
@@ -306,9 +306,9 @@ class IMAGE_HT_header(bpy.types.Header):
 
             row = layout.row(align=True)
             if ima.type == 'COMPOSITE':
-                row.operator("image.record_composite", icon='ICON_REC')
+                row.operator("image.record_composite", icon='REC')
             if ima.type == 'COMPOSITE' and ima.source in ('MOVIE', 'SEQUENCE'):
-                row.operator("image.play_composite", icon='ICON_PLAY')
+                row.operator("image.play_composite", icon='PLAY')
 
         if show_uvedit or sima.image_painting:
             layout.prop(sima, "update_automatically", text="")
