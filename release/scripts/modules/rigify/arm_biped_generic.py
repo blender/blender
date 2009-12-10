@@ -57,7 +57,7 @@ def metarig_template():
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['upper_arm']
-    pbone['type'] = 'arm'
+    pbone['type'] = 'arm_biped_generic'
 
 
 def metarig_definition(obj, orig_bone_name):

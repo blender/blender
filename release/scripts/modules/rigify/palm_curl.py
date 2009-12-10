@@ -74,7 +74,7 @@ def metarig_template():
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['palm.01']
-    pbone['type'] = 'palm'
+    pbone['type'] = 'palm_curl'
 
 
 def metarig_definition(obj, orig_bone_name):

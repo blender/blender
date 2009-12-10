@@ -51,7 +51,7 @@ def metarig_template():
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['finger.01']
-    pbone['type'] = 'finger'
+    pbone['type'] = 'finger_curl'
 
 
 def metarig_definition(obj, orig_bone_name):

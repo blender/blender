@@ -87,7 +87,7 @@ def metarig_template():
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['rib_cage']
-    pbone['type'] = 'spine.fk'
+    pbone['type'] = 'spine_pivot_flex'
 
 
 def metarig_definition(obj, orig_bone_name):

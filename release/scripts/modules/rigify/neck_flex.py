@@ -75,7 +75,7 @@ def metarig_template():
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['head']
-    pbone['type'] = 'neck'
+    pbone['type'] = 'neck_flex'
 
 
 def metarig_definition(obj, orig_bone_name):
