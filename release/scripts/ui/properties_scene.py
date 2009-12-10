@@ -100,7 +100,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
                 col = row.column()
             col.label(text="Keyframing Settings:")
             col.prop(ks, "insertkey_needed", text="Needed")
-            col.prop(ks, "insertkey_visual", text="Visual")
+            col.prop(ks, "insertkey_visual", text="Visual")	
+            col.prop(ks, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel):

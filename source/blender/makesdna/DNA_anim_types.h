@@ -291,8 +291,8 @@ typedef struct ChannelDriver {
 	/* python expression to execute (may call functions defined in an accessory file) 
 	 * which relates the target 'variables' in some way to yield a single usable value
 	 */
-	char expression[256];
-	void *expr_comp; /* PyObject - compiled expression, dont save this */
+	char expression[256];	/* expression to compile for evaluation */
+	void *expr_comp; 		/* PyObject - compiled expression, dont save this */
 	
 	float curval;		/* result of previous evaluation, for subtraction from result under certain circumstances */
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
@@ -323,8 +323,8 @@ typedef enum eDriver_Flags {
 		/* driver does replace value, but overrides (for layering of animation over driver) */
 		// TODO: this needs to be implemented at some stage or left out...
 	DRIVER_FLAG_LAYERING	= (1<<2),
-
-	DRIVER_FLAG_RECOMPILE	= (1<<3), /* use when the expression needs to be recompiled */
+		/* use when the expression needs to be recompiled */
+	DRIVER_FLAG_RECOMPILE	= (1<<3), 
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */
@@ -367,7 +367,7 @@ typedef struct FCurve {
 	char *rna_path;			/* RNA-path to resolve data-access */
 	
 		/* curve coloring (for editor) */
-	int color_mode;			/* coloring method to use */
+	int color_mode;			/* coloring method to use (eFCurve_Coloring) */
 	float color[3];			/* the last-color this curve took */
 } FCurve;
 
@@ -703,6 +703,7 @@ typedef enum eInsertKeyFlags {
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
 	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
 	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
+	INSERTKEY_XYZ2RGB	= (1<<5),	/* transform F-Curves should have XYZ->RGB color mode */
 } eInsertKeyFlags;
 
 /* ************************************************ */

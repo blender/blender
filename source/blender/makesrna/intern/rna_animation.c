@@ -267,6 +267,10 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_MATRIX);
 	RNA_def_property_ui_text(prop, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
 	
+	prop= RNA_def_property(srna, "insertkey_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_XYZ2RGB);
+	RNA_def_property_ui_text(prop, "XYZ Transforms to RGB", "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis.");
+	
 	/* Keying Set API */
 	RNA_api_keyingset(srna);
 }
