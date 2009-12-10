@@ -1186,6 +1186,12 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
         sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
 
+        col.separator()
+
+        sub = col.column()
+        sub.label(text="Double Click:")
+        sub.prop(inputs, "double_click_time", text="Speed")
+
         row.separator()
 
         # Keymap Settings

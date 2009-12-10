@@ -2338,6 +2338,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 200);
 	RNA_def_property_ui_text(prop, "NDof Rotation Speed", "The overall rotation speed of an NDOF device, as percent of standard.");
 	
+	prop= RNA_def_property(srna, "double_click_time", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "dbl_click_time");
+	RNA_def_property_range(prop, 1, 1000);
+	RNA_def_property_ui_text(prop, "Double Click Timeout", "The time (in ms) for a double click.");
+
 	prop= RNA_def_property(srna, "emulate_3_button_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_userdef_emulate_set");

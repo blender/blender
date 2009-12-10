@@ -60,6 +60,8 @@
 
 #include "UI_interface.h"
 
+#include "PIL_time.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
@@ -1163,6 +1165,12 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			event->val = KM_CLICK;
 			action |= wm_handlers_do(C, event, handlers);
 
+			/* if not handled and time is right, check double click */
+			if ((action & WM_HANDLER_BREAK) == 0 && (PIL_check_seconds_timer() - win->last_click_time) * 1000 < U.dbl_click_time) {
+				event->val = KM_DBL_CLICK;
+				action |= wm_handlers_do(C, event, handlers);
+			}
+
 			/* revert value if not handled */
 			if ((action & WM_HANDLER_BREAK) == 0) {
 				event->val = KM_RELEASE;
@@ -1354,11 +1362,22 @@ void wm_event_do_handlers(bContext *C)
 			/* mousemove event don't overwrite last type */
 			if (event->type != MOUSEMOVE) {
 				if (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) {
-					win->last_type = event->type;
+					if (win->last_type == event->type) {
+						/* set click time on first click (press -> release) */
+						if (win->last_val == KM_PRESS && event->val == KM_RELEASE) {
+							win->last_click_time = PIL_check_seconds_timer();
+						}
+					} else {
+						/* reset click time if event type not the same */
+						win->last_click_time = 0;
+					}
+
 					win->last_val = event->val;
+					win->last_type = event->type;
 				} else {
 					win->last_type = -1;
 					win->last_val = 0;
+					win->last_click_time = 0;
 				}
 			}
 

@@ -288,7 +288,9 @@ typedef struct UserDef {
 	char sounddir[160];
 	/* yafray: temporary xml export directory */
 	char yfexportdir[160];
-	short versions, pad;
+	short versions;
+
+	short dbl_click_time;
 	
 	int gameflags;
 	int wheellinescroll;

@@ -83,6 +83,7 @@ enum {
 #define KM_PRESS	1
 #define KM_RELEASE	2
 #define KM_CLICK	3
+#define KM_DBL_CLICK	4
 
 
 /* ************** UI Handler ***************** */

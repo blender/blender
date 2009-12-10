@@ -158,6 +158,7 @@ typedef struct wmWindow {
 	
 	short last_type; /* last event information, used for click */
 	short last_val;
+	double last_click_time; /* for double click */
 
 	struct wmEvent *eventstate;	/* storage for event system */
 	
@@ -291,6 +292,7 @@ typedef struct wmKeyMap {
 /* wmKeyMap.flag */
 #define KEYMAP_MODAL		1	/* modal map, not using operatornames */
 #define KEYMAP_USER			2	/* user created keymap */
+#define KEYMAP_EXPANDED		4
 
 typedef struct wmKeyConfig {
 	struct wmKeyConfig *next, *prev;
