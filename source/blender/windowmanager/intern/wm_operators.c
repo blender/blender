@@ -615,6 +615,9 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if (RNA_property_type(prop) != PROP_ENUM) {
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
+	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
+		return op->type->exec(C, op);
+	}
 	else {
 		pup= uiPupMenuBegin(C, op->type->name, 0);
 		layout= uiPupMenuLayout(pup);
