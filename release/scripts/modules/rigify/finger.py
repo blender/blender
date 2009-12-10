@@ -28,7 +28,7 @@ METARIG_NAMES = "finger_01", "finger_02", "finger_03"
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
-    obj = bpy.context.object
+    obj = bpy.context.active_object
     arm = obj.data
     bone = arm.edit_bones.new('finger.01')
     bone.head[:] = 0.0000, 0.0000, 0.0000
@@ -73,7 +73,7 @@ def metarig_definition(obj, orig_bone_name):
         children = bone.children
 
         if len(children) != 1:
-            raise Exception("expected the chain to have 2 children without a fork")
+            raise Exception("expected the chain to have 2 children from bone '%s' without a fork" % orig_bone_name)
         bone = children[0]
         bone_definition.append(bone.name) # finger_02, finger_03
         chain += 1

@@ -25,7 +25,7 @@ from Mathutils import Vector
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 empty_layer = [False] * 32
-
+DELIMITER = '-._'
 
 def auto_class(slots, name="ContainerClass", class_dict=None):
 
@@ -300,7 +300,7 @@ def get_side_name(name):
     whether it is a a left or right (or center, or whatever) bone.
     Returns an empty string if nothing is found.
     '''
-    if name[-2] in "-._":
+    if name[-2] in DELIMITER:
         return name[-2:]
     else:
         return ""
@@ -310,7 +310,7 @@ def get_base_name(name):
     Returns the part of a string (typically a bone's name) corresponding to it's
     base name (no sidedness, no ORG prefix).
     '''
-    if name[-2] in "-._":
+    if name[-2] in DELIMITER:
         return name[:-2]
     else:
         return name
@@ -408,12 +408,34 @@ def add_pole_target_bone(obj, base_bone_name, name, mode='CROSS'):
 
     return poll_name
 
+def validate_rig(context, obj):
+    for pbone in obj.pose.bones:
+        bone_name = pbone.name
+        bone_type = pbone.get("type", "")
+
+        if bone_type:
+            bone_type_list = [bt for bt in bone_type.replace(",", " ").split()]
+        else:
+            bone_type_list = []
+
+        for bone_type in bone_type_list:            
+            type_pair = bone_type.split(".")
+            submod_name = type_pair[0]
+            
+            submod = __import__(name="%s.%s" % (__package__, submod_name), fromlist=[submod_name])
+            reload(submod)
+
+            submod.metarig_definition(obj, bone_name)
+        
+        # missing, - check for duplicate root bone.
+
 
 def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     from collections import OrderedDict
 
     global_undo = context.user_preferences.edit.global_undo
     context.user_preferences.edit.global_undo = False
+    mode_orig = context.mode
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -495,8 +517,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
             # Only calculate bone definitions once
             if submod_name not in bone_def_dict:
-                metarig_definition_func = getattr(submod, "metarig_definition")
-                bone_def_dict[submod_name] = metarig_definition_func(obj, bone_name)
+                bone_def_dict[submod_name] = submod.metarig_definition(obj, bone_name)
 
 
             bone_typeinfo = bone_typeinfos.setdefault(bone_name, [])
@@ -579,8 +600,10 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # obj.restrict_view = True
     obj.data.draw_axes = False
 
-    context.user_preferences.edit.global_undo = global_undo
+    bpy.ops.object.mode_set(mode=mode_orig)
 
+    context.user_preferences.edit.global_undo = global_undo
+    
     return obj
 
 
@@ -594,7 +617,7 @@ def write_meta_rig(obj, func_name="metarig_template"):
     bpy.ops.object.mode_set(mode='EDIT')
     code.append("    bpy.ops.object.mode_set(mode='EDIT')")
 
-    code.append("    obj = bpy.context.object")
+    code.append("    obj = bpy.context.active_object")
     code.append("    arm = obj.data")
 
     arm = obj.data
@@ -642,7 +665,7 @@ def write_meta_rig(obj, func_name="metarig_template"):
     return "\n".join(code)
 
 
-def generate_test(context):
+def generate_test(context, metarig_type="", GENERATE_FINAL=True):
     import os
     new_objects = []
 
@@ -654,6 +677,9 @@ def generate_test(context):
         obj_new.data = armature
         scene.objects.link(obj_new)
         scene.objects.active = obj_new
+        for obj in scene.objects:
+            obj.selected = False
+        obj_new.selected = True
 
     files = os.listdir(os.path.dirname(__file__))
     for f in files:
@@ -664,6 +690,10 @@ def generate_test(context):
             continue
 
         module_name = f[:-3]
+        
+        if (module_name and module_name != metarig_type):
+            continue
+        
         submodule = __import__(name="%s.%s" % (__package__, module_name), fromlist=[module_name])
 
         metarig_template = getattr(submodule, "metarig_template", None)
@@ -671,17 +701,21 @@ def generate_test(context):
         if metarig_template:
             create_empty_armature("meta_" + module_name) # sets active
             metarig_template()
-            obj = context.object
-            obj_new = generate_rig(context, obj)
-
-            new_objects.append((obj, obj_new))
+            obj = context.active_object
+            obj.location = scene.cursor_location
+            
+            if GENERATE_FINAL:
+                obj_new = generate_rig(context, obj)
+                new_objects.append((obj, obj_new))
+            else:
+                new_objects.append((obj, None))
         else:
             print("note: rig type '%s' has no metarig_template(), can't test this", module_name)
 
     return new_objects
 
 
-def generate_test_all(context):
+def generate_test_all(context, GRAPH=False):
     import rigify
     import graphviz_export
     import os
@@ -689,18 +723,19 @@ def generate_test_all(context):
     reload(graphviz_export)
 
     new_objects = rigify.generate_test(context)
+    
+    if GRAPH:
+        base_name = os.path.splitext(bpy.data.filename)[0]
+        for obj, obj_new in new_objects:
+            for obj in (obj, obj_new):
+                fn = base_name + "-" + bpy.utils.clean_name(obj.name)
 
-    base_name = os.path.splitext(bpy.data.filename)[0]
-    for obj, obj_new in new_objects:
-        for obj in (obj, obj_new):
-            fn = base_name + "-" + bpy.utils.clean_name(obj.name)
+                path_dot = fn + ".dot"
+                path_png = fn + ".png"
+                saved = graphviz_export.graph_armature(obj, path_dot, CONSTRAINTS=True, DRIVERS=True)
 
-            path_dot = fn + ".dot"
-            path_png = fn + ".png"
-            saved = graphviz_export.graph_armature(obj, path_dot, CONSTRAINTS=True, DRIVERS=True)
-
-            #if saved:
-            #    os.system("dot -Tpng %s > %s; eog %s" % (path_dot, path_png, path_png))
+                #if saved:
+                #    os.system("dot -Tpng %s > %s; eog %s" % (path_dot, path_png, path_png))
 
     i = 0
     for obj, obj_new in new_objects:
@@ -713,4 +748,4 @@ def generate_test_all(context):
 
 
 if __name__ == "__main__":
-    generate_rig(bpy.context, bpy.context.object)
+    generate_rig(bpy.context, bpy.context.active_object)

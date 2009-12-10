@@ -120,7 +120,7 @@ def draw(layout, context, context_member, use_edit=True):
             prop = row.operator("wm.properties_edit", text="edit")
             assign_props(prop, val_draw, key)
 
-            prop = row.operator("wm.properties_remove", text="", icon='ICON_ZOOMOUT')
+            prop = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
             assign_props(prop, val_draw, key)
 
 

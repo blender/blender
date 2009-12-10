@@ -48,7 +48,7 @@ def compat_str(text, line_length=0):
     #text = text.replace(']', ']\n')
     text = text.replace("\n", "\\n")
     text = text.replace('"', '\\"')
-    return "* " + text
+    return text
 
 
 def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=True):

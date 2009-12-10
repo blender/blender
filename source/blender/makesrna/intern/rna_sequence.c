@@ -1126,14 +1126,14 @@ static void rna_def_transform(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotIni");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
-	RNA_def_property_range(prop, 0.0f, 360.0f);
+	RNA_def_property_range(prop, -360.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Rotation Start", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "rotation_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotFin");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
-	RNA_def_property_range(prop, 0.0f, 360.0f);
+	RNA_def_property_range(prop, -360.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Rotation End", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
