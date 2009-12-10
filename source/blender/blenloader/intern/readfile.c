@@ -6010,7 +6010,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
 				
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
+				ar->regiontype= RGN_TYPE_TOOLS;
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->flag = RGN_FLAG_HIDDEN;
 				
@@ -6018,7 +6018,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar= MEM_callocN(sizeof(ARegion), "tool properties for view3d");
 				
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
+				ar->regiontype= RGN_TYPE_TOOL_PROPS;
 				ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 				ar->flag = RGN_FLAG_HIDDEN;
 				
