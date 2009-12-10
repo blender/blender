@@ -1303,7 +1303,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	sActionzoneData *sad= event->customdata;
 	AZone *az;
 	
-	if(event->type!=EVT_ACTIONZONE_AREA) {
+	if(event->type!=EVT_ACTIONZONE_REGION) {
 		BKE_report(op->reports, RPT_ERROR, "Can only scale region size from an action zone");	
 		return OPERATOR_CANCELLED;
 	}
@@ -2111,6 +2111,9 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 
+	if (!ar)
+		return OPERATOR_CANCELLED;
+	
 	if(ar->alignment==RGN_ALIGN_TOP)
 		ar->alignment= RGN_ALIGN_BOTTOM;
 	else if(ar->alignment==RGN_ALIGN_BOTTOM)
@@ -2121,7 +2124,6 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 		ar->alignment= RGN_ALIGN_LEFT;
 	
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-	printf("executed region flip\n");
 	
 	return OPERATOR_FINISHED;
 }
