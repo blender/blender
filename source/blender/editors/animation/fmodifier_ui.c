@@ -560,7 +560,7 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 		block= uiLayoutGetBlock(row);
 		
 		uiBlockBeginAlign(block);
-			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 0, 0, 90, 20, &fed->time, -UI_FLT_MAX, UI_FLT_MAX, 10, 1, "Frame that envelope point occurs");
+			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 0, 0, 90, 20, &fed->time, -MAXFRAMEF, MAXFRAMEF, 10, 1, "Frame that envelope point occurs");
 			uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 			
 			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 0, 0, 100, 20, &fed->min, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, "Minimum bound of envelope at this point");
