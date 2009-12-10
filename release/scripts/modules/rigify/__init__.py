@@ -23,6 +23,7 @@ from Mathutils import Vector
 
 # TODO, have these in a more general module
 from rna_prop_ui import rna_idprop_ui_prop_get
+SPECIAL_TYPES = "root",
 
 class RigifyError(Exception):
     """Exception raised for errors in the metarig.
@@ -43,7 +44,11 @@ def submodule_func_from_type(bone_type):
     submod_name, func_name = type_pair
 
     # from rigify import leg
-    submod = __import__(name="%s.%s" % (__package__, submod_name), fromlist=[submod_name])
+    try:
+        submod = __import__(name="%s.%s" % (__package__, submod_name), fromlist=[submod_name])
+    except ImportError:
+        raise RigifyError("python module for type '%s' not found" % submod_name)
+        
     reload(submod)
     return submod, getattr(submod, func_name)
     
@@ -61,6 +66,9 @@ def validate_rig(context, obj):
             bone_type_list = []
 
         for bone_type in bone_type_list:
+            if bone_type.split(".")[0] in SPECIAL_TYPES:
+                continue
+
             submod, type_func = submodule_func_from_type(bone_type)
             reload(submod)
             submod.metarig_definition(obj, bone_name)
@@ -78,7 +86,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     reload(rigify_utils)
     
     # Not needed but catches any errors before duplicating
-    # validate_rig(context, obj_orig)
+    validate_rig(context, obj_orig)
 
     global_undo = context.user_preferences.edit.global_undo
     context.user_preferences.edit.global_undo = False
@@ -246,7 +254,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
                     root_ebone_tmp = root_ebone
                 
                 ebone.connected = False
-                ebone.parent = root_ebone
+                ebone.parent = root_ebone_tmp
 
         bpy.ops.object.mode_set(mode='OBJECT')
         
