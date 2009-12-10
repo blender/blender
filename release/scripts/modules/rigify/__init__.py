@@ -24,7 +24,13 @@ from Mathutils import Vector
 # TODO, have these in a more general module
 from rna_prop_ui import rna_idprop_ui_prop_get
 
-
+class RigifyError(Exception):
+    """Exception raised for errors in the metarig.
+    """
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return repr(self.message)
 
 def submodule_func_from_type(bone_type):
     type_pair = bone_type.split(".")

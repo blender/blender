@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from rigify import RigifyError
 
 # not used, defined for completeness
 METARIG_NAMES = tuple()
@@ -64,7 +65,7 @@ def metarig_definition(obj, orig_bone_name):
     children = delta.children
 
     if len(children) != 1:
-        raise Exception("only 1 child supported for delta on bone '%s'" % delta.name)
+        raise RigifyError("only 1 child supported for delta on bone '%s'" % delta.name)
 
     bone_definition = [delta.name, children[0].name]
 

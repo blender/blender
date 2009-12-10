@@ -2288,6 +2288,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 		/* menu is created from a string */
 		pup->menu_func= ui_block_func_MENUSTR;
 		pup->menu_arg= str;
+		// XXX pup->block->flag |= UI_BLOCK_NO_FLIP;
 	}
 	else {
 		/* menu is created from a callback */

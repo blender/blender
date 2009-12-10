@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -85,7 +86,7 @@ def metarig_definition(obj, orig_bone_name):
     orig_bone_parent = orig_bone.parent
 
     if orig_bone_parent is None:
-        raise Exception("expected the thigh bone to have a parent hip bone")
+        raise RigifyError("expected the thigh bone to have a parent hip bone")
 
     bone_definition.append(orig_bone_parent.name)
     bone_definition.append(orig_bone.name)
@@ -97,7 +98,7 @@ def metarig_definition(obj, orig_bone_name):
         children = bone.children
 
         if len(children) != 1:
-            raise Exception("expected the thigh bone to have 3 children without a fork")
+            raise RigifyError("expected the thigh bone to have 3 children without a fork")
         bone = children[0]
         bone_definition.append(bone.name) # shin, foot
         chain += 1
@@ -105,10 +106,10 @@ def metarig_definition(obj, orig_bone_name):
     children = bone.children
     # Now there must be 2 children, only one connected
     if len(children) != 2:
-        raise Exception("expected the foot bone:'%s' to have 2 children" % bone.name )
+        raise RigifyError("expected the foot bone:'%s' to have 2 children" % bone.name )
 
     if children[0].connected == children[1].connected:
-        raise Exception("expected one bone to be connected")
+        raise RigifyError("expected one bone to be connected")
 
     toe, heel = children
     if heel.connected:
@@ -119,7 +120,7 @@ def metarig_definition(obj, orig_bone_name):
     bone_definition.append(heel.name)
 
     if len(bone_definition) != len(METARIG_NAMES):
-        raise Exception("internal problem, expected %d bones" % len(METARIG_NAMES))
+        raise RigifyError("internal problem, expected %d bones" % len(METARIG_NAMES))
 
     return bone_definition
 

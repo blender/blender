@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from Mathutils import Vector
@@ -68,7 +69,7 @@ def metarig_definition(obj, orig_bone_name):
     mt.shoulder_p = mt.arm_p.parent
 
     if not mt.shoulder_p:
-        raise Exception("could not find '%s' parent, skipping:" % orig_bone_name)
+        raise RigifyError("could not find '%s' parent, skipping:" % orig_bone_name)
 
     mt.shoulder = mt.shoulder_p.name
 
@@ -80,7 +81,7 @@ def metarig_definition(obj, orig_bone_name):
             hands.append(pbone)
 
     if len(hands) != 1:
-        raise Exception("Found %s possible hands attached to this arm, expected 1 from bone: %s" % ([pbone.name for pbone in hands], orig_bone_name))
+        raise RigifyError("Found %s possible hands attached to this arm, expected 1 from bone: %s" % ([pbone.name for pbone in hands], orig_bone_name))
 
     # first add the 2 new bones
     mt.hand_p = hands[0]

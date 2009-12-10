@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from rigify import RigifyError
 from rigify_utils import copy_bone_simple, get_side_name, get_base_name, EMPTY_LAYER
 from rna_prop_ui import rna_idprop_ui_prop_get
 from functools import reduce
@@ -73,13 +74,13 @@ def metarig_definition(obj, orig_bone_name):
         children = bone.children
 
         if len(children) != 1:
-            raise Exception("expected the chain to have 2 children from bone '%s' without a fork" % orig_bone_name)
+            raise RigifyError("expected the chain to have 2 children from bone '%s' without a fork" % orig_bone_name)
         bone = children[0]
         bone_definition.append(bone.name) # finger_02, finger_03
         chain += 1
 
     if len(bone_definition) != len(METARIG_NAMES):
-        raise Exception("internal problem, expected %d bones" % len(METARIG_NAMES))
+        raise RigifyError("internal problem, expected %d bones" % len(METARIG_NAMES))
 
     return bone_definition
 

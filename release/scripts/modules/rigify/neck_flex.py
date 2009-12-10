@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -91,7 +92,7 @@ def metarig_definition(obj, orig_bone_name):
 
     children = head.children
     if len(children) != 1:
-        print("expected the head to have only 1 child.")
+        raise RigifyError("expected the head bone '%s' to have only 1 child." % orig_bone_name)
 
     child = children[0]
     bone_definition = [body.name, head.name, child.name]

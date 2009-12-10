@@ -104,11 +104,11 @@ def metarig_definition(obj, orig_bone_name):
     pelvis = ribcage.parent
 
     if pelvis is None:
-        raise Exception("expected the ribcage bone:'%s' to have a parent (ribcage)." % ribcage.name)
+        raise RigifyError("expected the ribcage bone:'%s' to have a parent (ribcage)." % ribcage.name)
 
     children = ribcage.children
     if len(children) != 1:
-        raise Exception("expected the ribcage to have only 1 child.")
+        raise RigifyError("expected the ribcage to have only 1 child.")
 
     child = children[0]
 
