@@ -97,6 +97,7 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 		col.operator("render.netclientsend", icon='FILE_BLEND')
 		col.operator("render.netclientweb", icon='QUESTION')
 		col.prop(scene.network_render, "job_name")
+		col.prop(scene.network_render, "job_category")
 		row = col.row()
 		row.prop(scene.network_render, "priority")
 		row.prop(scene.network_render, "chunks")
@@ -263,6 +264,12 @@ NetRenderSettings.StringProperty( attr="job_name",
 				description="Name of the job",
 				maxlen = 128,
 				default = "[default]")
+
+NetRenderSettings.StringProperty( attr="job_category",
+				name="Job category",
+				description="Category of the job",
+				maxlen = 128,
+				default = "")
 
 NetRenderSettings.IntProperty( attr="chunks",
 				name="Chunks",

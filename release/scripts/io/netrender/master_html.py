@@ -71,6 +71,7 @@ def get(handler):
 		startTable()
 		headerTable(	
 									"name",
+									"category",
 									"priority",
 									"usage",
 									"wait",
@@ -88,6 +89,7 @@ def get(handler):
 			results = job.framesStatus()
 			rowTable(	
 								link(job.name, "/html/job" + job.id),
+								job.category,
 								job.priority,
 								"%0.1f%%" % (job.usage * 100),
 								"%is" % int(time.time() - job.last_dispatched),

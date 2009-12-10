@@ -150,6 +150,7 @@ def clientSendJob(conn, scene, anim = False):
 	# print(job.files)
 	
 	job.name = job_name
+	job.category = netsettings.job_category
 	
 	for slave in netrender.blacklist:
 		job.blacklist.append(slave.id)
