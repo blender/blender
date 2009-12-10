@@ -19,7 +19,8 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_bone_data, empty_layer, copy_bone_simple, get_side_name, get_base_name
+from rigify import EMPTY_LAYER
+from rigify_utils import copy_bone_simple, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from functools import reduce
 

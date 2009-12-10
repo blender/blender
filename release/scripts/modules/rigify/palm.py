@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_bone_data, copy_bone_simple, get_side_name
+from rigify_utils import copy_bone_simple, get_side_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 # not used, defined for completeness
@@ -97,7 +97,8 @@ def metarig_definition(obj, orig_bone_name):
 
 
 def main(obj, bone_definition, base_names):
-    arm, palm_pbone, palm_ebone = get_bone_data(obj, bone_definition[0])
+    arm = obj.data
+
     children = bone_definition[1:]
 
     # Make a copy of the pinky

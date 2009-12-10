@@ -19,7 +19,6 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_bone_data
 
 # not used, defined for completeness
 METARIG_NAMES = tuple()
@@ -84,7 +83,8 @@ def main(obj, bone_definition, base_names):
 
     delta_pbone = obj.pose.bones[delta_name]
 
-    arm, child_pbone, child_bone = get_bone_data(obj, child_name)
+    arm = obj.data
+    child_pbone = obj.pose.bones[child_name]
 
     delta_phead = delta_pbone.head.copy()
     delta_ptail = delta_pbone.tail.copy()
@@ -105,7 +105,6 @@ def main(obj, bone_definition, base_names):
     delta_head = delta_ebone.head.copy()
     delta_tail = delta_ebone.tail.copy()
 
-    # arm, parent_pbone, parent_bone = get_bone_data(obj, delta_name)
     child_head = child_ebone.head.copy()
     child_tail = child_ebone.tail.copy()
 
@@ -153,7 +152,6 @@ def main(obj, bone_definition, base_names):
         mod.coefficients[1] = 0.0
 
 
-    # arm, parent_pbone, parent_bone = get_bone_data(obj, delta_name)
     bpy.ops.object.mode_set(mode='EDIT')
 
     bpy.ops.object.mode_set(mode=mode_orig)
