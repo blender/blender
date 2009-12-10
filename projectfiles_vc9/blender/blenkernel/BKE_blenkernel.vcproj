@@ -1064,6 +1064,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_sequence.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_shrinkwrap.h"
 				>
 			</File>
