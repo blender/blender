@@ -94,13 +94,21 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-EditBone *rna_Armature_edit_bone_new(bArmature *arm, char *name)
+EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, char *name)
 {
+	if(arm->edbo==NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant add an editbone.", arm->id.name+2);
+		return NULL;
+	}
 	return ED_armature_edit_bone_add(arm, name);
 }
 
-void rna_Armature_edit_bone_remove(bArmature *arm, EditBone *ebone)
+void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone *ebone)
 {
+	if(arm->edbo==NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant remove an editbone.", arm->id.name+2);
+		return;
+	}
 	ED_armature_edit_bone_remove(arm, ebone);
 }
 
@@ -701,15 +709,18 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* add target */
 	func= RNA_def_function(srna, "new", "rna_Armature_edit_bone_new");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new bone.");
 	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the bone.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 	/* return type */
 	parm= RNA_def_pointer(func, "bone", "EditBone", "", "Newly created edit bone.");
 	RNA_def_function_return(func, parm);
 
 	/* remove target */
 	func= RNA_def_function(srna, "remove", "rna_Armature_edit_bone_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove an existing bone from the armature.");
 	/* target to remove*/
 	parm= RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove.");
