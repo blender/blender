@@ -54,8 +54,9 @@ int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *ds
 void multires_stitch_grids(struct Object *);
 
 /* Related to the old multires */
-void multires_load_old(struct DerivedMesh *, struct Multires *);
-void multires_free(struct Multires*);
+void multires_free(struct Multires *mr);
+void multires_load_old(struct Object *ob, struct Mesh *me);
+void multires_load_old_250(struct Mesh *);
 
 #endif
 

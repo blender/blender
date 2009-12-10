@@ -9633,7 +9633,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ToolSettings *ts;
 		//PTCacheID *pid;
 		//ListBase pidlist;
-		int /*i, */a;
+		int a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
@@ -9650,62 +9650,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				void *olddata = ob->data;
 				ob->data = me;
 
-				if(me && me->id.lib==NULL && me->mr) { /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
-					// XXX
-#if 0
-					MultiresLevel *lvl;
-					ModifierData *md;
-					MultiresModifierData *mmd;
-					DerivedMesh *dm, *orig;
-
-					/* Load original level into the mesh */
-					lvl = me->mr->levels.first;
-					CustomData_free_layers(&me->vdata, CD_MVERT, lvl->totvert);
-					CustomData_free_layers(&me->edata, CD_MEDGE, lvl->totedge);
-					CustomData_free_layers(&me->fdata, CD_MFACE, lvl->totface);
-					me->totvert = lvl->totvert;
-					me->totedge = lvl->totedge;
-					me->totface = lvl->totface;
-					me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
-					me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
-					me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
-					memcpy(me->mvert, me->mr->verts, sizeof(MVert) * me->totvert);
-					for(i = 0; i < me->totedge; ++i) {
-						me->medge[i].v1 = lvl->edges[i].v[0];
-						me->medge[i].v2 = lvl->edges[i].v[1];
-					}
-					for(i = 0; i < me->totface; ++i) {
-						me->mface[i].v1 = lvl->faces[i].v[0];
-						me->mface[i].v2 = lvl->faces[i].v[1];
-						me->mface[i].v3 = lvl->faces[i].v[2];
-						me->mface[i].v4 = lvl->faces[i].v[3];
-					}
-
-					/* Add a multires modifier to the object */
-					md = ob->modifiers.first;
-					while(md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform)
-						md = md->next;                          
-					mmd = (MultiresModifierData*)modifier_new(eModifierType_Multires);
-					BLI_insertlinkbefore(&ob->modifiers, md, mmd);
-
-					for(i = 0; i < me->mr->level_count - 1; ++i)
-						multiresModifier_subdivide(mmd, ob, 1, 0);
-
-					mmd->lvl = mmd->totlvl;
-					orig = CDDM_from_mesh(me, NULL);
-					dm = multires_dm_create_from_derived(mmd, 0, orig, ob, 0, 0);
-                                       
-					multires_load_old(dm, me->mr);
-
-					MultiresDM_mark_as_modified(dm);
-					dm->release(dm);
-					orig->release(orig);
-
-					/* Remove the old multires */
-					multires_free(me->mr);
-#endif
-					me->mr = NULL;
-				}
+				if(me && me->id.lib==NULL && me->mr) /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
+					multires_load_old(ob, me);
 
 				ob->data = olddata;
 			}
@@ -10177,13 +10123,33 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 9))
 	{
-		Scene *sce= main->scene.first;
+		Scene *sce;
+		Mesh *me;
+		Object *ob;
 
 		for(sce=main->scene.first; sce; sce=sce->id.next)
 			if(!sce->toolsettings->particle.selectmode)
 				sce->toolsettings->particle.selectmode= SCE_SELECT_PATH;
+
+		for(me=main->mesh.first; me; me=me->id.next)
+			multires_load_old_250(me);
+
+		for(ob=main->object.first; ob; ob=ob->id.next) {
+			MultiresModifierData *mmd = (MultiresModifierData *)modifiers_findByType(ob, eModifierType_Multires);
+
+			if(mmd) {
+				mmd->totlvl--;
+				mmd->lvl--;
+				mmd->sculptlvl= mmd->lvl;
+				mmd->renderlvl= mmd->lvl;
+			}
+		}
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

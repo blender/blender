@@ -188,6 +188,12 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 	else if(md->type == eModifierType_Smoke) {
 		ob->dt = OB_TEXTURE;
 	}
+	else if(md->type == eModifierType_Multires) {
+		Mesh *me= ob->data;
+
+		CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+		CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+	}
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
