@@ -67,6 +67,9 @@ def metarig_definition(obj, orig_bone_name):
     if len(children) != 1:
         raise RigifyError("only 1 child supported for delta on bone '%s'" % delta.name)
 
+    if delta.connected:
+        raise RigifyError("bone cannot be connected to its parent '%s'" % delta.name)
+
     bone_definition = [delta.name, children[0].name]
 
     return bone_definition

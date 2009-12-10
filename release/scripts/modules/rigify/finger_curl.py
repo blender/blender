@@ -201,14 +201,14 @@ def main(obj, bone_definition, base_names):
         tar.name = "scale"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = controller_path + '.scale[1]'
+        tar.data_path = controller_path + '.scale[1]'
 
         # bend target
         tar = driver.targets.new()
         tar.name = "br"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = controller_path + '["bend_ratio"]'
+        tar.data_path = controller_path + '["bend_ratio"]'
 
         # XXX - todo, any number
         if i == 0:

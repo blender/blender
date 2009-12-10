@@ -150,16 +150,16 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, 
         if animation_data:
 
             fcurve_drivers = [fcurve_driver for fcurve_driver in animation_data.drivers]
-            fcurve_drivers.sort(key=lambda fcurve_driver: fcurve_driver.rna_path)
+            fcurve_drivers.sort(key=lambda fcurve_driver: fcurve_driver.data_path)
 
             for fcurve_driver in fcurve_drivers:
-                rna_path = fcurve_driver.rna_path
+                rna_path = fcurve_driver.data_path
                 pbone = rna_path_as_pbone(rna_path)
 
                 if pbone:
                     for target in fcurve_driver.driver.targets:
-                        pbone_target = rna_path_as_pbone(target.rna_path)
-                        rna_path_target = target.rna_path
+                        pbone_target = rna_path_as_pbone(target.data_path)
+                        rna_path_target = target.data_path
                         if pbone_target:
                             opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"] # ,
                             display_source = rna_path.replace("pose.bones", "")

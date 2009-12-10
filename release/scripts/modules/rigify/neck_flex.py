@@ -121,9 +121,13 @@ def main(obj, bone_definition, base_names):
     neck_chain_basename = base_names[mt_chain.neck_01_e.name].split(".")[0]
     neck_chain_segment_length = mt_chain.neck_01_e.length
 
-    ex = bone_class_instance(obj, ["body", "head", "head_hinge", "neck_socket"]) # hinge & extras
+    ex = bone_class_instance(obj, ["body", "head", "head_hinge", "neck_socket", "head_ctrl"]) # hinge & extras
 
     # Add the head hinge at the bodys location, becomes the parent of the original head
+
+    # apply everything to this copy of the chain
+    ex_chain = mt_chain.copy(base_names=base_names)
+    ex_chain.neck_01_e.parent = mt_chain.neck_01_e.parent
 
 
     # Copy the head bone and offset
@@ -142,10 +146,6 @@ def main(obj, bone_definition, base_names):
     ex.head_hinge_e.head.y += head_length / 4.0
     ex.head_hinge_e.tail.y += head_length / 4.0
 
-    # reparent the head, assume its not connected
-    mt.head_e.connected = False
-    mt.head_e.parent = ex.head_hinge_e
-
     # Insert the neck socket, the head copys this loation
     ex.neck_socket_e = arm.edit_bones.new("MCH-%s_socked" % neck_chain_basename)
     ex.neck_socket = ex.neck_socket_e.name
@@ -154,20 +154,21 @@ def main(obj, bone_definition, base_names):
     ex.neck_socket_e.head = mt.head_e.head
     ex.neck_socket_e.tail = mt.head_e.head - Vector(0.0, neck_chain_segment_length / 2.0, 0.0)
     ex.neck_socket_e.roll = 0.0
+    
+    
+    # copy of the head for controling
+    ex.head_ctrl_e = copy_bone_simple(arm, mt.head, base_names[mt.head])
+    ex.head_ctrl = ex.head_ctrl_e.name
+    ex.head_ctrl_e.parent = ex.head_hinge_e
 
-    # offset the head, not really needed since it has a copyloc constraint
-    mt.head_e.head.y += head_length / 4.0
-    mt.head_e.tail.y += head_length / 4.0
-
-    for i, attr in enumerate(mt_chain.attr_names):
-        neck_e = getattr(mt_chain, attr + "_e")
+    for i, attr in enumerate(ex_chain.attr_names):
+        neck_e = getattr(ex_chain, attr + "_e")
 
         # dont store parent names, re-reference as each chain bones parent.
-        neck_e_parent = arm.edit_bones.new("MCH-rot_%s" % base_names[neck_e.name])
+        neck_e_parent = arm.edit_bones.new("MCH-rot_%s" % base_names[getattr(mt_chain, attr)])
         neck_e_parent.head = neck_e.head
         neck_e_parent.tail = neck_e.head + ((mt.head_e.tail - mt.head_e.head).normalize() * neck_chain_segment_length / 2.0)
         neck_e_parent.roll = mt.head_e.roll
-        
 
         orig_parent = neck_e.parent
         neck_e.connected = False
@@ -184,20 +185,21 @@ def main(obj, bone_definition, base_names):
 
     mt.update()
     mt_chain.update()
+    ex_chain.update()
     ex.update()
 
     # Simple one off constraints, no drivers
-    con = mt.head_p.constraints.new('COPY_LOCATION')
+    con = ex.head_ctrl_p.constraints.new('COPY_LOCATION')
     con.target = obj
     con.subtarget = ex.neck_socket
 
     con = ex.head_p.constraints.new('COPY_ROTATION')
     con.target = obj
-    con.subtarget = mt.head
+    con.subtarget = ex.head_ctrl
 
     # driven hinge
-    prop = rna_idprop_ui_prop_get(mt.head_p, "hinge", create=True)
-    mt.head_p["hinge"] = 0.0
+    prop = rna_idprop_ui_prop_get(ex.head_ctrl_p, "hinge", create=True)
+    ex.head_ctrl_p["hinge"] = 0.0
     prop["soft_min"] = 0.0
     prop["soft_max"] = 1.0
 
@@ -207,7 +209,7 @@ def main(obj, bone_definition, base_names):
     con.subtarget = mt.body
 
     # add driver
-    hinge_driver_path = mt.head_p.path_to_id() + '["hinge"]'
+    hinge_driver_path = ex.head_ctrl_p.path_to_id() + '["hinge"]'
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
@@ -216,7 +218,7 @@ def main(obj, bone_definition, base_names):
     tar.name = "var"
     tar.id_type = 'OBJECT'
     tar.id = obj
-    tar.rna_path = hinge_driver_path
+    tar.data_path = hinge_driver_path
 
     #mod = fcurve_driver.modifiers.new('GENERATOR')
     mod = fcurve.modifiers[0]
@@ -224,12 +226,12 @@ def main(obj, bone_definition, base_names):
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
 
-    head_driver_path = mt.head_p.path_to_id()
+    head_driver_path = ex.head_ctrl_p.path_to_id()
 
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
     
-    mt.head_p["bend_tot"] = 0.0
-    fcurve = mt.head_p.driver_add('["bend_tot"]', 0)
+    ex.head_ctrl_p["bend_tot"] = 0.0
+    fcurve = ex.head_ctrl_p.driver_add('["bend_tot"]', 0)
     driver = fcurve.driver
     driver.type = 'SUM'
     fcurve.modifiers.remove(0) # grr dont need a modifier
@@ -239,19 +241,19 @@ def main(obj, bone_definition, base_names):
         tar.name = target_names[i]
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
+        tar.data_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
     
 
-    for i, attr in enumerate(mt_chain.attr_names):
-        neck_p = getattr(mt_chain, attr + "_p")
+    for i, attr in enumerate(ex_chain.attr_names):
+        neck_p = getattr(ex_chain, attr + "_p")
         neck_p.lock_location = True, True, True
         neck_p.lock_location = True, True, True
         neck_p.lock_rotations_4d = True
 
         # Add bend prop
         prop_name = "bend_%.2d" % (i + 1)
-        prop = rna_idprop_ui_prop_get(mt.head_p, prop_name, create=True)
-        mt.head_p[prop_name] = 1.0
+        prop = rna_idprop_ui_prop_get(ex.head_ctrl_p, prop_name, create=True)
+        ex.head_ctrl_p[prop_name] = 1.0
         prop["soft_min"] = 0.0
         prop["soft_max"] = 1.0
 
@@ -279,13 +281,20 @@ def main(obj, bone_definition, base_names):
         tar.name = "bend_tot"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = head_driver_path + ('["bend_tot"]')
+        tar.data_path = head_driver_path + ('["bend_tot"]')
         
         tar = driver.targets.new()
         tar.name = "bend"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = head_driver_path + ('["%s"]' % prop_name)
+        tar.data_path = head_driver_path + ('["%s"]' % prop_name)
+        
+        
+        # finally constrain the original bone to this one
+        orig_neck_p = getattr(mt_chain, attr + "_p")
+        con = orig_neck_p.constraints.new('COPY_ROTATION')
+        con.target = obj
+        con.subtarget = neck_p.name
 
     # no blending the result of this
     return None

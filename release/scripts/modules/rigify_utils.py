@@ -141,7 +141,7 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
         tar.name = target_bone
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = driver_path
+        tar.data_path = driver_path
 
     def blend_location(new_pbone, from_bone_name, to_bone_name):
         con = new_pbone.constraints.new('COPY_LOCATION')

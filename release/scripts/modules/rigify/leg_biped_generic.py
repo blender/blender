@@ -341,7 +341,7 @@ def fk(obj, bone_definition, base_names):
     tar.name = "var"
     tar.id_type = 'OBJECT'
     tar.id = obj
-    tar.rna_path = hinge_driver_path
+    tar.data_path = hinge_driver_path
 
     mod = fcurve.modifiers[0]
     mod.poly_order = 1

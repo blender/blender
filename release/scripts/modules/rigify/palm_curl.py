@@ -145,7 +145,7 @@ def main(obj, bone_definition, base_names):
     tar.name = "x"
     tar.id_type = 'OBJECT'
     tar.id = obj
-    tar.rna_path = controller_path + ".rotation_euler[0]"
+    tar.data_path = controller_path + ".rotation_euler[0]"
 
 
     # *****
@@ -156,7 +156,7 @@ def main(obj, bone_definition, base_names):
     tar.name = "x"
     tar.id_type = 'OBJECT'
     tar.id = obj
-    tar.rna_path = controller_path + ".rotation_euler[0]"
+    tar.data_path = controller_path + ".rotation_euler[0]"
 
 
     # *****
@@ -166,13 +166,13 @@ def main(obj, bone_definition, base_names):
     tar.name = "x"
     tar.id_type = 'OBJECT'
     tar.id = obj
-    tar.rna_path = controller_path + ".rotation_euler[0]"
+    tar.data_path = controller_path + ".rotation_euler[0]"
 
     tar = driver.targets.new()
     tar.name = "s"
     tar.id_type = 'OBJECT'
     tar.id = obj
-    tar.rna_path = controller_path + '["spread"]'
+    tar.data_path = controller_path + '["spread"]'
 
 
     for i, child_name in enumerate(children):

@@ -240,7 +240,7 @@ def fk(obj, definitions, base_names):
         tar.name = "hinge"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = controller_path + '["hinge"]'
+        tar.data_path = controller_path + '["hinge"]'
 
         mod = driver_fcurve.modifiers[0]
         mod.poly_order = 1

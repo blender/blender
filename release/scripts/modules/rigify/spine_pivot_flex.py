@@ -322,7 +322,7 @@ def main(obj, bone_definition, base_names):
     tar.name = "var"
     tar.id_type = 'OBJECT'
     tar.id = obj
-    tar.rna_path = ex.ribcage_copy_p.path_to_id() + '["hinge"]'
+    tar.data_path = ex.ribcage_copy_p.path_to_id() + '["hinge"]'
 
     mod = fcurve.modifiers[0]
     mod.poly_order = 1
@@ -406,7 +406,7 @@ def main(obj, bone_definition, base_names):
         tar.name = target_names[i]
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = rib_driver_path + ('["bend_%.2d"]' % (i + 1))
+        tar.data_path = rib_driver_path + ('["bend_%.2d"]' % (i + 1))
 
     for i in range(1, spine_chain_len):
 
@@ -441,13 +441,13 @@ def main(obj, bone_definition, base_names):
         tar.name = "bend_tot"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = rib_driver_path + ('["bend_tot"]')
+        tar.data_path = rib_driver_path + ('["bend_tot"]')
 
         tar = driver.targets.new()
         tar.name = "bend"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = rib_driver_path + ('["%s"]' % prop_name)
+        tar.data_path = rib_driver_path + ('["%s"]' % prop_name)
 
 
 
@@ -490,7 +490,7 @@ def main(obj, bone_definition, base_names):
         tar.name = "var"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = rib_driver_path + '["pivot_slide"]'
+        tar.data_path = rib_driver_path + '["pivot_slide"]'
 
         mod = fcurve.modifiers[0]
         mod.poly_order = 1

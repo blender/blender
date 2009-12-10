@@ -49,6 +49,8 @@ def submodule_func_from_type(bone_type):
     
 
 def validate_rig(context, obj):
+    type_found = False
+    
     for pbone in obj.pose.bones:
         bone_name = pbone.name
         bone_type = pbone.get("type", "")
@@ -62,19 +64,29 @@ def validate_rig(context, obj):
             submod, type_func = submodule_func_from_type(bone_type)
             reload(submod)
             submod.metarig_definition(obj, bone_name)
+            type_found = True
         
         # missing, - check for duplicate root bone.
+    
+    if not type_found:
+        raise RigifyError("This rig has no 'type' properties defined on any pose bones, nothing to do")
 
 
 def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     from collections import OrderedDict
     import rigify_utils
     reload(rigify_utils)
+    
+    # Not needed but catches any errors before duplicating
+    # validate_rig(context, obj_orig)
 
     global_undo = context.user_preferences.edit.global_undo
     context.user_preferences.edit.global_undo = False
     mode_orig = context.mode
-
+    rest_backup = obj_orig.data.pose_position
+    obj_orig.data.pose_position = 'REST'
+    
+    
     bpy.ops.object.mode_set(mode='OBJECT')
 
     scene = context.scene
@@ -86,7 +98,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     scene.objects.link(obj)
     scene.objects.active = obj
     obj.selected = True
-    
+
     if META_DEF:
         obj_def = obj_orig.copy()
         obj_def.data = obj_orig.data.copy()
@@ -254,14 +266,19 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
                 con.target = obj
                 con.subtarget = bone_name
 
+        # would be 'REST' from when copied
+        obj_def.data.pose_position = 'POSE'
+
     # Only for demo'ing
 
     # obj.restrict_view = True
     obj.data.draw_axes = False
 
     bpy.ops.object.mode_set(mode=mode_orig)
-
+    obj_orig.data.pose_position = rest_backup
+    obj.data.pose_position = 'POSE'
     context.user_preferences.edit.global_undo = global_undo
+    
     
     return obj
 

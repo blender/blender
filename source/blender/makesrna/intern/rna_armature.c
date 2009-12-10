@@ -752,8 +752,8 @@ static void rna_def_armature(BlenderRNA *brna)
 		{0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_pose_position_items[]= {
-		{0, "POSE_POSITION", 0, "Pose Position", "Show armature in posed state."},
-		{ARM_RESTPOS, "REST_POSITION", 0, "Rest Position", "Show Armature in binding pose state. No posing possible."},
+		{0, "POSE", 0, "Pose Position", "Show armature in posed state."},
+		{ARM_RESTPOS, "REST", 0, "Rest Position", "Show Armature in binding pose state. No posing possible."},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");
