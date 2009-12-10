@@ -77,6 +77,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_sequence.h"
 #include "BKE_world.h"
@@ -772,7 +773,7 @@ float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in objec
 	return ctime;
 }
 
-static void scene_update(Scene *sce, unsigned int lay)
+static void scene_update_newframe(Scene *sce, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
@@ -804,6 +805,40 @@ static void scene_update(Scene *sce, unsigned int lay)
 	}
 }
 
+/* this is called in main loop, doing tagged updates before redraw */
+void scene_update_tagged(Scene *scene)
+{
+	Scene *sce;
+	Base *base;
+	float ctime = frame_to_float(scene, scene->r.cfra); 
+
+	/* update all objects: drivers, matrices, displists, etc. flags set
+	   by depgraph or manual, no layer check here, gets correct flushed */
+
+	/* sets first, we allow per definition current scene to have
+	   dependencies on sets, but not the other way around. */
+	if(scene->set) {
+		for(SETLOOPER(scene->set, base))
+			object_handle_update(scene, base->object);
+	}
+	
+	for(base= scene->base.first; base; base= base->next) {
+		object_handle_update(scene, base->object);
+	}
+
+	/* recalc scene animation data here (for sequencer) */
+	{
+		AnimData *adt= BKE_animdata_from_id(&scene->id);
+
+		if(adt && (adt->recalc & ADT_RECALC_ANIM))
+			BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, 0);
+	}
+
+	BKE_ptcache_quick_cache_all(scene);
+
+	/* in the future this should handle updates for all datablocks, not
+	   only objects and scenes. - brecht */
+}
 
 /* applies changes right away, does all sets too */
 void scene_update_for_newframe(Scene *sce, unsigned int lay)
@@ -815,9 +850,9 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
-		scene_update(sce, lay);
+		scene_update_newframe(sce, lay);
 
-	scene_update(scene, lay);
+	scene_update_newframe(scene, lay);
 }
 
 /* return default layer, also used to patch old files */
