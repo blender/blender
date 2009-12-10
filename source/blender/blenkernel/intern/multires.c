@@ -41,7 +41,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_pbvh.h"
 
-#include "BKE_btex.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -250,7 +249,7 @@ void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Object
 	int levels = mmd->totlvl - lvl;
 	MDisps *mdisps;
 
-	CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
+	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
 	mdisps= CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	multires_force_update(ob);
@@ -286,7 +285,7 @@ void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Object
 			}
 		}
 		else {
-			CustomData_external_remove(&me->fdata, CD_MDISPS, me->totface);
+			CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
 			CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
 		}
 	}
@@ -538,7 +537,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 	ob = ccgdm->multires.ob;
 	me = ccgdm->multires.ob->data;
 	mmd = ccgdm->multires.mmd;
-	CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
+	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
 	mdisps = CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	if(mdisps) {
@@ -690,7 +689,7 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, i
 		memcpy(subGridData[i], gridData[i], sizeof(DMGridData)*gridSize*gridSize);
 	}
 
-	CustomData_external_read(&me->fdata, CD_MASK_MDISPS, me->totface);
+	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
 	multiresModifier_disp_run(result, ob->data, 0, 0, subGridData, mmd->totlvl);
 
 	for(i = 0; i < numGrids; i++)

@@ -438,7 +438,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "levels", text="Preview")
         col.prop(md, "sculpt_levels", text="Sculpt")
         col.prop(md, "render_levels", text="Render")
-        col.prop(md, "optimal_display")
 
         if wide_ui:
             col = split.column()
@@ -446,9 +445,20 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.enabled = ob.mode != 'EDIT'
         col.operator("object.multires_subdivide", text="Subdivide")
         col.operator("object.multires_higher_levels_delete", text="Delete Higher")
+        col.prop(md, "optimal_display")
+
+        layout.separator()
+
+        col = layout.column()
         row = col.row()
-        row.enabled = md.total_levels > 0
-        row.prop(md, "external")
+        if md.external:
+            row.operator("object.multires_pack_external", text="Pack External")
+            row.label()
+            row = col.row()
+            row.prop(md, "filename", text="")
+        else:
+            row.operator("object.multires_save_external", text="Save External...")
+            row.label()
 
     def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
         layout.prop(md, "object")

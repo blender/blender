@@ -44,6 +44,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_util.h"
 
 #include "BKE_action.h"
 #include "BKE_curve.h"
@@ -794,21 +795,105 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int multires_subdivide_poll(bContext *C)
-{
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
-	ID *id= ptr.id.data;
-	return (ptr.data && id && !id->lib);
-}
-
 void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 {
 	ot->name= "Multires Subdivide";
 	ot->description= "Add a new level of subdivision.";
 	ot->idname= "OBJECT_OT_multires_subdivide";
 
+	ot->poll= multires_poll;
 	ot->exec= multires_subdivide_exec;
-	ot->poll= multires_subdivide_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/****************** multires save external operator *********************/
+
+static int multires_save_external_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	Mesh *me= (ob)? ob->data: op->customdata;
+	char path[FILE_MAX];
+
+	if(CustomData_external_test(&me->fdata, CD_MDISPS))
+		return OPERATOR_CANCELLED;
+	
+	RNA_string_get(op->ptr, "path", path);
+	if(G.save_over)
+		BLI_makestringcode(G.sce, path); /* make relative */
+
+	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
+	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int multires_save_external_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	Mesh *me= ob->data;
+	char path[FILE_MAX];
+
+	if(CustomData_external_test(&me->fdata, CD_MDISPS))
+		return OPERATOR_CANCELLED;
+
+	if(RNA_property_is_set(op->ptr, "path"))
+		return multires_save_external_exec(C, op);
+	
+	op->customdata= me;
+
+	BLI_snprintf(path, sizeof(path), "//%s.btx", me->id.name+2);
+	RNA_string_set(op->ptr, "path", path);
+	
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void OBJECT_OT_multires_save_external(wmOperatorType *ot)
+{
+	ot->name= "Multires Save External";
+	ot->description= "Save displacements to an external file.";
+	ot->idname= "OBJECT_OT_multires_save_external";
+
+	ot->poll= multires_poll;
+	ot->exec= multires_save_external_exec;
+	ot->invoke= multires_save_external_invoke;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL);
+}
+
+/****************** multires pack operator *********************/
+
+static int multires_pack_external_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	Mesh *me= ob->data;
+
+	if(!CustomData_external_test(&me->fdata, CD_MDISPS))
+		return OPERATOR_CANCELLED;
+
+	// XXX don't remove..
+	CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_multires_pack_external(wmOperatorType *ot)
+{
+	ot->name= "Multires Pack External";
+	ot->description= "Pack displacements from an external file.";
+	ot->idname= "OBJECT_OT_multires_pack_external";
+
+	ot->poll= multires_poll;
+	ot->exec= multires_pack_external_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

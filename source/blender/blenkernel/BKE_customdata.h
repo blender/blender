@@ -32,6 +32,7 @@
 #ifndef BKE_CUSTOMDATA_H
 #define BKE_CUSTOMDATA_H
 
+struct ID;
 struct CustomData;
 struct CustomDataLayer;
 typedef unsigned int CustomDataMask;
@@ -282,16 +283,15 @@ void CustomData_bmesh_init_pool(struct CustomData *data, int allocsize);
 /* External file storage */
 
 void CustomData_external_add(struct CustomData *data,
-	int type, const char *name, int totelem);
+	struct ID *id, int type, int totelem, const char *filename);
 void CustomData_external_remove(struct CustomData *data,
-	int type, int totelem);
-void CustomData_external_remove_object(struct CustomData *data);
+	struct ID *id, int type, int totelem);
 int CustomData_external_test(struct CustomData *data, int type);
 
 void CustomData_external_write(struct CustomData *data,
-	CustomDataMask mask, int totelem, int free);
+	struct ID *id, CustomDataMask mask, int totelem, int free);
 void CustomData_external_read(struct CustomData *data,
-	CustomDataMask mask, int totelem);
+	struct ID *id, CustomDataMask mask, int totelem);
 
 #endif
 

@@ -357,15 +357,29 @@ static int rna_MultiresModifier_external_get(PointerRNA *ptr)
 	return CustomData_external_test(&me->fdata, CD_MDISPS);
 }
 
-static void rna_MultiresModifier_external_set(PointerRNA *ptr, int value)
+static void rna_MultiresModifier_filename_get(PointerRNA *ptr, char *value)
 {
 	Object *ob= (Object*)ptr->id.data;
-	Mesh *me= ob->data;
+	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
 
-	if(CustomData_external_test(&me->fdata, CD_MDISPS) && !value)
-		CustomData_external_remove(&me->fdata, CD_MDISPS, me->totface);
-	else if(!CustomData_external_test(&me->fdata, CD_MDISPS) && value)
-		CustomData_external_add(&me->fdata, CD_MDISPS, me->id.name+2, me->totface);
+	BLI_strncpy(value, (external)? external->filename: "", sizeof(external->filename));
+}
+
+static void rna_MultiresModifier_filename_set(PointerRNA *ptr, const char *value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
+
+	if(external)
+		BLI_strncpy(external->filename, value, sizeof(external->filename));
+}
+
+static int rna_MultiresModifier_filename_length(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
+
+	return strlen((external)? external->filename: "");
 }
 
 static int rna_MultiresModifier_external_editable(PointerRNA *ptr)
@@ -580,9 +594,15 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Total Levels", "Number of subdivisions for which displacements are stored.");
 
 	prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", "rna_MultiresModifier_external_set");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", NULL);
 	RNA_def_property_editable_func(prop, "rna_MultiresModifier_external_editable");
 	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory.");
+
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_funcs(prop, "rna_MultiresModifier_filename_get", "rna_MultiresModifier_filename_length", "rna_MultiresModifier_filename_set");
+	RNA_def_property_ui_text(prop, "Filename", "Path to external displacements file.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eMultiresModifierFlag_ControlEdges);
