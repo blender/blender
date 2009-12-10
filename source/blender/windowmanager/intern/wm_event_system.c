@@ -1093,6 +1093,11 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 	return 1;
 }
 
+static int wm_action_not_handled(int action)
+{
+	return action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL);
+}
+
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -1158,21 +1163,24 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	}
 
 	/* test for CLICK event */
-	if ((action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) && event->val == KM_RELEASE) {
+	if (wm_action_not_handled(action) && event->val == KM_RELEASE) {
 		wmWindow *win = CTX_wm_window(C);
 
 		if (win && win->last_type == event->type && win->last_val == KM_PRESS) {
-			event->val = KM_CLICK;
-			action |= wm_handlers_do(C, event, handlers);
-
-			/* if not handled and time is right, check double click */
-			if ((action & WM_HANDLER_BREAK) == 0 && (PIL_check_seconds_timer() - win->last_click_time) * 1000 < U.dbl_click_time) {
+			/* test for double click first */
+			if ((PIL_check_seconds_timer() - win->last_click_time) * 1000 < U.dbl_click_time) {
 				event->val = KM_DBL_CLICK;
 				action |= wm_handlers_do(C, event, handlers);
 			}
 
+			if (wm_action_not_handled(action)) {
+				event->val = KM_CLICK;
+				action |= wm_handlers_do(C, event, handlers);
+			}
+
+
 			/* revert value if not handled */
-			if ((action & WM_HANDLER_BREAK) == 0) {
+			if (wm_action_not_handled(action)) {
 				event->val = KM_RELEASE;
 			}
 		}
@@ -1361,7 +1369,7 @@ void wm_event_do_handlers(bContext *C)
 			/* store last event for this window */
 			/* mousemove event don't overwrite last type */
 			if (event->type != MOUSEMOVE) {
-				if (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) {
+				if (wm_action_not_handled(action)) {
 					if (win->last_type == event->type) {
 						/* set click time on first click (press -> release) */
 						if (win->last_val == KM_PRESS && event->val == KM_RELEASE) {
@@ -1374,7 +1382,11 @@ void wm_event_do_handlers(bContext *C)
 
 					win->last_val = event->val;
 					win->last_type = event->type;
-				} else {
+				} else if (event->val == KM_CLICK) { /* keep click for double click later */
+					win->last_type = event->type;
+					win->last_val = event->val;
+					win->last_click_time = PIL_check_seconds_timer();
+				} else { /* reset if not */
 					win->last_type = -1;
 					win->last_val = 0;
 					win->last_click_time = 0;
