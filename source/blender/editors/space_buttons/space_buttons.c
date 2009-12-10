@@ -274,6 +274,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_CONSTRAINT:
 					ED_area_tag_redraw(sa);
 					break;
+				case ND_DRAW:
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 					/* currently works by redraws... if preview is set, it (re)starts job */

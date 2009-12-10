@@ -442,7 +442,9 @@ static int material_slot_copy_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
 		if(ob != ob_iter && give_matarar(ob_iter)) {
-			assign_matarar(ob_iter, matar, ob->totcol);
+			if (ob->data != ob_iter->data)
+				assign_matarar(ob_iter, matar, ob->totcol);
+			
 			if(ob_iter->totcol==ob->totcol) {
 				ob_iter->actcol= ob->actcol;
 				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);
