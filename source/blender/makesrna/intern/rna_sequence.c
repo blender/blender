@@ -1155,7 +1155,7 @@ static void rna_def_solid_color(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "ColorSequence", "EffectSequence");
 	RNA_def_struct_ui_text(srna, "Color Sequence", "Sequence strip creating an image filled with a single color.");
 	RNA_def_struct_sdna_from(srna, "SolidColorVars", "effectdata");

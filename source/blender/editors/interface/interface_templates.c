@@ -1864,7 +1864,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 
 	/* black/white levels */
 	if(levels) {
-		split= uiLayoutSplit(layout, 0);
+		split= uiLayoutSplit(layout, 0, 0);
 		uiItemR(uiLayoutColumn(split, 0), NULL, 0, ptr, "black_level", UI_ITEM_R_EXPAND);
 		uiItemR(uiLayoutColumn(split, 0), NULL, 0, ptr, "white_level", UI_ITEM_R_EXPAND);
 
@@ -2098,7 +2098,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	else if(itemptr->type == &RNA_ShapeKey) {
 		ob= (Object*)activeptr->data;
 
-		split= uiLayoutSplit(sub, 0.75f);
+		split= uiLayoutSplit(sub, 0.75f, 0);
 
 		uiItemL(split, name, icon);
 

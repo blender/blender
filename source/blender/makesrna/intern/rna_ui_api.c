@@ -145,6 +145,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
 	RNA_def_float(func, "percentage", 0.0f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
+	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
 
 	/* items */
 	func= RNA_def_function(srna, "prop", "rna_uiItemR");

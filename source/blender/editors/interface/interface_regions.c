@@ -1377,7 +1377,7 @@ static void ui_block_func_MENUSTR(bContext *C, uiLayout *layout, void *arg_str)
 	}
 
 	/* create items */
-	split= uiLayoutSplit(layout, 0);
+	split= uiLayoutSplit(layout, 0, 0);
 
 	for(a=0, b=0; a<md->nitems; a++, b++) {
 		if(block->flag & UI_BLOCK_NO_FLIP)

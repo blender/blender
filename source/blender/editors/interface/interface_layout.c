@@ -714,7 +714,7 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;
 		int totitem, i, free;
-		uiLayout *split= uiLayoutSplit(layout, 0);
+		uiLayout *split= uiLayoutSplit(layout, 0, 0);
 		uiLayout *column= uiLayoutColumn(split, 0);
 
 		RNA_property_enum_items(block->evil_C, &ptr, prop, &item, &totitem, &free);
@@ -1024,7 +1024,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 	if(RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;
 		int totitem, i, free;
-		uiLayout *split= uiLayoutSplit(layout, 0);
+		uiLayout *split= uiLayoutSplit(layout, 0, 0);
 		uiLayout *column= uiLayoutColumn(split, 0);
 
 		RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
@@ -2088,13 +2088,14 @@ uiLayout *uiLayoutOverlap(uiLayout *layout)
 	return litem;
 }
 
-uiLayout *uiLayoutSplit(uiLayout *layout, float percentage)
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 {
 	uiLayoutItemSplt *split;
 
 	split= MEM_callocN(sizeof(uiLayoutItemSplt), "uiLayoutItemSplt");
 	split->litem.item.type= ITEM_LAYOUT_SPLIT;
 	split->litem.root= layout->root;
+	split->litem.align= align;
 	split->litem.active= 1;
 	split->litem.enabled= 1;
 	split->litem.context= layout->context;

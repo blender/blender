@@ -276,7 +276,7 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 	/* split into 2 columns 
 	 * NOTE: the mode comboboxes shouldn't get labels, otherwise there isn't enough room
 	 */
-	split= uiLayoutSplit(layout, 0.5f);
+	split= uiLayoutSplit(layout, 0.5f, 0);
 	
 	/* before range */
 	col= uiLayoutColumn(split, 1);
@@ -306,7 +306,7 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	uiItemR(layout, NULL, 0, &ptr, "modification", 0);
 	
 	/* split into 2 columns */
-	split= uiLayoutSplit(layout, 0.5f);
+	split= uiLayoutSplit(layout, 0.5f, 0);
 	
 	/* col 1 */
 	col= uiLayoutColumn(split, 0);
@@ -588,7 +588,7 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		row= uiLayoutRow(layout, 0);
 		
 		/* split into 2 columns */
-		split= uiLayoutSplit(layout, 0.5f);
+		split= uiLayoutSplit(layout, 0.5f, 0);
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
@@ -606,7 +606,7 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		row= uiLayoutRow(layout, 0);
 		
 		/* split into 2 columns */
-		split= uiLayoutSplit(layout, 0.5f);
+		split= uiLayoutSplit(layout, 0.5f, 0);
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
