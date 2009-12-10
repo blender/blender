@@ -217,6 +217,13 @@ static void logic_listener(ARegion *ar, wmNotifier *wmn)
 				break;
 		case NC_OBJECT:
 			break;
+		case NC_ID:
+			switch(wmn->data) {
+				case ND_ID_RENAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 	}
 }
 

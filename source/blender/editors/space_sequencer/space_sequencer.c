@@ -241,6 +241,13 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_SEQUENCER)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			switch(wmn->data) {
+				case ND_ID_RENAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 	}
 }
 
@@ -276,7 +283,13 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_SEQUENCER)
 				ED_region_tag_redraw(ar);
 			break;
-		
+		case NC_ID:
+			switch(wmn->data) {
+				case ND_ID_RENAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 	}
 }
 /* ************************************* */

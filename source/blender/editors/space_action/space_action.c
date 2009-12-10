@@ -291,6 +291,13 @@ static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_ID:
+			switch(wmn->data) {
+				case ND_ID_RENAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
@@ -331,6 +338,14 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_ID:
+			switch(wmn->data) {
+				case ND_ID_RENAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+				
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);

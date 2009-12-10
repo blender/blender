@@ -422,6 +422,13 @@ static void nla_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_ID:
+			switch(wmn->data) {
+				case ND_ID_RENAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
@@ -447,6 +454,13 @@ static void nla_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_KEYS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_ID:
+			switch(wmn->data) {
+				case ND_ID_RENAME:
 					ED_region_tag_redraw(ar);
 					break;
 			}

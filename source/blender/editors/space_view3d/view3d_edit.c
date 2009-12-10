@@ -2108,14 +2108,10 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		fp[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
 	}
 
-//	if(lr_click) {
-		// XXX		if(obedit->type==OB_MESH) add_click_mesh();
-		//		else if ELEM(obedit->type, OB_CURVE, OB_SURF) addvert_Nurb(0);
-		//		else if (obedit->type==OB_ARMATURE) addvert_armature();
-//		VECCOPY(fp, oldcurs);
-//	}
-	// XXX notifier for scene */
-	ED_area_tag_redraw(CTX_wm_area(C));
+	if(v3d && v3d->localvd)
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
+	else
+		WM_event_add_notifier(C, NC_SCENE|NA_EDITED, scene);
 
 	return OPERATOR_FINISHED;
 }

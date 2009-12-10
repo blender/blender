@@ -314,6 +314,13 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			switch(wmn->data) {
+				case ND_ID_RENAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 	}
 }
 

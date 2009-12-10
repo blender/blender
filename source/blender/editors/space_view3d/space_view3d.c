@@ -452,12 +452,12 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_LAYER:
-					ED_region_tag_redraw(ar);
-					break;
 				case ND_MODE:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			if (wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_OBJECT:
 			switch(wmn->data) {
