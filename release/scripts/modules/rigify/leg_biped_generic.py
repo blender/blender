@@ -125,7 +125,7 @@ def metarig_definition(obj, orig_bone_name):
     return bone_definition
 
 
-def ik(obj, bone_definition, base_names):
+def ik(obj, bone_definition, base_names, options):
     arm = obj.data
 
     # setup the existing bones
@@ -274,7 +274,7 @@ def ik(obj, bone_definition, base_names):
     return None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe, None
 
 
-def fk(obj, bone_definition, base_names):
+def fk(obj, bone_definition, base_names, options):
     from Mathutils import Vector
     arm = obj.data
 
@@ -354,9 +354,9 @@ def fk(obj, bone_definition, base_names):
     return None, fk_chain.thigh, fk_chain.shin, fk_chain.foot, fk_chain.toe, None
 
 
-def main(obj, bone_definition, base_names):
-    bones_ik = ik(obj, bone_definition, base_names)
-    bones_fk = fk(obj, bone_definition, base_names)
+def main(obj, bone_definition, base_names, options):
+    bones_ik = ik(obj, bone_definition, base_names, options)
+    bones_fk = fk(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    blend_bone_list(obj, bone_definition, bones_ik, bones_fk, target_bone=bone_definition[1])
+    blend_bone_list(obj, bone_definition, bones_ik, bones_fk, target_bone=bone_definition[1], blend_default=0.0)

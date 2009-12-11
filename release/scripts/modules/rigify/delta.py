@@ -75,7 +75,7 @@ def metarig_definition(obj, orig_bone_name):
     return bone_definition
 
 
-def main(obj, bone_definition, base_names):
+def main(obj, bone_definition, base_names, options):
     '''
     Use this bone to define a delta thats applied to its child in pose mode.
     '''

@@ -121,7 +121,7 @@ def fk(*args):
     main(*args)
 
 
-def main(obj, bone_definition, base_names):
+def main(obj, bone_definition, base_names, options):
     from Mathutils import Vector, RotationMatrix
     from math import radians, pi
 
@@ -155,11 +155,9 @@ def main(obj, bone_definition, base_names):
     ex.ribcage_hinge = ex.ribcage_hinge_e.name
     ex.ribcage_hinge_e.translate(Vector(0.0, spine_chain_segment_length / 4.0, 0.0))
 
-    ex.spine_rotate_e = copy_bone_simple(arm, mt.pelvis, "MCH-%s_rotate" % spine_chain_basename)
+    ex.spine_rotate_e = copy_bone_simple(arm, mt.ribcage, "MCH-%s_rotate" % spine_chain_basename)
     ex.spine_rotate = ex.spine_rotate_e.name
     ex.spine_rotate_e.translate(Vector(0.0, spine_chain_segment_length / 2.0, 0.0))
-    # swap head/tail
-    ex.spine_rotate_e.head, ex.spine_rotate_e.tail = ex.spine_rotate_e.tail.copy(), ex.spine_rotate_e.head.copy()
     ex.spine_rotate_e.connected = False
     ex.spine_rotate_e.parent = ex.pelvis_copy_e
 

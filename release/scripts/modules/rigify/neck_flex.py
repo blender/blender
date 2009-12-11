@@ -100,7 +100,7 @@ def metarig_definition(obj, orig_bone_name):
     return bone_definition
 
 
-def main(obj, bone_definition, base_names):
+def main(obj, bone_definition, base_names, options):
     from Mathutils import Vector
 
     arm = obj.data

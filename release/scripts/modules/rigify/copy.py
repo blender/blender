@@ -44,7 +44,7 @@ def metarig_definition(obj, orig_bone_name):
     return [orig_bone_name]
 
 
-def main(obj, bone_definition, base_names):
+def main(obj, bone_definition, base_names, options):
     arm = obj.data
     mt = bone_class_instance(obj, METARIG_NAMES)
     mt.cpy = bone_definition[0]

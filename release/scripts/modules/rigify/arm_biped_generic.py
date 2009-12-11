@@ -93,7 +93,10 @@ def metarig_definition(obj, orig_bone_name):
     return mt.names()
 
 
-def ik(obj, definitions, base_names):
+def ik(obj, definitions, base_names, options):
+    print(options)
+    arm = obj.data
+    
     mt = bone_class_instance(obj, METARIG_NAMES)
     mt.shoulder, mt.arm, mt.forearm, mt.hand = definitions
     mt.update()
@@ -116,6 +119,17 @@ def ik(obj, definitions, base_names):
  
     ik.update()
     ik.pole_e.local_location = False
+    
+    # option: elbow_parent
+    elbow_parent_name = options.get("elbow_parent", "")
+
+    if elbow_parent_name:
+        try:
+            elbow_parent_e = arm.edit_bones[elbow_parent_name]
+        except:
+            # TODO, old/new parent mapping
+            raise RigifyError("parent bone from property 'arm_biped_generic.elbow_parent' not found '%s'" % elbow_parent_name)
+        ik.pole_e.parent = elbow_parent_e
     
     # update bones after this!
     ik.hand_vis = add_stretch_to(obj, mt.hand, ik_chain.hand, "VIS-%s_ik" % base_names[mt.hand])
@@ -162,7 +176,7 @@ def ik(obj, definitions, base_names):
     return [None] + ik_chain.names()
 
 
-def fk(obj, definitions, base_names):
+def fk(obj, definitions, base_names, options):
     
     arm = obj.data
     
@@ -254,9 +268,9 @@ def fk(obj, definitions, base_names):
     return None, fk_chain.arm, fk_chain.forearm, fk_chain.hand
 
 
-def main(obj, bone_definition, base_names):    
-    bones_ik = ik(obj, bone_definition, base_names)
-    bones_fk = fk(obj, bone_definition, base_names)
+def main(obj, bone_definition, base_names, options):    
+    bones_ik = ik(obj, bone_definition, base_names, options)
+    bones_fk = fk(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    blend_bone_list(obj, bone_definition, bones_ik, bones_fk, target_bone=bone_definition[1])
+    blend_bone_list(obj, bone_definition, bones_ik, bones_fk, target_bone=bone_definition[1], blend_default=1.0)

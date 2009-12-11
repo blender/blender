@@ -41,19 +41,19 @@ def submodule_func_from_type(bone_type):
     if len(type_pair) == 1:
         type_pair = type_pair[0], "main"
 
-    submod_name, func_name = type_pair
+    type_name, func_name = type_pair
 
     # from rigify import leg
     try:
-        submod = __import__(name="%s.%s" % (__package__, submod_name), fromlist=[submod_name])
+        submod = __import__(name="%s.%s" % (__package__, type_name), fromlist=[type_name])
     except ImportError:
-        raise RigifyError("python module for type '%s' not found" % submod_name)
+        raise RigifyError("python module for type '%s' not found" % type_name)
         
     reload(submod)
-    return submod, getattr(submod, func_name)
+    return type_name, submod, getattr(submod, func_name)
 
 
-def submodule_types():
+def get_submodule_types():
     import os
     submodules = []
     files = os.listdir(os.path.dirname(__file__))
@@ -63,6 +63,17 @@ def submodule_types():
     
     return sorted(submodules)
 
+def get_bone_type_options(pbone, type_name):
+    options = {}
+    bone_name = pbone.name
+    for key, value in pbone.items():
+        key_pair = key.split(".")
+        if key_pair[0] == type_name:
+            if len(key_pair) != 2:
+                raise RigifyError("option error for bone '%s', property name was not a pair '%s'" % (bone_name, key_pair))
+            options[key_pair[1]] = value
+
+    return options
 
 def validate_rig(context, obj):
     '''
@@ -84,11 +95,13 @@ def validate_rig(context, obj):
             if bone_type.split(".")[0] in SPECIAL_TYPES:
                 continue
 
-            submod, type_func = submodule_func_from_type(bone_type)
+            type_name, submod, type_func = submodule_func_from_type(bone_type)
             reload(submod)
             submod.metarig_definition(obj, bone_name)
             type_found = True
-        
+
+            get_bone_type_options(pbone, bone_type)
+
         # missing, - check for duplicate root bone.
     
     if not type_found:
@@ -162,6 +175,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     #   ...needed so we can override the root parent
     bone_genesis = {}
 
+
     # inspect all bones and assign their definitions before modifying
     for pbone in obj.pose.bones:
         bone_name = pbone.name
@@ -181,18 +195,17 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             bone_type_list[:] = []
 
         for bone_type in bone_type_list:
-            submod, type_func = submodule_func_from_type(bone_type)
+            type_name, submod, type_func = submodule_func_from_type(bone_type)
             reload(submod)
-            submod_name = submod.__name__
             
             bone_def_dict = bone_definitions.setdefault(bone_name, {})
 
             # Only calculate bone definitions once
-            if submod_name not in bone_def_dict:
-                bone_def_dict[submod_name] = submod.metarig_definition(obj, bone_name)
+            if type_name not in bone_def_dict:
+                bone_def_dict[type_name] = submod.metarig_definition(obj, bone_name)
 
             bone_typeinfo = bone_typeinfos.setdefault(bone_name, [])
-            bone_typeinfo.append((submod_name, type_func))
+            bone_typeinfo.append((type_name, type_func))
 
 
     # sort bones, not needed but gives more pradictable execution which may be useful in rare cases
@@ -216,16 +229,17 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         
         bone_names_pre = set([bone.name for bone in arm.bones])
 
-        for submod_name, type_func in bone_typeinfos[bone_name]:
+        for type_name, type_func in bone_typeinfos[bone_name]:
             # this bones definition of the current typeinfo
-            definition = bone_def_dict[submod_name]
+            definition = bone_def_dict[type_name]
+            options = get_bone_type_options(pbone, type_name)
 
             bpy.ops.object.mode_set(mode='EDIT')
-            ret = type_func(obj, definition, base_names)
+            ret = type_func(obj, definition, base_names, options)
             bpy.ops.object.mode_set(mode='OBJECT')
 
             if ret:
-                result_submod = results.setdefault(submod_name, [])
+                result_submod = results.setdefault(type_name, [])
 
                 if result_submod and len(result_submod[-1]) != len(ret):
                     raise Exception("bone lists not compatible: %s, %s" % (result_submod[-1], ret))
@@ -234,7 +248,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
         for result_submod in results.values():
             # blend 2 chains
-            definition = bone_def_dict[submod_name]
+            definition = bone_def_dict[type_name]
 
             if len(result_submod) == 2:
                 blend_bone_list(obj, definition, result_submod[0], result_submod[1], target_bone=bone_name)
@@ -325,11 +339,15 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
             obj.selected = False
         obj_new.selected = True
 
-    for module_name in submodule_types():
+    for module_name in get_submodule_types():
         if (metarig_type and module_name != metarig_type):
             continue
+
+        # XXX workaround!, problem with updating the pose matrix.
+        if module_name=="delta":
+            continue
         
-        submodule, func = submodule_func_from_type(module_name)
+        type_name, submodule, func = submodule_func_from_type(module_name)
 
         metarig_template = getattr(submodule, "metarig_template", None)
 

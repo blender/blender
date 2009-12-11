@@ -20,7 +20,7 @@
 
 import bpy
 from rigify import RigifyError
-from rigify_utils import copy_bone_simple, get_side_name, get_base_name, EMPTY_LAYER
+from rigify_utils import copy_bone_simple, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from functools import reduce
 
@@ -85,21 +85,17 @@ def metarig_definition(obj, orig_bone_name):
     return bone_definition
 
 
-def main(obj, bone_definition, base_names):
-
+def main(obj, bone_definition, base_names, options):
     # *** EDITMODE
 
     # get assosiated data
     arm = obj.data
-    orig_pbone = obj.pose.bones[bone_definition[0]]
     orig_ebone = arm.edit_bones[bone_definition[0]]
 
     obj.animation_data_create() # needed if its a new armature with no keys
 
-    arm.layer[0] = arm.layer[8] = True
-
-    children = orig_pbone.children_recursive
-    tot_len = reduce(lambda f, pbone: f + pbone.bone.length, children, orig_pbone.bone.length)
+    children = orig_ebone.children_recursive
+    tot_len = reduce(lambda f, ebone: f + ebone.length, children, orig_ebone.length)
 
     # FIXME, the line below is far too arbitrary
     base_name = base_names[bone_definition[0]].rsplit(".", 2)[0]
@@ -116,12 +112,7 @@ def main(obj, bone_definition, base_names):
     # now add bones inbetween this and its children recursively
 
     # switching modes so store names only!
-    children = [pbone.name for pbone in children]
-
-    # set an alternate layer for driver bones
-    other_layer = EMPTY_LAYER[:]
-    other_layer[8] = True
-
+    children = [ebone.name for ebone in children]
 
     driver_bone_pairs = []
 
@@ -134,7 +125,6 @@ def main(obj, bone_definition, base_names):
 
         driver_ebone = copy_bone_simple(arm, child_ebone.name, driver_bone_name)
         driver_ebone.length *= 0.5
-        driver_ebone.layer = other_layer
 
         # Insert driver_ebone in the chain without connected parents
         driver_ebone.connected = False

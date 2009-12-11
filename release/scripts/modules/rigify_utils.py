@@ -113,7 +113,7 @@ def copy_bone_simple_list(arm, from_bones, to_bones, parent=False):
     return copy_bones
 
 
-def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, target_prop="blend"):
+def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, target_prop="blend", blend_default=0.5):
 
     if obj.mode == 'EDIT':
         raise Exception("blending cant be called in editmode")
@@ -130,7 +130,7 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
     prop_pbone = obj.pose.bones[target_bone]
     if prop_pbone.get(target_bone, None) is None:
         prop = rna_idprop_ui_prop_get(prop_pbone, target_prop, create=True)
-        prop_pbone[target_prop] = 0.5
+        prop_pbone[target_prop] = blend_default
         prop["soft_min"] = 0.0
         prop["soft_max"] = 1.0
 
