@@ -88,9 +88,9 @@ typedef enum {
 
 	PBVH_UpdateNormals = 2,
 	PBVH_UpdateBB = 4,
-	PBVH_UpdateOriginalBB = 4,
-	PBVH_UpdateDrawBuffers = 8,
-	PBVH_UpdateRedraw = 16
+	PBVH_UpdateOriginalBB = 8,
+	PBVH_UpdateDrawBuffers = 16,
+	PBVH_UpdateRedraw = 32
 } PBVHNodeFlags;
 
 void BLI_pbvh_node_mark_update(PBVHNode *node);

@@ -1142,8 +1142,8 @@ static int ray_face_intersection(float ray_start[3], float ray_normal[3],
 	{	
 		float dist = FLT_MAX;
 			
-		if(!isect_ray_tri_v3(ray_start, ray_normal, t0, t1, t2,
-					 &dist, NULL))
+		if(!isect_ray_tri_threshold_v3(ray_start, ray_normal, t0, t1, t2,
+					 &dist, NULL, 0.001f))
 			dist = FLT_MAX;
 
 		if(dist >= 0 && dist < *fdist) {
@@ -1232,32 +1232,26 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	return hit;
 }
 
-#if 0
-static int nodes_drawn = 0;
-static int is_partial = 0;
-/* XXX: Just a temporary replacement for the real drawing code */
-static void draw_partial_cb(PBVHNode *node, void *data)
+//#include <GL/glew.h>
 
+void BLI_pbvh_node_draw(PBVHNode *node, void *data)
+{
+#if 0
 	/* XXX: Just some quick code to show leaf nodes in different colors */
-	/*float col[3]; int i;
-	if(is_partial) {
+	float col[3]; int i;
+
+	if(0) { //is_partial) {
 		col[0] = (rand() / (float)RAND_MAX); col[1] = col[2] = 0.6;
 	}
 	else {
-		srand((long long)data_v);
+		srand((long long)node);
 		for(i = 0; i < 3; ++i)
 			col[i] = (rand() / (float)RAND_MAX) * 0.3 + 0.7;
 	}
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, col);
 
-	glColor3f(1, 0, 0);*/
-	GPU_draw_buffers(BLI_pbvh_node_get_draw_buffers(node));
-	++nodes_drawn;
-}
+	glColor3f(1, 0, 0);
 #endif
-
-void BLI_pbvh_node_draw(PBVHNode *node, void *data)
-{
 	GPU_draw_buffers(node->draw_buffers);
 }
 

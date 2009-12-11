@@ -2054,6 +2054,8 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 		BLI_pbvh_update(ss->tree, PBVH_UpdateOriginalBB, NULL);
 
 		if(ss->refkb) sculpt_key_to_mesh(ss->refkb, ob);
+
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	}
 }
 

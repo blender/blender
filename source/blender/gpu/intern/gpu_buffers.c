@@ -457,10 +457,12 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 	/* Count the number of triangles */
 	for(i = 0, tottri = 0; i < totface; ++i)
 		tottri += mface[face_indices[i]].v4 ? 2 : 1;
+	
+	if(GL_ARB_vertex_buffer_object)
+		glGenBuffersARB(1, &buffers->index_buf);
 
 	if(buffers->index_buf) {
 		/* Generate index buffer object */
-		glGenBuffersARB(1, &buffers->index_buf);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
 		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
 				 sizeof(unsigned short) * tottri * 3, NULL, GL_STATIC_DRAW_ARB);
@@ -503,7 +505,7 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	}
 
-	if(buffers->vert_buf)
+	if(buffers->index_buf)
 		glGenBuffersARB(1, &buffers->vert_buf);
 	GPU_update_mesh_buffers(buffers, mvert, vert_indices, totvert);
 
@@ -567,7 +569,9 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 	totquad= (gridsize-1)*(gridsize-1)*totgrid;
 
 	/* Generate index buffer object */
-	glGenBuffersARB(1, &buffers->index_buf);
+	if(GL_ARB_vertex_buffer_object)
+		glGenBuffersARB(1, &buffers->index_buf);
+
 	if(buffers->index_buf) {
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
 
