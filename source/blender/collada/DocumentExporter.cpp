@@ -1720,8 +1720,6 @@ public:
 class AnimationExporter: COLLADASW::LibraryAnimations
 {
 	Scene *scene;
-	std::map<bActionGroup*, std::vector<FCurve*> > fcurves_actionGroup_map;
-	std::map<bActionGroup*, std::vector<FCurve*> > rotfcurves_actionGroup_map;
 public:
 	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) {}
 
@@ -1875,20 +1873,13 @@ public:
 // 			return std::string(rna_path) + axis_name;
 
 // 		return std::string(rna_path) + "." + axis_name;
-		std::string new_rna_path;
-		
-		if (strstr(rna_path, "rotation")) {
-			new_rna_path = "rotation";
-			return new_rna_path + axis_name;
-		}
-		else if (strstr(rna_path, "location")) {
-			new_rna_path = strstr(rna_path, "location");
-			return new_rna_path + "." + axis_name;
-		}
-		else if (strstr(rna_path, "scale")) {
-			new_rna_path = strstr(rna_path, "scale");
-			return new_rna_path + "." + axis_name;
-		}
+		char *name = extract_transform_name(rna_path);
+
+		if (strstr(name, "rotation"))
+			return std::string("rotation") + axis_name;
+		else if (!strcmp(name, "location") || !strcmp(name, "scale"))
+			return std::string(name) + "." + axis_name;
+
 		return NULL;
 	}
 
@@ -2012,17 +2003,15 @@ public:
 		calchandles_fcurve(fcu);
 	}
 	
-	void change_quat_to_eul(Object *ob, bActionGroup *grp, char *grpname)
+	void change_quat_to_eul(Object *ob, std::vector<FCurve*> rcurves, char *grpname)
 	{
-		std::vector<FCurve*> &rot_fcurves = rotfcurves_actionGroup_map[grp];
-		
 		FCurve *quatcu[4] = {NULL, NULL, NULL, NULL};
 		int i;
 		
-		for (i = 0; i < rot_fcurves.size(); i++)
-			quatcu[rot_fcurves[i]->array_index] = rot_fcurves[i];
+		for (i = 0; i < rcurves.size(); i++)
+			quatcu[rcurves[i]->array_index] = rcurves[i];
 		
-		char *rna_path = rot_fcurves[0]->rna_path;
+		char *rna_path = rcurves[0]->rna_path;
 		
 		FCurve *eulcu[3] = {
 			create_fcurve(0, rna_path),
@@ -2040,7 +2029,7 @@ public:
 				float frame = cu->bezt[j].vec[1][0];
 				
 				float quat[4] = {
-					quatcu[0] ? evaluate_fcurve(quatcu[0], frame) : 0.0f,
+					quatcu[0] ? evaluate_fcurve(quatcu[0], frame) : 1.0f,
 					quatcu[1] ? evaluate_fcurve(quatcu[1], frame) : 0.0f,
 					quatcu[2] ? evaluate_fcurve(quatcu[2], frame) : 0.0f,
 					quatcu[3] ? evaluate_fcurve(quatcu[3], frame) : 0.0f
@@ -2061,6 +2050,12 @@ public:
 		}
 	}
 
+	char *extract_transform_name(char *rna_path)
+	{
+		char *dot = strrchr(rna_path, '.');
+		return dot ? (dot + 1) : rna_path;
+	}
+
 	// called for each exported object
 	void operator() (Object *ob) 
 	{
@@ -2069,12 +2064,22 @@ public:
 		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
 		
 		if (ob->type == OB_ARMATURE) {
+			std::map< bActionGroup*, std::vector<FCurve*> > lcurve_map, quatcurve_map, eulcurve_map;
 			
 			while (fcu) {
-				
-				if (strstr(fcu->rna_path, ".rotation")) 
-					rotfcurves_actionGroup_map[fcu->grp].push_back(fcu);
-				else fcurves_actionGroup_map[fcu->grp].push_back(fcu);
+				// rna path should start with "pose.bones"
+				if (strstr(fcu->rna_path, "pose.bones") == fcu->rna_path) {
+					char *name = extract_transform_name(fcu->rna_path);
+
+					if (!strcmp(name, "rotation_quaternion"))
+						quatcurve_map[fcu->grp].push_back(fcu);
+					else if (!strcmp(name, "rotation_euler"))
+						eulcurve_map[fcu->grp].push_back(fcu);
+					else if (!strcmp(name, "scale") || !strcmp(name, "location"))
+						lcurve_map[fcu->grp].push_back(fcu);
+					else
+						fprintf(stderr, "warning: not writing fcurve for %s\n", name);
+				}
 				
 				fcu = fcu->next;
 			}
@@ -2086,40 +2091,39 @@ public:
 				
 				if (!grp) continue;
 				
-				// write animation for location & scaling
-				if (fcurves_actionGroup_map.find(grp) == fcurves_actionGroup_map.end()) continue;
-				
-				std::vector<FCurve*> &fcurves = fcurves_actionGroup_map[grp];
-				for (i = 0; i < fcurves.size(); i++)
-					add_bone_animation(fcurves[i], id_name(ob), std::string(grpname));
-				
-				// ... for rotation
-				if (rotfcurves_actionGroup_map.find(grp) == rotfcurves_actionGroup_map.end())
-					continue;
-				
-				// if rotation mode is euler - no need to convert it
-				if (pchan->rotmode == ROT_MODE_EUL) {
-					
-					std::vector<FCurve*> &rotfcurves = rotfcurves_actionGroup_map[grp];
-					
-					for (i = 0; i < rotfcurves.size(); i++) 
-						add_bone_animation(rotfcurves[i], id_name(ob), std::string(grpname));
+				// write animation for location and scale
+				if (lcurve_map.find(grp) != lcurve_map.end()) {
+					std::vector<FCurve*> &lcurves = lcurve_map[grp];
+
+					for (i = 0; i < lcurves.size(); i++)
+						add_bone_animation(lcurves[i], id_name(ob), std::string(grpname));
 				}
 				
-				// convert rotation to euler & write animation
-				else change_quat_to_eul(ob, grp, grpname);
+				// rotation
+				// FIXME, this only supports XYZ order now, need to support others too
+				if (pchan->rotmode == ROT_MODE_EUL) {
+					if (eulcurve_map.find(grp) != eulcurve_map.end()) {
+						std::vector<FCurve*> &eulcu = eulcurve_map[grp];
+				
+						// write euler values "as is"
+						for (i = 0; i < eulcu.size(); i++) 
+							add_bone_animation(eulcu[i], id_name(ob), std::string(grpname));
+					}
+				}
+				else if (pchan->rotmode == ROT_MODE_QUAT) {
+					// convert rotation to euler and write animation
+					if (quatcurve_map.find(grp) != quatcurve_map.end())
+						change_quat_to_eul(ob, quatcurve_map[grp], grpname);
+				}
 			}
 		}
 		else {
 			while (fcu) {
-				
-				if (!strcmp(fcu->rna_path, "location") ||
-					!strcmp(fcu->rna_path, "scale") ||
-					!strcmp(fcu->rna_path, "rotation_euler")) {
-					
+				// TODO "rotation_quaternion" is also possible for objects (although euler is default)
+				if ((!strcmp(fcu->rna_path, "location") || !strcmp(fcu->rna_path, "scale")) ||
+					(!strcmp(fcu->rna_path, "rotation_euler") && ob->rotmode == ROT_MODE_EUL))
 					add_animation(fcu, id_name(ob));
-				}
-				
+
 				fcu = fcu->next;
 			}
 		}
