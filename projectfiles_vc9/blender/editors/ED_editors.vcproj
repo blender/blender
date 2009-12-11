@@ -1308,6 +1308,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_undo.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_utils.c"
 				>
 			</File>

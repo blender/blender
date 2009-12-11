@@ -583,6 +583,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\customdata_file.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\deform.c"
 				>
 			</File>
@@ -905,6 +909,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_customdata.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_customdata_file.h"
 				>
 			</File>
 			<File
