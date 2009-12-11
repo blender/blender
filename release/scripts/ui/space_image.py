@@ -287,6 +287,11 @@ class IMAGE_HT_header(bpy.types.Header):
                 layout.prop(uvedit, "sticky_selection_mode", text="", icon_only=True)
 
             row = layout.row(align=True)
+            row.prop(settings, "proportional_editing", text="", icon_only=True)
+            if settings.proportional_editing != 'DISABLED':
+                row.prop(settings, "proportional_editing_falloff", text="", icon_only=True)
+
+            row = layout.row(align=True)
             row.prop(settings, "snap", text="")
             row.prop(settings, "snap_element", text="", icon_only=True)
 
