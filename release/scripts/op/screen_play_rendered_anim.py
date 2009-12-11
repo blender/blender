@@ -73,7 +73,7 @@ class PlayRenderedAnim(bpy.types.Operator):
                 player_path = 'djv_view'
         
         # doesn't support ### frame notation yet
-        file = "%s%04d" % (rd.output_path, sce.start_frame)
+        file = "%s%04d" % (bpy.utils.expandpath(rd.output_path), sce.start_frame)
         if rd.file_extensions:
             file += '.' + img_format_exts[rd.file_format]
         
