@@ -572,7 +572,7 @@ static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	actkeys_duplicate_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TIME_TRANSLATE);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }

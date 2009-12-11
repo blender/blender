@@ -43,6 +43,7 @@ EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_PRESS, "PRESS", 0, "Press", ""},
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
 	{KM_CLICK, "CLICK", 0, "Click", ""},
+	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem event_tweak_value_items[]= {
@@ -249,6 +250,18 @@ EnumPropertyItem operator_return_items[] = {
 		{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", ""},
 		{OPERATOR_FINISHED, "FINISHED", 0, "Finished", ""},
 		{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", ""}, // used as a flag
+		{0, NULL, 0, NULL, NULL}};
+
+/* flag/enum */
+EnumPropertyItem wm_report_items[] = {
+		{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
+		{RPT_INFO, "INFO", 0, "Info", ""},
+		{RPT_OPERATOR, "OPERATOR", 0, "Operator", ""},
+		{RPT_WARNING, "WARNING", 0, "Warning", ""},
+		{RPT_ERROR, "ERROR", 0, "Error", ""},
+		{RPT_ERROR_INVALID_INPUT, "ERROR_INVALID_INPUT", 0, "Invalid Input", ""},\
+		{RPT_ERROR_INVALID_CONTEXT, "ERROR_INVALID_CONTEXT", 0, "Invalid Context", ""},
+		{RPT_ERROR_OUT_OF_MEMORY, "ERROR_OUT_OF_MEMORY", 0, "Out of Memory", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 #define KMI_TYPE_KEYBOARD	0
@@ -601,10 +614,13 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Properties", "");
 	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
 
+	RNA_api_operator(srna);
+
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator.");
 	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
 	RNA_def_struct_idproperties_func(srna, "rna_OperatorProperties_idproperties");
+
 }
 
 static void rna_def_macro_operator(BlenderRNA *brna)
@@ -856,16 +872,19 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "idname");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Name", "Name of the key map.");
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spaceid");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_ui_text(prop, "Space Type", "Optional space type keymap is associated with.");
 
 	prop= RNA_def_property(srna, "region_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "regionid");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, region_type_items);
 	RNA_def_property_ui_text(prop, "Region Type", "Optional region type keymap is associated with.");
 
@@ -879,7 +898,13 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "modal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_MODAL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Modal Keymap", "Indicates that a keymap is used for translate modal events for an operator.");
+
+	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_EXPANDED);
+	RNA_def_property_ui_text(prop, "Expanded", "Expanded in the user interface.");
+
 
 	RNA_api_keymap(srna);
 

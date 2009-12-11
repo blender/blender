@@ -42,9 +42,6 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
 
 char *BLI_strdupn(const char *str, int len) {
 	char *n= MEM_mallocN(len+1, "strdup");
@@ -332,18 +329,3 @@ void BLI_timestr(double _time, char *str)
 	
 	str[11]=0;
 }
-
-void BLI_strhex(char *hex, int maxlen, const char *str)
-{
-	int len = 0;
-
-	while('\0' != *str && len+3 < maxlen) {
-		snprintf(hex, maxlen, "%02X", *str++);
-		hex += 2;
-		len += 2;
-	}
-
-	if(maxlen)
-		hex[0]= '\0';
-}
-

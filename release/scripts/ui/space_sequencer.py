@@ -199,8 +199,8 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator("tfm.transform", text="Grab/Move").mode = 'TRANSLATION'
-        layout.operator("tfm.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
+        layout.operator("transform.transform", text="Grab/Move").mode = 'TRANSLATION'
+        layout.operator("transform.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
         #  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
         layout.separator()
 
@@ -297,9 +297,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
         row = layout.row()
         if strip.mute == True:
-            row.prop(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_ON', text="")
+            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON', text="")
         elif strip.mute is False:
-            row.prop(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_OFF', text="")
+            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_OFF', text="")
 
         sub = row.row()
         sub.active = (not strip.mute)
@@ -401,14 +401,23 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             layout.separator()
 
             col = layout.column(align=True)
-            col.label(text="Scale X:")
-            col.prop(strip, "scale_start_x", text="Start")
-            col.prop(strip, "scale_end_x", text="End")
+            col.prop(strip, "uniform_scale")
+            
+            if (strip.uniform_scale):
+                col = layout.column(align=True)
+                col.label(text="Scale:")
+                col.prop(strip, "scale_start_x", text="Start")
+                col.prop(strip, "scale_end_x", text="End")
+            else:
+                col = layout.column(align=True)
+                col.label(text="Scale X:")
+                col.prop(strip, "scale_start_x", text="Start")
+                col.prop(strip, "scale_end_x", text="End")
 
-            col = layout.column(align=True)
-            col.label(text="Scale Y:")
-            col.prop(strip, "scale_start_y", text="Start")
-            col.prop(strip, "scale_end_y", text="End")
+                col = layout.column(align=True)
+                col.label(text="Scale Y:")
+                col.prop(strip, "scale_start_y", text="Start")
+                col.prop(strip, "scale_end_y", text="End")
 
             layout.separator()
 
@@ -420,10 +429,11 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "speed_fader", text="Speed fader")
-        else:
-            col.prop(strip, "use_effect_default_fade", "Default fade")
-            if not strip.use_effect_default_fade:
-                col.prop(strip, "effect_fader", text="Effect fader")
+        elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE',
+                            'TRANSFORM'):
+                col.prop(strip, "use_effect_default_fade", "Default fade")
+                if not strip.use_effect_default_fade:
+                    col.prop(strip, "effect_fader", text="Effect fader")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
@@ -507,9 +517,9 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 
         row = layout.row()
         if strip.sound.packed_file:
-            row.operator("sound.unpack", icon='ICON_PACKAGE', text="Unpack")
+            row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
         else:
-            row.operator("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
+            row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
 
         row.prop(strip.sound, "caching")
 

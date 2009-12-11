@@ -6008,7 +6008,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
 				
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
+				ar->regiontype= RGN_TYPE_TOOLS;
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->flag = RGN_FLAG_HIDDEN;
 				
@@ -6016,7 +6016,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar= MEM_callocN(sizeof(ARegion), "tool properties for view3d");
 				
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
+				ar->regiontype= RGN_TYPE_TOOL_PROPS;
 				ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 				ar->flag = RGN_FLAG_HIDDEN;
 				
@@ -10152,6 +10152,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		Object *ob;
+		
+		/* properly initialise hair clothsim data on old files */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData *)md;
+					if (clmd->sim_parms->velocity_smooth < 0.01f)
+						clmd->sim_parms->velocity_smooth = 0.f;
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

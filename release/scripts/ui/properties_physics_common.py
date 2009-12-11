@@ -30,8 +30,8 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
     row = layout.row()
     row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
     col = row.column(align=True)
-    col.operator("ptcache.add", icon='ICON_ZOOMIN', text="")
-    col.operator("ptcache.remove", icon='ICON_ZOOMOUT', text="")
+    col.operator("ptcache.add", icon='ZOOMIN', text="")
+    col.operator("ptcache.remove", icon='ZOOMOUT', text="")
 
     row = layout.row()
     row.label(text="File Name:")

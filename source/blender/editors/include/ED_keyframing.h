@@ -149,7 +149,7 @@ short ANIM_driver_can_paste(void);
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
  */
-short ANIM_add_driver (struct ID *id, const char rna_path[], int array_index, short flag, int type);
+short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type);
 
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)

@@ -370,7 +370,7 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	if (retv == OPERATOR_FINISHED) {
 		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	}
 	
 	return retv;

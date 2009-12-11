@@ -23,376 +23,96 @@ from Mathutils import Vector
 
 # TODO, have these in a more general module
 from rna_prop_ui import rna_idprop_ui_prop_get
+SPECIAL_TYPES = "root",
 
-empty_layer = [False] * 32
+class RigifyError(Exception):
+    """Exception raised for errors in the metarig.
+    """
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return repr(self.message)
 
+def submodule_func_from_type(bone_type):
+    type_pair = bone_type.split(".")
 
-def auto_class(slots, name="ContainerClass", class_dict=None):
+    # 'leg.ik' will look for an ik function in the leg module
+    # 'leg' will look up leg.main
+    if len(type_pair) == 1:
+        type_pair = type_pair[0], "main"
 
-    if class_dict:
-        class_dict = class_dict.copy()
-    else:
-        class_dict = {}
+    submod_name, func_name = type_pair
 
-    class_dict["__slots__"] = tuple(slots)
-
-    return type(name, (object,), class_dict)
-
-
-def auto_class_instance(slots, name="ContainerClass", class_dict=None):
-    return auto_class(slots, name, class_dict)()
-
-
-def _bone_class_instance_update(self):
-    ''' Re-Assigns bones from the blender data
-    '''
-    arm = self.obj.data
-    bbones = arm.bones
-    pbones = self.obj.pose.bones
-    ebones = arm.edit_bones
-
-    for member in self.attr_names:
-        name = getattr(self, member, None)
-        if name is not None:
-            setattr(self, member + "_b", bbones.get(name, None))
-            setattr(self, member + "_p", pbones.get(name, None))
-            setattr(self, member + "_e", ebones.get(name, None))
-
-
-def _bone_class_instance_rename(self, attr, new_name):
-    ''' Rename bones, editmode only
-    '''
-
-    if self.obj.mode != 'EDIT':
-        raise Exception("Only rename in editmode supported")
-
-    ebone = getattr(self, attr + "_e")
-    ebone.name = new_name
-
-    # we may not get what is asked for so get the name from the editbone
-    setattr(self, attr, ebone.name)
-
-
-def _bone_class_instance_copy(self, from_fmt="%s", to_fmt="%s", exclude_attrs=(), base_names=None):
-    from_name_ls = []
-    new_name_ls = []
-    new_slot_ls = []
-
-    for attr in self.attr_names:
+    # from rigify import leg
+    try:
+        submod = __import__(name="%s.%s" % (__package__, submod_name), fromlist=[submod_name])
+    except ImportError:
+        raise RigifyError("python module for type '%s' not found" % submod_name)
         
-        if attr in exclude_attrs:
-            continue
+    reload(submod)
+    return submod, getattr(submod, func_name)
+
+
+def submodule_types():
+    import os
+    submodules = []
+    files = os.listdir(os.path.dirname(__file__))
+    for f in files:
+        if not f.startswith("_") and f.endswith(".py"):
+            submodules.append(f[:-3])
+    
+    return sorted(submodules)
+
+
+def validate_rig(context, obj):
+    '''
+    Makes no changes
+    only runs the metarig definitions and reports errors
+    '''
+    type_found = False
+    
+    for pbone in obj.pose.bones:
+        bone_name = pbone.name
+        bone_type = pbone.get("type", "")
+
+        if bone_type:
+            bone_type_list = [bt for bt in bone_type.replace(",", " ").split()]
+        else:
+            bone_type_list = []
+
+        for bone_type in bone_type_list:
+            if bone_type.split(".")[0] in SPECIAL_TYPES:
+                continue
+
+            submod, type_func = submodule_func_from_type(bone_type)
+            reload(submod)
+            submod.metarig_definition(obj, bone_name)
+            type_found = True
         
-        bone_name_orig = getattr(self, attr)
-        ebone = getattr(self, attr + "_e")
-        # orig_names[attr] = bone_name_orig
-
-        # insert formatting
-        if from_fmt != "%s":
-            bone_name = from_fmt % bone_name_orig
-            ebone.name = bone_name
-            bone_name = ebone.name # cant be sure we get what we ask for
-        else:
-            bone_name = bone_name_orig
-
-        setattr(self, attr, bone_name)
-
-        new_slot_ls.append(attr)
-        from_name_ls.append(bone_name)
-        if base_names:
-            bone_name_orig = base_names[bone_name_orig]
-        new_name_ls.append(to_fmt % bone_name_orig)
-
-    new_bones = copy_bone_simple_list(self.obj.data, from_name_ls, new_name_ls, True)
-    new_bc = bone_class_instance(self.obj, new_slot_ls)
-
-    for i, attr in enumerate(new_slot_ls):
-        ebone = new_bones[i]
-        setattr(new_bc, attr + "_e", ebone)
-        setattr(new_bc, attr, ebone.name)
-
-    return new_bc
-
-
-def _bone_class_instance_names(self):
-    return [getattr(self, attr) for attr in self.attr_names]
-
-
-def _bone_class_instance_blend(self, from_bc, to_bc, target_bone=None, target_prop="blend"):
-    '''
-    Use for blending bone chains.
-
-    blend_target = (bone_name, bone_property)
-    default to the last bone, blend prop
-
-    XXX - toggles editmode, need to re-validate all editbones :(
-    '''
-
-    if self.attr_names != from_bc.attr_names or self.attr_names != to_bc.attr_names:
-        raise Exception("can only blend between matching chains")
-
-    apply_bones = [getattr(self, attr) for attr in self.attr_names]
-    from_bones = [getattr(from_bc, attr) for attr in from_bc.attr_names]
-    to_bones = [getattr(to_bc, attr) for attr in to_bc.attr_names]
-
-    blend_bone_list(self.obj, apply_bones, from_bones, to_bones, target_bone, target_prop)
-
-
-def bone_class_instance(obj, slots, name="BoneContainer"):
+        # missing, - check for duplicate root bone.
     
-    if len(slots) != len(set(slots)):
-        raise Exception("duplicate entries found %s" % attr_names)
-
-    attr_names = tuple(slots) # dont modify the original
-    slots = list(slots) # dont modify the original
-    for i in range(len(slots)):
-        member = slots[i]
-        slots.append(member + "_b") # bone bone
-        slots.append(member + "_p") # pose bone
-        slots.append(member + "_e") # edit bone
-
-    class_dict = { \
-        "obj": obj, \
-        "attr_names": attr_names, \
-        "update": _bone_class_instance_update, \
-        "rename": _bone_class_instance_rename, \
-        "names": _bone_class_instance_names, \
-        "copy": _bone_class_instance_copy, \
-        "blend": _bone_class_instance_blend, \
-    }
-
-    instance = auto_class_instance(slots, name, class_dict)
-    return instance
-
-
-def get_bone_data(obj, bone_name):
-    arm = obj.data
-    pbone = obj.pose.bones[bone_name]
-    if obj.mode == 'EDIT':
-        bone = arm.edit_bones[bone_name]
-    else:
-        bone = arm.bones[bone_name]
-
-    return arm, pbone, bone
-
-
-def copy_bone_simple(arm, from_bone, name, parent=False):
-    ebone = arm.edit_bones[from_bone]
-    ebone_new = arm.edit_bones.new(name)
-
-    if parent:
-        ebone_new.connected = ebone.connected
-        ebone_new.parent = ebone.parent
-
-    ebone_new.head = ebone.head
-    ebone_new.tail = ebone.tail
-    ebone_new.roll = ebone.roll
-    return ebone_new
-
-
-def copy_bone_simple_list(arm, from_bones, to_bones, parent=False):
-
-    if len(from_bones) != len(to_bones):
-        raise Exception("bone list sizes must match")
-
-    copy_bones = [copy_bone_simple(arm, bone_name, to_bones[i], True) for i, bone_name in enumerate(from_bones)]
-
-    # now we need to re-parent
-    for ebone in copy_bones:
-        parent = ebone.parent
-        if parent:
-            try:
-                i = from_bones.index(parent.name)
-            except:
-                i = -1
-
-            if i == -1:
-                ebone.parent = None
-            else:
-                ebone.parent = copy_bones[i]
-
-    return copy_bones
-
-
-def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, target_prop="blend"):
-
-    if obj.mode == 'EDIT':
-        raise Exception("blending cant be called in editmode")
-
-    if len(apply_bones) != len(from_bones):
-        raise Exception("lists differ in length (from -> apply): \n\t%s\n\t%s" % (from_bones, apply_bones))
-    if len(apply_bones) != len(to_bones):
-        raise Exception("lists differ in length (to -> apply): \n\t%s\n\t%s" % (to_bones, apply_bones))
-
-    # setup the blend property
-    if target_bone is None:
-        target_bone = apply_bones[-1] # default to the last bone
-
-    prop_pbone = obj.pose.bones[target_bone]
-    if prop_pbone.get(target_bone, None) is None:
-        prop = rna_idprop_ui_prop_get(prop_pbone, target_prop, create=True)
-        prop_pbone[target_prop] = 0.5
-        prop["soft_min"] = 0.0
-        prop["soft_max"] = 1.0
-
-    driver_path = prop_pbone.path_to_id() + ('["%s"]' % target_prop)
-
-    def blend_target(driver):
-        tar = driver.targets.new()
-        tar.name = target_bone
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.rna_path = driver_path
-
-    def blend_location(new_pbone, from_bone_name, to_bone_name):
-        con = new_pbone.constraints.new('COPY_LOCATION')
-        con.target = obj
-        con.subtarget = from_bone_name
-
-        con = new_pbone.constraints.new('COPY_LOCATION')
-        con.target = obj
-        con.subtarget = to_bone_name
-
-        fcurve = con.driver_add("influence", 0)
-        driver = fcurve.driver
-        driver.type = 'AVERAGE'
-        fcurve.modifiers.remove(0) # grr dont need a modifier
-
-        blend_target(driver)
-
-    def blend_rotation(new_pbone, from_bone_name, to_bone_name):
-        con = new_pbone.constraints.new('COPY_ROTATION')
-        con.target = obj
-        con.subtarget = from_bone_name
-
-        con = new_pbone.constraints.new('COPY_ROTATION')
-        con.target = obj
-        con.subtarget = to_bone_name
-
-        fcurve = con.driver_add("influence", 0)
-        driver = fcurve.driver
-        driver.type = 'AVERAGE'
-        fcurve.modifiers.remove(0) # grr dont need a modifier
-
-        blend_target(driver)
-
-    for i, new_bone_name in enumerate(apply_bones):
-        from_bone_name = from_bones[i]
-        to_bone_name = to_bones[i]
-
-        # allow skipping some bones by having None in the list
-        if None in (new_bone_name, from_bone_name, to_bone_name):
-            continue
-
-        new_pbone = obj.pose.bones[new_bone_name]
-
-        # if the bone is connected or its location is totally locked then dont add location blending.
-        if not (new_pbone.bone.connected or (False not in new_pbone.lock_location)):
-            blend_location(new_pbone, from_bone_name, to_bone_name)
-
-        if not (False not in new_pbone.lock_rotation): # TODO. 4D chech?
-            blend_rotation(new_pbone, from_bone_name, to_bone_name)
-
-
-def add_stretch_to(obj, from_name, to_name, name):
-    '''
-    Adds a bone that stretches from one to another
-    '''
-
-    mode_orig = obj.mode
-    bpy.ops.object.mode_set(mode='EDIT')
-
-    arm = obj.data
-    stretch_ebone = arm.edit_bones.new(name)
-    stretch_name = stretch_ebone.name
-    del name
-
-    head = stretch_ebone.head = arm.edit_bones[from_name].head.copy()
-    #tail = stretch_ebone.tail = arm.edit_bones[to_name].head.copy()
-
-    # annoying exception for zero length bones, since its using stretch_to the rest pose doesnt really matter
-    #if (head - tail).length < 0.1:
-    if 1:
-        tail = stretch_ebone.tail = arm.edit_bones[from_name].tail.copy()
-
-
-    # Now for the constraint
-    bpy.ops.object.mode_set(mode='OBJECT')
-
-    stretch_pbone = obj.pose.bones[stretch_name]
-
-    con = stretch_pbone.constraints.new('COPY_LOCATION')
-    con.target = obj
-    con.subtarget = from_name
-
-    con = stretch_pbone.constraints.new('STRETCH_TO')
-    con.target = obj
-    con.subtarget = to_name
-    con.original_length = (head - tail).length
-    con.keep_axis = 'PLANE_X'
-    con.volume = 'NO_VOLUME'
-
-    bpy.ops.object.mode_set(mode=mode_orig)
-    
-    return stretch_name
-
-def add_pole_target_bone(obj, base_name, name, mode='CROSS'):
-    '''
-    Does not actually create a poll target, just the bone to use as a poll target
-    '''
-    mode_orig = obj.mode
-    bpy.ops.object.mode_set(mode='EDIT')
-
-    arm = obj.data
-
-    poll_ebone = arm.edit_bones.new(base_name + "_poll")
-    base_ebone = arm.edit_bones[base_name]
-    poll_name = poll_ebone.name
-    parent_ebone = base_ebone.parent
-
-    base_head = base_ebone.head.copy()
-    base_tail = base_ebone.tail.copy()
-    base_dir = base_head - base_tail
-
-    parent_head = parent_ebone.head.copy()
-    parent_tail = parent_ebone.tail.copy()
-    parent_dir = parent_head - parent_tail
-
-    distance = (base_dir.length + parent_dir.length)
-    
-    if mode == 'CROSS':
-        # direction from the angle of the joint
-        offset = base_dir.copy().normalize() - parent_dir.copy().normalize()
-        offset.length = distance
-    elif mode == 'ZAVERAGE':
-        # between both bones Z axis
-        z_axis_a = base_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
-        z_axis_b = parent_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
-        offset = (z_axis_a + z_axis_b).normalize() * distance
-    else:
-        # preset axis
-        offset = Vector(0, 0, 0)
-        if mode[0] == "+":
-            val = distance
-        else:
-            val = - distance
-
-        setattr(offset, mode[1].lower(), val)
-
-    poll_ebone.head = base_head + offset
-    poll_ebone.tail = base_head + (offset * (1.0 - (1.0 / 4.0)))
-
-    bpy.ops.object.mode_set(mode=mode_orig)
-
-    return poll_name
+    if not type_found:
+        raise RigifyError("This rig has no 'type' properties defined on any pose bones, nothing to do")
 
 
 def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
+    '''
+    Main function for generating 
+    '''
     from collections import OrderedDict
+    import rigify_utils
+    reload(rigify_utils)
+    
+    # Not needed but catches any errors before duplicating
+    validate_rig(context, obj_orig)
 
     global_undo = context.user_preferences.edit.global_undo
     context.user_preferences.edit.global_undo = False
-
+    mode_orig = context.mode
+    rest_backup = obj_orig.data.pose_position
+    obj_orig.data.pose_position = 'REST'
+    
+    
     bpy.ops.object.mode_set(mode='OBJECT')
 
     scene = context.scene
@@ -404,7 +124,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     scene.objects.link(obj)
     scene.objects.active = obj
     obj.selected = True
-    
+
     if META_DEF:
         obj_def = obj_orig.copy()
         obj_def.data = obj_orig.data.copy()
@@ -435,6 +155,12 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # value: [functions, ...]
     #    each function is from the module. eg leg.ik, arm.main
     bone_typeinfos = {}
+    
+    # key: bone name
+    # value: [new_bone_name, ...]
+    #   where each bone with a 'type' stores a list of bones that it created
+    #   ...needed so we can override the root parent
+    bone_genesis = {}
 
     # inspect all bones and assign their definitions before modifying
     for pbone in obj.pose.bones:
@@ -455,31 +181,17 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             bone_type_list[:] = []
 
         for bone_type in bone_type_list:
-            
-            type_pair = bone_type.split(".")
-
-            # 'leg.ik' will look for an ik function in the leg module
-            # 'leg' will look up leg.main
-            if len(type_pair) == 1:
-                type_pair = type_pair[0], "main"
-
-            submod_name, func_name = type_pair
-
-            # from rigify import leg
-            submod = __import__(name="%s.%s" % (__package__, submod_name), fromlist=[submod_name])
+            submod, type_func = submodule_func_from_type(bone_type)
             reload(submod)
-
+            submod_name = submod.__name__
+            
             bone_def_dict = bone_definitions.setdefault(bone_name, {})
 
             # Only calculate bone definitions once
             if submod_name not in bone_def_dict:
-                metarig_definition_func = getattr(submod, "metarig_definition")
-                bone_def_dict[submod_name] = metarig_definition_func(obj, bone_name)
-
+                bone_def_dict[submod_name] = submod.metarig_definition(obj, bone_name)
 
             bone_typeinfo = bone_typeinfos.setdefault(bone_name, [])
-
-            type_func = getattr(submod, func_name)
             bone_typeinfo.append((submod_name, type_func))
 
 
@@ -501,6 +213,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         # Only blend results from the same submodule, eg.
         #    leg.ik and arm.fk could not be blended.
         results = OrderedDict()
+        
+        bone_names_pre = set([bone.name for bone in arm.bones])
 
         for submod_name, type_func in bone_typeinfos[bone_name]:
             # this bones definition of the current typeinfo
@@ -525,15 +239,41 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             if len(result_submod) == 2:
                 blend_bone_list(obj, definition, result_submod[0], result_submod[1], target_bone=bone_name)
 
+
+        bone_names_post = set([bone.name for bone in arm.bones])
+        
+        # Store which bones were created from this one
+        bone_genesis[bone_name] = list(bone_names_post - bone_names_pre)
+    
+    # need a reverse lookup on bone_genesis so as to know immediately
+    # where a bone comes from
+    bone_genesis_reverse = {}
+    for bone_name, bone_children in bone_genesis.items():
+        for bone_child_name in bone_children:
+            bone_genesis_reverse[bone_child_name] = bone_name
+    
+
     if root_bone:
         # assign all new parentless bones to this
         
         bpy.ops.object.mode_set(mode='EDIT')
         root_ebone = arm.edit_bones[root_bone]
         for ebone in arm.edit_bones:
-            if ebone.parent is None and ebone.name not in base_names:
+            bone_name = ebone.name
+            if ebone.parent is None and bone_name not in base_names:
+                # check for override
+                bone_creator = bone_genesis_reverse[bone_name]
+                pbone_creator = obj.pose.bones[bone_creator]
+                root_bone_override = pbone_creator.get("root", "")
+
+                if root_bone_override:
+                    root_ebone_tmp = arm.edit_bones[root_bone_override]
+                else:
+                    root_ebone_tmp = root_ebone
+                
                 ebone.connected = False
-                ebone.parent = root_ebone
+                ebone.parent = root_ebone_tmp
+
         bpy.ops.object.mode_set(mode='OBJECT')
         
 
@@ -552,75 +292,24 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
                 con.target = obj
                 con.subtarget = bone_name
 
+        # would be 'REST' from when copied
+        obj_def.data.pose_position = 'POSE'
+
     # Only for demo'ing
 
     # obj.restrict_view = True
     obj.data.draw_axes = False
 
+    bpy.ops.object.mode_set(mode=mode_orig)
+    obj_orig.data.pose_position = rest_backup
+    obj.data.pose_position = 'POSE'
     context.user_preferences.edit.global_undo = global_undo
-
+    
+    
     return obj
 
 
-def write_meta_rig(obj, func_name="metarig_template"):
-    ''' Must be in editmode
-    '''
-    code = []
-
-    code.append("def %s():" % func_name)
-    code.append("    # generated by rigify.write_meta_rig")
-    bpy.ops.object.mode_set(mode='EDIT')
-    code.append("    bpy.ops.object.mode_set(mode='EDIT')")
-
-    code.append("    obj = bpy.context.object")
-    code.append("    arm = obj.data")
-
-    arm = obj.data
-    # write parents first
-    bones = [(len(bone.parent_recursive), bone.name) for bone in arm.edit_bones]
-    bones.sort(key=lambda item: item[0])
-    bones = [item[1] for item in bones]
-
-
-    for bone_name in bones:
-        bone = arm.edit_bones[bone_name]
-        code.append("    bone = arm.edit_bones.new('%s')" % bone.name)
-        code.append("    bone.head[:] = %.4f, %.4f, %.4f" % bone.head.toTuple(4))
-        code.append("    bone.tail[:] = %.4f, %.4f, %.4f" % bone.tail.toTuple(4))
-        code.append("    bone.roll = %.4f" % bone.roll)
-        code.append("    bone.connected = %s" % str(bone.connected))
-        if bone.parent:
-            code.append("    bone.parent = arm.edit_bones['%s']" % bone.parent.name)
-
-    bpy.ops.object.mode_set(mode='OBJECT')
-    code.append("")
-    code.append("    bpy.ops.object.mode_set(mode='OBJECT')")
-
-    for bone_name in bones:
-        pbone = obj.pose.bones[bone_name]
-        pbone_written = False
-
-        # Only 1 level of props, simple types supported
-        for key, value in pbone.items():
-            if key.startswith("_"):
-                continue
-
-            if type(value) not in (float, str, int):
-                print("Unsupported ID Prop:", str((key, value)))
-                continue
-
-            if type(value) == str:
-                value = "'" + value + "'"
-
-            if not pbone_written: # only write bones we need
-                code.append("    pbone = obj.pose.bones['%s']" % bone_name)
-
-            code.append("    pbone['%s'] = %s" % (key, value))
-
-    return "\n".join(code)
-
-
-def generate_test(context):
+def generate_test(context, metarig_type="", GENERATE_FINAL=True):
     import os
     new_objects = []
 
@@ -632,53 +321,58 @@ def generate_test(context):
         obj_new.data = armature
         scene.objects.link(obj_new)
         scene.objects.active = obj_new
+        for obj in scene.objects:
+            obj.selected = False
+        obj_new.selected = True
 
-    files = os.listdir(os.path.dirname(__file__))
-    for f in files:
-        if f.startswith("_"):
+    for module_name in submodule_types():
+        if (metarig_type and module_name != metarig_type):
             continue
-
-        if not f.endswith(".py"):
-            continue
-
-        module_name = f[:-3]
-        submodule = __import__(name="%s.%s" % (__package__, module_name), fromlist=[module_name])
+        
+        submodule, func = submodule_func_from_type(module_name)
 
         metarig_template = getattr(submodule, "metarig_template", None)
 
         if metarig_template:
             create_empty_armature("meta_" + module_name) # sets active
             metarig_template()
-            obj = context.object
-            obj_new = generate_rig(context, obj)
-
-            new_objects.append((obj, obj_new))
+            obj = context.active_object
+            obj.location = scene.cursor_location
+            
+            if GENERATE_FINAL:
+                obj_new = generate_rig(context, obj)
+                new_objects.append((obj, obj_new))
+            else:
+                new_objects.append((obj, None))
         else:
             print("note: rig type '%s' has no metarig_template(), can't test this", module_name)
 
     return new_objects
 
 
-def generate_test_all(context):
+def generate_test_all(context, GRAPH=False):
     import rigify
+    import rigify_utils
     import graphviz_export
     import os
     reload(rigify)
+    reload(rigify_utils)
     reload(graphviz_export)
 
     new_objects = rigify.generate_test(context)
+    
+    if GRAPH:
+        base_name = os.path.splitext(bpy.data.filename)[0]
+        for obj, obj_new in new_objects:
+            for obj in (obj, obj_new):
+                fn = base_name + "-" + bpy.utils.clean_name(obj.name)
 
-    base_name = os.path.splitext(bpy.data.filename)[0]
-    for obj, obj_new in new_objects:
-        for obj in (obj, obj_new):
-            fn = base_name + "-" + bpy.utils.clean_name(obj.name)
+                path_dot = fn + ".dot"
+                path_png = fn + ".png"
+                saved = graphviz_export.graph_armature(obj, path_dot, CONSTRAINTS=True, DRIVERS=True)
 
-            path_dot = fn + ".dot"
-            path_png = fn + ".png"
-            saved = graphviz_export.graph_armature(obj, path_dot, CONSTRAINTS=True, DRIVERS=True)
-
-            #if saved:
-            #    os.system("dot -Tpng %s > %s; eog %s" % (path_dot, path_png, path_png))
+                #if saved:
+                #    os.system("dot -Tpng %s > %s; eog %s" % (path_dot, path_png, path_png))
 
     i = 0
     for obj, obj_new in new_objects:
@@ -691,4 +385,4 @@ def generate_test_all(context):
 
 
 if __name__ == "__main__":
-    generate_rig(bpy.context, bpy.context.object)
+    generate_rig(bpy.context, bpy.context.active_object)

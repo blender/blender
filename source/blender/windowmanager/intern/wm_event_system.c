@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -42,17 +41,14 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_animsys.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
-#include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
 #include "ED_info.h"
@@ -63,6 +59,8 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+
+#include "PIL_time.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -147,40 +145,6 @@ static wmNotifier *wm_notifier_next(wmWindowManager *wm)
 	
 	if(note) BLI_remlink(&wm->queue, note);
 	return note;
-}
-
-static void wm_data_handle_update(Scene *scene)
-{
-	Scene *sce;
-	Base *base;
-
-	/* XXX make lock in future, or separated derivedmesh users in scene */
-	if(G.rendering)
-		return;
-
-	/* update all objects, drivers, matrices, displists, etc. Flags set by depgraph or manual, 
-		no layer check here, gets correct flushed */
-	/* sets first, we allow per definition current scene to have dependencies on sets */
-	if(scene->set) {
-		for(SETLOOPER(scene->set, base))
-			object_handle_update(scene, base->object);
-	}
-	
-	for(base= scene->base.first; base; base= base->next) {
-		object_handle_update(scene, base->object);
-	}
-
-	/* recalc scene animation data here (for sequencer). actually
-	   this should be doing all datablocks including e.g. materials,
-	   but for now this solves some update issues - brecht. */
-	{
-		AnimData *adt= BKE_animdata_from_id(&scene->id);
-
-		if(adt && (adt->recalc & ADT_RECALC_ANIM))
-			BKE_animsys_evaluate_animdata(&scene->id, adt, scene->r.cfra, 0);
-	}
-
-	BKE_ptcache_quick_cache_all(scene);
 }
 
 /* called in mainloop */
@@ -296,7 +260,10 @@ void wm_event_do_notifiers(bContext *C)
 			}
 		}
 		
-		wm_data_handle_update(win->screen->scene);
+		/* XXX make lock in future, or separated derivedmesh users in scene */
+		if(!G.rendering)
+			/* depsgraph & animation: update tagged datablocks */
+			scene_update_tagged(win->screen->scene);
 	}
 
 	CTX_wm_window_set(C, NULL);
@@ -1126,6 +1093,11 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 	return 1;
 }
 
+static int wm_action_not_handled(int action)
+{
+	return action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL);
+}
+
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -1191,15 +1163,24 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	}
 
 	/* test for CLICK event */
-	if ((action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) && event->val == KM_RELEASE) {
+	if (wm_action_not_handled(action) && event->val == KM_RELEASE) {
 		wmWindow *win = CTX_wm_window(C);
 
 		if (win && win->last_type == event->type && win->last_val == KM_PRESS) {
-			event->val = KM_CLICK;
-			action |= wm_handlers_do(C, event, handlers);
+			/* test for double click first */
+			if ((PIL_check_seconds_timer() - win->last_click_time) * 1000 < U.dbl_click_time) {
+				event->val = KM_DBL_CLICK;
+				action |= wm_handlers_do(C, event, handlers);
+			}
+
+			if (wm_action_not_handled(action)) {
+				event->val = KM_CLICK;
+				action |= wm_handlers_do(C, event, handlers);
+			}
+
 
 			/* revert value if not handled */
-			if ((action & WM_HANDLER_BREAK) == 0) {
+			if (wm_action_not_handled(action)) {
 				event->val = KM_RELEASE;
 			}
 		}
@@ -1388,12 +1369,27 @@ void wm_event_do_handlers(bContext *C)
 			/* store last event for this window */
 			/* mousemove event don't overwrite last type */
 			if (event->type != MOUSEMOVE) {
-				if (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) {
+				if (wm_action_not_handled(action)) {
+					if (win->last_type == event->type) {
+						/* set click time on first click (press -> release) */
+						if (win->last_val == KM_PRESS && event->val == KM_RELEASE) {
+							win->last_click_time = PIL_check_seconds_timer();
+						}
+					} else {
+						/* reset click time if event type not the same */
+						win->last_click_time = 0;
+					}
+
+					win->last_val = event->val;
+					win->last_type = event->type;
+				} else if (event->val == KM_CLICK) { /* keep click for double click later */
 					win->last_type = event->type;
 					win->last_val = event->val;
-				} else {
+					win->last_click_time = PIL_check_seconds_timer();
+				} else { /* reset if not */
 					win->last_type = -1;
 					win->last_val = 0;
+					win->last_click_time = 0;
 				}
 			}
 

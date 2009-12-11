@@ -74,25 +74,6 @@ static int change_frame_poll(bContext *C)
 	return ((curarea) && (curarea->spacetype != SPACE_IPO));
 }
 
-/* Set any flags that are necessary to indicate modal time-changing operation */
-static int change_frame_init(bContext *C, wmOperator *op)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	
-	if (curarea == NULL)
-		return 0;
-	
-	if (curarea->spacetype == SPACE_TIME) {
-		SpaceTime *stime= CTX_wm_space_time(C);
-		
-		/* timeline displays frame number only when dragging indicator */
-		// XXX make this more in line with other anim editors?
-		stime->flag |= TIME_CFRA_NUM;
-	}
-	
-	return 1;
-}
-
 /* Set the new frame number */
 static void change_frame_apply(bContext *C, wmOperator *op)
 {
@@ -106,33 +87,12 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
 
-/* Clear any temp flags */
-static void change_frame_exit(bContext *C, wmOperator *op)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	
-	if (curarea == NULL)
-		return;
-	
-	if (curarea->spacetype == SPACE_TIME) {
-		SpaceTime *stime= CTX_wm_space_time(C);
-		
-		/* timeline displays frame number only when dragging indicator */
-		// XXX make this more in line with other anim editors?
-		stime->flag &= ~TIME_CFRA_NUM;
-	}
-}
-
 /* ---- */
 
 /* Non-modal callback for running operator without user input */
 static int change_frame_exec(bContext *C, wmOperator *op)
 {
-	if (!change_frame_init(C, op))
-		return OPERATOR_CANCELLED;
-	
 	change_frame_apply(C, op);
-	change_frame_exit(C, op);
 
 	return OPERATOR_FINISHED;
 }
@@ -166,7 +126,6 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	 */
 	RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
 	
-	change_frame_init(C, op);
 	change_frame_apply(C, op);
 	
 	/* add temp handler */
@@ -175,20 +134,12 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* In case modal operator is cancelled */
-static int change_frame_cancel(bContext *C, wmOperator *op)
-{
-	change_frame_exit(C, op);
-	return OPERATOR_CANCELLED;
-}
-
 /* Modal event handling of frame changing */
 static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* execute the events */
 	switch (event->type) {
 		case ESCKEY:
-			change_frame_exit(C, op);
 			return OPERATOR_FINISHED;
 		
 		case MOUSEMOVE:
@@ -201,10 +152,8 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init 
 			 * the modal op) doesn't work for some reason
 			 */
-			if (event->val==KM_RELEASE) {
-				change_frame_exit(C, op);
+			if (event->val==KM_RELEASE)
 				return OPERATOR_FINISHED;
-			}
 			break;
 	}
 
@@ -221,7 +170,6 @@ void ANIM_OT_change_frame(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= change_frame_exec;
 	ot->invoke= change_frame_invoke;
-	ot->cancel= change_frame_cancel;
 	ot->modal= change_frame_modal;
 	ot->poll= change_frame_poll;
 	

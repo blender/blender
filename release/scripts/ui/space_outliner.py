@@ -45,16 +45,16 @@ class OUTLINER_HT_header(bpy.types.Header):
 
         if space.display_mode == 'DATABLOCKS':
             row = layout.row(align=True)
-            row.operator("outliner.keyingset_add_selected", icon='ICON_ZOOMIN', text="")
-            row.operator("outliner.keyingset_remove_selected", icon='ICON_ZOOMOUT', text="")
+            row.operator("outliner.keyingset_add_selected", icon='ZOOMIN', text="")
+            row.operator("outliner.keyingset_remove_selected", icon='ZOOMOUT', text="")
 
             if ks:
                 row = layout.row(align=False)
                 row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
 
                 row = layout.row(align=True)
-                row.operator("anim.keyframe_insert", text="", icon='ICON_KEY_HLT')
-                row.operator("anim.keyframe_delete", text="", icon='ICON_KEY_DEHLT')
+                row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
+                row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
             else:
                 row = layout.row(align=False)
                 row.label(text="No Keying Set active")

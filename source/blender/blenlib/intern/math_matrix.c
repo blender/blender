@@ -1129,4 +1129,3 @@ void print_m4(char *str, float m[][4])
 	printf("\n");
 }
 
-

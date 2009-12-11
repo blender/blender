@@ -55,17 +55,17 @@ typedef struct TransformModeItem
 
 static float VecOne[3] = {1, 1, 1};
 
-char OP_TRANSLATION[] = "TFM_OT_translate";
-char OP_ROTATION[] = "TFM_OT_rotate";
-char OP_TOSPHERE[] = "TFM_OT_tosphere";
-char OP_RESIZE[] = "TFM_OT_resize";
-char OP_SHEAR[] = "TFM_OT_shear";
-char OP_WARP[] = "TFM_OT_warp";
-char OP_SHRINK_FATTEN[] = "TFM_OT_shrink_fatten";
-char OP_TILT[] = "TFM_OT_tilt";
-char OP_TRACKBALL[] = "TFM_OT_trackball";
-char OP_MIRROR[] = "TFM_OT_mirror";
-char OP_EDGE_SLIDE[] = "TFM_OT_edge_slide";
+char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
+char OP_ROTATION[] = "TRANSFORM_OT_rotate";
+char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
+char OP_RESIZE[] = "TRANSFORM_OT_resize";
+char OP_SHEAR[] = "TRANSFORM_OT_shear";
+char OP_WARP[] = "TRANSFORM_OT_warp";
+char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
+char OP_TILT[] = "TRANSFORM_OT_tilt";
+char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
+char OP_MIRROR[] = "TRANSFORM_OT_mirror";
+char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
 
 
 TransformModeItem transform_modes[] =
@@ -95,12 +95,12 @@ static int snap_type_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TFM_OT_snap_type(wmOperatorType *ot)
+void TRANSFORM_OT_snap_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Snap Type";
 	ot->description= "Set the snap element type.";
-	ot->idname= "TFM_OT_snap_type";
+	ot->idname= "TRANSFORM_OT_snap_type";
 
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -134,20 +134,20 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 
 	pup= uiPupMenuBegin(C, "Orientation", 0);
 	layout= uiPupMenuLayout(pup);
-	uiItemsEnumO(layout, "TFM_OT_select_orientation", "orientation");
+	uiItemsEnumO(layout, "TRANSFORM_OT_select_orientation", "orientation");
 	uiPupMenuEnd(C, pup);
 
 	return OPERATOR_CANCELLED;
 }
 
-void TFM_OT_select_orientation(struct wmOperatorType *ot)
+void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name   = "Select Orientation";
 	ot->description= "Select transformation orientation.";
-	ot->idname = "TFM_OT_select_orientation";
+	ot->idname = "TRANSFORM_OT_select_orientation";
 	ot->flag   = OPTYPE_UNDO;
 
 	/* api callbacks */
@@ -194,12 +194,12 @@ static int delete_orientation_poll(bContext *C)
 	return selected_index >= 0;
 }
 
-void TFM_OT_delete_orientation(struct wmOperatorType *ot)
+void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Delete Orientation";
 	ot->description= "Delete transformation orientation.";
-	ot->idname = "TFM_OT_delete_orientation";
+	ot->idname = "TRANSFORM_OT_delete_orientation";
 	ot->flag   = OPTYPE_UNDO;
 
 	/* api callbacks */
@@ -228,12 +228,12 @@ static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 	return create_orientation_exec(C, op);
 }
 
-void TFM_OT_create_orientation(struct wmOperatorType *ot)
+void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Create Orientation";
 	ot->description= "Create transformation orientation from selection.";
-	ot->idname = "TFM_OT_create_orientation";
+	ot->idname = "TRANSFORM_OT_create_orientation";
 	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* api callbacks */
@@ -395,7 +395,7 @@ void Properties_Constraints(struct wmOperatorType *ot)
 	RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
 }
 
-void TFM_OT_translate(struct wmOperatorType *ot)
+void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Translate";
@@ -421,7 +421,7 @@ void TFM_OT_translate(struct wmOperatorType *ot)
 	Properties_Snapping(ot, 1, 1);
 }
 
-void TFM_OT_resize(struct wmOperatorType *ot)
+void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Resize";
@@ -448,7 +448,7 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 }
 
 
-void TFM_OT_trackball(struct wmOperatorType *ot)
+void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Trackball";
@@ -472,7 +472,7 @@ void TFM_OT_trackball(struct wmOperatorType *ot)
 	Properties_Snapping(ot, 0, 0);
 }
 
-void TFM_OT_rotate(struct wmOperatorType *ot)
+void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Rotate";
@@ -498,7 +498,7 @@ void TFM_OT_rotate(struct wmOperatorType *ot)
 	Properties_Snapping(ot, 1, 0);
 }
 
-void TFM_OT_tilt(struct wmOperatorType *ot)
+void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Tilt";
@@ -527,7 +527,7 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 	Properties_Snapping(ot, 0, 0);
 }
 
-void TFM_OT_warp(struct wmOperatorType *ot)
+void TRANSFORM_OT_warp(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Warp";
@@ -554,7 +554,7 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 //	Properties_Constraints(ot);
 }
 
-void TFM_OT_shear(struct wmOperatorType *ot)
+void TRANSFORM_OT_shear(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Shear";
@@ -581,7 +581,7 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 //	Properties_Constraints(ot);
 }
 
-void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
+void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Shrink/Fatten";
@@ -605,7 +605,7 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 	Properties_Snapping(ot, 0, 0);
 }
 
-void TFM_OT_tosphere(struct wmOperatorType *ot)
+void TRANSFORM_OT_tosphere(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "To Sphere";
@@ -630,7 +630,7 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	Properties_Snapping(ot, 0, 0);
 }
 
-void TFM_OT_mirror(struct wmOperatorType *ot)
+void TRANSFORM_OT_mirror(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Mirror";
@@ -649,7 +649,7 @@ void TFM_OT_mirror(struct wmOperatorType *ot)
 	Properties_Constraints(ot);
 }
 
-void TFM_OT_edge_slide(struct wmOperatorType *ot)
+void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Edge Slide";
@@ -671,7 +671,7 @@ void TFM_OT_edge_slide(struct wmOperatorType *ot)
 	Properties_Snapping(ot, 0, 0);
 }
 
-void TFM_OT_transform(struct wmOperatorType *ot)
+void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 {
 	static EnumPropertyItem transform_mode_types[] = {
 			{TFM_INIT, "INIT", 0, "Init", ""},
@@ -707,7 +707,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Transform";
 	ot->description= "Transform selected items by mode type.";
-	ot->idname = "TFM_OT_transform";
+	ot->idname = "TRANSFORM_OT_transform";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
@@ -729,24 +729,24 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 
 void transform_operatortypes(void)
 {
-	WM_operatortype_append(TFM_OT_transform);
-	WM_operatortype_append(TFM_OT_translate);
-	WM_operatortype_append(TFM_OT_rotate);
-	WM_operatortype_append(TFM_OT_tosphere);
-	WM_operatortype_append(TFM_OT_resize);
-	WM_operatortype_append(TFM_OT_shear);
-	WM_operatortype_append(TFM_OT_warp);
-	WM_operatortype_append(TFM_OT_shrink_fatten);
-	WM_operatortype_append(TFM_OT_tilt);
-	WM_operatortype_append(TFM_OT_trackball);
-	WM_operatortype_append(TFM_OT_mirror);
-	WM_operatortype_append(TFM_OT_edge_slide);
+	WM_operatortype_append(TRANSFORM_OT_transform);
+	WM_operatortype_append(TRANSFORM_OT_translate);
+	WM_operatortype_append(TRANSFORM_OT_rotate);
+	WM_operatortype_append(TRANSFORM_OT_tosphere);
+	WM_operatortype_append(TRANSFORM_OT_resize);
+	WM_operatortype_append(TRANSFORM_OT_shear);
+	WM_operatortype_append(TRANSFORM_OT_warp);
+	WM_operatortype_append(TRANSFORM_OT_shrink_fatten);
+	WM_operatortype_append(TRANSFORM_OT_tilt);
+	WM_operatortype_append(TRANSFORM_OT_trackball);
+	WM_operatortype_append(TRANSFORM_OT_mirror);
+	WM_operatortype_append(TRANSFORM_OT_edge_slide);
 
-	WM_operatortype_append(TFM_OT_select_orientation);
-	WM_operatortype_append(TFM_OT_create_orientation);
-	WM_operatortype_append(TFM_OT_delete_orientation);
+	WM_operatortype_append(TRANSFORM_OT_select_orientation);
+	WM_operatortype_append(TRANSFORM_OT_create_orientation);
+	WM_operatortype_append(TRANSFORM_OT_delete_orientation);
 
-	WM_operatortype_append(TFM_OT_snap_type);
+	WM_operatortype_append(TRANSFORM_OT_snap_type);
 }
 
 void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid)
@@ -759,107 +759,107 @@ void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *ke
 	switch(spaceid)
 	{
 		case SPACE_VIEW3D:
-			km = WM_keymap_add_item(keymap, "TFM_OT_translate", GKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_rotate", RKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_rotate", RKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_resize", SKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_warp", WKEY, KM_PRESS, KM_SHIFT, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_warp", WKEY, KM_PRESS, KM_SHIFT, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_tosphere", SKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_tosphere", SKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_shear", SKEY, KM_PRESS, KM_ALT|KM_CTRL|KM_SHIFT, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_shear", SKEY, KM_PRESS, KM_ALT|KM_CTRL|KM_SHIFT, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_shrink_fatten", SKEY, KM_PRESS, KM_ALT, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_shrink_fatten", SKEY, KM_PRESS, KM_ALT, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_tilt", TKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_tilt", TKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_select_orientation", SPACEKEY, KM_PRESS, KM_ALT, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_select_orientation", SPACEKEY, KM_PRESS, KM_ALT, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_create_orientation", SPACEKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_create_orientation", SPACEKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 			RNA_boolean_set(km->ptr, "use", 1);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
 			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_snap_type", TABKEY, KM_PRESS, KM_SHIFT|KM_CLICK, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_snap_type", TABKEY, KM_PRESS, KM_SHIFT|KM_CLICK, 0);
 
 			break;
 		case SPACE_ACTION:
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", GKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_SCALE);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", TKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", TKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_SLIDE);
 			break;
 		case SPACE_IPO:
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", GKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
 
 				// XXX the 'mode' identifier here is not quite right
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_rotate", RKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_rotate", RKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_resize", SKEY, KM_PRESS, 0, 0);
 			break;
 		case SPACE_NLA:
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", GKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
 			
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
 			
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_SCALE);
 			break;
 		case SPACE_NODE:
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", GKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", EVT_TWEAK_A, KM_ANY, 0, 0);
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_A, KM_ANY, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_rotate", RKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_rotate", RKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_resize", SKEY, KM_PRESS, 0, 0);
 			break;
 		case SPACE_SEQ:
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", GKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			break;
 		case SPACE_IMAGE:
-			km = WM_keymap_add_item(keymap, "TFM_OT_translate", GKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
 
-			km= WM_keymap_add_item(keymap, "TFM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
+			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_rotate", RKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_rotate", RKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_resize", SKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
 			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");

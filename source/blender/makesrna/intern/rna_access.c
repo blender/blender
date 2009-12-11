@@ -885,6 +885,7 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 	*precision= (float)fprop->precision;
 }
 
+/* this is the max length including \0 terminator */
 int RNA_property_string_maxlength(PropertyRNA *prop)
 {
 	StringPropertyRNA *sprop= (StringPropertyRNA*)rna_ensure_property(prop);
@@ -1588,6 +1589,7 @@ char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fi
 	return buf;
 }
 
+/* this is the length without \0 terminator */
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
 {
 	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;

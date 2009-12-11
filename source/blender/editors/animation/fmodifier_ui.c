@@ -276,7 +276,7 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 	/* split into 2 columns 
 	 * NOTE: the mode comboboxes shouldn't get labels, otherwise there isn't enough room
 	 */
-	split= uiLayoutSplit(layout, 0.5f);
+	split= uiLayoutSplit(layout, 0.5f, 0);
 	
 	/* before range */
 	col= uiLayoutColumn(split, 1);
@@ -306,7 +306,7 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	uiItemR(layout, NULL, 0, &ptr, "modification", 0);
 	
 	/* split into 2 columns */
-	split= uiLayoutSplit(layout, 0.5f);
+	split= uiLayoutSplit(layout, 0.5f, 0);
 	
 	/* col 1 */
 	col= uiLayoutColumn(split, 0);
@@ -560,7 +560,7 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 		block= uiLayoutGetBlock(row);
 		
 		uiBlockBeginAlign(block);
-			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 0, 0, 90, 20, &fed->time, -UI_FLT_MAX, UI_FLT_MAX, 10, 1, "Frame that envelope point occurs");
+			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 0, 0, 90, 20, &fed->time, -MAXFRAMEF, MAXFRAMEF, 10, 1, "Frame that envelope point occurs");
 			uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 			
 			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 0, 0, 100, 20, &fed->min, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, "Minimum bound of envelope at this point");
@@ -588,7 +588,7 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		row= uiLayoutRow(layout, 0);
 		
 		/* split into 2 columns */
-		split= uiLayoutSplit(layout, 0.5f);
+		split= uiLayoutSplit(layout, 0.5f, 0);
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
@@ -606,7 +606,7 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		row= uiLayoutRow(layout, 0);
 		
 		/* split into 2 columns */
-		split= uiLayoutSplit(layout, 0.5f);
+		split= uiLayoutSplit(layout, 0.5f, 0);
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);

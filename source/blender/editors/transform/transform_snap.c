@@ -327,6 +327,7 @@ void resetSnapping(TransInfo *t)
 {
 	t->tsnap.status = 0;
 	t->tsnap.align = 0;
+	t->tsnap.project = 0;
 	t->tsnap.mode = 0;
 	t->tsnap.modeSelect = 0;
 	t->tsnap.target = 0;
@@ -361,8 +362,6 @@ void initSnappingMode(TransInfo *t)
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
 	Scene *scene = t->scene;
-
-	resetSnapping(t);
 
 	/* force project off when not supported */
 	if (ts->snap_mode != SCE_SNAP_MODE_FACE)
@@ -838,8 +837,6 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			t->tsnap.snapPoint[0] *= aspx;
 			t->tsnap.snapPoint[1] *= aspy;
 
-			mul_m4_v3(t->obedit->obmat, t->tsnap.snapPoint);
-			
 			t->tsnap.status |=  POINT_INIT;
 		}
 		else

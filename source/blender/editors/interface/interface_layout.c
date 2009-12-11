@@ -714,7 +714,7 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;
 		int totitem, i, free;
-		uiLayout *split= uiLayoutSplit(layout, 0);
+		uiLayout *split= uiLayoutSplit(layout, 0, 0);
 		uiLayout *column= uiLayoutColumn(split, 0);
 
 		RNA_property_enum_items(block->evil_C, &ptr, prop, &item, &totitem, &free);
@@ -1024,7 +1024,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 	if(RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;
 		int totitem, i, free;
-		uiLayout *split= uiLayoutSplit(layout, 0);
+		uiLayout *split= uiLayoutSplit(layout, 0, 0);
 		uiLayout *column= uiLayoutColumn(split, 0);
 
 		RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
@@ -1057,38 +1057,72 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 
 /* Pointer RNA button with search */
 
+typedef struct CollItemSearch {
+	struct CollItemSearch *next, *prev;
+	char *name;
+	int index;
+	int iconid;
+} CollItemSearch;
+
+int sort_search_items_list(void *a, void *b)
+{
+	CollItemSearch *cis1 = (CollItemSearch *)a;
+	CollItemSearch *cis2 = (CollItemSearch *)b;
+	
+	if (BLI_strcasecmp(cis1->name, cis2->name)>0)
+		return 1;
+	else
+		return 0;
+}
+
 static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, uiSearchItems *items)
 {
 	uiBut *but= arg_but;
 	char *name;
-	int i, iconid, flag= RNA_property_flag(but->rnaprop);
+	int i=0, iconid=0, flag= RNA_property_flag(but->rnaprop);
+	ListBase *items_list= MEM_callocN(sizeof(ListBase), "items_list");
+	CollItemSearch *cis;
 
-	i = 0;
+	/* build a temporary list of relevant items first */
 	RNA_PROP_BEGIN(&but->rnasearchpoin, itemptr, but->rnasearchprop) {
 		if(flag & PROP_ID_SELF_CHECK)
 			if(itemptr.data == but->rnapoin.id.data)
 				continue;
-
-		iconid= 0;
+		
 		if(RNA_struct_is_ID(itemptr.type))
 			iconid= ui_id_icon_get((bContext*)C, itemptr.data);
-
+		
 		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
-
+		
 		if(name) {
 			if(BLI_strcasestr(name, str)) {
-				if(!uiSearchItemAdd(items, name, SET_INT_IN_POINTER(i), iconid)) {
-					MEM_freeN(name);
-					break;
-				}
+				cis = MEM_callocN(sizeof(CollItemSearch), "CollectionItemSearch");
+				cis->name = MEM_dupallocN(name);
+				cis->index = i;
+				cis->iconid = iconid;
+				BLI_addtail(items_list, cis);
 			}
-
-			MEM_freeN(name);
 		}
-
+		MEM_freeN(name);
+		
 		i++;
 	}
 	RNA_PROP_END;
+	
+	BLI_sortlist(items_list, sort_search_items_list);
+	
+	/* add search items from temporary list */
+	for (cis=items_list->first; cis; cis=cis->next) {
+		if (!uiSearchItemAdd(items, cis->name, SET_INT_IN_POINTER(cis->index), cis->iconid)) {
+			break;
+		}
+	}
+
+	for (cis=items_list->first; cis; cis=cis->next) {
+		MEM_freeN(cis->name);
+	}
+	BLI_freelistN(items_list);
+	MEM_freeN(items_list);
 }
 
 static void search_id_collection(StructRNA *ptype, PointerRNA *ptr, PropertyRNA **prop)
@@ -2054,13 +2088,14 @@ uiLayout *uiLayoutOverlap(uiLayout *layout)
 	return litem;
 }
 
-uiLayout *uiLayoutSplit(uiLayout *layout, float percentage)
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 {
 	uiLayoutItemSplt *split;
 
 	split= MEM_callocN(sizeof(uiLayoutItemSplt), "uiLayoutItemSplt");
 	split->litem.item.type= ITEM_LAYOUT_SPLIT;
 	split->litem.root= layout->root;
+	split->litem.align= align;
 	split->litem.active= 1;
 	split->litem.enabled= 1;
 	split->litem.context= layout->context;

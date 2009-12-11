@@ -3363,10 +3363,10 @@ class ExportFBX(bpy.types.Operator):
 	
 	EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
-	_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
-	_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True)
-	_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False)
-	_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False)
+	TX_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
+	TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True)
+	TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False)
+	TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False)
 	EXP_EMPTY = BoolProperty(name="Empties", description="Export empty objects", default=True)
 	EXP_CAMERA = BoolProperty(name="Cameras", description="Export camera objects", default=True)
 	EXP_LAMP = BoolProperty(name="Lamps", description="Export lamp objects", default=True)
@@ -3397,10 +3397,10 @@ class ExportFBX(bpy.types.Operator):
 			raise Exception("path not set")
 
 		GLOBAL_MATRIX = mtx4_identity
-		GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties._SCALE
-		if self.properties._XROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
-		if self.properties._YROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
-		if self.properties._ZROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
+		GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties.TX_SCALE
+		if self.properties.TX_XROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
+		if self.properties.TX_YROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
+		if self.properties.TX_ZROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
 			
 		write(self.properties.path,
 			  None, # XXX

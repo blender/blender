@@ -1083,6 +1083,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub.label(text="Scripts:")
         sub.label(text="Sounds:")
         sub.label(text="Temp:")
+        sub.label(text="Animation Player:")
         
         sub = col1.column()
         sub.prop(paths, "fonts_directory", text="")
@@ -1093,6 +1094,9 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub.prop(paths, "python_scripts_directory", text="")
         sub.prop(paths, "sounds_directory", text="")
         sub.prop(paths, "temporary_directory", text="")
+        subsplit = sub.split(percentage=0.3)
+        subsplit.prop(paths, "animation_player_preset", text="")
+        subsplit.prop(paths, "animation_player", text="")
 
         col = split.column()
         col.label(text="Save & Load:")
@@ -1186,6 +1190,12 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
         sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
 
+        col.separator()
+
+        sub = col.column()
+        sub.label(text="Double Click:")
+        sub.prop(inputs, "double_click_time", text="Speed")
+
         row.separator()
 
         # Keymap Settings
@@ -1215,16 +1225,16 @@ class USERPREF_PT_input(bpy.types.Panel):
             row = subcol.row()
 
             if kmi.expanded:
-                row.prop(kmi, "expanded", text="", icon='ICON_TRIA_DOWN')
+                row.prop(kmi, "expanded", text="", icon='TRIA_DOWN')
             else:
-                row.prop(kmi, "expanded", text="", icon='ICON_TRIA_RIGHT')
+                row.prop(kmi, "expanded", text="", icon='TRIA_RIGHT')
 
             itemrow = row.row()
             itemrow.enabled = km.user_defined
             if kmi.active:
-                itemrow.prop(kmi, "active", text="", icon='ICON_CHECKBOX_HLT')
+                itemrow.prop(kmi, "active", text="", icon='CHECKBOX_HLT')
             else:
-                itemrow.prop(kmi, "active", text="", icon='ICON_CHECKBOX_DEHLT')
+                itemrow.prop(kmi, "active", text="", icon='CHECKBOX_DEHLT')
 
             itemcol = itemrow.column()
             itemcol.active = kmi.active
@@ -1286,11 +1296,11 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                 itemcol.separator()
 
-            itemrow.operator("wm.keyitem_remove", text="", icon='ICON_ZOOMOUT')
+            itemrow.operator("wm.keyitem_remove", text="", icon='ZOOMOUT')
 
         itemrow = col.row()
         itemrow.label()
-        itemrow.operator("wm.keyitem_add", text="", icon='ICON_ZOOMIN')
+        itemrow.operator("wm.keyitem_add", text="", icon='ZOOMIN')
         itemrow.enabled = km.user_defined
 
 bpy.types.register(USERPREF_HT_header)

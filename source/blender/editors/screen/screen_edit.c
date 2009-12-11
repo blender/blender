@@ -1483,6 +1483,7 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 	}
 	else {
 		ScrArea *newa;
+		char newname[20];
 		
 		oldscreen= win->screen;
 
@@ -1491,8 +1492,8 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 			return NULL;
 		
 		oldscreen->full = SCREENFULL;
-		
-		sc= ED_screen_add(win, oldscreen->scene, "temp");
+		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name+2, "temp");
+		sc= ED_screen_add(win, oldscreen->scene, newname);
 		sc->full = SCREENFULL; // XXX
 		
 		/* timer */

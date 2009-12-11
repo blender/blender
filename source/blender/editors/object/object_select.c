@@ -996,11 +996,11 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	percent = RNA_float_get(op->ptr, "percent");
+	percent = RNA_float_get(op->ptr, "percent")/100.0f;
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (BLI_frand() < percent) {
-				ED_base_object_select(base, BA_SELECT);
+			ED_base_object_select(base, BA_SELECT);
 		}
 	}
 	CTX_DATA_END;
@@ -1013,7 +1013,7 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Random select";
+	ot->name= "Select Random";
 	ot->description = "Set select on random visible objects.";
 	ot->idname= "OBJECT_OT_select_random";
 	
@@ -1026,8 +1026,8 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "percentage of objects to randomly select", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 

@@ -99,18 +99,29 @@ JOB_TYPES = {
 						}
 
 class RenderJob:
-	def __init__(self):
+	def __init__(self, job_info = None):
 		self.id = ""
 		self.type = JOB_BLENDER
 		self.name = ""
+		self.category = "None"
 		self.files = []
-		self.frames = []
 		self.chunks = 0
 		self.priority = 0
-		self.usage = 0.0
 		self.blacklist = []
+
+		self.usage = 0.0
 		self.last_dispatched = 0.0
-	
+		self.frames = []
+		
+		if job_info:
+			self.type = job_info.type
+			self.name = job_info.name
+			self.category = job_info.category
+			self.files = job_info.files
+			self.chunks = job_info.chunks
+			self.priority = job_info.priority
+			self.blacklist = job_info.blacklist
+			
 	def addFile(self, file_path, start=-1, end=-1):
 		self.files.append((file_path, start, end))
 	
@@ -167,6 +178,7 @@ class RenderJob:
 							"id": self.id,
 							"type": self.type,
 							"name": self.name,
+							"category": self.category,
 							"files": [f for f in self.files if f[1] == -1 or not frames or (f[1] <= max_frame and f[2] >= min_frame)],
 							"frames": [f.serialize() for f in self.frames if not frames or f in frames],
 							"chunks": self.chunks,
@@ -185,6 +197,7 @@ class RenderJob:
 		job.id = data["id"]
 		job.type = data["type"]
 		job.name = data["name"]
+		job.category = data["category"]
 		job.files = data["files"]
 		job.frames = [RenderFrame.materialize(f) for f in data["frames"]]
 		job.chunks = data["chunks"]

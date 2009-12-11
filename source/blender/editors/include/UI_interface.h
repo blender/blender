@@ -629,7 +629,7 @@ uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutListBox(uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop,
 	struct PointerRNA *actptr, struct PropertyRNA *actprop);
 uiLayout *uiLayoutAbsolute(uiLayout *layout, int align);
-uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align);
 uiLayout *uiLayoutOverlap(uiLayout *layout);
 
 uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);

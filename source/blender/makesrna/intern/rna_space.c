@@ -1042,7 +1042,6 @@ static void rna_def_space_image(BlenderRNA *brna)
 	/* update */
 	prop= RNA_def_property(srna, "update_automatically", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lock", 0);
-	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_ui_text(prop, "Update Automatically", "Update other affected window spaces automatically to reflect changes during interactive operations such as transform.");
 
 	/* state */
@@ -1351,7 +1350,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	prop= RNA_def_property(srna, "show_handles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_NOHANDLES);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NOHANDLES);
 	RNA_def_property_ui_text(prop, "Show Handles", "Show handles of Bezier control points.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
@@ -1459,7 +1458,6 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Space Timeline Editor", "Timeline editor space data.");
 	
 	/* Define Anim Playback Areas */
-	
 	prop= RNA_def_property(srna, "play_top_left", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_REGION);
 	RNA_def_property_ui_text(prop, "Top-Left 3D Window", "");
@@ -1495,16 +1493,15 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Node Windows", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
-	/* Other options */
-	
-	prop= RNA_def_property(srna, "continue_physics", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_CONTINUE_PHYSICS);
-	RNA_def_property_ui_text(prop, "Continue Physics", "During playblack, continue physics simulations regardless of the frame number");	
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, NULL);
-	
+	/* Other options */	
 	prop= RNA_def_property(srna, "only_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ONLYACTSEL);
 	RNA_def_property_ui_text(prop, "Only Selected channels", "Show keyframes only from active/selected channels.");	
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, NULL);
+	
+	prop= RNA_def_property(srna, "show_cframe_indicator", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_CFRA_NUM);
+	RNA_def_property_ui_text(prop, "Show Frame Number Indicator", "Show frame number beside the current frame indicator line.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, NULL);
 }
 

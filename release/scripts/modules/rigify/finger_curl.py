@@ -19,7 +19,8 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_bone_data, empty_layer, copy_bone_simple
+from rigify import RigifyError
+from rigify_utils import copy_bone_simple, get_side_name, get_base_name, EMPTY_LAYER
 from rna_prop_ui import rna_idprop_ui_prop_get
 from functools import reduce
 
@@ -28,7 +29,7 @@ METARIG_NAMES = "finger_01", "finger_02", "finger_03"
 
 def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
-    obj = bpy.context.object
+    obj = bpy.context.active_object
     arm = obj.data
     bone = arm.edit_bones.new('finger.01')
     bone.head[:] = 0.0000, 0.0000, 0.0000
@@ -50,7 +51,7 @@ def metarig_template():
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['finger.01']
-    pbone['type'] = 'finger'
+    pbone['type'] = 'finger_curl'
 
 
 def metarig_definition(obj, orig_bone_name):
@@ -73,13 +74,13 @@ def metarig_definition(obj, orig_bone_name):
         children = bone.children
 
         if len(children) != 1:
-            raise Exception("expected the chain to have 2 children without a fork")
+            raise RigifyError("expected the chain to have 2 children from bone '%s' without a fork" % orig_bone_name)
         bone = children[0]
         bone_definition.append(bone.name) # finger_02, finger_03
         chain += 1
 
     if len(bone_definition) != len(METARIG_NAMES):
-        raise Exception("internal problem, expected %d bones" % len(METARIG_NAMES))
+        raise RigifyError("internal problem, expected %d bones" % len(METARIG_NAMES))
 
     return bone_definition
 
@@ -89,7 +90,9 @@ def main(obj, bone_definition, base_names):
     # *** EDITMODE
 
     # get assosiated data
-    arm, orig_pbone, orig_ebone = get_bone_data(obj, bone_definition[0])
+    arm = obj.data
+    orig_pbone = obj.pose.bones[bone_definition[0]]
+    orig_ebone = arm.edit_bones[bone_definition[0]]
 
     obj.animation_data_create() # needed if its a new armature with no keys
 
@@ -98,11 +101,12 @@ def main(obj, bone_definition, base_names):
     children = orig_pbone.children_recursive
     tot_len = reduce(lambda f, pbone: f + pbone.bone.length, children, orig_pbone.bone.length)
 
-    base_name = base_names[bone_definition[0]].rsplit(".", 1)[0]
+    # FIXME, the line below is far too arbitrary
+    base_name = base_names[bone_definition[0]].rsplit(".", 2)[0]
 
     # first make a new bone at the location of the finger
     #control_ebone = arm.edit_bones.new(base_name)
-    control_ebone = copy_bone_simple(arm, bone_definition[0], base_name)
+    control_ebone = copy_bone_simple(arm, bone_definition[0], base_name + get_side_name(base_names[bone_definition[0]]), parent=True)
     control_bone_name = control_ebone.name # we dont know if we get the name requested
 
     control_ebone.connected = orig_ebone.connected
@@ -115,7 +119,7 @@ def main(obj, bone_definition, base_names):
     children = [pbone.name for pbone in children]
 
     # set an alternate layer for driver bones
-    other_layer = empty_layer[:]
+    other_layer = EMPTY_LAYER[:]
     other_layer[8] = True
 
 
@@ -197,14 +201,14 @@ def main(obj, bone_definition, base_names):
         tar.name = "scale"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = controller_path + '.scale[1]'
+        tar.data_path = controller_path + '.scale[1]'
 
         # bend target
         tar = driver.targets.new()
         tar.name = "br"
         tar.id_type = 'OBJECT'
         tar.id = obj
-        tar.rna_path = controller_path + '["bend_ratio"]'
+        tar.data_path = controller_path + '["bend_ratio"]'
 
         # XXX - todo, any number
         if i == 0:

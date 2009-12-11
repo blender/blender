@@ -60,7 +60,7 @@ struct uiLayout;
 #define OP_MAX_TYPENAME	64
 #define KMAP_MAX_NAME	64
 
-
+/* keep in sync with 'wm_report_items' in wm_rna.c */
 typedef enum ReportType {
 	RPT_DEBUG					= 1<<0,
 	RPT_INFO					= 1<<1,
@@ -158,6 +158,7 @@ typedef struct wmWindow {
 	
 	short last_type; /* last event information, used for click */
 	short last_val;
+	double last_click_time; /* for double click */
 
 	struct wmEvent *eventstate;	/* storage for event system */
 	
@@ -291,6 +292,7 @@ typedef struct wmKeyMap {
 /* wmKeyMap.flag */
 #define KEYMAP_MODAL		1	/* modal map, not using operatornames */
 #define KEYMAP_USER			2	/* user created keymap */
+#define KEYMAP_EXPANDED		4
 
 typedef struct wmKeyConfig {
 	struct wmKeyConfig *next, *prev;

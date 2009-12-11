@@ -1495,6 +1495,14 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		in= 1.0-(facm+fact*(1.0-tex))*(1.0-out);
 		break;
 
+	case MTEX_OVERLAY:
+		facm= 1.0-facg;
+		if(out < 0.5f)
+			in = out * (facm + 2.0f*fact*tex);
+		else
+			in = 1.0f - (facm + 2.0f*fact*(1.0 - tex)) * (1.0 - out);
+		break;
+
 	case MTEX_SUB:
 		fact= -fact;
 	case MTEX_ADD:

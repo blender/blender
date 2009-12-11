@@ -134,6 +134,11 @@ static wmKeyMapItem *rna_KeyMap_add_item(wmKeyMap *km, ReportList *reports, char
 	return WM_keymap_add_item(km, idname, type, value, modifier, keymodifier);
 }
 
+static void rna_Operator_report(wmOperator *op, int type, char *msg)
+{
+	BKE_report(op->reports, type, msg);
+}
+
 #else
 
 void RNA_api_wm(StructRNA *srna)
@@ -175,6 +180,18 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
 	parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
+}
+
+void RNA_api_operator(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	func= RNA_def_function(srna, "report", "rna_Operator_report");
+	parm= RNA_def_enum(func, "type", wm_report_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_ENUM_FLAG);
+	parm= RNA_def_string(func, "message", "", 0, "Report Message", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 void RNA_api_keyconfig(StructRNA *srna)

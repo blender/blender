@@ -4985,7 +4985,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 //	RNA_enum_set(op->ptr, "proportional", 0);
 //	RNA_boolean_set(op->ptr, "mirror", 0);
-//	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+//	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }

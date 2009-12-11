@@ -3629,7 +3629,7 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 	if(!RNA_boolean_get(op->ptr, "extend"))
 		EM_deselect_all(em);
 	
-	selectrandom_mesh(em, RNA_float_get(op->ptr, "percentage")/100.0f);
+	selectrandom_mesh(em, RNA_float_get(op->ptr, "percent")/100.0f);
 		
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
@@ -3652,8 +3652,8 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percentage", 50.f, 0.0f, 100.0f, "Percentage", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 void EM_select_by_material(EditMesh *em, int index) 

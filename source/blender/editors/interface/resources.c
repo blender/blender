@@ -1280,6 +1280,9 @@ void init_userdef_do_versions(void)
 	if (U.frameserverport == 0) {
 		U.frameserverport = 8080;
 	}
+	if (U.dbl_click_time == 0) {
+		U.dbl_click_time = 350;
+	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

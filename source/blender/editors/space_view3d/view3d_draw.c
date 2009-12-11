@@ -1860,8 +1860,6 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Objec
 			mask |= CD_MASK_MCOL;
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			mask |= CD_MASK_WEIGHT_MCOL;
-		//if(ob->mode & OB_MODE_SCULPT)
-		//	mask |= CD_MASK_MDISPS;
 	}
 
 	return mask;

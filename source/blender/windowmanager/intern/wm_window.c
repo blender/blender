@@ -944,6 +944,8 @@ void wm_window_get_size_ghost(wmWindow *win, int *width_r, int *height_r)
 	GHOST_RectangleHandle bounds= GHOST_GetClientBounds(win->ghostwin);
 	*width_r= GHOST_GetWidthRectangle(bounds);
 	*height_r= GHOST_GetHeightRectangle(bounds);
+	
+	GHOST_DisposeRectangle(bounds);
 }
 
 void wm_window_set_size(wmWindow *win, int width, int height) 

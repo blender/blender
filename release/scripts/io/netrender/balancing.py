@@ -84,6 +84,16 @@ class RatingUsage(RatingRule):
 		# less usage is better
 		return job.usage / job.priority
 
+class RatingUsageByCategory(RatingRule):
+	def __init__(self, get_jobs):
+		self.getJobs = get_jobs
+	def rate(self, job):
+		total_category_usage = sum([j.usage for j in self.getJobs() if j.category == job.category])
+		maximum_priority = max([j.priority for j in self.getJobs() if j.category == job.category])
+		
+		# less usage is better
+		return total_category_usage / maximum_priority
+	
 class NewJobPriority(PriorityRule):
 	def __init__(self, limit = 1):
 		self.limit = limit

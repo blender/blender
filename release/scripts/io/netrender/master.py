@@ -60,17 +60,9 @@ class MRenderSlave(netrender.model.RenderSlave):
 			self.job = None
 
 class MRenderJob(netrender.model.RenderJob):
-	def __init__(self, job_id, job_type, name, files, chunks = 1, priority = 1, blacklist = []):
-		super().__init__()
+	def __init__(self, job_id, job_info):
+		super().__init__(job_info)
 		self.id = job_id
-		self.type = job_type
-		self.name = name
-		self.files = files
-		self.frames = []
-		self.chunks = chunks
-		self.priority = priority
-		self.usage = 0.0
-		self.blacklist = blacklist
 		self.last_dispatched = time.time()
 		
 		# force one chunk for process jobs
@@ -80,7 +72,7 @@ class MRenderJob(netrender.model.RenderJob):
 		# special server properties
 		self.last_update = 0
 		self.save_path = ""
-		self.files_map = {path: MRenderFile(path, start, end) for path, start, end in files}
+		self.files_map = {path: MRenderFile(path, start, end) for path, start, end in job_info.files}
 		self.status = JOB_WAITING
 	
 	def save(self):
@@ -393,7 +385,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			
 			job_id = self.server.nextJobID()
 			
-			job = MRenderJob(job_id, job_info.type, job_info.name, job_info.files, chunks = job_info.chunks, priority = job_info.priority, blacklist = job_info.blacklist)
+			job = MRenderJob(job_id, job_info)
 			
 			for frame in job_info.frames:
 				frame = job.addFrame(frame.number, frame.command)
@@ -635,6 +627,7 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.slave_timeout = 2
 		
 		self.balancer = netrender.balancing.Balancer()
+		self.balancer.addRule(netrender.balancing.RatingUsageByCategory(self.getJobs))
 		self.balancer.addRule(netrender.balancing.RatingUsage())
 		self.balancer.addException(netrender.balancing.ExcludeQueuedEmptyJob())
 		self.balancer.addException(netrender.balancing.ExcludeSlavesLimit(self.countJobs, self.countSlaves, limit = 0.9))
@@ -706,6 +699,9 @@ class RenderMasterServer(http.server.HTTPServer):
 	
 	def balance(self):
 		self.balancer.balance(self.jobs)
+	
+	def getJobs(self):
+		return self.jobs
 	
 	def countJobs(self, status = JOB_QUEUED):
 		total = 0

@@ -1024,7 +1024,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 			if(ima->source != IMA_SRC_GENERATED) {
 				uiItemS(layout);
 
-				split= uiLayoutSplit(layout, 0);
+				split= uiLayoutSplit(layout, 0, 0);
 
 				col= uiLayoutColumn(split, 0);
 				uiItemR(col, NULL, 0, &imaptr, "fields", 0);
@@ -1040,7 +1040,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 			if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				uiItemS(layout);
 				
-				split= uiLayoutSplit(layout, 0);
+				split= uiLayoutSplit(layout, 0, 0);
 
 				col= uiLayoutColumn(split, 0);
 				 
@@ -1062,7 +1062,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				uiItemR(col, NULL, 0, userptr, "cyclic", 0);
 			}
 			else if(ima->source==IMA_SRC_GENERATED) {
-				split= uiLayoutSplit(layout, 0);
+				split= uiLayoutSplit(layout, 0, 0);
 
 				col= uiLayoutColumn(split, 1);
 				uiItemR(col, "X", 0, &imaptr, "generated_width", 0);

@@ -181,6 +181,7 @@ int seq_tx_test(struct Sequence * seq);
 int check_single_seq(struct Sequence *seq);
 void fix_single_seq(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
+void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test);
 int shuffle_seq_time(ListBase * seqbasep);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);

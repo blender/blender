@@ -43,6 +43,51 @@
 
 #ifdef RNA_RUNTIME
 
+/* build a temp referene to the parent */
+static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
+{
+	for (; seq; seq= seq->next) {
+		seq->tmp= seq_par;
+		if(seq->type == SEQ_META) {
+			meta_tmp_ref(seq, seq->seqbase.first);
+		}
+	}
+}
+
+static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Scene *sce= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(sce, FALSE);
+
+	meta_tmp_ref(NULL, ed->seqbase.first);
+
+	rna_iterator_listbase_begin(iter, &ed->seqbase, NULL);
+}
+
+static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *iter)
+{
+	ListBaseIterator *internal= iter->internal;
+	Sequence *seq= (Sequence*)internal->link;
+
+	if(seq->seqbase.first)
+		internal->link= (Link*)seq->seqbase.first;
+	else if(seq->next)
+		internal->link= (Link*)seq->next;
+	else {
+		internal->link= NULL;
+
+		do {
+			seq= seq->tmp; // XXX - seq's dont reference their parents!
+			if(seq && seq->next) {
+				internal->link= (Link*)seq->next;
+				break;
+			}
+		} while(seq);
+	}
+
+	iter->valid= (internal->link != NULL);
+}
+
 static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
@@ -222,7 +267,7 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	 * TODO: would be nice to make SequenceEditor data a datablock of its own (for shorter paths)
 	 */
 	if (seq->name+2)
-		return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"]", seq->name+2);
 	else
 		return BLI_strdup("");
 }
@@ -612,6 +657,12 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Sequences", "");
+
+	prop= RNA_def_property(srna, "sequences_all", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
+	RNA_def_property_struct_type(prop, "Sequence");
+	RNA_def_property_ui_text(prop, "Sequences", "");
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_sequences_all_begin", "rna_SequenceEditor_sequences_all_next", 0, 0, 0, 0, 0);
 
 	prop= RNA_def_property(srna, "meta_stack", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
@@ -1012,72 +1063,90 @@ static void rna_def_transform(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "scale_start_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScalexIni");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Scale Start X", "");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "scale_start_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScaleyIni");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Scale Start Y", "");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "scale_end_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScalexFin");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Scale End X", "");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "scale_end_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScaleyFin");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Scale End Y", "");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "uniform_scale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uniform_scale", 0);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* not meant to be animated */
+	RNA_def_property_ui_text(prop, "Uniform Scale", "Scale uniformly, preserving aspect ratio.");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "translate_start_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xIni");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Translate Start X", "");
 	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "translate_start_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yIni");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Translate Start Y", "");
 	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "translate_end_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xFin");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Translate End X", "");
 	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "translate_end_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yFin");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Translate End Y", "");
 	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "rotation_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotIni");
-	RNA_def_property_range(prop, 0.0f, 360.0f);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
+	RNA_def_property_range(prop, -360.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Rotation Start", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "rotation_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotFin");
-	RNA_def_property_range(prop, 0.0f, 360.0f);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
+	RNA_def_property_range(prop, -360.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Rotation End", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "translation_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "percent");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* not meant to be animated */
 	RNA_def_property_enum_items(prop, translation_unit_items);
 	RNA_def_property_ui_text(prop, "Translation Unit", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, interpolation_items);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* not meant to be animated */
 	RNA_def_property_ui_text(prop, "Interpolation", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
@@ -1086,7 +1155,7 @@ static void rna_def_solid_color(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "ColorSequence", "EffectSequence");
 	RNA_def_struct_ui_text(srna, "Color Sequence", "Sequence strip creating an image filled with a single color.");
 	RNA_def_struct_sdna_from(srna, "SolidColorVars", "effectdata");

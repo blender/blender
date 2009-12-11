@@ -30,7 +30,7 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
     bl_label = "Delete Edge Loop"
 
     def execute(self, context):
-        bpy.ops.tfm.edge_slide(value=1.0)
+        bpy.ops.transform.edge_slide(value=1.0)
         bpy.ops.mesh.select_more()
         bpy.ops.mesh.remove_doubles()
 

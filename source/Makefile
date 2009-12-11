@@ -177,6 +177,7 @@ COMLIB += $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a
 COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
+COMLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a # This was a PULIB up to circa r25248
 COMLIB += $(OCGDIR)/blender/gen_python/$(DEBUG_DIR)libgen_python.a
 
 ifeq ($(WITH_QUICKTIME), true)
@@ -276,13 +277,12 @@ PULIB += $(OCGDIR)/blender/ed_userpref/$(DEBUG_DIR)libed_userpref.a
 PULIB += $(OCGDIR)/blender/ed_gpencil/$(DEBUG_DIR)libed_gpencil.a
 PULIB += $(OCGDIR)/blender/ed_opsound/$(DEBUG_DIR)libed_opsound.a
 PULIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
-PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 # note, no idea but it suddenly doesn't compile :(
 PULIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 PULIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
-PULIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)/libsmoke.a 
+PULIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)libsmoke.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
