@@ -722,15 +722,18 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "uv_selectmode");
 	RNA_def_property_enum_items(prop, uv_select_mode_items);
 	RNA_def_property_ui_text(prop, "UV Selection Mode", "UV selection and display mode.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	prop= RNA_def_property(srna, "uv_sync_selection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_flag", UV_SYNC_SELECTION);
 	RNA_def_property_ui_text(prop, "UV Sync Selection", "Keep UV and edit mode mesh selection in sync.");
 	RNA_def_property_ui_icon(prop, ICON_EDIT, 0);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	prop= RNA_def_property(srna, "uv_local_view", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_flag", UV_SHOW_SAME_IMAGE);
 	RNA_def_property_ui_text(prop, "UV Local View", "Draw only faces with the currently displayed image assigned.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* Mesh */
 	prop= RNA_def_property(srna, "mesh_selection_mode", PROP_ENUM, PROP_NONE);

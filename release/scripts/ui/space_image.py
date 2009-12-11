@@ -311,7 +311,7 @@ class IMAGE_HT_header(bpy.types.Header):
                 row.operator("image.play_composite", icon='PLAY')
 
         if show_uvedit or sima.image_painting:
-            layout.prop(sima, "update_automatically", text="")
+            layout.prop(sima, "update_automatically", text="", icon_only=True, icon='LOCKED')
 
 
 class IMAGE_PT_image_properties(bpy.types.Panel):

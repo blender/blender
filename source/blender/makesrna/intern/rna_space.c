@@ -1042,7 +1042,6 @@ static void rna_def_space_image(BlenderRNA *brna)
 	/* update */
 	prop= RNA_def_property(srna, "update_automatically", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lock", 0);
-	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_ui_text(prop, "Update Automatically", "Update other affected window spaces automatically to reflect changes during interactive operations such as transform.");
 
 	/* state */

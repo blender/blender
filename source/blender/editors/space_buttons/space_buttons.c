@@ -285,6 +285,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_GEOM:
 			switch(wmn->data) {
 				case ND_SELECT:
+				case ND_DATA:
 					ED_area_tag_redraw(sa);
 					break;
 			}
