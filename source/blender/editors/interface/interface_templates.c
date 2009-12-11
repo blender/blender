@@ -1490,7 +1490,7 @@ static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
 
 
 /* offset aligns from bottom, standard width 300, height 115 */
-static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, int yoffs, RNAUpdateCb *cb)
+static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand *coba, int xoffs, int yoffs, RNAUpdateCb *cb)
 {
 	
 	uiBut *bt;
@@ -1515,18 +1515,28 @@ static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, 
 
 	if(coba->tot) {
 		CBData *cbd= coba->data + coba->cur;
+#if 1
+		/* better to use rna so we can animate them */
+		PointerRNA ptr;
+		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
+		uiItemR(layout, NULL, 0, &ptr, "color", 0);
+		//uiItemR(layout, NULL, 0, &ptr, "position", 0);
+		bt= uiDefButF(block, NUM, 0, "Pos:",			0+xoffs,40+yoffs,100, 20, &cbd->pos, 0.0, 1.0, 10, 0, "The position of the active color stop");
+		uiButSetNFunc(bt, colorband_pos_cb, MEM_dupallocN(cb), coba);
 
+#else
 		bt= uiDefButF(block, NUM, 0, "Pos:",			0+xoffs,40+yoffs,100, 20, &cbd->pos, 0.0, 1.0, 10, 0, "The position of the active color stop");
 		uiButSetNFunc(bt, colorband_pos_cb, MEM_dupallocN(cb), coba);
 		bt= uiDefButF(block, COL, 0,		"",				110+xoffs,40+yoffs,80,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
 		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 		bt= uiDefButF(block, NUMSLI, 0,	"A ",			200+xoffs,40+yoffs,100,20, &cbd->a, 0.0, 1.0, 10, 0, "The alpha value of the active color stop");
 		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+#endif
 	}
 
 }
 
-static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr, RNAUpdateCb *cb)
+static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand *coba, rctf *butr, RNAUpdateCb *cb)
 {
 	uiBut *bt;
 	float unit= (butr->xmax-butr->xmin)/14.0f;
@@ -1540,10 +1550,16 @@ static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr,
 
 	if(coba->tot) {
 		CBData *cbd= coba->data + coba->cur;
+#if 1
+		PointerRNA ptr;
+		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
+		uiItemR(layout, "", 0, &ptr, "color", 0);
+#else
 		bt= uiDefButF(block, COL, 0,		"",			xs+4.0f*unit,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
 		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 		bt= uiDefButF(block, NUMSLI, 0,		"A:",		xs+6.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "The alpha value of the active color stop");
 		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+#endif
 	}
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
@@ -1556,12 +1572,12 @@ static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr,
 	uiBlockEndAlign(block);
 }
 
-static void colorband_buttons_layout(uiBlock *block, ColorBand *coba, rctf *butr, int small, RNAUpdateCb *cb)
+static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand *coba, rctf *butr, int small, RNAUpdateCb *cb)
 {
 	if(small)
-		colorband_buttons_small(block, coba, butr, cb);
+		colorband_buttons_small(layout, block, coba, butr, cb);
 	else
-		colorband_buttons_large(block, coba, 0, 0, cb);
+		colorband_buttons_large(layout, block, coba, 0, 0, cb);
 }
 
 void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
@@ -1587,7 +1603,7 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 	rect.ymin= 0; rect.ymax= 190;
 
 	block= uiLayoutAbsoluteBlock(layout);
-	colorband_buttons_layout(block, cptr.data, &rect, !expand, cb);
+	colorband_buttons_layout(layout, block, cptr.data, &rect, !expand, cb);
 
 	MEM_freeN(cb);
 }
