@@ -10184,6 +10184,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->particle.selectmode= SCE_SELECT_PATH;
 	}
 
+	{
+		Object *ob;
+		
+		/* properly initialise hair clothsim data on old files */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData *)md;
+					if (clmd->sim_parms->velocity_smooth < 0.01f)
+						clmd->sim_parms->velocity_smooth = 0.f;
+				}
+			}
+		}
+	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
