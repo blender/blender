@@ -1538,8 +1538,22 @@ public:
 			if (t->mapto & MAP_REF) {
 				ep.setReflective(createTexture(ima, uvname, sampler));
 			}
+			// alpha
 			if (t->mapto & MAP_ALPHA) {
 				ep.setTransparent(createTexture(ima, uvname, sampler));
+			}
+			// extension:
+			// Normal map --> Must be stored with <extra> tag as different technique, 
+			// since COLLADA doesn't support normal maps, even in current COLLADA 1.5.
+			if (t->mapto & MAP_NORM) {
+				COLLADASW::Texture texture(key);
+				texture.setTexcoord(uvname);
+				texture.setSampler(*sampler);
+				// technique FCOLLADA, with the <bump> tag, is most likely the best understood,
+				// most widespread de-facto standard.
+				texture.setProfileName("FCOLLADA");
+				texture.setChildElementName("bump");				
+				ep.setExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
 			}
 		}
 		// performs the actual writing
