@@ -95,6 +95,7 @@ class TIME_MT_view(bpy.types.Menu):
 
         layout.separator()
 
+        layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "only_selected")
 
 
@@ -139,10 +140,6 @@ class TIME_MT_playback(bpy.types.Menu):
         layout.prop(st, "play_image")
         layout.prop(st, "play_sequencer")
         layout.prop(st, "play_nodes")
-
-        layout.separator()
-
-        layout.prop(st, "continue_physics")
 
         layout.separator()
 

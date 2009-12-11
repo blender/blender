@@ -170,6 +170,9 @@ static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 
 /* ActBeztColumns (Helpers for Long Keyframes) ------------------------------ */
 
+/* maximum size of default buffer for BezTriple columns */
+#define MAX_ABK_BUFSIZE 	4
+
 /* BezTriple Container Node */
 // NOTE: only used internally while building Long Keyframes for now, but may be useful externally?
 typedef struct ActBeztColumn {
@@ -187,7 +190,7 @@ typedef struct ActBeztColumn {
 	short numBezts;						/* number of BezTriples on this frame */
 	float cfra;							/* frame that the BezTriples occur on */
 	
-	BezTriple *bezts[4];				/* buffer of pointers to BezTriples on the same frame */
+	BezTriple *bezts[MAX_ABK_BUFSIZE];	/* buffer of pointers to BezTriples on the same frame */
 	//BezTriple **bezts_extra;			/* secondary buffer of pointers if need be */
 } ActBeztColumn;
 
@@ -227,9 +230,8 @@ static void nupdate_abk_bezt (void *node, void *data)
 	BezTriple *bezt= (BezTriple *)data;
 	
 	/* just add the BezTriple to the buffer if there's space, or allocate a new one */
-	if (abk->numBezts >= sizeof(abk->bezts)/sizeof(BezTriple)) {
+	if (abk->numBezts >= MAX_ABK_BUFSIZE) {
 		// TODO: need to allocate new array to cater...
-		// FIXME: urgent... is a problem when working with duplicate keyframes
 		//bezts_extra= MEM_callocN(...);
 		if(G.f & G_DEBUG)
 			printf("FIXME: nupdate_abk_bezt() missing case for too many overlapping BezTriples \n");
