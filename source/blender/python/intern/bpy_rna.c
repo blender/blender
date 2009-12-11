@@ -3719,11 +3719,15 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 	if(PyTuple_CheckExact(item) && PyTuple_GET_SIZE(item)==2) {
 
 		PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
+		PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
 
 		if(PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 
-			PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
-
+			if(*_PyUnicode_AsString(key)=='_') {
+				PyErr_Format(PyExc_ValueError, "StructRNA \"%.200s\" registration error: %.200s could not register because the property starts with an '_'\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
+				Py_DECREF(dummy_args);
+				return -1;
+			}
 			pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
 			py_srna_cobject = PyCObject_FromVoidPtr(srna, NULL);
 
