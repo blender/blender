@@ -125,7 +125,7 @@ struct SeqEffectHandle {
 		float-rects or byte-rects 
 		(mixed cases are handled one layer up...) */
 	
-	void (*execute)(struct Sequence *seq, int cfra,
+	void (*execute)(struct Scene *scene, struct Sequence *seq, int cfra,
 					float facf0, float facf1,
 					int x, int y,
 					struct ImBuf *ibuf1, struct ImBuf *ibuf2,

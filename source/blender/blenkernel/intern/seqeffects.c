@@ -231,7 +231,7 @@ static ImBuf * IMB_cast_away_list(ImBuf * i)
 	return (ImBuf*) (((void**) i) + 2);
 }
 
-static void do_plugin_effect(Sequence * seq,int cfra,
+static void do_plugin_effect(Scene *scene, Sequence *seq, int cfra,
 			     float facf0, float facf1, int x, int y, 
 			     struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			     struct ImBuf *ibuf3, struct ImBuf *out)
@@ -477,7 +477,7 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_alphaover_effect(Sequence * seq,int cfra,
+static void do_alphaover_effect(Scene *scene, Sequence *seq, int cfra,
 				float facf0, float facf1, int x, int y, 
 				struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 				struct ImBuf *ibuf3, struct ImBuf *out)
@@ -644,7 +644,7 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_alphaunder_effect(Sequence * seq,int cfra,
+static void do_alphaunder_effect(Scene *scene, Sequence *seq, int cfra,
 				float facf0, float facf1, int x, int y, 
 				struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 				struct ImBuf *ibuf3, struct ImBuf *out)
@@ -764,7 +764,7 @@ void do_cross_effect_float(float facf0, float facf1, int x, int y,
 
 /* carefull: also used by speed effect! */
 
-static void do_cross_effect(Sequence * seq,int cfra,
+static void do_cross_effect(Scene *scene, Sequence *seq, int cfra,
 			    float facf0, float facf1, int x, int y, 
 			    struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			    struct ImBuf *ibuf3, struct ImBuf *out)
@@ -1026,7 +1026,7 @@ static void do_gammacross_effect_float(float facf0, float facf1,
 	}
 }
 
-static void do_gammacross_effect(Sequence * seq,int cfra,
+static void do_gammacross_effect(Scene *scene, Sequence *seq, int cfra,
 				 float facf0, float facf1, int x, int y, 
 				 struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 				 struct ImBuf *ibuf3, struct ImBuf *out)
@@ -1140,7 +1140,7 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_add_effect(Sequence * seq,int cfra,
+static void do_add_effect(Scene *scene, Sequence *seq, int cfra,
 			  float facf0, float facf1, int x, int y, 
 			  struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			  struct ImBuf *ibuf3, struct ImBuf *out)
@@ -1252,7 +1252,7 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_sub_effect(Sequence * seq,int cfra,
+static void do_sub_effect(Scene *scene, Sequence *seq, int cfra,
 			  float facf0, float facf1, int x, int y, 
 			  struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			  struct ImBuf *ibuf3, struct ImBuf *out)
@@ -1360,7 +1360,7 @@ static void do_drop_effect_float(float facf0, float facf1, int x, int y,
 }
 
 
-static void do_drop_effect(Sequence * seq,int cfra,
+static void do_drop_effect(Scene *scene, Sequence *seq, int cfra,
 			   float facf0, float facf1, int x, int y, 
 			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			   struct ImBuf * ibuf3,
@@ -1481,7 +1481,7 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_mul_effect(Sequence * seq,int cfra,
+static void do_mul_effect(Scene *scene, Sequence *seq, int cfra,
 			  float facf0, float facf1, int x, int y, 
 			  struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			  struct ImBuf *ibuf3, struct ImBuf *out)
@@ -1931,7 +1931,7 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float facf1,
 	}
 }
 
-static void do_wipe_effect(Sequence * seq,int cfra,
+static void do_wipe_effect(Scene *scene, Sequence *seq, int cfra,
 			   float facf0, float facf1, int x, int y, 
 			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			   struct ImBuf *ibuf3, struct ImBuf *out)
@@ -1953,27 +1953,29 @@ static void do_wipe_effect(Sequence * seq,int cfra,
    ********************************************************************** */
 static void init_transform_effect(Sequence *seq)
 {
-	TransformVars *scale;
+	TransformVars *transform;
 
 	if(seq->effectdata)MEM_freeN(seq->effectdata);
 	seq->effectdata = MEM_callocN(sizeof(struct TransformVars), "transformvars");
 
-	scale = (TransformVars *)seq->effectdata;
-	scale->ScalexIni = 1;
-	scale->ScaleyIni = 1;
-	scale->ScalexFin = 1;
-	scale->ScaleyFin = 1;
+	transform = (TransformVars *)seq->effectdata;
+
+	transform->ScalexIni = 1.0f;
+	transform->ScaleyIni = 1.0f;
+	transform->ScalexFin = 1.0f;
+	transform->ScalexFin = 1.0f;
+
+	transform->xIni=0.0f;
+	transform->xFin=0.0f;
+	transform->yIni=0.0f;
+	transform->yFin=0.0f;
+
+	transform->rotIni=0.0f;
+	transform->rotFin=0.0f;
 	
-	scale->xIni=0;
-	scale->xFin=0;
-	scale->yIni=0;
-	scale->yFin=0;
-	
-	scale->rotIni=0;
-	scale->rotFin=0;
-	
-	scale->interpolation=1;
-	scale->percent=1;
+	transform->interpolation=1;
+	transform->percent=1;
+	transform->uniform_scale=0;
 }
 
 static int num_inputs_transform()
@@ -1992,86 +1994,94 @@ static void copy_transform_effect(Sequence *dst, Sequence *src)
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static void do_transform(Sequence * seq,float facf0, int x, int y, 
-			  struct ImBuf *ibuf1,struct ImBuf *out)
+static void transform_image(int x, int y, struct ImBuf *ibuf1, struct ImBuf *out, 
+							float scale_x, float scale_y, float translate_x, float translate_y, 
+							float rotate, int interpolation)
 {
 	int xo, yo, xi, yi;
-	float xs,ys,factxScale,factyScale,tx,ty,rad,s,c,xaux,yaux,factRot,px,py;
-	TransformVars *scale;
-	
-	// XXX struct RenderData *rd = NULL; // 2.5 global: &G.scene->r;
+	float xt, yt, xr, yr;
+	float s,c;
 
-
-	scale = (TransformVars *)seq->effectdata;
 	xo = x;
 	yo = y;
-
-	//factor scale
-	if (scale->uniform_scale) {
-		factxScale = factyScale = scale->ScalexIni + (scale->ScalexFin - scale->ScalexIni) * facf0;
-	} else {
-		factxScale = scale->ScalexIni + (scale->ScalexFin - scale->ScalexIni) * facf0;
-		factyScale = scale->ScaleyIni + (scale->ScaleyFin - scale->ScaleyIni) * facf0;
-	}
-
-	//Factor translate
-	if(!scale->percent){
-		float rd_s = 0.0f; // XXX 2.5 global: (rd->size / 100.0f);
-
-		tx = scale->xIni * rd_s+(xo / 2.0f) + (scale->xFin * rd_s -(xo / 2.0f) - scale->xIni * rd_s +(xo / 2.0f)) * facf0;
-		ty = scale->yIni * rd_s+(yo / 2.0f) + (scale->yFin * rd_s -(yo / 2.0f) - scale->yIni * rd_s +(yo / 2.0f)) * facf0;
-	}else{
-		tx = xo*(scale->xIni/100.0f)+(xo / 2.0f) + (xo*(scale->xFin/100.0f)-(xo / 2.0f) - xo*(scale->xIni/100.0f)+(xo / 2.0f)) * facf0;
-		ty = yo*(scale->yIni/100.0f)+(yo / 2.0f) + (yo*(scale->yFin/100.0f)-(yo / 2.0f) - yo*(scale->yIni/100.0f)+(yo / 2.0f)) * facf0;
-	}
-
-	//factor Rotate
-	factRot = scale->rotIni + (scale->rotFin - scale->rotIni) * facf0;
-	rad = (M_PI * factRot) / 180.0f;
-	s= sin(rad);
-	c= cos(rad);
-
+	
+	// Rotate
+	s= sin(rotate);
+	c= cos(rotate);
 
 	for (yi = 0; yi < yo; yi++) {
 		for (xi = 0; xi < xo; xi++) {
-			//tranlate point
-			px = xi-tx;
-			py = yi-ty;
+
+			//translate point
+			xt = xi-translate_x;
+			yt = yi-translate_y;
 
 			//rotate point with center ref
-			xaux = c*px + py*s ;
-			yaux = -s*px + c*py;
+			xr =  c*xt + s*yt;
+			yr = -s*xt + c*yt;
 
 			//scale point with center ref
-			xs = xaux / factxScale;
-			ys = yaux / factyScale;
+			xt = xr / scale_x;
+			yt = yr / scale_y;
 
 			//undo reference center point 
-			xs += (xo / 2.0f);
-			ys += (yo / 2.0f);
+			xt += (xo / 2.0f);
+			yt += (yo / 2.0f);
 
 			//interpolate
-			switch(scale->interpolation) {
+			switch(interpolation) {
 			case 0:
-				neareast_interpolation(ibuf1,out, xs,ys,xi,yi);
+				neareast_interpolation(ibuf1,out, xt,yt,xi,yi);
 				break;
 			case 1:
-				bilinear_interpolation(ibuf1,out, xs,ys,xi,yi);
+				bilinear_interpolation(ibuf1,out, xt,yt,xi,yi);
 				break;
 			case 2:
-				bicubic_interpolation(ibuf1,out, xs,ys,xi,yi);
+				bicubic_interpolation(ibuf1,out, xt,yt,xi,yi);
 				break;
 			}
 		}
-	}	
-
+	}
 }
-static void do_transform_effect(Sequence * seq,int cfra,
+
+static void do_transform(Scene *scene, Sequence *seq, float facf0, int x, int y, 
+			  struct ImBuf *ibuf1,struct ImBuf *out)
+{
+	TransformVars *transform = (TransformVars *)seq->effectdata;
+	float scale_x, scale_y, translate_x, translate_y, rotate_radians;
+	
+	// Scale
+	if (transform->uniform_scale) {
+		scale_x = scale_y = transform->ScalexIni;
+	} else {
+		scale_x = transform->ScalexIni;
+		scale_y = transform->ScaleyIni;
+	}
+
+	// Translate
+	if(!transform->percent){
+		float rd_s = (scene->r.size/100.0f);
+
+		translate_x = transform->xIni*rd_s+(x/2.0f);
+		translate_y = transform->yIni*rd_s+(y/2.0f);
+	}else{
+		translate_x = x*(transform->xIni/100.0f)+(x/2.0f);
+		translate_y = y*(transform->yIni/100.0f)+(y/2.0f);
+	}
+	
+	// Rotate
+	rotate_radians = (M_PI*transform->rotIni)/180.0f;
+
+	transform_image(x,y, ibuf1, out, scale_x, scale_y, translate_x, translate_y, rotate_radians, transform->interpolation);
+}
+
+
+static void do_transform_effect(Scene *scene, Sequence *seq,int cfra,
 			   float facf0, float facf1, int x, int y, 
 			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			   struct ImBuf *ibuf3, struct ImBuf *out)
 {
-	do_transform(seq, facf0, x, y, ibuf1, out);
+	do_transform(scene, seq, facf0, x, y, ibuf1, out);
 }
 
 
@@ -2578,7 +2588,7 @@ static void do_glow_effect_float(Sequence *seq, float facf0, float facf1,
 		RVAddBitmaps_float (inbuf , outbuf, outbuf, x, y);
 }
 
-static void do_glow_effect(Sequence * seq,int cfra,
+static void do_glow_effect(Scene *scene, Sequence *seq, int cfra,
 			   float facf0, float facf1, int x, int y, 
 			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			   struct ImBuf *ibuf3, struct ImBuf *out)
@@ -2633,7 +2643,7 @@ static int early_out_color(struct Sequence *seq,
 	return -1;
 }
 
-static void do_solid_color(Sequence * seq,int cfra,
+static void do_solid_color(Scene *scene, Sequence *seq, int cfra,
 			   float facf0, float facf1, int x, int y, 
 			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			   struct ImBuf *ibuf3, struct ImBuf *out)
@@ -2996,16 +3006,16 @@ static void get_default_fac_fade(struct Sequence *seq, int cfra,
 	*facf1 /= seq->len;
 }
 
-static void do_overdrop_effect(struct Sequence * seq, int cfra,
+static void do_overdrop_effect(Scene *scene, Sequence *seq, int cfra,
 			       float fac, float facf, 
 			       int x, int y, struct ImBuf * ibuf1, 
 			       struct ImBuf * ibuf2, 
 			       struct ImBuf * ibuf3, 
 			       struct ImBuf * out)
 {
-	do_drop_effect(seq, cfra, fac, facf, x, y, 
+	do_drop_effect(scene, seq, cfra, fac, facf, x, y, 
 		       ibuf1, ibuf2, ibuf3, out);
-	do_alphaover_effect(seq, cfra, fac, facf, x, y, 
+	do_alphaover_effect(scene, seq, cfra, fac, facf, x, y, 
 			    ibuf1, ibuf2, ibuf3, out);
 }
 
@@ -3084,7 +3094,6 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 		rval.free = free_transform_effect;
 		rval.copy = copy_transform_effect;
 		rval.execute = do_transform_effect;
-		rval.get_default_fac = get_default_fac_fade;
 		break;
 	case SEQ_SPEED:
 		rval.init = init_speed_effect;

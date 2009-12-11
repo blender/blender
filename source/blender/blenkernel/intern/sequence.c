@@ -839,7 +839,7 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 	early_out = sh.early_out(seq, fac, facf);
 
 	if (early_out == -1) { /* no input needed */
-		sh.execute(seq, cfra, fac, facf, 
+		sh.execute(scene, seq, cfra, fac, facf, 
 			   se->ibuf->x, se->ibuf->y, 
 			   0, 0, 0, se->ibuf);
 		return;
@@ -928,7 +928,7 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 		IMB_rect_from_float(se3->ibuf);
 	}
 
-	sh.execute(seq, cfra, fac, facf, x, y, se1->ibuf, se2->ibuf, se3->ibuf,
+	sh.execute(scene, seq, cfra, fac, facf, x, y, se1->ibuf, se2->ibuf, se3->ibuf,
 		   se->ibuf);
 }
 
@@ -2276,7 +2276,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 			} else {
 				sh = get_sequence_effect(seq);
 
-				sh.execute(seq, cfra, 
+				sh.execute(scene, seq, cfra, 
 					   f_cfra - (float) cfra_left, 
 					   f_cfra - (float) cfra_left, 
 					   se->ibuf->x, se->ibuf->y, 
@@ -2510,12 +2510,12 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 			}
 
 			if (swap_input) {
-				sh.execute(seq, cfra, 
+				sh.execute(scene, seq, cfra, 
 					   facf, facf, x, y, 
 					   se2->ibuf, se1->ibuf_comp, 0,
 					   se2->ibuf_comp);
 			} else {
-				sh.execute(seq, cfra, 
+				sh.execute(scene, seq, cfra, 
 					   facf, facf, x, y, 
 					   se1->ibuf_comp, se2->ibuf, 0,
 					   se2->ibuf_comp);

@@ -383,57 +383,46 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             flow.prop(strip, "frame_blending")
 
         elif strip.type == 'TRANSFORM':
-
-            col = layout.column()
-            col.prop(strip, "interpolation")
-            col.prop(strip, "translation_unit")
-
-            col = layout.column(align=True)
-            col.label(text="Position X:")
-            col.prop(strip, "translate_start_x", text="Start")
-            col.prop(strip, "translate_end_x", text="End")
-
-            col = layout.column(align=True)
-            col.label(text="Position Y:")
-            col.prop(strip, "translate_start_y", text="Start")
-            col.prop(strip, "translate_end_y", text="End")
-
-            layout.separator()
-
-            col = layout.column(align=True)
-            col.prop(strip, "uniform_scale")
+            self.draw_panel_transform(strip)
             
-            if (strip.uniform_scale):
-                col = layout.column(align=True)
-                col.label(text="Scale:")
-                col.prop(strip, "scale_start_x", text="Start")
-                col.prop(strip, "scale_end_x", text="End")
-            else:
-                col = layout.column(align=True)
-                col.label(text="Scale X:")
-                col.prop(strip, "scale_start_x", text="Start")
-                col.prop(strip, "scale_end_x", text="End")
-
-                col = layout.column(align=True)
-                col.label(text="Scale Y:")
-                col.prop(strip, "scale_start_y", text="Start")
-                col.prop(strip, "scale_end_y", text="End")
-
-            layout.separator()
-
-            col = layout.column(align=True)
-            col.label(text="Rotation:")
-            col.prop(strip, "rotation_start", text="Start")
-            col.prop(strip, "rotation_end", text="End")
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "speed_fader", text="Speed fader")
-        elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE',
-                            'TRANSFORM'):
+        elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE'):
                 col.prop(strip, "use_effect_default_fade", "Default fade")
                 if not strip.use_effect_default_fade:
                     col.prop(strip, "effect_fader", text="Effect fader")
+    
+    def draw_panel_transform(self, strip):
+        layout = self.layout
+        col = layout.column()
+        
+        col.prop(strip, "interpolation")
+        col.prop(strip, "translation_unit")
+        col = layout.column(align=True)
+        col.label(text="Position:")
+        col.prop(strip, "translate_start_x", text="X")
+        col.prop(strip, "translate_start_y", text="Y")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(strip, "uniform_scale")
+        if (strip.uniform_scale):
+            col = layout.column(align=True)
+            col.prop(strip, "scale_start_x", text="Scale")
+        else:
+            col = layout.column(align=True)
+            col.label(text="Scale:")
+            col.prop(strip, "scale_start_x", text="X")
+            col.prop(strip, "scale_start_y", text="Y")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.label(text="Rotation:")
+        col.prop(strip, "rotation_start", text="Rotation")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
