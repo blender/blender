@@ -53,6 +53,23 @@ def clean_name(name, replace="_"):
         name = name.replace(ch,  replace)
     return name
 
+def display_name(name):
+    '''
+    Only capitalize all lowercase names, mixed case use them as is.
+    should work with filenames and module names.
+    '''
+    name_base = os.path.splitext(name)[0]
+
+    # string replacements
+    name_base = name_base.replace("_colon_", ":")
+
+    name_base = name_base.replace("_", " ")
+
+    if name_base.lower() == name_base:
+        return ' '.join([w[0].upper() + w[1:] for w in name_base.split()])
+    else:
+        return name_base
+
 
 # base scripts
 _scripts = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)

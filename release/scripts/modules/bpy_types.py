@@ -288,21 +288,7 @@ class Menu(StructRNA):
         # hard coded to set the operators 'path' to the filename.
 
         import os
-
-        def path_to_name(f):
-            ''' Only capitalize all lowercase names, mixed case use them as is.
-            '''
-            f_base = os.path.splitext(f)[0]
-
-            # string replacements
-            f_base = f_base.replace("_colon_", ":")
-
-            f_base = f_base.replace("_", " ")
-
-            if f_base.lower() == f_base:
-                return ' '.join([w[0].upper() + w[1:] for w in f_base.split()])
-            else:
-                return f_base
+        import bpy.utils
 
         layout = self.layout
 
@@ -318,7 +304,7 @@ class Menu(StructRNA):
             if f.startswith("."):
                 continue
 
-            layout.operator(operator, text=path_to_name(f)).path = path
+            layout.operator(operator, text=bpy.utils.display_name(f)).path = path
 
     def draw_preset(self, context):
         '''Define these on the subclass

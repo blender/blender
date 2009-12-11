@@ -162,6 +162,26 @@ def main(obj, bone_definition, base_names):
     # *****
     driver = driver_fcurves[2].driver
     driver.expression = "(1.0-cos(x))-s"
+
+    def x_direction():
+        # NOTE: the direction of the Z rotation depends on which side the palm is on.
+        # we could do a simple side-of-x test but better to work out the direction
+        # the hand is facing.
+        from Mathutils import Vector, AngleBetweenVecs
+        from math import degrees
+        child_pbone_01 = obj.pose.bones[children[0]]
+        child_pbone_02 = obj.pose.bones[children[1]]
+
+        rel_vec = child_pbone_01.head - child_pbone_02.head
+        x_vec = child_pbone_01.matrix.rotationPart() * Vector(1.0, 0.0, 0.0)
+        return degrees(AngleBetweenVecs(rel_vec, x_vec)) > 90.0
+
+    if x_direction(): # flip
+        driver.expression = "-(%s)" % driver.expression
+    
+    for fcurve in driver_fcurves:
+        fcurve.modifiers.remove(0) # grr dont need a modifier
+
     tar = driver.targets.new()
     tar.name = "x"
     tar.id_type = 'OBJECT'

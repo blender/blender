@@ -182,6 +182,15 @@ class INFO_MT_mesh_add(dynamic_menu.DynMenu):
         layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text="Grid")
         layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text="Monkey")
 
+class INFO_MT_armature_add(dynamic_menu.DynMenu):
+    bl_idname = "INFO_MT_armature_add"
+    bl_label = "Armature"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("object.armature_add", text="Single Bone", icon='BONE_DATA')
+
 
 class INFO_MT_add(bpy.types.Menu):
     bl_label = "Add"
@@ -198,27 +207,20 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
         layout.operator_menu_enum("object.metaball_add", "type", 'META', text="Metaball", icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
-
         layout.separator()
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-
-        layout.operator("object.armature_add", text="Armature", icon='OUTLINER_OB_ARMATURE')
+        layout.menu("INFO_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
-
         layout.separator()
 
         layout.operator("object.add", text="Camera", icon='OUTLINER_OB_CAMERA').type = 'CAMERA'
-
         layout.operator_context = 'EXEC_SCREEN'
-
         layout.operator_menu_enum("object.lamp_add", "type", 'LAMP', text="Lamp", icon='OUTLINER_OB_LAMP')
-
         layout.separator()
 
         layout.operator_menu_enum("object.effector_add", "type", 'EMPTY', text="Force Field", icon='OUTLINER_OB_EMPTY')
-
         layout.separator()
 
         layout.operator_menu_enum("object.group_instance_add", "type", text="Group Instance", icon='OUTLINER_OB_EMPTY')
@@ -292,6 +294,7 @@ bpy.types.register(INFO_MT_file_export)
 bpy.types.register(INFO_MT_file_external_data)
 bpy.types.register(INFO_MT_add)
 bpy.types.register(INFO_MT_mesh_add)
+bpy.types.register(INFO_MT_armature_add)
 bpy.types.register(INFO_MT_game)
 bpy.types.register(INFO_MT_render)
 bpy.types.register(INFO_MT_help)

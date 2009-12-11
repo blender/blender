@@ -198,7 +198,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	/* RNA-Path Editing - only really should be enabled when things aren't working */
 	col= uiLayoutColumn(layout, 1);
 		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)); 
-		uiItemR(col, "", ICON_RNA, &fcu_ptr, "rna_path", 0);
+		uiItemR(col, "", ICON_RNA, &fcu_ptr, "data_path", 0);
 		uiItemR(col, NULL, 0, &fcu_ptr, "array_index", 0);
 		
 	/* color settings */
@@ -396,7 +396,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			col= uiLayoutColumn(box, 1);
 			block= uiLayoutGetBlock(col);
 				/* rna path */
-				uiTemplatePathBuilder(col, (bContext *)C, &dtar_ptr, "rna_path", &root_ptr, "Path");
+				uiTemplatePathBuilder(col, (bContext *)C, &dtar_ptr, "data_path", &root_ptr, "Path");
 				
 				/* array index */
 				// TODO: this needs selector which limits it to ok values

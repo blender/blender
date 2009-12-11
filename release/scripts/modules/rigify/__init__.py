@@ -51,9 +51,24 @@ def submodule_func_from_type(bone_type):
         
     reload(submod)
     return submod, getattr(submod, func_name)
+
+
+def submodule_types():
+    import os
+    submodules = []
+    files = os.listdir(os.path.dirname(__file__))
+    for f in files:
+        if not f.startswith("_") and f.endswith(".py"):
+            submodules.append(f[:-3])
     
+    return sorted(submodules)
+
 
 def validate_rig(context, obj):
+    '''
+    Makes no changes
+    only runs the metarig definitions and reports errors
+    '''
     type_found = False
     
     for pbone in obj.pose.bones:
@@ -81,6 +96,9 @@ def validate_rig(context, obj):
 
 
 def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
+    '''
+    Main function for generating 
+    '''
     from collections import OrderedDict
     import rigify_utils
     reload(rigify_utils)
@@ -307,20 +325,11 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
             obj.selected = False
         obj_new.selected = True
 
-    files = os.listdir(os.path.dirname(__file__))
-    for f in files:
-        if f.startswith("_"):
-            continue
-
-        if not f.endswith(".py"):
-            continue
-
-        module_name = f[:-3]
-        
+    for module_name in submodule_types():
         if (metarig_type and module_name != metarig_type):
             continue
         
-        submodule = __import__(name="%s.%s" % (__package__, module_name), fromlist=[module_name])
+        submodule, func = submodule_func_from_type(module_name)
 
         metarig_template = getattr(submodule, "metarig_template", None)
 
