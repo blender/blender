@@ -100,6 +100,8 @@ void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node,
 	struct DMGridData ***griddata, struct DMGridAdjacency **gridadj);
 void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node,
 	int *uniquevert, int *totvert);
+void BLI_pbvh_node_get_verts(PBVH *bvh, PBVHNode *node,
+	int **vert_indices, struct MVert **verts);
 
 void BLI_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
@@ -149,11 +151,30 @@ typedef struct PBVHVertexIter {
 	float *fno;
 } PBVHVertexIter;
 
-void BLI_pbvh_node_verts_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mode);
-
 #define BLI_pbvh_vertex_iter_begin(bvh, node, vi, mode) \
-	/* XXX breaks aliasing! */ \
-	BLI_pbvh_node_verts_iter_init(bvh, node, &vi, mode); \
+	{ \
+		struct DMGridData **grids; \
+		struct MVert *verts; \
+		int *grid_indices, totgrid, gridsize, *vert_indices, uniq_verts, totvert; \
+		\
+		memset(&vi, 0, sizeof(PBVHVertexIter)); \
+		\
+		BLI_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids, NULL); \
+		BLI_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert); \
+		BLI_pbvh_node_get_verts(bvh, node, &vert_indices, &verts); \
+		\
+		vi.grids= grids; \
+		vi.grid_indices= grid_indices; \
+		vi.totgrid= (grids)? totgrid: 1; \
+		vi.gridsize= gridsize; \
+		\
+		if(mode == PBVH_ITER_ALL) \
+			vi.totvert = totvert; \
+		else \
+			vi.totvert= uniq_verts; \
+		vi.vert_indices= vert_indices; \
+		vi.mverts= verts; \
+	}\
 	\
 	for(vi.i=0, vi.g=0; vi.g<vi.totgrid; vi.g++) { \
 		if(vi.grids) { \

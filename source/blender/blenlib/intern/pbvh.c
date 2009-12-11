@@ -1006,11 +1006,10 @@ void BLI_pbvh_node_mark_update(PBVHNode *node)
 	node->flag |= PBVH_UpdateNormals|PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateDrawBuffers|PBVH_UpdateRedraw;
 }
 
-void BLI_pbvh_node_get_verts(PBVHNode *node, int **vert_indices, int *totvert, int *allvert)
+void BLI_pbvh_node_get_verts(PBVH *bvh, PBVHNode *node, int **vert_indices, MVert **verts)
 {
 	if(vert_indices) *vert_indices= node->vert_indices;
-	if(totvert) *totvert= node->uniq_verts;
-	if(allvert) *allvert= node->uniq_verts + node->face_verts;
+	if(verts) *verts= bvh->verts;
 }
 
 void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *totvert)
@@ -1100,7 +1099,7 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 
 	if((tmin > tzmax) || (tzmin > tmax))
 		return 0;
-
+	
 	return 1;
 
 	/* XXX: Not sure about this? 
@@ -1142,7 +1141,7 @@ static int ray_face_intersection(float ray_start[3], float ray_normal[3],
 	{	
 		float dist = FLT_MAX;
 			
-		if(!isect_ray_tri_threshold_v3(ray_start, ray_normal, t0, t1, t2,
+		if(!isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2,
 					 &dist, NULL, 0.001f))
 			dist = FLT_MAX;
 
@@ -1298,20 +1297,5 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3])
 	else {
 		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, NULL);
 	}
-}
-
-void BLI_pbvh_node_verts_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mode)
-{
-	memset(vi, 0, sizeof(PBVHVertexIter));
-	vi->grids= bvh->grids;
-	vi->grid_indices= node->prim_indices;
-	vi->totgrid= (bvh->grids)? node->totprim: 1;
-	vi->gridsize= bvh->gridsize;
-
-	vi->totvert= node->uniq_verts;
-	if(mode == PBVH_ITER_ALL)
-		vi->totvert += node->face_verts;
-	vi->vert_indices= node->vert_indices;
-	vi->mverts= bvh->verts;
 }
 

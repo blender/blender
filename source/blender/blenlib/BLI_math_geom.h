@@ -85,6 +85,8 @@ int isect_ray_tri_v3(float p1[3], float d[3],
 	float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
 int isect_ray_tri_threshold_v3(float p1[3], float d[3],
 	float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float threshold);
+int isect_ray_tri_epsilon_v3(float p1[3], float d[3],
+	float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float epsilon);
 
 /* point in polygon */
 int isect_point_tri_v2(float p[2], float a[2], float b[2], float c[2]);
