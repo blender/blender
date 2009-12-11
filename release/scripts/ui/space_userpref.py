@@ -1083,6 +1083,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub.label(text="Scripts:")
         sub.label(text="Sounds:")
         sub.label(text="Temp:")
+        sub.label(text="Animation Player:")
         
         sub = col1.column()
         sub.prop(paths, "fonts_directory", text="")
@@ -1093,6 +1094,9 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub.prop(paths, "python_scripts_directory", text="")
         sub.prop(paths, "sounds_directory", text="")
         sub.prop(paths, "temporary_directory", text="")
+        subsplit = sub.split(percentage=0.3)
+        subsplit.prop(paths, "animation_player_preset", text="")
+        subsplit.prop(paths, "animation_player", text="")
 
         col = split.column()
         col.label(text="Save & Load:")

@@ -261,6 +261,7 @@ class INFO_MT_render(bpy.types.Menu):
         layout.separator()
 
         layout.operator("screen.render_view_show")
+        layout.operator("screen.play_rendered_anim")
 
 
 class INFO_MT_help(bpy.types.Menu):

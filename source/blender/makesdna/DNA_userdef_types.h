@@ -286,10 +286,11 @@ typedef struct UserDef {
 	char plugseqdir[160];
 	char pythondir[160];
 	char sounddir[160];
-	/* yafray: temporary xml export directory */
-	char yfexportdir[160];
+	char anim_player[240];	// FILE_MAX length
+	int anim_player_preset;
+	int pad;
+	
 	short versions;
-
 	short dbl_click_time;
 	
 	int gameflags;

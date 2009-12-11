@@ -3877,6 +3877,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, KM_CTRL, 0)->ptr, "animation", 1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_play_rendered_anim", F11KEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* user prefs */
 #ifdef __APPLE__

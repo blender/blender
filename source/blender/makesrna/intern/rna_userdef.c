@@ -2358,6 +2358,13 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	PropertyRNA *prop;
 	StructRNA *srna;
 	
+	static EnumPropertyItem anim_player_presets[] = {
+		//{0, "INTERNAL", 0, "Internal", "Built-in animation player"},	// doesn't work yet!
+		{0, "BLENDER24", 0, "Blender 2.4", "Blender command line animation playback - path to Blender 2.4"},
+		{2, "DJV", 0, "Djv", "Open source frame player: http://djv.sourceforge.net"},
+		{3, "CUSTOM", 0, "Custom", "Custom animation player executable path"},
+		{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "UserPreferencesFilePaths", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
@@ -2414,7 +2421,16 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "tempdir");
 	RNA_def_property_ui_text(prop, "Temporary Directory", "The directory for storing temporary save files.");
+	
+	prop= RNA_def_property(srna, "animation_player", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "anim_player");
+	RNA_def_property_ui_text(prop, "Animation Player", "Path to a custom animation/frame sequence player.");
 
+	prop= RNA_def_property(srna, "animation_player_preset", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "anim_player_preset");
+	RNA_def_property_enum_items(prop, anim_player_presets);
+	RNA_def_property_ui_text(prop, "Animation Player Preset", "Preset configs for external animation players");
+	
 	/* Autosave  */
 
 	prop= RNA_def_property(srna, "save_version", PROP_INT, PROP_NONE);
