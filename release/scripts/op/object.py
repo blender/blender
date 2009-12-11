@@ -75,16 +75,16 @@ class SelectPattern(bpy.types.Operator):
         row.prop(props, "extend")
 
 
-class SubsurfSet(bpy.types.Operator):
+class SubdivisionSet(bpy.types.Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
-    bl_idname = "object.subsurf_set"
-    bl_label = "Subsurf Set"
+    bl_idname = "object.subdivision_set"
+    bl_label = "Subdivision Set"
     bl_register = True
     bl_undo = True
 
     level = IntProperty(name="Level",
-            default=1, min=0, max=6)
+            default=1, min=0, max=100, soft_min=0, soft_max=6)
 
     def poll(self, context):
         ob = context.active_object
@@ -94,7 +94,11 @@ class SubsurfSet(bpy.types.Operator):
         level = self.properties.level
         ob = context.active_object
         for mod in ob.modifiers:
-            if mod.type == 'SUBSURF':
+            if mod.type == 'MULTIRES' and ob.mode == 'SCULPT':
+                if mod.sculpt_levels != level:
+                    mod.sculpt_levels = level
+                return ('FINISHED',)
+            elif mod.type == 'SUBSURF' or mod.type == 'MULTIRES':
                 if mod.levels != level:
                     mod.levels = level
                 return ('FINISHED',)
@@ -120,5 +124,6 @@ class Retopo(bpy.types.Operator):
 
 
 bpy.ops.add(SelectPattern)
-bpy.ops.add(SubsurfSet)
+bpy.ops.add(SubdivisionSet)
 bpy.ops.add(Retopo)
+

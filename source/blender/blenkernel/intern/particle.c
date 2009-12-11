@@ -790,7 +790,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	totface= dm->getNumFaces(dm);
 	totorigface= me->totface;
 
-	if(totface == 0 || totorigface == 0 || origindex == NULL)
+	if(totface == 0 || totorigface == 0)
 		return tot;
 
 	facearea= MEM_callocN(sizeof(float)*totorigface, "SimplifyFaceArea");
@@ -807,14 +807,14 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	/* compute number of children per original face */
 	for(a=0; a<tot; a++) {
-		b= origindex[ctx->index[a]];
+		b= (origindex)? origindex[ctx->index[a]]: ctx->index[a];
 		if(b != -1)
 			elems[b].totchild++;
 	}
 
 	/* compute areas and centers of original faces */
 	for(mf=mface, a=0; a<totface; a++, mf++) {
-		b= origindex[a];
+		b= (origindex)? origindex[a]: a;
 
 		if(b != -1) {
 			VECCOPY(co1, mvert[mf->v1].co);
@@ -910,7 +910,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	skipped= 0;
 	for(a=0, newtot=0; a<tot; a++) {
-		b= origindex[ctx->index[a]];
+		b= (origindex)? origindex[ctx->index[a]]: ctx->index[a];
 		if(b != -1) {
 			if(elems[b].curchild++ < ceil(elems[b].lambda*elems[b].totchild)) {
 				ctx->index[newtot]= ctx->index[a];
@@ -943,7 +943,7 @@ int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float 
 	if(!data->dosimplify)
 		return 0;
 	
-	b= data->origindex[cpa->num];
+	b= (data->origindex)? data->origindex[cpa->num]: cpa->num;
 	if(b == -1)
 		return 0;
 

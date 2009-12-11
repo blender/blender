@@ -190,6 +190,14 @@ static void rna_def_paint(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Brush", "Active paint brush.");
 	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
+
+	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_SHOW_BRUSH);
+	RNA_def_property_ui_text(prop, "Show Brush", "");
+
+	prop= RNA_def_property(srna, "fast_navigate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_FAST_NAVIGATE);
+	RNA_def_property_ui_text(prop, "Fast Navigate", "For multires, show low resolution while navigating the view.");
 }
 
 static void rna_def_sculpt(BlenderRNA  *brna)
@@ -223,14 +231,6 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "lock_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_LOCK_Z);
 	RNA_def_property_ui_text(prop, "Lock Z", "Disallow changes to the Z axis of vertices.");
-
-	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_BRUSH);
-	RNA_def_property_ui_text(prop, "Show Brush", "");
-
-	prop= RNA_def_property(srna, "partial_redraw", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_FAST);
-	RNA_def_property_ui_text(prop, "Partial Redraw", "Optimize sculpting by only refreshing modified faces.");
 }
 
 static void rna_def_vertex_paint(BlenderRNA *brna)

@@ -273,6 +273,11 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_PERSISTENT);
 	RNA_def_property_ui_text(prop, "Persistent", "Sculpts on a persistent layer of the mesh.");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop= RNA_def_property(srna, "use_accumulate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ACCUMULATE);
+	RNA_def_property_ui_text(prop, "Accumulate", "Accumulate stroke dabs on top of each other.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	/* not exposed in the interface yet
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);

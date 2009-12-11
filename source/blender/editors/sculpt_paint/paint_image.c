@@ -86,6 +86,7 @@
 #include "ED_image.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_view3d.h"
 
 #include "WM_api.h"
@@ -112,8 +113,6 @@
 #define IMAPAINT_TILE_BITS			6
 #define IMAPAINT_TILE_SIZE			(1 << IMAPAINT_TILE_BITS)
 #define IMAPAINT_TILE_NUMBER(size)	(((size)+IMAPAINT_TILE_SIZE-1) >> IMAPAINT_TILE_BITS)
-
-#define MAXUNDONAME	64
 
 static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
 
@@ -204,7 +203,7 @@ typedef struct ProjPaintImage {
 	Image *ima;
 	ImBuf *ibuf;
 	ImagePaintPartialRedraw *partRedrawRect;
-	struct UndoTile **undoRect; /* only used to build undo tiles after painting */
+	void **undoRect; /* only used to build undo tiles after painting */
 	int touch;
 } ProjPaintImage;
 
@@ -332,32 +331,20 @@ typedef struct ProjPixelClone {
 
 /* Finish projection painting structs */
 
+typedef struct UndoImageTile {
+	struct UndoImageTile *next, *prev;
 
-typedef struct UndoTile {
-	struct UndoTile *next, *prev;
-	ID id;
+	char idname[MAX_ID_NAME];	/* name instead of pointer*/
+
 	void *rect;
 	int x, y;
-} UndoTile;
+} UndoImageTile;
 
-typedef struct UndoElem {
-	struct UndoElem *next, *prev;
-	char name[MAXUNDONAME];
-	uintptr_t undosize;
-
-	ImBuf *ibuf;
-	ListBase tiles;
-} UndoElem;
-
-static ListBase undobase = {NULL, NULL};
-static UndoElem *curundo = NULL;
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
 
 /* UNDO */
 
-/* internal functions */
-
-static void undo_copy_tile(UndoTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int restore)
+static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int restore)
 {
 	/* copy or swap contents of tile->rect and region in ibuf->rect */
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0, tile->x*IMAPAINT_TILE_SIZE,
@@ -374,49 +361,52 @@ static void undo_copy_tile(UndoTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int rest
 			tile->y*IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 }
 
-static UndoTile *undo_init_tile(ID *id, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile)
+static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile)
 {
-	UndoTile *tile;
+	ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_IMAGE);
+	UndoImageTile *tile;
 	int allocsize;
+
+	for(tile=lb->first; tile; tile=tile->next)
+		if(tile->x == x_tile && tile->y == y_tile && strcmp(tile->idname, ima->id.name)==0)
+			return tile->rect;
 	
 	if (*tmpibuf==NULL)
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect, 0);
 	
-	tile= MEM_callocN(sizeof(UndoTile), "ImaUndoTile");
-	tile->id= *id;
+	tile= MEM_callocN(sizeof(UndoImageTile), "UndoImageTile");
+	strcpy(tile->idname, ima->id.name);
 	tile->x= x_tile;
 	tile->y= y_tile;
 
 	allocsize= IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE*4;
 	allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
-	tile->rect= MEM_mapallocN(allocsize, "ImaUndoRect");
+	tile->rect= MEM_mapallocN(allocsize, "UndeImageTile.rect");
 
 	undo_copy_tile(tile, *tmpibuf, ibuf, 0);
-	curundo->undosize += allocsize;
+	undo_paint_push_count_alloc(UNDO_PAINT_IMAGE, allocsize);
 
-	BLI_addtail(&curundo->tiles, tile);
+	BLI_addtail(lb, tile);
 	
-	return tile;
+	return tile->rect;
 }
 
-static void undo_restore(UndoElem *undo)
+static void image_undo_restore(bContext *C, ListBase *lb)
 {
+	Main *bmain= CTX_data_main(C);
 	Image *ima = NULL;
 	ImBuf *ibuf, *tmpibuf;
-	UndoTile *tile;
-
-	if(!undo)
-		return;
+	UndoImageTile *tile;
 
 	tmpibuf= IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
 	                        IB_rectfloat|IB_rect, 0);
 	
-	for(tile=undo->tiles.first; tile; tile=tile->next) {
+	for(tile=lb->first; tile; tile=tile->next) {
 		/* find image based on name, pointer becomes invalid with global undo */
-		if(ima && strcmp(tile->id.name, ima->id.name)==0);
+		if(ima && strcmp(tile->idname, ima->id.name)==0);
 		else {
-			for(ima=G.main->image.first; ima; ima=ima->id.next)
-				if(strcmp(tile->id.name, ima->id.name)==0)
+			for(ima=bmain->image.first; ima; ima=ima->id.next)
+				if(strcmp(tile->idname, ima->id.name)==0)
 					break;
 		}
 
@@ -435,117 +425,12 @@ static void undo_restore(UndoElem *undo)
 	IMB_freeImBuf(tmpibuf);
 }
 
-static void undo_free(UndoElem *undo)
+static void image_undo_free(ListBase *lb)
 {
-	UndoTile *tile;
+	UndoImageTile *tile;
 
-	for(tile=undo->tiles.first; tile; tile=tile->next)
+	for(tile=lb->first; tile; tile=tile->next)
 		MEM_freeN(tile->rect);
-	BLI_freelistN(&undo->tiles);
-}
-
-static void undo_imagepaint_push_begin(char *name)
-{
-	UndoElem *uel;
-	int nr;
-	
-	/* Undo push is split up in begin and end, the reason is that as painting
-	 * happens more tiles are added to the list, and at the very end we know
-	 * how much memory the undo used to remove old undo elements */
-
-	/* remove all undos after (also when curundo==NULL) */
-	while(undobase.last != curundo) {
-		uel= undobase.last;
-		undo_free(uel);
-		BLI_freelinkN(&undobase, uel);
-	}
-	
-	/* make new */
-	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo file");
-	BLI_addtail(&undobase, uel);
-
-	/* name can be a dynamic string */
-	strncpy(uel->name, name, MAXUNDONAME-1);
-	
-	/* limit amount to the maximum amount*/
-	nr= 0;
-	uel= undobase.last;
-	while(uel) {
-		nr++;
-		if(nr==U.undosteps) break;
-		uel= uel->prev;
-	}
-	if(uel) {
-		while(undobase.first!=uel) {
-			UndoElem *first= undobase.first;
-			undo_free(first);
-			BLI_freelinkN(&undobase, first);
-		}
-	}
-}
-
-static void undo_imagepaint_push_end()
-{
-	UndoElem *uel;
-	uintptr_t totmem, maxmem;
-
-	if(U.undomemory != 0) {
-		/* limit to maximum memory (afterwards, we can't know in advance) */
-		totmem= 0;
-		maxmem= ((uintptr_t)U.undomemory)*1024*1024;
-
-		uel= undobase.last;
-		while(uel) {
-			totmem+= uel->undosize;
-			if(totmem>maxmem) break;
-			uel= uel->prev;
-		}
-
-		if(uel) {
-			while(undobase.first!=uel) {
-				UndoElem *first= undobase.first;
-				undo_free(first);
-				BLI_freelinkN(&undobase, first);
-			}
-		}
-	}
-}
-
-void undo_imagepaint_step(int step)
-{
-	UndoElem *undo;
-
-	if(step==1) {
-		if(curundo==NULL);
-		else {
-			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
-			undo_restore(curundo);
-			curundo= curundo->prev;
-		}
-	}
-	else if(step==-1) {
-		if((curundo!=NULL && curundo->next==NULL) || undobase.first==NULL);
-		else {
-			undo= (curundo && curundo->next)? curundo->next: undobase.first;
-			undo_restore(undo);
-			curundo= undo;
-			if(G.f & G_DEBUG) printf("redo %s\n", undo->name);
-		}
-	}
-}
-
-void undo_imagepaint_clear(void)
-{
-	UndoElem *uel;
-	
-	uel= undobase.first;
-	while(uel) {
-		undo_free(uel);
-		uel= uel->next;
-	}
-
-	BLI_freelistN(&undobase);
-	curundo= NULL;
 }
 
 /* fast projection bucket array lookup, use the safe version for bound checking  */
@@ -3315,7 +3200,7 @@ static void project_paint_end(ProjPaintState *ps)
 		ProjPixel *projPixel;
 		ImBuf *tmpibuf = NULL, *tmpibuf_float = NULL;
 		LinkNode *pixel_node;
-		UndoTile *tile;
+		void *tilerect;
 		MemArena *arena = ps->arena_mt[0]; /* threaded arena re-used for non threaded case */
 				
 		int bucket_tot = (ps->buckets_x * ps->buckets_y); /* we could get an X/Y but easier to loop through all possible buckets */
@@ -3331,8 +3216,8 @@ static void project_paint_end(ProjPaintState *ps)
 		int last_tile_width=0;
 		
 		for(a=0, last_projIma=ps->projImages; a < ps->image_tot; a++, last_projIma++) {
-			int size = sizeof(UndoTile **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
-			last_projIma->undoRect = (UndoTile **) BLI_memarena_alloc(arena, size);
+			int size = sizeof(void **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
+			last_projIma->undoRect = (void **) BLI_memarena_alloc(arena, size);
 			memset(last_projIma->undoRect, 0, size);
 			last_projIma->ibuf->userflags |= IB_BITMAPDIRTY;
 		}
@@ -3372,21 +3257,21 @@ static void project_paint_end(ProjPaintState *ps)
 					
 					if (last_projIma->undoRect[tile_index]==NULL) {
 						/* add the undo tile from the modified image, then write the original colors back into it */
-						tile = last_projIma->undoRect[tile_index] = undo_init_tile(&last_projIma->ima->id, last_projIma->ibuf, is_float ? (&tmpibuf_float):(&tmpibuf) , x_tile, y_tile);
+						tilerect = last_projIma->undoRect[tile_index] = image_undo_push_tile(last_projIma->ima, last_projIma->ibuf, is_float ? (&tmpibuf_float):(&tmpibuf) , x_tile, y_tile);
 					}
 					else {
-						tile = last_projIma->undoRect[tile_index];
+						tilerect = last_projIma->undoRect[tile_index];
 					}
 					
 					/* This is a BIT ODD, but overwrite the undo tiles image info with this pixels original color
 					 * because allocating the tiles allong the way slows down painting */
 					
 					if (is_float) {
-						float *rgba_fp = (float *)tile->rect + (((projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE)) * 4;
+						float *rgba_fp = (float *)tilerect + (((projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE)) * 4;
 						QUATCOPY(rgba_fp, projPixel->origColor.f);
 					}
 					else {
-						((unsigned int *)tile->rect)[ (projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE ] = projPixel->origColor.uint;
+						((unsigned int *)tilerect)[ (projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE ] = projPixel->origColor.uint;
 					}
 				}
 			}
@@ -3957,7 +3842,6 @@ static void imapaint_clear_partial_redraw()
 static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 {
 	ImBuf *tmpibuf = NULL;
-	UndoTile *tile;
 	int srcx= 0, srcy= 0, origx;
 
 	IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
@@ -3984,17 +3868,9 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 	origx = (x >> IMAPAINT_TILE_BITS);
 	y = (y >> IMAPAINT_TILE_BITS);
 	
-	for (; y <= h; y++) {
-		for (x=origx; x <= w; x++) {
-			for(tile=curundo->tiles.first; tile; tile=tile->next)
-				if(tile->x == x && tile->y == y && strcmp(tile->id.name, ima->id.name)==0)
-					break;
-
-			if(!tile) {
-				undo_init_tile(&ima->id, ibuf, &tmpibuf, x, y);
-			}
-		}
-	}
+	for (; y <= h; y++)
+		for (x=origx; x <= w; x++)
+			image_undo_push_tile(ima, ibuf, &tmpibuf, x, y);
 
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	
@@ -4592,7 +4468,8 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	}
 	
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	undo_imagepaint_push_begin("Image Paint");
+	undo_paint_push_begin(UNDO_PAINT_IMAGE, "Image Paint",
+		image_undo_restore, image_undo_free);
 
 	/* create painter */
 	pop->painter= brush_painter_new(pop->s.brush);
@@ -4656,7 +4533,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 	}
 	
 	paint_redraw(C, &pop->s, 1);
-	undo_imagepaint_push_end();
+	undo_paint_push_end(UNDO_PAINT_IMAGE);
 	
 	if(pop->s.warnmultifile)
 		BKE_reportf(op->reports, RPT_WARNING, "Image requires 4 color channels to paint: %s", pop->s.warnmultifile);
@@ -5255,3 +5132,4 @@ int facemask_paint_poll(bContext *C)
 {
 	return paint_facesel_test(CTX_data_active_object(C));
 }
+

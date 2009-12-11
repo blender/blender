@@ -228,7 +228,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional (assumes never disabled if not present).
 	 */
-	int (*isDisabled)(struct ModifierData *md);
+	int (*isDisabled)(struct ModifierData *md, int userRenderParams);
 
 	/* Add the appropriate relations to the DEP graph depending on the
 	 * modifier data. 

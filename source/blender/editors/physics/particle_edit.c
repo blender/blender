@@ -362,7 +362,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 	PE_set_data(C, data);
 
 	view3d_set_viewcontext(C, &data->vc);
-	view3d_get_transformation(&data->vc, data->ob, &data->mats);
+	view3d_get_transformation(data->vc.ar, data->vc.rv3d, data->ob, &data->mats);
 
 	if((data->vc.v3d->drawtype>OB_WIRE) && (data->vc.v3d->flag & V3D_ZBUF_SELECT))
 		view3d_validate_backbuf(&data->vc);

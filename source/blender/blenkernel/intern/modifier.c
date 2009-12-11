@@ -187,7 +187,7 @@ static DerivedMesh *get_original_dm(Scene *scene, Object *ob, float (*vertexCos)
 
 /***/
 
-static int noneModifier_isDisabled(ModifierData *md)
+static int noneModifier_isDisabled(ModifierData *md, int userRenderParams)
 {
 	return 1;
 }
@@ -222,7 +222,7 @@ static CustomDataMask curveModifier_requiredDataMask(Object *ob, ModifierData *m
 	return dataMask;
 }
 
-static int curveModifier_isDisabled(ModifierData *md)
+static int curveModifier_isDisabled(ModifierData *md, int userRenderParams)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
@@ -298,7 +298,7 @@ static CustomDataMask latticeModifier_requiredDataMask(Object *ob, ModifierData 
 	return dataMask;
 }
 
-static int latticeModifier_isDisabled(ModifierData *md)
+static int latticeModifier_isDisabled(ModifierData *md, int userRenderParams)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -402,6 +402,13 @@ static void subsurfModifier_freeData(ModifierData *md)
 	}
 }
 
+static int subsurfModifier_isDisabled(ModifierData *md, int useRenderParams)
+{
+	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+
+	return (useRenderParams)? (smd->renderLevels == 0): (smd->levels == 0);
+}
+
 static DerivedMesh *subsurfModifier_applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
   int useRenderParams, int isFinalCalc)
@@ -410,8 +417,13 @@ static DerivedMesh *subsurfModifier_applyModifier(
 	DerivedMesh *result;
 
 	result = subsurf_make_derived_from_derived(derivedData, smd,
-			useRenderParams, NULL,
-   isFinalCalc, 0);
+			useRenderParams, NULL, isFinalCalc, 0);
+	
+	if(useRenderParams || !isFinalCalc) {
+		DerivedMesh *cddm= CDDM_copy(result);
+		result->release(result);
+		result= cddm;
+	}
 
 	return result;
 }
@@ -3524,7 +3536,7 @@ static void displaceModifier_foreachIDLink(ModifierData *md, Object *ob,
 	displaceModifier_foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
-static int displaceModifier_isDisabled(ModifierData *md)
+static int displaceModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 
@@ -4268,7 +4280,7 @@ static void smoothModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tsmd->defgrp_name, smd->defgrp_name, 32);
 }
 
-static int smoothModifier_isDisabled(ModifierData *md)
+static int smoothModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	SmoothModifierData *smd = (SmoothModifierData*) md;
 	short flag;
@@ -4498,7 +4510,7 @@ static void castModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tcmd->defgrp_name, cmd->defgrp_name, 32);
 }
 
-static int castModifier_isDisabled(ModifierData *md)
+static int castModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	CastModifierData *cmd = (CastModifierData*) md;
 	short flag;
@@ -5487,7 +5499,7 @@ static CustomDataMask armatureModifier_requiredDataMask(Object *ob, ModifierData
 	return dataMask;
 }
 
-static int armatureModifier_isDisabled(ModifierData *md)
+static int armatureModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
@@ -5610,7 +5622,7 @@ static void hookModifier_freeData(ModifierData *md)
 	if (hmd->indexar) MEM_freeN(hmd->indexar);
 }
 
-static int hookModifier_isDisabled(ModifierData *md)
+static int hookModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 
@@ -5682,7 +5694,7 @@ static void hookModifier_deformVerts(
 				/* if DerivedMesh is present and has original index data,
 				* use it
 				*/
-				if(dm && dm->getVertData(dm, 0, CD_ORIGINDEX)) {
+				if(dm && dm->getVertDataArray(dm, CD_ORIGINDEX)) {
 					int j;
 					int orig_index;
 					for(j = 0; j < numVerts; ++j) {
@@ -6308,7 +6320,7 @@ static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
 	tbmd->operation = bmd->operation;
 }
 
-static int booleanModifier_isDisabled(ModifierData *md)
+static int booleanModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 
@@ -7757,7 +7769,7 @@ static CustomDataMask meshdeformModifier_requiredDataMask(Object *ob, ModifierDa
 	return dataMask;
 }
 
-static int meshdeformModifier_isDisabled(ModifierData *md)
+static int meshdeformModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 
@@ -8047,15 +8059,10 @@ static void multiresModifier_initData(ModifierData *md)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
 
-	mmd->lvl = mmd->totlvl = 1;
-}
-
-static void multiresModifier_freeData(ModifierData *md)
-{
-	MultiresModifierData *mmd = (MultiresModifierData*)md;
-
-	if(mmd->undo_verts)
-		MEM_freeN(mmd->undo_verts);
+	mmd->lvl = 0;
+	mmd->sculptlvl = 0;
+	mmd->renderlvl = 0;
+	mmd->totlvl = 0;
 }
 
 static void multiresModifier_copyData(ModifierData *md, ModifierData *target)
@@ -8063,37 +8070,35 @@ static void multiresModifier_copyData(ModifierData *md, ModifierData *target)
 	MultiresModifierData *mmd = (MultiresModifierData*) md;
 	MultiresModifierData *tmmd = (MultiresModifierData*) target;
 
-	tmmd->totlvl = mmd->totlvl;
 	tmmd->lvl = mmd->lvl;
+	tmmd->sculptlvl = mmd->sculptlvl;
+	tmmd->renderlvl = mmd->renderlvl;
+	tmmd->totlvl = mmd->totlvl;
 }
 
 static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 						   int useRenderParams, int isFinalCalc)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
-	DerivedMesh *final;
+	DerivedMesh *result;
 
-	/* TODO: for now just skip a level1 mesh */
-	if(mmd->lvl == 1)
+	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
+
+	if(result == dm)
 		return dm;
 
-	final = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
-	if(mmd->undo_signal && mmd->undo_verts && mmd->undo_verts_tot == final->getNumVerts(final)) {
-		int i;
-		MVert *dst = CDDM_get_verts(final);
-		for(i = 0; i < mmd->undo_verts_tot; ++i) {
-			copy_v3_v3(dst[i].co, mmd->undo_verts[i].co);
-		}
-		CDDM_calc_normals(final);
-
-		MultiresDM_mark_as_modified(final);
-
-		MEM_freeN(mmd->undo_verts);
-		mmd->undo_signal = 0;
-		mmd->undo_verts = NULL;
+	if(useRenderParams || !isFinalCalc) {
+		DerivedMesh *cddm= CDDM_copy(result);
+		result->release(result);
+		result= cddm;
+	}
+	else if(ob->mode & OB_MODE_SCULPT) {
+		/* would be created on the fly too, just nicer this
+		   way on first stroke after e.g. switching levels */
+		result->getPBVH(ob, result);
 	}
 
-	return final;
+	return result;
 }
 
 /* Shrinkwrap */
@@ -8142,7 +8147,7 @@ static CustomDataMask shrinkwrapModifier_requiredDataMask(Object *ob, ModifierDa
 	return dataMask;
 }
 
-static int shrinkwrapModifier_isDisabled(ModifierData *md)
+static int shrinkwrapModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 	return !smd->target;
@@ -8438,6 +8443,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = subsurfModifier_initData;
 		mti->copyData = subsurfModifier_copyData;
 		mti->freeData = subsurfModifier_freeData;
+		mti->isDisabled = subsurfModifier_isDisabled;
 		mti->applyModifier = subsurfModifier_applyModifier;
 		mti->applyModifierEM = subsurfModifier_applyModifierEM;
 
@@ -8770,7 +8776,6 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData;
 		mti->initData = multiresModifier_initData;
-		mti->freeData = multiresModifier_freeData;
 		mti->copyData = multiresModifier_copyData;
 		mti->applyModifier = multiresModifier_applyModifier;
 
@@ -8920,7 +8925,7 @@ int modifier_couldBeCage(ModifierData *md)
 
 	return (	(md->mode & eModifierMode_Realtime) &&
 			(md->mode & eModifierMode_Editmode) &&
-			(!mti->isDisabled || !mti->isDisabled(md)) &&
+			(!mti->isDisabled || !mti->isDisabled(md, 0)) &&
 			modifier_supportsMapping(md));	
 }
 
@@ -8963,7 +8968,7 @@ int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r, int virtual
 
 		if (!(md->mode & eModifierMode_Realtime)) continue;
 		if (!(md->mode & eModifierMode_Editmode)) continue;
-		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (mti->isDisabled && mti->isDisabled(md, 0)) continue;
 		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
 		if (md->mode & eModifierMode_DisableTemporary) continue;
 
@@ -9005,7 +9010,7 @@ int modifier_isEnabled(ModifierData *md, int required_mode)
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	if((md->mode & required_mode) != required_mode) return 0;
-	if(mti->isDisabled && mti->isDisabled(md)) return 0;
+	if(mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return 0;
 	if(md->mode & eModifierMode_DisableTemporary) return 0;
 	if(required_mode & eModifierMode_Editmode)
 		if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;

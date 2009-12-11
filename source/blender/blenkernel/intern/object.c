@@ -228,14 +228,6 @@ void free_sculptsession(SculptSession **ssp)
 {
 	if(ssp && *ssp) {
 		SculptSession *ss = *ssp;
-		if(ss->projverts)
-			MEM_freeN(ss->projverts);
-
-		if(ss->fmap)
-			MEM_freeN(ss->fmap);
-
-		if(ss->fmap_mem)
-			MEM_freeN(ss->fmap_mem);
 
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
@@ -243,8 +235,8 @@ void free_sculptsession(SculptSession **ssp)
 		if(ss->layer_disps)
 			MEM_freeN(ss->layer_disps);
 
-		if(ss->mesh_co_orig)
-			MEM_freeN(ss->mesh_co_orig);
+		if(ss->layer_co)
+			MEM_freeN(ss->layer_co);
 
 		MEM_freeN(ss);
 
@@ -1777,13 +1769,15 @@ static void give_parvert(Object *par, int nr, float *vec)
 			DerivedMesh *dm = par->derivedFinal;
 			
 			if(dm) {
-				int i, count = 0, numVerts = dm->getNumVerts(dm);
+				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
 				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
 				float co[3];
 
 				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; ++i, ++index) {
-					if(*index == nr) {
+				for(i = 0; i < numVerts; ++i) {
+					vindex= (index)? *index: i;
+
+					if(vindex == nr) {
 						dm->getVertCo(dm, i, co);
 						add_v3_v3v3(vec, vec, co);
 						count++;

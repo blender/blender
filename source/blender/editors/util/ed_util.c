@@ -60,7 +60,7 @@ void ED_editors_exit(bContext *C)
 	
 	/* frees all editmode undos */
 	undo_editmode_clear();
-	undo_imagepaint_clear();
+	ED_undo_paint_free();
 	
 	for(sce=G.main->scene.first; sce; sce= sce->id.next) {
 		if(sce->obedit) {

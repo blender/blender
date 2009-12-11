@@ -60,11 +60,23 @@ struct MCol;
 struct ColorBand;
 struct GPUVertexAttribs;
 struct GPUDrawObject;
+struct ListBase;
+struct PBVH;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
 #define SUB_ELEMS_EDGE 2
 #define SUB_ELEMS_FACE 4
+
+typedef struct DMGridData {
+	float co[3];
+	float no[3];
+} DMGridData;
+
+typedef struct DMGridAdjacency {
+	int index[4];
+	int rotation[4];
+} DMGridAdjacency;
 
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
@@ -133,6 +145,13 @@ struct DerivedMesh {
 	void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
 	void *(*getFaceDataArray)(DerivedMesh *dm, int type);
 
+	/* optional grid access for subsurf */
+	int (*getNumGrids)(DerivedMesh *dm);
+	int (*getGridSize)(DerivedMesh *dm);
+	DMGridData **(*getGridData)(DerivedMesh *dm);
+	DMGridAdjacency *(*getGridAdjacency)(DerivedMesh *dm);
+	int *(*getGridOffset)(DerivedMesh *dm);
+
 	/* Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new
 	 * coordinate and normal. For historical reasons the normal can be
@@ -181,6 +200,14 @@ struct DerivedMesh {
 	/* Get vertex normal, undefined if index is not valid */
 	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
 
+	/* Get a map of vertices to faces
+	 */
+	struct ListBase *(*getFaceMap)(DerivedMesh *dm);
+
+	/* Get the BVH used for paint modes
+	 */
+	struct PBVH *(*getPBVH)(struct Object *ob, DerivedMesh *dm);
+
 	/* Drawing Operations */
 
 	/* Draw all vertices as bgl points (no options) */
@@ -205,8 +232,8 @@ struct DerivedMesh {
 	 *
 	 * Also called for *final* editmode DerivedMeshes
 	 */
-	void (*drawFacesSolid)(DerivedMesh *dm,
-	                       int (*setMaterial)(int, void *attribs));
+	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
+	                       int fast, int (*setMaterial)(int, void *attribs));
 
 	/* Draw all faces
 	 *  o If useTwoSided, draw front and back using col arrays

@@ -41,13 +41,16 @@ struct wmOperator;
 struct wmOperatorType;
 struct ARegion;
 struct VPaint;
+struct ListBase;
 
 /* paint_stroke.c */
+typedef int (*StrokeGetLocation)(struct bContext *C, struct PaintStroke *stroke, float location[3], float mouse[2]);
 typedef int (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke, struct PointerRNA *itemptr);
 typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
 
-struct PaintStroke *paint_stroke_new(struct bContext *C, StrokeTestStart test_start,
+struct PaintStroke *paint_stroke_new(struct bContext *C,
+				     StrokeGetLocation get_location, StrokeTestStart test_start,
 				     StrokeUpdateStep update_step, StrokeDone done);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
@@ -99,6 +102,15 @@ void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
 void PAINT_OT_face_select_all(struct wmOperatorType *ot);
 
 int facemask_paint_poll(struct bContext *C);
+
+/* paint_undo.c */
+typedef void (*UndoRestoreCb)(struct bContext *C, struct ListBase *lb);
+typedef void (*UndoFreeCb)(struct ListBase *lb);
+
+void undo_paint_push_begin(int type, char *name, UndoRestoreCb restore, UndoFreeCb free);
+struct ListBase *undo_paint_push_get_list(int type);
+void undo_paint_push_count_alloc(int type, int size);
+void undo_paint_push_end(int type);
 
 #endif /* ED_PAINT_INTERN_H */
 

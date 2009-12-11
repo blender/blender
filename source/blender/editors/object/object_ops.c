@@ -136,6 +136,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_modifier_copy);
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
 	WM_operatortype_append(OBJECT_OT_multires_higher_levels_delete);
+	WM_operatortype_append(OBJECT_OT_multires_save_external);
+	WM_operatortype_append(OBJECT_OT_multires_pack_external);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
 	WM_operatortype_append(OBJECT_OT_explode_refresh);
 	
@@ -227,6 +229,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
+	int i;
 	
 	/* Objects, Regardless of Mode -------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
@@ -314,16 +317,10 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", ONEKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_int_set(kmi->ptr, "level", 1);
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", TWOKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_int_set(kmi->ptr, "level", 2);
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", THREEKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_int_set(kmi->ptr, "level", 3);
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", FOURKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_int_set(kmi->ptr, "level", 4);
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subsurf_set", FIVEKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_int_set(kmi->ptr, "level", 5);
+	for(i=1; i<=5; i++) {
+		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0);
+		RNA_int_set(kmi->ptr, "level", i);
+	}
 
 	/* Lattice -------------------------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);

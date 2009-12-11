@@ -432,16 +432,33 @@ class DATA_PT_modifiers(DataButtonsPanel):
             layout.row().prop(md, "subdivision_type", expand=True)
         else:
             layout.row().prop(md, "subdivision_type", text="")
-        layout.prop(md, "level")
 
         split = layout.split()
-
         col = split.column()
-        col.operator("object.multires_subdivide", text="Subdivide")
+        col.prop(md, "levels", text="Preview")
+        col.prop(md, "sculpt_levels", text="Sculpt")
+        col.prop(md, "render_levels", text="Render")
 
         if wide_ui:
             col = split.column()
+
+        col.enabled = ob.mode != 'EDIT'
+        col.operator("object.multires_subdivide", text="Subdivide")
         col.operator("object.multires_higher_levels_delete", text="Delete Higher")
+        col.prop(md, "optimal_display")
+
+        layout.separator()
+
+        col = layout.column()
+        row = col.row()
+        if md.external:
+            row.operator("object.multires_pack_external", text="Pack External")
+            row.label()
+            row = col.row()
+            row.prop(md, "filename", text="")
+        else:
+            row.operator("object.multires_save_external", text="Save External...")
+            row.label()
 
     def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
         layout.prop(md, "object")
@@ -598,8 +615,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Options:")
-        col.prop(md, "optimal_draw", text="Optimal Display")
-        col.prop(md, "subsurf_uv")
+        col.prop(md, "optimal_display")
 
     def SURFACE(self, layout, ob, md, wide_ui):
         layout.label(text="See Fields panel.")

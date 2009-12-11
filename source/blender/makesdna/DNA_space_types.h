@@ -667,6 +667,7 @@ enum FileSortTypeE {
 #define TEXTFILE			512
 #define MOVIEFILE_ICON		1024 /* movie file that preview can't load */
 #define FOLDERFILE			2048 /* represents folders for filtering */
+#define BTXFILE				4096
 
 /* SpaceImage->dt_uv */
 #define SI_UVDT_OUTLINE	0

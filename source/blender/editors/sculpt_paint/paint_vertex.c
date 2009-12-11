@@ -1629,7 +1629,7 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	
-	op->customdata = paint_stroke_new(C, wpaint_stroke_test_start,
+	op->customdata = paint_stroke_new(C, NULL, wpaint_stroke_test_start,
 					  wpaint_stroke_update_step,
 					  wpaint_stroke_done);
 	
@@ -1931,7 +1931,7 @@ static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	
-	op->customdata = paint_stroke_new(C, vpaint_stroke_test_start,
+	op->customdata = paint_stroke_new(C, NULL, vpaint_stroke_test_start,
 					  vpaint_stroke_update_step,
 					  vpaint_stroke_done);
 	

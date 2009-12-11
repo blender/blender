@@ -871,6 +871,8 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 					|| BLI_testextensie(file->relname, ".otf")
 					|| BLI_testextensie(file->relname, ".otc")) {
 				file->flags |= FTFONTFILE;			
+		} else if(BLI_testextensie(file->relname, ".btx")) {
+				file->flags |= BTXFILE;
 		} else if (has_quicktime){
 			if(		BLI_testextensie(file->relname, ".int")
 				||  BLI_testextensie(file->relname, ".inta")

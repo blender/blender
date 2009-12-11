@@ -553,6 +553,9 @@ class VIEW3D_PT_tools_brush(PaintPanel):
                 if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
                     col.row().prop(brush, "direction", expand=True)
 
+                if brush.sculpt_tool in ('DRAW', 'INFLATE', 'LAYER'):
+                    col.prop(brush, "use_accumulate")
+
                 if brush.sculpt_tool == 'LAYER':
                     col.prop(brush, "use_persistent")
                     col.operator("sculpt.set_persistent_base")
@@ -695,8 +698,8 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
         sculpt = context.tool_settings.sculpt
 
         col = layout.column()
-        col.prop(sculpt, "partial_redraw", text="Partial Refresh")
         col.prop(sculpt, "show_brush")
+        col.prop(sculpt, "fast_navigate")
 
         split = self.layout.split()
 

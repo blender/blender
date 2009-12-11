@@ -108,6 +108,7 @@
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_types.h"
 #include "ED_util.h"
 
@@ -2703,7 +2704,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 		   drawFacesSolid() doesn't draw the transparent faces */
 		if(ob->dtx & OB_DRAWTRANSP) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
-			dm->drawFacesSolid(dm, GPU_enable_material);
+			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			GPU_disable_material();
 		}
@@ -2722,7 +2723,7 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 	return 1;
 }
 
-static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
+static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
 	Mesh *me = ob->data;
@@ -2795,7 +2796,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		}
 	}
 	else if(dt==OB_SOLID) {
-		if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire)
+		if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
 			draw_mesh_object_outline(v3d, ob, dm);
 
 		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
@@ -2803,7 +2804,23 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-		dm->drawFacesSolid(dm, GPU_enable_material);
+		if(ob->sculpt) {
+			Paint *p = paint_get_active(scene);
+			float planes[4][4];
+			float (*fpl)[4] = NULL;
+			int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
+
+			if(ob->sculpt->partial_redraw) {
+				sculpt_get_redraw_planes(planes, ar, rv3d, ob);
+				fpl = planes;
+				ob->sculpt->partial_redraw = 0;
+			}
+
+			dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
+		}
+		else
+			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+
 		GPU_disable_material();
 
 		glFrontFace(GL_CCW);
@@ -2814,7 +2831,8 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		} else {
 			UI_ThemeColor(TH_WIRE);
 		}
-		dm->drawLooseEdges(dm);
+		if(!ob->sculpt)
+			dm->drawLooseEdges(dm);
 	}
 	else if(dt==OB_SHADED) {
 		int do_draw= 1;	/* to resolve all G.f settings below... */
@@ -2932,7 +2950,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 }
 
 /* returns 1 if nothing was drawn, for detecting to draw an object center */
-static int draw_mesh_object(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
+static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
 	Object *obedit= scene->obedit;
@@ -2967,10 +2985,6 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		if (obedit!=ob && finalDM)
 			finalDM->release(finalDM);
 	}
-//	else if(!em && (G.f & G_SCULPTMODE) &&(scene->sculptdata.flags & SCULPT_DRAW_FAST) &&
-//	        OBACT==ob && !sculpt_modifiers_active(ob)) {
-// XXX		sculptmode_draw_mesh(0);
-//	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		if(me->totface<=4 || boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
@@ -2982,7 +2996,7 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 					(check_alpha)? &do_alpha_pass: NULL);
 			}
 
-			draw_mesh_fancy(scene, v3d, rv3d, base, dt, flag);
+			draw_mesh_fancy(scene, ar, v3d, rv3d, base, dt, flag);
 
 			GPU_end_object_materials();
 			
@@ -5744,7 +5758,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	switch( ob->type) {
 		case OB_MESH:
-			empty_object= draw_mesh_object(scene, v3d, rv3d, base, dt, flag);
+			empty_object= draw_mesh_object(scene, ar, v3d, rv3d, base, dt, flag);
 			if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
 
 			break;
@@ -6333,10 +6347,8 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 		int ind;
 		colors = MEM_mallocN(dm->getNumFaces(dm)*sizeof(MCol)*4,"bbs_mesh_solid");
 		for(i=0;i<dm->getNumFaces(dm);i++) {
-			if( index != 0 )
-				ind = index[i];
-			else
-				ind = i;
+			ind= ( index )? index[i]: i;
+
 			if (face_sel_mode==0 || !(me->mface[ind].flag&ME_HIDE)) {
 				unsigned int fbindex = index_to_framebuffer(ind+1);
 				for(j=0;j<4;j++) {
@@ -6463,7 +6475,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 		glEnable(GL_LIGHTING);
 		
 		if(dm) {
-			dm->drawFacesSolid(dm, GPU_enable_material);
+			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
 			GPU_end_object_materials();
 		}
 		else if(edm)

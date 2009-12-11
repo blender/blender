@@ -1643,37 +1643,6 @@ void view3d_update_depths(ARegion *ar, View3D *v3d)
 	}
 }
 
-/* Enable sculpting in wireframe mode by drawing sculpt object only to the depth buffer */
-static void draw_sculpt_depths(Scene *scene, ARegion *ar, View3D *v3d)
-{
-	Object *ob = OBACT;
-	
-	int dt= MIN2(v3d->drawtype, ob->dt);
-	if(v3d->zbuf==0 && dt>OB_WIRE)
-		dt= OB_WIRE;
-	if(dt == OB_WIRE) {
-		GLboolean depth_on;
-		int orig_vdt = v3d->drawtype;
-		int orig_zbuf = v3d->zbuf;
-		int orig_odt = ob->dt;
-		
-		glGetBooleanv(GL_DEPTH_TEST, &depth_on);
-		v3d->drawtype = ob->dt = OB_SOLID;
-		v3d->zbuf = 1;
-		
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		glEnable(GL_DEPTH_TEST);
-		draw_object(scene, ar, v3d, BASACT, 0);
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		if(!depth_on)
-			glDisable(GL_DEPTH_TEST);
-		
-		v3d->drawtype = orig_vdt;
-		v3d->zbuf = orig_zbuf;
-		ob->dt = orig_odt;
-	}
-}
-
 void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 {
 	RegionView3D *rv3d= ar->regiondata;
@@ -1891,8 +1860,6 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Objec
 			mask |= CD_MASK_MCOL;
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			mask |= CD_MASK_WEIGHT_MCOL;
-		if(ob->mode & OB_MODE_SCULPT)
-			mask |= CD_MASK_MDISPS;
 	}
 
 	return mask;
@@ -2137,7 +2104,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 //	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculptparticle= (obact && obact->mode & (OB_MODE_SCULPT|OB_MODE_PARTICLE_EDIT)) && !scene->obedit;
+	sculptparticle= (obact && obact->mode & (OB_MODE_PARTICLE_EDIT)) && !scene->obedit;
 	if(retopo)
 		view3d_update_depths(ar, v3d);
 	
@@ -2150,8 +2117,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		if(obact && obact->mode & OB_MODE_SCULPT)
-			draw_sculpt_depths(scene, ar, v3d);
 		view3d_update_depths(ar, v3d);
 	}
 	
@@ -2166,8 +2131,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		if(obact && obact->mode & OB_MODE_SCULPT)
-			draw_sculpt_depths(scene, ar, v3d);
 		view3d_update_depths(ar, v3d);
 	}
 	
@@ -2188,8 +2151,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	BDR_drawSketch(C);
 	
 	ED_region_pixelspace(ar);
-	
-	/* Draw Sculpt Mode brush XXX (removed) */
 	
 //	retopo_paint_view_update(v3d);
 //	retopo_draw_paint_lines();

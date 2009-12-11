@@ -124,24 +124,24 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	}
 }
 
-void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
+void view3d_get_transformation(ARegion *ar, RegionView3D *rv3d, Object *ob, bglMats *mats)
 {
 	float cpy[4][4];
 	int i, j;
 
-	mul_m4_m4m4(cpy, ob->obmat, vc->rv3d->viewmat);
+	mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
-			mats->projection[i*4+j] = vc->rv3d->winmat[i][j];
+			mats->projection[i*4+j] = rv3d->winmat[i][j];
 			mats->modelview[i*4+j] = cpy[i][j];
 		}
 	}
 
-	mats->viewport[0] = vc->ar->winrct.xmin;
-	mats->viewport[1] = vc->ar->winrct.ymin;
-	mats->viewport[2] = vc->ar->winx;
-	mats->viewport[3] = vc->ar->winy;	
+	mats->viewport[0] = ar->winrct.xmin;
+	mats->viewport[1] = ar->winrct.ymin;
+	mats->viewport[2] = ar->winx;
+	mats->viewport[3] = ar->winy;	
 }
 
 /* ********************** view3d_select: selection manipulations ********************* */

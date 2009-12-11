@@ -1710,8 +1710,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			if(origindex) {
 				for(a=0; a<totface; a++)
 					strandbuf->totbound= MAX2(strandbuf->totbound, origindex[a]);
-				strandbuf->totbound++;
 			}
+			else {
+				for(a=0; a<totface; a++)
+					strandbuf->totbound= MAX2(strandbuf->totbound, a);
+			}
+
 			strandbuf->totbound++;
 			strandbuf->bound= MEM_callocN(sizeof(StrandBound)*strandbuf->totbound, "StrandBound");
 			sbound= strandbuf->bound;

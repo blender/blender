@@ -287,6 +287,8 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			
 			/* ensure it shows correct */
 			if(sms.to_camera) rv3d->persp= RV3D_PERSP;
+
+			rv3d->rflag |= RV3D_NAVIGATING;
 			
 			/* keep track of running timer! */
 			if(rv3d->sms==NULL)
@@ -349,6 +351,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
 		rv3d->smooth_timer= NULL;
+		rv3d->rflag &= ~RV3D_NAVIGATING;
 	}
 	else {
 		int i;
@@ -486,6 +489,44 @@ void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
 
 /* ********************************** */
 
+void view3d_calculate_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rcti *rect)
+{
+	double xs, ys, p[3];
+	short val;
+
+	/* near zero floating point values can give issues with gluUnProject
+		in side view on some implementations */
+	if(fabs(mats->modelview[0]) < 1e-6) mats->modelview[0]= 0.0;
+	if(fabs(mats->modelview[5]) < 1e-6) mats->modelview[5]= 0.0;
+
+	/* Set up viewport so that gluUnProject will give correct values */
+	mats->viewport[0] = 0;
+	mats->viewport[1] = 0;
+
+	/* four clipping planes and bounding volume */
+	/* first do the bounding volume */
+	for(val=0; val<4; val++) {
+		xs= (val==0||val==3)?rect->xmin:rect->xmax;
+		ys= (val==0||val==1)?rect->ymin:rect->ymax;
+
+		gluUnProject(xs, ys, 0.0, mats->modelview, mats->projection, mats->viewport, &p[0], &p[1], &p[2]);
+		VECCOPY(bb->vec[val], p);
+
+		gluUnProject(xs, ys, 1.0, mats->modelview, mats->projection, mats->viewport, &p[0], &p[1], &p[2]);
+		VECCOPY(bb->vec[4+val], p);
+	}
+
+	/* then plane equations */
+	for(val=0; val<4; val++) {
+
+		normal_tri_v3(planes[val], bb->vec[val], bb->vec[val==3?0:val+1], bb->vec[val+4]);
+
+		planes[val][3]= - planes[val][0]*bb->vec[val][0]
+			- planes[val][1]*bb->vec[val][1]
+			- planes[val][2]*bb->vec[val][2];
+	}
+}
+
 /* create intersection coordinates in view Z direction at mouse coordinates */
 void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float ray_end[3])
 {
@@ -501,8 +542,8 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 		mul_m4_v4(rv3d->persinv, vec);
 		mul_v3_fl(vec, 1.0f / vec[3]);
 		
-		VECCOPY(ray_start, rv3d->viewinv[3]);
-		VECSUB(vec, vec, ray_start);
+		copy_v3_v3(ray_start, rv3d->viewinv[3]);
+		sub_v3_v3v3(vec, vec, ray_start);
 		normalize_v3(vec);
 		
 		VECADDFAC(ray_start, rv3d->viewinv[3], vec, v3d->near);
@@ -1920,7 +1961,7 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 
 	fly->time_lastdraw= fly->time_lastwheel= PIL_check_seconds_timer();
 
-	fly->rv3d->rflag |= RV3D_FLYMODE; /* so we draw the corner margins */
+	fly->rv3d->rflag |= RV3D_FLYMODE|RV3D_NAVIGATING; /* so we draw the corner margins */
 
 	/* detect weather to start with Z locking */
 	upvec[0]=1.0f; upvec[1]=0.0f; upvec[2]=0.0f;
@@ -2019,7 +2060,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		/*Done with correcting for the dist */
 	}
 
-	rv3d->rflag &= ~RV3D_FLYMODE;
+	rv3d->rflag &= ~(RV3D_FLYMODE|RV3D_NAVIGATING);
 //XXX2.5	BIF_view3d_previewrender_signal(fly->sa, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 
 

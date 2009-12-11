@@ -683,6 +683,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_btx", (filter & BTXFILE), "Filter btx files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 

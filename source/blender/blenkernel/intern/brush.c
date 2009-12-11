@@ -75,13 +75,14 @@ Brush *add_brush(const char *name)
 	brush->rgb[2]= 1.0f;
 	brush->alpha= 0.2f;
 	brush->size= 25;
-	brush->spacing= 10.0f;
+	brush->spacing= 7.5f;
 	brush->smooth_stroke_radius= 75;
 	brush->smooth_stroke_factor= 0.9;
 	brush->rate= 0.1f;
 	brush->jitter= 0.0f;
 	brush->clone.alpha= 0.5;
 	brush->sculpt_tool = SCULPT_TOOL_DRAW;
+	brush->flag |= BRUSH_SPACE;
 
 	brush_curve_preset(brush, BRUSH_PRESET_SMOOTH);
 

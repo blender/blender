@@ -34,6 +34,15 @@ struct DerivedMesh;
 struct EditMesh;
 struct MultiresSubsurf;
 struct SubsurfModifierData;
+struct _CCGSubsurf;
+struct _CCGVert;
+struct _CCGEdge;
+struct _CCGFace;
+struct PBVH;
+struct DMGridData;
+struct DMGridAdjacency;
+
+/**************************** External *****************************/
 
 struct DerivedMesh *subsurf_make_derived_from_derived(
                         struct DerivedMesh *dm,
@@ -41,14 +50,45 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
                         int useRenderParams, float (*vertCos)[3],
                         int isFinalCalc, int editMode);
 
-struct DerivedMesh *subsurf_make_derived_from_derived_with_multires(
-                        struct DerivedMesh *dm,
-                        struct SubsurfModifierData *smd,
-			struct MultiresSubsurf *ms,
-                        int useRenderParams, float (*vertCos)[3],
-                        int isFinalCalc, int editMode);
-
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
+
+/**************************** Internal *****************************/
+
+typedef struct CCGDerivedMesh {
+	DerivedMesh dm;
+
+	struct _CCGSubSurf *ss;
+	int freeSS;
+	int drawInteriorEdges, useSubsurfUv;
+
+	struct {int startVert; struct _CCGVert *vert;} *vertMap;
+	struct {int startVert; int startEdge; struct _CCGEdge *edge;} *edgeMap;
+	struct {int startVert; int startEdge;
+	        int startFace; struct _CCGFace *face;} *faceMap;
+
+	short *edgeFlags;
+	char *faceFlags;
+
+	struct PBVH *pbvh;
+
+	struct DMGridData **gridData;
+	struct DMGridAdjacency *gridAdjacency;
+	int *gridOffset;
+	struct _CCGFace **gridFaces;
+
+	struct {
+		struct MultiresModifierData *mmd;
+		int local_mmd;
+
+		int lvl, totlvl;
+		float (*orco)[3];
+
+		Object *ob;
+		int modified;
+
+		void (*update)(DerivedMesh*);
+	} multires;
+} CCGDerivedMesh;
 
 #endif
 

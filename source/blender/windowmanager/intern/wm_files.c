@@ -81,6 +81,7 @@
 #include "ED_datafiles.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_util.h"
 
 #include "GHOST_C-api.h"
@@ -497,6 +498,7 @@ void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports
 	}
 	
 	ED_object_exit_editmode(C, EM_DO_UNDO);
+	ED_sculpt_force_update(C);
 
 	do_history(di, reports);
 	

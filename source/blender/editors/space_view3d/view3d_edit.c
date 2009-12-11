@@ -278,7 +278,7 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 }
 
 
-static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
+static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 {
 	static float lastofs[3] = {0,0,0};
 	View3D *v3d = CTX_wm_view3d(C);
@@ -359,6 +359,21 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 	if (rv3d->persmat[2][1] < 0.0f)
 		vod->reverse= -1.0f;
 
+	rv3d->rflag |= RV3D_NAVIGATING;
+}
+
+static void viewops_data_free(bContext *C, wmOperator *op)
+{
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	ViewOpsData *vod= op->customdata;
+
+	vod->rv3d->rflag &= ~RV3D_NAVIGATING;
+
+	if(p && (p->flags & PAINT_FAST_NAVIGATE))
+		ED_region_tag_redraw(vod->ar);
+
+	MEM_freeN(vod);
+	op->customdata= NULL;
 }
 
 /* ************************** viewrotate **********************************/
@@ -622,9 +637,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else if (event_code==VIEW_CONFIRM) {
 		request_depth_update(CTX_wm_region_view3d(C));
-
-		MEM_freeN(vod);
-		op->customdata= NULL;
+		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
 	}
@@ -641,7 +654,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	/* makes op->customdata */
-	viewops_data(C, op, event);
+	viewops_data_create(C, op, event);
 	vod= op->customdata;
 
 	/* switch from camera view when: */
@@ -762,8 +775,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 	else if (event_code==VIEW_CONFIRM) {
 		request_depth_update(CTX_wm_region_view3d(C));
 
-		MEM_freeN(vod);
-		op->customdata= NULL;
+		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
 	}
@@ -774,7 +786,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* makes op->customdata */
-	viewops_data(C, op, event);
+	viewops_data_create(C, op, event);
 
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
@@ -966,9 +978,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else if (event_code==VIEW_CONFIRM) {
 		request_depth_update(CTX_wm_region_view3d(C));
-
-		MEM_freeN(vod);
-		op->customdata= NULL;
+		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
 	}
@@ -1029,7 +1039,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		/* makes op->customdata */
-		viewops_data(C, op, event);
+		viewops_data_create(C, op, event);
 
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
@@ -1971,12 +1981,9 @@ void ED_view3d_local_clipping(RegionView3D *rv3d, float mat[][4])
 static int view3d_clipping_exec(bContext *C, wmOperator *op)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ViewContext vc;
+	bglMats mats;
 	rcti rect;
-	double mvmatrix[16];
-	double projmatrix[16];
-	double xs, ys, p[3];
-	GLint viewport[4];
-	short val;
 
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
@@ -1989,36 +1996,9 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	/* note; otherwise opengl won't work */
 	view3d_operator_needs_opengl(C);
 
-	/* Get the matrices needed for gluUnProject */
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
-
-	/* near zero floating point values can give issues with gluUnProject
-		in side view on some implementations */
-	if(fabs(mvmatrix[0]) < 1e-6) mvmatrix[0]= 0.0;
-	if(fabs(mvmatrix[5]) < 1e-6) mvmatrix[5]= 0.0;
-
-	/* Set up viewport so that gluUnProject will give correct values */
-	viewport[0] = 0;
-	viewport[1] = 0;
-
-	/* four clipping planes and bounding volume */
-	/* first do the bounding volume */
-	for(val=0; val<4; val++) {
-
-		xs= (val==0||val==3)?rect.xmin:rect.xmax;
-		ys= (val==0||val==1)?rect.ymin:rect.ymax;
-
-		gluUnProject(xs, ys, 0.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
-		VECCOPY(rv3d->clipbb->vec[val], p);
-
-		gluUnProject(xs, ys, 1.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
-		VECCOPY(rv3d->clipbb->vec[4+val], p);
-	}
-
-	/* then plane equations */
-	calc_clipping_plane(rv3d->clip, rv3d->clipbb);
+	view3d_set_viewcontext(C, &vc);
+	view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
+	view3d_calculate_clipping(rv3d->clipbb, rv3d->clip, &mats, &rect);
 
 	return OPERATOR_FINISHED;
 }
