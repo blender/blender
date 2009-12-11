@@ -838,7 +838,6 @@ void multires_free(Multires *mr)
 	}
 }
 
-#if 0
 static void create_old_vert_face_map(ListBase **map, IndexNode **mem, const MultiresFace *mface,
 				     const int totvert, const int totface)
 {
@@ -961,10 +960,71 @@ static void multires_load_old_faces(ListBase **fmap, ListBase **emap, MultiresLe
 	}
 }
 
+static void multires_old_mvert_to_ss(DerivedMesh *dm, MVert *mvert)
+{
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+	CCGSubSurf *ss = ccgdm->ss;
+	DMGridData *vd;
+	int index;
+	int totvert, totedge, totface;
+	int gridSize = ccgSubSurf_getGridSize(ss);
+	int edgeSize = ccgSubSurf_getEdgeSize(ss);
+	int i = 0;
+
+	totface = ccgSubSurf_getNumFaces(ss);
+	for(index = 0; index < totface; index++) {
+		CCGFace *f = ccgdm->faceMap[index].face;
+		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
+
+		vd= ccgSubSurf_getFaceCenterData(f);
+		copy_v3_v3(vd->co, mvert[i].co);
+		i++;
+		
+		for(S = 0; S < numVerts; S++) {
+			for(x = 1; x < gridSize - 1; x++, i++) {
+				vd= ccgSubSurf_getFaceGridEdgeData(ss, f, S, x);
+				copy_v3_v3(vd->co, mvert[i].co);
+			}
+		}
+
+		for(S = 0; S < numVerts; S++) {
+			for(y = 1; y < gridSize - 1; y++) {
+				for(x = 1; x < gridSize - 1; x++, i++) {
+					vd= ccgSubSurf_getFaceGridData(ss, f, S, x, y);
+					copy_v3_v3(vd->co, mvert[i].co);
+				}
+			}
+		}
+	}
+
+	totedge = ccgSubSurf_getNumEdges(ss);
+	for(index = 0; index < totedge; index++) {
+		CCGEdge *e = ccgdm->edgeMap[index].edge;
+		int x;
+
+		for(x = 1; x < edgeSize - 1; x++, i++) {
+			vd= ccgSubSurf_getEdgeData(ss, e, x);
+			copy_v3_v3(vd->co, mvert[i].co);
+		}
+	}
+
+	totvert = ccgSubSurf_getNumVerts(ss);
+	for(index = 0; index < totvert; index++) {
+		CCGVert *v = ccgdm->vertMap[index].vert;
+
+		vd= ccgSubSurf_getVertData(ss, v);
+		copy_v3_v3(vd->co, mvert[i].co);
+		i++;
+	}
+
+	ccgSubSurf_updateToFaces(ss, 0, NULL, 0);
+}
+
 /* Loads a multires object stored in the old Multires struct into the new format */
-static void multires_load_old_dm(DerivedMesh *dm, Multires *mr, int totlvl)
+static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 {
 	MultiresLevel *lvl, *lvl1;
+	Multires *mr= me->mr;
 	MVert *vsrc, *vdst;
 	int src, dst;
 	int st = multires_side_tot[totlvl - 1] - 1;
@@ -976,7 +1036,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Multires *mr, int totlvl)
 	src = 0;
 	dst = 0;
 	vsrc = mr->verts;
-	vdst = CDDM_get_verts(dm);
+	vdst = dm->getVertArray(dm);
 	totvert = dm->getNumVerts(dm);
 	vvmap = MEM_callocN(sizeof(int) * totvert, "multires vvmap");
 
@@ -1123,13 +1183,13 @@ static void multires_load_old_dm(DerivedMesh *dm, Multires *mr, int totlvl)
 		copy_v3_v3(vdst[i].co, vsrc[vvmap[i]].co);
 
 	MEM_freeN(vvmap);
+
+	multires_old_mvert_to_ss(dm, vdst);
 }
-#endif
+
 
 void multires_load_old(Object *ob, Mesh *me)
 {
-	/* XXX not implemented */
-#if 0
 	MultiresLevel *lvl;
 	ModifierData *md;
 	MultiresModifierData *mmd;
@@ -1173,14 +1233,14 @@ void multires_load_old(Object *ob, Mesh *me)
 	orig = CDDM_from_mesh(me, NULL);
 	dm = multires_dm_create_from_derived(mmd, 0, orig, ob, 0, 0);
 					   
-	multires_load_old_dm(dm, me->mr, mmd->totlvl);
+	multires_load_old_dm(dm, me, mmd->totlvl+1);
 
 	multires_dm_mark_as_modified(dm);
 	dm->release(dm);
 	orig->release(orig);
-#endif
 
 	/* Remove the old multires */
 	multires_free(me->mr);
+	me->mr= NULL;
 }
 

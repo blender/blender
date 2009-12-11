@@ -60,6 +60,7 @@ CCGError	ccgSubSurf_syncFaceDel	(CCGSubSurf *ss, CCGFaceHDL fHDL);
 CCGError	ccgSubSurf_processSync	(CCGSubSurf *ss);
 
 CCGError	ccgSubSurf_updateFromFaces(CCGSubSurf *ss, int lvl, CCGFace **faces, int numFaces);
+CCGError	ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **faces, int numFaces);
 CCGError	ccgSubSurf_updateNormals(CCGSubSurf *ss, CCGFace **faces, int numFaces);
 CCGError	ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **faces, int numFaces);
 CCGError	ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **faces, int numFaces);

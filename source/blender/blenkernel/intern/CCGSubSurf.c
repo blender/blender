@@ -2188,6 +2188,48 @@ CCGError ccgSubSurf_updateFromFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF
 	return eCCGError_None;
 }
 
+/* copy other places to face grid coordinates */
+CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)
+{
+	int i, S, x, gridSize, cornerIdx, subdivLevels;
+	int vertDataSize = ss->meshIFC.vertDataSize, freeF;
+
+	subdivLevels = ss->subdivLevels;
+	lvl = (lvl)? lvl: subdivLevels;
+	gridSize = 1 + (1<<(lvl-1));
+	cornerIdx = gridSize-1;
+
+	ccgSubSurf__allFaces(ss, &effectedF, &numEffectedF, &freeF);
+
+	for (i=0; i<numEffectedF; i++) {
+		CCGFace *f = effectedF[i];
+
+		for (S=0; S<f->numVerts; S++) {
+			int prevS = (S+f->numVerts-1)%f->numVerts;
+			CCGEdge *e = FACE_getEdges(f)[S];
+			CCGEdge *prevE = FACE_getEdges(f)[prevS];
+
+			for (x=0; x<gridSize; x++) {
+				int eI = gridSize-1-x;
+				VertDataCopy(FACE_getIFCo(f, lvl, S, cornerIdx, x), _edge_getCoVert(e, FACE_getVerts(f)[S], lvl, eI,vertDataSize));
+				VertDataCopy(FACE_getIFCo(f, lvl, S, x, cornerIdx), _edge_getCoVert(prevE, FACE_getVerts(f)[S], lvl, eI,vertDataSize));
+			}
+
+			for (x=1; x<gridSize-1; x++) {
+				VertDataCopy(FACE_getIFCo(f, lvl, S, 0, x), FACE_getIECo(f, lvl, prevS, x));
+				VertDataCopy(FACE_getIFCo(f, lvl, S, x, 0), FACE_getIECo(f, lvl, S, x));
+			}
+
+			VertDataCopy(FACE_getIFCo(f, lvl, S, 0, 0), FACE_getCenterData(f));
+			VertDataCopy(FACE_getIFCo(f, lvl, S, cornerIdx, cornerIdx), VERT_getCo(FACE_getVerts(f)[S], lvl));
+		}
+	}
+
+	if(freeF) CCGSUBSURF_free(ss, effectedF);
+
+	return eCCGError_None;
+}
+
 /* stitch together face grids, averaging coordinates at edges
    and vertices, for multires displacements */
 CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)

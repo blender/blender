@@ -10133,17 +10133,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(!sce->toolsettings->particle.selectmode)
 				sce->toolsettings->particle.selectmode= SCE_SELECT_PATH;
 
-		for(me=main->mesh.first; me; me=me->id.next)
-			multires_load_old_250(me);
+		if (main->versionfile == 250 && main->subversionfile > 1) {
+			for(me=main->mesh.first; me; me=me->id.next)
+				multires_load_old_250(me);
 
-		for(ob=main->object.first; ob; ob=ob->id.next) {
-			MultiresModifierData *mmd = (MultiresModifierData *)modifiers_findByType(ob, eModifierType_Multires);
+			for(ob=main->object.first; ob; ob=ob->id.next) {
+				MultiresModifierData *mmd = (MultiresModifierData *)modifiers_findByType(ob, eModifierType_Multires);
 
-			if(mmd) {
-				mmd->totlvl--;
-				mmd->lvl--;
-				mmd->sculptlvl= mmd->lvl;
-				mmd->renderlvl= mmd->lvl;
+				if(mmd) {
+					mmd->totlvl--;
+					mmd->lvl--;
+					mmd->sculptlvl= mmd->lvl;
+					mmd->renderlvl= mmd->lvl;
+				}
 			}
 		}
 	}
