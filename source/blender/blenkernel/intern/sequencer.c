@@ -43,7 +43,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "RNA_access.h"

@@ -160,7 +160,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_screen.h" // for waitcursor
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_sound.h" /* ... and for samples */
 #include "BKE_utildefines.h" // for defines
 #include "BKE_modifier.h"

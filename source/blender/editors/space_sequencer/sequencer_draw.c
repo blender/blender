@@ -46,7 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_plugin_types.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
  

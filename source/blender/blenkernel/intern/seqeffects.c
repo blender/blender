@@ -44,7 +44,7 @@
 #include "BKE_global.h"
 #include "BKE_fcurve.h"
 #include "BKE_plugin_types.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 

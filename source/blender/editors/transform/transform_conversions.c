@@ -93,7 +93,7 @@
 #include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"

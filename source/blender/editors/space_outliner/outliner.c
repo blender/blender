@@ -79,7 +79,7 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_utildefines.h"
 
 #include "ED_armature.h"

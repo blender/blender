@@ -80,7 +80,7 @@
 #include "BKE_paint.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 

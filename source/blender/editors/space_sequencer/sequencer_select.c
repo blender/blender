@@ -52,7 +52,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
