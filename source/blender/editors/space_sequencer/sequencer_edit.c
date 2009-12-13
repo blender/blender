@@ -925,7 +925,9 @@ static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
 				"handled in duplicate!\nExpect a crash"
 						" now...\n");
 	}
-	
+
+	seqUniqueName(scene->ed->seqbasep, seqn);
+
 	return seqn;
 }
 
@@ -1963,6 +1965,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 					shuffle_seq(ed->seqbasep, seq_new);
 				}
 
+				seqUniqueName(scene->ed->seqbasep, seq_new);
+
 				cfra++;
 				start_ofs += step;
 			}
@@ -2085,7 +2089,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	
 	Sequence *seq, *seqm, *next;
 	
-	int tot;
+	int tot, channel_max= 1;
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
@@ -2106,6 +2110,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	seq= ed->seqbasep->first;
 	while(seq) {
 		if(seq->flag & SELECT) {
+			channel_max= MAX2(seq->machine, channel_max);
 			if(seq->type & SEQ_EFFECT) {
 				if(seq->seq1 &&
 				   (seq->seq1->flag & SELECT)==0) tot= 0;
@@ -2134,7 +2139,8 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	/* remove all selected from main list, and put in meta */
 
-	seqm= alloc_sequence(ed->seqbasep, 1, 1);
+	seqm= alloc_sequence(ed->seqbasep, 1, channel_max);
+	strcpy(seqm->name+2, "MetaStrip");
 	seqm->type= SEQ_META;
 	seqm->flag= SELECT;
 
@@ -2158,6 +2164,9 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm);
 
 	seq_update_muting(ed);
+
+	seqUniqueName(scene->ed->seqbasep, seqm);
+
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
