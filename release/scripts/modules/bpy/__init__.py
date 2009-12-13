@@ -36,6 +36,7 @@ ops = _ops_module.ops_fake_module
 import sys
 DEBUG = ("-d" in sys.argv)
 
+
 def load_scripts(reload_scripts=False):
     import os
     import traceback
@@ -47,7 +48,7 @@ def load_scripts(reload_scripts=False):
     def test_import(module_name):
         try:
             t = time.time()
-            ret= __import__(module_name)
+            ret = __import__(module_name)
             if DEBUG:
                 print("time %s %.4f" % (module_name, time.time() - t))
             return ret
@@ -78,6 +79,7 @@ def load_scripts(reload_scripts=False):
     if DEBUG:
         print("Time %.4f" % (time.time() - t_main))
 
+
 def _main():
 
     # a bit nasty but this prevents help() and input() from locking blender
@@ -99,5 +101,3 @@ def _main():
         load_scripts()
 
 _main()
-
-

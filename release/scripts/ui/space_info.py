@@ -51,7 +51,7 @@ class INFO_HT_header(bpy.types.Header):
             layout.separator()
         else:
             layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
-        
+
         layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
 
         layout.separator()
@@ -181,6 +181,7 @@ class INFO_MT_mesh_add(dynamic_menu.DynMenu):
         layout.separator()
         layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text="Grid")
         layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text="Monkey")
+
 
 class INFO_MT_armature_add(dynamic_menu.DynMenu):
     bl_idname = "INFO_MT_armature_add"

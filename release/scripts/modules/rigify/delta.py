@@ -118,7 +118,6 @@ def main(obj, bone_definition, base_names, options):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 
-
     # Move the child bone to the deltas location
     obj.animation_data_create()
     delta_pbone = obj.pose.bones[delta_name]

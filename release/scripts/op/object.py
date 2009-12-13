@@ -126,4 +126,3 @@ class Retopo(bpy.types.Operator):
 bpy.ops.add(SelectPattern)
 bpy.ops.add(SubdivisionSet)
 bpy.ops.add(Retopo)
-

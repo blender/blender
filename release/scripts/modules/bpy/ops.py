@@ -134,7 +134,6 @@ class bpy_ops_submodule_op(object):
 
     __keys__ = ('module', 'func')
 
-
     def _get_doc(self):
         return op_as_string(self.idname())
 

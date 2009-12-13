@@ -219,7 +219,6 @@ class WM_OT_properties_edit(bpy.types.Operator):
         return ('RUNNING_MODAL',)
 
 
-
 class WM_OT_properties_add(bpy.types.Operator):
     '''Internal use (edit a property path)'''
     bl_idname = "wm.properties_add"

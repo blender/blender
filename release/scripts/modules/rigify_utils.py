@@ -32,6 +32,7 @@ from rna_prop_ui import rna_idprop_ui_prop_get
 DELIMITER = '-._'
 EMPTY_LAYER = [False] * 32
 
+
 def add_stretch_to(obj, from_name, to_name, name):
     '''
     Adds a bone that stretches from one to another
@@ -71,7 +72,7 @@ def add_stretch_to(obj, from_name, to_name, name):
     con.volume = 'NO_VOLUME'
 
     bpy.ops.object.mode_set(mode=mode_orig)
-    
+
     return stretch_name
 
 
@@ -216,7 +217,7 @@ def add_pole_target_bone(obj, base_bone_name, name, mode='CROSS'):
     parent_dir = parent_head - parent_tail
 
     distance = (base_dir.length + parent_dir.length)
-    
+
     if mode == 'CROSS':
         # direction from the angle of the joint
         offset = base_dir.copy().normalize() - parent_dir.copy().normalize()
@@ -244,7 +245,6 @@ def add_pole_target_bone(obj, base_bone_name, name, mode='CROSS'):
     return poll_name
 
 
-
 def get_side_name(name):
     '''
     Returns the last part of a string (typically a bone's name) indicating
@@ -255,6 +255,7 @@ def get_side_name(name):
         return name[-2:]
     else:
         return ""
+
 
 def get_base_name(name):
     '''
@@ -327,16 +328,17 @@ def write_meta_rig(obj, func_name="metarig_template"):
     return "\n".join(code)
 
 
-
 # *** bone class collection ***
+
+
 def bone_class_instance(obj, slots, name="BoneContainer"):
     '''
     bone collection utility class to help manage cases with
     edit/pose/bone bones where switching modes can invalidate some of the members.
-    
+
     there are also utility functions for manipulating all members.
     '''
-    
+
     if len(slots) != len(set(slots)):
         raise Exception("duplicate entries found %s" % attr_names)
 
@@ -360,6 +362,7 @@ def bone_class_instance(obj, slots, name="BoneContainer"):
 
     instance = auto_class_instance(slots, name, class_dict)
     return instance
+
 
 def auto_class(slots, name="ContainerClass", class_dict=None):
 
@@ -413,10 +416,10 @@ def _bone_class_instance_copy(self, from_fmt="%s", to_fmt="%s", exclude_attrs=()
     new_slot_ls = []
 
     for attr in self.attr_names:
-        
+
         if attr in exclude_attrs:
             continue
-        
+
         bone_name_orig = getattr(self, attr)
         ebone = getattr(self, attr + "_e")
         # orig_names[attr] = bone_name_orig

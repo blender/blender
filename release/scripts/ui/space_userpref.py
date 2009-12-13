@@ -111,9 +111,9 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         column = split.column()
         colsplit = column.split(percentage=0.85)
-        
+
         col = colsplit.column()
-        
+
         #Toolbox doesn't exist yet
         #col.label(text="Toolbox:")
         #col.prop(view, "use_column_layout")
@@ -173,7 +173,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "enter_edit_mode")
         col.label(text="Align To:")
         col.row().prop(edit, "object_align", expand=True)
-        
+
         col.separator()
         col.separator()
         col.separator()
@@ -299,11 +299,11 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
         sub.prop(system, "audio_sample_rate", text="Sample Rate")
         sub.prop(system, "audio_sample_format", text="Sample Format")
-        
+
         col.separator()
         col.separator()
         col.separator()
-        
+
         col.label(text="Weight Colors:")
         col.prop(system, "use_weight_color_range", text="Use Custom Range")
         sub = col.column()
@@ -329,7 +329,7 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         col1 = colsplit.column()
         col1.label(text="Solid OpenGL lights:")
-        
+
         col = col1.split()
 
         sub = col.column()
@@ -355,7 +355,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         subsub.prop(lamp2, "diffuse_color")
         subsub.prop(lamp2, "specular_color")
         subsub.prop(lamp2, "direction")
-        
+
         column = split.column()
         colsplit = column.split(percentage=0.85)
 
@@ -453,7 +453,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             subsub.active = ui.shaded
             subsub.prop(ui, "shadetop")
             subsub.prop(ui, "shadedown")
-            
+
             layout.separator()
 
             ui = theme.user_interface.wcol_tool
@@ -1070,10 +1070,10 @@ class USERPREF_PT_file(bpy.types.Panel):
 
         col = split.column()
         col.label(text="File Paths:")
-        
+
         colsplit = col.split(percentage=0.95)
         col1 = colsplit.split(percentage=0.3)
-        
+
         sub = col1.column()
         sub.label(text="Fonts:")
         sub.label(text="Textures:")
@@ -1084,7 +1084,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub.label(text="Sounds:")
         sub.label(text="Temp:")
         sub.label(text="Animation Player:")
-        
+
         sub = col1.column()
         sub.prop(paths, "fonts_directory", text="")
         sub.prop(paths, "textures_directory", text="")
@@ -1105,7 +1105,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         col.prop(paths, "load_ui")
         col.prop(paths, "filter_file_extensions")
         col.prop(paths, "hide_dot_files_datablocks")
-        
+
         col.separator()
         col.separator()
 

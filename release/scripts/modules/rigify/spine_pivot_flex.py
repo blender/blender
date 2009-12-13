@@ -177,7 +177,7 @@ def main(obj, bone_definition, base_names, options):
     df.ribcage_e = copy_bone_simple(arm, child.name, "DEF-wgt_%s" % base_names[mt.ribcage])
     df.ribcage = df.ribcage_e.name
     df.ribcage_e.translate(Vector(spine_chain_segment_length * 2.0, - df.ribcage_e.length / 2.0, 0.0))
-    
+
     ex.ribcage_copy_e = copy_bone_simple(arm, mt.ribcage, base_names[mt.ribcage])
     ex.ribcage_copy = ex.ribcage_copy_e.name
     ex.ribcage_copy_e.connected = False
@@ -294,7 +294,7 @@ def main(obj, bone_definition, base_names, options):
 
     # df.ribcage_p / DEF-wgt_rib_cage
     df.ribcage_p.lock_location = True, True, True
-    
+
     con = df.ribcage_p.constraints.new('COPY_ROTATION')
     con.target = obj
     con.subtarget = ex.ribcage

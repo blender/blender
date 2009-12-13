@@ -21,6 +21,7 @@
 import bpy
 import os
 
+
 def expandpath(path):
     if path.startswith("//"):
         return os.path.join(os.path.dirname(bpy.data.filename), path[2:])
@@ -44,14 +45,16 @@ _unclean_chars = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, \
 
 _unclean_chars = ''.join([chr(i) for i in _unclean_chars])
 
+
 def clean_name(name, replace="_"):
     '''
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
     or the replace argumet if defined.
     '''
     for ch in _unclean_chars:
-        name = name.replace(ch,  replace)
+        name = name.replace(ch, replace)
     return name
+
 
 def display_name(name):
     '''
@@ -74,6 +77,7 @@ def display_name(name):
 # base scripts
 _scripts = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
 _scripts = (os.path.normpath(_scripts), )
+
 
 def script_paths(*args):
     scripts = list(_scripts)
@@ -104,6 +108,7 @@ def script_paths(*args):
 
 
 _presets = os.path.join(_scripts[0], "presets") # FIXME - multiple paths
+
 
 def preset_paths(subdir):
     '''

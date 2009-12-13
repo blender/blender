@@ -96,14 +96,14 @@ def metarig_definition(obj, orig_bone_name):
 def ik(obj, definitions, base_names, options):
 
     arm = obj.data
-    
+
     mt = bone_class_instance(obj, METARIG_NAMES)
     mt.shoulder, mt.arm, mt.forearm, mt.hand = definitions
     mt.update()
-    
+
     ik = bone_class_instance(obj, ["pole", "pole_vis", "hand_vis"])
     ik_chain = mt.copy(to_fmt="MCH-%s_ik", base_names=base_names, exclude_attrs=["shoulder"])
-    
+
     # IK needs no parent_index
     ik_chain.hand_e.connected = False
     ik_chain.hand_e.parent = None
@@ -112,14 +112,14 @@ def ik(obj, definitions, base_names, options):
 
     ik_chain.arm_e.connected = False
     ik_chain.arm_e.parent = mt.shoulder_e
-    
+
     # Add the bone used for the arms poll target
     #ik.pole = add_pole_target_bone(obj, mt.forearm, get_base_name(base_names[mt.forearm]) + "_target" + get_side_name(mt.forearm), mode='ZAVERAGE')
     ik.pole = add_pole_target_bone(obj, mt.forearm, "elbow_target" + get_side_name(mt.forearm), mode='ZAVERAGE')
- 
+
     ik.update()
     ik.pole_e.local_location = False
-    
+
     # option: elbow_parent
     elbow_parent_name = options.get("elbow_parent", "")
 
@@ -130,17 +130,17 @@ def ik(obj, definitions, base_names, options):
             # TODO, old/new parent mapping
             raise RigifyError("parent bone from property 'arm_biped_generic.elbow_parent' not found '%s'" % elbow_parent_name)
         ik.pole_e.parent = elbow_parent_e
-    
+
     # update bones after this!
     ik.hand_vis = add_stretch_to(obj, mt.hand, ik_chain.hand, "VIS-%s_ik" % base_names[mt.hand])
     ik.pole_vis = add_stretch_to(obj, mt.forearm, ik.pole, "VIS-%s_ik" % base_names[mt.forearm])
-    
+
     ik.update()
     ik.hand_vis_e.restrict_select = True
     ik.pole_vis_e.restrict_select = True
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     mt.update()
     ik.update()
     ik_chain.update()
@@ -171,15 +171,15 @@ def ik(obj, definitions, base_names, options):
     prop["soft_max"] = 1.0
 
     bpy.ops.object.mode_set(mode='EDIT')
-    
+
     # don't blend the shoulder
     return [None] + ik_chain.names()
 
 
 def fk(obj, definitions, base_names, options):
-    
+
     arm = obj.data
-    
+
     mt = bone_class_instance(obj, METARIG_NAMES)
     mt.shoulder, mt.arm, mt.forearm, mt.hand = definitions
     mt.update()
@@ -197,19 +197,19 @@ def fk(obj, definitions, base_names, options):
     ex.socket_e.connected = False
     ex.socket_e.parent = mt.shoulder_e
     ex.socket_e.length *= 0.5
-    
+
     # insert the 'DLT-hand', between the forearm and the hand
     # copies forarm rotation
     ex.hand_delta_e = copy_bone_simple(arm, fk_chain.hand, "DLT-%s" % base_names[mt.hand], parent=True)
     ex.hand_delta = ex.hand_delta_e.name
     ex.hand_delta_e.length *= 0.5
     ex.hand_delta_e.connected = False
-    
+
     fk_chain.hand_e.connected = False
     fk_chain.hand_e.parent = ex.hand_delta_e
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     mt.update()
     ex.update()
     fk_chain.update()
@@ -222,7 +222,7 @@ def fk(obj, definitions, base_names, options):
     con = fk_chain.arm_p.constraints.new('COPY_LOCATION')
     con.target = obj
     con.subtarget = ex.socket
-    
+
     fk_chain.hand_p.lock_location = True, True, True
     con = ex.hand_delta_p.constraints.new('COPY_ROTATION')
     con.target = obj
@@ -262,13 +262,13 @@ def fk(obj, definitions, base_names, options):
         mod.coefficients[1] = -1.0
 
     hinge_setup()
-    
+
     bpy.ops.object.mode_set(mode='EDIT')
 
     return None, fk_chain.arm, fk_chain.forearm, fk_chain.hand
 
 
-def main(obj, bone_definition, base_names, options):    
+def main(obj, bone_definition, base_names, options):
     bones_ik = ik(obj, bone_definition, base_names, options)
     bones_fk = fk(obj, bone_definition, base_names, options)
 

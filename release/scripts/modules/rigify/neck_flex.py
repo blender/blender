@@ -154,8 +154,8 @@ def main(obj, bone_definition, base_names, options):
     ex.neck_socket_e.head = mt.head_e.head
     ex.neck_socket_e.tail = mt.head_e.head - Vector(0.0, neck_chain_segment_length / 2.0, 0.0)
     ex.neck_socket_e.roll = 0.0
-    
-    
+
+
     # copy of the head for controling
     ex.head_ctrl_e = copy_bone_simple(arm, mt.head, base_names[mt.head])
     ex.head_ctrl = ex.head_ctrl_e.name
@@ -229,7 +229,7 @@ def main(obj, bone_definition, base_names, options):
     head_driver_path = ex.head_ctrl_p.path_to_id()
 
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
-    
+
     ex.head_ctrl_p["bend_tot"] = 0.0
     fcurve = ex.head_ctrl_p.driver_add('["bend_tot"]', 0)
     driver = fcurve.driver
@@ -242,7 +242,7 @@ def main(obj, bone_definition, base_names, options):
         tar.id_type = 'OBJECT'
         tar.id = obj
         tar.data_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
-    
+
 
     for i, attr in enumerate(ex_chain.attr_names):
         neck_p = getattr(ex_chain, attr + "_p")
@@ -272,9 +272,9 @@ def main(obj, bone_definition, base_names, options):
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"
-        
+
         fcurve.modifiers.remove(0) # grr dont need a modifier
-        
+
 
         # add target
         tar = driver.targets.new()
@@ -282,14 +282,14 @@ def main(obj, bone_definition, base_names, options):
         tar.id_type = 'OBJECT'
         tar.id = obj
         tar.data_path = head_driver_path + ('["bend_tot"]')
-        
+
         tar = driver.targets.new()
         tar.name = "bend"
         tar.id_type = 'OBJECT'
         tar.id = obj
         tar.data_path = head_driver_path + ('["%s"]' % prop_name)
-        
-        
+
+
         # finally constrain the original bone to this one
         orig_neck_p = getattr(mt_chain, attr + "_p")
         con = orig_neck_p.constraints.new('COPY_ROTATION')

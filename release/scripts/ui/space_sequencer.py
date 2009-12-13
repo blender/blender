@@ -134,7 +134,7 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 
 
 class SEQUENCER_MT_marker(bpy.types.Menu):
-    bl_label = "Marker (TODO)"
+    bl_label = "Marker"
 
     def draw(self, context):
         layout = self.layout
@@ -384,7 +384,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
-            
+
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
@@ -393,11 +393,11 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
                 col.prop(strip, "use_effect_default_fade", "Default fade")
                 if not strip.use_effect_default_fade:
                     col.prop(strip, "effect_fader", text="Effect fader")
-    
+
     def draw_panel_transform(self, strip):
         layout = self.layout
         col = layout.column()
-        
+
         col.prop(strip, "interpolation")
         col.prop(strip, "translation_unit")
         col = layout.column(align=True)

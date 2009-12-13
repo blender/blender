@@ -25,13 +25,17 @@ from Mathutils import Vector
 from rna_prop_ui import rna_idprop_ui_prop_get
 SPECIAL_TYPES = "root",
 
+
 class RigifyError(Exception):
     """Exception raised for errors in the metarig.
     """
+
     def __init__(self, message):
         self.message = message
+
     def __str__(self):
         return repr(self.message)
+
 
 def submodule_func_from_type(bone_type):
     type_pair = bone_type.split(".")
@@ -48,7 +52,7 @@ def submodule_func_from_type(bone_type):
         submod = __import__(name="%s.%s" % (__package__, type_name), fromlist=[type_name])
     except ImportError:
         raise RigifyError("python module for type '%s' not found" % type_name)
-        
+
     reload(submod)
     return type_name, submod, getattr(submod, func_name)
 
@@ -60,8 +64,9 @@ def get_submodule_types():
     for f in files:
         if not f.startswith("_") and f.endswith(".py"):
             submodules.append(f[:-3])
-    
+
     return sorted(submodules)
+
 
 def get_bone_type_options(pbone, type_name):
     options = {}
@@ -75,13 +80,14 @@ def get_bone_type_options(pbone, type_name):
 
     return options
 
+
 def validate_rig(context, obj):
     '''
     Makes no changes
     only runs the metarig definitions and reports errors
     '''
     type_found = False
-    
+
     for pbone in obj.pose.bones:
         bone_name = pbone.name
         bone_type = pbone.get("type", "")
@@ -103,19 +109,19 @@ def validate_rig(context, obj):
             get_bone_type_options(pbone, bone_type)
 
         # missing, - check for duplicate root bone.
-    
+
     if not type_found:
         raise RigifyError("This rig has no 'type' properties defined on any pose bones, nothing to do")
 
 
 def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     '''
-    Main function for generating 
+    Main function for generating
     '''
     from collections import OrderedDict
     import rigify_utils
     reload(rigify_utils)
-    
+
     # Not needed but catches any errors before duplicating
     validate_rig(context, obj_orig)
 
@@ -124,8 +130,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     mode_orig = context.mode
     rest_backup = obj_orig.data.pose_position
     obj_orig.data.pose_position = 'REST'
-    
-    
+
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
     scene = context.scene
@@ -147,7 +153,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
     # original name mapping
     base_names = {}
-    
+
     # add all new parentless children to this bone
     root_bone = None
 
@@ -168,7 +174,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # value: [functions, ...]
     #    each function is from the module. eg leg.ik, arm.main
     bone_typeinfos = {}
-    
+
     # key: bone name
     # value: [new_bone_name, ...]
     #   where each bone with a 'type' stores a list of bones that it created
@@ -182,12 +188,12 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         bone_type = pbone.get("type", "")
         if bone_type:
             bone_type_list = [bt for bt in bone_type.replace(",", " ").split()]
-            
+
             # not essential but means running autorig again wont do anything
             del pbone["type"]
         else:
             bone_type_list = []
-            
+
         if bone_type_list == ["root"]: # special case!
             if root_bone:
                 raise Exception("cant have more then 1 root bone, found '%s' and '%s' to have type==root" % (root_bone, bone_name))
@@ -197,7 +203,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         for bone_type in bone_type_list:
             type_name, submod, type_func = submodule_func_from_type(bone_type)
             reload(submod)
-            
+
             bone_def_dict = bone_definitions.setdefault(bone_name, {})
 
             # Only calculate bone definitions once
@@ -226,7 +232,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         # Only blend results from the same submodule, eg.
         #    leg.ik and arm.fk could not be blended.
         results = OrderedDict()
-        
+
         bone_names_pre = set([bone.name for bone in arm.bones])
 
         for type_name, type_func in bone_typeinfos[bone_name]:
@@ -255,21 +261,21 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
 
         bone_names_post = set([bone.name for bone in arm.bones])
-        
+
         # Store which bones were created from this one
         bone_genesis[bone_name] = list(bone_names_post - bone_names_pre)
-    
+
     # need a reverse lookup on bone_genesis so as to know immediately
     # where a bone comes from
     bone_genesis_reverse = {}
     for bone_name, bone_children in bone_genesis.items():
         for bone_child_name in bone_children:
             bone_genesis_reverse[bone_child_name] = bone_name
-    
+
 
     if root_bone:
         # assign all new parentless bones to this
-        
+
         bpy.ops.object.mode_set(mode='EDIT')
         root_ebone = arm.edit_bones[root_bone]
         for ebone in arm.edit_bones:
@@ -284,19 +290,19 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
                     root_ebone_tmp = arm.edit_bones[root_bone_override]
                 else:
                     root_ebone_tmp = root_ebone
-                
+
                 ebone.connected = False
                 ebone.parent = root_ebone_tmp
 
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
 
     if META_DEF:
         # for pbone in obj_def.pose.bones:
         for bone_name, bone_name_new in base_names.items():
             #pbone_from = bone_name
             pbone = obj_def.pose.bones[bone_name_new]
-            
+
             con = pbone.constraints.new('COPY_ROTATION')
             con.target = obj
             con.subtarget = bone_name
@@ -318,8 +324,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     obj_orig.data.pose_position = rest_backup
     obj.data.pose_position = 'POSE'
     context.user_preferences.edit.global_undo = global_undo
-    
-    
+
     return obj
 
 
@@ -344,9 +349,9 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
             continue
 
         # XXX workaround!, problem with updating the pose matrix.
-        if module_name=="delta":
+        if module_name == "delta":
             continue
-        
+
         type_name, submodule, func = submodule_func_from_type(module_name)
 
         metarig_template = getattr(submodule, "metarig_template", None)
@@ -356,7 +361,7 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
             metarig_template()
             obj = context.active_object
             obj.location = scene.cursor_location
-            
+
             if GENERATE_FINAL:
                 obj_new = generate_rig(context, obj)
                 new_objects.append((obj, obj_new))
@@ -378,7 +383,7 @@ def generate_test_all(context, GRAPH=False):
     reload(graphviz_export)
 
     new_objects = rigify.generate_test(context)
-    
+
     if GRAPH:
         base_name = os.path.splitext(bpy.data.filename)[0]
         for obj, obj_new in new_objects:
