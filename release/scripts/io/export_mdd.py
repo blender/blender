@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 __author__ = "Bill L.Nieuwendorp"
 __bpydoc__ = """\
 This script Exports Lightwaves MotionDesigner format.

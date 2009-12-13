@@ -20,6 +20,7 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+# <pep8 compliant>
 
 #from Blender import Object, Draw, Window, sys, Mesh, Geometry
 from Mathutils import Matrix, Vector, RotationMatrix

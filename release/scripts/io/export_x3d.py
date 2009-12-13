@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 __author__ = ("Bart", "Campbell Barton")
 __email__ = ["Bart, bart:neeneenee*de"]
 __url__ = ["Author's (Bart) homepage, http://www.neeneenee.de/vrml"]

@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 """
 Name: 'Wavefront (.obj)...'
 Blender: 248

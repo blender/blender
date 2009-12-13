@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 __author__ = "Campbell Barton"
 __url__ = ['www.blender.org', 'blenderartists.org']
 __version__ = "1.2"

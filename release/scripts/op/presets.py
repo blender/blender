@@ -16,8 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 import os
+
 
 class AddPresetBase(bpy.types.Operator):
     '''Base preset class, only for subclassing
@@ -27,7 +30,7 @@ class AddPresetBase(bpy.types.Operator):
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
 
-    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen= 64, default= "")
+    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
 
     def _as_filename(self, name): # could reuse for other presets
         for char in " !@#$%^&*(){}:\";'[]<>,./?":
@@ -104,6 +107,7 @@ class AddPresetSSS(AddPresetBase):
 
     preset_subdir = "sss"
 
+
 class AddPresetCloth(AddPresetBase):
     '''Add a Cloth Preset.'''
     bl_idname = "cloth.preset_add"
@@ -124,4 +128,3 @@ class AddPresetCloth(AddPresetBase):
 bpy.ops.add(AddPresetRender)
 bpy.ops.add(AddPresetSSS)
 bpy.ops.add(AddPresetCloth)
-

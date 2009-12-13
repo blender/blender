@@ -19,6 +19,8 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+# <pep8 compliant>
+
 # History
 #
 # Originally written by Campbell Barton aka ideasman42
