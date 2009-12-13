@@ -72,7 +72,8 @@ class Balancer:
 	
 	def balance(self, jobs):
 		if jobs:
-			jobs.sort(key=self.sortKey)
+			# use inline copy to make sure the list is still accessible while sorting
+			jobs[:] = sorted(jobs, key=self.sortKey)
 			return jobs[0]
 		else:
 			return None
