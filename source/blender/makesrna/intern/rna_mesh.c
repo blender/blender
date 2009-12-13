@@ -1517,6 +1517,27 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 	RNA_def_property_ui_text(prop, "Materials", "");
 }
 
+
+/* scene.objects */
+static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "MeshFaces");
+	srna= RNA_def_struct(brna, "MeshFaces", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "Mesh Faces", "Collection of mesh faces.");
+
+	prop= RNA_def_property(srna, "active", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "act_face");
+	RNA_def_property_ui_text(prop, "Active Face", "The active face for this mesh");
+}
+
+
 static void rna_def_mesh(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1540,6 +1561,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mface", "totface");
 	RNA_def_property_struct_type(prop, "MeshFace");
 	RNA_def_property_ui_text(prop, "Faces", "Faces of the mesh.");
+	rna_def_mesh_faces(brna, prop);
 
 	prop= RNA_def_property(srna, "sticky", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "msticky", "totvert");
