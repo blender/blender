@@ -530,7 +530,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         col.prop(rd, "stamp_camera", text="Camera")
         col.prop(rd, "stamp_filename", text="Filename")
         col.prop(rd, "stamp_marker", text="Marker")
-        col.prop(rd, "stamp_sequence_strip", text="Seq. Strip")
+        col.prop(rd, "stamp_sequencer_strip", text="Seq. Strip")
 
         if wide_ui:
             col = split.column()

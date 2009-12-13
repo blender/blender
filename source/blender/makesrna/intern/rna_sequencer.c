@@ -1157,7 +1157,7 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
-void RNA_def_sequence(BlenderRNA *brna)
+void RNA_def_sequencer(BlenderRNA *brna)
 {
 	rna_def_strip_element(brna);
 	rna_def_strip_proxy(brna);

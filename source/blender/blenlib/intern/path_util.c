@@ -1,9 +1,5 @@
-/* util.c
- *
- * various string, file, list operations.
- *
- *
- * $Id$
+/**
+ *  $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,7 +25,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
+ *
+ * various string, file, list operations.
  */
 
 #include <stdio.h>

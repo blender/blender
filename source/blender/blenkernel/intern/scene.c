@@ -860,7 +860,7 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 void scene_add_render_layer(Scene *sce)
 {
 	SceneRenderLayer *srl;
-	int tot= 1 + BLI_countlist(&sce->r.layers);
+//	int tot= 1 + BLI_countlist(&sce->r.layers);
 	
 	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
 	sprintf(srl->name, "RenderLayer");

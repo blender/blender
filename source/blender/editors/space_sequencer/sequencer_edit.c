@@ -2557,7 +2557,7 @@ static int sequencer_swap_internal_exec(bContext *C, int side)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *active_seq = active_seq_get(scene);
-	Sequence *seq;
+	Sequence *seq, *iseq;
 
 	if(ed==NULL) return OPERATOR_CANCELLED;
 	if(active_seq==NULL) return OPERATOR_CANCELLED;
@@ -2584,6 +2584,13 @@ static int sequencer_swap_internal_exec(bContext *C, int side)
 			case SEQ_SIDE_RIGHT: 
 				swap_sequence(active_seq, seq);
 				break;
+		}
+
+		// XXX - should be a generic function
+		for(iseq= scene->ed->seqbasep->first; iseq; iseq= iseq->next) {
+			//if((iseq->type & SEQ_EFFECT) && ELEM6(iseq, seq->seq1, seq->seq2, seq->seq3, active_seq->seq1, active_seq->seq2, active_seq->seq3))
+			if(iseq->type & SEQ_EFFECT)
+					calc_sequence(iseq);
 		}
 
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);

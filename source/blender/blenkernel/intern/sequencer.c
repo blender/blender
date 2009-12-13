@@ -472,6 +472,8 @@ void calc_sequence_disp(Sequence *seq)
 
 void calc_sequence(Sequence *seq)
 {
+	printf(" ddd %s\n", seq->name);
+
 	Sequence *seqm;
 	int min, max;
 
