@@ -34,6 +34,7 @@ SET(INC
 	../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/audaspace/intern
+    ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
 	${ZLIB_INC}
 )
 
