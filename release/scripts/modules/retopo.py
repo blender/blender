@@ -99,11 +99,11 @@ class Hub(object):
             return True
 
         for i, l_a in enumerate(self.links):
-            links_a = set([l.index for l in l_a.links])
+            links_a = {l.index for l in l_a.links}
             for j in range(i):
                 l_b = self.links[j]
 
-                links_b = set([l.index for l in l_b.links])
+                links_b = {l.index for l in l_b.links}
 
                 isect = links_a.intersection(links_b)
                 if len(isect) == 2:

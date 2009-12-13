@@ -33,7 +33,7 @@ class SceneButtonsPanel(bpy.types.Panel):
 
 class SCENE_PT_scene(SceneButtonsPanel):
     bl_label = "Scene"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -50,7 +50,7 @@ class SCENE_PT_scene(SceneButtonsPanel):
 
 class SCENE_PT_unit(SceneButtonsPanel):
     bl_label = "Units"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -155,7 +155,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 
 class SCENE_PT_physics(SceneButtonsPanel):
     bl_label = "Gravity"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         self.layout.prop(context.scene, "use_gravity", text="")

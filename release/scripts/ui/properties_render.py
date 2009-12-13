@@ -42,7 +42,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 
 class RENDER_PT_render(RenderButtonsPanel):
     bl_label = "Render"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -65,7 +65,7 @@ class RENDER_PT_render(RenderButtonsPanel):
 class RENDER_PT_layers(RenderButtonsPanel):
     bl_label = "Layers"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -162,7 +162,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
 
 class RENDER_PT_shading(RenderButtonsPanel):
     bl_label = "Shading"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -188,7 +188,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 class RENDER_PT_performance(RenderButtonsPanel):
     bl_label = "Performance"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -232,7 +232,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
 class RENDER_PT_post_processing(RenderButtonsPanel):
     bl_label = "Post Processing"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -275,7 +275,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
 
 class RENDER_PT_output(RenderButtonsPanel):
     bl_label = "Output"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -358,7 +358,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 class RENDER_PT_encoding(RenderButtonsPanel):
     bl_label = "Encoding"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
         rd = context.scene.render_data
@@ -427,7 +427,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
     bl_label = "Anti-Aliasing"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         rd = context.scene.render_data
@@ -455,7 +455,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
     bl_label = "Dimensions"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -504,7 +504,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 class RENDER_PT_stamp(RenderButtonsPanel):
     bl_label = "Stamp"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         rd = context.scene.render_data

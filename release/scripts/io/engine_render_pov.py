@@ -868,7 +868,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel):
     bl_label = "Radiosity"
-    COMPAT_ENGINES = set(['POVRAY_RENDER'])
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw_header(self, context):
         scene = context.scene

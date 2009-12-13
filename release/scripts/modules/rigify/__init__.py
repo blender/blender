@@ -233,7 +233,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         #    leg.ik and arm.fk could not be blended.
         results = OrderedDict()
 
-        bone_names_pre = set([bone.name for bone in arm.bones])
+        bone_names_pre = {bone.name for bone in arm.bones}
 
         for type_name, type_func in bone_typeinfos[bone_name]:
             # this bones definition of the current typeinfo
@@ -260,7 +260,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
                 blend_bone_list(obj, definition, result_submod[0], result_submod[1], target_bone=bone_name)
 
 
-        bone_names_post = set([bone.name for bone in arm.bones])
+        bone_names_post = {bone.name for bone in arm.bones}
 
         # Store which bones were created from this one
         bone_genesis[bone_name] = list(bone_names_post - bone_names_pre)
