@@ -1658,14 +1658,6 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 
 		BLI_freelistN(&lb);
 	}
-	
-	/* Hard coded names */
-	if(self->ptr.id.data) {
-		pystring = PyUnicode_FromString("id_data");
-		PyList_Append(ret, pystring);
-		Py_DECREF(pystring);
-	}
-
 	return ret;
 }
 
@@ -1731,17 +1723,6 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
         }
 
 		BLI_freelistN(&newlb);
-	}
-	else if (strcmp(name, "id_data")==0) { /* XXX - hard coded */
-		if(self->ptr.id.data) {
-			PointerRNA id_ptr;
-			RNA_id_pointer_create((ID *)self->ptr.id.data, &id_ptr);
-			ret = pyrna_struct_CreatePyObject(&id_ptr);
-		}
-		else {
-			ret = Py_None;
-			Py_INCREF(ret);
-		}
 	}
 	else {
 #if 0
@@ -1914,6 +1895,17 @@ static PyObject *pyrna_prop_remove(BPy_PropertyRNA *self, PyObject *value)
 	return ret;
 }
 
+static PyObject *pyrna_struct_get_id_data(BPy_StructRNA *self)
+{
+	if(self->ptr.id.data) {
+		PointerRNA id_ptr;
+		RNA_id_pointer_create((ID *)self->ptr.id.data, &id_ptr);
+		return pyrna_struct_CreatePyObject(&id_ptr);
+	}
+
+	Py_RETURN_NONE;
+}
+
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
@@ -1923,6 +1915,11 @@ static PyGetSetDef pyrna_prop_getseters[] = {
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 #endif
+
+static PyGetSetDef pyrna_struct_getseters[] = {
+	{"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, "The ID data this datablock is from, (not available for all data)", NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
 
 static PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 {
@@ -2787,7 +2784,7 @@ PyTypeObject pyrna_struct_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	pyrna_struct_methods,			/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,      					/* struct PyGetSetDef *tp_getset; */
+	pyrna_struct_getseters,		/* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
