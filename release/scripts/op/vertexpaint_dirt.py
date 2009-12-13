@@ -31,12 +31,12 @@
 #
 
 import bpy
-import Mathutils
 import math
 import time
 
 from Mathutils import Vector
 from bpy.props import *
+
 
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only):
 ##    Window.WaitCursor(1)
@@ -45,8 +45,8 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
     vert_tone = [0.0] * len(me.verts)
 
-    min_tone =180.0
-    max_tone =0.0
+    min_tone = 180.0
+    max_tone = 0.0
 
     # create lookup table for each vertex's connected vertices (via edges)
     con = []
@@ -102,7 +102,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     # print(clamp_clean)
     # print(clamp_dirt)
 
-    tone_range = max_tone-min_tone
+    tone_range = max_tone - min_tone
 
     if not tone_range:
         return
@@ -131,17 +131,18 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
             for j, v in enumerate(f.verts):
                 col = f_col[j]
                 tone = vert_tone[me.verts[v].index]
-                tone = (tone-min_tone)/tone_range
+                tone = (tone - min_tone) / tone_range
 
                 if dirt_only:
                     tone = min(tone, 0.5)
                     tone *= 2
 
-                col[0] = tone*col[0]
-                col[1] = tone*col[1]
-                col[2] = tone*col[2]
+                col[0] = tone * col[0]
+                col[1] = tone * col[1]
+                col[2] = tone * col[2]
 
 ##    Window.WaitCursor(0)
+
 
 class VertexPaintDirt(bpy.types.Operator):
 
@@ -150,11 +151,11 @@ class VertexPaintDirt(bpy.types.Operator):
     bl_register = True
     bl_undo = True
 
-    blur_strength = FloatProperty(name = "Blur Strength", description = "Blur strength per iteration", default = 1.0, min = 0.01, max = 1.0)
-    blur_iterations = IntProperty(name = "Blur Iterations", description = "Number times to blur the colors. (higher blurs more)", default = 1, min = 0, max = 40)
-    clean_angle = FloatProperty(name = "Highlight Angle", description = "Less then 90 limits the angle used in the tonal range", default = 180.0, min = 0.0, max = 180.0)
-    dirt_angle = FloatProperty(name = "Dirt Angle", description = "Less then 90 limits the angle used in the tonal range", default = 0.0, min = 0.0, max = 180.0)
-    dirt_only = BoolProperty(name= "Dirt Only", description = "Dont calculate cleans for convex areas", default = False)
+    blur_strength = FloatProperty(name="Blur Strength", description="Blur strength per iteration", default=1.0, min=0.01, max=1.0)
+    blur_iterations = IntProperty(name="Blur Iterations", description="Number times to blur the colors. (higher blurs more)", default=1, min=0, max=40)
+    clean_angle = FloatProperty(name="Highlight Angle", description="Less then 90 limits the angle used in the tonal range", default=180.0, min=0.0, max=180.0)
+    dirt_angle = FloatProperty(name="Dirt Angle", description="Less then 90 limits the angle used in the tonal range", default=0.0, min=0.0, max=180.0)
+    dirt_only = BoolProperty(name="Dirt Only", description="Dont calculate cleans for convex areas", default=False)
 
     def execute(self, context):
         sce = context.scene
@@ -170,7 +171,7 @@ class VertexPaintDirt(bpy.types.Operator):
 
         applyVertexDirt(me, self.properties.blur_iterations, self.properties.blur_strength, math.radians(self.properties.dirt_angle), math.radians(self.properties.clean_angle), self.properties.dirt_only)
 
-        print('Dirt calculated in %.6f' % (time.time()-t))
+        print('Dirt calculated in %.6f' % (time.time() - t))
 
         return('FINISHED',)
 

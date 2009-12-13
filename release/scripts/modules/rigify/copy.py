@@ -19,8 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify_utils import copy_bone_simple, get_side_name, bone_class_instance
-from rna_prop_ui import rna_idprop_ui_prop_get
+from rigify_utils import bone_class_instance
 
 METARIG_NAMES = ("cpy",)
 

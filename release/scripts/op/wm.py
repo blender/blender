@@ -19,7 +19,6 @@
 # <pep8-80 compliant>
 
 import bpy
-import os
 
 from bpy.props import *
 
@@ -378,27 +377,7 @@ class WM_OT_reload_scripts(bpy.types.Operator):
 
     def execute(self, context):
         MOD = type(bpy)
-        import sys
         bpy.load_scripts(True)
-        '''
-        prefix = bpy.base_path
-        items = list(sys.modules.items())
-        items.sort()
-        items.reverse()
-        for mod_name, mod in items:
-            mod_file = getattr(mod, "__file__", "")
-            if mod_file.startswith(prefix) and "__init__" not in mod_file:
-                print(mod_file)
-                reload(mod)
-                """
-                for submod_name in dir(mod):
-                    submod = getattr(mod, submod_name)
-                    if isinstance(submod, MOD):
-                        reload(submod)
-                """
-            else:
-                print("Ignoring:", mod, mod_file)
-        '''
         return ('FINISHED',)
 
 

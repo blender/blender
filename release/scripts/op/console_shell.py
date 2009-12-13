@@ -17,11 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import sys
 import os
-
 import bpy
-
 
 language_id = 'shell'
 

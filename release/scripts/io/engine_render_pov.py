@@ -33,7 +33,8 @@ if pltfrm.architecture()[0] == '64bit':
 else:
     bitness = 32
 
-def write_pov(filename, scene=None, info_callback = None):
+
+def write_pov(filename, scene=None, info_callback=None):
     file = open(filename, 'w')
 
     # Only for testing
@@ -52,17 +53,16 @@ def write_pov(filename, scene=None, info_callback = None):
         i = 1
         while name in nameSeq:
             name = '%s_%.3d' % (name_orig, i)
-            i+=1
+            i += 1
 
         return name
 
-
     def writeMatrix(matrix):
         file.write('\tmatrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f>\n' %\
-        (matrix[0][0], matrix[0][1], matrix[0][2],  matrix[1][0], matrix[1][1], matrix[1][2],  matrix[2][0], matrix[2][1], matrix[2][2],  matrix[3][0], matrix[3][1], matrix[3][2]) )
+        (matrix[0][0], matrix[0][1], matrix[0][2], matrix[1][0], matrix[1][1], matrix[1][2], matrix[2][0], matrix[2][1], matrix[2][2], matrix[3][0], matrix[3][1], matrix[3][2]))
 
     def writeObjectMaterial(material):
-        if material and material.transparency_method=='RAYTRACE':
+        if material and material.transparency_method == 'RAYTRACE':
             file.write('\tinterior { ior %.6f }\n' % material.raytrace_transparency.ior)
 
             # Other interior args
@@ -75,6 +75,7 @@ def write_pov(filename, scene=None, info_callback = None):
 
     materialNames = {}
     DEF_MAT_NAME = 'Default'
+
     def writeMaterial(material):
         # Assumes only called once on each material
 
@@ -95,18 +96,18 @@ def write_pov(filename, scene=None, info_callback = None):
             #file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
 
             # map hardness between 0.0 and 1.0
-            roughness = ((1.0 - ((material.specular_hardness-1.0)/510.0)))
+            roughness = ((1.0 - ((material.specular_hardness - 1.0) / 510.0)))
             # scale from 0.0 to 0.1
             roughness *= 0.1
             # add a small value because 0.0 is invalid
-            roughness += (1/511.0)
+            roughness += (1 / 511.0)
 
             file.write('\troughness %.3g\n' % roughness)
 
             # 'phong 70.0 '
 
             if material.raytrace_mirror.enabled:
-                raytrace_mirror= material.raytrace_mirror
+                raytrace_mirror = material.raytrace_mirror
                 if raytrace_mirror.reflect_factor:
                     file.write('\treflection {\n')
                     file.write('\t\trgb <%.3g, %.3g, %.3g>' % tuple(material.mirror_color))
@@ -136,14 +137,14 @@ def write_pov(filename, scene=None, info_callback = None):
         matrix = camera.matrix
 
         # compute resolution
-        Qsize=float(render.resolution_x)/float(render.resolution_y)
+        Qsize = float(render.resolution_x) / float(render.resolution_y)
 
         file.write('camera {\n')
         file.write('\tlocation  <0, 0, 0>\n')
         file.write('\tlook_at  <0, 0, -1>\n')
-        file.write('\tright <%s, 0, 0>\n' % -Qsize)
+        file.write('\tright <%s, 0, 0>\n' % - Qsize)
         file.write('\tup <0, 1, 0>\n')
-        file.write('\tangle  %f \n' % (360.0*atan(16.0/camera.data.lens)/pi))
+        file.write('\tangle  %f \n' % (360.0 * atan(16.0 / camera.data.lens) / pi))
 
         file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotationPart().toEuler()]))
         file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
@@ -168,8 +169,8 @@ def write_pov(filename, scene=None, info_callback = None):
                 file.write('\tspotlight\n')
 
                 # Falloff is the main radius from the centre line
-                file.write('\tfalloff %.2f\n' % (lamp.spot_size/2.0) ) # 1 TO 179 FOR BOTH
-                file.write('\tradius %.6f\n' % ((lamp.spot_size/2.0) * (1-lamp.spot_blend)) )
+                file.write('\tfalloff %.2f\n' % (lamp.spot_size / 2.0)) # 1 TO 179 FOR BOTH
+                file.write('\tradius %.6f\n' % ((lamp.spot_size / 2.0) * (1.0 - lamp.spot_blend)))
 
                 # Blender does not have a tightness equivilent, 0 is most like blender default.
                 file.write('\ttightness 0\n') # 0:10f
@@ -218,9 +219,9 @@ def write_pov(filename, scene=None, info_callback = None):
             file.write('\t\tthreshold %.4g\n' % meta.threshold)
 
             try:
-                material= meta.materials[0] # lame! - blender cant do enything else.
+                material = meta.materials[0] # lame! - blender cant do enything else.
             except:
-                material= None
+                material = None
 
             for elem in meta.elements:
 
@@ -229,9 +230,9 @@ def write_pov(filename, scene=None, info_callback = None):
 
                 loc = elem.location
 
-                stiffness= elem.stiffness
+                stiffness = elem.stiffness
                 if elem.negative:
-                    stiffness = -stiffness
+                    stiffness = - stiffness
 
                 if elem.type == 'BALL':
 
@@ -243,19 +244,19 @@ def write_pov(filename, scene=None, info_callback = None):
 
                 elif elem.type == 'ELLIPSOID':
                     # location is modified by scale
-                    file.write('\tsphere { <%.6g, %.6g, %.6g>, %.4g, %.4g ' % (loc.x/elem.size_x, loc.y/elem.size_y, loc.z/elem.size_z, elem.radius, stiffness))
-                    file.write(	'scale <%.6g, %.6g, %.6g> ' % (elem.size_x, elem.size_y, elem.size_z))
+                    file.write('\tsphere { <%.6g, %.6g, %.6g>, %.4g, %.4g ' % (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z, elem.radius, stiffness))
+                    file.write('scale <%.6g, %.6g, %.6g> ' % (elem.size_x, elem.size_y, elem.size_z))
 
                 if material:
                     diffuse_color = material.diffuse_color
 
-                    if material.transparency and material.transparency_method=='RAYTRACE':	trans = 1-material.raytrace_transparency.filter
-                    else:																	trans = 0.0
+                    if material.transparency and material.transparency_method == 'RAYTRACE':
+                        trans = 1.0 - material.raytrace_transparency.filter
+                    else:
+                        trans = 0.0
 
-                    file.write(
-                        'pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} finish {%s} }\n' % \
-                        (diffuse_color[0], diffuse_color[1], diffuse_color[2], 1-material.alpha, trans, materialNames[material.name])
-                    )
+                    file.write('pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} finish {%s} }\n' % \
+                        (diffuse_color[0], diffuse_color[1], diffuse_color[2], 1.0 - material.alpha, trans, materialNames[material.name]))
 
                 else:
                     file.write('pigment {rgb<1 1 1>} finish {%s} }\n' % DEF_MAT_NAME)		# Write the finish last.
@@ -271,13 +272,13 @@ def write_pov(filename, scene=None, info_callback = None):
         ob_num = 0
 
         for ob in sel:
-            ob_num+= 1
+            ob_num += 1
 
             if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE'):
                 continue
 
             me = ob.data
-            me_materials= me.materials
+            me_materials = me.materials
 
             me = ob.create_mesh(True, 'RENDER')
 
@@ -292,18 +293,22 @@ def write_pov(filename, scene=None, info_callback = None):
             # me = ob.data
 
             matrix = ob.matrix
-            try:	uv_layer = me.active_uv_texture.data
-            except:uv_layer = None
+            try:
+                uv_layer = me.active_uv_texture.data
+            except:
+                uv_layer = None
 
-            try:	vcol_layer = me.active_vertex_color.data
-            except:vcol_layer = None
+            try:
+                vcol_layer = me.active_vertex_color.data
+            except:
+                vcol_layer = None
 
             faces_verts = [f.verts for f in me.faces]
             faces_normals = [tuple(f.normal) for f in me.faces]
             verts_normals = [tuple(v.normal) for v in me.verts]
 
             # quads incur an extra face
-            quadCount = len([f for f in faces_verts if len(f)==4])
+            quadCount = len([f for f in faces_verts if len(f) == 4])
 
             file.write('mesh2 {\n')
             file.write('\tvertex_vectors {\n')
@@ -332,7 +337,7 @@ def write_pov(filename, scene=None, info_callback = None):
             for no, index in uniqueNormals.items():
                 file.write(',\n\t\t<%.6f, %.6f, %.6f>' % no) # vert count
                 index[0] = idx
-                idx +=1
+                idx += 1
             file.write('\n  }\n')
 
 
@@ -345,7 +350,7 @@ def write_pov(filename, scene=None, info_callback = None):
 
                 for fi, uv in enumerate(uv_layer):
 
-                    if len(faces_verts[fi])==4:
+                    if len(faces_verts[fi]) == 4:
                         uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
                     else:
                         uvs = uv.uv1, uv.uv2, uv.uv3
@@ -360,7 +365,7 @@ def write_pov(filename, scene=None, info_callback = None):
                 for uv, index in uniqueUVs.items():
                     file.write(',\n\t\t<%.6f, %.6f>' % uv)
                     index[0] = idx
-                    idx +=1
+                    idx += 1
                 '''
                 else:
                     # Just add 1 dummy vector, no real UV's
@@ -380,7 +385,7 @@ def write_pov(filename, scene=None, info_callback = None):
 
                         col = vcol_layer[fi]
 
-                        if len(faces_verts[fi])==4:
+                        if len(faces_verts[fi]) == 4:
                             cols = col.color1, col.color2, col.color3, col.color4
                         else:
                             cols = col.color1, col.color2, col.color3
@@ -409,37 +414,41 @@ def write_pov(filename, scene=None, info_callback = None):
             # Vert Colours
             file.write('\ttexture_list {\n')
             file.write('\t\t%s' % (len(vertCols))) # vert count
-            idx=0
+            idx = 0
             for col, index in vertCols.items():
 
                 if me_materials:
                     material = me_materials[col[3]]
                     material_finish = materialNames[material.name]
 
-                    if material.transparency and material.transparency_method=='RAYTRACE':	trans = 1-material.raytrace_transparency.filter
-                    else:																	trans = 0.0
+                    if material.transparency and material.transparency_method == 'RAYTRACE':
+                        trans = 1.0 - material.raytrace_transparency.filter
+                    else:
+                        trans = 0.0
 
                 else:
                     material_finish = DEF_MAT_NAME # not working properly,
                     trans = 0.0
 
                 #print material.apl
-                file.write(	',\n\t\ttexture { pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} finish {%s}}' %
-                            (col[0], col[1], col[2], 1-material.alpha, trans, material_finish) )
+                file.write(',\n\t\ttexture { pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} finish {%s}}' %
+                            (col[0], col[1], col[2], 1.0 - material.alpha, trans, material_finish))
 
                 index[0] = idx
-                idx+=1
+                idx += 1
 
-            file.write( '\n  }\n' )
+            file.write('\n  }\n')
 
             # Face indicies
             file.write('\tface_indices {\n')
             file.write('\t\t%d' % (len(me.faces) + quadCount)) # faces count
             for fi, f in enumerate(me.faces):
                 fv = faces_verts[fi]
-                material_index= f.material_index
-                if len(fv) == 4:	indicies = (0,1,2), (0,2,3)
-                else:				indicies = ((0,1,2),)
+                material_index = f.material_index
+                if len(fv) == 4:
+                    indicies = (0, 1, 2), (0, 2, 3)
+                else:
+                    indicies = ((0, 1, 2),)
 
                 if vcol_layer:
                     col = vcol_layer[fi]
@@ -468,7 +477,7 @@ def write_pov(filename, scene=None, info_callback = None):
                             ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
                         else:
                             # Colour per material - flat material colour
-                            diffuse_color= material.diffuse_color
+                            diffuse_color = material.diffuse_color
                             ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], diffuse_color[2], f.material_index][0]
 
                         file.write(',\n\t\t<%d,%d,%d>, %d,%d,%d' % (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3)) # vert count
@@ -481,8 +490,10 @@ def write_pov(filename, scene=None, info_callback = None):
             file.write('\t\t%d' % (len(me.faces) + quadCount)) # faces count
             for fi, fv in enumerate(faces_verts):
 
-                if len(fv) == 4:	indicies = (0,1,2), (0,2,3)
-                else:				indicies = ((0,1,2),)
+                if len(fv) == 4:
+                    indicies = (0, 1, 2), (0, 2, 3)
+                else:
+                    indicies = ((0, 1, 2),)
 
                 for i1, i2, i3 in indicies:
                     if f.smooth:
@@ -501,11 +512,13 @@ def write_pov(filename, scene=None, info_callback = None):
                 file.write('\t\t%d' % (len(me.faces) + quadCount)) # faces count
                 for fi, fv in enumerate(faces_verts):
 
-                    if len(fv) == 4:	indicies = (0,1,2), (0,2,3)
-                    else:				indicies = ((0,1,2),)
+                    if len(fv) == 4:
+                        indicies = (0, 1, 2), (0, 2, 3)
+                    else:
+                        indicies = ((0, 1, 2),)
 
                     uv = uv_layer[fi]
-                    if len(faces_verts[fi])==4:
+                    if len(faces_verts[fi]) == 4:
                         uvs = tuple(uv.uv1), tuple(uv.uv2), tuple(uv.uv3), tuple(uv.uv4)
                     else:
                         uvs = tuple(uv.uv1), tuple(uv.uv2), tuple(uv.uv3)
@@ -535,7 +548,7 @@ def write_pov(filename, scene=None, info_callback = None):
         if mist.enabled:
             file.write('fog {\n')
             file.write('\tdistance %.6f\n' % mist.depth)
-            file.write('\tcolor rgbt<%.3g, %.3g, %.3g, %.3g>\n' % (tuple(world.horizon_color) + (1-mist.intensity,)))
+            file.write('\tcolor rgbt<%.3g, %.3g, %.3g, %.3g>\n' % (tuple(world.horizon_color) + (1 - mist.intensity,)))
             #file.write('\tfog_offset %.6f\n' % mist.start)
             #file.write('\tfog_alt 5\n')
             #file.write('\tturbulence 0.2\n')
@@ -586,12 +599,13 @@ def write_pov(filename, scene=None, info_callback = None):
 
     file.close()
 
+
 def write_pov_ini(filename_ini, filename_pov, filename_image):
     scene = bpy.data.scenes[0]
     render = scene.render_data
 
-    x= int(render.resolution_x*render.resolution_percentage*0.01)
-    y= int(render.resolution_y*render.resolution_percentage*0.01)
+    x = int(render.resolution_x * render.resolution_percentage * 0.01)
+    y = int(render.resolution_y * render.resolution_percentage * 0.01)
 
     file = open(filename_ini, 'w')
 
@@ -616,7 +630,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     file.write('Output_Alpha=1\n')
 
     if render.antialiasing:
-        aa_mapping = {'OVERSAMPLE_5':2, 'OVERSAMPLE_8':3, 'OVERSAMPLE_11':4, 'OVERSAMPLE_16':5} # method 1 assumed
+        aa_mapping = {'OVERSAMPLE_5': 2, 'OVERSAMPLE_8': 3, 'OVERSAMPLE_11': 4, 'OVERSAMPLE_16': 5} # method 1 assumed
         file.write('Antialias=1\n')
         file.write('Antialias_Depth=%d\n' % aa_mapping[render.antialiasing_samples])
     else:
@@ -625,81 +639,81 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     file.close()
 
 # Radiosity panel, use in the scene for now.
-FloatProperty= bpy.types.Scene.FloatProperty
-IntProperty= bpy.types.Scene.IntProperty
-BoolProperty= bpy.types.Scene.BoolProperty
+FloatProperty = bpy.types.Scene.FloatProperty
+IntProperty = bpy.types.Scene.IntProperty
+BoolProperty = bpy.types.Scene.BoolProperty
 
 # Not a real pov option, just to know if we should write
-BoolProperty(	attr="pov_radio_enable",
+BoolProperty(attr="pov_radio_enable",
                 name="Enable Radiosity",
                 description="Enable povrays radiosity calculation.",
-                default= False)
-BoolProperty(	attr="pov_radio_display_advanced",
+                default=False)
+BoolProperty(attr="pov_radio_display_advanced",
                 name="Advanced Options",
                 description="Show advanced options.",
-                default= False)
+                default=False)
 
 # Real pov options
-FloatProperty(	attr="pov_radio_adc_bailout",
+FloatProperty(attr="pov_radio_adc_bailout",
                 name="ADC Bailout",
                 description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results.",
-                min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default= 0.01)
+                min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.01)
 
-BoolProperty(	attr="pov_radio_always_sample",
+BoolProperty(attr="pov_radio_always_sample",
                 name="Always Sample",
                 description="Only use the data from the pretrace step and not gather any new samples during the final radiosity pass..",
-                default= True)
+                default=True)
 
-FloatProperty(	attr="pov_radio_brightness",
+FloatProperty(attr="pov_radio_brightness",
                 name="Brightness",
                 description="Ammount objects are brightened before being returned upwards to the rest of the system.",
-                min=0.0, max=1000.0, soft_min=0.0, soft_max=10.0, default= 1.0)
+                min=0.0, max=1000.0, soft_min=0.0, soft_max=10.0, default=1.0)
 
-IntProperty(	attr="pov_radio_count",
+IntProperty(attr="pov_radio_count",
                 name="Ray Count",
                 description="number of rays that are sent out whenever a new radiosity value has to be calculated.",
-                min=1, max=1600, default= 35)
+                min=1, max=1600, default=35)
 
-FloatProperty(	attr="pov_radio_error_bound",
+FloatProperty(attr="pov_radio_error_bound",
                 name="Error Bound",
                 description="one of the two main speed/quality tuning values, lower values are more accurate.",
-                min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default= 1.8)
+                min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default=1.8)
 
-FloatProperty(	attr="pov_radio_gray_threshold",
+FloatProperty(attr="pov_radio_gray_threshold",
                 name="Gray Threshold",
                 description="one of the two main speed/quality tuning values, lower values are more accurate.",
-                min=0.0, max=1.0, soft_min=0, soft_max=1, default= 0.0)
+                min=0.0, max=1.0, soft_min=0, soft_max=1, default=0.0)
 
-FloatProperty(	attr="pov_radio_low_error_factor",
+FloatProperty(attr="pov_radio_low_error_factor",
                 name="Low Error Factor",
                 description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting.",
-                min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default= 0.5)
+                min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.5)
 
 # max_sample - not available yet
-BoolProperty(	attr="pov_radio_media",
+BoolProperty(attr="pov_radio_media",
                 name="Media",
                 description="Radiosity estimation can be affected by media.",
-                default= False)
+                default=False)
 
-FloatProperty(	attr="pov_radio_minimum_reuse",
+FloatProperty(attr="pov_radio_minimum_reuse",
                 name="Minimum Reuse",
                 description="Fraction of the screen width which sets the minimum radius of reuse for each sample point (At values higher than 2% expect errors).",
-                min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default= 0.015)
+                min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default=0.015)
 
-IntProperty(	attr="pov_radio_nearest_count",
+IntProperty(attr="pov_radio_nearest_count",
                 name="Nearest Count",
                 description="Number of old ambient values blended together to create a new interpolated value.",
-                min=1, max=20, default= 5)
+                min=1, max=20, default=5)
 
-BoolProperty(	attr="pov_radio_normal",
+BoolProperty(attr="pov_radio_normal",
                 name="Normals",
                 description="Radiosity estimation can be affected by normals.",
-                default= False)
+                default=False)
 
-IntProperty(	attr="pov_radio_recursion_limit",
+IntProperty(attr="pov_radio_recursion_limit",
                 name="Recursion Limit",
                 description="how many recursion levels are used to calculate the diffuse inter-reflection.",
-                min=1, max=20, default= 3)
+                min=1, max=20, default=3)
 
 
 class PovrayRender(bpy.types.RenderEngine):
@@ -726,8 +740,10 @@ class PovrayRender(bpy.types.RenderEngine):
 
     def _render(self):
 
-        try:		os.remove(self._temp_file_out) # so as not to load the old file
-        except:	pass
+        try:
+            os.remove(self._temp_file_out) # so as not to load the old file
+        except:
+            pass
 
         write_pov_ini(self._temp_file_ini, self._temp_file_in, self._temp_file_out)
 
@@ -735,7 +751,7 @@ class PovrayRender(bpy.types.RenderEngine):
 
         pov_binary = "povray"
 
-        if sys.platform=='win32':
+        if sys.platform == 'win32':
             import winreg
             regKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Software\\POV-Ray\\v3.6\\Windows')
 
@@ -755,8 +771,10 @@ class PovrayRender(bpy.types.RenderEngine):
 
     def _cleanup(self):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
-            try:		os.remove(f)
-            except:	pass
+            try:
+                os.remove(f)
+            except:
+                pass
 
         self.update_stats("", "")
 
@@ -770,14 +788,16 @@ class PovrayRender(bpy.types.RenderEngine):
         r = scene.render_data
 
         # compute resolution
-        x= int(r.resolution_x*r.resolution_percentage*0.01)
-        y= int(r.resolution_y*r.resolution_percentage*0.01)
+        x = int(r.resolution_x * r.resolution_percentage * 0.01)
+        y = int(r.resolution_y * r.resolution_percentage * 0.01)
 
         # Wait for the file to be created
         while not os.path.exists(self._temp_file_out):
             if self.test_break():
-                try:		self._process.terminate()
-                except:	pass
+                try:
+                    self._process.terminate()
+                except:
+                    pass
                 break
 
             if self._process.poll() != None:
@@ -796,22 +816,26 @@ class PovrayRender(bpy.types.RenderEngine):
                 result = self.begin_result(0, 0, x, y)
                 lay = result.layers[0]
                 # possible the image wont load early on.
-                try:		lay.load_from_file(self._temp_file_out)
-                except:	pass
+                try:
+                    lay.load_from_file(self._temp_file_out)
+                except:
+                    pass
                 self.end_result(result)
 
             # Update while povray renders
             while True:
 
                 # test if povray exists
-                if self._process.poll() != None:
-                    update_image();
+                if self._process.poll() is not None:
+                    update_image()
                     break
 
                 # user exit
                 if self.test_break():
-                    try:		self._process.terminate()
-                    except:	pass
+                    try:
+                        self._process.terminate()
+                    except:
+                        pass
 
                     break
 
@@ -852,9 +876,12 @@ del properties_world
 import properties_material
 for member in dir(properties_material):
     subclass = getattr(properties_material, member)
-    try:		subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except:	pass
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
 del properties_material
+
 
 class RenderButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -864,7 +891,8 @@ class RenderButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         rd = context.scene.render_data
-        return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
+        return (rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
+
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel):
     bl_label = "Radiosity"
