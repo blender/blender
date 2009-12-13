@@ -1283,6 +1283,9 @@ void init_userdef_do_versions(void)
 	if (U.dbl_click_time == 0) {
 		U.dbl_click_time = 350;
 	}
+	if (U.anim_player_preset == 0) {
+		U.anim_player_preset =1 ;
+	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

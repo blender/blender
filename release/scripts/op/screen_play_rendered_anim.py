@@ -24,7 +24,7 @@
 # Originally written by Matt Ebb
 
 import bpy
-import subprocess, platform
+import subprocess, os, platform
 
 # from BKE_add_image_extension()
 img_format_exts = {
@@ -50,8 +50,35 @@ img_format_exts = {
     'THEORA':'ogg',
     }
 
-class PlayRenderedAnim(bpy.types.Operator):
+def guess_player_path(preset):
+    if preset == 'BLENDER24':
+        player_path = 'blender'
+        
+        if platform.system() == 'Darwin':
+            test_path = '/Applications/blender 2.49.app/Contents/MacOS/blender'
+            if os.path.exists(test_path):
+                player_path = test_path
 
+    elif preset == 'DJV':
+        player_path = 'djv_view'
+        
+        if platform.system() == 'Darwin':
+            test_path = '/Applications/djv-0.8.2.app/Contents/Resources/bin/djv_view'
+            if os.path.exists(test_path):
+                player_path = test_path
+    
+    elif preset == 'FRAMECYCLER':
+        player_path = 'framecycler'
+    
+    elif preset == 'RV':
+        player_path = 'rv'
+    
+    
+    return player_path
+
+
+class PlayRenderedAnim(bpy.types.Operator):
+    '''Plays back rendered frames/movies using an external player.'''
     bl_idname = "screen.play_rendered_anim"
     bl_label = "Play Rendered Animation"
     bl_register = True
@@ -67,13 +94,14 @@ class PlayRenderedAnim(bpy.types.Operator):
         
         # try and guess a command line if it doesn't exist
         if player_path == '':
-            if preset == 'BLENDER24':
-                player_path = 'blender'
-            elif preset == 'DJV':
-                player_path = 'djv_view'
+            player_path = guess_player_path(preset)
         
         # doesn't support ### frame notation yet
-        file = "%s%04d" % (bpy.utils.expandpath(rd.output_path), sce.start_frame)
+        if preset in ('BLENDER24', 'DJV', 'CUSTOM'):
+            file = "%s%04d" % (bpy.utils.expandpath(rd.output_path), sce.start_frame)
+        elif preset in ('FRAMECYCLER', 'RV'):
+            file = "%s#" % bpy.utils.expandpath(rd.output_path)
+        
         if rd.file_extensions:
             file += '.' + img_format_exts[rd.file_format]
         
@@ -85,6 +113,12 @@ class PlayRenderedAnim(bpy.types.Operator):
         elif preset == 'DJV':
             opts = [file, "-playback_speed", str(rd.fps)]
             cmd.extend(opts)
+        elif preset == 'FRAMECYCLER':
+            opts = [file, "%d-%d" % (sce.start_frame, sce.end_frame)]
+            cmd.extend(opts)
+        elif preset == 'RV':
+            opts = ["-fps", str(rd.fps), "-play", "[ %s ]" % file]
+            cmd.extend(opts)
         else: # 'CUSTOM'
             cmd.extend(file)
 
@@ -93,6 +127,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             process = subprocess.Popen(cmd)
         except:
             pass
+            #raise OSError("Couldn't find an external animation player.")
 
         return('FINISHED',)
 
