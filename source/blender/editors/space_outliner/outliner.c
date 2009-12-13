@@ -4747,7 +4747,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				case ID_SCE:
 					WM_event_add_notifier(C, NC_SCENE, NULL); break;
 				default:
-					WM_event_add_notifier(C, NC_ID|ND_ID_RENAME, NULL); break;
+					WM_event_add_notifier(C, NC_ID|NA_RENAME, NULL); break;
 			}					
 			/* Check the library target exists */
 			if (te->idcode == ID_LI) {

@@ -242,11 +242,8 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			switch(wmn->data) {
-				case ND_ID_RENAME:
-					ED_region_tag_redraw(ar);
-					break;
-			}
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -284,11 +281,8 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			switch(wmn->data) {
-				case ND_ID_RENAME:
-					ED_region_tag_redraw(ar);
-					break;
-			}
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }

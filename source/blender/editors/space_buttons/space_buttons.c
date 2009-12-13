@@ -271,6 +271,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_MODIFIER:
+					if(wmn->action == NA_RENAME)
+						ED_area_tag_redraw(sa);
+					break;
 				case ND_CONSTRAINT:
 					ED_area_tag_redraw(sa);
 					break;
@@ -311,7 +314,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_ID:
-			if(wmn->data == ND_ID_RENAME)
+			if(wmn->action == NA_RENAME)
 				ED_area_tag_redraw(sa);
 			break;
 	}

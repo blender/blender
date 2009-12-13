@@ -218,10 +218,6 @@ typedef struct wmNotifier {
 	/* NC_NODE Nodes */
 #define ND_NODE_SELECT			(1<<16)
 
-	/* NC_ID IDs */
-#define ND_ID_RENAME			(1<<16)
-
-
 	/* NC_SPACE */
 #define ND_SPACE_CONSOLE		(1<<16) /* general redraw */
 #define ND_SPACE_CONSOLE_REPORT	(2<<16) /* update for reports, could specify type */
@@ -245,17 +241,17 @@ typedef struct wmNotifier {
 #define NOTE_SUBTYPE		0x0000FF00
 
 /* subtype scene mode */
-#define NS_MODE_OBJECT		(1<<8)
+#define NS_MODE_OBJECT			(1<<8)
 
-#define NS_EDITMODE_MESH	(2<<8)
-#define NS_EDITMODE_CURVE	(3<<8)
-#define NS_EDITMODE_SURFACE	(4<<8)
-#define NS_EDITMODE_TEXT	(5<<8)
-#define NS_EDITMODE_MBALL	(6<<8)
-#define NS_EDITMODE_LATTICE	(7<<8)
+#define NS_EDITMODE_MESH		(2<<8)
+#define NS_EDITMODE_CURVE		(3<<8)
+#define NS_EDITMODE_SURFACE		(4<<8)
+#define NS_EDITMODE_TEXT		(5<<8)
+#define NS_EDITMODE_MBALL		(6<<8)
+#define NS_EDITMODE_LATTICE		(7<<8)
 #define NS_EDITMODE_ARMATURE	(8<<8)
-#define NS_MODE_POSE		(9<<8)
-#define NS_MODE_PARTICLE	(10<<8)
+#define NS_MODE_POSE			(9<<8)
+#define NS_MODE_PARTICLE		(10<<8)
 
 
 /* action classification */
@@ -264,7 +260,7 @@ typedef struct wmNotifier {
 #define NA_EVALUATED		2
 #define NA_ADDED			3
 #define NA_REMOVED			4
-
+#define NA_RENAME			5
 
 /* ************** Gesture Manager data ************** */
 

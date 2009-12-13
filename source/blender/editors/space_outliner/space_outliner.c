@@ -133,6 +133,10 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_TRANSFORM:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_MODIFIER:
+					if(wmn->action == NA_RENAME)
+						ED_region_tag_redraw(ar);
+					break;
 			}
 		case NC_GROUP:
 			/* all actions now, todo: check outliner view mode? */
@@ -148,9 +152,9 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 				break;
 		case NC_ID:
-			if(wmn->data == ND_ID_RENAME)
+			if(wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
-				break;
+			break;
 	}
 	
 }

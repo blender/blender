@@ -1904,6 +1904,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Particle system name.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER|NA_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
 	/* access to particle settings is redirected through functions */

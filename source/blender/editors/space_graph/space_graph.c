@@ -398,6 +398,10 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_MODIFIER:
+					if(wmn->action == NA_RENAME)
+						ED_region_tag_redraw(ar);
+					break;
 			}
 			break;
 		case NC_NODE:
@@ -408,11 +412,8 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			switch(wmn->data) {
-				case ND_ID_RENAME:
-					ED_region_tag_redraw(ar);
-					break;
-			}
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 			break;
 		default:
 			if(wmn->data==ND_KEYS)
