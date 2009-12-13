@@ -256,7 +256,7 @@ PyAttributeDef PyObjectPlus::Attributes[] = {
 
 PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	return PyBool_FromLong(self_v ? 1:0);
+	return PyBool_FromLong(self_v ? 0:1);
 }
 
 /* note, this is called as a python 'getset, where the PyAttributeDef is the closure */
