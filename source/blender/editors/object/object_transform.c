@@ -105,8 +105,11 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
+	/* this is needed so children are also updated */
+	DAG_ids_flush_update(0);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -241,6 +244,9 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
+	/* this is needed so children are also updated */
+	DAG_ids_flush_update(0);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -299,6 +305,9 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
+	/* this is needed so children are also updated */
+	DAG_ids_flush_update(0);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
