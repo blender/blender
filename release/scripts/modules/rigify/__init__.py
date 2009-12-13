@@ -211,7 +211,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # sort bones, not needed but gives more pradictable execution which may be useful in rare cases
     bones_sorted = obj.pose.bones.values()
     bones_sorted.sort(key=lambda pbone: pbone.name) # first sort by names
-    bones_sorted.sort(key=lambda pbone: - len(pbone.parent_recursive)) # children before parents
+    bones_sorted.sort(key=lambda pbone: len(pbone.parent_recursive)) # parents before children
 
     # now we have all the info about bones we can start operating on them
     # for pbone in obj.pose.bones:

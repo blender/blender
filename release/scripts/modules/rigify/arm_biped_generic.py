@@ -94,7 +94,7 @@ def metarig_definition(obj, orig_bone_name):
 
 
 def ik(obj, definitions, base_names, options):
-    print(options)
+
     arm = obj.data
     
     mt = bone_class_instance(obj, METARIG_NAMES)

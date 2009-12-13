@@ -225,7 +225,7 @@ def main(obj, bone_definition, base_names, options):
 
         rel_vec = child_pbone_01.head - child_pbone_02.head
         x_vec = child_pbone_01.matrix.rotationPart() * Vector(1.0, 0.0, 0.0)
-        print(rel_vec, x_vec)
+
         return degrees(AngleBetweenVecs(rel_vec, x_vec)) > 90.0
 
     if x_direction(): # flip

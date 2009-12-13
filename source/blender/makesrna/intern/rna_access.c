@@ -946,22 +946,22 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 
 int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	
-	EnumPropertyItem *item;
+	EnumPropertyItem *item, *item_array;
 	int free;
 	
-	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+	RNA_property_enum_items(C, ptr, prop, &item_array, NULL, &free);
 	
-	for(; item->identifier; item++) {
+	for(item= item_array; item->identifier; item++) {
 		if(item->identifier[0] && strcmp(item->identifier, identifier)==0) {
 			*value = item->value;
-			return 1;
+			break;
 		}
 	}
 
 	if(free)
-		MEM_freeN(item);
+		MEM_freeN(item_array);
 
-	return 0;
+	return (item->identifier) ? 1:0;
 }
 
 int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier)
