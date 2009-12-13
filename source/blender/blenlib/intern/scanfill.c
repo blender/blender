@@ -34,12 +34,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-
-#include "BLI_util.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
+
 #include "BLI_editVert.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_scanfill.h"
 #include "BLI_callbacks.h"

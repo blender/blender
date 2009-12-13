@@ -335,7 +335,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sequence_gen.c"
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sequencer_gen.c"
 				>
 			</File>
 			<File

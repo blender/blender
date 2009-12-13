@@ -600,6 +600,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\path_util.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\pbvh.c"
 				>
 			</File>
@@ -629,10 +633,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\time.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\util.c"
 				>
 			</File>
 			<File
@@ -778,10 +778,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_threads.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_util.h"
 				>
 			</File>
 			<File

@@ -54,7 +54,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_util.h"
+#include "BLI_path_util.h"
 #include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_string.h"

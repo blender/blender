@@ -44,7 +44,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_util.h"
+#include "BLI_path_util.h"
 
 #include "BKE_action.h"
 #include "BKE_curve.h"

@@ -49,14 +49,17 @@
 #include "RNA_access.h"
 #include "RE_pipeline.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_util.h"
+#include "BLI_fileops.h"
+#include "BLI_listbase.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_threads.h"
+#include <pthread.h>
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BLI_threads.h"
-#include <pthread.h>
+
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
@@ -472,8 +475,6 @@ void calc_sequence_disp(Sequence *seq)
 
 void calc_sequence(Sequence *seq)
 {
-	printf(" ddd %s\n", seq->name);
-
 	Sequence *seqm;
 	int min, max;
 

@@ -94,6 +94,8 @@
 
 #include "BKE_utildefines.h" // O_BINARY FALSE
 
+#include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
+
 Global G;
 UserDef U;
 ListBase WMlist= {NULL, NULL};
