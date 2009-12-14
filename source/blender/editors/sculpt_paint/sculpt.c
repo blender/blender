@@ -1104,7 +1104,7 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	int n;
 
 	/* XXX not working yet for multires */
-	if(!ss->mvert)
+	if(ss->multires)
 		return;
 
 	if(ss->cache->flip)
@@ -1683,7 +1683,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 	view3d_get_transformation(vc->ar, vc->rv3d, vc->obact, cache->mats);
 
 	/* Initialize layer brush displacements and persistent coords */
-	if(brush->sculpt_tool == SCULPT_TOOL_LAYER) {
+	if(brush->sculpt_tool == SCULPT_TOOL_LAYER && !ss->multires) {
 		if(!ss->layer_disps || !(brush->flag & BRUSH_PERSISTENT)) {
 			if(ss->layer_disps)
 				MEM_freeN(ss->layer_disps);
@@ -1958,7 +1958,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 				copy_v3_v3(fn, cache->face_norms[i]);
 		}
 
-		if(brush->sculpt_tool == SCULPT_TOOL_LAYER)
+		if(brush->sculpt_tool == SCULPT_TOOL_LAYER && !ss->multires)
 			memset(ss->layer_disps, 0, sizeof(float) * ss->totvert);
 	}
 }
