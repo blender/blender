@@ -50,6 +50,15 @@ img_format_exts = {
     'THEORA':'ogg',
     }
 
+movie_formats = ('QUICKTIME_QTKIT', 
+                'QUICKTIME_CARBONTKIT', 
+                'AVIRAW',
+                'AVIJPEG',
+                'AVICODEC',
+                'XVID',
+                'THEORA'
+                )
+
 def guess_player_path(preset):
     if preset == 'BLENDER24':
         player_path = 'blender'
@@ -91,16 +100,19 @@ class PlayRenderedAnim(bpy.types.Operator):
         
         preset = prefs.filepaths.animation_player_preset
         player_path = prefs.filepaths.animation_player
+        file_path = bpy.utils.expandpath(rd.output_path)
         
         # try and guess a command line if it doesn't exist
         if player_path == '':
             player_path = guess_player_path(preset)
         
         # doesn't support ### frame notation yet
-        if preset in ('BLENDER24', 'DJV', 'CUSTOM'):
-            file = "%s%04d" % (bpy.utils.expandpath(rd.output_path), sce.start_frame)
+        if rd.file_format in movie_formats:
+            file = "%s%04d_%04d" % (file_path, sce.start_frame, sce.end_frame)
+        elif preset in ('BLENDER24', 'DJV', 'CUSTOM'):
+            file = "%s%04d" % (file_path, sce.start_frame)
         elif preset in ('FRAMECYCLER', 'RV'):
-            file = "%s#" % bpy.utils.expandpath(rd.output_path)
+            file = "%s#" % file_path
         
         if rd.file_extensions:
             file += '.' + img_format_exts[rd.file_format]
