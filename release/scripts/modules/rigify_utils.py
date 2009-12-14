@@ -353,6 +353,7 @@ def bone_class_instance(obj, slots, name="BoneContainer"):
     class_dict = { \
         "obj": obj, \
         "attr_names": attr_names, \
+        "attr_initialize": _bone_class_instance_attr_initialize, \
         "update": _bone_class_instance_update, \
         "rename": _bone_class_instance_rename, \
         "names": _bone_class_instance_names, \
@@ -378,6 +379,16 @@ def auto_class(slots, name="ContainerClass", class_dict=None):
 
 def auto_class_instance(slots, name="ContainerClass", class_dict=None):
     return auto_class(slots, name, class_dict)()
+
+
+def _bone_class_instance_attr_initialize(self, attr_names, bone_names):
+    ''' Initializes attributes, both lists must be aligned
+    '''
+    for attr in self.attr_names:
+        i = attr_names.index(attr)
+        setattr(self, attr, bone_names[i])
+
+    self.update()
 
 
 def _bone_class_instance_update(self):

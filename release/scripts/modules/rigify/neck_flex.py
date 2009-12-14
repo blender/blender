@@ -167,7 +167,7 @@ def main(obj, bone_definition, base_names, options):
         # dont store parent names, re-reference as each chain bones parent.
         neck_e_parent = arm.edit_bones.new("MCH-rot_%s" % base_names[getattr(mt_chain, attr)])
         neck_e_parent.head = neck_e.head
-        neck_e_parent.tail = neck_e.head + ((mt.head_e.tail - mt.head_e.head).normalize() * neck_chain_segment_length / 2.0)
+        neck_e_parent.tail = neck_e.head + (mt.head_e.vector.normalize() * neck_chain_segment_length / 2.0)
         neck_e_parent.roll = mt.head_e.roll
 
         orig_parent = neck_e.parent

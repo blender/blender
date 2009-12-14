@@ -128,21 +128,15 @@ def metarig_definition(obj, orig_bone_name):
 def ik(obj, bone_definition, base_names, options):
     arm = obj.data
 
-    # setup the existing bones
+    # setup the existing bones, use names from METARIG_NAMES
     mt_chain = bone_class_instance(obj, ["thigh", "shin", "foot", "toe"])
     mt = bone_class_instance(obj, ["hips", "heel"])
+
+    mt.attr_initialize(METARIG_NAMES, bone_definition)
+    mt_chain.attr_initialize(METARIG_NAMES, bone_definition)
+
     # children of ik_foot
     ik = bone_class_instance(obj, ["foot", "foot_roll", "foot_roll_01", "foot_roll_02", "knee_target"])
-
-    # XXX - duplicate below
-    for bone_class in (mt, mt_chain):
-        for attr in bone_class.attr_names:
-            i = METARIG_NAMES.index(attr)
-            ebone = arm.edit_bones[bone_definition[i]]
-            setattr(bone_class, attr, ebone.name)
-        bone_class.update()
-    # XXX - end dupe
-
 
     # Make a new chain
     ik_chain = mt_chain.copy(to_fmt="MCH-%s", base_names=base_names)
@@ -165,7 +159,7 @@ def ik(obj, bone_definition, base_names, options):
     # foot roll: heel pointing backwards, half length
     ik.foot_roll_e = copy_bone_simple(arm, mt.heel, base_foot_name + "_roll" + get_side_name(base_names[mt_chain.foot]))
     ik.foot_roll = ik.foot_roll_e.name
-    ik.foot_roll_e.tail = ik.foot_roll_e.head + (ik.foot_roll_e.head - ik.foot_roll_e.tail) / 2.0
+    ik.foot_roll_e.tail = ik.foot_roll_e.head + ik.foot_roll_e.vector / 2.0
     ik.foot_roll_e.parent = ik.foot_e # heel is disconnected
 
     # heel pointing forwards to the toe base, parent of the following 2 bones
@@ -208,7 +202,7 @@ def ik(obj, bone_definition, base_names, options):
 
     # roll the bone to point up... could also point in the same direction as ik.foot_roll
     # ik.foot_roll_02_e.matrix * Vector(0.0, 0.0, 1.0) # ACK!, no rest matrix in editmode
-    ik.foot_roll_01_e.align((0.0, 0.0, -1.0))
+    ik.foot_roll_01_e.align_roll((0.0, 0.0, -1.0))
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -353,7 +347,6 @@ def fk(obj, bone_definition, base_names, options):
     mod.poly_order = 1
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
-
 
 
     # last step setup layers

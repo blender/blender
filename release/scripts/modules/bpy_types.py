@@ -94,12 +94,16 @@ class _GenericBone:
 
     @property
     def length(self):
-        return (self.head - self.tail).length
+        return self.vector.length
 
     @length.setter
     def length(self, value):
         """The distance from head to tail"""
         self.tail = self.head + ((self.tail - self.head).normalize() * value)
+
+    @property
+    def vector(self):
+        return (self.tail - self.head)
 
     @property
     def children(self):
@@ -171,6 +175,15 @@ class Bone(StructRNA, _GenericBone):
 
 class EditBone(StructRNA, _GenericBone):
     __slots__ = ()
+
+    def align_orientation(self, other):
+        '''
+        Align this bone to another by moving its tail and settings its roll
+        the length of the other bone is not used.
+        '''
+        vec = other.vector.normalize() * self.length
+        self.tail = self.head + vec
+        self.roll = other.roll
 
 
 def ord_ind(i1, i2):

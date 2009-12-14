@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from math import radians
 from rigify import RigifyError, get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
@@ -213,6 +214,8 @@ def fk(obj, definitions, base_names, options):
     ex.hand_delta = ex.hand_delta_e.name
     ex.hand_delta_e.length *= 0.5
     ex.hand_delta_e.connected = False
+    if "hand_roll" in options:
+        ex.hand_delta_e.roll += radians(options["hand_roll"])
 
     fk_chain.hand_e.connected = False
     fk_chain.hand_e.parent = ex.hand_delta_e

@@ -735,6 +735,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
         for con in ob.constraints:
             self.draw_constraint(context, con)
 
+
 class BONE_PT_constraints(ConstraintButtonsPanel):
     bl_label = "Bone Constraints"
     bl_context = "bone_constraint"

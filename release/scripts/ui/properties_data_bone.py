@@ -226,6 +226,7 @@ class BONE_PT_display(BoneButtonsPanel):
             col.label(text="Custom Shape:")
             col.prop(pchan, "custom_shape", text="")
 
+
 class BONE_PT_inverse_kinematics(BoneButtonsPanel):
     bl_label = "Inverse Kinematics"
     bl_default_closed = True

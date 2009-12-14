@@ -244,7 +244,7 @@ def main(obj, bone_definition, base_names, options):
         # dont store parent names, re-reference as each chain bones parent.
         spine_e_parent = arm.edit_bones.new("MCH-rot_%s" % child_name_orig)
         spine_e_parent.head = spine_e.head
-        spine_e_parent.tail = spine_e.head + ((mt.ribcage_e.tail - mt.ribcage_e.head).normalize() * spine_chain_segment_length / 2.0)
+        spine_e_parent.tail = spine_e.head + (mt.ribcage_e.vector.normalize() * spine_chain_segment_length / 2.0)
         spine_e_parent.roll = mt.ribcage_e.roll
 
 
@@ -508,7 +508,7 @@ def main(obj, bone_definition, base_names, options):
     lay = layers["main"]
     for attr in df.attr_names:
         getattr(df, attr + "_b").layer = lay
-    for attr in rv_chain .attr_names:
+    for attr in rv_chain.attr_names:
         getattr(rv_chain , attr + "_b").layer = lay
 
     # no support for blending chains

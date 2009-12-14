@@ -53,25 +53,25 @@ def main(obj, bone_definition, base_names, options):
     cp = bone_class_instance(obj, ["cpy"])
     cp.cpy_e = copy_bone_simple(arm, mt.cpy, base_names[mt.cpy], parent=True)
     cp.cpy = cp.cpy_e.name
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
     cp.update()
     mt.update()
 
     if not cp.cpy_b.connected:
-        con = cp.cpy_p.constraints.new('COPY_LOCATION')
+        con = mt.cpy_p.constraints.new('COPY_LOCATION')
         con.target = obj
-        con.subtarget = mt.cpy
+        con.subtarget = cp.cpy
 
-    con = cp.cpy_p.constraints.new('COPY_ROTATION')
+    con = mt.cpy_p.constraints.new('COPY_ROTATION')
     con.target = obj
     con.subtarget = cp.cpy
 
     con = mt.cpy_p.constraints.new('COPY_SCALE')
     con.target = obj
     con.subtarget = cp.cpy
-    
+
     # Rotation mode and axis locks
     cp.cpy_p.rotation_mode = mt.cpy_p.rotation_mode
     cp.cpy_p.lock_location = tuple(mt.cpy_p.lock_location)
