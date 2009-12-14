@@ -828,7 +828,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 static int wm_event_always_pass(wmEvent *event)
 {
 	/* some events we always pass on, to ensure proper communication */
-	return ELEM5(event->type, TIMER, TIMER0, TIMER1, TIMER2, WINDEACTIVATE);
+	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
 }
 
 /* operator exists */
@@ -1367,8 +1367,8 @@ void wm_event_do_handlers(bContext *C)
 			}
 			
 			/* store last event for this window */
-			/* mousemove event don't overwrite last type */
-			if (event->type != MOUSEMOVE) {
+			/* mousemove and timer events don't overwrite last type */
+			if (event->type != MOUSEMOVE && !ISTIMER(event->type)) {
 				if (wm_action_not_handled(action)) {
 					if (win->last_type == event->type) {
 						/* set click time on first click (press -> release) */
