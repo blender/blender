@@ -514,6 +514,7 @@ int main(int argc, char **argv)
 #endif
 	}
 	else {
+		/* background mode options */
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
 				switch(argv[a][1]) {
@@ -528,6 +529,11 @@ int main(int argc, char **argv)
 					for (i = 0; i < argc; i++) {
 						printf("argv[%d] = %s\n", i, argv[i]);
 					}
+					break;
+				case 'n':
+				case 'N':
+					if (BLI_strcasecmp(argv[a], "-noaudio") == 0)
+						sound_disable();
 					break;
 				}
 			}
