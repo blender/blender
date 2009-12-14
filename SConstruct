@@ -533,9 +533,10 @@ plugtargetlist = []
 for tp, tn, tf in os.walk('release/plugins'):
 	if '.svn' in tn:
 		tn.remove('.svn')
+	df = tp[8:] # remove 'release/'
 	for f in tf:
 		pluglist.append(os.path.join(tp, f))
-		plugtargetlist.append( os.path.join(*([BLENDERPATH, 'plugins'] + tp.split(os.sep)[1:] + [f])) )
+		plugtargetlist.append( os.path.join(BLENDERPATH, df, f) )
 
 
 # header files for plugins
