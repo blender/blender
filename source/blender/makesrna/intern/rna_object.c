@@ -1458,6 +1458,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Layers", "Layers the object is on.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_layer_set");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_layer_update");
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
