@@ -246,7 +246,7 @@ static void rna_IDPropertyGroup_name_get(PointerRNA *ptr, char *str)
 	if(idprop && idprop->type == IDP_STRING)
 		strcpy(str, idprop->data.pointer);
 	else
-		strcpy(str, "");
+		str[0]= '\0';
 }
 
 void rna_IDPropertyGroup_name_set(PointerRNA *ptr, const char *value)

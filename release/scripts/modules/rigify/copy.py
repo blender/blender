@@ -50,7 +50,10 @@ def main(obj, bone_definition, base_names, options):
     mt = bone_class_instance(obj, METARIG_NAMES)
     mt.cpy = bone_definition[0]
     mt.update()
-    cp = mt.copy(to_fmt="%s_cpy")
+    cp = bone_class_instance(obj, ["cpy"])
+    cp.cpy_e = copy_bone_simple(arm, mt.cpy, base_names[mt.cpy], parent=True)
+    cp.cpy = cp.cpy_e.name
+    
     bpy.ops.object.mode_set(mode='OBJECT')
 
     cp.update()
@@ -63,7 +66,19 @@ def main(obj, bone_definition, base_names, options):
 
     con = cp.cpy_p.constraints.new('COPY_ROTATION')
     con.target = obj
-    con.subtarget = mt.cpy
+    con.subtarget = cp.cpy
+
+    con = mt.cpy_p.constraints.new('COPY_SCALE')
+    con.target = obj
+    con.subtarget = cp.cpy
+    
+    # Rotation mode and axis locks
+    cp.cpy_p.rotation_mode = mt.cpy_p.rotation_mode
+    cp.cpy_p.lock_location = tuple(mt.cpy_p.lock_location)
+    cp.cpy_p.lock_rotations_4d = mt.cpy_p.lock_rotations_4d
+    cp.cpy_p.lock_rotation = tuple(mt.cpy_p.lock_rotation)
+    cp.cpy_p.lock_rotation_w = mt.cpy_p.lock_rotation_w
+    cp.cpy_p.lock_scale = tuple(mt.cpy_p.lock_scale)
 
     # setup layers last
     layers = get_layer_dict(options)
