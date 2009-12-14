@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -880,6 +881,32 @@ static void uv_from_view_bounds(float target[2], float source[3], float rotmat[4
 	target[1] = pv[2];
 }
 
+static void uv_from_camera(float camsize, float xasp, float yasp, float target[2], float source[3], float rotmat[4][4], float cammat[4][4], int persp)
+{
+
+	float pv4[4];
+
+	copy_v3_v3(pv4, source);
+	pv4[3]= 1.0;
+
+	/* rotmat is the object matrix in this case */
+	mul_m4_v4(rotmat, pv4);
+
+	/* cammat is the inverse camera matrix */
+	mul_m4_v4(cammat, pv4);
+
+	if (pv4[2]==0.0f) pv4[2]=0.00001f; /* don't allow div by 0 */
+
+	if (persp&&CAM_ORTHO) {
+		target[0]=((pv4[0]/camsize)*xasp)+0.5f;
+		target[1]=((pv4[1]/camsize)*yasp)+0.5f;
+	}
+	else {
+		target[0]=((-pv4[0]*(camsize/pv4[2])*xasp)/2)+0.5;
+		target[1]=((-pv4[1]*(camsize/pv4[2])*yasp)/2)+0.5;
+	}
+}
+
 static void uv_from_view(ARegion *ar, float target[2], float source[3], float rotmat[4][4])
 {
 	RegionView3D *rv3d= ar->regiondata;
@@ -926,16 +953,24 @@ static int from_view_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
+	Camera *camera= NULL;
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= ar->regiondata;
 	EditFace *efa;
 	MTFace *tf;
-	float rotmat[4][4];
+	float invmat[4][4],rotmat[4][4];
+	float xasp, yasp, camsize;
 
 	/* add uvs if they don't exist yet */
 	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
+	}
+
+	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
+	if ((rv3d->persp==RV3D_CAMOB) && (scene->camera) && (scene->camera->type==OB_CAMERA)) {
+		camera=scene->camera->data;
 	}
 
 	if(RNA_boolean_get(op->ptr, "orthographic")) {
@@ -950,6 +985,41 @@ static int from_view_exec(bContext *C, wmOperator *op)
 				uv_from_view_bounds(tf->uv[2], efa->v3->co, rotmat);
 				if(efa->v4)
 					uv_from_view_bounds(tf->uv[3], efa->v4->co, rotmat);
+			}
+		}
+	}
+	else if (camera) {
+		
+		if (camera->type==CAM_PERSP) {
+			camsize=1/tan(DEG2RAD(camera->angle)/2.0f); /* calcs ez as distance from camera plane to viewer */
+		}
+		else {
+			camsize=camera->ortho_scale;
+		}
+
+		if (invert_m4_m4(invmat,scene->camera->obmat)) {
+			copy_m4_m4(rotmat, obedit->obmat);
+
+			/* also make aspect ratio adjustment factors */
+			if (scene->r.xsch > scene->r.ysch) {
+				xasp=1;
+				yasp=(float)(scene->r.xsch)/(float)(scene->r.ysch);
+			}
+			else {
+				xasp=(float)(scene->r.ysch)/(float)(scene->r.xsch);
+				yasp=1;
+			}
+			
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(efa->f & SELECT) {
+					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+					uv_from_camera(camsize, xasp, yasp, tf->uv[0], efa->v1->co, rotmat, invmat, camera->type);
+					uv_from_camera(camsize, xasp, yasp, tf->uv[1], efa->v2->co, rotmat, invmat, camera->type);
+					uv_from_camera(camsize, xasp, yasp, tf->uv[2], efa->v3->co, rotmat, invmat, camera->type);
+					if(efa->v4)
+						uv_from_camera(camsize, xasp, yasp, tf->uv[3], efa->v4->co, rotmat, invmat, camera->type);
+				}
 			}
 		}
 	}
