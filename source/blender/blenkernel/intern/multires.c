@@ -784,6 +784,11 @@ static void old_mdisps_convert(MFace *mface, MDisps *mdisp)
 			for(x = 0; x < newside; ++x, ++out) {
 				old_mdisps_rotate(S, newside, oldside, x, y, &u, &v);
 				old_mdisps_bilinear(*out, mdisp->disps, oldside, u, v);
+
+				if(S == 1) { (*out)[1]= -(*out)[1]; }
+				else if(S == 2) { SWAP(float, (*out)[0], (*out)[1]); }
+				else if(S == 3) { (*out)[0]= -(*out)[0]; }
+				else if(S == 0) { SWAP(float, (*out)[0], (*out)[1]); (*out)[0]= -(*out)[0]; (*out)[1]= -(*out)[1]; };
 			}
 		}
 	}
