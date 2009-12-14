@@ -3128,9 +3128,8 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
 
-	if(part->effector_weights)
-		part->effector_weights = newdataadr(fd, part->effector_weights);
-	else
+	part->effector_weights = newdataadr(fd, part->effector_weights);
+	if(!part->effector_weights)
 		part->effector_weights = BKE_add_effector_weights(part->eff_group);
 
 	link_list(fd, &part->dupliweights);
@@ -3803,9 +3802,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				clmd->sim_parms->reset = 0;
 			}
 
-			if(clmd->sim_parms->effector_weights)
-				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
-			else
+			clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
+			if(!clmd->sim_parms->effector_weights)
 				clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 			
 		}
@@ -3832,9 +3830,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->tex_shadow = NULL;
 				smd->domain->tex_wt = NULL;
 
-				if(smd->domain->effector_weights)
-					smd->domain->effector_weights = newdataadr(fd, smd->domain->effector_weights);
-				else
+				smd->domain->effector_weights = newdataadr(fd, smd->domain->effector_weights);
+				if(!smd->domain->effector_weights)
 					smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]));
@@ -4052,9 +4049,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 			}
 		}
 
-		if(sb->effector_weights)
-			sb->effector_weights = newdataadr(fd, sb->effector_weights);
-		else
+		sb->effector_weights = newdataadr(fd, sb->effector_weights);
+		if(!sb->effector_weights)
 			sb->effector_weights = BKE_add_effector_weights(NULL);
 
 		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
