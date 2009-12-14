@@ -4739,9 +4739,14 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 			if(inside==0) {
 				uiSafetyRct *saferct= block->saferct.first;
 
-				if(ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) && event->val==KM_PRESS)
-					if(saferct && !BLI_in_rctf(&saferct->parent, event->x, event->y))
-						menu->menuretval= UI_RETURN_OUT;
+				if(ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) && event->val==KM_PRESS) {
+					if(saferct && !BLI_in_rctf(&saferct->parent, event->x, event->y)) {
+						if(block->flag & (UI_BLOCK_OUT_1|UI_BLOCK_KEEP_OPEN))
+							menu->menuretval= UI_RETURN_OK;
+						else
+							menu->menuretval= UI_RETURN_OUT;
+					}
+				}
 			}
 
 			if(menu->menuretval);
@@ -4777,10 +4782,10 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 
 					/* strict check, and include the parent rect */
 					if(!menu->dotowards && !saferct) {
-						if(block->flag & UI_BLOCK_OUT_1)
+						if(block->flag & (UI_BLOCK_OUT_1|UI_BLOCK_KEEP_OPEN))
 							menu->menuretval= UI_RETURN_OK;
 						else
-							menu->menuretval= (block->flag & UI_BLOCK_KEEP_OPEN)? UI_RETURN_OK: UI_RETURN_OUT;
+							menu->menuretval= UI_RETURN_OUT;
 					}
 					else if(menu->dotowards && event->type==MOUSEMOVE)
 						retval= WM_UI_HANDLER_BREAK;
