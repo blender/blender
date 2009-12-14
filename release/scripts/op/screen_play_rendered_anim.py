@@ -65,6 +65,9 @@ def guess_player_path(preset):
         
         if platform.system() == 'Darwin':
             test_path = '/Applications/blender 2.49.app/Contents/MacOS/blender'
+        elif platform.system() == 'Windows':
+            test_path = '/Program Files/Blender Foundation/Blender/blender.exe'
+    
             if os.path.exists(test_path):
                 player_path = test_path
 
