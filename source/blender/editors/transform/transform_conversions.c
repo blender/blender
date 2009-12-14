@@ -4507,7 +4507,8 @@ static void clear_trans_object_base_flags(TransInfo *t)
 /* auto-keyframing feature - for objects
  * 	tmode: should be a transform mode
  */
-void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
+// NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
+void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob, int tmode)
 {
 	ID *id= &ob->id;
 	FCurve *fcu;
@@ -4603,11 +4604,12 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
  * 	tmode: should be a transform mode
  *	targetless_ik: has targetless ik been done on any channels?
  */
-void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode, short targetless_ik)
+// NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
+void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob, int tmode, short targetless_ik)
 {
 	ID *id= &ob->id;
 	AnimData *adt= ob->adt;
-	//bArmature *arm= ob->data;
+	bArmature *arm= ob->data;
 	bAction	*act= (adt) ? adt->action : NULL;
 	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
@@ -4714,15 +4716,13 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 			}
 		}
 		
-		// XXX todo... figure out way to get appropriate notifiers sent
-		
-		/* do the bone paths */
-#if 0 // XXX TRANSFORM FIX ME
-		if (arm->pathflag & ARM_PATH_ACFRA) {
+		/* do the bone paths 
+		 * NOTE: only do this when there is context info
+		 */
+		if (C && (arm->pathflag & ARM_PATH_ACFRA)) {
 			//pose_clear_paths(ob); // XXX for now, don't need to clear
 			ED_pose_recalculate_paths(C, scene, ob);
 		}
-#endif
 	}
 	else {
 		/* tag channels that should have unkeyed data */
@@ -4736,12 +4736,12 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 }
 
 
-/* inserting keys, refresh ipo-keys, pointcache, redraw events... */
+/* inserting keys, pointcache, redraw events... */
 /* 
  * note: sequencer freeing has its own function now because of a conflict with transform's order of freeing (campbell)
  * 		 Order changed, the sequencer stuff should go back in here
  * */
-void special_aftertrans_update(TransInfo *t)
+void special_aftertrans_update(bContext *C, TransInfo *t)
 {
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
@@ -4769,24 +4769,15 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-		Scene *scene;
 		bAnimContext ac;
 		
-		/* initialise relevant anim-context 'context' data from TransInfo data */
-			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-		memset(&ac, 0, sizeof(bAnimContext));
-		
-		scene= ac.scene= t->scene;
-		ob= ac.obact= OBACT;
-		ac.sa= t->sa;
-		ac.ar= t->ar;
-		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
-		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-		
-		if (ANIM_animdata_context_getdata(&ac) == 0)
+		/* initialise relevant anim-context 'context' data */
+		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
+			
+		ob = ac.obact;
 		
-		if (ac.datatype == ANIMCONT_DOPESHEET) {
+		if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
 			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
@@ -4815,12 +4806,10 @@ void special_aftertrans_update(TransInfo *t)
 			/* free temp memory */
 			BLI_freelistN(&anim_data);
 		}
-		else if (ac.datatype == ANIMCONT_ACTION) {
+		else if (ac.datatype == ANIMCONT_ACTION) { // TODO: just integrate into the above...
 			/* Depending on the lock status, draw necessary views */
 			// fixme... some of this stuff is not good
 			if (ob) {
-				ob->ctime= -1234567.0f;
-				
 				if (ob->pose || ob_get_key(ob))
 					DAG_id_flush_update(&ob->id, OB_RECALC);
 				else
@@ -4833,22 +4822,6 @@ void special_aftertrans_update(TransInfo *t)
 			{
 				posttrans_action_clean(&ac, (bAction *)ac.data);
 			}
-		}
-		else if (ac.datatype == ANIMCONT_SHAPEKEY) {
-#if 0 // XXX old animation system
-			/* fix up the Ipocurves and redraw stuff */
-			Key *key= (Key *)ac.data;
-			
-			if (key->ipo) {
-				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-				     ((cancelled == 0) || (duplicate)) )
-				{
-					posttrans_ipo_clean(key->ipo);
-				}
-			}
-#endif // XXX old animation system
-			
-			DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 		}
 #if 0 // XXX future of this is still not clear
 		else if (ac.datatype == ANIMCONT_GPENCIL) {
@@ -4879,21 +4852,10 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-		Scene *scene;
 		bAnimContext ac;
 		
-		/* initialise relevant anim-context 'context' data from TransInfo data */
-			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-		memset(&ac, 0, sizeof(bAnimContext));
-		
-		scene= ac.scene= t->scene;
-		ob= ac.obact= OBACT;
-		ac.sa= t->sa;
-		ac.ar= t->ar;
-		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
-		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-		
-		if (ANIM_animdata_context_getdata(&ac) == 0)
+		/* initialise relevant anim-context 'context' data */
+		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 		
 		if (ac.datatype)
@@ -4930,21 +4892,10 @@ void special_aftertrans_update(TransInfo *t)
 		ANIM_editkeyframes_refresh(&ac);
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		Scene *scene;
 		bAnimContext ac;
 		
-		/* initialise relevant anim-context 'context' data from TransInfo data */
-		/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-		memset(&ac, 0, sizeof(bAnimContext));
-		
-		scene= ac.scene= t->scene;
-		ob= ac.obact= OBACT;
-		ac.sa= t->sa;
-		ac.ar= t->ar;
-		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
-		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-		
-		if (ANIM_animdata_context_getdata(&ac) == 0)
+		/* initialise relevant anim-context 'context' data */
+		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 			
 		if (ac.datatype)
@@ -4974,10 +4925,6 @@ void special_aftertrans_update(TransInfo *t)
 		}
 	}
 	else if (t->obedit) {
-		// TRANSFORM_FIX_ME
-//		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
-//			allqueue(REDRAWBUTSEDIT, 0);
-
 		if (t->obedit->type == OB_MESH)
 		{
 			EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
@@ -5011,7 +4958,7 @@ void special_aftertrans_update(TransInfo *t)
 
 		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
 		if (!cancelled && (t->mode != TFM_DUMMY)) {
-			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+			autokeyframe_pose_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 		else if (arm->flag & ARM_DELAYDEFORM) {
@@ -5021,9 +4968,6 @@ void special_aftertrans_update(TransInfo *t)
 		}
 		else
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-
-		//if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
-		//	allqueue(REDRAWBUTSEDIT, 0);
 
 	}
 	else if(t->scene->basact && (ob = t->scene->basact->object) && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, ob)) {
@@ -5064,19 +5008,13 @@ void special_aftertrans_update(TransInfo *t)
 
 			/* Set autokey if necessary */
 			if (!cancelled)
-				autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
+				autokeyframe_ob_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode);
 		}
 	}
 
 	clear_trans_object_base_flags(t);
 
 #if 0 // TRANSFORM_FIX_ME
-	if (redrawipo) {
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWIPO, 0);
-	}
-
 	if(resetslowpar)
 		reset_slowparents();
 

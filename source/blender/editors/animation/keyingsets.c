@@ -1318,7 +1318,7 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 		 * provided by the user, and is stored, ready to use, in the KeyingSet paths.
 		 */
 		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
-			int arraylen, i;
+			int i;
 			
 			/* get pointer to name of group to add channels to */
 			if (ksp->groupmode == KSP_GROUP_NONE)
@@ -1328,36 +1328,14 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 			else
 				groupname= ksp->group;
 			
-			/* init arraylen and i - arraylen should be greater than i so that
-			 * normal non-array entries get keyframed correctly
-			 */
-			i= ksp->array_index;
-			arraylen= i;
+			/* passing -1 as the array_index results in the entire array being modified */
+			i= (ksp->flag & KSP_FLAG_WHOLE_ARRAY) ? (-1) : (ksp->array_index);
 			
-			/* get length of array if whole array option is enabled */
-			if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
-				PointerRNA id_ptr, ptr;
-				PropertyRNA *prop;
-				
-				RNA_id_pointer_create(ksp->id, &id_ptr);
-				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
-					arraylen= RNA_property_array_length(&ptr, prop);
-			}
-			
-			/* we should do at least one step */
-			if (arraylen == i)
-				arraylen++;
-			
-			/* for each possible index, perform operation 
-			 *	- assume that arraylen is greater than index
-			 */
-			for (; i < arraylen; i++) {
-				/* action to take depends on mode */
-				if (mode == MODIFYKEY_MODE_INSERT)
-					success+= insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
-				else if (mode == MODIFYKEY_MODE_DELETE)
-					success+= delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
-			}
+			/* action to take depends on mode */
+			if (mode == MODIFYKEY_MODE_INSERT)
+				success += insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
+			else if (mode == MODIFYKEY_MODE_DELETE)
+				success += delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 			
 			/* set recalc-flags */
 			if (ksp->id) {
@@ -1386,7 +1364,7 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 			for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
 				DynStr *pathds= BLI_dynstr_new();
 				char *path = NULL;
-				int arraylen, i;
+				int i;
 				
 				/* set initial group name */
 				if (cks->id == NULL) {
@@ -1461,32 +1439,14 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 				else if (ksp->groupmode == KSP_GROUP_NAMED)
 					groupname= ksp->group;
 				
-				/* init arraylen and i - arraylen should be greater than i so that
-				 * normal non-array entries get keyframed correctly
-				 */
-				i= ksp->array_index;
-				arraylen= i+1;
+				/* passing -1 as the array_index results in the entire array being modified */
+				i= (ksp->flag & KSP_FLAG_WHOLE_ARRAY) ? (-1) : (ksp->array_index);
 				
-				/* get length of array if whole array option is enabled */
-				if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
-					PointerRNA id_ptr, ptr;
-					PropertyRNA *prop;
-					
-					RNA_id_pointer_create(cks->id, &id_ptr);
-					if (RNA_path_resolve(&id_ptr, path, &ptr, &prop) && prop)
-						arraylen= RNA_property_array_length(&ptr, prop);
-				}
-				
-				/* for each possible index, perform operation 
-				 *	- assume that arraylen is greater than index
-				 */
-				for (; i < arraylen; i++) {
-					/* action to take depends on mode */
-					if (mode == MODIFYKEY_MODE_INSERT)
-						success+= insert_keyframe(cks->id, act, groupname, path, i, cfra, kflag);
-					else if (mode == MODIFYKEY_MODE_DELETE)
-						success+= delete_keyframe(cks->id, act, groupname, path, i, cfra, kflag);
-				}
+				/* action to take depends on mode */
+				if (mode == MODIFYKEY_MODE_INSERT)
+					success+= insert_keyframe(cks->id, act, groupname, path, i, cfra, kflag);
+				else if (mode == MODIFYKEY_MODE_DELETE)
+					success+= delete_keyframe(cks->id, act, groupname, path, i, cfra, kflag);
 				
 				/* free the path */
 				MEM_freeN(path);

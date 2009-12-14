@@ -1146,7 +1146,7 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 
 
 	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
-	special_aftertrans_update(t);
+	special_aftertrans_update(C, t);
 
 	postTrans(C, t);
 
@@ -1715,7 +1715,7 @@ int transformEnd(bContext *C, TransInfo *t)
 		}
 
 		/* aftertrans does insert keyframes, and clears base flags, doesnt read transdata */
-		special_aftertrans_update(t);
+		special_aftertrans_update(C, t);
 
 		/* free data */
 		postTrans(C, t);
