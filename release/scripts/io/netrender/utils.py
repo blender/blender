@@ -28,7 +28,7 @@ try:
 except:
   bpy = None
 
-VERSION = b"0.5"
+VERSION = b"0.7"
 
 # Jobs status
 JOB_WAITING = 0 # before all data has been entered
@@ -108,6 +108,15 @@ def clientVerifyVersion(conn):
 		return False
 	
 	return True
+
+def fileURL(job_id, file_index):
+    return "/file_%s_%i" % (job_id, file_index)
+
+def logURL(job_id, frame_number):
+    return "/log_%s_%i.log" % (job_id, frame_number)
+
+def renderURL(job_id, frame_number):
+    return "/render_%s_%i.exr" % (job_id, frame_number)
 
 def prefixPath(prefix_directory, file_path, prefix_path):
 	if os.path.isabs(file_path):

@@ -23,13 +23,15 @@ import subprocess, shutil, time, hashlib
 from netrender.utils import *
 
 class LogFile:
-	def __init__(self, job_id = 0, frames = []):
+	def __init__(self, job_id = 0, slave_id = 0, frames = []):
 		self.job_id = job_id
+		self.slave_id = slave_id
 		self.frames = frames
 	
 	def serialize(self):
 		return 	{
 							"job_id": self.job_id,
+							"slave_id": self.slave_id,
 							"frames": self.frames
 						}
 	
@@ -40,6 +42,7 @@ class LogFile:
 		
 		logfile = LogFile()
 		logfile.job_id = data["job_id"]
+		logfile.slave_id = data["slave_id"]
 		logfile.frames = data["frames"]
 		
 		return logfile
@@ -68,27 +71,28 @@ class RenderSlave:
 						}
 	
 	@staticmethod
-	def materialize(data):
+	def materialize(data, cache = True):
 		if not data:
 			return None
 		
 		slave_id = data["id"]
-		
-		if slave_id in RenderSlave._slave_map:
+
+		if cache and slave_id in RenderSlave._slave_map:
 			return RenderSlave._slave_map[slave_id]
-		else:
-			slave = RenderSlave()
-			slave.id = slave_id
-			slave.name = data["name"]
-			slave.address = data["address"]
-			slave.stats = data["stats"]
-			slave.total_done = data["total_done"]
-			slave.total_error = data["total_error"]
-			slave.last_seen = data["last_seen"]
-			
+
+		slave = RenderSlave()
+		slave.id = slave_id
+		slave.name = data["name"]
+		slave.address = data["address"]
+		slave.stats = data["stats"]
+		slave.total_done = data["total_done"]
+		slave.total_error = data["total_error"]
+		slave.last_seen = data["last_seen"]
+
+		if cache:
 			RenderSlave._slave_map[slave_id] = slave
 			
-			return slave
+		return slave
 
 JOB_BLENDER = 1
 JOB_PROCESS = 2
@@ -97,6 +101,30 @@ JOB_TYPES = {
 							JOB_BLENDER: "Blender",
 							JOB_PROCESS: "Process"
 						}
+
+class RenderFile:
+	def __init__(self, filepath = "", index = 0, start = -1, end = -1):
+		self.filepath = filepath
+		self.index = index
+		self.start = start
+		self.end = end
+
+	def serialize(self):
+		return 	{
+				    "filepath": self.filepath,
+				    "index": self.index,
+				    "start": self.start,
+				    "end": self.end
+				}
+
+	@staticmethod
+	def materialize(data):
+		if not data:
+			return None
+		
+		rfile = RenderFile(data["filepath"], data["index"], data["start"], data["end"])
+
+		return rfile	
 
 class RenderJob:
 	def __init__(self, job_info = None):
@@ -123,7 +151,7 @@ class RenderJob:
 			self.blacklist = job_info.blacklist
 			
 	def addFile(self, file_path, start=-1, end=-1):
-		self.files.append((file_path, start, end))
+		self.files.append(RenderFile(file_path, len(self.files), start, end))
 	
 	def addFrame(self, frame_number, command = ""):
 		frame = RenderFrame(frame_number, command)
@@ -179,7 +207,7 @@ class RenderJob:
 							"type": self.type,
 							"name": self.name,
 							"category": self.category,
-							"files": [f for f in self.files if f[1] == -1 or not frames or (f[1] <= max_frame and f[2] >= min_frame)],
+							"files": [f.serialize() for f in self.files if f.start == -1 or not frames or (f.start <= max_frame and f.end >= min_frame)],
 							"frames": [f.serialize() for f in self.frames if not frames or f in frames],
 							"chunks": self.chunks,
 							"priority": self.priority,
@@ -198,7 +226,7 @@ class RenderJob:
 		job.type = data["type"]
 		job.name = data["name"]
 		job.category = data["category"]
-		job.files = data["files"]
+		job.files = [RenderFile.materialize(f) for f in data["files"]]
 		job.frames = [RenderFrame.materialize(f) for f in data["frames"]]
 		job.chunks = data["chunks"]
 		job.priority = data["priority"]

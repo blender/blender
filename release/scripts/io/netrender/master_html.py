@@ -89,7 +89,7 @@ def get(handler):
 			results = job.framesStatus()
 			rowTable(	
 								link(job.name, "/html/job" + job.id),
-								job.category,
+								job.category if job.category else "&nbsp;",
 								job.priority,
 								"%0.1f%%" % (job.usage * 100),
 								"%is" % int(time.time() - job.last_dispatched),
@@ -116,40 +116,14 @@ def get(handler):
 			output("<h2>Frames</h2>")
 		
 			startTable()
-			headerTable("no", "status", "render time", "slave", "log")
+			headerTable("no", "status", "render time", "slave", "log", "result")
 			
 			for frame in job.frames:
-				rowTable(frame.number, frame.statusText(), "%.1fs" % frame.time, frame.slave.name if frame.slave else "&nbsp;", link("view log", "/html/log%s_%i" % (job_id, frame.number)) if frame.log_path else "&nbsp;")
+				rowTable(frame.number, frame.statusText(), "%.1fs" % frame.time, frame.slave.name if frame.slave else "&nbsp;", link("view log", logURL(job_id, frame.number)) if frame.log_path else "&nbsp;", link("view result", renderURL(job_id, frame.number)) if frame.status == DONE else "&nbsp;")
 			
 			endTable()
 		else:
 			output("no such job")
 		
 		output("</body></html>")
-	
-	elif handler.path.startswith("/html/log"):
-		handler.send_head(content = "text/plain")
-		pattern = re.compile("([a-zA-Z0-9]+)_([0-9]+)")
-		
-		match = pattern.match(handler.path[9:])
-		if match:
-			job_id = match.groups()[0]
-			frame_number = int(match.groups()[1])
-			
-			job = handler.server.getJobID(job_id)
-			
-			if job:
-				frame = job[frame_number]
-				
-				if frame:
-						f = open(frame.log_path, 'rb')
-						
-						shutil.copyfileobj(f, handler.wfile)
-						
-						f.close()
-				else:
-					output("no such frame")
-			else:
-				output("no such job")
-		else:
-			output("malformed url")
+

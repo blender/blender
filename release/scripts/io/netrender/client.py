@@ -106,7 +106,6 @@ def clientSendJob(conn, scene, anim = False):
 	
 	job_name = netsettings.job_name
 	path, name = os.path.split(filename)
-	path += os.sep
 	if job_name == "[default]":
 		job_name = name
 	
@@ -147,7 +146,7 @@ def clientSendJob(conn, scene, anim = False):
 		for psys in object.particle_systems:
 			addPointCache(job, object, psys.point_cache, default_path)
 	
-	# print(job.files)
+	#print(job.files)
 	
 	job.name = job_name
 	job.category = netsettings.job_category
@@ -166,18 +165,18 @@ def clientSendJob(conn, scene, anim = False):
 	
 	# if not ACCEPTED (but not processed), send files
 	if response.status == http.client.ACCEPTED:
-		for filepath, start, end in job.files:
-			f = open(filepath, "rb")
-			conn.request("PUT", "/file", f, headers={"job-id": job_id, "job-file": filepath})
+		for rfile in job.files:
+			f = open(rfile.filepath, "rb")
+			conn.request("PUT", fileURL(job_id, rfile.index), f)
 			f.close()
 			response = conn.getresponse()
 	
-	# server will reply with NOT_FOUD until all files are found
+	# server will reply with ACCEPTED until all files are found
 	
 	return job_id
 
 def requestResult(conn, job_id, frame):
-	conn.request("GET", "/render", headers={"job-id": job_id, "job-frame":str(frame)})
+	conn.request("GET", renderURL(job_id, frame))
 
 @rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
