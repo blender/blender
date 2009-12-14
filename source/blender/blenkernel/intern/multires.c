@@ -796,7 +796,8 @@ void multires_load_old_250(Mesh *me)
 
 	if(mdisps) {
 		for(a=0; a<me->totface; a++)
-			old_mdisps_convert(&me->mface[a], &mdisps[a]);
+			if(mdisps[a].totdisp)
+				old_mdisps_convert(&me->mface[a], &mdisps[a]);
 	}
 }
 
