@@ -226,6 +226,107 @@ class BONE_PT_display(BoneButtonsPanel):
             col.label(text="Custom Shape:")
             col.prop(pchan, "custom_shape", text="")
 
+class BONE_PT_inverse_kinematics(BoneButtonsPanel):
+    bl_label = "Inverse Kinematics"
+    bl_default_closed = True
+
+    def poll(self, context):
+        ob = context.object
+        bone = context.bone
+        pchan = ob.pose.bones[bone.name]
+
+        if ob and bone and pchan:
+            return True
+
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        bone = context.bone
+        pchan = ob.pose.bones[bone.name]
+        wide_ui = context.region.width > narrowui
+
+        split = layout.split(percentage=0.25)
+        split.prop(pchan, "ik_dof_x", text="X")
+        split.active = pchan.has_ik
+        row = split.row()
+        row.prop(pchan, "ik_stiffness_x", text="Stiffness", slider=True)
+        row.active = pchan.ik_dof_x and pchan.has_ik
+
+        if wide_ui:
+            split = layout.split(percentage=0.25)
+            sub = split.row()
+        else:
+            sub = layout.column(align=True)
+        sub.prop(pchan, "ik_limit_x", text="Limit")
+        sub.active = pchan.ik_dof_x and pchan.has_ik
+        if wide_ui:
+            sub = split.row(align=True)
+        sub.prop(pchan, "ik_min_x", text="")
+        sub.prop(pchan, "ik_max_x", text="")
+        sub.active = pchan.ik_dof_x and pchan.ik_limit_x and pchan.has_ik
+
+        split = layout.split(percentage=0.25)
+        split.prop(pchan, "ik_dof_y", text="Y")
+        split.active = pchan.has_ik and pchan.has_ik
+        row = split.row()
+        row.prop(pchan, "ik_stiffness_y", text="Stiffness", slider=True)
+        row.active = pchan.ik_dof_y and pchan.has_ik
+
+        if wide_ui:
+            split = layout.split(percentage=0.25)
+            sub = split.row()
+        else:
+            sub = layout.column(align=True)
+        sub.prop(pchan, "ik_limit_y", text="Limit")
+        sub.active = pchan.ik_dof_y and pchan.has_ik
+        if wide_ui:
+            sub = split.row(align=True)
+        sub.prop(pchan, "ik_min_y", text="")
+        sub.prop(pchan, "ik_max_y", text="")
+        sub.active = pchan.ik_dof_y and pchan.ik_limit_y and pchan.has_ik
+
+        split = layout.split(percentage=0.25)
+        split.prop(pchan, "ik_dof_z", text="Z")
+        split.active = pchan.has_ik and pchan.has_ik
+        sub = split.row()
+        sub.prop(pchan, "ik_stiffness_z", text="Stiffness", slider=True)
+        sub.active = pchan.ik_dof_z and pchan.has_ik
+
+        if wide_ui:
+            split = layout.split(percentage=0.25)
+            sub = split.row()
+        else:
+            sub = layout.column(align=True)
+        sub.prop(pchan, "ik_limit_z", text="Limit")
+        sub.active = pchan.ik_dof_z and pchan.has_ik
+        if wide_ui:
+            sub = split.row(align=True)
+        sub.prop(pchan, "ik_min_z", text="")
+        sub.prop(pchan, "ik_max_z", text="")
+        sub.active = pchan.ik_dof_z and pchan.ik_limit_z and pchan.has_ik
+        split = layout.split()
+        split.prop(pchan, "ik_stretch", text="Stretch", slider=True)
+        if wide_ui:
+            split.label()
+        split.active = pchan.has_ik
+
+        if ob.pose.ik_solver == 'ITASC':
+            split = layout.split()
+            col = split.column()
+            col.prop(pchan, "ik_rot_control", text="Control Rotation")
+            col.active = pchan.has_ik
+            if wide_ui:
+                col = split.column()
+            col.prop(pchan, "ik_rot_weight", text="Weight", slider=True)
+            col.active = pchan.has_ik
+            # not supported yet
+            #row = layout.row()
+            #row.prop(pchan, "ik_lin_control", text="Joint Size")
+            #row.prop(pchan, "ik_lin_weight", text="Weight", slider=True)
+
 
 class BONE_PT_deform(BoneButtonsPanel):
     bl_label = "Deform"
@@ -298,5 +399,6 @@ bpy.types.register(BONE_PT_transform)
 bpy.types.register(BONE_PT_transform_locks)
 bpy.types.register(BONE_PT_relations)
 bpy.types.register(BONE_PT_display)
+bpy.types.register(BONE_PT_inverse_kinematics)
 bpy.types.register(BONE_PT_deform)
 bpy.types.register(BONE_PT_properties)

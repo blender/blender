@@ -235,9 +235,63 @@ class DATA_PT_ghost(DataButtonsPanel):
         col.label(text="Display:")
         col.prop(arm, "ghost_only_selected", text="Selected Only")
 
+class DATA_PT_iksolver_itasc(DataButtonsPanel):
+    bl_label = "iTaSC parameters"
+    bl_default_closed = True
+
+    def poll(self, context):
+        ob = context.object
+        return (ob and ob.pose)
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+
+        itasc = ob.pose.ik_param
+        wide_ui = context.region.width > narrowui
+
+        row = layout.row()
+        row.prop(ob.pose, "ik_solver")
+
+        layout.prop(itasc, "mode", expand=True)
+        simulation = itasc.mode == 'SIMULATION'
+        if simulation:
+            layout.label(text="Reiteration:")
+            layout.prop(itasc, "reiteration", expand=True)
+
+        split = layout.split()
+        split.active = not simulation or itasc.reiteration != 'NEVER'
+        col = split.column()
+        col.prop(itasc, "precision")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(itasc, "num_iter")
+
+
+        if simulation:
+            layout.prop(itasc, "auto_step")
+            row = layout.row()
+            if itasc.auto_step:
+                row.prop(itasc, "min_step", text="Min")
+                row.prop(itasc, "max_step", text="Max")
+            else:
+                row.prop(itasc, "num_step")
+
+        layout.prop(itasc, "solver")
+        if simulation:
+            layout.prop(itasc, "feedback")
+            layout.prop(itasc, "max_velocity")
+        if itasc.solver == 'DLS':
+            row = layout.row()
+            row.prop(itasc, "dampmax", text="Damp", slider=True)
+            row.prop(itasc, "dampeps", text="Eps", slider=True)
+
 bpy.types.register(DATA_PT_context_arm)
 bpy.types.register(DATA_PT_skeleton)
 bpy.types.register(DATA_PT_display)
 bpy.types.register(DATA_PT_bone_groups)
 bpy.types.register(DATA_PT_paths)
 bpy.types.register(DATA_PT_ghost)
+bpy.types.register(DATA_PT_iksolver_itasc)
