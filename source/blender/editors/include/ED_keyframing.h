@@ -49,6 +49,13 @@ struct PropertyRNA;
 
 /* ************ Keyframing Management **************** */
 
+/* Get the active settings for keyframing settings from context (specifically the given scene) 
+ *	- incl_mode: include settings from keyframing mode in the result (i.e. replace only)
+ */
+short ANIM_get_keyframing_flags(struct Scene *scene, short incl_mode);
+
+/* -------- */
+
 /* Get (or add relevant data to be able to do so) the Active Action for the given 
  * Animation Data block, given an ID block where the Animation Data should reside.
  */

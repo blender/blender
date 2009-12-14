@@ -80,6 +80,40 @@
 
 #include "anim_intern.h"
 
+/* ************************************************** */
+/* Keyframing Setting Wrangling */
+
+/* Get the active settings for keyframing settings from context (specifically the given scene) */
+short ANIM_get_keyframing_flags (Scene *scene, short incl_mode)
+{
+	short flag = 0;
+	
+	/* standard flags */
+	{
+		/* visual keying */
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
+			flag |= INSERTKEY_MATRIX;
+		
+		/* only needed */
+		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
+			flag |= INSERTKEY_NEEDED;
+		
+		/* default F-Curve color mode - RGB from XYZ indicies */
+		if (IS_AUTOKEY_FLAG(XYZ2RGB)) 
+			flag |= INSERTKEY_XYZ2RGB;
+	}
+		
+	/* only if including settings from the autokeying mode... */
+	if (incl_mode) 
+	{ 
+		/* keyframing mode - only replace existing keyframes */
+		if (IS_AUTOKEY_MODE(scene, EDITKEYS)) 
+			flag |= INSERTKEY_REPLACE;
+	}
+		
+	return flag;
+}
+
 /* ******************************************* */
 /* Animation Data Validation */
 
@@ -838,7 +872,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	/* key entire array convenience method */
 	if (array_index == -1) { 
 		array_index= 0;
-		array_index_max= RNA_property_array_length(&ptr, prop) + 1;
+		array_index_max= RNA_property_array_length(&ptr, prop);
 	}
 	
 	/* will only loop once unless the array index was -1 */
@@ -1326,12 +1360,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	short flag = 0;
 	
 	/* flags for inserting keyframes */
-	if (IS_AUTOKEY_FLAG(AUTOMATKEY))
-		flag |= INSERTKEY_MATRIX;
-	if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-		flag |= INSERTKEY_NEEDED;
-	if (IS_AUTOKEY_MODE(scene, EDITKEYS))
-		flag |= INSERTKEY_REPLACE;
+	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* try to insert keyframe using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));

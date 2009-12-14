@@ -446,9 +446,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* init keyframing flag */
-	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
-	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
-	if (IS_AUTOKEY_MODE(scene, EDITKEYS)) flag |= INSERTKEY_REPLACE;
+	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* insert keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {

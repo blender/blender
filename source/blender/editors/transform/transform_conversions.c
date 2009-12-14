@@ -4525,13 +4525,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 		memset(&cks, 0, sizeof(bCommonKeySrc));
 		cks.id= &ob->id;
 		
-		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-			flag |= INSERTKEY_NEEDED;
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
-			flag |= INSERTKEY_MATRIX;
-		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
-			flag |= INSERTKEY_REPLACE;
-			
+		flag = ANIM_get_keyframing_flags(scene, 1);
 		
 		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
 			/* only insert into active keyingset */
@@ -4632,12 +4626,10 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		 * 	  visual keyframes even if flag not set, as it's not that useful otherwise
 		 *	  (for quick animation recording)
 		 */
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY) || (targetless_ik))
+		flag = ANIM_get_keyframing_flags(scene, 1);
+		
+		if (targetless_ik) 
 			flag |= INSERTKEY_MATRIX;
-		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-			flag |= INSERTKEY_NEEDED;
-		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
-			flag |= INSERTKEY_REPLACE;
 		
 		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
 			if (pchan->bone->flag & BONE_TRANSFORM) {

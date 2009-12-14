@@ -213,6 +213,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
 
         col.label(text="New F-Curve Defaults:")
         col.prop(edit, "new_interpolation_type", text="Interpolation")
+        col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
         col.separator()
 

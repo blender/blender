@@ -433,6 +433,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
+#define		AUTOKEY_FLAG_XYZ2RGB		(1<<3)
 	/* U.autokey_flag (strictly autokeying only) */
 #define 	AUTOKEY_FLAG_ONLYKEYINGSET	(1<<6)
 	/* toolsettings->autokey_flag */
