@@ -94,11 +94,14 @@ class SubdivisionSet(bpy.types.Operator):
         level = self.properties.level
         ob = context.active_object
         for mod in ob.modifiers:
-            if mod.type == 'MULTIRES' and ob.mode == 'SCULPT':
-                if mod.sculpt_levels != level:
-                    mod.sculpt_levels = level
+            if mod.type == 'MULTIRES':
+                if level < mod.total_levels:
+                    if ob.mode == 'SCULPT' and mod.sculpt_levels != level:
+                        mod.sculpt_levels = level
+                    elif ob.mode == 'OBJECT' and mod.levels != level:
+                        mod.levels = level
                 return ('FINISHED',)
-            elif mod.type == 'SUBSURF' or mod.type == 'MULTIRES':
+            elif mod.type == 'SUBSURF':
                 if mod.levels != level:
                     mod.levels = level
                 return ('FINISHED',)
