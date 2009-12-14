@@ -151,6 +151,8 @@ void ED_operatortypes_mesh(void)
 	
 	WM_operatortype_append(MESH_OT_edgering_select);
 	WM_operatortype_append(MESH_OT_loopcut);
+
+	WM_operatortype_append(MESH_OT_solidify);
 }
 
 int ED_operator_editmesh_face_select(bContext *C)

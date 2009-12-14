@@ -164,6 +164,8 @@ void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
+void MESH_OT_solidify(struct wmOperatorType *ot);
+
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(Scene *scene, Object *obedit, int update);

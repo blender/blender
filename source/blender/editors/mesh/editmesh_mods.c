@@ -4542,3 +4542,46 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
+static int solidify_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	float nor[3] = {0,0,1};
+
+	float thickness= RNA_float_get(op->ptr, "thickness");
+
+	extrudeflag(obedit, em, SELECT, nor);
+	EM_make_hq_normals(em);
+	EM_solidify(em, thickness);
+
+
+	/* update vertex normals too */
+	recalc_editnormals(em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void MESH_OT_solidify(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Solidify";
+	ot->description= "Make the mesh solid.";
+	ot->idname= "MESH_OT_solidify";
+
+	/* api callbacks */
+	ot->exec= solidify_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_float(ot->srna, "thickness", 0.1f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
+}

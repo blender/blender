@@ -1202,6 +1202,7 @@ class VIEW3D_MT_edit_mesh_faces(dynamic_menu.DynMenu):
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.fill")
         layout.operator("mesh.beauty_fill")
+        layout.operator("mesh.solidify")
 
         layout.separator()
 

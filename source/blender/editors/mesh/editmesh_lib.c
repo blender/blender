@@ -49,6 +49,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
+#include "BLI_edgehash.h"
 
 #include "BKE_customdata.h"
 #include "BKE_context.h"
@@ -2286,4 +2287,150 @@ int EM_view3d_poll(bContext *C)
 	if(ED_operator_editmesh(C) && ED_operator_view3d_active(C))
 		return 1;
 	return 0;
+}
+
+/* higher quality normals */
+
+/* NormalCalc */
+/* NormalCalc modifier: calculates higher quality normals
+*/
+
+/* each edge uses this to  */
+typedef struct EdgeFaceRef {
+	int f1; /* init as -1 */
+	int f2;
+} EdgeFaceRef;
+
+void EM_make_hq_normals(EditMesh *em)
+{
+	EditFace *efa;
+	EditVert *eve;
+	int i;
+
+	EdgeHash *edge_hash = BLI_edgehash_new();
+	EdgeHashIterator *edge_iter;
+	int edge_ref_count = 0;
+	int ed_v1, ed_v2; /* use when getting the key */
+	EdgeFaceRef *edge_ref_array = MEM_callocN(em->totedge * sizeof(EdgeFaceRef), "Edge Connectivity");
+	EdgeFaceRef *edge_ref;
+	float edge_normal[3];
+
+	EM_init_index_arrays(em, 1, 1, 1);
+
+	for(eve= em->verts.first, i=0; eve; eve= eve->next, i++) {
+		zero_v3(eve->no);
+		eve->tmp.l= i;
+	}
+
+	/* This function adds an edge hash if its not there, and adds the face index */
+#define NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(EDV1, EDV2); \
+			edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, EDV1, EDV2); \
+			if (!edge_ref) { \
+				edge_ref = &edge_ref_array[edge_ref_count]; edge_ref_count++; \
+				edge_ref->f1=i; \
+				edge_ref->f2=-1; \
+				BLI_edgehash_insert(edge_hash, EDV1, EDV2, edge_ref); \
+			} else { \
+				edge_ref->f2=i; \
+			}
+
+
+	efa= em->faces.first;
+	for(i = 0; i < em->totface; i++, efa= efa->next) {
+		if(efa->v4) {
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v1->tmp.l, efa->v2->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v2->tmp.l, efa->v3->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v3->tmp.l, efa->v4->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v4->tmp.l, efa->v1->tmp.l);
+		} else {
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v1->tmp.l, efa->v2->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v2->tmp.l, efa->v3->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v3->tmp.l, efa->v1->tmp.l);
+		}
+	}
+
+#undef NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE
+
+
+	for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
+		/* Get the edge vert indicies, and edge value (the face indicies that use it)*/
+		BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
+		edge_ref = BLI_edgehashIterator_getValue(edge_iter);
+
+		if (edge_ref->f2 != -1) {
+			/* We have 2 faces using this edge, calculate the edges normal
+			 * using the angle between the 2 faces as a weighting */
+			add_v3_v3v3(edge_normal, EM_get_face_for_index(edge_ref->f1)->n, EM_get_face_for_index(edge_ref->f2)->n);
+			normalize_v3(edge_normal);
+			mul_v3_fl(edge_normal, angle_normalized_v3v3(EM_get_face_for_index(edge_ref->f1)->n, EM_get_face_for_index(edge_ref->f2)->n));
+		} else {
+			/* only one face attached to that edge */
+			/* an edge without another attached- the weight on this is
+			 * undefined, M_PI/2 is 90d in radians and that seems good enough */
+			VECCOPY(edge_normal, EM_get_face_for_index(edge_ref->f1)->n)
+			mul_v3_fl(edge_normal, M_PI/2);
+		}
+		add_v3_v3(EM_get_vert_for_index(ed_v1)->no, edge_normal );
+		add_v3_v3(EM_get_vert_for_index(ed_v2)->no, edge_normal );
+
+
+	}
+	BLI_edgehashIterator_free(edge_iter);
+	BLI_edgehash_free(edge_hash, NULL);
+	MEM_freeN(edge_ref_array);
+
+	/* normalize vertex normals and assign */
+	for(eve= em->verts.first; eve; eve= eve->next)
+		normalize_v3(eve->no);
+
+	EM_free_index_arrays();
+}
+
+#define FLT_EPSILON 0.00001
+void EM_solidify(EditMesh *em, float dist)
+{
+	EditFace *efa;
+	EditVert *eve;
+	int *vert_users= MEM_callocN(sizeof(int) * em->totvert, "EM_offset");
+	float *vert_angles= MEM_callocN(sizeof(float) * em->totvert, "EM_offset");
+	float angle;
+	int i;
+
+	for(eve= em->verts.first, i=0; eve; eve= eve->next, i++) {
+		eve->tmp.l= i;
+	}
+
+	efa= em->faces.first;
+	for(i = 0; i < em->totface; i++, efa= efa->next) {
+
+		if(!(efa->f & SELECT))
+			continue;
+
+		angle= angle_normalized_v3v3(efa->v1->no, efa->n);
+		vert_angles[efa->v1->tmp.l]+= shell_angle_to_dist(angle);
+		vert_users[efa->v1->tmp.l]++;
+
+		angle= angle_normalized_v3v3(efa->v2->no, efa->n);
+		vert_angles[efa->v2->tmp.l]+= shell_angle_to_dist(angle);
+		vert_users[efa->v2->tmp.l]++;
+
+		angle= angle_normalized_v3v3(efa->v3->no, efa->n);
+		vert_angles[efa->v3->tmp.l]+= shell_angle_to_dist(angle);
+		vert_users[efa->v3->tmp.l]++;
+
+		if(efa->v4) {
+			angle= angle_normalized_v3v3(efa->v4->no, efa->n);
+			vert_angles[efa->v4->tmp.l]+= shell_angle_to_dist(angle);
+			vert_users[efa->v4->tmp.l]++;
+		}
+	}
+
+	for(eve= em->verts.first, i=0; eve; eve= eve->next, i++) {
+		if(vert_users[i]) { /* zero if unselected */
+			madd_v3_v3fl(eve->co, eve->no, dist * (vert_angles[i] / (float)vert_users[i]));
+		}
+	}
+
+	MEM_freeN(vert_users);
+	MEM_freeN(vert_angles);
 }
