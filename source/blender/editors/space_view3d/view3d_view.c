@@ -1709,6 +1709,7 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	Scene *startscene = CTX_data_scene(C);
 	ScrArea *sa, *prevsa= CTX_wm_area(C);
 	ARegion *ar, *prevar= CTX_wm_region(C);
+	wmWindow *prevwin= CTX_wm_window(C);
 	RegionView3D *rv3d;
 	rcti cam_frame;
 
@@ -1742,11 +1743,15 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 
 
 	SaveState(C);
+
 	StartKetsjiShell(C, ar, &cam_frame, 1);
-	RestoreState(C);
 	
+	/* restore context, in case it changed in the meantime, for
+	   example by working in another window or closing it */
 	CTX_wm_region_set(C, prevar);
 	CTX_wm_area_set(C, prevsa);
+	CTX_wm_window_set(C, prevwin);
+	RestoreState(C);
 
 	//XXX restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(startscene);
