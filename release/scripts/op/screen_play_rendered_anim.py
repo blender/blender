@@ -120,7 +120,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             opts = ["-fps", str(rd.fps), "-play", "[ %s ]" % file]
             cmd.extend(opts)
         else: # 'CUSTOM'
-            cmd.extend(file)
+            cmd.append(file)
 
         # launch it
         try:
