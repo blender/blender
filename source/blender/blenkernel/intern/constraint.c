@@ -1191,17 +1191,17 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) { 
 				/* animated position along curve depending on time */
 				if (cob->scene)
-					curvetime= bsystem_time(cob->scene, ct->tar, ctime, 0.0) - data->offset;
+					curvetime= bsystem_time(cob->scene, ct->tar, cu->ctime, 0.0) - data->offset;
 				else	
-					curvetime= ctime - data->offset;
+					curvetime= cu->ctime - data->offset;
 				
 				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 				 * but this will only work if it actually is animated... 
 				 *
-				 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
-				 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+				 * we divide the curvetime calculated in the previous step by the length of the path, to get a time
+				 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 				 */
-				curvetime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
+				curvetime /= cu->pathlen;
 				CLAMP(curvetime, 0.0, 1.0);
 			}
 			else {
@@ -1211,7 +1211,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			
 			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius) ) {
 				if (data->followflag & FOLLOWPATH_FOLLOW) {
-					vec_to_quat( quat,dir, (short) data->trackflag, (short) data->upflag);
+					vec_to_quat(quat, dir, (short)data->trackflag, (short)data->upflag);
 					
 					normalize_v3(dir);
 					q[0]= (float)cos(0.5*vec[3]);
@@ -1221,7 +1221,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					q[3]= -x1*dir[2];
 					mul_qt_qtqt(quat, q, quat);
 					
-					quat_to_mat4( totmat,quat);
+					quat_to_mat4(totmat, quat);
 				}
 				
 				if (data->followflag & FOLLOWPATH_RADIUS) {
@@ -1251,12 +1251,12 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		float size[3];
 		bFollowPathConstraint *data= con->data;
 		
-		/* get Object local transform (loc/rot/size) to determine transformation from path */
-		//object_to_mat4(ob, obmat);
-		copy_m4_m4(obmat, cob->matrix); // FIXME!!!
+		/* get Object transform (loc/rot/size) to determine transformation from path */
+		// TODO: this used to be local at one point, but is probably more useful as-is
+		copy_m4_m4(obmat, cob->matrix);
 		
 		/* get scaling of object before applying constraint */
-		mat4_to_size( size,cob->matrix);
+		mat4_to_size(size, cob->matrix);
 		
 		/* apply targetmat - containing location on path, and rotation */
 		mul_serie_m4(cob->matrix, ct->matrix, obmat, NULL, NULL, NULL, NULL, NULL, NULL);

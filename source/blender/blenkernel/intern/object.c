@@ -1664,10 +1664,10 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 		/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 		 * but this will only work if it actually is animated... 
 		 *
-		 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
-		 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+		 * we divide the curvetime calculated in the previous step by the length of the path, to get a time
+		 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 		 */
-		ctime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
+		ctime= cu->ctime / cu->pathlen;
 		CLAMP(ctime, 0.0, 1.0);
 	}
 	else {
