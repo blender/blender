@@ -297,7 +297,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			if(rv3d->smooth_timer)
 				WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
 			/* TIMER1 is hardcoded in keymap */
-			rv3d->smooth_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frs/sec */
+			rv3d->smooth_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/100.0);	/* max 30 frs/sec */
 			
 			return;
 		}
