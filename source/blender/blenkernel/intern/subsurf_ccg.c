@@ -1548,11 +1548,14 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
-	MCol *mcol = DM_get_face_data_layer(dm, CD_MCOL);
+	MCol *mcol = dm->getFaceDataArray(dm, CD_WEIGHT_MCOL);
 	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 	char *faceFlags = ccgdm->faceFlags;
 	int i, totface, flag, gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
+
+	if(!mcol)
+		mcol = dm->getFaceDataArray(dm, CD_MCOL);
 
 	totface = ccgSubSurf_getNumFaces(ss);
 	for(i = 0; i < totface; i++) {
@@ -1719,21 +1722,35 @@ static void ccgDM_drawUVEdges(DerivedMesh *dm)
 static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
-	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
+	MCol *mcol= NULL;
 	int i, gridSize = ccgSubSurf_getGridSize(ss);
 	char *faceFlags = ccgdm->faceFlags;
+	int gridFaces = gridSize - 1, totface;
 
-	for (i=0; !ccgFaceIterator_isStopped(fi); i++,ccgFaceIterator_next(fi)) {
-		CCGFace *f = ccgFaceIterator_getCurrent(fi);
+	if(useColors) {
+		mcol = dm->getFaceDataArray(dm, CD_WEIGHT_MCOL);
+		if(!mcol)
+			mcol = dm->getFaceDataArray(dm, CD_MCOL);
+	}
+
+	totface = ccgSubSurf_getNumFaces(ss);
+	for(i = 0; i < totface; i++) {
+		CCGFace *f = ccgdm->faceMap[i].face;
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
 		int drawSmooth, index = ccgDM_getFaceMapIndex(ss, f);
 		int origIndex;
+		unsigned char *cp= NULL;
 
 		origIndex = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(ss, f));
 
 		if(faceFlags) drawSmooth = (faceFlags[origIndex*2] & ME_SMOOTH);
 		else drawSmooth = 1;
-		
+
+		if(mcol) {
+			cp= (unsigned char*)mcol;
+			mcol += gridFaces*gridFaces*numVerts*4;
+		}
+
 		if (index!=-1) {
 			int draw;
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, index, &drawSmooth);
@@ -1748,41 +1765,61 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *u
 					DMGridData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 					if (drawSmooth) {
 						glShadeModel(GL_SMOOTH);
-						for (y=0; y<gridSize-1; y++) {
+						for (y=0; y<gridFaces; y++) {
+							DMGridData *a, *b;
 							glBegin(GL_QUAD_STRIP);
-							for (x=0; x<gridSize; x++) {
-								DMGridData *a = &faceGridData[(y+0)*gridSize + x];
-								DMGridData *b = &faceGridData[(y+1)*gridSize + x];
+							for (x=0; x<gridFaces; x++) {
+								a = &faceGridData[(y+0)*gridSize + x];
+								b = &faceGridData[(y+1)*gridSize + x];
 	
+								if(cp) glColor3ub(cp[3], cp[2], cp[1]);
 								glNormal3fv(a->no);
 								glVertex3fv(a->co);
+								if(cp) glColor3ub(cp[7], cp[6], cp[5]);
 								glNormal3fv(b->no);
 								glVertex3fv(b->co);
+
+								if(x != gridFaces-1) {
+									if(cp) cp += 16;
+								}
 							}
+
+							a = &faceGridData[(y+0)*gridSize + x];
+							b = &faceGridData[(y+1)*gridSize + x];
+
+							if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+							glNormal3fv(a->no);
+							glVertex3fv(a->co);
+							if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+							glNormal3fv(b->no);
+							glVertex3fv(b->co);
+
+							if(cp) cp += 16;
+
 							glEnd();
 						}
 					} else {
 						glShadeModel(GL_FLAT);
 						glBegin(GL_QUADS);
-						for (y=0; y<gridSize-1; y++) {
-							for (x=0; x<gridSize-1; x++) {
+						for (y=0; y<gridFaces; y++) {
+							for (x=0; x<gridFaces; x++) {
 								float *a = faceGridData[(y+0)*gridSize + x].co;
 								float *b = faceGridData[(y+0)*gridSize + x + 1].co;
 								float *c = faceGridData[(y+1)*gridSize + x + 1].co;
 								float *d = faceGridData[(y+1)*gridSize + x].co;
-								float a_cX = c[0]-a[0], a_cY = c[1]-a[1], a_cZ = c[2]-a[2];
-								float b_dX = d[0]-b[0], b_dY = d[1]-b[1], b_dZ = d[2]-b[2];
-								float no[3];
+
+								ccgDM_glNormalFast(a, b, c, d);
 	
-								no[0] = b_dY*a_cZ - b_dZ*a_cY;
-								no[1] = b_dZ*a_cX - b_dX*a_cZ;
-								no[2] = b_dX*a_cY - b_dY*a_cX;
-								glNormal3fv(no);
-	
+								if(cp) glColor3ub(cp[7], cp[6], cp[5]);
 								glVertex3fv(d);
+								if(cp) glColor3ub(cp[11], cp[10], cp[9]);
 								glVertex3fv(c);
+								if(cp) glColor3ub(cp[15], cp[14], cp[13]);
 								glVertex3fv(b);
+								if(cp) glColor3ub(cp[3], cp[2], cp[1]);
 								glVertex3fv(a);
+
+								if(cp) cp += 16;
 							}
 						}
 						glEnd();
@@ -1793,8 +1830,6 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *u
 			}
 		}
 	}
-
-	ccgFaceIterator_free(fi);
 }
 static void ccgDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;

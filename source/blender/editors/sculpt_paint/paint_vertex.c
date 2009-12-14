@@ -1300,15 +1300,18 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 		if (md->type == eModifierType_Armature) 
 		{
 			amd = (ArmatureModifierData*) md;
-			pose = amd->object->pose;
-			
-			for (chan=pose->chanbase.first; chan; chan=chan->next) {
-				if (chan->bone->flag & BONE_NO_DEFORM)
-					continue;
 
-				if (BLI_ghash_haskey(gh, chan->name)) {
-					BLI_ghash_remove(gh, chan->name, NULL, NULL);
-					BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
+			if(amd->object && amd->object->pose) {
+				pose = amd->object->pose;
+				
+				for (chan=pose->chanbase.first; chan; chan=chan->next) {
+					if (chan->bone->flag & BONE_NO_DEFORM)
+						continue;
+
+					if (BLI_ghash_haskey(gh, chan->name)) {
+						BLI_ghash_remove(gh, chan->name, NULL, NULL);
+						BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
+					}
 				}
 			}
 		}

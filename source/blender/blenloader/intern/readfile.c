@@ -4269,10 +4269,13 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
-	(*paint)= newdataadr(fd, (*paint));
-	if(*paint) {
-		(*paint)->paint_cursor= NULL;
-		(*paint)->brushes= newdataadr(fd, (*paint)->brushes);
+	Paint *p;
+
+	p= (*paint)= newdataadr(fd, (*paint));
+	if(p) {
+		p->paint_cursor= NULL;
+		p->brushes= newdataadr(fd, p->brushes);
+		test_pointer_array(fd, (void**)&p->brushes);
 	}
 }
 
@@ -4309,6 +4312,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
 
 		sce->toolsettings->imapaint.paint.brushes= newdataadr(fd, sce->toolsettings->imapaint.paint.brushes);
+		test_pointer_array(fd, (void**)&sce->toolsettings->imapaint.paint.brushes);
 
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
@@ -10115,8 +10119,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* clear hanging 'temp' screens from older 2.5 files*/
 		if (main->versionfile == 250) {
-			bScreen *screen;
-			for(screen= main->screen.first; screen; screen= screen->id.next) {
+			bScreen *screen, *nextscreen;
+
+			for(screen= main->screen.first; screen; screen= nextscreen) {
+				nextscreen= screen->id.next;
+
 				if (screen->full == SCREENTEMP)
 					free_libblock(&main->screen, screen);
 			}

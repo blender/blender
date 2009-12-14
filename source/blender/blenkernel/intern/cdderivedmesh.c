@@ -761,7 +761,6 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
 	int i, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
 
-
 	mc = DM_get_face_data_layer(dm, CD_ID_MCOL);
 	if(!mc)
 		mc = DM_get_face_data_layer(dm, CD_WEIGHT_MCOL);
