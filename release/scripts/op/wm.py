@@ -43,10 +43,6 @@ rna_reverse_prop = BoolProperty(name="Reverse",
         description="Cycle backwards", default=False)
 
 
-class NullPath:
-    pass
-
-
 def context_path_validate(context, path):
     import sys
     try:
@@ -54,7 +50,7 @@ def context_path_validate(context, path):
     except AttributeError:
         if "'NoneType'" in str(sys.exc_info()[1]):
             # One of the items in the rna path is None, just ignore this
-            value = NullPath
+            value = Ellipsis
         else:
             # We have a real error in the rna path, dont ignore that
             raise
@@ -63,7 +59,7 @@ def context_path_validate(context, path):
 
 
 def execute_context_assign(self, context):
-    if context_path_validate(context, self.properties.path) == NullPath:
+    if context_path_validate(context, self.properties.path) is Ellipsis:
         return ('PASS_THROUGH',)
     exec("context.%s=self.properties.value" % self.properties.path)
     return ('FINISHED',)
@@ -137,7 +133,7 @@ class WM_OT_context_toggle(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.properties.path) == NullPath:
+        if context_path_validate(context, self.properties.path) is Ellipsis:
             return ('PASS_THROUGH',)
 
         exec("context.%s=not (context.%s)" %
@@ -160,7 +156,7 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.properties.path) == NullPath:
+        if context_path_validate(context, self.properties.path) is Ellipsis:
             return ('PASS_THROUGH',)
 
         exec("context.%s = ['%s', '%s'][context.%s!='%s']" % \
@@ -182,7 +178,7 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
     def execute(self, context):
 
         value = context_path_validate(context, self.properties.path)
-        if value == NullPath:
+        if value is Ellipsis:
             return ('PASS_THROUGH',)
 
         self.properties.value = value
@@ -214,7 +210,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
     def execute(self, context):
 
         value = context_path_validate(context, self.properties.path)
-        if value == NullPath:
+        if value is Ellipsis:
             return ('PASS_THROUGH',)
 
         orig_value = value
