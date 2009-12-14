@@ -21,12 +21,15 @@
 import os
 
 # depends on pep8, pyflakes, pylint
-# for ubuntu/debian
+# for ubuntu
 #
 #   sudo apt-get install pylint pyflakes
 #
 #   sudo apt-get install python-setuptools python-pip
 #   sudo pip install pep8
+#
+# in debian install pylint pyflakes pep8 with apt-get/aptitude/etc
+#
 
 # how many lines to read into the file, pep8 comment
 # should be directly after the licence header, ~20 in most cases
