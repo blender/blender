@@ -1488,7 +1488,7 @@ struct MultiresModifierData *sculpt_multires_active(Object *ob)
 				if(nmd->mode & eModifierMode_Realtime)
 					break;
 
-			if(!nmd && mmd->lvl != 1)
+			if(!nmd && mmd->sculptlvl > 0)
 				return mmd;
 		}
 	}
