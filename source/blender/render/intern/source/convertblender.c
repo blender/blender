@@ -1707,14 +1707,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			totface= psmd->dm->getNumFaces(psmd->dm);
 			origindex= psmd->dm->getFaceDataArray(psmd->dm, CD_ORIGINDEX);
-			if(origindex) {
-				for(a=0; a<totface; a++)
-					strandbuf->totbound= MAX2(strandbuf->totbound, origindex[a]);
-			}
-			else {
-				for(a=0; a<totface; a++)
-					strandbuf->totbound= MAX2(strandbuf->totbound, a);
-			}
+			for(a=0; a<totface; a++)
+				strandbuf->totbound= MAX2(strandbuf->totbound, (origindex)? origindex[a]: a);
 
 			strandbuf->totbound++;
 			strandbuf->bound= MEM_callocN(sizeof(StrandBound)*strandbuf->totbound, "StrandBound");
@@ -1856,8 +1850,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			dosimplify = psys_render_simplify_params(psys, cpa, simplify);
 
 			if(strandbuf) {
-				if(origindex[cpa->num]+1 > sbound - strandbuf->bound) {
-					sbound= strandbuf->bound + origindex[cpa->num]+1;
+				int orignum= (origindex)? origindex[cpa->num]: cpa->num;
+
+				if(orignum > sbound - strandbuf->bound) {
+					sbound= strandbuf->bound + orignum;
 					sbound->start= sbound->end= obr->totstrand;
 				}
 			}
