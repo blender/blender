@@ -378,7 +378,7 @@ if not os.path.isdir ( B.root_build_dir):
 	os.makedirs ( B.root_build_dir + 'extern' )
 	os.makedirs ( B.root_build_dir + 'lib' )
 	os.makedirs ( B.root_build_dir + 'bin' )
-if not os.path.isdir(B.doc_build_dir):
+if not os.path.isdir(B.doc_build_dir) and env['WITH_BF_DOCS']:
 	os.makedirs ( B.doc_build_dir )
 
 Help(opts.GenerateHelpText(env))
@@ -535,7 +535,7 @@ for tp, tn, tf in os.walk('release/plugins'):
 		tn.remove('.svn')
 	for f in tf:
 		pluglist.append(os.path.join(tp, f))
-		plugtargetlist.append( os.path.join(*([BLENDERPATH] + tp.split(os.sep)[1:] + [f])) )
+		plugtargetlist.append( os.path.join(*([BLENDERPATH, 'plugins'] + tp.split(os.sep)[1:] + [f])) )
 
 
 # header files for plugins
@@ -648,12 +648,14 @@ if not env['WITHOUT_BF_INSTALL']:
 
 #------------ EPYDOC
 if env['WITH_BF_DOCS']:
-	try:		import epydoc
-	except:	epydoc = None
-	
-	if epydoc:
-		SConscript('source/gameengine/PyDoc/SConscript')
-	else:
-		print "No epydoc install detected, Python API and Gameengine API Docs will not be generated "
-	
+    try:
+        import epydoc
+    except ImportError:
+        epydoc = None
+
+    if epydoc:
+        SConscript('source/gameengine/PyDoc/SConscript')
+    else:
+        print "No epydoc install detected, Python API and Gameengine API Docs will not be generated "
+
 
