@@ -6003,6 +6003,12 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_UI;
 				ar->alignment= RGN_ALIGN_TOP;
 				break;
+			case SPACE_SEQ:
+				ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_TOP;
+				break;
 			case SPACE_VIEW3D:
 				/* toolbar */
 				ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
@@ -10165,6 +10171,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ClothModifierData *clmd = (ClothModifierData *)md;
 					if (clmd->sim_parms->velocity_smooth < 0.01f)
 						clmd->sim_parms->velocity_smooth = 0.f;
+				}
+			}
+		}
+	}
+	{ /* fix for new view type in sequencer */
+		bScreen *screen;
+		ScrArea *sa;
+		SpaceLink *sl;
+		
+		for(screen= main->screen.first; screen; screen= screen->id.next) {
+			for(sa= screen->areabase.first; sa; sa= sa->next) {
+				for(sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_SEQ) {
+						SpaceSeq *sseq = (SpaceSeq *)sl;
+						if (sseq->view == 0) sseq->view = SEQ_VIEW_SEQUENCE;
+						if (sseq->mainb == 0) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
+					}
 				}
 			}
 		}

@@ -146,7 +146,9 @@ typedef struct SpaceSeq {
 	short zebra;
 	int flag;
 	float zoom;
-	
+	int view; /* see SEQ_VIEW_* below */
+	int pad;
+
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceSeq;
 
@@ -856,6 +858,12 @@ enum {
 #define SEQ_DRAW_SAFE_MARGINS        8
 #define SEQ_DRAW_GPENCIL			16
 #define SEQ_NO_DRAW_CFRANUM			32
+
+/* sseq->view */
+#define SEQ_VIEW_SEQUENCE			1
+#define SEQ_VIEW_PREVIEW			2
+#define SEQ_VIEW_SEQUENCE_PREVIEW	3
+
 
 /* space types, moved from DNA_screen_types.h */
 enum {

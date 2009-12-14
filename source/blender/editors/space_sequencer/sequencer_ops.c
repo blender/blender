@@ -85,7 +85,9 @@ void sequencer_operatortypes(void)
 
 	WM_operatortype_append(SEQUENCER_OT_view_all);
 	WM_operatortype_append(SEQUENCER_OT_view_selected);
-	
+	WM_operatortype_append(SEQUENCER_OT_view_all_preview);
+	WM_operatortype_append(SEQUENCER_OT_view_toggle);
+
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_select_all_toggle);
 	WM_operatortype_append(SEQUENCER_OT_select_inverse);
@@ -110,9 +112,14 @@ void sequencer_operatortypes(void)
 
 void sequencer_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Sequencer", SPACE_SEQ, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "SequencerCommon", SPACE_SEQ, 0);
 	wmKeyMapItem *kmi;
-	
+
+	/* operators common to sequence and preview view */
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+
+	/* operators for sequence */
+	keymap= WM_keymap_find(keyconf, "Sequencer", SPACE_SEQ, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
@@ -214,5 +221,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "SEQUENCER_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
+
+	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all_preview", HOMEKEY, KM_PRESS, 0, 0);
 }
 

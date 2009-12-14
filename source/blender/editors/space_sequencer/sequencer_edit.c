@@ -83,6 +83,7 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_util.h"
+#include "ED_sequencer.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -2268,45 +2269,12 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
-	SpaceSeq *sseq= area->spacedata.first;
 	View2D *v2d= UI_view2d_fromcontext(C);
 
-	if (sseq->mainb==SEQ_DRAW_SEQUENCE) {
-		v2d->cur= v2d->tot;
-		UI_view2d_curRect_validate(v2d);
-		UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
-	} else {
-		/* Like zooming on an image view */
-		float zoomX, zoomY;
-		int width, height, imgwidth, imgheight;
-
-		width = ar->winx;
-		height = ar->winy;
-
-		seq_reset_imageofs(sseq);
-
-		imgwidth= (scene->r.size*scene->r.xsch)/100;
-		imgheight= (scene->r.size*scene->r.ysch)/100;
-
-		/* Apply aspect, dosnt need to be that accurate */
-		imgwidth= (int)(imgwidth * ((float)scene->r.xasp / (float)scene->r.yasp));
-
-		if (((imgwidth >= width) || (imgheight >= height)) &&
-			((width > 0) && (height > 0))) {
-
-			/* Find the zoom value that will fit the image in the image space */
-			zoomX = ((float)width) / ((float)imgwidth);
-			zoomY = ((float)height) / ((float)imgheight);
-			sseq->zoom= (zoomX < zoomY) ? zoomX : zoomY;
-
-			sseq->zoom = 1.0f / power_of_2(1/ MIN2(zoomX, zoomY) );
-		}
-		else {
-			sseq->zoom= 1.0f;
-		}
-	}
-
-
+	v2d->cur= v2d->tot;
+	UI_view2d_curRect_validate(v2d);
+	UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
+	
 	ED_area_tag_redraw(CTX_wm_area(C));
 	return OPERATOR_FINISHED;
 }
@@ -2327,8 +2295,102 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 }
 
+/* view_all operator */
+static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *area= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	SpaceSeq *sseq= area->spacedata.first;
+	View2D *v2d= UI_view2d_fromcontext(C);
+
+
+	/* Like zooming on an image view */
+	float zoomX, zoomY;
+	int width, height, imgwidth, imgheight;
+
+	width = ar->winx;
+	height = ar->winy;
+
+	seq_reset_imageofs(sseq);
+
+	imgwidth= (scene->r.size*scene->r.xsch)/100;
+	imgheight= (scene->r.size*scene->r.ysch)/100;
+
+	/* Apply aspect, dosnt need to be that accurate */
+	imgwidth= (int)(imgwidth * ((float)scene->r.xasp / (float)scene->r.yasp));
+
+	if (((imgwidth >= width) || (imgheight >= height)) &&
+		((width > 0) && (height > 0))) {
+
+		/* Find the zoom value that will fit the image in the image space */
+		zoomX = ((float)width) / ((float)imgwidth);
+		zoomY = ((float)height) / ((float)imgheight);
+		sseq->zoom= (zoomX < zoomY) ? zoomX : zoomY;
+
+		sseq->zoom = 1.0f / power_of_2(1/ MIN2(zoomX, zoomY) );
+	}
+	else {
+		sseq->zoom= 1.0f;
+	}
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View All";
+	ot->idname= "SEQUENCER_OT_view_all_preview";
+	ot->description="Zoom preview to fit in the area.";
+	
+	/* api callbacks */
+	ot->exec= sequencer_view_all_preview_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+static EnumPropertyItem view_type_items[] = {
+		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
+		{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
+		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, "Sequencer and Image Preview", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 /* view_all operator */
+static int sequencer_view_toggle_exec(bContext *C, wmOperator *op)
+{
+	SpaceSeq *sseq= CTX_wm_space_data(C);
+
+	sseq->view++;
+	if (sseq->view > SEQ_VIEW_SEQUENCE_PREVIEW) sseq->view = SEQ_VIEW_SEQUENCE;
+
+	ED_sequencer_update_view(C, sseq->view);
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_view_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Toggle";
+	ot->idname= "SEQUENCER_OT_view_toggle";
+	ot->description="Toggle between sequencer views (sequence, preview, both).";
+	
+	/* api callbacks */
+	ot->exec= sequencer_view_toggle_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+
+/* view_selected operator */
 static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);

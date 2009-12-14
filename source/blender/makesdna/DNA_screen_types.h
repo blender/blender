@@ -219,6 +219,7 @@ typedef struct ARegion {
 #define RGN_TYPE_UI			4
 #define RGN_TYPE_TOOLS		5
 #define RGN_TYPE_TOOL_PROPS	6
+#define RGN_TYPE_PREVIEW	7
 
 /* region alignment */
 #define RGN_ALIGN_NONE		0

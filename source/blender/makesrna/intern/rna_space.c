@@ -106,6 +106,7 @@ EnumPropertyItem autosnap_items[] = {
 #include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_sequencer.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -480,6 +481,13 @@ static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 {
 	SpaceIpo *sipo= (SpaceIpo*)(ptr->data);
 	return (sipo->ghostCurves.first != NULL);
+}
+
+static void rna_Sequencer_display_mode_update(bContext *C, PointerRNA *ptr)
+{
+	int view = RNA_int_get(ptr, "view_type");
+
+	ED_sequencer_update_view(C, view);
 }
 
 #else
@@ -1068,8 +1076,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	static EnumPropertyItem view_type_items[] = {
+		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
+		{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
+		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, "Sequencer and Image Preview", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem display_mode_items[] = {
-		{SEQ_DRAW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
 		{SEQ_DRAW_IMG_IMBUF, "IMAGE", ICON_SEQ_PREVIEW, "Image Preview", ""},
 		{SEQ_DRAW_IMG_WAVEFORM, "WAVEFORM", ICON_SEQ_LUMA_WAVEFORM, "Luma Waveform", ""},
 		{SEQ_DRAW_IMG_VECTORSCOPE, "VECTOR_SCOPE", ICON_SEQ_CHROMA_SCOPE, "Chroma Vectorscope", ""},
@@ -1080,6 +1093,14 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SpaceSeq");
 	RNA_def_struct_ui_text(srna, "Space Sequence Editor", "Sequence editor space data.");
 	
+	/* view type, fairly important */
+	prop= RNA_def_property(srna, "view_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "view");
+	RNA_def_property_enum_items(prop, view_type_items);
+	RNA_def_property_ui_text(prop, "View Type", "The type of the Sequencere view (sequencer, preview or both).");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, 0, "rna_Sequencer_display_mode_update");
+
 	/* display type, fairly important */
 	prop= RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mainb");

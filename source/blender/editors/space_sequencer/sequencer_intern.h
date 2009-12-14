@@ -95,8 +95,12 @@ void SEQUENCER_OT_swap_right(struct wmOperatorType *ot);
 void SEQUENCER_OT_swap_left(struct wmOperatorType *ot);
 void SEQUENCER_OT_rendersize(struct wmOperatorType *ot);
 
+void SEQUENCER_OT_view_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
+
+/* preview specific operators */
+void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot);
