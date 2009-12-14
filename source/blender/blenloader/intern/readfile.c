@@ -5944,7 +5944,8 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 {
 	ARegion *ar;
-	
+	ARegion *ar_main;
+
 	if(sl) {
 		/* first channels for ipo action nla... */
 		switch(sl->spacetype) {
@@ -6004,10 +6005,16 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->alignment= RGN_ALIGN_TOP;
 				break;
 			case SPACE_SEQ:
+				ar_main = (ARegion*)lb->first;
+				for (; ar_main; ar_main = ar_main->next) {
+					if (ar_main->regiontype == RGN_TYPE_WINDOW)
+						break;
+				}
 				ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
-				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
+				BLI_insertlinkbefore(lb, ar_main, ar);
+				ar->regiontype= RGN_TYPE_PREVIEW;
 				ar->alignment= RGN_ALIGN_TOP;
+				ar->flag |= RGN_FLAG_HIDDEN;
 				break;
 			case SPACE_VIEW3D:
 				/* toolbar */
@@ -10159,39 +10166,61 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 10))
 	{
-		Object *ob;
-		
-		/* properly initialise hair clothsim data on old files */
-		for(ob = main->object.first; ob; ob = ob->id.next) {
-			ModifierData *md;
-			for(md= ob->modifiers.first; md; md= md->next) {
-				if (md->type == eModifierType_Cloth) {
-					ClothModifierData *clmd = (ClothModifierData *)md;
-					if (clmd->sim_parms->velocity_smooth < 0.01f)
-						clmd->sim_parms->velocity_smooth = 0.f;
+		{
+			Object *ob;
+			
+			/* properly initialise hair clothsim data on old files */
+			for(ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for(md= ob->modifiers.first; md; md= md->next) {
+					if (md->type == eModifierType_Cloth) {
+						ClothModifierData *clmd = (ClothModifierData *)md;
+						if (clmd->sim_parms->velocity_smooth < 0.01f)
+							clmd->sim_parms->velocity_smooth = 0.f;
+					}
 				}
 			}
 		}
-	}
-	{ /* fix for new view type in sequencer */
-		bScreen *screen;
-		ScrArea *sa;
-		SpaceLink *sl;
-		
-		for(screen= main->screen.first; screen; screen= screen->id.next) {
-			for(sa= screen->areabase.first; sa; sa= sa->next) {
-				for(sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->spacetype==SPACE_SEQ) {
-						SpaceSeq *sseq = (SpaceSeq *)sl;
-						if (sseq->view == 0) sseq->view = SEQ_VIEW_SEQUENCE;
-						if (sseq->mainb == 0) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
+		{
+			/* fix for new view type in sequencer */
+			bScreen *screen;
+			ScrArea *sa;
+			SpaceLink *sl;
+			
+
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					for(sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_SEQ) {
+							ARegion *ar;
+							ARegion *ar_main;
+							ListBase *lb = &sa->regionbase;
+							SpaceSeq *sseq = (SpaceSeq *)sl;
+
+							if (sseq->view == 0) sseq->view = SEQ_VIEW_SEQUENCE;
+							if (sseq->mainb == 0) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
+							
+							ar_main = (ARegion*)lb->first;
+							for (; ar_main; ar_main = ar_main->next) {
+								if (ar_main->regiontype == RGN_TYPE_WINDOW)
+									break;
+							}
+							ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
+							BLI_insertlinkbefore(lb, ar_main, ar);
+							ar->regiontype= RGN_TYPE_PREVIEW;
+							ar->alignment= RGN_ALIGN_TOP;
+							ar->flag |= RGN_FLAG_HIDDEN;
+						}
 					}
 				}
 			}
 		}
 	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
