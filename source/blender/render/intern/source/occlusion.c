@@ -356,18 +356,18 @@ static void occ_sum_occlusion(OcclusionTree *tree, OccNode *node)
 {
 	OccNode *child;
 	float occ, area, totarea, rad[3];
-	int a, b;
+	int a, b, indirect= tree->doindirect;
 
 	occ= 0.0f;
 	totarea= 0.0f;
-	zero_v3(rad);
+	if(indirect) zero_v3(rad);
 
 	for(b=0; b<TOTCHILD; b++) {
 		if(node->childflag & (1<<b)) {
 			a= node->child[b].face;
 			occ_face(&tree->face[a], 0, 0, &area);
 			occ += area*tree->occlusion[a];
-			madd_v3_v3fl(rad, tree->rad[a], area);
+			if(indirect) madd_v3_v3fl(rad, tree->rad[a], area);
 			totarea += area;
 		}
 		else if(node->child[b].node) {
@@ -375,18 +375,18 @@ static void occ_sum_occlusion(OcclusionTree *tree, OccNode *node)
 			occ_sum_occlusion(tree, child);
 
 			occ += child->area*child->occlusion;
-			madd_v3_v3fl(rad, child->rad, child->area);
+			if(indirect) madd_v3_v3fl(rad, child->rad, child->area);
 			totarea += child->area;
 		}
 	}
 
 	if(totarea != 0.0f) {
 		occ /= totarea;
-		mul_v3_fl(rad, 1.0f/totarea);
+		if(indirect) mul_v3_fl(rad, 1.0f/totarea);
 	}
 	
 	node->occlusion= occ;
-	copy_v3_v3(node->rad, rad);
+	if(indirect) copy_v3_v3(node->rad, rad);
 }
 
 static int occ_find_bbox_axis(OcclusionTree *tree, int begin, int end, float *min, float *max)
@@ -1613,6 +1613,7 @@ static void *exec_strandsurface_sample(void *data)
 void make_occ_tree(Render *re)
 {
 	OcclusionThread othreads[BLENDER_MAX_THREADS];
+	OcclusionTree *tree;
 	StrandSurface *mesh;
 	ListBase threads;
 	float ao[3], indirect[3], (*faceao)[3], (*faceindirect)[3];
@@ -1624,13 +1625,13 @@ void make_occ_tree(Render *re)
 	re->i.infostr= "Occlusion preprocessing";
 	re->stats_draw(re->sdh, &re->i);
 	
-	re->occlusiontree= occ_tree_build(re);
+	re->occlusiontree= tree= occ_tree_build(re);
 	
-	if(re->occlusiontree) {
+	if(tree) {
 		if(re->wrld.ao_approx_passes > 0)
-			occ_compute_passes(re, re->occlusiontree, re->wrld.ao_approx_passes);
-		if(re->wrld.ao_indirect_bounces > 1)
-			occ_compute_bounces(re, re->occlusiontree, re->wrld.ao_indirect_bounces);
+			occ_compute_passes(re, tree, re->wrld.ao_approx_passes);
+		if(tree->doindirect && re->wrld.ao_indirect_bounces > 1)
+			occ_compute_bounces(re, tree, re->wrld.ao_indirect_bounces);
 
 		for(mesh=re->strandsurface.first; mesh; mesh=mesh->next) {
 			if(!mesh->face || !mesh->co || !mesh->ao)
