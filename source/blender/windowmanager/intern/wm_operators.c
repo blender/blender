@@ -2550,8 +2550,10 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 				CTX_wm_area_set(C, sa);
 
 				for(ar_iter= sa->regionbase.first; ar_iter; ar_iter= ar_iter->next) {
-					CTX_wm_region_set(C, ar_iter);
-					ED_region_do_draw(C, ar_iter);
+					if(ar_iter->swinid) {
+						CTX_wm_region_set(C, ar_iter);
+						ED_region_do_draw(C, ar_iter);
+					}
 				}
 			}
 
