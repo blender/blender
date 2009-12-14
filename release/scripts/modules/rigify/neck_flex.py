@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import RigifyError
+from rigify import RigifyError, get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -121,7 +121,7 @@ def main(obj, bone_definition, base_names, options):
     neck_chain_basename = base_names[mt_chain.neck_01_e.name].split(".")[0]
     neck_chain_segment_length = mt_chain.neck_01_e.length
 
-    ex = bone_class_instance(obj, ["body", "head", "head_hinge", "neck_socket", "head_ctrl"]) # hinge & extras
+    ex = bone_class_instance(obj, ["head", "head_hinge", "neck_socket", "head_ctrl"]) # hinge & extras
 
     # Add the head hinge at the bodys location, becomes the parent of the original head
 
@@ -295,6 +295,16 @@ def main(obj, bone_definition, base_names, options):
         con = orig_neck_p.constraints.new('COPY_ROTATION')
         con.target = obj
         con.subtarget = neck_p.name
+
+
+    # last step setup layers
+    layers = get_layer_dict(options)
+    lay = layers["extra"]
+    for attr in ex_chain.attr_names:
+        getattr(ex_chain, attr + "_b").layer = lay
+    for attr in ex.attr_names:
+        getattr(ex, attr + "_b").layer = lay
+
 
     # no blending the result of this
     return None

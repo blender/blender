@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from rigify import get_layer_dict
 from rigify_utils import bone_class_instance
 
 METARIG_NAMES = ("cpy",)
@@ -55,12 +56,17 @@ def main(obj, bone_definition, base_names, options):
     cp.update()
     mt.update()
 
+    if not cp.cpy_b.connected:
+        con = cp.cpy_p.constraints.new('COPY_LOCATION')
+        con.target = obj
+        con.subtarget = mt.cpy
+
     con = cp.cpy_p.constraints.new('COPY_ROTATION')
     con.target = obj
     con.subtarget = mt.cpy
 
-    con = cp.cpy_p.constraints.new('COPY_LOCATION')
-    con.target = obj
-    con.subtarget = mt.cpy
+    # setup layers last
+    layers = get_layer_dict(options)
+    cp.cpy_b.layer = layers["main"]
 
     return [mt.cpy]

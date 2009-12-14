@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import RigifyError
+from rigify import RigifyError, get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from Mathutils import Vector
@@ -170,8 +170,17 @@ def ik(obj, definitions, base_names, options):
     prop["soft_min"] = 0.0
     prop["soft_max"] = 1.0
 
-    bpy.ops.object.mode_set(mode='EDIT')
 
+    # last step setup layers
+    layers = get_layer_dict(options)
+    lay = layers["ik"]
+    for attr in ik_chain.attr_names:
+        getattr(ik_chain, attr + "_b").layer = lay
+    for attr in ik.attr_names:
+        getattr(ik, attr + "_b").layer = lay
+
+
+    bpy.ops.object.mode_set(mode='EDIT')
     # don't blend the shoulder
     return [None] + ik_chain.names()
 
@@ -184,7 +193,7 @@ def fk(obj, definitions, base_names, options):
     mt.shoulder, mt.arm, mt.forearm, mt.hand = definitions
     mt.update()
 
-    ex = bone_class_instance(obj, ["socket", "arm_hinge", "hand_delta"])
+    ex = bone_class_instance(obj, ["socket", "hand_delta"])
     fk_chain = mt.copy(base_names=base_names)
 
     # shoulder is used as a hinge
@@ -263,8 +272,19 @@ def fk(obj, definitions, base_names, options):
 
     hinge_setup()
 
-    bpy.ops.object.mode_set(mode='EDIT')
 
+    # last step setup layers
+    layers = get_layer_dict(options)
+    lay = layers["fk"]
+    for attr in fk_chain.attr_names:
+        getattr(fk_chain, attr + "_b").layer = lay
+
+    lay = layers["extra"]
+    for attr in ex.attr_names:
+        getattr(ex, attr + "_b").layer = lay
+
+
+    bpy.ops.object.mode_set(mode='EDIT')
     return None, fk_chain.arm, fk_chain.forearm, fk_chain.hand
 
 

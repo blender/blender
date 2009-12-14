@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from rigify import get_layer_dict
 from rigify_utils import copy_bone_simple, get_side_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -231,6 +232,12 @@ def main(obj, bone_definition, base_names, options):
 
     if x_direction(): # flip
         driver.expression = "-(%s)" % driver.expression
+
+
+    # last step setup layers
+    layers = get_layer_dict(options)
+    arm.bones[control_name].layer = layers["extra"]
+
 
     # no blending the result of this
     return None

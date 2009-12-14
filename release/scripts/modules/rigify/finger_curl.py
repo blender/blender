@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import RigifyError
+from rigify import RigifyError, get_layer_dict
 from rigify_utils import copy_bone_simple, get_side_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from functools import reduce
@@ -212,6 +212,16 @@ def main(obj, bone_definition, base_names, options):
         driver_pbone.lock_rotation = child_pbone.lock_rotation = (False, True, True)
 
         i += 1
+
+
+    # last step setup layers
+    layers = get_layer_dict(options)
+    lay = layers["extra"]
+    for child_bone_name, driver_bone_name in driver_bone_pairs:
+        arm.bones[driver_bone_name].layer = lay
+
+    lay = layers["main"]
+    arm.bones[control_bone_name].layer = lay
 
     # no blending the result of this
     return None

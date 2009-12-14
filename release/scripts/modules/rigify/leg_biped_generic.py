@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import RigifyError
+from rigify import RigifyError, get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -131,8 +131,6 @@ def ik(obj, bone_definition, base_names, options):
     # setup the existing bones
     mt_chain = bone_class_instance(obj, ["thigh", "shin", "foot", "toe"])
     mt = bone_class_instance(obj, ["hips", "heel"])
-    #ex = bone_class_instance(obj, [""])
-    ex = bone_class_instance(obj, ["thigh_socket", "thigh_hinge", "foot_roll_1", "foot_roll_2", "foot_roll_3"])
     # children of ik_foot
     ik = bone_class_instance(obj, ["foot", "foot_roll", "foot_roll_01", "foot_roll_02", "knee_target"])
 
@@ -215,7 +213,6 @@ def ik(obj, bone_definition, base_names, options):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     ik.update()
-    ex.update()
     mt_chain.update()
     ik_chain.update()
 
@@ -268,6 +265,15 @@ def ik(obj, bone_definition, base_names, options):
         else:
             con.minimum_x = -180.0 # XXX -deg
             con.maximum_x = 0.0
+
+
+    # last step setup layers
+    layers = get_layer_dict(options)
+    lay = layers["ik"]
+    for attr in ik_chain.attr_names:
+        getattr(ik_chain, attr + "_b").layer = lay
+    for attr in ik.attr_names:
+        getattr(ik, attr + "_b").layer = lay
 
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -347,6 +353,19 @@ def fk(obj, bone_definition, base_names, options):
     mod.poly_order = 1
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
+
+
+
+    # last step setup layers
+    layers = get_layer_dict(options)
+    lay = layers["fk"]
+    for attr in fk_chain.attr_names:
+        getattr(fk_chain, attr + "_b").layer = lay
+
+    lay = layers["extra"]
+    for attr in ex.attr_names:
+        getattr(ex, attr + "_b").layer = lay
+
 
     bpy.ops.object.mode_set(mode='EDIT')
 

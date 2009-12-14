@@ -24,6 +24,7 @@ from Mathutils import Vector
 # TODO, have these in a more general module
 from rna_prop_ui import rna_idprop_ui_prop_get
 SPECIAL_TYPES = "root",
+LAYER_TYPES = "main", "extra", "ik", "fk"
 
 
 class RigifyError(Exception):
@@ -79,6 +80,22 @@ def get_bone_type_options(pbone, type_name):
             options[key_pair[1]] = value
 
     return options
+
+
+def get_layer_dict(options):
+    '''
+    Extracts layer info from a bone options dict
+    defaulting to the layer index if not set.
+    '''
+    layer_default = [False] * 32
+    result = {}
+    for i, layer_type in enumerate(LAYER_TYPES):
+        # no matter if its not defined
+        layer_index = options.get("layer_" + layer_type, i + 2)
+        layer = layer_default[:]
+        layer[layer_index-1] = True
+        result[layer_type] = layer
+    return result
 
 
 def validate_rig(context, obj):

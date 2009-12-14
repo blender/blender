@@ -29,7 +29,9 @@ import os
 #   sudo pip install pep8
 #
 # in debian install pylint pyflakes pep8 with apt-get/aptitude/etc
-#
+# 
+# on *nix run
+#   python release/test/pep8.py > tmp.err 2>&1
 
 # how many lines to read into the file, pep8 comment
 # should be directly after the licence header, ~20 in most cases

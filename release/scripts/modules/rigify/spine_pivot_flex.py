@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from rigify import get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -494,6 +495,21 @@ def main(obj, bone_definition, base_names, options):
         mod.poly_order = 1
         mod.coefficients[0] = - (i - 1)
         mod.coefficients[1] = spine_chain_len
+
+
+    # last step setup layers
+    layers = get_layer_dict(options)
+    lay = layers["extra"]
+    for attr in ex.attr_names:
+        getattr(ex, attr + "_b").layer = lay
+    for attr in ex_chain.attr_names:
+        getattr(ex_chain, attr + "_b").layer = lay
+
+    lay = layers["main"]
+    for attr in df.attr_names:
+        getattr(df, attr + "_b").layer = lay
+    for attr in rv_chain .attr_names:
+        getattr(rv_chain , attr + "_b").layer = lay
 
     # no support for blending chains
     return None
