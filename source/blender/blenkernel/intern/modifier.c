@@ -6570,6 +6570,7 @@ static void particleInstanceModifier_copyData(ModifierData *md, ModifierData *ta
 	tpimd->ob = pimd->ob;
 	tpimd->psys = pimd->psys;
 	tpimd->flag = pimd->flag;
+	tpimd->axis = pimd->axis;
 	tpimd->position = pimd->position;
 	tpimd->random_position = pimd->random_position;
 }
