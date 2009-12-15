@@ -2387,14 +2387,52 @@ void EM_make_hq_normals(EditMesh *em)
 }
 
 #define FLT_EPSILON 0.00001
+
+static void em_face_angles(EditFace *efa, float *face_angles)
+{
+	float vec1[3], vec2[3], vec3[3], vec4[3];
+
+	/* note, could cache normalized edges? */
+	if(efa->v4) {
+		sub_v3_v3v3(vec1, efa->v4->co, efa->v1->co);
+		sub_v3_v3v3(vec2, efa->v1->co, efa->v2->co);
+		sub_v3_v3v3(vec3, efa->v2->co, efa->v3->co);
+		sub_v3_v3v3(vec4, efa->v3->co, efa->v4->co);
+
+		normalize_v3(vec1);
+		normalize_v3(vec2);
+		normalize_v3(vec3);
+		normalize_v3(vec4);
+
+		face_angles[0]= M_PI - angle_normalized_v3v3(vec1, vec2);
+		face_angles[1]= M_PI - angle_normalized_v3v3(vec2, vec3);
+		face_angles[2]= M_PI - angle_normalized_v3v3(vec3, vec4);
+		face_angles[3]= M_PI - angle_normalized_v3v3(vec4, vec1);
+	}
+	else {
+		sub_v3_v3v3(vec1, efa->v3->co, efa->v1->co);
+		sub_v3_v3v3(vec2, efa->v1->co, efa->v2->co);
+		sub_v3_v3v3(vec3, efa->v2->co, efa->v3->co);
+
+		normalize_v3(vec1);
+		normalize_v3(vec2);
+		normalize_v3(vec3);
+
+		face_angles[0]= M_PI - angle_normalized_v3v3(vec1, vec2);
+		face_angles[1]= M_PI - angle_normalized_v3v3(vec2, vec3);
+
+		//face_angles[2]= M_PI - (face_angles[0] + face_angles[1]);
+		face_angles[2] = M_PI - angle_normalized_v3v3(vec3, vec1);
+	}
+}
 void EM_solidify(EditMesh *em, float dist)
 {
 	EditFace *efa;
 	EditVert *eve;
-	int *vert_users= MEM_callocN(sizeof(int) * em->totvert, "EM_offset");
-	float *vert_angles= MEM_callocN(sizeof(float) * em->totvert, "EM_offset");
-	float angle;
-	int i;
+	float *vert_angles= MEM_callocN(sizeof(float) * em->totvert * 2, "EM_solidify"); /* 2 in 1 */
+	float *vert_accum= vert_accum= vert_angles + em->totvert;
+	float face_angles[4];
+	int i, j;
 
 	for(eve= em->verts.first, i=0; eve; eve= eve->next, i++) {
 		eve->tmp.l= i;
@@ -2406,31 +2444,20 @@ void EM_solidify(EditMesh *em, float dist)
 		if(!(efa->f & SELECT))
 			continue;
 
-		angle= angle_normalized_v3v3(efa->v1->no, efa->n);
-		vert_angles[efa->v1->tmp.l]+= shell_angle_to_dist(angle);
-		vert_users[efa->v1->tmp.l]++;
+		em_face_angles(efa, face_angles);
 
-		angle= angle_normalized_v3v3(efa->v2->no, efa->n);
-		vert_angles[efa->v2->tmp.l]+= shell_angle_to_dist(angle);
-		vert_users[efa->v2->tmp.l]++;
-
-		angle= angle_normalized_v3v3(efa->v3->no, efa->n);
-		vert_angles[efa->v3->tmp.l]+= shell_angle_to_dist(angle);
-		vert_users[efa->v3->tmp.l]++;
-
-		if(efa->v4) {
-			angle= angle_normalized_v3v3(efa->v4->no, efa->n);
-			vert_angles[efa->v4->tmp.l]+= shell_angle_to_dist(angle);
-			vert_users[efa->v4->tmp.l]++;
+		for(j= efa->v4 ? 3:2; j>=0; j--) {
+			eve= *(&efa->v1 + j);
+			vert_accum[eve->tmp.l] += face_angles[j];
+			vert_angles[eve->tmp.l]+= shell_angle_to_dist(angle_normalized_v3v3(eve->no, efa->n)) * face_angles[j];
 		}
 	}
 
 	for(eve= em->verts.first, i=0; eve; eve= eve->next, i++) {
-		if(vert_users[i]) { /* zero if unselected */
-			madd_v3_v3fl(eve->co, eve->no, dist * (vert_angles[i] / (float)vert_users[i]));
+		if(vert_accum[i]) { /* zero if unselected */
+			madd_v3_v3fl(eve->co, eve->no, dist * vert_angles[i] / vert_accum[i]);
 		}
 	}
 
-	MEM_freeN(vert_users);
 	MEM_freeN(vert_angles);
 }
