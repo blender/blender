@@ -1143,7 +1143,7 @@ short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor)
 
 /* this is actually a recode of extrudeflag(), using proper edge/face select */
 /* hurms, doesnt use 'flag' yet, but its not called by primitive making stuff anyway */
-static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *nor)
+static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *nor, int all)
 {
 	/* all select edges/faces: extrude */
 	/* old select is cleared, in new ones it is set */
@@ -1256,11 +1256,13 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *n
 	set_edge_directions_f2(em, 2);
 	
 	/* step 1.5: if *one* selected face has edge with unselected face; remove old selected faces */
-	for(efa= em->faces.last; efa; efa= efa->prev) {
-		if(efa->f & SELECT) {
-			if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1 || (efa->e4 && efa->e4->f1)) {
-				del_old= 1;
-				break;
+	if(all == 0) {
+		for(efa= em->faces.last; efa; efa= efa->prev) {
+			if(efa->f & SELECT) {
+				if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1 || (efa->e4 && efa->e4->f1)) {
+					del_old= 1;
+					break;
+				}
 			}
 		}
 	}
@@ -1398,7 +1400,7 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *n
 	return 'n'; // normal constraint 
 }
 
-short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
+short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int all)
 {
 	/* all verts/edges/faces with (f & 'flag'): extrude */
 	/* from old verts, 'flag' is cleared, in new ones it is set */
@@ -1569,7 +1571,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 	*/
 	
 	 /* find if we delete old faces */
-	if(is_face_sel) {
+	if(is_face_sel && all==0) {
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if( (eed->f2==1 || eed->f2==2) ) {
 				if(eed->f1==2) {
@@ -1685,12 +1687,12 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 }
 
 /* generic extrude */
-short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor)
+short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor, int all)
 {
 	if(em->selectmode & SCE_SELECT_VERTEX)
-		return extrudeflag_vert(obedit, em, flag, nor);
+		return extrudeflag_vert(obedit, em, flag, nor, all);
 	else 
-		return extrudeflag_edge(obedit, em, flag, nor);
+		return extrudeflag_edge(obedit, em, flag, nor, all);
 		
 }
 

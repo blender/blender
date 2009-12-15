@@ -4545,14 +4545,13 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 
 static int solidify_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	float nor[3] = {0,0,1};
 
 	float thickness= RNA_float_get(op->ptr, "thickness");
 
-	extrudeflag(obedit, em, SELECT, nor);
+	extrudeflag(obedit, em, SELECT, nor, 1);
 	EM_make_hq_normals(em);
 	EM_solidify(em, thickness);
 

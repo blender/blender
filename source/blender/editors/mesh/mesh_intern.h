@@ -116,8 +116,8 @@ extern int compareface(EditFace *vl1, EditFace *vl2);
 extern short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor);
 extern short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor);
 extern short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor);
-extern short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor);
+extern short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int all);
+extern short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor, int all);
 
 extern void adduplicateflag(EditMesh *em, int flag);
 extern void delfaceflag(EditMesh *em, int flag);
