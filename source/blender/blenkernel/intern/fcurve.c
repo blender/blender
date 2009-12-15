@@ -828,6 +828,10 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
+		/* for now, if there is no valid index, fall back to the array-index specified separately */
+		if (index == -1)
+			index= dtar->array_index;
+		
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(&ptr, prop))
@@ -927,19 +931,19 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				/* more than one target, so average the values of the targets */
 				int tot = 0;
 				float value = 0.0f;
-
+				
 				/* loop through targets, adding (hopefully we don't get any overflow!) */
 				for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
 					value += driver_get_target_value(driver, dtar);
 					tot++;
 				}
-
+				
 				/* return the average of these */
-				if(driver->type == DRIVER_TYPE_AVERAGE)
+				if (driver->type == DRIVER_TYPE_AVERAGE)
 					return (value / (float)tot);
 				else
 					return value;
-
+				
 			}
 		}
 			break;
