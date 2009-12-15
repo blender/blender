@@ -525,7 +525,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 	char col[3], background_col[3], is_single_image;
 
 	/* we need to know if this is a single image/color or not for drawing */
-	is_single_image = (char)check_single_seq(seq);
+	is_single_image = (char)seq_single_check(seq);
 	
 	/* body */
 	if(seq->startstill) x1= seq->start;

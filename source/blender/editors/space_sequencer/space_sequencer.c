@@ -269,7 +269,7 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void sequencer_main_area_draw(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= CTX_wm_area(C);
+//	ScrArea *sa= CTX_wm_area(C);
 	
 	/* NLE - strip editing timeline interface */
 	draw_timeline_seq(C, ar);

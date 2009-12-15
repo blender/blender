@@ -3259,7 +3259,7 @@ void seq_tx_set_final_right(Sequence *seq, int val)
 
 /* used so we can do a quick check for single image seq
    since they work a bit differently to normal image seq's (during transform) */
-int check_single_seq(Sequence *seq)
+int seq_single_check(Sequence *seq)
 {
 	if ( seq->len==1 && (seq->type == SEQ_IMAGE || seq->type == SEQ_COLOR))
 		return 1;
@@ -3276,7 +3276,7 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq, 0)-1);
 		}
 
-		if (check_single_seq(seq)==0) {
+		if (seq_single_check(seq)==0) {
 			if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_end(seq)) {
 				seq_tx_set_final_left(seq, seq_tx_get_end(seq)-1);
 			}
@@ -3298,7 +3298,7 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq, 0)+1);
 		}
 
-		if (check_single_seq(seq)==0) {
+		if (seq_single_check(seq)==0) {
 			if (seq_tx_get_final_right(seq, 0) <= seq_tx_get_start(seq)) {
 				seq_tx_set_final_right(seq, seq_tx_get_start(seq)+1);
 			}
@@ -3312,10 +3312,10 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 	}
 }
 
-void fix_single_seq(Sequence *seq)
+void seq_single_fix(Sequence *seq)
 {
 	int left, start, offset;
-	if (!check_single_seq(seq))
+	if (!seq_single_check(seq))
 		return;
 
 	/* make sure the image is always at the start since there is only one,

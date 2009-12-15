@@ -2390,12 +2390,12 @@ void flushTransSeq(TransInfo *t)
 		case SEQ_LEFTSEL: /* no vertical transform  */
 			seq_tx_set_final_left(seq, new_frame);
 			seq_tx_handle_xlimits(seq, tdsq->flag&SEQ_LEFTSEL, tdsq->flag&SEQ_RIGHTSEL);
-			fix_single_seq(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
+			seq_single_fix(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
 			break;
 		case SEQ_RIGHTSEL: /* no vertical transform  */
 			seq_tx_set_final_right(seq, new_frame);
 			seq_tx_handle_xlimits(seq, tdsq->flag&SEQ_LEFTSEL, tdsq->flag&SEQ_RIGHTSEL);
-			fix_single_seq(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
+			seq_single_fix(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
 			break;
 		}
 

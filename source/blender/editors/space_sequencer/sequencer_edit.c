@@ -2652,9 +2652,24 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 
 		// XXX - should be a generic function
 		for(iseq= scene->ed->seqbasep->first; iseq; iseq= iseq->next) {
-			if((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq)))
+			if((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
 				calc_sequence(iseq);
+			}
 		}
+
+		/* do this in a new loop since both effects need to be calculated first */
+		for(iseq= scene->ed->seqbasep->first; iseq; iseq= iseq->next) {
+			if((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
+				/* this may now overlap */
+				if( seq_test_overlap(ed->seqbasep, iseq) ) {
+					shuffle_seq(ed->seqbasep, iseq);
+				}
+			}
+		}
+
+
+
+		sort_seq(scene);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

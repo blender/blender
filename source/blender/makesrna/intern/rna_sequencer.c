@@ -56,8 +56,8 @@ static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
 
 static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	Scene *sce= (Scene*)ptr->id.data;
-	Editing *ed= seq_give_editing(sce, FALSE);
+	Scene *scene= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
 
 	meta_tmp_ref(NULL, ed->seqbase.first);
 
@@ -88,34 +88,55 @@ static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *it
 	iter->valid= (internal->link != NULL);
 }
 
-static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
+/* internal use */
+static void rna_Sequence_frame_change_update(Scene *scene, Sequence *seq)
 {
-	Sequence *seq= (Sequence*)ptr->data;
-	Scene *sce= (Scene*)ptr->id.data;
-	Editing *ed= seq_give_editing(sce, FALSE);
-	
-	seq->start= value;
+	Editing *ed= seq_give_editing(scene, FALSE);
+
 	calc_sequence_disp(seq);
-	
+
 	if( seq_test_overlap(ed->seqbasep, seq) ) {
 		shuffle_seq(ed->seqbasep, seq);
 	}
-	sort_seq(sce);
+	sort_seq(scene);
+}
+
+static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *scene= (Scene*)ptr->id.data;
+	
+	seq->start= value;
+	rna_Sequence_frame_change_update(scene, seq);
+}
+
+static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *scene= (Scene*)ptr->id.data;
+
+	seq_tx_set_final_left(seq, value);
+	seq_single_fix(seq);
+	rna_Sequence_frame_change_update(scene, seq);
+}
+
+static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *scene= (Scene*)ptr->id.data;
+
+	seq_tx_set_final_right(seq, value);
+	seq_single_fix(seq);
+	rna_Sequence_frame_change_update(scene, seq);
 }
 
 static void rna_Sequence_length_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
-	Scene *sce= (Scene*)ptr->id.data;
-	Editing *ed= seq_give_editing(sce, FALSE);
+	Scene *scene= (Scene*)ptr->id.data;
 	
 	seq_tx_set_final_right(seq, seq->start+value);
-	calc_sequence_disp(seq);
-	
-	if( seq_test_overlap(ed->seqbasep, seq) ) {
-		shuffle_seq(ed->seqbasep, seq);
-	}
-	sort_seq(sce);
+	rna_Sequence_frame_change_update(scene, seq);
 }
 
 static int rna_Sequence_length_get(PointerRNA *ptr)
@@ -127,15 +148,15 @@ static int rna_Sequence_length_get(PointerRNA *ptr)
 static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
-	Scene *sce= (Scene*)ptr->id.data;
-	Editing *ed= seq_give_editing(sce, FALSE);
+	Scene *scene= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	
 	seq->machine= value;
 	
 	if( seq_test_overlap(ed->seqbasep, seq) ) {
 		shuffle_seq(ed->seqbasep, seq);
 	}
-	sort_seq(sce);
+	sort_seq(scene);
 }
 
 /* properties that need to allocate structs */
@@ -212,10 +233,10 @@ static int rna_Sequence_name_length(PointerRNA *ptr)
 
 static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 {
-	Scene *sce= (Scene*)ptr->id.data;
+	Scene *scene= (Scene*)ptr->id.data;
 	Sequence *seq= (Sequence*)ptr->data;
 	BLI_strncpy(seq->name+2, value, sizeof(seq->name)-2);
-	seqUniqueName(&sce->ed->seqbase, seq);
+	seqUniqueName(&scene->ed->seqbase, seq);
 }
 
 static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
@@ -573,6 +594,18 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_set",NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
+	prop= RNA_def_property(srna, "start_frame_final", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "startdisp");
+	RNA_def_property_ui_text(prop, "Start Frame", "Start frame displayed in the sequence editor after offsets are applied, setting this is equivilent to moving the handle, not the actual start frame.");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_final_set", NULL); // overlap tests and calc_seq_disp
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "end_frame_final", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "enddisp");
+	RNA_def_property_ui_text(prop, "End Frame", "End frame displayed in the sequence editor after offsets are applied.");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_end_frame_final_set", NULL); // overlap tests and calc_seq_disp
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
 	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests

@@ -54,7 +54,7 @@ void seq_reset_imageofs(struct SpaceSeq *sseq);
 
 /* sequencer_edit.c */
 struct View2D;
-int check_single_seq(struct Sequence *seq);
+int seq_single_check(struct Sequence *seq);
 int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
 int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
 void seq_rectf(struct Sequence *seq, struct rctf *rectf);
