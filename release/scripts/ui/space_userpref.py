@@ -66,13 +66,11 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         userpref = context.user_preferences
         view = userpref.view
+        
+        row = layout.row()
+       
 
-        split = layout.split()
-
-        column = split.column()
-        colsplit = column.split(percentage=0.85)
-
-        col = colsplit.column()
+        col = row.column()
         col.label(text="Display:")
         col.prop(view, "tooltips")
         col.prop(view, "display_object_info", text="Object Info")
@@ -93,10 +91,11 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
-        column = split.column()
-        colsplit = column.split(percentage=0.85)
 
-        col = colsplit.column()
+        row.separator()
+        row.separator()
+        
+        col = row.column()
         col.label(text="View Manipulation:")
         col.prop(view, "auto_depth")
         col.prop(view, "global_pivot")
@@ -109,19 +108,16 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "smooth_view")
         col.prop(view, "rotation_angle")
 
-        column = split.column()
-        colsplit = column.split(percentage=0.85)
-
-        col = colsplit.column()
-
+        row.separator()
+        row.separator()
+        
+        col = row.column()
         #Toolbox doesn't exist yet
         #col.label(text="Toolbox:")
         #col.prop(view, "use_column_layout")
         #col.label(text="Open Toolbox Delay:")
         #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
-
-        #Manipulator
         col.prop(view, "use_manipulator")
         sub = col.column()
         sub.enabled = view.use_manipulator
@@ -156,12 +152,11 @@ class USERPREF_PT_edit(bpy.types.Panel):
         userpref = context.user_preferences
         edit = userpref.edit
 
-        split = layout.split()
 
-        column = split.column()
-        colsplit = column.split(percentage=0.85)
+        row = layout.row()
 
-        col = colsplit.column()
+
+        col = row.column()
         col.label(text="Link Materials To:")
         col.row().prop(edit, "material_link", expand=True)
 
@@ -183,10 +178,12 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "undo_steps", text="Steps")
         col.prop(edit, "undo_memory_limit", text="Memory Limit")
 
-        column = split.column()
-        colsplit = column.split(percentage=0.85)
 
-        col = colsplit.column()
+        row.separator()
+        row.separator()
+
+
+        col = row.column()
         col.label(text="Snap:")
         col.prop(edit, "snap_translate", text="Translate")
         col.prop(edit, "snap_rotate", text="Rotate")
@@ -201,10 +198,12 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
 
-        column = split.column()
-        colsplit = column.split(percentage=0.85)
 
-        col = colsplit.column()
+        row.separator()
+        row.separator()
+
+
+        col = row.column()
         col.label(text="Keyframing:")
         col.prop(edit, "use_visual_keying")
         col.prop(edit, "keyframe_insert_needed", text="Only Insert Needed")
@@ -232,14 +231,12 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.label(text="Transform:")
         col.prop(edit, "drag_immediately")
 
-        col.separator()
-        col.separator()
-        col.separator()
 
-        column = split.column()
-        colsplit = column.split(percentage=0.85)
+        row.separator()
+        row.separator()
 
-        col = colsplit.column()
+
+        col = row.column()
         col.label(text="Duplicate Data:")
         col.prop(edit, "duplicate_mesh", text="Mesh")
         col.prop(edit, "duplicate_surface", text="Surface")
@@ -305,11 +302,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.separator()
         col.separator()
 
-        col.label(text="Weight Colors:")
-        col.prop(system, "use_weight_color_range", text="Use Custom Range")
-        sub = col.column()
-        sub.active = system.use_weight_color_range
-        sub.template_color_ramp(system, "weight_color_range", expand=True)
+        
 
         #column = split.column()
         #colsplit = column.split(percentage=0.85)
@@ -324,39 +317,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         #col.separator()
 
         #col.prop(system, "use_textured_fonts")
-
-        column = split.column()
-        colsplit = column.split(percentage=0.85)
-
-        col1 = colsplit.column()
-        col1.label(text="Solid OpenGL lights:")
-
-        col = col1.split()
-
-        sub = col.column()
-        sub.prop(lamp0, "enabled")
-        subsub = sub.column()
-        subsub.active = lamp0.enabled
-        subsub.prop(lamp0, "diffuse_color")
-        subsub.prop(lamp0, "specular_color")
-        subsub.prop(lamp0, "direction")
-
-        sub = col.column()
-        sub.prop(lamp1, "enabled")
-        subsub = sub.column()
-        subsub.active = lamp1.enabled
-        subsub.prop(lamp1, "diffuse_color")
-        subsub.prop(lamp1, "specular_color")
-        subsub.prop(lamp1, "direction")
-
-        sub = col.column()
-        sub.prop(lamp2, "enabled")
-        subsub = sub.column()
-        subsub.active = lamp2.enabled
-        subsub.prop(lamp2, "diffuse_color")
-        subsub.prop(lamp2, "specular_color")
-        subsub.prop(lamp2, "direction")
-
+        
         column = split.column()
         colsplit = column.split(percentage=0.85)
 
@@ -379,6 +340,92 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.label(text="Sequencer:")
         col.prop(system, "prefetch_frames")
         col.prop(system, "memory_cache_limit")
+
+        column = split.column()
+
+        column.label(text="Solid OpenGL lights:")
+
+        split = column.split(percentage=0.1)
+        split.label()
+        split.label(text="Colors:")
+        split.label(text="Direction:")
+        
+        
+        split = column.split(percentage=0.1)
+        
+        if lamp0.enabled == True:
+            split.prop(lamp0, "enabled", text="", icon='OUTLINER_OB_LAMP')
+        else:
+            split.prop(lamp0, "enabled", text="", icon='LAMP_DATA')
+       
+        col = split.column()
+        col.active = lamp0.enabled
+        row = col.row()
+        row.label(text="Diffuse:")
+        row.prop(lamp0, "diffuse_color", text="")
+        row = col.row()
+        row.label(text="Specular:")
+        row.prop(lamp0, "specular_color", text="")
+       
+        col = split.column()
+        col.active = lamp0.enabled
+        col.prop(lamp0, "direction", text="")
+        
+        
+        split = column.split(percentage=0.1)
+        
+        if lamp1.enabled == True:
+            split.prop(lamp1, "enabled", text="", icon='OUTLINER_OB_LAMP')
+        else:
+            split.prop(lamp1, "enabled", text="", icon='LAMP_DATA')
+       
+        col = split.column()
+        col.active = lamp1.enabled
+        row = col.row()
+        row.label(text="Diffuse:")
+        row.prop(lamp1, "diffuse_color", text="")
+        row = col.row()
+        row.label(text="Specular:")
+        row.prop(lamp1, "specular_color", text="")
+       
+        col = split.column()
+        col.active = lamp1.enabled
+        col.prop(lamp1, "direction", text="")
+        
+        
+        split = column.split(percentage=0.1)
+        
+        if lamp2.enabled == True:
+            split.prop(lamp2, "enabled", text="", icon='OUTLINER_OB_LAMP')
+        else:
+            split.prop(lamp2, "enabled", text="", icon='LAMP_DATA')
+       
+        col = split.column()
+        col.active = lamp2.enabled
+        row = col.row()
+        row.label(text="Diffuse:")
+        row.prop(lamp2, "diffuse_color", text="")
+        row = col.row()
+        row.label(text="Specular:")
+        row.prop(lamp2, "specular_color", text="")
+       
+        col = split.column()
+        col.active = lamp2.enabled
+        col.prop(lamp2, "direction", text="")
+
+        
+        column.separator()
+        column.separator()
+        column.separator()
+        
+        col = column.column()
+
+        col.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
+        sub = col.column()
+        sub.active = system.use_weight_color_range
+        sub.template_color_ramp(system, "weight_color_range", expand=True)
+
+        
 
 
 class USERPREF_PT_theme(bpy.types.Panel):
@@ -1160,6 +1207,10 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
+        
+        sub = col.column()
+        sub.label(text="Double Click:")
+        sub.prop(inputs, "double_click_time", text="Speed")
 
         sub.separator()
 
@@ -1190,12 +1241,6 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
         sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
-
-        col.separator()
-
-        sub = col.column()
-        sub.label(text="Double Click:")
-        sub.prop(inputs, "double_click_time", text="Speed")
 
         row.separator()
 
