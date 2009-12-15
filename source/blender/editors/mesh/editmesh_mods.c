@@ -4570,9 +4570,10 @@ static int solidify_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_solidify(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	/* identifiers */
 	ot->name= "Solidify";
-	ot->description= "Make the mesh solid.";
+	ot->description= "Create a solid skin by extruding, compensating for sharp angles.";
 	ot->idname= "MESH_OT_solidify";
 
 	/* api callbacks */
@@ -4582,5 +4583,6 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "thickness", 0.1f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
+	prop= RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 }
