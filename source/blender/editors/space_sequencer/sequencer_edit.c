@@ -125,10 +125,16 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 
 /* mute operator */
 
- EnumPropertyItem prop_side_types[] = {
+EnumPropertyItem prop_side_types[] = {
 	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
 	{SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
 	{SEQ_SIDE_BOTH, "BOTH", 0, "Both", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem prop_side_lr_types[] = {
+	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
+	{SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -2614,12 +2620,13 @@ static Sequence* sequence_find_parent(Scene* scene, Sequence* child)
 
 }
 
-static int sequencer_swap_internal_exec(bContext *C, int side)
+static int sequencer_swap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *active_seq = active_seq_get(scene);
 	Sequence *seq, *iseq;
+	int side= RNA_enum_get(op->ptr, "side");
 
 	if(ed==NULL) return OPERATOR_CANCELLED;
 	if(active_seq==NULL) return OPERATOR_CANCELLED;
@@ -2634,11 +2641,6 @@ static int sequencer_swap_internal_exec(bContext *C, int side)
 		if ((active_seq->type!=SEQ_COLOR) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
 			return OPERATOR_CANCELLED;
 
-		/* disallow if parent strip (effect strip) is attached */
-		if ( sequence_find_parent(scene, active_seq)) {
-			return OPERATOR_CANCELLED;
-		}
-
 		switch (side) {
 			case SEQ_SIDE_LEFT: 
 				swap_sequence(seq, active_seq);
@@ -2650,9 +2652,8 @@ static int sequencer_swap_internal_exec(bContext *C, int side)
 
 		// XXX - should be a generic function
 		for(iseq= scene->ed->seqbasep->first; iseq; iseq= iseq->next) {
-			//if((iseq->type & SEQ_EFFECT) && ELEM6(iseq, seq->seq1, seq->seq2, seq->seq3, active_seq->seq1, active_seq->seq2, active_seq->seq3))
-			if(iseq->type & SEQ_EFFECT)
-					calc_sequence(iseq);
+			if((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq)))
+				calc_sequence(iseq);
 		}
 
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
@@ -2663,48 +2664,22 @@ static int sequencer_swap_internal_exec(bContext *C, int side)
 	return OPERATOR_CANCELLED;
 }
 
-static int sequencer_swap_right_exec(bContext *C, wmOperator *op)
-{
-	return sequencer_swap_internal_exec(C, SEQ_SIDE_RIGHT);
-}
-
-void SEQUENCER_OT_swap_right(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Swap Strip Right";
-	ot->idname= "SEQUENCER_OT_swap_right";
-	ot->description="Swap active strip with strip to the right.";
-	
-	/* api callbacks */
-	ot->exec= sequencer_swap_right_exec;
-	ot->poll= ED_operator_sequencer_active;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-}
-
-static int sequencer_swap_left_exec(bContext *C, wmOperator *op)
-{
-	return sequencer_swap_internal_exec(C, SEQ_SIDE_LEFT);
-}
-
-void SEQUENCER_OT_swap_left(wmOperatorType *ot)
+void SEQUENCER_OT_swap(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Swap Strip Left";
-	ot->idname= "SEQUENCER_OT_swap_left";
+	ot->idname= "SEQUENCER_OT_swap";
 	ot->description="Swap active strip with strip to the left.";
 	
 	/* api callbacks */
-	ot->exec= sequencer_swap_left_exec;
+	ot->exec= sequencer_swap_exec;
 	ot->poll= ED_operator_sequencer_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
+	RNA_def_enum(ot->srna, "side", prop_side_lr_types, SEQ_SIDE_RIGHT, "Side", "Side of the strip to swap");
 }
 
 static int sequencer_rendersize_exec(bContext *C, wmOperator *op)
