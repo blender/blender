@@ -299,7 +299,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 		if conn:
 			job = netrender.jobs[netsettings.active_job_index]
 			
-			conn.request("POST", "/cancel", headers={"job-id":job.id})
+			conn.request("POST", cancelURL(job.id))
 			
 			response = conn.getresponse()
 			print( response.status, response.reason )

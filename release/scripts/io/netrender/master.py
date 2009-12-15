@@ -139,6 +139,7 @@ class MRenderFrame(netrender.model.RenderFrame):
 		
 	def reset(self, all):
 		if all or self.status == ERROR:
+			self.log_path = None
 			self.slave = None
 			self.time = 0
 			self.status = QUEUED
@@ -151,6 +152,8 @@ class MRenderFrame(netrender.model.RenderFrame):
 file_pattern = re.compile("/file_([a-zA-Z0-9]+)_([0-9]+)")
 render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).exr")
 log_pattern = re.compile("/log_([a-zA-Z0-9]+)_([0-9]+).log")
+reset_pattern = re.compile("/reset(all|)_([a-zA-Z0-9]+)_([0-9]+)")
+cancel_pattern = re.compile("/cancel_([a-zA-Z0-9]+)")
 
 class RenderHandler(http.server.BaseHTTPRequestHandler):
 	def send_head(self, code = http.client.OK, headers = {}, content = "application/octet-stream"):
@@ -419,17 +422,23 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				self.server.stats("", "New job, missing files (%i total)" % len(job.files))
 				self.send_head(http.client.ACCEPTED, headers=headers)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "/cancel":
-			job_id = self.headers.get('job-id', "")
+		elif self.path.startswith("/cancel"):
+			match = cancel_pattern.match(self.path)
+
+			if match:
+				job_id = match.groups()[0]
 			
-			job = self.server.getJobID(job_id)
-			
-			if job:
-				self.server.stats("", "Cancelling job")
-				self.server.removeJob(job)
-				self.send_head()
+				job = self.server.getJobID(job_id)
+				
+				if job:
+					self.server.stats("", "Cancelling job")
+					self.server.removeJob(job)
+					self.send_head()
+				else: 
+					# no such job id
+					self.send_head(http.client.NO_CONTENT)
 			else: 
-				# no such job id
+				# invalid url
 				self.send_head(http.client.NO_CONTENT)
 				
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -440,31 +449,36 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				
 			self.send_head()
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "/reset":
-			job_id = self.headers.get('job-id', "")
-			job_frame = int(self.headers.get('job-frame', "-1"))
-			all = bool(self.headers.get('reset-all', "False"))
+		elif self.path.startswith("/reset"):
+			match = reset_pattern.match(self.path)
 			
-			job = self.server.getJobID(job_id)
-			
-			if job:
-				if job_frame != -1:
-					
-					frame = job[job_frame]
-					if frame:
-						self.server.stats("", "Reset job frame")
-						frame.reset(all)
-						self.send_head()
-					else:
-						# no such frame
-						self.send_head(http.client.NO_CONTENT)
+			if match:
+				all = match.groups()[0] == 'all'
+				job_id = match.groups()[1]
+				job_frame = int(match.groups()[2])
+
+				job = self.server.getJobID(job_id)
+				
+				if job:
+					if job_frame != 0:
 						
-				else:
-					self.server.stats("", "Reset job")
-					job.reset(all)
-					self.send_head()
-					
-			else: # job not found
+						frame = job[job_frame]
+						if frame:
+							self.server.stats("", "Reset job frame")
+							frame.reset(all)
+							self.send_head()
+						else:
+							# no such frame
+							self.send_head(http.client.NO_CONTENT)
+							
+					else:
+						self.server.stats("", "Reset job")
+						job.reset(all)
+						self.send_head()
+						
+				else: # job not found
+					self.send_head(http.client.NO_CONTENT)
+			else: # invalid url
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 		elif self.path == "/slave":

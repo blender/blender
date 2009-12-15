@@ -16,14 +16,23 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+import os
 import re
-
+import shutil
 from netrender.utils import *
 
+src_folder = os.path.split(__file__)[0]
 
 def get(handler):
 	def output(text):
 		handler.wfile.write(bytes(text, encoding='utf8'))
+		
+	def head(title):
+		output("<html><head>")
+		output("<script src='/html/netrender.js' type='text/javascript'></script>")
+		output("<title>")
+		output(title)
+		output("</title></head><body>")
 	
 	def link(text, url):
 		return "<a href='%s'>%s</a>" % (url, text)
@@ -50,12 +59,21 @@ def get(handler):
 	def endTable():
 		output("</table>")
 	
-	if handler.path == "/html" or handler.path == "/":
+	if handler.path == "/html/netrender.js":
+		f = open(os.path.join(src_folder, "netrender.js"), 'rb')
+		
+		handler.send_head(content = "text/javascript")
+		shutil.copyfileobj(f, handler.wfile)
+		
+		f.close()		
+	elif handler.path == "/html" or handler.path == "/":
 		handler.send_head(content = "text/html")
-		output("<html><head><title>NetRender</title></head><body>")
+		head("NetRender")
 	
 		output("<h2>Master</h2>")
-	
+		
+		output("""<button title="remove all jobs" onclick="request('/clear', null);">CLEAR</button>""")
+		
 		output("<h2>Slaves</h2>")
 		
 		startTable()
@@ -70,6 +88,7 @@ def get(handler):
 		
 		startTable()
 		headerTable(	
+				                    "&nbsp;",
 									"name",
 									"category",
 									"priority",
@@ -79,6 +98,7 @@ def get(handler):
 									"done",
 									"dispatched",
 									"error",
+				                    "&nbsp;",
 									"first",
 									"exception"
 								)
@@ -88,6 +108,7 @@ def get(handler):
 		for job in handler.server.jobs:
 			results = job.framesStatus()
 			rowTable(	
+								"""<button title="cancel job" onclick="request('/cancel_%s', null);">X</button>""" % job.id,
 								link(job.name, "/html/job" + job.id),
 								job.category if job.category else "&nbsp;",
 								job.priority,
@@ -97,6 +118,7 @@ def get(handler):
 								results[DONE],
 								results[DISPATCHED],
 								results[ERROR],
+								"""<button title="reset error frames" onclick="request('/reset_%s_0', null);">R</button>""" % job.id,
 								handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job)
 							)
 		
@@ -108,7 +130,7 @@ def get(handler):
 		handler.send_head(content = "text/html")
 		job_id = handler.path[9:]
 		
-		output("<html><head><title>NetRender</title></head><body>")
+		head("NetRender")
 	
 		job = handler.server.getJobID(job_id)
 		

@@ -118,6 +118,9 @@ def logURL(job_id, frame_number):
 def renderURL(job_id, frame_number):
     return "/render_%s_%i.exr" % (job_id, frame_number)
 
+def cancelURL(job_id):
+    return "/cancel_%s" % (job_id)
+
 def prefixPath(prefix_directory, file_path, prefix_path):
 	if os.path.isabs(file_path):
 		# if an absolute path, make sure path exists, if it doesn't, use relative local path
