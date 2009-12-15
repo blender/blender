@@ -528,7 +528,7 @@ void EM_deselect_flush(EditMesh *em)
 /* flush selection to edges & faces */
 
 /*  this only based on coherent selected vertices, for example when adding new
-    objects. call clear_flag_all() before you select vertices to be sure it ends OK!
+	objects. call clear_flag_all() before you select vertices to be sure it ends OK!
 	
 */
 
@@ -2360,11 +2360,22 @@ void EM_make_hq_normals(EditMesh *em)
 		edge_ref = BLI_edgehashIterator_getValue(edge_iter);
 
 		if (edge_ref->f2 != -1) {
-			/* We have 2 faces using this edge, calculate the edges normal
-			 * using the angle between the 2 faces as a weighting */
-			add_v3_v3v3(edge_normal, EM_get_face_for_index(edge_ref->f1)->n, EM_get_face_for_index(edge_ref->f2)->n);
-			normalize_v3(edge_normal);
-			mul_v3_fl(edge_normal, angle_normalized_v3v3(EM_get_face_for_index(edge_ref->f1)->n, EM_get_face_for_index(edge_ref->f2)->n));
+			EditFace *ef1= EM_get_face_for_index(edge_ref->f1), *ef2= EM_get_face_for_index(edge_ref->f2);
+			float angle= angle_normalized_v3v3(ef1->n, ef2->n);
+			if(angle > 0.0f) {
+				/* We have 2 faces using this edge, calculate the edges normal
+				 * using the angle between the 2 faces as a weighting */
+				add_v3_v3v3(edge_normal, ef1->n, ef2->n);
+				normalize_v3(edge_normal);
+				mul_v3_fl(edge_normal, angle);
+			}
+			else {
+				/* cant do anything useful here!
+				   Set the face index for a vert incase it gets a zero normal */
+				EM_get_vert_for_index(ed_v1)->tmp.l=
+				EM_get_vert_for_index(ed_v2)->tmp.l= -(edge_ref->f1 + 1);
+				continue;
+			}
 		} else {
 			/* only one face attached to that edge */
 			/* an edge without another attached- the weight on this is
@@ -2382,8 +2393,13 @@ void EM_make_hq_normals(EditMesh *em)
 	MEM_freeN(edge_ref_array);
 
 	/* normalize vertex normals and assign */
-	for(eve= em->verts.first; eve; eve= eve->next)
-		normalize_v3(eve->no);
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(normalize_v3(eve->no) == 0.0f && eve->tmp.l < 0) {
+			/* exceptional case, totally flat */
+			efa= EM_get_face_for_index(-(eve->tmp.l) - 1);
+			VECCOPY(eve->no, efa->n);
+		}	
+	}
 
 	EM_free_index_arrays();
 }
