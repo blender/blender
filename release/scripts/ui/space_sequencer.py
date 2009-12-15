@@ -275,8 +275,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         layout.operator("sequencer.snap")
 
-        layout.operator("sequencer.swap_right")
-        layout.operator("sequencer.swap_left")
+        layout.operator_menu_enum("sequencer.swap", "side")
 
 
 class SequencerButtonsPanel(bpy.types.Panel):

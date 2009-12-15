@@ -2439,6 +2439,11 @@ static void do_render_seq(Render * re)
 	RenderResult *rr = re->result;
 	int cfra = re->r.cfra;
 
+	if(recurs_depth==0) {
+		/* otherwise sequencer animation isnt updated */
+		BKE_animsys_evaluate_all_animation(G.main, frame_to_float(re->scene, cfra));
+	}
+
 	recurs_depth++;
 
 	ibuf= give_ibuf_seq(re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);

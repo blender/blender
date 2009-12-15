@@ -2667,7 +2667,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_swap(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Swap Strip Left";
+	ot->name= "Swap Strip";
 	ot->idname= "SEQUENCER_OT_swap";
 	ot->description="Swap active strip with strip to the left.";
 	
@@ -2688,9 +2688,9 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Sequence *active_seq = active_seq_get(scene);
 
-	if(active_seq==NULL) return OPERATOR_CANCELLED;
+	if(active_seq==NULL)
+		return OPERATOR_CANCELLED;
 
-	printf("got active sequence\n");
 	switch (active_seq->type) {
 		case SEQ_IMAGE:
 		case SEQ_MOVIE:
