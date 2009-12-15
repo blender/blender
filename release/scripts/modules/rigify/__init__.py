@@ -177,7 +177,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in arm.edit_bones:
         bone_name = bone.name
-        bone.name = prefix + bone_name
+        if obj.pose.bones[bone_name].get("type", "") != "root":
+            bone.name = prefix + bone_name
         base_names[bone.name] = bone_name # new -> old mapping
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -213,7 +214,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
         if bone_type_list == ["root"]: # special case!
             if root_bone:
-                raise Exception("cant have more then 1 root bone, found '%s' and '%s' to have type==root" % (root_bone, bone_name))
+                raise RigifyError("cant have more then 1 root bone, found '%s' and '%s' to have type==root" % (root_bone, bone_name))
             root_bone = bone_name
             bone_type_list[:] = []
 
@@ -265,7 +266,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
                 result_submod = results.setdefault(type_name, [])
 
                 if result_submod and len(result_submod[-1]) != len(ret):
-                    raise Exception("bone lists not compatible: %s, %s" % (result_submod[-1], ret))
+                    raise RigifyError("bone lists not compatible: %s, %s" % (result_submod[-1], ret))
 
                 result_submod.append(ret)
 
@@ -332,7 +333,24 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         # would be 'REST' from when copied
         obj_def.data.pose_position = 'POSE'
 
+    # todo - make a more generic system?
+    layer_tot = [False] * 32
+    layer_last = layer_tot[:]
+    layer_last[31] = True
+    layer_second_last = layer_tot[:]
+    layer_second_last[30] = True
+
+    for bone_name, bone in arm.bones.items():
+        if bone_name.startswith(prefix):
+            bone.layer = layer_last
+        elif bone_name.startswith("MCH"): # XXX fixme
+            bone.layer = layer_second_last
+
+        layer_tot[:] = [max(lay) for lay in zip(layer_tot, bone.layer)]
+
     # Only for demo'ing
+    arm.layer = layer_tot
+
 
     # obj.restrict_view = True
     obj.data.draw_axes = False
