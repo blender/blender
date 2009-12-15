@@ -63,6 +63,11 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
+
+		
+		if scene.network_render.mode in ("RENDER_MASTER", "RENDER_SLAVE"):
+			col.operator("screen.render", text="Start", icon='PLAY').animation = True
+
 		col.prop(scene.network_render, "mode")
 		col.prop(scene.network_render, "path")
 		col.prop(scene.network_render, "server_address")
