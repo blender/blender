@@ -234,6 +234,10 @@ typedef struct ViewOpsData {
 	ARegion *ar;
 	RegionView3D *rv3d;
 
+	/* needed for continuous zoom */
+	wmTimer *timer;
+	double timer_lastdraw;
+
 	float oldquat[4];
 	float trackvec[3];
 	float reverse, dist0;
@@ -371,6 +375,9 @@ static void viewops_data_free(bContext *C, wmOperator *op)
 
 	if(p && (p->flags & PAINT_FAST_NAVIGATE))
 		ED_region_tag_redraw(vod->ar);
+
+	if(vod->timer)
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), vod->timer);
 
 	MEM_freeN(vod);
 	op->customdata= NULL;
@@ -891,8 +898,12 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 	float zfac=1.0;
 
 	if(U.viewzoom==USER_ZOOM_CONT) {
+		double time= PIL_check_seconds_timer();
+		float time_step= (float)(time - vod->timer_lastdraw);
+
 		// oldstyle zoom
-		zfac = 1.0+(float)(vod->origx - x + vod->origy - y)/1000.0;
+		zfac = 1.0f + (((float)(vod->origx - x + vod->origy - y)/20.0) * time_step);
+		vod->timer_lastdraw= time;
 	}
 	else if(U.viewzoom==USER_ZOOM_SCALE) {
 		int ctr[2], len1, len2;
@@ -959,7 +970,10 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	short event_code= VIEW_PASS;
 
 	/* execute the events */
-	if(event->type==MOUSEMOVE) {
+	if (event->type == TIMER && event->customdata == vod->timer) {
+		event_code= VIEW_APPLY;
+	}
+	else if(event->type==MOUSEMOVE) {
 		event_code= VIEW_APPLY;
 	}
 	else if(event->type==EVT_MODAL_MAP) {
@@ -1038,8 +1052,15 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		viewzoom_exec(C, op);
 	}
 	else {
+		ViewOpsData *vod;
+
 		/* makes op->customdata */
 		viewops_data_create(C, op, event);
+
+		vod= op->customdata;
+
+		vod->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+		vod->timer_lastdraw= PIL_check_seconds_timer();
 
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
