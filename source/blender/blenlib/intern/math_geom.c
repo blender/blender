@@ -474,14 +474,15 @@ int isect_ray_tri_epsilon_v3(float p1[3], float d[3], float v0[3], float v1[3], 
 	sub_v3_v3v3(s, p1, v0);
 	
 	cross_v3_v3v3(q, s, e1);
-	*lambda = f * dot_v3v3(e2, q);
-	if ((*lambda < 0.0)) return 0;
-	
+
 	u = f * dot_v3v3(s, p);
-	if ((u < -epsilon)||(u > 1.0+epsilon)) return 0;
+	if ((u < -epsilon)||(u > 1.0f+epsilon)) return 0;
 	
 	v = f * dot_v3v3(d, q);
-	if ((v < -epsilon)||((u + v) > 1.0+epsilon)) return 0;
+	if ((v < -epsilon)||((u + v) > 1.0f+epsilon)) return 0;
+
+	*lambda = f * dot_v3v3(e2, q);
+	if ((*lambda < 0.0f)) return 0;
 
 	if(uv) {
 		uv[0]= u;

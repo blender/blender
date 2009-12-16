@@ -1843,6 +1843,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	invert_m4_m4(obimat, ss->ob->obmat);
 	mul_m4_v3(obimat, ray_start);
 	mul_mat3_m4_v3(obimat, ray_normal);
+	normalize_v3(ray_normal);
 
 	srd.ss = vc->obact->sculpt;
 	srd.ray_start = ray_start;
@@ -2055,6 +2056,7 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 
 		if(ss->refkb) sculpt_key_to_mesh(ss->refkb, ob);
 
+		ss->partial_redraw = 0;
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	}
 }

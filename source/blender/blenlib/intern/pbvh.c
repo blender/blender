@@ -1142,7 +1142,7 @@ static int ray_face_intersection(float ray_start[3], float ray_normal[3],
 		float dist = FLT_MAX;
 			
 		if(!isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2,
-					 &dist, NULL, 0.001f))
+					 &dist, NULL, 0.1f))
 			dist = FLT_MAX;
 
 		if(dist >= 0 && dist < *fdist) {
