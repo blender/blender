@@ -851,6 +851,11 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		/* get action to add F-Curve+keyframe to */
 		act= verify_adt_action(id, 1);
 		
+		if(act==NULL) {
+			printf("Insert Key: Could not insert keyframe, as this type does not support animation data (ID = %s, Path = %s)\n", id->name, rna_path);
+			return 0;
+		}
+
 		/* apply NLA-mapping to frame to use (if applicable) */
 		cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 	}
