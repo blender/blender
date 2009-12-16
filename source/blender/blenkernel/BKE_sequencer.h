@@ -60,17 +60,17 @@ void seq_next(SeqIterator *iter);
 void seq_end(SeqIterator *iter);
 void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int use_pointer);
 
-#define SEQP_BEGIN(ed, seq) \
+#define SEQP_BEGIN(ed, _seq) \
 { \
 	SeqIterator iter;\
 		for(seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) { \
-			seq= iter.seq;
+			_seq= iter.seq;
 			
-#define SEQ_BEGIN(ed, seq) \
+#define SEQ_BEGIN(ed, _seq) \
 	{ \
 		SeqIterator iter;\
 		for(seq_begin(ed, &iter, 0); iter.valid; seq_next(&iter)) { \
-			seq= iter.seq;
+			_seq= iter.seq;
 
 #define SEQ_END \
 		} \
@@ -181,6 +181,7 @@ int seq_tx_test(struct Sequence * seq);
 int seq_single_check(struct Sequence *seq);
 void seq_single_fix(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
+struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test);
 int shuffle_seq_time(ListBase * seqbasep);

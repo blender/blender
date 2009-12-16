@@ -3532,6 +3532,23 @@ void seq_update_muting(Editing *ed)
 	}
 }
 
+/* in cases where we done know the sequence's listbase */
+ListBase *seq_seqbase(ListBase *seqbase, Sequence *seq)
+{
+	Sequence *iseq;
+	ListBase *lb= NULL;
+
+	for(iseq= seqbase->first; iseq; iseq= iseq->next) {
+		if(seq==iseq) {
+			return seqbase;
+		}
+		else if(iseq->seqbase.first && (lb= seq_seqbase(&iseq->seqbase, seq))) {
+			return lb;
+		}
+	}
+
+	return NULL;
+}
 
 /* XXX - hackish function needed for transforming strips! TODO - have some better solution */
 void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
