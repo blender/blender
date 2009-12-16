@@ -65,12 +65,13 @@ class SEQUENCER_HT_header(bpy.types.Header):
         else:
             layout.prop(st, "display_channel", text="Channel")
 
+
 class SEQUENCER_MT_view_toggle(bpy.types.Menu):
     bl_label = "View Type"
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("sequencer.view_toggle").type = 'SEQUENCER'
         layout.operator("sequencer.view_toggle").type = 'PREVIEW'
         layout.operator("sequencer.view_toggle").type = 'SEQUENCER_PREVIEW'
@@ -281,7 +282,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 class SequencerButtonsPanel(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
-    
+
     def has_sequencer(self, context):
         return (context.space_data.view_type == 'SEQUENCER') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 

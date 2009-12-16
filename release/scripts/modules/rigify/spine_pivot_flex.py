@@ -509,7 +509,7 @@ def main(obj, bone_definition, base_names, options):
     for attr in df.attr_names:
         getattr(df, attr + "_b").layer = lay
     for attr in rv_chain.attr_names:
-        getattr(rv_chain , attr + "_b").layer = lay
+        getattr(rv_chain, attr + "_b").layer = lay
 
     # no support for blending chains
     return None

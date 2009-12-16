@@ -67,15 +67,19 @@ Only one mesh can be exported at a time.
 #
 
 
-def rvec3d(v):	return round(v[0], 6), round(v[1], 6), round(v[2], 6)
-def rvec2d(v):	return round(v[0], 6), round(v[1], 6)
+def rvec3d(v):
+    return round(v[0], 6), round(v[1], 6), round(v[2], 6)
+
+
+def rvec2d(v):
+    return round(v[0], 6), round(v[1], 6)
+
 
 def write(filename, scene, ob, \
-        EXPORT_APPLY_MODIFIERS= True,\
-        EXPORT_NORMALS= True,\
-        EXPORT_UV= True,\
-        EXPORT_COLORS= True\
-    ):
+        EXPORT_APPLY_MODIFIERS=True,\
+        EXPORT_NORMALS=True,\
+        EXPORT_UV=True,\
+        EXPORT_COLORS=True):
 
     if not filename.lower().endswith('.ply'):
         filename += '.ply'
@@ -108,21 +112,25 @@ def write(filename, scene, ob, \
 
     # mesh.transform(ob.matrixWorld) # XXX
 
-    faceUV = len(mesh.uv_textures) > 0
-    vertexUV = len(mesh.sticky) > 0
+    faceUV = (len(mesh.uv_textures) > 0)
+    vertexUV = (len(mesh.sticky) > 0)
     vertexColors = len(mesh.vertex_colors) > 0
 
-    if (not faceUV) and (not vertexUV):	EXPORT_UV = False
-    if not vertexColors:					EXPORT_COLORS = False
+    if (not faceUV) and (not vertexUV):
+        EXPORT_UV = False
+    if not vertexColors:
+        EXPORT_COLORS = False
 
-    if not EXPORT_UV:						faceUV = vertexUV = False
-    if not EXPORT_COLORS:					vertexColors = False
+    if not EXPORT_UV:
+        faceUV = vertexUV = False
+    if not EXPORT_COLORS:
+        vertexColors = False
 
     if faceUV:
         active_uv_layer = None
         for lay in mesh.uv_textures:
             if lay.active:
-                active_uv_layer= lay.data
+                active_uv_layer = lay.data
                 break
         if not active_uv_layer:
             EXPORT_UV = False
@@ -132,7 +140,7 @@ def write(filename, scene, ob, \
         active_col_layer = None
         for lay in mesh.vertex_colors:
             if lay.active:
-                active_col_layer= lay.data
+                active_col_layer = lay.data
         if not active_col_layer:
             EXPORT_COLORS = False
             vertexColors = None
@@ -161,26 +169,26 @@ def write(filename, scene, ob, \
             col = active_col_layer[i]
             col = col.color1, col.color2, col.color3, col.color4
 
-        f_verts= f.verts
+        f_verts = f.verts
 
-        pf= ply_faces[i]
+        pf = ply_faces[i]
         for j, vidx in enumerate(f_verts):
             v = mesh_verts[vidx]
 
             if smooth:
-                normal=		tuple(v.normal)
+                normal = tuple(v.normal)
                 normal_key = rvec3d(normal)
 
             if faceUV:
-                uvcoord=	uv[j][0], 1.0-uv[j][1]
+                uvcoord = uv[j][0], 1.0-uv[j][1]
                 uvcoord_key = rvec2d(uvcoord)
             elif vertexUV:
-                uvcoord=	v.uvco[0], 1.0-v.uvco[1]
+                uvcoord = v.uvco[0], 1.0 - v.uvco[1]
                 uvcoord_key = rvec2d(uvcoord)
 
             if vertexColors:
-                color=		col[j]
-                color= int(color[0]*255.0), int(color[1]*255.0), int(color[2]*255.0)
+                color = col[j]
+                color = int(color[0] * 255.0), int(color[1] * 255.0), int(color[2] * 255.0)
 
 
             key = normal_key, uvcoord_key, color
@@ -189,7 +197,7 @@ def write(filename, scene, ob, \
             pf_vidx = vdict_local.get(key) # Will be None initially
 
             if pf_vidx == None: # same as vdict_local.has_key(key)
-                pf_vidx = vdict_local[key] = vert_count;
+                pf_vidx = vdict_local[key] = vert_count
                 ply_verts.append((vidx, normal, uvcoord, color))
                 vert_count += 1
 
@@ -198,7 +206,7 @@ def write(filename, scene, ob, \
     file.write('ply\n')
     file.write('format ascii 1.0\n')
     version = "2.5" # Blender.Get('version')
-    file.write('comment Created by Blender3D %s - www.blender.org, source file: %s\n' % (version, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
+    file.write('comment Created by Blender3D %s - www.blender.org, source file: %s\n' % (version, bpy.data.filename.split('/')[-1].split('\\')[-1]))
 
     file.write('element vertex %d\n' % len(ply_verts))
 
@@ -231,13 +239,17 @@ def write(filename, scene, ob, \
         if EXPORT_NORMALS:
             file.write('%.6f %.6f %.6f ' % v[1]) # no
         """
-        if EXPORT_UV:			file.write('%.6f %.6f ' % v[2]) # uv
-        if EXPORT_COLORS:		file.write('%u %u %u' % v[3]) # col
+        if EXPORT_UV:
+            file.write('%.6f %.6f ' % v[2]) # uv
+        if EXPORT_COLORS:
+            file.write('%u %u %u' % v[3]) # col
         file.write('\n')
 
     for pf in ply_faces:
-        if len(pf)==3:		file.write('3 %d %d %d\n' % tuple(pf))
-        else:				file.write('4 %d %d %d %d\n' % tuple(pf))
+        if len(pf)==3:
+            file.write('3 %d %d %d\n' % tuple(pf))
+        else:
+            file.write('4 %d %d %d %d\n' % tuple(pf))
 
     file.close()
     print("writing", filename, "done")
@@ -263,12 +275,11 @@ class ExportPLY(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
-    use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True)
-    use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default= True)
-    use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default= True)
-    use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default= True)
-
+    path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen=1024, default="")
+    use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
+    use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
+    use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
+    use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default=True)
 
     def poll(self, context):
         return context.active_object != None
@@ -280,10 +291,10 @@ class ExportPLY(bpy.types.Operator):
             raise Exception("filename not set")
 
         write(self.properties.path, context.scene, context.active_object,\
-            EXPORT_APPLY_MODIFIERS = self.properties.use_modifiers,
-            EXPORT_NORMALS = self.properties.use_normals,
-            EXPORT_UV = self.properties.use_uvs,
-            EXPORT_COLORS = self.properties.use_colors,
+            EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
+            EXPORT_NORMALS=self.properties.use_normals,
+            EXPORT_UV=self.properties.use_uvs,
+            EXPORT_COLORS=self.properties.use_colors,
         )
 
         return ('FINISHED',)
@@ -308,6 +319,7 @@ class ExportPLY(bpy.types.Operator):
 bpy.ops.add(ExportPLY)
 
 import dynamic_menu
+
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".ply")

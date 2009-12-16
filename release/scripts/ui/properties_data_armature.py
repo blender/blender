@@ -235,6 +235,7 @@ class DATA_PT_ghost(DataButtonsPanel):
         col.label(text="Display:")
         col.prop(arm, "ghost_only_selected", text="Selected Only")
 
+
 class DATA_PT_iksolver_itasc(DataButtonsPanel):
     bl_label = "iTaSC parameters"
     bl_default_closed = True

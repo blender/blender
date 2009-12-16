@@ -141,7 +141,7 @@ def ik(obj, bone_definition, base_names, options):
     ik.foot_roll_e = copy_bone_simple(arm, mt_chain.toe, base_names[mt_chain.foot] + "_roll")
     ik.foot_roll = ik.foot_roll_e.name
     ik.foot_roll_e.parent = ik_chain.foot_e
-    ik.foot_roll_e.translate( - (mt_chain.toe_e.vector.normalize() * mt_chain.foot_e.length))
+    ik.foot_roll_e.translate(- (mt_chain.toe_e.vector.normalize() * mt_chain.foot_e.length))
     ik.foot_roll_e.align_orientation(mt_chain.foot_e)
     ik.foot_roll_e.tail = ik.foot_roll_e.head - ik.foot_roll_e.vector # flip
     ik.foot_roll_e.align_roll(mt_chain.foot_e.matrix.rotationPart() * Vector(0.0, 0.0, -1.0))
