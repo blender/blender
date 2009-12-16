@@ -243,6 +243,82 @@ class Mesh(bpy_types.ID):
         edge_face_count_dict = self.edge_face_count_dict
         return [edge_face_count_dict.get(ed.key, 0) for ed in mesh.edges]
 
+    def edge_loops(self, faces=None, seams=()):
+        '''
+        Edge loops defined by faces
+
+        Takes me.faces or a list of faces and returns the edge loops
+        These edge loops are the edges that sit between quads, so they dont touch
+        1 quad, note: not connected will make 2 edge loops, both only containing 2 edges.
+
+        return a list of edge key lists
+        [ [(0,1), (4, 8), (3,8)], ...]
+
+        optionaly, seams are edge keys that will be removed
+        '''
+
+        OTHER_INDEX = 2,3,0,1 # opposite face index
+        
+        if faces is None:
+            faces= self.faces
+
+        edges = {}
+
+        for f in faces:
+#            if len(f) == 4:
+            if f.verts_raw[3] != 0:
+                edge_keys = f.edge_keys
+                for i, edkey in enumerate(f.edge_keys):
+                    edges.setdefault(edkey, []).append(edge_keys[OTHER_INDEX[i]])
+    
+        for edkey in seams:
+            edges[edkey] = []
+    
+        # Collect edge loops here
+        edge_loops = []    
+    
+        for edkey, ed_adj in edges.items():
+            if 0 <len(ed_adj) < 3: # 1 or 2
+                # Seek the first edge
+                context_loop = [edkey, ed_adj[0]]
+                edge_loops.append(context_loop)
+                if len(ed_adj) == 2:
+                    other_dir = ed_adj[1]
+                else:
+                    other_dir = None
+            
+                ed_adj[:] = []
+            
+                flipped = False
+            
+                while 1:
+                    # from knowing the last 2, look for th next.
+                    ed_adj = edges[context_loop[-1]]
+                    if len(ed_adj) != 2:
+                    
+                        if other_dir and flipped==False: # the original edge had 2 other edges
+                            flipped = True # only flip the list once
+                            context_loop.reverse()
+                            ed_adj[:] = []
+                            context_loop.append(other_dir) # save 1 lookiup
+                        
+                            ed_adj = edges[context_loop[-1]]
+                            if len(ed_adj) != 2:
+                                ed_adj[:] = []
+                                break
+                        else:
+                            ed_adj[:] = []
+                            break
+                
+                    i = ed_adj.index(context_loop[-2])
+                    context_loop.append( ed_adj[ not  i] )
+                
+                    # Dont look at this again
+                    ed_adj[:] = []
+
+    
+        return edge_loops
+
 
 class MeshEdge(StructRNA):
     __slots__ = ()
