@@ -880,7 +880,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	uiBut *but;
 	PropertyType type;
 	char namestr[UI_MAX_NAME_STR];
-	int len, w, h, slider, toggle, expand, icon_only;
+	int len, w, h, slider, toggle, expand, icon_only, no_bg;
 
 	uiBlockSetCurLayout(block, layout);
 
@@ -912,10 +912,14 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	toggle= (flag & UI_ITEM_R_TOGGLE);
 	expand= (flag & UI_ITEM_R_EXPAND);
 	icon_only= (flag & UI_ITEM_R_ICON_ONLY);
+	no_bg= (flag & UI_ITEM_R_NO_BG);
 
 	/* get size */
 	ui_item_rna_size(layout, name, icon, ptr, prop, index, icon_only, &w, &h);
 
+	if (no_bg)
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+	
 	/* array property */
 	if(index == RNA_NO_INDEX && len > 0)
 		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider, toggle, icon_only);
@@ -948,6 +952,9 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 		if(toggle && but->type==OPTION)
 			but->type= TOG;
 	}
+	
+	if (no_bg)
+		uiBlockSetEmboss(block, UI_EMBOSS);
 }
 
 void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int flag)

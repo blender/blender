@@ -19,6 +19,83 @@
 # <pep8 compliant>
 import bpy
 
+KM_HIERARCHY = [
+                    ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
+                    ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
+                    ('Screen', 'EMPTY', 'WINDOW', []),    # full screen, undo, screenshot
+
+                    ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
+                    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
+                    ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
+                    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
+                    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
+                    ('Grease Pencil', 'EMPTY', 'WINDOW', []), # grease pencil stuff (per region)
+                    
+                    ('View2D Buttons List', 'EMPTY', 'WINDOW', []), # view 2d with buttons navigation
+                    ('Animation_Channels', 'EMPTY', 'WINDOW', []),
+                    
+                    ('Buttons Generic', 'PROPERTIES', 'WINDOW', []), # align context menu
+                    ('TimeLine', 'TIMELINE', 'WINDOW', []),
+                    ('Outliner', 'OUTLINER', 'WINDOW', []),
+                    
+                    ('View3D', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
+                        ('Pose', 'EMPTY', 'WINDOW', []),
+                        ('Object Mode', 'EMPTY', 'WINDOW', []),
+                        ('Vertex Paint', 'EMPTY', 'WINDOW', []),
+                        ('Weight Paint', 'EMPTY', 'WINDOW', []),
+                        ('Face Mask', 'EMPTY', 'WINDOW', []),
+                        ('Sculpt', 'EMPTY', 'WINDOW', []),
+                        ('EditMesh', 'EMPTY', 'WINDOW', []),
+                        ('Curve', 'EMPTY', 'WINDOW', []),
+                        ('Armature', 'EMPTY', 'WINDOW', []),
+                        ('Metaball', 'EMPTY', 'WINDOW', []),
+                        ('Lattice', 'EMPTY', 'WINDOW', []),
+                        ('Armature_Sketch', 'EMPTY', 'WINDOW', []),
+                        ('Particle', 'EMPTY', 'WINDOW', []),
+                        ('Font', 'EMPTY', 'WINDOW', []),
+                        ('Object Non-modal', 'EMPTY', 'WINDOW', []), # mode change
+                        ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
+                        ('View3D Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
+                        ]),
+                    ('GraphEdit Keys', 'GRAPH_EDITOR', 'WINDOW', [
+                        ('GraphEdit Generic', 'GRAPH_EDITOR', 'WINDOW', [])
+                        ]),
+                    
+                    ('Image', 'IMAGE_EDITOR', 'WINDOW', [
+                        ('UVEdit', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
+                        ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
+                        ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
+                        ]),
+                    
+                    ('Node Generic', 'NODE_EDITOR', 'WINDOW', [
+                        ('Node', 'NODE_EDITOR', 'WINDOW', [])
+                        ]),
+                    ('File', 'FILE_BROWSER', 'WINDOW', [
+                        ('FileMain', 'FILE_BROWSER', 'WINDOW', []),
+                        ('FileButtons', 'FILE_BROWSER', 'WINDOW', [])
+                        ]),
+                    ('Action_Keys', 'DOPESHEET_EDITOR', 'WINDOW', []),
+                    ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [
+                        ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
+                        ('NLA Data', 'NLA_EDITOR', 'WINDOW', [])
+                        ]),
+                    ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
+                    ('Text', 'TEXT_EDITOR', 'WINDOW', []),
+                    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
+                    ('Logic Generic', 'LOGIC_EDITOR', 'WINDOW', []),
+                    ('Console', 'CONSOLE', 'WINDOW', []),
+                    
+                    
+                    ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
+                    ('Gesture Border', 'EMPTY', 'WINDOW', []),
+                    ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
+                    ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
+                    ('View3D Fly Modal', 'EMPTY', 'WINDOW', []),
+                    ('View3D Rotate Modal', 'EMPTY', 'WINDOW', []),
+                    ('View3D Move Modal', 'EMPTY', 'WINDOW', []),
+                    ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
+                ]
+
 
 class USERPREF_HT_header(bpy.types.Header):
     bl_space_type = 'USER_PREFERENCES'
@@ -1176,27 +1253,170 @@ class USERPREF_PT_input(bpy.types.Panel):
     def poll(self, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
+    
+    def draw_entry(self, kc, entry, col, level = 0):
+        idname, spaceid, regionid, children = entry
+        
+        km = kc.find_keymap(idname, space_type = spaceid, region_type = regionid)
+        
+        if km:
+            km = km.active()
+            self.draw_km(kc, km, children, col, level)
 
-    def draw(self, context):
-        layout = self.layout
+    def indented_layout(self, layout, level):
+        indentpx = 16
+        if level == 0:
+            level = 0.0001   # Tweak so that a percentage of 0 won't split by half
+        indent = level*indentpx / bpy.context.region.width
+        
+        split=layout.split(percentage=indent)
+        col = split.column()
+        col = split.column()
+        return col
+    
+    def draw_km(self, kc, km, children, layout, level):
+        layout.set_context_pointer("keymap", km)
+        
+        col = self.indented_layout(layout, level)
+        
+        row = col.row()
+        row.prop(km, "children_expanded", text="", no_bg=True)
+        row.label(text=km.name)
+        
+        row.label()
+        row.label()
+        
+        if km.user_defined:
+            row.operator("WM_OT_keymap_restore", text="Restore")
+        else:
+            row.operator("WM_OT_keymap_edit", text="Edit")
+        
+        if km.children_expanded:
+            if children:
+                # Put the Parent key map's entries in a 'global' sub-category
+                # equal in hierarchy to the other children categories
+                subcol = self.indented_layout(col, level + 1)
+                subrow = subcol.row()
+                subrow.prop(km, "items_expanded", text="", no_bg=True)                  
+                subrow.label(text="%s (Global)" % km.name)
+            else:
+                km.items_expanded = True
+            
+            # Key Map items
+            if km.items_expanded:
+                for kmi in km.items:
+                    self.draw_kmi(kc, km, kmi, col, level + 1)
+                
+                # "Add New" at end of keymap item list
+                col = self.indented_layout(col, level+1)
+                subcol = col.split(percentage=0.2).column()
+                subcol.active = km.user_defined
+                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+            
+            col.separator()
+            
+            # Child key maps
+            if children:
+                subcol = col.column()
+                row = subcol.row()
+                
+                for entry in children:
+                    self.draw_entry(kc, entry, col, level + 1)
+        
+        
+    def draw_kmi(self, kc, km, kmi, layout, level):
+        layout.set_context_pointer("keyitem", kmi)
+    
+        col = self.indented_layout(layout, level)
 
-        userpref = context.user_preferences
-        wm = context.manager
-        #input = userpref.input
-        #input = userpref
-        inputs = userpref.inputs
-
-        split = layout.split(percentage=0.25)
-
-        # General settings
+        col.enabled = km.user_defined
+        
+        if km.user_defined:
+            col = col.column(align=True)
+            box = col.box()
+        else:
+            box = col.column()
+        
+        split = box.split(percentage=0.4)
+        
+        # header bar
         row = split.row()
+        row.prop(kmi, "expanded", text="", no_bg=True)
+        row.prop(kmi, "active", text="", no_bg=True)
+        
+        if km.modal:
+            row.prop(kmi, "propvalue", text="")
+        else:
+            row.label(text=kmi.name)
+        
+        row = split.row()
+        row.prop(kmi, "map_type", text="")
+        if kmi.map_type == 'KEYBOARD':
+            row.prop(kmi, "type", text="", full_event=True)
+        elif kmi.map_type == 'MOUSE':
+            row.prop(kmi, "type", text="", full_event=True)
+        elif kmi.map_type == 'TWEAK':
+            subrow = row.row()
+            subrow.prop(kmi, "type", text="")
+            subrow.prop(kmi, "value", text="")
+        elif kmi.map_type == 'TIMER':
+            row.prop(kmi, "type", text="")
+        else:
+            row.label()
+    
+        row.operator("wm.keyitem_remove", text="", icon='X')
+        
+        # Expanded, additional event settings
+        if kmi.expanded:
+            box = col.box()
+            
+            if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
+                split = box.split(percentage=0.4)
+                sub = split.row()
+                
+                if km.modal:
+                    sub.prop(kmi, "propvalue", text="")
+                else:
+                    sub.prop(kmi, "idname", text="")
+                
+                sub = split.column()
+                subrow = sub.row(align=True)
+
+                if kmi.map_type == 'KEYBOARD':
+                    subrow.prop(kmi, "type", text="", event=True)
+                    subrow.prop(kmi, "value", text="")
+                elif kmi.map_type == 'MOUSE':
+                    subrow.prop(kmi, "type", text="")
+                    subrow.prop(kmi, "value", text="")
+
+                subrow = sub.row()
+                subrow.scale_x = 0.75
+                subrow.prop(kmi, "any")
+                subrow.prop(kmi, "shift")
+                subrow.prop(kmi, "ctrl")
+                subrow.prop(kmi, "alt")
+                subrow.prop(kmi, "oskey", text="Cmd")
+                subrow.prop(kmi, "key_modifier", text="", event=True)
+
+            # Operator properties
+            props = kmi.properties
+            if props is not None:
+                box.separator()
+                flow = box.column_flow(columns=2)
+                for pname in dir(props):
+                    if not props.is_property_hidden(pname):
+                        flow.prop(props, pname)
+            
+            # Modal key maps attached to this operator            
+            if not km.modal:
+                kmm = kc.find_keymap_modal(kmi.idname)
+                if kmm:
+                    self.draw_km(kc, kmm, None, layout, level + 1)
+                    
+    def draw_input_prefs(self, inputs, layout):
+        # General settings
+        row = layout.row()
         col = row.column()
-
-        sub = col.column()
-        sub.label(text="Configuration:")
-        sub.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="")
-
-        col.separator()
 
         sub = col.column()
         sub.label(text="Mouse:")
@@ -1243,111 +1463,34 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
 
         row.separator()
+        
+    def draw(self, context):
+        layout = self.layout
 
+        userpref = context.user_preferences
+        wm = context.manager
+
+        inputs = userpref.inputs
+
+        split = layout.split(percentage=0.25)
+        
+        # Input settings
+        self.draw_input_prefs(inputs, split)
+        
         # Keymap Settings
         col = split.column()
-
         # kc = wm.active_keyconfig
         defkc = wm.default_keyconfig
-        km = wm.active_keymap
-
-        subsplit = col.split()
-        subsplit.prop_object(wm, "active_keymap", defkc, "keymaps", text="Map:")
-        if km.user_defined:
-            row = subsplit.row()
-            row.operator("WM_OT_keymap_restore", text="Restore")
-            row.operator("WM_OT_keymap_restore", text="Restore All").all = True
-        else:
-            row = subsplit.row()
-            row.operator("WM_OT_keymap_edit", text="Edit")
-            row.label()
-
+        
+        sub = col.column()
+        subrow = sub.row()
+        subrow.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Configuration:")
+        subrow.label()
+        
         col.separator()
-
-        for kmi in km.items:
-            subcol = col.column()
-            subcol.set_context_pointer("keyitem", kmi)
-
-            row = subcol.row()
-
-            if kmi.expanded:
-                row.prop(kmi, "expanded", text="", icon='TRIA_DOWN')
-            else:
-                row.prop(kmi, "expanded", text="", icon='TRIA_RIGHT')
-
-            itemrow = row.row()
-            itemrow.enabled = km.user_defined
-            if kmi.active:
-                itemrow.prop(kmi, "active", text="", icon='CHECKBOX_HLT')
-            else:
-                itemrow.prop(kmi, "active", text="", icon='CHECKBOX_DEHLT')
-
-            itemcol = itemrow.column()
-            itemcol.active = kmi.active
-            row = itemcol.row()
-
-            if km.modal:
-                row.prop(kmi, "propvalue", text="")
-            else:
-                row.prop(kmi, "idname", text="")
-
-            sub = row.row()
-            sub.scale_x = 0.6
-            sub.prop(kmi, "map_type", text="")
-
-            sub = row.row(align=True)
-            if kmi.map_type == 'KEYBOARD':
-                sub.prop(kmi, "type", text="", full_event=True)
-            elif kmi.map_type == 'MOUSE':
-                sub.prop(kmi, "type", text="", full_event=True)
-            elif kmi.map_type == 'TWEAK':
-                sub.scale_x = 0.5
-                sub.prop(kmi, "type", text="")
-                sub.prop(kmi, "value", text="")
-            elif kmi.map_type == 'TIMER':
-                sub.prop(kmi, "type", text="")
-            else:
-                sub.label()
-
-            if kmi.expanded:
-                if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
-                    sub = itemcol.row(align=True)
-
-                    if kmi.map_type == 'KEYBOARD':
-                        sub.prop(kmi, "type", text="", event=True)
-                        sub.prop(kmi, "value", text="")
-                    elif kmi.map_type == 'MOUSE':
-                        sub.prop(kmi, "type", text="")
-                        sub.prop(kmi, "value", text="")
-                    else:
-                        sub.label()
-                        sub.label()
-
-                    subrow = sub.row()
-                    subrow.scale_x = 0.75
-                    subrow.prop(kmi, "any")
-                    subrow.prop(kmi, "shift")
-                    subrow.prop(kmi, "ctrl")
-                    subrow.prop(kmi, "alt")
-                    subrow.prop(kmi, "oskey", text="Cmd")
-                    sub.prop(kmi, "key_modifier", text="", event=True)
-
-                flow = itemcol.column_flow(columns=2)
-                props = kmi.properties
-
-                if props is not None:
-                    for pname in dir(props):
-                        if not props.is_property_hidden(pname):
-                            flow.prop(props, pname)
-
-                itemcol.separator()
-
-            itemrow.operator("wm.keyitem_remove", text="", icon='ZOOMOUT')
-
-        itemrow = col.row()
-        itemrow.label()
-        itemrow.operator("wm.keyitem_add", text="", icon='ZOOMIN')
-        itemrow.enabled = km.user_defined
+        
+        for entry in KM_HIERARCHY:
+            self.draw_entry(defkc, entry, col)
 
 bpy.types.register(USERPREF_HT_header)
 bpy.types.register(USERPREF_PT_tabs)
@@ -1464,7 +1607,7 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
     def execute(self, context):
         wm = context.manager
-        km = wm.active_keymap
+        km = context.keymap # wm.active_keymap
         km.copy_to_user()
         return ('FINISHED',)
 
@@ -1483,7 +1626,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
             for km in wm.default_keyconfig.keymaps:
                 km.restore_to_default()
         else:
-            km = wm.active_keymap
+            km = context.keymap # wm.active_keymap
             km.restore_to_default()
 
         return ('FINISHED',)
@@ -1496,7 +1639,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
 
     def execute(self, context):
         wm = context.manager
-        km = wm.active_keymap
+        km = context.keymap # wm.active_keymap
         if km.modal:
             km.add_modal_item("", 'A', 'PRESS') # kmi
         else:
@@ -1512,7 +1655,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         kmi = context.keyitem
-        km = wm.active_keymap
+        km = context.keymap # wm.active_keymap
         km.remove_item(kmi)
         return ('FINISHED',)
 

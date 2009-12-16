@@ -290,9 +290,10 @@ typedef struct wmKeyMap {
 } wmKeyMap;
 
 /* wmKeyMap.flag */
-#define KEYMAP_MODAL		1	/* modal map, not using operatornames */
-#define KEYMAP_USER			2	/* user created keymap */
-#define KEYMAP_EXPANDED		4
+#define KEYMAP_MODAL				1	/* modal map, not using operatornames */
+#define KEYMAP_USER					2	/* user created keymap */
+#define KEYMAP_EXPANDED				4
+#define KEYMAP_CHILDREN_EXPANDED	8
 
 typedef struct wmKeyConfig {
 	struct wmKeyConfig *next, *prev;

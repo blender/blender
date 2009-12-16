@@ -594,6 +594,26 @@ static void rna_wmKeyMapItem_idname_set(PointerRNA *ptr, const char *value)
 	}
 }
 
+static void rna_wmKeyMapItem_name_get(PointerRNA *ptr, char *value)
+{
+	wmKeyMapItem *kmi= ptr->data;
+	wmOperatorType *ot= WM_operatortype_find(kmi->idname, 1);
+	
+	if (ot)
+		strcpy(value, ot->name);
+}
+
+static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
+{
+	wmKeyMapItem *kmi= ptr->data;
+	wmOperatorType *ot= WM_operatortype_find(kmi->idname, 1);
+	
+	if (ot)
+		return strlen(ot->name);
+	else
+		return 0;
+}
+
 #else
 
 static void rna_def_operator(BlenderRNA *brna)
@@ -904,9 +924,15 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Modal Keymap", "Indicates that a keymap is used for translate modal events for an operator.");
 
-	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "items_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_EXPANDED);
-	RNA_def_property_ui_text(prop, "Expanded", "Expanded in the user interface.");
+	RNA_def_property_ui_text(prop, "Items Expanded", "Expanded in the user interface.");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
+	
+	prop= RNA_def_property(srna, "children_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_CHILDREN_EXPANDED);
+	RNA_def_property_ui_text(prop, "Children Expanded", "Children expanded in the user interface.");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 
 	RNA_api_keymap(srna);
@@ -921,7 +947,12 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Identifier", "Identifier of operator to call on input event.");
 	RNA_def_property_string_funcs(prop, "rna_wmKeyMapItem_idname_get", "rna_wmKeyMapItem_idname_length", "rna_wmKeyMapItem_idname_set");
 	RNA_def_struct_name_property(srna, prop);
-
+	
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "Name of operator to call on input event.");
+	RNA_def_property_string_funcs(prop, "rna_wmKeyMapItem_name_get", "rna_wmKeyMapItem_name_length", NULL);
+	
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_pointer_funcs(prop, "rna_KeyMapItem_properties_get", NULL, NULL);
@@ -981,6 +1012,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Expanded in the user interface.");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 	prop= RNA_def_property(srna, "propvalue", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "propvalue");
@@ -991,6 +1023,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", KMI_INACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "Activate or deactivate item.");
+	RNA_def_property_ui_icon(prop, ICON_CHECKBOX_DEHLT, 1);
 }
 
 void RNA_def_wm(BlenderRNA *brna)
