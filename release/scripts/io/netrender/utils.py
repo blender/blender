@@ -28,7 +28,7 @@ try:
 except:
   bpy = None
 
-VERSION = b"0.7"
+VERSION = bytes("0.7", encoding='utf8')
 
 # Jobs status
 JOB_WAITING = 0 # before all data has been entered
@@ -36,13 +36,21 @@ JOB_PAUSED = 1 # paused by user
 JOB_FINISHED = 2 # finished rendering
 JOB_QUEUED = 3 # ready to be dispatched
 
+JOB_STATUS_TEXT = {
+        JOB_WAITING: "Waiting",
+        JOB_PAUSED: "Paused",
+        JOB_FINISHED: "Finished",
+        JOB_QUEUED: "Queued"
+        }
+
+
 # Frames status
 QUEUED = 0
 DISPATCHED = 1
 DONE = 2
 ERROR = 3
 
-STATUS_TEXT = {
+FRAME_STATUS_TEXT = {
 		QUEUED: "Queued",
 		DISPATCHED: "Dispatched",
 		DONE: "Done",
@@ -57,40 +65,66 @@ def rnaOperator(rna_op):
 	if bpy: bpy.ops.add(rna_op)
 	return rna_op
 
-def clientScan():
-	try:
-		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-		s.settimeout(30)
+def reporting(report, message, errorType = None):
+    if errorType:
+        t = 'ERROR'
+    else:
+        t = 'INFO'
+        
+    if report:
+        report(t, message)
+        return None
+    elif errorType:
+        raise errorType(message)
+    else:
+        return None
 
-		s.bind(('', 8000))
-		
-		buf, address = s.recvfrom(64)
-		
-		print("received:", buf)
-		
-		address = address[0]
-		port = int(str(buf, encoding='utf8'))
-		return (address, port)
-	except socket.timeout:
-		print("no server info")
-		return ("", 8000) # return default values
+def clientScan(report = None):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        s.settimeout(30)
 
-def clientConnection(address, port):
-		if address == "[default]":
+        s.bind(('', 8000))
+		
+        buf, address = s.recvfrom(64)
+		
+        address = address[0]
+        port = int(str(buf, encoding='utf8'))
+        
+        reporting(report, "Master server found")
+        
+        return (address, port)
+    except socket.timeout:
+        reporting(report, "No master server on network", IOError)
+
+        return ("", 8000) # return default values
+
+def clientConnection(address, port, report = None):
+    if address == "[default]":
 #            calling operator from python is fucked, scene isn't in context
 #			if bpy:
 #				bpy.ops.render.netclientscan()
 #			else:
-				address, port = clientScan()
-		
-		conn = http.client.HTTPConnection(address, port)
-		
-		if clientVerifyVersion(conn):
-			return conn
-		else:
-			conn.close()
-			raise IOError("Wrong version on master")
+            address, port = clientScan()
+            if address == "":
+                return None
+    
+    try:    
+        conn = http.client.HTTPConnection(address, port)
+        
+        if conn:
+            if clientVerifyVersion(conn):
+                return conn
+            else:
+                conn.close()
+                reporting(report, "Incorrect master version", ValueError)
+    except Exception as err:
+        if report:
+            report('ERROR', str(err))
+            return None
+        else:
+            raise
 
 def clientVerifyVersion(conn):
 	conn.request("GET", "/version")
@@ -104,7 +138,7 @@ def clientVerifyVersion(conn):
 	
 	if server_version != VERSION:
 		print("Incorrect server version!")
-		print("expected", VERSION, "received", server_version)
+		print("expected", str(VERSION, encoding='utf8'), "received", str(server_version, encoding='utf8'))
 		return False
 	
 	return True

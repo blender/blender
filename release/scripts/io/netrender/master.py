@@ -67,11 +67,13 @@ class MRenderJob(netrender.model.RenderJob):
 		if self.type == netrender.model.JOB_PROCESS:
 			self.chunks = 1
 	
+		# Force WAITING status on creation
+		self.status = JOB_WAITING
+
 		# special server properties
 		self.last_update = 0
 		self.save_path = ""
 		self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end) for rfile in job_info.files]
-		self.status = JOB_WAITING
 	
 	def save(self):
 		if self.save_path:

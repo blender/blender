@@ -97,15 +97,12 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 		scene = context.scene
 		netsettings = scene.network_render
 		
-		try:
-			conn = clientConnection(netsettings.server_address, netsettings.server_port)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 
+		if conn:
 			# Sending file
 			scene.network_render.job_id = client.clientSendJob(conn, scene, True)
 			conn.close()
-		except Exception as err:
-			self.report('ERROR', str(err))
-			conn = None
 		
 		bpy.ops.screen.render('INVOKE_AREA', animation=True)
 		
@@ -128,12 +125,13 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 		netsettings = scene.network_render
 		
 		try:
-			conn = clientConnection(netsettings.server_address, netsettings.server_port)
+			conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 
-			# Sending file
-			scene.network_render.job_id = client.clientSendJob(conn, scene, True)
-			conn.close()
-			self.report('INFO', "Job sent to master")
+			if conn:
+				# Sending file
+				scene.network_render.job_id = client.clientSendJob(conn, scene, True)
+				conn.close()
+				self.report('INFO', "Job sent to master")
 		except Exception as err:
 			self.report('ERROR', str(err))
 		
@@ -154,7 +152,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 	
 	def execute(self, context):
 		netsettings = context.scene.network_render
-		conn = clientConnection(netsettings.server_address, netsettings.server_port)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 
 		if conn:
 			conn.request("GET", "/status")
@@ -255,7 +253,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 	
 	def execute(self, context):
 		netsettings = context.scene.network_render
-		conn = clientConnection(netsettings.server_address, netsettings.server_port)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 		
 		if conn:
 			conn.request("GET", "/slaves")
@@ -301,7 +299,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 		
 	def execute(self, context):
 		netsettings = context.scene.network_render
-		conn = clientConnection(netsettings.server_address, netsettings.server_port)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 		
 		if conn:
 			job = netrender.jobs[netsettings.active_job_index]
@@ -329,7 +327,7 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 		
 	def execute(self, context):
 		netsettings = context.scene.network_render
-		conn = clientConnection(netsettings.server_address, netsettings.server_port)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 		
 		if conn:
 			conn.request("POST", "/clear")
@@ -359,7 +357,7 @@ class netclientdownload(bpy.types.Operator):
 		netsettings = context.scene.network_render
 		rd = context.scene.render_data
 		
-		conn = clientConnection(netsettings.server_address, netsettings.server_port)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 		
 		if conn:
 			job = netrender.jobs[netsettings.active_job_index]
@@ -400,7 +398,7 @@ class netclientscan(bpy.types.Operator):
 		return True
 		
 	def execute(self, context):
-		address, port = clientScan()
+		address, port = clientScan(self.report)
 
 		if address:
 			scene = context.scene
@@ -427,7 +425,7 @@ class netclientweb(bpy.types.Operator):
 		
 		
 		# open connection to make sure server exists
-		conn = clientConnection(netsettings.server_address, netsettings.server_port)
+		conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 		
 		if conn:
 			conn.close()

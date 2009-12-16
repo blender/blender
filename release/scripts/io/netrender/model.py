@@ -132,6 +132,7 @@ class RenderJob:
 		self.type = JOB_BLENDER
 		self.name = ""
 		self.category = "None"
+		self.status = JOB_WAITING
 		self.files = []
 		self.chunks = 0
 		self.priority = 0
@@ -145,6 +146,7 @@ class RenderJob:
 			self.type = job_info.type
 			self.name = job_info.name
 			self.category = job_info.category
+			self.status = job_info.status
 			self.files = job_info.files
 			self.chunks = job_info.chunks
 			self.priority = job_info.priority
@@ -171,6 +173,9 @@ class RenderJob:
 	
 	def countSlaves(self):
 		return len(set((frame.slave for frame in self.frames if frame.status == DISPATCHED)))
+	
+	def statusText(self):
+		return JOB_STATUS_TEXT[self.status]
 	
 	def framesStatus(self):
 		results = {
@@ -207,6 +212,7 @@ class RenderJob:
 							"type": self.type,
 							"name": self.name,
 							"category": self.category,
+							"status": self.status,
 							"files": [f.serialize() for f in self.files if f.start == -1 or not frames or (f.start <= max_frame and f.end >= min_frame)],
 							"frames": [f.serialize() for f in self.frames if not frames or f in frames],
 							"chunks": self.chunks,
@@ -226,6 +232,7 @@ class RenderJob:
 		job.type = data["type"]
 		job.name = data["name"]
 		job.category = data["category"]
+		job.status = data["status"]
 		job.files = [RenderFile.materialize(f) for f in data["files"]]
 		job.frames = [RenderFrame.materialize(f) for f in data["frames"]]
 		job.chunks = data["chunks"]
@@ -245,7 +252,7 @@ class RenderFrame:
 		self.command = command
 
 	def statusText(self):
-		return STATUS_TEXT[self.status]
+		return FRAME_STATUS_TEXT[self.status]
 
 	def serialize(self):
 		return 	{

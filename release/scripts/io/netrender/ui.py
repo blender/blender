@@ -85,7 +85,8 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 	
 	def poll(self, context):
 		scene = context.scene
-		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+		return (super().poll(context)
+				and scene.network_render.mode == "RENDER_CLIENT")
 
 	def draw(self, context):
 		layout = self.layout
@@ -98,9 +99,10 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.operator("render.netclientanim", icon='RENDER_ANIMATION')
-		col.operator("render.netclientsend", icon='FILE_BLEND')
-		col.operator("render.netclientweb", icon='QUESTION')
+		if scene.network_render.server_address != "[default]":
+			col.operator("render.netclientanim", icon='RENDER_ANIMATION')
+			col.operator("render.netclientsend", icon='FILE_BLEND')
+			col.operator("render.netclientweb", icon='QUESTION')
 		col.prop(scene.network_render, "job_name")
 		col.prop(scene.network_render, "job_category")
 		row = col.row()
@@ -114,7 +116,9 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 	
 	def poll(self, context):
 		scene = context.scene
-		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+		return (super().poll(context)
+				and scene.network_render.mode == "RENDER_CLIENT"
+				and scene.network_render.server_address != "[default]")
 
 	def draw(self, context):
 		layout = self.layout
@@ -150,7 +154,9 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 	
 	def poll(self, context):
 		scene = context.scene
-		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+		return (super().poll(context)
+				and scene.network_render.mode == "RENDER_CLIENT"
+				and scene.network_render.server_address != "[default]")
 	
 	def draw(self, context):
 		layout = self.layout
@@ -185,7 +191,9 @@ class RENDER_PT_network_jobs(RenderButtonsPanel):
 	
 	def poll(self, context):
 		scene = context.scene
-		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+		return (super().poll(context)
+				and scene.network_render.mode == "RENDER_CLIENT"
+				and scene.network_render.server_address != "[default]")
 	
 	def draw(self, context):
 		layout = self.layout
