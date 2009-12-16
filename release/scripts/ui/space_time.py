@@ -98,6 +98,9 @@ class TIME_MT_view(bpy.types.Menu):
         layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "only_selected")
 
+        layout.separator()
+
+        layout.operator("marker.camera_bind")
 
 class TIME_MT_frame(bpy.types.Menu):
     bl_label = "Frame"

@@ -2339,6 +2339,9 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		ScreenAnimData *sad= wt->customdata;
 		ScrArea *sa;
 		int sync;
+#ifdef DURIAN_CAMERA_SWITCH
+		Object *camera_orig= scene->camera;
+#endif
 		
 		/* sync, don't sync, or follow scene setting */
 		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
@@ -2397,10 +2400,11 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
+
 		ED_update_for_newframe(C, 1);
 		
 		sound_update_playing(C);
-		
+
 		for(sa= screen->areabase.first; sa; sa= sa->next) {
 			ARegion *ar;
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {

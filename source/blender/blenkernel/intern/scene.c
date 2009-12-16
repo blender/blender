@@ -698,6 +698,47 @@ Object *scene_find_camera(Scene *sc)
 	return NULL;
 }
 
+#ifdef DURIAN_CAMERA_SWITCH
+Object *scene_find_camera_switch(Scene *scene)
+{
+	TimeMarker *m;
+	int cfra = scene->r.cfra;
+	int frame = -(MAXFRAME + 1);
+	Object *camera= NULL;
+
+	for (m= scene->markers.first; m; m= m->next) {
+		if(m->camera && (m->frame <= cfra) && (m->frame > frame)) {
+			camera= m->camera;
+			frame= m->frame;
+
+			if(frame == cfra)
+				break;
+
+		}
+	}
+	return camera;
+}
+#endif
+
+static char *get_cfra_marker_name(Scene *scene)
+{
+	ListBase *markers= &scene->markers;
+	TimeMarker *m1, *m2;
+
+	/* search through markers for match */
+	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
+		if (m1->frame==CFRA)
+			return m1->name;
+
+		if (m1 == m2)
+			break;
+
+		if (m2->frame==CFRA)
+			return m2->name;
+	}
+
+	return NULL;
+}
 
 Base *scene_add_base(Scene *sce, Object *ob)
 {

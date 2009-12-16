@@ -4174,6 +4174,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Base *base, *next;
 	Sequence *seq;
 	SceneRenderLayer *srl;
+	TimeMarker *marker;
 	
 	sce= main->scene.first;
 	while(sce) {
@@ -4229,6 +4230,14 @@ static void lib_link_scene(FileData *fd, Main *main)
 			}
 			SEQ_END
 
+#ifdef DURIAN_CAMERA_SWITCH
+			for(marker= sce->markers.first; marker; marker= marker->next) {
+				if(marker->camera) {
+					marker->camera= newlibadr(fd, sce->id.lib, marker->camera);
+				}
+			}
+#endif
+
 			if(sce->ed)
 				seq_update_muting(sce->ed);
 			
@@ -4280,6 +4289,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Editing *ed;
 	Sequence *seq;
 	MetaStack *ms;
+	TimeMarker *marker;
 
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
@@ -4451,7 +4461,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->markers));
 	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));
-	
+
 	sce->nodetree= newdataadr(fd, sce->nodetree);
 	if(sce->nodetree)
 		direct_link_nodetree(fd, sce->nodetree);
@@ -11255,6 +11265,18 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		
 	if(sce->gpd)
 		expand_doit(fd, mainvar, sce->gpd);
+
+#ifdef DURIAN_CAMERA_SWITCH
+	{
+		TimeMarker *marker;
+
+		for(marker= sce->markers.first; marker; marker= marker->next) {
+			if(marker->camera) {
+				expand_doit(fd, mainvar, marker->camera);
+			}
+		}
+	}
+#endif
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

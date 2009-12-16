@@ -1670,6 +1670,47 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	bScreen *screen= CTX_wm_screen(C);
 	Scene *scene= CTX_data_scene(C);
 	
+#ifdef DURIAN_CAMERA_SWITCH
+	void *camera= scene_find_camera_switch(scene);
+	if(camera && scene->camera != camera) {
+
+		if(camera && scene->camera && (camera != scene->camera)) {
+			bScreen *sc;
+			/* are there cameras in the views that are not in the scene? */
+			for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+				ScrArea *sa= sc->areabase.first;
+				while(sa) {
+					SpaceLink *sl= sa->spacedata.first;
+					while(sl) {
+						if(sl->spacetype==SPACE_VIEW3D) {
+							View3D *v3d= (View3D*) sl;
+							if (v3d->camera == scene->camera) {
+								v3d->camera= camera;
+								/*
+								ARegion *ar;
+								for(ar=v3d->regionbase.first; ar; ar= ar->next) {
+									if(ar->regiontype == RGN_TYPE_WINDOW) {
+										RegionView3D *rv3d= ar->regiondata;
+
+										if(rv3d->persp==RV3D_CAMOB)
+											rv3d->persp= RV3D_PERSP;
+									}
+								}
+								*/
+							}
+						}
+						sl= sl->next;
+					}
+					sa= sa->next;
+				}
+			}
+		}
+
+		scene->camera= camera;
+
+	}
+#endif
+
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	/* this function applies the changes too */

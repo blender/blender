@@ -240,15 +240,19 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
 	/* vertical line - dotted */
-	// NOTE: currently only used for sequencer 
+	// NOTE: currently only used for sequencer
+#ifdef DURIAN_CAMERA_SWITCH
+	if (marker->camera || flag & DRAW_MARKERS_LINES) {
+#else
 	if (flag & DRAW_MARKERS_LINES) {
+#endif
 		setlinestyle(3);
 		
 		if (marker->flag & SELECT)
 			glColor4ub(255, 255, 255, 96);
 		else
 			glColor4ub(0, 0, 0, 96);
-		
+
 		glBegin(GL_LINES);
 			glVertex2f((xpos*xscale)+0.5f, 12.0f);
 			glVertex2f((xpos*xscale)+0.5f, 34.0f*yscale); /* a bit lazy but we know it cant be greater then 34 strips high */
@@ -672,6 +676,10 @@ static void ed_marker_duplicate_apply(bContext *C, wmOperator *op)
 			newmarker->frame= marker->frame;
 			BLI_strncpy(newmarker->name, marker->name, sizeof(marker->name));
 			
+#ifdef DURIAN_CAMERA_SWITCH
+			newmarker->camera= marker->camera;
+#endif
+
 			/* new marker is added to the begining of list */
 			BLI_addhead(markers, newmarker);
 		}
@@ -978,6 +986,48 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	
 }
 
+#ifdef DURIAN_CAMERA_SWITCH
+/* ******************************* camera bind marker ***************** */
+
+/* remove selected TimeMarkers */
+static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ListBase *markers= context_get_markers(C);
+	TimeMarker *marker;
+	short changed= 0;
+
+	if(markers == NULL)
+		return OPERATOR_CANCELLED;
+
+	for(marker= markers->first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) {
+			marker->camera= scene->camera;
+		}
+	}
+
+	if (changed)
+		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+static void MARKER_OT_camera_bind(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bind Camera to Markers";
+	ot->description= "Bind the active camera to selected markers(s).";
+	ot->idname= "MARKER_OT_camera_bind";
+
+	/* api callbacks */
+	ot->exec= ed_marker_camera_bind_exec;
+	ot->poll= ED_operator_areaactive;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+#endif
+
 /* ************************** registration **********************************/
 
 /* called in screen_ops.c:ED_operatortypes_screen() */
@@ -990,6 +1040,9 @@ void ED_operatortypes_marker(void)
 	WM_operatortype_append(MARKER_OT_select_border);
 	WM_operatortype_append(MARKER_OT_select_all);
 	WM_operatortype_append(MARKER_OT_delete);
+#ifdef DURIAN_CAMERA_SWITCH
+	WM_operatortype_append(MARKER_OT_camera_bind);
+#endif
 }
 
 /* called in screen_ops.c:ED_keymap_screen() */
@@ -1008,5 +1061,8 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
+#ifdef DURIAN_CAMERA_SWITCH
+	WM_keymap_add_item(keymap, "MARKER_OT_camera_bind", HOMEKEY, KM_PRESS, 0, 0);
+#endif
 	
 }

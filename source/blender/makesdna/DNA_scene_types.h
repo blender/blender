@@ -29,6 +29,9 @@
 #ifndef DNA_SCENE_TYPES_H
 #define DNA_SCENE_TYPES_H
 
+// XXX, temp feature
+#define DURIAN_CAMERA_SWITCH
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -488,6 +491,7 @@ typedef struct TimeMarker {
 	int frame;
 	char name[64];
 	unsigned int flag;
+	struct Object *camera;
 } TimeMarker;
 
 typedef struct Paint {

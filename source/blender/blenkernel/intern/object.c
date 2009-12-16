@@ -554,6 +554,17 @@ void unlink_object(Scene *scene, Object *ob)
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
 			if(sce->toolsettings->skgen_template==ob) sce->toolsettings->skgen_template = NULL;
+
+#ifdef DURIAN_CAMERA_SWITCH
+			{
+				TimeMarker *m;
+
+				for (m= sce->markers.first; m; m= m->next) {
+					if(m->camera==ob)
+						m->camera= NULL;
+				}
+			}
+#endif
 		}
 		sce= sce->id.next;
 	}

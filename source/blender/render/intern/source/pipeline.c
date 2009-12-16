@@ -2503,6 +2503,12 @@ static void do_render_seq(Render * re)
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
+#ifdef DURIAN_CAMERA_SWITCH
+	Object *camera= scene_find_camera_switch(re->scene);
+	if(camera)
+		re->scene->camera= camera;
+#endif
+
 	re->i.starttime= PIL_check_seconds_timer();
 
 	/* ensure no images are in memory from previous animated sequences */
