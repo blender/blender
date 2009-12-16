@@ -817,3 +817,5 @@ def runMaster(address, broadcast, path, update_stats, test_break):
 						print("broadcasting address")
 						s.sendto(bytes("%i" % address[1], encoding='utf8'), 0, ('<broadcast>', 8000))
 						start_time = time.time()
+		
+		httpd.server_close()
