@@ -90,7 +90,7 @@ def clientConnection(address, port):
 			return conn
 		else:
 			conn.close()
-			return None
+			raise IOError("Wrong version on master")
 
 def clientVerifyVersion(conn):
 	conn.request("GET", "/version")

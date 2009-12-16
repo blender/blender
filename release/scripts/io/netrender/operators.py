@@ -97,12 +97,15 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 		scene = context.scene
 		netsettings = scene.network_render
 		
-		conn = clientConnection(netsettings.server_address, netsettings.server_port)
-		
-		if conn:
+		try:
+			conn = clientConnection(netsettings.server_address, netsettings.server_port)
+
 			# Sending file
 			scene.network_render.job_id = client.clientSendJob(conn, scene, True)
 			conn.close()
+		except Exception as err:
+			self.report('ERROR', str(err))
+			conn = None
 		
 		bpy.ops.screen.render('INVOKE_AREA', animation=True)
 		
@@ -124,12 +127,16 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 		scene = context.scene
 		netsettings = scene.network_render
 		
-		conn = clientConnection(netsettings.server_address, netsettings.server_port)
-		
-		if conn:
+		try:
+			conn = clientConnection(netsettings.server_address, netsettings.server_port)
+
 			# Sending file
 			scene.network_render.job_id = client.clientSendJob(conn, scene, True)
 			conn.close()
+			self.report('INFO', "Job sent to master")
+		except Exception as err:
+			self.report('ERROR', str(err))
+		
 		
 		return ('FINISHED',)
 	
