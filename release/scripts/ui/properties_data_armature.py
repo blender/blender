@@ -250,44 +250,45 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
         ob = context.object
 
         itasc = ob.pose.ik_param
-        wide_ui = context.region.width > narrowui
+        wide_ui = (context.region.width > narrowui)
 
         row = layout.row()
         row.prop(ob.pose, "ik_solver")
+        
+        if itasc:
+            layout.prop(itasc, "mode", expand=True)
+            simulation = (itasc.mode == 'SIMULATION')
+            if simulation:
+                layout.label(text="Reiteration:")
+                layout.prop(itasc, "reiteration", expand=True)
 
-        layout.prop(itasc, "mode", expand=True)
-        simulation = itasc.mode == 'SIMULATION'
-        if simulation:
-            layout.label(text="Reiteration:")
-            layout.prop(itasc, "reiteration", expand=True)
-
-        split = layout.split()
-        split.active = not simulation or itasc.reiteration != 'NEVER'
-        col = split.column()
-        col.prop(itasc, "precision")
-
-        if wide_ui:
+            split = layout.split()
+            split.active = not simulation or itasc.reiteration != 'NEVER'
             col = split.column()
-        col.prop(itasc, "num_iter")
+            col.prop(itasc, "precision")
+
+            if wide_ui:
+                col = split.column()
+            col.prop(itasc, "num_iter")
 
 
-        if simulation:
-            layout.prop(itasc, "auto_step")
-            row = layout.row()
-            if itasc.auto_step:
-                row.prop(itasc, "min_step", text="Min")
-                row.prop(itasc, "max_step", text="Max")
-            else:
-                row.prop(itasc, "num_step")
+            if simulation:
+                layout.prop(itasc, "auto_step")
+                row = layout.row()
+                if itasc.auto_step:
+                    row.prop(itasc, "min_step", text="Min")
+                    row.prop(itasc, "max_step", text="Max")
+                else:
+                    row.prop(itasc, "num_step")
 
-        layout.prop(itasc, "solver")
-        if simulation:
-            layout.prop(itasc, "feedback")
-            layout.prop(itasc, "max_velocity")
-        if itasc.solver == 'DLS':
-            row = layout.row()
-            row.prop(itasc, "dampmax", text="Damp", slider=True)
-            row.prop(itasc, "dampeps", text="Eps", slider=True)
+            layout.prop(itasc, "solver")
+            if simulation:
+                layout.prop(itasc, "feedback")
+                layout.prop(itasc, "max_velocity")
+            if itasc.solver == 'DLS':
+                row = layout.row()
+                row.prop(itasc, "dampmax", text="Damp", slider=True)
+                row.prop(itasc, "dampeps", text="Eps", slider=True)
 
 bpy.types.register(DATA_PT_context_arm)
 bpy.types.register(DATA_PT_skeleton)
