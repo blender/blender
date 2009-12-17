@@ -491,7 +491,7 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 	
 	add_hook_object(scene, obedit, obsel, OBJECT_ADDHOOK_SELOB);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, obedit);
 	return OPERATOR_FINISHED;
 }
 
@@ -518,6 +518,7 @@ static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
 	add_hook_object(scene, obedit, NULL, OBJECT_ADDHOOK_NEWOB);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, obedit);
 	return OPERATOR_FINISHED;
 }
 
@@ -559,7 +560,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 	modifier_free((ModifierData *)hmd);
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
 }

@@ -236,6 +236,17 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
+/* draw a certain button set only if properties area is currently
+ * showing that button set, to reduce unnecessary drawing. */
+static void buttons_area_redraw(ScrArea *sa, short buttons)
+{
+	SpaceButs *sbuts= sa->spacedata.first;
+	
+	/* if the area's current button set is equal to the one to redraw */
+	if(sbuts->mainb == buttons)
+		ED_area_tag_redraw(sa);
+}
+
 /* reused! */
 static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 {
@@ -244,44 +255,55 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
-			/* lazy general redraw tag here, in case more than 1 propertie window is opened 
-			Not all RNA props have a ND_sub notifier(yet) */
-			ED_area_tag_redraw(sa);
 			switch(wmn->data) {
 				case ND_FRAME:
-				case ND_MODE:
 				case ND_RENDER_OPTIONS:
-				case ND_KEYINGSET:
-				case ND_LAYER:
-					ED_area_tag_redraw(sa);
+					buttons_area_redraw(sa, BCONTEXT_RENDER);
 					break;
-					
 				case ND_OB_ACTIVE:
 					ED_area_tag_redraw(sa);
 					sbuts->preview= 1;
 					break;
+				case ND_KEYINGSET:
+					buttons_area_redraw(sa, BCONTEXT_SCENE);
+					break;
+				case ND_MODE:
+				case ND_LAYER:
+				default:
+					ED_area_tag_redraw(sa);
+					break;
 			}
 			break;
 		case NC_OBJECT:
-			ED_area_tag_redraw(sa);
-			/* lazy general redraw tag here, in case more than 1 propertie window is opened 
-			Not all RNA props have a ND_ notifier(yet) */
 			switch(wmn->data) {
 				case ND_TRANSFORM:
+					buttons_area_redraw(sa, BCONTEXT_OBJECT);
+					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
+					buttons_area_redraw(sa, BCONTEXT_BONE);
+					break;
 				case ND_MODIFIER:
 					if(wmn->action == NA_RENAME)
 						ED_area_tag_redraw(sa);
+					else
+						buttons_area_redraw(sa, BCONTEXT_MODIFIER);
 					break;
 				case ND_CONSTRAINT:
-					ED_area_tag_redraw(sa);
+					buttons_area_redraw(sa, BCONTEXT_CONSTRAINT);
+					break;
+				case ND_PARTICLE_DATA:
+					buttons_area_redraw(sa, BCONTEXT_PARTICLE);
 					break;
 				case ND_DRAW:
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview= 1;
+					break;
+				default:
+					/* Not all object RNA props have a ND_ notifier (yet) */
+					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
@@ -304,7 +326,12 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}					
 			break;
 		case NC_WORLD:
+			buttons_area_redraw(sa, BCONTEXT_WORLD);
+			break;
 		case NC_LAMP:
+			buttons_area_redraw(sa, BCONTEXT_DATA);
+			sbuts->preview= 1;
+			break;
 		case NC_TEXTURE:
 			ED_area_tag_redraw(sa);
 			sbuts->preview= 1;
