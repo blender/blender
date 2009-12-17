@@ -77,6 +77,8 @@ static int seqrecty= 0;
 
 /* **** XXX ******** */
 
+ListBase seqbase_clipboard;
+int seqbase_clipboard_frame;
 
 void printf_strip(Sequence *seq)
 {
@@ -200,14 +202,9 @@ void seq_free_strip(Strip *strip)
 
 void seq_free_sequence(Scene *scene, Sequence *seq)
 {
-	Editing *ed = scene->ed;
-
 	if(seq->strip) seq_free_strip(seq->strip);
 
 	if(seq->anim) IMB_free_anim(seq->anim);
-
-	if(seq->sound_handle)
-		sound_delete_handle(scene, seq->sound_handle);
 
 	if (seq->type & SEQ_EFFECT) {
 		struct SeqEffectHandle sh = get_sequence_effect(seq);
@@ -215,8 +212,16 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 		sh.free(seq);
 	}
 
-	if (ed->act_seq==seq)
-		ed->act_seq= NULL;
+	/* clipboard has no scene and will never have a sound handle or be active */
+	if(scene) {
+		Editing *ed = scene->ed;
+
+		if (ed->act_seq==seq)
+			ed->act_seq= NULL;
+
+		if(seq->sound_handle)
+			sound_delete_handle(scene, seq->sound_handle);
+	}
 
 	MEM_freeN(seq);
 }
@@ -232,16 +237,15 @@ Editing *seq_give_editing(Scene *scene, int alloc)
 	return scene->ed;
 }
 
-void seq_free_clipboard(Scene *scene)
+void seq_free_clipboard(void)
 {
-	Editing *ed = scene->ed;
 	Sequence *seq, *nseq;
 
-	for(seq= ed->seqbase_clipboard.first; seq; seq= nseq) {
+	for(seq= seqbase_clipboard.first; seq; seq= nseq) {
 		nseq= seq->next;
-		seq_free_sequence(scene, seq);
+		seq_free_sequence(NULL, seq);
 	}
-	ed->seqbase_clipboard.first= ed->seqbase_clipboard.last= NULL;
+	seqbase_clipboard.first= seqbase_clipboard.last= NULL;
 }
 
 void seq_free_editing(Scene *scene)
@@ -257,8 +261,6 @@ void seq_free_editing(Scene *scene)
 		seq_free_sequence(scene, seq);
 	}
 	SEQ_END
-
-	seq_free_clipboard(scene);
 
 	while((ms= ed->metastack.first)) {
 		BLI_remlink(&ed->metastack, ms);

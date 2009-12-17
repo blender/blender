@@ -954,7 +954,7 @@ static Sequence * deep_dupli_seq(struct Scene *scene, Sequence * seq)
 }
 
 
-static void recurs_dupli_seq(Scene *scene, ListBase *old, ListBase *new)
+static void recurs_dupli_seq(Scene *scene, ListBase *old, ListBase *new, int do_context)
 {
 	Sequence *seq;
 	Sequence *seqn = 0;
@@ -965,15 +965,19 @@ static void recurs_dupli_seq(Scene *scene, ListBase *old, ListBase *new)
 		if(seq->flag & SELECT) {
 			seqn = dupli_seq(scene, seq);
 			if (seqn) { /*should never fail */
-				seq->flag &= SEQ_DESEL;
-				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL+SEQ_LOCK);
+				if(do_context) {
+					seq->flag &= SEQ_DESEL;
+					seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL+SEQ_LOCK);
+				}
 
 				BLI_addtail(new, seqn);
 				if(seq->type==SEQ_META)
-					recurs_dupli_seq(scene, &seq->seqbase,&seqn->seqbase);
+					recurs_dupli_seq(scene, &seq->seqbase,&seqn->seqbase, do_context);
 				
-				if (seq == last_seq) {
-					active_seq_set(scene, seqn);
+				if(do_context) {
+					if (seq == last_seq) {
+						active_seq_set(scene, seqn);
+					}
 				}
 			}
 		}
@@ -1801,7 +1805,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	recurs_dupli_seq(scene, ed->seqbasep, &new);
+	recurs_dupli_seq(scene, ed->seqbasep, &new, TRUE);
 	addlisttolist(ed->seqbasep, &new);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
@@ -2746,19 +2750,39 @@ void SEQUENCER_OT_rendersize(wmOperatorType *ot)
 	/* properties */
 }
 
-static void *_copy_scene= NULL; // XXX - FIXME
+static void seq_del_sound(Scene *scene, Sequence *seq)
+{
+	if(seq->type == SEQ_META) {
+		Sequence *iseq;
+		for(iseq= seq->seqbase.first; iseq; iseq= iseq->next) {
+			seq_del_sound(scene, iseq);
+		}
+	}
+	else if(seq->sound_handle)
+		sound_delete_handle(scene, seq->sound_handle);
+
+}
+
+/* TODO, validate scenes */
 static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq, *seq_act;
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	seq_free_clipboard(scene);
-	recurs_dupli_seq(scene, ed->seqbasep, &ed->seqbase_clipboard);
+	seq_free_clipboard();
 
-	_copy_scene = scene;
+	recurs_dupli_seq(scene, ed->seqbasep, &seqbase_clipboard, FALSE);
+	seqbase_clipboard_frame= scene->r.cfra;
+
+	/* Need to remove anything that references the current scene */
+	for(seq= seqbase_clipboard.first; seq; seq= seq->next) {
+		seq_del_sound(scene, seq);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2779,16 +2803,44 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 	/* properties */
 }
 
+static void seq_offset(Sequence *seq, int ofs)
+{
+	if(seq->type == SEQ_META) {
+		Sequence *iseq;
+		for(iseq= seq->seqbase.first; iseq; iseq= iseq->next) {
+			seq_offset(iseq, ofs);
+		}
+	}
+	else {
+		seq->start += ofs;
+	}
+
+	calc_sequence_disp(seq);
+}
+
 static int sequencer_paste_exec(bContext *C, wmOperator *op)
 {
-	int retval = OPERATOR_CANCELLED;
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, TRUE); /* create if needed */
-	Editing *ed_from= seq_give_editing((Scene *)_copy_scene, TRUE); /* create if needed */
+	ListBase new = {NULL, NULL};
+	int ofs;
+	Sequence *iseq;
 
+	deselect_all_seq(scene);
+	ofs = scene->r.cfra - seqbase_clipboard_frame;
 
-	addlisttolist(ed->seqbasep, &ed_from->seqbase_clipboard);
-	ed_from->seqbase_clipboard.first= ed_from->seqbase_clipboard.last= NULL; // XXX - could duplicate these to use the clip
+	recurs_dupli_seq(scene, &seqbase_clipboard, &new, FALSE);
+
+	/* transform pasted strips before adding */
+	if(ofs) {
+		for(iseq= new.first; iseq; iseq= iseq->next) {
+			seq_offset(iseq, ofs);
+		}
+	}
+
+	addlisttolist(ed->seqbasep, &new);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
