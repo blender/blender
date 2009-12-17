@@ -274,7 +274,7 @@ void VIEW2D_OT_pan(wmOperatorType *ot)
 	ot->cancel= view_pan_cancel;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
