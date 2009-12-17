@@ -3499,9 +3499,14 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		//Copy Property Value
 		//Paste Property Value
 		
-		//uiItemO(layout, "Reset to Default Value", 0, "WM_OT_property_value_reset_button");
+		if(length) {
+			uiItemBooleanO(layout, "Reset All to Default Values", 0, "UI_OT_reset_default_button", "all", 1);
+			uiItemBooleanO(layout, "Reset Single to Default Value", 0, "UI_OT_reset_default_button", "all", 0);
+		}
+		else
+			uiItemO(layout, "Reset to Default Value", 0, "UI_OT_reset_default_button");
 		
-		uiItemO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button");
+		uiItemO(layout, "Copy Data Path", 0, "UI_OT_copy_clipboard_button");
 
 		uiItemS(layout);
 	}
