@@ -173,7 +173,7 @@ static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
 	RNA_int_set(kmi->ptr, "value", 8);
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", ZEROKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "path", path);
-	RNA_int_set(kmi->ptr, "value", 10);
+	RNA_int_set(kmi->ptr, "value", 9);
 }
 
 void ED_keymap_paint(wmKeyConfig *keyconf)
