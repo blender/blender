@@ -232,14 +232,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
     bl_default_closed = True
 
     def poll(self, context):
-        ob = context.object
-        bone = context.bone
-        pchan = ob.pose.bones[bone.name]
-
-        if ob and bone and pchan:
-            return True
-
-        return False
+        return context.active_pose_bone
 
     def draw(self, context):
         layout = self.layout
