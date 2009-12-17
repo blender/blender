@@ -632,12 +632,12 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Selected", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
-	prop= RNA_def_property(srna, "head_selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "selected_head", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);
 	RNA_def_property_ui_text(prop, "Head Selected", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "tail_selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "selected_tail", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
 	RNA_def_property_ui_text(prop, "Tail Selected", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");

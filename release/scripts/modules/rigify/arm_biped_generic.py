@@ -164,14 +164,6 @@ def ik(obj, definitions, base_names, options):
     con.chain_length = 2
     con.pole_angle = -90.0 # XXX, RAD2DEG
 
-    # ID Propery on the hand for IK/FK switch
-
-    prop = rna_idprop_ui_prop_get(ik_chain.hand_p, "ik", create=True)
-    ik_chain.hand_p["ik"] = 0.5
-    prop["soft_min"] = 0.0
-    prop["soft_max"] = 1.0
-
-
     # last step setup layers
     layers = get_layer_dict(options)
     lay = layers["ik"]
@@ -292,8 +284,8 @@ def fk(obj, definitions, base_names, options):
 
 
 def main(obj, bone_definition, base_names, options):
-    bones_ik = ik(obj, bone_definition, base_names, options)
     bones_fk = fk(obj, bone_definition, base_names, options)
+    bones_ik = ik(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    blend_bone_list(obj, bone_definition, bones_ik, bones_fk, target_bone=bone_definition[1], blend_default=1.0)
+    blend_bone_list(obj, bone_definition, bones_fk, bones_ik, target_bone=bones_fk[1], blend_default=1.0)
