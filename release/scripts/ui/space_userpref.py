@@ -1260,7 +1260,6 @@ class USERPREF_PT_input(bpy.types.Panel):
         km = kc.find_keymap(idname, space_type = spaceid, region_type = regionid)
         
         if km:
-            km = km.active()
             self.draw_km(kc, km, children, col, level)
 
     def indented_layout(self, layout, level):
@@ -1275,6 +1274,8 @@ class USERPREF_PT_input(bpy.types.Panel):
         return col
     
     def draw_km(self, kc, km, children, layout, level):
+        km = km.active()
+        
         layout.set_context_pointer("keymap", km)
         
         col = self.indented_layout(layout, level)
@@ -1463,7 +1464,35 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
 
         row.separator()
+    
+    def draw_filtered(self, kc, layout):
         
+        for km in kc.keymaps:
+            filtered_items = [kmi for kmi in km.items if kmi.name.lower().find(kc.filter.lower()) != -1]
+            
+            if len(filtered_items) != 0:
+                km = km.active()
+                
+                col = layout.column()
+                col.set_context_pointer("keymap", km)
+                row = col.row()
+                row.label(text=km.name, icon="DOT")
+                
+                row.label()
+                row.label()
+                
+                if km.user_defined:
+                    row.operator("WM_OT_keymap_restore", text="Restore")
+                else:
+                    row.operator("WM_OT_keymap_edit", text="Edit")
+            
+                for kmi in filtered_items:
+                    self.draw_kmi(kc, km, kmi, col, 1)
+    
+    def draw_hierarchy(self, defkc, layout):
+        for entry in KM_HIERARCHY:
+            self.draw_entry(defkc, entry, layout)
+
     def draw(self, context):
         layout = self.layout
 
@@ -1480,17 +1509,23 @@ class USERPREF_PT_input(bpy.types.Panel):
         # Keymap Settings
         col = split.column()
         # kc = wm.active_keyconfig
-        defkc = wm.default_keyconfig
+        kc = wm.default_keyconfig
         
         sub = col.column()
-        subrow = sub.row()
-        subrow.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Configuration:")
-        subrow.label()
+        
+        subsplit = sub.split()
+        subcol = subsplit.column()
+        subcol.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Configuration:")
+        
+        subcol = subsplit.column()
+        subcol.prop(kc, "filter", icon="VIEWZOOM")
         
         col.separator()
         
-        for entry in KM_HIERARCHY:
-            self.draw_entry(defkc, entry, col)
+        if kc.filter != "":
+            self.draw_filtered(kc, col)
+        else:
+            self.draw_hierarchy(kc, col)
 
 bpy.types.register(USERPREF_HT_header)
 bpy.types.register(USERPREF_PT_tabs)
@@ -1607,7 +1642,7 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
     def execute(self, context):
         wm = context.manager
-        km = context.keymap # wm.active_keymap
+        km = context.keymap
         km.copy_to_user()
         return ('FINISHED',)
 
@@ -1626,7 +1661,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
             for km in wm.default_keyconfig.keymaps:
                 km.restore_to_default()
         else:
-            km = context.keymap # wm.active_keymap
+            km = context.keymap
             km.restore_to_default()
 
         return ('FINISHED',)
@@ -1639,7 +1674,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
 
     def execute(self, context):
         wm = context.manager
-        km = context.keymap # wm.active_keymap
+        km = context.keymap
         if km.modal:
             km.add_modal_item("", 'A', 'PRESS') # kmi
         else:
@@ -1655,7 +1690,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         kmi = context.keyitem
-        km = context.keymap # wm.active_keymap
+        km = context.keymap
         km.remove_item(kmi)
         return ('FINISHED',)
 

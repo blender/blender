@@ -123,7 +123,6 @@ typedef struct wmWindowManager {
 	
 	ListBase keyconfigs;				/* known key configurations */
 	struct wmKeyConfig *defaultconf;	/* default configuration, not saved */
-	int defaultactmap, pad2;			/* active keymap from default for editing */
 
 	ListBase timers;					/* active timers */
 	struct wmTimer *autosavetimer;		/* timer for auto save */
@@ -301,6 +300,8 @@ typedef struct wmKeyConfig {
 	char idname[64];		/* unique name */
 	char basename[64];		/* idname of configuration this is derives from, "" if none */
 
+	char filter[64];		/* search term for filtering in the UI */
+	
 	ListBase keymaps;
 	int actkeymap, flag;
 } wmKeyConfig;

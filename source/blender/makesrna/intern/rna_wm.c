@@ -535,36 +535,6 @@ static void rna_WindowManager_active_keyconfig_set(PointerRNA *ptr, PointerRNA v
 		BLI_strncpy(U.keyconfigstr, kc->idname, sizeof(U.keyconfigstr));
 }
 
-static PointerRNA rna_WindowManager_active_keymap_get(PointerRNA *ptr)
-{
-	wmWindowManager *wm= ptr->data;
-	wmKeyMap *km= NULL;
-	
-	if(wm->defaultconf) {
-		km= BLI_findlink(&wm->defaultconf->keymaps, wm->defaultactmap);
-		
-		if(!km)
-			km= wm->defaultconf->keymaps.first;
-	}
-
-	return rna_pointer_inherit_refine(ptr, &RNA_KeyMap, WM_keymap_active(wm, km));
-}
-
-static void rna_WindowManager_active_keymap_set(PointerRNA *ptr, PointerRNA value)
-{
-	wmWindowManager *wm= ptr->data;
-	wmKeyMap *km= value.data;
-	int index;
-	
-	if(wm->defaultconf && km) {
-		km= WM_keymap_find(wm->defaultconf, km->idname, km->spaceid, km->regionid);
-		index= BLI_findindex(&wm->defaultconf->keymaps, km);
-
-		if(index != -1) wm->defaultactmap= index;
-		else wm->defaultactmap= 0;
-	}
-}
-
 static void rna_wmKeyMapItem_idname_get(PointerRNA *ptr, char *value)
 {
 	wmKeyMapItem *kmi= ptr->data;
@@ -848,12 +818,6 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "KeyConfig");
 	RNA_def_property_ui_text(prop, "Default Key Configuration", "");
 
-	prop= RNA_def_property(srna, "active_keymap", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "KeyMap");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keymap_get", "rna_WindowManager_active_keymap_set", 0);
-	RNA_def_property_ui_text(prop, "Active Key Map", "");
-
 	RNA_api_wm(srna);
 }
 
@@ -881,6 +845,10 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "idname");
 	RNA_def_property_ui_text(prop, "Name", "Name of the key configuration.");
 	RNA_def_struct_name_property(srna, prop);
+	
+	prop= RNA_def_property(srna, "filter", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "filter");
+	RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI.");
 
 	prop= RNA_def_property(srna, "keymaps", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMap");
@@ -1011,7 +979,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_EXPANDED);
-	RNA_def_property_ui_text(prop, "Expanded", "Expanded in the user interface.");
+	RNA_def_property_ui_text(prop, "Expanded", "Show key map event and property details in the user interface.");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 	prop= RNA_def_property(srna, "propvalue", PROP_ENUM, PROP_NONE);
