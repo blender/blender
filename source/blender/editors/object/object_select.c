@@ -571,6 +571,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	if (extend == 0) {
 		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 			ED_base_object_select(base, BA_DESELECT);
+			changed = 1;
 		}
 		CTX_DATA_END;
 	}
@@ -581,17 +582,17 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(nr==1)		changed = select_grouped_children(C, ob, 1);
-	else if(nr==2)	changed = select_grouped_children(C, ob, 0);
-	else if(nr==3)	changed = select_grouped_parent(C);
-	else if(nr==4)	changed = select_grouped_siblings(C, ob);
-	else if(nr==5)	changed = select_grouped_type(C, ob);
-	else if(nr==6)	changed = select_grouped_layer(C, ob);
-	else if(nr==7)	changed = select_grouped_group(C, ob);
-	else if(nr==8)	changed = select_grouped_object_hooks(C, ob);
-	else if(nr==9)	changed = select_grouped_index_object(C, ob);
-	else if(nr==10)	changed = select_grouped_color(C, ob);
-	else if(nr==11)	changed = select_grouped_gameprops(C, ob);
+	if(nr==1)		changed |= select_grouped_children(C, ob, 1);
+	else if(nr==2)	changed |= select_grouped_children(C, ob, 0);
+	else if(nr==3)	changed |= select_grouped_parent(C);
+	else if(nr==4)	changed |= select_grouped_siblings(C, ob);
+	else if(nr==5)	changed |= select_grouped_type(C, ob);
+	else if(nr==6)	changed |= select_grouped_layer(C, ob);
+	else if(nr==7)	changed |= select_grouped_group(C, ob);
+	else if(nr==8)	changed |= select_grouped_object_hooks(C, ob);
+	else if(nr==9)	changed |= select_grouped_index_object(C, ob);
+	else if(nr==10)	changed |= select_grouped_color(C, ob);
+	else if(nr==11)	changed |= select_grouped_gameprops(C, ob);
 	
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
