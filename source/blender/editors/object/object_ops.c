@@ -247,9 +247,6 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
 		RNA_boolean_set(kmi->ptr, "toggle", 1);
 	
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
-		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
-		RNA_boolean_set(kmi->ptr, "toggle", 1);
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "mode", OB_MODE_WEIGHT_PAINT);
 		RNA_boolean_set(kmi->ptr, "toggle", 1);
@@ -263,6 +260,8 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	/* object mode supports PET now */
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
+
+	WM_keymap_add_item(keymap, "VIEW3D_OT_game_start", PKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);

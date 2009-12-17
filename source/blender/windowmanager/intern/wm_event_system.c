@@ -709,7 +709,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 }
 
 /* do userdef mappings */
-static int wm_userdef_event_map(int kmitype)
+int WM_userdef_event_map(int kmitype)
 {
 	switch(kmitype) {
 		case SELECTMOUSE:
@@ -754,7 +754,7 @@ static int wm_userdef_event_map(int kmitype)
 
 static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 {
-	int kmitype= wm_userdef_event_map(kmi->type);
+	int kmitype= WM_userdef_event_map(kmi->type);
 
 	if(kmi->flag & KMI_INACTIVE) return 0;
 

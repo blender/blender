@@ -405,7 +405,6 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	
 	/* keys for button area (top) */
 	keymap= WM_keymap_find(keyconf, "FileButtons", SPACE_FILE, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "increment", 1);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0);

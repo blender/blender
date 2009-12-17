@@ -288,5 +288,16 @@ void RNA_api_keymap(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
+void RNA_api_keymapitem(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	func= RNA_def_function(srna, "compare", "WM_keymap_item_compare");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_boolean(func, "result", 0, "Comparison result", "");
+	RNA_def_function_return(func, parm);
+}
 #endif
 

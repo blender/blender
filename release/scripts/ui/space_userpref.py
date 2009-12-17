@@ -1467,9 +1467,10 @@ class USERPREF_PT_input(bpy.types.Panel):
         row.separator()
 
     def draw_filtered(self, kc, layout):
+        filter = kc.filter.lower()
 
         for km in kc.keymaps:
-            filtered_items = [kmi for kmi in km.items if kmi.name.lower().find(kc.filter.lower()) != -1]
+            filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
 
             if len(filtered_items) != 0:
                 km = km.active()
@@ -1539,40 +1540,139 @@ bpy.types.register(USERPREF_PT_input)
 
 from bpy.props import *
 
+class WM_OT_keyconfig_test(bpy.types.Operator):
+    "Test keyconfig for conflicts."
+    bl_idname = "wm.keyconfig_test"
+    bl_label = "Test Key Configuration for Conflicts"
+    
+    def testEntry(self, kc, entry, src = None, parent = None):
+        result = False
+        def kmistr(kmi):
+            if km.modal:
+                s = ["kmi = km.add_modal_item(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
+            else:
+                s = ["kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
 
+            if kmi.any:
+                s.append(", any=True")
+            else:
+                if kmi.shift:
+                    s.append(", shift=True")
+                if kmi.ctrl:
+                    s.append(", ctrl=True")
+                if kmi.alt:
+                    s.append(", alt=True")
+                if kmi.oskey:
+                    s.append(", oskey=True")
+            if kmi.key_modifier and kmi.key_modifier != 'NONE':
+                s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
+            
+            s.append(")\n")
+            
+            props = kmi.properties
+
+            if props is not None:
+                for pname in dir(props):
+                    if props.is_property_set(pname) and not props.is_property_hidden(pname):
+                        value = eval("props.%s" % pname)
+                        value = _string_value(value)
+                        if value != "":
+                            s.append("kmi.properties.%s = %s\n" % (pname, value))
+                            
+            return "".join(s).strip()
+                        
+        idname, spaceid, regionid, children = entry
+
+        km = kc.find_keymap(idname, space_type = spaceid, region_type = regionid)
+        
+        if km:
+            km = km.active()
+    
+            if src:
+                for item in km.items:
+                    if src.compare(item):
+                        print("===========")
+                        print(parent.name)
+                        print(kmistr(src))
+                        print(km.name)
+                        print(kmistr(item))
+                        result = True
+                
+                for child in children:
+                    if self.testEntry(kc, child, src, parent):
+                        result = True
+            else:
+                for i in range(len(km.items)):
+                    src = km.items[i]
+                    
+                    for child in children:
+                        if self.testEntry(kc, child, src, km):
+                            result = True
+
+                    for j in range(len(km.items) - i - 1):
+                        item = km.items[j + i + 1]
+                        if src.compare(item):
+                            print("===========")
+                            print(km.name)
+                            print(kmistr(src))
+                            print(kmistr(item))
+                            result = True
+    
+                for child in children:
+                    if self.testEntry(kc, child):
+                        result = True
+        
+        return result
+    
+    def testConfig(self, kc):
+        result = False
+        for entry in KM_HIERARCHY:
+            if self.testEntry(kc, entry):
+                result = True
+        return result
+        
+    def execute(self, context):
+        wm = context.manager
+        kc = wm.default_keyconfig
+        
+        if self.testConfig(kc):
+            print("CONFLICT")
+       
+        return ('FINISHED',)
+
+def _string_value(value):
+    result = ""
+    if isinstance(value, str):
+        if value != "":
+            result = "\'%s\'" % value
+    elif isinstance(value, bool):
+        if value:
+            result = "True"
+        else:
+            result = "False"
+    elif isinstance(value, float):
+        result = "%.10f" % value
+    elif isinstance(value, int):
+        result = "%d" % value
+    elif getattr(value, '__len__', False):
+        if len(value):
+            result = "["
+            for i in range(0, len(value)):
+                result += _string_value(value[i])
+                if i != len(value)-1:
+                    result += ", "
+            result += "]"
+    else:
+        print("Export key configuration: can't write ", value)
+
+    return result
+    
 class WM_OT_keyconfig_export(bpy.types.Operator):
     "Export key configuration to a python script."
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
     path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
-
-    def _string_value(self, value):
-        result = ""
-        if isinstance(value, str):
-            if value != "":
-                result = "\'%s\'" % value
-        elif isinstance(value, bool):
-            if value:
-                result = "True"
-            else:
-                result = "False"
-        elif isinstance(value, float):
-            result = "%.10f" % value
-        elif isinstance(value, int):
-            result = "%d" % value
-        elif getattr(value, '__len__', False):
-            if len(value):
-                result = "["
-                for i in range(0, len(value)):
-                    result += self._string_value(value[i])
-                    if i != len(value)-1:
-                        result += ", "
-                result += "]"
-        else:
-            print("Export key configuration: can't write ", value)
-
-        return result
 
     def execute(self, context):
         if not self.properties.path:
@@ -1620,7 +1720,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
                     for pname in dir(props):
                         if props.is_property_set(pname) and not props.is_property_hidden(pname):
                             value = eval("props.%s" % pname)
-                            value = self._string_value(value)
+                            value = _string_value(value)
                             if value != "":
                                 f.write("kmi.properties.%s = %s\n" % (pname, value))
 
@@ -1714,6 +1814,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
         return ('FINISHED',)
 
 bpy.ops.add(WM_OT_keyconfig_export)
+bpy.ops.add(WM_OT_keyconfig_test)
 bpy.ops.add(WM_OT_keymap_edit)
 bpy.ops.add(WM_OT_keymap_restore)
 bpy.ops.add(WM_OT_keyitem_add)

@@ -997,6 +997,8 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", KMI_INACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "Activate or deactivate item.");
 	RNA_def_property_ui_icon(prop, ICON_CHECKBOX_DEHLT, 1);
+
+	RNA_api_keymapitem(srna);
 }
 
 void RNA_def_wm(BlenderRNA *brna)

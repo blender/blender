@@ -261,13 +261,12 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_uncomment", DKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_BEGIN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
-	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", EKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", EKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "type", LINE_END);
-	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", PREV_WORD);
@@ -302,8 +301,6 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELUPMOUSE, KM_PRESS, 0, 0)->ptr, "lines", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0)->ptr, "lines", 1);
-
-	WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_line_break", RETKEY, KM_PRESS, 0, 0);
 

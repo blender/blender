@@ -453,6 +453,48 @@ char *WM_key_event_operator_string(const bContext *C, const char *opname, int op
 	return NULL;
 }
 
+int	WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
+{
+	int k1type, k2type;
+
+	if (k1->flag & KMI_INACTIVE || k2->flag & KMI_INACTIVE)
+		return 0;
+
+	/* take event mapping into account */
+	k1type = WM_userdef_event_map(k1->type);
+	k2type = WM_userdef_event_map(k2->type);
+
+	if(k1type != KM_ANY && k2type != KM_ANY && k1type != k2type)
+		return 0;
+
+	if(k1->val != KM_ANY && k2->val != KM_ANY) {
+		/* take click, press, release conflict into account */
+		if (k1->val == KM_CLICK && ELEM3(k2->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0)
+			return 0;
+		if (k2->val == KM_CLICK && ELEM3(k1->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0)
+			return 0;
+		if (k1->val != k2->val)
+			return 0;
+	}
+
+	if(k1->shift != KM_ANY && k2->shift != KM_ANY && k1->shift != k2->shift)
+		return 0;
+
+	if(k1->ctrl != KM_ANY && k2->ctrl != KM_ANY && k1->ctrl != k2->ctrl)
+		return 0;
+
+	if(k1->alt != KM_ANY && k2->alt != KM_ANY && k1->alt != k2->alt)
+		return 0;
+
+	if(k1->oskey != KM_ANY && k2->oskey != KM_ANY && k1->oskey != k2->oskey)
+		return 0;
+
+	if(k1->keymodifier != k2->keymodifier)
+		return 0;
+
+	return 1;
+}
+
 /* ***************** user preferences ******************* */
 
 int WM_keymap_user_init(wmWindowManager *wm, wmKeyMap *keymap)

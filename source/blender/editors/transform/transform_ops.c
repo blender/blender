@@ -773,10 +773,6 @@ void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *ke
 
 			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_shear", SKEY, KM_PRESS, KM_ALT|KM_CTRL|KM_SHIFT, 0);
 
-			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_shrink_fatten", SKEY, KM_PRESS, KM_ALT, 0);
-
-			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_tilt", TKEY, KM_PRESS, 0, 0);
-
 			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_select_orientation", SPACEKEY, KM_PRESS, KM_ALT, 0);
 
 			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_create_orientation", SPACEKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
