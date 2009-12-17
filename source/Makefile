@@ -118,6 +118,7 @@ COMLIB += $(NAN_LZO)/lib/$(DEBUG_DIR)libminilzo.a
 COMLIB += $(NAN_LZMA)/lib/$(DEBUG_DIR)liblzma.a
 COMLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 COMLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
+COMLIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
 COMLIB += $(NAN_DECIMATION)/lib/$(DEBUG_DIR)libdecimation.a
 
 ifeq ($(WITH_FFMPEG),true)
@@ -376,11 +377,6 @@ ifeq ($(WITH_BF_WEBPLUGIN), true)
              BINTARGETS += xplink
         endif
     endif
-endif
-
-ifeq ($(OS),solaris)
-    PULIB += $(NAN_ZLIB)/lib/libz.a
-    SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
 
 ifeq ($(WITH_OPENAL),true)

@@ -120,7 +120,7 @@ ifeq ($(OS),solaris)
         LLIBS += -L$(NAN_MESA)/lib
     endif
     
-    LLIBS += -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
+    LLIBS += $(NAN_ZLIB)/lib/libz.a -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 

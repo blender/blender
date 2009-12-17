@@ -39,6 +39,10 @@
 extern int tot_pushup;
 extern int tot_pushdown;
 
+#if !defined(INFINITY) && defined(HUGE_VAL)
+#define INFINITY HUGE_VAL
+#endif
+
 template<class Node>
 bool node_fits_inside(Node *a, Node *b)
 {
