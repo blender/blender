@@ -1113,11 +1113,11 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	else if((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else {
-		v3d->flag &= ~V3D_NEEDBACKBUFDRAW;
+		v3d->flag &= ~V3D_INVALID_BACKBUF;
 		return;
 	}
 
-	if( !(v3d->flag & V3D_NEEDBACKBUFDRAW) ) return;
+	if( !(v3d->flag & V3D_INVALID_BACKBUF) ) return;
 
 //	if(test) {
 //		if(qtest()) {
@@ -1162,7 +1162,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		draw_object_backbufsel(scene, v3d, rv3d, base->object);
 	}
 
-	v3d->flag &= ~V3D_NEEDBACKBUFDRAW;
+	v3d->flag &= ~V3D_INVALID_BACKBUF;
 
 	G.f &= ~G_BACKBUFSEL;
 	v3d->zbuf= FALSE; 
@@ -1183,7 +1183,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 void view3d_validate_backbuf(ViewContext *vc)
 {
-	if(vc->v3d->flag & V3D_NEEDBACKBUFDRAW)
+	if(vc->v3d->flag & V3D_INVALID_BACKBUF)
 		backdrawview3d(vc->scene, vc->ar, vc->v3d);
 }
 
@@ -2188,24 +2188,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* XXX here was the blockhandlers for floating panels */
 
-	if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
-		v3d->flag |= V3D_NEEDBACKBUFDRAW;
-		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
-	}
-
-	if((ob && ob->mode & OB_MODE_PARTICLE_EDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
-		v3d->flag |= V3D_NEEDBACKBUFDRAW;
-		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
-	}
-
-	// test for backbuf select
-	if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
-		
-		v3d->flag |= V3D_NEEDBACKBUFDRAW;
-		// XXX if(afterqtest(ar->win, BACKBUFDRAW)==0) {
-		//	addafterqueue(ar->win, BACKBUFDRAW, 1);
-		//}
-	}
+	v3d->flag |= V3D_INVALID_BACKBUF;
 }
 
 

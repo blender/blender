@@ -5059,6 +5059,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
 				v3d->bgpic= newdataadr(fd, v3d->bgpic);
+				v3d->flag |= V3D_INVALID_BACKBUF;
 				if(v3d->bgpic)
 					v3d->bgpic->iuser.ok= 1;
 				if(v3d->gpd) {

@@ -34,6 +34,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -90,6 +91,12 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 	}
 }
 
+static void wm_area_mark_invalid_backbuf(ScrArea *sa)
+{
+	if(sa->spacetype == SPACE_VIEW3D)
+		((View3D*)sa->spacedata.first)->flag |= V3D_INVALID_BACKBUF;
+}
+
 /********************** draw all **************************/
 /* - reference method, draw all each time                 */
 
@@ -113,6 +120,7 @@ static void wm_method_draw_full(bContext *C, wmWindow *win)
 			}
 		}
 		
+		wm_area_mark_invalid_backbuf(sa);
 		CTX_wm_area_set(C, NULL);
 	}
 
@@ -230,6 +238,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
 			}
 		}
 		
+		wm_area_mark_invalid_backbuf(sa);
 		CTX_wm_area_set(C, NULL);
 	}
 
@@ -553,6 +562,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 			}
 		}
 		
+		wm_area_mark_invalid_backbuf(sa);
 		CTX_wm_area_set(C, NULL);
 	}
 
