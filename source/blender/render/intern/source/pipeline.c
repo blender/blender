@@ -50,6 +50,7 @@
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
 #include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
+#include "BKE_animsys.h"	/* <------ should this be here?, needed for sequencer update */
 
 #include "MEM_guardedalloc.h"
 
@@ -2441,7 +2442,7 @@ static void do_render_seq(Render * re)
 
 	if(recurs_depth==0) {
 		/* otherwise sequencer animation isnt updated */
-		BKE_animsys_evaluate_all_animation(G.main, frame_to_float(re->scene, cfra));
+		BKE_animsys_evaluate_all_animation(G.main, (float)cfra); // XXX, was frame_to_float(re->scene, cfra)
 	}
 
 	recurs_depth++;

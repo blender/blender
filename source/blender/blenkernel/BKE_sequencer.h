@@ -192,7 +192,7 @@ void seq_update_muting(struct Editing *ed);
 
 void clear_scene_in_allseqs(struct Scene *sce);
 
-struct Sequence *get_seq_by_name(struct Scene *scene, const char *name);
+struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
 
 struct Sequence *active_seq_get(struct Scene *scene);
 void active_seq_set(struct Scene *scene, struct Sequence *seq);

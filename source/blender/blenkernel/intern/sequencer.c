@@ -3575,18 +3575,20 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 }
 
 
-Sequence *get_seq_by_name(Scene *scene, const char *name)
+Sequence *get_seq_by_name(ListBase *seqbase, const char *name, int recursive)
 {
-	Sequence *seq=NULL;
-	Editing *ed= seq_give_editing(scene, FALSE);
-	
-	if(ed==NULL) return NULL;
-	
-	for (seq=ed->seqbase.first; seq; seq=seq->next) {
-		if (strcmp(name, seq->name+2) == 0)
-			break;
+	Sequence *iseq=NULL;
+	Sequence *rseq=NULL;
+
+	for (iseq=seqbase->first; iseq; iseq=iseq->next) {
+		if (strcmp(name, iseq->name+2) == 0)
+			return iseq;
+		else if(recursive && (iseq->seqbase.first) && (rseq=get_seq_by_name(&iseq->seqbase, name, 1))) {
+			return rseq;
+		}
 	}
-	return seq;
+
+	return NULL;
 }
 
 

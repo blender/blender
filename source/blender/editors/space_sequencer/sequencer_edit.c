@@ -2370,7 +2370,7 @@ static EnumPropertyItem view_type_items[] = {
 /* view_all operator */
 static int sequencer_view_toggle_exec(bContext *C, wmOperator *op)
 {
-	SpaceSeq *sseq= CTX_wm_space_data(C);
+	SpaceSeq *sseq= (SpaceSeq *)CTX_wm_space_data(C);
 
 	sseq->view++;
 	if (sseq->view > SEQ_VIEW_SEQUENCE_PREVIEW) sseq->view = SEQ_VIEW_SEQUENCE;

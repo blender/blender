@@ -4289,7 +4289,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Editing *ed;
 	Sequence *seq;
 	MetaStack *ms;
-	TimeMarker *marker;
 
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;

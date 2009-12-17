@@ -2339,9 +2339,6 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		ScreenAnimData *sad= wt->customdata;
 		ScrArea *sa;
 		int sync;
-#ifdef DURIAN_CAMERA_SWITCH
-		Object *camera_orig= scene->camera;
-#endif
 		
 		/* sync, don't sync, or follow scene setting */
 		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;

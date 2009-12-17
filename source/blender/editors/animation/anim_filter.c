@@ -778,16 +778,17 @@ static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id)
 		}
 	}
 	else if (GS(owner_id->name) == ID_SCE) {
-		Scene *sce = (Scene *)owner_id;
+		Scene *scene = (Scene *)owner_id;
 		
 		/* only consider if F-Curve involves sequence_editor.sequences */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
+			Editing *ed= seq_give_editing(scene, FALSE);
 			Sequence *seq;
 			char *seq_name;
 			
 			/* get strip name, and check if this strip is selected */
 			seq_name= BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
-			seq = get_seq_by_name(sce, seq_name);
+			seq = get_seq_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
 			/* can only add this F-Curve if it is selected */
