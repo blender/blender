@@ -284,8 +284,10 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 #else
 #ifdef __APPLE__
 	{
+#if (MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4)
 		OSErr err=noErr;
 		int i;
+		char *home;
 		
 		/* loop through all the OS X Volumes, and add them to the SYSTEM section */
 		for (i=1; err!=nsvErr; i++)
@@ -298,8 +300,109 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 				continue;
 			
 			FSRefMakePath(&dir, path, FILE_MAXDIR+FILE_MAXFILE);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
+			if (strcmp((char*)path, "/home") && strcmp((char*)path, "/net"))
+			{ /* /net and /home are meaningless on OSX, home folders are stored in /Users */
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
+			}
 		}
+
+		/* As 10.4 doesn't provide proper API to retrieve the favorite places,
+		 assume they are the standard ones 
+		 TODO : replace hardcoded paths with proper BLI_get_folder calls */
+		home = BLI_gethome();
+		if(home) {
+			BLI_snprintf(line, 256, "%s/", home);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			BLI_snprintf(line, 256, "%s/Desktop/", home);
+			if (BLI_exists(line)) {
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			}
+			BLI_snprintf(line, 256, "%s/Documents/", home);
+			if (BLI_exists(line)) {
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			}
+			BLI_snprintf(line, 256, "%s/Pictures/", home);
+			if (BLI_exists(line)) {
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			}
+			BLI_snprintf(line, 256, "%s/Music/", home);
+			if (BLI_exists(line)) {
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			}
+			BLI_snprintf(line, 256, "%s/Movies/", home);
+			if (BLI_exists(line)) {
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			}
+		}
+#else
+		/* 10.5 provides ability to retrieve Finder favorite places */
+		UInt32 seed;
+		OSErr err = noErr;
+		CFArrayRef pathesArray;
+		LSSharedFileListRef list;
+		LSSharedFileListItemRef itemRef;
+		CFIndex i, pathesCount;
+		CFURLRef cfURL = NULL;
+		CFStringRef pathString = NULL;
+		
+		/* First get mounted volumes */
+		list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteVolumes, NULL);
+		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
+		pathesCount = CFArrayGetCount(pathesArray);
+		
+		for (i=0; i<pathesCount; i++)
+		{
+			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
+			
+			err = LSSharedFileListItemResolve(itemRef, 
+											  kLSSharedFileListNoUserInteraction
+											  | kLSSharedFileListDoNotMountVolumes, 
+											  &cfURL, NULL);
+			if (err != noErr)
+				continue;
+			
+			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
+			
+			if (!CFStringGetCString(pathString,line,256,kCFStringEncodingASCII))
+				continue;
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, 1, 0);
+			
+			CFRelease(pathString);
+			CFRelease(cfURL);
+		}
+		
+		CFRelease(pathesArray);
+		CFRelease(list);
+		
+		/* Then get user favorite places */
+		list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteItems, NULL);
+		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
+		pathesCount = CFArrayGetCount(pathesArray);
+		
+		for (i=0; i<pathesCount; i++)
+		{
+			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
+			
+			err = LSSharedFileListItemResolve(itemRef, 
+											  kLSSharedFileListNoUserInteraction
+											  | kLSSharedFileListDoNotMountVolumes, 
+											  &cfURL, NULL);
+			if (err != noErr)
+				continue;
+			
+			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
+			
+			if (!CFStringGetCString(pathString,line,256,kCFStringEncodingASCII))
+				continue;
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			
+			CFRelease(pathString);
+			CFRelease(cfURL);
+		}
+		
+		CFRelease(pathesArray);
+		CFRelease(list);
+#endif /* OSX 10.5+ */
 	}
 #else
 	/* unix */
