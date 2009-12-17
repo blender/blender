@@ -114,6 +114,7 @@ int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
 void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi);
+void		WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 
 wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, struct EnumPropertyItem *items);
 wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, char *idname);

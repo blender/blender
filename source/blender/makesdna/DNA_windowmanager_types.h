@@ -262,7 +262,9 @@ typedef struct wmKeyMapItem {
 	short flag;
 
 	/* runtime */
-	short maptype, pad[2];			/* keymap editor */
+	short maptype;					/* keymap editor */
+	short id;						/* unique identifier */
+	short pad;
 	struct PointerRNA *ptr;			/* rna pointer to access properties */
 } wmKeyMapItem;
 
@@ -281,7 +283,7 @@ typedef struct wmKeyMap {
 	short regionid;		/* see above */
 	
 	short flag;			/* general flags */
-	short pad;
+	short kmi_id;		/* last kmi id */
 	
 	/* runtime */
 	int (*poll)(struct bContext *);	/* verify if enabled in the current context */

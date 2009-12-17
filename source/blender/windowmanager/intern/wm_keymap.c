@@ -201,6 +201,12 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, char *idname, int type, int v
 
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
 	keymap_properties_set(kmi);
+
+	if ((keymap->flag & KEYMAP_USER) == 0) {
+		keymap->kmi_id++;
+		kmi->id = keymap->kmi_id;
+	}
+
 	return kmi;
 }
 
@@ -290,6 +296,11 @@ wmKeyMapItem *WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modif
 	kmi->propvalue= value;
 	
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
+
+	if ((km->flag & KEYMAP_USER) == 0) {
+		km->kmi_id++;
+		kmi->id = km->kmi_id;
+	}
 
 	return kmi;
 }
@@ -543,6 +554,55 @@ wmKeyMap *WM_keymap_copy_to_user(wmKeyMap *keymap)
 		kmi->flag &= ~KMI_EXPANDED;
 
 	return usermap;
+}
+
+void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapItem *kmi)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmKeyConfig *keyconf;
+	wmKeyMap *km = NULL;
+
+	/* look in user key config */
+	keyconf= wm_keyconfig_list_find(&wm->keyconfigs, U.keyconfigstr);
+	if(keyconf) {
+		km= WM_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	}
+
+	if (!km) {
+		/* or from default */
+		km= WM_keymap_list_find(&wm->defaultconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	}
+
+	if (km) {
+		wmKeyMapItem *orig;
+
+		for (orig = km->items.first; orig; orig = orig->next) {
+			if (orig->id == kmi->id)
+				break;
+		}
+
+		if (orig) {
+			if(strcmp(orig->idname, kmi->idname) != 0) {
+				BLI_strncpy(kmi->idname, orig->idname, sizeof(kmi->idname));
+
+				WM_keymap_properties_reset(kmi);
+			}
+			kmi->properties= IDP_CopyProperty(orig->properties);
+			kmi->ptr->data= kmi->properties;
+
+			kmi->propvalue = orig->propvalue;
+			kmi->type = orig->type;
+			kmi->val = orig->val;
+			kmi->shift = orig->shift;
+			kmi->ctrl = orig->ctrl;
+			kmi->alt = orig->alt;
+			kmi->oskey = orig->oskey;
+			kmi->keymodifier = orig->keymodifier;
+			kmi->maptype = orig->maptype;
+
+		}
+
+	}
 }
 
 void WM_keymap_restore_to_default(wmKeyMap *keymap)

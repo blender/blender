@@ -113,7 +113,12 @@ static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, Report
 	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
 }
 
-static wmKeyMapItem *rna_KeyMap_add_item(wmKeyMap *km, ReportList *reports, char *idname, int type, int any, int value, int shift, int ctrl, int alt, int oskey, int keymodifier)
+static void rna_keymap_restore_item_to_default(wmKeyMap *km, bContext *C, wmKeyMapItem *kmi)
+{
+	WM_keymap_restore_item_to_default(C, km, kmi);
+}
+
+static wmKeyMapItem *rna_KeyMap_add_item(wmKeyMap *km, ReportList *reports, char *idname, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
 {
 //	wmWindowManager *wm = CTX_wm_manager(C);
 	int modifier= 0;
@@ -276,6 +281,11 @@ void RNA_api_keymap(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "restore_to_default", "WM_keymap_restore_to_default");
+
+	func= RNA_def_function(srna, "restore_item_to_default", "rna_keymap_restore_item_to_default");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

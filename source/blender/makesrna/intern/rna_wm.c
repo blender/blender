@@ -944,6 +944,11 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_value_itemf");
 	RNA_def_property_ui_text(prop, "Value", "");
 
+	prop= RNA_def_property(srna, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "id");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "id", "ID of the item.");
+
 	prop= RNA_def_property(srna, "any", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_any_getf", "rna_KeyMapItem_any_setf");
 	RNA_def_property_ui_text(prop, "Any", "Any modifier keys pressed.");

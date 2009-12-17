@@ -1365,6 +1365,7 @@ class USERPREF_PT_input(bpy.types.Panel):
         else:
             row.label()
 
+        row.operator("wm.keyitem_restore", text="", icon='BACK')
         row.operator("wm.keyitem_remove", text="", icon='X')
 
         # Expanded, additional event settings
@@ -1666,7 +1667,25 @@ class WM_OT_keymap_restore(bpy.types.Operator):
 
         return ('FINISHED',)
 
+class WM_OT_keyitem_restore(bpy.types.Operator):
+    "Restore key map item."
+    bl_idname = "wm.keyitem_restore"
+    bl_label = "Restore Key Map Item"
 
+    def poll(self, context):
+        kmi = context.keyitem
+        km = context.keymap
+        return km and kmi and kmi.id != 0
+
+    def execute(self, context):
+        wm = context.manager
+        kmi = context.keyitem
+        km = context.keymap
+
+        km.restore_item_to_default(kmi)
+
+        return ('FINISHED',)
+    
 class WM_OT_keyitem_add(bpy.types.Operator):
     "Add key map item."
     bl_idname = "wm.keyitem_add"
@@ -1699,4 +1718,4 @@ bpy.ops.add(WM_OT_keymap_edit)
 bpy.ops.add(WM_OT_keymap_restore)
 bpy.ops.add(WM_OT_keyitem_add)
 bpy.ops.add(WM_OT_keyitem_remove)
-
+bpy.ops.add(WM_OT_keyitem_restore)
