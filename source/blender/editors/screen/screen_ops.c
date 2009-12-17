@@ -96,6 +96,12 @@
 #define KM_MODAL_STEP10		3
 #define KM_MODAL_STEP10_OFF	4
 
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
+#include <pthread.h>
+extern pthread_key_t gomp_tls_key;
+static void *thread_tls_data;
+#endif
 /* ************** Exported Poll tests ********************** */
 
 int ED_operator_regionactive(bContext *C)
@@ -3015,6 +3021,11 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 	rj->stop= stop;
 	rj->do_update= do_update;
 	
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
+	pthread_setspecific (gomp_tls_key, thread_tls_data);
+#endif
+	
 	if(rj->anim)
 		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
 	else
@@ -3095,6 +3106,11 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_jobs_customdata(steve, rj, render_freejob);
 	WM_jobs_timer(steve, 0.2, NC_SCENE|ND_RENDER_RESULT, 0);
 	WM_jobs_callbacks(steve, render_startjob, NULL, NULL);
+	
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
+	thread_tls_data = pthread_getspecific(gomp_tls_key);
+#endif
 	
 	/* get a render result image, and make sure it is empty */
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
