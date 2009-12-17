@@ -2105,52 +2105,14 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	/* is there more than 1 select */
-	tot= 0;
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq->flag & SELECT) {
-			tot++;
-		}
-		seq= seq->next;
-	}
-	if(tot < 1) return OPERATOR_CANCELLED;;
-
-
-	/* test relationships */
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq->flag & SELECT) {
-			channel_max= MAX2(seq->machine, channel_max);
-			if(seq->type & SEQ_EFFECT) {
-				if(seq->seq1 &&
-				   (seq->seq1->flag & SELECT)==0) tot= 0;
-				if(seq->seq2 &&
-				   (seq->seq2->flag & SELECT)==0) tot= 0;
-				if(seq->seq3 &&
-				   (seq->seq3->flag & SELECT)==0) tot= 0;
-			}
-		}
-		else if(seq->type & SEQ_EFFECT) {
-			if(seq->seq1 &&
-			   (seq->seq1->flag & SELECT)) tot= 0;
-			if(seq->seq2 &&
-			   (seq->seq2->flag & SELECT)) tot= 0;
-			if(seq->seq3 &&
-			   (seq->seq3->flag & SELECT)) tot= 0;
-		}
-		if(tot==0) break;
-		seq= seq->next;
-	}
-
-	if(tot==0) {
+	if(seqbase_isolated_sel_check(ed->seqbasep)==FALSE) {
 		BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
 		return OPERATOR_CANCELLED;
 	}
 
 	/* remove all selected from main list, and put in meta */
 
-	seqm= alloc_sequence(ed->seqbasep, 1, channel_max);
+	seqm= alloc_sequence(ed->seqbasep, 1, 1); /* channel number set later */
 	strcpy(seqm->name+2, "MetaStrip");
 	seqm->type= SEQ_META;
 	seqm->flag= SELECT;
@@ -2159,11 +2121,13 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	while(seq) {
 		next= seq->next;
 		if(seq!=seqm && (seq->flag & SELECT)) {
+			channel_max= MAX2(seq->machine, channel_max);
 			BLI_remlink(ed->seqbasep, seq);
 			BLI_addtail(&seqm->seqbase, seq);
 		}
 		seq= next;
 	}
+	seqm->machine= channel_max;
 	calc_sequence(seqm);
 
 	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
@@ -2758,9 +2722,10 @@ static void seq_del_sound(Scene *scene, Sequence *seq)
 			seq_del_sound(scene, iseq);
 		}
 	}
-	else if(seq->sound_handle)
+	else if(seq->sound_handle) {
 		sound_delete_handle(scene, seq->sound_handle);
-
+		seq->sound_handle= NULL;
+	}
 }
 
 /* TODO, validate scenes */
@@ -2774,6 +2739,11 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	seq_free_clipboard();
+
+	if(seqbase_isolated_sel_check(ed->seqbasep)==FALSE) {
+		BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
+		return OPERATOR_CANCELLED;
+	}
 
 	recurs_dupli_seq(scene, ed->seqbasep, &seqbase_clipboard, FALSE);
 	seqbase_clipboard_frame= scene->r.cfra;

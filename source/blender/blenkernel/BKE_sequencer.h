@@ -186,6 +186,7 @@ struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test);
 int shuffle_seq_time(ListBase * seqbasep);
+int seqbase_isolated_sel_check(struct ListBase *seqbase);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
 
 void seq_update_sound(struct Sequence *seq);

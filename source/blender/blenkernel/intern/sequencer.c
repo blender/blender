@@ -76,7 +76,7 @@ static int seqrecty= 0;
 //static int blender_test_break() {return 0;}
 
 /* **** XXX ******** */
-
+#define SELECT 1
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
 
@@ -3283,6 +3283,42 @@ int seq_single_check(Sequence *seq)
 		return 0;
 }
 
+/* check if the selected seq's reference unselected seq's */
+int seqbase_isolated_sel_check(ListBase *seqbase)
+{
+	Sequence *seq;
+	/* is there more than 1 select */
+	int ok= FALSE;
+
+	for(seq= seqbase->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			ok= TRUE;
+			break;
+		}
+	}
+
+	if(ok == FALSE)
+		return FALSE;
+
+	/* test relationships */
+	for(seq= seqbase->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			if(seq->type & SEQ_EFFECT) {
+				if(seq->seq1 && (seq->seq1->flag & SELECT)==0) return FALSE;
+				if(seq->seq2 && (seq->seq2->flag & SELECT)==0) return FALSE;
+				if(seq->seq3 && (seq->seq3->flag & SELECT)==0) return FALSE;
+			}
+		}
+		else if(seq->type & SEQ_EFFECT) {
+			if(seq->seq1 && (seq->seq1->flag & SELECT)) return FALSE;
+			if(seq->seq2 && (seq->seq2->flag & SELECT)) return FALSE;
+			if(seq->seq3 && (seq->seq3->flag & SELECT)) return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
 /* use to impose limits when dragging/extending - so impossible situations dont happen
  * Cant use the SEQ_LEFTSEL and SEQ_LEFTSEL directly because the strip may be in a metastrip */
 void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
@@ -3636,7 +3672,7 @@ void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 		}
 
 		if(seq_load->flag & SEQ_LOAD_REPLACE_SEL) {
-			seq_load->flag |= 1; /* SELECT */
+			seq_load->flag |= SELECT;
 			active_seq_set(scene, seq);
 		}
 
@@ -3662,7 +3698,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	*( (short *)seq->name )= ID_SEQ;
 	seq->name[2]= 0;
 
-	seq->flag= 1; /* SELECT */
+	seq->flag= SELECT;
 	seq->start= cfra;
 	seq->machine= machine;
 	seq->mul= 1.0;
