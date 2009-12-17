@@ -186,6 +186,7 @@ typedef struct Editing {
 	ListBase *seqbasep; /* pointer to the current list of seq's being edited (can be within a meta strip) */
 	ListBase seqbase;	/* pointer to the top-most seq's */
 	ListBase metastack;
+	ListBase seqbase_clipboard; /* optionally store a copy */
 	
 	/* Context vars, used to be static */
 	Sequence *act_seq;

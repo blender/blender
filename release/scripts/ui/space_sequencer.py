@@ -56,6 +56,10 @@ class SEQUENCER_HT_header(bpy.types.Header):
             layout.prop(st, "display_mode", text="")
 
         if (st.view_type == 'SEQUENCER'):
+            row = layout.row(align=True)
+            row.operator("sequencer.copy", text="", icon='COPYDOWN')
+            row.operator("sequencer.paste", text="", icon='PASTEDOWN')
+
             layout.separator()
             layout.operator("sequencer.refresh_all")
         elif (st.view_type == 'SEQUENCER_PREVIEW'):

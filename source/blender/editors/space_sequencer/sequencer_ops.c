@@ -106,6 +106,9 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_image_strip_add);
 	WM_operatortype_append(SEQUENCER_OT_effect_strip_add);
 	WM_operatortype_append(SEQUENCER_OT_properties);
+
+	WM_operatortype_append(SEQUENCER_OT_copy);
+	WM_operatortype_append(SEQUENCER_OT_paste);
 }
 
 

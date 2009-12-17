@@ -232,11 +232,23 @@ Editing *seq_give_editing(Scene *scene, int alloc)
 	return scene->ed;
 }
 
+void seq_free_clipboard(Scene *scene)
+{
+	Editing *ed = scene->ed;
+	Sequence *seq, *nseq;
+
+	for(seq= ed->seqbase_clipboard.first; seq; seq= nseq) {
+		nseq= seq->next;
+		seq_free_sequence(scene, seq);
+	}
+	ed->seqbase_clipboard.first= ed->seqbase_clipboard.last= NULL;
+}
+
 void seq_free_editing(Scene *scene)
 {
 	Editing *ed = scene->ed;
 	MetaStack *ms;
-	Sequence *seq;
+	Sequence *seq, *nseq;
 
 	if(ed==NULL)
 		return;
@@ -245,6 +257,8 @@ void seq_free_editing(Scene *scene)
 		seq_free_sequence(scene, seq);
 	}
 	SEQ_END
+
+	seq_free_clipboard(scene);
 
 	while((ms= ed->metastack.first)) {
 		BLI_remlink(&ed->metastack, ms);

@@ -141,6 +141,7 @@ void printf_strip(struct Sequence *seq);
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
 void seq_free_editing(struct Scene *scene);
+void seq_free_clipboard(struct Scene *scene);
 struct Editing *seq_give_editing(struct Scene *scene, int alloc);
 char *give_seqname(struct Sequence *seq);
 struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);

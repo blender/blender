@@ -2746,3 +2746,66 @@ void SEQUENCER_OT_rendersize(wmOperatorType *ot)
 	/* properties */
 }
 
+static void *_copy_scene= NULL; // XXX - FIXME
+static int sequencer_copy_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+
+	if(ed==NULL)
+		return OPERATOR_CANCELLED;
+
+	seq_free_clipboard(scene);
+	recurs_dupli_seq(scene, ed->seqbasep, &ed->seqbase_clipboard);
+
+	_copy_scene = scene;
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy";
+	ot->idname= "SEQUENCER_OT_copy";
+	ot->description="";
+
+	/* api callbacks */
+	ot->exec= sequencer_copy_exec;
+	ot->poll= ED_operator_sequencer_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+}
+
+static int sequencer_paste_exec(bContext *C, wmOperator *op)
+{
+	int retval = OPERATOR_CANCELLED;
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, TRUE); /* create if needed */
+	Editing *ed_from= seq_give_editing((Scene *)_copy_scene, TRUE); /* create if needed */
+
+
+	addlisttolist(ed->seqbasep, &ed_from->seqbase_clipboard);
+	ed_from->seqbase_clipboard.first= ed_from->seqbase_clipboard.last= NULL; // XXX - could duplicate these to use the clip
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste";
+	ot->idname= "SEQUENCER_OT_paste";
+	ot->description="";
+
+	/* api callbacks */
+	ot->exec= sequencer_paste_exec;
+	ot->poll= ED_operator_sequencer_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+}
