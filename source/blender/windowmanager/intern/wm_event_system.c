@@ -997,13 +997,24 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 			{	
+				ScrArea *sa;
+				
+				/* sa can be null when window A is active, but mouse is over window B */
+				/* in this case, open file select in original window A */
+				if (handler->op_area == NULL) {
+					bScreen *screen = CTX_wm_screen(C);
+					sa = (ScrArea *)screen->areabase.first;
+				} else
+					sa = handler->op_area;
+					
 				if(event->val==EVT_FILESELECT_OPEN)
-					ED_area_newspace(C, handler->op_area, SPACE_FILE);
+					ED_area_newspace(C, sa, SPACE_FILE);
 				else
-					ED_screen_full_newspace(C, handler->op_area, SPACE_FILE);
+					ED_screen_full_newspace(C, sa, SPACE_FILE);	/* sets context */
 				
 				/* settings for filebrowser, sfile is not operator owner but sends events */
-				sfile= (SpaceFile*)CTX_wm_space_data(C);
+				sa = CTX_wm_area(C);
+				sfile= (SpaceFile*)sa->spacedata.first;
 				sfile->op= handler->op;
 
 				ED_fileselect_set_params(sfile);

@@ -1487,9 +1487,11 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 		
 		oldscreen= win->screen;
 
-		/* is there only 1 area? */
+		/* nothing wrong with having only 1 area, as far as I can see...
+		// is there only 1 area?
 		if(oldscreen->areabase.first==oldscreen->areabase.last)
 			return NULL;
+		*/
 		
 		oldscreen->full = SCREENFULL;
 		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name+2, "temp");
