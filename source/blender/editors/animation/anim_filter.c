@@ -792,7 +792,7 @@ static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id)
 			if (seq_name) MEM_freeN(seq_name);
 			
 			/* can only add this F-Curve if it is selected */
-			if ((seq) && (seq->flag & SELECT)==0)
+			if (seq==NULL || (seq->flag & SELECT)==0)
 				return 1;
 		}
 	}

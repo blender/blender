@@ -872,6 +872,8 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+
 	return OPERATOR_FINISHED;
 } 
 
