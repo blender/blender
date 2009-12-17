@@ -3506,7 +3506,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		else
 			uiItemO(layout, "Reset to Default Value", 0, "UI_OT_reset_default_button");
 		
-		uiItemO(layout, "Copy Data Path", 0, "UI_OT_copy_clipboard_button");
+		uiItemO(layout, "Copy Data Path", 0, "UI_OT_copy_data_path_button");
+		uiItemO(layout, "Copy To Selected", 0, "UI_OT_copy_to_selected_button");
 
 		uiItemS(layout);
 	}

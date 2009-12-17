@@ -59,18 +59,17 @@
 
 /* ********************************************************** */
 
-/* Copy to Clipboard Button Operator ------------------------ */
+/* Copy Data Path Operator ------------------------ */
 
-static int copy_clipboard_button_exec(bContext *C, wmOperator *op)
+static int copy_data_path_button_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr;
-	PropertyRNA *prop= NULL;
+	PropertyRNA *prop;
 	char *path;
-	short success= 0;
+	int success= 0;
 	int index;
 
 	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 
 	if (ptr.data && prop) {
@@ -86,15 +85,15 @@ static int copy_clipboard_button_exec(bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void UI_OT_copy_clipboard_button(wmOperatorType *ot)
+void UI_OT_copy_data_path_button(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Data Path";
-	ot->idname= "UI_OT_copy_clipboard_button";
+	ot->idname= "UI_OT_copy_data_path_button";
 	ot->description= "Copy the RNA data path for this property to the clipboard.";
 
 	/* callbacks */
-	ot->exec= copy_clipboard_button_exec;
+	ot->exec= copy_data_path_button_exec;
 	//op->poll= ??? // TODO: need to have some valid property before this can be done
 
 	/* flags */
@@ -103,103 +102,34 @@ void UI_OT_copy_clipboard_button(wmOperatorType *ot)
 
 /* Reset to Default Values Button Operator ------------------------ */
 
+static int reset_default_button_poll(bContext *C)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+	
+	return (ptr.data && prop && RNA_property_editable(&ptr, prop));
+}
+
 static int reset_default_button_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr;
-	PropertyRNA *prop= NULL;
-	short success= 0;
-	int index, len;
-	int all = RNA_boolean_get(op->ptr, "all");
+	PropertyRNA *prop;
+	int success= 0;
+	int index, all = RNA_boolean_get(op->ptr, "all");
 
 	/* try to reset the nominated setting to its default value */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
 	/* if there is a valid property that is editable... */
 	if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
-		/* get the length of the array to work with */
-		len= RNA_property_array_length(&ptr, prop);
-		
-		/* get and set the default values as appropriate for the various types */
-		switch (RNA_property_type(prop)) {
-			case PROP_BOOLEAN:
-				if (len) {
-					if (all) {
-						int *tmparray= MEM_callocN(sizeof(int)*len, "reset_defaults - boolean");
-						
-						RNA_property_boolean_get_default_array(&ptr, prop, tmparray);
-						RNA_property_boolean_set_array(&ptr, prop, tmparray);
-						
-						MEM_freeN(tmparray);
-					}
-					else {
-						int value= RNA_property_boolean_get_default_index(&ptr, prop, index);
-						RNA_property_boolean_set_index(&ptr, prop, index, value);
-					}
-				}
-				else {
-					int value= RNA_property_boolean_get_default(&ptr, prop);
-					RNA_property_boolean_set(&ptr, prop, value);
-				}
-				break;
-			case PROP_INT:
-				if (len) {
-					if (all) {
-						int *tmparray= MEM_callocN(sizeof(int)*len, "reset_defaults - int");
-						
-						RNA_property_int_get_default_array(&ptr, prop, tmparray);
-						RNA_property_int_set_array(&ptr, prop, tmparray);
-						
-						MEM_freeN(tmparray);
-					}
-					else {
-						int value= RNA_property_int_get_default_index(&ptr, prop, index);
-						RNA_property_int_set_index(&ptr, prop, index, value);
-					}
-				}
-				else {
-					int value= RNA_property_int_get_default(&ptr, prop);
-					RNA_property_int_set(&ptr, prop, value);
-				}
-				break;
-			case PROP_FLOAT:
-				if (len) {
-					if (all) {
-						float *tmparray= MEM_callocN(sizeof(float)*len, "reset_defaults - float");
-						
-						RNA_property_float_get_default_array(&ptr, prop, tmparray);
-						RNA_property_float_set_array(&ptr, prop, tmparray);
-						
-						MEM_freeN(tmparray);
-					}
-					else {
-						float value= RNA_property_float_get_default_index(&ptr, prop, index);
-						RNA_property_float_set_index(&ptr, prop, index, value);
-					}
-				}
-				else {
-					float value= RNA_property_float_get_default(&ptr, prop);
-					RNA_property_float_set(&ptr, prop, value);
-				}
-				break;
-			case PROP_ENUM:
-			{
-				int value= RNA_property_enum_get_default(&ptr, prop);
-				RNA_property_enum_set(&ptr, prop, value);
-			}
-				break;
-			
-			//case PROP_POINTER:
-			//case PROP_STRING:
-			default: 
-				// FIXME: many of the other types such as strings and pointers need this implemented too!
-				break;
+		if(RNA_property_reset(&ptr, prop, (all)? -1: index)) {
+			/* perform updates required for this property */
+			RNA_property_update(C, &ptr, prop);
+			success= 1;
 		}
-		
-		/* perform updates required for this property */
-		RNA_property_update(C, &ptr, prop);
-		
-		success= 1;
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
@@ -213,12 +143,102 @@ void UI_OT_reset_default_button(wmOperatorType *ot)
 	ot->description= "Copy the RNA data path for this property to the clipboard.";
 
 	/* callbacks */
+	ot->poll= reset_default_button_poll;
 	ot->exec= reset_default_button_exec;
-	//op->poll= ??? // TODO: need to have some valid property before this can be done
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array.");
+}
+
+/* Copy To Selected Operator ------------------------ */
+
+static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb)
+{
+	if(RNA_struct_is_a(ptr->type, &RNA_Object))
+		*lb = CTX_data_collection_get(C, "selected_editable_objects");
+	else if(RNA_struct_is_a(ptr->type, &RNA_EditBone))
+		*lb = CTX_data_collection_get(C, "selected_editable_bones");
+	else if(RNA_struct_is_a(ptr->type, &RNA_PoseBone))
+		*lb = CTX_data_collection_get(C, "selected_pose_bones");
+	else
+		return 0;
+	
+	return 1;
+}
+
+static int copy_to_selected_button_poll(bContext *C)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index, success= 0;
+
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+
+	if (ptr.data && prop) {
+		CollectionPointerLink *link;
+		ListBase lb;
+
+		if(copy_to_selected_list(C, &ptr, &lb)) {
+			for(link= lb.first; link; link=link->next)
+				if(link->ptr.data != ptr.data && RNA_property_editable(&link->ptr, prop))
+					success= 1;
+
+			BLI_freelistN(&lb);
+		}
+	}
+
+	return success;
+}
+
+static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int success= 0;
+	int index, all = RNA_boolean_get(op->ptr, "all");
+
+	/* try to reset the nominated setting to its default value */
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+	
+	/* if there is a valid property that is editable... */
+	if (ptr.data && prop) {
+		CollectionPointerLink *link;
+		ListBase lb;
+
+		if(copy_to_selected_list(C, &ptr, &lb)) {
+			for(link= lb.first; link; link=link->next) {
+				if(link->ptr.data != ptr.data && RNA_property_editable(&link->ptr, prop)) {
+					if(RNA_property_copy(&link->ptr, &ptr, prop, (all)? -1: index)) {
+						RNA_property_update(C, &link->ptr, prop);
+						success= 1;
+					}
+				}
+			}
+
+			BLI_freelistN(&lb);
+		}
+	}
+	
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void UI_OT_copy_to_selected_button(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy To Selected";
+	ot->idname= "UI_OT_copy_to_selected_button";
+	ot->description= "Copy property from this object to selected objects or bones.";
+
+	/* callbacks */
+	ot->poll= copy_to_selected_button_poll;
+	ot->exec= copy_to_selected_button_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array.");
 }
@@ -226,9 +246,10 @@ void UI_OT_reset_default_button(wmOperatorType *ot)
 /* ********************************************************* */
 /* Registration */
 
-void ui_buttons_operatortypes(void)
+void UI_buttons_operatortypes(void)
 {
-	WM_operatortype_append(UI_OT_copy_clipboard_button);
+	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
+	WM_operatortype_append(UI_OT_copy_to_selected_button);
 }
 

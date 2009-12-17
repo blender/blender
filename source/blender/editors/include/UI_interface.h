@@ -689,7 +689,7 @@ void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char 
 void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
 
 /* UI Operators */
-void ui_buttons_operatortypes(void);
+void UI_buttons_operatortypes(void);
 
 /* Helpers for Operators */
 void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);

@@ -722,6 +722,10 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key);
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
 
+/* copy/reset */
+int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index);
+int RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index);
+
 /* Path
  *
  * Experimental method to refer to structs and properties with a string,

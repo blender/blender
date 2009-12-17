@@ -1403,7 +1403,7 @@ void VIEW2D_OT_reset(wmOperatorType *ot)
 /* ********************************************************* */
 /* Registration */
 
-void ui_view2d_operatortypes(void)
+void UI_view2d_operatortypes(void)
 {
 	WM_operatortype_append(VIEW2D_OT_pan);
 	
