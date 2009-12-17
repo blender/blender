@@ -461,8 +461,10 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	data.done = 0;
 	data.pass = 0;
 
-	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	/* workaround: init mats first, EM_mask_init_backbuf_border can change
+	   view matrix to pixel space, breaking edge select with backbuf .. */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
@@ -1352,8 +1354,8 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exte
 		EM_deselect_all(vc->em);
 	}
 
-	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
