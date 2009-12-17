@@ -2865,10 +2865,6 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(km->ptr, "path", "area.type");
 	RNA_string_set(km->ptr, "value", "OUTLINER");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "OUTLINER");
-
 	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F10KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
 	RNA_string_set(km->ptr, "value", "IMAGE_EDITOR");
