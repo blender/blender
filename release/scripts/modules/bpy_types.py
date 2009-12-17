@@ -258,7 +258,7 @@ class Mesh(bpy_types.ID):
         '''
 
         OTHER_INDEX = 2,3,0,1 # opposite face index
-        
+
         if faces is None:
             faces= self.faces
 
@@ -270,13 +270,13 @@ class Mesh(bpy_types.ID):
                 edge_keys = f.edge_keys
                 for i, edkey in enumerate(f.edge_keys):
                     edges.setdefault(edkey, []).append(edge_keys[OTHER_INDEX[i]])
-    
+
         for edkey in seams:
             edges[edkey] = []
-    
+
         # Collect edge loops here
-        edge_loops = []    
-    
+        edge_loops = []
+
         for edkey, ed_adj in edges.items():
             if 0 <len(ed_adj) < 3: # 1 or 2
                 # Seek the first edge
@@ -286,22 +286,22 @@ class Mesh(bpy_types.ID):
                     other_dir = ed_adj[1]
                 else:
                     other_dir = None
-            
+
                 ed_adj[:] = []
-            
+
                 flipped = False
-            
+
                 while 1:
                     # from knowing the last 2, look for th next.
                     ed_adj = edges[context_loop[-1]]
                     if len(ed_adj) != 2:
-                    
+
                         if other_dir and flipped==False: # the original edge had 2 other edges
                             flipped = True # only flip the list once
                             context_loop.reverse()
                             ed_adj[:] = []
                             context_loop.append(other_dir) # save 1 lookiup
-                        
+
                             ed_adj = edges[context_loop[-1]]
                             if len(ed_adj) != 2:
                                 ed_adj[:] = []
@@ -309,14 +309,14 @@ class Mesh(bpy_types.ID):
                         else:
                             ed_adj[:] = []
                             break
-                
+
                     i = ed_adj.index(context_loop[-2])
                     context_loop.append( ed_adj[ not  i] )
-                
+
                     # Dont look at this again
                     ed_adj[:] = []
 
-    
+
         return edge_loops
 
 

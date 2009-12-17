@@ -30,14 +30,14 @@ KM_HIERARCHY = [
                     ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
                     ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
                     ('Grease Pencil', 'EMPTY', 'WINDOW', []), # grease pencil stuff (per region)
-                    
+
                     ('View2D Buttons List', 'EMPTY', 'WINDOW', []), # view 2d with buttons navigation
                     ('Animation_Channels', 'EMPTY', 'WINDOW', []),
-                    
+
                     ('Buttons Generic', 'PROPERTIES', 'WINDOW', []), # align context menu
                     ('TimeLine', 'TIMELINE', 'WINDOW', []),
                     ('Outliner', 'OUTLINER', 'WINDOW', []),
-                    
+
                     ('View3D', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
                         ('Pose', 'EMPTY', 'WINDOW', []),
                         ('Object Mode', 'EMPTY', 'WINDOW', []),
@@ -60,13 +60,13 @@ KM_HIERARCHY = [
                     ('GraphEdit Keys', 'GRAPH_EDITOR', 'WINDOW', [
                         ('GraphEdit Generic', 'GRAPH_EDITOR', 'WINDOW', [])
                         ]),
-                    
+
                     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
                         ('UVEdit', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
                         ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
                         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
                         ]),
-                    
+
                     ('Node Generic', 'NODE_EDITOR', 'WINDOW', [
                         ('Node', 'NODE_EDITOR', 'WINDOW', [])
                         ]),
@@ -84,8 +84,8 @@ KM_HIERARCHY = [
                     ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
                     ('Logic Generic', 'LOGIC_EDITOR', 'WINDOW', []),
                     ('Console', 'CONSOLE', 'WINDOW', []),
-                    
-                    
+
+
                     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
                     ('Gesture Border', 'EMPTY', 'WINDOW', []),
                     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
@@ -143,9 +143,9 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         userpref = context.user_preferences
         view = userpref.view
-        
+
         row = layout.row()
-       
+
 
         col = row.column()
         col.label(text="Display:")
@@ -171,7 +171,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         row.separator()
         row.separator()
-        
+
         col = row.column()
         col.label(text="View Manipulation:")
         col.prop(view, "auto_depth")
@@ -187,7 +187,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         row.separator()
         row.separator()
-        
+
         col = row.column()
         #Toolbox doesn't exist yet
         #col.label(text="Toolbox:")
@@ -379,7 +379,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.separator()
         col.separator()
 
-        
+
 
         #column = split.column()
         #colsplit = column.split(percentage=0.85)
@@ -394,7 +394,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         #col.separator()
 
         #col.prop(system, "use_textured_fonts")
-        
+
         column = split.column()
         colsplit = column.split(percentage=0.85)
 
@@ -426,15 +426,15 @@ class USERPREF_PT_system(bpy.types.Panel):
         split.label()
         split.label(text="Colors:")
         split.label(text="Direction:")
-        
-        
+
+
         split = column.split(percentage=0.1)
-        
+
         if lamp0.enabled == True:
             split.prop(lamp0, "enabled", text="", icon='OUTLINER_OB_LAMP')
         else:
             split.prop(lamp0, "enabled", text="", icon='LAMP_DATA')
-       
+
         col = split.column()
         col.active = lamp0.enabled
         row = col.row()
@@ -443,19 +443,19 @@ class USERPREF_PT_system(bpy.types.Panel):
         row = col.row()
         row.label(text="Specular:")
         row.prop(lamp0, "specular_color", text="")
-       
+
         col = split.column()
         col.active = lamp0.enabled
         col.prop(lamp0, "direction", text="")
-        
-        
+
+
         split = column.split(percentage=0.1)
-        
+
         if lamp1.enabled == True:
             split.prop(lamp1, "enabled", text="", icon='OUTLINER_OB_LAMP')
         else:
             split.prop(lamp1, "enabled", text="", icon='LAMP_DATA')
-       
+
         col = split.column()
         col.active = lamp1.enabled
         row = col.row()
@@ -464,19 +464,19 @@ class USERPREF_PT_system(bpy.types.Panel):
         row = col.row()
         row.label(text="Specular:")
         row.prop(lamp1, "specular_color", text="")
-       
+
         col = split.column()
         col.active = lamp1.enabled
         col.prop(lamp1, "direction", text="")
-        
-        
+
+
         split = column.split(percentage=0.1)
-        
+
         if lamp2.enabled == True:
             split.prop(lamp2, "enabled", text="", icon='OUTLINER_OB_LAMP')
         else:
             split.prop(lamp2, "enabled", text="", icon='LAMP_DATA')
-       
+
         col = split.column()
         col.active = lamp2.enabled
         row = col.row()
@@ -485,16 +485,16 @@ class USERPREF_PT_system(bpy.types.Panel):
         row = col.row()
         row.label(text="Specular:")
         row.prop(lamp2, "specular_color", text="")
-       
+
         col = split.column()
         col.active = lamp2.enabled
         col.prop(lamp2, "direction", text="")
 
-        
+
         column.separator()
         column.separator()
         column.separator()
-        
+
         col = column.column()
 
         col.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
@@ -502,7 +502,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
-        
+
 
 
 class USERPREF_PT_theme(bpy.types.Panel):
@@ -1253,12 +1253,12 @@ class USERPREF_PT_input(bpy.types.Panel):
     def poll(self, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
-    
+
     def draw_entry(self, kc, entry, col, level = 0):
         idname, spaceid, regionid, children = entry
-        
+
         km = kc.find_keymap(idname, space_type = spaceid, region_type = regionid)
-        
+
         if km:
             self.draw_km(kc, km, children, col, level)
 
@@ -1267,89 +1267,89 @@ class USERPREF_PT_input(bpy.types.Panel):
         if level == 0:
             level = 0.0001   # Tweak so that a percentage of 0 won't split by half
         indent = level*indentpx / bpy.context.region.width
-        
+
         split=layout.split(percentage=indent)
         col = split.column()
         col = split.column()
         return col
-    
+
     def draw_km(self, kc, km, children, layout, level):
         km = km.active()
-        
+
         layout.set_context_pointer("keymap", km)
-        
+
         col = self.indented_layout(layout, level)
-        
+
         row = col.row()
         row.prop(km, "children_expanded", text="", no_bg=True)
         row.label(text=km.name)
-        
+
         row.label()
         row.label()
-        
+
         if km.user_defined:
-            row.operator("WM_OT_keymap_restore", text="Restore")
+            row.operator("wm.keymap_restore", text="Restore")
         else:
-            row.operator("WM_OT_keymap_edit", text="Edit")
-        
+            row.operator("wm.keymap_edit", text="Edit")
+
         if km.children_expanded:
             if children:
                 # Put the Parent key map's entries in a 'global' sub-category
                 # equal in hierarchy to the other children categories
                 subcol = self.indented_layout(col, level + 1)
                 subrow = subcol.row()
-                subrow.prop(km, "items_expanded", text="", no_bg=True)                  
+                subrow.prop(km, "items_expanded", text="", no_bg=True)
                 subrow.label(text="%s (Global)" % km.name)
             else:
                 km.items_expanded = True
-            
+
             # Key Map items
             if km.items_expanded:
                 for kmi in km.items:
                     self.draw_kmi(kc, km, kmi, col, level + 1)
-                
+
                 # "Add New" at end of keymap item list
                 col = self.indented_layout(col, level+1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.active = km.user_defined
                 subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
-            
+
             col.separator()
-            
+
             # Child key maps
             if children:
                 subcol = col.column()
                 row = subcol.row()
-                
+
                 for entry in children:
                     self.draw_entry(kc, entry, col, level + 1)
-        
-        
+
+
     def draw_kmi(self, kc, km, kmi, layout, level):
         layout.set_context_pointer("keyitem", kmi)
-    
+
         col = self.indented_layout(layout, level)
 
         col.enabled = km.user_defined
-        
+
         if km.user_defined:
             col = col.column(align=True)
             box = col.box()
         else:
             box = col.column()
-        
+
         split = box.split(percentage=0.4)
-        
+
         # header bar
         row = split.row()
         row.prop(kmi, "expanded", text="", no_bg=True)
         row.prop(kmi, "active", text="", no_bg=True)
-        
+
         if km.modal:
             row.prop(kmi, "propvalue", text="")
         else:
             row.label(text=kmi.name)
-        
+
         row = split.row()
         row.prop(kmi, "map_type", text="")
         if kmi.map_type == 'KEYBOARD':
@@ -1364,22 +1364,22 @@ class USERPREF_PT_input(bpy.types.Panel):
             row.prop(kmi, "type", text="")
         else:
             row.label()
-    
+
         row.operator("wm.keyitem_remove", text="", icon='X')
-        
+
         # Expanded, additional event settings
         if kmi.expanded:
             box = col.box()
-            
+
             if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
                 split = box.split(percentage=0.4)
                 sub = split.row()
-                
+
                 if km.modal:
                     sub.prop(kmi, "propvalue", text="")
                 else:
                     sub.prop(kmi, "idname", text="")
-                
+
                 sub = split.column()
                 subrow = sub.row(align=True)
 
@@ -1407,13 +1407,13 @@ class USERPREF_PT_input(bpy.types.Panel):
                 for pname in dir(props):
                     if not props.is_property_hidden(pname):
                         flow.prop(props, pname)
-            
-            # Modal key maps attached to this operator            
+
+            # Modal key maps attached to this operator
             if not km.modal:
                 kmm = kc.find_keymap_modal(kmi.idname)
                 if kmm:
                     self.draw_km(kc, kmm, None, layout, level + 1)
-                    
+
     def draw_input_prefs(self, inputs, layout):
         # General settings
         row = layout.row()
@@ -1428,7 +1428,7 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
-        
+
         sub = col.column()
         sub.label(text="Double Click:")
         sub.prop(inputs, "double_click_time", text="Speed")
@@ -1464,31 +1464,31 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
 
         row.separator()
-    
+
     def draw_filtered(self, kc, layout):
-        
+
         for km in kc.keymaps:
             filtered_items = [kmi for kmi in km.items if kmi.name.lower().find(kc.filter.lower()) != -1]
-            
+
             if len(filtered_items) != 0:
                 km = km.active()
-                
+
                 col = layout.column()
                 col.set_context_pointer("keymap", km)
                 row = col.row()
                 row.label(text=km.name, icon="DOT")
-                
+
                 row.label()
                 row.label()
-                
+
                 if km.user_defined:
-                    row.operator("WM_OT_keymap_restore", text="Restore")
+                    row.operator("wm.keymap_restore", text="Restore")
                 else:
-                    row.operator("WM_OT_keymap_edit", text="Edit")
-            
+                    row.operator("wm.keymap_edit", text="Edit")
+
                 for kmi in filtered_items:
                     self.draw_kmi(kc, km, kmi, col, 1)
-    
+
     def draw_hierarchy(self, defkc, layout):
         for entry in KM_HIERARCHY:
             self.draw_entry(defkc, entry, layout)
@@ -1502,26 +1502,26 @@ class USERPREF_PT_input(bpy.types.Panel):
         inputs = userpref.inputs
 
         split = layout.split(percentage=0.25)
-        
+
         # Input settings
         self.draw_input_prefs(inputs, split)
-        
+
         # Keymap Settings
         col = split.column()
         # kc = wm.active_keyconfig
         kc = wm.default_keyconfig
-        
+
         sub = col.column()
-        
+
         subsplit = sub.split()
         subcol = subsplit.column()
         subcol.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Configuration:")
-        
+
         subcol = subsplit.column()
         subcol.prop(kc, "filter", icon="VIEWZOOM")
-        
+
         col.separator()
-        
+
         if kc.filter != "":
             self.draw_filtered(kc, col)
         else:
@@ -1699,3 +1699,4 @@ bpy.ops.add(WM_OT_keymap_edit)
 bpy.ops.add(WM_OT_keymap_restore)
 bpy.ops.add(WM_OT_keyitem_add)
 bpy.ops.add(WM_OT_keyitem_remove)
+

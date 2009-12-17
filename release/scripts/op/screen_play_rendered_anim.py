@@ -50,8 +50,8 @@ img_format_exts = {
     'THEORA':'ogg',
     }
 
-movie_formats = ('QUICKTIME_QTKIT', 
-                'QUICKTIME_CARBONTKIT', 
+movie_formats = ('QUICKTIME_QTKIT',
+                'QUICKTIME_CARBONTKIT',
                 'AVIRAW',
                 'AVIJPEG',
                 'AVICODEC',
@@ -62,30 +62,30 @@ movie_formats = ('QUICKTIME_QTKIT',
 def guess_player_path(preset):
     if preset == 'BLENDER24':
         player_path = 'blender'
-        
+
         if platform.system() == 'Darwin':
             test_path = '/Applications/blender 2.49.app/Contents/MacOS/blender'
         elif platform.system() == 'Windows':
             test_path = '/Program Files/Blender Foundation/Blender/blender.exe'
-    
+
             if os.path.exists(test_path):
                 player_path = test_path
 
     elif preset == 'DJV':
         player_path = 'djv_view'
-        
+
         if platform.system() == 'Darwin':
             test_path = '/Applications/djv-0.8.2.app/Contents/Resources/bin/djv_view'
             if os.path.exists(test_path):
                 player_path = test_path
-    
+
     elif preset == 'FRAMECYCLER':
         player_path = 'framecycler'
-    
+
     elif preset == 'RV':
         player_path = 'rv'
-    
-    
+
+
     return player_path
 
 
@@ -100,15 +100,15 @@ class PlayRenderedAnim(bpy.types.Operator):
         sce = context.scene
         rd = sce.render_data
         prefs = context.user_preferences
-        
+
         preset = prefs.filepaths.animation_player_preset
         player_path = prefs.filepaths.animation_player
         file_path = bpy.utils.expandpath(rd.output_path)
-        
+
         # try and guess a command line if it doesn't exist
         if player_path == '':
             player_path = guess_player_path(preset)
-        
+
         # doesn't support ### frame notation yet
         if rd.file_format in movie_formats:
             file = "%s%04d_%04d" % (file_path, sce.start_frame, sce.end_frame)
@@ -116,10 +116,10 @@ class PlayRenderedAnim(bpy.types.Operator):
             file = "%s%04d" % (file_path, sce.start_frame)
         elif preset in ('FRAMECYCLER', 'RV'):
             file = "%s#" % file_path
-        
+
         if rd.file_extensions:
             file += '.' + img_format_exts[rd.file_format]
-        
+
         cmd = [player_path]
         # extra options, fps controls etc.
         if preset == 'BLENDER24':
