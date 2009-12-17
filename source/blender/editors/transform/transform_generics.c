@@ -927,6 +927,12 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->view = v3d;
 		t->animtimer= CTX_wm_screen(C)->animtimer;
 		
+		/* turn manipulator off during transform */
+		if (t->flag & T_MODAL) {
+			t->twtype = v3d->twtype;
+			v3d->twtype = 0;
+		}
+
 		if(v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
 		

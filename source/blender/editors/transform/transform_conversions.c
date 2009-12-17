@@ -5006,6 +5006,17 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 	clear_trans_object_base_flags(t);
 
+	if(t->spacetype == SPACE_VIEW3D)
+	{
+		View3D *v3d = t->view;
+
+		/* restore manipulator */
+		if (t->flag & T_MODAL) {
+			v3d->twtype = t->twtype;
+		}
+	}
+
+
 #if 0 // TRANSFORM_FIX_ME
 	if(resetslowpar)
 		reset_slowparents();

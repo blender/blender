@@ -302,9 +302,10 @@ typedef struct TransInfo {
 	void  	  (*customFree)(struct TransInfo *); /* if a special free function is needed */
 
 	/*************** NEW STUFF *********************/
-	short		launch_event; /* event type used to launch transform */
+	short		launch_event; 	/* event type used to launch transform */
 
 	short		current_orientation;
+	short		twtype;			/* backup from view3d, to restore on end */
 
 	short		prop_mode;
 	
