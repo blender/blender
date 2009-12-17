@@ -673,7 +673,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					}
 					else {
 						if (t->flag & T_2D_EDIT) {
-							setConstraint(t, mati, (CON_AXIS0), "along X axis");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along X");
 						}
 						else {
 							setUserConstraint(t, t->current_orientation, (CON_AXIS0), "along %s X");
@@ -689,7 +689,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					}
 					else {
 						if (t->flag & T_2D_EDIT) {
-							setConstraint(t, mati, (CON_AXIS1), "along Y axis");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along Y");
 						}
 						else {
 							setUserConstraint(t, t->current_orientation, (CON_AXIS1), "along %s Y");
@@ -699,17 +699,12 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				}
 				break;
 			case TFM_MODAL_AXIS_Z:
-				if ((t->flag & T_NO_CONSTRAINT)==0) {
+				if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))== 0) {
 					if (cmode == 'Z') {
 						stopConstraint(t);
 					}
 					else {
-						if (t->flag & T_2D_EDIT) {
-							setConstraint(t, mati, (CON_AXIS0), "along Z axis");
-						}
-						else {
-							setUserConstraint(t, t->current_orientation, (CON_AXIS2), "along %s Z");
-						}
+						setUserConstraint(t, t->current_orientation, (CON_AXIS2), "along %s Z");
 					}
 					t->redraw = 1;
 				}
@@ -886,32 +881,28 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case XKEY:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				if (cmode == 'X') {
-					if (t->flag & T_2D_EDIT) {
+				if (t->flag & T_2D_EDIT) {
+					if (cmode == 'X') {
 						stopConstraint(t);
+					} else {
+						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along X");
 					}
-					else {
-						if (t->con.mode & CON_USER) {
+				} else {
+					if (cmode == 'X') {
+						if (t->con.orientation != V3D_MANIP_GLOBAL) {
 							stopConstraint(t);
-						}
-						else {
+						} else {
 							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 								setUserConstraint(t, orientation, (CON_AXIS0), "along %s X");
 							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 								setUserConstraint(t, orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
 						}
-					}
-				}
-				else {
-					if (t->flag & T_2D_EDIT) {
-						setConstraint(t, mati, (CON_AXIS0), "along X axis");
-					}
-					else {
+					} else {
 						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setConstraint(t, mati, (CON_AXIS0), "along global X");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along %s X");
 						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setConstraint(t, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1|CON_AXIS2), "locking %s X");
 					}
 				}
 				t->redraw = 1;
@@ -919,56 +910,50 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case YKEY:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				if (cmode == 'Y') {
-					if (t->flag & T_2D_EDIT) {
+				if (t->flag & T_2D_EDIT) {
+					if (cmode == 'Y') {
 						stopConstraint(t);
+					} else {
+						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along Y");
 					}
-					else {
-						if (t->con.mode & CON_USER) {
+				} else {
+					if (cmode == 'Y') {
+						if (t->con.orientation != V3D_MANIP_GLOBAL) {
 							stopConstraint(t);
-						}
-						else {
+						} else {
 							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 								setUserConstraint(t, orientation, (CON_AXIS1), "along %s Y");
 							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 								setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 						}
-					}
-				}
-				else {
-					if (t->flag & T_2D_EDIT) {
-						setConstraint(t, mati, (CON_AXIS1), "along Y axis");
-					}
-					else {
+					} else {
 						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setConstraint(t, mati, (CON_AXIS1), "along global Y");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along %s Y");
 						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setConstraint(t, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 					}
 				}
 				t->redraw = 1;
 			}
 			break;
 		case ZKEY:
-			if ((t->flag & T_NO_CONSTRAINT)==0) {
+			if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))==0) {
 				if (cmode == 'Z') {
-					if (t->con.mode & CON_USER) {
+					if (t->con.orientation != V3D_MANIP_GLOBAL) {
 						stopConstraint(t);
-					}
-					else {
+					} else {
 						short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 							setUserConstraint(t, orientation, (CON_AXIS2), "along %s Z");
-						else if ((t->modifiers & MOD_CONSTRAINT_PLANE) && ((t->flag & T_2D_EDIT)==0))
+						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 							setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 					}
-				}
-				else if ((t->flag & T_2D_EDIT)==0) {
+				} else {
 					if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-						setConstraint(t, mati, (CON_AXIS2), "along global Z");
+						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS2), "along %s Z");
 					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-						setConstraint(t, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
+						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 				}
 				t->redraw = 1;
 			}
@@ -1464,7 +1449,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
 	if (RNA_struct_find_property(op->ptr, "constraint_axis"))
 	{
-		RNA_enum_set(op->ptr, "constraint_orientation", t->current_orientation);
+		/* constraint orientation can be global, event if user selects something else
+		 * so use the orientation in the constraint if set
+		 * */
+		if (t->con.mode & CON_APPLY) {
+			RNA_enum_set(op->ptr, "constraint_orientation", t->con.orientation);
+		} else {
+			RNA_enum_set(op->ptr, "constraint_orientation", t->current_orientation);
+		}
 
 		if (t->con.mode & CON_APPLY)
 		{

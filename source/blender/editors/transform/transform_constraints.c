@@ -599,6 +599,8 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 		break;
 	}
 
+	t->con.orientation = orientation;
+
 	t->con.mode |= CON_USER;
 }
 

@@ -112,6 +112,7 @@ typedef struct TransSnap {
 } TransSnap;
 
 typedef struct TransCon {
+	short orientation;	 /**/
     char  text[50];      /* Description of the Constraint for header_print                            */
     float mtx[3][3];     /* Matrix of the Constraint space                                            */
     float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
