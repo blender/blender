@@ -239,9 +239,8 @@ class Graph(bpy.types.Operator):
 
         if saved:
             # if we seriously want this working everywhere we'll need some new approach
-            #os.system("dot -Tpng %s > %s; gnome-open %s &" % (path_dot, path_png, path_png))
-            os.system("python /b/xdot.py '%s' &" % path_dot)
-            
+            os.system("dot -Tpng %s > %s; gnome-open %s &" % (path_dot, path_png, path_png))
+            #os.system("python /b/xdot.py '%s' &" % path_dot)
 
         return ('FINISHED',)
 
