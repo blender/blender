@@ -3575,6 +3575,21 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 }
 
 
+Sequence *get_seq_by_name(Scene *scene, const char *name)
+{
+	Sequence *seq=NULL;
+	Editing *ed= seq_give_editing(scene, FALSE);
+	
+	if(ed==NULL) return NULL;
+	
+	for (seq=ed->seqbase.first; seq; seq=seq->next) {
+		if (strcmp(name, seq->name+2) == 0)
+			break;
+	}
+	return seq;
+}
+
+
 Sequence *active_seq_get(Scene *scene)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);

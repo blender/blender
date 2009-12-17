@@ -387,6 +387,7 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
 				case ND_MARKERS:
+				case ND_SEQUENCER_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -405,6 +406,11 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_NODE:
+			switch(wmn->data) {
+				case ND_NODE_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 			switch(wmn->action) {
 				case NA_EDITED:
 					ED_region_tag_redraw(ar);

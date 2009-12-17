@@ -767,6 +767,17 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 	}
 	
 }
+/* finds a node based on its name */
+bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
+{
+	bNode *node=NULL;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if (strcmp(name, node->name) == 0)
+			break;
+	}
+	return node;
+}
 
 /* finds a node based on given socket */
 int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockindex)

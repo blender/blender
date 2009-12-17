@@ -68,6 +68,7 @@
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -85,6 +86,8 @@
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
+#include "BKE_sequencer.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -754,6 +757,65 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
  
 /* ----------------------------------------- */
 
+static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id)
+{
+	if (GS(owner_id->name) == ID_OB) {
+		Object *ob= (Object *)owner_id;
+		
+		/* only consider if F-Curve involves pose.bones */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "bones")) {
+			bPoseChannel *pchan;
+			char *bone_name;
+			
+			/* get bone-name, and check if this bone is selected */
+			bone_name= BLI_getQuotedStr(fcu->rna_path, "bones[");
+			pchan= get_pose_channel(ob->pose, bone_name);
+			if (bone_name) MEM_freeN(bone_name);
+			
+			/* can only add this F-Curve if it is selected */
+			if ((pchan) && (pchan->bone) && (pchan->bone->flag & BONE_SELECTED)==0)
+				return 1;
+		}
+	}
+	else if (GS(owner_id->name) == ID_SCE) {
+		Scene *sce = (Scene *)owner_id;
+		
+		/* only consider if F-Curve involves sequence_editor.sequences */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
+			Sequence *seq;
+			char *seq_name;
+			
+			/* get strip name, and check if this strip is selected */
+			seq_name= BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
+			seq = get_seq_by_name(sce, seq_name);
+			if (seq_name) MEM_freeN(seq_name);
+			
+			/* can only add this F-Curve if it is selected */
+			if ((seq) && (seq->flag & SELECT)==0)
+				return 1;
+		}
+	}
+	else if (GS(owner_id->name) == ID_NT) {
+		bNodeTree *ntree = (bNodeTree *)owner_id;
+		
+		/* check for selected  nodes */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
+			bNode *node;
+			char *node_name;
+			
+			/* get strip name, and check if this strip is selected */
+			node_name= BLI_getQuotedStr(fcu->rna_path, "nodes[");
+			node = nodeFindNodebyName(ntree, node_name);
+			if (node_name) MEM_freeN(node_name);
+			
+			/* can only add this F-Curve if it is selected */
+			if ((node) && (node->flag & NODE_SELECT)==0)
+				return 1;
+		}
+	}
+	return 0;
+}
+
 /* find the next F-Curve that is usable for inclusion */
 static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
@@ -771,27 +833,11 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 		 *	  carefully checking the entire path
 		 *	- this will also affect things like Drivers, and also works for Bone Constraints
 		 */
-		if ( ((ads) && (ads->filterflag & ADS_FILTER_ONLYSEL)) && 
-			 ((owner_id) && (GS(owner_id->name) == ID_OB)) ) 
-		{
-			Object *ob= (Object *)owner_id;
-			
-			/* only consider if F-Curve involves pose.bones */
-			if ((fcu->rna_path) && strstr(fcu->rna_path, "bones")) {
-				bPoseChannel *pchan;
-				char *bone_name;
-				
-				/* get bone-name, and check if this bone is selected */
-				bone_name= BLI_getQuotedStr(fcu->rna_path, "bones[");
-				pchan= get_pose_channel(ob->pose, bone_name);
-				if (bone_name) MEM_freeN(bone_name);
-				
-				/* can only add this F-Curve if it is selected */
-				if ((pchan) && (pchan->bone) && (pchan->bone->flag & BONE_SELECTED)==0)
-					continue;
-			}
+		if ( ((ads) && (ads->filterflag & ADS_FILTER_ONLYSEL)) && (owner_id) ) {
+			if (skip_fcurve_selected_data(fcu, owner_id))
+				continue;
 		}
-		
+				
 		/* only include if visible (Graph Editor check, not channels check) */
 		if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
 			/* only work with this channel and its subchannels if it is editable */
