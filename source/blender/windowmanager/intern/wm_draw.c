@@ -585,7 +585,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		}
 	}
 
-	if(win->screen->do_draw_gesture)
+	if(screen->do_draw_gesture)
 		wm_gesture_draw(win);
 
 	if(wm->paintcursors.first) {
