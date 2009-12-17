@@ -1,5 +1,5 @@
 /**
- * $Id: interface_ops.c 24699 2009-11-20 10:21:31Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
