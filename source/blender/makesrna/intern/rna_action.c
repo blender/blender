@@ -29,6 +29,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
 
@@ -38,6 +39,21 @@
 
 
 #ifdef RNA_RUNTIME
+
+static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
+{
+	ListBaseIterator *internal= iter->internal;
+	FCurve *fcu= (FCurve*)internal->link;
+	bActionGroup *grp= fcu->grp;
+	
+	/* only continue if the next F-Curve (if existant) belongs in the same group */
+	if ((fcu->next) && (fcu->next->grp == grp))
+		internal->link= (Link*)fcu->next;
+	else
+		internal->link= NULL;
+		
+	iter->valid= (internal->link != NULL);
+}
 
 #else
 
@@ -167,13 +183,18 @@ static void rna_def_action_group(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 	
-	/* dna warns not to treat the Action Channel listbase in the Action Group struct like a
-	   normal listbase. I'll leave this here but comment out, for Joshua to review. He can 
- 	   probably shed some more light on why this is */
-	/*prop= RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
+	/* WARNING: be very careful when working with this list, since the endpoint is not
+	 * defined like a standard ListBase. Adding/removing channels from this list needs
+	 * extreme care, otherwise the F-Curve list running through adjacent groups does
+	 * not match up with the one stored in the Action, resulting in curves which do not
+	 * show up in animation editors. For that reason, such operations are currently 
+	 * prohibited.
+	 */
+	prop= RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "channels", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
-	RNA_def_property_ui_text(prop, "Channels", "F-Curves in this group.");*/
+	RNA_def_property_collection_funcs(prop, 0, "rna_ActionGroup_channels_next", 0, 0, 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Channels", "F-Curves in this group.");
 	
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_SELECTED);

@@ -763,12 +763,12 @@ static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id)
 		Object *ob= (Object *)owner_id;
 		
 		/* only consider if F-Curve involves pose.bones */
-		if ((fcu->rna_path) && strstr(fcu->rna_path, "bones")) {
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
 			bPoseChannel *pchan;
 			char *bone_name;
 			
 			/* get bone-name, and check if this bone is selected */
-			bone_name= BLI_getQuotedStr(fcu->rna_path, "bones[");
+			bone_name= BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
 			pchan= get_pose_channel(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
