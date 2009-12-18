@@ -92,23 +92,28 @@ class SubdivisionSet(bpy.types.Operator):
 
     def execute(self, context):
         level = self.properties.level
-        ob = context.active_object
-        for mod in ob.modifiers:
-            if mod.type == 'MULTIRES':
-                if level < mod.total_levels:
-                    if ob.mode == 'SCULPT' and mod.sculpt_levels != level:
-                        mod.sculpt_levels = level
-                    elif ob.mode == 'OBJECT' and mod.levels != level:
-                        mod.levels = level
-                return ('FINISHED',)
-            elif mod.type == 'SUBSURF':
-                if mod.levels != level:
-                    mod.levels = level
-                return ('FINISHED',)
 
-        # adda new modifier
-        mod = ob.modifiers.new("Subsurf", 'SUBSURF')
-        mod.levels = level
+        def set_object_subd(obj):
+            for mod in obj.modifiers:
+                if mod.type == 'MULTIRES':
+                    if level < mod.total_levels:
+                        if obj.mode == 'SCULPT' and mod.sculpt_levels != level:
+                            mod.sculpt_levels = level
+                        elif obj.mode == 'OBJECT' and mod.levels != level:
+                            mod.levels = level
+                    return
+                elif mod.type == 'SUBSURF':
+                    if mod.levels != level:
+                        mod.levels = level
+                    return
+
+            # adda new modifier
+            mod = obj.modifiers.new("Subsurf", 'SUBSURF')
+            mod.levels = level
+
+        for obj in context.selected_editable_objects:
+            set_object_subd(obj)
+
         return ('FINISHED',)
 
 
