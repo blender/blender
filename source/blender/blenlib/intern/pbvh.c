@@ -504,7 +504,8 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 		BB_expand(&cb, bbc->bcentroid);
 	}
 
-	pbvh_build(bvh, &cb, prim_bbc, totface);
+	if(totface)
+		pbvh_build(bvh, &cb, prim_bbc, totface);
 
 	MEM_freeN(prim_bbc);
 	MEM_freeN(bvh->vert_bitmap);
@@ -544,7 +545,8 @@ void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridad
 		BB_expand(&cb, bbc->bcentroid);
 	}
 
-	pbvh_build(bvh, &cb, prim_bbc, totgrid);
+	if(totgrid)
+		pbvh_build(bvh, &cb, prim_bbc, totgrid);
 
 	MEM_freeN(prim_bbc);
 }
