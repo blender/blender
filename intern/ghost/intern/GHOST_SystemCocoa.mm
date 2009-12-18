@@ -958,7 +958,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,
 								   GHOST_WindowCocoa* window, int mouseX, int mouseY, void* data)
 {
-	if (!validWindow(window)) {
+	if (!validWindow(window) && (eventType != GHOST_kEventDraggingDropOnIcon)) {
 		return GHOST_kFailure;
 	}
 	switch(eventType) 
