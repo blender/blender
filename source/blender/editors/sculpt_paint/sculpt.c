@@ -1633,13 +1633,19 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 /**** Operator for applying a stroke (various attributes including mouse path)
       using the current brush. ****/
 
-static float unproject_brush_radius(ViewContext *vc, float center[3], float offset)
+static float unproject_brush_radius(Object *ob, ViewContext *vc, float center[3], float offset)
 {
-	float delta[3];
+	float delta[3], scale, loc[3];
 
-	initgrabz(vc->rv3d, center[0], center[1], center[2]);
+	mul_v3_m4v3(loc, ob->obmat, center);
+
+	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
 	window_to_3d_delta(vc->ar, delta, offset, 0);
-	return len_v3(delta);
+
+	scale= fabsf(mat4_to_scale(ob->obmat));
+	scale= (scale == 0.0f)? 1.0f: scale;
+
+	return len_v3(delta)/scale;
 }
 
 static void sculpt_cache_free(StrokeCache *cache)
@@ -1738,7 +1744,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 	cache->pixel_radius = brush->size;
 
 	if(cache->first_time)
-		cache->initial_radius = unproject_brush_radius(cache->vc, cache->true_location, brush->size);
+		cache->initial_radius = unproject_brush_radius(ss->ob, cache->vc, cache->true_location, brush->size);
 
 	if(brush->flag & BRUSH_SIZE_PRESSURE) {
 		cache->pixel_radius *= cache->pressure;
@@ -1754,7 +1760,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 		dx = cache->mouse[0] - cache->initial_mouse[0];
 		dy = cache->mouse[1] - cache->initial_mouse[1];
 		cache->pixel_radius = sqrt(dx*dx + dy*dy);
-		cache->radius = unproject_brush_radius(paint_stroke_view_context(stroke),
+		cache->radius = unproject_brush_radius(ss->ob, paint_stroke_view_context(stroke),
 						       cache->true_location, cache->pixel_radius);
 		cache->rotation = atan2(dy, dx);
 	}
