@@ -3070,6 +3070,12 @@ static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointC
 	}
 }
 
+void lib_link_partdeflect(FileData *fd, ID *id, PartDeflect *pd)
+{
+	if(pd && pd->tex)
+		pd->tex=newlibadr_us(fd, id->lib, pd->tex);
+}
+
 static void lib_link_particlesettings(FileData *fd, Main *main)
 {
 	ParticleSettings *part;
@@ -3085,6 +3091,9 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
 			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
+
+			lib_link_partdeflect(fd, &part->id, part->pd);
+			lib_link_partdeflect(fd, &part->id, part->pd2);
 
 			if(part->effector_weights)
 				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
@@ -3122,11 +3131,19 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 	}
 }
 
+static void direct_link_partdeflect(PartDeflect *pd)
+{
+	if(pd) pd->rng=NULL;
+}
+
 static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 {
 	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
+
+	direct_link_partdeflect(part->pd);
+	direct_link_partdeflect(part->pd2);
 
 	part->effector_weights = newdataadr(fd, part->effector_weights);
 	if(!part->effector_weights)
@@ -3714,8 +3731,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			
 			/* texture field */
 			if(ob->pd)
-				if(ob->pd->tex)
-					ob->pd->tex=newlibadr_us(fd, ob->id.lib, ob->pd->tex);
+				lib_link_partdeflect(fd, &ob->id, ob->pd);
 
 			if(ob->soft)
 				ob->soft->effector_weights->group = newlibadr(fd, ob->id.lib, ob->soft->effector_weights->group);
@@ -4030,8 +4046,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 
 	ob->pd= newdataadr(fd, ob->pd);
-	if(ob->pd)
-		ob->pd->rng=NULL;
+	direct_link_partdeflect(ob->pd);
 	ob->soft= newdataadr(fd, ob->soft);
 	if(ob->soft) {
 		SoftBody *sb= ob->soft;		
