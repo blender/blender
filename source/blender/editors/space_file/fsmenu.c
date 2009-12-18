@@ -345,7 +345,7 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		CFURLRef cfURL = NULL;
 		CFStringRef pathString = NULL;
 		
-		/* First get mounted volumes */
+		/* First get local mounted volumes */
 		list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteVolumes, NULL);
 		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
 		pathesCount = CFArrayGetCount(pathesArray);
@@ -374,7 +374,29 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		CFRelease(pathesArray);
 		CFRelease(list);
 		
-		/* Then get user favorite places */
+		/* Then get network volumes */
+		err = noErr;
+		for (i=1; err!=nsvErr; i++)
+		{
+			FSRef dir;
+			FSVolumeRefNum volRefNum;
+			struct GetVolParmsInfoBuffer volParmsBuffer;
+			unsigned char path[FILE_MAXDIR+FILE_MAXFILE];
+			
+			err = FSGetVolumeInfo(kFSInvalidVolumeRefNum, i, &volRefNum, kFSVolInfoNone, NULL, NULL, &dir);
+			if (err != noErr)
+				continue;
+			
+			err = FSGetVolumeParms(volRefNum, &volParmsBuffer, sizeof(volParmsBuffer));
+			if ((err != noErr) || (volParmsBuffer.vMServerAdr == 0)) /* Exclude local devices */
+				continue;
+			
+			
+			FSRefMakePath(&dir, path, FILE_MAXDIR+FILE_MAXFILE);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
+		}
+		
+		/* Finally get user favorite places */
 		list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteItems, NULL);
 		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
 		pathesCount = CFArrayGetCount(pathesArray);
