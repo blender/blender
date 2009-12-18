@@ -373,7 +373,6 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 static int key_test_depth(PEData *data, float co[3])
 {
 	View3D *v3d= data->vc.v3d;
-	RegionView3D *rv3d= data->vc.rv3d;
 	double ux, uy, uz;
 	float depth;
 	short wco[3], x,y;
@@ -393,26 +392,16 @@ static int key_test_depth(PEData *data, float co[3])
 	x=wco[0];
 	y=wco[1];
 
-	// XXX verify ..
+	x+= (short)data->vc.ar->winrct.xmin;
+	y+= (short)data->vc.ar->winrct.ymin;
 
-	if(rv3d->depths && x<rv3d->depths->w && y<rv3d->depths->h) {
-		/* the 0.0001 is an experimental threshold to make selecting keys right next to a surface work better */
-		if((float)uz - 0.0001 > rv3d->depths->depths[y*rv3d->depths->w+x])
-			return 0;
-		else
-			return 1;
-	}
-	else {
-		x+= (short)data->vc.ar->winrct.xmin;
-		y+= (short)data->vc.ar->winrct.ymin;
+	view3d_validate_backbuf(&data->vc);
+	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 
-		glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-
-		if((float)uz - 0.0001 > depth)
-			return 0;
-		else
-			return 1;
-	}
+	if((float)uz - 0.0001 > depth)
+		return 0;
+	else
+		return 1;
 }
 
 static int key_inside_circle(PEData *data, float rad, float co[3], float *distance)
