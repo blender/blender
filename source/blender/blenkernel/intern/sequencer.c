@@ -87,6 +87,20 @@ void printf_strip(Sequence *seq)
 	fprintf(stderr, "\tseq_tx_set_final_left: %d %d\n\n", seq_tx_get_final_left(seq, 0), seq_tx_get_final_right(seq, 0));
 }
 
+void seqbase_recursive_apply(ListBase *seqbase, int (*apply_func)(Sequence *seq, void *), void *arg)
+{
+	Sequence *iseq;
+	for(iseq= seqbase->first; iseq; iseq= iseq->next) {
+		seq_recursive_apply(iseq, apply_func, arg);
+	}
+}
+
+void seq_recursive_apply(Sequence *seq, int (*apply_func)(Sequence *, void *), void *arg)
+{
+	if(apply_func(seq, arg) && seq->seqbase.first)
+		seqbase_recursive_apply(&seq->seqbase, apply_func, arg);
+}
+
 /* **********************************************************************
    alloc / free functions
    ********************************************************************** */
@@ -252,7 +266,7 @@ void seq_free_editing(Scene *scene)
 {
 	Editing *ed = scene->ed;
 	MetaStack *ms;
-	Sequence *seq, *nseq;
+	Sequence *seq;
 
 	if(ed==NULL)
 		return;
@@ -689,28 +703,22 @@ void sort_seq(Scene *scene)
 }
 
 
-void clear_scene_in_allseqs(Scene *sce)
+static int clear_scene_in_allseqs_cb(Sequence *seq, void *arg_pt)
 {
-	Scene *sce1;
-	Editing *ed;
-	Sequence *seq;
+	if(seq->scene==(Scene *)arg_pt)
+		seq->scene= NULL;
+	return 1;
+}
+
+void clear_scene_in_allseqs(Scene *scene)
+{
+	Scene *scene_iter;
 
 	/* when a scene is deleted: test all seqs */
-
-	sce1= G.main->scene.first;
-	while(sce1) {
-		if(sce1!=sce && sce1->ed) {
-			ed= sce1->ed;
-
-			SEQ_BEGIN(ed, seq) {
-
-				if(seq->scene==sce) seq->scene= 0;
-
-			}
-			SEQ_END
+	for(scene_iter= G.main->scene.first; scene_iter; scene_iter= scene_iter->id.next) {
+		if(scene_iter != scene && scene_iter->ed) {
+			seqbase_recursive_apply(&scene_iter->ed->seqbase, clear_scene_in_allseqs_cb, scene);
 		}
-
-		sce1= sce1->id.next;
 	}
 }
 
@@ -2033,9 +2041,14 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		Render *re;
 		RenderResult rres;
 		char scenename[64];
-		int have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
-		int sce_valid =sce && (sce->camera || have_seq);
-			
+		int have_seq= FALSE;
+		int sce_valid= FALSE;
+
+		if(sce) {
+			have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
+			sce_valid= (sce->camera || have_seq);
+		}
+
 		if (se->ibuf == NULL && sce_valid && !build_proxy_run) {
 			se->ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
 			if (se->ibuf) {
@@ -3216,6 +3229,23 @@ static void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 	SEQ_END
 }
 #endif
+
+static int seq_sound_reload_cb(Sequence *seq, void *arg_pt)
+{
+	if (seq->type==SEQ_SOUND && seq->sound) {
+		Scene *scene= (Scene *)arg_pt;
+		if(seq->sound_handle)
+			sound_delete_handle(scene, seq->sound_handle);
+
+		seq->sound_handle = sound_new_handle(scene, seq->sound, seq->start, seq->start + seq->strip->len, 0);
+		return 0;
+	}
+	return 1; /* recurse meta's */
+}
+void seqbase_sound_reload(Scene *scene, ListBase *seqbase)
+{
+	seqbase_recursive_apply(seqbase, seq_sound_reload_cb, (void *)scene);
+}
 
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.

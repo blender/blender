@@ -137,6 +137,10 @@ struct SeqEffectHandle {
 /* sequence.c */
 void printf_strip(struct Sequence *seq);
 
+/* apply functions recursively */
+void seqbase_recursive_apply(struct ListBase *seqbase, int (*apply_func)(struct Sequence *seq, void *), void *arg);
+void seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence *, void *), void *arg);
+
 // extern
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);

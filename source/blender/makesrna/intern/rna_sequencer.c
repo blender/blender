@@ -235,9 +235,9 @@ static int rna_Sequence_name_length(PointerRNA *ptr)
 static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene= (Scene*)ptr->id.data;
-	Editing *ed= seq_give_editing(scene, FALSE);
+//	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq= (Sequence*)ptr->data;
-	Sequence *iseq;
+//	Sequence *iseq;
 	BLI_strncpy(seq->name+2, value, sizeof(seq->name)-2);
 
 	seqUniqueName(&scene->ed->seqbase, seq);

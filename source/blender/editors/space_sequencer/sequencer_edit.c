@@ -1672,6 +1672,8 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE);
 
+	seqbase_sound_reload(scene, &ed->seqbase);
+
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;

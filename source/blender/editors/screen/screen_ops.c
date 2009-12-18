@@ -2332,6 +2332,14 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 		if(spacetype==SPACE_TIME)
 			return 1;
 	}
+	else if (regiontype==RGN_TYPE_PREVIEW) {
+		switch (spacetype) {
+			case SPACE_SEQ:
+				if(redraws & (TIME_SEQ|TIME_ALL_ANIM_WIN))
+					return 1;
+				break;
+		}
+	}
 	return 0;
 }
 

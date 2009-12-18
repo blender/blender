@@ -4232,6 +4232,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 				if(seq->sound) {
+					seq->sound_handle= NULL;
 					if(seq->type == SEQ_HD_SOUND)
 						seq->type = SEQ_SOUND;
 					else
@@ -11280,6 +11281,16 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		
 	if(sce->gpd)
 		expand_doit(fd, mainvar, sce->gpd);
+
+	if(sce->ed) {
+		Sequence *seq;
+
+		SEQ_BEGIN(sce->ed, seq) {
+			if(seq->scene) expand_doit(fd, mainvar, seq->scene);
+			if(seq->sound) expand_doit(fd, mainvar, seq->sound);
+		}
+		SEQ_END
+	}
 
 #ifdef DURIAN_CAMERA_SWITCH
 	{

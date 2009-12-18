@@ -1062,7 +1062,6 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
 #ifdef DURIAN_CAMERA_SWITCH
-	WM_keymap_add_item(keymap, "MARKER_OT_camera_bind", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MARKER_OT_camera_bind", BKEY, KM_PRESS, KM_CTRL, 0);
 #endif
-	
 }
