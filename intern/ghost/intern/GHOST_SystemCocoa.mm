@@ -436,9 +436,7 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
-	NSLog(@"\nGet open file event from cocoa : %@",filename);
-	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingDropOnIcon, GHOST_kDragnDropTypeFilenames, nil, 0, 0, [NSArray arrayWithObject:filename]);
-	return YES;
+	return systemCocoa->handleOpenDocumentRequest(filename);
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
@@ -1086,6 +1084,33 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	return GHOST_kExitCancel;
 }
 
+bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
+{
+	NSString *filepath = (NSString*)filepathStr;
+	int confirmOpen = NSAlertAlternateReturn;
+	NSArray *windowsList;
+	
+	//Check open windows if some changes are not saved
+	if (m_windowManager->getAnyModifiedState())
+	{
+		confirmOpen = NSRunAlertPanel([NSString stringWithFormat:@"Opening %@",[filepath lastPathComponent]],
+										 @"Current document has not been saved.\nDo you really want to proceed?",
+										 @"Cancel", @"Open", nil);
+	}
+
+	//Give back focus to the blender window
+	windowsList = [NSApp orderedWindows];
+	if ([windowsList count]) {
+		[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+	}
+
+	if (confirmOpen == NSAlertAlternateReturn)
+	{
+		handleDraggingEvent(GHOST_kEventDraggingDropOnIcon,GHOST_kDragnDropTypeFilenames,NULL,0,0, [NSArray arrayWithObject:filepath]);
+		return YES;
+	}
+	else return NO;
+}
 
 GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventType)
 {
