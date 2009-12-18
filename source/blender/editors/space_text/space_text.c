@@ -222,7 +222,9 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_cut", XKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0); 
 	WM_keymap_add_item(keymap, "TEXT_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_find", FKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_properties", FKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_find_set_selected", EKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_find", GKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_all", AKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_line", AKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
 	#endif
@@ -242,13 +244,11 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	if(U.uiflag & USER_MMB_PASTE) // XXX not dynamic
 		RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_paste", MIDDLEMOUSE, KM_PRESS, 0, 0)->ptr, "selection", 1);
 
-	WM_keymap_add_item(keymap, "TEXT_OT_jump", GKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_find", FKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_jump", JKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_find", GKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "TEXT_OT_properties", FKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_properties", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_replace", HKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_replace", HKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
 
