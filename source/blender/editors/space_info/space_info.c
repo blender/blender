@@ -182,6 +182,7 @@ void ED_spacetype_info(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_INFO;
+	strncpy(st->name, "Info", BKE_ST_MAXNAME);
 	
 	st->new= info_new;
 	st->free= info_free;

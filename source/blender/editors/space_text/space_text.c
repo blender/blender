@@ -402,6 +402,7 @@ void ED_spacetype_text(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_TEXT;
+	strncpy(st->name, "Text", BKE_ST_MAXNAME);
 	
 	st->new= text_new;
 	st->free= text_free;

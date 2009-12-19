@@ -224,6 +224,7 @@ void ED_spacetype_sound(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_SOUND;
+	strncpy(st->name, "Sound", BKE_ST_MAXNAME);
 	
 	st->new= sound_new;
 	st->free= sound_free;

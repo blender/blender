@@ -507,6 +507,7 @@ void ED_spacetype_file(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_FILE;
+	strncpy(st->name, "File", BKE_ST_MAXNAME);
 	
 	st->new= file_new;
 	st->free= file_free;

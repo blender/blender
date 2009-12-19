@@ -332,6 +332,7 @@ void ED_spacetype_logic(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_LOGIC;
+	strncpy(st->name, "Logic", BKE_ST_MAXNAME);
 	
 	st->new= logic_new;
 	st->free= logic_free;

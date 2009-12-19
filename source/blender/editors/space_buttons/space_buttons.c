@@ -359,6 +359,7 @@ void ED_spacetype_buttons(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_BUTS;
+	strncpy(st->name, "Buttons", BKE_ST_MAXNAME);
 	
 	st->new= buttons_new;
 	st->free= buttons_free;
