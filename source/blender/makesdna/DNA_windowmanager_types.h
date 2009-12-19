@@ -154,10 +154,7 @@ typedef struct wmWindow {
 	short cursor;		/* current mouse cursor type */
 	short lastcursor;	/* for temp waitcursor */
 	short addmousemove;	/* internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching */
-	
-	short last_type; /* last event information, used for click */
-	short last_val;
-	double last_click_time; /* for double click */
+	short pad2[2];
 
 	struct wmEvent *eventstate;	/* storage for event system */
 	
@@ -344,40 +341,6 @@ typedef struct wmOperator {
 
 /* wmOperator flag */
 #define OP_GRAB_POINTER			1
-
-/* ************** wmEvent ************************ */
-/* for read-only rna access, dont save this */
-
-/* each event should have full modifier state */
-/* event comes from eventmanager and from keymap */
-typedef struct wmEvent {
-	struct wmEvent *next, *prev;
-	
-	short type;			/* event code itself (short, is also in keymap) */
-	short val;			/* press, release, scrollvalue */
-	short x, y;			/* mouse pointer position, screen coord */
-	short mval[2];		/* region mouse position, name convention pre 2.5 :) */
-	short prevx, prevy;	/* previous mouse pointer position */
-	short unicode;		/* future, ghost? */
-	char ascii;			/* from ghost */
-	char pad;
-	
-	/* modifier states */
-	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
-	short keymodifier;				/* rawkey modifier */
-	
-	short pad1;
-	
-	/* keymap item, set by handler (weak?) */
-	const char *keymap_idname;
-	
-	/* custom data */
-	short custom;		/* custom data type, stylus, 6dof, see wm_event_types.h */
-	short customdatafree;
-	int pad2;
-	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
-	
-} wmEvent;
 
 typedef enum wmRadialControlMode {
 	WM_RADIALCONTROL_SIZE,

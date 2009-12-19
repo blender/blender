@@ -288,6 +288,44 @@ typedef struct wmGesture {
 	/* customdata for lasso is short array */
 } wmGesture;
 
+/* ************** wmEvent ************************ */
+
+/* each event should have full modifier state */
+/* event comes from eventmanager and from keymap */
+typedef struct wmEvent {
+	struct wmEvent *next, *prev;
+	
+	short type;			/* event code itself (short, is also in keymap) */
+	short val;			/* press, release, scrollvalue */
+	short x, y;			/* mouse pointer position, screen coord */
+	short mval[2];		/* region mouse position, name convention pre 2.5 :) */
+	short unicode;		/* future, ghost? */
+	char ascii;			/* from ghost */
+	char pad;
+
+	/* previous state */
+	short prevtype;
+	short prevval;
+	short prevx, prevy;
+	double prevclicktime;
+	
+	/* modifier states */
+	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
+	short keymodifier;				/* rawkey modifier */
+	
+	short pad1;
+	
+	/* keymap item, set by handler (weak?) */
+	const char *keymap_idname;
+	
+	/* custom data */
+	short custom;		/* custom data type, stylus, 6dof, see wm_event_types.h */
+	short customdatafree;
+	int pad2;
+	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
+	
+} wmEvent;
+
 /* ************** custom wmEvent data ************** */
 typedef struct wmTabletData {
 	int Active;			/* 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER */

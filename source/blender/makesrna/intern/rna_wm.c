@@ -701,6 +701,8 @@ static void rna_def_event(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Event", "Window Manager Event");
 	RNA_def_struct_sdna(srna, "wmEvent");
 
+	RNA_define_verify_sdna(0); // not in sdna
+
 	/* strings */
 	prop= RNA_def_property(srna, "ascii", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -764,6 +766,8 @@ static void rna_def_event(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "oskey", 1);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "OS Key", "True when the Cmd key is held.");
+
+	RNA_define_verify_sdna(1); // not in sdna
 }
 
 static void rna_def_window(BlenderRNA *brna)
