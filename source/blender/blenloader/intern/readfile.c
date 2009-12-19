@@ -139,6 +139,7 @@
 #include "BKE_report.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_softbody.h"	// sbNew()
 #include "BKE_bullet.h"		// bsbNew()
 #include "BKE_sequencer.h"
@@ -10194,27 +10195,75 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 10))
 	{
-		{
-			Object *ob;
-			
-			/* properly initialise hair clothsim data on old files */
-			for(ob = main->object.first; ob; ob = ob->id.next) {
-				ModifierData *md;
-				for(md= ob->modifiers.first; md; md= md->next) {
-					if (md->type == eModifierType_Cloth) {
-						ClothModifierData *clmd = (ClothModifierData *)md;
-						if (clmd->sim_parms->velocity_smooth < 0.01f)
-							clmd->sim_parms->velocity_smooth = 0.f;
+		Object *ob;
+
+		/* properly initialise hair clothsim data on old files */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData *)md;
+					if (clmd->sim_parms->velocity_smooth < 0.01f)
+						clmd->sim_parms->velocity_smooth = 0.f;
+				}
+			}
+		}
+	}
+
+	/* fix bad area setup in subversion 10 */
+	if (main->versionfile == 250 && main->subversionfile == 10)
+	{
+		/* fix for new view type in sequencer */
+		bScreen *screen;
+		ScrArea *sa;
+		SpaceLink *sl;
+
+
+		/* remove all preview window in wrong spaces */
+		for(screen= main->screen.first; screen; screen= screen->id.next) {
+			for(sa= screen->areabase.first; sa; sa= sa->next) {
+				for(sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype!=SPACE_SEQ) {
+						ARegion *ar;
+
+						for( ar = sl->regionbase.first; ar; ar = ar->next) {
+							if (ar->regiontype == RGN_TYPE_PREVIEW)
+								break;
+						}
+
+						if (ar) {
+							SpaceType *st= BKE_spacetype_from_id(SPACE_SEQ);
+							BKE_area_region_free(st, ar);
+							BLI_freelinkN(&sl->regionbase, ar);
+						}
+					}
+				}
+				if(sa->spacetype!=SPACE_SEQ) {
+					ARegion *ar;
+
+					for( ar = sa->regionbase.first; ar; ar = ar->next) {
+						if (ar->regiontype == RGN_TYPE_PREVIEW)
+							break;
+					}
+
+					if (ar) {
+						SpaceType *st= BKE_spacetype_from_id(SPACE_SEQ);
+						BKE_area_region_free(st, ar);
+						BLI_freelinkN(&sa->regionbase, ar);
 					}
 				}
 			}
 		}
+	}
+
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 11))
+	{
 		{
 			/* fix for new view type in sequencer */
 			bScreen *screen;
 			ScrArea *sa;
 			SpaceLink *sl;
-			
+
 
 			for(screen= main->screen.first; screen; screen= screen->id.next) {
 				for(sa= screen->areabase.first; sa; sa= sa->next) {
@@ -10222,12 +10271,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if(sl->spacetype==SPACE_SEQ) {
 							ARegion *ar;
 							ARegion *ar_main;
-							ListBase *lb = &sa->regionbase;
+							ListBase *lb = &sl->regionbase;
 							SpaceSeq *sseq = (SpaceSeq *)sl;
 
 							if (sseq->view == 0) sseq->view = SEQ_VIEW_SEQUENCE;
 							if (sseq->mainb == 0) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-							
+
 							ar_main = (ARegion*)lb->first;
 							for (; ar_main; ar_main = ar_main->next) {
 								if (ar_main->regiontype == RGN_TYPE_WINDOW)
