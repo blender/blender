@@ -152,7 +152,12 @@ static void rna_def_region(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "id", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "swinid");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Region ID", "Uniqute ID for this region.");
+	RNA_def_property_ui_text(prop, "Region ID", "Unique ID for this region.");
+
+	prop= RNA_def_property(srna, "type", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "regiontype");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Region Type", "Type of this region.");
 
 	prop= RNA_def_property(srna, "width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "winx");
