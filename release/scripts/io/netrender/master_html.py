@@ -137,6 +137,30 @@ def get(handler):
 		job = handler.server.getJobID(job_id)
 		
 		if job:
+			output("<h2>Files</h2>")
+			
+			startTable()
+			headerTable("path")
+			
+			tot_cache = 0
+			tot_fluid = 0
+			
+			for file in job.files:
+				if file.filepath.endswith(".bphys"):
+					tot_cache += 1
+				elif file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
+					tot_fluid += 1
+				else:
+					rowTable(file.filepath)
+
+			if tot_cache > 0:
+				rowTable("%i physic cache files" % tot_cache)
+			
+			if tot_fluid > 0:
+				rowTable("%i fluid bake files" % tot_fluid)
+
+			endTable()
+			
 			output("<h2>Frames</h2>")
 		
 			startTable()
