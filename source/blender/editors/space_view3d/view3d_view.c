@@ -395,6 +395,7 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	float dvec[3];
+	float mat3[3][3];
 	
 	dvec[0]= rv3d->dist*rv3d->viewinv[2][0];
 	dvec[1]= rv3d->dist*rv3d->viewinv[2][1];
@@ -404,7 +405,10 @@ static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
 	sub_v3_v3v3(ob->loc, ob->loc, rv3d->ofs);
 	rv3d->viewquat[0]= -rv3d->viewquat[0];
 
-	quat_to_eul( ob->rot,rv3d->viewquat);
+	// quat_to_eul( ob->rot,rv3d->viewquat); // in 2.4x for xyz eulers only
+	quat_to_mat3(mat3, rv3d->viewquat);
+	object_mat3_to_rot(ob, mat3, 0);
+
 	rv3d->viewquat[0]= -rv3d->viewquat[0];
 	
 	ob->recalc= OB_RECALC_OB;
@@ -1914,7 +1918,7 @@ typedef struct FlyInfo {
 #define FLY_CANCEL		1
 #define FLY_CONFIRM		2
 
-int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
+static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 {
 	float upvec[3]; // tmp
 	float mat[3][3];
@@ -2041,7 +2045,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	else if (fly->persp_backup==RV3D_CAMOB) {	/* camera */
 		float mat3[3][3];
 		copy_m3_m4(mat3, v3d->camera->obmat);
-		mat3_to_compatible_eul( v3d->camera->rot, fly->rot_backup,mat3);
+		object_mat3_to_rot(v3d->camera, mat3, TRUE);
 
 		DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);
 #if 0 //XXX2.5
@@ -2078,7 +2082,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	return OPERATOR_CANCELLED;
 }
 
-void flyEvent(FlyInfo *fly, wmEvent *event)
+static void flyEvent(FlyInfo *fly, wmEvent *event)
 {
 	if (event->type == TIMER && event->customdata == fly->timer) {
 		fly->redraw = 1;
@@ -2201,7 +2205,7 @@ void flyEvent(FlyInfo *fly, wmEvent *event)
 }
 
 //int fly_exec(bContext *C, wmOperator *op)
-int flyApply(FlyInfo *fly)
+static int flyApply(FlyInfo *fly)
 {
 	/*
 	fly mode - Shift+F

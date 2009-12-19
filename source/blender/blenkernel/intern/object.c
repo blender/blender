@@ -1618,6 +1618,32 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	mul_m3_m3m3(mat, dmat, rmat);
 }
 
+void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
+{
+	if (ob->rotmode == ROT_MODE_QUAT)
+		mat3_to_quat(ob->quat, mat);
+	else if (ob->rotmode == ROT_MODE_AXISANGLE)
+		mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);
+	else {
+		if(use_compat) {
+			float eul[3];
+			VECCOPY(eul, ob->rot);
+			mat3_to_compatible_eulO(ob->rot, eul, ob->rotmode, mat);
+		}
+		else
+			mat3_to_eulO(ob->rot, ob->rotmode, mat);
+	}
+}
+
+void object_apply_mat4(Object *ob, float mat[][4])
+{
+	float mat3[3][3];
+	VECCOPY(ob->loc, mat[3]);
+	mat4_to_size(ob->size, mat);
+	copy_m3_m4(mat3, mat);
+	object_mat3_to_rot(ob, mat3, 0);
+}
+
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 {
 	float smat[3][3];
