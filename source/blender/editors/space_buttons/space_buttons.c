@@ -328,6 +328,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_WORLD:
 			buttons_area_redraw(sa, BCONTEXT_WORLD);
+			sbuts->preview= 1;
 			break;
 		case NC_LAMP:
 			buttons_area_redraw(sa, BCONTEXT_DATA);
