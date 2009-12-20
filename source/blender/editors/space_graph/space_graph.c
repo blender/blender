@@ -548,7 +548,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 					/* determine color 'automatically' using 'magic function' which uses the given args
 					 * of current item index + total items to determine some RGB color
 					 */
-					ipo_rainbow(i, items, fcu->color);
+					getcolor_fcurve_rainbow(i, items, fcu->color);
 				}
 					break;
 			}

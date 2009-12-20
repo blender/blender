@@ -424,11 +424,6 @@ void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 /* main call to draw preview range curtains */
 void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 
-/* ------------- Preview Range Drawing -------------- */
-
-/* standard header buttons for Animation Editors */
-short ANIM_headerUI_standard_buttons(const struct bContext *C, struct bDopeSheet *ads, struct uiBlock *block, short xco, short yco);
-
 /* ************************************************* */
 /* F-MODIFIER TOOLS */
 
@@ -445,7 +440,7 @@ void ANIM_uiTemplate_fmodifier_draw(const struct bContext *C, struct uiLayout *l
 int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
 /* Automatically determine a color for the nth F-Curve */
-void ipo_rainbow(int cur, int tot, float *out);
+void getcolor_fcurve_rainbow(int cur, int tot, float *out);
 
 /* ------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */
