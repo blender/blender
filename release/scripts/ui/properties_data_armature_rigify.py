@@ -67,6 +67,8 @@ class DATA_PT_template(bpy.types.Panel):
     templates = []
 
     def poll(self, context):
+        if not context.armature:
+            return False
         obj = context.object
         if obj:
             return (obj.mode in ('POSE', 'OBJECT'))
