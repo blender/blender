@@ -10225,8 +10225,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				for(sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype!=SPACE_SEQ) {
 						ARegion *ar;
+						ListBase *regionbase;
 
-						for( ar = sl->regionbase.first; ar; ar = ar->next) {
+						if (sl == sa->spacedata.first) {
+							regionbase = &sa->regionbase;
+						} else {
+							regionbase = &sl->regionbase;
+						}
+
+
+						for( ar = regionbase->first; ar; ar = ar->next) {
 							if (ar->regiontype == RGN_TYPE_PREVIEW)
 								break;
 						}
@@ -10234,22 +10242,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if (ar) {
 							SpaceType *st= BKE_spacetype_from_id(SPACE_SEQ);
 							BKE_area_region_free(st, ar);
-							BLI_freelinkN(&sl->regionbase, ar);
+							BLI_freelinkN(regionbase, ar);
 						}
-					}
-				}
-				if(sa->spacetype!=SPACE_SEQ) {
-					ARegion *ar;
-
-					for( ar = sa->regionbase.first; ar; ar = ar->next) {
-						if (ar->regiontype == RGN_TYPE_PREVIEW)
-							break;
-					}
-
-					if (ar) {
-						SpaceType *st= BKE_spacetype_from_id(SPACE_SEQ);
-						BKE_area_region_free(st, ar);
-						BLI_freelinkN(&sa->regionbase, ar);
 					}
 				}
 			}
@@ -10271,19 +10265,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if(sl->spacetype==SPACE_SEQ) {
 							ARegion *ar;
 							ARegion *ar_main;
-							ListBase *lb = &sl->regionbase;
+							ListBase *regionbase;
 							SpaceSeq *sseq = (SpaceSeq *)sl;
+
+							if (sl == sa->spacedata.first) {
+								regionbase = &sa->regionbase;
+							} else {
+								regionbase = &sl->regionbase;
+							}
 
 							if (sseq->view == 0) sseq->view = SEQ_VIEW_SEQUENCE;
 							if (sseq->mainb == 0) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
 
-							ar_main = (ARegion*)lb->first;
+							ar_main = (ARegion*)regionbase->first;
 							for (; ar_main; ar_main = ar_main->next) {
 								if (ar_main->regiontype == RGN_TYPE_WINDOW)
 									break;
 							}
 							ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
-							BLI_insertlinkbefore(lb, ar_main, ar);
+							BLI_insertlinkbefore(regionbase, ar_main, ar);
 							ar->regiontype= RGN_TYPE_PREVIEW;
 							ar->alignment= RGN_ALIGN_TOP;
 							ar->flag |= RGN_FLAG_HIDDEN;
