@@ -80,6 +80,16 @@ class MRenderJob(netrender.model.RenderJob):
 			f = open(self.save_path + "job.txt", "w")
 			f.write(repr(self.serialize()))
 			f.close()
+			
+	def edit(self, info_map):
+		if "status" in info_map:
+			self.status = info_map["status"]
+		
+		if "priority" in info_map:
+			self.priority = info_map["priority"]
+			
+		if "chunks" in info_map:
+			self.chunks = info_map["chunks"]
 	
 	def testStart(self):
 		for f in self.files:
@@ -156,6 +166,7 @@ render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).exr")
 log_pattern = re.compile("/log_([a-zA-Z0-9]+)_([0-9]+).log")
 reset_pattern = re.compile("/reset(all|)_([a-zA-Z0-9]+)_([0-9]+)")
 cancel_pattern = re.compile("/cancel_([a-zA-Z0-9]+)")
+edit_pattern = re.compile("/edit_([a-zA-Z0-9]+)")
 
 class RenderHandler(http.server.BaseHTTPRequestHandler):
 	def send_head(self, code = http.client.OK, headers = {}, content = "application/octet-stream"):
@@ -424,6 +435,27 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				self.server.stats("", "New job, missing files (%i total)" % len(job.files))
 				self.send_head(http.client.ACCEPTED, headers=headers)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+		elif self.path.startswith("/edit"):
+			match = edit_pattern.match(self.path)
+
+			if match:
+				job_id = match.groups()[0]
+			
+				job = self.server.getJobID(job_id)
+
+				if job:
+					length = int(self.headers['content-length'])
+					info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+                    
+					job.edit(info_map)
+					self.send_head()					
+				else: 
+					# no such job id
+					self.send_head(http.client.NO_CONTENT)
+			else: 
+				# invalid url
+				self.send_head(http.client.NO_CONTENT)
+		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 		elif self.path.startswith("/cancel"):
 			match = cancel_pattern.match(self.path)
 
@@ -608,7 +640,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 								del buf
 							elif job_result == ERROR:
 								# blacklist slave on this job on error
-								job.blacklist.append(slave.id)
+								# slaves might already be in blacklist if errors on the whole chunk
+								if not slave.id in job.blacklist: 
+								    job.blacklist.append(slave.id)
 						
 						self.server.stats("", "Receiving result")
 						

@@ -30,6 +30,7 @@ def get(handler):
 	def head(title):
 		output("<html><head>")
 		output("<script src='/html/netrender.js' type='text/javascript'></script>")
+#		output("<script src='/html/json2.js' type='text/javascript'></script>")
 		output("<title>")
 		output(title)
 		output("</title></head><body>")
@@ -89,8 +90,10 @@ def get(handler):
 		startTable()
 		headerTable(	
 				                    "&nbsp;",
+				                    "&nbsp;",
 									"name",
 									"category",
+									"chunks",
 									"priority",
 									"usage",
 									"wait",
@@ -99,7 +102,6 @@ def get(handler):
 									"done",
 									"dispatched",
 									"error",
-				                    "&nbsp;",
 									"first",
 									"exception"
 								)
@@ -110,17 +112,23 @@ def get(handler):
 			results = job.framesStatus()
 			rowTable(	
 								"""<button title="cancel job" onclick="request('/cancel_%s', null);">X</button>""" % job.id,
+								"""<button title="reset all frames" onclick="request('/resetall_%s_0', null);">R</button>""" % job.id,
 								link(job.name, "/html/job" + job.id),
-								job.category if job.category else "&nbsp;",
-								job.priority,
+								job.category if job.category else "<i>None</i>",
+								str(job.chunks) +
+								"""<button title="increase priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);">+</button>""" % (job.id, job.chunks + 1) +								
+								"""<button title="decrease priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);" %s>-</button>""" % (job.id, job.chunks - 1, "disabled=True" if job.chunks == 1 else ""),								
+								str(job.priority) +
+								"""<button title="increase priority" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);">+</button>""" % (job.id, job.priority + 1) +								
+								"""<button title="decrease priority" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);" %s>-</button>""" % (job.id, job.priority - 1, "disabled=True" if job.priority == 1 else ""),								
 								"%0.1f%%" % (job.usage * 100),
 								"%is" % int(time.time() - job.last_dispatched),
 								job.statusText(),
 								len(job),
 								results[DONE],
 								results[DISPATCHED],
-								results[ERROR],
-								"""<button title="reset error frames" onclick="request('/reset_%s_0', null);">R</button>""" % job.id,
+								str(results[ERROR]) +
+								"""<button title="reset error frames" onclick="request('/reset_%s_0', null);" %s>R</button>""" % (job.id, "disabled=True" if not results[ERROR] else ""),
 								handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job)
 							)
 		
@@ -161,6 +169,20 @@ def get(handler):
 
 			endTable()
 			
+			output("<h2>Blacklist</h2>")
+				
+			if job.blacklist:
+				startTable()
+				headerTable("name", "address")
+				
+				for slave_id in job.blacklist:
+					slave = handler.server.slaves_map[slave_id]
+					rowTable(slave.name, slave.address[0])
+				
+				endTable()
+			else:
+				output("<i>Empty</i>")
+
 			output("<h2>Frames</h2>")
 		
 			startTable()
