@@ -1753,8 +1753,8 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	/* restore context, in case it changed in the meantime, for
 	   example by working in another window or closing it */
 	CTX_wm_region_set(C, prevar);
-	CTX_wm_area_set(C, prevsa);
 	CTX_wm_window_set(C, prevwin);
+	CTX_wm_area_set(C, prevsa);
 	RestoreState(C);
 
 	//XXX restore_all_scene_cfra(scene_cfra_store);
