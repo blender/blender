@@ -5967,6 +5967,8 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 	int *new_edge_arr= NULL;
 	int newEdges = 0;
 
+	int *edge_users= NULL;
+
 	float (*vert_nors)[3]= NULL;
 
 	orig_mface = dm->getFaceArray(dm);
@@ -5977,7 +5979,7 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 		EdgeHash *edgehash = BLI_edgehash_new();
 		EdgeHashIterator *ehi;
 		int v1, v2;
-		int *edge_users;
+		int edu, eidx;
 
 		for(i=0, mv=orig_mvert; i<numVerts; i++, mv++) {
 			mv->flag &= ~ME_VERT_TMP_TAG;
@@ -5987,38 +5989,47 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 			BLI_edgehash_insert(edgehash, ed->v1, ed->v2, (void *)i);
 		}
 
-		edge_users= MEM_callocN(sizeof(int) * numEdges, "solid_mod edges");
+#define INVALID_UNUSED -1
+#define INVALID_PAIR -2
 
-/* will be incorrect if an edge happens to have this many face users (very unlikely) */
-#define LARGE_NUM 1000000
+#define ADD_EDGE_USER(_v1, _v2) \
+		eidx= GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, _v1, _v2)); \
+		if(edge_users[eidx] == INVALID_UNUSED) { \
+			edge_users[eidx]= (_v1 < _v2) ? i:(i+numFaces); \
+		} else { \
+			edge_users[eidx]= INVALID_PAIR; \
+		} \
+
+
+		edge_users= MEM_mallocN(sizeof(int) * numEdges, "solid_mod edges");
+		memset(edge_users, INVALID_UNUSED, sizeof(int) * numEdges);
 
 		for(i=0, mf=orig_mface; i<numFaces; i++, mf++) {
 			if(mf->v4) {
-				edge_users[(int)BLI_edgehash_lookup(edgehash, mf->v1, mf->v2)] += mf->v1 < mf->v2 ? 1:LARGE_NUM;
-				edge_users[(int)BLI_edgehash_lookup(edgehash, mf->v2, mf->v3)] += mf->v2 < mf->v3 ? 1:LARGE_NUM;
-				edge_users[(int)BLI_edgehash_lookup(edgehash, mf->v3, mf->v4)] += mf->v3 < mf->v4 ? 1:LARGE_NUM;
-				edge_users[(int)BLI_edgehash_lookup(edgehash, mf->v4, mf->v1)] += mf->v4 < mf->v1 ? 1:LARGE_NUM;
+				ADD_EDGE_USER(mf->v1, mf->v2);
+				ADD_EDGE_USER(mf->v2, mf->v3);
+				ADD_EDGE_USER(mf->v3, mf->v4);
+				ADD_EDGE_USER(mf->v4, mf->v1);
 			}
 			else {
-				edge_users[(int)BLI_edgehash_lookup(edgehash, mf->v1, mf->v2)] += mf->v1 < mf->v2 ? 1:LARGE_NUM;
-				edge_users[(int)BLI_edgehash_lookup(edgehash, mf->v2, mf->v3)] += mf->v2 < mf->v3 ? 1:LARGE_NUM;
-				edge_users[(int)BLI_edgehash_lookup(edgehash, mf->v3, mf->v1)] += mf->v3 < mf->v1 ? 1:LARGE_NUM;
+				ADD_EDGE_USER(mf->v1, mf->v2);
+				ADD_EDGE_USER(mf->v2, mf->v3);
+				ADD_EDGE_USER(mf->v3, mf->v1);
 			}
 		}
+
+#undef ADD_EDGE_USER
+#undef INVALID_UNUSED
+#undef INVALID_PAIR
+
 
 		new_edge_arr= MEM_callocN(sizeof(int) * numEdges, "solid_mod arr");
 
 		ehi= BLI_edgehashIterator_new(edgehash);
 		for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-			int eidx= (int)BLI_edgehashIterator_getValue(ehi);
-			if(edge_users[eidx] == 1 || edge_users[eidx] == LARGE_NUM) {
+			int eidx= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+			if(edge_users[eidx] >= 0) {
 				BLI_edgehashIterator_getKey(ehi, &v1, &v2);
-
-				/* we need to order the edge */
-				if(edge_users[eidx] == LARGE_NUM) {
-					eidx= -(eidx + 1);
-				}
-
 				orig_mvert[v1].flag |= ME_VERT_TMP_TAG;
 				orig_mvert[v2].flag |= ME_VERT_TMP_TAG;
 				new_edge_arr[newFaces]= eidx;
@@ -6026,9 +6037,8 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 			}
 		}
 		BLI_edgehashIterator_free(ehi);
-		MEM_freeN(edge_users);
 
-#undef LARGE_NUM
+
 
 		new_vert_arr= MEM_callocN(sizeof(int) * numVerts, "solid_mod new_varr");
 		for(i=0, mv=orig_mvert; i<numVerts; i++, mv++) {
@@ -6184,10 +6194,11 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 		for(i=0; i<newFaces; i++, mf++) {
 			/* TODO, get UV's and VCols from the faces we're extruded from */
 			int eidx= new_edge_arr[i];
+			int fidx= edge_users[eidx];
 			int flip;
 
-			if(eidx < 0) {
-				eidx= (-eidx) -1;
+			if(fidx >= numFaces) {
+				fidx -= numFaces;
 				flip= 1;
 			}
 			else {
@@ -6195,6 +6206,9 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 			}
 
 			ed= medge + eidx;
+
+			/* copy most of the face settings */
+			*mf= mface[fidx];
 
 			if(flip) {
 				mf->v1= ed->v1;
@@ -6207,6 +6221,8 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 				mf->v2= ed->v1;
 				mf->v3= ed->v1 + numVerts;
 				mf->v4= ed->v2 + numVerts;
+
+
 			}
 
 			if(smd->crease_outer > 0.0f)
@@ -6220,6 +6236,7 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 
 		MEM_freeN(new_vert_arr);
 		MEM_freeN(new_edge_arr);
+		MEM_freeN(edge_users);
 	}
 
 	return result;
