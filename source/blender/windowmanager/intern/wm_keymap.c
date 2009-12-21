@@ -185,6 +185,11 @@ wmKeyMapItem *WM_keymap_verify_item(wmKeyMap *keymap, char *idname, int type, in
 		BLI_addtail(&keymap->items, kmi);
 		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 		
+		if ((keymap->flag & KEYMAP_USER) == 0) {
+			keymap->kmi_id++;
+			kmi->id = keymap->kmi_id;
+		}
+
 		keymap_event_set(kmi, type, val, modifier, keymodifier);
 		keymap_properties_set(kmi);
 	}
