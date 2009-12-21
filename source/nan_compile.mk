@@ -73,15 +73,18 @@ ifeq ($(OS),darwin)
     CC  ?= gcc
     CCC ?= g++
     ifeq ($(CPU),powerpc)
-        CFLAGS  += -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing -Wno-long-double
-        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing -Wno-long-double
+        CFLAGS  += -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing
+        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing -wno-long-double
     else
         CFLAGS  += -pipe -fPIC -ffast-math -march=pentium-m -funsigned-char -fno-strict-aliasing
-        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing
+        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing -wno-long-double
     endif
 #   REL_CFLAGS  += -O
 #   REL_CCFLAGS += -O2
     CPPFLAGS    += -D_THREAD_SAFE
+    ifeq ($(WITH_COCOA), true)
+        CPPFLAGS += -DGHOST_COCOA
+    endif
     NAN_DEPEND  = true
     OPENGL_HEADERS = /System/Library/Frameworks/OpenGL.framework
     AR = ar
@@ -307,6 +310,20 @@ $(DIR)/$(DEBUG_DIR)%.o: %.cpp
 	$(CCC) -c $(CCFLAGS) $(CPPFLAGS) $< -o $@
     endif
 
+$(DIR)/$(DEBUG_DIR)%.o: %.mm
+    ifdef NAN_DEPEND
+	@set -e; $(CC) -M $(CPPFLAGS) $< 2>/dev/null \
+		| sed 's@\($*\)\.o[ :]*@$(DIR)/$(DEBUG_DIR)\1.o : @g' \
+		> $(DIR)/$(DEBUG_DIR)$*.d; \
+		[ -s $(DIR)/$(DEBUG_DIR)$*.d ] || $(RM) $(DIR)/$(DEBUG_DIR)$*.d
+    endif
+    ifdef NAN_QUIET
+	@echo " -- $< -- "
+	@$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+    else
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+    endif
+
 $(DIR)/$(DEBUG_DIR)%.res: %.rc
 ifeq ($(FREE_WINDOWS),true)
 	windres $< -O coff -o $@
@@ -332,16 +349,18 @@ CCSRCS ?= $(wildcard *.cpp)
 JSRCS  ?= $(wildcard *.java)
 
 ifdef NAN_DEPEND
--include $(CSRCS:%.c=$(DIR)/$(DEBUG_DIR)%.d) $(CCSRCS:%.cpp=$(DIR)/$(DEBUG_DIR)%.d)
+-include $(CSRCS:%.c=$(DIR)/$(DEBUG_DIR)%.d) $(CCSRCS:%.cpp=$(DIR)/$(DEBUG_DIR)%.d) $(OCSRCS:$.mm=$(DIR)/$(DEBUG_DIR)%.d)
 endif
 
 OBJS_AR := $(OBJS)
 OBJS_AR += $(CSRCS:%.c=%.o)
 OBJS_AR += $(CCSRCS:%.cpp=%.o)
+OBJS_AR += $(OCSRCS:%.mm=%.o)
 OBJS_AR += $(WINRC:%.rc=%.res)
 
 OBJS += $(CSRCS:%.c=$(DIR)/$(DEBUG_DIR)%.o)
 OBJS += $(CCSRCS:%.cpp=$(DIR)/$(DEBUG_DIR)%.o)
+OBJS += $(OCSRCS:%.mm=$(DIR)/$(DEBUG_DIR)%.o)
 OBJS += $(WINRC:%.rc=$(DIR)/$(DEBUG_DIR)%.res)
 
 JCLASS += $(JSRCS:%.java=$(DIR)/$(DEBUG_DIR)%.class)

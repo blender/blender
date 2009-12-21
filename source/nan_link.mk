@@ -54,8 +54,11 @@ ifeq ($(OS),darwin)
     LLIBS    += -lz -lstdc++
     ifdef USE_OSX10.4STUBS
        LLIBS    +=-lSystemStubs
-    endif 
-    LLIBS    += -framework Carbon -framework AGL -framework OpenGL
+    endif
+    ifeq ($(WITH_COCOA), true)
+        LLIBS += -framework Cocoa
+    endif
+    LLIBS += -framework Carbon -framework AGL -framework OpenGL
     LLIBS    += -framework QuickTime -framework CoreAudio
     LLIBS    += -framework AudioUnit -framework AudioToolbox
     LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
