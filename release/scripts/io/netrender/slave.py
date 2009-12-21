@@ -54,10 +54,9 @@ def slave_Info():
 
 def testCancel(conn, job_id, frame_number):
 		conn.request("HEAD", "/status", headers={"job-id":job_id, "job-frame": str(frame_number)})
-		response = conn.getresponse()
-		
+
 		# cancelled if job isn't found anymore
-		if response.status == http.client.NO_CONTENT:
+		if conn.getresponse().status == http.client.NO_CONTENT:
 			return True
 		else:
 			return False
@@ -125,7 +124,7 @@ def render_slave(engine, netsettings):
 					job_full_path = testFile(conn, job.id, slave_id, 0, JOB_PREFIX, job_path)
 					print("Fullpath", job_full_path)
 					print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
-					engine.update_stats("", "Render File", main_file, "for job", job.id)
+					engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
 					
 					for rfile in job.files[1:]:
 						print("\t", rfile.filepath)
@@ -202,9 +201,11 @@ def render_slave(engine, netsettings):
 				if stdout:
 					# (only need to update on one frame, they are linked
 					conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
-					response = conn.getresponse()
+					if conn.getresponse().status == http.client.NO_CONTENT:
+						continue
 				
 				headers = {"job-id":job.id, "slave-id":slave_id, "job-time":str(avg_t)}
+				
 				
 				if status == 0: # non zero status is error
 					headers["job-result"] = str(DONE)
@@ -216,17 +217,20 @@ def render_slave(engine, netsettings):
 							f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
 							conn.request("PUT", "/render", f, headers=headers)
 							f.close()
-							response = conn.getresponse()
+							if conn.getresponse().status == http.client.NO_CONTENT:
+								continue
 						elif job.type == netrender.model.JOB_PROCESS:
 							conn.request("PUT", "/render", headers=headers)
-							response = conn.getresponse()
+							if conn.getresponse().status == http.client.NO_CONTENT:
+								continue
 				else:
 					headers["job-result"] = str(ERROR)
 					for frame in job.frames:
 						headers["job-frame"] = str(frame.number)
 						# send error result back to server
 						conn.request("PUT", "/render", headers=headers)
-						response = conn.getresponse()
+						if conn.getresponse().status == http.client.NO_CONTENT:
+							continue
 			else:
 				if timeout < MAX_TIMEOUT:
 					timeout += INCREMENT_TIMEOUT

@@ -34,6 +34,8 @@ def get(handler):
 		output("<title>")
 		output(title)
 		output("</title></head><body>")
+		output("<link rel='stylesheet' href='/html/netrender.css' type='text/css'>")
+
 	
 	def link(text, url):
 		return "<a href='%s'>%s</a>" % (url, text)
@@ -67,6 +69,13 @@ def get(handler):
 		shutil.copyfileobj(f, handler.wfile)
 		
 		f.close()		
+	elif handler.path == "/html/netrender.css":
+		f = open(os.path.join(src_folder, "netrender.css"), 'rb')
+		
+		handler.send_head(content = "text/css")
+		shutil.copyfileobj(f, handler.wfile)
+		
+		f.close()
 	elif handler.path == "/html" or handler.path == "/":
 		handler.send_head(content = "text/html")
 		head("NetRender")
@@ -90,7 +99,7 @@ def get(handler):
 		startTable()
 		headerTable(	
 				                    "&nbsp;",
-				                    "&nbsp;",
+				                    "id",
 									"name",
 									"category",
 									"chunks",
@@ -111,16 +120,17 @@ def get(handler):
 		for job in handler.server.jobs:
 			results = job.framesStatus()
 			rowTable(	
-								"""<button title="cancel job" onclick="request('/cancel_%s', null);">X</button>""" % job.id,
+								"""<button title="cancel job" onclick="request('/cancel_%s', null);">X</button>""" % job.id +
 								"""<button title="reset all frames" onclick="request('/resetall_%s_0', null);">R</button>""" % job.id,
+								job.id,
 								link(job.name, "/html/job" + job.id),
 								job.category if job.category else "<i>None</i>",
 								str(job.chunks) +
 								"""<button title="increase priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);">+</button>""" % (job.id, job.chunks + 1) +								
 								"""<button title="decrease priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);" %s>-</button>""" % (job.id, job.chunks - 1, "disabled=True" if job.chunks == 1 else ""),								
 								str(job.priority) +
-								"""<button title="increase priority" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);">+</button>""" % (job.id, job.priority + 1) +								
-								"""<button title="decrease priority" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);" %s>-</button>""" % (job.id, job.priority - 1, "disabled=True" if job.priority == 1 else ""),								
+								"""<button title="increase chunks size" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);">+</button>""" % (job.id, job.priority + 1) +								
+								"""<button title="decrease chunks size" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);" %s>-</button>""" % (job.id, job.priority - 1, "disabled=True" if job.priority == 1 else ""),								
 								"%0.1f%%" % (job.usage * 100),
 								"%is" % int(time.time() - job.last_dispatched),
 								job.statusText(),

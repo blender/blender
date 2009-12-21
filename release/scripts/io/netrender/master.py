@@ -611,6 +611,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 		elif self.path == "/render":
 			self.server.stats("", "Receiving render result")
+
+			# need some message content here or the slave doesn't like it
+			self.wfile.write(bytes("foo", encoding='utf8'))
 			
 			slave_id = self.headers['slave-id']
 			

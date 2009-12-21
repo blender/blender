@@ -215,6 +215,8 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			
 			self.update_stats("", "Network render exporting")
 			
+			new_job = False
+			
 			job_id = netsettings.job_id
 			
 			# reading back result
@@ -225,6 +227,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			response = conn.getresponse()
 			
 			if response.status == http.client.NO_CONTENT:
+				new_job = True
 				netsettings.job_id = clientSendJob(conn, scene)
 				requestResult(conn, job_id, scene.current_frame)
 			
@@ -233,6 +236,13 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 				requestResult(conn, job_id, scene.current_frame)
 				response = conn.getresponse()
 	
+			# cancel new jobs (animate on network) on break
+			if self.test_break() and new_job:
+				conn.request("POST", cancelURL(job_id))
+				response = conn.getresponse()
+				print( response.status, response.reason )
+				netsettings.job_id = 0
+				
 			if response.status != http.client.OK:
 				conn.close()
 				return
