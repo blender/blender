@@ -1686,19 +1686,8 @@ void ED_update_for_newframe(const bContext *C, int mute)
 					while(sl) {
 						if(sl->spacetype==SPACE_VIEW3D) {
 							View3D *v3d= (View3D*) sl;
-							if (v3d->camera == scene->camera) {
+							if (v3d->scenelock) {
 								v3d->camera= camera;
-								/*
-								ARegion *ar;
-								for(ar=v3d->regionbase.first; ar; ar= ar->next) {
-									if(ar->regiontype == RGN_TYPE_WINDOW) {
-										RegionView3D *rv3d= ar->regiondata;
-
-										if(rv3d->persp==RV3D_CAMOB)
-											rv3d->persp= RV3D_PERSP;
-									}
-								}
-								*/
 							}
 						}
 						sl= sl->next;
@@ -1709,7 +1698,6 @@ void ED_update_for_newframe(const bContext *C, int mute)
 		}
 
 		scene->camera= camera;
-
 	}
 #endif
 

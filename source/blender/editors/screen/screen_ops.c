@@ -3365,7 +3365,16 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 	}
 	
 	scene_update_for_newframe(scene, scene->lay);
-	
+
+	if(oglrender->rv3d->persp==RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
+		/* since scene_update_for_newframe() is used rather
+		 * then ED_update_for_newframe() the camera needs to be set */
+		Object *camera= scene_find_camera_switch(scene);
+
+		if(camera)
+			oglrender->v3d->camera= scene->camera= camera;
+	}
+
 	/* render into offscreen buffer */
 	screen_opengl_render_apply(oglrender);
 	

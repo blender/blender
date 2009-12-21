@@ -216,6 +216,7 @@ class VIEW3D_MT_uv_map(dynamic_menu.DynMenu):
         layout.operator("uv.cylinder_project")
         layout.operator("uv.sphere_project")
         layout.operator("uv.project_from_view")
+        layout.operator("uv.project_from_view", text="Project from View (Bounds)").scale_to_bounds = True
 
         layout.separator()
 
