@@ -73,11 +73,11 @@ ifeq ($(OS),darwin)
     CC  ?= gcc
     CCC ?= g++
     ifeq ($(CPU),powerpc)
-        CFLAGS  += -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing
-        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing -wno-long-double
+        CFLAGS  += -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing -Wno-long-double
+        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing -Wno-long-double
     else
         CFLAGS  += -pipe -fPIC -ffast-math -march=pentium-m -funsigned-char -fno-strict-aliasing
-        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing -wno-long-double
+        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing
     endif
 #   REL_CFLAGS  += -O
 #   REL_CCFLAGS += -O2
