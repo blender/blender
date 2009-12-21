@@ -57,6 +57,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
+	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_DISPLACE, "Solidify", ""},
 	{0, "", 0, "Deform", ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
@@ -161,6 +162,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_SurfaceModifier;
 		case eModifierType_Smoke:
 			return &RNA_SmokeModifier;
+		case eModifierType_Solidify:
+			return &RNA_SolidifyModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -320,6 +323,12 @@ static void rna_CastModifier_vgroup_set(PointerRNA *ptr, const char *value)
 {
 	CastModifierData *lmd= (CastModifierData*)ptr->data;
 	rna_object_vgroup_name_set(ptr, value, lmd->defgrp_name, sizeof(lmd->defgrp_name));
+}
+
+static void rna_SolidifyModifier_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	SolidifyModifierData *smd= (SolidifyModifierData*)ptr->data;
+	rna_object_vgroup_name_set(ptr, value, smd->vgroup, sizeof(smd->vgroup));
 }
 
 static void rna_DisplaceModifier_uvlayer_set(PointerRNA *ptr, const char *value)
@@ -2000,6 +2009,67 @@ static void rna_def_modifier_surface(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SurfaceModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PHYSICS);
 }
+
+static void rna_def_modifier_solidify(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SolidifyModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Solidify Modifier", "Create a solid skin by extruding, compensating for sharp angles.");
+	RNA_def_struct_sdna(srna, "SolidifyModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
+
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
+	RNA_def_property_ui_text(prop, "Thickness", "Thickness of the shell.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "edge_crease_inner", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "crease_inner");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Inner Crease", "Assign a crease to inner edges.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "edge_crease_outer", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "crease_outer");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Outer Crease", "Assign a crease to outer edges.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "edge_crease_rim", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "crease_rim");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Rim Crease", "Assign a crease to the edges making up the rim.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "vgroup");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SolidifyModifier_vgroup_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_rim", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_RIM);
+	RNA_def_property_ui_text(prop, "Fill Rim", "Create edge loops between the inner and outer surfaces on face edges (slow, disable when not needed)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_even_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_EVEN);
+	RNA_def_property_ui_text(prop, "Even Thickness", "Maintain thickness by adjusting for sharp corners (slow, disable when not needed)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_quality_normals", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_NORMAL_CALC);
+	RNA_def_property_ui_text(prop, "High Quality Normals", "Calculate normals which result in more even thickness (slow, disable when not needed)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2087,6 +2157,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_multires(brna);
 	rna_def_modifier_surface(brna);
 	rna_def_modifier_smoke(brna);
+	rna_def_modifier_solidify(brna);
 }
 
 #endif

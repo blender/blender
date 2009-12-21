@@ -600,6 +600,20 @@ class DATA_PT_modifiers(DataButtonsPanel):
     def SOFT_BODY(self, layout, ob, md, wide_ui):
         layout.label(text="See Soft Body panel.")
 
+    def SOLIDIFY(self, layout, ob, md, wide_ui):
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "offset")
+        col.prop(md, "use_rim")
+        col.prop(md, "use_even_offset")
+        col.prop(md, "use_quality_normals")
+        col.prop(md, "edge_crease_inner")
+        col.prop(md, "edge_crease_outer")
+        col.prop(md, "edge_crease_rim")
+        # col.label(text="Vertex Group:")
+        # col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
     def SUBSURF(self, layout, ob, md, wide_ui):
         if wide_ui:
             layout.row().prop(md, "subdivision_type", expand=True)

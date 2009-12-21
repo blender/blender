@@ -64,6 +64,7 @@ typedef enum ModifierType {
 	eModifierType_Surface,
 	eModifierType_Smoke,
 	eModifierType_ShapeKey,
+	eModifierType_Solidify,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -674,5 +675,21 @@ typedef struct SimpleDeformModifierData {
 typedef struct ShapeKeyModifierData {
 	ModifierData modifier;
 } ShapeKeyModifierData;
+
+typedef struct SolidifyModifierData {
+	ModifierData modifier;
+
+	char vgroup[32];		/* name of vertex group to use */
+	float offset;			/* new surface offset level*/
+	float crease_inner;
+	float crease_outer;
+	float crease_rim;
+	int flag;
+	char pad[4];
+} SolidifyModifierData;
+
+#define MOD_SOLIDIFY_RIM			(1<<0)
+#define MOD_SOLIDIFY_EVEN			(1<<1)
+#define MOD_SOLIDIFY_NORMAL_CALC	(1<<2)
 
 #endif

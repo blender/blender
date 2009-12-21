@@ -2409,7 +2409,7 @@ void EM_solidify(EditMesh *em, float dist)
 	EditFace *efa;
 	EditVert *eve;
 	float *vert_angles= MEM_callocN(sizeof(float) * em->totvert * 2, "EM_solidify"); /* 2 in 1 */
-	float *vert_accum= vert_accum= vert_angles + em->totvert;
+	float *vert_accum= vert_angles + em->totvert;
 	float face_angles[4];
 	int i, j;
 

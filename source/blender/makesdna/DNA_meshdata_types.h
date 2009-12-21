@@ -183,7 +183,7 @@ typedef struct PartialVisibility {
 
 /* mvert->flag (1=SELECT) */
 #define ME_SPHERETEST		2
-#define ME_SPHERETEMP		4
+#define ME_VERT_TMP_TAG		4
 #define ME_HIDE				16
 #define ME_VERT_MERGED		(1<<6)
 #define ME_VERT_PBVH_UPDATE	(1<<7)
