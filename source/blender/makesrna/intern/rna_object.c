@@ -190,9 +190,11 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	base= object_in_scene(ob, scene);
 	if(!base)
 		return;
+	
+	SWAP(int, base->lay, ob->lay);
 
-	base->lay= ob->lay;
 	rna_Object_layer_update__internal(scene, base, ob);
+	ob->lay= base->lay;
 }
 
 static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -200,9 +202,8 @@ static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Base *base= (Base*)ptr->id.data;
 	Object *ob= (Object*)base->object;
 
-	ob->lay= base->lay;
-
 	rna_Object_layer_update__internal(scene, base, ob);
+	ob->lay= base->lay;
 }
 
 static int rna_Object_data_editable(PointerRNA *ptr)
