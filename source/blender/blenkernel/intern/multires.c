@@ -63,6 +63,7 @@ static const int multires_max_levels = 13;
 static const int multires_grid_tot[] = {0, 4, 9, 25, 81, 289, 1089, 4225, 16641, 66049, 263169, 1050625, 4198401, 16785409};
 static const int multires_side_tot[] = {0, 2, 3, 5,  9,  17,  33,   65,   129,   257,   513,    1025,    2049,    4097};
 
+static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert);
 static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int add, DMGridData **oldGridData, int totlvl);
 
 MultiresModifierData *find_multires_modifier(Object *ob)
@@ -104,6 +105,27 @@ static void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lv
 
 	mmd->renderlvl = MAX2(mmd->renderlvl, lvl);
 	CLAMP(mmd->renderlvl, 0, mmd->totlvl);
+}
+
+static void multires_dm_mark_as_modified(DerivedMesh *dm)
+{
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*)dm;
+	ccgdm->multires.modified = 1;
+}
+
+void multires_mark_as_modified(Object *ob)
+{
+	if(ob && ob->derivedFinal)
+		multires_dm_mark_as_modified(ob->derivedFinal);
+}
+
+void multires_force_update(Object *ob)
+{
+	if(ob && ob->derivedFinal) {
+		ob->derivedFinal->needsFree =1;
+		ob->derivedFinal->release(ob->derivedFinal);
+		ob->derivedFinal = NULL;
+	}
 }
 
 /* XXX */
@@ -168,30 +190,22 @@ void multiresModifier_join(Object *ob)
 }
 #endif
 
-/* Returns 0 on success, 1 if the src's totvert doesn't match */
+/* Returns 1 on success, 0 if the src's totvert doesn't match */
 int multiresModifier_reshape(MultiresModifierData *mmd, Object *dst, Object *src)
 {
-	/* XXX */
-#if 0
-	Mesh *src_me = get_mesh(src);
+	DerivedMesh *srcdm = src->derivedFinal;
 	DerivedMesh *mrdm = dst->derivedFinal;
 
-	if(mrdm && mrdm->getNumVerts(mrdm) == src_me->totvert) {
-		MVert *mvert = CDDM_get_verts(mrdm);
-		int i;
+	if(mrdm && srcdm && mrdm->getNumVerts(mrdm) == srcdm->getNumVerts(srcdm)) {
+		multires_mvert_to_ss(mrdm, srcdm->getVertArray(srcdm));
 
-		for(i = 0; i < src_me->totvert; ++i)
-			copy_v3_v3(mvert[i].co, src_me->mvert[i].co);
-		mrdm->needsFree = 1;
-		MultiresDM_mark_as_modified(mrdm);
-		mrdm->release(mrdm);
-		dst->derivedFinal = NULL;
+		multires_dm_mark_as_modified(mrdm);
+		multires_force_update(dst);
 
-		return 0;
+		return 1;
 	}
-#endif
 
-	return 1;
+	return 0;
 }
 
 static void column_vectors_to_mat3(float mat[][3], float v1[3], float v2[3], float v3[3])
@@ -242,7 +256,7 @@ static void multires_copy_dm_grid(DMGridData *gridA, DMGridData *gridB, int size
 }
 
 /* direction=1 for delete higher, direction=0 for lower (not implemented yet) */
-void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Object *ob, int direction)
+void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int direction)
 {
 	Mesh *me = get_mesh(ob);
 	int lvl = multires_get_level(ob, mmd, 0);
@@ -621,27 +635,6 @@ static void multiresModifier_update(DerivedMesh *dm)
 	}
 }
 
-static void multires_dm_mark_as_modified(struct DerivedMesh *dm)
-{
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*)dm;
-	ccgdm->multires.modified = 1;
-}
-
-void multires_mark_as_modified(struct Object *ob)
-{
-	if(ob && ob->derivedFinal)
-		multires_dm_mark_as_modified(ob->derivedFinal);
-}
-
-void multires_force_update(Object *ob)
-{
-	if(ob && ob->derivedFinal) {
-		ob->derivedFinal->needsFree =1;
-		ob->derivedFinal->release(ob->derivedFinal);
-		ob->derivedFinal = NULL;
-	}
-}
-
 void multires_stitch_grids(Object *ob)
 {
 	/* utility for smooth brush */
@@ -661,7 +654,7 @@ void multires_stitch_grids(Object *ob)
 	}
 }
 
-struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
+DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
 						    int useRenderParams, int isFinalCalc)
 {
 	Mesh *me= ob->data;
@@ -973,7 +966,7 @@ static void multires_load_old_faces(ListBase **fmap, ListBase **emap, MultiresLe
 	}
 }
 
-static void multires_old_mvert_to_ss(DerivedMesh *dm, MVert *mvert)
+static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -1197,7 +1190,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 
 	MEM_freeN(vvmap);
 
-	multires_old_mvert_to_ss(dm, vdst);
+	multires_mvert_to_ss(dm, vdst);
 }
 
 

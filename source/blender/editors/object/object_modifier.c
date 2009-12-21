@@ -814,6 +814,51 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/****************** multires reshape operator *********************/
+
+static int multires_reshape_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data, *secondob= NULL;
+	MultiresModifierData *mmd= ptr.data;
+
+	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
+		if(selob->type == OB_MESH && selob != ob) {
+			secondob= selob;
+			break;
+		}
+	}
+	CTX_DATA_END;
+
+	if(!secondob) {
+		BKE_report(op->reports, RPT_ERROR, "Second selected mesh object require to copy shape from.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(!multiresModifier_reshape(mmd, ob, secondob)) {
+		BKE_report(op->reports, RPT_ERROR, "Objects do not have the same number of vertices.");
+		return OPERATOR_CANCELLED;
+	}
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_multires_reshape(wmOperatorType *ot)
+{
+	ot->name= "Multires Reshape";
+	ot->description= "Copy vertex coordinates from other object.";
+	ot->idname= "OBJECT_OT_multires_reshape";
+
+	ot->poll= multires_poll;
+	ot->exec= multires_reshape_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /****************** multires save external operator *********************/
 
 static int multires_save_external_exec(bContext *C, wmOperator *op)
