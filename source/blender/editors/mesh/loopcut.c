@@ -409,18 +409,24 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 			ED_region_tag_redraw(lcd->ar);
 			break;
 		case WHEELUPMOUSE:  /* change number of cuts */
-			cuts++;
-			RNA_int_set(op->ptr,"number_cuts",cuts);
-			ringsel_find_edge(lcd, C, lcd->ar, cuts);
-			
-			ED_region_tag_redraw(lcd->ar);
+		case PAGEUPKEY:
+			if (event->val == KM_PRESS) {
+				cuts++;
+				RNA_int_set(op->ptr,"number_cuts",cuts);
+				ringsel_find_edge(lcd, C, lcd->ar, cuts);
+				
+				ED_region_tag_redraw(lcd->ar);
+			}
 			break;
 		case WHEELDOWNMOUSE:  /* change number of cuts */
-			cuts=MAX2(cuts-1,1);
-			RNA_int_set(op->ptr,"number_cuts",cuts);
-			ringsel_find_edge(lcd, C, lcd->ar,cuts);
-			
-			ED_region_tag_redraw(lcd->ar);
+		case PAGEDOWNKEY:
+			if (event->val == KM_PRESS) {
+				cuts=MAX2(cuts-1,1);
+				RNA_int_set(op->ptr,"number_cuts",cuts);
+				ringsel_find_edge(lcd, C, lcd->ar,cuts);
+				
+				ED_region_tag_redraw(lcd->ar);
+			}
 			break;
 		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
 			int dist = 75;
