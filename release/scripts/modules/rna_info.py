@@ -20,6 +20,13 @@
 
 import bpy
 
+def range_str(val):
+    if val < -10000000:	return '-inf'
+    if val >  10000000:	return 'inf'
+    if type(val)==float:
+        return '%g'  % val
+    else:
+        return str(val)
 
 class InfoStructRNA:
     global_lookup = {}
@@ -43,7 +50,7 @@ class InfoStructRNA:
     def build(self):
         rna_type = self.bl_rna
         parent_id = self.identifier
-        self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id) for rna_prop in rna_type.properties.values()]
+        self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id) for rna_id, rna_prop in rna_type.properties.items() if rna_id != "rna_type"]
         self.functions[:] = [GetInfoFunctionRNA(rna_prop, parent_id) for rna_prop in rna_type.functions.values()]
 
     def getNestedProperties(self, ls = None):
@@ -84,12 +91,20 @@ class InfoPropertyRNA:
         rna_prop = self.bl_prop
 
         self.enum_items = []
-        self.min = -1
-        self.max = -1
+        self.min = getattr(rna_prop, "hard_min", -1)
+        self.max = getattr(rna_prop, "hard_max", -1)
         self.array_length = getattr(rna_prop, "array_length", 0)
 
         self.type = rna_prop.type.lower()
-        self.fixed_type = GetInfoStructRNA(rna_prop.fixed_type) # valid for pointer/collections
+        fixed_type = getattr(rna_prop, "fixed_type", "")
+        if fixed_type:
+            self.fixed_type = GetInfoStructRNA(fixed_type) # valid for pointer/collections
+        else:
+            self.fixed_type = None
+            
+        if self.type == "enum":
+            self.enum_items[:] = rna_prop.items.keys()
+
         self.srna = GetInfoStructRNA(rna_prop.srna) # valid for pointer/collections
 
     def __repr__(self):
@@ -347,9 +362,11 @@ def BuildRNAInfo():
 
     for rna_info in InfoStructRNA.global_lookup.values():
         rna_info.build()
-
-    for rna_info in InfoStructRNA.global_lookup.values():
-        print(rna_info)
+        for prop in rna_info.properties:
+            prop.build()
+        
+    #for rna_info in InfoStructRNA.global_lookup.values():
+    #    print(rna_info)
 
     return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoPropertyRNA.global_lookup
 

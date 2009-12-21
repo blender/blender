@@ -87,8 +87,8 @@ class SubdivisionSet(bpy.types.Operator):
             default=1, min=0, max=100, soft_min=0, soft_max=6)
 
     def poll(self, context):
-        ob = context.active_object
-        return (ob and ob.type == 'MESH')
+        obs = context.selected_editable_objects
+        return (obs is not None)
 
     def execute(self, context):
         level = self.properties.level
