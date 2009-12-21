@@ -494,9 +494,8 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 void ANIM_id_update(struct Scene *scene, struct ID *id);
 void ANIM_list_elem_update(struct Scene *scene, bAnimListElem *ale);
 
-/* pose <-> action syncing */
-void ANIM_action_to_pose_sync(struct Object *ob);
-void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);
+/* data -> channels syncing */
+void ANIM_sync_animchannels_to_data(const struct bContext *C);
 
 /* ************************************************* */
 /* OPERATORS */

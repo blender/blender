@@ -356,25 +356,31 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch (wmn->category) {
 		case NC_ANIMATION:
-			ED_area_tag_refresh(sa);
+			ED_area_tag_redraw(sa);
 			break;
 		case NC_SCENE:
-			/*switch (wmn->data) {
-				case ND_OB_ACTIVE:
+			switch (wmn->data) {	
+				case ND_OB_ACTIVE:	/* selection changed, so force refresh to flush */
 				case ND_OB_SELECT:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+					
+				default: /* just redrawing the view will do */
+					ED_area_tag_redraw(sa);
+					break;
+			}
 			break;
 		case NC_OBJECT:
-			/*switch (wmn->data) {
-				case ND_BONE_SELECT:
+			switch (wmn->data) {
+				case ND_BONE_SELECT:	/* selection changed, so force refresh to flush */
 				case ND_BONE_ACTIVE:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+					
+				default: /* just redrawing the view will do */
+					ED_area_tag_redraw(sa);
+					break;
+			}
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_DOPESHEET)
@@ -385,25 +391,11 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 
 static void action_refresh(const bContext *C, ScrArea *sa)
 {
-	SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
+	//SpaceAction *saction= CTX_wm_space_action(C);
 	
-	/* updates to data needed depends on Action Editor mode... */
-	switch (saction->mode) {
-		case SACTCONT_DOPESHEET: /* DopeSheet - for now, just all armatures... */
-		{
-			
-		}
-			break;
-		
-		case SACTCONT_ACTION: /* Action Editor - just active object will do */
-		{
-			Object *ob= CTX_data_active_object(C);
-			
-			/* sync changes to bones to the corresponding action channels */
-			ANIM_pose_to_action_sync(ob, sa);
-		}
-			break; 
-	}
+	/* update the state of the animchannels in response to changes from the data they represent */
+	// TODO: check if we don't want this to happen
+	ANIM_sync_animchannels_to_data(C);
 	
 	/* region updates? */
 	// XXX resizing y-extents of tot should go here?

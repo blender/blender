@@ -434,25 +434,34 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch (wmn->category) {
 		case NC_ANIMATION:
+			/* unlike for DopeSheet, we want refresh not redraw here, 
+			 * since F-Curve colors may need setting 
+			 */
 			ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
-			/*switch (wmn->data) {
-				case ND_OB_ACTIVE:
+			switch (wmn->data) {	
+				case ND_OB_ACTIVE:	/* selection changed, so force refresh to flush */
 				case ND_OB_SELECT:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+					
+				default: /* just redrawing the view will do */
+					ED_area_tag_redraw(sa);
+					break;
+			}
 			break;
 		case NC_OBJECT:
-			/*switch (wmn->data) {
-				case ND_BONE_SELECT:
+			switch (wmn->data) {
+				case ND_BONE_SELECT:	/* selection changed, so force refresh to flush */
 				case ND_BONE_ACTIVE:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+					
+				default: /* just redrawing the view will do */
+					ED_area_tag_redraw(sa);
+					break;
+			}
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_GRAPH)
@@ -488,6 +497,10 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	
 	/* region updates? */
 	// XXX resizing y-extents of tot should go here?
+	
+	/* update the state of the animchannels in response to changes from the data they represent */
+	// TODO: check if we don't want this to happen
+	ANIM_sync_animchannels_to_data(C);
 	
 	/* init/adjust F-Curve colors */
 	if (ANIM_animdata_get_context(C, &ac)) {
