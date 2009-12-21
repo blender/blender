@@ -13,7 +13,7 @@ a:hover {
 }
 h2 {
         background-color:#ddd;
-        font-size:120%
+        font-size:120%;
         padding:5px;
 }
 
@@ -34,7 +34,7 @@ td {
         padding:2px;
         padding-left:10px;
         padding-right:10px;
-        margin-left:20px
+        margin-left:20px;
         background-color:#ddd;
 }
 td:hover {
@@ -49,3 +49,16 @@ button {
 	height: auto;
 }
 
+.toggle {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+
+.cache {
+	display: none;
+}
+
+.fluid {
+	display: none;
+}

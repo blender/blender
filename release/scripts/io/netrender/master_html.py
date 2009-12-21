@@ -51,8 +51,19 @@ def get(handler):
 		
 		output("</tr></thead>")
 	
-	def rowTable(*data):
-		output("<tr>")
+	def rowTable(*data, id = None, class_style = None, extra = None):
+		output("<tr")
+		
+		if id:
+			output(" id='%s'" % id)
+		
+		if class_style:
+			output(" class='%s'" % class_style)
+
+		if extra:
+			output(" %s" % extra)
+
+		output(">")
 		
 		for c in data:
 			output("<td>" + str(c) + "</td>")
@@ -172,10 +183,16 @@ def get(handler):
 					rowTable(file.filepath)
 
 			if tot_cache > 0:
-				rowTable("%i physic cache files" % tot_cache)
+				rowTable("%i physic cache files" % tot_cache, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.cache&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+				for file in job.files:
+					if file.filepath.endswith(".bphys"):
+						rowTable(os.path.split(file.filepath)[1], class_style = "cache")
 			
 			if tot_fluid > 0:
-				rowTable("%i fluid bake files" % tot_fluid)
+				rowTable("%i fluid bake files" % tot_fluid, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.fluid&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+				for file in job.files:
+					if file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
+						rowTable(os.path.split(file.filepath)[1], class_style = "fluid")
 
 			endTable()
 			
