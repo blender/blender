@@ -3442,13 +3442,15 @@ int seq_test_overlap(ListBase * seqbasep, Sequence *test)
 }
 
 
-static void seq_translate(Sequence *seq, int delta)
+static void seq_translate(Scene *evil_scene, Sequence *seq, int delta)
 {
+	seq_offset_animdata(evil_scene, seq, delta);
 	seq->start += delta;
+
 	if(seq->type==SEQ_META) {
 		Sequence *seq_child;
 		for(seq_child= seq->seqbase.first; seq_child; seq_child= seq_child->next) {
-			seq_translate(seq_child, delta);
+			seq_translate(evil_scene, seq_child, delta);
 		}
 	}
 
@@ -3456,7 +3458,7 @@ static void seq_translate(Sequence *seq, int delta)
 }
 
 /* return 0 if there werent enough space */
-int shuffle_seq(ListBase * seqbasep, Sequence *test)
+int shuffle_seq(ListBase * seqbasep, Sequence *test, Scene *evil_scene)
 {
 	int orig_machine= test->machine;
 	test->machine++;
@@ -3484,7 +3486,7 @@ int shuffle_seq(ListBase * seqbasep, Sequence *test)
 
 		test->machine= orig_machine;
 		new_frame = new_frame + (test->start-test->startdisp); /* adjust by the startdisp */
-		seq_translate(test, new_frame - test->start);
+		seq_translate(evil_scene, test, new_frame - test->start);
 
 		calc_sequence(test);
 		return 0;
@@ -3540,7 +3542,7 @@ static int shuffle_seq_time_offset(ListBase * seqbasep, char dir)
 	return tot_ofs;
 }
 
-int shuffle_seq_time(ListBase * seqbasep)
+int shuffle_seq_time(ListBase * seqbasep, Scene *evil_scene)
 {
 	/* note: seq->tmp is used to tag strips to move */
 
@@ -3553,7 +3555,7 @@ int shuffle_seq_time(ListBase * seqbasep)
 	if(offset) {
 		for(seq= seqbasep->first; seq; seq= seq->next) {
 			if(seq->tmp) {
-				seq_translate(seq, offset);
+				seq_translate(evil_scene, seq, offset);
 				seq->flag &= ~SEQ_OVERLAP;
 			}
 		}

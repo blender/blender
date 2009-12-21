@@ -96,7 +96,7 @@ static void rna_Sequence_frame_change_update(Scene *scene, Sequence *seq)
 	calc_sequence_disp(seq);
 
 	if(seq_test_overlap(seqbase, seq)) {
-		shuffle_seq(seqbase, seq);
+		shuffle_seq(seqbase, seq, scene); // XXX - BROKEN!, uses context seqbasep
 	}
 	sort_seq(scene);
 }
@@ -155,7 +155,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 	seq->machine= value;
 	
 	if( seq_test_overlap(seqbase, seq) ) {
-		shuffle_seq(seqbase, seq);
+		shuffle_seq(seqbase, seq, scene);  // XXX - BROKEN!, uses context seqbasep
 	}
 	sort_seq(scene);
 }
@@ -360,6 +360,14 @@ static void rna_Sequence_mute_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	seq_update_muting(ed);
 	rna_Sequence_update(bmain, scene, ptr);
+}
+
+/* do_versions? */
+static float rna_Sequence_opacity_get(PointerRNA *ptr) {
+	return ((Sequence*)(ptr->data))->blend_opacity / 100.0f;
+}
+static void rna_Sequence_opacity_set(PointerRNA *ptr, float value) {
+	((Sequence*)(ptr->data))->blend_opacity = value * 100.0f;
 }
 
 #else
@@ -660,9 +668,10 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blend Mode", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "blend_opacity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	prop= RNA_def_property(srna, "blend_opacity", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Blend Opacity", "");
+	RNA_def_property_float_funcs(prop, "rna_Sequence_opacity_get", "rna_Sequence_opacity_set", NULL); // stupid 0-100 -> 0-1
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "effect_fader", PROP_FLOAT, PROP_NONE);

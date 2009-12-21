@@ -2365,23 +2365,21 @@ void flushTransSeq(TransInfo *t)
 
 	/* flush to 2d vector from internally used 3d vector */
 	for(a=0, td= t->data, td2d= t->data2d; a<t->total; a++, td++, td2d++) {
-
 		tdsq= (TransDataSeq *)td->extra;
 		seq= tdsq->seq;
 		new_frame= (int)floor(td2d->loc[0] + 0.5f);
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
-			if (seq->type != SEQ_META && (seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
-				seq->start= new_frame - tdsq->start_offset;
-
 #ifdef XXX_DURIAN_ANIM_TX_HACK
-			if (seq->type != SEQ_META && seq != seq_prev) {
-				int ofs = (new_frame - tdsq->start_offset) - seq->start;
+			if (seq != seq_prev) {
+				int ofs = (new_frame - tdsq->start_offset) - seq->start; // breaks for single strips - color/image
 				seq_offset_animdata(t->scene, seq, ofs);
 			}
 #endif
-            
+			if (seq->type != SEQ_META && (seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
+				seq->start= new_frame - tdsq->start_offset;
+
 			if (seq->depth==0) {
 				seq->machine= (int)floor(td2d->loc[1] + 0.5f);
 				CLAMP(seq->machine, 1, MAXSEQ);
@@ -4130,7 +4128,7 @@ static void freeSeqData(TransInfo *t)
 						}
 					}
 
-					shuffle_seq_time(seqbasep);
+					shuffle_seq_time(seqbasep, t->scene);
 				}
 			}
 #endif

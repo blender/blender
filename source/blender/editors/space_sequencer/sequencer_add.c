@@ -548,7 +548,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		RNA_float_get_array(op->ptr, "color", colvars->col);
 	}
 
-	if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq);
+	if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
 
 	update_changed_seq_and_deps(scene, seq, 1, 1); /* runs calc_sequence */
 

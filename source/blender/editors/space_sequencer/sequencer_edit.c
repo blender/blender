@@ -195,7 +195,7 @@ static void change_plugin_seq(Scene *scene, char *str)	/* called from fileselect
 				 last_seq->seq2->machine, 
 				 last_seq->seq3->machine);
 
-	if( seq_test_overlap(ed->seqbasep, last_seq) ) shuffle_seq(ed->seqbasep, last_seq);
+	if( seq_test_overlap(ed->seqbasep, last_seq) ) shuffle_seq(ed->seqbasep, last_seq, scene);
 	
 }
 
@@ -1395,7 +1395,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 		if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 			seq->flag &= ~SEQ_OVERLAP;
 			if( seq_test_overlap(ed->seqbasep, seq) ) {
-				shuffle_seq(ed->seqbasep, seq);
+				shuffle_seq(ed->seqbasep, seq, scene);
 			}
 		}
 		else if(seq->type & SEQ_EFFECT) {
@@ -1975,7 +1975,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				calc_sequence(seq_new);
 				seq_new->flag &= ~SEQ_OVERLAP;
 				if (seq_test_overlap(ed->seqbasep, seq_new)) {
-					shuffle_seq(ed->seqbasep, seq_new);
+					shuffle_seq(ed->seqbasep, seq_new, scene);
 				}
 
 				seqUniqueName(scene->ed->seqbasep, seq_new);
@@ -2138,7 +2138,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	
 	active_seq_set(scene, seqm);
 
-	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm);
+	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
 
 	seq_update_muting(ed);
 
@@ -2207,7 +2207,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
 		if(seq->flag & SELECT) {
 			seq->flag &= ~SEQ_OVERLAP;
 			if( seq_test_overlap(ed->seqbasep, seq) ) {
-				shuffle_seq(ed->seqbasep, seq);
+				shuffle_seq(ed->seqbasep, seq, scene);
 			}
 		}
 	}
@@ -2632,7 +2632,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 			if((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
 				/* this may now overlap */
 				if( seq_test_overlap(ed->seqbasep, iseq) ) {
-					shuffle_seq(ed->seqbasep, iseq);
+					shuffle_seq(ed->seqbasep, iseq, scene);
 				}
 			}
 		}
