@@ -1109,6 +1109,12 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Size", "Size of the noise");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "rest_length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_size");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "Rest Length", "Rest length of the harmonic force");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop= RNA_def_property(srna, "falloff_power", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "f_power");
@@ -1220,6 +1226,11 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "do_absorption", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_VISIBILITY);
 	RNA_def_property_ui_text(prop, "Absorption", "Force gets absorbed by collision objects");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "multiple_springs", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_MULTIPLE_SPRINGS);
+	RNA_def_property_ui_text(prop, "Multiple Springs", "Every point is effected by multiple springs");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/* Pointer */

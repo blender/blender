@@ -150,6 +150,7 @@ def basic_force_field_settings_ui(self, context, field):
         col.prop(field, "flow")
     elif field.type == 'HARMONIC':
         col.prop(field, "harmonic_damping", text="Damping")
+        col.prop(field, "rest_length")
     elif field.type == 'VORTEX' and field.shape != 'POINT':
         col.prop(field, "inflow")
     elif field.type == 'DRAG':
@@ -163,6 +164,8 @@ def basic_force_field_settings_ui(self, context, field):
     col.prop(field, "seed")
     if field.type == 'TURBULENCE':
         col.prop(field, "global_coordinates", text="Global")
+    elif field.type == 'HARMONIC':
+        col.prop(field, "multiple_springs")
 
     split = layout.split()
 
