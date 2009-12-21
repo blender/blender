@@ -102,6 +102,8 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 		if scene.network_render.server_address != "[default]":
 			col.operator("render.netclientanim", icon='RENDER_ANIMATION')
 			col.operator("render.netclientsend", icon='FILE_BLEND')
+			if scene.network_render.job_id:
+				col.operator("screen.render", text="Get Results", icon='RENDER_ANIMATION').animation = True
 			col.operator("render.netclientweb", icon='QUESTION')
 		col.prop(scene.network_render, "job_name")
 		col.prop(scene.network_render, "job_category")

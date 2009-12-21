@@ -229,7 +229,10 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			if response.status == http.client.NO_CONTENT:
 				new_job = True
 				netsettings.job_id = clientSendJob(conn, scene)
+				job_id = netsettings.job_id 
+				
 				requestResult(conn, job_id, scene.current_frame)
+				response = conn.getresponse()
 			
 			while response.status == http.client.ACCEPTED and not self.test_break():
 				time.sleep(1)
