@@ -450,55 +450,6 @@ static void view_editmove(unsigned short event)
 #endif
 }
 
-#if 0
-static char *transform_to_undostr(TransInfo *t)
-{
-	switch (t->mode) {
-		case TFM_TRANSLATION:
-			return "Translate";
-		case TFM_ROTATION:
-			return "Rotate";
-		case TFM_RESIZE:
-			return "Scale";
-		case TFM_TOSPHERE:
-			return "To Sphere";
-		case TFM_SHEAR:
-			return "Shear";
-		case TFM_WARP:
-			return "Warp";
-		case TFM_SHRINKFATTEN:
-			return "Shrink/Fatten";
-		case TFM_TILT:
-			return "Tilt";
-		case TFM_TRACKBALL:
-			return "Trackball";
-		case TFM_PUSHPULL:
-			return "Push/Pull";
-		case TFM_BEVEL:
-			return "Bevel";
-		case TFM_BWEIGHT:
-			return "Bevel Weight";
-		case TFM_CREASE:
-			return "Crease";
-		case TFM_BONESIZE:
-			return "Bone Width";
-		case TFM_BONE_ENVELOPE:
-			return "Bone Envelope";
-		case TFM_TIME_TRANSLATE:
-			return "Translate Anim. Data";
-		case TFM_TIME_SCALE:
-			return "Scale Anim. Data";
-		case TFM_TIME_SLIDE:
-			return "Time Slide";
-		case TFM_BAKE_TIME:
-			return "Key Time";
-		case TFM_MIRROR:
-			return "Mirror";
-	}
-	return "Transform";
-}
-#endif
-
 /* ************************************************* */
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
@@ -521,7 +472,7 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_REMOVE_SNAP	17
 
 /* called in transform_ops.c, on each regeneration of keymaps */
-void transform_modal_keymap(wmKeyConfig *keyconf)
+wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
@@ -546,7 +497,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
 	
 	/* this function is called for each spacetype, only needs to add map once */
-	if(keymap) return;
+	if(keymap) return NULL;
 	
 	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
 	
@@ -568,19 +519,7 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
 
-	/* assign map to operators */
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_transform");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_translate");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_rotate");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_tosphere");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_resize");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_shear");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_warp");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_shrink_fatten");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_tilt");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_trackball");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_mirror");
-	WM_modalkeymap_assign(keymap, "TRANSFORM_OT_edge_slide");
+	return keymap;
 }
 
 
@@ -1619,6 +1558,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	case TFM_ALIGN:
 		initAlign(t);
+		break;
+	case TFM_SEQ_SLIDE:
+		initSeqSlide(t);
 		break;
 	}
 
@@ -3290,11 +3232,11 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 /* uses t->vec to store actual translation in */
 int Translation(TransInfo *t, short mval[2])
 {
-	float tvec[3];
 	char str[250];
 
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
+		float tvec[3];
 		applySnapping(t, t->values);
 		t->con.applyVec(t, NULL, t->values, tvec, pvec);
 		VECCOPY(t->values, tvec);
@@ -5014,6 +4956,90 @@ int Align(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, "Align");
+
+	return 1;
+}
+
+/* ************************** SEQ SLIDE *************************** */
+
+void initSeqSlide(TransInfo *t)
+{
+	t->transform = SeqSlide;
+
+	initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
+
+	t->idx_max = 1;
+	t->num.flag = 0;
+	t->num.idx_max = t->idx_max;
+
+	t->ndof.axis = 1|2;
+
+	t->snap[0] = 0.0f;
+	t->snap[1] = floor(t->scene->r.frs_sec / t->scene->r.frs_sec_base);
+	t->snap[2] = 10.0f;
+}
+
+static void headerSeqSlide(TransInfo *t, float val[2], char *str)
+{
+	char tvec[60];
+
+	if (hasNumInput(&t->num)) {
+		outputNumInput(&(t->num), tvec);
+	}
+	else {
+		sprintf(&tvec[0], "%.0f, %.0f", val[0], val[1]);
+	}
+
+	sprintf(str, "Sequence Slide: %s%s", &tvec[0], t->con.text);
+}
+
+static void applySeqSlide(TransInfo *t, float val[2]) {
+	TransData *td = t->data;
+	int i;
+
+	for(i = 0 ; i < t->total; i++, td++) {
+		float tvec[2];
+
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
+
+		copy_v2_v2(tvec, val);
+
+		mul_v2_fl(tvec, td->factor);
+
+		td->loc[0] = td->iloc[0] + tvec[0];
+		td->loc[1] = td->iloc[1] + tvec[1];
+	}
+}
+
+int SeqSlide(TransInfo *t, short mval[2])
+{
+	char str[200];
+
+	if (t->con.mode & CON_APPLY) {
+		float pvec[3] = {0.0f, 0.0f, 0.0f};
+		float tvec[3];
+		t->con.applyVec(t, NULL, t->values, tvec, pvec);
+		VECCOPY(t->values, tvec);
+	}
+	else {
+		applyNDofInput(&t->ndof, t->values);
+		snapGrid(t, t->values);
+		applyNumInput(&t->num, t->values);
+	}
+
+	t->values[0] = floor(t->values[0] + 0.5);
+	t->values[1] = floor(t->values[1] + 0.5);
+
+	headerSeqSlide(t, t->values, str);
+	applySeqSlide(t, t->values);
+
+	recalcData(t);
+
+	ED_area_headerprint(t->sa, str);
 
 	return 1;
 }

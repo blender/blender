@@ -53,6 +53,8 @@ struct BezTriple;
 struct wmOperatorType;
 struct wmOperator;
 struct wmWindowManager;
+struct wmKeyMap;
+struct wmKeyConfig;
 struct bContext;
 struct wmEvent;
 struct wmTimer;
@@ -522,9 +524,12 @@ int Mirror(TransInfo *t, short mval[2]);
 void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
+void initSeqSlide(TransInfo *t);
+int SeqSlide(TransInfo *t, short mval[2]);
+
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 
-void transform_modal_keymap(struct wmKeyConfig *keyconf);
+struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 
 
 /*********************** transform_conversions.c ********** */
