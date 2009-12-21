@@ -1100,7 +1100,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 }
 
-int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float *vec)
+int calculateTransformCenter(bContext *C, int centerMode, float *vec)
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
 	int success = 1;
@@ -1111,9 +1111,9 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 
 	t->mode = TFM_DUMMY;
 
-	initTransInfo(C, t, NULL, event);					// internal data, mouse, vectors
+	initTransInfo(C, t, NULL, NULL);	// internal data, mouse, vectors
 
-	createTransData(C, t);			// make TransData structs from selection
+	createTransData(C, t);				// make TransData structs from selection
 
 	t->around = centerMode; 			// override userdefined mode
 
