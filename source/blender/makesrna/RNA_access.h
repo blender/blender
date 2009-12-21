@@ -38,6 +38,7 @@ struct bContext;
 struct ID;
 struct Main;
 struct ReportList;
+struct Scene;
 
 /* Types */
 
@@ -417,6 +418,7 @@ extern StructRNA RNA_SmokeModifier;
 extern StructRNA RNA_SmoothModifier;
 extern StructRNA RNA_SoftBodyModifier;
 extern StructRNA RNA_SoftBodySettings;
+extern StructRNA RNA_SolidifyModifier;
 extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
 extern StructRNA RNA_Space;
@@ -634,11 +636,13 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
 int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier);
+int RNA_enum_bitflag_identifierss(EnumPropertyItem *item, const int value, const char **identifier);
 int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name);
 
 void RNA_property_enum_items(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free);
 int RNA_property_enum_value(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
 int RNA_property_enum_identifier(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
+int RNA_property_enum_bitflag_identifiers(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 
@@ -648,6 +652,7 @@ int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 
 void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_update_main(struct Main *bmain, struct Scene *scene, PointerRNA *ptr, PropertyRNA *prop);
 
 /* Property Data */
 
@@ -657,6 +662,9 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *val
 int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values);
 void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
+int RNA_property_boolean_get_default(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_boolean_get_default_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
+int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 int RNA_property_int_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value);
@@ -664,6 +672,9 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 int RNA_property_int_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values);
 void RNA_property_int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
+int RNA_property_int_get_default(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_int_get_default_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
+int RNA_property_int_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 float RNA_property_float_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value);
@@ -671,17 +682,23 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const float *values);
 void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, float value);
+float RNA_property_float_get_default(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_float_get_default_array(PointerRNA *ptr, PropertyRNA *prop, float *values);
+float RNA_property_float_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value);
 char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen);
-int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *value);
+int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
+// TODO: get default strings...
 
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
+int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);
+// TODO: get default pointers...
 
 void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, CollectionPropertyIterator *iter);
 void RNA_property_collection_next(CollectionPropertyIterator *iter);
@@ -706,6 +723,10 @@ void RNA_property_pointer_remove(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
 int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key);
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
+
+/* copy/reset */
+int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index);
+int RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 /* Path
  *

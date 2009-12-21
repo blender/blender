@@ -1079,9 +1079,9 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 
 	uiStyleFontSet(&style->widget);
 
-	origstr= MEM_callocN(sizeof(char)*(data->maxlen+1), "ui_textedit origstr");
+	origstr= MEM_callocN(sizeof(char)*data->maxlen, "ui_textedit origstr");
 	
-	BLI_strncpy(origstr, but->drawstr, data->maxlen+1);
+	BLI_strncpy(origstr, but->drawstr, data->maxlen);
 	but->pos= strlen(origstr)-but->ofs;
 	
 	/* XXX solve generic */
@@ -1130,7 +1130,7 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 			changed= ui_textedit_delete_selection(but, data);
 
 		len= strlen(str);
-		if(len < data->maxlen) {
+		if(len+1 < data->maxlen) {
 			for(x= data->maxlen; x>but->pos; x--)
 				str[x]= str[x-1];
 			str[but->pos]= ascii;
@@ -1365,7 +1365,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 			for (y=0; y<strlen(buf); y++)
 			{
 				/* add contents of buffer */
-				if(len < data->maxlen) {
+				if(len+1 < data->maxlen) {
 					for(x= data->maxlen; x>but->pos; x--)
 						str[x]= str[x-1];
 					str[but->pos]= buf[y];
@@ -1411,8 +1411,8 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 	/* retrieve string */
 	data->maxlen= ui_get_but_string_max_length(but);
-	data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
-	ui_get_but_string(but, data->str, data->maxlen+1);
+	data->str= MEM_callocN(sizeof(char)*data->maxlen + 1, "textedit str");
+	ui_get_but_string(but, data->str, data->maxlen);
 
 	data->origstr= BLI_strdup(data->str);
 	data->selextend= 0;
@@ -3405,7 +3405,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 	if((but->rnapoin.data && but->rnaprop)==0 && but->optype==NULL)
 		return 0;
-
+	
+	button_timers_tooltip_remove(C, but);
 
 	if(but->rnaprop)
 		name= (char*)RNA_property_ui_name(but->rnaprop);
@@ -3498,9 +3499,15 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		//Copy Property Value
 		//Paste Property Value
 		
-		//uiItemO(layout, "Reset to Default Value", 0, "WM_OT_property_value_reset_button");
+		if(length) {
+			uiItemBooleanO(layout, "Reset All to Default Values", 0, "UI_OT_reset_default_button", "all", 1);
+			uiItemBooleanO(layout, "Reset Single to Default Value", 0, "UI_OT_reset_default_button", "all", 0);
+		}
+		else
+			uiItemO(layout, "Reset to Default Value", 0, "UI_OT_reset_default_button");
 		
-		uiItemO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button");
+		uiItemO(layout, "Copy Data Path", 0, "UI_OT_copy_data_path_button");
+		uiItemO(layout, "Copy To Selected", 0, "UI_OT_copy_to_selected_button");
 
 		uiItemS(layout);
 	}
@@ -3604,7 +3611,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 				char buf[512];
 				
 				if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
-					
+					button_timers_tooltip_remove(C, but);
 					uiPupBlock(C, menu_change_hotkey, but);
 
 				}
@@ -3832,12 +3839,14 @@ static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 	return 1;
 }
 
-static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
+static uiBut *ui_but_find_mouse_over(wmWindow *win, ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	uiBut *but, *butover= NULL;
 	int mx, my;
 
+	if(!win->active)
+		return NULL;
 	if(!ui_mouse_inside_region(ar, x, y))
 		return NULL;
 
@@ -3859,12 +3868,14 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 	return butover;
 }
 
-static uiBut *ui_list_find_mouse_over(ARegion *ar, int x, int y)
+static uiBut *ui_list_find_mouse_over(wmWindow *win, ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	uiBut *but;
 	int mx, my;
 
+	if(!win->active)
+		return NULL;
 	if(!ui_mouse_inside_region(ar, x, y))
 		return NULL;
 
@@ -4171,10 +4182,11 @@ static uiBut *uit_but_find_open_event(ARegion *ar, wmEvent *event)
 
 static int ui_handle_button_over(bContext *C, wmEvent *event, ARegion *ar)
 {
+	wmWindow *win= CTX_wm_window(C);
 	uiBut *but;
 
 	if(event->type == MOUSEMOVE) {
-		but= ui_but_find_mouse_over(ar, event->x, event->y);
+		but= ui_but_find_mouse_over(win, ar, event->x, event->y);
 		if(but)
 			button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
 	}
@@ -4240,14 +4252,18 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		switch(event->type) {
-			
+			case WINDEACTIVATE:
+				data->cancel= 1;
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				retval= WM_UI_HANDLER_CONTINUE;
+				break;
 			case MOUSEMOVE:
 				/* verify if we are still over the button, if not exit */
 				if(!ui_mouse_inside_button(ar, but, event->x, event->y)) {
 					data->cancel= 1;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
-				else if(ui_but_find_mouse_over(ar, event->x, event->y) != but) {
+				else if(ui_but_find_mouse_over(data->window, ar, event->x, event->y) != but) {
 					data->cancel= 1;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
@@ -4295,8 +4311,12 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	}
 	else if(data->state == BUTTON_STATE_WAIT_RELEASE) {
 		switch(event->type) {
+			case WINDEACTIVATE:
+				data->cancel= 1;
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				break;
+
 			case MOUSEMOVE:
-				
 				if(ELEM(but->type,LINK, INLINK)) {
 					but->flag |= UI_SELECT;
 					ui_do_button(C, block, but, event);
@@ -4341,7 +4361,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	else if(data->state == BUTTON_STATE_MENU_OPEN) {
 		switch(event->type) {
 			case MOUSEMOVE: {
-				uiBut *bt= ui_but_find_mouse_over(ar, event->x, event->y);
+				uiBut *bt= ui_but_find_mouse_over(data->window, ar, event->x, event->y);
 
 				if(bt && bt->active != data) {
 					if(but->type != COL) /* exception */
@@ -4376,7 +4396,8 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 
 static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 {
-	uiBut *but= ui_list_find_mouse_over(ar, event->x, event->y);
+	wmWindow *win= CTX_wm_window(C);
+	uiBut *but= ui_list_find_mouse_over(win, ar, event->x, event->y);
 	int retval= WM_UI_HANDLER_CONTINUE;
 	int value, min, max;
 
@@ -4724,9 +4745,14 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 			if(inside==0) {
 				uiSafetyRct *saferct= block->saferct.first;
 
-				if(ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) && event->val==KM_PRESS)
-					if(saferct && !BLI_in_rctf(&saferct->parent, event->x, event->y))
-						menu->menuretval= UI_RETURN_OUT;
+				if(ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) && event->val==KM_PRESS) {
+					if(saferct && !BLI_in_rctf(&saferct->parent, event->x, event->y)) {
+						if(block->flag & (UI_BLOCK_OUT_1|UI_BLOCK_KEEP_OPEN))
+							menu->menuretval= UI_RETURN_OK;
+						else
+							menu->menuretval= UI_RETURN_OUT;
+					}
+				}
 			}
 
 			if(menu->menuretval);
@@ -4762,10 +4788,10 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 
 					/* strict check, and include the parent rect */
 					if(!menu->dotowards && !saferct) {
-						if(block->flag & UI_BLOCK_OUT_1)
+						if(block->flag & (UI_BLOCK_OUT_1|UI_BLOCK_KEEP_OPEN))
 							menu->menuretval= UI_RETURN_OK;
 						else
-							menu->menuretval= (block->flag & UI_BLOCK_KEEP_OPEN)? UI_RETURN_OK: UI_RETURN_OUT;
+							menu->menuretval= UI_RETURN_OUT;
 					}
 					else if(menu->dotowards && event->type==MOUSEMOVE)
 						retval= WM_UI_HANDLER_BREAK;

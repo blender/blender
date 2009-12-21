@@ -45,6 +45,7 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
+#include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -65,27 +66,6 @@
 #include "time_intern.h"
 
 /* ************************ main time area region *********************** */
-
-/* draws a current frame indicator for the TimeLine */
-static void time_draw_cfra_time(const bContext *C, SpaceTime *stime, ARegion *ar)
-{
-	Scene *scene= CTX_data_scene(C);
-	float vec[2];
-	
-	vec[0]= scene->r.cfra*scene->r.framelen;
-
-	UI_ThemeColor(TH_CFRAME);	// no theme, should be global color once...
-	glLineWidth(3.0);
-
-	glBegin(GL_LINES);
-		vec[1]= ar->v2d.cur.ymin;
-		glVertex2fv(vec);
-		vec[1]= ar->v2d.cur.ymax;
-		glVertex2fv(vec);
-	glEnd();
-	
-	glLineWidth(1.0);
-}
 
 static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar)
 {
@@ -218,8 +198,8 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
+	int unit, flag=0;
 	float col[3];
-	int unit;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -241,7 +221,9 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	time_draw_keyframes(C, stime, ar);
 	
 	/* current frame */
-	time_draw_cfra_time(C, stime, ar);
+	if ((stime->flag & TIME_DRAWFRAMES)==0) 	flag |= DRAWCFRA_UNIT_SECONDS;
+	if (stime->flag & TIME_CFRA_NUM) 			flag |= DRAWCFRA_SHOW_NUMBOX;
+	ANIM_draw_cfra(C, v2d, flag);
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(C, v2d, 1);

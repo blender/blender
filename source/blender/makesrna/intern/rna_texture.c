@@ -106,21 +106,21 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_Texture_update(bContext *C, PointerRNA *ptr)
+static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
 	DAG_id_flush_update(&tex->id, 0);
-	WM_event_add_notifier(C, NC_TEXTURE, tex);
+	WM_main_add_notifier(NC_TEXTURE, tex);
 }
 
 /* Used for Texture Properties, used (also) for/in Nodes */
-static void rna_Texture_nodes_update(bContext *C, PointerRNA *ptr)
+static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
 	DAG_id_flush_update(&tex->id, 0);
-	WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, tex);
+	WM_main_add_notifier(NC_TEXTURE|ND_NODES, tex);
 }
 
 static void rna_Texture_type_set(PointerRNA *ptr, int value)
@@ -140,7 +140,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 	tex->type = value;
 }
 
-void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
+void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
@@ -148,16 +148,16 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 
 	switch(GS(id->name)) {
 		case ID_MA: 
-			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, id);
+			WM_main_add_notifier(NC_MATERIAL|ND_SHADING, id);
 			break;
 		case ID_WO: 
-			WM_event_add_notifier(C, NC_WORLD, id);
+			WM_main_add_notifier(NC_WORLD, id);
 			break;
 		case ID_LA: 
-			WM_event_add_notifier(C, NC_LAMP|ND_LIGHTING, id);
+			WM_main_add_notifier(NC_LAMP|ND_LIGHTING, id);
 			break;
 		case ID_BR: 
-			WM_event_add_notifier(C, NC_BRUSH, id);
+			WM_main_add_notifier(NC_BRUSH, id);
 			break;
 	}
 }

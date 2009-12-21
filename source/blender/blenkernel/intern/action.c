@@ -254,101 +254,68 @@ void set_active_action_group (bAction *act, bActionGroup *agrp, short select)
  *	- always adds at the end of the group 
  */
 void action_groups_add_channel (bAction *act, bActionGroup *agrp, FCurve *fcurve)
-{
-	FCurve *fcu;
-	short done=0;
-	
+{	
 	/* sanity checks */
 	if (ELEM3(NULL, act, agrp, fcurve))
 		return;
 	
-	/* if no channels, just add to two lists at the same time */
+	/* if no channels anywhere, just add to two lists at the same time */
 	if (act->curves.first == NULL) {
 		fcurve->next = fcurve->prev = NULL;
 		
 		agrp->channels.first = agrp->channels.last = fcurve;
 		act->curves.first = act->curves.last = fcurve;
-		
-		fcurve->grp= agrp;
-		return;
 	}
 	
-	/* try to find a channel to slot this in before/after */
-	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
-		/* if channel has no group, then we have ungrouped channels, which should always occur after groups */
-		if (fcu->grp == NULL) {
-			BLI_insertlinkbefore(&act->curves, fcu, fcurve);
+	/* if the group already has channels, the F-Curve can simply be added to the list 
+	 * (i.e. as the last channel in the group)
+	 */
+	else if (agrp->channels.first) {
+		/* if the group's last F-Curve is the action's last F-Curve too, 
+		 * then set the F-Curve as the last for the action first so that
+		 * the lists will be in sync after linking
+		 */
+		if (agrp->channels.last == act->curves.last)
+			act->curves.last= fcurve;
 			
-			if (agrp->channels.first == NULL)
-				agrp->channels.first= fcurve;
-			agrp->channels.last= fcurve;
-			
-			done= 1;
-			break;
-		}
-		
-		/* if channel has group after current, we can now insert (otherwise we have gone too far) */
-		else if (fcu->grp == agrp->next) {
-			BLI_insertlinkbefore(&act->curves, fcu, fcurve);
-			
-			if (agrp->channels.first == NULL)
-				agrp->channels.first= fcurve;
-			agrp->channels.last= fcurve;
-			
-			done= 1;
-			break;
-		}
-		
-		/* if channel has group we're targeting, check whether it is the last one of these */
-		else if (fcu->grp == agrp) {
-			if ((fcu->next) && (fcu->next->grp != agrp)) {
-				BLI_insertlinkafter(&act->curves, fcu, fcurve);
-				agrp->channels.last= fcurve;
-				done= 1;
-				break;
-			}
-			else if (fcu->next == NULL) {
-				BLI_addtail(&act->curves, fcurve);
-				agrp->channels.last= fcurve;
-				done= 1;
-				break;
-			}
-		}
-		
-		/* if channel has group before target, check whether the next one is something after target */
-		else if (fcu->grp == agrp->prev) {
-			if (fcu->next) {
-				if ((fcu->next->grp != fcu->grp) && (fcu->next->grp != agrp)) {
-					BLI_insertlinkafter(&act->curves, fcu, fcurve);
-					
-					agrp->channels.first= fcurve;
-					agrp->channels.last= fcurve;
-					
-					done= 1;
-					break;
-				}
-			}
-			else {
-				BLI_insertlinkafter(&act->curves, fcu, fcurve);
-				
-				agrp->channels.first= fcurve;
-				agrp->channels.last= fcurve;
-				
-				done= 1;
-				break;
-			}
-		}
+		/* link in the given F-Curve after the last F-Curve in the group,
+		 * which means that it should be able to fit in with the rest of the
+		 * list seamlessly
+		 */
+		BLI_insertlinkafter(&agrp->channels, agrp->channels.last, fcurve);
 	}
 	
-	/* only if added, set channel as belonging to this group */
-	if (done) {
-		//printf("FCurve added to group \n");
-		fcurve->grp= agrp;
-	}
+	/* otherwise, need to find the nearest F-Curve in group before/after current to link with */
 	else {
-		printf("Error: FCurve '%s' couldn't be added to Group '%s' \n", fcurve->rna_path, agrp->name);
-		BLI_addtail(&act->curves, fcurve);
+		bActionGroup *grp;
+		
+		/* firstly, link this F-Curve to the group */
+		agrp->channels.first = agrp->channels.last = fcurve;
+		
+		/* step through the groups preceeding this one, finding the F-Curve there to attach this one after */
+		for (grp= agrp->prev; grp; grp= grp->prev) {
+			/* if this group has F-Curves, we want weave the given one in right after the last channel there,
+			 * but via the Action's list not this group's list
+			 *	- this is so that the F-Curve is in the right place in the Action,
+			 *	  but won't be included in the previous group
+			 */
+			if (grp->channels.last) {
+				/* once we've added, break here since we don't need to search any further... */
+				BLI_insertlinkafter(&act->curves, grp->channels.last, fcurve);
+				break;
+			}
+		}
+		
+		/* if grp is NULL, that means we fell through, and this F-Curve should be added as the new first
+		 * since group is (effectively) the first group. Thus, the existing first F-Curve becomes the 
+		 * second in the chain, etc. etc.
+		 */
+		if (grp == NULL)
+			BLI_insertlinkbefore(&act->curves, act->curves.first, fcurve);
 	}
+	
+	/* set the F-Curve's new group */
+	fcurve->grp= agrp;
 }	
 
 /* Remove the given channel from all groups */

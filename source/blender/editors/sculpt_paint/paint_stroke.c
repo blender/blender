@@ -73,6 +73,7 @@ typedef struct PaintStroke {
 	   passes over the mesh */
 	int stroke_started;
 
+	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
 	StrokeUpdateStep update_step;
 	StrokeDone done;
@@ -100,7 +101,11 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 
 static void paint_draw_cursor(bContext *C, int x, int y, void *customdata)
 {
-	Brush *brush = paint_brush(paint_get_active(CTX_data_scene(C)));
+	Paint *paint = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(paint);
+
+	if(!(paint->flags & PAINT_SHOW_BRUSH))
+		return;
 
 	glColor4ubv(paint_get_active(CTX_data_scene(C))->paint_cursor_col);
 	glEnable(GL_LINE_SMOOTH);
@@ -118,13 +123,14 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *customdata)
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse[2])
 {
 	PointerRNA itemptr;
-	float cur_depth, pressure = 1;
-	float center[3];
+	float pressure = 1;
+	float center[3] = {0, 0, 0};
 	int flip= event->shift?1:0;
 	PaintStroke *stroke = op->customdata;
 
-	cur_depth = read_cached_depth(&stroke->vc, mouse[0], mouse[1]);
-	view3d_unproject(&stroke->mats, center, mouse[0], mouse[1], cur_depth);	
+	/* XXX: can remove the if statement once all modes have this */
+	if(stroke->get_location)
+		stroke->get_location(C, stroke, center, mouse);
 
 	/* Tablet */
 	if(event->custom == EVT_DATA_TABLET) {
@@ -211,15 +217,19 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 
 /**** Public API ****/
 
-PaintStroke *paint_stroke_new(bContext *C, StrokeTestStart test_start,
-			      StrokeUpdateStep update_step, StrokeDone done)
+PaintStroke *paint_stroke_new(bContext *C,
+			      StrokeGetLocation get_location,
+			      StrokeTestStart test_start,
+			      StrokeUpdateStep update_step,
+			      StrokeDone done)
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 
 	stroke->brush = paint_brush(paint_get_active(CTX_data_scene(C)));
 	view3d_set_viewcontext(C, &stroke->vc);
-	view3d_get_transformation(&stroke->vc, stroke->vc.obact, &stroke->mats);
+	view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
 
+	stroke->get_location = get_location;
 	stroke->test_start = test_start;
 	stroke->update_step = update_step;
 	stroke->done = done;
@@ -229,12 +239,9 @@ PaintStroke *paint_stroke_new(bContext *C, StrokeTestStart test_start,
 
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar = CTX_wm_region(C);
 	PaintStroke *stroke = op->customdata;
 	float mouse[2];
-
-	if(event->type == TIMER && (event->customdata != stroke->timer))
-		return OPERATOR_RUNNING_MODAL;
+	int first= 0;
 
 	if(!stroke->stroke_started) {
 		stroke->last_mouse_position[0] = event->x;
@@ -249,26 +256,13 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 				stroke->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
 		}
 
-		ED_region_tag_redraw(ar);
+		first= 1;
+		//ED_region_tag_redraw(ar);
 	}
 
-	if(stroke->stroke_started) {
-		if(paint_smooth_stroke(stroke, mouse, event)) {
-			if(paint_space_stroke_enabled(stroke->brush)) {
-				if(!paint_space_stroke(C, op, event, mouse))
-					ED_region_tag_redraw(ar);
-			}
-			else
-				paint_brush_stroke_add_step(C, op, event, mouse);
-		}
-		else
-			ED_region_tag_redraw(ar);
-	}
-
-	/* TODO: fix hardcoded event here */
+	/* TODO: fix hardcoded events here */
 	if(event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-		/* Exit stroke, free data */
-
+		/* exit stroke, free data */
 		if(stroke->smooth_stroke_cursor)
 			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
 
@@ -279,8 +273,22 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		MEM_freeN(stroke);
 		return OPERATOR_FINISHED;
 	}
-	else
-		return OPERATOR_RUNNING_MODAL;
+	else if(first || event->type == MOUSEMOVE || (event->type == TIMER && (event->customdata == stroke->timer))) {
+		if(stroke->stroke_started) {
+			if(paint_smooth_stroke(stroke, mouse, event)) {
+				if(paint_space_stroke_enabled(stroke->brush)) {
+					if(!paint_space_stroke(C, op, event, mouse))
+						;//ED_region_tag_redraw(ar);
+				}
+				else
+					paint_brush_stroke_add_step(C, op, event, mouse);
+			}
+			else
+				;//ED_region_tag_redraw(ar);
+		}
+	}
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 int paint_stroke_exec(bContext *C, wmOperator *op)

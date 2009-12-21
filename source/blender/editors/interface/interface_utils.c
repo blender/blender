@@ -151,7 +151,7 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int 
 			uiItemL(col, name, 0);
 		}
 		else if(columns == 2) {
-			split = uiLayoutSplit(layout, 0.5f);
+			split = uiLayoutSplit(layout, 0.5f, 0);
 
 			uiItemL(uiLayoutColumn(split, 0), name, 0);
 			col= uiLayoutColumn(split, 0);

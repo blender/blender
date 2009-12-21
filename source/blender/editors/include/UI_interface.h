@@ -591,6 +591,7 @@ void UI_exit(void);
 #define UI_ITEM_R_ICON_ONLY		16
 #define UI_ITEM_R_EVENT			32
 #define UI_ITEM_R_FULL_EVENT	64
+#define UI_ITEM_R_NO_BG			128
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
@@ -629,13 +630,14 @@ uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutListBox(uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop,
 	struct PointerRNA *actptr, struct PropertyRNA *actprop);
 uiLayout *uiLayoutAbsolute(uiLayout *layout, int align);
-uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align);
 uiLayout *uiLayoutOverlap(uiLayout *layout);
 
 uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
+void uiTemplateDopeSheetFilter(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
 void uiTemplateAnyID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
@@ -685,6 +687,9 @@ void uiItemS(uiLayout *layout); /* separator */
 void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func, void *arg);
 void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
 void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
+
+/* UI Operators */
+void UI_buttons_operatortypes(void);
 
 /* Helpers for Operators */
 void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);

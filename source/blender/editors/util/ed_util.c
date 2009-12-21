@@ -60,7 +60,7 @@ void ED_editors_exit(bContext *C)
 	
 	/* frees all editmode undos */
 	undo_editmode_clear();
-	undo_imagepaint_clear();
+	ED_undo_paint_free();
 	
 	for(sce=G.main->scene.first; sce; sce= sce->id.next) {
 		if(sce->obedit) {
@@ -87,8 +87,15 @@ void ED_editors_exit(bContext *C)
 				//		else if(ob->type==OB_MBALL) 
 				//			BLI_freelistN(&editelems);
 				//	free_editLatt();
-				//	free_posebuf();
+				//	free_posebuf();		// XXX this is still a global...
 			}
+		}
+		else if(sce->basact && sce->basact->object) {
+			Object *ob= sce->basact->object;
+			
+			/* if weight-painting is on, free mesh octree data */
+			if(ob->mode & OB_MODE_WEIGHT_PAINT)
+				mesh_octree_table(ob, NULL, NULL, 'e');
 		}
 	}
 	

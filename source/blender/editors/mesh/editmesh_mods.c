@@ -3629,7 +3629,7 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 	if(!RNA_boolean_get(op->ptr, "extend"))
 		EM_deselect_all(em);
 	
-	selectrandom_mesh(em, RNA_float_get(op->ptr, "percentage")/100.0f);
+	selectrandom_mesh(em, RNA_float_get(op->ptr, "percent")/100.0f);
 		
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
@@ -3652,8 +3652,8 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percentage", 50.f, 0.0f, 100.0f, "Percentage", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 void EM_select_by_material(EditMesh *em, int index) 
@@ -4542,3 +4542,47 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
+static int solidify_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	float nor[3] = {0,0,1};
+
+	float thickness= RNA_float_get(op->ptr, "thickness");
+
+	extrudeflag(obedit, em, SELECT, nor, 1);
+	EM_make_hq_normals(em);
+	EM_solidify(em, thickness);
+
+
+	/* update vertex normals too */
+	recalc_editnormals(em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void MESH_OT_solidify(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	/* identifiers */
+	ot->name= "Solidify";
+	ot->description= "Create a solid skin by extruding, compensating for sharp angles.";
+	ot->idname= "MESH_OT_solidify";
+
+	/* api callbacks */
+	ot->exec= solidify_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	prop= RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
+}

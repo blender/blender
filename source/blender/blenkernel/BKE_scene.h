@@ -66,6 +66,7 @@ void unlink_scene(struct Main *bmain, struct Scene *sce, struct Scene *newsce);
 
 int next_object(struct Scene *scene, int val, struct Base **base, struct Object **ob);
 struct Object *scene_find_camera(struct Scene *sc);
+struct Object *scene_find_camera_switch(struct Scene *scene); // DURIAN_CAMERA_SWITCH
 
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);
 void scene_deselect_all(struct Scene *sce);
@@ -74,6 +75,7 @@ void scene_select_base(struct Scene *sce, struct Base *selbase);
 /* checks for cycle, returns 1 if it's all OK */
 int scene_check_setscene(struct Scene *sce);
 
+void scene_update_tagged(struct Scene *sce);
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 
 void scene_add_render_layer(struct Scene *sce);

@@ -38,7 +38,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
         ob = context.object
 
         row = layout.row()
-        row.label(text="", icon='ICON_OBJECT_DATA')
+        row.label(text="", icon='OBJECT_DATA')
         row.prop(ob, "name", text="")
 
 
@@ -162,7 +162,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
                 row = col.box().row()
                 row.prop(group, "name", text="")
-                row.operator("object.group_remove", text="", icon='ICON_X')
+                row.operator("object.group_remove", text="", icon='X')
 
                 split = col.box().split()
 

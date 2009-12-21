@@ -314,6 +314,10 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -347,6 +351,7 @@ void ED_spacetype_node(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_NODE;
+	strncpy(st->name, "Node", BKE_ST_MAXNAME);
 	
 	st->new= node_new;
 	st->free= node_free;

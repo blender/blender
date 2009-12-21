@@ -190,9 +190,8 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 	scene->lay= ED_view3d_scene_layer_set(scene->lay, values);
 }
 
-static void rna_Scene_layer_update(bContext *C, PointerRNA *ptr)
+static void rna_Scene_layer_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	Scene *scene= (Scene*)ptr->data;
 
 	ED_view3d_scene_layers_update(bmain, scene);
@@ -269,7 +268,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 	data->r.pefra= value;
 }
 
-static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
+static void rna_Scene_frame_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	//Scene *scene= ptr->id.data;
 	//ED_update_for_newframe(C);
@@ -538,7 +537,7 @@ static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 	rl->lay= ED_view3d_scene_layer_set(rl->lay, values);
 }
 
-static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)
+static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
@@ -555,7 +554,7 @@ static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_composit_default(scene);
 }
 
-static void rna_Physics_update(bContext *C, PointerRNA *ptr)
+static void rna_Physics_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 	Base *base;
@@ -723,15 +722,18 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "uv_selectmode");
 	RNA_def_property_enum_items(prop, uv_select_mode_items);
 	RNA_def_property_ui_text(prop, "UV Selection Mode", "UV selection and display mode.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	prop= RNA_def_property(srna, "uv_sync_selection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_flag", UV_SYNC_SELECTION);
 	RNA_def_property_ui_text(prop, "UV Sync Selection", "Keep UV and edit mode mesh selection in sync.");
 	RNA_def_property_ui_icon(prop, ICON_EDIT, 0);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	prop= RNA_def_property(srna, "uv_local_view", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_flag", UV_SHOW_SAME_IMAGE);
 	RNA_def_property_ui_text(prop, "UV Local View", "Draw only faces with the currently displayed image assigned.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* Mesh */
 	prop= RNA_def_property(srna, "mesh_selection_mode", PROP_ENUM, PROP_NONE);
@@ -1670,13 +1672,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "xsch");
 	RNA_def_property_range(prop, 4, 10000);
 	RNA_def_property_ui_text(prop, "Resolution X", "Number of horizontal pixels in the rendered image.");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ysch");
 	RNA_def_property_range(prop, 4, 10000);
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of vertical pixels in the rendered image.");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "resolution_percentage", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "size");
@@ -1700,13 +1702,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "xasp");
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect X", "Horizontal aspect ratio - for anamorphic or non-square pixel output");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "pixel_aspect_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yasp");
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect Y", "Vertical aspect ratio - for anamorphic or non-square pixel output");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	/* JPEG and AVI JPEG */
 	
@@ -2266,7 +2268,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stamp Filename", "Include the filename of the .blend file in image metadata");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "stamp_sequence_strip", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "stamp_sequencer_strip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_SEQSTRIP);
 	RNA_def_property_ui_text(prop, "Stamp Sequence Strip", "Include the name of the foreground sequence strip in image metadata");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
@@ -2428,6 +2430,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "set", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "set");
@@ -2435,11 +2438,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
 	RNA_def_property_ui_text(prop, "Set Scene", "Background set scene.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene.");
-	RNA_def_property_update(prop, NC_WORLD, NULL);
+	RNA_def_property_update(prop, NC_SCENE|NC_WORLD, NULL);
 
 	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "cursor");
@@ -2530,6 +2534,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	
 	/* Animation Data (for Scene) */
 	rna_def_animdata_common(srna);
+	
+	/* Readonly Properties */
+	prop= RNA_def_property(srna, "nla_tweakmode_on", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_NLA_EDIT_ON);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* DO NOT MAKE THIS EDITABLE, OR NLA EDITOR BREAKS */
+	RNA_def_property_ui_text(prop, "NLA TweakMode", "Indicates whether there is any action referenced by NLA being edited. Strictly read-only.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
 	
 	/* Nodes (Compositing) */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);

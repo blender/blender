@@ -50,7 +50,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 @rnaType
 class RENDER_PT_network_settings(RenderButtonsPanel):
 	bl_label = "Network Settings"
-	COMPAT_ENGINES = set(['NET_RENDER'])
+	COMPAT_ENGINES = {'NET_RENDER'}
 
 	def draw(self, context):
 		layout = self.layout
@@ -63,6 +63,11 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
+
+		
+		if scene.network_render.mode in ("RENDER_MASTER", "RENDER_SLAVE"):
+			col.operator("screen.render", text="Start", icon='PLAY').animation = True
+
 		col.prop(scene.network_render, "mode")
 		col.prop(scene.network_render, "path")
 		col.prop(scene.network_render, "server_address")
@@ -71,16 +76,17 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 		if scene.network_render.mode == "RENDER_MASTER":
 			col.prop(scene.network_render, "server_broadcast")
 		else:
-			col.operator("render.netclientscan", icon="ICON_FILE_REFRESH", text="")
+			col.operator("render.netclientscan", icon='FILE_REFRESH', text="")
 
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
 	bl_label = "Job Settings"
-	COMPAT_ENGINES = set(['NET_RENDER'])
+	COMPAT_ENGINES = {'NET_RENDER'}
 	
 	def poll(self, context):
 		scene = context.scene
-		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+		return (super().poll(context)
+				and scene.network_render.mode == "RENDER_CLIENT")
 
 	def draw(self, context):
 		layout = self.layout
@@ -93,10 +99,14 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.operator("render.netclientanim", icon='ICON_RENDER_ANIMATION')
-		col.operator("render.netclientsend", icon="ICON_FILE_BLEND")
-		col.operator("render.netclientweb", icon="ICON_QUESTION")
+		if scene.network_render.server_address != "[default]":
+			col.operator("render.netclientanim", icon='RENDER_ANIMATION')
+			col.operator("render.netclientsend", icon='FILE_BLEND')
+			if scene.network_render.job_id:
+				col.operator("screen.render", text="Get Results", icon='RENDER_ANIMATION').animation = True
+			col.operator("render.netclientweb", icon='QUESTION')
 		col.prop(scene.network_render, "job_name")
+		col.prop(scene.network_render, "job_category")
 		row = col.row()
 		row.prop(scene.network_render, "priority")
 		row.prop(scene.network_render, "chunks")
@@ -104,11 +114,13 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 @rnaType
 class RENDER_PT_network_slaves(RenderButtonsPanel):
 	bl_label = "Slaves Status"
-	COMPAT_ENGINES = set(['NET_RENDER'])
+	COMPAT_ENGINES = {'NET_RENDER'}
 	
 	def poll(self, context):
 		scene = context.scene
-		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+		return (super().poll(context)
+				and scene.network_render.mode == "RENDER_CLIENT"
+				and scene.network_render.server_address != "[default]")
 
 	def draw(self, context):
 		layout = self.layout
@@ -120,8 +132,8 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 		row.template_list(netsettings, "slaves", netsettings, "active_slave_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.operator("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
-		sub.operator("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
+		sub.operator("render.netclientslaves", icon='FILE_REFRESH', text="")
+		sub.operator("render.netclientblacklistslave", icon='ZOOMOUT', text="")
 		
 		if len(netrender.slaves) == 0 and len(netsettings.slaves) > 0:
 			while(len(netsettings.slaves) > 0):
@@ -140,11 +152,13 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 @rnaType
 class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 	bl_label = "Slaves Blacklist"
-	COMPAT_ENGINES = set(['NET_RENDER'])
+	COMPAT_ENGINES = {'NET_RENDER'}
 	
 	def poll(self, context):
 		scene = context.scene
-		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+		return (super().poll(context)
+				and scene.network_render.mode == "RENDER_CLIENT"
+				and scene.network_render.server_address != "[default]")
 	
 	def draw(self, context):
 		layout = self.layout
@@ -156,7 +170,7 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 		row.template_list(netsettings, "slaves_blacklist", netsettings, "active_blacklisted_slave_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.operator("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
+		sub.operator("render.netclientwhitelistslave", icon='ZOOMOUT', text="")
 
 		if len(netrender.blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
 			while(len(netsettings.slaves_blacklist) > 0):
@@ -175,11 +189,13 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 @rnaType
 class RENDER_PT_network_jobs(RenderButtonsPanel):
 	bl_label = "Jobs"
-	COMPAT_ENGINES = set(['NET_RENDER'])
+	COMPAT_ENGINES = {'NET_RENDER'}
 	
 	def poll(self, context):
 		scene = context.scene
-		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+		return (super().poll(context)
+				and scene.network_render.mode == "RENDER_CLIENT"
+				and scene.network_render.server_address != "[default]")
 	
 	def draw(self, context):
 		layout = self.layout
@@ -191,10 +207,10 @@ class RENDER_PT_network_jobs(RenderButtonsPanel):
 		row.template_list(netsettings, "jobs", netsettings, "active_job_index", rows=2)
 
 		sub = row.column(align=True)
-		sub.operator("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
-		sub.operator("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
-		sub.operator("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
-		sub.operator("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
+		sub.operator("render.netclientstatus", icon='FILE_REFRESH', text="")
+		sub.operator("render.netclientcancel", icon='ZOOMOUT', text="")
+		sub.operator("render.netclientcancelall", icon='PANEL_CLOSE', text="")
+		sub.operator("render.netclientdownload", icon='RENDER_ANIMATION', text="")
 
 		if len(netrender.jobs) == 0 and len(netsettings.jobs) > 0:
 			while(len(netsettings.jobs) > 0):
@@ -263,6 +279,12 @@ NetRenderSettings.StringProperty( attr="job_name",
 				description="Name of the job",
 				maxlen = 128,
 				default = "[default]")
+
+NetRenderSettings.StringProperty( attr="job_category",
+				name="Job category",
+				description="Category of the job",
+				maxlen = 128,
+				default = "")
 
 NetRenderSettings.IntProperty( attr="chunks",
 				name="Chunks",

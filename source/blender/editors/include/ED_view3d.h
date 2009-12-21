@@ -30,6 +30,7 @@
 
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
+struct BoundBox;
 struct View3D;
 struct RegionView3D;
 struct ViewContext;
@@ -44,6 +45,7 @@ struct ImBuf;
 struct Scene;
 struct bContext;
 struct Main;
+struct rcti;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
@@ -79,6 +81,8 @@ void request_depth_update(struct RegionView3D *rv3d);
 
 /* Projection */
 #define IS_CLIPPED        12000
+
+void view3d_calculate_clipping(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, struct rcti *rect);
 
 void project_short(struct ARegion *ar, float *vec, short *adr);
 void project_short_noclip(struct ARegion *ar, float *vec, short *adr);
@@ -131,7 +135,7 @@ short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigne
 void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 void view3d_operator_needs_opengl(const struct bContext *C);
 void view3d_get_view_aligned_coordinate(struct ViewContext *vc, float *fp, short mval[2]);
-void view3d_get_transformation(struct ViewContext *vc, struct Object *ob, struct bglMats *mats);
+void view3d_get_transformation(struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
 /* XXX should move to arithb.c */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);

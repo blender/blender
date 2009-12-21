@@ -146,7 +146,9 @@ typedef struct SpaceSeq {
 	short zebra;
 	int flag;
 	float zoom;
-	
+	int view; /* see SEQ_VIEW_* below */
+	int pad;
+
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceSeq;
 
@@ -667,6 +669,7 @@ enum FileSortTypeE {
 #define TEXTFILE			512
 #define MOVIEFILE_ICON		1024 /* movie file that preview can't load */
 #define FOLDERFILE			2048 /* represents folders for filtering */
+#define BTXFILE				4096
 
 /* SpaceImage->dt_uv */
 #define SI_UVDT_OUTLINE	0
@@ -825,7 +828,7 @@ enum {
 /* time->flag */
 	/* show timing in frames instead of in seconds */
 #define TIME_DRAWFRAMES		1
-	/* temporary flag set when scrubbing time */
+	/* show time indicator box beside the frame number */
 #define TIME_CFRA_NUM		2
 	/* only keyframes from active/selected channels get shown */
 #define TIME_ONLYACTSEL		4
@@ -855,6 +858,12 @@ enum {
 #define SEQ_DRAW_SAFE_MARGINS        8
 #define SEQ_DRAW_GPENCIL			16
 #define SEQ_NO_DRAW_CFRANUM			32
+
+/* sseq->view */
+#define SEQ_VIEW_SEQUENCE			1
+#define SEQ_VIEW_PREVIEW			2
+#define SEQ_VIEW_SEQUENCE_PREVIEW	3
+
 
 /* space types, moved from DNA_screen_types.h */
 enum {

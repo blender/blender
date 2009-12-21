@@ -217,6 +217,10 @@ static void logic_listener(ARegion *ar, wmNotifier *wmn)
 				break;
 		case NC_OBJECT:
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -328,6 +332,7 @@ void ED_spacetype_logic(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_LOGIC;
+	strncpy(st->name, "Logic", BKE_ST_MAXNAME);
 	
 	st->new= logic_new;
 	st->free= logic_free;

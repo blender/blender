@@ -660,7 +660,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 
 	if(nr<1) return;
 
-	if(nr==1)  transmode= extrudeflag(obedit, em, SELECT, nor);
+	if(nr==1)  transmode= extrudeflag(obedit, em, SELECT, nor, 0);
 	else if(nr==4) transmode= extrudeflag_verts_indiv(em, SELECT, nor);
 	else if(nr==3) transmode= extrudeflag_edges_indiv(em, SELECT, nor);
 	else transmode= extrudeflag_face_indiv(em, SELECT, nor);
@@ -816,7 +816,7 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	mul_m3_v3(tmat, dvec);
 
 	for(a=0; a<steps; a++) {
-		extrudeflag(obedit, em, SELECT, nor);
+		extrudeflag(obedit, em, SELECT, nor, 0);
 		translateflag(em, SELECT, dvec);
 	}
 
@@ -898,7 +898,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 			adduplicateflag(em, 1);
 
 	for(a=0; a<steps; a++) {
-		if(dupli==0) ok= extrudeflag(obedit, em, SELECT, nor);
+		if(dupli==0) ok= extrudeflag(obedit, em, SELECT, nor, 0);
 		else adduplicateflag(em, SELECT);
 
 		if(ok==0)
@@ -4985,7 +4985,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 //	RNA_enum_set(op->ptr, "proportional", 0);
 //	RNA_boolean_set(op->ptr, "mirror", 0);
-//	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+//	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }

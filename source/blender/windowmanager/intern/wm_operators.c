@@ -615,6 +615,9 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if (RNA_property_type(prop) != PROP_ENUM) {
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
+	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
+		return op->type->exec(C, op);
+	}
 	else {
 		pup= uiPupMenuBegin(C, op->type->name, 0);
 		layout= uiPupMenuLayout(pup);
@@ -679,6 +682,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 	prop= RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_btx", (filter & BTXFILE), "Filter btx files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -922,7 +927,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	
-	split = uiLayoutSplit(layout, 0);
+	split = uiLayoutSplit(layout, 0, 0);
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Links", 0);
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_release_logs");
@@ -2378,7 +2383,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(event->ctrl) {
 			if(mode == WM_RADIALCONTROL_STRENGTH)
-				new_value = ((int)(new_value * 100) / 10*10) / 100.0f;
+				new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
 			else
 				new_value = ((int)new_value + 5) / 10*10;
 		}
@@ -2545,8 +2550,10 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 				CTX_wm_area_set(C, sa);
 
 				for(ar_iter= sa->regionbase.first; ar_iter; ar_iter= ar_iter->next) {
-					CTX_wm_region_set(C, ar_iter);
-					ED_region_do_draw(C, ar_iter);
+					if(ar_iter->swinid) {
+						CTX_wm_region_set(C, ar_iter);
+						ED_region_do_draw(C, ar_iter);
+					}
 				}
 			}
 
@@ -2853,10 +2860,6 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F8KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
 	RNA_string_set(km->ptr, "value", "SEQUENCE_EDITOR");
-
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "OUTLINER");
 
 	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");

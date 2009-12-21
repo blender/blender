@@ -44,14 +44,19 @@ typedef struct CustomDataLayer {
 	void *data;     /* layer data */
 } CustomDataLayer;
 
+typedef struct CustomDataExternal {
+	char filename[240]; /* FILE_MAX */
+} CustomDataExternal;
+
 /* structure which stores custom element data associated with mesh elements
  * (vertices, edges or faces). The custom data is organised into a series of
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
-	CustomDataLayer *layers;  /* CustomDataLayers, ordered by type */
-	int totlayer, maxlayer;   /* number of layers, size of layers array */
-	int totsize, pad;         /* in editmode, total size of all data layers */
-	void *pool;		  /* for Bmesh: Memory pool for allocation of blocks*/
+	CustomDataLayer *layers;      /* CustomDataLayers, ordered by type */
+	int totlayer, maxlayer;       /* number of layers, size of layers array */
+	int totsize, pad;             /* in editmode, total size of all data layers */
+	void *pool;                   /* Bmesh: Memory pool for allocation of blocks */
+	CustomDataExternal *external; /* external file storing customdata layers */
 } CustomData;
 
 /* CustomData.type */
@@ -115,6 +120,10 @@ typedef struct CustomData {
 #define CD_FLAG_NOFREE    (1<<1)
 /* indicates the layer is only temporary, also implies no copy */
 #define CD_FLAG_TEMPORARY ((1<<2)|CD_FLAG_NOCOPY)
+/* indicates the layer is stored in an external file */
+#define CD_FLAG_EXTERNAL  (1<<3)
+/* indicates external data is read into memory */
+#define CD_FLAG_IN_MEMORY (1<<4)
 
 /* Limits */
 #define MAX_MTFACE 8

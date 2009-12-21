@@ -42,7 +42,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 
 class RENDER_PT_render(RenderButtonsPanel):
     bl_label = "Render"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -53,11 +53,11 @@ class RENDER_PT_render(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.operator("screen.render", text="Image", icon='ICON_RENDER_STILL')
+        col.operator("screen.render", text="Image", icon='RENDER_STILL')
 
         if wide_ui:
             col = split.column()
-        col.operator("screen.render", text="Animation", icon='ICON_RENDER_ANIMATION').animation = True
+        col.operator("screen.render", text="Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.prop(rd, "display_mode", text="Display")
 
@@ -65,7 +65,7 @@ class RENDER_PT_render(RenderButtonsPanel):
 class RENDER_PT_layers(RenderButtonsPanel):
     bl_label = "Layers"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -78,8 +78,8 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("scene.render_layer_add", icon='ICON_ZOOMIN', text="")
-        col.operator("scene.render_layer_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
+        col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
         rl = rd.layers[rd.active_layer_index]
 
@@ -146,19 +146,19 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "pass_diffuse")
         row = col.row()
         row.prop(rl, "pass_specular")
-        row.prop(rl, "pass_specular_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_specular_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_shadow")
-        row.prop(rl, "pass_shadow_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_shadow_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_ao")
-        row.prop(rl, "pass_ao_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_ao_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_reflection")
-        row.prop(rl, "pass_reflection_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_reflection_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_refraction")
-        row.prop(rl, "pass_refraction_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_refraction_exclude", text="", icon='X')
 
         if rl.freestyle:
             layout.separator()
@@ -181,16 +181,16 @@ class RENDER_PT_layers(RenderButtonsPanel):
                     row = box.row(align=True)
                     row.prop(module, "is_displayed", text="")
                     row.prop(module, "module_path", text="")
-                    row.operator("scene.freestyle_module_remove", icon='ICON_X', text="")
-                    props = row.operator("scene.freestyle_module_move_up", icon='VICON_MOVE_UP', text="")
+                    row.operator("scene.freestyle_module_remove", icon='X', text="")
+                    props = row.operator("scene.freestyle_module_move_up", icon='MOVE_UP_VEC', text="")
                     props.active = (i > 0)
-                    props = row.operator("scene.freestyle_module_move_down", icon='VICON_MOVE_DOWN', text="")
+                    props = row.operator("scene.freestyle_module_move_down", icon='MOVE_DOWN_VEC', text="")
                     props.active = (i < len(freestyle.modules) - 1)
 
 
 class RENDER_PT_shading(RenderButtonsPanel):
     bl_label = "Shading"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -216,7 +216,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 class RENDER_PT_performance(RenderButtonsPanel):
     bl_label = "Performance"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -260,7 +260,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
 class RENDER_PT_post_processing(RenderButtonsPanel):
     bl_label = "Post Processing"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -309,7 +309,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
 
 class RENDER_PT_output(RenderButtonsPanel):
     bl_label = "Output"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -392,7 +392,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 class RENDER_PT_encoding(RenderButtonsPanel):
     bl_label = "Encoding"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
         rd = context.scene.render_data
@@ -461,7 +461,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
     bl_label = "Anti-Aliasing"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         rd = context.scene.render_data
@@ -489,7 +489,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
     bl_label = "Dimensions"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -538,7 +538,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 class RENDER_PT_stamp(RenderButtonsPanel):
     bl_label = "Stamp"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         rd = context.scene.render_data
@@ -564,7 +564,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         col.prop(rd, "stamp_camera", text="Camera")
         col.prop(rd, "stamp_filename", text="Filename")
         col.prop(rd, "stamp_marker", text="Marker")
-        col.prop(rd, "stamp_sequence_strip", text="Seq. Strip")
+        col.prop(rd, "stamp_sequencer_strip", text="Seq. Strip")
 
         if wide_ui:
             col = split.column()

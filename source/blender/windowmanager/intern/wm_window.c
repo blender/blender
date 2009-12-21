@@ -574,6 +574,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		
 		switch(type) {
 			case GHOST_kEventWindowDeactivate:
+				wm_event_add_ghostevent(win, type, data);
 				win->active= 0; /* XXX */
 				break;
 			case GHOST_kEventWindowActivate: 
@@ -943,6 +944,8 @@ void wm_window_get_size_ghost(wmWindow *win, int *width_r, int *height_r)
 	GHOST_RectangleHandle bounds= GHOST_GetClientBounds(win->ghostwin);
 	*width_r= GHOST_GetWidthRectangle(bounds);
 	*height_r= GHOST_GetHeightRectangle(bounds);
+	
+	GHOST_DisposeRectangle(bounds);
 }
 
 void wm_window_set_size(wmWindow *win, int width, int height) 
@@ -969,6 +972,18 @@ void wm_window_swap_buffers(wmWindow *win)
 	glEnable(GL_SCISSOR_TEST);
 #else
 	GHOST_SwapWindowBuffers(win->ghostwin);
+#endif
+}
+
+void wm_get_cursor_position(wmWindow *win, int *x, int *y)
+{
+	GHOST_GetCursorPosition(g_system, x, y);
+	GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+	//Cocoa has silly exception that should be fixed at the ghost level
+	//(ghost is an allegory for an invisible system specific code)
+#else
+	*y = (win->sizey-1) - *y;
 #endif
 }
 

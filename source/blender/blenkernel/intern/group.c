@@ -217,8 +217,8 @@ static int rem_from_group_internal(Group *group, Object *ob)
 int rem_from_group(Group *group, Object *object, Scene *scene, Base *base)
 {
 	if(rem_from_group_internal(group, object)) {
-
-		if(find_group(object, NULL) == NULL) {
+		/* object can be NULL */
+		if(object && find_group(object, NULL) == NULL) {
 			if(scene && base==NULL)
 				base= object_in_scene(object, scene);
 

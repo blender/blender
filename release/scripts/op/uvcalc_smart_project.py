@@ -20,13 +20,14 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+# <pep8 compliant>
 
 #from Blender import Object, Draw, Window, sys, Mesh, Geometry
 from Mathutils import Matrix, Vector, RotationMatrix
 import time
 import Geometry
 import bpy
-from math import cos, degrees, radians
+from math import cos, radians
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
 SMALL_NUM = 0.000000001

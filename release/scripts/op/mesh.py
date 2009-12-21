@@ -16,12 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8-80 compliant>
+
 import bpy
+
 
 def main(context):
     ob = context.active_object
     bpy.ops.mesh.selection_type(type='FACE')
-    is_editmode = (ob.mode=='EDIT')
+    is_editmode = (ob.mode == 'EDIT')
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
@@ -46,6 +49,7 @@ def main(context):
 
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
 
 class MeshSelectInteriorFaces(bpy.types.Operator):
     '''Select faces where all edges have more then 2 face users.'''

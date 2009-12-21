@@ -86,7 +86,7 @@ void bake_console_progress(void *arg, int nr)
 	fflush(stdout);
 }
 
-void bake_console_progress_end(void *arg, int nr)
+void bake_console_progress_end(void *arg)
 {
 	printf("\n");
 }

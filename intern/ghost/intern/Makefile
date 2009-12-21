@@ -41,7 +41,15 @@ CCSRCS += GHOST_CallbackEventConsumer.cpp
 CCSRCS += GHOST_NDOFManager.cpp
 
 ifeq ($(OS),$(findstring $(OS), "darwin"))
-    CCSRCS += $(wildcard *Carbon.cpp)
+    ifeq ($(WITH_COCOA), true)
+        OCSRCS += $(wildcard *Cocoa.mm)
+        CPPFLAGS += -DGHOST_COCOA
+        ifeq ($(WITH_QUICKTIME), true)
+            CPPFLAGS += -DWITH_QUICKTIME
+        endif
+    else
+        CCSRCS += $(wildcard *Carbon.cpp)
+    endif
 endif
 
 ifeq ($(OS),$(findstring $(OS), "windows"))

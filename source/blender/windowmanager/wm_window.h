@@ -55,6 +55,8 @@ void		wm_window_get_position	(wmWindow *win, int *posx_r, int *posy_r);
 void		wm_window_set_title		(wmWindow *win, char *title);
 void		wm_window_swap_buffers	(wmWindow *win);
 
+void		wm_get_cursor_position	(wmWindow *win, int *x, int *y);
+
 wmWindow	*wm_window_copy			(bContext *C, wmWindow *winorig);
 
 void		wm_window_testbreak		(void);

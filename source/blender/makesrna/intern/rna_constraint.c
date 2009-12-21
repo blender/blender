@@ -198,24 +198,24 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 	return BLI_sprintfN("constraints[\"%s\"]", con->name);
 }
 
-static void rna_Constraint_update(bContext *C, PointerRNA *ptr)
+static void rna_Constraint_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ED_object_constraint_update(ptr->id.data);
 }
 
-static void rna_Constraint_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_Constraint_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	ED_object_constraint_dependency_update(CTX_data_scene(C), ptr->id.data);
+	ED_object_constraint_dependency_update(scene, ptr->id.data);
 }
 
-static void rna_Constraint_influence_update(bContext *C, PointerRNA *ptr)
+static void rna_Constraint_influence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 
 	if(ob->pose)
 		ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 	
-	rna_Constraint_update(C, ptr);
+	rna_Constraint_update(bmain, scene, ptr);
 }
 
 static void rna_Constraint_ik_type_set(struct PointerRNA *ptr, int value)

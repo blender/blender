@@ -452,12 +452,13 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_LAYER:
-					ED_region_tag_redraw(ar);
-					break;
+				case ND_RENDER_OPTIONS:
 				case ND_MODE:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			if (wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_OBJECT:
 			switch(wmn->data) {
@@ -518,7 +519,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->data == ND_ID_RENAME)
+			if(wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -644,7 +645,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->data == ND_ID_RENAME)
+			if(wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -775,6 +776,7 @@ void ED_spacetype_view3d(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_VIEW3D;
+	strncpy(st->name, "View3D", BKE_ST_MAXNAME);
 	
 	st->new= view3d_new;
 	st->free= view3d_free;

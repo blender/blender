@@ -60,7 +60,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h" /* so we can check the image's type */
 #include "BKE_main.h" /* so we can access G.main->*.first */
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_text.h" /* for writing to a textblock */
 #include "BKE_utildefines.h"
 

@@ -904,7 +904,7 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 		}
 	}
 
-	if(!extend || hit) {
+	if(!extend && hit) {
 		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if(flag[a])

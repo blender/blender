@@ -105,8 +105,11 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
+	/* this is needed so children are also updated */
+	DAG_ids_flush_update(0);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -241,6 +244,9 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
+	/* this is needed so children are also updated */
+	DAG_ids_flush_update(0);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -299,6 +305,9 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
+	/* this is needed so children are also updated */
+	DAG_ids_flush_update(0);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -546,17 +555,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		where_is_object(scene, ob);
-		
-		VECCOPY(ob->loc, ob->obmat[3]);
-		mat4_to_size(ob->size,ob->obmat);
-		
-		if (ob->rotmode == ROT_MODE_QUAT)
-			mat4_to_quat(ob->quat, ob->obmat);
-		else if (ob->rotmode == ROT_MODE_AXISANGLE)
-			mat4_to_axis_angle(ob->rotAxis, &ob->rotAngle, ob->obmat);
-		else
-			mat4_to_eul(ob->rot,ob->obmat);
-		
+		object_apply_mat4(ob, ob->obmat);
 		where_is_object(scene, ob);
 		
 		change = 1;

@@ -49,19 +49,17 @@
 #include "BLI_winstuff.h"
 #endif
 
-#include "DNA_anim_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_util.h"
+#include "BLI_path_util.h"
 #include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
-#include "BKE_fcurve.h"
 #include "BKE_text.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -78,7 +76,6 @@
 #include "../generic/Geometry.h"
 #include "../generic/BGL.h"
 #include "../generic/IDProp.h"
-
 
 /* for internal use, when starting and ending python scripts */
 
@@ -283,6 +280,14 @@ void BPY_start_python_path(void)
 	/* set the environment path */
 	printf("found bundled python: %s\n", py_path_bundle);
 
+#ifdef __APPLE__
+	/* OSX allow file/directory names to contain : character (represented as / in the Finder)
+	 but current Python lib (release 3.1.1) doesn't handle these correctly */
+	if(strchr(py_path_bundle, ':'))
+		printf("Warning : Blender application is located in a path containing : or / chars\
+			   \nThis may make python import function fail\n");
+#endif
+	
 #if 0
 	BLI_setenv("PYTHONHOME", py_path_bundle);
 	BLI_setenv("PYTHONPATH", py_path_bundle);
@@ -316,11 +321,25 @@ void BPY_start_python( int argc, char **argv )
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
 		int i;
+#if 0
 		PyObject *py_argv= PyList_New(argc);
-
 		for (i=0; i<argc; i++)
 			PyList_SET_ITEM(py_argv, i, PyUnicode_FromString(argv[i]));
 
+#else	// should fix bug #20021 - utf path name problems
+		PyObject *py_argv= PyList_New(0);
+		for (i=0; i<argc; i++) {
+			PyObject *item= PyUnicode_Decode(argv[i], strlen(argv[i]), Py_FileSystemDefaultEncoding, NULL);
+			if(item==NULL) { // should never happen
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			else {
+				PyList_Append(py_argv, item);
+				Py_DECREF(item);
+			}
+		}
+#endif
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
 	}
@@ -538,7 +557,9 @@ int BPY_run_script_space_listener(bContext *C, SpaceScript * sc)
 
 void BPY_DECREF(void *pyob_ptr)
 {
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 	Py_DECREF((PyObject *)pyob_ptr);
+	PyGILState_Release(gilstate);
 }
 
 #if 0
@@ -596,201 +617,6 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #include "PIL_time.h"
 #endif
 
-/* ****************************************** */
-/* Drivers - PyExpression Evaluation */
-
-/* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
-PyObject *bpy_pydriver_Dict = NULL;
-
-/* For faster execution we keep a special dictionary for pydrivers, with
- * the needed modules and aliases. 
- */
-static int bpy_pydriver_create_dict(void)
-{
-	PyObject *d, *mod;
-	
-	/* validate namespace for driver evaluation */
-	if (bpy_pydriver_Dict) return -1;
-
-	d = PyDict_New();
-	if (d == NULL) 
-		return -1;
-	else
-		bpy_pydriver_Dict = d;
-
-	/* import some modules: builtins, bpy, math, (Blender.noise )*/
-	PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins());
-
-	mod = PyImport_ImportModule("math");
-	if (mod) {
-		PyDict_Merge(d, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
-		
-		/* Only keep for backwards compat! - just import all math into root, they are standard */
-		PyDict_SetItemString(d, "math", mod);
-		PyDict_SetItemString(d, "m", mod);
-		Py_DECREF(mod);
-	} 
-	
-	/* add bpy to global namespace */
-	mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
-	if (mod) {
-		PyDict_SetItemString(bpy_pydriver_Dict, "bpy", mod);
-		Py_DECREF(mod);
-	}
-	
-	
-#if 0 // non existant yet
-	mod = PyImport_ImportModule("Blender.Noise");
-	if (mod) {
-		PyDict_SetItemString(d, "noise", mod);
-		PyDict_SetItemString(d, "n", mod);
-		Py_DECREF(mod);
-	} else {
-		PyErr_Clear();
-	}
-	
-	/* If there's a Blender text called pydrivers.py, import it.
-	 * Users can add their own functions to this module. 
-	 */
-	if (G.f & G_DOSCRIPTLINKS) {
-		mod = importText("pydrivers"); /* can also use PyImport_Import() */
-		if (mod) {
-			PyDict_SetItemString(d, "pydrivers", mod);
-			PyDict_SetItemString(d, "p", mod);
-			Py_DECREF(mod);
-		} else {
-			PyErr_Clear();
-		}
-	}
-#endif // non existant yet
-	
-	return 0;
-}
-
-/* Update function, it gets rid of pydrivers global dictionary, forcing
- * BPY_pydriver_eval to recreate it. This function is used to force
- * reloading the Blender text module "pydrivers.py", if available, so
- * updates in it reach pydriver evaluation. 
- */
-void BPY_pydriver_update(void)
-{
-	PyGILState_STATE gilstate = PyGILState_Ensure();
-
-	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
-		PyDict_Clear(bpy_pydriver_Dict);
-		Py_DECREF(bpy_pydriver_Dict);
-		bpy_pydriver_Dict = NULL;
-	}
-
-	PyGILState_Release(gilstate);
-
-	return;
-}
-
-/* error return function for BPY_eval_pydriver */
-static float pydriver_error(ChannelDriver *driver) 
-{
-	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
-		PyDict_Clear(bpy_pydriver_Dict);
-		Py_DECREF(bpy_pydriver_Dict);
-		bpy_pydriver_Dict = NULL;
-	}
-
-	driver->flag |= DRIVER_FLAG_INVALID; /* py expression failed */
-	fprintf(stderr, "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n", driver->expression);
-	
-	BPy_errors_to_report(NULL); // TODO - reports
-
-	return 0.0f;
-}
-
-/* This evals py driver expressions, 'expr' is a Python expression that
- * should evaluate to a float number, which is returned. 
- */
-float BPY_pydriver_eval (ChannelDriver *driver)
-{
-	PyObject *driver_vars=NULL;
-	PyObject *retval;
-	PyGILState_STATE gilstate;
-	
-	DriverTarget *dtar;
-	float result = 0.0f; /* default return */
-	char *expr = NULL;
-	short targets_ok= 1;
-	
-	/* sanity checks - should driver be executed? */
-	if ((driver == NULL) /*|| (G.f & G_DOSCRIPTLINKS)==0*/) 
-		return result;
-	
-	/* get the py expression to be evaluated */
-	expr = driver->expression; 
-	if ((expr == NULL) || (expr[0]=='\0')) 
-		return result;
-
-	gilstate = PyGILState_Ensure();
-	
-	/* init global dictionary for py-driver evaluation settings */
-	if (!bpy_pydriver_Dict) {
-		if (bpy_pydriver_create_dict() != 0) {
-			fprintf(stderr, "Pydriver error: couldn't create Python dictionary");
-			PyGILState_Release(gilstate);
-			return result;
-		}
-	}
-	
-	/* add target values to a dict that will be used as '__locals__' dict */
-	driver_vars = PyDict_New(); // XXX do we need to decref this?
-	for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-		PyObject *driver_arg = NULL;
-		float tval = 0.0f;
-		
-		/* try to get variable value */
-		tval= driver_get_target_value(driver, dtar);
-		driver_arg= PyFloat_FromDouble((double)tval);
-		
-		/* try to add to dictionary */
-		if (PyDict_SetItemString(driver_vars, dtar->name, driver_arg)) {
-			/* this target failed - bad name */
-			if (targets_ok) {
-				/* first one - print some extra info for easier identification */
-				fprintf(stderr, "\nBPY_pydriver_eval() - Error while evaluating PyDriver:\n");
-				targets_ok= 0;
-			}
-			
-			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dtar->name);
-			BPy_errors_to_report(NULL); // TODO - reports
-		}
-	}
-	
-	/* execute expression to get a value */
-	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict, driver_vars);
-	
-	/* decref the driver vars first...  */
-	Py_DECREF(driver_vars);
-	
-	/* process the result */
-	if (retval == NULL) {
-		result = pydriver_error(driver);
-		PyGILState_Release(gilstate);
-		return result;
-	}
-
-	result = (float)PyFloat_AsDouble(retval);
-	Py_DECREF(retval);
-	
-	if ((result == -1) && PyErr_Occurred()) {
-		result = pydriver_error(driver);
-		PyGILState_Release(gilstate);
-		return result;
-	}
-	
-	/* all fine, make sure the "invalid expression" flag is cleared */
-	driver->flag &= ~DRIVER_FLAG_INVALID;
-
-	PyGILState_Release(gilstate);
-
-	return result;
-}
 
 int BPY_button_eval(bContext *C, char *expr, double *value)
 {

@@ -1377,7 +1377,7 @@ static void ui_block_func_MENUSTR(bContext *C, uiLayout *layout, void *arg_str)
 	}
 
 	/* create items */
-	split= uiLayoutSplit(layout, 0);
+	split= uiLayoutSplit(layout, 0, 0);
 
 	for(a=0, b=0; a<md->nitems; a++, b++) {
 		if(block->flag & UI_BLOCK_NO_FLIP)
@@ -2288,6 +2288,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 		/* menu is created from a string */
 		pup->menu_func= ui_block_func_MENUSTR;
 		pup->menu_arg= str;
+		// XXX pup->block->flag |= UI_BLOCK_NO_FLIP;
 	}
 	else {
 		/* menu is created from a callback */

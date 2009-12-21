@@ -270,6 +270,14 @@ BF_PCRE_LIBPATH = '${BF_PCRE}/lib'
 #BF_EXPAT_LIB = 'expat'
 #BF_EXPAT_LIBPATH = '/usr/lib'
 
+#Ray trace optimization
+WITH_BF_RAYOPTIMIZATION = False
+if MACOSX_ARCHITECTURE == 'i386':
+    BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
+elif MACOSX_ARCHITECTURE == 'x86_64':
+    BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-msse2']
+    
+
 #############################################################################
 ###################  various compile settings and flags    ##################
 #############################################################################

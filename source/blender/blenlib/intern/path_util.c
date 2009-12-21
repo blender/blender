@@ -1,9 +1,5 @@
-/* util.c
- *
- * various string, file, list operations.
- *
- *
- * $Id$
+/**
+ *  $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,7 +25,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
+ *
+ * various string, file, list operations.
  */
 
 #include <stdio.h>
@@ -45,12 +42,13 @@
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_dynamiclist.h"
+#include "BLI_fileops.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_storage.h"
 #include "BLI_storage_types.h"
-#include "BLI_dynamiclist.h"
 
-#include "BLI_util.h"
 #include "BKE_utildefines.h"
 
 

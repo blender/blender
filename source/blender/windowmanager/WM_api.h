@@ -74,7 +74,7 @@ int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
 void		WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
-void		WM_autosave_init	(struct bContext *C);
+void		WM_autosave_init	(struct wmWindowManager *wm);
 
 			/* mouse cursors */
 void		WM_cursor_set		(struct wmWindow *win, int curs);
@@ -108,11 +108,15 @@ void         WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem 
 char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 
 wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_list_find(ListBase *lb, char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
 void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi);
+void		WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
+int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
+int			WM_userdef_event_map(int kmitype);
 
 wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, struct EnumPropertyItem *items);
 wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, char *idname);
@@ -262,6 +266,7 @@ void		wmPopMatrix			(void);		/* one level only */
 void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho2			(float x1, float x2, float y1, float y2);
+void		wmOrthoPixelSpace	(void);
 
 			/* utilities */
 void		WM_set_framebuffer_index_color(int index);

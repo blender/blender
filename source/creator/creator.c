@@ -62,6 +62,7 @@
 #include "BKE_scene.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
+#include "BKE_sound.h"
 
 #include "IMB_imbuf.h"	// for quicktime_init
 
@@ -221,6 +222,7 @@ static void print_help(void)
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -nojoystick\tDisable joystick support\n");
 	printf ("  -noglsl\tDisable GLSL shading\n");
+	printf ("  -noaudio\tForce sound system to None\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
@@ -484,8 +486,10 @@ int main(int argc, char **argv)
 						SYS_WriteCommandLineInt(syshandle,"nojoystick",1);
 						if (G.f & G_DEBUG) printf("disabling nojoystick\n");
 					}
-					if (BLI_strcasecmp(argv[a], "-noglsl") == 0)
+					else if (BLI_strcasecmp(argv[a], "-noglsl") == 0)
 						GPU_extensions_disable();
+					else if (BLI_strcasecmp(argv[a], "-noaudio") == 0)
+						sound_disable();
 					break;
 				}
 			}
@@ -512,6 +516,7 @@ int main(int argc, char **argv)
 #endif
 	}
 	else {
+		/* background mode options */
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
 				switch(argv[a][1]) {
@@ -526,6 +531,11 @@ int main(int argc, char **argv)
 					for (i = 0; i < argc; i++) {
 						printf("argv[%d] = %s\n", i, argv[i]);
 					}
+					break;
+				case 'n':
+				case 'N':
+					if (BLI_strcasecmp(argv[a], "-noaudio") == 0)
+						sound_disable();
 					break;
 				}
 			}

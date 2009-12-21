@@ -234,11 +234,7 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 
-	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", RIGHTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
@@ -305,6 +301,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_DATA:
 				case ND_SELECT:
+					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -391,7 +388,7 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* image paint polls for mode */
-	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	keymap= WM_keymap_find(wm->defaultconf, "UVEdit", 0, 0);
@@ -533,6 +530,7 @@ void ED_spacetype_image(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_IMAGE;
+	strncpy(st->name, "Image", BKE_ST_MAXNAME);
 	
 	st->new= image_new;
 	st->free= image_free;

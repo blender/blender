@@ -1252,8 +1252,14 @@ void init_userdef_do_versions(void)
 		/* new audio system */
 		if(U.audiochannels == 0)
 			U.audiochannels = 2;
-		if(U.audiodevice == 0)
+		if(U.audiodevice == 0) {
+#ifdef WITH_OPENAL
 			U.audiodevice = 2;
+#endif
+#ifdef WITH_SDL
+			U.audiodevice = 1;
+#endif
+		}
 		if(U.audioformat == 0)
 			U.audioformat = 0x24;
 		if(U.audiorate == 0)
@@ -1273,6 +1279,12 @@ void init_userdef_do_versions(void)
 	}
 	if (U.frameserverport == 0) {
 		U.frameserverport = 8080;
+	}
+	if (U.dbl_click_time == 0) {
+		U.dbl_click_time = 350;
+	}
+	if (U.anim_player_preset == 0) {
+		U.anim_player_preset =1 ;
 	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */

@@ -245,6 +245,10 @@ extern "C" {
 		case 'w':
 		case 'h':
 		case 'm':
+		case '<':
+		case '>':
+		case '~':
+		case '`':
 			return NO;
 		default:
 			return YES;

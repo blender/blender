@@ -116,8 +116,8 @@ extern int compareface(EditFace *vl1, EditFace *vl2);
 extern short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor);
 extern short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor);
 extern short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor);
-extern short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor);
+extern short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int all);
+extern short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor, int all);
 
 extern void adduplicateflag(EditMesh *em, int flag);
 extern void delfaceflag(EditMesh *em, int flag);
@@ -164,6 +164,8 @@ void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
+void MESH_OT_solidify(struct wmOperatorType *ot);
+
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(Scene *scene, Object *obedit, int update);

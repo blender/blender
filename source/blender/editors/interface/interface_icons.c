@@ -528,16 +528,16 @@ static void init_internal_icons()
 		}
 	}
 
-	def_internal_vicon(VICON_VIEW3D, vicon_view3d_draw);
-	def_internal_vicon(VICON_EDIT, vicon_edit_draw);
-	def_internal_vicon(VICON_EDITMODE_DEHLT, vicon_editmode_dehlt_draw);
-	def_internal_vicon(VICON_EDITMODE_HLT, vicon_editmode_hlt_draw);
-	def_internal_vicon(VICON_DISCLOSURE_TRI_RIGHT, vicon_disclosure_tri_right_draw);
-	def_internal_vicon(VICON_DISCLOSURE_TRI_DOWN, vicon_disclosure_tri_down_draw);
-	def_internal_vicon(VICON_MOVE_UP, vicon_move_up_draw);
-	def_internal_vicon(VICON_MOVE_DOWN, vicon_move_down_draw);
-	def_internal_vicon(VICON_X, vicon_x_draw);
-	def_internal_vicon(VICON_SMALL_TRI_RIGHT, vicon_small_tri_right_draw);
+	def_internal_vicon(VICO_VIEW3D_VEC, vicon_view3d_draw);
+	def_internal_vicon(VICO_EDIT_VEC, vicon_edit_draw);
+	def_internal_vicon(VICO_EDITMODE_DEHLT, vicon_editmode_dehlt_draw);
+	def_internal_vicon(VICO_EDITMODE_HLT, vicon_editmode_hlt_draw);
+	def_internal_vicon(VICO_DISCLOSURE_TRI_RIGHT_VEC, vicon_disclosure_tri_right_draw);
+	def_internal_vicon(VICO_DISCLOSURE_TRI_DOWN_VEC, vicon_disclosure_tri_down_draw);
+	def_internal_vicon(VICO_MOVE_UP_VEC, vicon_move_up_draw);
+	def_internal_vicon(VICO_MOVE_DOWN_VEC, vicon_move_down_draw);
+	def_internal_vicon(VICO_X_VEC, vicon_x_draw);
+	def_internal_vicon(VICO_SMALL_TRI_RIGHT_VEC, vicon_small_tri_right_draw);
 
 	IMB_freeImBuf(bbuf);
 }

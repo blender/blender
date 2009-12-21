@@ -25,7 +25,7 @@
 using namespace std;
 
 extern "C" {
-	#include "BLI_util.h"
+	#include "BLI_path_util.h"
 }
 
 namespace Config {

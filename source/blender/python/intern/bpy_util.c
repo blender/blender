@@ -92,11 +92,13 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag)
 			if(cstring) {
 				fd= flagdef;
 				while(fd->name) {
-					if (strcmp(cstring, fd->name) == 0)
+					if (strcmp(cstring, fd->name) == 0) {
 						(*flag) |= fd->flag;
+						break;
+					}
 					fd++;
 				}
-				if (fd==NULL) { /* could not find a match */
+				if (fd->name==NULL) { /* could not find a match */
 					error_val= 1;
 				}
 			} else {

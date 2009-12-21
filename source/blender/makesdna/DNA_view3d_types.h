@@ -190,7 +190,7 @@ typedef struct View3D {
 #define V3D_DISPIMAGE		1
 #define V3D_DISPBGPIC		2
 #define V3D_HIDE_HELPLINES	4
-#define V3D_NEEDBACKBUFDRAW	8
+#define V3D_INVALID_BACKBUF	8
 #define V3D_EDITMODE		16
 #define V3D_VERTEXPAINT		32
 #define V3D_FACESELECT		64
@@ -211,6 +211,7 @@ typedef struct View3D {
 /* RegionView3d->rflag */
 #define RV3D_FLYMODE				2
 #define RV3D_CLIPPING				4
+#define RV3D_NAVIGATING				8
 
 /* RegionView3d->viewlock */
 #define RV3D_LOCKED			1

@@ -2395,13 +2395,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 	cfra= (float)CFRA;
 	
 	/* get flags for keyframing */
-	if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-		flag |= INSERTKEY_NEEDED;
-	if (IS_AUTOKEY_FLAG(AUTOMATKEY))
-		flag |= INSERTKEY_MATRIX;
-	if (IS_AUTOKEY_MODE(scene, EDITKEYS))
-		flag |= INSERTKEY_REPLACE;
-	
+	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* get RNA pointer, and resolve the path */
 	RNA_id_pointer_create(id, &id_ptr);
@@ -2438,13 +2432,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 	cfra= (float)CFRA;
 	
 	/* get flags for keyframing */
-	if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-		flag |= INSERTKEY_NEEDED;
-	if (IS_AUTOKEY_FLAG(AUTOMATKEY))
-		flag |= INSERTKEY_MATRIX;
-	if (IS_AUTOKEY_MODE(scene, EDITKEYS))
-		flag |= INSERTKEY_REPLACE;
-	
+	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* get RNA pointer, and resolve the path */
 	RNA_id_pointer_create((ID *)key, &id_ptr);

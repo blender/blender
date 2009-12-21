@@ -43,7 +43,7 @@ class LOGIC_PT_properties(bpy.types.Panel):
             row.prop(prop, "name", text="")
             row.prop(prop, "type", text="")
             row.prop(prop, "value", text="", toggle=True) # we dont care about the type. rna will display correctly
-            row.prop(prop, "debug", text="", toggle=True, icon='ICON_INFO')
-            row.operator("object.game_property_remove", text="", icon='ICON_X').index = i
+            row.prop(prop, "debug", text="", toggle=True, icon='INFO')
+            row.operator("object.game_property_remove", text="", icon='X').index = i
 
 bpy.types.register(LOGIC_PT_properties)

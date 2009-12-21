@@ -60,7 +60,7 @@ struct uiLayout;
 #define OP_MAX_TYPENAME	64
 #define KMAP_MAX_NAME	64
 
-
+/* keep in sync with 'wm_report_items' in wm_rna.c */
 typedef enum ReportType {
 	RPT_DEBUG					= 1<<0,
 	RPT_INFO					= 1<<1,
@@ -123,7 +123,6 @@ typedef struct wmWindowManager {
 	
 	ListBase keyconfigs;				/* known key configurations */
 	struct wmKeyConfig *defaultconf;	/* default configuration, not saved */
-	int defaultactmap, pad2;			/* active keymap from default for editing */
 
 	ListBase timers;					/* active timers */
 	struct wmTimer *autosavetimer;		/* timer for auto save */
@@ -139,7 +138,10 @@ typedef struct wmWindow {
 	
 	void *ghostwin;		/* dont want to include ghost.h stuff */
 	
-	int winid, pad;		/* winid also in screens, is for retrieving this window after read */
+	int winid;		/* winid also in screens, is for retrieving this window after read */
+
+	short grabcursor; /* cursor grab mode */
+	short pad;
 	
 	struct bScreen *screen;		/* active screen */
 	struct bScreen *newscreen;	/* temporary when switching */
@@ -152,9 +154,7 @@ typedef struct wmWindow {
 	short cursor;		/* current mouse cursor type */
 	short lastcursor;	/* for temp waitcursor */
 	short addmousemove;	/* internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching */
-	
-	short last_type; /* last event information, used for click */
-	short last_val;
+	short pad2[2];
 
 	struct wmEvent *eventstate;	/* storage for event system */
 	
@@ -259,7 +259,9 @@ typedef struct wmKeyMapItem {
 	short flag;
 
 	/* runtime */
-	short maptype, pad[2];			/* keymap editor */
+	short maptype;					/* keymap editor */
+	short id;						/* unique identifier */
+	short pad;
 	struct PointerRNA *ptr;			/* rna pointer to access properties */
 } wmKeyMapItem;
 
@@ -278,7 +280,7 @@ typedef struct wmKeyMap {
 	short regionid;		/* see above */
 	
 	short flag;			/* general flags */
-	short pad;
+	short kmi_id;		/* last kmi id */
 	
 	/* runtime */
 	int (*poll)(struct bContext *);	/* verify if enabled in the current context */
@@ -286,8 +288,10 @@ typedef struct wmKeyMap {
 } wmKeyMap;
 
 /* wmKeyMap.flag */
-#define KEYMAP_MODAL		1	/* modal map, not using operatornames */
-#define KEYMAP_USER			2	/* user created keymap */
+#define KEYMAP_MODAL				1	/* modal map, not using operatornames */
+#define KEYMAP_USER					2	/* user created keymap */
+#define KEYMAP_EXPANDED				4
+#define KEYMAP_CHILDREN_EXPANDED	8
 
 typedef struct wmKeyConfig {
 	struct wmKeyConfig *next, *prev;
@@ -295,6 +299,8 @@ typedef struct wmKeyConfig {
 	char idname[64];		/* unique name */
 	char basename[64];		/* idname of configuration this is derives from, "" if none */
 
+	char filter[64];		/* search term for filtering in the UI */
+	
 	ListBase keymaps;
 	int actkeymap, flag;
 } wmKeyConfig;
@@ -335,40 +341,6 @@ typedef struct wmOperator {
 
 /* wmOperator flag */
 #define OP_GRAB_POINTER			1
-
-/* ************** wmEvent ************************ */
-/* for read-only rna access, dont save this */
-
-/* each event should have full modifier state */
-/* event comes from eventmanager and from keymap */
-typedef struct wmEvent {
-	struct wmEvent *next, *prev;
-	
-	short type;			/* event code itself (short, is also in keymap) */
-	short val;			/* press, release, scrollvalue */
-	short x, y;			/* mouse pointer position, screen coord */
-	short mval[2];		/* region mouse position, name convention pre 2.5 :) */
-	short prevx, prevy;	/* previous mouse pointer position */
-	short unicode;		/* future, ghost? */
-	char ascii;			/* from ghost */
-	char pad;
-	
-	/* modifier states */
-	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
-	short keymodifier;				/* rawkey modifier */
-	
-	short pad1;
-	
-	/* keymap item, set by handler (weak?) */
-	const char *keymap_idname;
-	
-	/* custom data */
-	short custom;		/* custom data type, stylus, 6dof, see wm_event_types.h */
-	short customdatafree;
-	int pad2;
-	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
-	
-} wmEvent;
 
 typedef enum wmRadialControlMode {
 	WM_RADIALCONTROL_SIZE,

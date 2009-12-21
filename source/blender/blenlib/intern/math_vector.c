@@ -205,6 +205,44 @@ float angle_normalized_v2v2(float *v1, float *v2)
 		return 2.0f*(float)saasin(len_v2v2(v2, v1)/2.0f);
 }
 
+void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3])
+{
+	float ed1[3], ed2[3], ed3[3];
+
+	sub_v3_v3v3(ed1, v3, v1);
+	sub_v3_v3v3(ed2, v1, v2);
+	sub_v3_v3v3(ed3, v2, v3);
+
+	normalize_v3(ed1);
+	normalize_v3(ed2);
+	normalize_v3(ed3);
+
+	angles[0]= M_PI - angle_normalized_v3v3(ed1, ed2);
+	angles[1]= M_PI - angle_normalized_v3v3(ed2, ed3);
+	// face_angles[2] = M_PI - angle_normalized_v3v3(ed3, ed1);
+	angles[2]= M_PI - (angles[0] + angles[1]);
+}
+
+void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float ed1[3], ed2[3], ed3[3], ed4[3];
+
+	sub_v3_v3v3(ed1, v4, v1);
+	sub_v3_v3v3(ed2, v1, v2);
+	sub_v3_v3v3(ed3, v2, v3);
+	sub_v3_v3v3(ed4, v3, v4);
+
+	normalize_v3(ed1);
+	normalize_v3(ed2);
+	normalize_v3(ed3);
+	normalize_v3(ed4);
+
+	angles[0]= M_PI - angle_normalized_v3v3(ed1, ed2);
+	angles[1]= M_PI - angle_normalized_v3v3(ed2, ed3);
+	angles[2]= M_PI - angle_normalized_v3v3(ed3, ed4);
+	angles[3]= M_PI - angle_normalized_v3v3(ed4, ed1);
+}
+
 /********************************* Geometry **********************************/
 
 /* Project v1 on v2 */

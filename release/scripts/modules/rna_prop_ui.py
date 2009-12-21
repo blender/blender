@@ -120,7 +120,7 @@ def draw(layout, context, context_member, use_edit=True):
             prop = row.operator("wm.properties_edit", text="edit")
             assign_props(prop, val_draw, key)
 
-            prop = row.operator("wm.properties_remove", text="", icon='ICON_ZOOMOUT')
+            prop = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
             assign_props(prop, val_draw, key)
 
 
@@ -212,6 +212,9 @@ class WM_OT_properties_edit(bpy.types.Operator):
             self.properties.description = prop_ui.get("description", "")
 
         wm = context.manager
+        # This crashes, TODO - fix
+        #return wm.invoke_props_popup(self, event)
+
         wm.invoke_props_popup(self, event)
         return ('RUNNING_MODAL',)
 

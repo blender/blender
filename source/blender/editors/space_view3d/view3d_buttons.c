@@ -502,7 +502,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *split, *colsub;
 	
-	split = uiLayoutSplit(layout, 0.8);
+	split = uiLayoutSplit(layout, 0.8, 0);
 	
 	if (ptr->type == &RNA_PoseBone) {
 		PointerRNA boneptr;
@@ -518,7 +518,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	uiItemL(colsub, "", 0);
 	uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
 	
-	split = uiLayoutSplit(layout, 0.8);
+	split = uiLayoutSplit(layout, 0.8, 0);
 	
 	switch(RNA_enum_get(ptr, "rotation_mode")) {
 		case ROT_MODE_QUAT: /* quaternion */
@@ -553,7 +553,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	}
 	uiItemR(layout, "", 0, ptr, "rotation_mode", 0);
 	
-	split = uiLayoutSplit(layout, 0.8);
+	split = uiLayoutSplit(layout, 0.8, 0);
 	colsub = uiLayoutColumn(split, 1);
 	uiItemR(colsub, "Scale", 0, ptr, "scale", 0);
 	colsub = uiLayoutColumn(split, 1);

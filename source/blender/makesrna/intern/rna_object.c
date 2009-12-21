@@ -114,56 +114,56 @@ EnumPropertyItem object_type_items[] = {
 
 #include "BLI_editVert.h" /* for EditMesh->mat_nr */
 
+#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_particle.h"
 
-void rna_Object_update(bContext *C, PointerRNA *ptr)
+void rna_Object_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
 }
 
-void rna_Object_matrix_update(bContext *C, PointerRNA *ptr)
+void rna_Object_matrix_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ED_object_apply_obmat(ptr->id.data);
-	rna_Object_update(C, ptr);
+	rna_Object_update(bmain, scene, ptr);
 }
 
-void rna_Object_update_data(bContext *C, PointerRNA *ptr)
+void rna_Object_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ptr->id.data);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
 }
 
-void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
+void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
-	Scene *scene= CTX_data_scene(C);
 	int editmode= (scene->obedit == ob && ob->type == OB_MESH);
 
 	if(editmode) {
 		/* exit/enter editmode to get new shape */
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO);
-		ED_object_enter_editmode(C, EM_WAITCURSOR);
+		load_editMesh(scene, ob);
+		make_editMesh(scene, ob);
 	}
 
-	rna_Object_update_data(C, ptr);
+	rna_Object_update_data(bmain, scene, ptr);
 }
 
-static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
-	DAG_scene_sort(CTX_data_scene(C));
+	DAG_scene_sort(scene);
 }
 
 /* when changing the selection flag the scene needs updating */
-static void rna_Object_select_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_select_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
-	ED_base_object_select(object_in_scene(ob, CTX_data_scene(C)), mode);
+	ED_base_object_select(object_in_scene(ob, scene), mode);
 }
 
-static void rna_Base_select_update(bContext *C, PointerRNA *ptr)
+static void rna_Base_select_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Base *base= (Base*)ptr->data;
 	short mode = base->flag & BA_SELECT ? BA_SELECT : BA_DESELECT;
@@ -182,29 +182,28 @@ static void rna_Object_layer_update__internal(Scene *scene, Base *base, Object *
 	}
 }
 
-static void rna_Object_layer_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	Scene *scene= CTX_data_scene(C);
 	Base *base;
 
 	base= object_in_scene(ob, scene);
 	if(!base)
 		return;
+	
+	SWAP(int, base->lay, ob->lay);
 
-	base->lay= ob->lay;
 	rna_Object_layer_update__internal(scene, base, ob);
+	ob->lay= base->lay;
 }
 
-static void rna_Base_layer_update(bContext *C, PointerRNA *ptr)
+static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Base *base= (Base*)ptr->id.data;
 	Object *ob= (Object*)base->object;
-	Scene *scene= CTX_data_scene(C);
-
-	ob->lay= base->lay;
 
 	rna_Object_layer_update__internal(scene, base, ob);
+	ob->lay= base->lay;
 }
 
 static int rna_Object_data_editable(PointerRNA *ptr)
@@ -527,9 +526,8 @@ static void rna_Object_active_particle_system_index_set(PointerRNA *ptr, int val
 	psys_set_current_num(ob, value);
 }
 
-static void rna_Object_particle_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_particle_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= (Object*)ptr->id.data;
 
 	PE_current_changed(scene, ob);
@@ -973,7 +971,7 @@ static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 
 static bConstraint *rna_Object_constraint_new(Object *object, bContext *C, int type)
 {
-	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	return add_ob_constraint(object, NULL, type);
 }
 
@@ -982,7 +980,7 @@ static int rna_Object_constraint_remove(Object *object, bContext *C, int index)
 	int ok = remove_constraint_index(&object->constraints, index);
 	if(ok) {
 		ED_object_constraint_set_active(object, NULL);
-		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+		WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
 	}
 
 	return ok;
@@ -1013,6 +1011,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Vertex group name.");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA|NA_RENAME, NULL);
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1043,13 +1042,13 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_MaterialSlot_material_get", "rna_MaterialSlot_material_set", NULL);
 	RNA_def_property_ui_text(prop, "Material", "Material datablock used by this material slot.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_SHADING, "rna_Object_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "link", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, link_items);
 	RNA_def_property_enum_funcs(prop, "rna_MaterialSlot_link_get", "rna_MaterialSlot_link_set", NULL);
 	RNA_def_property_ui_text(prop, "Link", "Link material to object or the object's data.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_SHADING, "rna_Object_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_MaterialSlot_name_get", "rna_MaterialSlot_name_length", NULL);
@@ -1461,6 +1460,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Layers", "Layers the object is on.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_layer_set");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_layer_update");
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
@@ -1531,13 +1531,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get", "rna_Object_active_material_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_SHADING, "rna_Object_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "actcol");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_material_index_get", "rna_Object_active_material_index_set", "rna_Object_active_material_index_range");
 	RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material slot.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_SHADING, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	/* transform */
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
@@ -1680,13 +1680,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "VertexGroup");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", "rna_Object_active_vertex_group_set", NULL);
 	RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object.");
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "active_vertex_group_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "actdef");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_vertex_group_index_get", "rna_Object_active_vertex_group_index_set", "rna_Object_active_vertex_group_index_range");
 	RNA_def_property_ui_text(prop, "Active Vertex Group Index", "Active index in vertex group array.");
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA, "rna_Object_update_data");
 
 	/* empty */
 	prop= RNA_def_property(srna, "empty_draw_type", PROP_ENUM, PROP_NONE);
@@ -1705,7 +1705,8 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "index");
 	RNA_def_property_ui_text(prop, "Pass Index", "Index # for the IndexOB render pass.");
-
+	RNA_def_property_update(prop, NC_OBJECT, NULL);
+	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "col");
 	RNA_def_property_ui_text(prop, "Color", "Object color and alpha, used when faces have the ObColor mode enabled.");

@@ -147,14 +147,7 @@ void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
 		
 		// TODO: this should probably respect the keyingset only option for anim
 		if(autokeyframe_cfra_can_key(scene, id)) {
-			short flag = 0;
-			
-			if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-				flag |= INSERTKEY_NEEDED;
-			if (IS_AUTOKEY_FLAG(AUTOMATKEY))
-				flag |= INSERTKEY_MATRIX;
-			if (IS_AUTOKEY_MODE(scene, EDITKEYS))
-				flag |= INSERTKEY_REPLACE;
+			short flag = ANIM_get_keyframing_flags(scene, 1);
 			
 			fcu->flag &= ~FCURVE_SELECTED;
 			insert_keyframe(id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);

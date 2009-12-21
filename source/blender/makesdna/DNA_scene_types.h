@@ -29,6 +29,9 @@
 #ifndef DNA_SCENE_TYPES_H
 #define DNA_SCENE_TYPES_H
 
+// XXX, temp feature
+#define DURIAN_CAMERA_SWITCH
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -493,6 +496,7 @@ typedef struct TimeMarker {
 	int frame;
 	char name[64];
 	unsigned int flag;
+	struct Object *camera;
 } TimeMarker;
 
 typedef struct Paint {
@@ -504,7 +508,7 @@ typedef struct Paint {
 	void *paint_cursor;
 	unsigned char paint_cursor_col[4];
 
-	int pad;
+	int flags;
 } Paint;
 
 typedef struct ImagePaintSettings {
@@ -1072,14 +1076,18 @@ typedef struct Scene {
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
+/* Paint.flags */
+typedef enum {
+	PAINT_SHOW_BRUSH = 1,
+	PAINT_FAST_NAVIGATE = 2
+} PaintFlags;
+
 /* Sculpt.flags */
+/* These can eventually be moved to paint flags? */
 typedef enum SculptFlags {
 	SCULPT_SYMM_X = 1,
 	SCULPT_SYMM_Y = 2,
 	SCULPT_SYMM_Z = 4,
-	SCULPT_INPUT_SMOOTH = 8,
-	SCULPT_DRAW_FAST = 16,
-	SCULPT_DRAW_BRUSH = 32,
 	SCULPT_LOCK_X = 64,
 	SCULPT_LOCK_Y = 128,
 	SCULPT_LOCK_Z = 256

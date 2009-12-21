@@ -145,7 +145,7 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 
 	/* update while blender is running */
 	if(C)
-		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
 static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
@@ -196,7 +196,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 
 	/* update while blender is running */
 	if(C)
-		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 	
 	return pt->ext.srna;
 }
@@ -242,7 +242,7 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 
 	/* update while blender is running */
 	if(C)
-		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
 static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
@@ -289,7 +289,7 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 
 	/* update while blender is running */
 	if(C)
-		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 	
 	return ht->ext.srna;
 }
@@ -356,7 +356,7 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 
 	/* update while blender is running */
 	if(C)
-		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
 static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
@@ -396,7 +396,7 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 
 	/* update while blender is running */
 	if(C)
-		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 	
 	return mt->ext.srna;
 }

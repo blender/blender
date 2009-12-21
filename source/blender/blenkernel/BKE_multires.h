@@ -27,51 +27,36 @@
  * ***** END GPL LICENSE BLOCK *****
  */ 
 
+#ifndef BKE_MULTIRES_H
+#define BKE_MULTIRES_H
+
 struct DerivedMesh;
 struct Mesh;
 struct MFace;
+struct Multires;
 struct MultiresModifierData;
 struct Object;
 
-typedef struct MultiresSubsurf {
-	struct MultiresModifierData *mmd;
-	struct Object *ob;
-	int local_mmd;
-} MultiresSubsurf;
-
-/* MultiresDM */
-struct Object *MultiresDM_get_object(struct DerivedMesh *dm);
-struct Mesh *MultiresDM_get_mesh(struct DerivedMesh *dm);
-struct DerivedMesh *MultiresDM_new(struct MultiresSubsurf *, struct DerivedMesh*, int, int, int);
-void *MultiresDM_get_vertnorm(struct DerivedMesh *);
-void *MultiresDM_get_orco(struct DerivedMesh *);
-struct MVert *MultiresDM_get_subco(struct DerivedMesh *);
-struct ListBase *MultiresDM_get_vert_face_map(struct DerivedMesh *);
-struct ListBase *MultiresDM_get_vert_edge_map(struct DerivedMesh *);
-int *MultiresDM_get_face_offsets(struct DerivedMesh *);
-int MultiresDM_get_totlvl(struct DerivedMesh *);
-int MultiresDM_get_lvl(struct DerivedMesh *);
-void MultiresDM_set_update(struct DerivedMesh *, void (*)(struct DerivedMesh*));
-
-/* The displacements will only be updated when
-   the MultiresDM has been marked as modified */
-void MultiresDM_mark_as_modified(struct DerivedMesh *);
 void multires_mark_as_modified(struct Object *ob);
 
 void multires_force_update(struct Object *ob);
 
-struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*, int local_mmd, struct DerivedMesh*,
-						    struct Object *, int, int);
+struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
+	int local_mmd, struct DerivedMesh*, struct Object *, int, int);
 
 struct MultiresModifierData *find_multires_modifier(struct Object *ob);
-int multiresModifier_switch_level(struct Object *, const int);
 void multiresModifier_join(struct Object *);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
-void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob, int distance,
+void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob,
 				int updateblock, int simple);
 int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *dst, struct Object *src);
 
+void multires_stitch_grids(struct Object *);
+
 /* Related to the old multires */
-struct Multires;
-void multires_load_old(struct DerivedMesh *, struct Multires *);
-void multires_free(struct Multires*);
+void multires_free(struct Multires *mr);
+void multires_load_old(struct Object *ob, struct Mesh *me);
+void multires_load_old_250(struct Mesh *);
+
+#endif
+

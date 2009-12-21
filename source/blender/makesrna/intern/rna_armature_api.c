@@ -40,7 +40,7 @@
 
 #include "ED_armature.h"
 
-void rna_EditBone_align(EditBone *ebo, float *no)
+void rna_EditBone_align_roll(EditBone *ebo, float *no)
 {
 	if(!is_zero_v3(no)) {
 		float normal[3];
@@ -57,7 +57,7 @@ void RNA_api_armature_edit_bone(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "align", "rna_EditBone_align");
+	func= RNA_def_function(srna, "align_roll", "rna_EditBone_align_roll");
 	RNA_def_function_ui_description(func, "Align the bone to a localspace vector.");
 	parm= RNA_def_float_vector(func, "vector", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);

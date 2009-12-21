@@ -181,39 +181,12 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
 /* ------------------------------- Color Codes for F-Curve Channels ---------------------------- */
 
-#if 0
-/* used for FCURVE_COLOR_AUTO_RAINBOW */
-// XXX this still doesn't work too great when there are more than 32 curves (which happens most of the time)
-void ipo_rainbow (int cur, int tot, float *out)
-{
-	float dfac, fac, sat;
-	
-	dfac= (float)(1.0/( (float)tot+1.0));
-	
-	/* this calculation makes 2 or 4 different cycles of rainbow colors */
-		// 2 different cycles - for hue
-	if(cur< tot/2) fac= (float)(cur*2.0f*dfac);
-	else fac= (float)((cur-tot/2)*2.0f*dfac +dfac);
-	
-		// third cycle with altered hue
-	if(tot > 32) fac= fac*1.95f;
-		// clamping for excessive ranges
-	if(fac>1.0f) fac-= 1.0f;
-	
-		// saturation adjustments for more visible range
-	if(fac>0.5f && fac<0.8f) sat= 0.5f;
-	else sat= 0.6f;
-	
-	hsv_to_rgb(fac, sat, 1.0f, out, out+1, out+2);
-}
-#endif
-
 /* step between the major distinguishable color bands of the primary colors */
 #define HSV_BANDWIDTH	0.3f
 
-/* testbed for FCURVE_COLOR_AUTO_RAINBOW determination methods */
+/* used to determine the colour of F-Curves with FCURVE_COLOR_AUTO_RAINBOW set */
 //void fcurve_rainbow (unsigned int cur, unsigned int tot, float *out)
-void ipo_rainbow (int cur, int tot, float *out)
+void getcolor_fcurve_rainbow (int cur, int tot, float *out)
 {
 	float hue, val, sat, fac;
 	int grouping;

@@ -37,7 +37,7 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle, int icon_only, int event, int full_event, int index)
+static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle, int icon_only, int event, int full_event, int no_bg, int index)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	int flag= 0;
@@ -53,6 +53,7 @@ static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr,
 	flag |= (icon_only)? UI_ITEM_R_ICON_ONLY: 0;
 	flag |= (event)? UI_ITEM_R_EVENT: 0;
 	flag |= (full_event)? UI_ITEM_R_FULL_EVENT: 0;
+	flag |= (no_bg)? UI_ITEM_R_NO_BG: 0;
 
 	uiItemFullR(layout, name, icon, ptr, prop, index, 0, flag);
 }
@@ -64,7 +65,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout, char *name, int icon, char *opna
 
 #else
 
-#define DEF_ICON(name) {name, #name, 0, #name, ""},
+#define DEF_ICON(name) {name, (#name)+5, 0, (#name)+5, ""},
 static EnumPropertyItem icon_items[] = {
 #include "UI_icons.h"
 		{0, NULL, 0, NULL, NULL}};
@@ -145,6 +146,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
 	RNA_def_float(func, "percentage", 0.0f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
+	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
 
 	/* items */
 	func= RNA_def_function(srna, "prop", "rna_uiItemR");
@@ -156,6 +158,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "icon_only", 0, "", "Draw only icons in buttons, no text.");
 	RNA_def_boolean(func, "event", 0, "", "Use button to input key events.");
 	RNA_def_boolean(func, "full_event", 0, "", "Use button to input full events including modifiers.");
+	RNA_def_boolean(func, "no_bg", 0, "", "Don't draw the button itself, just the icon/text.");
 	RNA_def_int(func, "index", -1, -2, INT_MAX, "", "The index of this button, when set a single member of an array can be accessed, when set to -1 all array members are used.", -2, INT_MAX); /* RNA_NO_INDEX == -1 */
 
 	func= RNA_def_function(srna, "props_enum", "uiItemsEnumR");
@@ -248,11 +251,16 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Pointer to put in context.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
-
+	
 	/* templates */
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_boolean(func, "menus", 1, "", "The header has menus, and should show menu expander.");
+
+	func= RNA_def_function(srna, "template_dopesheet_filter", "uiTemplateDopeSheetFilter");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "dopesheet", "DopeSheet", "", "DopeSheet settings holding filter options.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 
 	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

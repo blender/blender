@@ -350,29 +350,12 @@ static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void graph_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void graph_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	graph_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -404,6 +387,7 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
 				case ND_MARKERS:
+				case ND_SEQUENCER_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -415,14 +399,27 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_MODIFIER:
+					if(wmn->action == NA_RENAME)
+						ED_region_tag_redraw(ar);
+					break;
 			}
 			break;
 		case NC_NODE:
+			switch(wmn->data) {
+				case ND_NODE_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 			switch(wmn->action) {
 				case NA_EDITED:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 			break;
 		default:
 			if(wmn->data==ND_KEYS)
@@ -437,25 +434,34 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch (wmn->category) {
 		case NC_ANIMATION:
+			/* unlike for DopeSheet, we want refresh not redraw here, 
+			 * since F-Curve colors may need setting 
+			 */
 			ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
-			/*switch (wmn->data) {
-				case ND_OB_ACTIVE:
+			switch (wmn->data) {	
+				case ND_OB_ACTIVE:	/* selection changed, so force refresh to flush */
 				case ND_OB_SELECT:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+					
+				default: /* just redrawing the view will do */
+					ED_area_tag_redraw(sa);
+					break;
+			}
 			break;
 		case NC_OBJECT:
-			/*switch (wmn->data) {
-				case ND_BONE_SELECT:
+			switch (wmn->data) {
+				case ND_BONE_SELECT:	/* selection changed, so force refresh to flush */
 				case ND_BONE_ACTIVE:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+					
+				default: /* just redrawing the view will do */
+					ED_area_tag_redraw(sa);
+					break;
+			}
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_GRAPH)
@@ -491,6 +497,10 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	
 	/* region updates? */
 	// XXX resizing y-extents of tot should go here?
+	
+	/* update the state of the animchannels in response to changes from the data they represent */
+	// TODO: check if we don't want this to happen
+	ANIM_sync_animchannels_to_data(C);
 	
 	/* init/adjust F-Curve colors */
 	if (ANIM_animdata_get_context(C, &ac)) {
@@ -551,7 +561,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 					/* determine color 'automatically' using 'magic function' which uses the given args
 					 * of current item index + total items to determine some RGB color
 					 */
-					ipo_rainbow(i, items, fcu->color);
+					getcolor_fcurve_rainbow(i, items, fcu->color);
 				}
 					break;
 			}
@@ -569,6 +579,7 @@ void ED_spacetype_ipo(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_IPO;
+	strncpy(st->name, "Graph", BKE_ST_MAXNAME);
 	
 	st->new= graph_new;
 	st->free= graph_free;

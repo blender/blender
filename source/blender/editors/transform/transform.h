@@ -53,6 +53,8 @@ struct BezTriple;
 struct wmOperatorType;
 struct wmOperator;
 struct wmWindowManager;
+struct wmKeyMap;
+struct wmKeyConfig;
 struct bContext;
 struct wmEvent;
 struct wmTimer;
@@ -112,6 +114,7 @@ typedef struct TransSnap {
 } TransSnap;
 
 typedef struct TransCon {
+	short orientation;	 /**/
     char  text[50];      /* Description of the Constraint for header_print                            */
     float mtx[3][3];     /* Matrix of the Constraint space                                            */
     float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
@@ -301,9 +304,10 @@ typedef struct TransInfo {
 	void  	  (*customFree)(struct TransInfo *); /* if a special free function is needed */
 
 	/*************** NEW STUFF *********************/
-	short		launch_event; /* event type used to launch transform */
+	short		launch_event; 	/* event type used to launch transform */
 
 	short		current_orientation;
+	short		twtype;			/* backup from view3d, to restore on end */
 
 	short		prop_mode;
 	
@@ -321,6 +325,7 @@ typedef struct TransInfo {
     struct Object   *obedit;
     void		*draw_handle_view;
     void		*draw_handle_pixel;
+    void		*draw_handle_cursor;
 } TransInfo;
 
 
@@ -428,7 +433,7 @@ typedef struct TransInfo {
 #define POINT_INIT		4
 #define MULTI_POINTS	8
 
-void TFM_OT_transform(struct wmOperatorType *ot);
+void TRANSFORM_OT_transform(struct wmOperatorType *ot);
 
 int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
@@ -519,9 +524,12 @@ int Mirror(TransInfo *t, short mval[2]);
 void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
+void initSeqSlide(TransInfo *t);
+int SeqSlide(TransInfo *t, short mval[2]);
+
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 
-void transform_modal_keymap(struct wmKeyConfig *keyconf);
+struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 
 
 /*********************** transform_conversions.c ********** */
@@ -545,15 +553,15 @@ float get_drawsize(struct ARegion *ar, float *co);
 void createTransData(struct bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void add_tdi_poin(float *poin, float *old, float delta);
-void special_aftertrans_update(TransInfo *t);
+void special_aftertrans_update(struct bContext *C, TransInfo *t);
 
 void transform_autoik_update(TransInfo *t, short mode);
 
 int count_set_pose_transflags(int *out_mode, short around, struct Object *ob);
 
 /* auto-keying stuff used by special_aftertrans_update */
-void autokeyframe_ob_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode);
-void autokeyframe_pose_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
+void autokeyframe_ob_cb_func(struct bContext *C, struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode);
+void autokeyframe_pose_cb_func(struct bContext *C, struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
 
 /*********************** Constraints *****************************/
 
@@ -633,7 +641,7 @@ void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2])
 /*********************** Generics ********************************/
 
 int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, struct wmEvent *event);
-void postTrans (TransInfo *t);
+void postTrans (struct bContext *C, TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options);

@@ -69,6 +69,7 @@
 
 /* SYSTEM : 0x01x */
 #define	INPUTCHANGE		0x0103	/* input connected or disconnected */
+#define WINDEACTIVATE	0x0104	/* window is deactivated, focus lost */
 
 #define TIMER			0x0110	/* timer event, passed on to all queues */
 #define TIMER0			0x0111	/* timer event, slot for internal use */
@@ -197,16 +198,16 @@
 	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
 #define ISTEXTINPUT(event)	(event >=' ' && event <=255)
 
-	/* test wether the event is a key on the keyboard */
+	/* test whether the event is a key on the keyboard */
 #define ISKEYBOARD(event)	(event >=' ' && event <=320)
 
-	/* test wether the event is a mouse button */
+	/* test whether the event is a mouse button */
 #define ISMOUSE(event)	(event >= LEFTMOUSE && event <= WHEELOUTMOUSE)
 
-	/* test wether the event is timer event */
+	/* test whether the event is timer event */
 #define ISTIMER(event)	(event >= TIMER && event <= TIMERAUTOSAVE)
 
-	/* test wether the event is tweak event */
+	/* test whether the event is tweak event */
 #define ISTWEAK(event)	(event >= EVT_TWEAK_L && event <= EVT_GESTURE)
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */

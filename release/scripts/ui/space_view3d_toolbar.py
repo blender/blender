@@ -37,9 +37,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="Object:")
@@ -84,15 +84,15 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
-        col.operator("tfm.shrink_fatten", text="Along Normal")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
+        col.operator("transform.shrink_fatten", text="Along Normal")
 
 
         col = layout.column(align=True)
         col.label(text="Deform:")
-        col.operator("tfm.edge_slide")
+        col.operator("transform.edge_slide")
         col.operator("mesh.rip_move")
         col.operator("mesh.vertices_smooth")
 
@@ -168,13 +168,13 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.operator("tfm.transform", text="Tilt").mode = 'TILT'
-        col.operator("tfm.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
+        col.operator("transform.transform", text="Tilt").mode = 'TILT'
+        col.operator("transform.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
 
         col = layout.column(align=True)
         col.label(text="Curve:")
@@ -222,9 +222,9 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="Curve:")
@@ -295,9 +295,9 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="Bones:")
@@ -347,9 +347,9 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="Repeat:")
@@ -375,9 +375,9 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.operator("lattice.make_regular")
@@ -407,9 +407,9 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="In-Between:")
@@ -553,6 +553,9 @@ class VIEW3D_PT_tools_brush(PaintPanel):
                 if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
                     col.row().prop(brush, "direction", expand=True)
 
+                if brush.sculpt_tool in ('DRAW', 'INFLATE', 'LAYER'):
+                    col.prop(brush, "use_accumulate")
+
                 if brush.sculpt_tool == 'LAYER':
                     col.prop(brush, "use_persistent")
                     col.operator("sculpt.set_persistent_base")
@@ -695,8 +698,8 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
         sculpt = context.tool_settings.sculpt
 
         col = layout.column()
-        col.prop(sculpt, "partial_redraw", text="Partial Refresh")
         col.prop(sculpt, "show_brush")
+        col.prop(sculpt, "fast_navigate")
 
         split = self.layout.split()
 

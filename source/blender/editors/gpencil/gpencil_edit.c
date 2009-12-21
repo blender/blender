@@ -493,7 +493,6 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	Scene *scene= CTX_data_scene(C);
 	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
 	bGPDstroke *gps;
-	Base *base= BASACT;
 	Object *ob;
 	Curve *cu;
 	
@@ -529,9 +528,6 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 				break;
 		}
 	}
-	
-	/* restore old active object */
-	// BASACT= base; // removing since this is expected new objects are active.
 }
 
 /* --- */

@@ -187,7 +187,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		
 		/* new backdrop ----------------------------------- */
 		box= uiLayoutBox(layout);
-		split= uiLayoutSplit(box, 0.5f);
+		split= uiLayoutSplit(box, 0.5f, 0);
 		
 		
 		/* draw settings ---------------------------------- */

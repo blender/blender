@@ -1555,7 +1555,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, Modifier
 	md->scene= scene;
 	
 	if (!(md->mode&eModifierMode_Realtime)) return NULL;
-	if (mti->isDisabled && mti->isDisabled(md)) return NULL;
+	if (mti->isDisabled && mti->isDisabled(md, 0)) return NULL;
 
 	if (mti->type==eModifierTypeType_OnlyDeform) {
 		int numVerts;
@@ -1906,7 +1906,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				mask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, mask);
-				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, !inputVertexCos);
+				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, 0);
 
 				if(ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -2513,7 +2513,7 @@ int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deform
 	}
 
 	for(; md && i <= cageIndex; md = md->next, i++)
-		if(editmesh_modifier_is_enabled(md, dm) && modifier_isDeformer(md))
+		if(editmesh_modifier_is_enabled(md, dm) && modifier_isCorrectableDeformed(md))
 			numleft++;
 
 	if(dm)

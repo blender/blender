@@ -150,6 +150,7 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* r
 		m_hitObject = hitKXObj;
 		m_hitPosition = result->m_hitPoint;
 		m_hitNormal = result->m_hitNormal;
+		m_hitUV = result->m_hitUV;
 		return true;
 	}
 	
@@ -284,7 +285,8 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	KX_IPhysicsController* physics_controller = cam->GetPhysicsController();
 	PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
 
-	KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller);
+	// get UV mapping
+	KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller,NULL,false,true);
 	 
 	KX_RayCast::RayTest(physics_environment, m_prevSourcePoint, m_prevTargetPoint, callback);
 	
@@ -340,6 +342,11 @@ const MT_Vector3& KX_MouseFocusSensor::HitNormal() const
 	return m_hitNormal;
 }
 
+const MT_Vector2& KX_MouseFocusSensor::HitUV() const
+{
+	return m_hitUV;
+}
+
 #ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
@@ -380,6 +387,7 @@ PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("hitObject",		KX_MouseFocusSensor, pyattr_get_hit_object),
 	KX_PYATTRIBUTE_RO_FUNCTION("hitPosition",	KX_MouseFocusSensor, pyattr_get_hit_position),
 	KX_PYATTRIBUTE_RO_FUNCTION("hitNormal",		KX_MouseFocusSensor, pyattr_get_hit_normal),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitUV",		KX_MouseFocusSensor, pyattr_get_hit_uv),
 	KX_PYATTRIBUTE_BOOL_RW("usePulseFocus",	KX_MouseFocusSensor,m_bTouchPulse),
 	{ NULL }	//Sentinel
 };
@@ -426,6 +434,12 @@ PyObject* KX_MouseFocusSensor::pyattr_get_hit_normal(void *self_v, const KX_PYAT
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->HitNormal());
+}
+
+PyObject* KX_MouseFocusSensor::pyattr_get_hit_uv(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	return PyObjectFrom(self->HitUV());
 }
 
 #endif // DISABLE_PYTHON

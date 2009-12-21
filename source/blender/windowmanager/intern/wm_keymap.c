@@ -185,6 +185,11 @@ wmKeyMapItem *WM_keymap_verify_item(wmKeyMap *keymap, char *idname, int type, in
 		BLI_addtail(&keymap->items, kmi);
 		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 		
+		if ((keymap->flag & KEYMAP_USER) == 0) {
+			keymap->kmi_id++;
+			kmi->id = keymap->kmi_id;
+		}
+
 		keymap_event_set(kmi, type, val, modifier, keymodifier);
 		keymap_properties_set(kmi);
 	}
@@ -201,6 +206,12 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, char *idname, int type, int v
 
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
 	keymap_properties_set(kmi);
+
+	if ((keymap->flag & KEYMAP_USER) == 0) {
+		keymap->kmi_id++;
+		kmi->id = keymap->kmi_id;
+	}
+
 	return kmi;
 }
 
@@ -229,7 +240,7 @@ void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
    space/region ids are same as DNA_space_types.h */
 /* gets free'd in wm.c */
 
-static wmKeyMap *wm_keymap_list_find(ListBase *lb, char *idname, int spaceid, int regionid)
+wmKeyMap *WM_keymap_list_find(ListBase *lb, char *idname, int spaceid, int regionid)
 {
 	wmKeyMap *km;
 
@@ -243,7 +254,7 @@ static wmKeyMap *wm_keymap_list_find(ListBase *lb, char *idname, int spaceid, in
 
 wmKeyMap *WM_keymap_find(wmKeyConfig *keyconf, char *idname, int spaceid, int regionid)
 {
-	wmKeyMap *km= wm_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
+	wmKeyMap *km= WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
 	
 	if(km==NULL) {
 		km= MEM_callocN(sizeof(struct wmKeyMap), "keymap list");
@@ -290,6 +301,11 @@ wmKeyMapItem *WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modif
 	kmi->propvalue= value;
 	
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
+
+	if ((km->flag & KEYMAP_USER) == 0) {
+		km->kmi_id++;
+		kmi->id = km->kmi_id;
+	}
 
 	return kmi;
 }
@@ -442,6 +458,48 @@ char *WM_key_event_operator_string(const bContext *C, const char *opname, int op
 	return NULL;
 }
 
+int	WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
+{
+	int k1type, k2type;
+
+	if (k1->flag & KMI_INACTIVE || k2->flag & KMI_INACTIVE)
+		return 0;
+
+	/* take event mapping into account */
+	k1type = WM_userdef_event_map(k1->type);
+	k2type = WM_userdef_event_map(k2->type);
+
+	if(k1type != KM_ANY && k2type != KM_ANY && k1type != k2type)
+		return 0;
+
+	if(k1->val != KM_ANY && k2->val != KM_ANY) {
+		/* take click, press, release conflict into account */
+		if (k1->val == KM_CLICK && ELEM3(k2->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0)
+			return 0;
+		if (k2->val == KM_CLICK && ELEM3(k1->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0)
+			return 0;
+		if (k1->val != k2->val)
+			return 0;
+	}
+
+	if(k1->shift != KM_ANY && k2->shift != KM_ANY && k1->shift != k2->shift)
+		return 0;
+
+	if(k1->ctrl != KM_ANY && k2->ctrl != KM_ANY && k1->ctrl != k2->ctrl)
+		return 0;
+
+	if(k1->alt != KM_ANY && k2->alt != KM_ANY && k1->alt != k2->alt)
+		return 0;
+
+	if(k1->oskey != KM_ANY && k2->oskey != KM_ANY && k1->oskey != k2->oskey)
+		return 0;
+
+	if(k1->keymodifier != k2->keymodifier)
+		return 0;
+
+	return 1;
+}
+
 /* ***************** user preferences ******************* */
 
 int WM_keymap_user_init(wmWindowManager *wm, wmKeyMap *keymap)
@@ -455,7 +513,7 @@ int WM_keymap_user_init(wmWindowManager *wm, wmKeyMap *keymap)
 	/* init from user key config */
 	keyconf= wm_keyconfig_list_find(&wm->keyconfigs, U.keyconfigstr);
 	if(keyconf) {
-		km= wm_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+		km= WM_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 		if(km) {
 			keymap->poll= km->poll; /* lazy init */
 			keymap->modal_items= km->modal_items;
@@ -464,7 +522,7 @@ int WM_keymap_user_init(wmWindowManager *wm, wmKeyMap *keymap)
 	}
 
 	/* or from default */
-	km= wm_keymap_list_find(&wm->defaultconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	km= WM_keymap_list_find(&wm->defaultconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 	if(km) {
 		keymap->poll= km->poll; /* lazy init */
 		keymap->modal_items= km->modal_items;
@@ -483,7 +541,7 @@ wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
 		return NULL;
 	
 	/* first user defined keymaps */
-	km= wm_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	km= WM_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 	if(km) {
 		km->poll= keymap->poll; /* lazy init */
 		km->modal_items= keymap->modal_items;
@@ -493,7 +551,7 @@ wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
 	/* then user key config */
 	keyconf= wm_keyconfig_list_find(&wm->keyconfigs, U.keyconfigstr);
 	if(keyconf) {
-		km= wm_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+		km= WM_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 		if(km) {
 			km->poll= keymap->poll; /* lazy init */
 			km->modal_items= keymap->modal_items;
@@ -502,7 +560,7 @@ wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
 	}
 
 	/* then use default */
-	km= wm_keymap_list_find(&wm->defaultconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	km= WM_keymap_list_find(&wm->defaultconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 	return km;
 }
 
@@ -511,7 +569,7 @@ wmKeyMap *WM_keymap_copy_to_user(wmKeyMap *keymap)
 	wmKeyMap *usermap;
 	wmKeyMapItem *kmi;
 
-	usermap= wm_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	usermap= WM_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 
 	if(!usermap) {
 		/* not saved yet, duplicate existing */
@@ -545,11 +603,60 @@ wmKeyMap *WM_keymap_copy_to_user(wmKeyMap *keymap)
 	return usermap;
 }
 
+void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapItem *kmi)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmKeyConfig *keyconf;
+	wmKeyMap *km = NULL;
+
+	/* look in user key config */
+	keyconf= wm_keyconfig_list_find(&wm->keyconfigs, U.keyconfigstr);
+	if(keyconf) {
+		km= WM_keymap_list_find(&keyconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	}
+
+	if (!km) {
+		/* or from default */
+		km= WM_keymap_list_find(&wm->defaultconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	}
+
+	if (km) {
+		wmKeyMapItem *orig;
+
+		for (orig = km->items.first; orig; orig = orig->next) {
+			if (orig->id == kmi->id)
+				break;
+		}
+
+		if (orig) {
+			if(strcmp(orig->idname, kmi->idname) != 0) {
+				BLI_strncpy(kmi->idname, orig->idname, sizeof(kmi->idname));
+
+				WM_keymap_properties_reset(kmi);
+			}
+			kmi->properties= IDP_CopyProperty(orig->properties);
+			kmi->ptr->data= kmi->properties;
+
+			kmi->propvalue = orig->propvalue;
+			kmi->type = orig->type;
+			kmi->val = orig->val;
+			kmi->shift = orig->shift;
+			kmi->ctrl = orig->ctrl;
+			kmi->alt = orig->alt;
+			kmi->oskey = orig->oskey;
+			kmi->keymodifier = orig->keymodifier;
+			kmi->maptype = orig->maptype;
+
+		}
+
+	}
+}
+
 void WM_keymap_restore_to_default(wmKeyMap *keymap)
 {
 	wmKeyMap *usermap;
 
-	usermap= wm_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
+	usermap= WM_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 
 	if(usermap) {
 		WM_keymap_free(usermap);

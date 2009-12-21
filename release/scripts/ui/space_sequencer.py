@@ -44,19 +44,41 @@ class SEQUENCER_HT_header(bpy.types.Header):
 
             row.separator()
 
-            if st.display_mode == 'SEQUENCER':
+            if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
                 sub.menu("SEQUENCER_MT_select")
                 sub.menu("SEQUENCER_MT_marker")
                 sub.menu("SEQUENCER_MT_add")
                 sub.menu("SEQUENCER_MT_strip")
 
-        layout.prop(st, "display_mode", text="")
+        layout.prop(st, "view_type", text="")
 
-        if st.display_mode == 'SEQUENCER':
+        if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
+            layout.prop(st, "display_mode", text="")
+
+        if (st.view_type == 'SEQUENCER'):
+            row = layout.row(align=True)
+            row.operator("sequencer.copy", text="", icon='COPYDOWN')
+            row.operator("sequencer.paste", text="", icon='PASTEDOWN')
+
             layout.separator()
             layout.operator("sequencer.refresh_all")
+        elif (st.view_type == 'SEQUENCER_PREVIEW'):
+            layout.separator()
+            layout.operator("sequencer.refresh_all")
+            layout.prop(st, "display_channel", text="Channel")
         else:
             layout.prop(st, "display_channel", text="Channel")
+
+
+class SEQUENCER_MT_view_toggle(bpy.types.Menu):
+    bl_label = "View Type"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("sequencer.view_toggle").type = 'SEQUENCER'
+        layout.operator("sequencer.view_toggle").type = 'PREVIEW'
+        layout.operator("sequencer.view_toggle").type = 'SEQUENCER_PREVIEW'
 
 
 class SEQUENCER_MT_view(bpy.types.Menu):
@@ -98,7 +120,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 
         """
         layout.separator()
-        layout.operator("sequencer.view_all")
+        if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
+            layout.operator("sequencer.view_all", text='View all Sequences')
+        if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
+            layout.operator("sequencer.view_all_preview", text='Fit preview in window')
         layout.operator("sequencer.view_selected")
 
         layout.prop(st, "draw_frames")
@@ -134,7 +159,7 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 
 
 class SEQUENCER_MT_marker(bpy.types.Menu):
-    bl_label = "Marker (TODO)"
+    bl_label = "Marker"
 
     def draw(self, context):
         layout = self.layout
@@ -178,6 +203,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator("sequencer.effect_strip_add", text="Subtract").type = 'SUBTRACT'
         layout.operator("sequencer.effect_strip_add", text="Alpha Over").type = 'ALPHA_OVER'
         layout.operator("sequencer.effect_strip_add", text="Alpha Under").type = 'ALPHA_UNDER'
+        layout.operator("sequencer.effect_strip_add", text="Cross").type = 'CROSS'
         layout.operator("sequencer.effect_strip_add", text="Gamma Cross").type = 'GAMMA_CROSS'
         layout.operator("sequencer.effect_strip_add", text="Multiply").type = 'MULTIPLY'
         layout.operator("sequencer.effect_strip_add", text="Over Drop").type = 'OVER_DROP'
@@ -198,8 +224,8 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator("tfm.transform", text="Grab/Move").mode = 'TRANSLATION'
-        layout.operator("tfm.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
+        layout.operator("transform.transform", text="Grab/Move").mode = 'TRANSLATION'
+        layout.operator("transform.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
         #  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
         layout.separator()
 
@@ -222,7 +248,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
                 layout.operator("sequencer.effect_reassign_inputs")
             elif stype == 'IMAGE':
                 layout.separator()
-                layout.operator("sequencer.image_change")
+                # layout.operator("sequencer.image_change")
                 layout.operator("sequencer.rendersize")
             elif stype == 'SCENE':
                 layout.separator()
@@ -254,24 +280,29 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         layout.operator("sequencer.snap")
 
-        layout.operator("sequencer.swap_right")
-        layout.operator("sequencer.swap_left")
+        layout.operator_menu_enum("sequencer.swap", "side")
 
 
 class SequencerButtonsPanel(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
+    def has_sequencer(self, context):
+        return (context.space_data.view_type == 'SEQUENCER') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
+
     def poll(self, context):
-        return (context.space_data.display_mode == 'SEQUENCER') and (act_strip(context) is not None)
+        return self.has_sequencer(context) and (act_strip(context) is not None)
 
 
 class SequencerButtonsPanel_Output(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
+    def has_preview(self, context):
+        return (context.space_data.view_type == 'PREVIEW') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
+
     def poll(self, context):
-        return context.space_data.display_mode != 'SEQUENCER'
+        return self.has_preview(context)
 
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel):
@@ -296,9 +327,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
         row = layout.row()
         if strip.mute == True:
-            row.prop(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_ON', text="")
+            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON', text="")
         elif strip.mute is False:
-            row.prop(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_OFF', text="")
+            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_OFF', text="")
 
         sub = row.row()
         sub.active = (not strip.mute)
@@ -330,7 +361,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
     bl_label = "Effect Strip"
 
     def poll(self, context):
-        if context.space_data.display_mode != 'SEQUENCER':
+        if not self.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -338,7 +369,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             return False
 
         return strip.type in ('ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-                              'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
 
@@ -382,54 +413,53 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             flow.prop(strip, "frame_blending")
 
         elif strip.type == 'TRANSFORM':
+            self.draw_panel_transform(strip)
 
-            col = layout.column()
-            col.prop(strip, "interpolation")
-            col.prop(strip, "translation_unit")
-
-            col = layout.column(align=True)
-            col.label(text="Position X:")
-            col.prop(strip, "translate_start_x", text="Start")
-            col.prop(strip, "translate_end_x", text="End")
-
-            col = layout.column(align=True)
-            col.label(text="Position Y:")
-            col.prop(strip, "translate_start_y", text="Start")
-            col.prop(strip, "translate_end_y", text="End")
-
-            layout.separator()
-
-            col = layout.column(align=True)
-            col.label(text="Scale X:")
-            col.prop(strip, "scale_start_x", text="Start")
-            col.prop(strip, "scale_end_x", text="End")
-
-            col = layout.column(align=True)
-            col.label(text="Scale Y:")
-            col.prop(strip, "scale_start_y", text="Start")
-            col.prop(strip, "scale_end_y", text="End")
-
-            layout.separator()
-
-            col = layout.column(align=True)
-            col.label(text="Rotation:")
-            col.prop(strip, "rotation_start", text="Start")
-            col.prop(strip, "rotation_end", text="End")
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "speed_fader", text="Speed fader")
+        elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE'):
+                col.prop(strip, "use_effect_default_fade", "Default fade")
+                if not strip.use_effect_default_fade:
+                    col.prop(strip, "effect_fader", text="Effect fader")
+
+    def draw_panel_transform(self, strip):
+        layout = self.layout
+        col = layout.column()
+
+        col.prop(strip, "interpolation")
+        col.prop(strip, "translation_unit")
+        col = layout.column(align=True)
+        col.label(text="Position:")
+        col.prop(strip, "translate_start_x", text="X")
+        col.prop(strip, "translate_start_y", text="Y")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(strip, "uniform_scale")
+        if (strip.uniform_scale):
+            col = layout.column(align=True)
+            col.prop(strip, "scale_start_x", text="Scale")
         else:
-            col.prop(strip, "use_effect_default_fade", "Default fade")
-            if not strip.use_effect_default_fade:
-                col.prop(strip, "effect_fader", text="Effect fader")
+            col = layout.column(align=True)
+            col.label(text="Scale:")
+            col.prop(strip, "scale_start_x", text="X")
+            col.prop(strip, "scale_start_y", text="Y")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.label(text="Rotation:")
+        col.prop(strip, "rotation_start", text="Rotation")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
     bl_label = "Strip Input"
 
     def poll(self, context):
-        if context.space_data.display_mode != 'SEQUENCER':
+        if not self.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -485,7 +515,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
     bl_label = "Sound"
 
     def poll(self, context):
-        if context.space_data.display_mode != 'SEQUENCER':
+        if not self.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -506,9 +536,9 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 
         row = layout.row()
         if strip.sound.packed_file:
-            row.operator("sound.unpack", icon='ICON_PACKAGE', text="Unpack")
+            row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
         else:
-            row.operator("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
+            row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
 
         row.prop(strip.sound, "caching")
 
@@ -519,7 +549,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
     bl_label = "Scene"
 
     def poll(self, context):
-        if context.space_data.display_mode != 'SEQUENCER':
+        if not self.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -540,7 +570,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
     bl_label = "Filter"
 
     def poll(self, context):
-        if context.space_data.display_mode != 'SEQUENCER':
+        if not self.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -590,7 +620,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
     bl_label = "Proxy"
 
     def poll(self, context):
-        if context.space_data.display_mode != 'SEQUENCER':
+        if not self.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -630,6 +660,7 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
 
 bpy.types.register(SEQUENCER_HT_header) # header/menu classes
 bpy.types.register(SEQUENCER_MT_view)
+bpy.types.register(SEQUENCER_MT_view_toggle)
 bpy.types.register(SEQUENCER_MT_select)
 bpy.types.register(SEQUENCER_MT_marker)
 bpy.types.register(SEQUENCER_MT_add)

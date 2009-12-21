@@ -203,9 +203,9 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Grouping Method", "Method used to define which Group-name to use.");
 	
 	/* Path + Array Index */
-	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ksPath_RnaPath_get", "rna_ksPath_RnaPath_length", "rna_ksPath_RnaPath_set");
-	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property setting.");
+	RNA_def_property_ui_text(prop, "Data Path", "Path to property setting.");
 	RNA_def_struct_name_property(srna, prop); // XXX this is the best indicator for now...
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
@@ -266,6 +266,10 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "insertkey_visual", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_MATRIX);
 	RNA_def_property_ui_text(prop, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
+	
+	prop= RNA_def_property(srna, "insertkey_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_XYZ2RGB);
+	RNA_def_property_ui_text(prop, "F-Curve Colors - XYZ to RGB", "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis.");
 	
 	/* Keying Set API */
 	RNA_api_keyingset(srna);

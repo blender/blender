@@ -24,7 +24,10 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-import sys, os
+# <pep8 compliant>
+
+import sys
+import os
 
 if len(sys.argv) < 2:
     sys.stdout.write("Usage: datatoc <data_file>\n")
@@ -33,7 +36,7 @@ if len(sys.argv) < 2:
 filename = sys.argv[1]
 
 try:
-    fpin = open(filename, "rb");
+    fpin = open(filename, "rb")
 except:
     sys.stdout.write("Unable to open input %s\n" % sys.argv[1])
     sys.exit(1)

@@ -55,6 +55,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""},
 	{eModifierType_Mirror, "MIRROR", ICON_MOD_MIRROR, "Mirror", ""},
 	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
+	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_DISPLACE, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
 	{0, "", 0, "Deform", ""},
@@ -161,6 +162,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_SurfaceModifier;
 		case eModifierType_Smoke:
 			return &RNA_SmokeModifier;
+		case eModifierType_Solidify:
+			return &RNA_SolidifyModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -192,19 +195,19 @@ static char *rna_Modifier_path(PointerRNA *ptr)
 	return BLI_sprintfN("modifiers[\"%s\"]", ((ModifierData*)ptr->data)->name);
 }
 
-static void rna_Modifier_update(bContext *C, PointerRNA *ptr)
+static void rna_Modifier_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ptr->id.data);
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ptr->id.data);
 }
 
-static void rna_Modifier_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_Modifier_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	rna_Modifier_update(C, ptr);
-    DAG_scene_sort(CTX_data_scene(C));
+	rna_Modifier_update(bmain, scene, ptr);
+    DAG_scene_sort(scene);
 }
 
-static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
+static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)ptr->data;
 	Object *ob= (Object*)ptr->id.data;
@@ -224,12 +227,12 @@ static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
 		case MOD_SMOKE_TYPE_COLL:
 		case 0:
 		default:
-			ob->dt = OB_SHADED;
+			ob->dt = OB_TEXTURE;
 			break;
 	}
 	
 	// update dependancy since a domain - other type switch could have happened
-	rna_Modifier_dependency_update(C, ptr);
+	rna_Modifier_dependency_update(bmain, scene, ptr);
 }
 
 static void rna_ExplodeModifier_vgroup_get(PointerRNA *ptr, char *value)
@@ -322,6 +325,12 @@ static void rna_CastModifier_vgroup_set(PointerRNA *ptr, const char *value)
 	rna_object_vgroup_name_set(ptr, value, lmd->defgrp_name, sizeof(lmd->defgrp_name));
 }
 
+static void rna_SolidifyModifier_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	SolidifyModifierData *smd= (SolidifyModifierData*)ptr->data;
+	rna_object_vgroup_name_set(ptr, value, smd->vgroup, sizeof(smd->vgroup));
+}
+
 static void rna_DisplaceModifier_uvlayer_set(PointerRNA *ptr, const char *value)
 {
 	DisplaceModifierData *smd= (DisplaceModifierData*)ptr->data;
@@ -344,8 +353,41 @@ static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)ptr->data;
 
-	*min = 1;
+	*min = 0;
 	*max = mmd->totlvl;
+}
+
+static int rna_MultiresModifier_external_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Mesh *me= ob->data;
+
+	return CustomData_external_test(&me->fdata, CD_MDISPS);
+}
+
+static void rna_MultiresModifier_filename_get(PointerRNA *ptr, char *value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
+
+	BLI_strncpy(value, (external)? external->filename: "", sizeof(external->filename));
+}
+
+static void rna_MultiresModifier_filename_set(PointerRNA *ptr, const char *value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
+
+	if(external)
+		BLI_strncpy(external->filename, value, sizeof(external->filename));
+}
+
+static int rna_MultiresModifier_filename_length(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
+
+	return strlen((external)? external->filename: "");
 }
 
 static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRNA value)
@@ -496,22 +538,20 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 
 	rna_def_property_subdivision_common(srna, "subdivType");
 
-	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "levels");
-	RNA_def_property_range(prop, 1, 6);
-	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "renderLevels");
-	RNA_def_property_range(prop, 1, 6);
-	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Levels", "Number of subdivisions to perform when rendering.");
 
-	prop= RNA_def_property(srna, "optimal_draw", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_ControlEdges);
-	RNA_def_property_ui_text(prop, "Optimal Draw", "Skip drawing/rendering of interior subdivided edges");
+	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
 	prop= RNA_def_property(srna, "subsurf_uv", PROP_BOOLEAN, PROP_NONE);
@@ -532,10 +572,41 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 
 	rna_def_property_subdivision_common(srna, "simple");
 
-	prop= RNA_def_property(srna, "level", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "lvl");
-	RNA_def_property_ui_text(prop, "Level", "");
+	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to use in the viewport.");
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "sculpt_levels", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "sculptlvl");
+	RNA_def_property_ui_text(prop, "Sculpt Levels", "Number of subdivisions to use in sculpt mode.");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "renderlvl");
+	RNA_def_property_ui_text(prop, "Render Levels", "");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
+
+	prop= RNA_def_property(srna, "total_levels", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "totlvl");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Total Levels", "Number of subdivisions for which displacements are stored.");
+
+	prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", NULL);
+	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory.");
+
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_funcs(prop, "rna_MultiresModifier_filename_get", "rna_MultiresModifier_filename_length", "rna_MultiresModifier_filename_set");
+	RNA_def_property_ui_text(prop, "Filename", "Path to external displacements file.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", eMultiresModifierFlag_ControlEdges);
+	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -1938,6 +2009,67 @@ static void rna_def_modifier_surface(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SurfaceModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PHYSICS);
 }
+
+static void rna_def_modifier_solidify(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SolidifyModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Solidify Modifier", "Create a solid skin by extruding, compensating for sharp angles.");
+	RNA_def_struct_sdna(srna, "SolidifyModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
+
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
+	RNA_def_property_ui_text(prop, "Thickness", "Thickness of the shell.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "edge_crease_inner", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "crease_inner");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Inner Crease", "Assign a crease to inner edges.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "edge_crease_outer", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "crease_outer");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Outer Crease", "Assign a crease to outer edges.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "edge_crease_rim", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "crease_rim");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Rim Crease", "Assign a crease to the edges making up the rim.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "vgroup");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SolidifyModifier_vgroup_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_rim", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_RIM);
+	RNA_def_property_ui_text(prop, "Fill Rim", "Create edge loops between the inner and outer surfaces on face edges (slow, disable when not needed)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_even_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_EVEN);
+	RNA_def_property_ui_text(prop, "Even Thickness", "Maintain thickness by adjusting for sharp corners (slow, disable when not needed)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_quality_normals", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_NORMAL_CALC);
+	RNA_def_property_ui_text(prop, "High Quality Normals", "Calculate normals which result in more even thickness (slow, disable when not needed)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1954,6 +2086,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Modifier_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Modifier name.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER|NA_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
 	
 	/* enums */
@@ -1967,6 +2100,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "realtime", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Realtime);
 	RNA_def_property_ui_text(prop, "Realtime", "Realtime display of a modifier.");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 0);
 	
@@ -2023,6 +2157,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_multires(brna);
 	rna_def_modifier_surface(brna);
 	rna_def_modifier_smoke(brna);
+	rna_def_modifier_solidify(brna);
 }
 
 #endif

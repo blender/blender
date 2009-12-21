@@ -161,6 +161,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
 		if(RNA_struct_find_property(op->ptr, "filter_folder"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_btx"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_btx") ? BTXFILE : 0;
 		if (params->filter != 0)
 			params->flag |= FILE_FILTER;
 

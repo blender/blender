@@ -43,20 +43,23 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "RNA_access.h"
 #include "RE_pipeline.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_util.h"
+#include "BLI_fileops.h"
+#include "BLI_listbase.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_threads.h"
+#include <pthread.h>
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BLI_threads.h"
-#include <pthread.h>
+
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
@@ -73,13 +76,29 @@ static int seqrecty= 0;
 //static int blender_test_break() {return 0;}
 
 /* **** XXX ******** */
-
+#define SELECT 1
+ListBase seqbase_clipboard;
+int seqbase_clipboard_frame;
 
 void printf_strip(Sequence *seq)
 {
 	fprintf(stderr, "name: '%s', len:%d, start:%d, (startofs:%d, endofs:%d), (startstill:%d, endstill:%d), machine:%d, (startdisp:%d, enddisp:%d)\n",
 			seq->name, seq->len, seq->start, seq->startofs, seq->endofs, seq->startstill, seq->endstill, seq->machine, seq->startdisp, seq->enddisp);
 	fprintf(stderr, "\tseq_tx_set_final_left: %d %d\n\n", seq_tx_get_final_left(seq, 0), seq_tx_get_final_right(seq, 0));
+}
+
+void seqbase_recursive_apply(ListBase *seqbase, int (*apply_func)(Sequence *seq, void *), void *arg)
+{
+	Sequence *iseq;
+	for(iseq= seqbase->first; iseq; iseq= iseq->next) {
+		seq_recursive_apply(iseq, apply_func, arg);
+	}
+}
+
+void seq_recursive_apply(Sequence *seq, int (*apply_func)(Sequence *, void *), void *arg)
+{
+	if(apply_func(seq, arg) && seq->seqbase.first)
+		seqbase_recursive_apply(&seq->seqbase, apply_func, arg);
 }
 
 /* **********************************************************************
@@ -197,14 +216,9 @@ void seq_free_strip(Strip *strip)
 
 void seq_free_sequence(Scene *scene, Sequence *seq)
 {
-	Editing *ed = scene->ed;
-
 	if(seq->strip) seq_free_strip(seq->strip);
 
 	if(seq->anim) IMB_free_anim(seq->anim);
-
-	if(seq->sound_handle)
-		sound_delete_handle(scene, seq->sound_handle);
 
 	if (seq->type & SEQ_EFFECT) {
 		struct SeqEffectHandle sh = get_sequence_effect(seq);
@@ -212,8 +226,16 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 		sh.free(seq);
 	}
 
-	if (ed->act_seq==seq)
-		ed->act_seq= NULL;
+	/* clipboard has no scene and will never have a sound handle or be active */
+	if(scene) {
+		Editing *ed = scene->ed;
+
+		if (ed->act_seq==seq)
+			ed->act_seq= NULL;
+
+		if(seq->sound_handle)
+			sound_delete_handle(scene, seq->sound_handle);
+	}
 
 	MEM_freeN(seq);
 }
@@ -227,6 +249,17 @@ Editing *seq_give_editing(Scene *scene, int alloc)
 		ed->seqbasep= &ed->seqbase;
 	}
 	return scene->ed;
+}
+
+void seq_free_clipboard(void)
+{
+	Sequence *seq, *nseq;
+
+	for(seq= seqbase_clipboard.first; seq; seq= nseq) {
+		nseq= seq->next;
+		seq_free_sequence(NULL, seq);
+	}
+	seqbase_clipboard.first= seqbase_clipboard.last= NULL;
 }
 
 void seq_free_editing(Scene *scene)
@@ -670,28 +703,22 @@ void sort_seq(Scene *scene)
 }
 
 
-void clear_scene_in_allseqs(Scene *sce)
+static int clear_scene_in_allseqs_cb(Sequence *seq, void *arg_pt)
 {
-	Scene *sce1;
-	Editing *ed;
-	Sequence *seq;
+	if(seq->scene==(Scene *)arg_pt)
+		seq->scene= NULL;
+	return 1;
+}
+
+void clear_scene_in_allseqs(Scene *scene)
+{
+	Scene *scene_iter;
 
 	/* when a scene is deleted: test all seqs */
-
-	sce1= G.main->scene.first;
-	while(sce1) {
-		if(sce1!=sce && sce1->ed) {
-			ed= sce1->ed;
-
-			SEQ_BEGIN(ed, seq) {
-
-				if(seq->scene==sce) seq->scene= 0;
-
-			}
-			SEQ_END
+	for(scene_iter= G.main->scene.first; scene_iter; scene_iter= scene_iter->id.next) {
+		if(scene_iter != scene && scene_iter->ed) {
+			seqbase_recursive_apply(&scene_iter->ed->seqbase, clear_scene_in_allseqs_cb, scene);
 		}
-
-		sce1= sce1->id.next;
 	}
 }
 
@@ -839,7 +866,7 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 	early_out = sh.early_out(seq, fac, facf);
 
 	if (early_out == -1) { /* no input needed */
-		sh.execute(seq, cfra, fac, facf, 
+		sh.execute(scene, seq, cfra, fac, facf, 
 			   se->ibuf->x, se->ibuf->y, 
 			   0, 0, 0, se->ibuf);
 		return;
@@ -928,7 +955,7 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 		IMB_rect_from_float(se3->ibuf);
 	}
 
-	sh.execute(seq, cfra, fac, facf, x, y, se1->ibuf, se2->ibuf, se3->ibuf,
+	sh.execute(scene, seq, cfra, fac, facf, x, y, se1->ibuf, se2->ibuf, se3->ibuf,
 		   se->ibuf);
 }
 
@@ -2014,9 +2041,14 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		Render *re;
 		RenderResult rres;
 		char scenename[64];
-		int have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
-		int sce_valid =sce && (sce->camera || have_seq);
-			
+		int have_seq= FALSE;
+		int sce_valid= FALSE;
+
+		if(sce) {
+			have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
+			sce_valid= (sce->camera || have_seq);
+		}
+
 		if (se->ibuf == NULL && sce_valid && !build_proxy_run) {
 			se->ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
 			if (se->ibuf) {
@@ -2276,7 +2308,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 			} else {
 				sh = get_sequence_effect(seq);
 
-				sh.execute(seq, cfra, 
+				sh.execute(scene, seq, cfra, 
 					   f_cfra - (float) cfra_left, 
 					   f_cfra - (float) cfra_left, 
 					   se->ibuf->x, se->ibuf->y, 
@@ -2510,12 +2542,12 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 			}
 
 			if (swap_input) {
-				sh.execute(seq, cfra, 
+				sh.execute(scene, seq, cfra, 
 					   facf, facf, x, y, 
 					   se2->ibuf, se1->ibuf_comp, 0,
 					   se2->ibuf_comp);
 			} else {
-				sh.execute(seq, cfra, 
+				sh.execute(scene, seq, cfra, 
 					   facf, facf, x, y, 
 					   se1->ibuf_comp, se2->ibuf, 0,
 					   se2->ibuf_comp);
@@ -3198,6 +3230,23 @@ static void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 }
 #endif
 
+static int seq_sound_reload_cb(Sequence *seq, void *arg_pt)
+{
+	if (seq->type==SEQ_SOUND && seq->sound) {
+		Scene *scene= (Scene *)arg_pt;
+		if(seq->sound_handle)
+			sound_delete_handle(scene, seq->sound_handle);
+
+		seq->sound_handle = sound_new_handle(scene, seq->sound, seq->start, seq->start + seq->strip->len, 0);
+		return 0;
+	}
+	return 1; /* recurse meta's */
+}
+void seqbase_sound_reload(Scene *scene, ListBase *seqbase)
+{
+	seqbase_recursive_apply(seqbase, seq_sound_reload_cb, (void *)scene);
+}
+
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.
 
@@ -3256,12 +3305,48 @@ void seq_tx_set_final_right(Sequence *seq, int val)
 
 /* used so we can do a quick check for single image seq
    since they work a bit differently to normal image seq's (during transform) */
-int check_single_seq(Sequence *seq)
+int seq_single_check(Sequence *seq)
 {
 	if ( seq->len==1 && (seq->type == SEQ_IMAGE || seq->type == SEQ_COLOR))
 		return 1;
 	else
 		return 0;
+}
+
+/* check if the selected seq's reference unselected seq's */
+int seqbase_isolated_sel_check(ListBase *seqbase)
+{
+	Sequence *seq;
+	/* is there more than 1 select */
+	int ok= FALSE;
+
+	for(seq= seqbase->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			ok= TRUE;
+			break;
+		}
+	}
+
+	if(ok == FALSE)
+		return FALSE;
+
+	/* test relationships */
+	for(seq= seqbase->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			if(seq->type & SEQ_EFFECT) {
+				if(seq->seq1 && (seq->seq1->flag & SELECT)==0) return FALSE;
+				if(seq->seq2 && (seq->seq2->flag & SELECT)==0) return FALSE;
+				if(seq->seq3 && (seq->seq3->flag & SELECT)==0) return FALSE;
+			}
+		}
+		else if(seq->type & SEQ_EFFECT) {
+			if(seq->seq1 && (seq->seq1->flag & SELECT)) return FALSE;
+			if(seq->seq2 && (seq->seq2->flag & SELECT)) return FALSE;
+			if(seq->seq3 && (seq->seq3->flag & SELECT)) return FALSE;
+		}
+	}
+
+	return TRUE;
 }
 
 /* use to impose limits when dragging/extending - so impossible situations dont happen
@@ -3273,7 +3358,7 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq, 0)-1);
 		}
 
-		if (check_single_seq(seq)==0) {
+		if (seq_single_check(seq)==0) {
 			if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_end(seq)) {
 				seq_tx_set_final_left(seq, seq_tx_get_end(seq)-1);
 			}
@@ -3295,7 +3380,7 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq, 0)+1);
 		}
 
-		if (check_single_seq(seq)==0) {
+		if (seq_single_check(seq)==0) {
 			if (seq_tx_get_final_right(seq, 0) <= seq_tx_get_start(seq)) {
 				seq_tx_set_final_right(seq, seq_tx_get_start(seq)+1);
 			}
@@ -3309,10 +3394,10 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 	}
 }
 
-void fix_single_seq(Sequence *seq)
+void seq_single_fix(Sequence *seq)
 {
 	int left, start, offset;
-	if (!check_single_seq(seq))
+	if (!seq_single_check(seq))
 		return;
 
 	/* make sure the image is always at the start since there is only one,
@@ -3357,13 +3442,15 @@ int seq_test_overlap(ListBase * seqbasep, Sequence *test)
 }
 
 
-static void seq_translate(Sequence *seq, int delta)
+static void seq_translate(Scene *evil_scene, Sequence *seq, int delta)
 {
+	seq_offset_animdata(evil_scene, seq, delta);
 	seq->start += delta;
+
 	if(seq->type==SEQ_META) {
 		Sequence *seq_child;
 		for(seq_child= seq->seqbase.first; seq_child; seq_child= seq_child->next) {
-			seq_translate(seq_child, delta);
+			seq_translate(evil_scene, seq_child, delta);
 		}
 	}
 
@@ -3371,7 +3458,7 @@ static void seq_translate(Sequence *seq, int delta)
 }
 
 /* return 0 if there werent enough space */
-int shuffle_seq(ListBase * seqbasep, Sequence *test)
+int shuffle_seq(ListBase * seqbasep, Sequence *test, Scene *evil_scene)
 {
 	int orig_machine= test->machine;
 	test->machine++;
@@ -3399,7 +3486,7 @@ int shuffle_seq(ListBase * seqbasep, Sequence *test)
 
 		test->machine= orig_machine;
 		new_frame = new_frame + (test->start-test->startdisp); /* adjust by the startdisp */
-		seq_translate(test, new_frame - test->start);
+		seq_translate(evil_scene, test, new_frame - test->start);
 
 		calc_sequence(test);
 		return 0;
@@ -3455,7 +3542,7 @@ static int shuffle_seq_time_offset(ListBase * seqbasep, char dir)
 	return tot_ofs;
 }
 
-int shuffle_seq_time(ListBase * seqbasep)
+int shuffle_seq_time(ListBase * seqbasep, Scene *evil_scene)
 {
 	/* note: seq->tmp is used to tag strips to move */
 
@@ -3468,7 +3555,7 @@ int shuffle_seq_time(ListBase * seqbasep)
 	if(offset) {
 		for(seq= seqbasep->first; seq; seq= seq->next) {
 			if(seq->tmp) {
-				seq_translate(seq, offset);
+				seq_translate(evil_scene, seq, offset);
 				seq->flag &= ~SEQ_OVERLAP;
 			}
 		}
@@ -3477,18 +3564,117 @@ int shuffle_seq_time(ListBase * seqbasep)
 	return offset? 0:1;
 }
 
-
-void seq_update_sound(struct Sequence *seq)
+void seq_update_sound(Sequence *seq)
 {
-	if(seq->type == SEQ_SOUND)
+	if(seq->type == SEQ_SOUND && seq->sound_handle)
 	{
 		seq->sound_handle->startframe = seq->startdisp;
 		seq->sound_handle->endframe = seq->enddisp;
 		seq->sound_handle->frameskip = seq->startofs + seq->anim_startofs;
-		seq->sound_handle->mute = seq->flag & SEQ_MUTE ? 1 : 0;
 		seq->sound_handle->changed = -1;
+		/* mute is set in seq_update_muting_recursive */
 	}
 }
+
+static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, int mute)
+{
+	Sequence *seq;
+	int seqmute;
+
+	/* for sound we go over full meta tree to update muted state,
+	   since sound is played outside of evaluating the imbufs, */
+	for(seq=seqbasep->first; seq; seq=seq->next) {
+		seqmute= (mute || (seq->flag & SEQ_MUTE));
+
+		if(seq->type == SEQ_META) {
+			/* if this is the current meta sequence, unmute because
+			   all sequences above this were set to mute */
+			if(seq == metaseq)
+				seqmute= 0;
+
+			seq_update_muting_recursive(&seq->seqbase, metaseq, seqmute);
+		}
+		else if(seq->type == SEQ_SOUND) {
+			if(seq->sound_handle && seqmute != seq->sound_handle->mute) {
+				seq->sound_handle->mute = seqmute;
+				seq->sound_handle->changed = -1;
+			}
+		}
+	}
+}
+
+void seq_update_muting(Editing *ed)
+{
+	if(ed) {
+		/* mute all sounds up to current metastack list */
+		MetaStack *ms= ed->metastack.last;
+
+		if(ms)
+			seq_update_muting_recursive(&ed->seqbase, ms->parseq, 1);
+		else
+			seq_update_muting_recursive(&ed->seqbase, NULL, 0);
+	}
+}
+
+/* in cases where we done know the sequence's listbase */
+ListBase *seq_seqbase(ListBase *seqbase, Sequence *seq)
+{
+	Sequence *iseq;
+	ListBase *lb= NULL;
+
+	for(iseq= seqbase->first; iseq; iseq= iseq->next) {
+		if(seq==iseq) {
+			return seqbase;
+		}
+		else if(iseq->seqbase.first && (lb= seq_seqbase(&iseq->seqbase, seq))) {
+			return lb;
+		}
+	}
+
+	return NULL;
+}
+
+/* XXX - hackish function needed for transforming strips! TODO - have some better solution */
+void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
+{
+	char str[32];
+	FCurve *fcu;
+
+	if(scene->adt==NULL || ofs==0)
+		return;
+
+	sprintf(str, "[\"%s\"]", seq->name+2);
+
+	for (fcu= scene->adt->action->curves.first; fcu; fcu= fcu->next) {
+		if(strstr(fcu->rna_path, "sequence_editor.sequences_all[") && strstr(fcu->rna_path, str)) {
+			int i;
+			for (i = 0; i < fcu->totvert; i++) {
+				BezTriple *bezt= &fcu->bezt[i];
+				bezt->vec[0][0] += ofs;
+				bezt->vec[1][0] += ofs;
+				bezt->vec[2][0] += ofs;
+			}
+		}
+	}
+}
+
+
+Sequence *get_seq_by_name(ListBase *seqbase, const char *name, int recursive)
+{
+	Sequence *iseq=NULL;
+	Sequence *rseq=NULL;
+
+	for (iseq=seqbase->first; iseq; iseq=iseq->next) {
+		if (strcmp(name, iseq->name+2) == 0)
+			return iseq;
+		else if(recursive && (iseq->seqbase.first) && (rseq=get_seq_by_name(&iseq->seqbase, name, 1))) {
+			return rseq;
+		}
+	}
+
+	return NULL;
+}
+
 
 Sequence *active_seq_get(Scene *scene)
 {
@@ -3518,7 +3704,7 @@ void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 		}
 
 		if(seq_load->flag & SEQ_LOAD_REPLACE_SEL) {
-			seq_load->flag |= 1; /* SELECT */
+			seq_load->flag |= SELECT;
 			active_seq_set(scene, seq);
 		}
 
@@ -3544,7 +3730,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	*( (short *)seq->name )= ID_SEQ;
 	seq->name[2]= 0;
 
-	seq->flag= 1; /* SELECT */
+	seq->flag= SELECT;
 	seq->start= cfra;
 	seq->machine= machine;
 	seq->mul= 1.0;

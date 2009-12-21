@@ -19,9 +19,9 @@
 # <pep8-80 compliant>
 
 import bpy
-import os
 
 from bpy.props import *
+
 
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
     '''Export a single object as a stanford PLY with normals,
@@ -30,7 +30,7 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
     bl_label = "Delete Edge Loop"
 
     def execute(self, context):
-        bpy.ops.tfm.edge_slide(value=1.0)
+        bpy.ops.transform.edge_slide(value=1.0)
         bpy.ops.mesh.select_more()
         bpy.ops.mesh.remove_doubles()
 
@@ -42,9 +42,6 @@ rna_path_prop = StringProperty(name="Context Attributes",
 rna_reverse_prop = BoolProperty(name="Reverse",
         description="Cycle backwards", default=False)
 
-class NullPathMember:
-    pass
-
 
 def context_path_validate(context, path):
     import sys
@@ -53,7 +50,7 @@ def context_path_validate(context, path):
     except AttributeError:
         if "'NoneType'" in str(sys.exc_info()[1]):
             # One of the items in the rna path is None, just ignore this
-            value = NullPathMember
+            value = Ellipsis
         else:
             # We have a real error in the rna path, dont ignore that
             raise
@@ -62,7 +59,7 @@ def context_path_validate(context, path):
 
 
 def execute_context_assign(self, context):
-    if context_path_validate(context, self.properties.path) == NullPathMember:
+    if context_path_validate(context, self.properties.path) is Ellipsis:
         return ('PASS_THROUGH',)
     exec("context.%s=self.properties.value" % self.properties.path)
     return ('FINISHED',)
@@ -136,10 +133,12 @@ class WM_OT_context_toggle(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.properties.path) == NullPathMember:
+        if context_path_validate(context, self.properties.path) is Ellipsis:
             return ('PASS_THROUGH',)
 
-        exec("context.%s=not (context.%s)" % (self.properties.path, self.properties.path))
+        exec("context.%s=not (context.%s)" %
+            (self.properties.path, self.properties.path))
+
         return ('FINISHED',)
 
 
@@ -157,11 +156,13 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.properties.path) == NullPathMember:
+        if context_path_validate(context, self.properties.path) is Ellipsis:
             return ('PASS_THROUGH',)
 
         exec("context.%s = ['%s', '%s'][context.%s!='%s']" % \
-            (self.properties.path, self.properties.value_1, self.properties.value_2, self.properties.path, self.properties.value_2))
+            (self.properties.path, self.properties.value_1,\
+             self.properties.value_2, self.properties.path,
+             self.properties.value_2))
 
         return ('FINISHED',)
 
@@ -177,7 +178,7 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
     def execute(self, context):
 
         value = context_path_validate(context, self.properties.path)
-        if value == NullPathMember:
+        if value is Ellipsis:
             return ('PASS_THROUGH',)
 
         self.properties.value = value
@@ -209,7 +210,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
     def execute(self, context):
 
         value = context_path_validate(context, self.properties.path)
-        if value == NullPathMember:
+        if value is Ellipsis:
             return ('PASS_THROUGH',)
 
         orig_value = value
@@ -318,9 +319,12 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def execute(self, context):
 
-        class_name, class_prop = self.properties.doc_id.split('.')
+        doc_id = self.properties.doc_id
+        doc_new = self.properties.doc_new
 
-        if not self.properties.doc_new:
+        class_name, class_prop = doc_id.split('.')
+
+        if not doc_new:
             return ('RUNNING_MODAL',)
 
         # check if this is an operator
@@ -333,25 +337,25 @@ class WM_OT_doc_edit(bpy.types.Operator):
         if op_class:
             rna = op_class.bl_rna
             doc_orig = rna.description
-            if doc_orig == self.properties.doc_new:
+            if doc_orig == doc_new:
                 return ('RUNNING_MODAL',)
 
-            print("op - old:'%s' -> new:'%s'" % (doc_orig, self.properties.doc_new))
-            upload["title"] = 'OPERATOR %s:%s' % (self.properties.doc_id, doc_orig)
-            upload["description"] = self.properties.doc_new
+            print("op - old:'%s' -> new:'%s'" % (doc_orig, doc_new))
+            upload["title"] = 'OPERATOR %s:%s' % (doc_id, doc_orig)
+            upload["description"] = doc_new
 
             self._send_xmlrpc(upload)
 
         else:
             rna = getattr(bpy.types, class_name).bl_rna
             doc_orig = rna.properties[class_prop].description
-            if doc_orig == self.properties.doc_new:
+            if doc_orig == doc_new:
                 return ('RUNNING_MODAL',)
 
-            print("rna - old:'%s' -> new:'%s'" % (doc_orig, self.properties.doc_new))
-            upload["title"] = 'RNA %s:%s' % (self.properties.doc_id, doc_orig)
+            print("rna - old:'%s' -> new:'%s'" % (doc_orig, doc_new))
+            upload["title"] = 'RNA %s:%s' % (doc_id, doc_orig)
 
-        upload["description"] = self.properties.doc_new
+        upload["description"] = doc_new
 
         self._send_xmlrpc(upload)
 
@@ -359,8 +363,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.manager
-        wm.invoke_props_popup(self, event)
-        return ('RUNNING_MODAL',)
+        return wm.invoke_props_popup(self, event)
 
 
 class WM_OT_reload_scripts(bpy.types.Operator):
@@ -370,27 +373,7 @@ class WM_OT_reload_scripts(bpy.types.Operator):
 
     def execute(self, context):
         MOD = type(bpy)
-        import sys
         bpy.load_scripts(True)
-        '''
-        prefix = bpy.base_path
-        items = list(sys.modules.items())
-        items.sort()
-        items.reverse()
-        for mod_name, mod in items:
-            mod_file = getattr(mod, "__file__", "")
-            if mod_file.startswith(prefix) and "__init__" not in mod_file:
-                print(mod_file)
-                reload(mod)
-                """
-                for submod_name in dir(mod):
-                    submod = getattr(mod, submod_name)
-                    if isinstance(submod, MOD):
-                        reload(submod)
-                """
-            else:
-                print("Ignoring:", mod, mod_file)
-        '''
         return ('FINISHED',)
 
 

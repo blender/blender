@@ -61,6 +61,7 @@ class SelectPattern(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.manager
+        # return wm.invoke_props_popup(self, event)
         wm.invoke_props_popup(self, event)
         return ('RUNNING_MODAL',)
 
@@ -74,16 +75,16 @@ class SelectPattern(bpy.types.Operator):
         row.prop(props, "extend")
 
 
-class SubsurfSet(bpy.types.Operator):
+class SubdivisionSet(bpy.types.Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
-    bl_idname = "object.subsurf_set"
-    bl_label = "Subsurf Set"
+    bl_idname = "object.subdivision_set"
+    bl_label = "Subdivision Set"
     bl_register = True
     bl_undo = True
 
     level = IntProperty(name="Level",
-            default=1, min=0, max=6)
+            default=1, min=0, max=100, soft_min=0, soft_max=6)
 
     def poll(self, context):
         ob = context.active_object
@@ -91,16 +92,28 @@ class SubsurfSet(bpy.types.Operator):
 
     def execute(self, context):
         level = self.properties.level
-        ob = context.active_object
-        for mod in ob.modifiers:
-            if mod.type == 'SUBSURF':
-                if mod.levels != level:
-                    mod.levels = level
-                return ('FINISHED',)
 
-        # adda new modifier
-        mod = ob.modifiers.new("Subsurf", 'SUBSURF')
-        mod.levels = level
+        def set_object_subd(obj):
+            for mod in obj.modifiers:
+                if mod.type == 'MULTIRES':
+                    if level < mod.total_levels:
+                        if obj.mode == 'SCULPT' and mod.sculpt_levels != level:
+                            mod.sculpt_levels = level
+                        elif obj.mode == 'OBJECT' and mod.levels != level:
+                            mod.levels = level
+                    return
+                elif mod.type == 'SUBSURF':
+                    if mod.levels != level:
+                        mod.levels = level
+                    return
+
+            # adda new modifier
+            mod = obj.modifiers.new("Subsurf", 'SUBSURF')
+            mod.levels = level
+
+        for obj in context.selected_editable_objects:
+            set_object_subd(obj)
+
         return ('FINISHED',)
 
 
@@ -119,5 +132,5 @@ class Retopo(bpy.types.Operator):
 
 
 bpy.ops.add(SelectPattern)
-bpy.ops.add(SubsurfSet)
+bpy.ops.add(SubdivisionSet)
 bpy.ops.add(Retopo)

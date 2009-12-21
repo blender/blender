@@ -37,13 +37,13 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_Camera_angle_update(bContext *C, PointerRNA *ptr)
+static void rna_Camera_angle_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Camera *cam= (Camera*)ptr->id.data;
 	cam->lens = 16.0f / tan(M_PI*cam->angle/360.0f);
 }
 
-static void rna_Camera_lens_update(bContext *C, PointerRNA *ptr)
+static void rna_Camera_lens_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Camera *cam= (Camera*)ptr->id.data;
 	cam->angle= 360.0f * atan(16.0f/cam->lens) / M_PI;

@@ -131,6 +131,8 @@ float angle_normalized_v2v2(float a[2], float b[2]);
 float angle_v3v3(float a[2], float b[2]);
 float angle_v3v3v3(float a[2], float b[2], float c[2]);
 float angle_normalized_v3v3(float a[3], float b[3]);
+void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3]);
+void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 
 /********************************* Geometry **********************************/
 

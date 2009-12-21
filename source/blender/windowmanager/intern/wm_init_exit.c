@@ -53,6 +53,7 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
+#include "BKE_sequencer.h" /* free seq clipboard */
 
 #include "BLI_blenlib.h"
 
@@ -234,6 +235,8 @@ void WM_exit(bContext *C)
 
 	if(C && CTX_wm_manager(C))
 		wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
+
+	seq_free_clipboard(); /* sequencer.c */
 		
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();

@@ -48,8 +48,9 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
+#include "BKE_animsys.h"	/* <------ should this be here?, needed for sequencer update */
 
 #include "MEM_guardedalloc.h"
 
@@ -2447,6 +2448,11 @@ static void do_render_seq(Render * re)
 	RenderResult *rr = re->result;
 	int cfra = re->r.cfra;
 
+	if(recurs_depth==0) {
+		/* otherwise sequencer animation isnt updated */
+		BKE_animsys_evaluate_all_animation(G.main, (float)cfra); // XXX, was frame_to_float(re->scene, cfra)
+	}
+
 	recurs_depth++;
 
 	ibuf= give_ibuf_seq(re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
@@ -2506,6 +2512,12 @@ static void do_render_seq(Render * re)
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
+#ifdef DURIAN_CAMERA_SWITCH
+	Object *camera= scene_find_camera_switch(re->scene);
+	if(camera)
+		re->scene->camera= camera;
+#endif
+
 	re->i.starttime= PIL_check_seconds_timer();
 
 	/* ensure no images are in memory from previous animated sequences */

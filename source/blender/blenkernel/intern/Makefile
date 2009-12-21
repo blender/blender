@@ -53,6 +53,8 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../python
 CPPFLAGS += -I../../blenfont
+# This is bad level, remove eventually
+CPPFLAGS += -I../../windowmanager
 # also avi is used
 CPPFLAGS += -I../../avi
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

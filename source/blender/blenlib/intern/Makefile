@@ -50,6 +50,8 @@ CPPFLAGS += -I../../editors/include/
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include
 
+CPPFLAGS += -I../../gpu
+
 ifdef NAN_PTHREADS
   CPPFLAGS += -I$(NAN_PTHREADS)/include
 endif

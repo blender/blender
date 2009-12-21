@@ -99,14 +99,16 @@ void object_facesel_flush_dm(Object *ob)
 	int totface;
 	int i;
 	
-	
-	if(me==NULL || dm==NULL || !CustomData_has_layer( &dm->faceData, CD_ORIGINDEX))
+	if(me==NULL || dm==NULL)
+		return;
+
+	index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+
+	if(!index_array)
 		return;
 	
 	faces = dm->getFaceArray(dm);
 	totface = dm->getNumFaces(dm);
-	
-	index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	
 	mf= faces;
 	
@@ -125,7 +127,7 @@ int facesel_face_pick(struct bContext *C, Mesh *me, short *mval, unsigned int *i
 	if (!me || me->totface==0)
 		return 0;
 
-// XXX 	if (v3d->flag & V3D_NEEDBACKBUFDRAW) {
+// XXX 	if (v3d->flag & V3D_INVALID_BACKBUF) {
 // XXX drawview.c!		check_backbuf();
 // XXX		persp(PERSP_VIEW);
 // XXX 	}

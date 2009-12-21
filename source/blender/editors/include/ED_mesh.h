@@ -147,6 +147,9 @@ void              EM_free_uv_vert_map(struct UvVertMap *vmap);
 void		EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 
+void		EM_make_hq_normals(struct EditMesh *em);
+void		EM_solidify(struct EditMesh *em, float dist);
+
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 

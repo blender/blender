@@ -72,7 +72,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 layout.prop(fluid, "type", text="")
 
             if fluid.type == 'DOMAIN':
-                layout.operator("fluid.bake", text="Bake Fluid Simulation", icon='ICON_MOD_FLUIDSIM')
+                layout.operator("fluid.bake", text="Bake Fluid Simulation", icon='MOD_FLUIDSIM')
                 split = layout.split()
 
                 col = split.column()

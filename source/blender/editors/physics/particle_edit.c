@@ -362,7 +362,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 	PE_set_data(C, data);
 
 	view3d_set_viewcontext(C, &data->vc);
-	view3d_get_transformation(&data->vc, data->ob, &data->mats);
+	view3d_get_transformation(data->vc.ar, data->vc.rv3d, data->ob, &data->mats);
 
 	if((data->vc.v3d->drawtype>OB_WIRE) && (data->vc.v3d->flag & V3D_ZBUF_SELECT))
 		view3d_validate_backbuf(&data->vc);
@@ -373,7 +373,6 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 static int key_test_depth(PEData *data, float co[3])
 {
 	View3D *v3d= data->vc.v3d;
-	RegionView3D *rv3d= data->vc.rv3d;
 	double ux, uy, uz;
 	float depth;
 	short wco[3], x,y;
@@ -393,26 +392,16 @@ static int key_test_depth(PEData *data, float co[3])
 	x=wco[0];
 	y=wco[1];
 
-	// XXX verify ..
+	x+= (short)data->vc.ar->winrct.xmin;
+	y+= (short)data->vc.ar->winrct.ymin;
 
-	if(rv3d->depths && x<rv3d->depths->w && y<rv3d->depths->h) {
-		/* the 0.0001 is an experimental threshold to make selecting keys right next to a surface work better */
-		if((float)uz - 0.0001 > rv3d->depths->depths[y*rv3d->depths->w+x])
-			return 0;
-		else
-			return 1;
-	}
-	else {
-		x+= (short)data->vc.ar->winrct.xmin;
-		y+= (short)data->vc.ar->winrct.ymin;
+	view3d_validate_backbuf(&data->vc);
+	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 
-		glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-
-		if((float)uz - 0.0001 > depth)
-			return 0;
-		else
-			return 1;
-	}
+	if((float)uz - 0.0001 > depth)
+		return 0;
+	else
+		return 1;
 }
 
 static int key_inside_circle(PEData *data, float rad, float co[3], float *distance)
@@ -1174,8 +1163,11 @@ static void update_velocities(Object *ob, PTCacheEdit *edit)
 		}
 	}
 }
+
 void PE_update_object(Scene *scene, Object *ob, int useflag)
 {
+	/* use this to do partial particle updates, not usable when adding or
+	   removing, then a full redo is necessary and calling this may crash */
 	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	POINT_P;
@@ -2064,6 +2056,12 @@ static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psy
 			edit->mirror_cache= NULL;
 		}
 
+		if(psys->child) {
+			MEM_freeN(psys->child);
+			psys->child= NULL;
+			psys->totchild=0;
+		}
+
 		edit->totpoint= psys->totpart= new_totpart;
 	}
 
@@ -2330,7 +2328,6 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
 	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles.", totremoved);
 
-	PE_update_object(scene, ob, 0);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 
@@ -2507,7 +2504,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 		recalc_lengths(data.edit);
 	}
 
-	PE_update_object(data.scene, data.ob, 0);
 	DAG_id_flush_update(&data.ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
 
@@ -3733,7 +3729,6 @@ void PE_undo_step(Scene *scene, int step)
 		}
 	}
 
-	PE_update_object(scene, OBACT, 0);
 	DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 }
 
@@ -4018,6 +4013,7 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			psys->flag &= ~PSYS_EDITED;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}

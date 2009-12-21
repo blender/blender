@@ -21,7 +21,7 @@ extern "C"
 {
 #include "BKE_DerivedMesh.h"
 #include "BKE_fcurve.h"
-#include "BLI_util.h"
+#include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "ED_keyframing.h"
 }

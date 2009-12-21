@@ -167,7 +167,7 @@ struct uiLayout *uiLayoutRow(struct uiLayout *layout, int align){return (struct 
 struct uiLayout *uiLayoutColumn(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutBox(struct uiLayout *layout){return (struct uiLayout *) NULL;}
-struct uiLayout *uiLayoutSplit(struct uiLayout *layout, float percentage){return (struct uiLayout *) NULL;}
+struct uiLayout *uiLayoutSplit(struct uiLayout *layout, float percentage, int align){return (struct uiLayout *) NULL;}
 void uiItemsEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname){}
 void uiItemMenuEnumR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname){}
 void uiItemEnumR_string(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value){}

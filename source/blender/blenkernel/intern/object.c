@@ -228,14 +228,6 @@ void free_sculptsession(SculptSession **ssp)
 {
 	if(ssp && *ssp) {
 		SculptSession *ss = *ssp;
-		if(ss->projverts)
-			MEM_freeN(ss->projverts);
-
-		if(ss->fmap)
-			MEM_freeN(ss->fmap);
-
-		if(ss->fmap_mem)
-			MEM_freeN(ss->fmap_mem);
 
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
@@ -243,8 +235,8 @@ void free_sculptsession(SculptSession **ssp)
 		if(ss->layer_disps)
 			MEM_freeN(ss->layer_disps);
 
-		if(ss->mesh_co_orig)
-			MEM_freeN(ss->mesh_co_orig);
+		if(ss->layer_co)
+			MEM_freeN(ss->layer_co);
 
 		MEM_freeN(ss);
 
@@ -562,6 +554,17 @@ void unlink_object(Scene *scene, Object *ob)
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
 			if(sce->toolsettings->skgen_template==ob) sce->toolsettings->skgen_template = NULL;
+
+#ifdef DURIAN_CAMERA_SWITCH
+			{
+				TimeMarker *m;
+
+				for (m= sce->markers.first; m; m= m->next) {
+					if(m->camera==ob)
+						m->camera= NULL;
+				}
+			}
+#endif
 		}
 		sce= sce->id.next;
 	}
@@ -741,12 +744,12 @@ float dof_camera(Object *ob)
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
 		 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
-		float mat[4][4], obmat[4][4];
+		float mat[4][4], imat[4][4], obmat[4][4];
 		
 		copy_m4_m4(obmat, ob->obmat);
 		normalize_m4(obmat);
-		invert_m4_m4(ob->imat, obmat);
-		mul_m4_m4m4(mat, cam->dof_ob->obmat, ob->imat);
+		invert_m4_m4(imat, obmat);
+		mul_m4_m4m4(mat, cam->dof_ob->obmat, imat);
 		return (float)fabs(mat[3][2]);
 	}
 	return cam->YF_dofdist;
@@ -982,7 +985,7 @@ Object *add_only_object(int type, char *name)
 	unit_m4(ob->constinv);
 	unit_m4(ob->parentinv);
 	unit_m4(ob->obmat);
-	ob->dt= OB_SHADED;
+	ob->dt= OB_TEXTURE;
 	ob->empty_drawtype= OB_ARROWS;
 	ob->empty_drawsize= 1.0;
 
@@ -1615,6 +1618,32 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	mul_m3_m3m3(mat, dmat, rmat);
 }
 
+void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
+{
+	if (ob->rotmode == ROT_MODE_QUAT)
+		mat3_to_quat(ob->quat, mat);
+	else if (ob->rotmode == ROT_MODE_AXISANGLE)
+		mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);
+	else {
+		if(use_compat) {
+			float eul[3];
+			VECCOPY(eul, ob->rot);
+			mat3_to_compatible_eulO(ob->rot, eul, ob->rotmode, mat);
+		}
+		else
+			mat3_to_eulO(ob->rot, ob->rotmode, mat);
+	}
+}
+
+void object_apply_mat4(Object *ob, float mat[][4])
+{
+	float mat3[3][3];
+	VECCOPY(ob->loc, mat[3]);
+	mat4_to_size(ob->size, mat);
+	copy_m3_m4(mat3, mat);
+	object_mat3_to_rot(ob, mat3, 0);
+}
+
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 {
 	float smat[3][3];
@@ -1672,10 +1701,10 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 		/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 		 * but this will only work if it actually is animated... 
 		 *
-		 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
-		 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+		 * we divide the curvetime calculated in the previous step by the length of the path, to get a time
+		 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 		 */
-		ctime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
+		ctime= cu->ctime / cu->pathlen;
 		CLAMP(ctime, 0.0, 1.0);
 	}
 	else {
@@ -1777,13 +1806,15 @@ static void give_parvert(Object *par, int nr, float *vec)
 			DerivedMesh *dm = par->derivedFinal;
 			
 			if(dm) {
-				int i, count = 0, numVerts = dm->getNumVerts(dm);
+				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
 				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
 				float co[3];
 
 				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; ++i, ++index) {
-					if(*index == nr) {
+				for(i = 0; i < numVerts; ++i) {
+					vindex= (index)? *index: i;
+
+					if(vindex == nr) {
 						dm->getVertCo(dm, i, co);
 						add_v3_v3v3(vec, vec, co);
 						count++;

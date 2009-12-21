@@ -446,9 +446,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* init keyframing flag */
-	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
-	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
-	if (IS_AUTOKEY_MODE(scene, EDITKEYS)) flag |= INSERTKEY_REPLACE;
+	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* insert keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -572,7 +570,7 @@ static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	actkeys_duplicate_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TIME_TRANSLATE);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }

@@ -76,7 +76,8 @@ class _GenericBone:
 
     @property
     def basename(self):
-        return self.name.rsplit(".", 1)[0]
+        #return self.name.rsplit(".", 1)[0]
+        return self.name.split(".")[0]
 
     @property
     def parent_recursive(self):
@@ -93,12 +94,16 @@ class _GenericBone:
 
     @property
     def length(self):
-        return (self.head - self.tail).length
+        return self.vector.length
 
     @length.setter
     def length(self, value):
         """The distance from head to tail"""
         self.tail = self.head + ((self.tail - self.head).normalize() * value)
+
+    @property
+    def vector(self):
+        return (self.tail - self.head)
 
     @property
     def children(self):
@@ -171,6 +176,15 @@ class Bone(StructRNA, _GenericBone):
 class EditBone(StructRNA, _GenericBone):
     __slots__ = ()
 
+    def align_orientation(self, other):
+        '''
+        Align this bone to another by moving its tail and settings its roll
+        the length of the other bone is not used.
+        '''
+        vec = other.vector.normalize() * self.length
+        self.tail = self.head + vec
+        self.roll = other.roll
+
 
 def ord_ind(i1, i2):
     if i1 < i2:
@@ -228,6 +242,82 @@ class Mesh(bpy_types.ID):
     def edge_face_count(self):
         edge_face_count_dict = self.edge_face_count_dict
         return [edge_face_count_dict.get(ed.key, 0) for ed in mesh.edges]
+
+    def edge_loops(self, faces=None, seams=()):
+        '''
+        Edge loops defined by faces
+
+        Takes me.faces or a list of faces and returns the edge loops
+        These edge loops are the edges that sit between quads, so they dont touch
+        1 quad, note: not connected will make 2 edge loops, both only containing 2 edges.
+
+        return a list of edge key lists
+        [ [(0,1), (4, 8), (3,8)], ...]
+
+        optionaly, seams are edge keys that will be removed
+        '''
+
+        OTHER_INDEX = 2,3,0,1 # opposite face index
+
+        if faces is None:
+            faces= self.faces
+
+        edges = {}
+
+        for f in faces:
+#            if len(f) == 4:
+            if f.verts_raw[3] != 0:
+                edge_keys = f.edge_keys
+                for i, edkey in enumerate(f.edge_keys):
+                    edges.setdefault(edkey, []).append(edge_keys[OTHER_INDEX[i]])
+
+        for edkey in seams:
+            edges[edkey] = []
+
+        # Collect edge loops here
+        edge_loops = []
+
+        for edkey, ed_adj in edges.items():
+            if 0 <len(ed_adj) < 3: # 1 or 2
+                # Seek the first edge
+                context_loop = [edkey, ed_adj[0]]
+                edge_loops.append(context_loop)
+                if len(ed_adj) == 2:
+                    other_dir = ed_adj[1]
+                else:
+                    other_dir = None
+
+                ed_adj[:] = []
+
+                flipped = False
+
+                while 1:
+                    # from knowing the last 2, look for th next.
+                    ed_adj = edges[context_loop[-1]]
+                    if len(ed_adj) != 2:
+
+                        if other_dir and flipped==False: # the original edge had 2 other edges
+                            flipped = True # only flip the list once
+                            context_loop.reverse()
+                            ed_adj[:] = []
+                            context_loop.append(other_dir) # save 1 lookiup
+
+                            ed_adj = edges[context_loop[-1]]
+                            if len(ed_adj) != 2:
+                                ed_adj[:] = []
+                                break
+                        else:
+                            ed_adj[:] = []
+                            break
+
+                    i = ed_adj.index(context_loop[-2])
+                    context_loop.append( ed_adj[ not  i] )
+
+                    # Dont look at this again
+                    ed_adj[:] = []
+
+
+        return edge_loops
 
 
 class MeshEdge(StructRNA):
@@ -287,21 +377,7 @@ class Menu(StructRNA):
         # hard coded to set the operators 'path' to the filename.
 
         import os
-
-        def path_to_name(f):
-            ''' Only capitalize all lowercase names, mixed case use them as is.
-            '''
-            f_base = os.path.splitext(f)[0]
-
-            # string replacements
-            f_base = f_base.replace("_colon_", ":")
-
-            f_base = f_base.replace("_", " ")
-
-            if f_base.lower() == f_base:
-                return ' '.join([w[0].upper() + w[1:] for w in f_base.split()])
-            else:
-                return f_base
+        import bpy.utils
 
         layout = self.layout
 
@@ -317,7 +393,7 @@ class Menu(StructRNA):
             if f.startswith("."):
                 continue
 
-            layout.operator(operator, text=path_to_name(f)).path = path
+            layout.operator(operator, text=bpy.utils.display_name(f)).path = path
 
     def draw_preset(self, context):
         '''Define these on the subclass

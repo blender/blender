@@ -84,8 +84,11 @@ typedef enum PropertyUnit {
 	PROP_UNIT_ACCELERATION = (8<<16)	/* m/(s^2) */
 } PropertyUnit;
 
-#define RNA_SUBTYPE_UNIT(subtype) (subtype & 0x00FF0000)
-#define RNA_SUBTYPE_UNIT_VALUE(subtype) (subtype>>16)
+#define RNA_SUBTYPE_UNIT(subtype) ((subtype) & 0x00FF0000)
+#define RNA_SUBTYPE_VALUE(subtype) ((subtype) & ~0x00FF0000)
+#define RNA_SUBTYPE_UNIT_VALUE(subtype) ((subtype)>>16)
+
+#define RNA_ENUM_BITFLAG_SIZE 32
 
 /* also update rna_property_subtypename when you change this */
 typedef enum PropertySubType {
@@ -160,6 +163,12 @@ typedef enum PropertyFlag {
 	 * only apply this to types that are derived from an ID ()*/
 	PROP_ID_SELF_CHECK = 1<<20,
 	PROP_NEVER_NULL = 1<<18,
+
+	/* flag contains multiple enums */
+	PROP_ENUM_FLAG = 1<<21,
+
+	/* need context for update function */
+	PROP_CONTEXT_UPDATE = 1<<22,
 
 	/* internal flags */
 	PROP_BUILTIN = 1<<7,

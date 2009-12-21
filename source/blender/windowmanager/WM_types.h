@@ -83,6 +83,7 @@ enum {
 #define KM_PRESS	1
 #define KM_RELEASE	2
 #define KM_CLICK	3
+#define KM_DBL_CLICK	4
 
 
 /* ************** UI Handler ***************** */
@@ -168,6 +169,7 @@ typedef struct wmNotifier {
 #define ND_KEYINGSET		(12<<16)
 #define ND_SCENEDELETE		(13<<16)
 #define ND_LAYER			(14<<16)
+#define	ND_SEQUENCER_SELECT	(15<<16)
 
 	/* NC_OBJECT Object */
 #define	ND_TRANSFORM		(16<<16)
@@ -216,10 +218,6 @@ typedef struct wmNotifier {
 	/* NC_NODE Nodes */
 #define ND_NODE_SELECT			(1<<16)
 
-	/* NC_ID IDs */
-#define ND_ID_RENAME			(1<<16)
-
-
 	/* NC_SPACE */
 #define ND_SPACE_CONSOLE		(1<<16) /* general redraw */
 #define ND_SPACE_CONSOLE_REPORT	(2<<16) /* update for reports, could specify type */
@@ -243,17 +241,17 @@ typedef struct wmNotifier {
 #define NOTE_SUBTYPE		0x0000FF00
 
 /* subtype scene mode */
-#define NS_MODE_OBJECT		(1<<8)
+#define NS_MODE_OBJECT			(1<<8)
 
-#define NS_EDITMODE_MESH	(2<<8)
-#define NS_EDITMODE_CURVE	(3<<8)
-#define NS_EDITMODE_SURFACE	(4<<8)
-#define NS_EDITMODE_TEXT	(5<<8)
-#define NS_EDITMODE_MBALL	(6<<8)
-#define NS_EDITMODE_LATTICE	(7<<8)
+#define NS_EDITMODE_MESH		(2<<8)
+#define NS_EDITMODE_CURVE		(3<<8)
+#define NS_EDITMODE_SURFACE		(4<<8)
+#define NS_EDITMODE_TEXT		(5<<8)
+#define NS_EDITMODE_MBALL		(6<<8)
+#define NS_EDITMODE_LATTICE		(7<<8)
 #define NS_EDITMODE_ARMATURE	(8<<8)
-#define NS_MODE_POSE		(9<<8)
-#define NS_MODE_PARTICLE	(10<<8)
+#define NS_MODE_POSE			(9<<8)
+#define NS_MODE_PARTICLE		(10<<8)
 
 
 /* action classification */
@@ -262,7 +260,7 @@ typedef struct wmNotifier {
 #define NA_EVALUATED		2
 #define NA_ADDED			3
 #define NA_REMOVED			4
-
+#define NA_RENAME			5
 
 /* ************** Gesture Manager data ************** */
 
@@ -289,6 +287,44 @@ typedef struct wmGesture {
 	/* customdata for circle is recti, (xmin, ymin) is center, xmax radius */
 	/* customdata for lasso is short array */
 } wmGesture;
+
+/* ************** wmEvent ************************ */
+
+/* each event should have full modifier state */
+/* event comes from eventmanager and from keymap */
+typedef struct wmEvent {
+	struct wmEvent *next, *prev;
+	
+	short type;			/* event code itself (short, is also in keymap) */
+	short val;			/* press, release, scrollvalue */
+	short x, y;			/* mouse pointer position, screen coord */
+	short mval[2];		/* region mouse position, name convention pre 2.5 :) */
+	short unicode;		/* future, ghost? */
+	char ascii;			/* from ghost */
+	char pad;
+
+	/* previous state */
+	short prevtype;
+	short prevval;
+	short prevx, prevy;
+	double prevclicktime;
+	
+	/* modifier states */
+	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
+	short keymodifier;				/* rawkey modifier */
+	
+	short pad1;
+	
+	/* keymap item, set by handler (weak?) */
+	const char *keymap_idname;
+	
+	/* custom data */
+	short custom;		/* custom data type, stylus, 6dof, see wm_event_types.h */
+	short customdatafree;
+	int pad2;
+	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
+	
+} wmEvent;
 
 /* ************** custom wmEvent data ************** */
 typedef struct wmTabletData {
