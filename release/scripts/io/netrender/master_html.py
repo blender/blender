@@ -40,8 +40,16 @@ def get(handler):
 	def link(text, url):
 		return "<a href='%s'>%s</a>" % (url, text)
 	
-	def startTable(border=1):
-		output("<table border='%i'>" % border)
+	def startTable(border=1, class_style = None, caption = None):
+		output("<table border='%i'" % border)
+		
+		if class_style:
+			output(" class='%s'" % class_style)
+		
+		output(">")
+			
+		if caption:
+			output("<caption>%s</caption>" % caption)
 	
 	def headerTable(*headers):
 		output("<thead><tr>")
@@ -93,8 +101,23 @@ def get(handler):
 	
 		output("<h2>Master</h2>")
 		
-		output("""<button title="remove all jobs" onclick="request('/clear', null);">CLEAR</button>""")
+		output("""<button title="remove all jobs" onclick="request('/clear', null);">CLEAR JOB LIST</button>""")
+
+		startTable(caption = "Rules", class_style = "rules")
+
+		headerTable("type", "description", "limit")
+
+		for rule in handler.server.balancer.rules:
+			rowTable("rating", rule, rule.str_limit() if hasattr(rule, "limit") else "&nbsp;")
+
+		for rule in handler.server.balancer.priorities:
+			rowTable("priority", rule, rule.str_limit() if hasattr(rule, "limit") else "&nbsp;")
 		
+		for rule in handler.server.balancer.exceptions:
+			rowTable("exception", rule, rule.str_limit() if hasattr(rule, "limit") else "&nbsp;")
+
+		endTable()
+
 		output("<h2>Slaves</h2>")
 		
 		startTable()

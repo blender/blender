@@ -17,6 +17,12 @@ h2 {
         padding:5px;
 }
 
+h2 {
+        background-color:#ddd;
+        font-size:110%;
+        padding:5px;
+}
+
 table {
 	text-align:center;
         border:0;
@@ -61,4 +67,9 @@ button {
 
 .fluid {
 	display: none;
+}
+
+.rules {
+	width: 60em;
+	text-align: left;
 }

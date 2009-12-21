@@ -81,11 +81,17 @@ class Balancer:
 # ==========================
 
 class RatingUsage(RatingRule):
+	def __str__(self):
+		return "Usage rating"
+	
 	def rate(self, job):
 		# less usage is better
 		return job.usage / job.priority
 
 class RatingUsageByCategory(RatingRule):
+	def __str__(self):
+		return "Usage per category rating"
+	
 	def __init__(self, get_jobs):
 		self.getJobs = get_jobs
 	def rate(self, job):
@@ -96,6 +102,12 @@ class RatingUsageByCategory(RatingRule):
 		return total_category_usage / maximum_priority
 	
 class NewJobPriority(PriorityRule):
+	def str_limit(self):
+		return "less than %i frame%s done" % (self.limit, "s" if self.limit > 1 else "")
+
+	def __str__(self):
+		return "Priority to new jobs"
+	
 	def __init__(self, limit = 1):
 		self.limit = limit
 		
@@ -103,6 +115,12 @@ class NewJobPriority(PriorityRule):
 		return job.countFrames(status = DONE) < self.limit
 
 class MinimumTimeBetweenDispatchPriority(PriorityRule):
+	def str_limit(self):
+		return "more than %i minute%s since last" % (self.limit, "s" if self.limit > 1 else "")
+
+	def __str__(self):
+		return "Priority to jobs that haven't been dispatched recently"
+	
 	def __init__(self, limit = 10):
 		self.limit = limit
 		
@@ -110,10 +128,19 @@ class MinimumTimeBetweenDispatchPriority(PriorityRule):
 		return job.countFrames(status = DISPATCHED) == 0 and (time.time() - job.last_dispatched) / 60 > self.limit
 
 class ExcludeQueuedEmptyJob(ExclusionRule):
+	def __str__(self):
+		return "Exclude queued and empty jobs"
+	
 	def test(self, job):
 		return job.status != JOB_QUEUED or job.countFrames(status = QUEUED) == 0
 	
 class ExcludeSlavesLimit(ExclusionRule):
+	def str_limit(self):
+		return "more than %.0f%% of all slaves" % (self.limit * 100)
+
+	def __str__(self):
+		return "Exclude jobs that would use too many slaves"
+	
 	def __init__(self, count_jobs, count_slaves, limit = 0.75):
 		self.count_jobs = count_jobs
 		self.count_slaves = count_slaves
