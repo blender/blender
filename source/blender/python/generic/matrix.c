@@ -944,7 +944,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 				for(z = 0; z < mat1->rowSize; z++) {
 					dot += (mat1->matrix[z][y] * mat2->matrix[x][z]);
 				}
-				mat[((y * mat1->rowSize) + x)] = (float)dot;
+				mat[((x * mat1->colSize) + y)] = (float)dot;
 				dot = 0.0f;
 			}
 		}
