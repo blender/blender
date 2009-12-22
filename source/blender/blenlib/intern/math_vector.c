@@ -145,6 +145,19 @@ float angle_v3v3v3(float *v1, float *v2, float *v3)
 	return angle_normalized_v3v3(vec1, vec2);
 }
 
+/* Return the shortest angle in radians between the 2 vectors */
+float angle_v3v3(float *v1, float *v2)
+{
+	float vec1[3], vec2[3];
+
+	copy_v3_v3(vec1, v1);
+	copy_v3_v3(vec2, v2);
+	normalize_v3(vec1);
+	normalize_v3(vec2);
+
+	return angle_normalized_v3v3(vec1, vec2);
+}
+
 float angle_v2v2v2(float *v1, float *v2, float *v3)
 {
 	float vec1[2], vec2[2];
@@ -164,14 +177,18 @@ float angle_v2v2v2(float *v1, float *v2, float *v3)
 /* Return the shortest angle in radians between the 2 vectors */
 float angle_v2v2(float *v1, float *v2)
 {
-	float vec1[3], vec2[3];
+	float vec1[2], vec2[2];
 
-	copy_v3_v3(vec1, v1);
-	copy_v3_v3(vec2, v2);
-	normalize_v3(vec1);
-	normalize_v3(vec2);
+	vec1[0] = v1[0];
+	vec1[1] = v1[1];
 
-	return angle_normalized_v3v3(vec1, vec2);
+	vec2[0] = v2[0];
+	vec2[1] = v2[1];
+
+	normalize_v2(vec1);
+	normalize_v2(vec2);
+
+	return angle_normalized_v2v2(vec1, vec2);
 }
 
 float angle_normalized_v3v3(float *v1, float *v2)
