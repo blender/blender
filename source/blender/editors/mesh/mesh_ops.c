@@ -76,7 +76,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_linked);
 	WM_operatortype_append(MESH_OT_select_linked_pick);
 	WM_operatortype_append(MESH_OT_select_random);
-	WM_operatortype_append(MESH_OT_selection_type);
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_by_number_vertices);
@@ -240,7 +239,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* selection mode */
-	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_selection_mode", TABKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* hide */
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);

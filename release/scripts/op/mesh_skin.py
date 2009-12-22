@@ -249,17 +249,16 @@ def mesh_faces_extend(me, faces, mat_idx = 0):
 
 
 def getSelectedEdges(context, me, ob):
-    MESH_MODE= context.scene.tool_settings.mesh_selection_mode
+    MESH_MODE = tuple(context.tool_settings.mesh_selection_mode)
+    context.tool_settings.mesh_selection_mode = False, True, False
 
-    if MESH_MODE in ('EDGE', 'VERTEX'):
-        context.scene.tool_settings.mesh_selection_mode = 'EDGE'
+    if not MESH_MODE[2]:
         edges= [ ed for ed in me.edges if ed.selected ]
         # print len(edges), len(me.edges)
         context.scene.tool_settings.mesh_selection_mode = MESH_MODE
         return edges
 
-    if MESH_MODE == 'FACE':
-        context.scene.tool_settings.mesh_selection_mode = 'EDGE'
+    else:
         # value is [edge, face_sel_user_in]
         edge_dict=  dict((ed.key, [ed, 0]) for ed in me.edges)
 
@@ -268,7 +267,7 @@ def getSelectedEdges(context, me, ob):
                 for edkey in f.edge_keys:
                     edge_dict[edkey][1] += 1
 
-        context.scene.tool_settings.mesh_selection_mode = MESH_MODE
+        context.tool_settings.mesh_selection_mode = MESH_MODE
         return [ ed_data[0] for ed_data in edge_dict.values() if ed_data[1] == 1 ]
 
 

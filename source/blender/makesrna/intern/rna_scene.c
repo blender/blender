@@ -72,6 +72,7 @@ EnumPropertyItem proportional_editing_items[] = {
 	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+/* keep for operators, not used here */
 EnumPropertyItem mesh_select_mode_items[] = {
 	{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
 	{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
@@ -91,6 +92,7 @@ EnumPropertyItem snap_element_items[] = {
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -99,13 +101,18 @@ EnumPropertyItem snap_element_items[] = {
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_depsgraph.h"
+#include "BKE_mesh.h"
 
 #include "BLI_threads.h"
+#include "BLI_editVert.h"
+
+#include "WM_api.h"
 
 #include "ED_info.h"
 #include "ED_node.h"
 #include "ED_view3d.h"
 #include "ED_object.h"
+#include "ED_mesh.h"
 
 #include "RE_pipeline.h"
 
@@ -562,6 +569,38 @@ static void rna_Physics_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 	for(base = scene->base.first; base; base=base->next)
 		BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
 }
+
+static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value)
+{
+	Scene *scene= (Scene*)ptr->id.data;
+	ToolSettings *ts = (ToolSettings*)ptr->data;
+	int flag = (value[0] ? SCE_SELECT_VERTEX:0) | (value[1] ? SCE_SELECT_EDGE:0) | (value[2] ? SCE_SELECT_FACE:0);
+
+	ts->selectmode = flag;
+
+	if(scene->basact) {
+		Mesh *me= get_mesh(scene->basact->object);
+		if(me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
+			me->edit_mesh->selectmode= flag;
+			EM_selectmode_set(me->edit_mesh);
+		}
+	}
+}
+
+static void rna_Scene_editmesh_select_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Mesh *me= NULL;
+
+	if(scene->basact) {
+		me= get_mesh(scene->basact->object);
+		if(me && me->edit_mesh==NULL)
+			me= NULL;
+	}
+
+	WM_main_add_notifier(NC_GEOM|ND_SELECT, me);
+	WM_main_add_notifier(NC_SCENE|ND_MODE, NULL); /* header redraw */
+}
+
 #else
 
 static void rna_def_transform_orientation(BlenderRNA *brna)
@@ -736,10 +775,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* Mesh */
-	prop= RNA_def_property(srna, "mesh_selection_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "selectmode");
-	RNA_def_property_enum_items(prop, mesh_select_mode_items);
-	RNA_def_property_ui_text(prop, "Mesh Selection Mode", "Mesh selection and display mode.");
+	prop= RNA_def_property(srna, "mesh_selection_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selectmode", 1);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_editmesh_select_mode_set");
+	RNA_def_property_update(prop, 0, "rna_Scene_editmesh_select_mode_update");
 
 	prop= RNA_def_property(srna, "vertex_group_weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "vgroup_weight");

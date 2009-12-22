@@ -1121,6 +1121,28 @@ class VIEW3D_MT_edit_mesh_specials(bpy.types.Menu):
         layout.operator("mesh.select_vertex_path")
 
 
+class VIEW3D_MT_edit_mesh_selection_mode(bpy.types.Menu):
+    bl_label = "Mesh Select Mode"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        path = "tool_settings.edit_select_vertex;tool_settings.edit_select_edge;tool_settings.edit_select_face"
+
+        prop = layout.operator("wm.context_set_value", text="Vertex")
+        prop.value = "(True, False, False)"
+        prop.path = "tool_settings.mesh_selection_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Edge")
+        prop.value = "(False, True, False)"
+        prop.path = "tool_settings.mesh_selection_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Face")
+        prop.value = "(False, False, True)"
+        prop.path = "tool_settings.mesh_selection_mode"
+
+
 class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
     bl_label = "Vertices"
 
@@ -1915,6 +1937,7 @@ bpy.types.register(VIEW3D_MT_pose_showhide)
 
 bpy.types.register(VIEW3D_MT_edit_mesh)
 bpy.types.register(VIEW3D_MT_edit_mesh_specials) # Only as a menu for keybindings
+bpy.types.register(VIEW3D_MT_edit_mesh_selection_mode) # Only as a menu for keybindings
 bpy.types.register(VIEW3D_MT_edit_mesh_vertices)
 bpy.types.register(VIEW3D_MT_edit_mesh_edges)
 bpy.types.register(VIEW3D_MT_edit_mesh_faces)

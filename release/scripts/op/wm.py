@@ -68,7 +68,8 @@ def execute_context_assign(self, context):
 class WM_OT_context_set_boolean(bpy.types.Operator):
     '''Set a context value.'''
     bl_idname = "wm.context_set_boolean"
-    bl_label = "Context Set"
+    bl_label = "Context Set Boolean"
+    bl_undo = True
 
     path = rna_path_prop
     value = BoolProperty(name="Value",
@@ -81,6 +82,7 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_int"
     bl_label = "Context Set"
+    bl_undo = True
 
     path = rna_path_prop
     value = IntProperty(name="Value", description="Assign value", default=0)
@@ -91,7 +93,8 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
 class WM_OT_context_set_float(bpy.types.Operator): # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_float"
-    bl_label = "Context Set"
+    bl_label = "Context Set Float"
+    bl_undo = True
 
     path = rna_path_prop
     value = FloatProperty(name="Value",
@@ -103,7 +106,8 @@ class WM_OT_context_set_float(bpy.types.Operator): # same as enum
 class WM_OT_context_set_string(bpy.types.Operator): # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_string"
-    bl_label = "Context Set"
+    bl_label = "Context Set String"
+    bl_undo = True
 
     path = rna_path_prop
     value = StringProperty(name="Value",
@@ -115,7 +119,8 @@ class WM_OT_context_set_string(bpy.types.Operator): # same as enum
 class WM_OT_context_set_enum(bpy.types.Operator):
     '''Set a context value.'''
     bl_idname = "wm.context_set_enum"
-    bl_label = "Context Set"
+    bl_label = "Context Set Enum"
+    bl_undo = True
 
     path = rna_path_prop
     value = StringProperty(name="Value",
@@ -125,10 +130,30 @@ class WM_OT_context_set_enum(bpy.types.Operator):
     execute = execute_context_assign
 
 
+class WM_OT_context_set_value(bpy.types.Operator):
+    '''Set a context value.'''
+    bl_idname = "wm.context_set_value"
+    bl_label = "Context Set Value"
+    bl_undo = True
+
+    path = rna_path_prop
+    value = StringProperty(name="Value",
+            description="Assignment value (as a string)",
+            maxlen=1024, default="")
+
+    def execute(self, context):
+        if context_path_validate(context, self.properties.path) is Ellipsis:
+            return ('PASS_THROUGH',)
+        exec("context.%s=%s" % (self.properties.path, self.properties.value))
+        return ('FINISHED',)
+
+
 class WM_OT_context_toggle(bpy.types.Operator):
     '''Toggle a context value.'''
     bl_idname = "wm.context_toggle"
     bl_label = "Context Toggle"
+    bl_undo = True
+
     path = rna_path_prop
 
     def execute(self, context):
@@ -146,6 +171,7 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
     '''Toggle a context value.'''
     bl_idname = "wm.context_toggle_enum"
     bl_label = "Context Toggle Values"
+    bl_undo = True
 
     path = rna_path_prop
     value_1 = StringProperty(name="Value", \
@@ -172,6 +198,8 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
     vertex keys, groups' etc.'''
     bl_idname = "wm.context_cycle_int"
     bl_label = "Context Int Cycle"
+    bl_undo = True
+
     path = rna_path_prop
     reverse = rna_reverse_prop
 
@@ -203,6 +231,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
     '''Toggle a context value.'''
     bl_idname = "wm.context_cycle_enum"
     bl_label = "Context Enum Cycle"
+    bl_undo = True
 
     path = rna_path_prop
     reverse = rna_reverse_prop
@@ -384,6 +413,7 @@ bpy.ops.add(WM_OT_context_set_int)
 bpy.ops.add(WM_OT_context_set_float)
 bpy.ops.add(WM_OT_context_set_string)
 bpy.ops.add(WM_OT_context_set_enum)
+bpy.ops.add(WM_OT_context_set_value)
 bpy.ops.add(WM_OT_context_toggle)
 bpy.ops.add(WM_OT_context_toggle_enum)
 bpy.ops.add(WM_OT_context_cycle_enum)

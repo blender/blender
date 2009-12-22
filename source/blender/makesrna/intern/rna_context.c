@@ -100,6 +100,7 @@ static PointerRNA rna_Context_scene_get(PointerRNA *ptr)
 static PointerRNA rna_Context_tool_settings_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
+	ptr->id.data= CTX_data_scene(C);
 	return rna_pointer_inherit_refine(ptr, &RNA_ToolSettings, CTX_data_tool_settings(C));
 }
 
