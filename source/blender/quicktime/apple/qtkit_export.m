@@ -39,6 +39,7 @@
 
 #include "BKE_global.h"
 #include "BKE_scene.h"
+#include "BKE_report.h"
 
 #include "BLI_blenlib.h"
 
@@ -167,7 +168,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	
 	/* Check first if the QuickTime 7.2.1 initToWritableFile: method is available */
 	if ([[[[QTMovie alloc] init] autorelease] respondsToSelector:@selector(initToWritableFile:error:)] != YES) {
-		BKE_report(reports, RPT_EROR, "\nUnable to create quicktime movie, need Quicktime rev 7.2.1 or later");
+		BKE_report(reports, RPT_ERROR, "\nUnable to create quicktime movie, need Quicktime rev 7.2.1 or later");
 		success= 0;
 	}
 	else {
