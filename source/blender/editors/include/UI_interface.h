@@ -678,6 +678,7 @@ void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr,
 void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname);
+void uiItemsFullEnumO(uiLayout *layout, char *opname, char *propname, struct IDProperty *properties, int context, int flag);
 
 void uiItemL(uiLayout *layout, char *name, int icon); /* label */
 void uiItemM(uiLayout *layout, struct bContext *C, char *name, int icon, char *menuname); /* menu */

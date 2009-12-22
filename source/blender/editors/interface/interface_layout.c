@@ -695,7 +695,7 @@ void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *pro
 	uiItemFullO(layout, name, icon, opname, ptr.data, layout->root->opcontext, 0);
 }
 
-void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
+void uiItemsFullEnumO(uiLayout *layout, char *opname, char *propname, IDProperty *properties, int context, int flag)
 {
 	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	PointerRNA ptr;
@@ -721,7 +721,21 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 
 		for(i=0; i<totitem; i++) {
 			if(item[i].identifier[0]) {
-				uiItemEnumO(column, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
+				if(properties) {
+					PointerRNA ptr;
+
+					WM_operator_properties_create(&ptr, opname);
+					if(ptr.data) {
+						IDP_FreeProperty(ptr.data);
+						MEM_freeN(ptr.data);
+					}
+					ptr.data= IDP_CopyProperty(properties);
+					RNA_enum_set(&ptr, propname, item[i].value);
+
+					uiItemFullO(column, (char*)item[i].name, item[i].icon, opname, ptr.data, context, flag);
+				}
+				else
+					uiItemEnumO(column, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
 			}
 			else {
 				if(item[i].name) {
@@ -743,6 +757,11 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 		if(free)
 			MEM_freeN(item);
 	}
+}
+
+void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
+{
+	uiItemsFullEnumO(layout, opname, propname, NULL, layout->root->opcontext, 0);
 }
 
 /* for use in cases where we have */

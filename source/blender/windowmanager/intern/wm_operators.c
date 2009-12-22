@@ -621,7 +621,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else {
 		pup= uiPupMenuBegin(C, op->type->name, 0);
 		layout= uiPupMenuLayout(pup);
-		uiItemsEnumO(layout, op->type->idname, (char*)RNA_property_identifier(prop));
+		uiItemsFullEnumO(layout, op->type->idname, (char*)RNA_property_identifier(prop), op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
 		uiPupMenuEnd(C, pup);
 	}
 
@@ -633,10 +633,16 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, char *message)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
+	IDProperty *properties= op->ptr->data;
+
+	if(properties && properties->len)
+		properties= IDP_CopyProperty(op->ptr->data);
+	else
+		properties= NULL;
 
 	pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
-	uiItemO(layout, message, 0, op->type->idname);
+	uiItemFullO(layout, message, 0, op->type->idname, properties, WM_OP_EXEC_REGION_WIN, 0);
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
