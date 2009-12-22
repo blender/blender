@@ -2081,6 +2081,11 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 		EM_selectmode_flush(em);
 //			if (EM_texFaceCheck())
 		
+		/* sets as active, useful for other tools */
+		if(select && em->selectmode & SCE_SELECT_EDGE) {
+			EM_store_selection(em, eed, EDITEDGE);
+		}
+
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
 	}
 }
@@ -4535,3 +4540,41 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	prop= RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 }
+
+static int mesh_select_nth_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	int nth = RNA_int_get(op->ptr, "nth");
+
+	if(EM_deselect_nth(em, nth) == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face.");
+		return OPERATOR_CANCELLED;
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void MESH_OT_select_nth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Nth";
+	ot->description= "";
+	ot->idname= "MESH_OT_select_nth";
+
+	/* api callbacks */
+	ot->exec= mesh_select_nth_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
+}
+

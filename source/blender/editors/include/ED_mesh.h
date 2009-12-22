@@ -150,6 +150,8 @@ void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type)
 void		EM_make_hq_normals(struct EditMesh *em);
 void		EM_solidify(struct EditMesh *em, float dist);
 
+int			EM_deselect_nth(struct EditMesh *em, int nth);
+
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 

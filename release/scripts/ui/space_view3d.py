@@ -456,6 +456,7 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
         layout.separator()
 
         layout.operator("mesh.select_random", text="Random...")
+        layout.operator("mesh.select_nth", text="Select Nth...")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
         layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
         layout.operator("mesh.faces_select_interior", text="Interior Faces")

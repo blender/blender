@@ -2447,3 +2447,233 @@ void EM_solidify(EditMesh *em, float dist)
 
 	MEM_freeN(vert_angles);
 }
+
+/* not that optimal!, should be nicer with bmesh */
+static void tag_face_edges(EditFace *efa)
+{
+	if(efa->v4)
+		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= efa->e4->tmp.l= 1;
+	else
+		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= 1;
+}
+static int tag_face_edges_test(EditFace *efa)
+{
+	if(efa->v4)
+		return (efa->e1->tmp.l || efa->e2->tmp.l || efa->e3->tmp.l || efa->e4->tmp.l) ? 1:0;
+	else
+		return (efa->e1->tmp.l || efa->e2->tmp.l || efa->e3->tmp.l) ? 1:0;
+}
+
+void em_deselect_nth_face(EditMesh *em, int nth, EditFace *efa_act)
+{
+	EditFace *efa;
+	EditEdge *eed;
+	int ok= 1;
+
+	if(efa_act==NULL) {
+		return;
+	}
+
+	/* to detect loose edges, we put f2 flag on 1 */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->tmp.l= 0;
+	}
+
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		efa->tmp.l = 0;
+	}
+
+	efa_act->tmp.l = 1;
+
+	while(ok) {
+		ok = 0;
+
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->tmp.l==1) { /* initialize */
+				tag_face_edges(efa);
+			}
+
+			if(efa->tmp.l)
+				efa->tmp.l++;
+		}
+
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->tmp.l==0 && tag_face_edges_test(efa)) {
+				efa->tmp.l= 1;
+				ok = 1; /* keep looping */
+			}
+		}
+	}
+
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->tmp.l > 0 && efa->tmp.l % nth) {
+			EM_select_face(efa, 0);
+		}
+	}
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->f & SELECT) {
+			EM_select_face(efa, 1);
+		}
+	}
+
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
+}
+
+/* not that optimal!, should be nicer with bmesh */
+static void tag_edge_verts(EditEdge *eed)
+{
+	eed->v1->tmp.l= eed->v2->tmp.l= 1;
+}
+static int tag_edge_verts_test(EditEdge *eed)
+{
+	return (eed->v1->tmp.l || eed->v2->tmp.l) ? 1:0;
+}
+
+void em_deselect_nth_edge(EditMesh *em, int nth, EditEdge *eed_act)
+{
+	EditEdge *eed;
+	EditVert *eve;
+	int ok= 1;
+
+	if(eed_act==NULL) {
+		return;
+	}
+
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		eve->tmp.l= 0;
+	}
+
+	for (eed= em->edges.first; eed; eed= eed->next) {
+		eed->tmp.l = 0;
+	}
+
+	eed_act->tmp.l = 1;
+
+	while(ok) {
+		ok = 0;
+
+		for (eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->tmp.l==1) { /* initialize */
+				tag_edge_verts(eed);
+			}
+
+			if(eed->tmp.l)
+				eed->tmp.l++;
+		}
+
+		for (eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->tmp.l==0 && tag_edge_verts_test(eed)) {
+				eed->tmp.l= 1;
+				ok = 1; /* keep looping */
+			}
+		}
+	}
+
+	for (eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->tmp.l > 0 && eed->tmp.l % nth) {
+			EM_select_edge(eed, 0);
+		}
+	}
+	for (eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f & SELECT) {
+			EM_select_edge(eed, 1);
+		}
+	}
+
+	{
+		/* grr, should be a function */
+		EditFace *efa;
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->v4) {
+				if(efa->e1->f & efa->e2->f & efa->e3->f & efa->e4->f & SELECT );
+				else efa->f &= ~SELECT;
+			}
+			else {
+				if(efa->e1->f & efa->e2->f & efa->e3->f & SELECT );
+				else efa->f &= ~SELECT;
+			}
+		}
+	}
+
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
+}
+
+void em_deselect_nth_vert(EditMesh *em, int nth, EditVert *eve_act)
+{
+	EditVert *eve;
+	EditEdge *eed;
+	int ok= 1;
+
+	if(eve_act==NULL) {
+		return;
+	}
+
+	for (eve= em->verts.first; eve; eve= eve->next) {
+		eve->tmp.l = 0;
+	}
+
+	eve_act->tmp.l = 1;
+
+	while(ok) {
+		ok = 0;
+
+		for (eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->tmp.l)
+				eve->tmp.l++;
+		}
+
+		for (eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->v1->tmp.l==2 && eed->v2->tmp.l==0) { /* initialize */
+				eed->v2->tmp.l= 1;
+				ok = 1; /* keep looping */
+			}
+			else if(eed->v2->tmp.l==2 && eed->v1->tmp.l==0) { /* initialize */
+				eed->v1->tmp.l= 1;
+				ok = 1; /* keep looping */
+			}
+		}
+	}
+
+	for (eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->tmp.l > 0 && eve->tmp.l % nth) {
+			eve->f &= ~SELECT;
+		}
+	}
+
+	EM_deselect_flush(em);
+
+	EM_nvertices_selected(em);
+	// EM_nedges_selected(em); // flush does these
+	// EM_nfaces_selected(em); // flush does these
+}
+
+int EM_deselect_nth(EditMesh *em, int nth)
+{
+	EditSelection *ese;
+	ese = ((EditSelection*)em->selected.last);
+	if(ese) {
+		if(ese->type == EDITVERT) {
+			em_deselect_nth_vert(em, nth, (EditVert*)ese->data);
+			return 1;
+		}
+
+		if(ese->type == EDITEDGE) {
+			em_deselect_nth_edge(em, nth, (EditEdge*)ese->data);
+			return 1;
+		}
+	}
+	else {
+		EditFace *efa_act = EM_get_actFace(em, 0);
+		if(efa_act) {
+			em_deselect_nth_face(em, nth, efa_act);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
