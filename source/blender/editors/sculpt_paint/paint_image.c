@@ -228,7 +228,7 @@ typedef struct ProjPaintState {
 	MFace 		   *dm_mface;
 	MTFace 		   *dm_mtface;
 	MTFace 		   *dm_mtface_clone;	/* other UV layer, use for cloning between layers */
-	MTFace 		   *dm_mtface_mask;
+	MTFace 		   *dm_mtface_stencil;
 	
 	/* projection painting only */
 	MemArena *arena_mt[BLENDER_MAX_THREADS];/* for multithreading, the first item is sometimes used for non threaded cases too */
@@ -257,8 +257,8 @@ typedef struct ProjPaintState {
 	
 	/* options for projection painting */
 	int do_layer_clone;
-	int do_layer_mask;
-	int do_layer_mask_inv;
+	int do_layer_stencil;
+	int do_layer_stencil_inv;
 	
 	short do_occlude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
@@ -1265,10 +1265,10 @@ float project_paint_uvpixel_mask(
 	float mask;
 	
 	/* Image Mask */
-	if (ps->do_layer_mask) {
+	if (ps->do_layer_stencil) {
 		/* another UV layers image is masking this one's */
 		ImBuf *ibuf_other;
-		const MTFace *tf_other = ps->dm_mtface_mask + face_index;
+		const MTFace *tf_other = ps->dm_mtface_stencil + face_index;
 		
 		if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf(tf_other->tpage, NULL))) {
 			/* BKE_image_get_ibuf - TODO - this may be slow */
@@ -1284,7 +1284,7 @@ float project_paint_uvpixel_mask(
 				mask = ((rgba_ub[0]+rgba_ub[1]+rgba_ub[2])/(256*3.0f)) * (rgba_ub[3]/256.0f);
 			}
 			
-			if (!ps->do_layer_mask_inv) /* matching the gimps layer mask black/white rules, white==full opacity */
+			if (!ps->do_layer_stencil_inv) /* matching the gimps layer mask black/white rules, white==full opacity */
 				mask = (1.0f - mask);
 
 			if (mask == 0.0f) {
@@ -2863,15 +2863,15 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 	}
 	
-	if (ps->do_layer_mask) {
-		//int layer_num = CustomData_get_mask_layer(&ps->dm->faceData, CD_MTFACE);
-		int layer_num = CustomData_get_mask_layer(&((Mesh *)ps->ob->data)->fdata, CD_MTFACE);
+	if (ps->do_layer_stencil) {
+		//int layer_num = CustomData_get_stencil_layer(&ps->dm->faceData, CD_MTFACE);
+		int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->fdata, CD_MTFACE);
 		if (layer_num != -1)
-			ps->dm_mtface_mask = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
+			ps->dm_mtface_stencil = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
 		
-		if (ps->dm_mtface_mask==NULL || ps->dm_mtface_mask==ps->dm_mtface) {
-			ps->do_layer_mask = 0;
-			ps->dm_mtface_mask = NULL;
+		if (ps->dm_mtface_stencil==NULL || ps->dm_mtface_stencil==ps->dm_mtface) {
+			ps->do_layer_stencil = 0;
+			ps->dm_mtface_stencil = NULL;
 		}
 	}
 	
@@ -4438,8 +4438,8 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		if (pop->ps.tool == PAINT_TOOL_CLONE)
 			pop->ps.do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
 		
-		pop->ps.do_layer_mask = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_MASK) ? 1 : 0;
-		pop->ps.do_layer_mask_inv = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_MASK_INV) ? 1 : 0;
+		pop->ps.do_layer_stencil = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) ? 1 : 0;
+		pop->ps.do_layer_stencil_inv = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) ? 1 : 0;
 		
 		
 #ifndef PROJ_DEBUG_NOSEAMBLEED

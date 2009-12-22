@@ -826,23 +826,50 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         col.active = (ipaint.use_normal_falloff and use_projection)
         col.prop(ipaint, "normal_angle", text="")
 
-        split = layout.split(percentage=0.7)
+        col = layout.column(align=False)
+        row = col.row()
+        row.active = (use_projection)
+        row.prop(ipaint, "use_stencil_layer", text="Stencil")
 
-        col = split.column(align=False)
-        col.active = (use_projection)
-        col.prop(ipaint, "use_stencil_layer")
-
-        col = split.column(align=False)
-        col.active = (use_projection and ipaint.use_stencil_layer)
-        col.prop(ipaint, "invert_stencil", text="Inv")
+        row2 = row.row(align=False)
+        row2.active = (use_projection and ipaint.use_stencil_layer)
+        row2.menu("VIEW3D_MT_tools_projectpaint_stencil", text=context.active_object.data.uv_texture_stencil.name)
+        row2.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
         col = layout.column()
         sub = col.column()
-        sub.active = (settings.tool == 'CLONE')
-        sub.prop(ipaint, "use_clone_layer")
+        row = sub.row()
+        row.active = (settings.tool == 'CLONE')
+        
+        row.prop(ipaint, "use_clone_layer", text="Clone")
+        row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
 
         sub = col.column()
         sub.prop(ipaint, "seam_bleed")
+
+    class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
+        bl_label = "Clone Layer"
+
+        def draw(self, context):
+            layout = self.layout
+            for i, tex in enumerate(context.active_object.data.uv_textures):
+                prop = layout.operator("wm.context_set_int", text=tex.name)
+                prop.path = "active_object.data.uv_texture_clone_index"
+                prop.value = i
+
+
+    class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
+        bl_label = "Mask Layer"
+
+        def draw(self, context):
+            layout = self.layout
+            for i, tex in enumerate(context.active_object.data.uv_textures):
+                prop = layout.operator("wm.context_set_int", text=tex.name)
+                prop.path = "active_object.data.uv_texture_stencil_index"
+                prop.value = i
+
+    bpy.types.register(VIEW3D_MT_tools_projectpaint_clone)
+    bpy.types.register(VIEW3D_MT_tools_projectpaint_stencil)
 
 
 class VIEW3D_PT_tools_particlemode(View3DPanel):
