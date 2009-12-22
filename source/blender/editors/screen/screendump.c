@@ -42,6 +42,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 #include "BKE_writeavi.h"
 
@@ -185,6 +186,7 @@ typedef struct ScreenshotJob {
 	int x, y, dumpsx, dumpsy;
 	short *stop;
 	short *do_update;
+	ReportList reports;
 } ScreenshotJob;
 
 
@@ -227,8 +229,12 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 	rd.frs_sec= 10;
 	rd.frs_sec_base= 1.0f;
 	
-	if(BKE_imtype_is_movie(rd.imtype))
-		mh->start_movie(sj->scene, &rd, sj->dumpsx, sj->dumpsy);
+	if(BKE_imtype_is_movie(rd.imtype)) {
+		if(!mh->start_movie(sj->scene, &rd, sj->dumpsx, sj->dumpsy, &sj->reports)) {
+			printf("screencast job stopped\n");
+			return;
+		}
+	}
 	else
 		mh= NULL;
 	
@@ -242,8 +248,10 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 		if(sj->dumprect) {
 			
 			if(mh) {
-				mh->append_movie(&rd, cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy);
-				printf("Append frame %d\n", cfra);
+				if(mh->append_movie(&rd, cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy, &sj->reports))
+					printf("Append frame %d\n", cfra);
+				else
+					break;
 			}
 			else {
 				ImBuf *ibuf= IMB_allocImBuf(sj->dumpsx, sj->dumpsy, rd.planes, 0, 0);
@@ -286,7 +294,7 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	bScreen *screen= CTX_wm_screen(C);
 	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen, 0);
 	ScreenshotJob *sj= MEM_callocN(sizeof(ScreenshotJob), "screenshot job");
-	
+
 	/* setup sj */
 	if(RNA_boolean_get(op->ptr, "full")) {
 		wmWindow *win= CTX_wm_window(C);
@@ -303,6 +311,8 @@ static int screencast_exec(bContext *C, wmOperator *op)
 		sj->dumpsy= curarea->totrct.ymax - sj->y;
 	}
 	sj->scene= CTX_data_scene(C);
+
+	BKE_reports_init(&sj->reports, RPT_PRINT);
 
 	/* setup job */
 	WM_jobs_customdata(steve, sj, screenshot_freejob);

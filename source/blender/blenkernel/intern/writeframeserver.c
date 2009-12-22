@@ -48,6 +48,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
+#include "BKE_report.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -101,48 +102,45 @@ static int closesocket(int fd)
 }
 #endif
 
-void start_frameserver(struct Scene *scene, RenderData *rd, int rectx, int recty)
+int start_frameserver(struct Scene *scene, RenderData *rd, int rectx, int recty, ReportList *reports)
 {
-        struct sockaddr_in      addr;
+	struct sockaddr_in addr;
 	int arg = 1;
 
 	if (!startup_socket_system()) {
-		G.afbreek = 1;
-		//XXX error("Can't startup socket system");
-		return;
+		BKE_report(reports, RPT_ERROR, "Can't startup socket system");
+		return 0;
 	}
 
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		shutdown_socket_system();
-		G.afbreek = 1; /* Abort render */
-		//XXX error("Can't open socket");
-		return;
-        }
+		BKE_report(reports, RPT_ERROR, "Can't open socket");
+		return 0;
+	}
 
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-                   (char*) &arg, sizeof(arg));
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*) &arg, sizeof(arg));
 
 	addr.sin_family = AF_INET;
-        addr.sin_port = htons(U.frameserverport);
-        addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(U.frameserverport);
+	addr.sin_addr.s_addr = INADDR_ANY;
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		shutdown_socket_system();
-		G.afbreek = 1; /* Abort render */
-		//XXX error("Can't bind to socket");
-		return;
-        }
+		BKE_report(reports, RPT_ERROR, "Can't bind to socket");
+		return 0;
+	}
 
-        if (listen(sock, SOMAXCONN) < 0) {
+	if (listen(sock, SOMAXCONN) < 0) {
 		shutdown_socket_system();
-		G.afbreek = 1; /* Abort render */
-		//XXX error("Can't establish listen backlog");
-		return;
-        }
+		BKE_report(reports, RPT_ERROR, "Can't establish listen backlog");
+		return 0;
+	}
 	connsock = -1;
 
 	render_width = rectx;
 	render_height = recty;
+
+	return 1;
 }
 
 static char index_page[] 
@@ -249,7 +247,7 @@ static int handle_request(RenderData *rd, char * req)
 	return -1;
 }
 
-int frameserver_loop(RenderData *rd)
+int frameserver_loop(RenderData *rd, ReportList *reports)
 {
 	fd_set readfds;
 	struct timeval tv;
@@ -355,7 +353,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 	connsock = -1;
 }
 
-void append_frameserver(RenderData *rd, int frame, int *pixels, int rectx, int recty)
+int append_frameserver(RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports)
 {
 	fprintf(stderr, "Serving frame: %d\n", frame);
 	if (write_ppm) {
@@ -365,6 +363,8 @@ void append_frameserver(RenderData *rd, int frame, int *pixels, int rectx, int r
 		closesocket(connsock);
 		connsock = -1;
 	}
+
+	return 0;
 }
 
 void end_frameserver()

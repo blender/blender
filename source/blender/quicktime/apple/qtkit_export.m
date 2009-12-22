@@ -154,68 +154,68 @@ void makeqtstring (RenderData *rd, char *string) {
 
 #pragma mark export functions
 
-void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty)
+int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, ReportList *reports)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSError *error;
 	char name[2048];
+	int success= 1;
 
+	if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
 	
-	if (G.afbreek != 1) {
-		
-		if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
-		
-		[QTMovie enterQTKitOnThread];		
-		
-		/* Check first if the QuickTime 7.2.1 initToWritableFile: method is available */
-		if ([[[[QTMovie alloc] init] autorelease] respondsToSelector:@selector(initToWritableFile:error:)] != YES) {
-			G.afbreek = 1;
-			fprintf(stderr, "\nUnable to create quicktime movie, need Quicktime rev 7.2.1 or later");
-		}
-		else {
-			makeqtstring(rd, name);
-			qtexport->filename = [NSString stringWithCString:name
-									  encoding:[NSString defaultCStringEncoding]];
-			qtexport->movie = [[QTMovie alloc] initToWritableFile:qtexport->filename error:&error];
-				
-			if(qtexport->movie == nil) {
-				G.afbreek = 1;
-				NSLog(@"Unable to create quicktime movie : %@",[error localizedDescription]);
-				[QTMovie exitQTKitOnThread];
-			} else {
-				[qtexport->movie retain];
-				[qtexport->filename retain];
-				[qtexport->movie setAttribute:[NSNumber numberWithBool:YES] forKey:QTMovieEditableAttribute];
-				[qtexport->movie setAttribute:@"Made with Blender" forKey:QTMovieCopyrightAttribute];
-				
-				qtexport->frameDuration = QTMakeTime(rd->frs_sec_base*1000, rd->frs_sec*1000);
-				
-				/* specifying the codec attributes : try to retrieve them from render data first*/
-				if (rd->qtcodecsettings.codecType) {
-					qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
-												 stringWithCodecType(rd->qtcodecsettings.codecType),
-												 QTAddImageCodecType,
-												 [NSNumber numberWithLong:((rd->qtcodecsettings.codecSpatialQuality)*codecLosslessQuality)/100],
-												 QTAddImageCodecQuality,
-												 nil];
-				}
-				else {
-					qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:@"jpeg",
-												 QTAddImageCodecType,
-												 [NSNumber numberWithLong:codecHighQuality],
-												 QTAddImageCodecQuality,
-												 nil];
-				}
-				[qtexport->frameAttributes retain];
+	[QTMovie enterQTKitOnThread];		
+	
+	/* Check first if the QuickTime 7.2.1 initToWritableFile: method is available */
+	if ([[[[QTMovie alloc] init] autorelease] respondsToSelector:@selector(initToWritableFile:error:)] != YES) {
+		BKE_report(reports, RPT_EROR, "\nUnable to create quicktime movie, need Quicktime rev 7.2.1 or later");
+		success= 0;
+	}
+	else {
+		makeqtstring(rd, name);
+		qtexport->filename = [NSString stringWithCString:name
+								  encoding:[NSString defaultCStringEncoding]];
+		qtexport->movie = [[QTMovie alloc] initToWritableFile:qtexport->filename error:&error];
+			
+		if(qtexport->movie == nil) {
+			BKE_report(reports, RPT_ERROR, "Unable to create quicktime movie.");
+			success= 0;
+			NSLog(@"Unable to create quicktime movie : %@",[error localizedDescription]);
+			[QTMovie exitQTKitOnThread];
+		} else {
+			[qtexport->movie retain];
+			[qtexport->filename retain];
+			[qtexport->movie setAttribute:[NSNumber numberWithBool:YES] forKey:QTMovieEditableAttribute];
+			[qtexport->movie setAttribute:@"Made with Blender" forKey:QTMovieCopyrightAttribute];
+			
+			qtexport->frameDuration = QTMakeTime(rd->frs_sec_base*1000, rd->frs_sec*1000);
+			
+			/* specifying the codec attributes : try to retrieve them from render data first*/
+			if (rd->qtcodecsettings.codecType) {
+				qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
+											 stringWithCodecType(rd->qtcodecsettings.codecType),
+											 QTAddImageCodecType,
+											 [NSNumber numberWithLong:((rd->qtcodecsettings.codecSpatialQuality)*codecLosslessQuality)/100],
+											 QTAddImageCodecQuality,
+											 nil];
 			}
+			else {
+				qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:@"jpeg",
+											 QTAddImageCodecType,
+											 [NSNumber numberWithLong:codecHighQuality],
+											 QTAddImageCodecQuality,
+											 nil];
+			}
+			[qtexport->frameAttributes retain];
 		}
 	}
 	
 	[pool drain];
+
+	return success;
 }
 
 
-void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty)
+int append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSBitmapImageRep *blBitmapFormatImage;
@@ -235,7 +235,7 @@ void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int rec
 																bitsPerPixel:32];
 	if (!blBitmapFormatImage) {
 		[pool drain];
-		return;
+		return 0;
 	}
 	
 	from_Ptr = (unsigned char*)pixels;
@@ -257,6 +257,8 @@ void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int rec
 	[blBitmapFormatImage release];
 	[frameImage release];
 	[pool drain];	
+
+	return 1;
 }
 
 

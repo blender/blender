@@ -2810,7 +2810,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 	
 	if(RNA_boolean_get(op->ptr, "animation"))
-		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step);
+		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
 	else
 		RE_BlenderFrame(re, scene, scene->r.cfra);
 	
@@ -2831,6 +2831,7 @@ typedef struct RenderJob {
 	ImageUser iuser;
 	short *stop;
 	short *do_update;
+	ReportList *reports;
 } RenderJob;
 
 static void render_freejob(void *rjv)
@@ -3035,7 +3036,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 #endif
 	
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
+		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
 		RE_BlenderFrame(rj->re, rj->scene, rj->scene->r.cfra);
 }
@@ -3108,6 +3109,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->anim= RNA_boolean_get(op->ptr, "animation");
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;
+	rj->reports= op->reports;
 	
 	/* setup job */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY);
@@ -3138,8 +3140,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	//	RE_error_cb(re, error_cb);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
-	
-	G.afbreek= 0;
 	
 	WM_cursor_wait(0);
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
@@ -3185,6 +3185,7 @@ typedef struct OGLRender {
 	GPUOffScreen *ofs;
 	int sizex, sizey;
 	
+	ReportList *reports;
 	bMovieHandle *mh;
 	int cfrao, nfra;
 	
@@ -3383,9 +3384,9 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 	
 	if(ibuf) {
 		if(BKE_imtype_is_movie(scene->r.imtype)) {
-			oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey);
-			printf("Append frame %d", scene->r.cfra);
-			ok= 1;
+			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
+			if(ok)
+				printf("Append frame %d", scene->r.cfra);
 		}
 		else {
 			BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
@@ -3439,9 +3440,14 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, wmEvent *eve
 		oglrender= op->customdata;
 		scene= oglrender->scene;
 		
+		oglrender->reports= op->reports;
 		oglrender->mh= BKE_get_movie_handle(scene->r.imtype);
-		if(BKE_imtype_is_movie(scene->r.imtype))
-			oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey);
+		if(BKE_imtype_is_movie(scene->r.imtype)) {
+			if(!oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey, oglrender->reports)) {
+				screen_opengl_render_end(C, oglrender);
+				return OPERATOR_CANCELLED;
+			}
+		}
 		
 		oglrender->cfrao= scene->r.cfra;
 		oglrender->nfra= SFRA;

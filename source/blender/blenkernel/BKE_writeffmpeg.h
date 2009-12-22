@@ -57,11 +57,12 @@ extern "C" {
 
 struct IDProperty;
 struct RenderData;	
+struct ReportList;
 struct Scene;
 
-extern void start_ffmpeg(struct Scene *scene, struct RenderData *rd, int rectx, int recty);
+extern int start_ffmpeg(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);
 extern void end_ffmpeg(void);
-extern void append_ffmpeg(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
+extern int append_ffmpeg(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, struct ReportList *reports);
 
 extern void ffmpeg_set_preset(struct RenderData *rd, int preset);
 extern void ffmpeg_verify_image_type(struct RenderData *rd);

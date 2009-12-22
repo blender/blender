@@ -305,7 +305,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	if(op->type->exec)
 		retval= op->type->exec(C, op);
 	
-	if(!(retval & OPERATOR_RUNNING_MODAL))
+	if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 		if(op->reports->list.first)
 			uiPupMenuReports(C, op->reports);
 	
@@ -435,11 +435,11 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 
 		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
 		 * currently python only uses this */
-		if(!(retval & OPERATOR_RUNNING_MODAL) && reports==NULL) {
+		if((retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED)) && reports==NULL)
 			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
 				uiPupMenuReports(C, op->reports);
 		
-		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other wm_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
+		if (retval & OPERATOR_FINISHED) { /* todo - this may conflict with the other wm_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
 			if(G.f & G_DEBUG)
 				wm_operator_print(op);
 		}
@@ -884,7 +884,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				CTX_wm_region_set(C, NULL);
 			}
 
-			if(!(retval & OPERATOR_RUNNING_MODAL))
+			if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 				if(op->reports->list.first)
 					uiPupMenuReports(C, op->reports);
 

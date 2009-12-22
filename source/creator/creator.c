@@ -651,10 +651,13 @@ int main(int argc, char **argv)
 					if (a < argc) {
 						int frame = atoi(argv[a]);
 						Render *re = RE_NewRender(scene->id.name);
+						ReportList reports;
+
+						BKE_reports_init(&reports, RPT_PRINT);
 
 						frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 						
-						RE_BlenderAnim(re, scene, frame, frame, scene->r.frame_step);
+						RE_BlenderAnim(re, scene, frame, frame, scene->r.frame_step, &reports);
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-f'.\n");
@@ -664,7 +667,9 @@ int main(int argc, char **argv)
 				if (CTX_data_scene(C)) {
 					Scene *scene= CTX_data_scene(C);
 					Render *re= RE_NewRender(scene->id.name);
-					RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step);
+					ReportList reports;
+					BKE_reports_init(&reports, RPT_PRINT);
+					RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
 				} else {
 					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}

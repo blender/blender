@@ -503,7 +503,7 @@ void makeqtstring (RenderData *rd, char *string) {
 }
 
 
-void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty) {
+int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, ReportList *reports) {
 	OSErr err = noErr;
 
 	char name[2048];
@@ -515,6 +515,7 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty) 
 #else
 	char	*qtname;
 #endif
+	int success= 1;
 
 	if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
 
@@ -534,57 +535,57 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty) 
 		check_renderbutton_framerate(rd);
 	}
 	
-	if (G.afbreek != 1) {
-		sframe = (rd->sfra);
+	sframe = (rd->sfra);
 
-		makeqtstring(rd, name);
+	makeqtstring(rd, name);
 
 #ifdef __APPLE__
-		EnterMoviesOnThread(0);
-		sprintf(theFullPath, "%s", name);
+	EnterMoviesOnThread(0);
+	sprintf(theFullPath, "%s", name);
 
-		/* hack: create an empty file to make FSPathMakeRef() happy */
-		myFile = open(theFullPath, O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRUSR|S_IWUSR);
-		if (myFile < 0) {
-			printf("error while creating file!\n");
-			/* do something? */
-		}
-		close(myFile);
-		err = FSPathMakeRef((const UInt8 *)theFullPath, &myRef, 0);
-		CheckError(err, "FsPathMakeRef error");
-		err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &qtexport->theSpec, NULL);
-		CheckError(err, "FsGetCatalogInfoRef error");
+	/* hack: create an empty file to make FSPathMakeRef() happy */
+	myFile = open(theFullPath, O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRUSR|S_IWUSR);
+	if (myFile < 0) {
+		printf("error while creating file!\n");
+		/* do something? */
+	}
+	close(myFile);
+	err = FSPathMakeRef((const UInt8 *)theFullPath, &myRef, 0);
+	CheckError(err, "FsPathMakeRef error");
+	err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &qtexport->theSpec, NULL);
+	CheckError(err, "FsGetCatalogInfoRef error");
 #endif
 #ifdef _WIN32
-		qtname = get_valid_qtname(name);
-		sprintf(theFullPath, "%s", qtname);
-		strcpy(name, qtname);
-		MEM_freeN(qtname);
-		
-		CopyCStringToPascal(theFullPath, qtexport->qtfilename);
-		err = FSMakeFSSpec(0, 0L, qtexport->qtfilename, &qtexport->theSpec);
+	qtname = get_valid_qtname(name);
+	sprintf(theFullPath, "%s", qtname);
+	strcpy(name, qtname);
+	MEM_freeN(qtname);
+	
+	CopyCStringToPascal(theFullPath, qtexport->qtfilename);
+	err = FSMakeFSSpec(0, 0L, qtexport->qtfilename, &qtexport->theSpec);
 #endif
 
-		err = CreateMovieFile (&qtexport->theSpec, 
-							kMyCreatorType,
-							smCurrentScript, 
-							createMovieFileDeleteCurFile | createMovieFileDontCreateResFile,
-							&qtexport->resRefNum, 
-							&qtexport->theMovie );
-		CheckError(err, "CreateMovieFile error");
+	err = CreateMovieFile (&qtexport->theSpec, 
+						kMyCreatorType,
+						smCurrentScript, 
+						createMovieFileDeleteCurFile | createMovieFileDontCreateResFile,
+						&qtexport->resRefNum, 
+						&qtexport->theMovie );
+	CheckError(err, "CreateMovieFile error");
 
-		if(err != noErr) {
-			G.afbreek = 1;
-// XXX			error("Unable to create Quicktime movie: %s", name);
+	if(err != noErr) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to create Quicktime movie: %s", name);
+		success= 0;
 #ifdef __APPLE__
-			ExitMoviesOnThread();
+		ExitMoviesOnThread();
 #endif
-		} else {
-			printf("Created QuickTime movie: %s\n", name);
+	} else {
+		printf("Created QuickTime movie: %s\n", name);
 
-			QT_CreateMyVideoTrack(rectx, recty);
-		}
+		QT_CreateMyVideoTrack(rectx, recty);
 	}
+
+	return success;
 }
 
 
