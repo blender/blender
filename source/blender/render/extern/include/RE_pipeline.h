@@ -253,8 +253,8 @@ typedef struct RenderEngineType {
 	struct RenderEngineType *next, *prev;
 
 	/* type info */
-	char idname[32];
-	char name[32];
+	char idname[64]; // best keep the same size as BKE_ST_MAXNAME
+	char name[64];
 	int flag;
 
 	void (*render)(struct RenderEngine *engine, struct Scene *scene);
