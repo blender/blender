@@ -232,7 +232,7 @@ bool CcdPhysicsController::CreateSoftbody()
 				PHY_ScalarType indexType;
 				trimeshshape->getMeshInterface()->getLockedVertexIndexBase(&vertexBase,numverts,vertexType,vertexstride,&indexbase,indexstride,numtris,indexType);
 				
-				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris);
+				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris,false);
 			}
 		} else
 		{
@@ -249,7 +249,7 @@ bool CcdPhysicsController::CreateSoftbody()
 				PHY_ScalarType indexType;
 				trimeshshape->getMeshInterface()->getLockedVertexIndexBase(&vertexBase,numverts,vertexType,vertexstride,&indexbase,indexstride,numtris,indexType);
 				
-				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris);
+				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris,false);
 			}
 		}
 		// store face tag so that we can find our original face when doing ray casting
