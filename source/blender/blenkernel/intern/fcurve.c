@@ -167,53 +167,42 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 	}
 }
 
-/* ---------------------- Relink --------------------------- */
-
-#if 0
-/* uses id->newid to match pointers with other copied data 
- * 	- called after single-user or other such
- */
-			if (icu->driver)
-				ID_NEW(icu->driver->ob);
-#endif
-
 /* --------------------- Finding -------------------------- */
 
+/* high level function to get an fcurve from C without having the rna */
 FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, char *prop_name, int index)
 {
 	/* anim vars */
-	AnimData *adt;
+	AnimData *adt= BKE_animdata_from_id(id);
 	FCurve *fcu= NULL;
 
 	/* rna vars */
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	char *path;
-
-	adt= BKE_animdata_from_id(id);
-
+	
 	/* only use the current action ??? */
-	if(adt==NULL || adt->action==NULL)
+	if (ELEM(NULL, adt, adt->action))
 		return NULL;
-
+	
 	RNA_pointer_create(id, type, data, &ptr);
 	prop = RNA_struct_find_property(&ptr, prop_name);
-
-	if(prop) {
+	
+	if (prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
-
-		if(path) {
+			
+		if (path) {
 			/* animation takes priority over drivers */
-			if(adt->action && adt->action->curves.first)
+			if ((adt->action) && (adt->action->curves.first))
 				fcu= list_find_fcurve(&adt->action->curves, path, index);
-
+			
 			/* if not animated, check if driven */
 #if 0
-			if(!fcu && (adt->drivers.first)) {
+			if ((fcu == NULL) && (adt->drivers.first)) {
 				fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
 			}
 #endif
-
+			
 			MEM_freeN(path);
 		}
 	}
@@ -244,6 +233,54 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	/* return */
 	return NULL;
 }
+
+/* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated 
+ * Lists...
+ *	- dst: list of LinkData's matching the criteria returned. 
+ *	  List must be freed after use, and is assumed to be empty when passed.
+ *	- src: list of F-Curves to search through
+ * Filters...
+ * 	- dataPrefix: i.e. 'pose.bones[' or 'nodes['
+ *	- dataName: name of entity within "" immediately following the prefix
+ */
+int list_find_data_fcurves (ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName)
+{
+	FCurve *fcu;
+	int matches = 0;
+	
+	/* sanity checks */
+	if (ELEM4(NULL, dst, src, dataPrefix, dataName))
+		return 0;
+	else if ((dataPrefix[0] == 0) || (dataName[0] == 0))
+		return 0;
+	
+	/* search each F-Curve one by one */
+	for (fcu= src->first; fcu; fcu= fcu->next) {
+		/* check if quoted string matches the path */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, dataPrefix)) {
+			char *quotedName= BLI_getQuotedStr(fcu->rna_path, dataPrefix);
+			
+			if (quotedName) {
+				/* check if the quoted name matches the required name */
+				if (strcmp(quotedName, dataName) == 0) {
+					LinkData *ld= MEM_callocN(sizeof(LinkData), "list_find_data_fcurves");
+					
+					ld->data= fcu;
+					BLI_addtail(dst, ld);
+					
+					matches++;
+				}
+				
+				/* always free the quoted string, since it needs freeing */
+				MEM_freeN(quotedName);
+			}
+		}
+	}
+	
+	/* return the number of matches */
+	return matches;
+}
+
 
 /* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
 #define BEZT_BINARYSEARCH_THRESH 	0.00001f

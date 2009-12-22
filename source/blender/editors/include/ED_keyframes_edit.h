@@ -100,10 +100,18 @@ typedef struct BeztEditData {
 
 /* ------- Function Pointer Typedefs ---------------- */
 
-	/* callback function that refreshes the IPO curve after use */
+	/* callback function that refreshes the F-Curve after use */
 typedef void (*FcuEditFunc)(struct FCurve *fcu);
 	/* callback function that operates on the given BezTriple */
 typedef short (*BeztEditFunc)(BeztEditData *bed, struct BezTriple *bezt);
+
+/* ------- Custom Data Type Defines ------------------ */
+
+/* Custom data for remapping one range to another in a fixed way */
+typedef struct BeztEditCD_Remap {
+	float oldMin, oldMax;			/* old range */
+	float newMin, newMax;			/* new range */
+} BeztEditCD_Remap;
 
 /* ---------------- Looping API --------------------- */
 
@@ -137,8 +145,16 @@ BeztEditFunc ANIM_editkeyframes_keytype(short mode);
 
 /* ----------- BezTriple Callback (Assorted Utilities) ---------- */
 
+/* used to calculate the the average location of all relevant BezTriples by summing their locations */
 short bezt_calc_average(BeztEditData *bed, struct BezTriple *bezt);
+
+/* used to extract a set of cfra-elems from the keyframes */
 short bezt_to_cfraelem(BeztEditData *bed, struct BezTriple *bezt);
+
+/* used to remap times from one range to another
+ * requires:  bed->custom = BeztEditCD_Remap	
+ */
+short bezt_remap_times(BeztEditData *bed, struct BezTriple *bezt);
 
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */
