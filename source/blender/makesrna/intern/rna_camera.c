@@ -85,7 +85,7 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_range(prop, 0.0f, 172.85f);
 	RNA_def_property_ui_text(prop, "Angle", "Perspective Camera lend field of view in degrees.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_angle_update");
 
