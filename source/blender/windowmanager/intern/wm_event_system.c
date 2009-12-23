@@ -316,7 +316,13 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			ED_undo_push_op(C, op);
 		
 		if(repeat==0) {
-			if((op->type->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
+			if(G.f & G_DEBUG) {
+				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+				MEM_freeN(buf);
+			}
+
+			if((op->type->flag & OPTYPE_REGISTER))
 				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
@@ -450,7 +456,13 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			if(ot->flag & OPTYPE_UNDO)
 				ED_undo_push_op(C, op);
 			
-			if((ot->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
+			if(G.f & G_DEBUG) {
+				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+				MEM_freeN(buf);
+			}
+			
+			if((ot->flag & OPTYPE_REGISTER))
 				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
@@ -899,7 +911,13 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				if(ot->flag & OPTYPE_UNDO)
 					ED_undo_push_op(C, op);
 				
-				if((ot->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
+				if(G.f & G_DEBUG) {
+					char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+					BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+					MEM_freeN(buf);
+				}
+				
+				if((ot->flag & OPTYPE_REGISTER))
 					wm_operator_register(C, op);
 				else
 					WM_operator_free(op);

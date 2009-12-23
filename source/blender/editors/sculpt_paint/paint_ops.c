@@ -214,6 +214,12 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_smooth_stroke");
 
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", RKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_rake");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", AKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_airbrush");
+
 	/* brush switching */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", DKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.sculpt_tool");
