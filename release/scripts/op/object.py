@@ -84,7 +84,9 @@ class SubdivisionSet(bpy.types.Operator):
     bl_undo = True
 
     level = IntProperty(name="Level",
-            default=1, min=0, max=100, soft_min=0, soft_max=6)
+            default=1, min=-100, max=100, soft_min=-6, soft_max=6)
+
+    relative = BoolProperty(name="Relative", description="Apply the subsurf level as an offset relative to the current level", default=False)
 
     def poll(self, context):
         obs = context.selected_editable_objects
@@ -92,19 +94,35 @@ class SubdivisionSet(bpy.types.Operator):
 
     def execute(self, context):
         level = self.properties.level
+        relative = self.properties.relative
+
+        if relative and level == 0:
+            return ('CANCELLED',) # nothing to do
 
         def set_object_subd(obj):
             for mod in obj.modifiers:
                 if mod.type == 'MULTIRES':
-                    if level < mod.total_levels:
-                        if obj.mode == 'SCULPT' and mod.sculpt_levels != level:
-                            mod.sculpt_levels = level
-                        elif obj.mode == 'OBJECT' and mod.levels != level:
-                            mod.levels = level
+                    if level <= mod.total_levels:
+                        if obj.mode == 'SCULPT':
+                            if relative:
+                                mod.sculpt_levels += level
+                            else:
+                                if mod.sculpt_levels != level:
+                                    mod.sculpt_levels = level
+                        elif obj.mode == 'OBJECT':
+                            if relative:
+                                mod.levels += level
+                            else:
+                                if mod.levels != level:
+                                    mod.levels = level
                     return
                 elif mod.type == 'SUBSURF':
-                    if mod.levels != level:
-                        mod.levels = level
+                    if relative:
+                        mod.levels += level
+                    else:
+                        if mod.levels != level:
+                            mod.levels = level
+
                     return
 
             # adda new modifier

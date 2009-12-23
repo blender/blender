@@ -317,7 +317,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
-	for(i=1; i<=5; i++) {
+	for(i=0; i<=5; i++) {
 		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0);
 		RNA_int_set(kmi->ptr, "level", i);
 	}
@@ -342,15 +342,15 @@ void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keym
 	if(do_pet) {
 		/* context ops */
 		km = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
-		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing_falloff");
+		RNA_string_set(km->ptr, "path", "tool_settings.proportional_editing_falloff");
 
 		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
-		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing");
+		RNA_string_set(km->ptr, "path", "tool_settings.proportional_editing");
 		RNA_string_set(km->ptr, "value_1", "DISABLED");
 		RNA_string_set(km->ptr, "value_2", "ENABLED");
 
 		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, KM_ALT, 0);
-		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing");
+		RNA_string_set(km->ptr, "path", "tool_settings.proportional_editing");
 		RNA_string_set(km->ptr, "value_1", "DISABLED");
 		RNA_string_set(km->ptr, "value_2", "CONNECTED");
 	}

@@ -179,6 +179,7 @@ static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 	int i;
 	
 	/* Sculpt mode */
@@ -194,8 +195,50 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.sculpt.active_brush_index");
 
-	for(i=1; i<=5; i++)
+	for(i=0; i<=5; i++)
 		RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0)->ptr, "level", i);
+
+	/* multires switch */
+	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEUPKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "level", 1);
+	RNA_boolean_set(kmi->ptr, "relative", 1);
+
+	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "level", -1);
+	RNA_boolean_set(kmi->ptr, "relative", 1);
+
+	/* toggles */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", AKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_anchor");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_smooth_stroke");
+
+	/* brush switching */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", DKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.sculpt_tool");
+	RNA_string_set(kmi->ptr, "value", "DRAW");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", SKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.sculpt_tool");
+	RNA_string_set(kmi->ptr, "value", "SMOOTH");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.sculpt_tool");
+	RNA_string_set(kmi->ptr, "value", "PINCH");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", GKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.sculpt_tool");
+	RNA_string_set(kmi->ptr, "value", "GRAB");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", LKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.sculpt_tool");
+	RNA_string_set(kmi->ptr, "value", "LAYER");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", TKEY, KM_PRESS, KM_SHIFT, 0); /* was just T in 2.4x */
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.sculpt_tool");
+	RNA_string_set(kmi->ptr, "value", "FLATTEN");
+
 
 	/* Vertex Paint mode */
 	keymap= WM_keymap_find(keyconf, "Vertex Paint", 0, 0);
