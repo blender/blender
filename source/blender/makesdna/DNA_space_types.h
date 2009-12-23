@@ -720,16 +720,29 @@ enum FileSortTypeE {
 #define SI_COLOR_CORRECTION	1<<24
 
 /* SpaceIpo->flag (Graph Editor Settings) */
+	/* OLD DEPRECEATED SETTING */
 #define SIPO_LOCK_VIEW			(1<<0)
+	/* don't merge keyframes on the same frame after a transform */
 #define SIPO_NOTRANSKEYCULL		(1<<1)
+	/* don't show any keyframe handles at all */
 #define SIPO_NOHANDLES			(1<<2)
+	/* don't show current frame number beside indicator line */
 #define SIPO_NODRAWCFRANUM		(1<<3)
+	/* show timing in seconds instead of frames */
 #define SIPO_DRAWTIME			(1<<4)
+	/* only show keyframes for selected F-Curves */
 #define SIPO_SELCUVERTSONLY		(1<<5)
+	/* draw names of F-Curves beside the respective curves */
+	/* NOTE: currently not used */
 #define SIPO_DRAWNAMES			(1<<6)
+	/* show sliders in channels list */
 #define SIPO_SLIDERS			(1<<7)
+	/* don't show the horizontal component of the cursor */
 #define SIPO_NODRAWCURSOR		(1<<8)
+	/* only show handles of selected keyframes */
 #define SIPO_SELVHANDLESONLY	(1<<9)
+	/* temporary flag to force channel selections to be synced with main */
+#define SIPO_TEMP_NEEDCHANSYNC	(1<<10)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {

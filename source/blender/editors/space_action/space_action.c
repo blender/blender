@@ -45,6 +45,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -353,15 +354,22 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* editor level listener */
 static void action_listener(ScrArea *sa, wmNotifier *wmn)
 {
+	SpaceAction *saction= (SpaceAction *)sa->spacedata.first;
+	
 	/* context changes */
 	switch (wmn->category) {
 		case NC_ANIMATION:
-			ED_area_tag_redraw(sa);
+			/* for selection changes of animation data, we can just redraw... otherwise autocolor might need to be done again */
+			if (ELEM(wmn->data, ND_KEYFRAME_SELECT, ND_ANIMCHAN_SELECT))
+				ED_area_tag_redraw(sa);
+			else
+				ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
 			switch (wmn->data) {	
-				case ND_OB_ACTIVE:	/* selection changed, so force refresh to flush */
+				case ND_OB_ACTIVE:	/* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_OB_SELECT:
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
 					
@@ -372,8 +380,9 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_OBJECT:
 			switch (wmn->data) {
-				case ND_BONE_SELECT:	/* selection changed, so force refresh to flush */
+				case ND_BONE_SELECT:	/* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_BONE_ACTIVE:
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
 					
@@ -391,11 +400,15 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 
 static void action_refresh(const bContext *C, ScrArea *sa)
 {
-	//SpaceAction *saction= CTX_wm_space_action(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	
-	/* update the state of the animchannels in response to changes from the data they represent */
-	// TODO: check if we don't want this to happen
-	ANIM_sync_animchannels_to_data(C);
+	/* update the state of the animchannels in response to changes from the data they represent 
+	 * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled
+	 */
+	if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {
+		ANIM_sync_animchannels_to_data(C);
+		saction->flag &= ~SACTION_TEMP_NEEDCHANSYNC;
+	}
 	
 	/* region updates? */
 	// XXX resizing y-extents of tot should go here?

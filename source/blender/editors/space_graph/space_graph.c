@@ -431,18 +431,22 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 /* editor level listener */
 static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 {
+	SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
+	
 	/* context changes */
 	switch (wmn->category) {
 		case NC_ANIMATION:
-			/* unlike for DopeSheet, we want refresh not redraw here, 
-			 * since F-Curve colors may need setting 
-			 */
-			ED_area_tag_refresh(sa);
+			/* for selection changes of animation data, we can just redraw... otherwise autocolor might need to be done again */
+			if (ELEM(wmn->data, ND_KEYFRAME_SELECT, ND_ANIMCHAN_SELECT))
+				ED_area_tag_redraw(sa);
+			else
+				ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
 			switch (wmn->data) {	
-				case ND_OB_ACTIVE:	/* selection changed, so force refresh to flush */
+				case ND_OB_ACTIVE:	/* selection changed, so force refresh to flush (needs flag set to do syncing)  */
 				case ND_OB_SELECT:
+					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
 					
@@ -453,8 +457,9 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_OBJECT:
 			switch (wmn->data) {
-				case ND_BONE_SELECT:	/* selection changed, so force refresh to flush */
+				case ND_BONE_SELECT:	/* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_BONE_ACTIVE:
+					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
 					
@@ -467,9 +472,11 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_GRAPH)
 				ED_area_tag_redraw(sa);
 			break;
-		default:
-			if(wmn->data==ND_KEYS)
-				ED_area_tag_refresh(sa);
+		
+		// XXX: restore the case below if not enough updates occur...
+		//default:
+		//	if(wmn->data==ND_KEYS)
+		//		ED_area_tag_redraw(sa);
 	}
 }
 
@@ -498,9 +505,13 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	/* region updates? */
 	// XXX resizing y-extents of tot should go here?
 	
-	/* update the state of the animchannels in response to changes from the data they represent */
-	// TODO: check if we don't want this to happen
-	ANIM_sync_animchannels_to_data(C);
+	/* update the state of the animchannels in response to changes from the data they represent 
+	 * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled
+	 */
+	if (sipo->flag & SIPO_TEMP_NEEDCHANSYNC) {
+		ANIM_sync_animchannels_to_data(C);
+		sipo->flag &= ~SIPO_TEMP_NEEDCHANSYNC;
+	}
 	
 	/* init/adjust F-Curve colors */
 	if (ANIM_animdata_get_context(C, &ac)) {

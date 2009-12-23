@@ -503,6 +503,8 @@ typedef enum eSAction_Flag {
 	SACTION_NODRAWGCOLORS = (1<<7),
 		/* don't draw current frame number beside frame indicator */
 	SACTION_NODRAWCFRANUM = (1<<8),
+		/* temporary flag to force channel selections to be synced with main */
+	SACTION_TEMP_NEEDCHANSYNC = (1<<9),
 } eSAction_Flag;	
 
 /* SpaceAction Mode Settings */
