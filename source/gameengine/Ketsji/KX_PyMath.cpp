@@ -103,20 +103,20 @@ PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 	mat.getValue(fmat);
 	return newMatrixObject(fmat, 4, 4, Py_NEW, NULL);
 #else
-	PyObject *list = PyList_New(4);
-	PyObject *sublist;
+	PyObject *collist = PyList_New(4);
+	PyObject *col;
 	int i;
 	
 	for(i=0; i < 4; i++) {
-		sublist = PyList_New(4);
-		PyList_SET_ITEM(sublist, 0, PyFloat_FromDouble(mat[i][0]));
-		PyList_SET_ITEM(sublist, 1, PyFloat_FromDouble(mat[i][1]));
-		PyList_SET_ITEM(sublist, 2, PyFloat_FromDouble(mat[i][2]));
-		PyList_SET_ITEM(sublist, 3, PyFloat_FromDouble(mat[i][3]));
-		PyList_SET_ITEM(list, i, sublist);
+		col = PyList_New(4);
+		PyList_SET_ITEM(col, 0, PyFloat_FromDouble(mat[0][i]));
+		PyList_SET_ITEM(col, 1, PyFloat_FromDouble(mat[1][i]));
+		PyList_SET_ITEM(col, 2, PyFloat_FromDouble(mat[2][i]));
+		PyList_SET_ITEM(col, 3, PyFloat_FromDouble(mat[3][i]));
+		PyList_SET_ITEM(collist, i, col);
 	}
 	
-	return list;
+	return collist;
 #endif
 }
 
@@ -127,19 +127,19 @@ PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 	mat.getValue3x3(fmat);
 	return newMatrixObject(fmat, 3, 3, Py_NEW, NULL);
 #else
-	PyObject *list = PyList_New(3);
-	PyObject *sublist;
+	PyObject *collist = PyList_New(3);
+	PyObject *col;
 	int i;
 	
 	for(i=0; i < 3; i++) {
-		sublist = PyList_New(3);
-		PyList_SET_ITEM(sublist, 0, PyFloat_FromDouble(mat[i][0]));
-		PyList_SET_ITEM(sublist, 1, PyFloat_FromDouble(mat[i][1]));
-		PyList_SET_ITEM(sublist, 2, PyFloat_FromDouble(mat[i][2]));
-		PyList_SET_ITEM(list, i, sublist);
+		col = PyList_New(3);
+		PyList_SET_ITEM(col, 0, PyFloat_FromDouble(mat[0][i]));
+		PyList_SET_ITEM(col, 1, PyFloat_FromDouble(mat[1][i]));
+		PyList_SET_ITEM(col, 2, PyFloat_FromDouble(mat[2][i]));
+		PyList_SET_ITEM(collist, i, col);
 	}
 	
-	return list;
+	return collist;
 #endif
 }
 
