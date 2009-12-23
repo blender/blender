@@ -2796,6 +2796,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_SOLID) {
+		Paint *p;
+
 		if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
 			draw_mesh_object_outline(v3d, ob, dm);
 
@@ -2804,8 +2806,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-		if(ob->sculpt) {
-			Paint *p = paint_get_active(scene);
+		if(ob->sculpt && (p=paint_get_active(scene))) {
 			float planes[4][4];
 			float (*fpl)[4] = NULL;
 			int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);

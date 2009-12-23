@@ -690,7 +690,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
     bl_label = "Options"
 
     def poll(self, context):
-        return context.sculpt_object
+        return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw(self, context):
         layout = self.layout
