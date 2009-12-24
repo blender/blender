@@ -297,7 +297,7 @@ class ExportPLY(bpy.types.Operator):
             EXPORT_COLORS=self.properties.use_colors,
         )
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -316,7 +316,7 @@ class ExportPLY(bpy.types.Operator):
         row.prop(props, "use_colors")
 
 
-bpy.ops.add(ExportPLY)
+bpy.types.register(ExportPLY)
 
 import dynamic_menu
 

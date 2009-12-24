@@ -173,14 +173,14 @@ class ExportMDD(bpy.types.Operator):
             raise Exception("filename not set")
         write(self.properties.path, context.scene, context.active_object,
             self.properties.start_frame, self.properties.end_frame, self.properties.fps)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
         return ('RUNNING_MODAL',)
 
-bpy.ops.add(ExportMDD)
+bpy.types.register(ExportMDD)
 
 # Add to a menu
 import dynamic_menu

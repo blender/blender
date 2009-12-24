@@ -607,10 +607,10 @@ class AddHuman(bpy.types.Operator):
         bones.remove(bones[0])
         metarig_template()
         bpy.ops.object.mode_set(mode=mode_orig)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 # Register the operator
-bpy.ops.add(AddHuman)
+bpy.types.register(AddHuman)
 
 # Add to a menu
 import dynamic_menu

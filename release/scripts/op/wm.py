@@ -34,7 +34,7 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
         bpy.ops.mesh.select_more()
         bpy.ops.mesh.remove_doubles()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 rna_path_prop = StringProperty(name="Context Attributes",
         description="rna context string", maxlen=1024, default="")
@@ -60,9 +60,9 @@ def context_path_validate(context, path):
 
 def execute_context_assign(self, context):
     if context_path_validate(context, self.properties.path) is Ellipsis:
-        return ('PASS_THROUGH',)
+        return {'PASS_THROUGH'}
     exec("context.%s=self.properties.value" % self.properties.path)
-    return ('FINISHED',)
+    return {'FINISHED'}
 
 
 class WM_OT_context_set_boolean(bpy.types.Operator):
@@ -143,9 +143,9 @@ class WM_OT_context_set_value(bpy.types.Operator):
 
     def execute(self, context):
         if context_path_validate(context, self.properties.path) is Ellipsis:
-            return ('PASS_THROUGH',)
+            return {'PASS_THROUGH'}
         exec("context.%s=%s" % (self.properties.path, self.properties.value))
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_context_toggle(bpy.types.Operator):
@@ -159,12 +159,12 @@ class WM_OT_context_toggle(bpy.types.Operator):
     def execute(self, context):
 
         if context_path_validate(context, self.properties.path) is Ellipsis:
-            return ('PASS_THROUGH',)
+            return {'PASS_THROUGH'}
 
         exec("context.%s=not (context.%s)" %
             (self.properties.path, self.properties.path))
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_context_toggle_enum(bpy.types.Operator):
@@ -183,14 +183,14 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
     def execute(self, context):
 
         if context_path_validate(context, self.properties.path) is Ellipsis:
-            return ('PASS_THROUGH',)
+            return {'PASS_THROUGH'}
 
         exec("context.%s = ['%s', '%s'][context.%s!='%s']" % \
             (self.properties.path, self.properties.value_1,\
              self.properties.value_2, self.properties.path,
              self.properties.value_2))
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_context_cycle_int(bpy.types.Operator):
@@ -207,7 +207,7 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
 
         value = context_path_validate(context, self.properties.path)
         if value is Ellipsis:
-            return ('PASS_THROUGH',)
+            return {'PASS_THROUGH'}
 
         self.properties.value = value
         if self.properties.reverse:
@@ -224,7 +224,7 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
                 self.properties.value = - (1 << 32)
             execute_context_assign(self, context)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_context_cycle_enum(bpy.types.Operator):
@@ -240,7 +240,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 
         value = context_path_validate(context, self.properties.path)
         if value is Ellipsis:
-            return ('PASS_THROUGH',)
+            return {'PASS_THROUGH'}
 
         orig_value = value
 
@@ -276,7 +276,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 
         # set the new value
         exec("context.%s=advance_enum" % self.properties.path)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 doc_id = StringProperty(name="Doc ID",
         description="", maxlen=1024, default="", hidden=True)
@@ -318,12 +318,12 @@ class WM_OT_doc_view(bpy.types.Operator):
                         (self._prefix, class_name_full, class_prop)
 
         else:
-            return ('PASS_THROUGH',)
+            return {'PASS_THROUGH'}
 
         import webbrowser
         webbrowser.open(url)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_doc_edit(bpy.types.Operator):
@@ -388,7 +388,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
         self._send_xmlrpc(upload)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -403,29 +403,29 @@ class WM_OT_reload_scripts(bpy.types.Operator):
     def execute(self, context):
         MOD = type(bpy)
         bpy.load_scripts(True)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
-bpy.ops.add(MESH_OT_delete_edgeloop)
+bpy.types.register(MESH_OT_delete_edgeloop)
 
-bpy.ops.add(WM_OT_context_set_boolean)
-bpy.ops.add(WM_OT_context_set_int)
-bpy.ops.add(WM_OT_context_set_float)
-bpy.ops.add(WM_OT_context_set_string)
-bpy.ops.add(WM_OT_context_set_enum)
-bpy.ops.add(WM_OT_context_set_value)
-bpy.ops.add(WM_OT_context_toggle)
-bpy.ops.add(WM_OT_context_toggle_enum)
-bpy.ops.add(WM_OT_context_cycle_enum)
-bpy.ops.add(WM_OT_context_cycle_int)
+bpy.types.register(WM_OT_context_set_boolean)
+bpy.types.register(WM_OT_context_set_int)
+bpy.types.register(WM_OT_context_set_float)
+bpy.types.register(WM_OT_context_set_string)
+bpy.types.register(WM_OT_context_set_enum)
+bpy.types.register(WM_OT_context_set_value)
+bpy.types.register(WM_OT_context_toggle)
+bpy.types.register(WM_OT_context_toggle_enum)
+bpy.types.register(WM_OT_context_cycle_enum)
+bpy.types.register(WM_OT_context_cycle_int)
 
-bpy.ops.add(WM_OT_doc_view)
-bpy.ops.add(WM_OT_doc_edit)
+bpy.types.register(WM_OT_doc_view)
+bpy.types.register(WM_OT_doc_edit)
 
-bpy.ops.add(WM_OT_reload_scripts)
+bpy.types.register(WM_OT_reload_scripts)
 
 # experemental!
 import rna_prop_ui
-bpy.ops.add(rna_prop_ui.WM_OT_properties_edit)
-bpy.ops.add(rna_prop_ui.WM_OT_properties_add)
-bpy.ops.add(rna_prop_ui.WM_OT_properties_remove)
+bpy.types.register(rna_prop_ui.WM_OT_properties_edit)
+bpy.types.register(rna_prop_ui.WM_OT_properties_add)
+bpy.types.register(rna_prop_ui.WM_OT_properties_remove)

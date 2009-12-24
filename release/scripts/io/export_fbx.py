@@ -3426,7 +3426,7 @@ class ExportFBX(bpy.types.Operator):
               self.properties.BATCH_FILE_PREFIX,
               self.properties.BATCH_OWN_DIR)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -3434,7 +3434,7 @@ class ExportFBX(bpy.types.Operator):
         return ('RUNNING_MODAL',)
 
 
-bpy.ops.add(ExportFBX)
+bpy.types.register(ExportFBX)
 
 # if __name__ == "__main__":
 # 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")

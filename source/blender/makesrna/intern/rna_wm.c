@@ -605,39 +605,6 @@ static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-void operator_wrapper(wmOperatorType *ot, void *userdata)
-{
-	/* take care not to overwrite anything set in
-	 * WM_operatortype_append_ptr before opfunc() is called */
-	StructRNA *srna = ot->srna;
-	*ot= *((wmOperatorType *)userdata);
-	ot->srna= srna; /* restore */
-
-	RNA_struct_blender_type_set(ot->ext.srna, ot);
-}
-
-#if 0
-static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	return PYTHON_OT_generic(PYOP_INVOKE, C, op->type, op, event, NULL);
-}
-
-static int PYTHON_OT_execute(bContext *C, wmOperator *op)
-{
-	return PYTHON_OT_generic(PYOP_EXEC, C, op->type, op, NULL, NULL);
-}
-
-static int PYTHON_OT_poll(bContext *C, wmOperatorType *ot)
-{
-	return PYTHON_OT_generic(PYOP_POLL, C, ot, NULL, NULL, NULL);
-}
-
-static void PYTHON_OT_draw(bContext *C, wmOperator *op, uiLayout *layout)
-{
-	PYTHON_OT_generic(PYOP_DRAW, C, op->type, op, NULL, layout);
-}
-#endif
-
 static int operator_poll(bContext *C, wmOperatorType *ot)
 {
 	PointerRNA ptr;
@@ -708,7 +675,11 @@ static int operator_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return result;
 }
 
+
+void operator_wrapper(wmOperatorType *ot, void *userdata);
+
 static char _operator_idname[OP_MAX_TYPENAME];
+static char _operator_name[OP_MAX_TYPENAME];
 static char _operator_descr[1024];
 static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
@@ -720,6 +691,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	/* setup dummy operator & operator type to store static properties in */
 	dummyop.type= &dummyot;
 	dummyot.idname= _operator_idname; /* only assigne the pointer, string is NULL'd */
+	dummyot.name= _operator_name; /* only assigne the pointer, string is NULL'd */
 	dummyot.description= _operator_descr; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
 
@@ -729,12 +701,19 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 
 	{	/* convert foo.bar to FOO_OT_bar
 		 * allocate the description and the idname in 1 go */
-		int idlen = strlen(_operator_idname);
-		int desclen = strlen(_operator_descr);
-		dummyot.idname= MEM_callocN(sizeof(char) * (idlen + desclen + 2 + 3), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
-		WM_operator_bl_idname(dummyot.idname, _operator_idname); /* convert the idname from python */
-		dummyot.description = dummyot.idname + (idlen + 4);
-		strcpy(dummyot.description, _operator_descr);
+		int idlen = strlen(_operator_idname) + 4;
+		int namelen = strlen(_operator_name) + 1;
+		int desclen = strlen(_operator_descr) + 1;
+		char *ch, *ch_arr;
+		ch_arr= ch= MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
+		WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
+		dummyot.idname= ch;
+		ch += idlen;
+		strcpy(ch, _operator_name);
+		dummyot.name = ch;
+		ch += namelen;
+		strcpy(ch, _operator_descr);
+		dummyot.description = ch;
 	}
 
 	if(strlen(identifier) >= sizeof(dummyop.idname)) {
@@ -806,7 +785,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "type->description");
+	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 

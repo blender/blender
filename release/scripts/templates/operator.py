@@ -30,7 +30,7 @@ class ExportSomeData(bpy.types.Operator):
 
         write_some_data(self.properties.path, context, self.properties.use_setting)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -46,7 +46,7 @@ class ExportSomeData(bpy.types.Operator):
             return self.execute(context)
 
 
-bpy.ops.add(ExportSomeData)
+bpy.types.register(ExportSomeData)
 
 # Only needed if you want to add into a dynamic menu
 import dynamic_menu

@@ -2102,7 +2102,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	
 	Sequence *seq, *seqm, *next;
 	
-	int tot, channel_max= 1;
+	int channel_max= 1;
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
@@ -2241,10 +2241,10 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 /* view_all operator */
 static int sequencer_view_all_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
+	//Scene *scene= CTX_data_scene(C);
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *area= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
+	//ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 
 	v2d->cur= v2d->tot;
@@ -2275,11 +2275,11 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	bScreen *sc= CTX_wm_screen(C);
+	//bScreen *sc= CTX_wm_screen(C);
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	SpaceSeq *sseq= area->spacedata.first;
-	View2D *v2d= UI_view2d_fromcontext(C);
+	//View2D *v2d= UI_view2d_fromcontext(C);
 
 
 	/* Like zooming on an image view */
@@ -2735,7 +2735,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq, *seq_act;
+	Sequence *seq;
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;

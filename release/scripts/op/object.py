@@ -57,7 +57,7 @@ class SelectPattern(bpy.types.Operator):
             elif not self.properties.extend:
                 item.selected = False
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -97,7 +97,7 @@ class SubdivisionSet(bpy.types.Operator):
         relative = self.properties.relative
 
         if relative and level == 0:
-            return ('CANCELLED',) # nothing to do
+            return {'CANCELLED'} # nothing to do
 
         def set_object_subd(obj):
             for mod in obj.modifiers:
@@ -132,7 +132,7 @@ class SubdivisionSet(bpy.types.Operator):
         for obj in context.selected_editable_objects:
             set_object_subd(obj)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class Retopo(bpy.types.Operator):
@@ -146,9 +146,9 @@ class Retopo(bpy.types.Operator):
     def execute(self, context):
         import retopo
         retopo.main()
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
-bpy.ops.add(SelectPattern)
-bpy.ops.add(SubdivisionSet)
-bpy.ops.add(Retopo)
+bpy.types.register(SelectPattern)
+bpy.types.register(SubdivisionSet)
+bpy.types.register(Retopo)

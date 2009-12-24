@@ -21,7 +21,7 @@
 # for slightly faster access
 from _bpy import ops as ops_module
 
-op_add = ops_module.add
+# op_add = ops_module.add
 op_remove = ops_module.remove
 op_add_macro = ops_module.add_macro
 op_dir = ops_module.dir

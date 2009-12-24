@@ -2655,9 +2655,13 @@ void wm_operatortype_free(void)
 {
 	wmOperatorType *ot;
 	
-	for(ot= global_ops.first; ot; ot= ot->next)
+	for(ot= global_ops.first; ot; ot= ot->next) {
 		if(ot->macro.first)
 			wm_operatortype_free_macro(ot);
+
+		if(ot->ext.srna) /* python operator, allocs own string */
+			MEM_freeN(ot->idname);
+	}
 	
 	BLI_freelistN(&global_ops);
 }

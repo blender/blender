@@ -121,12 +121,18 @@ class InfoFunctionRNA:
         # self.name = rna_func.name # functions have no name!
         self.description = rna_func.description.strip()
 
-        self.args = [] # todo
-        self.return_value = None # todo
+        self.args = []
+        self.return_value = None
 
     def build(self):
         rna_prop = self.bl_prop
-        pass
+        
+        for rna_id, rna_prop in rna_type.parameters.items():
+            prop = GetInfoPropertyRNA(rna_prop, parent_id)
+            if rna_prop.use_return:
+                self.return_value = prop
+            else:
+                self.args.append(prop)
 
     def __repr__(self):
         txt = ''

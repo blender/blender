@@ -146,4 +146,4 @@ class PlayRenderedAnim(bpy.types.Operator):
 
         return('FINISHED',)
 
-bpy.ops.add(PlayRenderedAnim)
+bpy.types.register(PlayRenderedAnim)

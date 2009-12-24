@@ -131,7 +131,7 @@ class ConsoleExec(bpy.types.Operator):
             return execute(context)
         else:
             print("Error: bpy.ops.console.execute_" + sc.language + " - not found")
-            return ('FINISHED',)
+            return {'FINISHED'}
 
 
 class ConsoleAutocomplete(bpy.types.Operator):
@@ -153,11 +153,13 @@ class ConsoleAutocomplete(bpy.types.Operator):
             return autocomplete(context)
         else:
             print("Error: bpy.ops.console.autocomplete_" + sc.language + " - not found")
-            return ('FINISHED',)
+            return {'FINISHED'}
 
 
 class ConsoleBanner(bpy.types.Operator):
+    '''Print a message whem the terminal initializes'''
     bl_idname = "console.banner"
+    bl_label = "Console Banner"
 
     def execute(self, context):
         sc = context.space_data
@@ -173,12 +175,13 @@ class ConsoleBanner(bpy.types.Operator):
             return banner(context)
         else:
             print("Error: bpy.ops.console.banner_" + sc.language + " - not found")
-            return ('FINISHED',)
+            return {'FINISHED'}
 
 
 class ConsoleLanguage(bpy.types.Operator):
     '''Set the current language for this console'''
     bl_idname = "console.language"
+    bl_label = "Console Language"
     language = StringProperty(name="Language", maxlen=32, default="")
 
     def execute(self, context):
@@ -193,7 +196,7 @@ class ConsoleLanguage(bpy.types.Operator):
         bpy.ops.console.history_append(text="", current_character=0,
             remove_duplicates=True)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 bpy.types.register(CONSOLE_HT_header)
@@ -202,9 +205,9 @@ bpy.types.register(CONSOLE_MT_report)
 bpy.types.register(CONSOLE_MT_language)
 
 # Stubs that call the language operators
-bpy.ops.add(ConsoleExec)
-bpy.ops.add(ConsoleAutocomplete)
-bpy.ops.add(ConsoleBanner)
+bpy.types.register(ConsoleExec)
+bpy.types.register(ConsoleAutocomplete)
+bpy.types.register(ConsoleBanner)
 
 # Set the language and call the banner
-bpy.ops.add(ConsoleLanguage)
+bpy.types.register(ConsoleLanguage)

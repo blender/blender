@@ -562,7 +562,7 @@ short bezt_to_cfraelem(BeztEditData *bed, BezTriple *bezt)
 /* used to remap times from one range to another
  * requires:  bed->data = BeztEditCD_Remap	
  */
-short bezt_remap_times(BeztEditData *bed, BezTriple *bezt)
+void bezt_remap_times(BeztEditData *bed, BezTriple *bezt)
 {
 	BeztEditCD_Remap *rmap= (BeztEditCD_Remap*)bed->data;
 	const float scale = (rmap->newMax - rmap->newMin) / (rmap->oldMax - rmap->oldMin);

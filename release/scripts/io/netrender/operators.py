@@ -79,7 +79,7 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
 		
 		#bpy.ops.wm.save_mainfile(path = path + os.sep + root + "_baked.blend")
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -106,7 +106,7 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 		
 		bpy.ops.screen.render('INVOKE_AREA', animation=True)
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -136,7 +136,7 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 			self.report('ERROR', str(err))
 		
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -176,7 +176,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 				
 				job.name = j.name
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -206,7 +206,7 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 			netsettings.slaves.remove(netsettings.active_slave_index)
 			netsettings.active_slave_index = -1
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -236,7 +236,7 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 			netsettings.slaves_blacklist.remove(netsettings.active_blacklisted_slave_index)
 			netsettings.active_blacklisted_slave_index = -1
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -282,7 +282,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 					slave = netsettings.slaves[-1]
 					slave.name = s.name
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -311,7 +311,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 
 			netsettings.jobs.remove(netsettings.active_job_index)
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -338,7 +338,7 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 			while(len(netsettings.jobs) > 0):
 				netsettings.jobs.remove(0)
 
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -383,7 +383,7 @@ class netclientdownload(bpy.types.Operator):
 			
 			conn.close()
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -406,7 +406,7 @@ class netclientscan(bpy.types.Operator):
 			netsettings.server_address = address
 			netsettings.server_port = port
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 
 	def invoke(self, context, event):
 		return self.execute(context)
@@ -432,7 +432,7 @@ class netclientweb(bpy.types.Operator):
 			
 			webbrowser.open("http://%s:%i" % (netsettings.server_address, netsettings.server_port))
 		
-		return ('FINISHED',)
+		return {'FINISHED'}
 	
 	def invoke(self, context, event):
 		return self.execute(context)

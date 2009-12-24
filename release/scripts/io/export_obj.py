@@ -980,7 +980,7 @@ class ExportOBJ(bpy.types.Operator):
                   EXPORT_SEL_ONLY=self.properties.use_selection,
                   EXPORT_ALL_SCENES=self.properties.use_all_scenes)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -991,7 +991,7 @@ class ExportOBJ(bpy.types.Operator):
 
 
 
-bpy.ops.add(ExportOBJ)
+bpy.types.register(ExportOBJ)
 
 import dynamic_menu
 

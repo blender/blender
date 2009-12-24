@@ -1616,7 +1616,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
                  self.properties.IMAGE_SEARCH,
                  self.properties.POLYGROUPS)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -1624,7 +1624,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
         return ('RUNNING_MODAL',)
 
 
-bpy.ops.add(IMPORT_OT_obj)
+bpy.types.register(IMPORT_OT_obj)
 
 
 import dynamic_menu

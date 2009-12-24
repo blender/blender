@@ -1159,14 +1159,14 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 
     def execute(self, context):
         load_3ds(self.properties.path, context, 0.0, False, False)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
         return ('RUNNING_MODAL',)
 
-bpy.ops.add(IMPORT_OT_autodesk_3ds)
+bpy.types.register(IMPORT_OT_autodesk_3ds)
 
 import dynamic_menu
 menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)...")

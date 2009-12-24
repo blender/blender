@@ -643,11 +643,11 @@ class MESH_OT_skin(bpy.types.Operator):
 
     def execute(self, context):
         main(context)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 # Register the operator
-bpy.ops.add(MESH_OT_skin)
+bpy.types.register(MESH_OT_skin)
 
 # Add to a menu
 import dynamic_menu

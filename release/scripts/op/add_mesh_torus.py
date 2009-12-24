@@ -122,10 +122,10 @@ class AddTorus(bpy.types.Operator):
 
         ob_new.location = tuple(context.scene.cursor_location)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 # Register the operator
-bpy.ops.add(AddTorus)
+bpy.types.register(AddTorus)
 
 # Add to a menu
 import dynamic_menu

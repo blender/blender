@@ -3912,7 +3912,18 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 				}
 			}
 
+#if 0
+			if(strcmp(identifier, "bl_label") == 0) {
+				item= PyObject_GetAttrString(py_class, "__doc__");
 
+				if(item) {
+					Py_DECREF(item); /* no need to keep a ref, the class owns it */
+
+					if(pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class error:") != 0)
+						return -1;
+				}
+			}
+#endif
 			if (item == NULL && (((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL))) {
 				PyErr_Format( PyExc_AttributeError, "expected %.200s, %.200s class to have an \"%.200s\" attribute", class_type, py_class_name, identifier);
 				return -1;
@@ -4092,6 +4103,7 @@ void pyrna_free_types(void)
 		}
 	}
 	RNA_PROP_END;
+
 }
 
 /* Note! MemLeak XXX

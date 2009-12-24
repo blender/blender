@@ -257,9 +257,9 @@ class FollowActiveQuads(bpy.types.Operator):
 
     def execute(self, context):
         main(context, self)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(FollowActiveQuads)
+bpy.types.register(FollowActiveQuads)
 
 # Add to a menu
 import dynamic_menu

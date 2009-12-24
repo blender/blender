@@ -308,7 +308,7 @@ class HelpOperator(bpy.types.Operator):
     def execute(self, context):
         import webbrowser
         webbrowser.open(self._url)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class HELP_OT_manual(HelpOperator):
@@ -391,14 +391,14 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         textblock.write('\n'.join(op_strings))
         textblock.name = "OperatorList.txt"
         print("See OperatorList.txt textblock")
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(HELP_OT_manual)
-bpy.ops.add(HELP_OT_release_logs)
-bpy.ops.add(HELP_OT_blender_website)
-bpy.ops.add(HELP_OT_blender_eshop)
-bpy.ops.add(HELP_OT_developer_community)
-bpy.ops.add(HELP_OT_user_community)
-bpy.ops.add(HELP_OT_report_bug)
-bpy.ops.add(HELP_OT_python_api)
-bpy.ops.add(HELP_OT_operator_cheat_sheet)
+bpy.types.register(HELP_OT_manual)
+bpy.types.register(HELP_OT_release_logs)
+bpy.types.register(HELP_OT_blender_website)
+bpy.types.register(HELP_OT_blender_eshop)
+bpy.types.register(HELP_OT_developer_community)
+bpy.types.register(HELP_OT_user_community)
+bpy.types.register(HELP_OT_report_bug)
+bpy.types.register(HELP_OT_python_api)
+bpy.types.register(HELP_OT_operator_cheat_sheet)

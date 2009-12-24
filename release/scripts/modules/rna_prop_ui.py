@@ -196,7 +196,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
         prop_ui['description'] = self.properties.description
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
 
@@ -242,7 +242,7 @@ class WM_OT_properties_add(bpy.types.Operator):
         property = unique_name(item.keys())
 
         item[property] = 1.0
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_properties_remove(bpy.types.Operator):
@@ -256,4 +256,4 @@ class WM_OT_properties_remove(bpy.types.Operator):
     def execute(self, context):
         item = eval("context.%s" % self.properties.path)
         del item[self.properties.property]
-        return ('FINISHED',)
+        return {'FINISHED'}

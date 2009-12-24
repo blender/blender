@@ -1233,14 +1233,14 @@ class ExportX3D(bpy.types.Operator):
 
     def execute(self, context):
         x3d_export(self.properties.path, context, self.properties.apply_modifiers, self.properties.triangulate, self.properties.compress)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
         return ('RUNNING_MODAL',)
 
-bpy.ops.add(ExportX3D)
+bpy.types.register(ExportX3D)
 
 import dynamic_menu
 

@@ -154,7 +154,7 @@ short bezt_to_cfraelem(BeztEditData *bed, struct BezTriple *bezt);
 /* used to remap times from one range to another
  * requires:  bed->custom = BeztEditCD_Remap	
  */
-short bezt_remap_times(BeztEditData *bed, struct BezTriple *bezt);
+void bezt_remap_times(BeztEditData *bed, struct BezTriple *bezt);
 
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */

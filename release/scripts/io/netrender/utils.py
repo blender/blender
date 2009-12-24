@@ -62,7 +62,7 @@ def rnaType(rna_type):
 	return rna_type
 
 def rnaOperator(rna_op):
-	if bpy: bpy.ops.add(rna_op)
+	if bpy: bpy.types.register(rna_op)
 	return rna_op
 
 def reporting(report, message, errorType = None):

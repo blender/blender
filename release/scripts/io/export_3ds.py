@@ -1126,7 +1126,7 @@ class Export3DS(bpy.types.Operator):
 
     def execute(self, context):
         save_3ds(self.properties.path, context)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -1136,7 +1136,7 @@ class Export3DS(bpy.types.Operator):
     def poll(self, context): # Poll isnt working yet
         return context.active_object != None
 
-bpy.ops.add(Export3DS)
+bpy.types.register(Export3DS)
 
 # Add to a menu
 import dynamic_menu

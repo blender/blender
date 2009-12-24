@@ -887,7 +887,7 @@ class BvhImporter(bpy.types.Operator):
 
         read_bvh(context, self.properties.path)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -895,7 +895,7 @@ class BvhImporter(bpy.types.Operator):
         return ('RUNNING_MODAL',)
 
 
-bpy.ops.add(BvhImporter)
+bpy.types.register(BvhImporter)
 
 
 import dynamic_menu

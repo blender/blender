@@ -175,7 +175,7 @@ class VertexPaintDirt(bpy.types.Operator):
 
         return('FINISHED',)
 
-bpy.ops.add(VertexPaintDirt)
+bpy.types.register(VertexPaintDirt)
 
 if __name__ == "__main__":
     bpy.ops.mesh.vertex_paint_dirt()

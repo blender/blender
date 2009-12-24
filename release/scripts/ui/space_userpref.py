@@ -1646,7 +1646,7 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
         if self.testConfig(kc):
             print("CONFLICT")
        
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 def _string_value(value):
     result = ""
@@ -1736,7 +1736,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
         f.close()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -1753,7 +1753,7 @@ class WM_OT_keymap_edit(bpy.types.Operator):
         wm = context.manager
         km = context.keymap
         km.copy_to_user()
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_keymap_restore(bpy.types.Operator):
@@ -1773,7 +1773,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
             km = context.keymap
             km.restore_to_default()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 class WM_OT_keyitem_restore(bpy.types.Operator):
     "Restore key map item."
@@ -1792,7 +1792,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 
         km.restore_item_to_default(kmi)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
     
 class WM_OT_keyitem_add(bpy.types.Operator):
     "Add key map item."
@@ -1806,7 +1806,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
             km.add_modal_item("", 'A', 'PRESS') # kmi
         else:
             km.add_item("", 'A', 'PRESS') # kmi
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_keyitem_remove(bpy.types.Operator):
@@ -1819,12 +1819,12 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
         kmi = context.keyitem
         km = context.keymap
         km.remove_item(kmi)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(WM_OT_keyconfig_export)
-bpy.ops.add(WM_OT_keyconfig_test)
-bpy.ops.add(WM_OT_keymap_edit)
-bpy.ops.add(WM_OT_keymap_restore)
-bpy.ops.add(WM_OT_keyitem_add)
-bpy.ops.add(WM_OT_keyitem_remove)
-bpy.ops.add(WM_OT_keyitem_restore)
+bpy.types.register(WM_OT_keyconfig_export)
+bpy.types.register(WM_OT_keyconfig_test)
+bpy.types.register(WM_OT_keymap_edit)
+bpy.types.register(WM_OT_keymap_restore)
+bpy.types.register(WM_OT_keyitem_add)
+bpy.types.register(WM_OT_keyitem_remove)
+bpy.types.register(WM_OT_keyitem_restore)

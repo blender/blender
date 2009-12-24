@@ -40,7 +40,7 @@ class AddPresetBase(bpy.types.Operator):
     def execute(self, context):
 
         if not self.properties.name:
-            return ('FINISHED',)
+            return {'FINISHED'}
 
         filename = self._as_filename(self.properties.name) + ".py"
 
@@ -53,7 +53,7 @@ class AddPresetBase(bpy.types.Operator):
 
         file_preset.close()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -125,6 +125,6 @@ class AddPresetCloth(AddPresetBase):
 
     preset_subdir = "cloth"
 
-bpy.ops.add(AddPresetRender)
-bpy.ops.add(AddPresetSSS)
-bpy.ops.add(AddPresetCloth)
+bpy.types.register(AddPresetRender)
+bpy.types.register(AddPresetSSS)
+bpy.types.register(AddPresetCloth)

@@ -1130,9 +1130,9 @@ class SmartProject(bpy.types.Operator):
 
     def execute(self, context):
         main(context, self.properties.island_margin, self.properties.angle_limit)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(SmartProject)
+bpy.types.register(SmartProject)
 
 # Add to a menu
 import dynamic_menu
