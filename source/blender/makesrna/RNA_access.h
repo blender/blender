@@ -211,7 +211,6 @@ extern StructRNA RNA_FModifierGenerator;
 extern StructRNA RNA_FModifierLimits;
 extern StructRNA RNA_FModifierNoise;
 extern StructRNA RNA_FModifierPython;
-extern StructRNA RNA_FModifierSound;
 extern StructRNA RNA_FollowPathConstraint;
 extern StructRNA RNA_Function;
 extern StructRNA RNA_GameBooleanProperty;

@@ -36,7 +36,6 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_sound_types.h"
 
 /* ************************************************ */
 /* F-Curve DataTypes */
@@ -74,7 +73,6 @@ typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
 	FMODIFIER_TYPE_PYTHON,	
 	FMODIFIER_TYPE_LIMITS,
-	FMODIFIER_TYPE_SOUND,
 	
 	/* NOTE: all new modifiers must be added above this line */
 	FMODIFIER_NUM_TYPES
@@ -231,25 +229,6 @@ typedef enum eFMod_Noise_Modifications {
 	FCM_NOISE_MODIF_SUBTRACT,		/* Subtract noise from the curve */
 	FCM_NOISE_MODIF_MULTIPLY,		/* Multiply the curve by noise */
 } eFMod_Noise_Modifications;
-
-/* sound modifier data */
-typedef struct FMod_Sound {
-	float strength;
-	float delay;
-
-	short modification;
-	short pad[3];
-
-	bSound *sound;
-} FMod_Sound;
-
-/* modification modes */
-typedef enum eFMod_Sound_Modifications {
-	FCM_SOUND_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
-	FCM_SOUND_MODIF_ADD,			/* Add amplitude to the curve */
-	FCM_SOUND_MODIF_SUBTRACT,		/* Subtract amplitude from the curve */
-	FCM_SOUND_MODIF_MULTIPLY,		/* Multiply the curve by amplitude */
-} eFMod_Sound_Modifications;
 
 /* Drivers -------------------------------------- */
 

@@ -53,8 +53,6 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "AUD_C-API.h"
-
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h" /* for BPY_pydriver_eval() */
 #endif
@@ -873,96 +871,6 @@ static FModifierTypeInfo FMI_LIMITS = {
 	fcm_limits_evaluate /* evaluate */
 };
 
-/* Sound F-Curve Modifier  --------------------------- */
-
-static void fcm_sound_new_data (void *mdata)
-{
-	FMod_Sound *data= (FMod_Sound *)mdata;
-
-	/* defaults */
-	data->strength= 1.0f;
-	data->delay = 0.0f;
-	data->modification = FCM_SOUND_MODIF_REPLACE;
-	data->sound = NULL;
-}
-
-static void fcm_sound_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
-{
-	FMod_Sound *data= (FMod_Sound *)fcm->data;
-	float amplitude;
-	
-	AUD_Device *device;
-	AUD_Sound *limiter;
-	AUD_SoundInfo info;
-	
-	// XXX fixme - need to get in terms of time instead of frames to be really useful
-//	evaltime = FRA2TIME(evaltime);
-	evaltime -= data->delay;
-	
-	/* sound-system cannot cope with negative times/frames */
-	if (evaltime < 0.0f)
-		return;
-	/* must have a sound with a cache so that this can be used */
-	if (ELEM(NULL, data->sound, data->sound->cache))
-		return;
-
-	/* examine this snippet of the wave, and extract the amplitude from it */
-	info = AUD_getInfo(data->sound->cache);
-	info.specs.channels = 1;
-	info.specs.format = AUD_FORMAT_FLOAT32;
-	device = AUD_openReadDevice(info.specs);
-	limiter = AUD_limitSound(data->sound->cache, evaltime, evaltime + 1);
-	AUD_playDevice(device, limiter);
-	AUD_unload(limiter);
-	AUD_readDevice(device, (sample_t*)&amplitude, 1);
-	AUD_closeReadDevice(device);
-
-	/* combine the amplitude with existing motion data */
-	switch (data->modification) {
-		case FCM_SOUND_MODIF_ADD:
-			*cvalue= *cvalue + amplitude * data->strength;
-			break;
-		case FCM_SOUND_MODIF_SUBTRACT:
-			*cvalue= *cvalue - amplitude * data->strength;
-			break;
-		case FCM_SOUND_MODIF_MULTIPLY:
-			*cvalue= *cvalue * amplitude * data->strength;
-			break;
-		case FCM_SOUND_MODIF_REPLACE:
-		default:
-			*cvalue= *cvalue + amplitude * data->strength;
-			break;
-	}
-}
-
-static float fcm_sound_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
-{
-	FMod_Sound *data= (FMod_Sound *)fcm->data;
-
-	/* check for the time delay */
-//	evaltime = FRA2TIME(evaltime);
-	if(evaltime < data->delay)
-		return data->delay;
-
-	/* modifier doesn't change time */
-	return evaltime;
-}
-
-static FModifierTypeInfo FMI_SOUND = {
-	FMODIFIER_TYPE_SOUND, /* type */
-	sizeof(FMod_Sound), /* size */
-	FMI_TYPE_REPLACE_VALUES, /* action type */
-	0, /* requirements */
-	"Sound", /* name */
-	"FMod_Sound", /* struct name */
-	NULL, /* free data */
-	NULL, /* copy data */
-	fcm_sound_new_data, /* new data */
-	NULL, /* verify */
-	fcm_sound_time, /* evaluate time */
-	fcm_sound_evaluate /* evaluate */
-};
-
 /* F-Curve Modifier API --------------------------- */
 /* All of the F-Curve Modifier api functions use FModifierTypeInfo structs to carry out
  * and operations that involve F-Curve modifier specific code.
@@ -984,7 +892,6 @@ static void fmods_init_typeinfo ()
 	fmodifiersTypeInfo[6]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
 	fmodifiersTypeInfo[7]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
 	fmodifiersTypeInfo[8]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */
-	fmodifiersTypeInfo[9]= 	&FMI_SOUND;				/* Sound F-Curve Modifier */
 }
 
 /* This function should be used for getting the appropriate type-info when only
