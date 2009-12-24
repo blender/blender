@@ -774,8 +774,11 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
 	uiItemL(layout, op->type->name, 0);
 
-	if(op->type->ui)
-		op->type->ui((bContext*)C, op, layout);
+	if(op->type->ui) {
+		op->layout= layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+	}
 	else
 		uiDefAutoButsRNA(C, layout, &ptr, columns);
 
@@ -808,8 +811,11 @@ static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
 
-	if(op->type->ui)
-		op->type->ui((bContext*)C, op, layout);
+	if(op->type->ui) {
+		op->layout= layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+	}
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -862,8 +868,11 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
 	uiItemL(layout, op->type->name, 0);
 
-	if(op->type->ui)
-		op->type->ui(C, op, layout);
+	if(op->type->ui) {
+		op->layout= layout;
+		op->type->ui(C, op);
+		op->layout= NULL;
+	}
 	else
 		uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	

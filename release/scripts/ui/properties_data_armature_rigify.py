@@ -275,7 +275,7 @@ class AsScript(bpy.types.Operator):
         self.properties.path = os.path.splitext(bpy.data.filename)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
 # operators that use the GUI

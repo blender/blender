@@ -142,8 +142,11 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	if(op->type->ui)
-		op->type->ui((bContext*)C, op, pa->layout);
+	if(op->type->ui) {
+		op->layout= pa->layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+	}
 	else
 		uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
 }

@@ -61,7 +61,7 @@ class AddPresetBase(bpy.types.Operator):
         #return wm.invoke_props_popup(self, event)
 
         wm.invoke_props_popup(self, event)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
 class AddPresetRender(AddPresetBase):

@@ -178,7 +178,7 @@ class ExportMDD(bpy.types.Operator):
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 bpy.types.register(ExportMDD)
 

@@ -205,14 +205,14 @@ void RNA_api_operator(StructRNA *srna)
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "Test if the operator can be called or not.");
-	RNA_def_function_flag(func, FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	RNA_def_pointer(func, "context", "Context", "", "");
 
 	/* exec */
 	func= RNA_def_function(srna, "execute", NULL);
 	RNA_def_function_ui_description(func, "Execute the operator.");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
 	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
@@ -222,13 +222,19 @@ void RNA_api_operator(StructRNA *srna)
 	/* invoke */
 	func= RNA_def_function(srna, "invoke", NULL);
 	RNA_def_function_ui_description(func, "Invoke the operator.");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_pointer(func, "event", "Event", "", "");
 
 	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
 	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
 	RNA_def_function_return(func, parm);
+
+	/* draw */
+	func= RNA_def_function(srna, "draw", NULL);
+	RNA_def_function_ui_description(func, "Draw function for the operator.");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_pointer(func, "context", "Context", "", "");
 }
 
 void RNA_api_keyconfig(StructRNA *srna)

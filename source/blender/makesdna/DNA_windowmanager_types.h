@@ -279,6 +279,7 @@ typedef struct wmOperator {
 
 	ListBase macro;				/* list of operators, can be a tree */
 	struct wmOperator *opm;		/* current running macro, not saved */
+	struct uiLayout *layout;	/* runtime for drawing */
 	short flag, pad[3];
 
 } wmOperator;

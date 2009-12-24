@@ -675,6 +675,21 @@ static int operator_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return result;
 }
 
+static void operator_draw(bContext *C, wmOperator *op)
+{
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	func= RNA_struct_find_function(&opr, "draw");
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(&opr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
 
 void operator_wrapper(wmOperatorType *ot, void *userdata);
 
@@ -686,7 +701,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	wmOperatorType dummyot = {0};
 	wmOperator dummyop= {0};
 	PointerRNA dummyotr;
-	int have_function[3];
+	int have_function[4];
 
 	/* setup dummy operator & operator type to store static properties in */
 	dummyop.type= &dummyot;
@@ -737,6 +752,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	dummyot.pyop_poll=	(have_function[0])? operator_poll: NULL;
 	dummyot.exec=		(have_function[1])? operator_exec: NULL;
 	dummyot.invoke=		(have_function[2])? operator_invoke: NULL;
+	dummyot.ui=			(have_function[3])? operator_draw: NULL;
 
 	WM_operatortype_append_ptr(operator_wrapper, (void *)&dummyot);
 
@@ -777,6 +793,9 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
 	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
+
+	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "UILayout");
 
 	/* Registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);

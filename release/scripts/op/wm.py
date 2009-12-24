@@ -354,7 +354,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
         class_name, class_prop = doc_id.split('.')
 
         if not doc_new:
-            return ('RUNNING_MODAL',)
+            return {'RUNNING_MODAL'}
 
         # check if this is an operator
         op_name = class_name.upper() + '_OT_' + class_prop
@@ -367,7 +367,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
             rna = op_class.bl_rna
             doc_orig = rna.description
             if doc_orig == doc_new:
-                return ('RUNNING_MODAL',)
+                return {'RUNNING_MODAL'}
 
             print("op - old:'%s' -> new:'%s'" % (doc_orig, doc_new))
             upload["title"] = 'OPERATOR %s:%s' % (doc_id, doc_orig)
@@ -379,7 +379,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
             rna = getattr(bpy.types, class_name).bl_rna
             doc_orig = rna.properties[class_prop].description
             if doc_orig == doc_new:
-                return ('RUNNING_MODAL',)
+                return {'RUNNING_MODAL'}
 
             print("rna - old:'%s' -> new:'%s'" % (doc_orig, doc_new))
             upload["title"] = 'RNA %s:%s' % (doc_id, doc_orig)
