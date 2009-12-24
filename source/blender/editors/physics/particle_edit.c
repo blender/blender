@@ -4035,39 +4035,3 @@ void PARTICLE_OT_edited_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/*********************** specials menu **************************/
-
-static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Scene *scene= CTX_data_scene(C);
-	ParticleEditSettings *pset=PE_settings(scene);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Specials", 0);
-	layout= uiPupMenuLayout(pup);
-
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey");
-	if(pset->selectmode & SCE_SELECT_POINT) {
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide");
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first");
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last");
-	}
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles");
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
-}
-
-void PARTICLE_OT_specials_menu(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Specials Menu";
-	ot->idname= "PARTICLE_OT_specials_menu";
-	
-	/* api callbacks */
-	ot->invoke= specials_menu_invoke;
-	ot->poll= PE_hair_poll;
-}
-

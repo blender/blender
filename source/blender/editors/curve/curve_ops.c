@@ -62,37 +62,6 @@
 #include "curve_intern.h"
 
 
-/**************************** menus *****************************/
-
-static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Specials", 0);
-	layout= uiPupMenuLayout(pup);
-	uiItemO(layout, NULL, 0, "CURVE_OT_subdivide");
-	uiItemO(layout, NULL, 0, "CURVE_OT_switch_direction");
-	uiItemO(layout, NULL, 0, "CURVE_OT_spline_weight_set");
-	uiItemO(layout, NULL, 0, "CURVE_OT_radius_set");
-	uiItemO(layout, NULL, 0, "CURVE_OT_smooth");
-	uiItemO(layout, NULL, 0, "CURVE_OT_smooth_radius");
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
-}
-
-void CURVE_OT_specials_menu(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Specials Menu";
-	ot->idname= "CURVE_OT_specials_menu";
-	
-	/* api clastbacks */
-	ot->invoke= specials_menu_invoke;
-	ot->poll= ED_operator_editsurfcurve;
-}
-
 /************************* registration ****************************/
 
 void ED_operatortypes_curve(void)
@@ -157,8 +126,6 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_vertex_add);
 	WM_operatortype_append(CURVE_OT_extrude);
 	WM_operatortype_append(CURVE_OT_cyclic_toggle);
-
-	WM_operatortype_append(CURVE_OT_specials_menu);
 }
 
 void ED_keymap_curve(wmKeyConfig *keyconf)
@@ -248,7 +215,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "unselected", 1);
 
-	WM_keymap_add_item(keymap, "CURVE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_curve_specials", WKEY, KM_PRESS, 0, 0);
 
 	/* menus */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);

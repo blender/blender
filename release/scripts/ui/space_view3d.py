@@ -903,6 +903,24 @@ class VIEW3D_MT_particle(bpy.types.Menu):
         layout.menu("VIEW3D_MT_particle_showhide")
 
 
+class VIEW3D_MT_particle_specials(bpy.types.Menu):
+    bl_label = "Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        particle_edit = context.tool_settings.particle_edit
+
+        layout.operator("particle.rekey")
+
+        layout.separator()
+        if particle_edit.selection_mode == 'POINT':
+            layout.operator("particle.subdivide")
+            layout.operator("particle.select_first")
+            layout.operator("particle.select_last")
+
+        layout.operator("particle.remove_doubles")
+
+
 class VIEW3D_MT_particle_showhide(VIEW3D_MT_showhide):
     _operator_name = "particle"
 
@@ -1344,7 +1362,19 @@ class VIEW3D_MT_edit_curve_segments(bpy.types.Menu):
 
         layout.operator("curve.subdivide")
         layout.operator("curve.switch_direction")
+        
+class VIEW3D_MT_edit_curve_specials(bpy.types.Menu):
+    bl_label = "Specials"
 
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("curve.subdivide")
+        layout.operator("curve.switch_direction")
+        layout.operator("curve.spline_weight_set")
+        layout.operator("curve.radius_set")
+        layout.operator("curve.smooth")
+        layout.operator("curve.smooth_radius")
 
 class VIEW3D_MT_edit_curve_showhide(VIEW3D_MT_showhide):
     _operator_name = "curve"
@@ -1924,7 +1954,8 @@ bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
 
 bpy.types.register(VIEW3D_MT_paint_vertex)
 
-bpy.types.register(VIEW3D_MT_particle) # Particle Menu
+bpy.types.register(VIEW3D_MT_particle)# Particle Menu
+bpy.types.register(VIEW3D_MT_particle_specials)
 bpy.types.register(VIEW3D_MT_particle_showhide)
 
 bpy.types.register(VIEW3D_MT_pose) # POSE Menu
@@ -1948,6 +1979,7 @@ bpy.types.register(VIEW3D_MT_edit_mesh_showhide)
 bpy.types.register(VIEW3D_MT_edit_curve)
 bpy.types.register(VIEW3D_MT_edit_curve_ctrlpoints)
 bpy.types.register(VIEW3D_MT_edit_curve_segments)
+bpy.types.register(VIEW3D_MT_edit_curve_specials)
 bpy.types.register(VIEW3D_MT_edit_curve_showhide)
 
 bpy.types.register(VIEW3D_MT_edit_surface)
