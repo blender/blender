@@ -159,7 +159,7 @@ static void action_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Action_Keys", SPACE_ACTION, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Dopesheet", SPACE_ACTION, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -222,7 +222,7 @@ static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Animation_Channels", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

@@ -1901,7 +1901,7 @@ void ED_operatortypes_animchannels(void)
 
 void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Animation_Channels", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Animation Channels", 0, 0);
 	
 	/* selection */
 		/* click-select */

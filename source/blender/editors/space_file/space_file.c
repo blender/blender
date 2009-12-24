@@ -253,10 +253,10 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "File", SPACE_FILE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm->defaultconf, "FileMain", SPACE_FILE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "File Browser Main", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 							   
 
@@ -368,7 +368,7 @@ void file_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMapItem *kmi;
 	/* keys for all areas */
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "File", SPACE_FILE, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "File Browser", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_bookmark_toggle", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_bookmark_add", BKEY, KM_PRESS, KM_CTRL, 0);
@@ -380,7 +380,7 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	/* keys for main area */
-	keymap= WM_keymap_find(keyconf, "FileMain", SPACE_FILE, 0);
+	keymap= WM_keymap_find(keyconf, "File Browser Main", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
@@ -404,7 +404,7 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "increment",-100);
 	
 	/* keys for button area (top) */
-	keymap= WM_keymap_find(keyconf, "FileButtons", SPACE_FILE, 0);
+	keymap= WM_keymap_find(keyconf, "File Browser Buttons", SPACE_FILE, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "increment", 1);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0);
@@ -427,7 +427,7 @@ static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	ED_region_panels_init(wm, ar);
 
 	/* own keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "File", SPACE_FILE, 0);	
+	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -463,10 +463,10 @@ static void file_ui_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "File", SPACE_FILE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm->defaultconf, "FileButtons", SPACE_FILE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "File Browser Buttons", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

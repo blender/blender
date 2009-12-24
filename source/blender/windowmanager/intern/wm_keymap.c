@@ -28,7 +28,9 @@
 
 #include <string.h>
 
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -267,6 +269,33 @@ wmKeyMap *WM_keymap_find(wmKeyConfig *keyconf, char *idname, int spaceid, int re
 	return km;
 }
 
+wmKeyMap *WM_keymap_find_all(const bContext *C, char *idname, int spaceid, int regionid)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmKeyConfig *keyconf;
+	wmKeyMap *km;
+	
+	/* first user defined keymaps */
+	km= WM_keymap_list_find(&U.keymaps, idname, spaceid, regionid);
+	if (km)
+		return km;
+	
+	/* then user key config */
+	keyconf= wm_keyconfig_list_find(&wm->keyconfigs, U.keyconfigstr);
+	if(keyconf) {
+		km= WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
+		if (km)
+			return km;
+	}
+	
+	/* then use default */
+	km= WM_keymap_list_find(&wm->defaultconf->keymaps, idname, spaceid, regionid);
+	if (km)
+		return km;
+	else
+		return NULL;
+}
+
 /* ****************** modal keymaps ************ */
 
 /* modal maps get linked to a running operator, and filter the keys before sending to modal() callback */
@@ -456,6 +485,16 @@ char *WM_key_event_operator_string(const bContext *C, const char *opname, int op
 	}
 
 	return NULL;
+}
+
+int WM_key_event_operator_id(const bContext *C, const char *opname, int opcontext, IDProperty *properties, wmKeyMap **keymap_r)
+{
+	wmKeyMapItem *kmi= wm_keymap_item_find(C, opname, opcontext, properties, keymap_r);
+	
+	if(kmi)
+		return kmi->id;
+	else
+		return 0;
 }
 
 int	WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
@@ -664,25 +703,150 @@ void WM_keymap_restore_to_default(wmKeyMap *keymap)
 	}
 }
 
-/* searches context and changes keymap item, if found */
-void WM_key_event_operator_change(const bContext *C, const char *opname, int opcontext, IDProperty *properties, short key, short modifier)
+wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, int id)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
-	kmi= wm_keymap_item_find(C, opname, opcontext, properties, &keymap);
-
-	if(kmi) {
-		/* if the existing one is in a default keymap, copy it
-		   to user preferences, and lookup again so we get a
-		   key map item from the user preferences we can modify */
-		if(BLI_findindex(&wm->defaultconf->keymaps, keymap) >= 0) {
-			WM_keymap_copy_to_user(keymap);
-			kmi= wm_keymap_item_find(C, opname, opcontext, properties, NULL);
-		}
-
-		keymap_event_set(kmi, key, KM_PRESS, modifier, 0);
+	for (kmi=keymap->items.first; kmi; kmi=kmi->next) {
+		if (kmi->id == id)
+			return kmi;
 	}
+	
+	return NULL;
 }
 
+/* Guess an appropriate keymap from the operator name */
+/* Needs to be kept up to date with Keymap and Operator naming */
+wmKeyMap *WM_keymap_guess_opname(const bContext *C, char *opname)
+{
+	wmKeyMap *km=NULL;
+	SpaceLink *sl = CTX_wm_space_data(C);
+	
+	/* Window */
+	if (strstr(opname, "WM_OT")) {
+		km = WM_keymap_find_all(C, "Window", 0, 0);
+	}
+	/* Screen */
+	else if (strstr(opname, "SCREEN_OT")) {
+		km = WM_keymap_find_all(C, "Screen", 0, 0);
+	}
+	/* Grease Pencil */
+	else if (strstr(opname, "GPENCIL_OT")) {
+		km = WM_keymap_find_all(C, "Grease Pencil", 0, 0);
+	}
+	/* Markers */
+	else if (strstr(opname, "MARKER_OT")) {
+		km = WM_keymap_find_all(C, "Markers", 0, 0);
+	}
+	
+	
+	/* 3D View */
+	else if (strstr(opname, "VIEW3D_OT")) {
+		km = WM_keymap_find_all(C, "3D View", sl->spacetype, 0);
+	}
+	else if (strstr(opname, "OBJECT_OT")) {
+		km = WM_keymap_find_all(C, "Object Mode", 0, 0);
+	}
+	
+	/* Editing Modes */
+	else if (strstr(opname, "MESH_OT")) {
+		km = WM_keymap_find_all(C, "Mesh", 0, 0);
+	}
+	else if (strstr(opname, "CURVE_OT")) {
+		km = WM_keymap_find_all(C, "Curve", 0, 0);
+	}
+	else if (strstr(opname, "ARMATURE_OT")) {
+		km = WM_keymap_find_all(C, "Armature", 0, 0);
+	}
+	else if (strstr(opname, "POSE_OT")) {
+		km = WM_keymap_find_all(C, "Pose", 0, 0);
+	}
+	else if (strstr(opname, "SCULPT_OT")) {
+		km = WM_keymap_find_all(C, "Sculpt", 0, 0);
+	}
+	else if (strstr(opname, "MBALL_OT")) {
+		km = WM_keymap_find_all(C, "Metaball", 0, 0);
+	}
+	else if (strstr(opname, "LATTICE_OT")) {
+		km = WM_keymap_find_all(C, "Lattice", 0, 0);
+	}
+	else if (strstr(opname, "PARTICLE_OT")) {
+		km = WM_keymap_find_all(C, "Particle", 0, 0);
+	}
+	else if (strstr(opname, "FONT_OT")) {
+		km = WM_keymap_find_all(C, "Font", 0, 0);
+	}
+	else if (strstr(opname, "PAINT_OT")) {
+		
+		/* check for relevant mode */
+		switch(CTX_data_mode_enum(C)) {
+			case OB_MODE_WEIGHT_PAINT:
+				km = WM_keymap_find_all(C, "Weight Paint", 0, 0);
+				break;
+			case OB_MODE_VERTEX_PAINT:
+				km = WM_keymap_find_all(C, "Vertex Paint", 0, 0);
+				break;
+			case OB_MODE_TEXTURE_PAINT:
+				km = WM_keymap_find_all(C, "Image Paint", 0, 0);
+				break;
+		}
+	}
+	/* Paint Face Mask */
+	else if (strstr(opname, "PAINT_OT_face_select")) {
+		km = WM_keymap_find_all(C, "Face Mask", sl->spacetype, 0);
+	}
+	/* Timeline */
+	else if (strstr(opname, "TIME_OT")) {
+		km = WM_keymap_find_all(C, "Timeline", sl->spacetype, 0);
+	}
+	/* Image Editor */
+	else if (strstr(opname, "IMAGE_OT")) {
+		km = WM_keymap_find_all(C, "Image", sl->spacetype, 0);
+	}
+	/* UV Editor */
+	else if (strstr(opname, "UV_OT")) {
+		km = WM_keymap_find_all(C, "UV Editor", sl->spacetype, 0);
+	}
+	/* Node Editor */
+	else if (strstr(opname, "NODE_OT")) {
+		km = WM_keymap_find_all(C, "Node Editor", sl->spacetype, 0);
+	}
+	/* Animation Editor Channels */
+	else if (strstr(opname, "ANIM_OT_channels")) {
+		km = WM_keymap_find_all(C, "Animation Channels", sl->spacetype, 0);
+	}
+	/* Animation Generic - after channels */
+	else if (strstr(opname, "ANIM_OT")) {
+		km = WM_keymap_find_all(C, "Animation", 0, 0);
+	}
+	/* Graph Editor */
+	else if (strstr(opname, "GRAPH_OT")) {
+		km = WM_keymap_find_all(C, "Graph Editor", sl->spacetype, 0);
+	}
+	/* Dopesheet Editor */
+	else if (strstr(opname, "ACTION_OT")) {
+		km = WM_keymap_find_all(C, "Dopesheet", sl->spacetype, 0);
+	}
+	/* NLA Editor */
+	else if (strstr(opname, "NLA_OT")) {
+		km = WM_keymap_find_all(C, "NLA Editor", sl->spacetype, 0);
+	}
+	/* Script */
+	else if (strstr(opname, "SCRIPT_OT")) {
+		km = WM_keymap_find_all(C, "Script", sl->spacetype, 0);
+	}
+	/* Text */
+	else if (strstr(opname, "TEXT_OT")) {
+		km = WM_keymap_find_all(C, "Text", sl->spacetype, 0);
+	}
+	/* Sequencer */
+	else if (strstr(opname, "SEQUENCER_OT")) {
+		km = WM_keymap_find_all(C, "Sequencer", sl->spacetype, 0);
+	}
+	/* Console */
+	else if (strstr(opname, "CONSOLE_OT")) {
+		km = WM_keymap_find_all(C, "Console", sl->spacetype, 0);
+	}
+	
+	return km;
+}

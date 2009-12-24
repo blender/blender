@@ -301,7 +301,7 @@ void nla_keymap(wmKeyConfig *keyconf)
 	nla_keymap_channels(keyconf, keymap);
 	
 	/* data */
-	keymap= WM_keymap_find(keyconf, "NLA Data", SPACE_NLA, 0);
+	keymap= WM_keymap_find(keyconf, "NLA Editor", SPACE_NLA, 0);
 	nla_keymap_main(keyconf, keymap);
 }
 

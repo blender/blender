@@ -175,7 +175,7 @@ void action_keymap(wmKeyConfig *keyconf)
 	 */
 	
 	/* keyframes */
-	keymap= WM_keymap_find(keyconf, "Action_Keys", SPACE_ACTION, 0);
+	keymap= WM_keymap_find(keyconf, "Dopesheet", SPACE_ACTION, 0);
 	action_keymap_keyframes(keyconf, keymap);
 }
 

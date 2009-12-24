@@ -363,7 +363,7 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	
 	/* keymap for all regions */
-	keymap= WM_keymap_find(keyconf, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(keyconf, "Graph Editor Generic", SPACE_IPO, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_properties", NKEY, KM_PRESS, 0, 0);
 
 	/* channels */
@@ -373,7 +373,7 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	 */
 	
 	/* keyframes */
-	keymap= WM_keymap_find(keyconf, "GraphEdit Keys", SPACE_IPO, 0);
+	keymap= WM_keymap_find(keyconf, "Graph Editor", SPACE_IPO, 0);
 	graphedit_keymap_keyframes(keyconf, keymap);
 }
 

@@ -3198,7 +3198,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
-	keymap= WM_keymap_find(keyconf, "UVEdit", 0, 0);
+	keymap= WM_keymap_find(keyconf, "UV Editor", 0, 0);
 	keymap->poll= ED_operator_uvedit;
 	
 	/* pick selection */

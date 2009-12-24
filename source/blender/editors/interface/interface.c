@@ -1995,23 +1995,18 @@ void ui_check_but(uiBut *but)
 		
 	case HOTKEYEVT:
 		if (but->flag & UI_SELECT) {
-			short *sp= (short *)but->func_arg3;
+			strncpy(but->drawstr, "", UI_MAX_DRAW_STR);
 			
-			if(but->flag & UI_BUT_IMMEDIATE)
-				strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
-			else
-				strncpy(but->drawstr, "", UI_MAX_DRAW_STR);
-			
-			if(*sp) {
+			if(but->modifier_key) {
 				char *str= but->drawstr;
 				
-				if(*sp & KM_SHIFT)
+				if(but->modifier_key & KM_SHIFT)
 					str= strcat(str, "Shift ");
-				if(*sp & KM_CTRL)
+				if(but->modifier_key & KM_CTRL)
 					str= strcat(str, "Ctrl ");
-				if(*sp & KM_ALT)
+				if(but->modifier_key & KM_ALT)
 					str= strcat(str, "Alt ");
-				if(*sp & KM_OSKEY)
+				if(but->modifier_key & KM_OSKEY)
 					str= strcat(str, "Cmd ");
 			}
 			else
@@ -3169,7 +3164,7 @@ uiBut *uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1
 uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip)
 {
 	uiBut *but= ui_def_but(block, HOTKEYEVT|SHO, retval, str, x1, y1, x2, y2, keypoin, 0.0, 0.0, 0.0, 0.0, tip);
-	but->func_arg3= modkeypoin; /* XXX hrmf, abuse! */
+	but->modifier_key= *modkeypoin;
 	ui_check_but(but);
 	return but;
 }

@@ -207,7 +207,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
-	keymap= WM_keymap_find(keyconf, "EditMesh", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Mesh", 0, 0);
 	keymap->poll= ED_operator_editmesh;
 	
 	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);

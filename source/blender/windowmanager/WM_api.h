@@ -104,17 +104,22 @@ wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type
 								 int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, char *idname, int type,
 								 int val, int modifier, int keymodifier);
+
 void         WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 
-wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_list_find(ListBase *lb, char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_find_all(const struct bContext *C, char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
+wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, char *opname);
 int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
 void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi);
 void		WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
+
+wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);
 int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
 int			WM_userdef_event_map(int kmitype);
 
@@ -124,8 +129,8 @@ wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, in
 void		WM_modalkeymap_assign(struct wmKeyMap *km, char *opname);
 
 const char	*WM_key_event_string(short type);
+int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, struct wmKeyMap **keymap_r);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
-void		WM_key_event_operator_change(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, short key, short modifier);
 
 			/* handlers */
 

@@ -592,6 +592,7 @@ void UI_exit(void);
 #define UI_ITEM_R_EVENT			32
 #define UI_ITEM_R_FULL_EVENT	64
 #define UI_ITEM_R_NO_BG			128
+#define UI_ITEM_R_IMMEDIATE		256
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);

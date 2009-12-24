@@ -391,7 +391,7 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm->defaultconf, "UVEdit", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "UV Editor", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* own keymaps */

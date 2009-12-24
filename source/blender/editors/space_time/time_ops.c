@@ -187,7 +187,7 @@ void time_operatortypes(void)
 
 void time_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "TimeLine", SPACE_TIME, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Timeline", SPACE_TIME, 0);
 	
 	WM_keymap_add_item(keymap, "TIME_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);

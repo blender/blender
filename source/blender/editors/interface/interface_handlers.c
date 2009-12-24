@@ -1862,13 +1862,12 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
 			but->drawstr[0]= 0;
-			*(short *)but->func_arg3= 0;
+			but->modifier_key= 0;
 			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
 			return WM_UI_HANDLER_BREAK;
 		}
 	}
 	else if(data->state == BUTTON_STATE_WAIT_KEY_EVENT) {
-		short *sp= (short *)but->func_arg3;
 		
 		if(event->type == MOUSEMOVE)
 			return WM_UI_HANDLER_CONTINUE;
@@ -1884,15 +1883,15 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		}
 		
 		/* always set */
-		*sp= 0;	
+		but->modifier_key = 0;
 		if(event->shift)
-			*sp |= KM_SHIFT;
+			but->modifier_key |= KM_SHIFT;
 		if(event->alt)
-			*sp |= KM_ALT;
+			but->modifier_key |= KM_ALT;
 		if(event->ctrl)
-			*sp |= KM_CTRL;
+			but->modifier_key |= KM_CTRL;
 		if(event->oskey)
-			*sp |= KM_OSKEY;
+			but->modifier_key |= KM_OSKEY;
 		
 		ui_check_but(but);
 		ED_region_tag_redraw(data->region);
@@ -3333,68 +3332,133 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-/* callback for hotkey change button/menu */
-static void do_menu_change_hotkey(bContext *C, void *but_v, void *key_v)
+static void but_shortcut_name_func(bContext *C, void *arg1, int event)
 {
-	uiBut *but= but_v;
-	IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
-	short *key= key_v;
+	uiBut *but = (uiBut *)arg1;
+	
 	char buf[512], *butstr, *cpoin;
 	
-	/* signal for escape */
-	if(key[0]==0) return;
-	
-	WM_key_event_operator_change(C, but->optype->idname, but->opcontext, prop, key[0], key[1]);
-
-	/* complex code to change name of button */
-	if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
+	if (but->optype) {
+		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		
-		butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
-		
-		/* XXX but->str changed... should not, remove the hotkey from it */
-		cpoin= strchr(but->str, '|');
-		if(cpoin) *cpoin= 0;		
-
-		strcpy(butstr, but->str);
-		strcat(butstr, "|");
-		strcat(butstr, buf);
-		
-		but->str= but->strdata;
-		BLI_strncpy(but->str, butstr, sizeof(but->strdata));
-		MEM_freeN(butstr);
-		
-		ui_check_but(but);
+		/* complex code to change name of button */
+		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
+			
+			butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
+			
+			// XXX but->str changed... should not, remove the hotkey from it
+			cpoin= strchr(but->str, '|');
+			if(cpoin) *cpoin= 0;		
+			
+			strcpy(butstr, but->str);
+			strcat(butstr, "|");
+			strcat(butstr, buf);
+			
+			but->str= but->strdata;
+			BLI_strncpy(but->str, butstr, sizeof(but->strdata));
+			MEM_freeN(butstr);
+			
+			ui_check_but(but);
+		} else {
+			/* shortcut was removed */
+			cpoin= strchr(but->str, '|');
+			if(cpoin) *cpoin= 0;
+		}
 	}
-				
 }
 
-
-static uiBlock *menu_change_hotkey(bContext *C, ARegion *ar, void *arg_but)
+static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 {
 	uiBlock *block;
-	uiBut *but= arg_but;
-	wmOperatorType *ot= WM_operatortype_find(but->optype->idname, 1);
-	static short dummy[2];
-	char buf[OP_MAX_TYPENAME+10];
-	
-	dummy[0]= 0;
-	dummy[1]= 0;
-	
-	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSSP);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_MOVEMOUSE_QUIT|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
-	
-	BLI_strncpy(buf, ot->name, OP_MAX_TYPENAME);
-	strcat(buf, " |");
-	
-	but= uiDefHotKeyevtButS(block, 0, buf, 0, 0, 200, 20, dummy, dummy+1, "");
-	uiButSetFlag(but, UI_BUT_IMMEDIATE);
-	uiButSetFunc(but, do_menu_change_hotkey, arg_but, dummy);
+	uiBut *but = (uiBut *)arg;
+	wmKeyMap *km;
+	wmKeyMapItem *kmi;
+	PointerRNA ptr;
+	uiLayout *layout;
+	uiStyle *style= U.uistyles.first;
+	IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
+	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, &km);
 
-	uiPopupBoundsBlock(block, 6.0f, 50, -10);
+	kmi = WM_keymap_item_find_id(km, kmi_id);
+	
+	RNA_pointer_create(NULL, &RNA_KeyMapItem, kmi, &ptr);
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetHandleFunc(block, but_shortcut_name_func, but);
+	uiBlockSetFlag(block, UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+	uiBlockSetDirection(block, UI_CENTER);
+	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200, 20, style);
+	
+	uiItemR(layout, "", 0, &ptr, "type", UI_ITEM_R_FULL_EVENT|UI_ITEM_R_IMMEDIATE);
+	
+	uiPopupBoundsBlock(block, 6, 100, 10);
 	uiEndBlock(C, block);
 	
 	return block;
 }
+
+static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
+{
+	uiBlock *block;
+	uiBut *but = (uiBut *)arg;
+	wmKeyMap *km;
+	wmKeyMapItem *kmi;
+	PointerRNA ptr;
+	uiLayout *layout;
+	uiStyle *style= U.uistyles.first;
+	IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
+	
+	km = WM_keymap_guess_opname(C, but->optype->idname);		
+	kmi = WM_keymap_add_item(km, but->optype->idname, AKEY, KM_PRESS, 0, 0);
+	MEM_freeN(kmi->properties);
+	kmi->properties= IDP_CopyProperty(prop);
+	
+	RNA_pointer_create(NULL, &RNA_KeyMapItem, kmi, &ptr);
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetHandleFunc(block, but_shortcut_name_func, but);
+	uiBlockSetFlag(block, UI_BLOCK_RET_1);
+	uiBlockSetDirection(block, UI_CENTER);
+	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200, 20, style);
+
+	uiItemR(layout, "", 0, &ptr, "type", UI_ITEM_R_FULL_EVENT|UI_ITEM_R_IMMEDIATE);
+	
+	uiPopupBoundsBlock(block, 6, 100, 10);
+	uiEndBlock(C, block);
+	
+	return block;
+}
+
+static void popup_change_shortcut_func(bContext *C, void *arg1, void *arg2)
+{
+	uiBut *but = (uiBut *)arg1;
+	button_timers_tooltip_remove(C, but);
+	uiPupBlock(C, menu_change_shortcut, but);
+}
+
+static void remove_shortcut_func(bContext *C, void *arg1, void *arg2)
+{
+	uiBut *but = (uiBut *)arg1;
+	wmKeyMap *km;
+	wmKeyMapItem *kmi;
+	IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
+	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, &km);
+	
+	kmi = WM_keymap_item_find_id(km, kmi_id);
+	WM_keymap_remove_item(km, kmi);
+	
+	but_shortcut_name_func(C, but, 0);
+}
+
+static void popup_add_shortcut_func(bContext *C, void *arg1, void *arg2)
+{
+	uiBut *but = (uiBut *)arg1;
+	button_timers_tooltip_remove(C, but);
+	uiPupBlock(C, menu_add_shortcut, but);
+}
+
 
 static int ui_but_menu(bContext *C, uiBut *but)
 {
@@ -3512,7 +3576,36 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		uiItemS(layout);
 	}
 
+	/* Operator buttons */
+	if(but->optype) {
+		uiBlock *block = uiLayoutGetBlock(layout);
+		uiBut *but2;
+		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
+		int w = uiLayoutGetWidth(layout);
+		char buf[512];
 
+		/* keyboard shortcuts */
+		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
+
+			// would rather use a block but, but gets weirdly positioned...
+			//uiDefBlockBut(block, menu_change_shortcut, but, "Change Shortcut", 0, 0, uiLayoutGetWidth(layout), UI_UNIT_Y, "");
+			
+			but2 = uiDefIconTextBut(block, BUT, 0, 0, "Change Shortcut", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			uiButSetFunc(but2, popup_change_shortcut_func, but, NULL);
+
+			but2 = uiDefIconTextBut(block, BUT, 0, 0, "Remove Shortcut", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			uiButSetFunc(but2, remove_shortcut_func, but, NULL);
+		}
+		/* only show 'add' if there's a suitable key map for it to go in */
+		else if (WM_keymap_guess_opname(C, but->optype->idname)) {
+			but2 = uiDefIconTextBut(block, BUT, 0, 0, "Add Shortcut", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			uiButSetFunc(but2, popup_add_shortcut_func, but, NULL);
+		}
+		
+		uiItemS(layout);
+	}
+
+	
 	{	/* Docs */
 		char buf[512];
 		PointerRNA ptr_props;
@@ -3605,18 +3698,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		/* handle menu */
 		else if(event->type == RIGHTMOUSE && event->val == KM_PRESS) {
 			/* RMB has two options now */
-
-			if((but->block->flag & UI_BLOCK_LOOP) && but->optype) {
-				IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
-				char buf[512];
-				
-				if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
-					button_timers_tooltip_remove(C, but);
-					uiPupBlock(C, menu_change_hotkey, but);
-
-				}
-			}
-			else if (ui_but_menu(C, but)) {
+			if (ui_but_menu(C, but)) {
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
@@ -3958,7 +4040,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 				int time;
 
 				if(but->block->auto_open==2) time= 1;    // test for toolbox
-				else if(but->block->flag & UI_BLOCK_LOOP || but->block->auto_open) time= 5*U.menuthreshold2;
+				else if((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open) time= 5*U.menuthreshold2;
 				else if(U.uiflag & USER_MENUOPENAUTO) time= 5*U.menuthreshold1;
 				else time= -1;
 

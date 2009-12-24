@@ -21,71 +21,79 @@ import bpy
 
 KM_HIERARCHY = [
                     ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
-                    ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
-                    ('Screen', 'EMPTY', 'WINDOW', []),    # full screen, undo, screenshot
+                    ('Screen', 'EMPTY', 'WINDOW', [    # full screen, undo, screenshot
+                        ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
+                        ]),    
 
                     ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
-                    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
-                    ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
-                    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
-                    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
-                    ('Grease Pencil', 'EMPTY', 'WINDOW', []), # grease pencil stuff (per region)
-
                     ('View2D Buttons List', 'EMPTY', 'WINDOW', []), # view 2d with buttons navigation
-                    ('Animation_Channels', 'EMPTY', 'WINDOW', []),
-
-                    ('Buttons Generic', 'PROPERTIES', 'WINDOW', []), # align context menu
-                    ('TimeLine', 'TIMELINE', 'WINDOW', []),
-                    ('Outliner', 'OUTLINER', 'WINDOW', []),
-
-                    ('View3D', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
-                        ('Pose', 'EMPTY', 'WINDOW', []),
+                    ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
+                    ('Grease Pencil', 'EMPTY', 'WINDOW', []), # grease pencil stuff (per region)
+                    
+                    ('3D View', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
                         ('Object Mode', 'EMPTY', 'WINDOW', []),
-                        ('Vertex Paint', 'EMPTY', 'WINDOW', []),
-                        ('Weight Paint', 'EMPTY', 'WINDOW', []),
-                        ('Face Mask', 'EMPTY', 'WINDOW', []),
-                        ('Sculpt', 'EMPTY', 'WINDOW', []),
-                        ('EditMesh', 'EMPTY', 'WINDOW', []),
+                        ('Mesh', 'EMPTY', 'WINDOW', []),
                         ('Curve', 'EMPTY', 'WINDOW', []),
                         ('Armature', 'EMPTY', 'WINDOW', []),
                         ('Metaball', 'EMPTY', 'WINDOW', []),
                         ('Lattice', 'EMPTY', 'WINDOW', []),
-                        ('Armature_Sketch', 'EMPTY', 'WINDOW', []),
-                        ('Particle', 'EMPTY', 'WINDOW', []),
                         ('Font', 'EMPTY', 'WINDOW', []),
-                        ('Object Non-modal', 'EMPTY', 'WINDOW', []), # mode change
+                        
+                        ('Pose', 'EMPTY', 'WINDOW', []),
+                        
+                        ('Vertex Paint', 'EMPTY', 'WINDOW', []),
+                        ('Weight Paint', 'EMPTY', 'WINDOW', []),
+                        ('Face Mask', 'EMPTY', 'WINDOW', []),
                         ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
-                        ('View3D Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
+                        ('Sculpt', 'EMPTY', 'WINDOW', []),
+                        
+                        ('Armature Sketch', 'EMPTY', 'WINDOW', []),
+                        ('Particle', 'EMPTY', 'WINDOW', []),
+                        
+                        ('Object Non-modal', 'EMPTY', 'WINDOW', []), # mode change
+                        
+                        ('3D View Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
                         ]),
-                    ('GraphEdit Keys', 'GRAPH_EDITOR', 'WINDOW', [
-                        ('GraphEdit Generic', 'GRAPH_EDITOR', 'WINDOW', [])
+                    
+                    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
+                    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
+                    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
+                    ('Animation Channels', 'EMPTY', 'WINDOW', []),
+                    ('Graph Editor', 'GRAPH_EDITOR', 'WINDOW', [
+                        ('Graph Editor Generic', 'GRAPH_EDITOR', 'WINDOW', [])
+                        ]),
+                    ('Dopesheet', 'DOPESHEET_EDITOR', 'WINDOW', []),
+                    ('NLA Editor', 'NLA_EDITOR', 'WINDOW', [
+                        ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
+                        ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [])
                         ]),
 
                     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
-                        ('UVEdit', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
+                        ('UV Editor', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
                         ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
                         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
                         ]),
+                        
+                    ('Timeline', 'TIMELINE', 'WINDOW', []),
+                    ('Outliner', 'OUTLINER', 'WINDOW', []),
+                        
+                    ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
+                        ('Node Generic', 'NODE_EDITOR', 'WINDOW', [])
+                        ]),
+                    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
+                    ('Logic Editor', 'LOGIC_EDITOR', 'WINDOW', []),
+                    
+                    ('File Browser', 'FILE_BROWSER', 'WINDOW', [
+                        ('File Browser Main', 'FILE_BROWSER', 'WINDOW', []),
+                        ('File Browser Buttons', 'FILE_BROWSER', 'WINDOW', [])
+                        ]),
 
-                    ('Node Generic', 'NODE_EDITOR', 'WINDOW', [
-                        ('Node', 'NODE_EDITOR', 'WINDOW', [])
-                        ]),
-                    ('File', 'FILE_BROWSER', 'WINDOW', [
-                        ('FileMain', 'FILE_BROWSER', 'WINDOW', []),
-                        ('FileButtons', 'FILE_BROWSER', 'WINDOW', [])
-                        ]),
-                    ('Action_Keys', 'DOPESHEET_EDITOR', 'WINDOW', []),
-                    ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [
-                        ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
-                        ('NLA Data', 'NLA_EDITOR', 'WINDOW', [])
-                        ]),
+                    ('Property Editor', 'PROPERTIES', 'WINDOW', []), # align context menu
+
                     ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
                     ('Text', 'TEXT_EDITOR', 'WINDOW', []),
-                    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
-                    ('Logic Generic', 'LOGIC_EDITOR', 'WINDOW', []),
                     ('Console', 'CONSOLE', 'WINDOW', []),
-
-
+                    
                     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
                     ('Gesture Border', 'EMPTY', 'WINDOW', []),
                     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),

@@ -264,7 +264,7 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "NLA Data", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
