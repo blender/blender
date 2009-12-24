@@ -453,9 +453,9 @@ static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA 
 
 	/* check user keymaps */
 	for(km=U.keymaps.first; km; km=km->next) {
-		wmKeyMapItem *ki;
-		for (ki=km->items.first; ki; ki=ki->next) {
-			if (ki == ptr->data) {
+		wmKeyMapItem *kmi;
+		for (kmi=km->items.first; kmi; kmi=kmi->next) {
+			if (kmi == ptr->data) {
 				if (!km->modal_items) {
 					if (!WM_keymap_user_init(wm, km)) {
 						return keymap_propvalue_items; /* ERROR */
@@ -471,9 +471,9 @@ static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA 
 		for(km=kc->keymaps.first; km; km=km->next) {
 			/* only check if it's a modal keymap */
 			if (km->modal_items) {
-				wmKeyMapItem *ki;
-				for (ki=km->items.first; ki; ki=ki->next) {
-					if (ki == ptr->data) {
+				wmKeyMapItem *kmi;
+				for (kmi=km->items.first; kmi; kmi=kmi->next) {
+					if (kmi == ptr->data) {
 						return km->modal_items;
 					}
 				}

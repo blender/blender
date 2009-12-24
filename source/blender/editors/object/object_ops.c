@@ -336,23 +336,23 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet)
 {
-	wmKeyMapItem *km;
+	wmKeyMapItem *kmi;
 
 	/* used by mesh, curve & lattice only */
 	if(do_pet) {
 		/* context ops */
-		km = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
-		RNA_string_set(km->ptr, "path", "tool_settings.proportional_editing_falloff");
+		kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
+		RNA_string_set(kmi->ptr, "path", "tool_settings.proportional_editing_falloff");
 
-		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
-		RNA_string_set(km->ptr, "path", "tool_settings.proportional_editing");
-		RNA_string_set(km->ptr, "value_1", "DISABLED");
-		RNA_string_set(km->ptr, "value_2", "ENABLED");
+		kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
+		RNA_string_set(kmi->ptr, "path", "tool_settings.proportional_editing");
+		RNA_string_set(kmi->ptr, "value_1", "DISABLED");
+		RNA_string_set(kmi->ptr, "value_2", "ENABLED");
 
-		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, KM_ALT, 0);
-		RNA_string_set(km->ptr, "path", "tool_settings.proportional_editing");
-		RNA_string_set(km->ptr, "value_1", "DISABLED");
-		RNA_string_set(km->ptr, "value_2", "CONNECTED");
+		kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, KM_ALT, 0);
+		RNA_string_set(kmi->ptr, "path", "tool_settings.proportional_editing");
+		RNA_string_set(kmi->ptr, "value_1", "DISABLED");
+		RNA_string_set(kmi->ptr, "value_2", "CONNECTED");
 	}
 }
 

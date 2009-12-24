@@ -2802,7 +2802,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
-	wmKeyMapItem *km;
+	wmKeyMapItem *kmi;
 	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
@@ -2820,8 +2820,8 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	km= WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(km->ptr, "link", FALSE);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "link", FALSE);
 
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
@@ -2839,49 +2839,49 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	/* Space switching */
 
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "LOGIC_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "LOGIC_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F3KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "NODE_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F3KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "NODE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "CONSOLE");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "CONSOLE");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F5KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "VIEW_3D");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F5KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "VIEW_3D");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F6KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "GRAPH_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F6KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "GRAPH_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F7KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "PROPERTIES");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F7KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "PROPERTIES");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F8KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "SEQUENCE_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F8KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "SEQUENCE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "OUTLINER");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "OUTLINER");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F10KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "IMAGE_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F10KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "IMAGE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F11KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "TEXT_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "TEXT_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "DOPESHEET_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "DOPESHEET_EDITOR");
 
 	gesture_circle_modal_keymap(keyconf);
 	gesture_border_modal_keymap(keyconf);
