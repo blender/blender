@@ -38,6 +38,8 @@ struct wmEventHandler;
 struct wmGesture;
 struct wmJob;
 struct wmNotifier;
+struct wmOperatorType;
+struct wmOperator;
 struct rcti;
 struct PointerRNA;
 struct EnumPropertyItem;
@@ -185,16 +187,16 @@ int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, cha
 void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct bContext *C);
 
-wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-wmOperatorType *WM_operatortype_exists(const char *idname);
-wmOperatorType *WM_operatortype_first(void);
-void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
-void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
-void		WM_operatortype_append_macro_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
+struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
+struct wmOperatorType *WM_operatortype_exists(const char *idname);
+struct wmOperatorType *WM_operatortype_first(void);
+void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
+void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
+void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
-wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
-wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname);
+struct wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
+struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);
 
 
 int			WM_operator_poll		(struct bContext *C, struct wmOperatorType *ot);
@@ -208,8 +210,8 @@ void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
-void		WM_operator_properties_gesture_border(wmOperatorType *ot, int extend);
-void		WM_operator_properties_select_all(wmOperatorType *ot);
+void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
+void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
 /* MOVE THIS SOMEWHERE ELSE */
 #define	SEL_TOGGLE		0

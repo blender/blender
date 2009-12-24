@@ -584,6 +584,196 @@ static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 		return 0;
 }
 
+static void rna_Operator_unregister(const bContext *C, StructRNA *type)
+{
+	char *idname;
+	wmOperatorType *ot= RNA_struct_blender_type_get(type);
+
+	if(!ot)
+		return;
+
+	RNA_struct_free_extension(type, &ot->ext);
+
+	idname= ot->idname;
+	WM_operatortype_remove(ot->idname);
+	MEM_freeN(idname);
+
+	// RNA_struct_free(&BLENDER_RNA, type); // WM_operatortype_remove calls this
+
+	/* update while blender is running */
+	if(C)
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+}
+
+void operator_wrapper(wmOperatorType *ot, void *userdata)
+{
+	/* take care not to overwrite anything set in
+	 * WM_operatortype_append_ptr before opfunc() is called */
+	StructRNA *srna = ot->srna;
+	*ot= *((wmOperatorType *)userdata);
+	ot->srna= srna; /* restore */
+
+	RNA_struct_blender_type_set(ot->ext.srna, ot);
+}
+
+#if 0
+static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return PYTHON_OT_generic(PYOP_INVOKE, C, op->type, op, event, NULL);
+}
+
+static int PYTHON_OT_execute(bContext *C, wmOperator *op)
+{
+	return PYTHON_OT_generic(PYOP_EXEC, C, op->type, op, NULL, NULL);
+}
+
+static int PYTHON_OT_poll(bContext *C, wmOperatorType *ot)
+{
+	return PYTHON_OT_generic(PYOP_POLL, C, ot, NULL, NULL, NULL);
+}
+
+static void PYTHON_OT_draw(bContext *C, wmOperator *op, uiLayout *layout)
+{
+	PYTHON_OT_generic(PYOP_DRAW, C, op->type, op, NULL, layout);
+}
+#endif
+
+static int operator_poll(bContext *C, wmOperatorType *ot)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int visible;
+
+	RNA_pointer_create(NULL, ot->ext.srna, NULL, &ptr); /* dummy */
+	func= RNA_struct_find_function(&ptr, "poll");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	ot->ext.call(&ptr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "visible", &ret);
+	visible= *(int*)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return visible;
+}
+
+static int operator_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	func= RNA_struct_find_function(&opr, "execute");
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(&opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result= *(int*)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
+static int operator_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	func= RNA_struct_find_function(&opr, "invoke");
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	RNA_parameter_set_lookup(&list, "event", &event);
+	op->type->ext.call(&opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result= *(int*)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
+static char _operator_idname[OP_MAX_TYPENAME];
+static char _operator_descr[1024];
+static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	wmOperatorType dummyot = {0};
+	wmOperator dummyop= {0};
+	PointerRNA dummyotr;
+	int have_function[3];
+
+	/* setup dummy operator & operator type to store static properties in */
+	dummyop.type= &dummyot;
+	dummyot.idname= _operator_idname; /* only assigne the pointer, string is NULL'd */
+	dummyot.description= _operator_descr; /* only assigne the pointer, string is NULL'd */
+	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
+
+	/* validate the python class */
+	if(validate(&dummyotr, data, have_function) != 0)
+		return NULL;
+
+	{	/* convert foo.bar to FOO_OT_bar
+		 * allocate the description and the idname in 1 go */
+		int idlen = strlen(_operator_idname);
+		int desclen = strlen(_operator_descr);
+		dummyot.idname= MEM_callocN(sizeof(char) * (idlen + desclen + 2 + 3), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
+		WM_operator_bl_idname(dummyot.idname, _operator_idname); /* convert the idname from python */
+		dummyot.description = dummyot.idname + (idlen + 4);
+		strcpy(dummyot.description, _operator_descr);
+	}
+
+	if(strlen(identifier) >= sizeof(dummyop.idname)) {
+		BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyop.idname));
+		return NULL;
+	}
+
+	/* check if we have registered this operator type before, and remove it */
+	{
+		wmOperatorType *ot= WM_operatortype_exists(dummyot.idname);
+		if(ot && ot->ext.srna)
+			rna_Operator_unregister(C, ot->ext.srna);
+	}
+
+	/* create a new menu type */
+	dummyot.ext.srna= RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
+	dummyot.ext.data= data;
+	dummyot.ext.call= call;
+	dummyot.ext.free= free;
+
+	dummyot.pyop_poll=	(have_function[0])? operator_poll: NULL;
+	dummyot.exec=		(have_function[1])? operator_exec: NULL;
+	dummyot.invoke=		(have_function[2])? operator_invoke: NULL;
+
+	WM_operatortype_append_ptr(operator_wrapper, (void *)&dummyot);
+
+	/* update while blender is running */
+	if(C)
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+
+	return dummyot.ext.srna;
+}
+
+static StructRNA* rna_Operator_refine(PointerRNA *opr)
+{
+	wmOperator *op= (wmOperator*)opr->data;
+	return (op->type && op->type->ext.srna)? op->type->ext.srna: &RNA_Operator;
+}
+
 #else
 
 static void rna_def_operator(BlenderRNA *brna)
@@ -594,6 +784,8 @@ static void rna_def_operator(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Operator", NULL);
 	RNA_def_struct_ui_text(srna, "Operator", "Storage of an operator being executed, or registered after execution.");
 	RNA_def_struct_sdna(srna, "wmOperator");
+	RNA_def_struct_refine_func(srna, "rna_Operator_refine");
+	RNA_def_struct_register_funcs(srna, "rna_Operator_register", "rna_Operator_unregister");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -607,13 +799,31 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Properties", "");
 	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
 
+	/* Registration */
+	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->idname");
+	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->description");
+	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "bl_register", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop= RNA_def_property(srna, "bl_undo", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_UNDO);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
 	RNA_api_operator(srna);
 
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator.");
 	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
 	RNA_def_struct_idproperties_func(srna, "rna_OperatorProperties_idproperties");
-
 }
 
 static void rna_def_macro_operator(BlenderRNA *brna)

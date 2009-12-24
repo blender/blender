@@ -34,6 +34,8 @@
 
 struct bContext;
 struct wmOperatorType;
+struct wmOperator;
+
 
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
 
@@ -197,7 +199,7 @@ extern EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short st
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
 void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beauty, int numcuts, int seltype);
-int EdgeSlide(EditMesh *em, wmOperator *op, short immediate, float imperc);
+int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
 
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);

@@ -30,6 +30,7 @@
 #define WM_WINDOW_H
 
 struct bScreen;
+struct wmOperator;
 
 /* *************** internal api ************** */
 void		wm_ghost_init			(bContext *C);
@@ -62,8 +63,8 @@ wmWindow	*wm_window_copy			(bContext *C, wmWindow *winorig);
 void		wm_window_testbreak		(void);
 
 /* *************** window operators ************** */
-int			wm_window_duplicate_op	(bContext *C, wmOperator *op);
-int			wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op);
+int			wm_window_duplicate_op	(bContext *C, struct wmOperator *op);
+int			wm_window_fullscreen_toggle_op(bContext *C, struct wmOperator *op);
 
 #endif /* WM_WINDOW_H */
 

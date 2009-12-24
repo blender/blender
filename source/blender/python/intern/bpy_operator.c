@@ -63,7 +63,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	ot= WM_operatortype_exists(opname);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\"could not be found", opname);
+		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\" could not be found", opname);
 		return NULL;
 	}
 	

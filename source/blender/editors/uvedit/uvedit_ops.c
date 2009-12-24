@@ -1814,7 +1814,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
 
 /* ******************** linked select operator **************** */
 
-static select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, int pick)
+static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, int pick)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);

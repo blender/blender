@@ -192,11 +192,43 @@ void RNA_api_operator(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
+	/* utility, not for registering */
 	func= RNA_def_function(srna, "report", "rna_Operator_report");
 	parm= RNA_def_enum(func, "type", wm_report_items, 0, "Type", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_ENUM_FLAG);
 	parm= RNA_def_string(func, "message", "", 0, "Report Message", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+
+	/* Registration */
+
+	/* poll */
+	func= RNA_def_function(srna, "poll", NULL);
+	RNA_def_function_ui_description(func, "Test if the operator can be called or not.");
+	RNA_def_function_flag(func, FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	/* exec */
+	func= RNA_def_function(srna, "execute", NULL);
+	RNA_def_function_ui_description(func, "Execute the operator.");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
+	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	RNA_def_function_return(func, parm);
+
+	/* invoke */
+	func= RNA_def_function(srna, "invoke", NULL);
+	RNA_def_function_ui_description(func, "Invoke the operator.");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_pointer(func, "event", "Event", "", "");
+
+	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
+	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	RNA_def_function_return(func, parm);
 }
 
 void RNA_api_keyconfig(StructRNA *srna)
