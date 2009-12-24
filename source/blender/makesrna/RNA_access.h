@@ -587,7 +587,7 @@ void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
 struct IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create);
-int RNA_struct_idproperties_check(PointerRNA *ptr);
+int RNA_struct_idproperties_check(StructRNA *srna);
 
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);

@@ -1204,7 +1204,7 @@ static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
 		return -1;
 	}
 
-	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "this type doesnt support IDProperties");
 		return -1;
 	}
@@ -1258,7 +1258,7 @@ static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
 	IDProperty *group, *idprop;
 	char *name= _PyUnicode_AsString(key);
 
-	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "this type doesn't support IDProperties");
 		return NULL;
 	}
@@ -1307,7 +1307,7 @@ static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
 
-	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "this type doesnt support IDProperties");
 		return NULL;
 	}
@@ -1324,7 +1324,7 @@ static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
 
-	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "this type doesnt support IDProperties");
 		return NULL;
 	}
@@ -1342,7 +1342,7 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
 
-	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "this type doesnt support IDProperties");
 		return NULL;
 	}
@@ -1671,7 +1671,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	
 	if(name[0]=='_') { // rna can't start with a "_", so for __dict__ and similar we can skip using rna lookups
 		/* annoying exception, maybe we need to have different types for this... */
-		if((strcmp(name, "__getitem__")==0 || strcmp(name, "__setitem__")==0) && !RNA_struct_idproperties_check(&self->ptr)) {
+		if((strcmp(name, "__getitem__")==0 || strcmp(name, "__setitem__")==0) && !RNA_struct_idproperties_check(self->ptr.type)) {
 			PyErr_SetString(PyExc_AttributeError, "StructRNA - no __getitem__ support for this type");
 			ret = NULL;
 		}
@@ -2027,7 +2027,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 		return NULL;
 
 	/* mostly copied from BPy_IDGroup_Map_GetItem */
-	if(RNA_struct_idproperties_check(&self->ptr)==0) {
+	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "this type doesn't support IDProperties");
 		return NULL;
 	}
@@ -3011,8 +3011,9 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 	/* sanity check, could skip this unless in debug mode */
 	if(newclass) {
 		PyObject *base_compare= pyrna_srna_PyBase(srna);
-		PyObject *bases= PyObject_GetAttrString(newclass, "__bases__");
 		//PyObject *slots= PyObject_GetAttrString(newclass, "__slots__"); // cant do this because it gets superclasses values!
+		//PyObject *bases= PyObject_GetAttrString(newclass, "__bases__"); // can do this but faster not to.
+		PyObject *bases= ((PyTypeObject *)newclass)->tp_bases;
 		PyObject *slots = PyDict_GetItemString(((PyTypeObject *)newclass)->tp_dict, "__slots__");
 
 		if(slots==NULL) {
@@ -3032,8 +3033,6 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 					fprintf(stderr, "SRNA Subclassed: '%s'\n", idname);
 			}
 		}
-
-		Py_DECREF(bases);
 	}
 
 	return newclass;

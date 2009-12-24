@@ -226,10 +226,9 @@ IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create)
 	return NULL;
 }
 
-int RNA_struct_idproperties_check(PointerRNA *ptr)
+int RNA_struct_idproperties_check(StructRNA *srna)
 {
-	StructRNA *type= ptr->type;
-	return (type && type->idproperties) ? 1 : 0;
+	return (srna && srna->idproperties) ? 1 : 0;
 }
 
 static IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
