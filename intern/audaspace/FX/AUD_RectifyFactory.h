@@ -1,5 +1,5 @@
 /*
- * $Id: AUD_VolumeFactory.h 22328 2009-08-09 23:23:19Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN LGPL LICENSE BLOCK *****
  *
