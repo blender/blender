@@ -1151,7 +1151,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    path = StringProperty(name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= ""),
+    path = StringProperty(name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= "")
 
 # 	size_constraint = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
 # 	search_images = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),
