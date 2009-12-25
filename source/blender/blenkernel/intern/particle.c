@@ -4069,7 +4069,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	else{
 		if(cpa){
 			ParticleKey *key1;
-			float t = (cfra - pa->time + pa->loop * pa->lifetime) / pa->lifetime;
+			float t = (cfra - pa->time) / pa->lifetime;
 
 			key1=&pa->state;
 			offset_child(cpa, key1, state, part->childflat, part->childrad);
