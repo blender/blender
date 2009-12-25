@@ -53,12 +53,23 @@ class InfoStructRNA:
         self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id) for rna_id, rna_prop in rna_type.properties.items() if rna_id != "rna_type"]
         self.functions[:] = [GetInfoFunctionRNA(rna_prop, parent_id) for rna_prop in rna_type.functions.values()]
 
-    def getNestedProperties(self, ls = None):
+    def get_bases(self):
+        bases = []
+        item = self
+        
+        while item:
+            item = item.base
+            if item:
+                bases.append(item)
+        
+        return bases
+
+    def get_nested_properties(self, ls = None):
         if not ls:
             ls = self.properties[:]
 
         if self.nested:
-            self.nested.getNestedProperties(ls)
+            self.nested.get_nested_properties(ls)
 
         return ls
 
@@ -86,6 +97,7 @@ class InfoPropertyRNA:
         self.identifier = rna_prop.identifier
         self.name = rna_prop.name
         self.description = rna_prop.description.strip()
+        self.default_str = "<UNKNOWN>"
 
     def build(self):
         rna_prop = self.bl_prop
@@ -104,6 +116,11 @@ class InfoPropertyRNA:
             
         if self.type == "enum":
             self.enum_items[:] = rna_prop.items.keys()
+
+        if self.array_length:
+            self.default_str = str(getattr(rna_prop, "default_array", ""))
+        else:
+            self.default_str = str(getattr(rna_prop, "default", ""))
 
         self.srna = GetInfoStructRNA(rna_prop.srna) # valid for pointer/collections
 
@@ -125,9 +142,10 @@ class InfoFunctionRNA:
         self.return_value = None
 
     def build(self):
-        rna_prop = self.bl_prop
+        rna_func = self.bl_func
+        parent_id = rna_func
         
-        for rna_id, rna_prop in rna_type.parameters.items():
+        for rna_id, rna_prop in rna_func.parameters.items():
             prop = GetInfoPropertyRNA(rna_prop, parent_id)
             if rna_prop.use_return:
                 self.return_value = prop
@@ -370,6 +388,13 @@ def BuildRNAInfo():
         rna_info.build()
         for prop in rna_info.properties:
             prop.build()
+        for func in rna_info.functions:
+            func.build()
+            for prop in func.args:
+                prop.build()
+            if func.return_value:
+                func.return_value.build()
+                
         
     #for rna_info in InfoStructRNA.global_lookup.values():
     #    print(rna_info)

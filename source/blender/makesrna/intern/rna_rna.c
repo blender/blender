@@ -641,13 +641,18 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
-	if(eprop->itemf==NULL || eprop->itemf==rna_EnumProperty_default_itemf || !C)
+	if(		(eprop->itemf == NULL) ||
+			(eprop->itemf == rna_EnumProperty_default_itemf) ||
+			(ptr->type == &RNA_EnumProperty) ||
+			(C == NULL))
+	{
 		return eprop->item;
+	}
 
 	return eprop->itemf(C, ptr, free);
 }
 
-/* XXX - not sore this is needed? */
+/* XXX - not sure this is needed? */
 static int rna_EnumProperty_default_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
