@@ -425,7 +425,7 @@ static int rna_Property_unit_get(PointerRNA *ptr)
 	return RNA_SUBTYPE_UNIT(prop->subtype);
 }
 
-static int rna_Property_editable_get(PointerRNA *ptr)
+static int rna_Property_readonly_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 
@@ -433,13 +433,25 @@ static int rna_Property_editable_get(PointerRNA *ptr)
 	 * data for introspection we only need to know if it can be edited so the
 	 * flag is better for this */
 //	return RNA_property_editable(ptr, prop);
-	return prop->flag & PROP_EDITABLE ? 1:0;
+	return prop->flag & PROP_EDITABLE ? 0:1;
 }
 
 static int rna_Property_use_return_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	return prop->flag & PROP_RETURN ? 1:0;
+}
+
+static int rna_Property_is_required_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_REQUIRED ? 1:0;
+}
+
+static int rna_Property_is_never_none_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_NEVER_NULL ? 1:0;
 }
 
 static int rna_Property_array_length_get(PointerRNA *ptr)
@@ -934,15 +946,25 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, "rna_Property_unit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Unit", "Type of units for this property.");
 
-	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_readonly", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Property_editable_get", NULL);
-	RNA_def_property_ui_text(prop, "Editable", "Property is editable through RNA.");
+	RNA_def_property_boolean_funcs(prop, "rna_Property_readonly_get", NULL);
+	RNA_def_property_ui_text(prop, "Read Only", "Property is editable through RNA.");
+
+	prop= RNA_def_property(srna, "is_required", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_required_get", NULL);
+	RNA_def_property_ui_text(prop, "Required", "False when this property is an optional argument in an rna function.");
+
+	prop= RNA_def_property(srna, "is_never_none", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_never_none_get", NULL);
+	RNA_def_property_ui_text(prop, "Never None", "True when this value can't be set to None.");
 
 	prop= RNA_def_property(srna, "use_return", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_use_return_get", NULL);
-	RNA_def_property_ui_text(prop, "Return", "True when this property is a return value from an rna function..");
+	RNA_def_property_ui_text(prop, "Return", "True when this property is a return value from an rna function.");
 
 	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

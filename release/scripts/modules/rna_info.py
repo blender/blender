@@ -20,6 +20,9 @@
 
 import bpy
 
+# use to strip python paths
+script_paths = bpy.utils.script_paths()
+
 def range_str(val):
     if val < -10000000:	return '-inf'
     if val >  10000000:	return 'inf'
@@ -27,6 +30,12 @@ def range_str(val):
         return '%g'  % val
     else:
         return str(val)
+
+def float_as_string(f):
+    val_str = "%g" % f
+    if '.' not in val_str and '-' not in val_str: # value could be 1e-05
+        val_str += '.0'
+    return val_str
 
 class InfoStructRNA:
     global_lookup = {}
@@ -73,6 +82,31 @@ class InfoStructRNA:
 
         return ls
 
+    def _get_py_visible_attrs(self):
+        attrs = []
+        py_class = getattr(bpy.types, self.identifier)
+        for attr_str in dir(py_class):
+            if attr_str.startswith("_"):
+                continue                
+            attrs.append((attr_str, getattr(py_class, attr_str)))
+        return attrs
+        
+
+    def get_py_properties(self):
+        properties = []
+        for identifier, attr in self._get_py_visible_attrs():
+            if type(attr) is property:
+                properties.append((identifier, attr))
+        return properties
+    
+    def get_py_functions(self):
+        import types
+        functions = []
+        for identifier, attr in self._get_py_visible_attrs():
+            if type(attr) is types.FunctionType:
+                functions.append((identifier, attr))
+        return functions
+    
     def __repr__(self):
 
         txt = ''
@@ -106,6 +140,10 @@ class InfoPropertyRNA:
         self.min = getattr(rna_prop, "hard_min", -1)
         self.max = getattr(rna_prop, "hard_max", -1)
         self.array_length = getattr(rna_prop, "array_length", 0)
+        self.collection_type = GetInfoStructRNA(rna_prop.srna)
+        self.is_required = rna_prop.is_required
+        self.is_readonly = rna_prop.is_readonly
+        self.is_never_none = rna_prop.is_never_none
 
         self.type = rna_prop.type.lower()
         fixed_type = getattr(rna_prop, "fixed_type", "")
@@ -118,12 +156,43 @@ class InfoPropertyRNA:
             self.enum_items[:] = rna_prop.items.keys()
 
         if self.array_length:
-            self.default_str = str(getattr(rna_prop, "default_array", ""))
+            self.default = tuple(getattr(rna_prop, "default_array", ()))
+            self.default_str = ''
+            # special case for floats
+            if len(self.default) > 0:
+                if type(self.default[0]) is float:
+                    self.default_str = "(%s)" % ", ".join([float_as_string(f) for f in self.default])
+            if not self.default_str:
+                self.default_str = str(self.default)
         else:
-            self.default_str = str(getattr(rna_prop, "default", ""))
+            self.default = getattr(rna_prop, "default", "")
+            if type(self.default) is float:
+                self.default_str = float_as_string(self.default)
+            else:
+                self.default_str = str(self.default)
 
         self.srna = GetInfoStructRNA(rna_prop.srna) # valid for pointer/collections
+    
+    def get_default_string(self):
+        # pointer has no default, just set as None
+        if self.type == "pointer":
+           return "None"
+        elif self.type == "string":
+           return '"' + self.default_str + '"'
+        elif self.type == "enum":
+            if self.default_str:
+               return "'" + self.default_str + "'"
+            else:
+                return ""
 
+        return self.default_str
+    
+    def get_arg_default(self, force=True):
+        default = self.get_default_string()
+        if default and (force or self.is_required == False):
+            return "%s=%s" % (self.identifier, default)
+        return self.identifier
+    
     def __repr__(self):
         txt = ''
         txt += ' * ' + self.identifier + ': ' + self.description
@@ -162,6 +231,65 @@ class InfoFunctionRNA:
         return txt
 
 
+class InfoOperatorRNA:
+    global_lookup = {}
+    def __init__(self, rna_op):
+        self.bl_op = rna_op
+        self.identifier = rna_op.identifier
+        
+        mod, name = self.identifier.split("_OT_", 1)
+        self.module_name = mod.lower()
+        self.func_name = name
+        
+        # self.name = rna_func.name # functions have no name!
+        self.description = rna_op.description.strip()
+
+        self.args = []
+
+    def build(self):
+        rna_op = self.bl_op
+        parent_id = self.identifier
+        for rna_id, rna_prop in rna_op.properties.items():
+            if rna_id == "rna_type":
+                continue
+            
+            prop = GetInfoPropertyRNA(rna_prop, parent_id)
+            self.args.append(prop)
+
+    def get_location(self):
+        op_class = getattr(bpy.types, self.identifier)
+        op_func = getattr(op_class, "execute", None)
+        if op_func is None:
+            op_func = getattr(op_class, "invoke", None)
+        if op_func is None:
+            op_func = getattr(op_class, "poll", None)
+
+        if op_func:
+            op_code = op_func.__code__
+            source_path = op_code.co_filename
+
+            # clear the prefix
+            for p in script_paths:
+                source_path = source_path.split(p)[-1]
+            
+            if source_path[0] in "/\\":
+                source_path= source_path[1:]
+            
+            return source_path, op_code.co_firstlineno
+        else:
+            return None, None
+
+'''
+    def __repr__(self):
+        txt = ''
+        txt += ' * ' + self.identifier + '('
+
+        for arg in self.args:
+            txt += arg.identifier + ', '
+        txt += '): ' + self.description
+        return txt
+'''
+
 def _GetInfoRNA(bl_rna, cls, parent_id=''):
 
     if bl_rna == None:
@@ -184,6 +312,8 @@ def GetInfoPropertyRNA(bl_rna, parent_id):
 def GetInfoFunctionRNA(bl_rna, parent_id):
     return _GetInfoRNA(bl_rna, InfoFunctionRNA, parent_id)
 
+def GetInfoOperatorRNA(bl_rna):
+    return _GetInfoRNA(bl_rna, InfoOperatorRNA)
 
 def BuildRNAInfo():
     # Use for faster lookups
@@ -205,7 +335,8 @@ def BuildRNAInfo():
             return True
         if "_PT_" in rna_id:
             return True
-
+        if "_HT_" in rna_id:
+            return True
         return False
 
     def full_rna_struct_path(rna_struct):
@@ -395,9 +526,34 @@ def BuildRNAInfo():
             if func.return_value:
                 func.return_value.build()
                 
-        
+    # now for operators
+    op_mods = dir(bpy.ops)
+
+    for op_mod_name in sorted(op_mods):
+        if op_mod_name.startswith('__') or op_mod_name in ("add", "remove"):
+            continue
+
+        op_mod = getattr(bpy.ops, op_mod_name)
+        operators = dir(op_mod)
+        for op in sorted(operators):
+            try:
+                rna_prop = getattr(op_mod, op).get_rna()
+            except AttributeError:
+                rna_prop = None
+            except TypeError:
+                rna_prop = None
+
+            if rna_prop:
+                GetInfoOperatorRNA(rna_prop.bl_rna)
+
+    for rna_info in InfoOperatorRNA.global_lookup.values():
+        rna_info.build()
+        for rna_prop in rna_info.args:
+            rna_prop.build()
+
+    
     #for rna_info in InfoStructRNA.global_lookup.values():
     #    print(rna_info)
 
-    return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoPropertyRNA.global_lookup
+    return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoOperatorRNA.global_lookup, InfoPropertyRNA.global_lookup
 

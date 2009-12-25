@@ -42,25 +42,27 @@ class Object(bpy_types.ID):
 
     @property
     def children(self):
+        """All the children of this object"""
         import bpy
         return [child for child in bpy.data.objects if child.parent == self]
 
 
 class _GenericBone:
-    '''
+    """
     functions for bones, common between Armature/Pose/Edit bones.
     internal subclassing use only.
-    '''
+    """
     __slots__ = ()
 
     def translate(self, vec):
+        """Utility function to add *vec* to the head and tail of this bone."""
         self.head += vec
         self.tail += vec
 
     def parent_index(self, parent_test):
-        '''
+        """
         The same as 'bone in other_bone.parent_recursive' but saved generating a list.
-        '''
+        """
         # use the name so different types can be tested.
         name = parent_test.name
 
@@ -76,11 +78,13 @@ class _GenericBone:
 
     @property
     def basename(self):
+        """The name of this bone before any '.' character"""
         #return self.name.rsplit(".", 1)[0]
         return self.name.split(".")[0]
 
     @property
     def parent_recursive(self):
+        """A list of parents, starting with the immediate parent"""
         parent_list = []
         parent = self.parent
 
@@ -94,23 +98,26 @@ class _GenericBone:
 
     @property
     def length(self):
+        """The distance from head to tail, when set the head is moved to fit the length."""
         return self.vector.length
 
     @length.setter
     def length(self, value):
-        """The distance from head to tail"""
         self.tail = self.head + ((self.tail - self.head).normalize() * value)
 
     @property
     def vector(self):
+        """The direction this bone is pointing. Utility function for (tail - head)"""
         return (self.tail - self.head)
 
     @property
     def children(self):
+        """A list of all the bones children."""
         return [child for child in self._other_bones if child.parent == self]
 
     @property
     def children_recursive(self):
+        """a list of all children from this bone."""
         bones_children = []
         for bone in self._other_bones:
             index = bone.parent_index(self)
@@ -123,10 +130,11 @@ class _GenericBone:
 
     @property
     def children_recursive_basename(self):
-        '''
+        """
         Returns a chain of children with the same base name as this bone
-        Only direct chains are supported, forks caused by multiple children with matching basenames will.
-        '''
+        Only direct chains are supported, forks caused by multiple children with matching basenames will
+        terminate the function and not be returned.
+        """
         basename = self.basename
         chain = []
 
@@ -177,10 +185,10 @@ class EditBone(StructRNA, _GenericBone):
     __slots__ = ()
 
     def align_orientation(self, other):
-        '''
+        """
         Align this bone to another by moving its tail and settings its roll
         the length of the other bone is not used.
-        '''
+        """
         vec = other.vector.normalize() * self.length
         self.tail = self.head + vec
         self.roll = other.roll
@@ -196,10 +204,10 @@ class Mesh(bpy_types.ID):
     __slots__ = ()
 
     def from_pydata(self, verts, edges, faces):
-        '''
+        """
         Make a mesh from a list of verts/edges/faces
         Until we have a nicer way to make geometry, use this.
-        '''
+        """
         self.add_geometry(len(verts), len(edges), len(faces))
 
         verts_flat = [f for v in verts for f in v]
@@ -244,7 +252,7 @@ class Mesh(bpy_types.ID):
         return [edge_face_count_dict.get(ed.key, 0) for ed in mesh.edges]
 
     def edge_loops(self, faces=None, seams=()):
-        '''
+        """
         Edge loops defined by faces
 
         Takes me.faces or a list of faces and returns the edge loops
@@ -255,7 +263,7 @@ class Mesh(bpy_types.ID):
         [ [(0,1), (4, 8), (3,8)], ...]
 
         optionaly, seams are edge keys that will be removed
-        '''
+        """
 
         OTHER_INDEX = 2,3,0,1 # opposite face index
 
@@ -396,9 +404,9 @@ class Menu(StructRNA):
             layout.operator(operator, text=bpy.utils.display_name(f)).path = path
 
     def draw_preset(self, context):
-        '''Define these on the subclass
+        """Define these on the subclass
          - preset_operator
          - preset_subdir
-        '''
+        """
         import bpy
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir), self.preset_operator)
