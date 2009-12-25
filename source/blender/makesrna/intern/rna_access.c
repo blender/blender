@@ -946,7 +946,7 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	
 	EnumPropertyItem *item, *item_array;
-	int free;
+	int free, found;
 	
 	RNA_property_enum_items(C, ptr, prop, &item_array, NULL, &free);
 	
@@ -956,11 +956,13 @@ int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, con
 			break;
 		}
 	}
+	
+	found= (item->identifier != NULL); /* could be alloc'd, assign before free */
 
 	if(free)
 		MEM_freeN(item_array);
 
-	return (item->identifier) ? 1:0;
+	return found;
 }
 
 int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier)
