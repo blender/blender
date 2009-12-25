@@ -304,18 +304,18 @@ class WM_OT_doc_view(bpy.types.Operator):
     def execute(self, context):
         id_split = self.properties.doc_id.split('.')
         if len(id_split) == 1: # rna, class
-            url = '%s/bpy.types.%s-class.html' % (self._prefix, id_split[0])
+            url = '%s/bpy.types.%s.html' % (self._prefix, id_split[0])
         elif len(id_split) == 2: # rna, class.prop
             class_name, class_prop = id_split
 
             if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
-                url = '%s/bpy.ops.%s-module.html#%s' % \
-                        (self._prefix, class_name, class_prop)
+                url = '%s/bpy.ops.%s.html#bpy.ops.%s.%s' % \
+                        (self._prefix, class_name, class_name, class_prop)
             else:
-                # It so happens that epydoc nests these
-                class_name_full = self._nested_class_string(class_name)
-                url = '%s/bpy.types.%s-class.html#%s' % \
-                        (self._prefix, class_name_full, class_prop)
+                # It so happens that epydoc nests these, not sphinx
+                # class_name_full = self._nested_class_string(class_name)
+                url = '%s/bpy.types.%s.html#bpy.types.%s.%s' % \
+                        (self._prefix, class_name, class_name, class_prop)
 
         else:
             return {'PASS_THROUGH'}
