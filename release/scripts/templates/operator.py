@@ -49,10 +49,8 @@ class ExportSomeData(bpy.types.Operator):
 bpy.types.register(ExportSomeData)
 
 # Only needed if you want to add into a dynamic menu
-import dynamic_menu
 menu_func = lambda self, context: self.layout.operator("export.some_data", text="Example Exporter...")
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+bpy.types.INFO_MT_file_export.append(menu_func)
 
-# Use for running this script directly
 if __name__ == "__main__":
     bpy.ops.export.some_data(path="/tmp/test.ply")

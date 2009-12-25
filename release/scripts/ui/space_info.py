@@ -19,9 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-import dynamic_menu
-# reload(dynamic_menu)
-
 
 class INFO_HT_header(bpy.types.Header):
     bl_space_type = 'INFO'
@@ -115,21 +112,8 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.exit_blender", text="Quit", icon='QUIT')
 
-# test for expanding menus
-'''
-class INFO_MT_file_more(INFO_MT_file):
-    bl_label = "File"
 
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("wm.read_homefile", text="TESTING ")
-
-dynamic_menu.setup(INFO_MT_file_more)
-'''
-
-
-class INFO_MT_file_import(dynamic_menu.DynMenu):
+class INFO_MT_file_import(bpy.types.Menu):
     bl_idname = "INFO_MT_file_import"
     bl_label = "Import"
 
@@ -138,7 +122,7 @@ class INFO_MT_file_import(dynamic_menu.DynMenu):
             self.layout.operator("wm.collada_import", text="COLLADA (.dae)...")
 
 
-class INFO_MT_file_export(dynamic_menu.DynMenu):
+class INFO_MT_file_export(bpy.types.Menu):
     bl_idname = "INFO_MT_file_export"
     bl_label = "Export"
 
@@ -164,7 +148,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
         layout.operator("file.find_missing_files")
 
 
-class INFO_MT_mesh_add(dynamic_menu.DynMenu):
+class INFO_MT_mesh_add(bpy.types.Menu):
     bl_idname = "INFO_MT_mesh_add"
     bl_label = "Mesh"
 
@@ -183,7 +167,7 @@ class INFO_MT_mesh_add(dynamic_menu.DynMenu):
         layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text="Monkey")
 
 
-class INFO_MT_armature_add(dynamic_menu.DynMenu):
+class INFO_MT_armature_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_add"
     bl_label = "Armature"
 

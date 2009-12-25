@@ -27,8 +27,6 @@ This will generate python files in "./source/blender/python/doc/bpy/sphinx-in"
 Generate html docs  by running...
     
     sphinx-build source/blender/python/doc/bpy/sphinx-in source/blender/python/doc/bpy/sphinx-out
-    
-
 '''
 
 # if you dont have graphvis installed ommit the --graph arg.
@@ -75,7 +73,7 @@ def py_function_args(func):
     INVALID = py_function_args
     defaults = ([INVALID] * (len(names) - len(defaults))) + defaults
     
-    if names[0] == "self":
+    if names[0] in ("self", "cls"): # normal class function or classmethod
         del names[0]
         del defaults[0]
     

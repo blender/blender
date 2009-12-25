@@ -1135,13 +1135,10 @@ class SmartProject(bpy.types.Operator):
 bpy.types.register(SmartProject)
 
 # Add to a menu
-import dynamic_menu
-
 menu_func = (lambda self, context: self.layout.operator(SmartProject.bl_idname,
                                         text="Smart Project"))
 
-menu_item = dynamic_menu.add(bpy.types.VIEW3D_MT_uv_map, menu_func)
+bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
 if __name__ == '__main__':
     bpy.ops.uv.smart_project()
-

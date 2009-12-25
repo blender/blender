@@ -897,7 +897,5 @@ class BvhImporter(bpy.types.Operator):
 
 bpy.types.register(BvhImporter)
 
-
-import dynamic_menu
 menu_func = lambda self, context: self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
+bpy.types.INFO_MT_file_import.append(menu_func)

@@ -613,11 +613,9 @@ class AddHuman(bpy.types.Operator):
 bpy.types.register(AddHuman)
 
 # Add to a menu
-import dynamic_menu
-
 menu_func = (lambda self, context: self.layout.operator(AddHuman.bl_idname, icon='OUTLINER_OB_ARMATURE', text="Human (Meta-Rig)"))
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_armature_add, menu_func)
+bpy.types.INFO_MT_armature_add.append(menu_func)
 
 if __name__ == "__main__":
     bpy.ops.mesh.armature_human_advanced_add()

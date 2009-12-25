@@ -1242,13 +1242,12 @@ class ExportX3D(bpy.types.Operator):
 
 bpy.types.register(ExportX3D)
 
-import dynamic_menu
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".x3d")
     self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)...").path = default_path
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+bpy.types.INFO_MT_file_export.append(menu_func)
 
 # NOTES
 # - blender version is hardcoded

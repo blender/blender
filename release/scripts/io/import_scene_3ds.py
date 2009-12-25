@@ -1168,10 +1168,9 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 
 bpy.types.register(IMPORT_OT_autodesk_3ds)
 
-import dynamic_menu
 menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)...")
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
+bpy.types.INFO_MT_file_import.append(menu_func)
 
 # NOTES:
-# why add 1 extra vertex? and remove it when done?
+# why add 1 extra vertex? and remove it when done? - "Answer - eekadoodle - would need to re-order UV's without this since face order isnt always what we give blender, BMesh will solve :D"
 # disabled scaling to size, this requires exposing bb (easy) and understanding how it works (needs some time)

@@ -313,11 +313,7 @@ class ActiveClear(bpy.types.Operator):
         return {'FINISHED'}
 
 
-import space_info
-import dynamic_menu
-
-
-class INFO_MT_armature_metarig_add(dynamic_menu.DynMenu):
+class INFO_MT_armature_metarig_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_metarig_add"
     bl_label = "Meta-Rig"
 
@@ -349,5 +345,6 @@ bpy.types.register(ActiveClear)
 
 bpy.types.register(INFO_MT_armature_metarig_add)
 
+import space_info
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_armature_add, menu_func)
+space_info.INFO_MT_armature_add.append(menu_func)

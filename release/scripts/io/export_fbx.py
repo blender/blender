@@ -3462,13 +3462,9 @@ bpy.types.register(ExportFBX)
 # SMALL or COSMETICAL
 # - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')
 
-
-# Add to a menu
-import dynamic_menu
-
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".fbx")
     self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX...").path = default_path
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+menu_item = bpy.types.INFO_MT_file_export.append(menu_func)
 

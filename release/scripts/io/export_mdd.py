@@ -183,14 +183,11 @@ class ExportMDD(bpy.types.Operator):
 bpy.types.register(ExportMDD)
 
 # Add to a menu
-import dynamic_menu
-
-
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".mdd")
     self.layout.operator(ExportMDD.bl_idname, text="Vertex Keyframe Animation (.mdd)...").path = default_path
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+bpy.types.INFO_MT_file_export.append(menu_func)
 
 if __name__ == '__main__':
     bpy.ops.export.mdd(path="/tmp/test.mdd")

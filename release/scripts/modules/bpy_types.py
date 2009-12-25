@@ -379,6 +379,32 @@ class Macro(StructRNA, metaclass=OrderedMeta):
 
 class Menu(StructRNA):
     __slots__ = ()
+    
+    @classmethod
+    def _dyn_menu_initialize(cls):
+        draw_funcs = getattr(cls.draw, "_draw_funcs", None)
+
+        if draw_funcs is None:
+            def draw_ls(*args):
+                for func in draw_ls._draw_funcs:
+                    func(*args)
+    
+            draw_funcs = draw_ls._draw_funcs = [cls.draw]
+            cls.draw = draw_ls
+        
+        return draw_funcs
+    
+    @classmethod
+    def append(cls, draw_func):
+        """Prepend an draw function to this menu, takes the same arguments as the menus draw function."""
+        draw_funcs = cls._dyn_menu_initialize()
+        draw_funcs.append(draw_func)
+
+    @classmethod
+    def prepend(cls, draw_func):
+        """Prepend a draw function to this menu, takes the same arguments as the menus draw function."""
+        draw_funcs = cls._dyn_menu_initialize()
+        draw_funcs.insert(0, draw_func)
 
     def path_menu(self, searchpaths, operator):
         layout = self.layout
@@ -410,3 +436,4 @@ class Menu(StructRNA):
         """
         import bpy
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir), self.preset_operator)
+

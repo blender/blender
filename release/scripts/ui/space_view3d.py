@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 import bpy
-import dynamic_menu
 
 
 class VIEW3D_HT_header(bpy.types.Header):
@@ -205,7 +204,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
 
 
-class VIEW3D_MT_uv_map(dynamic_menu.DynMenu):
+class VIEW3D_MT_uv_map(bpy.types.Menu):
     bl_label = "UV Mapping"
 
     def draw(self, context):
@@ -1231,7 +1230,7 @@ class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
         layout.operator("mesh.region_to_loop")
 
 
-class VIEW3D_MT_edit_mesh_faces(dynamic_menu.DynMenu):
+class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
     bl_label = "Faces"
     bl_idname = "VIEW3D_MT_edit_mesh_faces"
 

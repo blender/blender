@@ -318,14 +318,11 @@ class ExportPLY(bpy.types.Operator):
 
 bpy.types.register(ExportPLY)
 
-import dynamic_menu
-
-
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".ply")
     self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)...").path = default_path
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+bpy.types.INFO_MT_file_export.append(menu_func)
 
 if __name__ == "__main__":
     bpy.ops.export.ply(path="/tmp/test.ply")
