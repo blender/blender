@@ -444,7 +444,7 @@ def write(filename, objects, scene,
             me = ob.create_mesh(EXPORT_APPLY_MODIFIERS, 'PREVIEW')
 
             if EXPORT_ROTX90:
-                me.transform(ob_mat * mat_xrot90)
+                me.transform(mat_xrot90 * ob_mat)
             else:
                 me.transform(ob_mat)
 
