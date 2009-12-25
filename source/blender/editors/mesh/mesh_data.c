@@ -676,7 +676,8 @@ void ED_mesh_material_add(Mesh *me, Material *ma)
 
 	me->mat = mat;
 	me->mat[me->totcol++] = ma;
-	ma->id.us++;
+	if(ma)
+		ma->id.us++;
 
 	test_object_materials((ID*)me);
 }

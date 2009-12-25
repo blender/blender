@@ -143,7 +143,7 @@ rna_max = FloatProperty(name="Max", default=1.0, precision=3)
 class WM_OT_properties_edit(bpy.types.Operator):
     '''Internal use (edit a property path)'''
     bl_idname = "wm.properties_edit"
-    bl_label = "Edit Property!"
+    bl_label = "Edit Property"
 
     path = rna_path
     property = rna_property
