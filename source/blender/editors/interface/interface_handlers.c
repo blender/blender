@@ -4100,7 +4100,11 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	data->state= state;
 
-	ui_check_but(but);
+	if(state != BUTTON_STATE_EXIT) {
+		/* When objects for eg. are removed, running ui_check_but()
+		 * can access the removed data - so disable update on exit */
+		ui_check_but(but);
+	}
 
 	/* redraw */
 	ED_region_tag_redraw(data->region);
