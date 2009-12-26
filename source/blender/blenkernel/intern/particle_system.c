@@ -37,6 +37,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_boid_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_mesh_types.h"
@@ -62,6 +63,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 #include "BKE_boids.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_collision.h"
@@ -1720,8 +1722,11 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	}
 	else{
 		/* get precise emitter matrix if particle is born */
-		if(part->type!=PART_HAIR && pa->time < cfra && pa->time >= sim->psys->cfra)
+		if(part->type!=PART_HAIR && pa->time < cfra && pa->time >= sim->psys->cfra) {
+			/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
+			BKE_animsys_evaluate_animdata(&sim->ob->id, sim->ob->adt, pa->time, ADT_RECALC_ANIM);
 			where_is_object_time(sim->scene, sim->ob, pa->time);
+		}
 
 		/* get birth location from object		*/
 		if(part->tanfac!=0.0)
@@ -3298,8 +3303,9 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				/* nothing to be done when particle is dead */
 			}
 
-			/* only reset unborn particles if they're shown */
-			if(pa->alive==PARS_UNBORN && part->flag & PART_UNBORN)
+			/* only reset unborn particles if they're shown or if the particle is born soon*/
+			if(pa->alive==PARS_UNBORN
+				&& (part->flag & PART_UNBORN || cfra + psys->pointcache->step > pa->time))
 				reset_particle(sim, pa, dtime, cfra);
 
 			if(dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
