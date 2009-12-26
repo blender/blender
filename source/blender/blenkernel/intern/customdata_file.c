@@ -352,7 +352,8 @@ int cdf_write_open(CDataFile *cdf, char *filename)
 
 	/* fill header */
 	header= &cdf->header;
-	strcpy(header->ID, "BCDF");
+	/* strcpy(, "BCDF"); // terminator out of range */
+	header->ID[0]= 'B'; header->ID[1]= 'C'; header->ID[2]= 'D'; header->ID[3]= 'F';
 	header->endian= cdf_endian();
 	header->version= CDF_VERSION;
 	header->subversion= CDF_SUBVERSION;

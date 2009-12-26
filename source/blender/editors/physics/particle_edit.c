@@ -3803,15 +3803,15 @@ int PE_minmax(Scene *scene, float *min, float *max)
 {
 	Object *ob= OBACT;
 	PTCacheEdit *edit= PE_get_current(scene, ob);
-	ParticleSystem *psys = edit->psys;
+	ParticleSystem *psys;
 	ParticleSystemModifierData *psmd = NULL;
 	POINT_P; KEY_K;
 	float co[3], mat[4][4];
 	int ok= 0;
 
 	if(!edit) return ok;
-	
-	if(psys)
+
+	if((psys = edit->psys))
 		psmd= psys_get_modifier(ob, psys);
 	else
 		unit_m4(mat);

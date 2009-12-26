@@ -829,7 +829,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 				if(kb){
 					sprintf(shapes, ": %s ", kb->name);		
 					if(ob->shapeflag == OB_SHAPE_LOCK){
-						sprintf(shapes, "%s (Pinned)",shapes);
+						strcat(shapes, " (Pinned)");
 					}
 				}
 			}

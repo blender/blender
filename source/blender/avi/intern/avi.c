@@ -182,11 +182,11 @@ AviError AVI_print_error (AviError in_error) {
 
 	return in_error;
 }
-
+/*
 void AVI_set_debug (int mode) {
 	AVI_DEBUG= mode;
 }
-
+*/
 /*
 int AVI_is_avi (char *name) {
 	FILE *fp;

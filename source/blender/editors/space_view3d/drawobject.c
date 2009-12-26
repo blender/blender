@@ -402,12 +402,12 @@ void drawaxes(float size, int flag, char drawtype)
 		break;
 	
 	case OB_EMPTY_SPHERE:
-		 draw_empty_sphere(size);
-	     break;
+		draw_empty_sphere(size);
+		break;
 
 	case OB_EMPTY_CONE:
-		 draw_empty_cone(size);
-	     break;
+		draw_empty_cone(size);
+		break;
 
 	case OB_ARROWS:
 	default:
@@ -1361,7 +1361,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 			view3d_project_short_noclip(data->vc.ar, v1co, s[1]);
 
 			if (data->clipVerts==2) {
-                if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<data->vc.ar->winx && s[0][1]<data->vc.ar->winy)) 
+				if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<data->vc.ar->winx && s[0][1]<data->vc.ar->winy))
 					if (!(s[1][0]>=0 && s[1][1]>= 0 && s[1][0]<data->vc.ar->winx && s[1][1]<data->vc.ar->winy)) 
 						return;
 			}
@@ -2399,7 +2399,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				}
 			}
 		}
-	}    
+	}
 	
 	if(v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
@@ -2971,7 +2971,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			finalDM = cageDM = editmesh_get_derived_base(ob, em);
 		else
 			cageDM = editmesh_get_derived_cage_and_final(scene, ob, em, &finalDM,
-			                                v3d->customdata_mask);
+											v3d->customdata_mask);
 
 		if(dt>OB_WIRE) {
 			// no transp in editmode, the fancy draw over goes bad then
@@ -4003,11 +4003,13 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						sprintf(val, " %i", a);
 
 					if(part->draw&PART_DRAW_NUM && part->draw&PART_DRAW_HEALTH)
-						sprintf(val, "%s:", val);
+						strcat(val, ":");
 
-					if(part->draw&PART_DRAW_HEALTH && a < totpart && part->phystype==PART_PHYS_BOIDS)
-						sprintf(val, "%s %.2f", val, pa_health);
-
+					if(part->draw&PART_DRAW_HEALTH && a < totpart && part->phystype==PART_PHYS_BOIDS) {
+						char tval[8];
+						sprintf(tval, " %.2f", pa_health);
+						strcat(val, tval);
+					}
 					/* in path drawing state.co is the end point */
 					view3d_cached_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0);
 				}
@@ -4826,7 +4828,7 @@ static void draw_empty_sphere (float size)
 static void draw_empty_cone (float size)
 {
 	float cent=0;
-    float radius;
+	float radius;
 	GLUquadricObj *qobj = gluNewQuadric(); 
 	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
 	
@@ -4946,11 +4948,11 @@ static void drawspiral(float *cent, float rad, float tmat[][4], int start)
  */
 static void drawcircle_size(float size)
 {
-    float x, y;
+	float x, y;
 	short degrees;
 
 	glBegin(GL_LINE_LOOP);
-    
+
 	/* coordinates are: cos(degrees*11.25)=x, sin(degrees*11.25)=y, 0.0f=z */
 	for (degrees=0; degrees<32; degrees++) {
 		x= *(cosval + degrees);
@@ -5824,7 +5826,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					float selboxw;
 
 					cpack(0xffffff);
-					set_inverted_drawing(1);	    	
+					set_inverted_drawing(1);
 					for (i=0; i<(selend-selstart+1); i++) {
 						SelBox *sb = &(cu->selboxes[i]);
 
@@ -5839,12 +5841,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 						}
 						glBegin(GL_QUADS);
 						glVertex3f(sb->x, sb->y, 0.001);
-						glVertex3f(sb->x+selboxw, sb->y, 0.001);	    			
+						glVertex3f(sb->x+selboxw, sb->y, 0.001);
 						glVertex3f(sb->x+selboxw, sb->y+sb->h, 0.001);
 						glVertex3f(sb->x, sb->y+sb->h, 0.001);
 						glEnd();
 					}
-					set_inverted_drawing(0);	    		
+					set_inverted_drawing(0);
 				}
 			}
 			else if(dt==OB_BOUNDBOX) 
