@@ -573,6 +573,7 @@ static void rna_def_panel(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	PropertyRNA *parm;
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Panel", NULL);
@@ -586,18 +587,21 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Test if the panel is visible or not.");
 	RNA_def_function_flag(func, FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw buttons into the panel UI layout.");
 	RNA_def_function_flag(func, FUNC_REGISTER);
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "draw_header", NULL);
 	RNA_def_function_ui_description(func, "Draw buttons into the panel header UI layout.");
 	RNA_def_function_flag(func, FUNC_REGISTER);
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
@@ -641,6 +645,7 @@ static void rna_def_header(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	PropertyRNA *parm;
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Header", NULL);
@@ -653,7 +658,8 @@ static void rna_def_header(BlenderRNA *brna)
 	func= RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw buttons into the header UI layout.");
 	RNA_def_function_flag(func, FUNC_REGISTER);
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_define_verify_sdna(0); // not in sdna
 
@@ -678,6 +684,7 @@ static void rna_def_menu(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	PropertyRNA *parm;
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Menu", NULL);
@@ -691,13 +698,15 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Test if the menu is visible or not.");
 	RNA_def_function_flag(func, FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw buttons into the menu UI layout.");
 	RNA_def_function_flag(func, FUNC_REGISTER);
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_define_verify_sdna(0); // not in sdna
 

@@ -110,7 +110,7 @@ class InfoStructRNA:
         import types
         functions = []
         for identifier, attr in self._get_py_visible_attrs():
-            if type(attr) is types.FunctionType:
+            if type(attr) in (types.FunctionType, types.MethodType):
                 functions.append((identifier, attr))
         return functions
 

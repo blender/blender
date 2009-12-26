@@ -192,8 +192,20 @@ def rna2sphinx(BASEPATH):
         py_func = None
         
         for identifier, py_func in py_funcs:
-            fw("   .. method:: %s%s\n\n" % (identifier, inspect.formatargspec(*inspect.getargspec(py_func))))
-            write_indented_lines("      ", fw, py_func.__doc__)
+            arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
+            if arg_str.startswith("(self, "):
+                arg_str = "(" + arg_str[7:]
+                func_type = "method"
+            elif arg_str.startswith("(cls, "):
+                arg_str = "(" + arg_str[6:]
+                func_type = "classmethod"
+            else:
+                func_type = "staticmethod"
+
+            fw("   .. %s:: %s%s\n\n" % (func_type, identifier, arg_str))
+            if py_func.__doc__:
+                write_indented_lines("      ", fw, py_func.__doc__)
+                fw("\n")
         del py_funcs, py_func
 
         if struct.references:
