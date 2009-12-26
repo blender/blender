@@ -76,7 +76,7 @@ MINLINE void add_v3_v3(float *r, float *a)
 {
 	r[0] += a[0];
 	r[1] += a[1];
-	r[1] += a[1];
+	r[2] += a[2];
 }
 
 MINLINE void add_v3_v3v3(float *r, float *a, float *b)
@@ -102,7 +102,7 @@ MINLINE void sub_v3_v3(float *r, float *a)
 {
 	r[0] -= a[0];
 	r[1] -= a[1];
-	r[1] -= a[1];
+	r[2] -= a[2];
 }
 
 MINLINE void sub_v3_v3v3(float *r, float *a, float *b)

@@ -249,21 +249,11 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
 		if (BM_Edge_FaceCount(e) == 2) {
-			BMO_SetFlag(bm, e->v1, VERT_MARK);
-			BMO_SetFlag(bm, e->v2, VERT_MARK);
-
 			BM_Join_Faces(bm, e->loop->f, 
 				      ((BMLoop*)e->loop->radial.next->data)->f,
 				      e);
 		}
 	}
-
-	//BMO_InitOpf(bm, &fop, "dissolvefaces faces=%ff", FACE_MARK);
-	//BMO_Exec_Op(bm, &fop);
-
-	//BMO_CopySlot(op, &fop, "regionout", "regionout");
-
-	//BMO_Finish_Op(bm, &fop);
 }
 
 static int test_extra_verts(BMesh *bm, BMVert *v)

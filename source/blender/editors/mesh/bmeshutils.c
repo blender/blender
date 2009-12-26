@@ -503,8 +503,7 @@ void EDBM_clear_flag_all(BMEditMesh *em, int flag)
 				break;
 		}
 		
-		ele = BMIter_New(&iter, em->bm, type, NULL);
-		for ( ; ele; ele=BMIter_Step(&iter)) {
+		BM_ITER(ele, &iter, em->bm, type, NULL) {
 			if (flag & BM_SELECT) BM_Select(em->bm, ele, 0);
 			BM_ClearHFlag(ele, flag);
 		}

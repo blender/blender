@@ -195,16 +195,23 @@ typedef struct TransDataSlideVert {
 	struct BMVert vup, vdown;
 	struct BMVert origvert;
 
-	struct BMEdge *up, *down;
+	struct BMVert *up, *down;
 	struct BMVert *v;
+
+	float upvec[3], downvec[3];
 } TransDataSlideVert;
 
 typedef struct SlideData {
+	TransDataSlideVert *sv;
+	int totsv;
+
+	/*
 	TransDataSlideUv *slideuv, *suv_last;
 	int totuv, uvlay_tot;
 	struct GHash *vhash, **uvhash;
 	struct EditVert *nearest;
 	struct LinkNode *edgelist, *vertlist;
+	*/
 	short start[2], end[2];
 } SlideData;
 

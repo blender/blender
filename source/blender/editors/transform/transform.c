@@ -3930,7 +3930,7 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 }
 
 /* ********************  Edge Slide   *************** */
-#if 1
+#if 0
 static int createSlideVerts(TransInfo *t) {
 #else
 static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
@@ -3938,24 +3938,20 @@ static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
 	BMIter iter;
 	BMEdge *e2;
 
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+	BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, v) {
 		if (BM_TestHFlag(e2, BM_SELECT) && e2 != e)
-			return e;
+			return e2;
 	}
 
 	return NULL;
 }
 
-static BMLoop *get_next_loop(BMesh *bm, BMVert *v, BMFace *f, 
-                             BMEdge *olde, BMEdge *nexte)
+static BMLoop *get_next_loop(BMesh *bm, BMVert *v, BMLoop *l, 
+                             BMEdge *olde, BMEdge *nexte, float vec[3])
 {
-	BMIter iter;
-	BMLoop *l, firstl;
-
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		if (l->e == olde)
-			break;
-	}
+	BMLoop *firstl;
+	float a[3] = {0.0f, 0.0f, 0.0f}, n[3] = {0.0f, 0.0f, 0.0f};
+	int i=0;
 
 	firstl = l;
 	do {
@@ -3963,15 +3959,47 @@ static BMLoop *get_next_loop(BMesh *bm, BMVert *v, BMFace *f,
 		if (l->radial.next->data == l)
 			return NULL;
 		
-		if (BM_OtherFaceLoop(l->e, l->f, v)->e == nexte)
-			return BM_OtherFaceLoop(l->e, l->f, v);
-		
-		if (l->e == nexte)
-			return l;
+		if (l->e == nexte) {
+			if (i) {
+				mul_v3_fl(a, 1.0f / (float)i);
+			} else {
+				float f1[3], f2[3], f3[3], n[3];
 
+				sub_v3_v3v3(f1, BM_OtherEdgeVert(olde, v)->co, v->co);
+				sub_v3_v3v3(f2, BM_OtherEdgeVert(nexte, v)->co, v->co);
+
+				cross_v3_v3v3(f3, f1, l->f->no);
+				cross_v3_v3v3(a, f2, l->f->no);
+				mul_v3_fl(a, -1.0f);
+
+				add_v3_v3(a, f3);
+				mul_v3_fl(a, 0.5f);
+			}
+			
+			VECCOPY(vec, a);
+			return l;
+		} else {
+			sub_v3_v3v3(n, BM_OtherEdgeVert(l->e, l->v)->co, l->v->co);
+			add_v3_v3v3(a, a, n);
+			i += 1;
+		}
+
+		if (BM_OtherFaceLoop(l->e, l->f, v)->e == nexte) {
+			if (i)
+				mul_v3_fl(a, 1.0f / (float)i);
+			
+			VECCOPY(vec, a);
+			return BM_OtherFaceLoop(l->e, l->f, v);
+		}
+		
 		l = l->radial.next->data;
 	} while (l != firstl); 
 
+	if (i)
+		mul_v3_fl(a, 1.0f / (float)i);
+	
+	VECCOPY(vec, a);
+	
 	return NULL;
 }
 
@@ -3979,21 +4007,22 @@ static int createSlideVerts(TransInfo *t)
 {
 	Mesh *me = t->obedit->data;
 	BMEditMesh *em = me->edit_btmesh;
+	BMesh *bm = em->bm;
 	BMIter iter, iter2;
 	BMEdge *e, *e1, *e2;
-	BMVert *v, *first;
+	BMVert *v, *v2, *first;
 	BMLoop *l, *l1, *l2;
-	TransDataSlideVert *tempsv;
+	TransDataSlideVert *tempsv, *sv;
 	GHash **uvarray= NULL;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
-	int uvlay_idx;
 	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
 	RegionView3D *v3d = t->ar->regiondata;
 	float projectMat[4][4];
 	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
-	float vec[3], i, j;
+	float vec[3], vec2[3];
 	float totvec=0.0;
+	int uvlay_tot= CustomData_number_of_layers(&em->bm->pdata, CD_MTFACE);
+	int uvlay_idx, numsel, i, j;
 
 	if (!v3d) {
 		/*ok, let's try to survive this*/
@@ -4024,7 +4053,7 @@ static int createSlideVerts(TransInfo *t)
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_SELECT)) {
-			if (BM_Edge_FaceCount(e) > 2)
+			if (BM_Edge_FaceCount(e) > 2 || BM_Edge_FaceCount(e) == 0)
 				return 0; //can't handle more then 2 faces around an edge
 		}
 	}
@@ -4054,10 +4083,10 @@ static int createSlideVerts(TransInfo *t)
 		if (!v)
 			break;
 
-		BMINDX_SET(v, 0);
+		BMINDEX_SET(v, 0);
 
 		if (!v->edge)
-			continue
+			continue;
 		
 		first = v;
 
@@ -4067,38 +4096,104 @@ static int createSlideVerts(TransInfo *t)
 		/*first, rewind*/
 		numsel = 0;
 		do {
+			BMINDEX_SET(v, 0);
+
 			e = get_other_edge(bm, v, e);
 			if (!e) {
 				e = v->edge;
 				break;
 			}
 
-			v = BM_OtherEdgeVert(e, v);
 			numsel += 1;
-		} while (e != v->edge);
+
+			if (!BMINDEX_GET(BM_OtherEdgeVert(e, v)))
+				break;
+
+			v = BM_OtherEdgeVert(e, v);
+		} while (e != first->edge);
 
 		l1 = l2 = l = NULL;
+		l1 = e->loop;
+		l2 = e->loop->radial.next->data;
+
+		l = BM_OtherFaceLoop(l1->e, l1->f, v);
+		sub_v3_v3v3(vec, BM_OtherEdgeVert(l->e, v)->co, v->co);
+
+		if (l2 != l1) {
+			l = BM_OtherFaceLoop(l2->e, l2->f, v);
+			sub_v3_v3v3(vec2, BM_OtherEdgeVert(l->e, v)->co, v->co);
+		} else {
+			l2 = NULL;
+		}
 
 		/*iterate over the loop*/
 		first = v;
+		j = 0;
 		do {
 			TransDataSlideVert *sv = tempsv + j;
 
 			sv->v = v;
 			sv->origvert = *v;
+			VECCOPY(sv->upvec, vec);
+			if (l2)
+				VECCOPY(sv->downvec, vec2);
 
+			l = BM_OtherFaceLoop(l1->e, l1->f, v);
+			sv->up = BM_OtherEdgeVert(l->e, v);
+
+			if (l2) {
+				l = BM_OtherFaceLoop(l2->e, l2->f, v);
+				sv->down = BM_OtherEdgeVert(l->e, v);
+			}
+
+			v2=v, v = BM_OtherEdgeVert(e, v);
+
+			e1 = e;
 			e = get_other_edge(bm, v, e);
 			if (!e) {
-				e = v->edge;
+				sv = tempsv + j + 1;
+				sv->v = v;
+				sv->origvert = *v;
+				
+				l = BM_OtherFaceLoop(l1->e, l1->f, v);
+				sv->up = BM_OtherEdgeVert(l->e, v);
+
+				if (l2) {
+					l = BM_OtherFaceLoop(l2->e, l2->f, v);
+					sv->down = BM_OtherEdgeVert(l->e, v);
+				}
+
+				BMINDEX_SET(v, 0);
+				BMINDEX_SET(v2, 0);
+
+				j += 2;
 				break;
 			}
 
-			v = BM_OtherEdgeVert(e, v);
-			j += 1
-		} while (e != v->edge);
+			l1 = get_next_loop(bm, v, l1, e1, e, vec);
+			l2 = l2 ? get_next_loop(bm, v, l2, e1, e, vec2) : NULL;
+
+			j += 1;
+
+			BMINDEX_SET(v, 0);
+			BMINDEX_SET(v2, 0);
+		} while (e != first->edge && l1);
 	}
 
-	MEM_freeN(tempsv);
+	//EDBM_clear_flag_all(em, BM_SELECT);
+
+	sld->sv = tempsv;
+	sld->totsv = j;
+	
+	sld->start[0] = t->mval[0] - 40;
+	sld->start[1] = t->mval[1];
+
+	sld->end[0] = t->mval[0] + 40;
+	sld->end[1] = t->mval[1];
+	
+	t->customData = sld;
+
+	return 1;
 #endif
 #if 0
 	Mesh *me = t->obedit->data;
@@ -4632,6 +4727,25 @@ void initEdgeSlide(TransInfo *t)
 
 int doEdgeSlide(TransInfo *t, float perc)
 {
+	SlideData *sld = t->customData;
+	TransDataSlideVert *svlist = sld->sv, *sv;
+	float vec[3];
+	int i;
+
+	sv = svlist;
+	for (i=0; i<sld->totsv; i++, sv++) {
+		if (perc > 0.0f) {
+			VECCOPY(vec, sv->upvec);
+			mul_v3_fl(vec, perc);
+			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
+		} else {
+			VECCOPY(vec, sv->downvec);
+			mul_v3_fl(vec, perc);
+			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
+		}
+	}
+
+	return 1;
 #if 0
 	Mesh *me= t->obedit->data;
 	EditMesh *em = me->edit_mesh;
@@ -4738,8 +4852,9 @@ int doEdgeSlide(TransInfo *t, float perc)
 		}
 
 	}
-#endif
+
 	return 1;
+#endif
 }
 
 int EdgeSlide(TransInfo *t, short mval[2])
