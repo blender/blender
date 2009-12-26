@@ -170,6 +170,12 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 	PARTICLE_P;
 	int totpart, totsaved = 0;
 
+	if(psys->edit && psys->free_edit) {
+		psys->free_edit(psys->edit);
+		psys->edit = NULL;
+		psys->free_edit = NULL;
+	}
+
 	if(new_totpart<0) {
 		if(part->distr==PART_DISTR_GRID  && part->from != PART_FROM_VERT) {
 			totpart= part->grid_res;
