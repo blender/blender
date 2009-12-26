@@ -34,6 +34,7 @@ Generate html docs  by running...
 # GLOBALS['BASEDIR'] = './source/blender/python/doc'
 
 import os
+import inspect
 import bpy
 import rna_info
 reload(rna_info)
@@ -51,48 +52,6 @@ def write_indented_lines(ident, fn, text):
         return
     for l in text.split("\n"):
         fn(ident + l.strip() + "\n")
-
-
-def py_function_args(func):
-    """Get the python functions args with keyword defaults where possible."""
-    text = ""
-    code = func.__code__
-    
-    defaults = func.__defaults__
-    if defaults is None:
-        defaults = []
-    else:
-        defaults = list(defaults)
-    
-    names = code.co_varnames
-    if names is None:
-        names = []
-    else:
-        names = list(names)
-    
-    INVALID = py_function_args
-    defaults = ([INVALID] * (len(names) - len(defaults))) + defaults
-    
-    if names[0] in ("self", "cls"): # normal class function or classmethod
-        del names[0]
-        del defaults[0]
-    
-    for var, default in zip(names, defaults):
-        if default is INVALID:
-            text += var
-        else:
-            if type(default) == str:
-                text += "%s=\"%s\"" % (var, default)
-            elif type(default) == float:
-                text += rna_info.float_as_string(default)
-            else:            
-                text += "%s=%s" % (var, repr(default))
-            
-        if not var == names[-1]:
-            text += ", "
-    
-    return text
-    
 
 def rna2sphinx(BASEPATH):
 
@@ -139,41 +98,18 @@ def rna2sphinx(BASEPATH):
         fw(".. module:: bpy.types\n\n")
         file.close()
 
-
-    def write_property(ident, fw, prop, as_arg=False):
-
-        if prop.description:
-            fw(ident + "   %s\n\n" % prop.description)
-
-        if prop.fixed_type is None:
-            fw(ident + "   *type* %s " % prop.type)
-            if prop.array_length:
-                fw("array of %d items " % (prop.array_length))
-
-            if prop.type in ("float", "int"):
-                fw("in [%s, %s]" % (range_str(prop.min), range_str(prop.max)))
-            elif prop.type == "enum":
-                fw("in [%s]" % ', '.join(["`" + s + "`" for s in prop.enum_items]))
+    def write_param(ident, fw, prop, is_return=False):
+        if is_return:
+            id_name = "return"
+            id_type = "rtype"
         else:
-            if prop.type == "collection":
-                if prop.collection_type:
-                    collection_str = ":class:`%s` collection of " % prop.collection_type.identifier
-                else:
-                    collection_str = "Collection of "
-            else:
-                collection_str = " "
+            id_name = "arg"
+            id_type = "type"
 
-            fw(ident + "   *type* %s:class:`%s`" % (collection_str, prop.fixed_type.identifier))
-        
-        if not as_arg: # readonly is only useful for props, not args
-            if prop.is_readonly:
-                fw(", (readonly)")
-
-        if prop.is_never_none:
-            fw(", (never None)")
-        
-        fw("\n\n")
-
+        type_descr = prop.get_type_description(as_arg=True, class_fmt=":class:`%s`")
+        if prop.name or prop.description:
+            fw(ident + "   :%s %s: %s\n" % (id_name, prop.identifier, ", ".join([val for val in (prop.name, prop.description) if val])))
+        fw(ident + "   :%s %s: %s\n" % (id_type, prop.identifier, type_descr))
 
     def write_struct(struct):
         #if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
@@ -222,7 +158,10 @@ def rna2sphinx(BASEPATH):
 
         for prop in struct.properties:
             fw("   .. attribute:: %s\n\n" % prop.identifier)
-            write_property("   ", fw, prop)
+            if prop.description:
+                fw("      %s\n\n" % prop.description)
+            type_descr = prop.get_type_description(as_arg=False, class_fmt=":class:`%s`")
+            fw("      *type* %s\n\n" % type_descr)
         
         # python attributes
         py_properties = struct.get_py_properties()
@@ -241,13 +180,11 @@ def rna2sphinx(BASEPATH):
             fw("      %s\n\n" % func.description)
             
             for prop in func.args:
-                fw("      * %s: %s\n" % (prop.identifier, prop.name))
-                write_property("      ", fw, prop, as_arg=True)
-                
+                write_param("      ", fw, prop)
+
             if func.return_value:
-                prop = func.return_value
-                fw("      Returns %s: %s\n" % (prop.identifier, prop.name))
-                write_property("      ", fw, prop, as_arg=True)
+                write_param("      ", fw, func.return_value, is_return=True)
+            fw("\n")
 
 
         # python methods
@@ -255,7 +192,7 @@ def rna2sphinx(BASEPATH):
         py_func = None
         
         for identifier, py_func in py_funcs:
-            fw("   .. method:: %s(%s)\n\n" % (identifier, py_function_args(py_func)))
+            fw("   .. method:: %s%s\n\n" % (identifier, inspect.formatargspec(*inspect.getargspec(py_func))))
             write_indented_lines("      ", fw, py_func.__doc__)
         del py_funcs, py_func
 
@@ -296,11 +233,13 @@ def rna2sphinx(BASEPATH):
             
             args_str = ", ".join([prop.get_arg_default(force=True) for prop in op.args])
             fw(".. function:: %s(%s)\n\n" % (op.func_name, args_str))
-            fw("   %s\n\n" % op.description)
+            if op.description:
+                fw("   %s\n\n" % op.description)
             for prop in op.args:
-                fw("      * %s: %s\n" % (prop.identifier, prop.name))
-                write_property("      ", fw, prop, as_arg=True)
-            
+                write_param("      ", fw, prop)
+            if op.args:
+                fw("\n")
+
             location = op.get_location()
             if location != (None, None):
                 fw("   *python operator source --- `%s:%d`* \n\n" % location)

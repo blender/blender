@@ -201,6 +201,40 @@ class InfoPropertyRNA:
             return "%s=%s" % (self.identifier, default)
         return self.identifier
 
+    def get_type_description(self, as_arg=False, class_fmt="%s"):
+        type_str = ""
+        if self.fixed_type is None:
+            type_str += self.type
+            if self.array_length:
+                type_str += " array of %d items" % (self.array_length)
+
+            if self.type in ("float", "int"):
+                type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
+            elif self.type == "enum":
+                type_str += " in [%s]" % ', '.join([("'%s'" % s) for s in self.enum_items])
+        else:
+            if self.type == "collection":
+                if self.collection_type:
+                    collection_str = (class_fmt % self.collection_type.identifier) + " collection of "
+                else:
+                    collection_str = "Collection of "
+            else:
+                collection_str = ""
+
+            type_str += collection_str + (class_fmt % self.fixed_type.identifier)
+
+        if as_arg:
+            if not self.is_required:
+                type_str += ", (optional)"
+        else: # readonly is only useful for selfs, not args
+            if self.is_readonly:
+                type_str += ", (readonly)"
+
+        if self.is_never_none:
+            type_str += ", (never None)"
+        
+        return type_str
+
     def __repr__(self):
         txt = ''
         txt += ' * ' + self.identifier + ': ' + self.description
