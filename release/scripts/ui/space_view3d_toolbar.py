@@ -840,7 +840,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         sub = col.column()
         row = sub.row()
         row.active = (settings.tool == 'CLONE')
-        
+
         row.prop(ipaint, "use_clone_layer", text="Clone")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
 
@@ -856,7 +856,6 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
                 prop = layout.operator("wm.context_set_int", text=tex.name)
                 prop.path = "active_object.data.uv_texture_clone_index"
                 prop.value = i
-
 
     class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
         bl_label = "Mask Layer"

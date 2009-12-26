@@ -158,18 +158,17 @@ class VertexPaintDirt(bpy.types.Operator):
     dirt_only = BoolProperty(name="Dirt Only", description="Dont calculate cleans for convex areas", default=False)
 
     def execute(self, context):
-        sce = context.scene
-        ob = context.object
+        obj = context.object
 
-        if not ob or ob.type != 'MESH':
+        if not obj or obj.type != 'MESH':
             print('Error, no active mesh object, aborting.')
             return('CANCELLED',)
 
-        me = ob.data
+        mesh = obj.data
 
         t = time.time()
 
-        applyVertexDirt(me, self.properties.blur_iterations, self.properties.blur_strength, math.radians(self.properties.dirt_angle), math.radians(self.properties.clean_angle), self.properties.dirt_only)
+        applyVertexDirt(mesh, self.properties.blur_iterations, self.properties.blur_strength, math.radians(self.properties.dirt_angle), math.radians(self.properties.clean_angle), self.properties.dirt_only)
 
         print('Dirt calculated in %.6f' % (time.time() - t))
 

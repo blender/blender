@@ -180,7 +180,7 @@ def write(filename, scene, ob, \
                 normal_key = rvec3d(normal)
 
             if faceUV:
-                uvcoord = uv[j][0], 1.0-uv[j][1]
+                uvcoord = uv[j][0], 1.0 - uv[j][1]
                 uvcoord_key = rvec2d(uvcoord)
             elif vertexUV:
                 uvcoord = v.uvco[0], 1.0 - v.uvco[1]
@@ -246,7 +246,7 @@ def write(filename, scene, ob, \
         file.write('\n')
 
     for pf in ply_faces:
-        if len(pf)==3:
+        if len(pf) == 3:
             file.write('3 %d %d %d\n' % tuple(pf))
         else:
             file.write('4 %d %d %d %d\n' % tuple(pf))
@@ -317,6 +317,7 @@ class ExportPLY(bpy.types.Operator):
 
 
 bpy.types.register(ExportPLY)
+
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".ply")

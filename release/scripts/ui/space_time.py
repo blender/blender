@@ -102,6 +102,7 @@ class TIME_MT_view(bpy.types.Menu):
 
         layout.operator("marker.camera_bind")
 
+
 class TIME_MT_frame(bpy.types.Menu):
     bl_label = "Frame"
 

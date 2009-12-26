@@ -1109,6 +1109,8 @@ def main(context, island_margin, projection_limit):
 """
 
 from bpy.props import *
+
+
 class SmartProject(bpy.types.Operator):
     '''This script projection unwraps the selected faces of a mesh. it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces.'''
     bl_idname = "uv.smart_project"

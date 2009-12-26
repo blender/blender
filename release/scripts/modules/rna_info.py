@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 # classes for extracting info from blenders internal classes
 
 import bpy
@@ -23,13 +25,17 @@ import bpy
 # use to strip python paths
 script_paths = bpy.utils.script_paths()
 
+
 def range_str(val):
-    if val < -10000000:	return '-inf'
-    if val >  10000000:	return 'inf'
-    if type(val)==float:
-        return '%g'  % val
+    if val < -10000000:
+        return '-inf'
+    elif val > 10000000:
+        return 'inf'
+    elif type(val) == float:
+        return '%g' % val
     else:
         return str(val)
+
 
 def float_as_string(f):
     val_str = "%g" % f
@@ -37,8 +43,10 @@ def float_as_string(f):
         val_str += '.0'
     return val_str
 
+
 class InfoStructRNA:
     global_lookup = {}
+
     def __init__(self, rna_type):
         self.bl_rna = rna_type
 
@@ -65,15 +73,15 @@ class InfoStructRNA:
     def get_bases(self):
         bases = []
         item = self
-        
+
         while item:
             item = item.base
             if item:
                 bases.append(item)
-        
+
         return bases
 
-    def get_nested_properties(self, ls = None):
+    def get_nested_properties(self, ls=None):
         if not ls:
             ls = self.properties[:]
 
@@ -87,10 +95,9 @@ class InfoStructRNA:
         py_class = getattr(bpy.types, self.identifier)
         for attr_str in dir(py_class):
             if attr_str.startswith("_"):
-                continue                
+                continue
             attrs.append((attr_str, getattr(py_class, attr_str)))
         return attrs
-        
 
     def get_py_properties(self):
         properties = []
@@ -98,7 +105,7 @@ class InfoStructRNA:
             if type(attr) is property:
                 properties.append((identifier, attr))
         return properties
-    
+
     def get_py_functions(self):
         import types
         functions = []
@@ -106,7 +113,7 @@ class InfoStructRNA:
             if type(attr) is types.FunctionType:
                 functions.append((identifier, attr))
         return functions
-    
+
     def __repr__(self):
 
         txt = ''
@@ -126,6 +133,7 @@ class InfoStructRNA:
 
 class InfoPropertyRNA:
     global_lookup = {}
+
     def __init__(self, rna_prop):
         self.bl_prop = rna_prop
         self.identifier = rna_prop.identifier
@@ -151,7 +159,7 @@ class InfoPropertyRNA:
             self.fixed_type = GetInfoStructRNA(fixed_type) # valid for pointer/collections
         else:
             self.fixed_type = None
-            
+
         if self.type == "enum":
             self.enum_items[:] = rna_prop.items.keys()
 
@@ -172,35 +180,37 @@ class InfoPropertyRNA:
                 self.default_str = str(self.default)
 
         self.srna = GetInfoStructRNA(rna_prop.srna) # valid for pointer/collections
-    
+
     def get_default_string(self):
         # pointer has no default, just set as None
         if self.type == "pointer":
-           return "None"
+            return "None"
         elif self.type == "string":
-           return '"' + self.default_str + '"'
+            return '"' + self.default_str + '"'
         elif self.type == "enum":
             if self.default_str:
-               return "'" + self.default_str + "'"
+                return "'" + self.default_str + "'"
             else:
                 return ""
 
         return self.default_str
-    
+
     def get_arg_default(self, force=True):
         default = self.get_default_string()
         if default and (force or self.is_required == False):
             return "%s=%s" % (self.identifier, default)
         return self.identifier
-    
+
     def __repr__(self):
         txt = ''
         txt += ' * ' + self.identifier + ': ' + self.description
 
         return txt
 
+
 class InfoFunctionRNA:
     global_lookup = {}
+
     def __init__(self, rna_func):
         self.bl_func = rna_func
         self.identifier = rna_func.identifier
@@ -213,8 +223,8 @@ class InfoFunctionRNA:
     def build(self):
         rna_func = self.bl_func
         parent_id = rna_func
-        
-        for rna_id, rna_prop in rna_func.parameters.items():
+
+        for rna_prop in rna_func.parameters.values():
             prop = GetInfoPropertyRNA(rna_prop, parent_id)
             if rna_prop.use_return:
                 self.return_value = prop
@@ -233,14 +243,15 @@ class InfoFunctionRNA:
 
 class InfoOperatorRNA:
     global_lookup = {}
+
     def __init__(self, rna_op):
         self.bl_op = rna_op
         self.identifier = rna_op.identifier
-        
+
         mod, name = self.identifier.split("_OT_", 1)
         self.module_name = mod.lower()
         self.func_name = name
-        
+
         # self.name = rna_func.name # functions have no name!
         self.description = rna_op.description.strip()
 
@@ -252,7 +263,7 @@ class InfoOperatorRNA:
         for rna_id, rna_prop in rna_op.properties.items():
             if rna_id == "rna_type":
                 continue
-            
+
             prop = GetInfoPropertyRNA(rna_prop, parent_id)
             self.args.append(prop)
 
@@ -271,24 +282,14 @@ class InfoOperatorRNA:
             # clear the prefix
             for p in script_paths:
                 source_path = source_path.split(p)[-1]
-            
+
             if source_path[0] in "/\\":
-                source_path= source_path[1:]
-            
+                source_path = source_path[1:]
+
             return source_path, op_code.co_firstlineno
         else:
             return None, None
 
-'''
-    def __repr__(self):
-        txt = ''
-        txt += ' * ' + self.identifier + '('
-
-        for arg in self.args:
-            txt += arg.identifier + ', '
-        txt += '): ' + self.description
-        return txt
-'''
 
 def _GetInfoRNA(bl_rna, cls, parent_id=''):
 
@@ -306,23 +307,27 @@ def _GetInfoRNA(bl_rna, cls, parent_id=''):
 def GetInfoStructRNA(bl_rna):
     return _GetInfoRNA(bl_rna, InfoStructRNA)
 
+
 def GetInfoPropertyRNA(bl_rna, parent_id):
     return _GetInfoRNA(bl_rna, InfoPropertyRNA, parent_id)
+
 
 def GetInfoFunctionRNA(bl_rna, parent_id):
     return _GetInfoRNA(bl_rna, InfoFunctionRNA, parent_id)
 
+
 def GetInfoOperatorRNA(bl_rna):
     return _GetInfoRNA(bl_rna, InfoOperatorRNA)
+
 
 def BuildRNAInfo():
     # Use for faster lookups
     # use rna_struct.identifier as the key for each dict
-    rna_struct_dict =		{}  # store identifier:rna lookups
-    rna_full_path_dict =	{}	# store the result of full_rna_struct_path(rna_struct)
-    rna_children_dict =		{}	# store all rna_structs nested from here
-    rna_references_dict =	{}	# store a list of rna path strings that reference this type
-    rna_functions_dict =	{}	# store all functions directly in this type (not inherited)
+    rna_struct_dict = {}  # store identifier:rna lookups
+    rna_full_path_dict = {}	# store the result of full_rna_struct_path(rna_struct)
+    rna_children_dict = {}	# store all rna_structs nested from here
+    rna_references_dict = {}	# store a list of rna path strings that reference this type
+    rna_functions_dict = {}	# store all functions directly in this type (not inherited)
     rna_words = set()
 
     def rna_id_ignore(rna_id):
@@ -351,8 +356,10 @@ def BuildRNAInfo():
 
     # def write_func(rna_func, ident):
     def base_id(rna_struct):
-        try:		return rna_struct.base.identifier
-        except:	return '' # invalid id
+        try:
+            return rna_struct.base.identifier
+        except:
+            return "" # invalid id
 
     #structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpy.doc.structs.values()]
     '''
@@ -364,8 +371,7 @@ def BuildRNAInfo():
     for rna_type_name in dir(bpy.types):
         rna_type = getattr(bpy.types, rna_type_name)
 
-        try:		rna_struct = rna_type.bl_rna
-        except:	rna_struct = None
+        rna_struct = getattr(rna_type, "bl_rna", None)
 
         if rna_struct:
             #if not rna_type_name.startswith('__'):
@@ -373,7 +379,7 @@ def BuildRNAInfo():
             identifier = rna_struct.identifier
 
             if not rna_id_ignore(identifier):
-                structs.append( (base_id(rna_struct), identifier, rna_struct) )
+                structs.append((base_id(rna_struct), identifier, rna_struct))
 
                 # Simple lookup
                 rna_struct_dict[identifier] = rna_struct
@@ -382,12 +388,12 @@ def BuildRNAInfo():
                 rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
 
                 # Store a list of functions, remove inherited later
-                rna_functions_dict[identifier]= list(rna_struct.functions)
+                rna_functions_dict[identifier] = list(rna_struct.functions)
 
 
                 # fill in these later
-                rna_children_dict[identifier]= []
-                rna_references_dict[identifier]= []
+                rna_children_dict[identifier] = []
+                rna_references_dict[identifier] = []
 
 
         else:
@@ -417,11 +423,11 @@ def BuildRNAInfo():
                 data = structs.pop(i)
                 ok = False
                 while i < len(structs):
-                    if structs[i][1]==rna_base:
-                        structs.insert(i+1, data) # insert after the item we depend on.
+                    if structs[i][1] == rna_base:
+                        structs.insert(i + 1, data) # insert after the item we depend on.
                         ok = True
                         break
-                    i+=1
+                    i += 1
 
                 if not ok:
                     print('Dependancy "%s" could not be found for "%s"' % (identifier, rna_base))
@@ -439,37 +445,40 @@ def BuildRNAInfo():
             rna_base_func_keys = [f.identifier for f in rna_struct_dict[rna_base].functions]
         else:
             rna_base_prop_keys = []
-            rna_base_func_keys= []
+            rna_base_func_keys = []
 
         # rna_struct_path = full_rna_struct_path(rna_struct)
         rna_struct_path = rna_full_path_dict[identifier]
 
         for rna_prop_identifier, rna_prop in rna_struct.properties.items():
 
-            if rna_prop_identifier=='RNA':					continue
-            if rna_id_ignore(rna_prop_identifier):			continue
-            if rna_prop_identifier in rna_base_prop_keys:	continue
+            if rna_prop_identifier == 'RNA' or \
+                    rna_id_ignore(rna_prop_identifier) or \
+                    rna_prop_identifier in rna_base_prop_keys:
+                continue
 
 
             for rna_prop_ptr in (getattr(rna_prop, "fixed_type", None), getattr(rna_prop, "srna", None)):
                 # Does this property point to me?
                 if rna_prop_ptr:
-                    rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_prop_identifier) )
+                    rna_references_dict[rna_prop_ptr.identifier].append("%s.%s" % (rna_struct_path, rna_prop_identifier))
 
         for rna_func in rna_struct.functions:
             for rna_prop_identifier, rna_prop in rna_func.parameters.items():
 
-                if rna_prop_identifier=='RNA':					continue
-                if rna_id_ignore(rna_prop_identifier):			continue
-                if rna_prop_identifier in rna_base_func_keys:	continue
+                if rna_prop_identifier == 'RNA' or \
+                        rna_id_ignore(rna_prop_identifier) or \
+                        rna_prop_identifier in rna_base_func_keys:
+                    continue
 
-
-                try:		rna_prop_ptr = rna_prop.fixed_type
-                except:	rna_prop_ptr = None
+                try:
+                    rna_prop_ptr = rna_prop.fixed_type
+                except:
+                    rna_prop_ptr = None
 
                 # Does this property point to me?
                 if rna_prop_ptr:
-                    rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_func.identifier) )
+                    rna_references_dict[rna_prop_ptr.identifier].append("%s.%s" % (rna_struct_path, rna_func.identifier))
 
 
         # Store nested children
@@ -479,11 +488,11 @@ def BuildRNAInfo():
 
 
         if rna_base:
-            rna_funcs =			rna_functions_dict[identifier]
+            rna_funcs = rna_functions_dict[identifier]
             if rna_funcs:
                 # Remove inherited functions if we have any
-                rna_base_funcs =	rna_functions_dict__copy[rna_base]
-                rna_funcs[:] =		[f for f in rna_funcs if f not in rna_base_funcs]
+                rna_base_funcs = rna_functions_dict__copy[rna_base]
+                rna_funcs[:] = [f for f in rna_funcs if f not in rna_base_funcs]
 
     rna_functions_dict__copy.clear()
     del rna_functions_dict__copy
@@ -499,7 +508,7 @@ def BuildRNAInfo():
         #    continue
 
         #write_struct(rna_struct, '')
-        info_struct= GetInfoStructRNA(rna_struct)
+        info_struct = GetInfoStructRNA(rna_struct)
         if rna_base:
             info_struct.base = GetInfoStructRNA(rna_struct_dict[rna_base])
         info_struct.nested = GetInfoStructRNA(rna_struct.nested)
@@ -525,7 +534,7 @@ def BuildRNAInfo():
                 prop.build()
             if func.return_value:
                 func.return_value.build()
-                
+
     # now for operators
     op_mods = dir(bpy.ops)
 
@@ -551,9 +560,8 @@ def BuildRNAInfo():
         for rna_prop in rna_info.args:
             rna_prop.build()
 
-    
+
     #for rna_info in InfoStructRNA.global_lookup.values():
     #    print(rna_info)
 
     return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoOperatorRNA.global_lookup, InfoPropertyRNA.global_lookup
-

@@ -265,10 +265,10 @@ class Mesh(bpy_types.ID):
         optionaly, seams are edge keys that will be removed
         """
 
-        OTHER_INDEX = 2,3,0,1 # opposite face index
+        OTHER_INDEX = 2, 3, 0, 1 # opposite face index
 
         if faces is None:
-            faces= self.faces
+            faces = self.faces
 
         edges = {}
 
@@ -286,7 +286,7 @@ class Mesh(bpy_types.ID):
         edge_loops = []
 
         for edkey, ed_adj in edges.items():
-            if 0 <len(ed_adj) < 3: # 1 or 2
+            if 0 < len(ed_adj) < 3: # 1 or 2
                 # Seek the first edge
                 context_loop = [edkey, ed_adj[0]]
                 edge_loops.append(context_loop)
@@ -304,7 +304,7 @@ class Mesh(bpy_types.ID):
                     ed_adj = edges[context_loop[-1]]
                     if len(ed_adj) != 2:
 
-                        if other_dir and flipped==False: # the original edge had 2 other edges
+                        if other_dir and flipped == False: # the original edge had 2 other edges
                             flipped = True # only flip the list once
                             context_loop.reverse()
                             ed_adj[:] = []
@@ -319,7 +319,7 @@ class Mesh(bpy_types.ID):
                             break
 
                     i = ed_adj.index(context_loop[-2])
-                    context_loop.append( ed_adj[ not  i] )
+                    context_loop.append(ed_adj[not  i])
 
                     # Dont look at this again
                     ed_adj[:] = []
@@ -379,21 +379,22 @@ class Macro(StructRNA, metaclass=OrderedMeta):
 
 class Menu(StructRNA):
     __slots__ = ()
-    
+
     @classmethod
     def _dyn_menu_initialize(cls):
         draw_funcs = getattr(cls.draw, "_draw_funcs", None)
 
         if draw_funcs is None:
+
             def draw_ls(*args):
                 for func in draw_ls._draw_funcs:
                     func(*args)
-    
+
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls
-        
+
         return draw_funcs
-    
+
     @classmethod
     def append(cls, draw_func):
         """Prepend an draw function to this menu, takes the same arguments as the menus draw function."""
@@ -436,4 +437,3 @@ class Menu(StructRNA):
         """
         import bpy
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir), self.preset_operator)
-

@@ -3361,7 +3361,7 @@ class ExportFBX(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= "")
+    path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default="")
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
@@ -3387,7 +3387,7 @@ class ExportFBX(bpy.types.Operator):
     BATCH_ENABLE = BoolProperty(name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False)
     BATCH_GROUP = BoolProperty(name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False)
     BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
-    BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen= 1024, default="")
+    BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen=1024, default="")
 
 
     def poll(self, context):
@@ -3467,4 +3467,3 @@ def menu_func(self, context):
     self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX...").path = default_path
 
 menu_item = bpy.types.INFO_MT_file_export.append(menu_func)
-

@@ -17,37 +17,40 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
+
+# <pep8 compliant>
 
 # History
 #
 # Originally written by Matt Ebb
 
 import bpy
-import subprocess, os, platform
+import subprocess
+import os
+import platform
 
 # from BKE_add_image_extension()
 img_format_exts = {
-    'IRIS':'.rgb',
-    'RADHDR':'.hdr',
-    'PNG':'png',
-    'TARGA':'tga',
-    'RAWTARGA':'tga',
-    'BMP':'bmp',
-    'TIFF':'tif',
-    'OPENEXR':'exr',
-    'MULTILAYER':'exr',
-    'CINEON':'cin',
-    'DPX':'dpx',
-    'JPEG':'jpg',
-    'JPEG2000':'jp2',
-    'QUICKTIME_QTKIT':'mov',
-    'QUICKTIME_CARBON':'mov',
-    'AVIRAW':'avi',
-    'AVIJPEG':'avi',
-    'AVICODEC':'avi',
-    'XVID':'avi',
-    'THEORA':'ogg',
+    'IRIS': '.rgb',
+    'RADHDR': '.hdr',
+    'PNG': 'png',
+    'TARGA': 'tga',
+    'RAWTARGA': 'tga',
+    'BMP': 'bmp',
+    'TIFF': 'tif',
+    'OPENEXR': 'exr',
+    'MULTILAYER': 'exr',
+    'CINEON': 'cin',
+    'DPX': 'dpx',
+    'JPEG': 'jpg',
+    'JPEG2000': 'jp2',
+    'QUICKTIME_QTKIT': 'mov',
+    'QUICKTIME_CARBON': 'mov',
+    'AVIRAW': 'avi',
+    'AVIJPEG': 'avi',
+    'AVICODEC': 'avi',
+    'XVID': 'avi',
+    'THEORA': 'ogg',
     }
 
 movie_formats = ('QUICKTIME_QTKIT',
@@ -56,8 +59,8 @@ movie_formats = ('QUICKTIME_QTKIT',
                 'AVIJPEG',
                 'AVICODEC',
                 'XVID',
-                'THEORA'
-                )
+                'THEORA')
+
 
 def guess_player_path(preset):
     if preset == 'BLENDER24':
