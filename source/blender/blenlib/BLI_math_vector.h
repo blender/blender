@@ -51,8 +51,8 @@ extern "C" {
 MINLINE void zero_v2(float r[2]);
 MINLINE void zero_v3(float r[3]);
 
-MINLINE void copy_v2_v2(float r[2], float a[2]);
-MINLINE void copy_v3_v3(float r[3], float a[3]);
+MINLINE void copy_v2_v2(float r[2], const float a[2]);
+MINLINE void copy_v3_v3(float r[3], const float a[3]);
 
 MINLINE void swap_v2_v2(float a[2], float b[2]);
 MINLINE void swap_v3_v3(float a[3], float b[3]);
@@ -67,7 +67,7 @@ MINLINE void add_v3_v3v3(float r[3], float a[3], float b[3]);
 MINLINE void sub_v2_v2(float r[2], float a[2]);
 MINLINE void sub_v2_v2v2(float r[2], float a[2], float b[2]);
 MINLINE void sub_v3_v3(float r[3], float a[3]);
-MINLINE void sub_v3_v3v3(float r[3], float a[3], float b[3]);
+MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
 MINLINE void mul_v2_fl(float r[2], float f);
 MINLINE void mul_v3_fl(float r[3], float f);
@@ -87,7 +87,7 @@ MINLINE float dot_v2v2(float a[2], float b[2]);
 MINLINE float dot_v3v3(float a[3], float b[3]);
 
 MINLINE float cross_v2v2(float a[2], float b[2]);
-MINLINE void cross_v3_v3v3(float r[3], float a[3], float b[3]);
+MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
 MINLINE void star_m3_v3(float R[3][3],float a[3]);
 
@@ -103,11 +103,11 @@ MINLINE float normalize_v3(float r[3]);
 
 /******************************* Interpolation *******************************/
 
-void interp_v2_v2v2(float r[2], float a[2], float b[2], float t);
-void interp_v2_v2v2v2(float r[2], float a[2], float b[2], float c[3], float t[3]);
-void interp_v3_v3v3(float r[3], float a[3], float b[3], float t);
-void interp_v3_v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float w[3]);
-void interp_v3_v3v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float v4[3], float w[4]);
+void interp_v2_v2v2(float r[2], const float a[2], const float b[2], const float t);
+void interp_v2_v2v2v2(float r[2], const float a[2], const float b[2], const float c[3], const float t[3]);
+void interp_v3_v3v3(float r[3], const float a[3], const float b[3], const float t);
+void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]);
+void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float w[4]);
 
 void mid_v3_v3v3(float r[3], float a[3], float b[3]);
 
@@ -130,7 +130,7 @@ float angle_v2v2v2(float a[2], float b[2], float c[2]);
 float angle_normalized_v2v2(float a[2], float b[2]);
 float angle_v3v3(float a[2], float b[2]);
 float angle_v3v3v3(float a[2], float b[2], float c[2]);
-float angle_normalized_v3v3(float a[3], float b[3]);
+float angle_normalized_v3v3(const float v1[3], const float v2[3]);
 void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3]);
 void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 

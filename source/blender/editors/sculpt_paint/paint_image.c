@@ -464,40 +464,14 @@ static int project_bucket_offset_safe(const ProjPaintState *ps, const float proj
 
 #define SIDE_OF_LINE(pa, pb, pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 
-static float AreaSignedF2Dfl(float *v1, float *v2, float *v3)
-{
-   return (float)(0.5f*((v1[0]-v2[0])*(v2[1]-v3[1]) +
-(v1[1]-v2[1])*(v3[0]-v2[0])));
-}
-
-static void BarycentricWeights2f(float pt[2], float v1[2], float v2[2], float v3[2], float w[3])
-{
-   float wtot_inv, wtot;
-
-   w[0] = AreaSignedF2Dfl(v2, v3, pt);
-   w[1] = AreaSignedF2Dfl(v3, v1, pt);
-   w[2] = AreaSignedF2Dfl(v1, v2, pt);
-   wtot = w[0]+w[1]+w[2];
-
-   if (wtot != 0.0f) {
-       wtot_inv = 1.0f/wtot;
-
-       w[0] = w[0]*wtot_inv;
-       w[1] = w[1]*wtot_inv;
-       w[2] = w[2]*wtot_inv;
-   }
-   else /* dummy values for zero area face */
-       w[0] = w[1] = w[2] = 1.0f/3.0f;
-}
-
 /* still use 2D X,Y space but this works for verts transformed by a perspective matrix, using their 4th component as a weight */
-static void BarycentricWeightsPersp2f(float pt[2], float v1[4], float v2[4], float v3[4], float w[3])
+static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], float co[2], float w[3])
 {
    float wtot_inv, wtot;
 
-   w[0] = AreaSignedF2Dfl(v2, v3, pt) / v1[3];
-   w[1] = AreaSignedF2Dfl(v3, v1, pt) / v2[3];
-   w[2] = AreaSignedF2Dfl(v1, v2, pt) / v3[3];
+   w[0] = area_tri_signed_v2(v2, v3, co) / v1[3];
+   w[1] = area_tri_signed_v2(v3, v1, co) / v2[3];
+   w[2] = area_tri_signed_v2(v1, v2, co) / v3[3];
    wtot = w[0]+w[1]+w[2];
 
    if (wtot != 0.0f) {
@@ -513,13 +487,13 @@ static void BarycentricWeightsPersp2f(float pt[2], float v1[4], float v2[4], flo
 
 static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
 {
-	BarycentricWeights2f(pt, v1, v2, v3, w);
+	barycentric_weights_v2(v1, v2, v3, pt, w);
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
 static float VecZDepthPersp(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
 {
-	BarycentricWeightsPersp2f(pt, v1, v2, v3, w);
+	barycentric_weights_v2_persp(v1, v2, v3, pt, w);
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
@@ -738,8 +712,8 @@ static int project_paint_occlude_ptv_clip(
 		return ret;
 
 	if (ret==1) { /* weights not calculated */
-		if (ps->is_ortho)	BarycentricWeights2f(pt, v1, v2, v3, w);
-		else				BarycentricWeightsPersp2f(pt, v1, v2, v3, w);
+		if (ps->is_ortho)	barycentric_weights_v2(v1, v2, v3, pt, w);
+		else				barycentric_weights_v2_persp(v1, v2, v3, pt, w);
 	}
 
 	/* Test if we're in the clipped area, */
@@ -1187,7 +1161,7 @@ static void screen_px_from_ortho(
 		float pixelScreenCo[4],
 		float w[3])
 {
-	BarycentricWeights2f(uv, uv1co, uv2co, uv3co, w);
+	barycentric_weights_v2(uv1co, uv2co, uv3co, uv, w);
 	interp_v3_v3v3v3(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
@@ -1202,7 +1176,7 @@ static void screen_px_from_persp(
 {
 
 	float wtot_inv, wtot;
-	BarycentricWeights2f(uv, uv1co, uv2co, uv3co, w);
+	barycentric_weights_v2(uv1co, uv2co, uv3co, uv, w);
 	
 	/* re-weight from the 4th coord of each screen vert */
 	w[0] *= v1co[3];
@@ -1774,26 +1748,26 @@ static void rect_to_uvspace_ortho(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
-	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
-	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
-/* same as above but use BarycentricWeightsPersp2f */
+/* same as above but use barycentric_weights_v2_persp */
 static void rect_to_uvspace_persp(
 		rctf *bucket_bounds,
 		float *v1coSS, float *v2coSS, float *v3coSS,
@@ -1808,22 +1782,22 @@ static void rect_to_uvspace_persp(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
-	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
-	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
@@ -2067,13 +2041,13 @@ static void project_bucket_clip_face(
 		
 		if (is_ortho) {
 			for(i=0; i<(*tot); i++) {
-				BarycentricWeights2f(isectVCosSS[i], v1coSS, v2coSS, v3coSS, w);
+				barycentric_weights_v2(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
 				interp_v2_v2v2v2(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
 		else {
 			for(i=0; i<(*tot); i++) {
-				BarycentricWeightsPersp2f(isectVCosSS[i], v1coSS, v2coSS, v3coSS, w);
+				barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
 				interp_v2_v2v2v2(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
@@ -2521,10 +2495,10 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 #if 0
 												/* This is not QUITE correct since UV is not inside the UV's but good enough for seams */
 												if (side) {
-													BarycentricWeights2f(uv, tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], w);
+													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
 												}
 												else {
-													BarycentricWeights2f(uv, tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], w);
+													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
 												}
 #endif
 #if 1

@@ -49,7 +49,7 @@ void cent_quad_v3(float *cent, float *v1, float *v2, float *v3, float *v4)
 	cent[2]= 0.25f*(v1[2]+v2[2]+v3[2]+v4[2]);
 }
 
-float normal_tri_v3(float *n, float *v1, float *v2, float *v3)
+float normal_tri_v3(float n[3], const float v1[3], const float v2[3], const float v3[3])
 {
 	float n1[3],n2[3];
 
@@ -65,7 +65,7 @@ float normal_tri_v3(float *n, float *v1, float *v2, float *v3)
 	return normalize_v3(n);
 }
 
-float normal_quad_v3(float *n, float *v1, float *v2, float *v3, float *v4)
+float normal_quad_v3(float n[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
 	/* real cross! */
 	float n1[3],n2[3];
@@ -85,13 +85,17 @@ float normal_quad_v3(float *n, float *v1, float *v2, float *v3, float *v4)
 	return normalize_v3(n);
 }
 
-float area_tri_v2(float *v1, float *v2, float *v3)
+float area_tri_v2(const float v1[2], const float v2[2], const float v3[2])
 {
-	return (float)(0.5*fabs((v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0])));
+	return (float)(0.5f*fabs((v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0])));
 }
 
+float area_tri_signed_v2(const float v1[2], const float v2[2], const float v3[2])
+{
+   return (float)(0.5f*((v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0])));
+}
 
-float area_quad_v3(float *v1, float *v2, float *v3,  float *v4)  /* only convex Quadrilaterals */
+float area_quad_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])  /* only convex Quadrilaterals */
 {
 	float len, vec1[3], vec2[3], n[3];
 
@@ -108,7 +112,7 @@ float area_quad_v3(float *v1, float *v2, float *v3,  float *v4)  /* only convex 
 	return (len/2.0f);
 }
 
-float area_tri_v3(float *v1, float *v2, float *v3)  /* Triangles */
+float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])  /* Triangles */
 {
 	float len, vec1[3], vec2[3], n[3];
 
@@ -1334,6 +1338,77 @@ void interp_weights_face_v3(float *w,float *v1, float *v2, float *v3, float *v4,
 	}
 }
 
+/* used by projection painting
+ * note: using area_tri_signed_v2 means locations outside the triangle are correctly weighted */
+void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
+{
+   float wtot_inv, wtot;
+
+   w[0] = area_tri_signed_v2(v2, v3, co);
+   w[1] = area_tri_signed_v2(v3, v1, co);
+   w[2] = area_tri_signed_v2(v1, v2, co);
+   wtot = w[0]+w[1]+w[2];
+
+   if (wtot != 0.0f) {
+       wtot_inv = 1.0f/wtot;
+
+       w[0] = w[0]*wtot_inv;
+       w[1] = w[1]*wtot_inv;
+       w[2] = w[2]*wtot_inv;
+   }
+   else /* dummy values for zero area face */
+       w[0] = w[1] = w[2] = 1.0f/3.0f;
+}
+
+/* given 2 triangles in 3D space, and a point in relation to the first triangle.
+ * calculate the location of a point in relation to the second triangle.
+ * Useful for finding relative positions with geometry */
+void barycentric_transform(float pt_tar[3], float const pt_src[3],
+		const float tri_tar_p1[3], const float tri_tar_p2[3], const float tri_tar_p3[3],
+		const float tri_src_p1[3], const float tri_src_p2[3], const float tri_src_p3[3])
+{
+	/* this works by moving the source triangle so its normal is pointing on the Z
+	 * axis where its barycentric wights can be calculated in 2D and its Z offset can
+	 *  be re-applied. The weights are applied directly to the targets 3D points and the
+	 *  z-depth is used to scale the targets normal as an offset.
+	 * This saves transforming the target into its Z-Up orientation and back (which could also work) */
+	const float z_up[3] = {0, 0, 1};
+	float no_tar[3], no_src[3];
+	float quat_src[4];
+	float pt_src_xy[3];
+	float  tri_xy_src[3][3];
+	float w_src[3];
+	float area_tar, area_src;
+	float z_ofs_src;
+
+	normal_tri_v3(no_tar, tri_tar_p1, tri_tar_p2, tri_tar_p3);
+	normal_tri_v3(no_src, tri_src_p1, tri_src_p2, tri_src_p3);
+
+	rotation_between_vecs_to_quat(quat_src, no_src, z_up);
+	normalize_qt(quat_src);
+
+	copy_v3_v3(pt_src_xy, pt_src);
+	copy_v3_v3(tri_xy_src[0], tri_src_p1);
+	copy_v3_v3(tri_xy_src[1], tri_src_p2);
+	copy_v3_v3(tri_xy_src[2], tri_src_p3);
+
+	/* make the source tri xy space */
+	mul_qt_v3(quat_src, pt_src_xy);
+	mul_qt_v3(quat_src, tri_xy_src[0]);
+	mul_qt_v3(quat_src, tri_xy_src[1]);
+	mul_qt_v3(quat_src, tri_xy_src[2]);
+
+	barycentric_weights_v2(tri_xy_src[0], tri_xy_src[1], tri_xy_src[2], pt_src_xy, w_src);
+	interp_v3_v3v3v3(pt_tar, tri_tar_p1, tri_tar_p2, tri_tar_p3, w_src);
+
+	area_tar= sqrtf(area_tri_v3(tri_tar_p1, tri_tar_p2, tri_tar_p3));
+	area_src= sqrtf(area_tri_v2(tri_xy_src[0], tri_xy_src[1], tri_xy_src[2]));
+
+	z_ofs_src= tri_xy_src[0][2] - pt_src_xy[2];
+	madd_v3_v3v3fl(pt_tar, pt_tar, no_tar, (z_ofs_src / area_src) * area_tar);
+}
+
+
 /* Mean value weights - smooth interpolation weights for polygons with
  * more than 3 vertices */
 static float mean_value_half_tan(float *v1, float *v2, float *v3)
@@ -1789,3 +1864,4 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 		}
 	}
 }
+

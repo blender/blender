@@ -34,7 +34,7 @@
 
 //******************************* Interpolation *******************************/
 
-void interp_v2_v2v2(float *target, float *a, float *b, float t)
+void interp_v2_v2v2(float *target, const float *a, const float *b, const float t)
 {
 	float s = 1.0f-t;
 
@@ -44,13 +44,13 @@ void interp_v2_v2v2(float *target, float *a, float *b, float t)
 
 /* weight 3 2D vectors,
  * 'w' must be unit length but is not a vector, just 3 weights */
-void interp_v2_v2v2v2(float p[2], float v1[2], float v2[2], float v3[2], float w[3])
+void interp_v2_v2v2v2(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
 }
 
-void interp_v3_v3v3(float *target, float *a, float *b, float t)
+void interp_v3_v3v3(float target[3], const float a[3], const float b[3], const float t)
 {
 	float s = 1.0f-t;
 
@@ -61,7 +61,7 @@ void interp_v3_v3v3(float *target, float *a, float *b, float t)
 
 /* weight 3 vectors,
  * 'w' must be unit length but is not a vector, just 3 weights */
-void interp_v3_v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float w[3])
+void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
@@ -70,7 +70,7 @@ void interp_v3_v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float w
 
 /* weight 3 vectors,
  * 'w' must be unit length but is not a vector, just 3 weights */
-void interp_v3_v3v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float v4[3], float w[4])
+void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float w[4])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2] + v4[0]*w[3];
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2] + v4[1]*w[3];
@@ -191,7 +191,7 @@ float angle_v2v2(float *v1, float *v2)
 	return angle_normalized_v2v2(vec1, vec2);
 }
 
-float angle_normalized_v3v3(float *v1, float *v2)
+float angle_normalized_v3v3(const float v1[3], const float v2[3])
 {
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
 	if (dot_v3v3(v1, v2) < 0.0f) {
