@@ -1098,7 +1098,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 
 	ot->invoke= wm_call_menu_invoke;
 
-	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the new sequence strip");
+	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
 }
 
 /* ************ window / screen operator definitions ************** */
