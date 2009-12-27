@@ -675,6 +675,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 static int copy_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
+	int buf_len;
 
 	DynStr *buf_dyn= BLI_dynstr_new();
 	char *buf_str;
@@ -687,8 +688,16 @@ static int copy_exec(bContext *C, wmOperator *op)
 	}
 
 	buf_str= BLI_dynstr_get_cstring(buf_dyn);
+	buf_len= BLI_dynstr_get_len(buf_dyn);
 	BLI_dynstr_free(buf_dyn);
 
+	/* hack for selection */
+#if 0
+	if(sc->sel_start != sc->sel_end) {
+		buf_str[buf_len - sc->sel_start]= '\0';
+		WM_clipboard_text_set(buf_str+(buf_len - sc->sel_end), 0);
+	}
+#endif
 	WM_clipboard_text_set(buf_str, 0);
 
 	MEM_freeN(buf_str);
@@ -771,4 +780,116 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "Scale the view font.", 0, 1000);
+}
+
+typedef struct SetConsoleCursor {
+	int sel_old[2];
+	int sel_init;
+} SetConsoleCursor;
+
+static void set_cursor_to_pos(SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, int mval[2], int sel)
+{
+	int pos;
+	pos= console_char_pick(sc, ar, NULL, mval);
+
+	if(scu->sel_init == INT_MAX) {
+		scu->sel_init= pos;
+		sc->sel_start = sc->sel_end = pos;
+		return;
+	}
+
+	if (pos < scu->sel_init) {
+		sc->sel_start = pos;
+		sc->sel_end = scu->sel_init;
+	}
+	else if (pos > sc->sel_start) {
+		sc->sel_start = scu->sel_init;
+		sc->sel_end = pos;
+	}
+	else {
+		sc->sel_start = sc->sel_end = pos;
+	}
+}
+
+static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceConsole *sc= CTX_wm_space_console(C);
+	ARegion *ar= CTX_wm_region(C);
+	SetConsoleCursor *scu= op->customdata;
+	int mval[2] = {event->mval[0], event->mval[1]};
+
+	set_cursor_to_pos(sc, ar, scu, mval, TRUE);
+	ED_area_tag_redraw(CTX_wm_area(C));
+}
+
+static void set_cursor_exit(bContext *C, wmOperator *op)
+{
+	SpaceConsole *sc= CTX_wm_space_console(C);
+	SetConsoleCursor *scu= op->customdata;
+
+	/*
+	if(txt_has_sel(text)) {
+		buffer = txt_sel_to_buf(text);
+		WM_clipboard_text_set(buffer, 1);
+		MEM_freeN(buffer);
+	}*/
+
+	MEM_freeN(scu);
+}
+
+static int console_modal_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceConsole *sc= CTX_wm_space_console(C);
+	ARegion *ar= CTX_wm_region(C);
+	SetConsoleCursor *scu;
+
+	op->customdata= MEM_callocN(sizeof(SetConsoleCursor), "SetConsoleCursor");
+	scu= op->customdata;
+
+	scu->sel_old[0]= sc->sel_start;
+	scu->sel_old[1]= sc->sel_end;
+
+	scu->sel_init = INT_MAX;
+
+	WM_event_add_modal_handler(C, op);
+
+	console_modal_select_apply(C, op, event);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int console_modal_select(bContext *C, wmOperator *op, wmEvent *event)
+{
+	switch(event->type) {
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
+			set_cursor_exit(C, op);
+			return OPERATOR_FINISHED;
+		case MOUSEMOVE:
+			console_modal_select_apply(C, op, event);
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int console_modal_select_cancel(bContext *C, wmOperator *op)
+{
+	set_cursor_exit(C, op);
+	return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_select_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Selection";
+	ot->idname= "CONSOLE_OT_select_set";
+	ot->description= "Set the console selection.";
+
+	/* api callbacks */
+	ot->invoke= console_modal_select_invoke;
+	ot->modal= console_modal_select;
+	ot->cancel= console_modal_select_cancel;
+	ot->poll= console_poll;
 }

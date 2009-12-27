@@ -39,6 +39,7 @@ struct bContext;
 void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports);
 int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports); /* needed to calculate the scrollbar */
 void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports, int mouse_y); /* needed for selection */
+int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mval[2]);
 
 /* console_ops.c */
 void console_history_free(SpaceConsole *sc, ConsoleLine *cl);
@@ -63,6 +64,8 @@ void CONSOLE_OT_history_cycle(struct wmOperatorType *ot);
 void CONSOLE_OT_copy(struct wmOperatorType *ot);
 void CONSOLE_OT_paste(struct wmOperatorType *ot);
 void CONSOLE_OT_zoom(struct wmOperatorType *ot);
+void CONSOLE_OT_select_set(struct wmOperatorType *ot);
+
 
 
 /* console_report.c */

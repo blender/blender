@@ -510,6 +510,8 @@ typedef struct SpaceConsole {
 	char prompt[256];
 	char language[32]; /* multiple consoles are possible, not just python */
 	
+	int sel_start;
+	int sel_end;
 } SpaceConsole;
 
 typedef struct SpaceUserPref {
