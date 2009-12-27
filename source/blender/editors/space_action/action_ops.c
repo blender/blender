@@ -155,11 +155,14 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	
+	/* animation module */
+		/* channels list 
+		 * NOTE: these operators were originally for the channels list, but are added here too for convenience...
+		 */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_editable_toggle", TABKEY, KM_PRESS, 0, 0);
+	
 	/* transform system */
 	transform_keymap_for_space(keyconf, keymap, SPACE_ACTION);
-	
-		/* test */
-	/* WM_keymap_add_item(keymap, "ACTION_OT_test", QKEY, KM_PRESS, 0, 0); */
 }
 
 /* --------------- */
@@ -171,7 +174,7 @@ void action_keymap(wmKeyConfig *keyconf)
 	/* channels */
 	/* Channels are not directly handled by the Action Editor module, but are inherited from the Animation module. 
 	 * All the relevant operations, keymaps, drawing, etc. can therefore all be found in that module instead, as these
-	 * are all used for the IPO-Editor too.
+	 * are all used for the Graph-Editor too.
 	 */
 	
 	/* keyframes */
