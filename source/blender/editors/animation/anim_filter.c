@@ -1323,6 +1323,8 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
+		case OB_SURF: /* ------- Nurbs Surface ---------- */
+		case OB_FONT: /* ------- Text Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
 			
@@ -1540,6 +1542,8 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
+		case OB_SURF: /* ------- Nurbs Surface ---------- */
+		case OB_FONT: /* ------- Text Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
 			
@@ -1962,6 +1966,8 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 					}
 						break;
 					case OB_CURVE: /* ------- Curve ---------- */
+					case OB_SURF: /* ------- Nurbs Surface ---------- */
+					case OB_FONT: /* ------- Text Curve ---------- */
 					{
 						Curve *cu= (Curve *)ob->data;
 						dataOk= 0;
@@ -2082,7 +2088,9 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 						dataOk= ANIMDATA_HAS_KEYS(la);	
 					}
 						break;
-					case OB_CURVE: /* -------- Curve ---------- */
+					case OB_CURVE: /* ------- Curve ---------- */
+					case OB_SURF: /* ------- Nurbs Surface ---------- */
+					case OB_FONT: /* ------- Text Curve ---------- */
 					{
 						Curve *cu= (Curve *)ob->data;
 						dataOk= ANIMDATA_HAS_KEYS(cu);	

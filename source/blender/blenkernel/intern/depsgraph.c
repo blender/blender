@@ -65,6 +65,7 @@
 
 #include "BLI_ghash.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -2027,6 +2028,7 @@ static void dag_object_time_update_flags(Object *ob)
 	if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
 	
 	{
+		AnimData *adt= BKE_animdata_from_id((ID *)ob->data);
 		Mesh *me;
 		Curve *cu;
 		Lattice *lt;
@@ -2067,6 +2069,11 @@ static void dag_object_time_update_flags(Object *ob)
 			case OB_MBALL:
 				if(ob->transflag & OB_DUPLI) ob->recalc |= OB_RECALC_DATA;
 				break;
+		}
+		
+		if(animdata_use_time(adt)) {
+			ob->recalc |= OB_RECALC_DATA;
+			adt->recalc |= ADT_RECALC_ANIM;
 		}
 
 		if(ob->particlesystem.first) {

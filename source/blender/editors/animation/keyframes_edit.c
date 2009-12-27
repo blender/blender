@@ -254,6 +254,8 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
+		case OB_SURF: /* ------- Nurbs Surface ---------- */
+		case OB_FONT: /* ------- Text Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
 			

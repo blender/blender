@@ -66,6 +66,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
@@ -1303,7 +1304,17 @@ static bAnimChannelType ACF_DSCAM=
 // TODO: just get this from RNA?
 static int acf_dscur_icon(bAnimListElem *ale)
 {
-	return ICON_CURVE_DATA;
+	Curve *cu= (Curve *)ale->data;
+	short obtype= curve_type(cu);
+	
+	switch (obtype) {
+		case OB_FONT:
+			return ICON_FONT_DATA;
+		case OB_SURF:
+			return ICON_SURFACE_DATA;
+		default:
+			return ICON_CURVE_DATA;
+	}
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
