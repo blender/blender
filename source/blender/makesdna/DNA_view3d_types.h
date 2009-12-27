@@ -114,8 +114,9 @@ typedef struct RegionView3D {
 	/* last view */
 	float lviewquat[4];
 	short lpersp, lview;
-	int pad3;
+	float gridview;
 	
+
 } RegionView3D;
 
 /* 3D ViewPort Struct */
@@ -151,8 +152,10 @@ typedef struct View3D {
 	
 	short pivot_last; /* pivot_last is for rotating around the last edited element */
 	
-	float lens, grid, gridview, padf, near, far;
-	float ofs[3];			/* XXX depricated */
+	float lens, grid;
+	float gridview; /* XXX deprecated, now in RegionView3D */
+	float padf, near, far;
+	float ofs[3];			/* XXX deprecated */
 	float cursor[3];
 
 	short gridlines, pad4;

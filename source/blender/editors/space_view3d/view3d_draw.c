@@ -307,7 +307,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if(*grid_unit==NULL) {
 					*grid_unit= bUnit_GetNameDisplay(usys, i);
-					v3d->gridview= (scalar * unit->scale_length);
+					rv3d->gridview= (scalar * unit->scale_length);
 				}
 				blend_fac= 1-((GRID_MIN_PX*2)/dx_scalar);
 
@@ -326,15 +326,15 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 		short sublines = v3d->gridsubdiv;
 
 		if(dx<GRID_MIN_PX) {
-			v3d->gridview*= sublines;
+			rv3d->gridview*= sublines;
 			dx*= sublines;
 			
 			if(dx<GRID_MIN_PX) {
-				v3d->gridview*= sublines;
+				rv3d->gridview*= sublines;
 				dx*= sublines;
 
 				if(dx<GRID_MIN_PX) {
-					v3d->gridview*= sublines;
+					rv3d->gridview*= sublines;
 					dx*=sublines;
 					if(dx<GRID_MIN_PX);
 					else {
@@ -360,10 +360,10 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 		}
 		else {
 			if(dx>(GRID_MIN_PX*10)) {		// start blending in
-				v3d->gridview/= sublines;
+				rv3d->gridview/= sublines;
 				dx/= sublines;
 				if(dx>(GRID_MIN_PX*10)) {		// start blending in
-					v3d->gridview/= sublines;
+					rv3d->gridview/= sublines;
 					dx/= sublines;
 					if(dx>(GRID_MIN_PX*10)) {
 						UI_ThemeColor(TH_GRID);
@@ -2034,7 +2034,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		v3d->zbuf= FALSE;
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
-	v3d->gridview= v3d->grid;
+	rv3d->gridview= v3d->grid;
 	
 	if(rv3d->view==0 || rv3d->persp!=0) {
 		drawfloor(scene, v3d);

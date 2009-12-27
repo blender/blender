@@ -440,12 +440,12 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 	extern float originmat[3][3];	/* XXX object.c */
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_data(C);
 	TransVert *tv;
 	float gridf, imat[3][3], bmat[3][3], vec[3];
 	int a;
 
-	gridf= v3d->gridview;
+	gridf= rv3d->gridview;
 
 	if(obedit) {
 		tottrans= 0;
@@ -463,9 +463,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 			VECCOPY(vec, tv->loc);
 			mul_m3_v3(bmat, vec);
 			add_v3_v3v3(vec, vec, obedit->obmat[3]);
-			vec[0]= v3d->gridview*floor(.5+ vec[0]/gridf);
-			vec[1]= v3d->gridview*floor(.5+ vec[1]/gridf);
-			vec[2]= v3d->gridview*floor(.5+ vec[2]/gridf);
+			vec[0]= gridf*floor(.5+ vec[0]/gridf);
+			vec[1]= gridf*floor(.5+ vec[1]/gridf);
+			vec[2]= gridf*floor(.5+ vec[2]/gridf);
 			sub_v3_v3v3(vec, vec, obedit->obmat[3]);
 			
 			mul_m3_v3(imat, vec);
@@ -518,9 +518,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 			else {
 				ob->recalc |= OB_RECALC_OB;
 				
-				vec[0]= -ob->obmat[3][0]+v3d->gridview*floor(.5+ ob->obmat[3][0]/gridf);
-				vec[1]= -ob->obmat[3][1]+v3d->gridview*floor(.5+ ob->obmat[3][1]/gridf);
-				vec[2]= -ob->obmat[3][2]+v3d->gridview*floor(.5+ ob->obmat[3][2]/gridf);
+				vec[0]= -ob->obmat[3][0]+gridf*floor(.5+ ob->obmat[3][0]/gridf);
+				vec[1]= -ob->obmat[3][1]+gridf*floor(.5+ ob->obmat[3][1]/gridf);
+				vec[2]= -ob->obmat[3][2]+gridf*floor(.5+ ob->obmat[3][2]/gridf);
 				
 				if(ob->parent) {
 					where_is_object(scene, ob);
@@ -696,15 +696,16 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 static int snap_curs_to_grid(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	RegionView3D *rv3d= CTX_wm_region_data(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	float gridf, *curs;
 
-	gridf= v3d->gridview;
+	gridf= rv3d->gridview;
 	curs= give_cursor(scene, v3d);
 
-	curs[0]= v3d->gridview*floor(.5+curs[0]/gridf);
-	curs[1]= v3d->gridview*floor(.5+curs[1]/gridf);
-	curs[2]= v3d->gridview*floor(.5+curs[2]/gridf);
+	curs[0]= gridf*floor(.5+curs[0]/gridf);
+	curs[1]= gridf*floor(.5+curs[1]/gridf);
+	curs[2]= gridf*floor(.5+curs[2]/gridf);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);	// hrm
 	
