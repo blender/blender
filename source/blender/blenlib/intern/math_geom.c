@@ -1404,7 +1404,7 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 	area_tar= sqrtf(area_tri_v3(tri_tar_p1, tri_tar_p2, tri_tar_p3));
 	area_src= sqrtf(area_tri_v2(tri_xy_src[0], tri_xy_src[1], tri_xy_src[2]));
 
-	z_ofs_src= tri_xy_src[0][2] - pt_src_xy[2];
+	z_ofs_src= pt_src_xy[2] - tri_xy_src[0][2];
 	madd_v3_v3v3fl(pt_tar, pt_tar, no_tar, (z_ofs_src / area_src) * area_tar);
 }
 

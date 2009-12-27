@@ -149,6 +149,170 @@ class Retopo(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class ShapeTransfer(bpy.types.Operator):
+    '''Copy the active objects current shape to other selected objects with the same number of verts'''
+
+    bl_idname = "object.shape_key_transfer"
+    bl_label = "Transfer Shape Key"
+    bl_register = True
+    bl_undo = True
+
+    mode = EnumProperty(items=(
+                        ('OFFSET', "Offset", "Apply the relative positional offset"),
+                        ('RELATIVE_FACE', "Relative Face", "Calculate the geometricly relative position (using faces)."),
+                        ('RELATIVE_EDGE', "Relative Edge", "Calculate the geometricly relative position (using edges).")),
+                name="Transformation Mode",
+                description="Method to apply relative shape positions to the new shape",
+                default='OFFSET')
+
+    use_clamp = BoolProperty(name="Clamp Offset",
+                description="Clamp the transformation to the distance each vertex moves in the original shape.",
+                default=False)
+
+    def _main(self, ob_act, objects, mode='OFFSET', use_clamp=False):
+
+        def me_nos(verts):
+            return [v.normal.copy() for v in verts]
+
+        def me_cos(verts):
+            return [v.co.copy() for v in verts]
+
+        def ob_add_shape(ob):
+            C_tmp = {"object": ob}
+            me = ob.data
+            if me.shape_keys is None: # add basis
+                bpy.ops.object.shape_key_add(C_tmp)
+            bpy.ops.object.shape_key_add(C_tmp)
+            ob.active_shape_key_index = len(me.shape_keys.keys) - 1
+            ob.shape_key_lock = True
+
+        from Geometry import BarycentricTransform
+        from Mathutils import Vector
+
+        if use_clamp and mode == 'OFFSET':
+            use_clamp = False
+
+        me = ob_act.data
+
+        orig_shape_coords = me_cos(ob_act.active_shape_key.data)
+
+        orig_normals = me_nos(me.verts)
+        orig_coords = me_cos(me.verts)
+
+        for ob_other in objects:
+            me_other = ob_other.data
+            if len(me_other.verts) != len(me.verts):
+                self.report({'WARNING'}, "Skipping '%s', vertex count differs" % ob_other.name)
+                continue
+
+            target_normals = me_nos(me_other.verts)
+            target_coords = me_cos(me_other.verts)
+
+            ob_add_shape(ob_other)
+
+            # editing the final coords, only list that stores wrapped coords
+            target_shape_coords = [v.co for v in ob_other.active_shape_key.data]
+
+            median_coords = [[] for i in range(len(me.verts))]
+
+            # Method 1, edge
+            if mode == 'OFFSET':
+                for i, vert_cos in enumerate(median_coords):
+                    vert_cos.append(target_coords[i] + (orig_shape_coords[i] - orig_coords[i]))
+
+            elif mode == 'RELATIVE_FACE':
+                for face in me.faces:
+                    i1, i2, i3, i4 = face.verts_raw
+                    if i4 != 0:
+                        pt = BarycentricTransform(orig_shape_coords[i1],
+                            orig_coords[i4], orig_coords[i1], orig_coords[i2],
+                            target_coords[i4], target_coords[i1], target_coords[i2])
+                        median_coords[i1].append(pt)
+
+                        pt = BarycentricTransform(orig_shape_coords[i2],
+                            orig_coords[i1], orig_coords[i2], orig_coords[i3],
+                            target_coords[i1], target_coords[i2], target_coords[i3])
+                        median_coords[i2].append(pt)
+
+                        pt = BarycentricTransform(orig_shape_coords[i3],
+                            orig_coords[i2], orig_coords[i3], orig_coords[i4],
+                            target_coords[i2], target_coords[i3], target_coords[i4])
+                        median_coords[i3].append(pt)
+
+                        pt = BarycentricTransform(orig_shape_coords[i4],
+                            orig_coords[i3], orig_coords[i4], orig_coords[i1],
+                            target_coords[i3], target_coords[i4], target_coords[i1])
+                        median_coords[i4].append(pt)
+
+                    else:
+                        pt = BarycentricTransform(orig_shape_coords[i1],
+                            orig_coords[i3], orig_coords[i1], orig_coords[i2],
+                            target_coords[i3], target_coords[i1], target_coords[i2])
+                        median_coords[i1].append(pt)
+
+                        pt = BarycentricTransform(orig_shape_coords[i2],
+                            orig_coords[i1], orig_coords[i2], orig_coords[i3],
+                            target_coords[i1], target_coords[i2], target_coords[i3])
+                        median_coords[i2].append(pt)
+
+                        pt = BarycentricTransform(orig_shape_coords[i3],
+                            orig_coords[i2], orig_coords[i3], orig_coords[i1],
+                            target_coords[i2], target_coords[i3], target_coords[i1])
+                        median_coords[i3].append(pt)
+
+            elif mode == 'RELATIVE_EDGE':
+                for ed in me.edges:
+                    i1, i2 = ed.verts
+                    v1, v2 = orig_coords[i1], orig_coords[i2]
+                    edge_length = (v1 - v2).length
+                    n1loc = v1 + orig_normals[i1] * edge_length
+                    n2loc = v2 + orig_normals[i2] * edge_length
+
+
+                    # now get the target nloc's
+                    v1_to, v2_to = target_coords[i1], target_coords[i2]
+                    edlen_to = (v1_to - v2_to).length
+                    n1loc_to = v1_to + target_normals[i1] * edlen_to
+                    n2loc_to = v2_to + target_normals[i2] * edlen_to
+
+                    pt = BarycentricTransform(orig_shape_coords[i1],
+                        v2, v1, n1loc,
+                        v2_to, v1_to, n1loc_to)
+                    median_coords[i1].append(pt)
+
+                    pt = BarycentricTransform(orig_shape_coords[i2],
+                        v1, v2, n2loc,
+                        v1_to, v2_to, n2loc_to)
+                    median_coords[i2].append(pt)
+
+            # apply the offsets to the new shape
+            from functools import reduce
+            VectorAdd = Vector.__add__
+
+            for i, vert_cos in enumerate(median_coords):
+                if vert_cos:
+                    co = reduce(VectorAdd, vert_cos) / len(vert_cos)
+
+                    if use_clamp:
+                        # clamp to the same movement as the original
+                        # breaks copy between different scaled meshes.
+                        len_from = (orig_shape_coords[i] - orig_coords[i]).length
+                        ofs = co - target_coords[i]
+                        ofs.length = len_from
+                        co = target_coords[i] + ofs
+
+                    target_shape_coords[i][:] = co
+
+        return {'FINISHED'}
+
+    def execute(self, context):
+        C = bpy.context
+        ob_act = C.active_object
+        objects = [ob for ob in C.selected_editable_objects if ob != ob_act]
+        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
+
+
 bpy.types.register(SelectPattern)
 bpy.types.register(SubdivisionSet)
 bpy.types.register(Retopo)
+bpy.types.register(ShapeTransfer)

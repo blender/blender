@@ -232,7 +232,7 @@ class InfoPropertyRNA:
 
         if self.is_never_none:
             type_str += ", (never None)"
-        
+
         return type_str
 
     def __repr__(self):
