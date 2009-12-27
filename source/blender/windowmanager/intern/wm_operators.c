@@ -1160,7 +1160,7 @@ static int recentfile_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	return 0;
+	return OPERATOR_FINISHED;
 }
 
 static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)

@@ -305,6 +305,10 @@ class ShapeTransfer(bpy.types.Operator):
 
         return {'FINISHED'}
 
+    def poll(self, context):
+        obj = context.active_object
+        return (obj and obj.mode != 'EDIT')
+
     def execute(self, context):
         C = bpy.context
         ob_act = C.active_object

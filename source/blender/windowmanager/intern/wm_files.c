@@ -286,8 +286,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");
 	else if(retval == -1) {
-		if(reports && reports->list.first == NULL)
-			BKE_report(reports, RPT_ERROR, "Cannot read file.");
+		if(reports)
+			BKE_reportf(reports, RPT_ERROR, "Can't read file \"%s\".", name);
 	}
 }
 
