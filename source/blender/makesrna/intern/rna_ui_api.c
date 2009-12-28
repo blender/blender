@@ -353,6 +353,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);
+	parm= RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Maximum number of rows to display.", 0, INT_MAX);
 	parm= RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use.");
 
 	func= RNA_def_function(srna, "template_running_jobs", "uiTemplateRunningJobs");

@@ -29,6 +29,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_ID.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_paint.h"
@@ -159,6 +160,38 @@ static void rna_Paint_active_brush_index_range(PointerRNA *ptr, int *min, int *m
 	*max= MAX2(p->brush_count-1, 0);
 }
 
+static void rna_Paint_active_brush_name_get(PointerRNA *ptr, char *value)
+{
+	Paint *p= ptr->data;
+	Brush *br = paint_brush(p);
+	
+	BLI_strncpy(value, br->id.name+2, sizeof(br->id.name-2));
+}
+
+
+static int rna_Paint_active_brush_name_length(PointerRNA *ptr)
+{
+	Paint *p= ptr->data;
+	Brush *br = paint_brush(p);
+	return strlen(br->id.name+2);
+}
+
+static void rna_Paint_active_brush_name_set(PointerRNA *ptr, const char *value)
+{
+	Paint *p= ptr->data;
+	Brush *br;
+	int i;
+	
+	for(i = 0; i < p->brush_count; ++i) {
+		br = p->brushes[i];
+	
+		if (strcmp(br->id.name+2, value)==0) {
+			paint_brush_set(p, br);
+			return;
+		}
+	}
+}
+
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -181,6 +214,12 @@ static void rna_def_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_brush_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_funcs(prop, NULL, "rna_Paint_active_brush_index_set", "rna_Paint_active_brush_index_range");
 	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
+	
+	prop= RNA_def_property(srna, "active_brush_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_Paint_active_brush_name_get", "rna_Paint_active_brush_name_length", "rna_Paint_active_brush_name_set");
+	RNA_def_property_string_maxlength(prop, sizeof(((ID*)NULL)->name)-2);
+	RNA_def_property_ui_text(prop, "Active Brush Name", "");
 	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
 
 	/* Fake property to get active brush directly, rather than integer index */

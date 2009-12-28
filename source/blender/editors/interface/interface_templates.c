@@ -2138,7 +2138,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		MEM_freeN(namebuf);
 }
 
-void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int listtype)
+void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int maxrows, int listtype)
 {
 	//Scene *scene= CTX_data_scene(C);
 	PropertyRNA *prop= NULL, *activeprop;
@@ -2261,6 +2261,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 		/* default rows */
 		if(rows == 0)
 			rows= 5;
+		if (maxrows == 0)
+			maxrows = 5;
 		if(pa->list_grip_size != 0)
 			rows= pa->list_grip_size;
 
@@ -2274,7 +2276,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 
 		if(prop)
 			len= RNA_property_collection_length(ptr, prop);
-		items= CLAMPIS(len, rows, MAX2(rows, 5));
+		items= CLAMPIS(len, rows, MAX2(rows, maxrows));
 
 		/* if list length changes and active is out of view, scroll to it */
 		if(pa->list_last_len != len)
