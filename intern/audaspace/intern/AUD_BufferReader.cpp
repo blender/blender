@@ -81,7 +81,7 @@ void AUD_BufferReader::read(int & length, sample_t* & buffer)
 
 	buffer = m_buffer.get()->getBuffer()+m_position*sample_size;
 
-	// in case the end of the buffer is reach
+	// in case the end of the buffer is reached
 	if(m_buffer.get()->getSize() < (m_position+length)*sample_size)
 		length = m_buffer.get()->getSize()/sample_size-m_position;
 
