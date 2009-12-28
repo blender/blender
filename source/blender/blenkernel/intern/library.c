@@ -1033,6 +1033,28 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 	
 }
 
+/*
+ * Check to see if there is an ID with the same name as 'name'.
+ * Returns the ID if so, if not, returns NULL
+ */
+static ID *is_dupid(ListBase *lb, ID *id, char *name)
+{
+	ID *idtest=NULL;
+	
+	for( idtest = lb->first; idtest; idtest = idtest->next ) {
+		/* if idtest is not a lib */ 
+		if( id != idtest && idtest->lib == NULL ) {
+			/* do not test alphabetic! */
+			/* optimized */
+			if( idtest->name[2] == name[0] ) {
+				if(strcmp(name, idtest->name+2)==0) break;
+			}
+		}
+	}
+	
+	return idtest;
+}
+
 /* 
  * Check to see if an ID name is already used, and find a new one if so.
  * Return 1 if created a new name (returned in name).
@@ -1056,16 +1078,7 @@ int check_for_dupid(ListBase *lb, ID *id, char *name)
 	while (1) {
 
 		/* phase 1: id already exists? */
-		for( idtest = lb->first; idtest; idtest = idtest->next ) {
-				/* if idtest is not a lib */ 
-			if( id != idtest && idtest->lib == NULL ) {
-				/* do not test alphabetic! */
-				/* optimized */
-				if( idtest->name[2] == name[0] ) {
-					if(strcmp(name, idtest->name+2)==0) break;
-				}
-			}
-		}
+		idtest = is_dupid(lb, id, name);
 
 		/* if there is no double, done */
 		if( idtest == NULL ) return 0;
@@ -1104,18 +1117,30 @@ int check_for_dupid(ListBase *lb, ID *id, char *name)
 			}
 		}
 
-		/* if non-numbered name was not in use, reuse it */
-		if(nr==0) strcpy( name, left );
-		else {
-			if(nr > 999 && strlen(left) > 16) {
-				/* this would overflow name buffer */
-				left[16] = 0;
-				strcpy( name, left );
-				continue;
+		/* If the original name has no numeric suffix, 
+		 * rather than just chopping and adding numbers, 
+		 * shave off the end chars until we have a unique name */
+		if (nr==0) {
+			int len = strlen(name)-1;
+			idtest= is_dupid(lb, id, name);
+			
+			while (idtest && len> 1) {
+				name[len--] = '\0';
+				idtest= is_dupid(lb, id, name);
 			}
-			/* this format specifier is from hell... */
-			sprintf(name, "%s.%.3d", left, nr);
+			if (idtest == NULL) return 1;
+			/* otherwise just continue and use a number suffix */
 		}
+		
+		if(nr > 999 && strlen(left) > 16) {
+			/* this would overflow name buffer */
+			left[16] = 0;
+			strcpy( name, left );
+			continue;
+		}
+		/* this format specifier is from hell... */
+		sprintf(name, "%s.%.3d", left, nr);
+
 		return 1;
 	}
 }
