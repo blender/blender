@@ -94,6 +94,8 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	uiItemR(row, "", 0, ptr, "display_world", 0);
 	uiItemR(row, "", 0, ptr, "display_node", 0);
 
+	if (mainptr && mainptr->mesh.first)
+		uiItemR(row, "", 0, ptr, "display_mesh", 0);
 	if (mainptr && mainptr->key.first)
 		uiItemR(row, "", 0, ptr, "display_shapekeys", 0);
 	if (mainptr && mainptr->mat.first)

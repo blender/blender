@@ -53,6 +53,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
@@ -1820,6 +1821,78 @@ static bAnimChannelType ACF_DSNTREE=
 	acf_dsntree_setting_ptr					/* pointer for setting */
 };
 
+/* Mesh Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dsmesh_icon(bAnimListElem *ale)
+{
+	return ICON_MESH_DATA;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dsmesh_setting_flag(int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return ME_DS_EXPAND;
+			
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+			
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	Mesh *me= (Mesh *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			GET_ACF_FLAG_PTR(me->flag);
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (me->adt)
+				GET_ACF_FLAG_PTR(me->adt->flag)
+				else
+					return NULL;
+			
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* node tree expander type define */
+static bAnimChannelType ACF_DSMESH= 
+{
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
+	acf_generic_basic_offset,		/* offset */
+	
+	acf_generic_idblock_name,		/* name */
+	acf_dsmesh_icon,				/* icon */
+	
+	acf_generic_dataexpand_setting_valid,	/* has setting */
+	acf_dsmesh_setting_flag,				/* flag for setting */
+	acf_dsmesh_setting_ptr					/* pointer for setting */
+};
 
 /* ShapeKey Entry  ------------------------------------------- */
 
@@ -2071,6 +2144,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSPART;		/* Particle Channel */
 		animchannelTypeInfo[type++]= &ACF_DSMBALL;		/* MetaBall Channel */
 		animchannelTypeInfo[type++]= &ACF_DSARM;		/* Armature Channel */
+		animchannelTypeInfo[type++]= &ACF_DSMESH;		/* Mesh Channel */
 		
 		animchannelTypeInfo[type++]= &ACF_SHAPEKEY;		/* ShapeKey */
 		

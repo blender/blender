@@ -72,7 +72,7 @@ static short id_has_animdata (ID *id)
 	switch (GS(id->name)) {
 			/* has AnimData */
 		case ID_OB:
-		case ID_MB: case ID_CU: case ID_AR:
+		case ID_ME: case ID_MB: case ID_CU: case ID_AR:
 		case ID_KE:
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
@@ -1774,7 +1774,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->armature.first, ADT_RECALC_ANIM);
 	
 	/* meshes */
-	// TODO...
+	EVAL_ANIM_IDS(main->mesh.first, ADT_RECALC_ANIM);
 	
 	/* particles */
 	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);

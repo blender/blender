@@ -56,6 +56,7 @@
 #include "DNA_space_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
@@ -820,6 +821,14 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 			
 			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) 
 				action_to_keylist(arm->adt, arm->adt->action, keys, blocks);
+		}
+			break;
+		case OB_MESH: /* ------- Mesh ---------- */
+		{
+			Mesh *me= (Mesh *)ob->data;
+			
+			if ((me->adt) && !(filterflag & ADS_FILTER_NOMESH)) 
+				action_to_keylist(me->adt, me->adt->action, keys, blocks);
 		}
 			break;
 	}

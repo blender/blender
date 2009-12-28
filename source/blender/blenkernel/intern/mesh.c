@@ -143,7 +143,12 @@ void free_mesh(Mesh *me)
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
 	CustomData_free(&me->fdata, me->totface);
-
+	
+	if(me->adt) {
+		BKE_free_animdata(&me->id);
+		me->adt= NULL;
+	}
+	
 	if(me->mat) MEM_freeN(me->mat);
 	
 	if(me->bb) MEM_freeN(me->bb);

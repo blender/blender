@@ -425,7 +425,7 @@ typedef struct bDopeSheet {
 
 
 /* DopeSheet filter-flag */
-typedef enum DOPESHEET_FILTERFLAG {
+typedef enum eDopeSheet_FilterFlag {
 		/* general filtering */
 	ADS_FILTER_ONLYSEL			= (1<<0),	/* only include channels relating to selected data */
 	
@@ -437,6 +437,7 @@ typedef enum DOPESHEET_FILTERFLAG {
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
+	ADS_FILTER_NOMESH			= (1<<7),
 	ADS_FILTER_NOCAM			= (1<<10),
 	ADS_FILTER_NOMAT			= (1<<11),
 	ADS_FILTER_NOLAM			= (1<<12),
@@ -449,16 +450,16 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_NONTREE			= (1<<19),
 	
 		/* NLA-specific filters */
-	ADS_FILTER_NLA_NOACT		= (1<<20),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
+	ADS_FILTER_NLA_NOACT		= (1<<25),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
 	
 		/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM),
-} DOPESHEET_FILTERFLAG;	
+} eDopeSheet_FilterFlag;	
 
 /* DopeSheet general flags */
-typedef enum DOPESHEET_FLAG {
+typedef enum eDopeSheet_Flag {
 	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0),	/* when summary is shown, it is collapsed, so all other channels get hidden */
-} DOPESHEET_FLAG;
+} eDopeSheet_Flag;
 
 
 

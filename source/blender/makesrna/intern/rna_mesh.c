@@ -1798,7 +1798,8 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
-
+	/* pointers */
+	rna_def_animdata_common(srna);
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 
 	RNA_api_mesh(srna);

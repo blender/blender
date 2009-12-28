@@ -2396,7 +2396,11 @@ void object_handle_update(Scene *scene, Object *ob)
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
 				EditMesh *em = BKE_mesh_get_editmesh(ob->data);
-
+				
+				/* evaluate drivers */
+				// XXX: should we push this to derivedmesh instead?
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
+				
 					// here was vieweditdatamask? XXX
 				if(ob->mode & OB_MODE_EDIT) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);

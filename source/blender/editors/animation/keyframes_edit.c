@@ -41,6 +41,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meta_types.h"
@@ -281,6 +282,16 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 			
 			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) {
 				if (adt_keys_bezier_loop(bed, arm->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_MESH: /* ------- Mesh ---------- */
+		{
+			Mesh *me= (Mesh *)ob->data;
+			
+			if ((me->adt) && !(filterflag & ADS_FILTER_NOMESH)) {
+				if (adt_keys_bezier_loop(bed, me->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
 					return 1;
 			}
 		}
