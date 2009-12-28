@@ -110,14 +110,6 @@ void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *
 int  mouse_lattice(struct bContext *C, short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, char *name);
 
-/* key.c */
-void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
-void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
-void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);
-void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
-void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
-void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
-
 /* object_lattice.c */
 
 void ED_setflagsLatt(struct Object *obedit, int flag);
