@@ -175,6 +175,10 @@ typedef enum PropertyFlag {
 	/* need context for update function */
 	PROP_CONTEXT_UPDATE = 1<<22,
 
+	/* Use for arrays or for any data that should not have a referene kept
+	 * most common case is functions that return arrays where the array */
+	PROP_THICK_WRAP = 1<<23,
+
 	/* internal flags */
 	PROP_BUILTIN = 1<<7,
 	PROP_EXPORT = 1<<8,

@@ -1136,7 +1136,7 @@ static PyGetSetDef Matrix_getseters[] = {
 	{"rowSize", (getter)Matrix_getRowSize, (setter)NULL, "", NULL},
 	{"colSize", (getter)Matrix_getColSize, (setter)NULL, "", NULL},
 	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, "", NULL},
-	{"__owner__",(getter)BaseMathObject_getOwner, (setter)NULL, "",
+	{"_owner",(getter)BaseMathObject_getOwner, (setter)NULL, "",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };

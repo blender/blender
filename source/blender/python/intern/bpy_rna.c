@@ -145,6 +145,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 #ifdef USE_MATHUTILS
 	int subtype, totdim;
 	int len;
+	int is_thick;
 
 	/* disallow dynamic sized arrays to be wrapped since the size could change
 	 * to a size mathutils does not support */
@@ -154,9 +155,11 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 	len= RNA_property_array_length(ptr, prop);
 	subtype= RNA_property_subtype(prop);
 	totdim= RNA_property_array_dimension(ptr, prop, NULL);
+	is_thick = (RNA_property_flag(prop) & PROP_THICK_WRAP);
 
 	if (totdim == 1 || (totdim == 2 && subtype == PROP_MATRIX)) {
-		ret = pyrna_prop_CreatePyObject(ptr, prop); /* owned by the Mathutils PyObject */
+		if(!is_thick)
+			ret = pyrna_prop_CreatePyObject(ptr, prop); /* owned by the Mathutils PyObject */
 
 		switch(RNA_property_subtype(prop)) {
 		case PROP_TRANSLATION:
@@ -166,40 +169,74 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_XYZ:
 		case PROP_XYZ|PROP_UNIT_LENGTH:
 			if(len>=2 && len <= 4) {
-				PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, FALSE);
-				Py_DECREF(ret); /* the vector owns now */
-				ret= vec_cb; /* return the vector instead */
+				if(is_thick) {
+					ret= newVectorObject(NULL, len, Py_NEW, NULL);
+					RNA_property_float_get_array(ptr, prop, ((VectorObject *)ret)->vec);
+				}
+				else {
+					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, FALSE);
+					Py_DECREF(ret); /* the vector owns now */
+					ret= vec_cb; /* return the vector instead */
+				}
 			}
 			break;
 		case PROP_MATRIX:
 			if(len==16) {
-				PyObject *mat_cb= newMatrixObject_cb(ret, 4,4, mathutils_rna_matrix_cb_index, FALSE);
-				Py_DECREF(ret); /* the matrix owns now */
-				ret= mat_cb; /* return the matrix instead */
+				if(is_thick) {
+					ret= newMatrixObject(NULL, 4, 4, Py_NEW, NULL);
+					RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->contigPtr);
+				}
+				else {
+					PyObject *mat_cb= newMatrixObject_cb(ret, 4,4, mathutils_rna_matrix_cb_index, FALSE);
+					Py_DECREF(ret); /* the matrix owns now */
+					ret= mat_cb; /* return the matrix instead */
+				}
 			}
 			else if (len==9) {
-				PyObject *mat_cb= newMatrixObject_cb(ret, 3,3, mathutils_rna_matrix_cb_index, FALSE);
-				Py_DECREF(ret); /* the matrix owns now */
-				ret= mat_cb; /* return the matrix instead */
+				if(is_thick) {
+					ret= newMatrixObject(NULL, 3, 3, Py_NEW, NULL);
+					RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->contigPtr);
+				}
+				else {
+					PyObject *mat_cb= newMatrixObject_cb(ret, 3,3, mathutils_rna_matrix_cb_index, FALSE);
+					Py_DECREF(ret); /* the matrix owns now */
+					ret= mat_cb; /* return the matrix instead */
+				}
 			}
 			break;
 		case PROP_EULER:
 		case PROP_QUATERNION:
 			if(len==3) { /* euler */
-				PyObject *eul_cb= newEulerObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
-				Py_DECREF(ret); /* the matrix owns now */
-				ret= eul_cb; /* return the matrix instead */
+				if(is_thick) {
+					ret= newEulerObject(NULL, Py_NEW, NULL);
+					RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
+				}
+				else {
+					PyObject *eul_cb= newEulerObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
+					Py_DECREF(ret); /* the matrix owns now */
+					ret= eul_cb; /* return the matrix instead */
+				}
 			}
 			else if (len==4) {
-				PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
-				Py_DECREF(ret); /* the matrix owns now */
-				ret= quat_cb; /* return the matrix instead */
+				if(is_thick) {
+					ret= newQuaternionObject(NULL, Py_NEW, NULL);
+					RNA_property_float_get_array(ptr, prop, ((QuaternionObject *)ret)->quat);
+				}
+				else {
+					PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
+					Py_DECREF(ret); /* the matrix owns now */
+					ret= quat_cb; /* return the matrix instead */
+				}
 			}
 			break;
 		default:
 			break;
 		}
 	}
+
+	if(ret==NULL)
+		ret = pyrna_prop_CreatePyObject(ptr, prop); /* TODO, convert to a python list */
+
 #endif
 
 	return ret;
