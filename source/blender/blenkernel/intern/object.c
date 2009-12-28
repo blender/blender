@@ -2634,7 +2634,7 @@ void object_delete_ptcache(Object *ob, int index)
 /* shape key utility function */
 
 /************************* Mesh ************************/
-static void insert_meshkey(Scene *scene, Object *ob, int from_mix)
+static KeyBlock *insert_meshkey(Scene *scene, Object *ob, char *name, int from_mix)
 {
 	Mesh *me= ob->data;
 	Key *key= me->key;
@@ -2647,7 +2647,7 @@ static void insert_meshkey(Scene *scene, Object *ob, int from_mix)
 		newkey= 1;
 	}
 
-	kb= add_keyblock(key);
+	kb= add_keyblock(key, name);
 
 	if(newkey || from_mix==FALSE) {
 		/* create from mesh */
@@ -2658,9 +2658,11 @@ static void insert_meshkey(Scene *scene, Object *ob, int from_mix)
 		kb->data= do_ob_key(scene, ob);
 		kb->totelem= me->totvert;
 	}
+
+	return kb;
 }
 /************************* Lattice ************************/
-static void insert_lattkey(Scene *scene, Object *ob, int from_mix)
+static KeyBlock *insert_lattkey(Scene *scene, Object *ob, char *name, int from_mix)
 {
 	Lattice *lt= ob->data;
 	Key *key= lt->key;
@@ -2673,7 +2675,7 @@ static void insert_lattkey(Scene *scene, Object *ob, int from_mix)
 		newkey= 1;
 	}
 
-	kb= add_keyblock(key);
+	kb= add_keyblock(key, name);
 
 	if(newkey || from_mix==FALSE) {
 		/* create from lattice */
@@ -2684,9 +2686,11 @@ static void insert_lattkey(Scene *scene, Object *ob, int from_mix)
 		kb->totelem= lt->pntsu*lt->pntsv*lt->pntsw;
 		kb->data= do_ob_key(scene, ob);
 	}
+
+	return kb;
 }
 /************************* Curve ************************/
-static void insert_curvekey(Scene *scene, Object *ob, int from_mix)
+static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_mix)
 {
 	Curve *cu= ob->data;
 	Key *key= cu->key;
@@ -2700,7 +2704,7 @@ static void insert_curvekey(Scene *scene, Object *ob, int from_mix)
 		newkey= 1;
 	}
 
-	kb= add_keyblock(key);
+	kb= add_keyblock(key, name);
 
 	if(newkey || from_mix==FALSE) {
 		/* create from curve */
@@ -2712,14 +2716,14 @@ static void insert_curvekey(Scene *scene, Object *ob, int from_mix)
 		kb->data= do_ob_key(scene, ob);
 	}
 
+	return kb;
 }
 
-int object_insert_shape_key(Scene *scene, Object *ob, int from_mix)
+KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, char *name, int from_mix)
 {
-	if(ob->type==OB_MESH)						insert_meshkey(scene, ob, from_mix);
-	else if ELEM(ob->type, OB_CURVE, OB_SURF)	insert_curvekey(scene, ob, from_mix);
-	else if(ob->type==OB_LATTICE)				insert_lattkey(scene, ob, from_mix);
-	else return 0;
-	return 1;
+	if(ob->type==OB_MESH)					 return insert_meshkey(scene, ob, name, from_mix);
+	else if ELEM(ob->type, OB_CURVE, OB_SURF)return insert_curvekey(scene, ob, name, from_mix);
+	else if(ob->type==OB_LATTICE)			 return insert_lattkey(scene, ob, name, from_mix);
+	else									 return NULL;
 }
 

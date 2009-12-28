@@ -170,7 +170,6 @@ class ShapeTransfer(bpy.types.Operator):
                 default=False)
 
     def _main(self, ob_act, objects, mode='OFFSET', use_clamp=False):
-
         def me_nos(verts):
             return [v.normal.copy() for v in verts]
 
@@ -178,11 +177,10 @@ class ShapeTransfer(bpy.types.Operator):
             return [v.co.copy() for v in verts]
 
         def ob_add_shape(ob):
-            C_tmp = {"object": ob}
             me = ob.data
-            if me.shape_keys is None: # add basis
-                bpy.ops.object.shape_key_add(C_tmp)
-            bpy.ops.object.shape_key_add(C_tmp)
+            ob.add_shape_key(from_mix=False)
+            if len(me.shape_keys.keys) == 1:
+                ob.add_shape_key(from_mix=False) # we need a rest
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
             ob.shape_key_lock = True
 

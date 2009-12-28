@@ -120,7 +120,7 @@ int give_obdata_texspace(struct Object *ob, short **texflag, float **loc, float 
 
 int object_insert_ptcache(struct Object *ob);
 // void object_delete_ptcache(struct Object *ob, int index);
-int object_insert_shape_key(struct Scene *scene, struct Object *ob, int from_mix);
+struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob, char *name, int from_mix);
 
 
 #ifdef __cplusplus

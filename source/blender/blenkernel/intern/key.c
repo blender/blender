@@ -32,6 +32,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -1395,7 +1396,7 @@ Key *ob_get_key(Object *ob)
 	return NULL;
 }
 
-KeyBlock *add_keyblock(Key *key)
+KeyBlock *add_keyblock(Key *key, char *name)
 {
 	KeyBlock *kb;
 	float curpos= -0.1;
@@ -1409,9 +1410,15 @@ KeyBlock *add_keyblock(Key *key)
 	kb->type= KEY_CARDINAL;
 	
 	tot= BLI_countlist(&key->block);
-	if(tot==1) strcpy(kb->name, "Basis");
-	else sprintf(kb->name, "Key %d", tot-1);
-	
+	if(name) {
+		strncpy(kb->name, name, sizeof(kb->name));
+	} else {
+		if(tot==1) strcpy(kb->name, "Basis");
+		else sprintf(kb->name, "Key %d", tot-1);
+	}
+
+	BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), sizeof(kb->name));
+
 	// XXX this is old anim system stuff? (i.e. the 'index' of the shapekey)
 	kb->adrcode= tot-1;
 	

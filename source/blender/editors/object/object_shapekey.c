@@ -84,7 +84,7 @@
 
 static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int from_mix)
 {
-	if(object_insert_shape_key(scene, ob, from_mix)) {
+	if(object_insert_shape_key(scene, ob, NULL, from_mix)) {
 		Key *key= ob_get_key(ob);
 		ob->shapenr= BLI_countlist(&key->block);
 
@@ -241,7 +241,7 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 	int from_mix = RNA_boolean_get(op->ptr, "from_mix");
 
 	ED_object_shape_key_add(C, scene, ob, from_mix);
-	
+
 	return OPERATOR_FINISHED;
 }
 

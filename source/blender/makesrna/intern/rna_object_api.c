@@ -309,6 +309,21 @@ static Object *rna_Object_find_armature(Object *ob)
 	return ob_arm;
 }
 
+static KeyBlock *rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, char *name, int from_mix)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyBlock *kb= NULL;
+
+	if((kb=object_insert_shape_key(scene, ob, name, from_mix))) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	}
+	else {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\"does not support shapes.", ob->id.name+2);
+	}
+
+	return kb;
+}
+
 int rna_Object_is_visible(Object *ob, bContext *C)
 {
 	return !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->lay & CTX_data_scene(C)->lay;
@@ -412,6 +427,15 @@ void RNA_api_object(StructRNA *srna)
 	func= RNA_def_function(srna, "find_armature", "rna_Object_find_armature");
 	RNA_def_function_ui_description(func, "Find armature influencing this object as a parent or via a modifier.");
 	parm= RNA_def_pointer(func, "ob_arm", "Object", "", "Armature object influencing this object or NULL.");
+	RNA_def_function_return(func, parm);
+
+	/* Shape key */
+	func= RNA_def_function(srna, "add_shape_key", "rna_Object_add_shape_key");
+	RNA_def_function_ui_description(func, "Add shape key to an object.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keylock."); /* optional */
+	parm= RNA_def_boolean(func, "from_mix", 1, "", "Create new shape from existing mix of shapes.");
+	parm= RNA_def_pointer(func, "key", "ShapeKey", "", "New shape keyblock.");
 	RNA_def_function_return(func, parm);
 
 	/* DAG */
