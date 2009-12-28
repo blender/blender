@@ -47,6 +47,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
+#include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -2629,3 +2630,96 @@ void object_delete_ptcache(Object *ob, int index)
 	BLI_freelinkN(&ob->pc_ids, link);
 }
 #endif
+
+/* shape key utility function */
+
+/************************* Mesh ************************/
+static void insert_meshkey(Scene *scene, Object *ob, int from_mix)
+{
+	Mesh *me= ob->data;
+	Key *key= me->key;
+	KeyBlock *kb;
+	int newkey= 0;
+
+	if(key == NULL) {
+		key= me->key= add_key((ID *)me);
+		key->type= KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from mesh */
+		mesh_to_key(me, kb);
+	}
+	else {
+		/* copy from current values */
+		kb->data= do_ob_key(scene, ob);
+		kb->totelem= me->totvert;
+	}
+}
+/************************* Lattice ************************/
+static void insert_lattkey(Scene *scene, Object *ob, int from_mix)
+{
+	Lattice *lt= ob->data;
+	Key *key= lt->key;
+	KeyBlock *kb;
+	int newkey= 0;
+
+	if(key==NULL) {
+		key= lt->key= add_key( (ID *)lt);
+		key->type= KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from lattice */
+		latt_to_key(lt, kb);
+	}
+	else {
+		/* copy from current values */
+		kb->totelem= lt->pntsu*lt->pntsv*lt->pntsw;
+		kb->data= do_ob_key(scene, ob);
+	}
+}
+/************************* Curve ************************/
+static void insert_curvekey(Scene *scene, Object *ob, int from_mix)
+{
+	Curve *cu= ob->data;
+	Key *key= cu->key;
+	KeyBlock *kb;
+	ListBase *lb= (cu->editnurb)? cu->editnurb: &cu->nurb;
+	int newkey= 0;
+
+	if(key==NULL) {
+		key= cu->key= add_key( (ID *)cu);
+		key->type = KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from curve */
+		curve_to_key(cu, kb, lb);
+	}
+	else {
+		/* copy from current values */
+		kb->totelem= count_curveverts(lb);
+		kb->data= do_ob_key(scene, ob);
+	}
+
+}
+
+int object_insert_shape_key(Scene *scene, Object *ob, int from_mix)
+{
+	if(ob->type==OB_MESH)						insert_meshkey(scene, ob, from_mix);
+	else if ELEM(ob->type, OB_CURVE, OB_SURF)	insert_curvekey(scene, ob, from_mix);
+	else if(ob->type==OB_LATTICE)				insert_lattkey(scene, ob, from_mix);
+	else return 0;
+	return 1;
+}
+

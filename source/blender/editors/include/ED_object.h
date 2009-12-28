@@ -110,7 +110,7 @@ void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *
 int  mouse_lattice(struct bContext *C, short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, char *name);
 
-/* object_shapekey.c */
+/* key.c */
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
 void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
 void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);

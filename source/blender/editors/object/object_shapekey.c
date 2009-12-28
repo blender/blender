@@ -80,283 +80,16 @@
 
 #include "object_intern.h"
 
-/************************* Mesh ************************/
-
-void mesh_to_key(Mesh *me, KeyBlock *kb)
-{
-	MVert *mvert;
-	float *fp;
-	int a;
-	
-	if(me->totvert==0) return;
-	
-	if(kb->data) MEM_freeN(kb->data);
-	
-	kb->data= MEM_callocN(me->key->elemsize*me->totvert, "kb->data");
-	kb->totelem= me->totvert;
-	
-	mvert= me->mvert;
-	fp= kb->data;
-	for(a=0; a<kb->totelem; a++, fp+=3, mvert++) {
-		VECCOPY(fp, mvert->co);
-		
-	}
-}
-
-void key_to_mesh(KeyBlock *kb, Mesh *me)
-{
-	MVert *mvert;
-	float *fp;
-	int a, tot;
-	
-	mvert= me->mvert;
-	fp= kb->data;
-	
-	tot= MIN2(kb->totelem, me->totvert);
-	
-	for(a=0; a<tot; a++, fp+=3, mvert++) {
-		VECCOPY(mvert->co, fp);
-	}
-}
-
-static void insert_meshkey(Scene *scene, Object *ob)
-{
-	Mesh *me= ob->data;
-	Key *key= me->key;
-	KeyBlock *kb;
-	int newkey= 0;
-
-	if(key == NULL) {
-		key= me->key= add_key((ID *)me);
-		key->type= KEY_RELATIVE;
-		newkey= 1;
-	}
-	
-	kb= add_keyblock(scene, key);
-	
-	if(newkey) {
-		/* create from mesh */
-		mesh_to_key(me, kb);
-	}
-	else {
-		/* copy from current values */
-		kb->data= do_ob_key(scene, ob);
-		kb->totelem= me->totvert;
-	}
-}
-
-/************************* Lattice ************************/
-
-void latt_to_key(Lattice *lt, KeyBlock *kb)
-{
-	BPoint *bp;
-	float *fp;
-	int a, tot;
-	
-	tot= lt->pntsu*lt->pntsv*lt->pntsw;
-	if(tot==0) return;
-	
-	if(kb->data) MEM_freeN(kb->data);
-	
-	kb->data= MEM_callocN(lt->key->elemsize*tot, "kb->data");
-	kb->totelem= tot;
-	
-	bp= lt->def;
-	fp= kb->data;
-	for(a=0; a<kb->totelem; a++, fp+=3, bp++) {
-		VECCOPY(fp, bp->vec);
-	}
-}
-
-void key_to_latt(KeyBlock *kb, Lattice *lt)
-{
-	BPoint *bp;
-	float *fp;
-	int a, tot;
-	
-	bp= lt->def;
-	fp= kb->data;
-	
-	tot= lt->pntsu*lt->pntsv*lt->pntsw;
-	tot= MIN2(kb->totelem, tot);
-	
-	for(a=0; a<tot; a++, fp+=3, bp++) {
-		VECCOPY(bp->vec, fp);
-	}
-}
-
-static void insert_lattkey(Scene *scene, Object *ob)
-{
-	Lattice *lt= ob->data;
-	Key *key= lt->key;
-	KeyBlock *kb;
-	int newkey= 0;
-	
-	if(key==NULL) {
-		key= lt->key= add_key( (ID *)lt);
-		key->type= KEY_RELATIVE;
-		newkey= 1;
-	}
-
-	kb= add_keyblock(scene, key);
-	
-	if(newkey) {
-		/* create from lattice */
-		latt_to_key(lt, kb);
-	}
-	else {
-		/* copy from current values */
-		kb->totelem= lt->pntsu*lt->pntsv*lt->pntsw;
-		kb->data= do_ob_key(scene, ob);
-	}
-}
-
-/************************* Curve ************************/
-
-void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
-{
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	float *fp;
-	int a, tot;
-	
-	/* count */
-	tot= count_curveverts(nurb);
-	if(tot==0) return;
-	
-	if(kb->data) MEM_freeN(kb->data);
-	
-	kb->data= MEM_callocN(cu->key->elemsize*tot, "kb->data");
-	kb->totelem= tot;
-	
-	nu= nurb->first;
-	fp= kb->data;
-	while(nu) {
-		
-		if(nu->bezt) {
-			bezt= nu->bezt;
-			a= nu->pntsu;
-			while(a--) {
-				VECCOPY(fp, bezt->vec[0]);
-				fp+= 3;
-				VECCOPY(fp, bezt->vec[1]);
-				fp+= 3;
-				VECCOPY(fp, bezt->vec[2]);
-				fp+= 3;
-				fp[0]= bezt->alfa;
-				fp+= 3;	/* alphas */
-				bezt++;
-			}
-		}
-		else {
-			bp= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				VECCOPY(fp, bp->vec);
-				fp[3]= bp->alfa;
-				
-				fp+= 4;
-				bp++;
-			}
-		}
-		nu= nu->next;
-	}
-}
-
-void key_to_curve(KeyBlock *kb, Curve  *cu, ListBase *nurb)
-{
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	float *fp;
-	int a, tot;
-	
-	nu= nurb->first;
-	fp= kb->data;
-	
-	tot= count_curveverts(nurb);
-
-	tot= MIN2(kb->totelem, tot);
-	
-	while(nu && tot>0) {
-		
-		if(nu->bezt) {
-			bezt= nu->bezt;
-			a= nu->pntsu;
-			while(a-- && tot>0) {
-				VECCOPY(bezt->vec[0], fp);
-				fp+= 3;
-				VECCOPY(bezt->vec[1], fp);
-				fp+= 3;
-				VECCOPY(bezt->vec[2], fp);
-				fp+= 3;
-				bezt->alfa= fp[0];
-				fp+= 3;	/* alphas */
-			
-				tot-= 3;
-				bezt++;
-			}
-		}
-		else {
-			bp= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a-- && tot>0) {
-				VECCOPY(bp->vec, fp);
-				bp->alfa= fp[3];
-				
-				fp+= 4;
-				tot--;
-				bp++;
-			}
-		}
-		nu= nu->next;
-	}
-}
-
-
-static void insert_curvekey(Scene *scene, Object *ob)
-{
-	Curve *cu= ob->data;
-	Key *key= cu->key;
-	KeyBlock *kb;
-	ListBase *lb= (cu->editnurb)? cu->editnurb: &cu->nurb;
-	int newkey= 0;
-	
-	if(key==NULL) {
-		key= cu->key= add_key( (ID *)cu);
-		key->type = KEY_RELATIVE;
-		newkey= 1;
-	}
-	
-	kb= add_keyblock(scene, key);
-	
-	if(newkey) {
-		/* create from curve */
-		curve_to_key(cu, kb, lb);
-	}
-	else {
-		/* copy from current values */
-		kb->totelem= count_curveverts(lb);
-		kb->data= do_ob_key(scene, ob);
-	}
-
-}
-
 /*********************** add shape key ***********************/
 
-static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob)
+static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int from_mix)
 {
-	Key *key;
+	if(object_insert_shape_key(scene, ob, from_mix)) {
+		Key *key= ob_get_key(ob);
+		ob->shapenr= BLI_countlist(&key->block);
 
-	if(ob->type==OB_MESH) insert_meshkey(scene, ob);
-	else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(scene, ob);
-	else if(ob->type==OB_LATTICE) insert_lattkey(scene, ob);
-
-	key= ob_get_key(ob);
-	ob->shapenr= BLI_countlist(&key->block);
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	}
 }
 
 /*********************** remove shape key ***********************/
@@ -505,8 +238,9 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	int from_mix = RNA_boolean_get(op->ptr, "from_mix");
 
-	ED_object_shape_key_add(C, scene, ob);
+	ED_object_shape_key_add(C, scene, ob, from_mix);
 	
 	return OPERATOR_FINISHED;
 }
@@ -524,6 +258,9 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "from_mix", 0, "From Mix", "Create the new shape key from the existing mix of keys.");
 }
 
 static int shape_key_remove_exec(bContext *C, wmOperator *op)

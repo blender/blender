@@ -1395,7 +1395,7 @@ Key *ob_get_key(Object *ob)
 	return NULL;
 }
 
-KeyBlock *add_keyblock(Scene *scene, Key *key)
+KeyBlock *add_keyblock(Key *key)
 {
 	KeyBlock *kb;
 	float curpos= -0.1;
@@ -1515,4 +1515,186 @@ char *key_get_curValue_rnaPath(Key *key, KeyBlock *kb)
 	
 	/* return the path */
 	return RNA_path_from_ID_to_property(&ptr, prop);
+}
+
+
+/* conversion functions */
+
+/************************* Lattice ************************/
+void latt_to_key(Lattice *lt, KeyBlock *kb)
+{
+	BPoint *bp;
+	float *fp;
+	int a, tot;
+
+	tot= lt->pntsu*lt->pntsv*lt->pntsw;
+	if(tot==0) return;
+
+	if(kb->data) MEM_freeN(kb->data);
+
+	kb->data= MEM_callocN(lt->key->elemsize*tot, "kb->data");
+	kb->totelem= tot;
+
+	bp= lt->def;
+	fp= kb->data;
+	for(a=0; a<kb->totelem; a++, fp+=3, bp++) {
+		VECCOPY(fp, bp->vec);
+	}
+}
+
+void key_to_latt(KeyBlock *kb, Lattice *lt)
+{
+	BPoint *bp;
+	float *fp;
+	int a, tot;
+
+	bp= lt->def;
+	fp= kb->data;
+
+	tot= lt->pntsu*lt->pntsv*lt->pntsw;
+	tot= MIN2(kb->totelem, tot);
+
+	for(a=0; a<tot; a++, fp+=3, bp++) {
+		VECCOPY(bp->vec, fp);
+	}
+}
+
+/************************* Curve ************************/
+void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
+{
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	float *fp;
+	int a, tot;
+
+	/* count */
+	tot= count_curveverts(nurb);
+	if(tot==0) return;
+
+	if(kb->data) MEM_freeN(kb->data);
+
+	kb->data= MEM_callocN(cu->key->elemsize*tot, "kb->data");
+	kb->totelem= tot;
+
+	nu= nurb->first;
+	fp= kb->data;
+	while(nu) {
+
+		if(nu->bezt) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a--) {
+				VECCOPY(fp, bezt->vec[0]);
+				fp+= 3;
+				VECCOPY(fp, bezt->vec[1]);
+				fp+= 3;
+				VECCOPY(fp, bezt->vec[2]);
+				fp+= 3;
+				fp[0]= bezt->alfa;
+				fp+= 3;	/* alphas */
+				bezt++;
+			}
+		}
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			while(a--) {
+				VECCOPY(fp, bp->vec);
+				fp[3]= bp->alfa;
+
+				fp+= 4;
+				bp++;
+			}
+		}
+		nu= nu->next;
+	}
+}
+
+void key_to_curve(KeyBlock *kb, Curve  *cu, ListBase *nurb)
+{
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	float *fp;
+	int a, tot;
+
+	nu= nurb->first;
+	fp= kb->data;
+
+	tot= count_curveverts(nurb);
+
+	tot= MIN2(kb->totelem, tot);
+
+	while(nu && tot>0) {
+
+		if(nu->bezt) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a-- && tot>0) {
+				VECCOPY(bezt->vec[0], fp);
+				fp+= 3;
+				VECCOPY(bezt->vec[1], fp);
+				fp+= 3;
+				VECCOPY(bezt->vec[2], fp);
+				fp+= 3;
+				bezt->alfa= fp[0];
+				fp+= 3;	/* alphas */
+
+				tot-= 3;
+				bezt++;
+			}
+		}
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			while(a-- && tot>0) {
+				VECCOPY(bp->vec, fp);
+				bp->alfa= fp[3];
+
+				fp+= 4;
+				tot--;
+				bp++;
+			}
+		}
+		nu= nu->next;
+	}
+}
+
+/************************* Mesh ************************/
+void mesh_to_key(Mesh *me, KeyBlock *kb)
+{
+	MVert *mvert;
+	float *fp;
+	int a;
+
+	if(me->totvert==0) return;
+
+	if(kb->data) MEM_freeN(kb->data);
+
+	kb->data= MEM_callocN(me->key->elemsize*me->totvert, "kb->data");
+	kb->totelem= me->totvert;
+
+	mvert= me->mvert;
+	fp= kb->data;
+	for(a=0; a<kb->totelem; a++, fp+=3, mvert++) {
+		VECCOPY(fp, mvert->co);
+
+	}
+}
+
+void key_to_mesh(KeyBlock *kb, Mesh *me)
+{
+	MVert *mvert;
+	float *fp;
+	int a, tot;
+
+	mvert= me->mvert;
+	fp= kb->data;
+
+	tot= MIN2(kb->totelem, me->totvert);
+
+	for(a=0; a<tot; a++, fp+=3, mvert++) {
+		VECCOPY(mvert->co, fp);
+	}
 }

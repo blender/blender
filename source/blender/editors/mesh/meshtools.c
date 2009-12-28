@@ -588,7 +588,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 		key->type= KEY_RELATIVE;
 
 		/* first key added, so it was the basis. initialise it with the existing mesh */
-		kb= add_keyblock(scene, key);
+		kb= add_keyblock(key);
 		mesh_to_key(me, kb);
 	}
 	
@@ -604,7 +604,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 				
 				if (!dm) continue;
 					
-				kb= add_keyblock(scene, key);
+				kb= add_keyblock(key);
 				strcpy(kb->name, base->object->id.name+2);
 				BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), 32);
 				
