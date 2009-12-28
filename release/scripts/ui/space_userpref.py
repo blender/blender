@@ -1476,12 +1476,13 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         for km in kc.keymaps:
             filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
-
+            
             if len(filtered_items) != 0:
                 km = km.active()
 
+                layout.set_context_pointer("keymap", km)
                 col = layout.column()
-                col.set_context_pointer("keymap", km)
+               
                 row = col.row()
                 row.label(text=km.name, icon="DOT")
 
@@ -1495,6 +1496,12 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                 for kmi in filtered_items:
                     self.draw_kmi(kc, km, kmi, col, 1)
+                    
+                # "Add New" at end of keymap item list
+                col = self.indented_layout(layout, 1)
+                subcol = col.split(percentage=0.2).column()
+                subcol.active = km.user_defined
+                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
     def draw_hierarchy(self, defkc, layout):
         for entry in KM_HIERARCHY:
@@ -1805,10 +1812,19 @@ class WM_OT_keyitem_add(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         km = context.keymap
+        kc = wm.default_keyconfig
+        
         if km.modal:
             km.add_modal_item("", 'A', 'PRESS') # kmi
         else:
-            km.add_item("", 'A', 'PRESS') # kmi
+            km.add_item("none", 'A', 'PRESS') # kmi
+            
+        # clear filter and expand keymap so we can see the newly added item
+        if kc.filter != '':
+            kc.filter = ''
+            km.items_expanded = True
+            km.children_expanded = True
+        
         return {'FINISHED'}
 
 
