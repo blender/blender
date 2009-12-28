@@ -26,7 +26,7 @@ from netrender.utils import *
 import netrender.client as client
 import netrender.model
 
-@rnaOperator
+@rnaType
 class RENDER_OT_netslave_bake(bpy.types.Operator):
 	'''NEED DESCRIPTION'''
 	bl_idname = "render.netslavebake"
@@ -84,7 +84,7 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 	
-@rnaOperator
+@rnaType
 class RENDER_OT_netclientanim(bpy.types.Operator):
 	'''Start rendering an animation on network'''
 	bl_idname = "render.netclientanim"
@@ -111,7 +111,7 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
-@rnaOperator
+@rnaType
 class RENDER_OT_netclientsend(bpy.types.Operator):
 	'''Send Render Job to the Network'''
 	bl_idname = "render.netclientsend"
@@ -141,7 +141,7 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
-@rnaOperator
+@rnaType
 class RENDER_OT_netclientstatus(bpy.types.Operator):
 	'''Refresh the status of the current jobs'''
 	bl_idname = "render.netclientstatus"
@@ -181,7 +181,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
-@rnaOperator
+@rnaType
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	bl_idname = "render.netclientblacklistslave"
@@ -211,7 +211,7 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
-@rnaOperator
+@rnaType
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	bl_idname = "render.netclientwhitelistslave"
@@ -242,7 +242,7 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 		return self.execute(context)
 
 
-@rnaOperator
+@rnaType
 class RENDER_OT_netclientslaves(bpy.types.Operator):
 	'''Refresh status about available Render slaves'''
 	bl_idname = "render.netclientslaves"
@@ -287,7 +287,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
-@rnaOperator
+@rnaType
 class RENDER_OT_netclientcancel(bpy.types.Operator):
 	'''Cancel the selected network rendering job.'''
 	bl_idname = "render.netclientcancel"
@@ -316,7 +316,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 	
-@rnaOperator
+@rnaType
 class RENDER_OT_netclientcancelall(bpy.types.Operator):
 	'''Cancel all running network rendering jobs.'''
 	bl_idname = "render.netclientcancelall"
@@ -343,7 +343,7 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
-@rnaOperator
+@rnaType
 class netclientdownload(bpy.types.Operator):
 	'''Download render results from the network'''
 	bl_idname = "render.netclientdownload"
@@ -388,15 +388,16 @@ class netclientdownload(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
-@rnaOperator
+@rnaType
 class netclientscan(bpy.types.Operator):
+	__slots__ = []
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	bl_idname = "render.netclientscan"
 	bl_label = "Client Scan"
 	
 	def poll(self, context):
 		return True
-		
+	
 	def execute(self, context):
 		address, port = clientScan(self.report)
 
@@ -409,16 +410,18 @@ class netclientscan(bpy.types.Operator):
 		return {'FINISHED'}
 
 	def invoke(self, context, event):
+		print(dir(self))
 		return self.execute(context)
 
-@rnaOperator
+@rnaType
 class netclientweb(bpy.types.Operator):
 	'''Open new window with information about running rendering jobs'''
 	bl_idname = "render.netclientweb"
 	bl_label = "Open Master Monitor"
 	
 	def poll(self, context):
-		return True
+		netsettings = context.scene.network_render
+		return netsettings.server_address != "[default]"
 		
 	def execute(self, context):
 		netsettings = context.scene.network_render

@@ -78,6 +78,8 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 		else:
 			col.operator("render.netclientscan", icon='FILE_REFRESH', text="")
 
+		col.operator("render.netclientweb", icon='QUESTION')
+
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
 	bl_label = "Job Settings"
@@ -104,7 +106,6 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 			col.operator("render.netclientsend", icon='FILE_BLEND')
 			if scene.network_render.job_id:
 				col.operator("screen.render", text="Get Results", icon='RENDER_ANIMATION').animation = True
-			col.operator("render.netclientweb", icon='QUESTION')
 		col.prop(scene.network_render, "job_name")
 		col.prop(scene.network_render, "job_category")
 		row = col.row()
