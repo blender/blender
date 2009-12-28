@@ -93,6 +93,8 @@ void project_int_noclip(struct ARegion *ar, float *vec, int *adr);
 void project_float(struct ARegion *ar, float *vec, float *adr);
 void project_float_noclip(struct ARegion *ar, float *vec, float *adr);
 
+void viewvector(struct RegionView3D *rv3d, float coord[3], float vec[3]);
+
 void viewline(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_end[3]);
 void viewray(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3]);
 
