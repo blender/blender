@@ -99,4 +99,10 @@ def _main():
     else:
         load_scripts()
 
+
+# constants
+version = _bpy._VERSION
+version_string = _bpy._VERSION_STR
+home = _bpy._HOME
+
 _main()

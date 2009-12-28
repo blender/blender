@@ -40,29 +40,6 @@ All objects that can be represented as a mesh (mesh, curve, metaball, surface, t
 will be exported as mesh data.
 """
 
-
-# --------------------------------------------------------------------------
-# OBJ Export v1.1 by Campbell Barton (AKA Ideasman)
-# --------------------------------------------------------------------------
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA	 02111-1307, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
-
 # import math and other in functions that use them for the sake of fast Blender startup
 # import math
 import os
@@ -384,8 +361,7 @@ def write(filename, objects, scene,
     file = open(filename, "w")
 
     # Write Header
-    version = "2.5"
-    file.write('# Blender3D v%s OBJ File: %s\n' % (version, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
+    file.write('# Blender3D v%s OBJ File: %s\n' % (bpy.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
     file.write('# www.blender3d.org\n')
 
     # Tell the obj file what material file to use.

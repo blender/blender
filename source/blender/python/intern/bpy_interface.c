@@ -59,6 +59,7 @@
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
+#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_context.h"
@@ -218,6 +219,16 @@ static void bpy_init_modules( void )
 		RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
 
 		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
+	}
+
+	/* blender info that wont change at runtime, add into _bpy */
+	{
+		PyObject *mod_dict= PyModule_GetDict(mod);
+		char tmpstr[256];
+		PyModule_AddStringConstant(mod, "_HOME",  BLI_gethome());
+		PyDict_SetItemString(mod_dict, "_VERSION", Py_BuildValue("(iii)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION));
+		sprintf(tmpstr, "%d.%02d (sub %d)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+		PyModule_AddStringConstant(mod, "_VERSION_STR",  tmpstr);
 	}
 
 	/* add our own modules dir, this is a python package */
