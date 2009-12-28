@@ -76,7 +76,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
-        layout.operator_menu_enum("wm.open_recentfile", "file", text="Open Recent")
+        layout.menu("INFO_MT_file_open_recent")
         layout.operator("wm.recover_last_session")
         layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
 
@@ -112,6 +112,20 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.exit_blender", text="Quit", icon='QUIT')
 
+
+class INFO_MT_file_open_recent(bpy.types.Menu):
+    bl_idname = "INFO_MT_file_open_recent"
+    bl_label = "Open Recent..."
+
+    def draw(self, context):
+        import os
+        layout = self.layout
+        layout.operator_context = 'EXEC_AREA'
+        file = open(os.path.join(bpy.home, ".Blog"), "rU")
+        for line in file:
+            line = line.rstrip()
+            layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').path = line
+        file.close()
 
 class INFO_MT_file_import(bpy.types.Menu):
     bl_idname = "INFO_MT_file_import"
@@ -274,6 +288,7 @@ class INFO_MT_help(bpy.types.Menu):
 
 bpy.types.register(INFO_HT_header)
 bpy.types.register(INFO_MT_file)
+bpy.types.register(INFO_MT_file_open_recent)
 bpy.types.register(INFO_MT_file_import)
 bpy.types.register(INFO_MT_file_export)
 bpy.types.register(INFO_MT_file_external_data)

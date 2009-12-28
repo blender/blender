@@ -929,6 +929,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiBut *but;
 	uiLayout *layout, *split, *col;
 	uiStyle *style= U.uistyles.first;
+	struct RecentFile *recent;
+	int i;
 	
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
@@ -954,7 +956,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
-	uiItemsEnumO(col, "WM_OT_open_recentfile_splash", "file");
+	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++)
+		uiItemStringO(col, BLI_last_slash(recent->filename)+1, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
+
 	uiItemS(col);
 
 	uiCenteredBoundsBlock(block, 0.0f);
@@ -1135,126 +1139,6 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 	
 	RNA_def_boolean(ot->srna, "factory", 0, "Factory Settings", "");
-}
-
-
-/* ********* recent file *********** */
-
-static int recentfile_exec(bContext *C, wmOperator *op)
-{
-	int event= RNA_enum_get(op->ptr, "file");
-
-	// XXX wm in context is not set correctly after WM_read_file -> crash
-	// do it before for now, but is this correct with multiple windows?
-
-	if(event>0) {
-		if (G.sce[0] && (event==1)) {
-			WM_event_add_notifier(C, NC_WINDOW, NULL);
-			WM_read_file(C, G.sce, op->reports);
-		}
-		else {
-			struct RecentFile *recent = BLI_findlink(&(G.recent_files), event-1);
-			if(recent) {
-				WM_event_add_notifier(C, NC_WINDOW, NULL);
-				WM_read_file(C, recent->filename, op->reports);
-			}
-		}
-	}
-	return OPERATOR_FINISHED;
-}
-
-static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Open Recent", 0);
-	layout= uiPupMenuLayout(pup);
-	uiItemsEnumO(layout, op->type->idname, "file");
-	uiPupMenuEnd(C, pup);
-	
-	return OPERATOR_CANCELLED;
-}
-
-static EnumPropertyItem *open_recentfile_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	EnumPropertyItem *item= NULL;
-	struct RecentFile *recent;
-	int totitem= 0, i;
-
-	/* dynamically construct enum */
-	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
-		tmp.value= i+1;
-		tmp.icon= ICON_FILE_BLEND;
-		tmp.identifier= recent->filename;
-		tmp.name= BLI_short_filename(recent->filename);
-		RNA_enum_item_add(&item, &totitem, &tmp);
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*free= 1;
-
-	return item;
-}
-
-static void WM_OT_open_recentfile(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	static EnumPropertyItem file_items[]= {
-		{0, NULL, 0, NULL, NULL}};
-
-	ot->name= "Open Recent File";
-	ot->idname= "WM_OT_open_recentfile";
-	ot->description="Open recent files list.";
-	
-	ot->invoke= wm_recentfile_invoke;
-	ot->exec= recentfile_exec;
-	ot->poll= WM_operator_winactive;
-	
-	prop= RNA_def_enum(ot->srna, "file", file_items, 1, "File", "");
-	RNA_def_enum_funcs(prop, open_recentfile_itemf);
-}
-
-static EnumPropertyItem *open_recentfile_splash_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	EnumPropertyItem *item= NULL;
-	struct RecentFile *recent;
-	int totitem= 0, i;
-	
-	/* dynamically construct enum */
-	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++) {
-		tmp.value= i+1;
-		tmp.icon= ICON_FILE_BLEND;
-		tmp.identifier= recent->filename;
-		tmp.name= BLI_last_slash(recent->filename);
-		if(tmp.name) tmp.name += 1;
-		else tmp.name = recent->filename;
-		RNA_enum_item_add(&item, &totitem, &tmp);
-	}
-	
-	RNA_enum_item_end(&item, &totitem);
-	*free= 1;
-	
-	return item;
-}
-
-static void WM_OT_open_recentfile_splash(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	static EnumPropertyItem file_items[]= {
-		{0, NULL, 0, NULL, NULL}};
-	
-	ot->name= "Open Recent File";
-	ot->idname= "WM_OT_open_recentfile_splash";
-	ot->description="Open recent files list.";
-	
-	ot->exec= recentfile_exec;
-	ot->poll= WM_operator_winactive;
-	
-	prop= RNA_def_enum(ot->srna, "file", file_items, 1, "File", "");
-	RNA_def_enum_funcs(prop, open_recentfile_splash_itemf);
 }
 
 /* *************** open file **************** */
@@ -2683,8 +2567,6 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
-	WM_operatortype_append(WM_OT_open_recentfile);
-	WM_operatortype_append(WM_OT_open_recentfile_splash);
 	WM_operatortype_append(WM_OT_open_mainfile);
 	WM_operatortype_append(WM_OT_link_append);
 	WM_operatortype_append(WM_OT_recover_last_session);
@@ -2821,7 +2703,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	#ifdef __APPLE__
 	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+	WM_keymap_add_menu(keymap, "INFO_MT_file_open_recent", OKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
@@ -2829,7 +2711,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	#endif
 	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0); 
-	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "INFO_MT_file_open_recent", OKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
