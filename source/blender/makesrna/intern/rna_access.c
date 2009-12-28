@@ -3479,6 +3479,11 @@ int RNA_function_flag(FunctionRNA *func)
 	return func->flag;
 }
 
+int RNA_function_defined(FunctionRNA *func)
+{
+	return func->call != NULL;
+}
+
 PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index)
 {
 	PropertyRNA *parm;

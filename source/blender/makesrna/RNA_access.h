@@ -855,6 +855,7 @@ const char *RNA_function_identifier(FunctionRNA *func);
 PropertyRNA *RNA_function_return(FunctionRNA *func);
 const char *RNA_function_ui_description(FunctionRNA *func);
 int RNA_function_flag(FunctionRNA *func);
+int RNA_function_defined(FunctionRNA *func);
 
 PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index);
 PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr, FunctionRNA *func, const char *identifier);

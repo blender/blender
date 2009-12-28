@@ -1682,7 +1682,8 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	else if ((prop = RNA_struct_find_property(&self->ptr, name))) {
   		ret = pyrna_prop_to_py(&self->ptr, prop);
   	}
-	else if ((func = RNA_struct_find_function(&self->ptr, name))) {
+	/* RNA function only if callback is declared (no optional functions) */
+	else if ((func = RNA_struct_find_function(&self->ptr, name)) && RNA_function_defined(func)) {
 		ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
 	}
 	else if (self->ptr.type == &RNA_Context) {
