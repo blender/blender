@@ -5909,7 +5909,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		SoftBody *sb = 0;
 		float tipw = 0.5f, tiph = 0.5f,drawsize = 4.0f;
 		if ((sb= ob->soft)){
-			if(sb->solverflags & SBSO_MONITOR ||sb->solverflags & SBSO_ESTIMATEIPO){
+			if(sb->solverflags & SBSO_ESTIMATEIPO){
 
 				wmLoadMatrix(rv3d->viewmat);
 				copy_m3_m3(msc,sb->lscale);
