@@ -675,23 +675,6 @@ IpoCurve* findIpoCurve(IpoCurve* first, const char* searchName)
 	return 0;
 }
 
-// this is not longer necesary //rcruiz
-/*Ipo* KX_BlenderSceneConverter::findIpoForName(char* objName)
-{
-	Ipo* ipo_iter = (Ipo*)m_maggie->ipo.first;
-
-	while( ipo_iter )
-	{
-		if( strcmp( objName, ipo_iter->id.name + 2 ) == 0 ) 
-		{
-			return ipo_iter;
-		}
-		ipo_iter = (Ipo*)ipo_iter->id.next;
-	}
-	return 0;
-}
-*/
-
 void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 {
 
@@ -1374,12 +1357,8 @@ bool KX_BlenderSceneConverter::MergeScene(KX_Scene *to, KX_Scene *from)
  * it does not convert */
 RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene, Main *maggie, const char *name)
 {
-	ID *me;
-	
 	/* Find a mesh in the current main */
-	for(me = (ID *)m_maggie->mesh.first; me; me= (ID *)me->next)
-		if(strcmp(name, me->name+2)==0)
-			break;
+	ID *me= static_cast<ID *>(BLI_findstring(&m_maggie->mesh, name, offsetof(ID, name) + 2));
 	
 	if(me==NULL) {
 		printf("Could not be found \"%s\"\n", name);

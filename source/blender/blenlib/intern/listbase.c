@@ -343,6 +343,26 @@ int BLI_findindex(ListBase *listbase, void *vlink)
 	return -1;
 }
 
+void *BLI_findstring(ListBase *listbase, const char *id, int offset)
+{
+	Link *link= NULL;
+	const char *id_iter;
+
+	if (listbase == NULL) return NULL;
+
+	link= listbase->first;
+	while (link) {
+		id_iter= ((const char *)link) + offset;
+		printf("ASS '%s'\n", id_iter);
+		if(id[0] == id_iter[0] && strcmp(id, id_iter)==0)
+			return link;
+
+		link= link->next;
+	}
+
+	return NULL;
+}
+
 void BLI_duplicatelist(ListBase *list1, const ListBase *list2)
 {
 	struct Link *link1, *link2;

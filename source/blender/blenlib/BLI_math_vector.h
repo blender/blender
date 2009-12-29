@@ -81,22 +81,22 @@ MINLINE void madd_v3_v3v3fl(float r[3], float a[3], float b[3], float f);
 MINLINE void madd_v3_v3v3v3(float r[3], float a[3], float b[3], float c[3]);
 
 MINLINE void negate_v3(float r[3]);
-MINLINE void negate_v3_v3(float r[3], float a[3]);
+MINLINE void negate_v3_v3(float r[3], const float a[3]);
 
-MINLINE float dot_v2v2(float a[2], float b[2]); 
-MINLINE float dot_v3v3(float a[3], float b[3]);
+MINLINE float dot_v2v2(const float a[2], const float b[2]);
+MINLINE float dot_v3v3(const float a[3], const float b[3]);
 
-MINLINE float cross_v2v2(float a[2], float b[2]);
+MINLINE float cross_v2v2(const float a[2], const float b[2]);
 MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
 MINLINE void star_m3_v3(float R[3][3],float a[3]);
 
 /*********************************** Length **********************************/
 
-MINLINE float len_v2(float a[2]);
-MINLINE float len_v2v2(float a[2], float b[2]);
-MINLINE float len_v3(float a[3]);
-MINLINE float len_v3v3(float a[3], float b[3]);
+MINLINE float len_v2(const float a[2]);
+MINLINE float len_v2v2(const float a[2], const float b[2]);
+MINLINE float len_v3(const float a[3]);
+MINLINE float len_v3v3(const float a[3], const float b[3]);
 
 MINLINE float normalize_v2(float r[2]);
 MINLINE float normalize_v3(float r[3]);

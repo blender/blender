@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
@@ -920,18 +921,11 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 
 static void test_obpoin_but(bContext *C, char *name, ID **idpp)
 {
-	ID *id;
+	ID *id= BLI_findstring(&CTX_data_main(C)->object, name, offsetof(ID, name) + 2);
+	*idpp= id; /* can be NULL */
 	
-	id= CTX_data_main(C)->object.first;
-	while(id) {
-		if( strcmp(name, id->name+2)==0 ) {
-			*idpp= id;
-			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
-			return;
-		}
-		id= id->next;
-	}
-	*idpp= NULL;
+	if(id)
+		id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
 }
 
 /* draw panel showing settings for a constraint */

@@ -58,6 +58,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.h"
+
 static void rna_Pose_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
@@ -507,6 +509,16 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
 	}
 		
 	return PROP_EDITABLE;
+}
+
+/* not essential, but much faster then the default lookup function */
+PointerRNA rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key)
+{
+	PointerRNA rptr;
+	bPose *pose= (bPose*)ptr->data;
+	bPoseChannel *pchan= BLI_findstring(&pose->chanbase, key, offsetof(bPoseChannel, name));
+	RNA_pointer_create(ptr->id.data, &RNA_PoseBone, pchan, &rptr);
+	return rptr;
 }
 
 #else
@@ -1077,7 +1089,7 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
 	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_ui_text(prop, "Pose Bones", "Individual pose bones for the armature.");
-
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, "rna_PoseBones_lookup_string"); /* can be removed, only for fast lookup */
 	/* bone groups */
 	prop= RNA_def_property(srna, "bone_groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "agroups", NULL);

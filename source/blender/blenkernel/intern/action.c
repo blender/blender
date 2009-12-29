@@ -379,19 +379,10 @@ bActionGroup *action_groups_find_named (bAction *act, const char name[])
 /* usually used within a loop, so we got a N^2 slowdown */
 bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 {
-	bPoseChannel *chan;
-	
 	if (ELEM(NULL, pose, name) || (name[0] == 0))
 		return NULL;
 	
-	for (chan=pose->chanbase.first; chan; chan=chan->next) {
-		if (chan->name[0] == name[0]) {
-			if (!strcmp (chan->name, name))
-				return chan;
-		}
-	}
-
-	return NULL;
+	return BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
 }
 
 /* Use with care, not on Armature poses but for temporal ones */

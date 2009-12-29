@@ -38,6 +38,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -844,18 +845,8 @@ void free_main(Main *mainvar)
 
 ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 {
-	ID *id;
-	ListBase *lb;
-	
-	lb= wich_libbase(G.main, GS(type));
-	
-	id= lb->first;
-	while(id) {
-		if(id->name[2]==name[0] && strcmp(id->name+2, name)==0 ) 
-			return id;
-		id= id->next;
-	}
-	return 0;
+	ListBase *lb= wich_libbase(G.main, GS(type));
+	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
 static void get_flags_for_id(ID *id, char *buf) 
@@ -1336,11 +1327,7 @@ void test_idbutton(char *name)
 	if(lb==0) return;
 	
 	/* search for id */
-	idtest= lb->first;
-	while(idtest) {
-		if( strcmp(idtest->name+2, name)==0) break;
-		idtest= idtest->next;
-	}
+	idtest= BLI_findstring(lb, name, offsetof(ID, name) + 2);
 
 	if(idtest) if( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
 }
