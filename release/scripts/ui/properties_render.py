@@ -547,8 +547,42 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         sub.prop(rd, "stamp_note_text", text="")
 
 
-bpy.types.register(RENDER_MT_presets)
+class RENDER_PT_bake(RenderButtonsPanel):
+    bl_label = "Bake"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render_data
+        wide_ui = context.region.width > narrowui
+
+        row = layout.row()
+        row.operator("object.bake_image", icon='RENDER_STILL')
+        row.prop(rd, "bake_type", text="")
+
+        col = layout.column()
+        col.active = (rd.bake_type == 'NORMALS')
+        col.prop(rd, "bake_normal_space")
+        # col.prop(rd, "bake_aa_mode")
+        # col.prop(rd, "bake_enable_aa")
+
+        col = layout.column()
+        row = col.row(align=True)
+        row.prop(rd, "bake_active")
+        row.prop(rd, "bake_normalized")
+
+        row = col.row(align=True)
+        row.prop(rd, "bake_clear")
+        row.prop(rd, "bake_margin")
+
+        row = col.row(align=True)
+        row.prop(rd, "bake_distance")
+        row.prop(rd, "bake_bias")
+
+
+bpy.types.register(RENDER_MT_presets)
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_layers)
 bpy.types.register(RENDER_PT_dimensions)
@@ -559,3 +593,4 @@ bpy.types.register(RENDER_PT_encoding)
 bpy.types.register(RENDER_PT_performance)
 bpy.types.register(RENDER_PT_post_processing)
 bpy.types.register(RENDER_PT_stamp)
+bpy.types.register(RENDER_PT_bake)

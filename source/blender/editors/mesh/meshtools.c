@@ -1197,7 +1197,7 @@ void objects_bake_render(Scene *scene, short event, char **error_msg)
 	if(event>0) {
 		bScreen *screen= NULL; // XXX CTX
 		Render *re= RE_NewRender("_Bake View_");
-		ScrArea *area= biggest_image_area(screen);
+		ScrArea *area= NULL; //biggest_image_area(screen); // XXX
 		ListBase threads;
 		BakeRender bkr;
 		int timer=0, tot; // XXX, sculptmode= G.f & G_SCULPTMODE;
