@@ -292,6 +292,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 				case ND_CONSTRAINT:
 					buttons_area_redraw(sa, BCONTEXT_CONSTRAINT);
+					buttons_area_redraw(sa, BCONTEXT_BONE_CONSTRAINT);
 					break;
 				case ND_PARTICLE_DATA:
 					buttons_area_redraw(sa, BCONTEXT_PARTICLE);
