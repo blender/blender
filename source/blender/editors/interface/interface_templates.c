@@ -610,9 +610,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *column, *row, *result= NULL;
-	int isVirtual = md->mode & eModifierMode_Virtual;
-	// XXX short color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
+	uiLayout *box, *column, *row;
+	uiLayout *result= NULL;
+	int isVirtual = (md->mode & eModifierMode_Virtual);
 	char str[128];
 
 	/* create RNA pointer */
@@ -621,101 +621,100 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	column= uiLayoutColumn(layout, 1);
 	uiLayoutSetContextPointer(column, "modifier", &ptr);
 
-	/* rounded header */
-	/* XXX uiBlockSetCol(block, color); */
-		/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
-
-	row= uiLayoutRow(uiLayoutBox(column), 0);
+	/* rounded header ------------------------------------------------------------------- */
+	box= uiLayoutBox(column);
+	
+	row= uiLayoutRow(box, 0);
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
-
 	block= uiLayoutGetBlock(row);
-
-	//uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 25, NULL, 7.0, 0.0, 
-	//		 (!isVirtual && (md->mode & eModifierMode_Expanded))?3:15, 20, ""); 
-	/* XXX uiBlockSetCol(block, TH_AUTO); */
 	
-	/* open/close icon */
-	if(!isVirtual) {
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
-	}
-	
-	/* modifier-type icon */
-	uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
-	
-	uiBlockSetEmboss(block, UI_EMBOSS);
-	
-	if(isVirtual) {
-		/* virtual modifier */
+	if (isVirtual) {
+		/* VIRTUAL MODIFIER */
+		// XXX this is not used now, since these cannot be accessed via RNA
 		sprintf(str, "%s parent deform", md->name);
 		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
-
+		
 		but = uiDefBut(block, BUT, 0, "Make Real", 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
 		uiButSetFunc(but, modifiers_convertToReal, ob, md);
 	}
 	else {
-		/* real modifier */
-		uiBlockBeginAlign(block);
-		uiItemR(row, "", 0, &ptr, "name", 0);
-
-		/* Softbody not allowed in this situation, enforce! */
-		if(((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
-			uiItemR(row, "", ICON_SCENE, &ptr, "render", 0);
-			uiItemR(row, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0);
-
-			if(mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0);
-		}
+		/* REAL MODIFIER */
+		uiLayout *subrow, *col2;
 		
-
-		/* XXX uiBlockSetEmboss(block, UI_EMBOSSR); */
-
-		if(ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
-			/* XXX uiBlockSetCol(block, color); */
-			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
-			if(index < cageIndex)
-				uiButSetFlag(but, UI_BUT_DISABLED);
-			uiButSetFunc(but, modifiers_setOnCage, ob, md);
-			uiBlockEndAlign(block);
-			/* XXX uiBlockSetCol(block, TH_AUTO); */
-		}
-	}
-
-	/* up/down/delete */
-	if(!isVirtual) {
-		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
+		/* Open/Close .................................  */
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+		
+		/* modifier-type icon */
+		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
+		uiBlockSetEmboss(block, UI_EMBOSS);
+		
+		/* 'Middle Column' ............................ 
+		 *	- first row is the name of the modifier 
+		 *	- second row is the visibility settings, since the layouts were not wide enough to show all
+		 */
+		col2= uiLayoutColumn(row, 0);
+			/* First Row */
+			subrow= uiLayoutRow(col2, 0);
+				/* modifier name */
+				uiItemR(subrow, "", 0, &ptr, "name", 0);
+			
+			/* Second Row */
+			subrow= uiLayoutRow(col2, 1);
+			uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_EXPAND);
+			block= uiLayoutGetBlock(subrow);
+				/* Softbody not allowed in this situation, enforce! */
+				if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
+						&& (md->type!=eModifierType_Surface) ) 
+				{
+					uiItemR(subrow, "", ICON_SCENE, &ptr, "render", 0);
+					uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0);
+					
+					if (mti->flags & eModifierTypeFlag_SupportsEditmode)
+						uiItemR(subrow, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0);
+				}
+				
+				if ((ob->type==OB_MESH) && modifier_couldBeCage(md) && (index <= lastCageIndex)) 
+				{
+					but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+					if (index < cageIndex)
+						uiButSetFlag(but, UI_BUT_DISABLED);
+					uiButSetFunc(but, modifiers_setOnCage, ob, md);
+				}
+			
+		/* Up/Down + Delete ........................... */
+		block= uiLayoutGetBlock(row);
 		uiBlockBeginAlign(block);
-		uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
-		uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
+			uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
+			uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
 		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-
-		if(modifier_can_delete(md))
+		
+		if (modifier_can_delete(md))
 			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-
-		/* XXX uiBlockSetCol(block, TH_AUTO); */
+			
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
-	if(!isVirtual && (md->mode & eModifierMode_Expanded)) {
+	
+	/* modifier settings (under the header) --------------------------------------------------- */
+	if (!isVirtual && (md->mode & eModifierMode_Expanded)) {
 		/* apply/convert/copy */
-		uiLayout *box;
-
 		box= uiLayoutBox(column);
 		row= uiLayoutRow(box, 0);
-
-		if(!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
+		
+		if (!ELEM(md->type, eModifierType_Collision, eModifierType_Surface)) {
 			/* only here obdata, the rest of modifiers is ob level */
 			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-
-			if(md->type==eModifierType_ParticleSystem) {
+			
+			if (md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
-
-	    		if(!(ob->mode & OB_MODE_PARTICLE_EDIT))
+				
+	    		if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
+				}
 			}
 			else {
 				uiItemEnumO(row, "Apply", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_DATA);
@@ -726,23 +725,23 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 			
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
-
-			if(!ELEM4(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth))
+			
+			if (!ELEM4(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth))
 				uiItemO(row, "Copy", 0, "OBJECT_OT_modifier_copy");
 		}
-
+		
+		/* result is the layout block inside the box, that we return so that modifier settings can be drawn */
 		result= uiLayoutColumn(box, 0);
 		block= uiLayoutAbsoluteBlock(box);
 	}
-
+	
+	/* error messages */
 	if(md->error) {
-		row = uiLayoutRow(uiLayoutBox(column), 0);
-
-		/* XXX uiBlockSetCol(block, color); */
+		box = uiLayoutBox(column);
+		row = uiLayoutRow(box, 0);
 		uiItemL(row, md->error, ICON_ERROR);
-		/* XXX uiBlockSetCol(block, TH_AUTO); */
 	}
-
+	
 	return result;
 }
 
