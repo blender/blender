@@ -46,6 +46,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -1268,6 +1269,47 @@ void init_userdef_do_versions(void)
 
 	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 5))
 		U.gameflags |= USER_DISABLE_VBO;
+	
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 8)) {
+		wmKeyMap *km;
+		
+		for(km=U.keymaps.first; km; km=km->next) {
+			if (strcmp(km->idname, "Armature_Sketch")==0)
+				strcpy(km->idname, "Armature Sketch");
+			else if (strcmp(km->idname, "View3D")==0)
+				strcpy(km->idname, "3D View");
+			else if (strcmp(km->idname, "View3D Generic")==0)
+				strcpy(km->idname, "3D View Generic");
+			else if (strcmp(km->idname, "EditMesh")==0)
+				strcpy(km->idname, "Mesh");
+			else if (strcmp(km->idname, "TimeLine")==0)
+				strcpy(km->idname, "Timeline");
+			else if (strcmp(km->idname, "UVEdit")==0)
+				strcpy(km->idname, "UV Editor");
+			else if (strcmp(km->idname, "Animation_Channels")==0)
+				strcpy(km->idname, "Animation Channels");
+			else if (strcmp(km->idname, "GraphEdit Keys")==0)
+				strcpy(km->idname, "Graph Editor");
+			else if (strcmp(km->idname, "GraphEdit Generic")==0)
+				strcpy(km->idname, "Graph Editor Generic");
+			else if (strcmp(km->idname, "Action_Keys")==0)
+				strcpy(km->idname, "Dopesheet");
+			else if (strcmp(km->idname, "NLA Data")==0)
+				strcpy(km->idname, "NLA Editor");
+			else if (strcmp(km->idname, "Node Generic")==0)
+				strcpy(km->idname, "Node Editor");
+			else if (strcmp(km->idname, "Logic Generic")==0)
+				strcpy(km->idname, "Logic Editor");
+			else if (strcmp(km->idname, "File")==0)
+				strcpy(km->idname, "File Browser");
+			else if (strcmp(km->idname, "FileMain")==0)
+				strcpy(km->idname, "File Browser Main");
+			else if (strcmp(km->idname, "FileButtons")==0)
+				strcpy(km->idname, "File Browser Buttons");
+			else if (strcmp(km->idname, "Buttons Generic")==0)
+				strcpy(km->idname, "Property Editor");
+		}
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

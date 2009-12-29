@@ -49,7 +49,7 @@ def execute(context):
     try:
         line = sc.history[-1].line
     except:
-        return ('CANCELLED',)
+        return {'CANCELLED'}
 
     bpy.ops.console.scrollback_append(text=sc.prompt + line, type='INPUT')
 
@@ -60,13 +60,13 @@ def execute(context):
         remove_duplicates=True)
 
     sc.prompt = os.getcwd() + PROMPT
-    return ('FINISHED',)
+    return {'FINISHED'}
 
 
 def autocomplete(context):
     # sc = context.space_data
     # TODO
-    return ('CANCELLED',)
+    return {'CANCELLED'}
 
 
 def banner(context):
@@ -75,4 +75,4 @@ def banner(context):
     shell_run("bash --version")
     sc.prompt = os.getcwd() + PROMPT
 
-    return ('FINISHED',)
+    return {'FINISHED'}

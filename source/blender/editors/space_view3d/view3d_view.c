@@ -576,6 +576,31 @@ void viewray(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float 
 	normalize_v3(ray_normal);
 }
 
+void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
+{
+	if (rv3d->persp != RV3D_ORTHO)
+	{
+		float p1[4], p2[4];
+
+		VECCOPY(p1, coord);
+		p1[3] = 1.0f;
+		VECCOPY(p2, p1);
+		p2[3] = 1.0f;
+		mul_m4_v4(rv3d->viewmat, p2);
+
+		p2[0] = 2.0f * p2[0];
+		p2[1] = 2.0f * p2[1];
+		p2[2] = 2.0f * p2[2];
+
+		mul_m4_v4(rv3d->viewinv, p2);
+
+		sub_v3_v3v3(vec, p1, p2);
+	}
+	else {
+		VECCOPY(vec, rv3d->viewinv[2]);
+	}
+	normalize_v3(vec);
+}
 
 void initgrabz(RegionView3D *rv3d, float x, float y, float z)
 {

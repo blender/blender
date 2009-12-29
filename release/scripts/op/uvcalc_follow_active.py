@@ -257,16 +257,13 @@ class FollowActiveQuads(bpy.types.Operator):
 
     def execute(self, context):
         main(context, self)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(FollowActiveQuads)
+bpy.types.register(FollowActiveQuads)
 
 # Add to a menu
-import dynamic_menu
-
 menu_func = (lambda self, context: self.layout.operator(FollowActiveQuads.bl_idname))
-
-menu_item = dynamic_menu.add(bpy.types.VIEW3D_MT_uv_map, menu_func)
+bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
 if __name__ == '__main__':
     bpy.ops.uv.follow_active_quads()

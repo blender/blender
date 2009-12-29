@@ -1124,13 +1124,14 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	/* mark it available for use for other windows */
 	screen->winid= 0;
 	
+	/* before deleting the temp screen or we get invalid access */
+	CTX_wm_window_set(C, prevwin);
+	
 	/* if temp screen, delete it */
 	if(screen->full == SCREENTEMP) {
 		Main *bmain= CTX_data_main(C);
 		free_libblock(&bmain->screen, screen);
 	}
-	
-	CTX_wm_window_set(C, prevwin);
 }
 
 /* *********************************** */

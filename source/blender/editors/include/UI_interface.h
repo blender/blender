@@ -592,6 +592,7 @@ void UI_exit(void);
 #define UI_ITEM_R_EVENT			32
 #define UI_ITEM_R_FULL_EVENT	64
 #define UI_ITEM_R_NO_BG			128
+#define UI_ITEM_R_IMMEDIATE		256
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
@@ -659,7 +660,7 @@ void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 
-void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int type);
+void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int maxrows, int type);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
@@ -678,6 +679,7 @@ void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr,
 void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname);
+void uiItemsFullEnumO(uiLayout *layout, char *opname, char *propname, struct IDProperty *properties, int context, int flag);
 
 void uiItemL(uiLayout *layout, char *name, int icon); /* label */
 void uiItemM(uiLayout *layout, struct bContext *C, char *name, int icon, char *menuname); /* menu */

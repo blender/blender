@@ -73,7 +73,6 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_stereomode(RAS_STEREO_NOSTEREO),
 	m_curreye(RAS_STEREO_LEFTEYE),
 	m_eyeseparation(0.0),
-	m_seteyesep(false),
 	m_focallength(0.0),
 	m_setfocallength(false),
 	m_noOfScanlines(32),
@@ -518,7 +517,6 @@ RAS_IRasterizer::StereoEye RAS_OpenGLRasterizer::GetEye()
 void RAS_OpenGLRasterizer::SetEyeSeparation(const float eyeseparation)
 {
 	m_eyeseparation = eyeseparation;
-	m_seteyesep = true;
 }
 
 float RAS_OpenGLRasterizer::GetEyeSeparation()
@@ -902,26 +900,26 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	if(Stereo())
 	{
 			float near_div_focallength;
-			// next 2 params should be specified on command line and in Blender publisher
+			float offset;
+
+			// if Rasterizer.setFocalLength is not called we use the camera focallength
 			if (!m_setfocallength)
-				m_focallength = (focallength == 0.f) ? 1.5 * right  // derived from example
-					: focallength; 
-			if (!m_seteyesep)
-				m_eyeseparation = m_focallength/30;  // reasonable value...
+				m_focallength = focallength;
 
 			near_div_focallength = frustnear / m_focallength;
+			offset = 0.5 * m_eyeseparation * near_div_focallength;
 			switch(m_curreye)
 			{
 				case RAS_STEREO_LEFTEYE:
-						left += 0.5 * m_eyeseparation * near_div_focallength;
-						right += 0.5 * m_eyeseparation * near_div_focallength;
+						left += offset;
+						right += offset;
 						break;
 				case RAS_STEREO_RIGHTEYE:
-						left -= 0.5 * m_eyeseparation * near_div_focallength;
-						right -= 0.5 * m_eyeseparation * near_div_focallength;
+						left -= offset;
+						right -= offset;
 						break;
 			}
-			// leave bottom, top, bottom and top untouched
+			// leave bottom and top untouched
 	}
 	
 	glMatrixMode(GL_PROJECTION);

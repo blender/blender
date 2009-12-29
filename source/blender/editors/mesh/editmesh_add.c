@@ -1273,30 +1273,25 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 
 /* uses context to figure out transform for primitive */
 /* returns standard diameter */
-static float new_primitive_matrix(bContext *C, int view_align, float primmat[][4])
+static float new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
 	View3D *v3d =CTX_wm_view3d(C);
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
-	float *curs, mat[3][3], vmat[3][3], cmat[3][3], imat[3][3];
+	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
 	
 	unit_m4(primmat);
+
+	eul_to_mat3(rmat, rot);
+	invert_m3(rmat);
 	
-	if(rv3d && view_align) {
-		copy_m3_m4(vmat, rv3d->viewmat);
-	} else
-		unit_m3(vmat);
-	
-	/* inverse transform for view and object */
+	/* inverse transform for initial rotation and object */
 	copy_m3_m4(mat, obedit->obmat);
-	mul_m3_m3m3(cmat, vmat, mat);
+	mul_m3_m3m3(cmat, rmat, mat);
 	invert_m3_m3(imat, cmat);
 	copy_m4_m3(primmat, imat);
 
 	/* center */
-	curs= give_cursor(scene, v3d);
-	VECCOPY(primmat[3], curs);
+	VECCOPY(primmat[3], loc);
 	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
 	invert_m3_m3(imat, mat);
 	mul_m3_v3(imat, primmat[3]);
@@ -1307,7 +1302,7 @@ static float new_primitive_matrix(bContext *C, int view_align, float primmat[][4
 
 /* ********* add primitive operators ************* */
 
-static void make_prim_ext(bContext *C, int view_align, int enter_editmode,
+static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmode,
 		int type, int tot, int seg,
 		int subdiv, float dia, float depth, int ext, int fill)
 {
@@ -1316,14 +1311,15 @@ static void make_prim_ext(bContext *C, int view_align, int enter_editmode,
 	float mat[4][4];
 
 	if(obedit==NULL || obedit->type!=OB_MESH) {
+		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE);
+		
 		/* create editmode */
-		obedit= ED_object_add_type(C, OB_MESH, view_align, FALSE);
 		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 
-	dia *= new_primitive_matrix(C, view_align, mat);
+	dia *= new_primitive_matrix(C, loc, rot, mat);
 
 	make_prim(obedit, type, mat, tot, seg, subdiv, dia, depth, ext, fill);
 
@@ -1340,11 +1336,14 @@ static void make_prim_ext(bContext *C, int view_align, int enter_editmode,
 
 static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
 	/* sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
-	make_prim_ext(C, view_align, enter_editmode, PRIM_PLANE, 4, 0, 0, sqrt(2.0f), 0.0f, 0, 1);
+	make_prim_ext(C, loc, rot, enter_editmode,
+			PRIM_PLANE, 4, 0, 0, sqrt(2.0f), 0.0f, 0, 1);
 	return OPERATOR_FINISHED;	
 }
 
@@ -1368,11 +1367,14 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 
 static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
 	/* sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
-	make_prim_ext(C, view_align, enter_editmode, PRIM_CUBE, 4, 0, 0, sqrt(2.0f), 1.0f, 1, 1);
+	make_prim_ext(C, loc, rot, enter_editmode,
+			PRIM_CUBE, 4, 0, 0, sqrt(2.0f), 1.0f, 1, 1);
 	return OPERATOR_FINISHED;
 }
 
@@ -1396,10 +1398,12 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 
 static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
-	make_prim_ext(C, view_align, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode,
 			PRIM_CIRCLE, RNA_int_get(op->ptr, "vertices"), 0, 0,
 			RNA_float_get(op->ptr,"radius"), 0.0f, 0,
 			RNA_boolean_get(op->ptr, "fill"));
@@ -1432,10 +1436,12 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 
 static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
-	make_prim_ext(C, view_align, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode,
 			PRIM_CYLINDER, RNA_int_get(op->ptr, "vertices"), 0, 0,
 			RNA_float_get(op->ptr,"radius"),
 			RNA_float_get(op->ptr, "depth"), 1, 
@@ -1470,10 +1476,12 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 
 static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
-	make_prim_ext(C, view_align, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode,
 			PRIM_CONE, RNA_int_get(op->ptr, "vertices"), 0, 0,
 			RNA_float_get(op->ptr,"radius"), RNA_float_get(op->ptr, "depth"),
 			0, RNA_boolean_get(op->ptr, "cap_end"));
@@ -1507,10 +1515,12 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
-	make_prim_ext(C, view_align, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode,
 			PRIM_GRID, RNA_int_get(op->ptr, "x_subdivisions"),
 			RNA_int_get(op->ptr, "y_subdivisions"), 0,
 			RNA_float_get(op->ptr,"size"), 0.0f, 0, 1);
@@ -1543,10 +1553,12 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 
 static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
-	make_prim_ext(C, view_align, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode,
 			PRIM_MONKEY, 0, 0, 2, 0.0f, 0.0f, 0, 0);
 
 	return OPERATOR_FINISHED;
@@ -1572,10 +1584,12 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 
 static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
-	make_prim_ext(C, view_align, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode,
 			PRIM_UVSPHERE, RNA_int_get(op->ptr, "rings"),
 			RNA_int_get(op->ptr, "segments"), 0,
 			RNA_float_get(op->ptr,"size"), 0.0f, 0, 0);
@@ -1608,10 +1622,12 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 
 static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
-	make_prim_ext(C, view_align, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode,
 			PRIM_ICOSPHERE, 0, 0, RNA_int_get(op->ptr, "subdivisions"),
 			RNA_float_get(op->ptr,"size"), 0.0f, 0, 0);
 

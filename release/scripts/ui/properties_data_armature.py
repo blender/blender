@@ -254,7 +254,7 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
 
         row = layout.row()
         row.prop(ob.pose, "ik_solver")
-        
+
         if itasc:
             layout.prop(itasc, "mode", expand=True)
             simulation = (itasc.mode == 'SIMULATION')

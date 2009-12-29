@@ -40,6 +40,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "WM_types.h"
+
 #include "RNA_access.h"
 
 #include "BLI_math.h"
@@ -55,6 +57,8 @@
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+
+
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

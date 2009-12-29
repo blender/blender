@@ -500,3 +500,43 @@ void AUD_volume_adjust_s24_be(sample_t* target, sample_t* source,
 	}
 }
 
+void AUD_rectify_u8(sample_t* target, sample_t* source, int count)
+{
+	for(int i=0; i<count; i++)
+		target[i] = source[i] < 0x80 ? 0x0100 - source[i] : source[i];
+}
+
+void AUD_rectify_s24_le(sample_t* target, sample_t* source, int count)
+{
+	count *= 3;
+	int value;
+
+	for(int i=0; i<count; i+=3)
+	{
+		value = source[i+2] << 16 | source[i+1] << 8 | source[i];
+		value |= (((value & 0x800000) >> 23) * 255) << 24;
+		if(value < 0)
+			value = -value;
+		target[i+2] = value >> 16;
+		target[i+1] = value >> 8;
+		target[i] = value;
+	}
+}
+
+void AUD_rectify_s24_be(sample_t* target, sample_t* source, int count)
+{
+	count *= 3;
+	int value;
+
+	for(int i=0; i < count; i+=3)
+	{
+		value = source[i] << 16 | source[i+1] << 8 | source[i+2];
+		value |= (((value & 0x800000) >> 23) * 255) << 24;
+		if(value < 0)
+			value = -value;
+		target[i] = value >> 16;
+		target[i+1] = value >> 8;
+		target[i+2] = value;
+	}
+}
+

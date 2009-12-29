@@ -342,6 +342,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			if(blscene->gm.stereoflag == STEREO_ENABLED){
 				if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+
+				rasterizer->SetEyeSeparation(blscene->gm.eyeseparation);
 			}
 
 			rasterizer->SetBackColor(blscene->gm.framing.col[0], blscene->gm.framing.col[1], blscene->gm.framing.col[2], 0.0f);

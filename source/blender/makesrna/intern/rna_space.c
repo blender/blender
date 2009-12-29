@@ -1572,7 +1572,15 @@ static void rna_def_space_console(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, console_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Console type.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
+
+	prop= RNA_def_property(srna, "selection_start", PROP_INT, PROP_UNSIGNED); /* copied from text editor */
+	RNA_def_property_int_sdna(prop, NULL, "sel_start");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
 	
+	prop= RNA_def_property(srna, "selection_end", PROP_INT, PROP_UNSIGNED); /* copied from text editor */
+	RNA_def_property_int_sdna(prop, NULL, "sel_end");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
+
 	/* reporting display */
 	prop= RNA_def_property(srna, "show_report_debug", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", CONSOLE_RPT_DEBUG);

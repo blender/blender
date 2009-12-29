@@ -1381,6 +1381,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	int matrix_dimsize[]= {3, 3};
+
 	
 	static EnumPropertyItem collision_type_items[] = {
 		{SBC_MODE_MANUAL, "MANUAL", 0, "Manual", "Manual adjust"},
@@ -1586,6 +1588,33 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "solverflags", SBSO_MONITOR);
 	RNA_def_property_ui_text(prop, "Print Performance to Console", "Turn on SB diagnose console prints");
 	
+	prop= RNA_def_property(srna, "estimate_matrix", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "solverflags", SBSO_ESTIMATEIPO);
+	RNA_def_property_ui_text(prop, "Estimate matrix", "esimate matrix .. split to COM , ROT ,SCALE ");
+
+
+	/***********************************************************************************/
+	/* these are not exactly settings, but reading calculated results*/
+	/* but i did not want to start a new property struct */
+	/* so rather rename this from SoftBodySettings to SoftBody */
+	/* translation */
+	prop= RNA_def_property(srna, "lcom", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "lcom");
+	RNA_def_property_ui_text(prop, "Center of mass", "Location of Center of mass.");
+
+	/* matrix */
+	prop= RNA_def_property(srna, "lrot", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "lrot");
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "Rot Matrix", "Estimated rotation matrix.");
+
+	prop= RNA_def_property(srna, "lscale", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "lscale");
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "Scale Matrix", "Estimated scale matrix.");
+	/***********************************************************************************/
+
+
 	/* Flags */
 	
 	prop= RNA_def_property(srna, "use_goal", PROP_BOOLEAN, PROP_NONE);

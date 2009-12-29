@@ -60,7 +60,7 @@
  * fine to have these calls here.
  * 
  * There are also a few tools here which cannot be easily coded for in the other system (yet).
- * These may also be moved around at some point, but for now, they 
+ * These may also be moved around at some point, but for now, they are best added here.
  *
  * - Joshua Leung, Dec 2008
  */

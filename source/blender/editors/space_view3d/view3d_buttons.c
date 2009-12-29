@@ -477,27 +477,6 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 	}
 }
 
-#if 0
-/* assumes armature active */
-static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
-{
-	Object *ob= CTX_data_active_object(C);
-	
-	if(ob && ob->type==OB_ARMATURE) {
-		Bone *bone= bonev;
-		char oldname[32], newname[32];
-		
-		/* need to be on the stack */
-		BLI_strncpy(newname, bone->name, 32);
-		BLI_strncpy(oldname, (char *)namev, 32);
-		/* restore */
-		BLI_strncpy(bone->name, oldname, 32);
-		
-		ED_armature_bone_rename(ob->data, oldname, newname); // editarmature.c
-	}
-}
-#endif
-
 static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *split, *colsub;
@@ -933,92 +912,6 @@ void selectTransformOrientation_func(bContext *C, void *target, void *unused)
 {
 	BIF_selectTransformOrientation(C, (TransformOrientation *) target);
 }
-
-#if 0 // XXX not used
-static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	View3D *v3d= CTX_wm_view3d(C);
-	ListBase *transform_spaces = &scene->transform_spaces;
-	TransformOrientation *ts = transform_spaces->first;
-	uiBlock *block;
-	uiBut *but;
-	int xco = 20, yco = 70;
-	int index;
-
-	block= uiLayoutAbsoluteBlock(pa->layout);
-
-	uiBlockBeginAlign(block);
-	
-	if (obedit)
-		uiDefBut(block, BUT, B_TRANSFORMSPACEADD, "Add", xco,120,80,20, 0, 0, 0, 0, 0, "Add the selected element as a Transform Orientation");
-	else
-		uiDefBut(block, BUT, B_TRANSFORMSPACEADD, "Add", xco,120,80,20, 0, 0, 0, 0, 0, "Add the active object as a Transform Orientation");
-
-	uiDefBut(block, BUT, B_TRANSFORMSPACECLEAR, "Clear", xco + 80,120,80,20, 0, 0, 0, 0, 0, "Removal all Transform Orientations");
-	
-	uiBlockEndAlign(block);
-	
-	uiBlockBeginAlign(block);
-	
-	uiDefButS(block, ROW, B_REDR, "Global",	xco, 		90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_GLOBAL,0, 0, "Global Transform Orientation");
-	uiDefButS(block, ROW, B_REDR, "Local",	xco + 40,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_LOCAL, 0, 0, "Local Transform Orientation");
-	uiDefButS(block, ROW, B_REDR, "Normal",	xco + 80,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_NORMAL,0, 0, "Normal Transform Orientation");
-	uiDefButS(block, ROW, B_REDR, "View",		xco + 120,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_VIEW,	0, 0, "View Transform Orientation");
-	
-	for (index = V3D_MANIP_CUSTOM, ts = transform_spaces->first ; ts ; ts = ts->next, index++) {
-
-		if (v3d->twmode == index) {
-			but = uiDefIconButS(block,ROW, B_REDR, ICON_CHECKBOX_HLT, xco,yco,XIC,YIC, &v3d->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
-		}
-		else {
-			but = uiDefIconButS(block,ROW, B_REDR, ICON_CHECKBOX_DEHLT, xco,yco,XIC,YIC, &v3d->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
-		}
-		uiButSetFunc(but, selectTransformOrientation_func, ts, NULL);
-		uiDefBut(block, TEX, 0, "", xco+=XIC, yco,100+XIC,20, &ts->name, 0, 30, 0, 0, "Edits the name of this Transform Orientation");
-		but = uiDefIconBut(block, BUT, B_REDR, ICON_X, xco+=100+XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Deletes this Transform Orientation");
-		uiButSetFunc(but, removeTransformOrientation_func, ts, NULL);
-
-		xco = 20;
-		yco -= 25;
-	}
-	uiBlockEndAlign(block);
-}
-#endif // XXX not used
-
-#if 0
-static void brush_idpoin_handle(bContext *C, ID *id, int event)
-{
-	Brush **br = current_brush_source(CTX_data_scene(C));
-
-	if(!br)
-		return;
-
-	switch(event) {
-	case UI_ID_BROWSE:
-		(*br) = (Brush*)id;
-		break;
-	case UI_ID_DELETE:
-		brush_delete(br);
-		break;
-	case UI_ID_RENAME:
-		/* XXX ? */
-		break;
-	case UI_ID_ADD_NEW:
-		if(id) {
-			(*br) = copy_brush((Brush*)id);
-			id->us--;
-		}
-		else
-			(*br) = add_brush("Brush");
-		break;
-	case UI_ID_OPEN:
-		/* XXX not implemented */
-		break;
-	}
-}
-#endif
 
 static void view3d_panel_object(const bContext *C, Panel *pa)
 {

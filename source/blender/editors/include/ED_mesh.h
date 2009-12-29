@@ -85,6 +85,8 @@ int			*mesh_get_x_mirror_faces(struct Object *ob, struct EditMesh *em);
 int			join_mesh_exec(struct bContext *C, struct wmOperator *op);
 int			join_mesh_shapes_exec(struct bContext *C, struct wmOperator *op);
 
+void		objects_bake_render(struct Scene *scene, short event, char **error_msg);
+
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
 void		ED_operatormacros_mesh(void);
@@ -149,6 +151,8 @@ void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type)
 
 void		EM_make_hq_normals(struct EditMesh *em);
 void		EM_solidify(struct EditMesh *em, float dist);
+
+int			EM_deselect_nth(struct EditMesh *em, int nth);
 
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;

@@ -40,29 +40,6 @@ All objects that can be represented as a mesh (mesh, curve, metaball, surface, t
 will be exported as mesh data.
 """
 
-
-# --------------------------------------------------------------------------
-# OBJ Export v1.1 by Campbell Barton (AKA Ideasman)
-# --------------------------------------------------------------------------
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA	 02111-1307, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
-
 # import math and other in functions that use them for the sake of fast Blender startup
 # import math
 import os
@@ -384,8 +361,7 @@ def write(filename, objects, scene,
     file = open(filename, "w")
 
     # Write Header
-    version = "2.5"
-    file.write('# Blender3D v%s OBJ File: %s\n' % (version, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
+    file.write('# Blender3D v%s OBJ File: %s\n' % (bpy.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
     file.write('# www.blender3d.org\n')
 
     # Tell the obj file what material file to use.
@@ -444,7 +420,7 @@ def write(filename, objects, scene,
             me = ob.create_mesh(EXPORT_APPLY_MODIFIERS, 'PREVIEW')
 
             if EXPORT_ROTX90:
-                me.transform(ob_mat * mat_xrot90)
+                me.transform(mat_xrot90 * ob_mat)
             else:
                 me.transform(ob_mat)
 
@@ -980,26 +956,20 @@ class ExportOBJ(bpy.types.Operator):
                   EXPORT_SEL_ONLY=self.properties.use_selection,
                   EXPORT_ALL_SCENES=self.properties.use_all_scenes)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
-
-
-
-
-bpy.ops.add(ExportOBJ)
-
-import dynamic_menu
+bpy.types.register(ExportOBJ)
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".obj")
     self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)...").path = default_path
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+menu_item = bpy.types.INFO_MT_file_export.append(menu_func)
 
 if __name__ == "__main__":
     bpy.ops.EXPORT_OT_obj(filename="/tmp/test.obj")

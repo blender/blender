@@ -13,9 +13,9 @@ class SimpleOperator(bpy.types.Operator):
 
     def execute(self, context):
         main(context)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(SimpleOperator)
+bpy.types.register(SimpleOperator)
 
 if __name__ == "__main__":
     bpy.ops.object.simple_operator()

@@ -814,11 +814,6 @@ static void rna_def_particle(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, alive_items);
 	RNA_def_property_ui_text(prop, "Alive State", "");
 
-	prop= RNA_def_property(srna, "loop", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	//TODO: bounds
-	RNA_def_property_ui_text(prop, "Loop", "How may times the particle life has looped");
-
 //	short rt2;
 }
 
@@ -976,12 +971,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_REACT_MULTIPLE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_ui_text(prop, "Multi React", "React multiple times.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "loop", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_LOOP);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
-	RNA_def_property_ui_text(prop, "Loop", "Loop particle lives.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* TODO: used somewhere? */

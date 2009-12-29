@@ -76,7 +76,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_linked);
 	WM_operatortype_append(MESH_OT_select_linked_pick);
 	WM_operatortype_append(MESH_OT_select_random);
-	WM_operatortype_append(MESH_OT_selection_type);
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_by_number_vertices);
@@ -153,6 +152,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_loopcut);
 
 	WM_operatortype_append(MESH_OT_solidify);
+	WM_operatortype_append(MESH_OT_select_nth);
 }
 
 int ED_operator_editmesh_face_select(bContext *C)
@@ -207,7 +207,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
-	keymap= WM_keymap_find(keyconf, "EditMesh", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Mesh", 0, 0);
 	keymap->poll= ED_operator_editmesh;
 	
 	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);
@@ -240,7 +240,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* selection mode */
-	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_selection_mode", TABKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* hide */
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);

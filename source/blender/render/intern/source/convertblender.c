@@ -5200,7 +5200,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	float mat[4][4], winmat[4][4];
 	float imat[4][4];
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(fsob, eModifierType_Fluidsim);
-	FluidsimSettings *fss = fluidmd->fss;
+	FluidsimSettings *fss;
 	float *velarray = NULL;
 	
 	/* only one step needed */

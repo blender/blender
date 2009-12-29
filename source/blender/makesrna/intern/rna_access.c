@@ -226,10 +226,9 @@ IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create)
 	return NULL;
 }
 
-int RNA_struct_idproperties_check(PointerRNA *ptr)
+int RNA_struct_idproperties_check(StructRNA *srna)
 {
-	StructRNA *type= ptr->type;
-	return (type && type->idproperties) ? 1 : 0;
+	return (srna && srna->idproperties) ? 1 : 0;
 }
 
 static IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
@@ -947,7 +946,7 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	
 	EnumPropertyItem *item, *item_array;
-	int free;
+	int free, found;
 	
 	RNA_property_enum_items(C, ptr, prop, &item_array, NULL, &free);
 	
@@ -957,11 +956,13 @@ int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, con
 			break;
 		}
 	}
+	
+	found= (item->identifier != NULL); /* could be alloc'd, assign before free */
 
 	if(free)
 		MEM_freeN(item_array);
 
-	return (item->identifier) ? 1:0;
+	return found;
 }
 
 int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier)
@@ -3476,6 +3477,11 @@ const char *RNA_function_ui_description(FunctionRNA *func)
 int RNA_function_flag(FunctionRNA *func)
 {
 	return func->flag;
+}
+
+int RNA_function_defined(FunctionRNA *func)
+{
+	return func->call != NULL;
 }
 
 PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index)

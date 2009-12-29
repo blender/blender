@@ -195,7 +195,7 @@ void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_m
 
 void seq_update_sound(struct Sequence *seq);
 void seq_update_muting(struct Editing *ed);
-
+void seqbase_sound_reload(Scene *scene, ListBase *seqbase);
 void clear_scene_in_allseqs(struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);

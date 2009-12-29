@@ -1006,7 +1006,7 @@ int CustomData_get_clone_layer_index(const CustomData *data, int type)
 	return -1;
 }
 
-int CustomData_get_mask_layer_index(const CustomData *data, int type)
+int CustomData_get_stencil_layer_index(const CustomData *data, int type)
 {
 	int i;
 
@@ -1050,7 +1050,7 @@ int CustomData_get_clone_layer(const CustomData *data, int type)
 	return -1;
 }
 
-int CustomData_get_mask_layer(const CustomData *data, int type)
+int CustomData_get_stencil_layer(const CustomData *data, int type)
 {
 	int i;
 
@@ -1088,7 +1088,7 @@ void CustomData_set_layer_clone(CustomData *data, int type, int n)
 			data->layers[i].active_clone = n;
 }
 
-void CustomData_set_layer_mask(CustomData *data, int type, int n)
+void CustomData_set_layer_stencil(CustomData *data, int type, int n)
 {
 	int i;
 
@@ -1125,7 +1125,7 @@ void CustomData_set_layer_clone_index(CustomData *data, int type, int n)
 			data->layers[i].active_clone = n-i;
 }
 
-void CustomData_set_layer_mask_index(CustomData *data, int type, int n)
+void CustomData_set_layer_stencil_index(CustomData *data, int type, int n)
 {
 	int i;
 

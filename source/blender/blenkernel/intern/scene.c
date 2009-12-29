@@ -252,7 +252,12 @@ void free_scene(Scene *sce)
 	/* do not free objects! */
 	
 	if(sce->gpd) {
+#if 0   // removed since this can be invalid memory when freeing everything
+        // since the grease pencil data is free'd before the scene.
+        // since grease pencil data is not (yet?), shared between objects
+        // its probably safe not to do this, some save and reload will free this.
 		sce->gpd->id.us--;
+#endif
 		sce->gpd= NULL;
 	}
 
@@ -452,6 +457,8 @@ Scene *add_scene(char *name)
 	/* game data */
 	sce->gm.stereoflag = STEREO_NOSTEREO;
 	sce->gm.stereomode = STEREO_ANAGLYPH;
+	sce->gm.eyeseparation = 0.10;
+
 	sce->gm.dome.angle = 180;
 	sce->gm.dome.mode = DOME_FISHEYE;
 	sce->gm.dome.res = 4;

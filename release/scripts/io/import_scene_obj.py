@@ -1616,20 +1616,19 @@ class IMPORT_OT_obj(bpy.types.Operator):
                  self.properties.IMAGE_SEARCH,
                  self.properties.POLYGROUPS)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
-bpy.ops.add(IMPORT_OT_obj)
+bpy.types.register(IMPORT_OT_obj)
 
 
-import dynamic_menu
 menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
+menu_item = bpy.types.INFO_MT_file_import.append(menu_func)
 
 
 # NOTES (all line numbers refer to 2.4x import_obj.py, not this file)

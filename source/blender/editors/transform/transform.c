@@ -3083,10 +3083,10 @@ void initTranslation(TransInfo *t)
 	t->ndof.axis = (t->flag & T_2D_EDIT)? 1|2: 1|2|4;
 
 	if(t->spacetype == SPACE_VIEW3D) {
-		View3D *v3d = t->view;
+		RegionView3D *rv3d = t->ar->regiondata;
 
 		t->snap[0] = 0.0f;
-		t->snap[1] = v3d->gridview * 1.0f;
+		t->snap[1] = rv3d->gridview * 1.0f;
 		t->snap[2] = t->snap[1] * 0.1f;
 	}
 	else if(t->spacetype == SPACE_IMAGE) {

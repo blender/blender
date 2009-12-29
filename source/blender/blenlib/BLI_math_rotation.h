@@ -70,7 +70,8 @@ void mat3_to_quat(float q[4], float mat[3][3]);
 void mat4_to_quat(float q[4], float mat[4][4]);
 void tri_to_quat(float q[4], float a[3], float b[3], float c[3]);
 void vec_to_quat(float q[4], float vec[3], short axis, short upflag);
-void rotation_between_vecs_to_quat(float q[4], float v1[3], float v2[3]);
+/* note: v1 and v2 must be normalized */
+void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3]);
 
 /* TODO: don't what this is, but it's not the same as mat3_to_quat */
 void mat3_to_quat_is_ok(float q[4], float mat[3][3]);

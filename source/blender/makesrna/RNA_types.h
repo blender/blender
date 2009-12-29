@@ -164,11 +164,20 @@ typedef enum PropertyFlag {
 	PROP_ID_SELF_CHECK = 1<<20,
 	PROP_NEVER_NULL = 1<<18,
 
-	/* flag contains multiple enums */
+	/* flag contains multiple enums.
+	 * note: not to be confused with prop->enumbitflags
+	 * this exposes the flag as multiple options in python and the UI.
+	 *
+	 * note: these can't be animated so use with care.
+	  */
 	PROP_ENUM_FLAG = 1<<21,
 
 	/* need context for update function */
 	PROP_CONTEXT_UPDATE = 1<<22,
+
+	/* Use for arrays or for any data that should not have a referene kept
+	 * most common case is functions that return arrays where the array */
+	PROP_THICK_WRAP = 1<<23,
 
 	/* internal flags */
 	PROP_BUILTIN = 1<<7,

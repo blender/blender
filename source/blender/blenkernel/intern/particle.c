@@ -2444,7 +2444,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 			mul_m4_v3(ob->obmat,cpa_1st);
 		}
 
-		pa = psys->particles + cpa->parent;
+		pa = psys->particles + cpa->pa[0];
 
 		psys_mat_hair_to_global(ob, ctx->sim.psmd->dm, psys->part->from, pa, hairmat);
 
@@ -4069,7 +4069,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	else{
 		if(cpa){
 			ParticleKey *key1;
-			float t = (cfra - pa->time + pa->loop * pa->lifetime) / pa->lifetime;
+			float t = (cfra - pa->time) / pa->lifetime;
 
 			key1=&pa->state;
 			offset_child(cpa, key1, state, part->childflat, part->childrad);

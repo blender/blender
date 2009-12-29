@@ -588,7 +588,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 		key->type= KEY_RELATIVE;
 
 		/* first key added, so it was the basis. initialise it with the existing mesh */
-		kb= add_keyblock(scene, key);
+		kb= add_keyblock(key, NULL);
 		mesh_to_key(me, kb);
 	}
 	
@@ -604,9 +604,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 				
 				if (!dm) continue;
 					
-				kb= add_keyblock(scene, key);
-				strcpy(kb->name, base->object->id.name+2);
-				BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), 32);
+				kb= add_keyblock(key, base->object->id.name+2);
 				
 				DM_to_meshkey(dm, me, kb);
 				
@@ -1199,7 +1197,7 @@ void objects_bake_render(Scene *scene, short event, char **error_msg)
 	if(event>0) {
 		bScreen *screen= NULL; // XXX CTX
 		Render *re= RE_NewRender("_Bake View_");
-		ScrArea *area= biggest_image_area(screen);
+		ScrArea *area= NULL; //biggest_image_area(screen); // XXX
 		ListBase threads;
 		BakeRender bkr;
 		int timer=0, tot; // XXX, sculptmode= G.f & G_SCULPTMODE;

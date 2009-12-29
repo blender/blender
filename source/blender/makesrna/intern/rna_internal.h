@@ -75,6 +75,9 @@ typedef struct PropertyDefRNA {
 	int dnalengthfixed;
 
 	int booleanbit, booleannegative;
+
+	/* not to be confused with PROP_ENUM_FLAG
+	 * this only allows one of the flags to be set at a time, clearing all others */
 	int enumbitflags;
 } PropertyDefRNA;
 

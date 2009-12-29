@@ -21,70 +21,78 @@ import bpy
 
 KM_HIERARCHY = [
                     ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
-                    ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
-                    ('Screen', 'EMPTY', 'WINDOW', []),    # full screen, undo, screenshot
+                    ('Screen', 'EMPTY', 'WINDOW', [    # full screen, undo, screenshot
+                        ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
+                        ]),
 
                     ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
-                    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
+                    ('View2D Buttons List', 'EMPTY', 'WINDOW', []), # view 2d with buttons navigation
                     ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
-                    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
-                    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
                     ('Grease Pencil', 'EMPTY', 'WINDOW', []), # grease pencil stuff (per region)
 
-                    ('View2D Buttons List', 'EMPTY', 'WINDOW', []), # view 2d with buttons navigation
-                    ('Animation_Channels', 'EMPTY', 'WINDOW', []),
-
-                    ('Buttons Generic', 'PROPERTIES', 'WINDOW', []), # align context menu
-                    ('TimeLine', 'TIMELINE', 'WINDOW', []),
-                    ('Outliner', 'OUTLINER', 'WINDOW', []),
-
-                    ('View3D', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
-                        ('Pose', 'EMPTY', 'WINDOW', []),
+                    ('3D View', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
                         ('Object Mode', 'EMPTY', 'WINDOW', []),
-                        ('Vertex Paint', 'EMPTY', 'WINDOW', []),
-                        ('Weight Paint', 'EMPTY', 'WINDOW', []),
-                        ('Face Mask', 'EMPTY', 'WINDOW', []),
-                        ('Sculpt', 'EMPTY', 'WINDOW', []),
-                        ('EditMesh', 'EMPTY', 'WINDOW', []),
+                        ('Mesh', 'EMPTY', 'WINDOW', []),
                         ('Curve', 'EMPTY', 'WINDOW', []),
                         ('Armature', 'EMPTY', 'WINDOW', []),
                         ('Metaball', 'EMPTY', 'WINDOW', []),
                         ('Lattice', 'EMPTY', 'WINDOW', []),
-                        ('Armature_Sketch', 'EMPTY', 'WINDOW', []),
-                        ('Particle', 'EMPTY', 'WINDOW', []),
                         ('Font', 'EMPTY', 'WINDOW', []),
-                        ('Object Non-modal', 'EMPTY', 'WINDOW', []), # mode change
+
+                        ('Pose', 'EMPTY', 'WINDOW', []),
+
+                        ('Vertex Paint', 'EMPTY', 'WINDOW', []),
+                        ('Weight Paint', 'EMPTY', 'WINDOW', []),
+                        ('Face Mask', 'EMPTY', 'WINDOW', []),
                         ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
-                        ('View3D Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
+                        ('Sculpt', 'EMPTY', 'WINDOW', []),
+
+                        ('Armature Sketch', 'EMPTY', 'WINDOW', []),
+                        ('Particle', 'EMPTY', 'WINDOW', []),
+
+                        ('Object Non-modal', 'EMPTY', 'WINDOW', []), # mode change
+
+                        ('3D View Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
                         ]),
-                    ('GraphEdit Keys', 'GRAPH_EDITOR', 'WINDOW', [
-                        ('GraphEdit Generic', 'GRAPH_EDITOR', 'WINDOW', [])
+
+                    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
+                    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
+                    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
+                    ('Animation Channels', 'EMPTY', 'WINDOW', []),
+                    ('Graph Editor', 'GRAPH_EDITOR', 'WINDOW', [
+                        ('Graph Editor Generic', 'GRAPH_EDITOR', 'WINDOW', [])
+                        ]),
+                    ('Dopesheet', 'DOPESHEET_EDITOR', 'WINDOW', []),
+                    ('NLA Editor', 'NLA_EDITOR', 'WINDOW', [
+                        ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
+                        ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [])
                         ]),
 
                     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
-                        ('UVEdit', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
+                        ('UV Editor', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
                         ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
                         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
                         ]),
 
-                    ('Node Generic', 'NODE_EDITOR', 'WINDOW', [
-                        ('Node', 'NODE_EDITOR', 'WINDOW', [])
+                    ('Timeline', 'TIMELINE', 'WINDOW', []),
+                    ('Outliner', 'OUTLINER', 'WINDOW', []),
+
+                    ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
+                        ('Node Generic', 'NODE_EDITOR', 'WINDOW', [])
                         ]),
-                    ('File', 'FILE_BROWSER', 'WINDOW', [
-                        ('FileMain', 'FILE_BROWSER', 'WINDOW', []),
-                        ('FileButtons', 'FILE_BROWSER', 'WINDOW', [])
+                    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
+                    ('Logic Editor', 'LOGIC_EDITOR', 'WINDOW', []),
+
+                    ('File Browser', 'FILE_BROWSER', 'WINDOW', [
+                        ('File Browser Main', 'FILE_BROWSER', 'WINDOW', []),
+                        ('File Browser Buttons', 'FILE_BROWSER', 'WINDOW', [])
                         ]),
-                    ('Action_Keys', 'DOPESHEET_EDITOR', 'WINDOW', []),
-                    ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [
-                        ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
-                        ('NLA Data', 'NLA_EDITOR', 'WINDOW', [])
-                        ]),
+
+                    ('Property Editor', 'PROPERTIES', 'WINDOW', []), # align context menu
+
                     ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
                     ('Text', 'TEXT_EDITOR', 'WINDOW', []),
-                    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
-                    ('Logic Generic', 'LOGIC_EDITOR', 'WINDOW', []),
                     ('Console', 'CONSOLE', 'WINDOW', []),
-
 
                     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
                     ('Gesture Border', 'EMPTY', 'WINDOW', []),
@@ -501,8 +509,6 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub = col.column()
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
-
-
 
 
 class USERPREF_PT_theme(bpy.types.Panel):
@@ -1254,10 +1260,10 @@ class USERPREF_PT_input(bpy.types.Panel):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
 
-    def draw_entry(self, kc, entry, col, level = 0):
+    def draw_entry(self, kc, entry, col, level=0):
         idname, spaceid, regionid, children = entry
 
-        km = kc.find_keymap(idname, space_type = spaceid, region_type = regionid)
+        km = kc.find_keymap(idname, space_type=spaceid, region_type=regionid)
 
         if km:
             self.draw_km(kc, km, children, col, level)
@@ -1266,9 +1272,9 @@ class USERPREF_PT_input(bpy.types.Panel):
         indentpx = 16
         if level == 0:
             level = 0.0001   # Tweak so that a percentage of 0 won't split by half
-        indent = level*indentpx / bpy.context.region.width
+        indent = level * indentpx / bpy.context.region.width
 
-        split=layout.split(percentage=indent)
+        split = layout.split(percentage=indent)
         col = split.column()
         col = split.column()
         return col
@@ -1309,7 +1315,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                     self.draw_kmi(kc, km, kmi, col, level + 1)
 
                 # "Add New" at end of keymap item list
-                col = self.indented_layout(col, level+1)
+                col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.active = km.user_defined
                 subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
@@ -1323,7 +1329,6 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                 for entry in children:
                     self.draw_entry(kc, entry, col, level + 1)
-
 
     def draw_kmi(self, kc, km, kmi, layout, level):
         layout.set_context_pointer("keyitem", kmi)
@@ -1475,8 +1480,9 @@ class USERPREF_PT_input(bpy.types.Panel):
             if len(filtered_items) != 0:
                 km = km.active()
 
+                layout.set_context_pointer("keymap", km)
                 col = layout.column()
-                col.set_context_pointer("keymap", km)
+
                 row = col.row()
                 row.label(text=km.name, icon="DOT")
 
@@ -1490,6 +1496,12 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                 for kmi in filtered_items:
                     self.draw_kmi(kc, km, kmi, col, 1)
+
+                # "Add New" at end of keymap item list
+                col = self.indented_layout(layout, 1)
+                subcol = col.split(percentage=0.2).column()
+                subcol.active = km.user_defined
+                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
     def draw_hierarchy(self, defkc, layout):
         for entry in KM_HIERARCHY:
@@ -1540,13 +1552,15 @@ bpy.types.register(USERPREF_PT_input)
 
 from bpy.props import *
 
+
 class WM_OT_keyconfig_test(bpy.types.Operator):
     "Test keyconfig for conflicts."
     bl_idname = "wm.keyconfig_test"
     bl_label = "Test Key Configuration for Conflicts"
-    
-    def testEntry(self, kc, entry, src = None, parent = None):
+
+    def testEntry(self, kc, entry, src=None, parent=None):
         result = False
+
         def kmistr(kmi):
             if km.modal:
                 s = ["kmi = km.add_modal_item(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
@@ -1566,9 +1580,9 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
                     s.append(", oskey=True")
             if kmi.key_modifier and kmi.key_modifier != 'NONE':
                 s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
-            
+
             s.append(")\n")
-            
+
             props = kmi.properties
 
             if props is not None:
@@ -1578,16 +1592,16 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
                         value = _string_value(value)
                         if value != "":
                             s.append("kmi.properties.%s = %s\n" % (pname, value))
-                            
+
             return "".join(s).strip()
-                        
+
         idname, spaceid, regionid, children = entry
 
-        km = kc.find_keymap(idname, space_type = spaceid, region_type = regionid)
-        
+        km = kc.find_keymap(idname, space_type=spaceid, region_type=regionid)
+
         if km:
             km = km.active()
-    
+
             if src:
                 for item in km.items:
                     if src.compare(item):
@@ -1597,14 +1611,14 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
                         print(km.name)
                         print(kmistr(item))
                         result = True
-                
+
                 for child in children:
                     if self.testEntry(kc, child, src, parent):
                         result = True
             else:
                 for i in range(len(km.items)):
                     src = km.items[i]
-                    
+
                     for child in children:
                         if self.testEntry(kc, child, src, km):
                             result = True
@@ -1617,28 +1631,29 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
                             print(kmistr(src))
                             print(kmistr(item))
                             result = True
-    
+
                 for child in children:
                     if self.testEntry(kc, child):
                         result = True
-        
+
         return result
-    
+
     def testConfig(self, kc):
         result = False
         for entry in KM_HIERARCHY:
             if self.testEntry(kc, entry):
                 result = True
         return result
-        
+
     def execute(self, context):
         wm = context.manager
         kc = wm.default_keyconfig
-        
+
         if self.testConfig(kc):
             print("CONFLICT")
-       
-        return ('FINISHED',)
+
+        return {'FINISHED'}
+
 
 def _string_value(value):
     result = ""
@@ -1666,7 +1681,8 @@ def _string_value(value):
         print("Export key configuration: can't write ", value)
 
     return result
-    
+
+
 class WM_OT_keyconfig_export(bpy.types.Operator):
     "Export key configuration to a python script."
     bl_idname = "wm.keyconfig_export"
@@ -1728,12 +1744,12 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
         f.close()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
 class WM_OT_keymap_edit(bpy.types.Operator):
@@ -1745,7 +1761,7 @@ class WM_OT_keymap_edit(bpy.types.Operator):
         wm = context.manager
         km = context.keymap
         km.copy_to_user()
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_keymap_restore(bpy.types.Operator):
@@ -1765,7 +1781,8 @@ class WM_OT_keymap_restore(bpy.types.Operator):
             km = context.keymap
             km.restore_to_default()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
+
 
 class WM_OT_keyitem_restore(bpy.types.Operator):
     "Restore key map item."
@@ -1784,8 +1801,9 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 
         km.restore_item_to_default(kmi)
 
-        return ('FINISHED',)
-    
+        return {'FINISHED'}
+
+
 class WM_OT_keyitem_add(bpy.types.Operator):
     "Add key map item."
     bl_idname = "wm.keyitem_add"
@@ -1794,11 +1812,20 @@ class WM_OT_keyitem_add(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         km = context.keymap
+        kc = wm.default_keyconfig
+
         if km.modal:
             km.add_modal_item("", 'A', 'PRESS') # kmi
         else:
-            km.add_item("", 'A', 'PRESS') # kmi
-        return ('FINISHED',)
+            km.add_item("none", 'A', 'PRESS') # kmi
+
+        # clear filter and expand keymap so we can see the newly added item
+        if kc.filter != '':
+            kc.filter = ''
+            km.items_expanded = True
+            km.children_expanded = True
+
+        return {'FINISHED'}
 
 
 class WM_OT_keyitem_remove(bpy.types.Operator):
@@ -1811,12 +1838,12 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
         kmi = context.keyitem
         km = context.keymap
         km.remove_item(kmi)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(WM_OT_keyconfig_export)
-bpy.ops.add(WM_OT_keyconfig_test)
-bpy.ops.add(WM_OT_keymap_edit)
-bpy.ops.add(WM_OT_keymap_restore)
-bpy.ops.add(WM_OT_keyitem_add)
-bpy.ops.add(WM_OT_keyitem_remove)
-bpy.ops.add(WM_OT_keyitem_restore)
+bpy.types.register(WM_OT_keyconfig_export)
+bpy.types.register(WM_OT_keyconfig_test)
+bpy.types.register(WM_OT_keymap_edit)
+bpy.types.register(WM_OT_keymap_restore)
+bpy.types.register(WM_OT_keyitem_add)
+bpy.types.register(WM_OT_keyitem_remove)
+bpy.types.register(WM_OT_keyitem_restore)

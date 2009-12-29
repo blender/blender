@@ -498,7 +498,15 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         if not context.particle_edit_object:
             col = layout.split().column()
             row = col.row()
-            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
+
+            if context.sculpt_object and brush:
+                defaulttools = 8
+            elif context.texture_paint_object and brush:
+                defaulttools = 4
+            else:
+                defaulttools = 2
+
+            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaulttools)
 
             col.template_ID(settings, "brush", new="brush.add")
 
@@ -531,8 +539,6 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         elif context.sculpt_object and brush:
             col = layout.column()
             col.separator()
-            col.prop(brush, "sculpt_tool", expand=True)
-            col.separator()
 
             row = col.row(align=True)
             row.prop(brush, "size", slider=True)
@@ -563,12 +569,6 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         # Texture Paint Mode #
 
         elif context.texture_paint_object and brush:
-            col = layout.column(align=True)
-            col.prop_enum(settings, "tool", 'DRAW')
-            col.prop_enum(settings, "tool", 'SOFTEN')
-            col.prop_enum(settings, "tool", 'CLONE')
-            col.prop_enum(settings, "tool", 'SMEAR')
-
             col = layout.column()
             col.prop(brush, "color", text="")
 
@@ -623,6 +623,33 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             #row = col.row(align=True)
             #row.prop(brush, "jitter", slider=True)
             #row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+
+class VIEW3D_PT_tools_brush_tool(PaintPanel):
+    bl_label = "Tool"
+    bl_default_closed = True
+
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        return (settings and settings.brush and (context.sculpt_object or
+                             context.texture_paint_object))
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        texture_paint = context.texture_paint_object
+        sculpt = context.sculpt_object
+
+        col = layout.column(align=True)
+
+        if context.sculpt_object:
+            col.prop(brush, "sculpt_tool", expand=True)
+        elif context.texture_paint_object:
+            col.prop_enum(settings, "tool", 'DRAW')
+            col.prop_enum(settings, "tool", 'SOFTEN')
+            col.prop_enum(settings, "tool", 'CLONE')
+            col.prop_enum(settings, "tool", 'SMEAR')
 
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
@@ -690,7 +717,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
     bl_label = "Options"
 
     def poll(self, context):
-        return context.sculpt_object
+        return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw(self, context):
         layout = self.layout
@@ -826,23 +853,49 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         col.active = (ipaint.use_normal_falloff and use_projection)
         col.prop(ipaint, "normal_angle", text="")
 
-        split = layout.split(percentage=0.7)
+        col = layout.column(align=False)
+        row = col.row()
+        row.active = (use_projection)
+        row.prop(ipaint, "use_stencil_layer", text="Stencil")
 
-        col = split.column(align=False)
-        col.active = (use_projection)
-        col.prop(ipaint, "use_stencil_layer")
-
-        col = split.column(align=False)
-        col.active = (use_projection and ipaint.use_stencil_layer)
-        col.prop(ipaint, "invert_stencil", text="Inv")
+        row2 = row.row(align=False)
+        row2.active = (use_projection and ipaint.use_stencil_layer)
+        row2.menu("VIEW3D_MT_tools_projectpaint_stencil", text=context.active_object.data.uv_texture_stencil.name)
+        row2.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
         col = layout.column()
         sub = col.column()
-        sub.active = (settings.tool == 'CLONE')
-        sub.prop(ipaint, "use_clone_layer")
+        row = sub.row()
+        row.active = (settings.tool == 'CLONE')
+
+        row.prop(ipaint, "use_clone_layer", text="Clone")
+        row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
 
         sub = col.column()
         sub.prop(ipaint, "seam_bleed")
+
+    class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
+        bl_label = "Clone Layer"
+
+        def draw(self, context):
+            layout = self.layout
+            for i, tex in enumerate(context.active_object.data.uv_textures):
+                prop = layout.operator("wm.context_set_int", text=tex.name)
+                prop.path = "active_object.data.uv_texture_clone_index"
+                prop.value = i
+
+    class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
+        bl_label = "Mask Layer"
+
+        def draw(self, context):
+            layout = self.layout
+            for i, tex in enumerate(context.active_object.data.uv_textures):
+                prop = layout.operator("wm.context_set_int", text=tex.name)
+                prop.path = "active_object.data.uv_texture_stencil_index"
+                prop.value = i
+
+    bpy.types.register(VIEW3D_MT_tools_projectpaint_clone)
+    bpy.types.register(VIEW3D_MT_tools_projectpaint_stencil)
 
 
 class VIEW3D_PT_tools_particlemode(View3DPanel):
@@ -922,6 +975,7 @@ bpy.types.register(VIEW3D_PT_tools_latticeedit)
 bpy.types.register(VIEW3D_PT_tools_posemode)
 bpy.types.register(VIEW3D_PT_tools_posemode_options)
 bpy.types.register(VIEW3D_PT_tools_brush)
+bpy.types.register(VIEW3D_PT_tools_brush_tool)
 bpy.types.register(VIEW3D_PT_tools_brush_stroke)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)

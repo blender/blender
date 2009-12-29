@@ -3803,15 +3803,15 @@ int PE_minmax(Scene *scene, float *min, float *max)
 {
 	Object *ob= OBACT;
 	PTCacheEdit *edit= PE_get_current(scene, ob);
-	ParticleSystem *psys = edit->psys;
+	ParticleSystem *psys;
 	ParticleSystemModifierData *psmd = NULL;
 	POINT_P; KEY_K;
 	float co[3], mat[4][4];
 	int ok= 0;
 
 	if(!edit) return ok;
-	
-	if(psys)
+
+	if((psys = edit->psys))
 		psmd= psys_get_modifier(ob, psys);
 	else
 		unit_m4(mat);
@@ -4033,41 +4033,5 @@ void PARTICLE_OT_edited_clear(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/*********************** specials menu **************************/
-
-static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Scene *scene= CTX_data_scene(C);
-	ParticleEditSettings *pset=PE_settings(scene);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Specials", 0);
-	layout= uiPupMenuLayout(pup);
-
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey");
-	if(pset->selectmode & SCE_SELECT_POINT) {
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide");
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first");
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last");
-	}
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles");
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
-}
-
-void PARTICLE_OT_specials_menu(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Specials Menu";
-	ot->idname= "PARTICLE_OT_specials_menu";
-	
-	/* api callbacks */
-	ot->invoke= specials_menu_invoke;
-	ot->poll= PE_hair_poll;
 }
 

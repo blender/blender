@@ -19,9 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-import dynamic_menu
-# reload(dynamic_menu)
-
 
 class INFO_HT_header(bpy.types.Header):
     bl_space_type = 'INFO'
@@ -79,7 +76,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
-        layout.operator_menu_enum("wm.open_recentfile", "file", text="Open Recent")
+        layout.menu("INFO_MT_file_open_recent")
         layout.operator("wm.recover_last_session")
         layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
 
@@ -115,21 +112,22 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.exit_blender", text="Quit", icon='QUIT')
 
-# test for expanding menus
-'''
-class INFO_MT_file_more(INFO_MT_file):
-    bl_label = "File"
+
+class INFO_MT_file_open_recent(bpy.types.Menu):
+    bl_idname = "INFO_MT_file_open_recent"
+    bl_label = "Open Recent..."
 
     def draw(self, context):
+        import os
         layout = self.layout
+        layout.operator_context = 'EXEC_AREA'
+        file = open(os.path.join(bpy.home, ".Blog"), "rU")
+        for line in file:
+            line = line.rstrip()
+            layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').path = line
+        file.close()
 
-        layout.operator("wm.read_homefile", text="TESTING ")
-
-dynamic_menu.setup(INFO_MT_file_more)
-'''
-
-
-class INFO_MT_file_import(dynamic_menu.DynMenu):
+class INFO_MT_file_import(bpy.types.Menu):
     bl_idname = "INFO_MT_file_import"
     bl_label = "Import"
 
@@ -138,7 +136,7 @@ class INFO_MT_file_import(dynamic_menu.DynMenu):
             self.layout.operator("wm.collada_import", text="COLLADA (.dae)...")
 
 
-class INFO_MT_file_export(dynamic_menu.DynMenu):
+class INFO_MT_file_export(bpy.types.Menu):
     bl_idname = "INFO_MT_file_export"
     bl_label = "Export"
 
@@ -164,9 +162,9 @@ class INFO_MT_file_external_data(bpy.types.Menu):
         layout.operator("file.find_missing_files")
 
 
-class INFO_MT_mesh_add(dynamic_menu.DynMenu):
+class INFO_MT_mesh_add(bpy.types.Menu):
     bl_idname = "INFO_MT_mesh_add"
-    bl_label = "Mesh"
+    bl_label = "Add Mesh"
 
     def draw(self, context):
         layout = self.layout
@@ -183,7 +181,7 @@ class INFO_MT_mesh_add(dynamic_menu.DynMenu):
         layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text="Monkey")
 
 
-class INFO_MT_armature_add(dynamic_menu.DynMenu):
+class INFO_MT_armature_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_add"
     bl_label = "Armature"
 
@@ -290,6 +288,7 @@ class INFO_MT_help(bpy.types.Menu):
 
 bpy.types.register(INFO_HT_header)
 bpy.types.register(INFO_MT_file)
+bpy.types.register(INFO_MT_file_open_recent)
 bpy.types.register(INFO_MT_file_import)
 bpy.types.register(INFO_MT_file_export)
 bpy.types.register(INFO_MT_file_external_data)
@@ -308,7 +307,7 @@ class HelpOperator(bpy.types.Operator):
     def execute(self, context):
         import webbrowser
         webbrowser.open(self._url)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class HELP_OT_manual(HelpOperator):
@@ -391,14 +390,14 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         textblock.write('\n'.join(op_strings))
         textblock.name = "OperatorList.txt"
         print("See OperatorList.txt textblock")
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(HELP_OT_manual)
-bpy.ops.add(HELP_OT_release_logs)
-bpy.ops.add(HELP_OT_blender_website)
-bpy.ops.add(HELP_OT_blender_eshop)
-bpy.ops.add(HELP_OT_developer_community)
-bpy.ops.add(HELP_OT_user_community)
-bpy.ops.add(HELP_OT_report_bug)
-bpy.ops.add(HELP_OT_python_api)
-bpy.ops.add(HELP_OT_operator_cheat_sheet)
+bpy.types.register(HELP_OT_manual)
+bpy.types.register(HELP_OT_release_logs)
+bpy.types.register(HELP_OT_blender_website)
+bpy.types.register(HELP_OT_blender_eshop)
+bpy.types.register(HELP_OT_developer_community)
+bpy.types.register(HELP_OT_user_community)
+bpy.types.register(HELP_OT_report_bug)
+bpy.types.register(HELP_OT_python_api)
+bpy.types.register(HELP_OT_operator_cheat_sheet)

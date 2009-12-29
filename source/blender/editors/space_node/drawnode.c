@@ -1228,47 +1228,6 @@ void ED_init_node_butfuncs(void)
 
 /* ************** Generic drawing ************** */
 
-#if 0
-void node_rename_but(char *s)
-{
-	uiBlock *block;
-	ListBase listb={0, 0};
-	int dy, x1, y1, sizex=80, sizey=30;
-	short pivot[2], mval[2], ret=0;
-	
-	getmouseco_sc(mval);
-
-	pivot[0]= CLAMPIS(mval[0], (sizex+10), G.curscreen->sizex-30);
-	pivot[1]= CLAMPIS(mval[1], (sizey/2)+10, G.curscreen->sizey-(sizey/2)-10);
-	
-	if (pivot[0]!=mval[0] || pivot[1]!=mval[1])
-		warp_pointer(pivot[0], pivot[1]);
-
-	mywinset(G.curscreen->mainwin);
-	
-	x1= pivot[0]-sizex+10;
-	y1= pivot[1]-sizey/2;
-	dy= sizey/2;
-	
-	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_ENTER_OK);
-	
-	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
-	uiBlockBeginAlign(block);
-	
-	uiDefBut(block, TEX, B_NOP, "Name: ", (short)(x1),(short)(y1+dy), 150, 19, s, 0.0, 19.0, 0, 0, "Node user name");
-	
-	uiBlockEndAlign(block);
-
-	uiDefBut(block, BUT, 32767, "OK", (short)(x1+150), (short)(y1+dy), 29, 19, NULL, 0, 0, 0, 0, "");
-
-	uiBoundsBlock(block, 2);
-
-	ret= uiDoBlocks(&listb, 0, 0);
-}
-
-#endif
-
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 {
 	

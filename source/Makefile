@@ -137,6 +137,10 @@ ifeq ($(WITH_SNDFILE),true)
     COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
 endif
 
+ifeq ($(WITH_FFTW3),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
+endif
+
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a

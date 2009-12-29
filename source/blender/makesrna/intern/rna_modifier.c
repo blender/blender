@@ -746,7 +746,7 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mirror V", "Mirror the V texture coordinate around the 0.5 point.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "merge_limit", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "merge_limit", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "tolerance");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 0.01, 6);
@@ -913,19 +913,19 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Speed", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -2, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Height", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 5, 10, 2);
 	RNA_def_property_ui_text(prop, "Width", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "narrowness", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "narrowness", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "narrow");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 10, 10, 2);
@@ -1244,7 +1244,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "midlevel", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "midlevel", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Midlevel", "Material value that gives no displacement.");
@@ -1755,9 +1755,10 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "BevelModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_BEVEL);
 
-	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "value");
-	RNA_def_property_range(prop, 0, 0.5);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 10, 0.1, 4);
 	RNA_def_property_ui_text(prop, "Width", "Bevel value/amount.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2020,28 +2021,28 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SolidifyModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
 
-	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of the shell.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "edge_crease_inner", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "edge_crease_inner", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "crease_inner");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Inner Crease", "Assign a crease to inner edges.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "edge_crease_outer", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "edge_crease_outer", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "crease_outer");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Outer Crease", "Assign a crease to outer edges.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "edge_crease_rim", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "edge_crease_rim", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "crease_rim");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);

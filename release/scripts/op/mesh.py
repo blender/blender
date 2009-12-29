@@ -65,11 +65,11 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
 
     def execute(self, context):
         main(context)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 # Register the operator
-bpy.ops.add(MeshSelectInteriorFaces)
+bpy.types.register(MeshSelectInteriorFaces)
 
 if __name__ == "__main__":
     bpy.ops.mesh.faces_select_interior()

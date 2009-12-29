@@ -1276,7 +1276,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 
 	const char *uniform="";
 	PyObject *matrix=0;
-	int transp=1; // MT_ is row major so transpose by default....
+	int transp=0; // python use column major by default, so no transpose....
 	
 	if(!PyArg_ParseTuple(args, "sO|i:setUniformMatrix4",&uniform, &matrix,&transp))
 		return NULL;
@@ -1322,7 +1322,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 
 	const char *uniform="";
 	PyObject *matrix=0;
-	int transp=1; // MT_ is row major so transpose by default....
+	int transp=0; // python use column major by default, so no transpose....
 	if(!PyArg_ParseTuple(args, "sO|i:setUniformMatrix3",&uniform, &matrix,&transp))
 		return NULL;
 	

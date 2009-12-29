@@ -616,6 +616,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
+			case ANIMTYPE_DSMESH:
+			{
+				Mesh *me= (Mesh *)data;
+				AnimData *adt= me->adt;
+				
+				ale->flag= FILTER_MESH_OBJD(me);
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
 			case ANIMTYPE_DSSKEY:
 			{
 				Key *key= (Key *)data;
@@ -1323,6 +1336,8 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
+		case OB_SURF: /* ------- Nurbs Surface ---------- */
+		case OB_FONT: /* ------- Text Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
 			
@@ -1344,6 +1359,14 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 			
 			type= ANIMTYPE_DSARM;
 			expanded= FILTER_ARM_OBJD(arm);
+		}
+			break;
+		case OB_MESH: /* ------- Mesh ---------- */
+		{
+			Mesh *me= (Mesh *)ob->data;
+			
+			type= ANIMTYPE_DSMESH;
+			expanded= FILTER_MESH_OBJD(me);
 		}
 			break;
 	}
@@ -1540,6 +1563,8 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
+		case OB_SURF: /* ------- Nurbs Surface ---------- */
+		case OB_FONT: /* ------- Text Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
 			
@@ -1571,6 +1596,19 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			
 			if ((ads->filterflag & ADS_FILTER_NOARM) == 0) {
 				ANIMDATA_FILTER_CASES(arm,
+					{ /* AnimData blocks - do nothing... */ },
+					obdata_ok= 1;,
+					obdata_ok= 1;,
+					obdata_ok= 1;)
+			}
+		}
+			break;
+		case OB_MESH: /* ------- Mesh ---------- */
+		{
+			Mesh *me= (Mesh *)ob->data;
+			
+			if ((ads->filterflag & ADS_FILTER_NOMESH) == 0) {
+				ANIMDATA_FILTER_CASES(me,
 					{ /* AnimData blocks - do nothing... */ },
 					obdata_ok= 1;,
 					obdata_ok= 1;,
@@ -1962,6 +2000,8 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 					}
 						break;
 					case OB_CURVE: /* ------- Curve ---------- */
+					case OB_SURF: /* ------- Nurbs Surface ---------- */
+					case OB_FONT: /* ------- Text Curve ---------- */
 					{
 						Curve *cu= (Curve *)ob->data;
 						dataOk= 0;
@@ -2010,6 +2050,23 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);)
+					}
+						break;
+					case OB_MESH: /* ------- Mesh ---------- */
+					{
+						Mesh *me= (Mesh *)ob->data;
+						dataOk= 0;
+						ANIMDATA_FILTER_CASES(me, 
+							if ((ads->filterflag & ADS_FILTER_NOMESH)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(me);
+								dataOk=0;
+							},
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);)
 					}
 						break;
 					default: /* --- other --- */
@@ -2082,7 +2139,9 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 						dataOk= ANIMDATA_HAS_KEYS(la);	
 					}
 						break;
-					case OB_CURVE: /* -------- Curve ---------- */
+					case OB_CURVE: /* ------- Curve ---------- */
+					case OB_SURF: /* ------- Nurbs Surface ---------- */
+					case OB_FONT: /* ------- Text Curve ---------- */
 					{
 						Curve *cu= (Curve *)ob->data;
 						dataOk= ANIMDATA_HAS_KEYS(cu);	
@@ -2098,6 +2157,12 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 					{
 						bArmature *arm= (bArmature *)ob->data;
 						dataOk= ANIMDATA_HAS_KEYS(arm);	
+					}
+						break;
+					case OB_MESH: /* -------- Mesh ---------- */
+					{
+						Mesh *me= (Mesh *)ob->data;
+						dataOk= ANIMDATA_HAS_KEYS(me);	
 					}
 						break;
 					default: /* --- other --- */

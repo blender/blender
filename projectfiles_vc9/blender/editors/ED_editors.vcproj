@@ -416,6 +416,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_ops.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_panel.c"
 				>
 			</File>

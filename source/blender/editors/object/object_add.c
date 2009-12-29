@@ -99,38 +99,47 @@
 
 /************************** Exported *****************************/
 
-void ED_object_base_init_from_view(bContext *C, Base *base, int view_align)
+void ED_object_location_from_view(bContext *C, float *loc)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= base->object;
 	
-	if (scene==NULL)
-		return;
-	
-	if (v3d==NULL) {
-		base->lay = scene->lay;
-		VECCOPY(ob->loc, scene->cursor);
-	} 
-	else {
-		if (v3d->localvd) {
-			base->lay= ob->lay= v3d->layact | v3d->lay;
-			VECCOPY(ob->loc, v3d->cursor);
-		} 
-		else {
-			base->lay= ob->lay= v3d->layact;
-			VECCOPY(ob->loc, scene->cursor);
-		}
-		
-		if (view_align) {
-			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if(rv3d) {
-				rv3d->viewquat[0]= -rv3d->viewquat[0];
-				quat_to_eul( ob->rot,rv3d->viewquat);
-				rv3d->viewquat[0]= -rv3d->viewquat[0];
-			}
-		}
+	if (v3d) {
+		if (v3d->localvd)
+			copy_v3_v3(loc, v3d->cursor);
+		else
+			copy_v3_v3(loc, scene->cursor);
+	} else {
+		copy_v3_v3(loc, scene->cursor);
 	}
+}
+
+void ED_object_rotation_from_view(bContext *C, float *rot)
+{
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	
+	if(rv3d) {
+		rv3d->viewquat[0]= -rv3d->viewquat[0];
+		quat_to_eul( rot, rv3d->viewquat);
+		rv3d->viewquat[0]= -rv3d->viewquat[0];
+	}
+	else
+		rot[0] = rot[1] = rot[2] = 0.f;
+}
+
+void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *rot)
+{
+	Object *ob= base->object;
+	Scene *scene= CTX_data_scene(C);
+	
+	if (!scene) return;
+	
+	if (loc)
+		copy_v3_v3(ob->loc, loc);
+	
+	if (rot)
+		copy_v3_v3(ob->rot, rot);
+	
 	where_is_object(scene, ob);
 }
 
@@ -143,20 +152,44 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 
 void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 {
-	RNA_def_boolean(ot->srna, "view_align", 0, "View Align", "Align the new object to the view.");
+	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view.");
 
 	if(do_editmode)
 		RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object.");
+	
+	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object.", -FLT_MAX, FLT_MAX);
+	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
 }
 
 static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 {
-	if (!RNA_property_is_set(op->ptr, "view_align"))
-		RNA_boolean_set(op->ptr, "view_align", U.flag & USER_ADD_VIEWALIGNED);
-
 	if(RNA_struct_find_property(op->ptr, "enter_editmode")) /* optional */
 		if (!RNA_property_is_set(op->ptr, "enter_editmode"))
 			RNA_boolean_set(op->ptr, "enter_editmode", U.flag & USER_ADD_EDITMODE);
+	
+	if (!RNA_property_is_set(op->ptr, "location")) {
+		float loc[3];
+		
+		ED_object_location_from_view(C, loc);
+		RNA_float_set_array(op->ptr, "location", loc);
+	}
+	
+	if (!RNA_property_is_set(op->ptr, "rotation")) {
+		int view_align;
+		float rot[3] = {0.f, 0.f, 0.f};
+	
+		/* view align property is just used to set rotation property */
+		if (!RNA_property_is_set(op->ptr, "view_align"))
+			view_align = U.flag & USER_ADD_VIEWALIGNED;
+		else
+			view_align = RNA_boolean_get(op->ptr, "view_align");
+		
+		if (view_align)
+			ED_object_rotation_from_view(C, rot);
+
+		RNA_float_set_array(op->ptr, "rotation", rot);
+	}
+	
 }
 
 int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -165,18 +198,20 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return op->type->exec(C, op);
 }
 
-void ED_object_add_generic_get_opts(wmOperator *op, int *view_align, int *enter_editmode)
+void ED_object_add_generic_get_opts(wmOperator *op, float *loc, float *rot, int *enter_editmode)
 {
-	*view_align= RNA_boolean_get(op->ptr, "view_align");
 	*enter_editmode = FALSE;
 
 	if(RNA_struct_find_property(op->ptr, "enter_editmode") && RNA_boolean_get(op->ptr, "enter_editmode")) {
 		*enter_editmode = TRUE;
 	}
+	
+	RNA_float_get_array(op->ptr, "location", loc);
+	RNA_float_get_array(op->ptr, "rotation", rot);
 }
 
 /* for object add primitive operators */
-Object *ED_object_add_type(bContext *C, int type, int view_align, int enter_editmode)
+Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int enter_editmode)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
@@ -191,7 +226,7 @@ Object *ED_object_add_type(bContext *C, int type, int view_align, int enter_edit
 	ED_base_object_activate(C, BASACT);
 
 	/* more editor stuff */
-	ED_object_base_init_from_view(C, BASACT, view_align);
+	ED_object_base_init_transform(C, BASACT, loc, rot);
 
 	DAG_scene_sort(scene);
 
@@ -204,9 +239,11 @@ Object *ED_object_add_type(bContext *C, int type, int view_align, int enter_edit
 /* for object add operator */
 static int object_add_exec(bContext *C, wmOperator *op)
 {
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
-	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), view_align, enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), loc, rot, enter_editmode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -258,11 +295,13 @@ void add_effector_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or me
 static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 {
 	Object *ob;
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
 	if(type==PFIELD_GUIDE) {
-		ob= ED_object_add_type(C, OB_CURVE, view_align, FALSE);
+		ob= ED_object_add_type(C, OB_CURVE, loc, rot, FALSE);
 		rename_id(&ob->id, "CurveGuide");
 
 		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
@@ -273,7 +312,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	else {
-		ob= ED_object_add_type(C, OB_EMPTY, view_align, FALSE);
+		ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE);
 		rename_id(&ob->id, "Field");
 
 		switch(type) {
@@ -335,13 +374,14 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	ListBase *editnurb;
 	Nurb *nu;
 	int newob= 0, type= RNA_enum_get(op->ptr, "type");
-	int view_align, enter_editmode;
+	int enter_editmode;
+	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		obedit= ED_object_add_type(C, OB_CURVE, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE);
 		newob = 1;
 
 		if(type & CU_PRIM_PATH)
@@ -419,13 +459,14 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	ListBase *editnurb;
 	Nurb *nu;
 	int newob= 0;
-	int view_align, enter_editmode;
+	int enter_editmode;
+	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
-		obedit= ED_object_add_type(C, OB_SURF, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
@@ -479,13 +520,14 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	MetaBall *mball;
 	MetaElem *elem;
 	int newob= 0;
-	int view_align, enter_editmode;
+	int enter_editmode;
+	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
-		obedit= ED_object_add_type(C, OB_MBALL, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_MBALL, loc, rot, TRUE);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
@@ -544,15 +586,16 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	int view_align, enter_editmode;
+	int enter_editmode;
+	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 	
 	if(obedit && obedit->type==OB_FONT)
 		return OPERATOR_CANCELLED;
 
-	obedit= ED_object_add_type(C, OB_FONT, view_align, enter_editmode);
+	obedit= ED_object_add_type(C, OB_FONT, loc, rot, enter_editmode);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
@@ -582,13 +625,14 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	View3D *v3d= CTX_wm_view3d(C);
 	RegionView3D *rv3d= NULL;
 	int newob= 0;
-	int view_align, enter_editmode;
+	int enter_editmode;
+	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		obedit= ED_object_add_type(C, OB_ARMATURE, view_align, TRUE);
+		obedit= ED_object_add_type(C, OB_ARMATURE, loc, rot, TRUE);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -636,10 +680,12 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob;
 	int type= RNA_enum_get(op->ptr, "type");
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
-	ob= ED_object_add_type(C, OB_LAMP, view_align, FALSE);
+	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE);
 	if(ob && ob->data)
 		((Lamp*)ob->data)->type= type;
 	
@@ -679,11 +725,13 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 {
 	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "type"));
 
-	int view_align, enter_editmode;
-	ED_object_add_generic_get_opts(op, &view_align, &enter_editmode);
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
 	if(group) {
-		Object *ob= ED_object_add_type(C, OB_EMPTY, view_align, FALSE);
+		Object *ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE);
 		rename_id(&ob->id, group->id.name+2);
 		ob->dup_group= group;
 		ob->transflag |= OB_DUPLIGROUP;

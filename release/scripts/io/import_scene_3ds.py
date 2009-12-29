@@ -1151,7 +1151,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    path = StringProperty(name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= ""),
+    path = StringProperty(name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= "")
 
 # 	size_constraint = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
 # 	search_images = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),
@@ -1159,19 +1159,18 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 
     def execute(self, context):
         load_3ds(self.properties.path, context, 0.0, False, False)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
-bpy.ops.add(IMPORT_OT_autodesk_3ds)
+bpy.types.register(IMPORT_OT_autodesk_3ds)
 
-import dynamic_menu
 menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)...")
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
+bpy.types.INFO_MT_file_import.append(menu_func)
 
 # NOTES:
-# why add 1 extra vertex? and remove it when done?
+# why add 1 extra vertex? and remove it when done? - "Answer - eekadoodle - would need to re-order UV's without this since face order isnt always what we give blender, BMesh will solve :D"
 # disabled scaling to size, this requires exposing bb (easy) and understanding how it works (needs some time)

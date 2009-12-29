@@ -144,6 +144,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
 	ANIMTYPE_DSARM,
+	ANIMTYPE_DSMESH,
 	
 	ANIMTYPE_SHAPEKEY,
 	
@@ -219,6 +220,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_PART_OBJD(part) ((part->flag & PART_DS_EXPAND))
 #define FILTER_MBALL_OBJD(mb) ((mb->flag2 & MB_DS_EXPAND))
 #define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
+#define FILTER_MESH_OBJD(me) ((me->flag & ME_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)
@@ -428,7 +430,7 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 /* F-MODIFIER TOOLS */
 
 /* draw a given F-Modifier for some layout/UI-Block */
-void ANIM_uiTemplate_fmodifier_draw(const struct bContext *C, struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
+void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */

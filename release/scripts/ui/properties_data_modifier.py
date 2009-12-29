@@ -602,16 +602,24 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.label(text="See Soft Body panel.")
 
     def SOLIDIFY(self, layout, ob, md, wide_ui):
+        layout.prop(md, "offset")
+        
         split = layout.split()
-
+        
         col = split.column()
-        col.prop(md, "offset")
+        col.label(text="Crease:")
+        col.prop(md, "edge_crease_inner",text="Inner")
+        col.prop(md, "edge_crease_outer", text="Outer")
+        col.prop(md, "edge_crease_rim", text="Rim")
+        
+        if wide_ui:
+            col = split.column()
+            col.label()
         col.prop(md, "use_rim")
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
-        col.prop(md, "edge_crease_inner")
-        col.prop(md, "edge_crease_outer")
-        col.prop(md, "edge_crease_rim")
+        
+        # col = layout.column()
         # col.label(text="Vertex Group:")
         # col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
@@ -638,14 +646,15 @@ class DATA_PT_modifiers(DataButtonsPanel):
     def UV_PROJECT(self, layout, ob, md, wide_ui):
         if ob.type == 'MESH':
             split = layout.split()
+
             col = split.column()
-            col.label(text="UV Layer:")
-            col.prop_object(md, "uv_layer", ob.data, "uv_textures", text="")
+            col.label(text="Image:")
+            col.prop(md, "image", text="")
 
             if wide_ui:
                 col = split.column()
-            col.label(text="Image:")
-            col.prop(md, "image", text="")
+            col.label(text="UV Layer:")
+            col.prop_object(md, "uv_layer", ob.data, "uv_textures", text="")
 
             split = layout.split()
             col = split.column()

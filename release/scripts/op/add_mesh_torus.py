@@ -122,18 +122,16 @@ class AddTorus(bpy.types.Operator):
 
         ob_new.location = tuple(context.scene.cursor_location)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 # Register the operator
-bpy.ops.add(AddTorus)
+bpy.types.register(AddTorus)
 
-# Add to a menu
-import dynamic_menu
-
+# Add to the menu
 menu_func = (lambda self, context: self.layout.operator(AddTorus.bl_idname,
                                         text="Torus", icon='MESH_DONUT'))
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_mesh_add, menu_func)
+bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 if __name__ == "__main__":
     bpy.ops.mesh.primitive_torus_add()

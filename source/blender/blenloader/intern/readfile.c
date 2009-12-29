@@ -1695,12 +1695,6 @@ static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
 				data->script = newlibadr(fd, id->lib, data->script);
 			}
 				break;
-			case FMODIFIER_TYPE_SOUND:
-			{
-				FMod_Sound *data= (FMod_Sound *)fcm->data;
-				data->sound = newlibadr(fd, id->lib, data->sound);
-			}
-				break;
 		}
 	}
 }
@@ -10315,6 +10309,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 
+	if (1) {
+		Scene *sce;
+		
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			sce->gm.eyeseparation = 0.10;
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
@@ -10666,13 +10667,6 @@ static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
 				FMod_Python *data= (FMod_Python *)fcm->data;
 				
 				expand_doit(fd, mainvar, data->script);
-			}
-				break;
-			case FMODIFIER_TYPE_SOUND:
-			{
-				FMod_Sound *data= (FMod_Sound *)fcm->data;
-
-				expand_doit(fd, mainvar, data->sound);
 			}
 				break;
 		}

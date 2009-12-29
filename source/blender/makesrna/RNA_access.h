@@ -211,7 +211,6 @@ extern StructRNA RNA_FModifierGenerator;
 extern StructRNA RNA_FModifierLimits;
 extern StructRNA RNA_FModifierNoise;
 extern StructRNA RNA_FModifierPython;
-extern StructRNA RNA_FModifierSound;
 extern StructRNA RNA_FollowPathConstraint;
 extern StructRNA RNA_FreestyleModuleSettings;
 extern StructRNA RNA_Function;
@@ -588,7 +587,7 @@ void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
 struct IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create);
-int RNA_struct_idproperties_check(PointerRNA *ptr);
+int RNA_struct_idproperties_check(StructRNA *srna);
 
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
@@ -857,6 +856,7 @@ const char *RNA_function_identifier(FunctionRNA *func);
 PropertyRNA *RNA_function_return(FunctionRNA *func);
 const char *RNA_function_ui_description(FunctionRNA *func);
 int RNA_function_flag(FunctionRNA *func);
+int RNA_function_defined(FunctionRNA *func);
 
 PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index);
 PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr, FunctionRNA *func, const char *identifier);

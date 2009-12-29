@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 import bpy
-import dynamic_menu
 
 
 class VIEW3D_HT_header(bpy.types.Header):
@@ -205,7 +204,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
 
 
-class VIEW3D_MT_uv_map(dynamic_menu.DynMenu):
+class VIEW3D_MT_uv_map(bpy.types.Menu):
     bl_label = "UV Mapping"
 
     def draw(self, context):
@@ -456,6 +455,7 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
         layout.separator()
 
         layout.operator("mesh.select_random", text="Random...")
+        layout.operator("mesh.select_nth", text="Select Nth...")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
         layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
         layout.operator("mesh.faces_select_interior", text="Interior Faces")
@@ -902,6 +902,24 @@ class VIEW3D_MT_particle(bpy.types.Menu):
         layout.menu("VIEW3D_MT_particle_showhide")
 
 
+class VIEW3D_MT_particle_specials(bpy.types.Menu):
+    bl_label = "Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        particle_edit = context.tool_settings.particle_edit
+
+        layout.operator("particle.rekey")
+
+        layout.separator()
+        if particle_edit.selection_mode == 'POINT':
+            layout.operator("particle.subdivide")
+            layout.operator("particle.select_first")
+            layout.operator("particle.select_last")
+
+        layout.operator("particle.remove_doubles")
+
+
 class VIEW3D_MT_particle_showhide(VIEW3D_MT_showhide):
     _operator_name = "particle"
 
@@ -1121,6 +1139,27 @@ class VIEW3D_MT_edit_mesh_specials(bpy.types.Menu):
         layout.operator("mesh.select_vertex_path")
 
 
+class VIEW3D_MT_edit_mesh_selection_mode(bpy.types.Menu):
+    bl_label = "Mesh Select Mode"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
+        prop.value = "(True, False, False)"
+        prop.path = "tool_settings.mesh_selection_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
+        prop.value = "(False, True, False)"
+        prop.path = "tool_settings.mesh_selection_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
+        prop.value = "(False, False, True)"
+        prop.path = "tool_settings.mesh_selection_mode"
+
+
 class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
     bl_label = "Vertices"
 
@@ -1190,7 +1229,7 @@ class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
         layout.operator("mesh.region_to_loop")
 
 
-class VIEW3D_MT_edit_mesh_faces(dynamic_menu.DynMenu):
+class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
     bl_label = "Faces"
     bl_idname = "VIEW3D_MT_edit_mesh_faces"
 
@@ -1321,6 +1360,20 @@ class VIEW3D_MT_edit_curve_segments(bpy.types.Menu):
 
         layout.operator("curve.subdivide")
         layout.operator("curve.switch_direction")
+
+
+class VIEW3D_MT_edit_curve_specials(bpy.types.Menu):
+    bl_label = "Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("curve.subdivide")
+        layout.operator("curve.switch_direction")
+        layout.operator("curve.spline_weight_set")
+        layout.operator("curve.radius_set")
+        layout.operator("curve.smooth")
+        layout.operator("curve.smooth_radius")
 
 
 class VIEW3D_MT_edit_curve_showhide(VIEW3D_MT_showhide):
@@ -1901,7 +1954,8 @@ bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
 
 bpy.types.register(VIEW3D_MT_paint_vertex)
 
-bpy.types.register(VIEW3D_MT_particle) # Particle Menu
+bpy.types.register(VIEW3D_MT_particle)# Particle Menu
+bpy.types.register(VIEW3D_MT_particle_specials)
 bpy.types.register(VIEW3D_MT_particle_showhide)
 
 bpy.types.register(VIEW3D_MT_pose) # POSE Menu
@@ -1915,6 +1969,7 @@ bpy.types.register(VIEW3D_MT_pose_showhide)
 
 bpy.types.register(VIEW3D_MT_edit_mesh)
 bpy.types.register(VIEW3D_MT_edit_mesh_specials) # Only as a menu for keybindings
+bpy.types.register(VIEW3D_MT_edit_mesh_selection_mode) # Only as a menu for keybindings
 bpy.types.register(VIEW3D_MT_edit_mesh_vertices)
 bpy.types.register(VIEW3D_MT_edit_mesh_edges)
 bpy.types.register(VIEW3D_MT_edit_mesh_faces)
@@ -1924,6 +1979,7 @@ bpy.types.register(VIEW3D_MT_edit_mesh_showhide)
 bpy.types.register(VIEW3D_MT_edit_curve)
 bpy.types.register(VIEW3D_MT_edit_curve_ctrlpoints)
 bpy.types.register(VIEW3D_MT_edit_curve_segments)
+bpy.types.register(VIEW3D_MT_edit_curve_specials)
 bpy.types.register(VIEW3D_MT_edit_curve_showhide)
 
 bpy.types.register(VIEW3D_MT_edit_surface)

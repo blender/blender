@@ -34,6 +34,8 @@
 
 struct bContext;
 struct wmOperatorType;
+struct wmOperator;
+
 
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
 
@@ -158,13 +160,13 @@ void MESH_OT_edges_select_sharp(struct wmOperatorType *ot);
 void MESH_OT_select_shortest_path(struct wmOperatorType *ot);
 void MESH_OT_select_similar(struct wmOperatorType *ot);
 void MESH_OT_select_random(struct wmOperatorType *ot);
-void MESH_OT_selection_type(struct wmOperatorType *ot);
 void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
+void MESH_OT_select_nth(struct wmOperatorType *ot);
 
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
@@ -197,7 +199,7 @@ extern EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short st
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
 void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beauty, int numcuts, int seltype);
-int EdgeSlide(EditMesh *em, wmOperator *op, short immediate, float imperc);
+int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
 
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);

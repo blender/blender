@@ -105,7 +105,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 
 	py_class_instance = PyObject_Call(py_class, args, NULL);
 	Py_DECREF(args);
-	
+
 	if (py_class_instance==NULL) { /* Initializing the class worked, now run its invoke function */
 		PyErr_Print();
 		PyErr_Clear();
@@ -128,7 +128,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		else if (mode==PYOP_EXEC) {
 			item= PyObject_GetAttrString(py_class, "execute");
 			args = PyTuple_New(2);
-			
+
 			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
 		}
 		else if (mode==PYOP_POLL) {
@@ -173,7 +173,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		Py_DECREF(args);
 		Py_DECREF(item);
 	}
-	
+
 	if (ret == NULL) { /* covers py_class_instance failing too */
 		if(op)
 			BPy_errors_to_report(op->reports);
@@ -202,7 +202,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		 * If we ever want to do this and use the props again,
 		 * it can be done with - pyrna_pydict_to_props(op->ptr, kw, "")
 		 */
-		
+
 		Py_DECREF(ret);
 	}
 
@@ -215,7 +215,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperatorType *ot, wmOperat
 		BPY_flag_def *flag_def = pyop_ret_flags;
 
 		strcpy(flag_str, "");
-		
+
 		while(flag_def->name) {
 			if (ret_flag & flag_def->flag) {
 				if(flag_str[1])
@@ -260,6 +260,49 @@ static void PYTHON_OT_draw(bContext *C, wmOperator *op, uiLayout *layout)
 	PYTHON_OT_generic(PYOP_DRAW, C, op->type, op, NULL, layout);
 }
 
+
+
+void operator_wrapper(wmOperatorType *ot, void *userdata)
+{
+	/* take care not to overwrite anything set in
+	 * WM_operatortype_append_ptr before opfunc() is called */
+	StructRNA *srna = ot->srna;
+	*ot= *((wmOperatorType *)userdata);
+	ot->srna= srna; /* restore */
+
+	RNA_struct_blender_type_set(ot->ext.srna, ot);
+
+
+	/* Can't use this because it returns a dict proxy
+	 *
+	 * item= PyObject_GetAttrString(py_class, "__dict__");
+	 */
+	{
+		PyObject *py_class = ot->ext.data;
+		PyObject *item= ((PyTypeObject*)py_class)->tp_dict;
+		if(item) {
+			/* only call this so pyrna_deferred_register_props gives a useful error
+			 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
+			 * later */
+			RNA_def_struct_identifier(ot->srna, ot->idname);
+
+			if(pyrna_deferred_register_props(ot->srna, item)!=0) {
+				/* failed to register operator props */
+				PyErr_Print();
+				PyErr_Clear();
+
+			}
+		}
+		else {
+			PyErr_Clear();
+		}
+	}
+}
+
+
+
+
+
 void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 {
 	PyObject *py_class = (PyObject *)userdata;
@@ -283,8 +326,8 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_DESCRIPTION);
 	ot->description= (item && PyUnicode_Check(item)) ? _PyUnicode_AsString(item):"undocumented python operator";
 	Py_XDECREF(item);
-	
-	/* api callbacks, detailed checks dont on adding */ 
+
+	/* api callbacks, detailed checks dont on adding */
 	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
 	//else
@@ -296,9 +339,9 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 		ot->pyop_poll= PYTHON_OT_poll;
 	if (PyObject_HasAttrString(py_class, "draw"))
 		ot->ui= PYTHON_OT_draw;
-	
+
 	ot->pyop_data= userdata;
-	
+
 	/* flags */
 	ot->flag= 0;
 
@@ -419,11 +462,11 @@ void PYTHON_OT_MACRO_wrapper(wmOperatorType *ot, void *userdata)
 
 /* pyOperators - Operators defined IN Python */
 PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
-{	
+{
 	PyObject *base_class, *item;
 	wmOperatorType *ot;
-	
-	
+
+
 	char *idname= NULL;
 	char idname_bl[OP_MAX_TYPENAME]; /* converted to blender syntax */
 
@@ -466,7 +509,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	Py_DECREF(item);
 	/* end annoying conversion! */
 
-	
+
 	/* remove if it already exists */
 	if ((ot=WM_operatortype_exists(idname))) {
 		if(ot->pyop_data) {
@@ -474,7 +517,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 		}
 		WM_operatortype_remove(idname);
 	}
-	
+
 	Py_INCREF(py_class);
 	WM_operatortype_append_ptr(PYTHON_OT_wrapper, py_class);
 

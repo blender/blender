@@ -96,7 +96,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 
     numverts = len(me.verts)
 
-    numframes = PREF_ENDFRAME-PREF_STARTFRAME + 1
+    numframes = PREF_ENDFRAME - PREF_STARTFRAME + 1
     PREF_FPS = float(PREF_FPS)
     f = open(filename, 'wb') #no Errors yet:Safe to create file
 
@@ -104,7 +104,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
     f.write(pack(">2i", numframes, numverts))
 
     # Write the frame times (should we use the time IPO??)
-    f.write( pack(">%df" % (numframes), *[frame / PREF_FPS for frame in range(numframes)]) ) # seconds
+    f.write(pack(">%df" % (numframes), *[frame / PREF_FPS for frame in range(numframes)])) # seconds
 
     #rest frame needed to keep frames in sync
     """
@@ -159,8 +159,8 @@ class ExportMDD(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    path = StringProperty(name="File Path", description="File path used for exporting the MDD file", maxlen= 1024, default= "")
-    fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default= 25)
+    path = StringProperty(name="File Path", description="File path used for exporting the MDD file", maxlen=1024)
+    fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
     start_frame = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
     end_frame = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
 
@@ -173,24 +173,21 @@ class ExportMDD(bpy.types.Operator):
             raise Exception("filename not set")
         write(self.properties.path, context.scene, context.active_object,
             self.properties.start_frame, self.properties.end_frame, self.properties.fps)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
-bpy.ops.add(ExportMDD)
-
-# Add to a menu
-import dynamic_menu
+bpy.types.register(ExportMDD)
 
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".mdd")
     self.layout.operator(ExportMDD.bl_idname, text="Vertex Keyframe Animation (.mdd)...").path = default_path
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+bpy.types.INFO_MT_file_export.append(menu_func)
 
 if __name__ == '__main__':
     bpy.ops.export.mdd(path="/tmp/test.mdd")

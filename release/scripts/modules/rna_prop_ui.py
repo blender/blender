@@ -143,7 +143,7 @@ rna_max = FloatProperty(name="Max", default=1.0, precision=3)
 class WM_OT_properties_edit(bpy.types.Operator):
     '''Internal use (edit a property path)'''
     bl_idname = "wm.properties_edit"
-    bl_label = "Edit Property!"
+    bl_label = "Edit Property"
 
     path = rna_path
     property = rna_property
@@ -196,7 +196,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
         prop_ui['description'] = self.properties.description
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
 
@@ -216,7 +216,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
         #return wm.invoke_props_popup(self, event)
 
         wm.invoke_props_popup(self, event)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
 class WM_OT_properties_add(bpy.types.Operator):
@@ -242,7 +242,7 @@ class WM_OT_properties_add(bpy.types.Operator):
         property = unique_name(item.keys())
 
         item[property] = 1.0
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_properties_remove(bpy.types.Operator):
@@ -256,4 +256,4 @@ class WM_OT_properties_remove(bpy.types.Operator):
     def execute(self, context):
         item = eval("context.%s" % self.properties.path)
         del item[self.properties.property]
-        return ('FINISHED',)
+        return {'FINISHED'}

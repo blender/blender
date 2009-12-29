@@ -205,6 +205,15 @@ StructRNA *rna_IDPropertyGroup_register(const bContext *C, ReportList *reports, 
 	if(validate(&dummyptr, data, NULL) != 0)
 		return NULL;
 
+	/* note: it looks like there is no length limit on the srna id since its
+	 * just a char pointer, but take care here, also be careful that python
+	 * owns the string pointer which it could potentually free while blender
+	 * is running. */
+	if(strlen(identifier) >= sizeof(((IDProperty *)NULL)->name)) {
+		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is %d.", identifier, sizeof(((IDProperty *)NULL)->name));
+		return NULL;
+	}
+
 	return RNA_def_struct(&BLENDER_RNA, identifier, "IDPropertyGroup");  // XXX
 }
 

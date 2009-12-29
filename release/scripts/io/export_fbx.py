@@ -651,8 +651,8 @@ def write(filename, batch_objects = None, \
 }''' % (curtime))
 
     file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
-    file.write('\nCreator: "Blender3D version 2.5"')
-# 	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
+    file.write('\nCreator: "Blender3D version %s"' % bpy.version_string)
+
 
     pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
 
@@ -3361,7 +3361,7 @@ class ExportFBX(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= "")
+    path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default="")
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
@@ -3387,7 +3387,7 @@ class ExportFBX(bpy.types.Operator):
     BATCH_ENABLE = BoolProperty(name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False)
     BATCH_GROUP = BoolProperty(name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False)
     BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
-    BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen= 1024, default="")
+    BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen=1024, default="")
 
 
     def poll(self, context):
@@ -3426,15 +3426,15 @@ class ExportFBX(bpy.types.Operator):
               self.properties.BATCH_FILE_PREFIX,
               self.properties.BATCH_OWN_DIR)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
-bpy.ops.add(ExportFBX)
+bpy.types.register(ExportFBX)
 
 # if __name__ == "__main__":
 # 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
@@ -3462,13 +3462,8 @@ bpy.ops.add(ExportFBX)
 # SMALL or COSMETICAL
 # - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')
 
-
-# Add to a menu
-import dynamic_menu
-
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".fbx")
     self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX...").path = default_path
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
-
+menu_item = bpy.types.INFO_MT_file_export.append(menu_func)

@@ -656,6 +656,7 @@ typedef struct v2dViewZoomData {
 	
 	int lastx, lasty;		/* previous x/y values of mouse in window */
 	float dx, dy;			/* running tally of previous delta values (for obtaining final zoom) */
+	float mx_2d, my_2d;		/* initial mouse location in v2d coords */
 } v2dViewZoomData;
  
 /* initialise panning customdata */
@@ -701,8 +702,17 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 			v2d->cur.xmax -= 2*dx;
 		}
 		else {
-			v2d->cur.xmin += dx;
-			v2d->cur.xmax -= dx;
+			if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / (v2d->cur.xmax-v2d->cur.xmin);
+				float mval_faci = 1.0 - mval_fac;
+				float ofs= (mval_fac * dx) - (mval_faci * dx);
+				v2d->cur.xmin += ofs + dx;
+				v2d->cur.xmax += ofs - dx;
+			}
+			else {
+				v2d->cur.xmin += dx;
+				v2d->cur.xmax -= dx;
+			}
 		}
 	}
 	if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
@@ -710,8 +720,17 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 			v2d->cur.ymax -= 2*dy;
 		}
 		else {
-			v2d->cur.ymin += dy;
-			v2d->cur.ymax -= dy;
+			if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / (v2d->cur.ymax-v2d->cur.ymin);
+				float mval_faci = 1.0 - mval_fac;
+				float ofs= (mval_fac * dy) - (mval_faci * dy);
+				v2d->cur.ymin += ofs + dy;
+				v2d->cur.ymax += ofs - dy;
+			}
+			else {
+				v2d->cur.ymin += dy;
+				v2d->cur.ymax -= dy;
+			}
 		}
 	}
 	
@@ -764,6 +783,11 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_float_set(op->ptr, "deltax", 0);
 	RNA_float_set(op->ptr, "deltay", 0);
 	
+	if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+		ARegion *ar= CTX_wm_region(C);
+		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, &vzd->mx_2d, &vzd->my_2d);
+	}
+
 	if (v2d->keepofs & V2D_LOCKOFS_X)
 		WM_cursor_modal(window, BC_NS_SCROLLCURSOR);
 	else if (v2d->keepofs & V2D_LOCKOFS_Y)

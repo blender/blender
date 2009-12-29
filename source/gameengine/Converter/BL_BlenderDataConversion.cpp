@@ -1658,7 +1658,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 
 static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_BlenderSceneConverter *converter) {
 	Camera* ca = static_cast<Camera*>(ob->data);
-	RAS_CameraData camdata(ca->lens, ca->ortho_scale, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, dof_camera(ob));
+	RAS_CameraData camdata(ca->lens, ca->ortho_scale, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, ca->YF_dofdist);
 	KX_Camera *gamecamera;
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);
@@ -2572,7 +2572,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 						if (dat->tar)
 						{
-							KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
+							KX_GameObject *gotar=getGameOb(dat->tar->id.name+2,sumolist);
 							if (gotar && gotar->GetPhysicsController())
 								physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
 						}

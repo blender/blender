@@ -1142,31 +1142,6 @@ void NODE_OT_resize(wmOperatorType *ot)
 
 #if 0
 
-/* ******************** rename ******************* */
-
-
-/* should go through RNA */
-void node_rename(SpaceNode *snode)
-{
-	bNode *node, *rename_node;
-	short found_node= 0;
-
-	/* check if a node is selected */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->flag & SELECT) {
-			found_node= 1;
-			break;
-		}
-	}
-
-	if(found_node) {
-		rename_node= nodeGetActive(snode->edittree);
-		node_rename_but((char *)rename_node->name);
-	
-		// allqueue(REDRAWNODE, 1);
-	}
-}
-
 /* ********************** select ******************** */
 
 /* used in buttons to check context, also checks for edited groups */
@@ -2184,39 +2159,5 @@ void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
-#if 0
-
-/* ******************** main event loop ****************** */
-
-void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
-{
-	if(val) {
-		switch(event) {
-		case CKEY:	/* sort again, showing cyclics */
-			ntreeSolveOrder(snode->edittree);
-			doredraw= 1;
-			break;
-		case EKEY:
-			// XXX			snode_handle_recalc(snode);
-			break;
-		
-		case RKEY:
-			if(G.qual==LR_CTRLKEY) {
-				node_rename(snode);
-			} 
-			else if(G.qual==LR_SHIFTKEY) {
-				if(okee("Read saved Full Sample Layers"))
-					node_read_fullsamplelayers(snode);
-			}
-			else {
-				if(okee("Read saved Render Layers"))
-					node_read_renderlayers(snode);
-			}
-			break;
-		}
-	}
-}
-#endif
 
 

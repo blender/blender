@@ -30,7 +30,7 @@ class ExportSomeData(bpy.types.Operator):
 
         write_some_data(self.properties.path, context, self.properties.use_setting)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
@@ -38,7 +38,7 @@ class ExportSomeData(bpy.types.Operator):
         if True:
             # File selector
             wm.add_fileselect(self) # will run self.execute()
-            return ('RUNNING_MODAL',)
+            return {'RUNNING_MODAL'}
         elif 0:
             # Redo popup
             return wm.invoke_props_popup(self, event) #
@@ -46,13 +46,11 @@ class ExportSomeData(bpy.types.Operator):
             return self.execute(context)
 
 
-bpy.ops.add(ExportSomeData)
+bpy.types.register(ExportSomeData)
 
 # Only needed if you want to add into a dynamic menu
-import dynamic_menu
 menu_func = lambda self, context: self.layout.operator("export.some_data", text="Example Exporter...")
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+bpy.types.INFO_MT_file_export.append(menu_func)
 
-# Use for running this script directly
 if __name__ == "__main__":
     bpy.ops.export.some_data(path="/tmp/test.ply")

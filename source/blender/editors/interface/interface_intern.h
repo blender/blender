@@ -199,7 +199,8 @@ struct uiBut {
 
 	BIFIconID icon;
 	short but_align;	/* aligning buttons, horiz/vertical */
-	short lock, win;
+	short lock;
+	short modifier_key;
 	short iconadd, dt;
 
 	/* IDPOIN data */

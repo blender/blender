@@ -1671,8 +1671,34 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+/* bake */
 
+static int bake_image_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	char *error_msg= NULL;
+	objects_bake_render(scene, 0, &error_msg);
 
+	if(error_msg) {
+		BKE_report(op->reports, RPT_ERROR, error_msg);
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void OBJECT_OT_bake_image(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake";
+	ot->description= "Bake selected objects.";
+	ot->idname= "OBJECT_OT_bake_image";
+
+	/* api callbacks */
+	ot->exec= bake_image_exec;
+}
 
 /* ********************** */
 

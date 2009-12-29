@@ -486,12 +486,11 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 static void ui_keymap_but_cb(bContext *C, void *but_v, void *key_v)
 {
 	uiBut *but= but_v;
-	short modifier= *((short*)key_v);
 
-	RNA_boolean_set(&but->rnapoin, "shift", (modifier & KM_SHIFT) != 0);
-	RNA_boolean_set(&but->rnapoin, "ctrl", (modifier & KM_CTRL) != 0);
-	RNA_boolean_set(&but->rnapoin, "alt", (modifier & KM_ALT) != 0);
-	RNA_boolean_set(&but->rnapoin, "oskey", (modifier & KM_OSKEY) != 0);
+	RNA_boolean_set(&but->rnapoin, "shift", (but->modifier_key & KM_SHIFT) != 0);
+	RNA_boolean_set(&but->rnapoin, "ctrl", (but->modifier_key & KM_CTRL) != 0);
+	RNA_boolean_set(&but->rnapoin, "alt", (but->modifier_key & KM_ALT) != 0);
+	RNA_boolean_set(&but->rnapoin, "oskey", (but->modifier_key & KM_OSKEY) != 0);
 }
 
 /* create label + button for RNA property */
@@ -533,14 +532,14 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 	}
 	else if(flag & UI_ITEM_R_FULL_EVENT) {
 		if(RNA_struct_is_a(ptr->type, &RNA_KeyMapItem)) {
-			static short dummy = 0;
 			char buf[128];
 
 			WM_keymap_item_to_string(ptr->data, buf, sizeof(buf));
 
 			but= uiDefButR(block, HOTKEYEVT, 0, buf, x, y, w, h, ptr, RNA_property_identifier(prop), 0, 0, 0, -1, -1, NULL);
-			but->func_arg3= &dummy; // XXX abuse
-			uiButSetFunc(but, ui_keymap_but_cb, but, &dummy);
+			uiButSetFunc(but, ui_keymap_but_cb, but, NULL);
+			if (flag & UI_ITEM_R_IMMEDIATE)
+				uiButSetFlag(but, UI_BUT_IMMEDIATE);
 		}
 	}
 	else
@@ -695,7 +694,7 @@ void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *pro
 	uiItemFullO(layout, name, icon, opname, ptr.data, layout->root->opcontext, 0);
 }
 
-void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
+void uiItemsFullEnumO(uiLayout *layout, char *opname, char *propname, IDProperty *properties, int context, int flag)
 {
 	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	PointerRNA ptr;
@@ -721,7 +720,21 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 
 		for(i=0; i<totitem; i++) {
 			if(item[i].identifier[0]) {
-				uiItemEnumO(column, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
+				if(properties) {
+					PointerRNA ptr;
+
+					WM_operator_properties_create(&ptr, opname);
+					if(ptr.data) {
+						IDP_FreeProperty(ptr.data);
+						MEM_freeN(ptr.data);
+					}
+					ptr.data= IDP_CopyProperty(properties);
+					RNA_enum_set(&ptr, propname, item[i].value);
+
+					uiItemFullO(column, (char*)item[i].name, item[i].icon, opname, ptr.data, context, flag);
+				}
+				else
+					uiItemEnumO(column, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
 			}
 			else {
 				if(item[i].name) {
@@ -743,6 +756,11 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 		if(free)
 			MEM_freeN(item);
 	}
+}
+
+void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
+{
+	uiItemsFullEnumO(layout, opname, propname, NULL, layout->root->opcontext, 0);
 }
 
 /* for use in cases where we have */

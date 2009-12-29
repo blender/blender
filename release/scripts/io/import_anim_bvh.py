@@ -887,17 +887,15 @@ class BvhImporter(bpy.types.Operator):
 
         read_bvh(context, self.properties.path)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
-bpy.ops.add(BvhImporter)
+bpy.types.register(BvhImporter)
 
-
-import dynamic_menu
 menu_func = lambda self, context: self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
+bpy.types.INFO_MT_file_import.append(menu_func)

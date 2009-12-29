@@ -150,6 +150,13 @@ extern AUD_Sound* AUD_loopSound(AUD_Sound* sound);
 extern int AUD_stopLoop(AUD_Handle* handle);
 
 /**
+ * Rectifies a sound.
+ * \param sound The sound to rectify.
+ * \return A handle of the rectified sound.
+ */
+extern AUD_Sound* AUD_rectifySound(AUD_Sound* sound);
+
+/**
  * Unloads a sound of any type.
  * \param sound The handle of the sound.
  */

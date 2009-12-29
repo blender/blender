@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
@@ -94,6 +95,8 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	uiItemR(row, "", 0, ptr, "display_world", 0);
 	uiItemR(row, "", 0, ptr, "display_node", 0);
 
+	if (mainptr && mainptr->mesh.first)
+		uiItemR(row, "", 0, ptr, "display_mesh", 0);
 	if (mainptr && mainptr->key.first)
 		uiItemR(row, "", 0, ptr, "display_shapekeys", 0);
 	if (mainptr && mainptr->mat.first)
@@ -608,9 +611,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *column, *row, *result= NULL;
-	int isVirtual = md->mode & eModifierMode_Virtual;
-	// XXX short color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
+	uiLayout *box, *column, *row;
+	uiLayout *result= NULL;
+	int isVirtual = (md->mode & eModifierMode_Virtual);
 	char str[128];
 
 	/* create RNA pointer */
@@ -619,101 +622,100 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	column= uiLayoutColumn(layout, 1);
 	uiLayoutSetContextPointer(column, "modifier", &ptr);
 
-	/* rounded header */
-	/* XXX uiBlockSetCol(block, color); */
-		/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
-
-	row= uiLayoutRow(uiLayoutBox(column), 0);
+	/* rounded header ------------------------------------------------------------------- */
+	box= uiLayoutBox(column);
+	
+	row= uiLayoutRow(box, 0);
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
-
 	block= uiLayoutGetBlock(row);
-
-	//uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 25, NULL, 7.0, 0.0, 
-	//		 (!isVirtual && (md->mode & eModifierMode_Expanded))?3:15, 20, ""); 
-	/* XXX uiBlockSetCol(block, TH_AUTO); */
 	
-	/* open/close icon */
-	if(!isVirtual) {
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
-	}
-	
-	/* modifier-type icon */
-	uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
-	
-	uiBlockSetEmboss(block, UI_EMBOSS);
-	
-	if(isVirtual) {
-		/* virtual modifier */
+	if (isVirtual) {
+		/* VIRTUAL MODIFIER */
+		// XXX this is not used now, since these cannot be accessed via RNA
 		sprintf(str, "%s parent deform", md->name);
 		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
-
+		
 		but = uiDefBut(block, BUT, 0, "Make Real", 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
 		uiButSetFunc(but, modifiers_convertToReal, ob, md);
 	}
 	else {
-		/* real modifier */
-		uiBlockBeginAlign(block);
-		uiItemR(row, "", 0, &ptr, "name", 0);
-
-		/* Softbody not allowed in this situation, enforce! */
-		if(((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
-			uiItemR(row, "", ICON_SCENE, &ptr, "render", 0);
-			uiItemR(row, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0);
-
-			if(mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0);
-		}
+		/* REAL MODIFIER */
+		uiLayout *subrow, *col2;
 		
-
-		/* XXX uiBlockSetEmboss(block, UI_EMBOSSR); */
-
-		if(ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
-			/* XXX uiBlockSetCol(block, color); */
-			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
-			if(index < cageIndex)
-				uiButSetFlag(but, UI_BUT_DISABLED);
-			uiButSetFunc(but, modifiers_setOnCage, ob, md);
-			uiBlockEndAlign(block);
-			/* XXX uiBlockSetCol(block, TH_AUTO); */
-		}
-	}
-
-	/* up/down/delete */
-	if(!isVirtual) {
-		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
+		/* Open/Close .................................  */
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+		
+		/* modifier-type icon */
+		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
+		uiBlockSetEmboss(block, UI_EMBOSS);
+		
+		/* 'Middle Column' ............................ 
+		 *	- first row is the name of the modifier 
+		 *	- second row is the visibility settings, since the layouts were not wide enough to show all
+		 */
+		col2= uiLayoutColumn(row, 0);
+			/* First Row */
+			subrow= uiLayoutRow(col2, 0);
+				/* modifier name */
+				uiItemR(subrow, "", 0, &ptr, "name", 0);
+			
+			/* Second Row */
+			subrow= uiLayoutRow(col2, 1);
+			uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_EXPAND);
+			block= uiLayoutGetBlock(subrow);
+				/* Softbody not allowed in this situation, enforce! */
+				if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
+						&& (md->type!=eModifierType_Surface) ) 
+				{
+					uiItemR(subrow, "", ICON_SCENE, &ptr, "render", 0);
+					uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0);
+					
+					if (mti->flags & eModifierTypeFlag_SupportsEditmode)
+						uiItemR(subrow, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0);
+				}
+				
+				if ((ob->type==OB_MESH) && modifier_couldBeCage(md) && (index <= lastCageIndex)) 
+				{
+					but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+					if (index < cageIndex)
+						uiButSetFlag(but, UI_BUT_DISABLED);
+					uiButSetFunc(but, modifiers_setOnCage, ob, md);
+				}
+			
+		/* Up/Down + Delete ........................... */
+		block= uiLayoutGetBlock(row);
 		uiBlockBeginAlign(block);
-		uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
-		uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
+			uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
+			uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
 		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-
-		if(modifier_can_delete(md))
+		
+		if (modifier_can_delete(md))
 			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-
-		/* XXX uiBlockSetCol(block, TH_AUTO); */
+			
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
-	if(!isVirtual && (md->mode & eModifierMode_Expanded)) {
+	
+	/* modifier settings (under the header) --------------------------------------------------- */
+	if (!isVirtual && (md->mode & eModifierMode_Expanded)) {
 		/* apply/convert/copy */
-		uiLayout *box;
-
 		box= uiLayoutBox(column);
 		row= uiLayoutRow(box, 0);
-
-		if(!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
+		
+		if (!ELEM(md->type, eModifierType_Collision, eModifierType_Surface)) {
 			/* only here obdata, the rest of modifiers is ob level */
 			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-
-			if(md->type==eModifierType_ParticleSystem) {
+			
+			if (md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
-
-	    		if(!(ob->mode & OB_MODE_PARTICLE_EDIT))
+				
+	    		if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
+				}
 			}
 			else {
 				uiItemEnumO(row, "Apply", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_DATA);
@@ -724,23 +726,23 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 			
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
-
-			if(!ELEM4(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth))
+			
+			if (!ELEM4(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth))
 				uiItemO(row, "Copy", 0, "OBJECT_OT_modifier_copy");
 		}
-
+		
+		/* result is the layout block inside the box, that we return so that modifier settings can be drawn */
 		result= uiLayoutColumn(box, 0);
 		block= uiLayoutAbsoluteBlock(box);
 	}
-
+	
+	/* error messages */
 	if(md->error) {
-		row = uiLayoutRow(uiLayoutBox(column), 0);
-
-		/* XXX uiBlockSetCol(block, color); */
+		box = uiLayoutBox(column);
+		row = uiLayoutRow(box, 0);
 		uiItemL(row, md->error, ICON_ERROR);
-		/* XXX uiBlockSetCol(block, TH_AUTO); */
 	}
-
+	
 	return result;
 }
 
@@ -919,18 +921,11 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 
 static void test_obpoin_but(bContext *C, char *name, ID **idpp)
 {
-	ID *id;
+	ID *id= BLI_findstring(&CTX_data_main(C)->object, name, offsetof(ID, name) + 2);
+	*idpp= id; /* can be NULL */
 	
-	id= CTX_data_main(C)->object.first;
-	while(id) {
-		if( strcmp(name, id->name+2)==0 ) {
-			*idpp= id;
-			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
-			return;
-		}
-		id= id->next;
-	}
-	*idpp= NULL;
+	if(id)
+		id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
 }
 
 /* draw panel showing settings for a constraint */
@@ -1208,114 +1203,6 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 	return draw_constraint(layout, ob, con);
 }
 
-/************************* Group Template ***************************/
-
-#if 0
-static void do_add_groupmenu(void *arg, int event)
-{
-	Object *ob= OBACT;
-	
-	if(ob) {
-		
-		if(event== -1) {
-			Group *group= add_group( "Group" );
-			add_to_group(group, ob);
-		}
-		else
-			add_to_group(BLI_findlink(&G.main->group, event), ob);
-			
-		ob->flag |= OB_FROMGROUP;
-		BASACT->flag |= OB_FROMGROUP;
-		allqueue(REDRAWBUTSOBJECT, 0);
-		allqueue(REDRAWVIEW3D, 0);
-	}		
-}
-
-static uiBlock *add_groupmenu(void *arg_unused)
-{
-	uiBlock *block;
-	Group *group;
-	short xco=0, yco= 0, index=0;
-	char str[32];
-	
-	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
-	uiBlockSetButmFunc(block, do_add_groupmenu, NULL);
-
-	uiDefBut(block, BUTM, B_NOP, "ADD NEW",		0, 20, 160, 19, NULL, 0.0, 0.0, 1, -1, "");
-	for(group= G.main->group.first; group; group= group->id.next, index++) {
-		
-		/*if(group->id.lib) strcpy(str, "L  ");*/ /* we cant allow adding objects inside linked groups, it wont be saved anyway */
-		if(group->id.lib==0) {
-			strcpy(str, "   ");
-			strcat(str, group->id.name+2);
-			uiDefBut(block, BUTM, B_NOP, str,	xco*160, -20*yco, 160, 19, NULL, 0.0, 0.0, 1, index, "");
-			
-			yco++;
-			if(yco>24) {
-				yco= 0;
-				xco++;
-			}
-		}
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiBlockSetDirection(block, UI_DOWN);	
-	
-	return block;
-}
-
-static void group_ob_rem(void *gr_v, void *ob_v)
-{
-	Object *ob= OBACT;
-	
-	if(rem_from_group(gr_v, ob) && find_group(ob, NULL)==NULL) {
-		ob->flag &= ~OB_FROMGROUP;
-		BASACT->flag &= ~OB_FROMGROUP;
-	}
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWVIEW3D, 0);
-
-}
-
-static void group_local(void *gr_v, void *unused)
-{
-	Group *group= gr_v;
-	
-	group->id.lib= NULL;
-	
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	
-}
-
-uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
-{
-	uiSetButLock(1, NULL);
-	uiDefBlockBut(block, add_groupmenu, NULL, "Add to Group", 10,150,150,20, "Add Object to a new Group");
-
-	/* all groups */
-	if(group->id.lib) {
-		uiLayoutRow()
-		uiBlockBeginAlign(block);
-		uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE); /* We cant actually use this button */
-		uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 100, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
-		uiClearButLock();
-		
-		but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 110, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
-		uiButSetFunc(but, group_local, group, NULL);
-		uiBlockEndAlign(block);
-	} else {
-		but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 120, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
-		uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
-	}
-	
-	xco = 290;
-	if(group->id.lib==0) { /* cant remove objects from linked groups */
-		but = uiDefIconBut(block, BUT, B_NOP, ICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
-		uiButSetFunc(but, group_ob_rem, group, ob);
-	}
-}
-#endif
 
 /************************* Preview Template ***************************/
 
@@ -2136,7 +2023,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		MEM_freeN(namebuf);
 }
 
-void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int listtype)
+void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int maxrows, int listtype)
 {
 	//Scene *scene= CTX_data_scene(C);
 	PropertyRNA *prop= NULL, *activeprop;
@@ -2259,6 +2146,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 		/* default rows */
 		if(rows == 0)
 			rows= 5;
+		if (maxrows == 0)
+			maxrows = 5;
 		if(pa->list_grip_size != 0)
 			rows= pa->list_grip_size;
 
@@ -2272,7 +2161,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 
 		if(prop)
 			len= RNA_property_collection_length(ptr, prop);
-		items= CLAMPIS(len, rows, MAX2(rows, 5));
+		items= CLAMPIS(len, rows, MAX2(rows, maxrows));
 
 		/* if list length changes and active is out of view, scroll to it */
 		if(pa->list_last_len != len)

@@ -45,9 +45,10 @@ typedef struct QuicktimeCodecTypeDesc {
 struct RenderData;
 struct Scene;
 struct wmOperatorType;
+struct ReportList;
 
-void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty);	//for movie handle (BKE writeavi.c now)
-void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
+int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);	//for movie handle (BKE writeavi.c now)
+int append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, struct ReportList *reports);
 void end_qt(void);
 
 /*RNA helper functions */

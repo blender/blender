@@ -85,7 +85,6 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	StereoMode		m_stereomode;
 	StereoEye		m_curreye;
 	float			m_eyeseparation;
-	bool			m_seteyesep;
 	float			m_focallength;
 	bool			m_setfocallength;
 	int				m_noOfScanlines;

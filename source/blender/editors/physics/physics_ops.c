@@ -64,8 +64,6 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_brush_edit);
 	WM_operatortype_append(PARTICLE_OT_brush_radial_control);
 
-	WM_operatortype_append(PARTICLE_OT_specials_menu);
-
 	WM_operatortype_append(PARTICLE_OT_particle_edit_toggle);
 	WM_operatortype_append(PARTICLE_OT_edited_clear);
 
@@ -113,7 +111,7 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
-	WM_keymap_add_item(keymap, "PARTICLE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_particle_specials", WKEY, KM_PRESS, 0, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, 1);
 }

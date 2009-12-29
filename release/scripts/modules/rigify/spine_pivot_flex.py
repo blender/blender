@@ -90,6 +90,7 @@ def metarig_template():
     pbone = obj.pose.bones['rib_cage']
     pbone['type'] = 'spine_pivot_flex'
 
+
 def metarig_definition(obj, orig_bone_name):
     '''
     The bone given is the second in a chain.

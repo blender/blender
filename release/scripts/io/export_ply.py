@@ -180,7 +180,7 @@ def write(filename, scene, ob, \
                 normal_key = rvec3d(normal)
 
             if faceUV:
-                uvcoord = uv[j][0], 1.0-uv[j][1]
+                uvcoord = uv[j][0], 1.0 - uv[j][1]
                 uvcoord_key = rvec2d(uvcoord)
             elif vertexUV:
                 uvcoord = v.uvco[0], 1.0 - v.uvco[1]
@@ -205,8 +205,7 @@ def write(filename, scene, ob, \
 
     file.write('ply\n')
     file.write('format ascii 1.0\n')
-    version = "2.5" # Blender.Get('version')
-    file.write('comment Created by Blender3D %s - www.blender.org, source file: %s\n' % (version, bpy.data.filename.split('/')[-1].split('\\')[-1]))
+    file.write('comment Created by Blender3D %s - www.blender.org, source file: %s\n' % (bpy.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1]))
 
     file.write('element vertex %d\n' % len(ply_verts))
 
@@ -246,7 +245,7 @@ def write(filename, scene, ob, \
         file.write('\n')
 
     for pf in ply_faces:
-        if len(pf)==3:
+        if len(pf) == 3:
             file.write('3 %d %d %d\n' % tuple(pf))
         else:
             file.write('4 %d %d %d %d\n' % tuple(pf))
@@ -297,12 +296,12 @@ class ExportPLY(bpy.types.Operator):
             EXPORT_COLORS=self.properties.use_colors,
         )
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
     def draw(self, context):
         layout = self.layout
@@ -316,16 +315,15 @@ class ExportPLY(bpy.types.Operator):
         row.prop(props, "use_colors")
 
 
-bpy.ops.add(ExportPLY)
-
-import dynamic_menu
+bpy.types.register(ExportPLY)
 
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".ply")
     self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)...").path = default_path
 
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+bpy.types.INFO_MT_file_export.append(menu_func)
 
 if __name__ == "__main__":
     bpy.ops.export.ply(path="/tmp/test.ply")
+

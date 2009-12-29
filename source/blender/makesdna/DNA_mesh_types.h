@@ -47,15 +47,17 @@ struct OcInfo;
 struct Multires;
 struct PartialVisibility;
 struct EditMesh;
+struct AnimData;
 
 typedef struct Mesh {
 	ID id;
+	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
 
 	struct BoundBox *bb;
 
 	ListBase effect;
 	
-	struct Ipo *ipo;
+	struct Ipo *ipo;		// XXX depreceated... old animation system
 	struct Key *key;
 	struct Material **mat;
 
@@ -133,6 +135,7 @@ typedef struct TFace {
 #define ME_SMESH		64
 #define ME_SUBSURF		128
 #define ME_OPT_EDGES	256
+#define ME_DS_EXPAND	512
 
 /* me->drawflag, int */ 
 #define ME_DRAWEDGES	(1 << 0)

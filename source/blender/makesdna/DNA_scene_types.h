@@ -449,6 +449,7 @@ typedef struct GameData {
 	/* stereo/dome mode */
 	struct GameDome dome;
 	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
+	float eyeseparation, pad1;
 } GameData;
 
 #define STEREO_NOSTEREO		1
@@ -1103,8 +1104,8 @@ typedef enum SculptFlags {
 #define IMAGEPAINT_PROJECT_BACKFACE		32
 #define IMAGEPAINT_PROJECT_FLAT			64
 #define IMAGEPAINT_PROJECT_LAYER_CLONE	128
-#define IMAGEPAINT_PROJECT_LAYER_MASK	256
-#define IMAGEPAINT_PROJECT_LAYER_MASK_INV	512
+#define IMAGEPAINT_PROJECT_LAYER_STENCIL	256
+#define IMAGEPAINT_PROJECT_LAYER_STENCIL_INV	512
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1

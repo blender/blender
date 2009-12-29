@@ -47,6 +47,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
+#include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -2396,7 +2397,11 @@ void object_handle_update(Scene *scene, Object *ob)
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
 				EditMesh *em = BKE_mesh_get_editmesh(ob->data);
-
+				
+				/* evaluate drivers */
+				// XXX: should we push this to derivedmesh instead?
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
+				
 					// here was vieweditdatamask? XXX
 				if(ob->mode & OB_MODE_EDIT) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
@@ -2625,3 +2630,100 @@ void object_delete_ptcache(Object *ob, int index)
 	BLI_freelinkN(&ob->pc_ids, link);
 }
 #endif
+
+/* shape key utility function */
+
+/************************* Mesh ************************/
+static KeyBlock *insert_meshkey(Scene *scene, Object *ob, char *name, int from_mix)
+{
+	Mesh *me= ob->data;
+	Key *key= me->key;
+	KeyBlock *kb;
+	int newkey= 0;
+
+	if(key == NULL) {
+		key= me->key= add_key((ID *)me);
+		key->type= KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key, name);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from mesh */
+		mesh_to_key(me, kb);
+	}
+	else {
+		/* copy from current values */
+		kb->data= do_ob_key(scene, ob);
+		kb->totelem= me->totvert;
+	}
+
+	return kb;
+}
+/************************* Lattice ************************/
+static KeyBlock *insert_lattkey(Scene *scene, Object *ob, char *name, int from_mix)
+{
+	Lattice *lt= ob->data;
+	Key *key= lt->key;
+	KeyBlock *kb;
+	int newkey= 0;
+
+	if(key==NULL) {
+		key= lt->key= add_key( (ID *)lt);
+		key->type= KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key, name);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from lattice */
+		latt_to_key(lt, kb);
+	}
+	else {
+		/* copy from current values */
+		kb->totelem= lt->pntsu*lt->pntsv*lt->pntsw;
+		kb->data= do_ob_key(scene, ob);
+	}
+
+	return kb;
+}
+/************************* Curve ************************/
+static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_mix)
+{
+	Curve *cu= ob->data;
+	Key *key= cu->key;
+	KeyBlock *kb;
+	ListBase *lb= (cu->editnurb)? cu->editnurb: &cu->nurb;
+	int newkey= 0;
+
+	if(key==NULL) {
+		key= cu->key= add_key( (ID *)cu);
+		key->type = KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key, name);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from curve */
+		curve_to_key(cu, kb, lb);
+	}
+	else {
+		/* copy from current values */
+		kb->totelem= count_curveverts(lb);
+		kb->data= do_ob_key(scene, ob);
+	}
+
+	return kb;
+}
+
+KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, char *name, int from_mix)
+{
+	if(ob->type==OB_MESH)					 return insert_meshkey(scene, ob, name, from_mix);
+	else if ELEM(ob->type, OB_CURVE, OB_SURF)return insert_curvekey(scene, ob, name, from_mix);
+	else if(ob->type==OB_LATTICE)			 return insert_lattkey(scene, ob, name, from_mix);
+	else									 return NULL;
+}
+

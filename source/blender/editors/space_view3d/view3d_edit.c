@@ -2133,7 +2133,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
     
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
     
 	/* rna later */
 

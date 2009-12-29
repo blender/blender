@@ -138,7 +138,7 @@ class Reload(bpy.types.Operator):
 
     def execute(self, context):
         DATA_PT_template.templates[:] = metarig_templates()
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 def rigify_report_exception(operator, exception):
@@ -180,7 +180,7 @@ class Generate(bpy.types.Operator):
         except rigify.RigifyError as rig_exception:
             rigify_report_exception(self, rig_exception)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class Validate(bpy.types.Operator):
@@ -196,7 +196,7 @@ class Validate(bpy.types.Operator):
             rigify.validate_rig(context, context.object)
         except rigify.RigifyError as rig_exception:
             rigify_report_exception(self, rig_exception)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class Sample(bpy.types.Operator):
@@ -219,7 +219,7 @@ class Sample(bpy.types.Operator):
                 if obj_gen:
                     obj_gen.location.x = i * 1.0
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class Graph(bpy.types.Operator):
@@ -244,7 +244,7 @@ class Graph(bpy.types.Operator):
             os.system("dot -Tpng %s > %s; gnome-open %s &" % (path_dot, path_png, path_png))
             #os.system("python /b/xdot.py '%s' &" % path_dot)
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class AsScript(bpy.types.Operator):
@@ -267,7 +267,7 @@ class AsScript(bpy.types.Operator):
         file.write(code)
         file.close()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         import os
@@ -275,7 +275,7 @@ class AsScript(bpy.types.Operator):
         self.properties.path = os.path.splitext(bpy.data.filename)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
 # operators that use the GUI
@@ -294,7 +294,7 @@ class ActiveAssign(bpy.types.Operator):
         pose_templates = scene.pose_templates
         template_name = DATA_PT_template.templates[pose_templates.active_template_index]
         context.active_pose_bone["type"] = template_name
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class ActiveClear(bpy.types.Operator):
@@ -310,14 +310,10 @@ class ActiveClear(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
         del context.active_pose_bone["type"]
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
-import space_info
-import dynamic_menu
-
-
-class INFO_MT_armature_metarig_add(dynamic_menu.DynMenu):
+class INFO_MT_armature_metarig_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_metarig_add"
     bl_label = "Meta-Rig"
 
@@ -336,18 +332,19 @@ bpy.types.register(DATA_PT_template)
 bpy.types.register(PoseTemplateSettings)
 bpy.types.register(PoseTemplate)
 
-bpy.ops.add(Reload)
-bpy.ops.add(Generate)
-bpy.ops.add(Validate)
-bpy.ops.add(Sample)
-bpy.ops.add(Graph)
-bpy.ops.add(AsScript)
+bpy.types.register(Reload)
+bpy.types.register(Generate)
+bpy.types.register(Validate)
+bpy.types.register(Sample)
+bpy.types.register(Graph)
+bpy.types.register(AsScript)
 
-bpy.ops.add(ActiveAssign)
-bpy.ops.add(ActiveClear)
+bpy.types.register(ActiveAssign)
+bpy.types.register(ActiveClear)
 
 
 bpy.types.register(INFO_MT_armature_metarig_add)
 
+import space_info
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_armature_add, menu_func)
+space_info.INFO_MT_armature_add.append(menu_func)

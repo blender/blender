@@ -55,7 +55,7 @@ struct uiMenuItem;
    ED_spacetypes_init() in editors/area/spacetypes.c   */
 /* an editor in Blender is a combined ScrArea + SpaceType + SpaceData */
 
-#define BKE_ST_MAXNAME	32
+#define BKE_ST_MAXNAME	64
 
 typedef struct SpaceType {
 	struct SpaceType *next, *prev;
@@ -219,8 +219,6 @@ struct ARegionType *BKE_regiontype_from_id(struct SpaceType *st, int regionid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
 void BKE_spacetypes_free(void);	/* only for quitting blender */
-
-// MenuType *BKE_spacemenu_find(const char *idname, int spacetype);
 
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
