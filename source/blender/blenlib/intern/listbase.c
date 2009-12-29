@@ -353,7 +353,7 @@ void *BLI_findstring(ListBase *listbase, const char *id, int offset)
 	link= listbase->first;
 	while (link) {
 		id_iter= ((const char *)link) + offset;
-		printf("ASS '%s'\n", id_iter);
+
 		if(id[0] == id_iter[0] && strcmp(id, id_iter)==0)
 			return link;
 
