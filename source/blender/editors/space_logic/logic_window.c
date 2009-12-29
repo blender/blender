@@ -28,6 +28,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <float.h>
 
 #include "DNA_actuator_types.h"
