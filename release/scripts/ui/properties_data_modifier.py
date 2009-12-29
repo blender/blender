@@ -614,7 +614,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         
         if wide_ui:
             col = split.column()
-        col.label()
+            col.label()
         col.prop(md, "use_rim")
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
@@ -646,14 +646,15 @@ class DATA_PT_modifiers(DataButtonsPanel):
     def UV_PROJECT(self, layout, ob, md, wide_ui):
         if ob.type == 'MESH':
             split = layout.split()
+
             col = split.column()
-            col.label(text="UV Layer:")
-            col.prop_object(md, "uv_layer", ob.data, "uv_textures", text="")
+            col.label(text="Image:")
+            col.prop(md, "image", text="")
 
             if wide_ui:
                 col = split.column()
-            col.label(text="Image:")
-            col.prop(md, "image", text="")
+            col.label(text="UV Layer:")
+            col.prop_object(md, "uv_layer", ob.data, "uv_textures", text="")
 
             split = layout.split()
             col = split.column()
