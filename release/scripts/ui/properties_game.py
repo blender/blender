@@ -274,8 +274,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
         # stereo:
         if stereo_mode == 'STEREO':
             layout.prop(gs, "stereo_mode")
-            # layout.label(text="To do: Focal Length") # to be done after 2.5alpha0 is out
-            # layout.label(text="To do: Eye Separation") # to be done after 2.5alpha0 is out
+            layout.prop(gs, "eye_separation")
 
         # dome:
         elif stereo_mode == 'DOME':

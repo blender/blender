@@ -10304,6 +10304,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 
+	if (1) {
+		Scene *sce;
+		
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			sce->gm.eyeseparation = 0.10;
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

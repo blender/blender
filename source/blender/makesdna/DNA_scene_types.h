@@ -444,6 +444,7 @@ typedef struct GameData {
 	/* stereo/dome mode */
 	struct GameDome dome;
 	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
+	float eyeseparation, pad1;
 } GameData;
 
 #define STEREO_NOSTEREO		1
