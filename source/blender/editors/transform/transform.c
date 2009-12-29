@@ -533,6 +533,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 	if (event->type == MOUSEMOVE)
 	{
+		if (t->modifiers & MOD_CONSTRAINT_SELECT)
+			t->con.mode |= CON_SELECT;
+
 		t->mval[0] = event->x - t->ar->winrct.xmin;
 		t->mval[1] = event->y - t->ar->winrct.ymin;
 
@@ -742,11 +745,11 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					}
 				}
 				else {
+					t->modifiers |= MOD_CONSTRAINT_SELECT;
 					if (t->con.mode & CON_APPLY) {
 						stopConstraint(t);
 					}
 					else {
-						t->modifiers |= MOD_CONSTRAINT_SELECT;
 						if (event->shift) {
 							initSelectConstraint(t, t->spacemtx);
 						}
@@ -1606,9 +1609,6 @@ void transformApply(bContext *C, TransInfo *t)
 {
 	if (t->redraw)
 	{
-		if (t->modifiers & MOD_CONSTRAINT_SELECT)
-			t->con.mode |= CON_SELECT;
-
 		selectConstraint(t);
 		if (t->transform) {
 			t->transform(t, t->mval);  // calls recalcData()
