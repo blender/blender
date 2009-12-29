@@ -89,7 +89,9 @@ typedef struct RegionView3D {
 	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float pixsize;
 	float ofs[3];
-	short camzoom, viewbut, pad[2];
+	short camzoom, viewbut;
+	short twdrawflag;
+	short pad;
 	
 	short rflag, viewlock;
 	short persp;
@@ -116,6 +118,9 @@ typedef struct RegionView3D {
 	short lpersp, lview;
 	float gridview;
 	
+	float twangle[3];
+
+	float padf;
 
 } RegionView3D;
 
@@ -165,7 +170,8 @@ typedef struct View3D {
 	short keyflags;		/* flags for display of keyframes */
 	
 	/* transform widget info */
-	short twtype, twmode, twflag, twdrawflag;
+	short twtype, twmode, twflag;
+	short twdrawflag; /* XXX deprecated */
 	
 	/* customdata flags from modes */
 	unsigned int customdata_mask;
