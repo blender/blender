@@ -4,12 +4,12 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -30,218 +30,218 @@ MAX_TIMEOUT = 10
 INCREMENT_TIMEOUT = 1
 
 if platform.system() == 'Windows' and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
-	import ctypes
-	def SetErrorMode():
-		val = ctypes.windll.kernel32.SetErrorMode(0x0002)
-		ctypes.windll.kernel32.SetErrorMode(val | 0x0002)
-		return val
-	
-	def RestoreErrorMode(val):
-		ctypes.windll.kernel32.SetErrorMode(val)
+    import ctypes
+    def SetErrorMode():
+        val = ctypes.windll.kernel32.SetErrorMode(0x0002)
+        ctypes.windll.kernel32.SetErrorMode(val | 0x0002)
+        return val
+
+    def RestoreErrorMode(val):
+        ctypes.windll.kernel32.SetErrorMode(val)
 else:
-	def SetErrorMode():
-		return 0
-		
-	def RestoreErrorMode(val):
-		pass
+    def SetErrorMode():
+        return 0
+
+    def RestoreErrorMode(val):
+        pass
 
 def slave_Info():
-	sysname, nodename, release, version, machine, processor = platform.uname()
-	slave = netrender.model.RenderSlave()
-	slave.name = nodename
-	slave.stats = sysname + " " + release + " " + machine + " " + processor
-	return slave
+    sysname, nodename, release, version, machine, processor = platform.uname()
+    slave = netrender.model.RenderSlave()
+    slave.name = nodename
+    slave.stats = sysname + " " + release + " " + machine + " " + processor
+    return slave
 
 def testCancel(conn, job_id, frame_number):
-		conn.request("HEAD", "/status", headers={"job-id":job_id, "job-frame": str(frame_number)})
+        conn.request("HEAD", "/status", headers={"job-id":job_id, "job-frame": str(frame_number)})
 
-		# cancelled if job isn't found anymore
-		if conn.getresponse().status == http.client.NO_CONTENT:
-			return True
-		else:
-			return False
+        # cancelled if job isn't found anymore
+        if conn.getresponse().status == http.client.NO_CONTENT:
+            return True
+        else:
+            return False
 
 def testFile(conn, job_id, slave_id, file_index, JOB_PREFIX, file_path, main_path = None):
-	job_full_path = prefixPath(JOB_PREFIX, file_path, main_path)
-	
-	if not os.path.exists(job_full_path):
-		temp_path = JOB_PREFIX + "slave.temp.blend"
-		conn.request("GET", fileURL(job_id, file_index), headers={"slave-id":slave_id})
-		response = conn.getresponse()
-		
-		if response.status != http.client.OK:
-			return None # file for job not returned by server, need to return an error code to server
-		
-		f = open(temp_path, "wb")
-		buf = response.read(1024)
-		
-		while buf:
-			f.write(buf)
-			buf = response.read(1024)
-		
-		f.close()
-		
-		os.renames(temp_path, job_full_path)
-		
-	return job_full_path
+    job_full_path = prefixPath(JOB_PREFIX, file_path, main_path)
+
+    if not os.path.exists(job_full_path):
+        temp_path = JOB_PREFIX + "slave.temp.blend"
+        conn.request("GET", fileURL(job_id, file_index), headers={"slave-id":slave_id})
+        response = conn.getresponse()
+
+        if response.status != http.client.OK:
+            return None # file for job not returned by server, need to return an error code to server
+
+        f = open(temp_path, "wb")
+        buf = response.read(1024)
+
+        while buf:
+            f.write(buf)
+            buf = response.read(1024)
+
+        f.close()
+
+        os.renames(temp_path, job_full_path)
+
+    return job_full_path
 
 def render_slave(engine, netsettings):
-	timeout = 1
-	
-	engine.update_stats("", "Network render node initiation")
-	
-	conn = clientConnection(netsettings.server_address, netsettings.server_port)
-	
-	if conn:
-		conn.request("POST", "/slave", repr(slave_Info().serialize()))
-		response = conn.getresponse()
-		
-		slave_id = response.getheader("slave-id")
-		
-		NODE_PREFIX = netsettings.path + "slave_" + slave_id + os.sep
-		if not os.path.exists(NODE_PREFIX):
-			os.mkdir(NODE_PREFIX)
-	
-		while not engine.test_break():
-			
-			conn.request("GET", "/job", headers={"slave-id":slave_id})
-			response = conn.getresponse()
-			
-			if response.status == http.client.OK:
-				timeout = 1 # reset timeout on new job
-				
-				job = netrender.model.RenderJob.materialize(eval(str(response.read(), encoding='utf8')))
-				
-				JOB_PREFIX = NODE_PREFIX + "job_" + job.id + os.sep
-				if not os.path.exists(JOB_PREFIX):
-					os.mkdir(JOB_PREFIX)
-				
-				
-				if job.type == netrender.model.JOB_BLENDER:
-					job_path = job.files[0].filepath # path of main file
-					main_path, main_file = os.path.split(job_path)
-					
-					job_full_path = testFile(conn, job.id, slave_id, 0, JOB_PREFIX, job_path)
-					print("Fullpath", job_full_path)
-					print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
-					engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
-					
-					for rfile in job.files[1:]:
-						print("\t", rfile.filepath)
-						testFile(conn, job.id, slave_id, rfile.index, JOB_PREFIX, rfile.filepath, main_path)
+    timeout = 1
 
-				# announce log to master
-				logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])
-				conn.request("POST", "/log", bytes(repr(logfile.serialize()), encoding='utf8'))
-				response = conn.getresponse()
-				
-				
-				first_frame = job.frames[0].number
-					
-				# start render
-				start_t = time.time()
-					
-				if job.type == netrender.model.JOB_BLENDER:
-					frame_args = []
-					
-					for frame in job.frames:
-						print("frame", frame.number)
-						frame_args += ["-f", str(frame.number)]
-					
-					val = SetErrorMode()
-					process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-					RestoreErrorMode(val)
-				elif job.type == netrender.model.JOB_PROCESS:
-					command = job.frames[0].command
-					val = SetErrorMode()
-					process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-					RestoreErrorMode(val)
-				
-				headers = {"slave-id":slave_id}
-				
-				cancelled = False
-				stdout = bytes()
-				run_t = time.time()
-				while process.poll() == None and not cancelled:
-					stdout += process.stdout.read(32)
-					current_t = time.time()
-					cancelled = engine.test_break()
-					if current_t - run_t > CANCEL_POLL_SPEED:
-						
-						# update logs if needed
-						if stdout:
-							# (only need to update on one frame, they are linked
-							conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
-							response = conn.getresponse()
-							
-							stdout = bytes()
-						
-						run_t = current_t
-						if testCancel(conn, job.id, first_frame):
-							cancelled = True
-				
-				# read leftovers if needed
-				stdout += process.stdout.read()
-				
-				if cancelled:
-					# kill process if needed
-					if process.poll() == None:
-						process.terminate()
-					continue # to next frame
-				
-				total_t = time.time() - start_t
-				
-				avg_t = total_t / len(job.frames)
-				
-				status = process.returncode
-				
-				print("status", status)
-				
-				# flush the rest of the logs
-				if stdout:
-					# (only need to update on one frame, they are linked
-					conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
-					if conn.getresponse().status == http.client.NO_CONTENT:
-						continue
-				
-				headers = {"job-id":job.id, "slave-id":slave_id, "job-time":str(avg_t)}
-				
-				
-				if status == 0: # non zero status is error
-					headers["job-result"] = str(DONE)
-					for frame in job.frames:
-						headers["job-frame"] = str(frame.number)
-						
-						if job.type == netrender.model.JOB_BLENDER:
-							# send image back to server
-							f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
-							conn.request("PUT", "/render", f, headers=headers)
-							f.close()
-							if conn.getresponse().status == http.client.NO_CONTENT:
-								continue
-						elif job.type == netrender.model.JOB_PROCESS:
-							conn.request("PUT", "/render", headers=headers)
-							if conn.getresponse().status == http.client.NO_CONTENT:
-								continue
-				else:
-					headers["job-result"] = str(ERROR)
-					for frame in job.frames:
-						headers["job-frame"] = str(frame.number)
-						# send error result back to server
-						conn.request("PUT", "/render", headers=headers)
-						if conn.getresponse().status == http.client.NO_CONTENT:
-							continue
-			else:
-				if timeout < MAX_TIMEOUT:
-					timeout += INCREMENT_TIMEOUT
-				
-				for i in range(timeout):
-					time.sleep(1)
-					if engine.test_break():
-						conn.close()
-						return
-			
-		conn.close()
+    engine.update_stats("", "Network render node initiation")
+
+    conn = clientConnection(netsettings.server_address, netsettings.server_port)
+
+    if conn:
+        conn.request("POST", "/slave", repr(slave_Info().serialize()))
+        response = conn.getresponse()
+
+        slave_id = response.getheader("slave-id")
+
+        NODE_PREFIX = netsettings.path + "slave_" + slave_id + os.sep
+        if not os.path.exists(NODE_PREFIX):
+            os.mkdir(NODE_PREFIX)
+
+        while not engine.test_break():
+
+            conn.request("GET", "/job", headers={"slave-id":slave_id})
+            response = conn.getresponse()
+
+            if response.status == http.client.OK:
+                timeout = 1 # reset timeout on new job
+
+                job = netrender.model.RenderJob.materialize(eval(str(response.read(), encoding='utf8')))
+
+                JOB_PREFIX = NODE_PREFIX + "job_" + job.id + os.sep
+                if not os.path.exists(JOB_PREFIX):
+                    os.mkdir(JOB_PREFIX)
+
+
+                if job.type == netrender.model.JOB_BLENDER:
+                    job_path = job.files[0].filepath # path of main file
+                    main_path, main_file = os.path.split(job_path)
+
+                    job_full_path = testFile(conn, job.id, slave_id, 0, JOB_PREFIX, job_path)
+                    print("Fullpath", job_full_path)
+                    print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
+                    engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
+
+                    for rfile in job.files[1:]:
+                        print("\t", rfile.filepath)
+                        testFile(conn, job.id, slave_id, rfile.index, JOB_PREFIX, rfile.filepath, main_path)
+
+                # announce log to master
+                logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])
+                conn.request("POST", "/log", bytes(repr(logfile.serialize()), encoding='utf8'))
+                response = conn.getresponse()
+
+
+                first_frame = job.frames[0].number
+
+                # start render
+                start_t = time.time()
+
+                if job.type == netrender.model.JOB_BLENDER:
+                    frame_args = []
+
+                    for frame in job.frames:
+                        print("frame", frame.number)
+                        frame_args += ["-f", str(frame.number)]
+
+                    val = SetErrorMode()
+                    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    RestoreErrorMode(val)
+                elif job.type == netrender.model.JOB_PROCESS:
+                    command = job.frames[0].command
+                    val = SetErrorMode()
+                    process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    RestoreErrorMode(val)
+
+                headers = {"slave-id":slave_id}
+
+                cancelled = False
+                stdout = bytes()
+                run_t = time.time()
+                while process.poll() == None and not cancelled:
+                    stdout += process.stdout.read(32)
+                    current_t = time.time()
+                    cancelled = engine.test_break()
+                    if current_t - run_t > CANCEL_POLL_SPEED:
+
+                        # update logs if needed
+                        if stdout:
+                            # (only need to update on one frame, they are linked
+                            conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
+                            response = conn.getresponse()
+
+                            stdout = bytes()
+
+                        run_t = current_t
+                        if testCancel(conn, job.id, first_frame):
+                            cancelled = True
+
+                # read leftovers if needed
+                stdout += process.stdout.read()
+
+                if cancelled:
+                    # kill process if needed
+                    if process.poll() == None:
+                        process.terminate()
+                    continue # to next frame
+
+                total_t = time.time() - start_t
+
+                avg_t = total_t / len(job.frames)
+
+                status = process.returncode
+
+                print("status", status)
+
+                # flush the rest of the logs
+                if stdout:
+                    # (only need to update on one frame, they are linked
+                    conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
+                    if conn.getresponse().status == http.client.NO_CONTENT:
+                        continue
+
+                headers = {"job-id":job.id, "slave-id":slave_id, "job-time":str(avg_t)}
+
+
+                if status == 0: # non zero status is error
+                    headers["job-result"] = str(DONE)
+                    for frame in job.frames:
+                        headers["job-frame"] = str(frame.number)
+
+                        if job.type == netrender.model.JOB_BLENDER:
+                            # send image back to server
+                            f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
+                            conn.request("PUT", "/render", f, headers=headers)
+                            f.close()
+                            if conn.getresponse().status == http.client.NO_CONTENT:
+                                continue
+                        elif job.type == netrender.model.JOB_PROCESS:
+                            conn.request("PUT", "/render", headers=headers)
+                            if conn.getresponse().status == http.client.NO_CONTENT:
+                                continue
+                else:
+                    headers["job-result"] = str(ERROR)
+                    for frame in job.frames:
+                        headers["job-frame"] = str(frame.number)
+                        # send error result back to server
+                        conn.request("PUT", "/render", headers=headers)
+                        if conn.getresponse().status == http.client.NO_CONTENT:
+                            continue
+            else:
+                if timeout < MAX_TIMEOUT:
+                    timeout += INCREMENT_TIMEOUT
+
+                for i in range(timeout):
+                    time.sleep(1)
+                    if engine.test_break():
+                        conn.close()
+                        return
+
+        conn.close()
 
 if __name__ == "__main__":
-	pass
+    pass

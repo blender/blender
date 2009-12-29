@@ -498,14 +498,14 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         if not context.particle_edit_object:
             col = layout.split().column()
             row = col.row()
-            
+
             if context.sculpt_object and brush:
                 defaulttools = 8
             elif context.texture_paint_object and brush:
                 defaulttools = 4
             else:
                 defaulttools = 2
-            
+
             row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaulttools)
 
             col.template_ID(settings, "brush", new="brush.add")
@@ -539,7 +539,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         elif context.sculpt_object and brush:
             col = layout.column()
             col.separator()
-            
+
             row = col.row(align=True)
             row.prop(brush, "size", slider=True)
             row.prop(brush, "use_size_pressure", toggle=True, text="")
@@ -642,7 +642,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel):
         sculpt = context.sculpt_object
 
         col = layout.column(align=True)
-        
+
         if context.sculpt_object:
             col.prop(brush, "sculpt_tool", expand=True)
         elif context.texture_paint_object:
