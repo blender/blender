@@ -742,11 +742,11 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					}
 				}
 				else {
-					t->modifiers |= MOD_CONSTRAINT_SELECT;
 					if (t->con.mode & CON_APPLY) {
 						stopConstraint(t);
 					}
 					else {
+						t->modifiers |= MOD_CONSTRAINT_SELECT;
 						if (event->shift) {
 							initSelectConstraint(t, t->spacemtx);
 						}

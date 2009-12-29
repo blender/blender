@@ -518,6 +518,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 
 	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
+		unit_m3(t->spacemtx);
 		strcpy(t->spacename, "global");
 		break;
 
