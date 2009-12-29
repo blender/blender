@@ -680,6 +680,15 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int ED_operator_view3d_rotate(bContext *C)
+{
+	if (!ED_operator_view3d_active(C)) {
+		return 0;
+	} else {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
+		return rv3d->viewlock == 0;
+	}
+}
 
 void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
@@ -692,7 +701,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= viewrotate_invoke;
 	ot->modal= viewrotate_modal;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_view3d_rotate;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1874,7 +1883,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= vieworbit_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_view3d_rotate;
 
 	/* flags */
 	ot->flag= 0;
