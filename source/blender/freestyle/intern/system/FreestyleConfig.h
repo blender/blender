@@ -32,6 +32,7 @@
 # define CONFIG_H
 
 # include <string>
+# include <math.h>
 
 using namespace std;
 
