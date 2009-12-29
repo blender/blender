@@ -39,3 +39,4 @@ CPPFLAGS += -I../intern
 CPPFLAGS += -I../FX
 CPPFLAGS += -I..
 CPPFLAGS += -I.
+CPPFLAGS += -I$(BF_FFTW3)/include
