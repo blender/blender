@@ -203,5 +203,8 @@ void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
 void OBJECT_OT_group_add(struct wmOperatorType *ot);
 void OBJECT_OT_group_remove(struct wmOperatorType *ot);
 
+/* object_bake.c */
+void OBJECT_OT_bake_image(wmOperatorType *ot);
+
 #endif /* ED_OBJECT_INTERN_H */
 

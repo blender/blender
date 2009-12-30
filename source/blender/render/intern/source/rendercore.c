@@ -1988,6 +1988,8 @@ typedef struct BakeShade {
 	char *rect_mask; /* bake pixel mask */
 
 	float dxco[3], dyco[3];
+
+	short *do_update;
 } BakeShade;
 
 /* bake uses a char mask to know what has been baked */
@@ -2587,6 +2589,11 @@ static void *do_bake_thread(void *bs_v)
 		/* fast threadsafe break test */
 		if(R.test_break(R.tbh))
 			break;
+
+		/* access is not threadsafe but since its just true/false probably ok
+		 * only used for interactive baking */
+		if(bs->do_update)
+			*bs->do_update= TRUE;
 	}
 	bs->ready= 1;
 	
@@ -2596,7 +2603,7 @@ static void *do_bake_thread(void *bs_v)
 /* using object selection tags, the faces with UV maps get baked */
 /* render should have been setup */
 /* returns 0 if nothing was handled */
-int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
+int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_update)
 {
 	BakeShade handles[BLENDER_MAX_THREADS];
 	ListBase threads;
@@ -2645,6 +2652,8 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 		handles[a].zspan= MEM_callocN(sizeof(ZSpan), "zspan for bake");
 		
 		handles[a].usemask = usemask;
+
+		handles[a].do_update = do_update; /* use to tell the view to update */
 		
 		BLI_insert_thread(&threads, &handles[a]);
 	}
