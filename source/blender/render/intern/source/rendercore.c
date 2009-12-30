@@ -2254,9 +2254,7 @@ static int bake_check_intersect(Isect *is, int ob, RayFace *face)
 
 static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, float *dir, float sign, float *hitco, float *dist)
 {
-	//TODO
-	assert( 0 );
-#if 0
+	//TODO, validate against blender 2.4x, results may have changed.
 	float maxdist;
 	int hit;
 
@@ -2266,15 +2264,20 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	else
 		maxdist= FLT_MAX + R.r.bake_biasdist;
 	
-	//TODO normalized direction?
-	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);
-	isect->dir[0] = dir[0]*sign;
-	isect->dir[1] = dir[1]*sign;
-	isect->dir[2] = dir[2]*sign;
+	/* 'dir' is always normalized */
+	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);					
+
+	isect->vec[0] = dir[0]*maxdist*sign;
+	isect->vec[1] = dir[1]*maxdist*sign;
+	isect->vec[2] = dir[2]*maxdist*sign;
+
 	isect->labda = maxdist;
 
+	/* TODO, 2.4x had this...
+	hit = RE_ray_tree_intersect_check(R.raytree, isect, bake_check_intersect);
+	...the active object may NOT be ignored in some cases.
+	*/
 	hit = RE_rayobject_raycast(raytree, isect);
-	//TODO bake_check_intersect
 	if(hit) {
 		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
 		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
@@ -2284,8 +2287,6 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	}
 
 	return hit;
-#endif
-	return 0;
 }
 
 static void bake_set_vlr_dxyco(BakeShade *bs, float *uv1, float *uv2, float *uv3)
