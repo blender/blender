@@ -2332,7 +2332,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 		mul_v3_fl(force,1.0f/pa_mass);
 
 		/* add global acceleration (gravitation) */
-		if(sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY
+		if(psys_uses_gravity(sim)
 			/* normal gravity is too strong for hair so it's disabled by default */
 			&& (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR)) {
 			float gravity[3];
