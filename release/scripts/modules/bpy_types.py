@@ -97,6 +97,11 @@ class _GenericBone:
         return parent_list
 
     @property
+    def center(self):
+        """The midpoint between the head and the tail."""
+        return (self.head + self.tail) * 0.5
+
+    @property
     def length(self):
         """The distance from head to tail, when set the head is moved to fit the length."""
         return self.vector.length

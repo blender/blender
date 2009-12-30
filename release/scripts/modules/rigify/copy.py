@@ -42,7 +42,42 @@ def metarig_template():
 
 
 def metarig_definition(obj, orig_bone_name):
-    return [orig_bone_name]
+    return (orig_bone_name,)
+
+
+def deform(obj, definitions, base_names, options):
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # Create deform bone.
+    bone = copy_bone_simple(obj.data, definitions[0], "DEF-%s" % base_names[definitions[0]], parent=True)
+    
+    # Store name before leaving edit mode
+    bone_name = bone.name
+    
+    # Leave edit mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Get the pose bone
+    bone = obj.pose.bones[bone_name]
+    
+    # Constrain to the original bone
+    # XXX. Todo, is this needed if the bone is connected to its parent?
+    con = bone.constraints.new('COPY_LOCATION')
+    con.name = "copy_loc"
+    con.target = obj
+    con.subtarget = definitions[0]
+    
+    con = bone.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[0]
+    
+    con = bone.constraints.new('COPY_SCALE')
+    con.name = "copy_scale"
+    con.target = obj
+    con.subtarget = definitions[0]
+    
+    return (bone_name,)
 
 
 def main(obj, bone_definition, base_names, options):
@@ -79,9 +114,13 @@ def main(obj, bone_definition, base_names, options):
     cp.cpy_p.lock_rotation = tuple(mt.cpy_p.lock_rotation)
     cp.cpy_p.lock_rotation_w = mt.cpy_p.lock_rotation_w
     cp.cpy_p.lock_scale = tuple(mt.cpy_p.lock_scale)
+    
+    # Create deform bone
+    deform_bone = deform(obj, bone_definition, base_names, options)[0]
 
     # setup layers last
     layers = get_layer_dict(options)
     cp.cpy_b.layer = layers["main"]
 
-    return [mt.cpy]
+    return (mt.cpy,)
+
