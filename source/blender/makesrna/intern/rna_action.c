@@ -88,7 +88,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "display_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_SUMMARY);
-	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line.");
+	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line. (DopeSheet Editors only)");
 	RNA_def_property_ui_icon(prop, ICON_BORDERMOVE, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 

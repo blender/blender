@@ -455,11 +455,11 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	filter= ANIMFILTER_CURVESONLY; 
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	/* loop over ipo-curves that are likely to have been edited, and check them */
+	/* loop over F-Curves that are likely to have been edited, and check them */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= ale->key_data;
 		
-		/* make sure keyframes in F-curve are all in order, and handles are in valid positions */
+		/* make sure keyframes in F-Curve are all in order, and handles are in valid positions */
 		sort_time_fcurve(fcu);
 		testhandles_fcurve(fcu);
 	}
@@ -936,7 +936,6 @@ static short select_bezier_invert(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
-// NULL
 BeztEditFunc ANIM_editkeyframes_select(short selectmode)
 {
 	switch (selectmode) {

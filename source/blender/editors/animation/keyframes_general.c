@@ -67,21 +67,26 @@
  
 /* **************************************************** */
 
-/* Only delete the nominated keyframe from provided ipo-curve. 
+/* Only delete the nominated keyframe from provided F-Curve. 
  * Not recommended to be used many times successively. For that
- * there is delete_ipo_keys(). 
+ * there is delete_fcurve_keys(). 
  */
 void delete_fcurve_key(FCurve *fcu, int index, short do_recalc)
 {
-	/* firstly check that index is valid */
-	if (index < 0) 
-		index *= -1;
+	/* sanity check */
 	if (fcu == NULL) 
 		return;
-	if (index >= fcu->totvert)
+		
+	/* verify the index:
+	 *	1) cannot be greater than the number of available keyframes
+	 *	2) negative indices are for specifying a value from the end of the array
+	 */
+	if (abs(index) >= fcu->totvert)
 		return;
+	else if (index < 0)
+		index += fcu->totvert;
 	
-	/*	Delete this key */
+	/* Delete this keyframe */
 	memmove(&fcu->bezt[index], &fcu->bezt[index+1], sizeof(BezTriple)*(fcu->totvert-index-1));
 	fcu->totvert--;
 	
@@ -250,7 +255,7 @@ void clean_fcurve(FCurve *fcu, float thresh)
 
 /* ---------------- */
 
-/* temp struct used for smooth_ipo */
+/* temp struct used for smooth_fcurve */
 typedef struct tSmooth_Bezt {
 	float *h1, *h2, *h3;	/* bezt->vec[0,1,2][1] */
 } tSmooth_Bezt;
