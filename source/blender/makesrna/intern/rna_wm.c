@@ -692,6 +692,7 @@ static void operator_draw(bContext *C, wmOperator *op)
 }
 
 void operator_wrapper(wmOperatorType *ot, void *userdata);
+void macro_wrapper(wmOperatorType *ot, void *userdata);
 
 static char _operator_idname[OP_MAX_TYPENAME];
 static char _operator_name[OP_MAX_TYPENAME];
@@ -763,10 +764,82 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	return dummyot.ext.srna;
 }
 
+
+static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	wmOperatorType dummyot = {0};
+	wmOperator dummyop= {0};
+	PointerRNA dummyotr;
+	int have_function[4];
+
+	/* setup dummy operator & operator type to store static properties in */
+	dummyop.type= &dummyot;
+	dummyot.idname= _operator_idname; /* only assigne the pointer, string is NULL'd */
+	dummyot.name= _operator_name; /* only assigne the pointer, string is NULL'd */
+	dummyot.description= _operator_descr; /* only assigne the pointer, string is NULL'd */
+	RNA_pointer_create(NULL, &RNA_Macro, &dummyop, &dummyotr);
+
+	/* validate the python class */
+	if(validate(&dummyotr, data, have_function) != 0)
+		return NULL;
+
+	{	/* convert foo.bar to FOO_OT_bar
+		 * allocate the description and the idname in 1 go */
+		int idlen = strlen(_operator_idname) + 4;
+		int namelen = strlen(_operator_name) + 1;
+		int desclen = strlen(_operator_descr) + 1;
+		char *ch, *ch_arr;
+		ch_arr= ch= MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
+		WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
+		dummyot.idname= ch;
+		ch += idlen;
+		strcpy(ch, _operator_name);
+		dummyot.name = ch;
+		ch += namelen;
+		strcpy(ch, _operator_descr);
+		dummyot.description = ch;
+	}
+
+	if(strlen(identifier) >= sizeof(dummyop.idname)) {
+		BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyop.idname));
+		return NULL;
+	}
+
+	/* check if we have registered this operator type before, and remove it */
+	{
+		wmOperatorType *ot= WM_operatortype_exists(dummyot.idname);
+		if(ot && ot->ext.srna)
+			rna_Operator_unregister(C, ot->ext.srna);
+	}
+
+	/* create a new menu type */
+	dummyot.ext.srna= RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
+	dummyot.ext.data= data;
+	dummyot.ext.call= call;
+	dummyot.ext.free= free;
+
+	dummyot.pyop_poll=	(have_function[0])? operator_poll: NULL;
+	dummyot.ui=			(have_function[3])? operator_draw: NULL;
+
+	WM_operatortype_append_macro_ptr(macro_wrapper, (void *)&dummyot);
+
+	/* update while blender is running */
+	if(C)
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+
+	return dummyot.ext.srna;
+}
+
 static StructRNA* rna_Operator_refine(PointerRNA *opr)
 {
 	wmOperator *op= (wmOperator*)opr->data;
 	return (op->type && op->type->ext.srna)? op->type->ext.srna: &RNA_Operator;
+}
+
+static StructRNA* rna_MacroOperator_refine(PointerRNA *opr)
+{
+	wmOperator *op= (wmOperator*)opr->data;
+	return (op->type && op->type->ext.srna)? op->type->ext.srna: &RNA_Macro;
 }
 
 #else
@@ -832,6 +905,8 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Macro", NULL);
 	RNA_def_struct_ui_text(srna, "Macro Operator", "Storage of a macro operator being executed, or registered after execution.");
 	RNA_def_struct_sdna(srna, "wmOperator");
+	RNA_def_struct_refine_func(srna, "rna_MacroOperator_refine");
+	RNA_def_struct_register_funcs(srna, "rna_MacroOperator_register", "rna_Operator_unregister");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -844,6 +919,27 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
 	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
+
+	/* Registration */
+	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->idname");
+	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->name");
+	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "bl_register", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop= RNA_def_property(srna, "bl_undo", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_UNDO);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	RNA_api_macro(srna);
 }
 
 static void rna_def_operator_type_macro(BlenderRNA *brna)

@@ -360,6 +360,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), vo
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
 
+	ot->flag= OPTYPE_MACRO;
 	ot->exec= wm_macro_exec;
 	ot->invoke= wm_macro_invoke;
 	ot->modal= wm_macro_modal;

@@ -244,8 +244,6 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 
 #endif
 
-static StructRNA *pyrna_struct_as_srna(PyObject *self);
-
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {
 	return (a->ptr.data==b->ptr.data) ? 0 : -1;
@@ -3354,7 +3352,7 @@ PyObject *BPY_rna_props( void )
 	return submodule;
 }
 
-static StructRNA *pyrna_struct_as_srna(PyObject *self)
+StructRNA *pyrna_struct_as_srna(PyObject *self)
 {
 	BPy_StructRNA *py_srna = NULL;
 	StructRNA *srna;
@@ -3395,7 +3393,7 @@ static StructRNA *pyrna_struct_as_srna(PyObject *self)
 /* Orphan functions, not sure where they should go */
 /* get the srna for methods attached to types */
 /* */
-static StructRNA *srna_from_self(PyObject *self)
+StructRNA *srna_from_self(PyObject *self)
 {
 	/* a bit sloppy but would cause a very confusing bug if
 	 * an error happened to be set here */

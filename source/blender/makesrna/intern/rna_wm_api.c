@@ -237,6 +237,35 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_pointer(func, "context", "Context", "", "");
 }
 
+void RNA_api_macro(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	/* utility, not for registering */
+	func= RNA_def_function(srna, "report", "rna_Operator_report");
+	parm= RNA_def_enum(func, "type", wm_report_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_ENUM_FLAG);
+	parm= RNA_def_string(func, "message", "", 0, "Report Message", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+
+	/* Registration */
+
+	/* poll */
+	func= RNA_def_function(srna, "poll", NULL);
+	RNA_def_function_ui_description(func, "Test if the operator can be called or not.");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	/* draw */
+	func= RNA_def_function(srna, "draw", NULL);
+	RNA_def_function_ui_description(func, "Draw function for the operator.");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_pointer(func, "context", "Context", "", "");
+}
+
 void RNA_api_keyconfig(StructRNA *srna)
 {
 	FunctionRNA *func;

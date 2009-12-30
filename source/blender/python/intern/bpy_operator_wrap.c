@@ -299,7 +299,47 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 	}
 }
 
+void macro_wrapper(wmOperatorType *ot, void *userdata)
+{
+	wmOperatorType *data = (wmOperatorType *)userdata;
 
+	/* only copy a couple of things, the rest is set by the macro registration */
+	ot->name = data->name;
+	ot->idname = data->idname;
+	ot->description = data->description;
+	ot->flag |= data->flag; /* append flags to the one set by registration */
+	ot->pyop_poll = data->pyop_poll;
+	ot->ui = data->ui;
+	ot->ext = data->ext;
+
+	RNA_struct_blender_type_set(ot->ext.srna, ot);
+
+
+	/* Can't use this because it returns a dict proxy
+	 *
+	 * item= PyObject_GetAttrString(py_class, "__dict__");
+	 */
+	{
+		PyObject *py_class = ot->ext.data;
+		PyObject *item= ((PyTypeObject*)py_class)->tp_dict;
+		if(item) {
+			/* only call this so pyrna_deferred_register_props gives a useful error
+			 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
+			 * later */
+			RNA_def_struct_identifier(ot->srna, ot->idname);
+
+			if(pyrna_deferred_register_props(ot->srna, item)!=0) {
+				/* failed to register operator props */
+				PyErr_Print();
+				PyErr_Clear();
+
+			}
+		}
+		else {
+			PyErr_Clear();
+		}
+	}
+}
 
 
 
@@ -588,11 +628,11 @@ PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	PyObject *macro;
-	PyObject *item;
 	PointerRNA ptr_otmacro;
+	StructRNA *srna;
 
 	char *opname;
-	char *macroname;
+	const char *macroname;
 
 	if (!PyArg_ParseTuple(args, "Os:_bpy.ops.macro_define", &macro, &opname))
 		return NULL;
@@ -603,21 +643,8 @@ PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args)
 	}
 
 	/* identifiers */
-	item= PyObject_GetAttrString(macro, PYOP_ATTR_IDNAME_BL);
-
-	if (!item) {
-		item= PyObject_GetAttrString(macro, PYOP_ATTR_IDNAME);
-
-		if (!item) {
-			PyErr_Format(PyExc_ValueError, "Macro Define: not a valid Macro class");
-		} else {
-			macroname= _PyUnicode_AsString(item);
-			PyErr_Format(PyExc_ValueError, "Macro Define: '%s' hasn't been registered yet", macroname);
-		}
-		return NULL;
-	}
-
-	macroname= _PyUnicode_AsString(item);
+	srna= srna_from_self(macro);
+	macroname = RNA_struct_identifier(srna);
 
 	ot = WM_operatortype_exists(macroname);
 
