@@ -37,8 +37,6 @@ class ConstraintButtonsPanel(bpy.types.Panel):
             # match enum type to our functions, avoids a lookup table.
             getattr(self, con.type)(context, box, con, wide_ui)
 
-            # show/key buttons here are most likely obsolete now, with
-            # keyframing functionality being part of every button
             if con.type not in ('RIGID_BODY_JOINT', 'SPLINE_IK', 'NULL'):
                 box.prop(con, "influence")
 
@@ -562,6 +560,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         if wide_ui:
             row.label(text="Min/Max:")
         row.prop(con, "floor_location", expand=True)
+		
+        self.space_template(layout, con, wide_ui)
 
     def RIGID_BODY_JOINT(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
