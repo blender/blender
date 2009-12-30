@@ -686,7 +686,12 @@ static int ED_operator_view3d_rotate(bContext *C)
 		return 0;
 	} else {
 		RegionView3D *rv3d= CTX_wm_region_view3d(C);
-		return rv3d->viewlock == 0;
+		/* rv3d is null in menus, but it's ok when the menu is clicked on */
+		/* XXX of course, this doesn't work with quadview
+		 * Maybe having exec return PASSTHROUGH would be better than polling here
+		 * Poll functions are full of problems anyway.
+		 * */
+		return rv3d == NULL || rv3d->viewlock == 0;
 	}
 }
 
