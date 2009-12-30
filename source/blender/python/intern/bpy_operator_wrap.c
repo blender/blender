@@ -255,9 +255,9 @@ static int PYTHON_OT_poll(bContext *C, wmOperatorType *ot)
 	return PYTHON_OT_generic(PYOP_POLL, C, ot, NULL, NULL, NULL);
 }
 
-static void PYTHON_OT_draw(bContext *C, wmOperator *op, uiLayout *layout)
+static void PYTHON_OT_draw(bContext *C, wmOperator *op)
 {
-	PYTHON_OT_generic(PYOP_DRAW, C, op->type, op, NULL, layout);
+        PYTHON_OT_generic(PYOP_DRAW, C, op->type, op, NULL, op->layout);
 }
 
 
