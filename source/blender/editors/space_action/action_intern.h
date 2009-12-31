@@ -83,7 +83,7 @@ void ACTION_OT_view_all(struct wmOperatorType *ot);
 void ACTION_OT_copy(struct wmOperatorType *ot);
 void ACTION_OT_paste(struct wmOperatorType *ot);
 
-void ACT_OT_keyframe_insert(struct wmOperatorType *ot);
+void ACTION_OT_keyframe_insert(struct wmOperatorType *ot);
 void ACTION_OT_duplicate(struct wmOperatorType *ot);
 void ACTION_OT_delete(struct wmOperatorType *ot);
 void ACTION_OT_clean(struct wmOperatorType *ot);

@@ -497,11 +497,11 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ACT_OT_keyframe_insert (wmOperatorType *ot)
+void ACTION_OT_keyframe_insert (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframes";
-	ot->idname= "ACT_OT_keyframe_insert";
+	ot->idname= "ACTION_OT_keyframe_insert";
 	ot->description= "Insert keyframes for the specified channels.";
 	
 	/* api callbacks */
