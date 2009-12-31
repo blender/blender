@@ -456,6 +456,29 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 # invalid url
                 self.send_head(http.client.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path == "/balance_limit":
+            length = int(self.headers['content-length'])
+            info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+            for rule_id, limit in info_map.items():
+                try:
+                    rule = self.server.balancer.ruleByID(rule_id)
+                    if rule:
+                        rule.setLimit(limit)
+                except:
+                    pass # invalid type
+                        
+            self.send_head()
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path == "/balance_enable":
+            length = int(self.headers['content-length'])
+            info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+            for rule_id, enabled in info_map.items():
+                rule = self.server.balancer.ruleByID(rule_id)
+                if rule:
+                    rule.enabled = enabled
+                        
+            self.send_head()
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/cancel"):
             match = cancel_pattern.match(self.path)
 

@@ -11,6 +11,19 @@ function edit(id, info)
 	request("/edit_" + id, info)
 }
 
+function balance_edit(id, old_value)
+{
+	var new_value = prompt("New limit", old_value);
+	if (new_value != null && new_value != "") {
+		request("/balance_limit", "{" + id + ":'" + new_value + "'}");
+	}
+}
+
+function balance_enable(id, value)
+{
+	request("/balance_enable", "{" + id + ":" + value + "}");
+}
+
 function returnObjById( id )
 {
     if (document.getElementById)

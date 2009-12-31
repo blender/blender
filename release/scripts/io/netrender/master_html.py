@@ -80,6 +80,9 @@ def get(handler):
 
     def endTable():
         output("</table>")
+        
+    def checkbox(title, value, script=""):
+        return """<input type="checkbox" title="%s" %s %s>""" % (title, "checked" if value else "", ("onclick=\"%s\"" % script) if script else "")
 
     if handler.path == "/html/netrender.js":
         f = open(os.path.join(src_folder, "netrender.js"), 'rb')
@@ -105,16 +108,34 @@ def get(handler):
 
         startTable(caption = "Rules", class_style = "rules")
 
-        headerTable("type", "description", "limit")
+        headerTable("type", "enabled", "description", "limit")
 
         for rule in handler.server.balancer.rules:
-            rowTable("rating", rule, rule.str_limit() if hasattr(rule, "limit") else "&nbsp;")
+            rowTable(   
+                        "rating",
+                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        rule,
+                        rule.str_limit() + 
+                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                    )
 
         for rule in handler.server.balancer.priorities:
-            rowTable("priority", rule, rule.str_limit() if hasattr(rule, "limit") else "&nbsp;")
+            rowTable(   
+                        "priority",
+                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        rule,
+                        rule.str_limit() + 
+                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                    )
 
         for rule in handler.server.balancer.exceptions:
-            rowTable("exception", rule, rule.str_limit() if hasattr(rule, "limit") else "&nbsp;")
+            rowTable(   
+                        "exception",
+                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        rule,
+                        rule.str_limit() + 
+                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                    )
 
         endTable()
 
@@ -132,49 +153,49 @@ def get(handler):
 
         startTable()
         headerTable(
-                                    "&nbsp;",
-                                    "id",
-                                    "name",
-                                    "category",
-                                    "chunks",
-                                    "priority",
-                                    "usage",
-                                    "wait",
-                                    "status",
-                                    "length",
-                                    "done",
-                                    "dispatched",
-                                    "error",
-                                    "first",
-                                    "exception"
-                                )
+                        "&nbsp;",
+                        "id",
+                        "name",
+                        "category",
+                        "chunks",
+                        "priority",
+                        "usage",
+                        "wait",
+                        "status",
+                        "length",
+                        "done",
+                        "dispatched",
+                        "error",
+                        "first",
+                        "exception"
+                    )
 
         handler.server.balance()
 
         for job in handler.server.jobs:
             results = job.framesStatus()
             rowTable(
-                                """<button title="cancel job" onclick="request('/cancel_%s', null);">X</button>""" % job.id +
-                                """<button title="reset all frames" onclick="request('/resetall_%s_0', null);">R</button>""" % job.id,
-                                job.id,
-                                link(job.name, "/html/job" + job.id),
-                                job.category if job.category else "<i>None</i>",
-                                str(job.chunks) +
-                                """<button title="increase priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);">+</button>""" % (job.id, job.chunks + 1) +
-                                """<button title="decrease priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);" %s>-</button>""" % (job.id, job.chunks - 1, "disabled=True" if job.chunks == 1 else ""),
-                                str(job.priority) +
-                                """<button title="increase chunks size" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);">+</button>""" % (job.id, job.priority + 1) +
-                                """<button title="decrease chunks size" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);" %s>-</button>""" % (job.id, job.priority - 1, "disabled=True" if job.priority == 1 else ""),
-                                "%0.1f%%" % (job.usage * 100),
-                                "%is" % int(time.time() - job.last_dispatched),
-                                job.statusText(),
-                                len(job),
-                                results[DONE],
-                                results[DISPATCHED],
-                                str(results[ERROR]) +
-                                """<button title="reset error frames" onclick="request('/reset_%s_0', null);" %s>R</button>""" % (job.id, "disabled=True" if not results[ERROR] else ""),
-                                handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job)
-                            )
+                        """<button title="cancel job" onclick="request('/cancel_%s', null);">X</button>""" % job.id +
+                        """<button title="reset all frames" onclick="request('/resetall_%s_0', null);">R</button>""" % job.id,
+                        job.id,
+                        link(job.name, "/html/job" + job.id),
+                        job.category if job.category else "<i>None</i>",
+                        str(job.chunks) +
+                        """<button title="increase priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);">+</button>""" % (job.id, job.chunks + 1) +
+                        """<button title="decrease priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);" %s>-</button>""" % (job.id, job.chunks - 1, "disabled=True" if job.chunks == 1 else ""),
+                        str(job.priority) +
+                        """<button title="increase chunks size" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);">+</button>""" % (job.id, job.priority + 1) +
+                        """<button title="decrease chunks size" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);" %s>-</button>""" % (job.id, job.priority - 1, "disabled=True" if job.priority == 1 else ""),
+                        "%0.1f%%" % (job.usage * 100),
+                        "%is" % int(time.time() - job.last_dispatched),
+                        job.statusText(),
+                        len(job),
+                        results[DONE],
+                        results[DISPATCHED],
+                        str(results[ERROR]) +
+                        """<button title="reset error frames" onclick="request('/reset_%s_0', null);" %s>R</button>""" % (job.id, "disabled=True" if not results[ERROR] else ""),
+                        handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job)
+                    )
 
         endTable()
 
