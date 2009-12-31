@@ -1633,12 +1633,16 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 	lightobj.m_nodiffuse = (la->mode & LA_NO_DIFF) != 0;
 	lightobj.m_nospecular = (la->mode & LA_NO_SPEC) != 0;
 	
+/*
+	NEGATIVE LAMP only supported in GLSL mode, and handled inside the lamp update function
+	code commented out now, to be removed or extended to multitexture mode
 	if (la->mode & LA_NEG)
 	{
 		lightobj.m_red = -lightobj.m_red;
 		lightobj.m_green = -lightobj.m_green;
 		lightobj.m_blue = -lightobj.m_blue;
 	}
+*/
 		
 	if (la->type==LA_SUN) {
 		lightobj.m_type = RAS_LightObject::LIGHT_SUN;
